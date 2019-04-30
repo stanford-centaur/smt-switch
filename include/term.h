@@ -20,7 +20,7 @@ namespace smt
     // it would be nice to make this private, but then can't be called by Term
     // unless we make it a friend (which would be strange for CVC4)
     /* Should return true iff the terms are identical */
-    virtual bool compare(AbsTerm* absterm) const = 0;
+    virtual bool compare(const std::shared_ptr<AbsTerm>& absterm) const = 0;
     // Term methods
     virtual std::vector<std::shared_ptr<AbsTerm>> get_children() const = 0;
     virtual std::shared_ptr<AbsSort> get_sort() const = 0;
