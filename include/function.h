@@ -23,13 +23,13 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(unsigned int a, std::vector<shared_ptr<AbsSort>> s)
+    AbsFunction(unsigned int a, std::vector<std::shared_ptr<AbsSort>> s)
       : arity(a), sorts(s)
       {};
     virtual ~AbsFunction() {};
   protected:
     unsigned int arity;
-    std::vector<shared_ptr<AbsSort>> sorts;
+    std::vector<std::shared_ptr<AbsSort>> sorts;
   }
 }
 
