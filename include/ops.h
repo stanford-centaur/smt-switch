@@ -49,6 +49,7 @@ namespace smt
   /*   std::shared_ptr<AbsFunction> function; */
   /* }; */
 
+  // TODO: Implement comparators for comparing Ops and easy comparison to builtin ops / functions
   struct Op
   {
     bool builtin;
@@ -73,7 +74,6 @@ namespace smt
   /* { */
   /*   if(builtin) */
   /*     { */
-        
   /*     } */
   /* } */
 

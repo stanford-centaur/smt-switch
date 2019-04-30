@@ -2,16 +2,14 @@
 #define BOOLECTOR_TERM_H
 
 #include <vector>
+#include <iostream>
 
 #include "boolector/boolector.h"
 #include "term.h"
 #include "ops.h"
 
-extern "C"
-{
-  BoolectorNode* boolector_copy(Btor*, BoolectorNode*);
-  void boolector_release(Btor*, BoolectorNode*);
-}
+// TODO: Figure out if we should have extern C here?
+//       seems to be working already
 
 namespace smt {
 
@@ -19,7 +17,7 @@ class BoolectorTerm : public AbsTerm
 {
  public:
  BoolectorTerm(Btor* b, BoolectorNode* n,
-               std::vector<std::shared_ptr<BoolectorTerm>> c,
+               std::vector<std::shared_ptr<AbsTerm>> c,
                Op o)
    : btor(b), node(n), children(c), op(o)
     {};
@@ -38,6 +36,7 @@ class BoolectorTerm : public AbsTerm
   {
     return children;
   }
+  Op get_op() const override { return op; };
   std::shared_ptr<AbsSort> get_sort() const override
   {
     throw NotImplementedException("Can't get sort from btor");
@@ -49,7 +48,7 @@ class BoolectorTerm : public AbsTerm
  private:
   Btor * btor;
   BoolectorNode * node;
-  std::vector<std::shared_ptr<BoolectorTerm>> children;
+  std::vector<std::shared_ptr<AbsTerm>> children;
   Op op;
 };
 
