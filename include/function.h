@@ -30,7 +30,7 @@ namespace smt
   protected:
     unsigned int arity;
     std::vector<std::shared_ptr<AbsSort>> sorts;
-  }
+  };
 }
 
 #endif
