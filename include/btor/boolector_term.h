@@ -19,7 +19,7 @@ class BoolectorTerm : public AbsTerm
 {
  public:
  BoolectorTerm(Btor* b, BoolectorNode* n,
-               std::vector<shared_ptr<BoolectorTerm>> c,
+               std::vector<std::shared_ptr<BoolectorTerm>> c,
                Op o)
    : btor(b), node(n), children(c), op(o)
     {};
@@ -29,12 +29,12 @@ class BoolectorTerm : public AbsTerm
   }
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override { return (std::size_t) boolector_get_node_id(btor, node); };
-  bool compare(const std::unique_ptr<AbsTerm>& absterm) const override
+  bool compare(const std::shared_ptr<AbsTerm>& absterm) const override
   {
     BoolectorTerm* other = static_cast<BoolectorTerm*>(absterm.get());
     return boolector_get_node_id(this->btor, this->node) == boolector_get_node_id(other->btor, other->node);
   }
-  std::vector<shared_ptr<BoolectorTerm>> get_children() const override
+  std::vector<std::shared_ptr<AbsTerm>> get_children() const override
   {
     return children;
   }
@@ -49,7 +49,7 @@ class BoolectorTerm : public AbsTerm
  private:
   Btor * btor;
   BoolectorNode * node;
-  std::vector<shared_ptr<BoolectorTerm>> children;
+  std::vector<std::shared_ptr<BoolectorTerm>> children;
   Op op;
 };
 
