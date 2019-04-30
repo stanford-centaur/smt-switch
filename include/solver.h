@@ -4,14 +4,18 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "exceptions.h"
+#include "ops.h"
 #include "sort.h"
 #include "term.h"
 
 namespace smt
 {
-  // abstract class
+  /**
+     Abstract solver class to be implemented by each supported solver.
+   */
   class AbsSolver
   {
   public:
@@ -26,18 +30,16 @@ namespace smt
     virtual bool check_sat() const = 0;
     Term get_value(Term& t) const = 0;
     // virtual bool check_sat_assuming() const = 0;
-    Sort construct_sort(Type t)
-    {
-      switch(t)
-      {
-      case INT: return IntSort();
-        break;
-      case REAL: return RealSort();
-        break;
-      default:
-        throw IncorrectUsage(type2str[t]+" expects other arguments to construct_sort");
-      }
-    }
+    std::shared_ptr<AbsSort> construct_sort(Type t) const = 0;
+    std::shared_ptr<AbsSort> construct_sort(Type t,
+                                            unsigned int size) const = 0;
+    std::shared_ptr<AbsSort> construct_sort(Type t,
+                                            std::shared_ptr<AbsSort> idxsort,
+                                            std::shared_ptr<AbsSort> elemsort) const = 0;
+    std::shared_ptr<AbsTerm> apply_op(BuiltinOp op,
+                                      std::vector<std::shared_ptr<AbsTerm>> terms) const = 0;
+    std::shared_ptr<AbsTerm> apply_op(Op op,
+                                      std::vector<std::shared_ptr<AbsTerm>> terms) const = 0;
   };
 }
 
