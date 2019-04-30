@@ -9,7 +9,8 @@ using namespace std;
 
 constexpr bool type2str_check()
 {
-  return ((type2str[ARRAY] == "Array") &&
+  return ((type2str[ARRAY] == "ARRAY") &&
+          (type2str[BOOL] == "BOOL") &&
           (type2str[BV] == "BV") &&
           (type2str[INT] == "INT") &&
           (type2str[REAL] == "REAL") &&

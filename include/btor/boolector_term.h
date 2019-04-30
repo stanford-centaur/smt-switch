@@ -5,7 +5,7 @@
 
 #include "boolector/boolector.h"
 #include "term.h"
-#include "op.h"
+#include "ops.h"
 
 extern "C"
 {
@@ -15,7 +15,7 @@ extern "C"
 
 namespace smt {
 
-class BoolectorTerm : public TermAbs
+class BoolectorTerm : public AbsTerm
 {
  public:
  BoolectorTerm(Btor* b, BoolectorNode* n,
@@ -29,7 +29,7 @@ class BoolectorTerm : public TermAbs
   }
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override { return (std::size_t) boolector_get_node_id(btor, node); };
-  bool compare(const std::unique_ptr<TermAbs>& absterm) const override
+  bool compare(const std::unique_ptr<AbsTerm>& absterm) const override
   {
     BoolectorTerm* other = static_cast<BoolectorTerm*>(absterm.get());
     return boolector_get_node_id(this->btor, this->node) == boolector_get_node_id(other->btor, other->node);
