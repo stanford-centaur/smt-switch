@@ -21,7 +21,8 @@ namespace smt
    REAL,
    UNINTERPRETED,
    /** IMPORTANT: This must stay at the bottom.
-      It's only use is for sizing the type2str array */
+                  It's only use is for sizing the type2str array
+   */
    NUM_TYPES
   };
 
@@ -56,10 +57,11 @@ namespace smt
     AbsSort(Type t) : type(t) {};
     virtual ~AbsSort() {};
     virtual std::string to_string() const = 0;
-    virtual bool is_array() const = 0;
-    virtual bool is_bv() const = 0;
-    virtual bool is_int() const = 0;
-    virtual bool is_real() const = 0;
+    bool is_array() const { return type == ARRAY; };
+    bool is_bool() const { return type == BOOL; };
+    bool is_bv() const { return type == BV; };
+    bool is_int() const { return type == INT; };
+    bool is_real() const { return type == REAL; };
     // TODO: decide on exception or special value for incorrect usage
     virtual unsigned int get_width() const = 0;
     virtual unsigned int get_indexsort() const = 0;
