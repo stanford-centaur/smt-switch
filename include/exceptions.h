@@ -15,10 +15,12 @@ class SmtException : public std::exception
    SmtException(const char * msg) : std::exception(msg) {};
 }
 
-class IncorrectUsage : public SmtException
+class IncorrectUsageException : public SmtException
 {
  public:
-   IncorrectUsage(const char * msg) : SmtException(msg) {};
+   IncorrectUsageException(const char * msg) : SmtException(msg) {};
 }
+
+class NotImplementedException(const char * msg) : SmtException(msg) {};
 
 #endif
