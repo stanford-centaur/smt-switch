@@ -1,57 +1,18 @@
-#ifndef SMT_OPS_H
-#define SMT_OPS_H
-
-#include "function.h"
+#include "prim_ops.h"
+#include "indexed_ops.h"
 
 namespace smt
 {
-  // TODO add more smt ops
-  enum BuiltinOp
-  {
-   AND=0,
-   OR,
-   XOR,
-   NOT,
-   IMPLIES,
-   ITE,
-   BVAND,
-   BVOR,
-   BXOR,
-   BVNOT,
-   BVNEG,
-   BVADD,
-   BVSUB,
-   BVMUL,
-   BVASHR,
-   BVLSHR,
-   BVSHL,
-   BVULT,
-   BVULE,
-   BVUGT,
-   BVUGE,
-   BVSLT,
-   BVSLE,
-   BVSGT,
-   BVSGE,
-   BVEXTRACT,
-   SELECT,
-   STORE,
-   // distinguish between const and variable in the leaves
-   // TODO: Decide if it should be Value/Const instead
-   CONST,
-   VAR,
-   /**
-      Serves as both the number of ops and a null element for builtin operators.
-    */
-   NUM_OPS_AND_NULL
-  };
+  
+}
 
+// old attempt
   // not advised to use a shared_ptr in a union
   // makes sense
   // TODO figure out if there's a better way than the struct implementation below
-  /* union FunctionOrBuiltinOp */
+  /* union FunctionOrPrimOp */
   /* { */
-  /*   BuiltinOp builtin_op; */
+  /*   PrimOp builtin_op; */
   /*   std::shared_ptr<AbsFunction> function; */
   /* }; */
 
@@ -59,19 +20,19 @@ namespace smt
   struct Op
   {
     bool builtin;
-    BuiltinOp builtin_op;
+    PrimOp builtin_op;
     // TODO: Are there operators indexed by other types?
     /* int index1; */
     /* int index2; */
     std::shared_ptr<AbsFunction> function;
 
-  /* Op(BuiltinOp bop) */
+  /* Op(PrimOp bop) */
   /*   : builtin(true), builtin_op(bop), index1(-1), index2(-1), function(nullptr) */
   /*   {}; */
-  /* Op(BuiltinOp bop, int idx1) */
+  /* Op(PrimOp bop, int idx1) */
   /*   : builtin(true), builtin_op(bop), index1(idx1), index2(-1), function(nullptr) */
   /*   {}; */
-  /* Op(BuiltinOp bop, int idx1, int idx2) */
+  /* Op(PrimOp bop, int idx1, int idx2) */
   /*   : builtin(true), builtin_op(bop), index1(idx1), index2(idx2), function(nullptr) */
   /*   {}; */
   Op(std::shared_ptr<AbsFunction> f) : builtin(false), builtin_op(NUM_OPS_AND_NULL), function(f) {};
@@ -95,6 +56,3 @@ namespace smt
   /* } */
 
   };
-}
-
-#endif

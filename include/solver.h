@@ -36,7 +36,7 @@ namespace smt
     std::shared_ptr<AbsSort> construct_sort(Type t,
                                             std::shared_ptr<AbsSort> idxsort,
                                             std::shared_ptr<AbsSort> elemsort) const = 0;
-    std::shared_ptr<AbsTerm> apply_op(BuiltinOp op,
+    std::shared_ptr<AbsTerm> apply_op(PrimOp op,
                                       std::vector<std::shared_ptr<AbsTerm>> terms) const = 0;
     std::shared_ptr<AbsTerm> apply_op(Op op,
                                       std::vector<std::shared_ptr<AbsTerm>> terms) const = 0;
