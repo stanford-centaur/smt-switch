@@ -3,8 +3,7 @@
 #include "ops.h"
 
 using namespace smt;
-int main()
-{
+int main() {
   Op op1(AND);
   assert(op1.builtin);
   assert(op1.builtin_op == AND);

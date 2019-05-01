@@ -24,18 +24,17 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(int a)
-      : arity(a), op(o)
-     {};
+    AbsFunction(int a) : arity(a), op(o){};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
     virtual std::vector<Sort> get_domain_sorts() const = 0;
     virtual std::vector<Sort> get_sort() const = 0;
+
   protected:
     unsigned int arity;
   };
 
-  using Function=std::shared_ptr<AbsFunction>;
+  using Function = std::shared_ptr<AbsFunction>;
 }
 
 #endif

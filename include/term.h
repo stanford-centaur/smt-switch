@@ -5,8 +5,8 @@
 #include <memory>
 #include <string>
 
-#include "sort.h"
 #include "ops.h"
+#include "sort.h"
 
 namespace smt
 {
