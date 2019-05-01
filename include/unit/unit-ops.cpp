@@ -12,7 +12,7 @@ int main()
 
   Op op2(std::shared_ptr<AbsFunction>(nullptr));
   assert(!op2.builtin);
-  assert(op2.builtin_op == NUM_OPS); // this is an invalid op
+  assert(op2.builtin_op == NUM_OPS_AND_NULL); // this is an invalid op
   // TODO: change this to something interesting
   assert(op2.function == nullptr);
 }
