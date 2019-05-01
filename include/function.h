@@ -24,19 +24,15 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(bool u, int a, PrimOp o)
-      : uninterpreted(u), arity(a), op(o)
+    AbsFunction(int a)
+      : arity(a), op(o)
      {};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
-    bool is_uf() const { return uninterpreted; };
-    virtual std::vector<std::shared_ptr<AbsSort>> get_sorts() const = 0;
+    virtual std::vector<std::shared_ptr<AbsSort>> get_domain_sorts() const = 0;
+    virtual std::vector<std::shared_ptr<AbsSort>> get_sort() const = 0;
   protected:
-    // whether this is an uninterpreted function
-    // if not, then it's an indexed operator and op tells which kind
-    bool uninterpreted;
     unsigned int arity;
-    PrimOp op;
   };
 }
 

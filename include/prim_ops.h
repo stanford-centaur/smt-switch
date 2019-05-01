@@ -5,6 +5,7 @@
 
 namespace smt
 {
+  // Primitive SMT operations (and identifiers for building indexed operators)
   // TODO add more smt ops
   enum PrimOp
   {
