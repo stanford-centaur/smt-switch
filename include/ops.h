@@ -36,6 +36,9 @@ namespace smt
    BVEXTRACT,
    SELECT,
    STORE,
+   // distinguish between const and variable in the leaves
+   // TODO: Decide if it should be Value/Const instead
+   CONST,
    VAR,
    /**
       Serves as both the number of ops and a null element for builtin operators.
