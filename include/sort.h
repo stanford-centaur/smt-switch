@@ -71,6 +71,8 @@ namespace smt
     Kind kind;
   };
 
+  using Sort = std::shared_ptr<AbsSort>;
+
 }
 
 #endif

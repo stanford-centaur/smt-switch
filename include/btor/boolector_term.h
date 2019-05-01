@@ -16,9 +16,7 @@ namespace smt {
 class BoolectorTerm : public AbsTerm
 {
  public:
- BoolectorTerm(Btor* b, BoolectorNode* n,
-               std::vector<std::shared_ptr<AbsTerm>> c,
-               Op o)
+ BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Op o)
    : btor(b), node(n), children(c), op(o)
     {};
   ~BoolectorTerm()
@@ -27,17 +25,19 @@ class BoolectorTerm : public AbsTerm
   }
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override { return (std::size_t) boolector_get_node_id(btor, node); };
-  bool compare(const std::shared_ptr<AbsTerm>& absterm) const override
+  bool compare(const Term& absterm) const override
   {
     BoolectorTerm* other = static_cast<BoolectorTerm*>(absterm.get());
     return boolector_get_node_id(this->btor, this->node) == boolector_get_node_id(other->btor, other->node);
   }
-  std::vector<std::shared_ptr<AbsTerm>> get_children() const override
+  std::vector<Term> get_children() const override
   {
     return children;
   }
   Op get_op() const override { return op; };
-  std::shared_ptr<AbsSort> get_sort() const override
+  // TODO Probably would be best to store this information at the API level
+  //      want solvers to be identical to the user (except for supported logics of course)
+  Sort get_sort() const override
   {
     throw NotImplementedException("Can't get sort from btor");
   }
@@ -48,7 +48,7 @@ class BoolectorTerm : public AbsTerm
  private:
   Btor * btor;
   BoolectorNode * node;
-  std::vector<std::shared_ptr<AbsTerm>> children;
+  std::vector<Term> children;
   Op op;
 };
 

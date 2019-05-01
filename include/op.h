@@ -14,9 +14,11 @@ namespace smt
     PrimOp op;
   }
 
+  using IndexedOp = std::shared_ptr<AbsIndexedOp>;
+
   using Op = std::variant<PrimOp,
-                          std::shared_ptr<AbsIndexedOp>,
-                          std::shared_ptr<Function>>;
+                          IndexedOp,
+                          Function>;
 }
 
 // old attempt
