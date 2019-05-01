@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "ops.h"
 #include "sort.h"
 #include "term.h"
 
@@ -23,13 +24,19 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(unsigned int a, std::vector<std::shared_ptr<AbsSort>> s)
-      : arity(a), sorts(s)
-      {};
+    AbsFunction(bool u, unsigned int a, Type t)
+      : uninterpreted(u), arity(a), type(t)
+     {};
     virtual ~AbsFunction() {};
+    unsigned int get_arity() const { return arity; };
+    bool is_uf() const { return uninterpreted; };
+    virtual std::vector<std::shared_ptr<AbsSort>> get_sorts() const = 0;
   protected:
+    // whether this is an uninterpreted function
+    // if not, then it's an indexed operator and type tells which kind
+    bool uninterpreted;
     unsigned int arity;
-    std::vector<std::shared_ptr<AbsSort>> sorts;
+    Type type;
   };
 }
 

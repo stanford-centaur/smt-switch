@@ -37,7 +37,10 @@ namespace smt
    SELECT,
    STORE,
    VAR,
-   NUM_OPS
+   /**
+      Serves as both the number of ops and a null element for builtin operators.
+    */
+   NUM_OPS_AND_NULL
   };
 
   // not advised to use a shared_ptr in a union
@@ -54,10 +57,21 @@ namespace smt
   {
     bool builtin;
     BuiltinOp builtin_op;
+    // TODO: Are there operators indexed by other types?
+    /* int index1; */
+    /* int index2; */
     std::shared_ptr<AbsFunction> function;
 
-  Op(BuiltinOp bop) : builtin(true), builtin_op(bop), function(nullptr) {};
-  Op(std::shared_ptr<AbsFunction> f) : builtin(false), builtin_op(NUM_OPS), function(f) {};
+  /* Op(BuiltinOp bop) */
+  /*   : builtin(true), builtin_op(bop), index1(-1), index2(-1), function(nullptr) */
+  /*   {}; */
+  /* Op(BuiltinOp bop, int idx1) */
+  /*   : builtin(true), builtin_op(bop), index1(idx1), index2(-1), function(nullptr) */
+  /*   {}; */
+  /* Op(BuiltinOp bop, int idx1, int idx2) */
+  /*   : builtin(true), builtin_op(bop), index1(idx1), index2(idx2), function(nullptr) */
+  /*   {}; */
+  Op(std::shared_ptr<AbsFunction> f) : builtin(false), builtin_op(NUM_OPS_AND_NULL), function(f) {};
   /* Op(const Op& o) : builtin(o.builtin) */
   /* { */
   /*   if(o.builtin) */
