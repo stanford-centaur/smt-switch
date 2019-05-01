@@ -24,8 +24,8 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(bool u, unsigned int a, Type t)
-      : uninterpreted(u), arity(a), type(t)
+    AbsFunction(bool u, unsigned int a, BuiltinOp o)
+      : uninterpreted(u), arity(a), op(o)
      {};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
@@ -33,10 +33,10 @@ namespace smt
     virtual std::vector<std::shared_ptr<AbsSort>> get_sorts() const = 0;
   protected:
     // whether this is an uninterpreted function
-    // if not, then it's an indexed operator and type tells which kind
+    // if not, then it's an indexed operator and op tells which kind
     bool uninterpreted;
     unsigned int arity;
-    Type type;
+    BuiltinOp op;
   };
 }
 
