@@ -7,17 +7,17 @@
 using namespace smt;
 using namespace std;
 
-constexpr bool type2str_check()
+constexpr bool kind2str_check()
 {
-  return ((type2str[ARRAY] == "ARRAY") &&
-          (type2str[BOOL] == "BOOL") &&
-          (type2str[BV] == "BV") &&
-          (type2str[INT] == "INT") &&
-          (type2str[REAL] == "REAL") &&
-          (type2str[UNINTERPRETED] == "UNINTERPRETED"));
+  return ((kind2str[ARRAY] == "ARRAY") &&
+          (kind2str[BOOL] == "BOOL") &&
+          (kind2str[BV] == "BV") &&
+          (kind2str[INT] == "INT") &&
+          (kind2str[REAL] == "REAL") &&
+          (kind2str[UNINTERPRETED] == "UNINTERPRETED"));
 }
 
 int main()
 {
-  static_assert(type2str_check());
+  static_assert(kind2str_check());
 }

@@ -24,7 +24,7 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(bool u, unsigned int a, BuiltinOp o)
+    AbsFunction(bool u, int a, BuiltinOp o)
       : uninterpreted(u), arity(a), op(o)
      {};
     virtual ~AbsFunction() {};
