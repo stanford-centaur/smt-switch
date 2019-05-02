@@ -15,11 +15,6 @@ class BoolectorFunction : AbsFunction {
 public:
   BoolectorFunction(Btor *b, BoolectorNode *n, unsigned int a, Sort s)
     : AbsFunction(a), btor(b), node(n), sort(s){};
-  // TODO remove this
-  /* std::vector<Sort> get_domain_sorts() const override */
-  /* { */
-  /*   return sorts; */
-  /* }; */
   Sort get_sort() const override { return sort; };
   BoolectorNode * get_boolector_node() { return node; };
 protected:
