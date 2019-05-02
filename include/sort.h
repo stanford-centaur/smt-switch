@@ -64,10 +64,10 @@ public:
   bool is_real() const { return kind == REAL; };
   // TODO: decide on exception or special value for incorrect usage
   virtual unsigned int get_width() const = 0;
-  virtual Sort get_indexsort() const = 0;
-  virtual Sort get_elemsort() const = 0;
-  virtual std::vector<Sort> get_domain_sorts() const = 0;
-  virtual Sort get_codomain_sort() const = 0;
+  virtual std::shared_ptr<AbsSort> get_indexsort() const = 0;
+  virtual std::shared_ptr<AbsSort> get_elemsort() const = 0;
+  virtual std::vector<std::shared_ptr<AbsSort>> get_domain_sorts() const = 0;
+  virtual std::shared_ptr<AbsSort> get_codomain_sort() const = 0;
   virtual bool compare(const std::shared_ptr<AbsSort> absort) const = 0;
   Kind get_kind() const { return kind; };
 

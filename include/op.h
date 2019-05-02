@@ -1,3 +1,6 @@
+#ifndef SMT_OP_H
+#define SMT_OP_H
+
 #include "function.h"
 #include "prim_ops.h"
 
@@ -11,7 +14,7 @@ public:
   PrimOp get_prim_op() const { return op; };
 protected:
   PrimOp op;
-}
+};
 
 using IndexedOp = std::shared_ptr<AbsIndexedOp>;
 
@@ -73,3 +76,5 @@ using Op = std::variant<PrimOp, IndexedOp, Function>;
 /* /\* } *\/ */
 
 /* }; */
+
+#endif

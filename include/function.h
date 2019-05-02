@@ -8,9 +8,7 @@
 #include <vector>
 
 #include "exceptions.h"
-#include "ops.h"
 #include "sort.h"
-#include "term.h"
 
 namespace smt
 {
@@ -20,7 +18,7 @@ namespace smt
   class AbsFunction
   {
   public:
-    AbsFunction(int a) : arity(a), op(o){};
+    AbsFunction(int a) : arity(a) {};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
     // TODO remove this -- should be method on FunctionSort not Function

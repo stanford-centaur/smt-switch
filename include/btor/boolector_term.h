@@ -6,7 +6,7 @@
 
 #include "boolector/boolector.h"
 #include "term.h"
-#include "ops.h"
+#include "op.h"
 
 // TODO: Figure out if we should have extern C here?
 //       seems to be working already
@@ -23,7 +23,7 @@ class BoolectorTerm : public AbsTerm
    std::size_t hash() const override {
      return (std::size_t)boolector_get_node_id(btor, node); };
    bool compare(const Term & absterm) const override {
-     std::shared_ptr<BoolectorTerm> other = static_pointer_cast<std::shared_ptr<BoolectorTerm>>(absterm);
+     std::shared_ptr<BoolectorTerm> other = std::static_pointer_cast<BoolectorTerm>(absterm);
      return boolector_get_node_id(this->btor, this->node) ==
             boolector_get_node_id(other->btor, other->node);
   }

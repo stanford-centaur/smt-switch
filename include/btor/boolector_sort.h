@@ -19,7 +19,7 @@ namespace smt
     Sort get_codomain_sort() const override  { throw IncorrectUsageException("Only defined for a function sort."); };
     bool compare(const Sort s) const override
     {
-      std::shared_ptr<BoolectorSort> bs = static_pointer_cast<std::shared<BoolectorSort>>(s);
+      std::shared_ptr<BoolectorSort> bs = std::static_pointer_cast<BoolectorSort>(s);
       if (kind != bs->get_kind())
       {
         // TODO : this will make bit-vectors and booleans different

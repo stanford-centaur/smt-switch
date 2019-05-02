@@ -1,9 +1,9 @@
-#ifndef SMT_OPS_H
-#define SMT_OPS_H
+#ifndef SMT_PRIM_OPS_H
+#define SMT_PRIM_OPS_H
 
 #include "function.h"
 
-#incldue < array >
+#include <array>
 #include <string>
 
 namespace smt {
@@ -19,7 +19,7 @@ enum PrimOp {
   ITE,
   BVAND,
   BVOR,
-  BXOR,
+  BVXOR,
   BVNOT,
   BVNEG,
   BVADD,

@@ -4,7 +4,7 @@
 
 #include "boolector/boolector.h"
 #include "boolector_term.h"
-#include "ops.h"
+#include "op.h"
 #include "sort.h"
 #include "term.h"
 
@@ -38,7 +38,7 @@ bool term_creation() {
   }
 
   Op op = bx_ule_y->get_op();
-  res &= (op.builtin_op == BVULE);
+  res &= (get<PrimOp>(op) == BVULE);
 
   boolector_release_sort(btor, bvsort8);
   // TODO handle the memory leak issue

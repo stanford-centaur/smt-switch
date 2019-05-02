@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include "ops.h"
+#include "op.h"
 #include "sort.h"
 
 namespace smt
