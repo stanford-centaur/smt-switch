@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 // Sort needs to have arguments
 //  could be integers or other sorts
