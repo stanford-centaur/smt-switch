@@ -1,3 +1,6 @@
+#ifndef SMT_BOOLECTOR_FUNCTION_H
+#define SMT_BOOLECTOR_FUNCTION_H
+
 #include <memory>
 #include <utility>
 #include <vector>
@@ -10,18 +13,21 @@
 namespace smt {
 class BoolectorFunction : AbsFunction {
 public:
-  BoolectorFunction(Btor *b, BoolectorNode *n,
-                    std::vector<std::shared_ptr<AbsSort>> sorts,
-                    std::shared_ptr<AbsSort> sort)
-      : AbsFunction(sorts.size()), btor(b), node(n), sorts(sorts), sort(sort){};
-  virtual std::vector<std::shared_ptr>> get_sorts() const override {
-    return sorts;
-  }
-
+  BoolectorFunction(Btor *b, BoolectorNode *n, unsigned int a, Sort s)
+    : AbsFunction(a), btor(b), node(n), sort(s){};
+  // TODO remove this
+  /* std::vector<Sort> get_domain_sorts() const override */
+  /* { */
+  /*   return sorts; */
+  /* }; */
+  Sort get_sort() const override { return sort; };
+  BoolectorNode * get_boolector_node() { return node; };
 protected:
   Btor *btor;
   BoolectorNode *node;
-  std::vector<std::shared_ptr<AbsSort>> sorts;
-  std::shared_ptr<AbsSort> sort;
+  // Specifically this should be a function sort
+  Sort sort;
 };
 } // namespace smt
+
+#endif

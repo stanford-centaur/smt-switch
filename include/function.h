@@ -12,10 +12,6 @@
 #include "sort.h"
 #include "term.h"
 
-// TODO If possible, AbsFunction should be able to represent constructed functions as well
-//      e.g. bitvector extract
-//      then the union can just be builtin operators or functions
-
 namespace smt
 {
   /**
@@ -27,8 +23,9 @@ namespace smt
     AbsFunction(int a) : arity(a), op(o){};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
-    virtual std::vector<Sort> get_domain_sorts() const = 0;
-    virtual std::vector<Sort> get_sort() const = 0;
+    // TODO remove this -- should be method on FunctionSort not Function
+    /* virtual std::vector<Sort> get_domain_sorts() const = 0; */
+    virtual Sort get_sort() const = 0;
 
   protected:
     unsigned int arity;

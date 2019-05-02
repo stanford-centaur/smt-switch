@@ -1,5 +1,5 @@
-#ifndef BOOLECTOR_TERM_H
-#define BOOLECTOR_TERM_H
+#ifndef SMT_BOOLECTOR_TERM_H
+#define SMT_BOOLECTOR_TERM_H
 
 #include <iostream>
 #include <vector>

@@ -54,7 +54,7 @@ constexpr std::array<std::string_view, NUM_KINDS> kind2str =
  */
 class AbsSort {
 public:
-  AbsSort(Kind t) : kind(t){};
+  AbsSort(Kind k) : kind(k){};
   virtual ~AbsSort(){};
   virtual std::string to_string() const = 0;
   bool is_array() const { return kind == ARRAY; };
