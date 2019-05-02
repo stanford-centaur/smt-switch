@@ -22,16 +22,16 @@ bool term_creation() {
   BoolectorNode *y = boolector_var(btor, bvsort8, "y");
   BoolectorNode *x_ulte_y = boolector_ulte(btor, x, y);
 
-  std::shared_ptr<BoolectorTerm> bx = make_shared<BoolectorTerm>(
+  Term bx = make_shared<BoolectorTerm>(
       btor, x, std::vector<shared_ptr<AbsTerm>>{}, VAR);
 
-  std::shared_ptr<BoolectorTerm> by = make_shared<BoolectorTerm>(
+  Term by = make_shared<BoolectorTerm>(
       btor, y, std::vector<shared_ptr<AbsTerm>>{}, VAR);
-  std::shared_ptr<BoolectorTerm> bx_ule_y = make_shared<BoolectorTerm>(
+  Term bx_ule_y = make_shared<BoolectorTerm>(
       btor, x_ulte_y, std::vector<shared_ptr<AbsTerm>>{bx, by}, BVULE);
 
   try {
-    shared_ptr<AbsSort> sort = bx_ule_y->get_sort();
+    Sort sort = bx_ule_y->get_sort();
     res = false;
   } catch (NotImplementedException &e) {
     res = true;
@@ -39,6 +39,11 @@ bool term_creation() {
 
   Op op = bx_ule_y->get_op();
   res &= (get<PrimOp>(op) == BVULE);
+
+
+  Term bx_ule_y_copy = bx_ule_y;
+  res &= (bx_ule_y_copy->compare(bx_ule_y));
+  res &= !(bx->compare(by));
 
   boolector_release_sort(btor, bvsort8);
   // TODO handle the memory leak issue
