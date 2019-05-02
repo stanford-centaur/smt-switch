@@ -24,12 +24,12 @@ bool term_creation() {
   BoolectorNode *x_ulte_y = boolector_ulte(btor, x, y);
 
   Term bx = make_shared<BoolectorTerm>(
-      btor, x, std::vector<shared_ptr<AbsTerm>>{}, VAR);
+      btor, x, std::vector<Term>{}, VAR);
 
   Term by = make_shared<BoolectorTerm>(
-      btor, y, std::vector<shared_ptr<AbsTerm>>{}, VAR);
+      btor, y, std::vector<Term>{}, VAR);
   Term bx_ule_y = make_shared<BoolectorTerm>(
-      btor, x_ulte_y, std::vector<shared_ptr<AbsTerm>>{bx, by}, BVULE);
+      btor, x_ulte_y, std::vector<Term>{bx, by}, BVULE);
 
   try {
     Sort sort = bx_ule_y->get_sort();
@@ -44,6 +44,13 @@ bool term_creation() {
 
   Term bx_ule_y_copy = bx_ule_y;
   res &= (bx_ule_y_copy->compare(bx_ule_y));
+  res &= (bx_ule_y_copy == bx_ule_y);
+  // note, if we made another bx_ule_y_copy term using make_shared with the same args and compared them,
+  //       we would get false. because the shared_ptr only compares the pointer values
+  // haven't figured out if this is a problem yet
+  // For example, the code below prints 0
+  // Term bx_ule_y_copy2 = make_shared<BoolectorTerm>(btor, x_ulte_y, vector<Term>{bx, by}, BVULE);
+  // cout << (bx_ule_y_copy == bx_ule_y_copy2) << endl;
   res &= !(bx->compare(by));
 
   boolector_release_sort(btor, bvsort8);
