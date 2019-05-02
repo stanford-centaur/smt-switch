@@ -32,6 +32,11 @@ namespace smt
   };
 
   using Term=std::shared_ptr<AbsTerm>;
+
+  bool operator==(const Term& t1, const Term& t2)
+  {
+   return t1->compare(t2);
+  }
 }
 
 #endif

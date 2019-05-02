@@ -82,6 +82,11 @@ protected:
   };
 
   using Sort = std::shared_ptr<AbsSort>;
+
+  bool operator==(const Sort& s1, const Sort& s2)
+  {
+   return s1->compare(s2);
+  }
 }
 
 #endif

@@ -42,16 +42,15 @@ bool term_creation() {
   res &= (get<PrimOp>(op) == BVULE);
   res &= (to_string(get<PrimOp>(op)) == "BVULE");
 
+  res &= !(bx->compare(by));
   Term bx_ule_y_copy = bx_ule_y;
   res &= (bx_ule_y_copy->compare(bx_ule_y));
   res &= (bx_ule_y_copy == bx_ule_y);
-  // note, if we made another bx_ule_y_copy term using make_shared with the same args and compared them,
-  //       we would get false. because the shared_ptr only compares the pointer values
-  // haven't figured out if this is a problem yet
-  // For example, the code below prints 0
-  // Term bx_ule_y_copy2 = make_shared<BoolectorTerm>(btor, x_ulte_y, vector<Term>{bx, by}, BVULE);
-  // cout << (bx_ule_y_copy == bx_ule_y_copy2) << endl;
-  res &= !(bx->compare(by));
+  // note: I overloaded operator== for Term (aka shared_ptr<AbsTerm>) so that the following code works
+  //       it uses 'compare' under the hood
+  boolector_copy(btor, x_ulte_y);
+  Term bx_ule_y_copy2 = make_shared<BoolectorTerm>(btor, x_ulte_y, vector<Term>{bx, by}, BVULE);
+  res &= (bx_ule_y_copy == bx_ule_y_copy2);
 
   boolector_release_sort(btor, bvsort8);
   // TODO handle the memory leak issue
