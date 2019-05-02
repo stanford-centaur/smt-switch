@@ -8,7 +8,7 @@ namespace smt {
 class AbsIndexedOp {
 public:
   AbsIndexedOp(PrimOp o) : op(o){};
-
+  PrimOp get_prim_op() const { return op; };
 protected:
   PrimOp op;
 }
