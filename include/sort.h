@@ -46,6 +46,11 @@ constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
 constexpr std::array<std::string_view, NUM_KINDS> kind2str =
     generate_kind2str();
 
+std::string_view to_string(Kind k)
+{
+  return kind2str[k];
+}
+
 /**
    Abstract base class for representing an SMT sort.
    It holds a kind enum and any necessary data for that particular sort.

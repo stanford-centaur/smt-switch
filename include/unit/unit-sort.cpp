@@ -14,4 +14,8 @@ constexpr bool kind2str_check() {
           (kind2str[UNINTERPRETED] == "UNINTERPRETED"));
 }
 
-int main() { static_assert(kind2str_check()); }
+int main()
+{
+  static_assert(kind2str_check());
+  assert(to_string(ARRAY) == "ARRAY");
+}

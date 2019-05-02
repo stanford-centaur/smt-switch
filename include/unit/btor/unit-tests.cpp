@@ -1,4 +1,5 @@
 #include "assert.h"
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -39,7 +40,7 @@ bool term_creation() {
 
   Op op = bx_ule_y->get_op();
   res &= (get<PrimOp>(op) == BVULE);
-
+  res &= (to_string(get<PrimOp>(op)) == "BVULE");
 
   Term bx_ule_y_copy = bx_ule_y;
   res &= (bx_ule_y_copy->compare(bx_ule_y));

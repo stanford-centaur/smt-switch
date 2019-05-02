@@ -100,6 +100,11 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
 constexpr std::array<std::string_view, NUM_OPS_AND_NULL> primop2str =
     generate_primop2str();
 
+std::string_view to_string(PrimOp op)
+{
+  return primop2str[op];
+}
+
 } // namespace smt
 
 #endif
