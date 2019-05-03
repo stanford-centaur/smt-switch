@@ -11,6 +11,7 @@ namespace smt
   {
   public:
     BoolectorSort(Kind k, Btor * b, BoolectorSort s) : AbsSort(k), btor(b), sort(s) {};
+    virtual ~BoolectorSort() { boolector_release_sort(btor, sort); };
     // by default none of these work
     unsigned int get_width() const override { throw IncorrectUsageException("Only defined for a bit-vector sort."); };
     Sort get_indexsort() const override { throw IncorrectUsageException("Only defined for an array sort."); };
@@ -66,6 +67,7 @@ namespace smt
     }
   protected:
     Kind kind;
+    Btor * btor;
     BoolectorSort sort;
   };
 
