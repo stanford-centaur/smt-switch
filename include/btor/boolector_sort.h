@@ -7,7 +7,7 @@
 
 namespace smt
 {
-  class BoolectorSort : AbsSort
+  class BoolectorSort : public AbsSort
   {
   public:
     BoolectorSort(Kind k, Btor * b, BoolectorSort s) : AbsSort(k), btor(b), sort(s) {};
@@ -77,7 +77,7 @@ namespace smt
       To make this simpler, we have unique classes for each sort.
    */
 
-  class BoolectorBVSort : BoolectorSort
+  class BoolectorBVSort : public BoolectorSort
   {
   public:
     BoolectorBVSort(Kind k, Btor * b, BoolectorSort s, unsigned int w)
@@ -87,7 +87,7 @@ namespace smt
     unsigned width;
   };
 
-  class BoolectorArraySort : BoolectorSort
+  class BoolectorArraySort : public BoolectorSort
   {
   public:
     BoolectorArraySort(Kind k, Btor * b, BoolectorSort s, Sort is, Sort es)
@@ -99,7 +99,7 @@ namespace smt
     Sort elemsort;
   };
 
-  class BoolectorFunctionSort : BoolectorSort
+  class BoolectorFunctionSort : public BoolectorSort
   {
   public:
     BoolectorFunctionSort(Kind k, Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)

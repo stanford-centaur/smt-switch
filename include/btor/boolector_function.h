@@ -11,7 +11,7 @@
 #include "boolector/boolector.h"
 
 namespace smt {
-class BoolectorFunction : AbsFunction {
+class BoolectorFunction : public AbsFunction {
 public:
   BoolectorFunction(Btor *b, BoolectorNode *n, unsigned int a, Sort s)
     : AbsFunction(a), btor(b), node(n), sort(s){};
