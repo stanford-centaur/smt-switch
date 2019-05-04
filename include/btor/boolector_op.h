@@ -7,6 +7,9 @@
 
 namespace smt
 {
+  // forward declaration
+  class BoolectorSolver;
+
   class BoolectorIndexedOp : public AbsIndexedOp
   {
   public:
@@ -14,6 +17,8 @@ namespace smt
     unsigned int get_upper() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
     unsigned int get_lower() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
     unsigned int get_idx() const { throw IncorrectUsageException("Expecting Op with single index"); };
+
+    friend class BoolectorSolver;
   };
 
   // boolector doesn't have a node type for indexed ops (only functions for performing them)
@@ -29,6 +34,8 @@ namespace smt
   protected:
     unsigned int upper;
     unsigned int lower;
+
+    friend class BoolectorSolver;
   }
 
   class BoolectorSingleIndexOp : public BoolectorIndexedOp
@@ -39,6 +46,8 @@ namespace smt
     unsigned int get_idx() const { return idx; };
   protected:
     unsigned int idx;
+
+    friend class BoolectorSolver;
   }
 
 }

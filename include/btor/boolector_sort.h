@@ -7,6 +7,10 @@
 
 namespace smt
 {
+
+  // forward declaration
+  class BoolectorSolver;
+
   class BoolectorSort : public AbsSort
   {
   public:
@@ -69,6 +73,8 @@ namespace smt
     Kind kind;
     Btor * btor;
     BoolectorSort sort;
+
+    friend class BoolectorSolver;
   };
 
   /** The Boolector C API doesn't support querying sorts for width, etc...
@@ -85,6 +91,8 @@ namespace smt
     unsigned int get_width() const override { return width; };
   protected:
     unsigned width;
+
+    friend class BoolectorSolver;
   };
 
   class BoolectorArraySort : public BoolectorSort
@@ -97,6 +105,8 @@ namespace smt
   protected:
     Sort indexsort;
     Sort elemsort;
+
+    friend class BoolectorSolver;
   };
 
   class BoolectorFunctionSort : public BoolectorSort
@@ -109,5 +119,7 @@ namespace smt
   protected:
     std::vector<Sort> domain_sorts;
     Sort codomain_sort;
+
+    friend class BoolectorSolver;
   };
 }

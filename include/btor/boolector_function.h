@@ -22,6 +22,8 @@ protected:
   BoolectorNode *node;
   // Specifically this should be a function sort
   Sort sort;
+
+  friend class BoolectorSolver;
 };
 } // namespace smt
 

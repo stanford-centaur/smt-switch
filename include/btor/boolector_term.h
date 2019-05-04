@@ -13,6 +13,9 @@
 
 namespace smt {
 
+// forward declaration
+class BoolectorSolver;
+
 class BoolectorTerm : public AbsTerm
 {
  public:
@@ -39,11 +42,13 @@ class BoolectorTerm : public AbsTerm
   {
     throw NotImplementedException("Can't get string representation from btor");
   }
- private:
+ protected:
   Btor * btor;
   BoolectorNode * node;
   std::vector<Term> children;
   Op op;
+
+  friend class BoolectorSolver;
 };
 
 }
