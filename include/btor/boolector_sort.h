@@ -11,11 +11,11 @@ namespace smt
   // forward declaration
   class BoolectorSolver;
 
-  class BoolectorSort : public AbsSort
+  class BoolectorSortBase : public AbsSort
   {
   public:
-    BoolectorSort(Kind k, Btor * b, BoolectorSort s) : AbsSort(k), btor(b), sort(s) {};
-    virtual ~BoolectorSort() { boolector_release_sort(btor, sort); };
+    BoolectorSortBase(Kind k, Btor * b, BoolectorSort s) : AbsSort(k), btor(b), sort(s) {};
+    virtual ~BoolectorSortBase() { boolector_release_sort(btor, sort); };
     // by default none of these work
     unsigned int get_width() const override { throw IncorrectUsageException("Only defined for a bit-vector sort."); };
     Sort get_indexsort() const override { throw IncorrectUsageException("Only defined for an array sort."); };
@@ -24,7 +24,7 @@ namespace smt
     Sort get_codomain_sort() const override  { throw IncorrectUsageException("Only defined for a function sort."); };
     bool compare(const Sort s) const override
     {
-      std::shared_ptr<BoolectorSort> bs = std::static_pointer_cast<BoolectorSort>(s);
+      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
       if (kind != bs->get_kind())
       {
         // TODO : this will make bit-vectors and booleans different
@@ -83,11 +83,11 @@ namespace smt
       To make this simpler, we have unique classes for each sort.
    */
 
-  class BoolectorBVSort : public BoolectorSort
+  class BoolectorBVSort : public BoolectorSortBase
   {
   public:
     BoolectorBVSort(Kind k, Btor * b, BoolectorSort s, unsigned int w)
-      : BoolectorSort(k, b, s), width(w) {};
+      : BoolectorSortBase(k, b, s), width(w) {};
     unsigned int get_width() const override { return width; };
   protected:
     unsigned width;
@@ -95,11 +95,11 @@ namespace smt
     friend class BoolectorSolver;
   };
 
-  class BoolectorArraySort : public BoolectorSort
+  class BoolectorArraySort : public BoolectorSortBase
   {
   public:
     BoolectorArraySort(Kind k, Btor * b, BoolectorSort s, Sort is, Sort es)
-      : BoolectorSort(k, b, s), indexsort(is), elemsort(es) {};
+      : BoolectorSortBase(k, b, s), indexsort(is), elemsort(es) {};
     Sort get_indexsort() const override { return indexsort; };
     Sort get_elemsort()  const override { return elemsort; };
   protected:
@@ -109,11 +109,11 @@ namespace smt
     friend class BoolectorSolver;
   };
 
-  class BoolectorFunctionSort : public BoolectorSort
+  class BoolectorFunctionSort : public BoolectorSortBase
   {
   public:
     BoolectorFunctionSort(Kind k, Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
-      : BoolectorSort(k, b, s), domain_sorts(sorts), codomain_sort(sort) {};
+      : BoolectorSortBase(k, b, s), domain_sorts(sorts), codomain_sort(sort) {};
     std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };
     Sort get_codomain_sort() const override { return codomain_sort; };
   protected:
