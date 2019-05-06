@@ -130,6 +130,25 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
+    Op construct_op(PrimOp prim_op, unsigned int idx) const override
+    {
+      IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx);
+      Op op = io;
+      return op;
+    }
+    Op construct_op(PrimOp prim_op, unsigned int idx0, unsigned int idx1) const override
+    {
+      if (prim_op != BVEXTRACT)
+      {
+        std::string msg("Can't construct op from ");
+        msg += to_string(prim_op);
+        msg += " with two integer indices.";
+        throw IncorrectUsageException(msg.c_str());
+      }
+      IndexedOp io = std::make_shared<BoolectorExtractOp>(prim_op, idx0, idx1);
+      Op op(io);
+      return op;
+    }
     // TODO: Implement the two apply_op methods
     Term apply_op(PrimOp op, std::vector<Term> terms) const override {};
     Term apply_op(Op op, std::vector<Term> terms) const override {};

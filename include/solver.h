@@ -35,6 +35,8 @@ namespace smt
     virtual Sort construct_sort(Kind k, unsigned int size) const = 0;
     virtual Sort construct_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
     virtual Sort construct_sort(Kind k, std::vector<Sort> sorts, Sort sort) const = 0;
+    virtual Op construct_op(PrimOp op, unsigned int idx) const = 0;
+    virtual Op construct_op(PrimOp op, unsigned int idx0, unsigned int idx1) const = 0;
     virtual Term apply_op(PrimOp op, std::vector<Term> terms) const = 0;
     virtual Term apply_op(Op op, std::vector<Term> terms) const = 0;
   };
