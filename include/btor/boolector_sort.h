@@ -103,6 +103,9 @@ namespace smt
       : BoolectorSortBase(BV, b, s), width(w) {};
     unsigned int get_width() const override { return width; };
   protected:
+    // bit-vector width
+    // Note: we need to store this in addition to the BoolectorSort
+    //       because in Boolector the width is retrieved from a node not a sort
     unsigned width;
 
     friend class BoolectorSolver;

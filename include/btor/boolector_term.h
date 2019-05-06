@@ -36,10 +36,33 @@ class BoolectorTerm : public AbsTerm
   //      want solvers to be identical to the user (except for supported logics
   //      of course)
   Sort get_sort() const override {
-    // TODO: might need to support this -- need to know the sort to even get the value
-    //       decide between either reconstructing it using boolector functions
-    //       or storing it explicitly (this would require knowing which sort an operation results in...)
-    throw NotImplementedException("Can't get sort from btor");
+    Sort sort;
+    BoolectorSort s = boolector_get_sort(btor, node);
+    if (boolector_is_bitvec_sort(btor, s))
+    {
+      unsigned int width = boolector_get_width(btor, node);
+      // increment reference counter for the sort
+      boolector_copy_sort(btor, s);
+      sort = std::make_shared<BoolectorBVSort>(btor, s, width);
+    }
+    else if (boolector_is_array_sort(btor, s))
+    {
+      unsigned int idxwidth = boolector_get_index_width(btor, node);
+      unsigned int elemwidth = boolector_get_width(btor, node);
+      // Note: Boolector does not support multidimensional arrays
+      std::shared_ptr<BoolectorSortBase> idxsort = std::make_shared<BoolectorBVSort>(btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
+      std::shared_ptr<BoolectorSortBase> elemsort = std::make_shared<BoolectorBVSort>(btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
+      // increment reference counter for the sort
+      boolector_copy_sort(btor, s);
+      sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
+    }
+    else
+    {
+      // Note: functions are not terms, and thus we don't need to check for fun_sort
+      // unreachable
+      assert(false);
+    }
+    return sort;
   }
   virtual std::string to_string() const override
   {

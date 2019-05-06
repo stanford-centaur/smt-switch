@@ -32,13 +32,6 @@ bool term_creation() {
   Term bx_ule_y = make_shared<BoolectorTerm>(
       btor, x_ulte_y, std::vector<Term>{bx, by}, BVULE);
 
-  try {
-    Sort sort = bx_ule_y->get_sort();
-    res = false;
-  } catch (NotImplementedException &e) {
-    res = true;
-  }
-
   Op op = bx_ule_y->get_op();
   res &= (get<PrimOp>(op) == BVULE);
   res &= (to_string(get<PrimOp>(op)) == "BVULE");
@@ -97,9 +90,16 @@ bool solver()
   Term x_copy = x;
   res &= (x == x_copy);
 
+  // check sorts
+  Sort xsort = x->get_sort();
+  // Sort ysort = y->get_sort();
+  //res &= (xsort == ysort);
+
   Sort arr_sort = s->construct_sort(ARRAY,
                                     s->construct_sort(BV, 4),
                                     bvsort8);
+  //res &= (xsort != arr_sort);
+
   Term xpy = s->apply_op(BVADD, x, y);
   Term z_eq_xpy = s->apply_op(EQUAL, z, xpy);
   s->assert_formula(z_eq_xpy);
