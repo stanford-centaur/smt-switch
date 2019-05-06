@@ -103,6 +103,11 @@ bool solver()
 
   Term xpy = s->apply_op(BVADD, x, y);
   Term z_eq_xpy = s->apply_op(EQUAL, z, xpy);
+
+  Op op = z_eq_xpy->get_op();
+  res &= holds_alternative<PrimOp>(op);
+  res &= (get<PrimOp>(op) == EQUAL);
+
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->apply_op(BVULT,
                                 x,
