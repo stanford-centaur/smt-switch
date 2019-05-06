@@ -58,7 +58,27 @@ namespace smt
     }
     bool check_sat() const override { return boolector_sat(btor); };
     // TODO: Implement this
-    Term get_value(Term& t) const override {};
+    Term get_value(Term& t) const override {}
+    /* { */
+    /*  Need to use boolector_*_assignment which returns a c str that we need to turn back into a term */
+    /*   Term t; */
+    /*   Kind k = t->get_sort()->get_kind(); */
+    /*   if (k == BV) */
+    /*   { */
+    /*   } */
+    /*   else if (k == ARRAY) */
+    /*   { */
+    /*   } */
+    /*   else if (k == UNINTERPRETED) */
+    /*   { */
+    /*   } */
+    /*   else */
+    /*   { */
+    /*     std::string msg("Can't get value for term with kind = "); */
+    /*     mst += to_string(k); */
+    /*     throw IncorrectUsageException(msg.c_str()); */
+    /*   } */
+    /* }; */
     Sort construct_sort(Kind k) const override
     {
       if (k == BOOL)
@@ -149,9 +169,202 @@ namespace smt
       Op op(io);
       return op;
     }
-    // TODO: Implement the two apply_op methods
-    Term apply_op(PrimOp op, std::vector<Term> terms) const override {};
-    Term apply_op(Op op, std::vector<Term> terms) const override {};
+    // TODO: Add apply_op for unary, binary and ternary ops
+    Term apply_op(PrimOp op, Term t) const override
+    {
+      try
+      {
+        std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
+        BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
+        Term term(new BoolectorTerm(btor,
+                                    result,
+                                    std::vector<Term>{t},
+                                    op));
+        return term;
+      }
+      catch(std::out_of_range o)
+      {
+        std::string msg("Can't apply ");
+        msg += to_string(op);
+        msg += " to a single term.";
+        throw IncorrectUsageException(msg.c_str());
+      }
+    }
+    Term apply_op(PrimOp op, Term t0, Term t1) const override
+    {
+      try
+      {
+        std::shared_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+        std::shared_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
+        BoolectorNode * result = binary_ops.at(op)(btor, bt0->node, bt1->node);
+        Term term(new BoolectorTerm(btor,
+                                    result,
+                                    std::vector<Term>{t0, t1},
+                                    op));
+        return term;
+      }
+      catch(std::out_of_range o)
+      {
+        std::string msg("Can't apply ");
+        msg += to_string(op);
+        msg += " to a single term.";
+          throw IncorrectUsageException(msg.c_str());
+      }
+    }
+    Term apply_op(PrimOp op, Term t0, Term t1, Term t2) const override
+    {
+      try
+        {
+          std::shared_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+          std::shared_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
+          std::shared_ptr<BoolectorTerm> bt2 = std::static_pointer_cast<BoolectorTerm>(t2);
+          BoolectorNode * result = ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
+          Term term(new BoolectorTerm(btor,
+                                      result,
+                                      std::vector<Term>{t0, t1, t2},
+                                      op));
+          return term;
+        }
+      catch(std::out_of_range o)
+        {
+          std::string msg("Can't apply ");
+          msg += to_string(op);
+          msg += " to a single term.";
+          throw IncorrectUsageException(msg.c_str());
+        }
+    }
+    Term apply_op(PrimOp op, std::vector<Term> terms) const override
+    {
+      unsigned int size = terms.size();
+      // binary ops are most common, check this first
+      if (size == 2)
+      {
+        return apply_op(op, terms[0], terms[1]);
+      }
+      else if (size == 1)
+      {
+        return apply_op(op, terms[0]);
+      }
+      else if (size == 3)
+      {
+        return apply_op(op, terms[0], terms[1], terms[2]);
+      }
+      else
+      {
+        std::string msg("There's no primitive op of arity ");
+        msg += std::to_string(size);
+        msg += ".";
+        throw IncorrectUsageException(msg.c_str());
+      }
+    }
+    Term apply_op(Op op, Term t) const override
+    {
+      if (std::holds_alternative<PrimOp>(op))
+      {
+        return apply_op(std::get<PrimOp>(op), t);
+      }
+      else if (std::holds_alternative<IndexedOp>(op))
+      {
+        std::shared_ptr<BoolectorIndexedOp> btor_io = std::static_pointer_cast<BoolectorIndexedOp>(std::get<IndexedOp>(op));
+        if (btor_io->is_extract_op())
+        {
+          std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
+          BoolectorNode * slice = boolector_slice(btor, bt->node, btor_io->get_upper(), btor_io->get_lower());
+          Term term(new BoolectorTerm(btor,
+                                      slice,
+                                      std::vector<Term>{t},
+                                      BVEXTRACT));
+          return term;
+        }
+        else
+        {
+          // TODO: apply different indexed operations (repeat, zero_extend and sign_extend)
+          throw NotImplementedException("Not implemented yet.");
+        }
+      }
+      else
+      {
+        // rely on the function application in the vector implementation
+        return apply_op(op, std::vector<Term>{t});
+      }
+    }
+    Term apply_op(Op op, Term t0, Term t1) const override
+    {
+      if (std::holds_alternative<PrimOp>(op))
+      {
+        return apply_op(std::get<PrimOp>(op), t0, t1);
+      }
+      else if (std::holds_alternative<IndexedOp>(op))
+      {
+        throw IncorrectUsageException("No indexed operators that take two arguments");
+      }
+      else
+      {
+        // rely on the function application in the vector implementation
+        return apply_op(op, std::vector<Term>{t0, t1});
+      }
+    }
+    Term apply_op(Op op, Term t0, Term t1, Term t2) const override
+    {
+      if (std::holds_alternative<PrimOp>(op))
+      {
+        return apply_op(std::get<PrimOp>(op), t0, t1, t2);
+      }
+      else if (std::holds_alternative<IndexedOp>(op))
+      {
+        throw IncorrectUsageException("No indexed operators that take three arguments");
+      }
+      else
+      {
+        // rely on the function application in the vector implementation
+        return apply_op(op, std::vector<Term>{t0, t1, t2});
+      }
+    }
+    Term apply_op(Op op, std::vector<Term> terms) const override
+    {
+      unsigned int size = terms.size();
+      // Optimization: translate Op to PrimOp as early as possible to prevent unpacking it multipe times
+      if (std::holds_alternative<PrimOp>(op))
+      {
+        return apply_op(std::get<PrimOp>(op), terms);
+      }
+      else if (size == 1)
+      {
+        return apply_op(op, terms[0]);
+      }
+      else if (size == 2)
+      {
+        return apply_op(op, terms[0], terms[1]);
+      }
+      else if (size == 3)
+      {
+        return apply_op(op, terms[0], terms[1], terms[2]);
+      }
+      else if (std::holds_alternative<Function>(op))
+      {
+        std::shared_ptr<BoolectorFunction> bf = std::static_pointer_cast<BoolectorFunction>(std::get<Function>(op));
+        std::vector<BoolectorNode*> args(size);
+        std::shared_ptr<BoolectorTerm> bt;
+        for (auto t : terms)
+        {
+          bt = std::static_pointer_cast<BoolectorTerm>(t);
+          args.push_back(bt->node);
+        }
+        BoolectorNode* result = boolector_apply(btor, &args[0], size, bf->node);
+        Term term(new BoolectorTerm(btor,
+                                    result,
+                                    terms,
+                                    op));
+      }
+      else
+      {
+        // TODO: make this clearer -- might need to_string for generic op
+        std::string msg("Can't find any matching ops to apply to ");
+        msg += std::to_string(size);
+        msg += " terms.";
+        throw IncorrectUsageException(msg.c_str());
+      }
+    }
   protected:
     Btor * btor;
   };

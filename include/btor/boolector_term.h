@@ -36,6 +36,9 @@ class BoolectorTerm : public AbsTerm
   //      want solvers to be identical to the user (except for supported logics
   //      of course)
   Sort get_sort() const override {
+    // TODO: might need to support this -- need to know the sort to even get the value
+    //       decide between either reconstructing it using boolector functions
+    //       or storing it explicitly (this would require knowing which sort an operation results in...)
     throw NotImplementedException("Can't get sort from btor");
   }
   virtual std::string to_string() const override

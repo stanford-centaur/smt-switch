@@ -16,9 +16,10 @@ namespace smt
   {
   public:
     BoolectorIndexedOp(PrimOp o) : AbsIndexedOp(o) {};
-    unsigned int get_upper() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
-    unsigned int get_lower() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
-    unsigned int get_idx() const { throw IncorrectUsageException("Expecting Op with single index"); };
+    virtual bool is_extract_op() const { return false; };
+    virtual unsigned int get_upper() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
+    virtual unsigned int get_lower() const { throw IncorrectUsageException("Expecting BoolectorExtractOp."); };
+    virtual unsigned int get_idx() const { throw IncorrectUsageException("Expecting Op with single index"); };
 
     friend class BoolectorSolver;
   };
@@ -31,8 +32,9 @@ namespace smt
   public:
     BoolectorExtractOp(PrimOp o, unsigned int u, unsigned int l)
       : BoolectorIndexedOp(o), upper(u), lower(l) {};
-    unsigned int get_upper() const { return upper; };
-    unsigned int get_lower() const { return lower; };
+    bool is_extract_op() const override { return true; };
+    unsigned int get_upper() const override { return upper; };
+    unsigned int get_lower() const override { return lower; };
   protected:
     unsigned int upper;
     unsigned int lower;
@@ -45,7 +47,7 @@ namespace smt
   public:
   BoolectorSingleIndexOp(PrimOp o, unsigned int i)
     : BoolectorIndexedOp(o), idx(i) {};
-    unsigned int get_idx() const { return idx; };
+    unsigned int get_idx() const override { return idx; };
   protected:
     unsigned int idx;
 
