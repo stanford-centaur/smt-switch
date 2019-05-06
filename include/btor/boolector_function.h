@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "function.h"
-#include "ops.h"
 
 #include "boolector/boolector.h"
 

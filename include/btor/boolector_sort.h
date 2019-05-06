@@ -1,3 +1,6 @@
+#ifndef SMT_BOOLECTOR_SORT_H
+#define SMT_BOOLECTOR_SORT_H
+
 // TODO: Remove this when done debugging
 #include <iostream>
 #include <variant>
@@ -135,3 +138,5 @@ namespace smt
     friend class BoolectorSolver;
   };
 }
+
+#endif

@@ -28,7 +28,7 @@ namespace smt
   {
   public:
     BoolectorExtractOp(PrimOp o, unsigned int u, unsigned int l)
-      : BoolectorExtractOp(o), upper(u), lower(l) {};
+      : BoolectorIndexedOp(o), upper(u), lower(l) {};
     unsigned int get_upper() const { return upper; };
     unsigned int get_lower() const { return lower; };
   protected:
@@ -36,19 +36,19 @@ namespace smt
     unsigned int lower;
 
     friend class BoolectorSolver;
-  }
+  };
 
   class BoolectorSingleIndexOp : public BoolectorIndexedOp
   {
   public:
-  BoolectorExtractOp(PrimOp o, unsigned int i)
-    : BoolectorExtractOp(o), idx(i) {};
+  BoolectorSingleIndexOp(PrimOp o, unsigned int i)
+    : BoolectorIndexedOp(o), idx(i) {};
     unsigned int get_idx() const { return idx; };
   protected:
     unsigned int idx;
 
     friend class BoolectorSolver;
-  }
+  };
 
 }
 

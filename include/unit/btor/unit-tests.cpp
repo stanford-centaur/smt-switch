@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "boolector/boolector.h"
+
+#include "boolector_solver.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
 #include "op.h"
@@ -80,6 +82,13 @@ bool sorts()
   // index and elem sorts happen to be the same
   res &= (arr_sort->get_elemsort() == s);
   return res;
+}
+
+bool solver()
+{
+  bool res = true;
+  // Solver s (new BoolectorSolver());
+  Solver s = make_shared<BoolectorSolver>();
 }
 
 int main() {

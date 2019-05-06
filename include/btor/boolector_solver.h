@@ -10,6 +10,7 @@
 #include "boolector_op.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
+#include "solver.h"
 #include "sort.h"
 
 namespace smt
@@ -31,21 +32,21 @@ namespace smt
     }
     Term declare_const(const std::string name, Sort sort) const override
     {
-      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
-      std::shared_ptr<Term> term(new BoolectorTerm(btor,
-                                                   boolector_var(btor, bs->sort, name),
-                                                   std::vector<Term>{},
-                                                   VAR));
+      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(sort);
+      Term term(new BoolectorTerm(btor,
+                                  boolector_var(btor, bs->sort, name.c_str()),
+                                  std::vector<Term>{},
+                                  VAR));
       return term;
     }
-    void assert(Term& t) const override
+    void assert_formula(Term& t) const override
     {
       std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
       boolector_assert(btor, bt->node);
     }
     bool check_sat() const override { return boolector_sat(btor); };
     // TODO: Implement this
-    // Term get_value(Term& t) const override {};
+    Term get_value(Term& t) const override {};
     Sort construct_sort(Kind k) const override
     {
       if (k == BOOL)
@@ -55,7 +56,9 @@ namespace smt
       }
       else
       {
-        throw NotImplementedException("Boolector does not support " + to_string(k));
+        std::string msg("Boolector does not support ");
+        msg += to_string(k);
+        throw NotImplementedException(msg.c_str());
       }
     }
     Sort construct_sort(Kind k, unsigned int size) const override
@@ -67,7 +70,10 @@ namespace smt
         }
       else
         {
-          throw IncorrectUsageException("Can't create Kind " + to_string(k) + " with int argument.");
+          std::string msg("Can't create Kind ");
+          msg += to_string(k);
+          msg += " with int argument.";
+          throw IncorrectUsageException(msg.c_str());
         }
     }
     Sort construct_sort(Kind k, Sort idxsort, Sort elemsort) const override
@@ -82,32 +88,39 @@ namespace smt
       }
       else
       {
-        throw IncorrectUsageException("Can't create Kind " + to_string(k) + " with two sort arguments.");
+        std::string msg("Can't create Kind ");
+        msg += to_string(k);
+        msg += " with two sort arguments.";
+        throw IncorrectUsageException(msg.c_str());
       }
     }
     Sort construct_sort(Kind k, std::vector<Sort> sorts, Sort sort) const override
     {
       if (k == UNINTERPRETED)
         {
-          std::vector<BoolectorSort> btor_sorts(sorts.size());
+          int arity = sorts.size();
+          std::vector<BoolectorSort> btor_sorts(arity);
           for (auto s : sorts)
           {
             std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
             btor_sorts.push_back(bs->sort);
           }
-          std::shared_ptr<BoolectorSortBase> btor_sort = std::static_pointer_cast<BoolectorSort>(sort);
-          BoolectorSort btor_fun_sort = boolector_fun_sort(btor, &btor_sorts[0], btor_sort->sort);
+          std::shared_ptr<BoolectorSortBase> btor_sort = std::static_pointer_cast<BoolectorSortBase>(sort);
+          BoolectorSort btor_fun_sort = boolector_fun_sort(btor, &btor_sorts[0], arity, btor_sort->sort);
           Sort s(new BoolectorFunctionSort(btor, btor_fun_sort, sorts, sort));
           return s;
         }
       else
         {
-          throw IncorrectUsageException("Can't create Kind " + to_string(k) + " with a vector of sorts and a sort");
+          std::string msg("Can't create Kind ");
+          msg += to_string(k);
+          msg += " with a vector of sorts and a sort";
+          throw IncorrectUsageException(msg.c_str());
         }
     }
     // TODO: Implement the two apply_op methods
-    // Term apply_op(PrimOp op, std::vector<Term> terms) const override {};
-    // Term apply_op(Op op, std::vector<Term> terms) const override {};
+    Term apply_op(PrimOp op, std::vector<Term> terms) const override {};
+    Term apply_op(Op op, std::vector<Term> terms) const override {};
   protected:
     Btor * btor;
   };
