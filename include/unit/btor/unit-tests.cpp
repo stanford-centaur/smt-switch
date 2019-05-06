@@ -4,10 +4,9 @@
 #include <vector>
 
 #include "boolector/boolector.h"
+#include "boolector_sort.h"
 #include "boolector_term.h"
 #include "op.h"
-#include "sort.h"
-#include "term.h"
 
 using namespace smt;
 using namespace std;
@@ -59,4 +58,21 @@ bool term_creation() {
   return res;
 }
 
-int main() { assert(term_creation()); }
+bool sorts()
+{
+  bool res = true;
+  Btor *btor = boolector_new();
+  boolector_set_opt(btor, BTOR_OPT_MODEL_GEN, 1);
+
+  BoolectorSort bvsort8 = boolector_bitvec_sort(btor, 8);
+  Sort s(new BoolectorBVSort(btor, bvsort8, 8));
+  BoolectorSort bvsort8_2 = boolector_bitvec_sort(btor, 8);
+  Sort s2(new BoolectorBVSort(btor, bvsort8_2, 8));
+  res &= (s == s2);
+  return res;
+}
+
+int main() {
+  assert(term_creation());
+  assert(sorts());
+}

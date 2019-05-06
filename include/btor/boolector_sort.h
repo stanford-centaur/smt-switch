@@ -1,3 +1,5 @@
+// TODO: Remove this when done debugging
+#include <iostream>
 #include <variant>
 
 #include "exceptions.h"
@@ -35,42 +37,52 @@ namespace smt
       switch(kind)
       {
       case ARRAY:
-        return (get_indexsort() == bs->get_indexsort()) && (get_elemsort() == bs->get_elemsort());
-        break;
+        {
+          return (get_indexsort() == bs->get_indexsort()) && (get_elemsort() == bs->get_elemsort());
+          break;
+        }
       case BOOL:
       case BV:
-        return width == bs->get_width();
-        break;
+        {
+          return get_width() == bs->get_width();
+          break;
+        }
       case UNINTERPRETED:
-        std::vector<Sort> domain_sorts = get_domain_sorts();
-        std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
-
-        if (domain_sorts.size() != bs_domain_sorts.size())
         {
-          return false;
+          std::vector<Sort> domain_sorts = get_domain_sorts();
+          std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
+
+          if (domain_sorts.size() != bs_domain_sorts.size())
+            {
+              return false;
+            }
+          else if (get_codomain_sort() != bs->get_codomain_sort())
+            {
+              return false;
+            }
+
+          bool res = true;
+
+          for (unsigned i=0; i < domain_sorts.size(); ++i)
+            {
+              res &= (domain_sorts[i] == bs_domain_sorts[i]);
+            }
+
+          return res;
+          break;
         }
-        else if (get_codomain_sort() != bs->get_codomain_sort())
-        {
-          return false;
-        }
-
-        bool res = true;
-
-        for (unsigned i=0; i < domain_sorts.size(); ++i)
-        {
-          res &= (domain_sorts[i] == bs_domain_sorts[i]);
-        }
-
-        return res;
-
       default:
-        // unreachable -- thse are all the kinds that boolector supports
-        assert(false);
+        {
+          // unreachable -- these are all the kinds that boolector supports
+          assert(false);
+          break;
+        }
       }
       return false;
     }
+    // TODO: Decide if we should just not support this or implement for each sort?
+    std::string to_string() const override { return "SORT"; };
   protected:
-    Kind kind;
     Btor * btor;
     BoolectorSort sort;
 
