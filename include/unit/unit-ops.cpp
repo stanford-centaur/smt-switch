@@ -1,17 +1,28 @@
 #include "assert.h"
 
-#include "ops.h"
+#include "op.h"
 
 using namespace smt;
+using namespace std;
+
 int main() {
   Op op1(AND);
-  assert(op1.builtin);
-  assert(op1.builtin_op == AND);
-  assert(op1.function == nullptr);
+  assert(holds_alternative<PrimOp>(op1));
+  assert(get<PrimOp>(op1) == AND);
+  Op op2(AND);
+  assert(op1 == op2);
 
-  Op op2(std::shared_ptr<AbsFunction>(nullptr));
-  assert(!op2.builtin);
-  assert(op2.builtin_op == NUM_OPS_AND_NULL); // this is an invalid op
-  // TODO: change this to something interesting
-  assert(op2.function == nullptr);
+  IndexedOp io(nullptr);
+  Op indexed_op;
+  indexed_op = io;
+  assert(holds_alternative<IndexedOp>(indexed_op));
+  assert(!holds_alternative<Function>(indexed_op));
+  Op indexed_op_copy = indexed_op;
+  assert(indexed_op_copy == indexed_op);
+
+  Function fun(nullptr);
+  Op fun_op = fun;
+  assert(holds_alternative<Function>(fun_op));
+  assert(!holds_alternative<IndexedOp>(fun_op));
+  assert(get<Function>(fun_op) == fun);
 }
