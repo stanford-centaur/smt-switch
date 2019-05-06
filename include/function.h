@@ -21,8 +21,6 @@ namespace smt
     AbsFunction(int a) : arity(a) {};
     virtual ~AbsFunction() {};
     unsigned int get_arity() const { return arity; };
-    // TODO remove this -- should be method on FunctionSort not Function
-    /* virtual std::vector<Sort> get_domain_sorts() const = 0; */
     virtual Sort get_sort() const = 0;
 
   protected:
