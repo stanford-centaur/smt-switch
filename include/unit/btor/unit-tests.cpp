@@ -69,6 +69,16 @@ bool sorts()
   BoolectorSort bvsort8_2 = boolector_bitvec_sort(btor, 8);
   Sort s2(new BoolectorBVSort(btor, bvsort8_2, 8));
   res &= (s == s2);
+
+  BoolectorSort btor_arr_sort = boolector_array_sort(btor, bvsort8, bvsort8);
+  Sort arr_sort(new BoolectorArraySort(btor, btor_arr_sort, s, s2));
+  Sort arr_sort_copy;
+  arr_sort_copy = arr_sort;
+  res &= (arr_sort == arr_sort_copy);
+  res &= (arr_sort->get_indexsort() == s);
+  res &= (arr_sort->get_elemsort() == s2);
+  // index and elem sorts happen to be the same
+  res &= (arr_sort->get_elemsort() == s);
   return res;
 }
 
