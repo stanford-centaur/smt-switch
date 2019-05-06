@@ -30,49 +30,44 @@ namespace smt
       std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
       if (kind != bs->get_kind())
       {
-        // Note: bool and bv will still be equal for boolector, because always create BV sort even if it's a bool
+        // Note: bool and bv will still be equal for boolector, because always
+        // create BV sort even if it's a bool
         return false;
       }
 
       switch(kind)
       {
-      case ARRAY:
-        {
-          return (get_indexsort() == bs->get_indexsort()) && (get_elemsort() == bs->get_elemsort());
-          break;
-        }
+      case ARRAY: {
+        return (get_indexsort() == bs->get_indexsort()) &&
+               (get_elemsort() == bs->get_elemsort());
+        break;
+      }
       case BOOL:
       case BV:
         {
-          return get_width() == bs->get_width();
-          break;
+        return get_width() == bs->get_width();
+        break;
         }
-      case UNINTERPRETED:
-        {
+        case UNINTERPRETED: {
           std::vector<Sort> domain_sorts = get_domain_sorts();
           std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
 
-          if (domain_sorts.size() != bs_domain_sorts.size())
-            {
-              return false;
-            }
-          else if (get_codomain_sort() != bs->get_codomain_sort())
-            {
-              return false;
-            }
+          if (domain_sorts.size() != bs_domain_sorts.size()) {
+            return false;
+          } else if (get_codomain_sort() != bs->get_codomain_sort()) {
+            return false;
+          }
 
           bool res = true;
 
-          for (unsigned i=0; i < domain_sorts.size(); ++i)
-            {
-              res &= (domain_sorts[i] == bs_domain_sorts[i]);
-            }
+          for (unsigned i = 0; i < domain_sorts.size(); ++i) {
+            res &= (domain_sorts[i] == bs_domain_sorts[i]);
+          }
 
           return res;
           break;
         }
-      default:
-        {
+        default: {
           // unreachable -- these are all the kinds that boolector supports
           assert(false);
           break;
@@ -96,8 +91,8 @@ namespace smt
   class BoolectorBVSort : public BoolectorSortBase
   {
   public:
-    BoolectorBVSort(Btor * b, BoolectorSort s, unsigned int w)
-      : BoolectorSortBase(BV, b, s), width(w) {};
+    BoolectorBVSort(Btor *b, BoolectorSort s, unsigned int w)
+        : BoolectorSortBase(BV, b, s), width(w){};
     unsigned int get_width() const override { return width; };
   protected:
     // bit-vector width
@@ -111,8 +106,8 @@ namespace smt
   class BoolectorArraySort : public BoolectorSortBase
   {
   public:
-    BoolectorArraySort(Btor * b, BoolectorSort s, Sort is, Sort es)
-      : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
+    BoolectorArraySort(Btor *b, BoolectorSort s, Sort is, Sort es)
+        : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es){};
     Sort get_indexsort() const override { return indexsort; };
     Sort get_elemsort()  const override { return elemsort; };
   protected:
@@ -125,8 +120,10 @@ namespace smt
   class BoolectorFunctionSort : public BoolectorSortBase
   {
   public:
-    BoolectorFunctionSort(Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
-      : BoolectorSortBase(UNINTERPRETED, b, s), domain_sorts(sorts), codomain_sort(sort) {};
+    BoolectorFunctionSort(Btor *b, BoolectorSort s, std::vector<Sort> sorts,
+                          Sort sort)
+        : BoolectorSortBase(UNINTERPRETED, b, s), domain_sorts(sorts),
+          codomain_sort(sort){};
     std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };
     Sort get_codomain_sort() const override { return codomain_sort; };
   protected:

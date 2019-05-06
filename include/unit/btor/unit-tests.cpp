@@ -13,8 +13,7 @@
 using namespace smt;
 using namespace std;
 
-bool solver()
-{
+bool solver() {
   bool res = true;
   // Solver s (new BoolectorSolver());
   Solver s = make_shared<BoolectorSolver>();
@@ -32,9 +31,7 @@ bool solver()
   Sort ysort = y->get_sort();
   res &= (xsort == ysort);
 
-  Sort arr_sort = s->construct_sort(ARRAY,
-                                    s->construct_sort(BV, 4),
-                                    bvsort8);
+  Sort arr_sort = s->construct_sort(ARRAY, s->construct_sort(BV, 4), bvsort8);
   res &= (xsort != arr_sort);
   res &= (xsort != arr_sort->get_indexsort());
   res &= (xsort == arr_sort->get_elemsort());
@@ -47,15 +44,9 @@ bool solver()
   res &= (get<PrimOp>(op) == EQUAL);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->apply_op(BVULT,
-                                x,
-                                s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_op(BVULT,
-                                y,
-                                s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_op(BVUGT,
-                                z,
-                                s->make_const(5, bvsort8)));
+  s->assert_formula(s->apply_op(BVULT, x, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_op(BVULT, y, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_op(BVUGT, z, s->make_const(5, bvsort8)));
   res &= (s->check_sat());
 
   Term xc = s->get_value(x);
@@ -69,6 +60,4 @@ bool solver()
   return res;
 }
 
-int main() {
-  assert(solver());
-}
+int main() { assert(solver()); }

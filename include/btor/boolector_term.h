@@ -31,28 +31,27 @@ class BoolectorTerm : public AbsTerm
   Sort get_sort() const override {
     Sort sort;
     BoolectorSort s = boolector_get_sort(btor, node);
-    if (boolector_is_bitvec_sort(btor, s))
-    {
+    if (boolector_is_bitvec_sort(btor, s)) {
       unsigned int width = boolector_get_width(btor, node);
       // increment reference counter for the sort
       boolector_copy_sort(btor, s);
       sort = std::make_shared<BoolectorBVSort>(btor, s, width);
-    }
-    else if (boolector_is_array_sort(btor, s))
-    {
+    } else if (boolector_is_array_sort(btor, s)) {
       unsigned int idxwidth = boolector_get_index_width(btor, node);
       unsigned int elemwidth = boolector_get_width(btor, node);
       // Note: Boolector does not support multidimensional arrays
-      std::shared_ptr<BoolectorSortBase> idxsort = std::make_shared<BoolectorBVSort>(btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
-      std::shared_ptr<BoolectorSortBase> elemsort = std::make_shared<BoolectorBVSort>(btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
+      std::shared_ptr<BoolectorSortBase> idxsort =
+          std::make_shared<BoolectorBVSort>(
+              btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
+      std::shared_ptr<BoolectorSortBase> elemsort =
+          std::make_shared<BoolectorBVSort>(
+              btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
       // increment reference counter for the sort
       boolector_copy_sort(btor, s);
       sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
-    }
-    else
-    {
-      // Note: functions are not terms, and thus we don't need to check for fun_sort
-      // unreachable
+    } else {
+      // Note: functions are not terms, and thus we don't need to check for
+      // fun_sort unreachable
       assert(false);
     }
     return sort;
@@ -61,14 +60,15 @@ class BoolectorTerm : public AbsTerm
   {
     throw NotImplementedException("Can't get string representation from btor");
   }
-  std::string as_bitstr() const override
-  {
-    if (!std::holds_alternative<PrimOp>(op) || (std::get<PrimOp>(op) != CONST))
-    {
-      throw IncorrectUsageException("Can't get bitstring from a non-constant term.");
+  std::string as_bitstr() const override {
+    if (!std::holds_alternative<PrimOp>(op) ||
+        (std::get<PrimOp>(op) != CONST)) {
+      throw IncorrectUsageException(
+          "Can't get bitstring from a non-constant term.");
     }
-    return std::string (boolector_bv_assignment(btor, node));
+    return std::string(boolector_bv_assignment(btor, node));
   }
+
  protected:
   Btor * btor;
   BoolectorNode * node;
