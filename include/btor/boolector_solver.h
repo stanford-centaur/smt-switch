@@ -32,11 +32,23 @@ namespace smt
     }
     Term declare_const(const std::string name, Sort sort) const override
     {
+      // TODO handle arrays correctly (need boolector_array instead of boolector_var)
       std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(sort);
       Term term(new BoolectorTerm(btor,
                                   boolector_var(btor, bs->sort, name.c_str()),
                                   std::vector<Term>{},
                                   VAR));
+      return term;
+    }
+    // TODO implement declare_fun
+    Term make_const(unsigned int i, Sort sort) const override
+    {
+      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(sort);
+      Term term(new BoolectorTerm(btor,
+                                  boolector_int(btor, i, bs->sort),
+                                  std::vector<Term>{},
+                                  CONST
+                                  ));
       return term;
     }
     void assert_formula(Term& t) const override

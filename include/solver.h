@@ -26,6 +26,7 @@ namespace smt
     // virtual Function declare_fun(const std::string name,
     //                              const std::vector<Sort>& sorts,
     //                              Sort sort) const = 0;
+    virtual Term make_const(unsigned int i, Sort sort) const = 0;
     virtual void assert_formula(Term& t) const = 0;
     virtual bool check_sat() const = 0;
     virtual Term get_value(Term& t) const = 0;

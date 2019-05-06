@@ -83,8 +83,6 @@ namespace smt
       }
       return false;
     }
-    // TODO: Decide if we should just not support this or implement for each sort?
-    std::string to_string() const override { return "SORT"; };
   protected:
     Btor * btor;
     BoolectorSort sort;
