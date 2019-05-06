@@ -71,6 +71,7 @@ namespace smt
                           {XOR, boolector_xor},
                           {IMPLIES, boolector_implies},
                           {IFF, boolector_iff},
+                          {EQUAL, boolector_eq},
                           {BVAND, boolector_and},
                           {BVOR, boolector_or},
                           {BVXOR, boolector_xor},

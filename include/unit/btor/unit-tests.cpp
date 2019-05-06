@@ -92,6 +92,7 @@ bool solver()
   Sort bvsort8 = s->construct_sort(BV, 8);
   Term x = s->declare_const("x", bvsort8);
   Term y = s->declare_const("y", bvsort8);
+  Term z = s->declare_const("z", bvsort8);
   res &= (x != y);
   Term x_copy = x;
   res &= (x == x_copy);
@@ -99,6 +100,22 @@ bool solver()
   Sort arr_sort = s->construct_sort(ARRAY,
                                     s->construct_sort(BV, 4),
                                     bvsort8);
+  Term xpy = s->apply_op(BVADD, x, y);
+  Term z_eq_xpy = s->apply_op(EQUAL, z, xpy);
+  s->assert_formula(z_eq_xpy);
+  s->assert_formula(s->apply_op(BVULT,
+                                x,
+                                s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_op(BVULT,
+                                y,
+                                s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_op(BVUGT,
+                                z,
+                                s->make_const(6, bvsort8)));
+  res &= !(s->check_sat());
+  // FILE * fptr = fopen("./dump.smt2", "w");
+  // std::shared_ptr<BoolectorSolver> bs = std::static_pointer_cast<BoolectorSolver>(s);
+  // boolector_dump_smt2(bs->get_btor(), fptr);
   return res;
 }
 

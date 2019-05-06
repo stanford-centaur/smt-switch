@@ -51,12 +51,12 @@ namespace smt
                                   ));
       return term;
     }
-    void assert_formula(Term& t) const override
+    void assert_formula(const Term& t) const override
     {
       std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
       boolector_assert(btor, bt->node);
     }
-    bool check_sat() const override { return boolector_sat(btor); };
+    bool check_sat() const override { return (BOOLECTOR_SAT == boolector_sat(btor)); };
     // TODO: Implement this
     Term get_value(Term& t) const override {}
     /* { */

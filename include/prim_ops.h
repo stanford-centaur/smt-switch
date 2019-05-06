@@ -17,6 +17,7 @@ enum PrimOp {
   IMPLIES,
   IFF,
   ITE,
+  EQUAL,
   BVAND,
   BVOR,
   BVXOR,
@@ -66,6 +67,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
   primop2str[IMPLIES] = std::string_view("IMPLIES");
   primop2str[IFF] = std::string_view("IFF");
   primop2str[ITE] = std::string_view("ITE");
+  primop2str[EQUAL] = std::string_view("EQUAL");
   primop2str[BVAND] = std::string_view("BVAND");
   primop2str[BVOR] = std::string_view("BVOR");
   primop2str[BVXOR] = std::string_view("BVXOR");
