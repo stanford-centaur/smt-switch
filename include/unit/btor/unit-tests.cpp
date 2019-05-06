@@ -89,9 +89,21 @@ bool solver()
   bool res = true;
   // Solver s (new BoolectorSolver());
   Solver s = make_shared<BoolectorSolver>();
+  Sort bvsort8 = s->construct_sort(BV, 8);
+  Term x = s->declare_const("x", bvsort8);
+  Term y = s->declare_const("y", bvsort8);
+  res &= (x != y);
+  Term x_copy = x;
+  res &= (x == x_copy);
+
+  Sort arr_sort = s->construct_sort(ARRAY,
+                                    s->construct_sort(BV, 4),
+                                    bvsort8);
+  return res;
 }
 
 int main() {
   assert(term_creation());
   assert(sorts());
+  assert(solver());
 }
