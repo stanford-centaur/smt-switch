@@ -65,7 +65,8 @@ class AbsSort {
 public:
   AbsSort(Kind k) : kind(k){};
   virtual ~AbsSort(){};
-  virtual std::string to_string() const = 0;
+  // TODO: Implement to_string
+  std::string to_string() const { return "TODO"; };
   bool is_array() const { return kind == ARRAY; };
   bool is_bool() const { return kind == BOOL; };
   bool is_bv() const { return kind == BV; };
