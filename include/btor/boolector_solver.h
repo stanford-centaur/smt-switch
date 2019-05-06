@@ -31,7 +31,7 @@ namespace smt
     }
     Term declare_const(const std::string name, Sort sort) const override
     {
-      std::shared_ptr<BoolectorSort> bs = std::static_pointer_cast<BoolectorSort>(s);
+      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
       std::shared_ptr<Term> term(new BoolectorTerm(btor,
                                                    boolector_var(btor, bs->sort, name),
                                                    std::vector<Term>{},
@@ -74,8 +74,8 @@ namespace smt
     {
       if (k == ARRAY)
       {
-        std::shared_ptr<BoolectorSort> btor_idxsort = std::static_pointer_cast<BoolectorSort>(idxsort);
-        std::shared_ptr<BoolectorSort> btor_elemsort = std::static_pointer_cast<BoolectorSort>(elemsort);
+        std::shared_ptr<BoolectorSortBase> btor_idxsort = std::static_pointer_cast<BoolectorSortBase>(idxsort);
+        std::shared_ptr<BoolectorSortBase> btor_elemsort = std::static_pointer_cast<BoolectorSortBase>(elemsort);
         BoolectorSort bs = boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
         Sort s(new BoolectorArraySort(btor, bs, idxsort, elemsort));
         return s;
@@ -92,12 +92,12 @@ namespace smt
           std::vector<BoolectorSort> btor_sorts(sorts.size());
           for (auto s : sorts)
           {
-            BoolectorSort bs = std::static_cast<BoolectorSort>(*s);
-            btor_sorts.push_back(s);
+            std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
+            btor_sorts.push_back(bs->sort);
           }
-          std::shared_ptr<BoolectorSort> btor_sort = std::static_pointer_cast<BoolectorSort>(sort);
-          BoolectorSort bs = boolector_fun_sort(btor, &btor_sorts[0], btor_sort->sort);
-          Sort s(new BoolectorFunctionSort(btor, bs, sorts, sort));
+          std::shared_ptr<BoolectorSortBase> btor_sort = std::static_pointer_cast<BoolectorSort>(sort);
+          BoolectorSort btor_fun_sort = boolector_fun_sort(btor, &btor_sorts[0], btor_sort->sort);
+          Sort s(new BoolectorFunctionSort(btor, btor_fun_sort, sorts, sort));
           return s;
         }
       else
