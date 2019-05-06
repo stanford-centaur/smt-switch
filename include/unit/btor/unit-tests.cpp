@@ -82,6 +82,7 @@ bool solver()
   bool res = true;
   // Solver s (new BoolectorSolver());
   Solver s = make_shared<BoolectorSolver>();
+  s->set_opt("produce-models", true);
   Sort bvsort8 = s->construct_sort(BV, 8);
   Term x = s->declare_const("x", bvsort8);
   Term y = s->declare_const("y", bvsort8);
@@ -92,13 +93,13 @@ bool solver()
 
   // check sorts
   Sort xsort = x->get_sort();
-  // Sort ysort = y->get_sort();
-  //res &= (xsort == ysort);
+  Sort ysort = y->get_sort();
+  res &= (xsort == ysort);
 
   Sort arr_sort = s->construct_sort(ARRAY,
                                     s->construct_sort(BV, 4),
                                     bvsort8);
-  //res &= (xsort != arr_sort);
+  res &= (xsort != arr_sort);
 
   Term xpy = s->apply_op(BVADD, x, y);
   Term z_eq_xpy = s->apply_op(EQUAL, z, xpy);
@@ -111,11 +112,17 @@ bool solver()
                                 s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_op(BVUGT,
                                 z,
-                                s->make_const(6, bvsort8)));
-  res &= !(s->check_sat());
-  // FILE * fptr = fopen("./dump.smt2", "w");
-  // std::shared_ptr<BoolectorSolver> bs = std::static_pointer_cast<BoolectorSolver>(s);
-  // boolector_dump_smt2(bs->get_btor(), fptr);
+                                s->make_const(5, bvsort8)));
+  res &= (s->check_sat());
+
+  Term xc = s->get_value(x);
+  Term yc = s->get_value(y);
+  Term zc = s->get_value(z);
+
+  cout << "Got the following values:" << endl;
+  cout << "\t" << xc->as_bitstr() << endl;
+  cout << "\t" << yc->as_bitstr() << endl;
+  cout << "\t" << zc->as_bitstr() << endl;
   return res;
 }
 

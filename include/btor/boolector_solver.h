@@ -26,6 +26,23 @@ namespace smt
     BoolectorSolver(const BoolectorSolver&) = delete;
     BoolectorSolver& operator=(const BoolectorSolver&) = delete;
     ~BoolectorSolver() { boolector_delete(btor); };
+    void set_opt(const std::string option, bool value) const override
+    {
+      if ((option == "produce-models") && value)
+      {
+        boolector_set_opt(btor, BTOR_OPT_MODEL_GEN, 1);
+      }
+      else
+      {
+        std::string msg = option;
+        msg += " is not implemented for boolector.";
+        throw NotImplementedException(msg.c_str());
+      }
+    }
+    void set_opt(const std::string option, const std::string value) const override
+    {
+      throw NotImplementedException("String value for set_opt unimplemented");
+    }
     Sort declare_sort(const std::string name, unsigned int arity) const override
     {
       throw IncorrectUsageException("Can't declare sorts with Boolector");
@@ -58,27 +75,32 @@ namespace smt
     }
     bool check_sat() const override { return (BOOLECTOR_SAT == boolector_sat(btor)); };
     // TODO: Implement this
-    Term get_value(Term& t) const override {}
-    /* { */
-    /*  Need to use boolector_*_assignment which returns a c str that we need to turn back into a term */
-    /*   Term t; */
-    /*   Kind k = t->get_sort()->get_kind(); */
-    /*   if (k == BV) */
-    /*   { */
-    /*   } */
-    /*   else if (k == ARRAY) */
-    /*   { */
-    /*   } */
-    /*   else if (k == UNINTERPRETED) */
-    /*   { */
-    /*   } */
-    /*   else */
-    /*   { */
-    /*     std::string msg("Can't get value for term with kind = "); */
-    /*     mst += to_string(k); */
-    /*     throw IncorrectUsageException(msg.c_str()); */
-    /*   } */
-    /* }; */
+    Term get_value(Term& t) const override
+    {
+      Term result;
+      std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
+      Kind k = t->get_sort()->get_kind();
+      if ((k == BV) || (k == BOOL))
+      {
+        BoolectorNode * bc = boolector_const(btor, boolector_bv_assignment(btor, bt->node));
+        result = std::make_shared<BoolectorTerm>(btor, bc, std::vector<Term>{}, CONST);
+      }
+      else if (k == ARRAY)
+      {
+        throw NotImplementedException("Array models unimplemented.");
+      }
+      else if (k == UNINTERPRETED)
+      {
+        throw NotImplementedException("UF models unimplemented.");
+      }
+      else
+      {
+        std::string msg("Can't get value for term with kind = ");
+        msg += to_string(k);
+        throw IncorrectUsageException(msg.c_str());
+      }
+      return result;
+    }
     Sort construct_sort(Kind k) const override
     {
       if (k == BOOL)
@@ -356,14 +378,12 @@ namespace smt
                                     terms,
                                     op));
       }
-      else
-      {
-        // TODO: make this clearer -- might need to_string for generic op
-        std::string msg("Can't find any matching ops to apply to ");
-        msg += std::to_string(size);
-        msg += " terms.";
-        throw IncorrectUsageException(msg.c_str());
-      }
+
+      // TODO: make this clearer -- might need to_string for generic op
+      std::string msg("Can't find any matching ops to apply to ");
+      msg += std::to_string(size);
+      msg += " terms.";
+      throw IncorrectUsageException(msg.c_str());
     }
   protected:
     Btor * btor;

@@ -21,6 +21,8 @@ namespace smt
   public:
     AbsSolver() {};
     virtual ~AbsSolver() {};
+    virtual void set_opt(const std::string option, bool value) const = 0;
+    virtual void set_opt(const std::string option, const std::string value) const = 0;
     virtual Sort declare_sort(const std::string name, unsigned int arity) const = 0;
     virtual Term declare_const(const std::string name, Sort sort) const = 0;
     // virtual Function declare_fun(const std::string name,

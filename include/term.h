@@ -27,7 +27,7 @@ namespace smt
     virtual Op get_op() const = 0;
     virtual std::shared_ptr<AbsSort> get_sort() const = 0;
     virtual std::string to_string() const = 0;
-
+    virtual std::string as_bitstr() const = 0;
     // TODO Add other convenient term methods
   };
 

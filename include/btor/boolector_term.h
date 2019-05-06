@@ -68,6 +68,14 @@ class BoolectorTerm : public AbsTerm
   {
     throw NotImplementedException("Can't get string representation from btor");
   }
+  std::string as_bitstr() const override
+  {
+    if (!std::holds_alternative<PrimOp>(op) || (std::get<PrimOp>(op) != CONST))
+    {
+      throw IncorrectUsageException("Can't get bitstring from a non-constant term.");
+    }
+    return std::string (boolector_bv_assignment(btor, node));
+  }
  protected:
   Btor * btor;
   BoolectorNode * node;
