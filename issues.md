@@ -13,3 +13,10 @@
   * Additionally, for arrays, there's no boolector structure for this. We'll need to have a representation for this
   * CVC4 has it's stores on a constant array structure, but maybe we should have a common representation for all solvers
   * a map with a default value would be most convenient
+  
+## Sorts
+* It would be useful to be able to query the sort from boolector - two options
+  * reconstruct a sort object using calls to boolector functions <-- I think this one is better
+    * but, whenever possible, don't reconstruct a sort object
+    * for example, in get_value, can do everything with raw BoolectorSorts
+  * store it explicitly -- this would require knowing what sort an op produces
