@@ -100,6 +100,8 @@ bool solver()
                                     s->construct_sort(BV, 4),
                                     bvsort8);
   res &= (xsort != arr_sort);
+  res &= (xsort != arr_sort->get_indexsort());
+  res &= (xsort == arr_sort->get_elemsort());
 
   Term xpy = s->apply_op(BVADD, x, y);
   Term z_eq_xpy = s->apply_op(EQUAL, z, xpy);
