@@ -50,7 +50,7 @@ namespace smt
     {
       if (k == BOOL)
       {
-        Sort s(new BoolectorBVSort(k, btor, boolector_bool_sort(btor), 1));
+        Sort s(new BoolectorBVSort(btor, boolector_bool_sort(btor), 1));
         return s;
       }
       else
@@ -62,7 +62,7 @@ namespace smt
     {
       if (k == BV)
         {
-          Sort s(new BoolectorBVSort(k, btor, boolector_bitvec_sort(btor, size), size));
+          Sort s(new BoolectorBVSort(btor, boolector_bitvec_sort(btor, size), size));
           return s;
         }
       else
@@ -77,7 +77,7 @@ namespace smt
         std::shared_ptr<BoolectorSort> btor_idxsort = std::static_pointer_cast<BoolectorSort>(idxsort);
         std::shared_ptr<BoolectorSort> btor_elemsort = std::static_pointer_cast<BoolectorSort>(elemsort);
         BoolectorSort bs = boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
-        Sort s(new BoolectorArraySort(k, btor, bs, idxsort, elemsort));
+        Sort s(new BoolectorArraySort(btor, bs, idxsort, elemsort));
         return s;
       }
       else
@@ -97,7 +97,7 @@ namespace smt
           }
           std::shared_ptr<BoolectorSort> btor_sort = std::static_pointer_cast<BoolectorSort>(sort);
           BoolectorSort bs = boolector_fun_sort(btor, &btor_sorts[0], btor_sort->sort);
-          Sort s(new BoolectorFunctionSort(k, btor, bs, sorts, sort));
+          Sort s(new BoolectorFunctionSort(btor, bs, sorts, sort));
           return s;
         }
       else

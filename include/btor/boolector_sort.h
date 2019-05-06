@@ -86,8 +86,8 @@ namespace smt
   class BoolectorBVSort : public BoolectorSortBase
   {
   public:
-    BoolectorBVSort(Kind k, Btor * b, BoolectorSort s, unsigned int w)
-      : BoolectorSortBase(k, b, s), width(w) {};
+    BoolectorBVSort(Btor * b, BoolectorSort s, unsigned int w)
+      : BoolectorSortBase(BV, b, s), width(w) {};
     unsigned int get_width() const override { return width; };
   protected:
     unsigned width;
@@ -98,8 +98,8 @@ namespace smt
   class BoolectorArraySort : public BoolectorSortBase
   {
   public:
-    BoolectorArraySort(Kind k, Btor * b, BoolectorSort s, Sort is, Sort es)
-      : BoolectorSortBase(k, b, s), indexsort(is), elemsort(es) {};
+    BoolectorArraySort(Btor * b, BoolectorSort s, Sort is, Sort es)
+      : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
     Sort get_indexsort() const override { return indexsort; };
     Sort get_elemsort()  const override { return elemsort; };
   protected:
@@ -112,8 +112,8 @@ namespace smt
   class BoolectorFunctionSort : public BoolectorSortBase
   {
   public:
-    BoolectorFunctionSort(Kind k, Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
-      : BoolectorSortBase(k, b, s), domain_sorts(sorts), codomain_sort(sort) {};
+    BoolectorFunctionSort(Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
+      : BoolectorSortBase(UNINTERPRETED, b, s), domain_sorts(sorts), codomain_sort(sort) {};
     std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };
     Sort get_codomain_sort() const override { return codomain_sort; };
   protected:
