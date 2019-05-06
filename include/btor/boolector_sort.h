@@ -1,8 +1,6 @@
 #ifndef SMT_BOOLECTOR_SORT_H
 #define SMT_BOOLECTOR_SORT_H
 
-// TODO: Remove this when done debugging
-#include <iostream>
 #include <variant>
 
 #include "exceptions.h"
@@ -32,8 +30,7 @@ namespace smt
       std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
       if (kind != bs->get_kind())
       {
-        // TODO : this will make bit-vectors and booleans different
-        //        do we actually want this for boolector?
+        // Note: bool and bv will still be equal for boolector, because always create BV sort even if it's a bool
         return false;
       }
 

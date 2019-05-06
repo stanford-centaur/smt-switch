@@ -74,7 +74,6 @@ namespace smt
       boolector_assert(btor, bt->node);
     }
     bool check_sat() const override { return (BOOLECTOR_SAT == boolector_sat(btor)); };
-    // TODO: Implement this
     Term get_value(Term& t) const override
     {
       Term result;
@@ -191,7 +190,6 @@ namespace smt
       Op op(io);
       return op;
     }
-    // TODO: Add apply_op for unary, binary and ternary ops
     Term apply_op(PrimOp op, Term t) const override
     {
       try

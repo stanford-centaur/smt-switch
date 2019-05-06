@@ -1,15 +1,11 @@
 #ifndef SMT_BOOLECTOR_TERM_H
 #define SMT_BOOLECTOR_TERM_H
 
-#include <iostream>
 #include <vector>
 
 #include "boolector/boolector.h"
 #include "term.h"
 #include "op.h"
-
-// TODO: Figure out if we should have extern C here?
-//       seems to be working already
 
 namespace smt {
 
@@ -32,9 +28,6 @@ class BoolectorTerm : public AbsTerm
   }
   std::vector<Term> get_children() const override { return children; }
   Op get_op() const override { return op; };
-  // TODO Probably would be best to store this information at the API level
-  //      want solvers to be identical to the user (except for supported logics
-  //      of course)
   Sort get_sort() const override {
     Sort sort;
     BoolectorSort s = boolector_get_sort(btor, node);
