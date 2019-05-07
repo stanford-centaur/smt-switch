@@ -1,7 +1,6 @@
 #ifndef SMT_SOLVER_H
 #define SMT_SOLVER_H
 
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>

@@ -1,9 +1,6 @@
 #ifndef SMT_SORT_H
 #define SMT_SORT_H
 
-// TODO: Remove this when done debugging
-#include <iostream>
-
 #include <array>
 #include <memory>
 #include <string>

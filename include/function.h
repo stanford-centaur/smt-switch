@@ -1,8 +1,6 @@
 #ifndef SMT_FUNCTION_H
 #define SMT_FUNCTION_H
 
-// TODO: remove the iostream headers when done debugging
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>

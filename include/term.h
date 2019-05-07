@@ -1,7 +1,6 @@
 #ifndef SMT_TERM_H
 #define SMT_TERM_H
 
-#include <iostream>
 #include <memory>
 #include <string>
 
