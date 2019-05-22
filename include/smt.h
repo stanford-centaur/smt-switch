@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "data_structures.h"
+
 // Eventually we should guard these imports depending on which solvers are included
 #include "boolector_uf.h"
 #include "boolector_func.h"
