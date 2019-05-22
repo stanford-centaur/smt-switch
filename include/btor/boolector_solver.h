@@ -18,7 +18,7 @@ namespace smt
   /**
      Boolector Solver implementation
    */
-  class BoolectorSolver : public AbsSolver
+  class BoolectorSolver : public AbsSmtSolver
   {
   public:
     // might have to use std::unique_ptr<Btor>(boolector_new) and move it?

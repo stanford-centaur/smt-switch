@@ -15,11 +15,11 @@ namespace smt
   /**
      Abstract solver class to be implemented by each supported solver.
    */
-  class AbsSolver
+  class AbsSmtSolver
   {
   public:
-    AbsSolver() {};
-    virtual ~AbsSolver() {};
+    AbsSmtSolver() {};
+    virtual ~AbsSmtSolver() {};
     virtual void set_opt(const std::string option, bool value) const = 0;
     virtual void set_opt(const std::string option,
                          const std::string value) const = 0;
@@ -51,7 +51,7 @@ namespace smt
     virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
   };
 
-  using Solver = std::shared_ptr<AbsSolver>;
+  using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 }
 
 #endif

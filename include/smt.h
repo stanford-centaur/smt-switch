@@ -13,14 +13,14 @@
 namespace smt
 {
   // Supported solvers -- when adding a new solver, create an enum for it here
-  enum SolverEnum
+  enum SmtSolverEnum
   {
    BOOLECTOR
   };
 
-  Solver create_solver(SolverEnum se)
+  SmtSolver create_solver(SmtSolverEnum se)
   {
-    Solver s;
+    SmtSolver s;
     if (se == BOOLECTOR)
     {
       s = std::make_shared<BoolectorSolver>();

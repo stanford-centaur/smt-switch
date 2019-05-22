@@ -10,7 +10,7 @@ using namespace std;
 
 int main() {
 
-  Solver s = create_solver(BOOLECTOR);
+  SmtSolver s = create_solver(BOOLECTOR);
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->construct_sort(BV, 8);
   Term x = s->declare_const("x", bvsort8);
