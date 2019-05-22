@@ -1,7 +1,7 @@
 #ifndef SMT_PRIM_OPS_H
 #define SMT_PRIM_OPS_H
 
-#include "function.h"
+#include "uf.h"
 
 #include <array>
 #include <string>

@@ -25,7 +25,7 @@ namespace smt
                          const std::string value) const = 0;
     virtual Sort declare_sort(const std::string name, unsigned int arity) const = 0;
     virtual Term declare_const(const std::string name, Sort sort) const = 0;
-    // virtual Function declare_fun(const std::string name,
+    // virtual UF declare_fun(const std::string name,
     //                              const std::vector<Sort>& sorts,
     //                              Sort sort) const = 0;
     virtual Term make_const(unsigned int i, Sort sort) const = 0;

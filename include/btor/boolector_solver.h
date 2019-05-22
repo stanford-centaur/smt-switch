@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "boolector_function.h"
+#include "boolector_uf.h"
 #include "boolector_op.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
@@ -155,7 +155,7 @@ namespace smt
               std::static_pointer_cast<BoolectorSortBase>(sort);
           BoolectorSort btor_fun_sort =
               boolector_fun_sort(btor, &btor_sorts[0], arity, btor_sort->sort);
-          Sort s(new BoolectorFunctionSort(btor, btor_fun_sort, sorts, sort));
+          Sort s(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
           return s;
         }
       else
@@ -309,9 +309,9 @@ namespace smt
         return apply_op(op, terms[0], terms[1]);
       } else if (size == 3) {
         return apply_op(op, terms[0], terms[1], terms[2]);
-      } else if (std::holds_alternative<Function>(op)) {
-        std::shared_ptr<BoolectorFunction> bf =
-            std::static_pointer_cast<BoolectorFunction>(std::get<Function>(op));
+      } else if (std::holds_alternative<UF>(op)) {
+        std::shared_ptr<BoolectorUF> bf =
+            std::static_pointer_cast<BoolectorUF>(std::get<UF>(op));
         std::vector<BoolectorNode *> args(size);
         std::shared_ptr<BoolectorTerm> bt;
         for (auto t : terms) {

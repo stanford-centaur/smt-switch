@@ -1,5 +1,5 @@
-#ifndef SMT_FUNCTION_H
-#define SMT_FUNCTION_H
+#ifndef SMT_UF_H
+#define SMT_UF_H
 
 #include <memory>
 #include <string>
@@ -13,11 +13,11 @@ namespace smt
   /**
      Abstract function class to be implemented by each supported solver.
    */
-  class AbsFunction
+  class AbsUF
   {
   public:
-    AbsFunction(int a) : arity(a) {};
-    virtual ~AbsFunction() {};
+    AbsUF(int a) : arity(a) {};
+    virtual ~AbsUF() {};
     unsigned int get_arity() const { return arity; };
     virtual Sort get_sort() const = 0;
 
@@ -25,7 +25,7 @@ namespace smt
     unsigned int arity;
   };
 
-  using Function = std::shared_ptr<AbsFunction>;
+  using UF = std::shared_ptr<AbsUF>;
 }
 
 #endif

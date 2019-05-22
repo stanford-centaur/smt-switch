@@ -16,13 +16,13 @@ int main() {
   Op indexed_op;
   indexed_op = io;
   assert(holds_alternative<IndexedOp>(indexed_op));
-  assert(!holds_alternative<Function>(indexed_op));
+  assert(!holds_alternative<UF>(indexed_op));
   Op indexed_op_copy = indexed_op;
   assert(indexed_op_copy == indexed_op);
 
-  Function fun(nullptr);
+  UF fun(nullptr);
   Op fun_op = fun;
-  assert(holds_alternative<Function>(fun_op));
+  assert(holds_alternative<UF>(fun_op));
   assert(!holds_alternative<IndexedOp>(fun_op));
-  assert(get<Function>(fun_op) == fun);
+  assert(get<UF>(fun_op) == fun);
 }

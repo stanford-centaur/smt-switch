@@ -1,7 +1,7 @@
 #ifndef SMT_OP_H
 #define SMT_OP_H
 
-#include "function.h"
+#include "uf.h"
 #include "prim_ops.h"
 
 #include <memory>
@@ -18,7 +18,7 @@ protected:
 
 using IndexedOp = std::shared_ptr<AbsIndexedOp>;
 
-using Op = std::variant<PrimOp, IndexedOp, Function>;
+using Op = std::variant<PrimOp, IndexedOp, UF>;
 } // namespace smt
 
 #endif

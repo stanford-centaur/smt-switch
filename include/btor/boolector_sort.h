@@ -117,10 +117,10 @@ namespace smt
     friend class BoolectorSolver;
   };
 
-  class BoolectorFunctionSort : public BoolectorSortBase
+  class BoolectorUFSort : public BoolectorSortBase
   {
   public:
-    BoolectorFunctionSort(Btor *b, BoolectorSort s, std::vector<Sort> sorts,
+    BoolectorUFSort(Btor *b, BoolectorSort s, std::vector<Sort> sorts,
                           Sort sort)
         : BoolectorSortBase(UNINTERPRETED, b, s), domain_sorts(sorts),
           codomain_sort(sort){};
