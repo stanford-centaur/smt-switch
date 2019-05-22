@@ -33,15 +33,16 @@ int main()
                       );
     trailing = v[i];
   }
-  s->assert_formula(s->apply_func(EQUAL, v[0], s->make_const(1, bvsort8)));
+  Term zero = s->make_const(0, bvsort8);
+  cout << zero->to_string() << endl;
+  s->assert_formula(s->apply_func(EQUAL, v[0], zero));
   bool res = s->check_sat();
   assert(res);
 
-  // FIXME: There's a memory leak here related to get_value
-  //        can't figure it out...might be in boolector itself
+  // can print variable names, but otherwise boolector doesn't maintain strings for expressions
   for(size_t i=0; i < NUM_TERMS; ++i)
   {
-    cout << "\t x" << i << " = " << s->get_value(v[i])->as_bitstr() << endl;
+    cout << "\t " << v[i]->to_string() << " = " << s->get_value(v[i])->as_bitstr() << endl;
   }
   return 0;
 }

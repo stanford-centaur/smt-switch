@@ -58,7 +58,16 @@ class BoolectorTerm : public AbsTerm
   }
   virtual std::string to_string() const override
   {
-    throw NotImplementedException("Can't get string representation from btor");
+    try
+    {
+      const char * btor_symbol = boolector_get_symbol(btor, node);
+      std::string symbol(btor_symbol);
+      return symbol;
+    }
+    catch(std::logic_error)
+    {
+      return "btor_expr";
+    }
   }
   std::string as_bitstr() const override {
     if (!std::holds_alternative<PrimOp>(f) ||
