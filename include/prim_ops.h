@@ -40,7 +40,9 @@ enum PrimOp {
   BVSLE,
   BVSGT,
   BVSGE,
-  BVEXTRACT,
+  EXTRACT,
+  ZERO_EXTEND,
+  SIGN_EXTEND,
   SELECT,
   STORE,
   // distinguish between const and variable in the leaves
@@ -90,7 +92,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
   primop2str[BVSLE] = std::string_view("BVSLE");
   primop2str[BVSGT] = std::string_view("BVSGT");
   primop2str[BVSGE] = std::string_view("BVSGE");
-  primop2str[BVEXTRACT] = std::string_view("BVEXTRACT");
+  primop2str[EXTRACT] = std::string_view("EXTRACT");
   primop2str[SELECT] = std::string_view("SELECT");
   primop2str[STORE] = std::string_view("STORE");
   primop2str[CONST] = std::string_view("CONST");
