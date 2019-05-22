@@ -37,6 +37,8 @@ int main() {
   assert(holds_alternative<PrimOp>(f));
   assert(get<PrimOp>(f) == EQUAL);
 
+  Term x_lower = s->extract(3, 0, x);
+
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->apply_func(BVULT, x, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVULT, y, s->make_const(4, bvsort8)));
@@ -46,10 +48,12 @@ int main() {
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);
   Term zc = s->get_value(z);
+  Term x_lowerc = s->get_value(x_lower);
 
   cout << "Got the following values:" << endl;
-  cout << "\t" << xc->as_bitstr() << endl;
-  cout << "\t" << yc->as_bitstr() << endl;
-  cout << "\t" << zc->as_bitstr() << endl;
+  cout << "\txc = " << xc->as_bitstr() << endl;
+  cout << "\tyc = " << yc->as_bitstr() << endl;
+  cout << "\tzc = " << zc->as_bitstr() << endl;
+  cout << "\tx[3:0] = " << x_lowerc->as_bitstr() << endl;
   return 0;
 }

@@ -49,6 +49,19 @@ namespace smt
     virtual Term apply_func(Func fun, Term t0, Term t1) const = 0;
     virtual Term apply_func(Func fun, Term t0, Term t1, Term t2) const = 0;
     virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
+    /* convenience methods */
+    Term extract(unsigned int u, unsigned int l, Term t)
+    {
+      return apply_func(make_op(EXTRACT, u, l), t);
+    }
+    Term zero_extend(unsigned int i, Term t)
+    {
+      return apply_func(make_op(ZERO_EXTEND, i), t);
+    }
+    Term sign_extend(unsigned int i, Term t)
+    {
+      return apply_func(make_op(SIGN_EXTEND, i), t);
+    }
   };
 
   using SmtSolver = std::shared_ptr<AbsSmtSolver>;
