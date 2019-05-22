@@ -1,0 +1,15 @@
+dist: xenial
+language: cpp
+
+addons:
+  apt:
+    update: true
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang
+      - build-essential
+      - git
+
+install:
+  - ./scripts/install_boolector.sh
