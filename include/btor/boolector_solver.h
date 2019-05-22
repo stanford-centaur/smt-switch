@@ -90,7 +90,7 @@ namespace smt
       }
       return result;
     }
-    Sort construct_sort(Kind k) const override
+    Sort make_sort(Kind k) const override
     {
       if (k == BOOL)
       {
@@ -104,7 +104,7 @@ namespace smt
         throw NotImplementedException(msg.c_str());
       }
     }
-    Sort construct_sort(Kind k, unsigned int size) const override
+    Sort make_sort(Kind k, unsigned int size) const override
     {
       if (k == BV)
         {
@@ -120,7 +120,7 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
-    Sort construct_sort(Kind k, Sort idxsort, Sort elemsort) const override
+    Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const override
     {
       if (k == ARRAY)
       {
@@ -140,7 +140,7 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Sort construct_sort(Kind k, std::vector<Sort> sorts, Sort sort) const override
+    Sort make_sort(Kind k, std::vector<Sort> sorts, Sort sort) const override
     {
       if (k == UNINTERPRETED)
         {
@@ -166,12 +166,12 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
-    Func construct_op(PrimOp prim_op, unsigned int idx) const override {
+    Func make_op(PrimOp prim_op, unsigned int idx) const override {
       IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx);
       Func f = io;
       return f;
     }
-    Func construct_op(PrimOp prim_op, unsigned int idx0,
+    Func make_op(PrimOp prim_op, unsigned int idx0,
                     unsigned int idx1) const override {
       if (prim_op != BVEXTRACT) {
         std::string msg("Can't construct op from ");

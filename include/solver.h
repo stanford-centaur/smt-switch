@@ -33,13 +33,13 @@ namespace smt
     virtual bool check_sat() const = 0;
     virtual Term get_value(Term &t) const = 0;
     // virtual bool check_sat_assuming() const = 0;
-    virtual Sort construct_sort(Kind k) const = 0;
-    virtual Sort construct_sort(Kind k, unsigned int size) const = 0;
-    virtual Sort construct_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
-    virtual Sort construct_sort(Kind k, std::vector<Sort> sorts,
+    virtual Sort make_sort(Kind k) const = 0;
+    virtual Sort make_sort(Kind k, unsigned int size) const = 0;
+    virtual Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
+    virtual Sort make_sort(Kind k, std::vector<Sort> sorts,
                                 Sort sort) const = 0;
-    virtual Func construct_op(PrimOp op, unsigned int idx) const = 0;
-    virtual Func construct_op(PrimOp op, unsigned int idx0,
+    virtual Func make_op(PrimOp op, unsigned int idx) const = 0;
+    virtual Func make_op(PrimOp op, unsigned int idx0,
                               unsigned int idx1) const = 0;
     virtual Term apply_func(PrimOp op, Term t) const = 0;
     virtual Term apply_func(PrimOp op, Term t0, Term t1) const = 0;

@@ -12,7 +12,7 @@ int main() {
 
   SmtSolver s = create_solver(BOOLECTOR);
   s->set_opt("produce-models", true);
-  Sort bvsort8 = s->construct_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->declare_const("x", bvsort8);
   Term y = s->declare_const("y", bvsort8);
   Term z = s->declare_const("z", bvsort8);
@@ -25,7 +25,7 @@ int main() {
   Sort ysort = y->get_sort();
   assert(xsort == ysort);
 
-  Sort arr_sort = s->construct_sort(ARRAY, s->construct_sort(BV, 4), bvsort8);
+  Sort arr_sort = s->make_sort(ARRAY, s->make_sort(BV, 4), bvsort8);
   assert(xsort != arr_sort);
   assert(xsort != arr_sort->get_indexsort());
   assert(xsort == arr_sort->get_elemsort());
