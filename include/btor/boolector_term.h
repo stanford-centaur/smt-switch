@@ -5,7 +5,7 @@
 
 #include "boolector/boolector.h"
 #include "term.h"
-#include "op.h"
+#include "func.h"
 
 namespace smt {
 
@@ -15,8 +15,8 @@ class BoolectorSolver;
 class BoolectorTerm : public AbsTerm
 {
  public:
-   BoolectorTerm(Btor *b, BoolectorNode *n, std::vector<Term> c, Op o)
-       : btor(b), node(n), children(c), op(o){};
+   BoolectorTerm(Btor *b, BoolectorNode *n, std::vector<Term> c, Func o)
+       : btor(b), node(n), children(c), f(o){};
    ~BoolectorTerm() { boolector_release(btor, node); }
    // TODO: check if this is okay -- probably not
    std::size_t hash() const override {
@@ -27,7 +27,7 @@ class BoolectorTerm : public AbsTerm
             boolector_get_node_id(other->btor, other->node);
   }
   std::vector<Term> get_children() const override { return children; }
-  Op get_op() const override { return op; };
+  Func get_func() const override { return f; };
   Sort get_sort() const override {
     Sort sort;
     BoolectorSort s = boolector_get_sort(btor, node);
@@ -61,8 +61,8 @@ class BoolectorTerm : public AbsTerm
     throw NotImplementedException("Can't get string representation from btor");
   }
   std::string as_bitstr() const override {
-    if (!std::holds_alternative<PrimOp>(op) ||
-        (std::get<PrimOp>(op) != CONST)) {
+    if (!std::holds_alternative<PrimOp>(f) ||
+        (std::get<PrimOp>(f) != CONST)) {
       throw IncorrectUsageException(
           "Can't get bitstring from a non-constant term.");
     }
@@ -73,7 +73,7 @@ class BoolectorTerm : public AbsTerm
   Btor * btor;
   BoolectorNode * node;
   std::vector<Term> children;
-  Op op;
+  Func f;
 
   friend class BoolectorSolver;
 };

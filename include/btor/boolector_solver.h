@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "boolector_uf.h"
-#include "boolector_op.h"
+#include "boolector_func.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
 #include "exceptions.h"
@@ -166,12 +166,12 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
-    Op construct_op(PrimOp prim_op, unsigned int idx) const override {
+    Func construct_op(PrimOp prim_op, unsigned int idx) const override {
       IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx);
-      Op op = io;
-      return op;
+      Func f = io;
+      return f;
     }
-    Op construct_op(PrimOp prim_op, unsigned int idx0,
+    Func construct_op(PrimOp prim_op, unsigned int idx0,
                     unsigned int idx1) const override {
       if (prim_op != BVEXTRACT) {
         std::string msg("Can't construct op from ");
@@ -180,10 +180,10 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
       IndexedOp io = std::make_shared<BoolectorExtractOp>(prim_op, idx0, idx1);
-      Op op(io);
-      return op;
+      Func f(io);
+      return f;
     }
-    Term apply_op(PrimOp op, Term t) const override {
+    Term apply_func(PrimOp op, Term t) const override {
       try {
         std::shared_ptr<BoolectorTerm> bt =
             std::static_pointer_cast<BoolectorTerm>(t);
@@ -197,7 +197,7 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Term apply_op(PrimOp op, Term t0, Term t1) const override {
+    Term apply_func(PrimOp op, Term t0, Term t1) const override {
       try {
         std::shared_ptr<BoolectorTerm> bt0 =
             std::static_pointer_cast<BoolectorTerm>(t0);
@@ -214,7 +214,7 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Term apply_op(PrimOp op, Term t0, Term t1, Term t2) const override {
+    Term apply_func(PrimOp op, Term t0, Term t1, Term t2) const override {
       try {
         std::shared_ptr<BoolectorTerm> bt0 =
             std::static_pointer_cast<BoolectorTerm>(t0);
@@ -234,15 +234,15 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Term apply_op(PrimOp op, std::vector<Term> terms) const override {
+    Term apply_func(PrimOp op, std::vector<Term> terms) const override {
       unsigned int size = terms.size();
       // binary ops are most common, check this first
       if (size == 2) {
-        return apply_op(op, terms[0], terms[1]);
+        return apply_func(op, terms[0], terms[1]);
       } else if (size == 1) {
-        return apply_op(op, terms[0]);
+        return apply_func(op, terms[0]);
       } else if (size == 3) {
-        return apply_op(op, terms[0], terms[1], terms[2]);
+        return apply_func(op, terms[0], terms[1], terms[2]);
       } else {
         std::string msg("There's no primitive op of arity ");
         msg += std::to_string(size);
@@ -250,13 +250,13 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Term apply_op(Op op, Term t) const override {
-      if (std::holds_alternative<PrimOp>(op)) {
-        return apply_op(std::get<PrimOp>(op), t);
-      } else if (std::holds_alternative<IndexedOp>(op)) {
+    Term apply_func(Func f, Term t) const override {
+      if (std::holds_alternative<PrimOp>(f)) {
+        return apply_func(std::get<PrimOp>(f), t);
+      } else if (std::holds_alternative<IndexedOp>(f)) {
         std::shared_ptr<BoolectorIndexedOp> btor_io =
             std::static_pointer_cast<BoolectorIndexedOp>(
-                std::get<IndexedOp>(op));
+                std::get<IndexedOp>(f));
         if (btor_io->is_extract_op()) {
           std::shared_ptr<BoolectorTerm> bt =
               std::static_pointer_cast<BoolectorTerm>(t);
@@ -272,46 +272,46 @@ namespace smt
         }
       } else {
         // rely on the function application in the vector implementation
-        return apply_op(op, std::vector<Term>{t});
+        return apply_func(f, std::vector<Term>{t});
       }
     }
-    Term apply_op(Op op, Term t0, Term t1) const override {
-      if (std::holds_alternative<PrimOp>(op)) {
-        return apply_op(std::get<PrimOp>(op), t0, t1);
-      } else if (std::holds_alternative<IndexedOp>(op)) {
+    Term apply_func(Func f, Term t0, Term t1) const override {
+      if (std::holds_alternative<PrimOp>(f)) {
+        return apply_func(std::get<PrimOp>(f), t0, t1);
+      } else if (std::holds_alternative<IndexedOp>(f)) {
         throw IncorrectUsageException(
             "No indexed operators that take two arguments");
       } else {
         // rely on the function application in the vector implementation
-        return apply_op(op, std::vector<Term>{t0, t1});
+        return apply_func(f, std::vector<Term>{t0, t1});
       }
     }
-    Term apply_op(Op op, Term t0, Term t1, Term t2) const override {
-      if (std::holds_alternative<PrimOp>(op)) {
-        return apply_op(std::get<PrimOp>(op), t0, t1, t2);
-      } else if (std::holds_alternative<IndexedOp>(op)) {
+    Term apply_func(Func f, Term t0, Term t1, Term t2) const override {
+      if (std::holds_alternative<PrimOp>(f)) {
+        return apply_func(std::get<PrimOp>(f), t0, t1, t2);
+      } else if (std::holds_alternative<IndexedOp>(f)) {
         throw IncorrectUsageException(
             "No indexed operators that take three arguments");
       } else {
         // rely on the function application in the vector implementation
-        return apply_op(op, std::vector<Term>{t0, t1, t2});
+        return apply_func(f, std::vector<Term>{t0, t1, t2});
       }
     }
-    Term apply_op(Op op, std::vector<Term> terms) const override {
+    Term apply_func(Func f, std::vector<Term> terms) const override {
       unsigned int size = terms.size();
       // Optimization: translate Op to PrimOp as early as possible to prevent
       // unpacking it multipe times
-      if (std::holds_alternative<PrimOp>(op)) {
-        return apply_op(std::get<PrimOp>(op), terms);
+      if (std::holds_alternative<PrimOp>(f)) {
+        return apply_func(std::get<PrimOp>(f), terms);
       } else if (size == 1) {
-        return apply_op(op, terms[0]);
+        return apply_func(f, terms[0]);
       } else if (size == 2) {
-        return apply_op(op, terms[0], terms[1]);
+        return apply_func(f, terms[0], terms[1]);
       } else if (size == 3) {
-        return apply_op(op, terms[0], terms[1], terms[2]);
-      } else if (std::holds_alternative<UF>(op)) {
+        return apply_func(f, terms[0], terms[1], terms[2]);
+      } else if (std::holds_alternative<UF>(f)) {
         std::shared_ptr<BoolectorUF> bf =
-            std::static_pointer_cast<BoolectorUF>(std::get<UF>(op));
+            std::static_pointer_cast<BoolectorUF>(std::get<UF>(f));
         std::vector<BoolectorNode *> args(size);
         std::shared_ptr<BoolectorTerm> bt;
         for (auto t : terms) {
@@ -319,7 +319,7 @@ namespace smt
           args.push_back(bt->node);
         }
         BoolectorNode *result = boolector_apply(btor, &args[0], size, bf->node);
-        Term term(new BoolectorTerm(btor, result, terms, op));
+        Term term(new BoolectorTerm(btor, result, terms, f));
       }
 
       // TODO: make this clearer -- might need to_string for generic op

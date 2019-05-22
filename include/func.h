@@ -18,7 +18,7 @@ protected:
 
 using IndexedOp = std::shared_ptr<AbsIndexedOp>;
 
-using Op = std::variant<PrimOp, IndexedOp, UF>;
+using Func = std::variant<PrimOp, IndexedOp, UF>;
 } // namespace smt
 
 #endif

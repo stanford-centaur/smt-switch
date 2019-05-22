@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "exceptions.h"
-#include "op.h"
+#include "func.h"
 #include "sort.h"
 #include "term.h"
 
@@ -38,17 +38,17 @@ namespace smt
     virtual Sort construct_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
     virtual Sort construct_sort(Kind k, std::vector<Sort> sorts,
                                 Sort sort) const = 0;
-    virtual Op construct_op(PrimOp op, unsigned int idx) const = 0;
-    virtual Op construct_op(PrimOp op, unsigned int idx0,
-                            unsigned int idx1) const = 0;
-    virtual Term apply_op(PrimOp op, Term t) const = 0;
-    virtual Term apply_op(PrimOp op, Term t0, Term t1) const = 0;
-    virtual Term apply_op(PrimOp op, Term t0, Term t1, Term t2) const = 0;
-    virtual Term apply_op(PrimOp op, std::vector<Term> terms) const = 0;
-    virtual Term apply_op(Op op, Term t) const = 0;
-    virtual Term apply_op(Op op, Term t0, Term t1) const = 0;
-    virtual Term apply_op(Op op, Term t0, Term t1, Term t2) const = 0;
-    virtual Term apply_op(Op op, std::vector<Term> terms) const = 0;
+    virtual Func construct_op(PrimOp op, unsigned int idx) const = 0;
+    virtual Func construct_op(PrimOp op, unsigned int idx0,
+                              unsigned int idx1) const = 0;
+    virtual Term apply_func(PrimOp op, Term t) const = 0;
+    virtual Term apply_func(PrimOp op, Term t0, Term t1) const = 0;
+    virtual Term apply_func(PrimOp op, Term t0, Term t1, Term t2) const = 0;
+    virtual Term apply_func(PrimOp op, std::vector<Term> terms) const = 0;
+    virtual Term apply_func(Func fun, Term t) const = 0;
+    virtual Term apply_func(Func fun, Term t0, Term t1) const = 0;
+    virtual Term apply_func(Func fun, Term t0, Term t1, Term t2) const = 0;
+    virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
   };
 
   using Solver = std::shared_ptr<AbsSolver>;

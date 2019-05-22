@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "op.h"
+#include "func.h"
 
 #include "boolector/boolector.h"
 

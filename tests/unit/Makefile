@@ -9,8 +9,8 @@ sorts: unit-sort.cpp
 exceptions: unit-exceptions.cpp
 	$(CXX) $(CXXFLAGS) -std=c++17 -I../../include/ unit-exceptions.cpp -o unit-exceptions.out
 
-ops: unit-ops.cpp
-	$(CXX) $(CXXFLAGS) -std=c++17 -I../../include/ unit-ops.cpp -o unit-ops.out
+funcs: unit-func.cpp
+	$(CXX) $(CXXFLAGS) -std=c++17 -I../../include/ unit-func.cpp -o unit-func.out
 
 clean:
 	rm -rf *.o *.out
