@@ -66,7 +66,10 @@ class BoolectorTerm : public AbsTerm
       throw IncorrectUsageException(
           "Can't get bitstring from a non-constant term.");
     }
-    return std::string(boolector_bv_assignment(btor, node));
+    const char * assignment = boolector_bv_assignment(btor, node);
+    std::string s(assignment);
+    boolector_free_bv_assignment(btor, assignment);
+    return s;
   }
 
  protected:

@@ -75,8 +75,10 @@ namespace smt
           std::static_pointer_cast<BoolectorTerm>(t);
       Kind k = t->get_sort()->get_kind();
       if ((k == BV) || (k == BOOL)) {
+        const char * assignment = boolector_bv_assignment(btor, bt->node);
         BoolectorNode *bc =
-            boolector_const(btor, boolector_bv_assignment(btor, bt->node));
+            boolector_const(btor, assignment);
+        boolector_free_bv_assignment(btor, assignment);
         result = std::make_shared<BoolectorTerm>(btor, bc, std::vector<Term>{},
                                                  CONST);
       } else if (k == ARRAY) {
