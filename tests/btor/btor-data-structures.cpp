@@ -15,12 +15,15 @@ int main()
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);
 
+  TermUnorderedMap tum;
   TermVec v;
   v.reserve(NUM_TERMS);
   for(size_t i=0; i < NUM_TERMS; ++i)
   {
-    string name = "x" + to_string(i);
-    v.push_back(s->declare_const(name, bvsort8));
+    Term x = s->declare_const("x" + to_string(i), bvsort8);
+    Term y = s->declare_const("y" + to_string(i), bvsort8);
+    v.push_back(x);
+    tum[x] = y;
   }
 
   Term trailing = v[0];
@@ -36,6 +39,14 @@ int main()
   Term zero = s->make_const(0, bvsort8);
   cout << zero->to_string() << endl;
   s->assert_formula(s->apply_func(EQUAL, v[0], zero));
+
+  // just assign all ys to x counterparts
+  for (auto it = tum.begin(); it != tum.end(); ++it)
+  {
+    std::cout << it->first << " = " << it->second << std::endl;
+    s->assert_formula(s->apply_func(EQUAL, it->first, it->second));
+  }
+
   bool res = s->check_sat();
   assert(res);
 
@@ -43,6 +54,7 @@ int main()
   for(size_t i=0; i < NUM_TERMS; ++i)
   {
     cout << "\t " << v[i]->to_string() << " = " << s->get_value(v[i])->as_bitstr() << endl;
+    cout << "\t " << tum.at(v[i])->to_string() << " = " << s->get_value(tum.at(v[i]))->as_bitstr() << endl;
   }
   return 0;
 }
