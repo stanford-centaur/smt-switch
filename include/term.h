@@ -1,6 +1,7 @@
 #ifndef SMT_TERM_H
 #define SMT_TERM_H
 
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -36,6 +37,13 @@ namespace smt
   {
    return t1->compare(t2);
   }
+
+  std::ostream & operator<<(std::ostream & output, const Term t)
+  {
+   output << t->to_string();
+   return output;
+  }
+
 }
 
 #endif

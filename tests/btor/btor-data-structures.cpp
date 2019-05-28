@@ -43,7 +43,7 @@ int main()
   // just assign all ys to x counterparts
   for (auto it = tum.begin(); it != tum.end(); ++it)
   {
-    std::cout << it->first << " = " << it->second << std::endl;
+    std::cout << "assert: " << it->first << " = " << it->second << std::endl;
     s->assert_formula(s->apply_func(EQUAL, it->first, it->second));
   }
 
@@ -51,6 +51,7 @@ int main()
   assert(res);
 
   // can print variable names, but otherwise boolector doesn't maintain strings for expressions
+  cout << "Assignments:" << std::endl;
   for(size_t i=0; i < NUM_TERMS; ++i)
   {
     cout << "\t " << v[i]->to_string() << " = " << s->get_value(v[i])->as_bitstr() << endl;
