@@ -10,8 +10,7 @@
 
 namespace smt
 {
-
-  // abstract class
+  // abstract class for term
   class AbsTerm
   {
   public:
@@ -43,6 +42,54 @@ namespace smt
    output << t->to_string();
    return output;
   }
+
+  // term iterators
+  // impelementation based on https://www.codeproject.com/Articles/92671/How-to-write-abstract-iterators-in-Cplusplus
+  class TermIterBase
+  {
+  public:
+    TermIterBase() {}
+    virtual ~TermIterBase() {}
+    virtual void operator++() {}
+    virtual Term operator*() const { std::shared_ptr<AbsTerm> s; return s; }
+    virtual TermIterBase* clone() const { return new TermIterBase(*this); }
+    bool operator==(const TermIterBase& other) const
+    {
+     return (typeid(*this) == typeid(other)) && equal(other);
+    }
+  protected:
+   virtual bool equal(const TermIterBase& other) const { return true; }
+  };
+
+  class TermIter
+  {
+  public:
+    TermIter() : iter_(0) {}
+    ~TermIter() { delete iter_; }
+    TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
+    TermIter& operator=(const TermIter& other)
+    {
+     delete iter_;
+     iter_ = other.iter_->clone();
+     return *this;
+    }
+    TermIter& operator++()
+    {
+      ++(*iter_);
+      return *this;
+    }
+    Term operator*() const { return *(*iter_); }
+    bool operator==(const TermIter& other) const
+    {
+     return (iter_ == other.iter_) || (*iter_ == *other.iter_);
+    }
+    bool operator!=(const TermIter& other) const
+    {
+     return !(*this == other);
+    }
+  protected:
+    TermIterBase * iter_;
+  };
 
 }
 
