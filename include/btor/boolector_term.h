@@ -12,6 +12,23 @@ namespace smt {
 // forward declaration
 class BoolectorSolver;
 
+class BoolectorTermIter : public TermIterBase
+{
+ public:
+   BoolectorTermIter(const std::vector<Term>::const_iterator v_it) : v_it(v_it) {};
+   BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
+   ~BoolectorTermIter() {};
+   // TODO: Check if this is necessary
+   BoolectorTermIter& operator=(const BoolectorTermIter& it) { v_it = it.v_it;  return *this; };
+   void operator++() override { BoolectorTermIter self = *this; v_it++; };
+   void operator++(int junk) { v_it++; };
+   const Term operator*() const override { return *v_it; };
+   bool operator==(const BoolectorTermIter& it) { return v_it == it.v_it; };
+   bool operator!=(const BoolectorTermIter& it) { return v_it != it.v_it; };
+ private:
+   std::vector<Term>::const_iterator v_it;
+};
+
 class BoolectorTerm : public AbsTerm
 {
  public:
@@ -50,8 +67,8 @@ class BoolectorTerm : public AbsTerm
       boolector_copy_sort(btor, s);
       sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
     } else {
-      // Note: functions are not terms, and thus we don't need to check for
-      // fun_sort unreachable
+      // Note: functions are not terms, and thus we don't need to check for fun_sort
+      // unreachable
       assert(false);
     }
     return sort;
@@ -81,6 +98,18 @@ class BoolectorTerm : public AbsTerm
     return s;
   }
 
+  /** Iterators for traversing the children
+   */
+  TermIter begin()
+  {
+    return TermIter(new BoolectorTermIter(children.begin()));
+  }
+
+  TermIter end()
+  {
+    return TermIter(new BoolectorTermIter(children.end()));
+  }
+
  protected:
   Btor * btor;
   BoolectorNode * node;
@@ -88,6 +117,7 @@ class BoolectorTerm : public AbsTerm
   Func f;
 
   friend class BoolectorSolver;
+  friend class BoolectorTermIter;
 };
 
 }

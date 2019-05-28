@@ -45,13 +45,14 @@ namespace smt
 
   // term iterators
   // impelementation based on https://www.codeproject.com/Articles/92671/How-to-write-abstract-iterators-in-Cplusplus
+  // TODO: Figure out who is responsible for deleting the pointer to TermIterBase
   class TermIterBase
   {
   public:
     TermIterBase() {}
     virtual ~TermIterBase() {}
     virtual void operator++() {}
-    virtual Term operator*() const { std::shared_ptr<AbsTerm> s; return s; }
+    const virtual Term operator*() const { std::shared_ptr<AbsTerm> s; return s; }
     virtual TermIterBase* clone() const { return new TermIterBase(*this); }
     bool operator==(const TermIterBase& other) const
     {
@@ -65,6 +66,7 @@ namespace smt
   {
   public:
     TermIter() : iter_(0) {}
+    TermIter(TermIterBase* tib) : iter_(tib) {}
     ~TermIter() { delete iter_; }
     TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
     TermIter& operator=(const TermIter& other)
