@@ -25,6 +25,13 @@ class BoolectorTermIter : public TermIterBase
    const Term operator*() const override { return *v_it; };
    bool operator==(const BoolectorTermIter& it) { return v_it == it.v_it; };
    bool operator!=(const BoolectorTermIter& it) { return v_it != it.v_it; };
+ protected:
+   bool equal(const TermIterBase& other) const override
+   {
+     // guaranteed to be safe by caller of equal (TermIterBase)
+     const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
+     return v_it == bti.v_it;
+   }
  private:
    std::vector<Term>::const_iterator v_it;
 };
@@ -100,12 +107,12 @@ class BoolectorTerm : public AbsTerm
 
   /** Iterators for traversing the children
    */
-  TermIter begin()
+  TermIter begin() override
   {
     return TermIter(new BoolectorTermIter(children.begin()));
   }
 
-  TermIter end()
+  TermIter end() override
   {
     return TermIter(new BoolectorTermIter(children.end()));
   }

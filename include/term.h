@@ -10,6 +10,9 @@
 
 namespace smt
 {
+  // forward declaration
+  class TermIter;
+
   // abstract class for term
   class AbsTerm
   {
@@ -27,6 +30,8 @@ namespace smt
     virtual std::shared_ptr<AbsSort> get_sort() const = 0;
     virtual std::string to_string() const = 0;
     virtual std::string as_bitstr() const = 0;
+    virtual TermIter begin() = 0;
+    virtual TermIter end() = 0;
     // TODO Add other convenient term methods
   };
 
@@ -59,6 +64,8 @@ namespace smt
      return (typeid(*this) == typeid(other)) && equal(other);
     }
   protected:
+  // TODO: should we make this pure virtual instead? needs to be implemented
+  //       but then we'd have to use pointers for everything...
    virtual bool equal(const TermIterBase& other) const { return true; }
   };
 
