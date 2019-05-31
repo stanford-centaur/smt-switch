@@ -51,7 +51,7 @@ namespace smt
           std::static_pointer_cast<BoolectorSortBase>(sort);
       Term term(new BoolectorTerm(btor,
                                   boolector_var(btor, bs->sort, name.c_str()),
-                                  std::vector<Term>{}, VAR));
+                                  std::vector<Term>{}, NUM_OPS_AND_NULL));
       return term;
     }
     // TODO implement declare_fun
@@ -59,7 +59,7 @@ namespace smt
       std::shared_ptr<BoolectorSortBase> bs =
           std::static_pointer_cast<BoolectorSortBase>(sort);
       Term term(new BoolectorTerm(btor, boolector_int(btor, i, bs->sort),
-                                  std::vector<Term>{}, CONST));
+                                  std::vector<Term>{}, NUM_OPS_AND_NULL));
       return term;
     }
     void assert_formula(const Term &t) const override {
@@ -80,7 +80,7 @@ namespace smt
             boolector_const(btor, assignment);
         boolector_free_bv_assignment(btor, assignment);
         result = std::make_shared<BoolectorTerm>(btor, bc, std::vector<Term>{},
-                                                 CONST);
+                                                 NUM_OPS_AND_NULL);
       } else if (k == ARRAY) {
         throw NotImplementedException("Array models unimplemented.");
       } else if (k == UNINTERPRETED) {

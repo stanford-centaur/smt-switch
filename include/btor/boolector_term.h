@@ -94,8 +94,8 @@ class BoolectorTerm : public AbsTerm
     }
   }
   std::string as_bitstr() const override {
-    if (!std::holds_alternative<PrimOp>(f) ||
-        (std::get<PrimOp>(f) != CONST)) {
+    if (!boolector_is_const(btor, node))
+    {
       throw IncorrectUsageException(
           "Can't get bitstring from a non-constant term.");
     }

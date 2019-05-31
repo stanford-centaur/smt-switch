@@ -45,10 +45,6 @@ enum PrimOp {
   Sign_Extend,
   Select,
   Store,
-  // distinguish between const and variable in the leaves
-  // TODO: Decide if it should be Value/Const instead
-  CONST,
-  VAR,
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */
@@ -95,9 +91,6 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
   primop2str[Extract] = std::string_view("Extract");
   primop2str[Select] = std::string_view("Select");
   primop2str[Store] = std::string_view("Store");
-  primop2str[CONST] = std::string_view("CONST");
-  primop2str[VAR] = std::string_view("VAR");
-
   return primop2str;
 }
 
