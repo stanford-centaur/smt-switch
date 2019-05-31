@@ -1,5 +1,5 @@
-#ifndef SMT_PRIM_OPS_H
-#define SMT_PRIM_OPS_H
+#ifndef SMT_OPS_H
+#define SMT_OPS_H
 
 #include "uf.h"
 

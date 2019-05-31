@@ -2,7 +2,7 @@
 #define SMT_OP_H
 
 #include "uf.h"
-#include "prim_ops.h"
+#include "ops.h"
 
 #include <memory>
 #include <variant>
