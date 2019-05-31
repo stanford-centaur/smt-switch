@@ -30,19 +30,19 @@ int main() {
   assert(xsort != arr_sort->get_indexsort());
   assert(xsort == arr_sort->get_elemsort());
 
-  Term xpy = s->apply_func(BVADD, x, y);
-  Term z_eq_xpy = s->apply_func(EQUAL, z, xpy);
+  Term xpy = s->apply_func(BVAdd, x, y);
+  Term z_eq_xpy = s->apply_func(Equal, z, xpy);
 
   Func f = z_eq_xpy->get_func();
   assert(holds_alternative<PrimOp>(f));
-  assert(get<PrimOp>(f) == EQUAL);
+  assert(get<PrimOp>(f) == Equal);
 
   Term x_lower = s->extract(3, 0, x);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->apply_func(BVULT, x, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_func(BVULT, y, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_func(BVUGT, z, s->make_const(5, bvsort8)));
+  s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_func(BVUlt, y, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply_func(BVUgt, z, s->make_const(5, bvsort8)));
   assert(s->check_sat());
 
   Term xc = s->get_value(x);

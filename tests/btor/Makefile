@@ -1,4 +1,3 @@
-CXXFLAGS=""
 BTOR_HOME="/home/makaim/repos/boolector"
 
 btor-tests: btor-tests.cpp

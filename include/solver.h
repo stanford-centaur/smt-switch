@@ -52,15 +52,15 @@ namespace smt
     /* convenience methods */
     Term extract(unsigned int u, unsigned int l, Term t)
     {
-      return apply_func(make_op(EXTRACT, u, l), t);
+      return apply_func(make_op(Extract, u, l), t);
     }
     Term zero_extend(unsigned int i, Term t)
     {
-      return apply_func(make_op(ZERO_EXTEND, i), t);
+      return apply_func(make_op(Zero_Extend, i), t);
     }
     Term sign_extend(unsigned int i, Term t)
     {
-      return apply_func(make_op(SIGN_EXTEND, i), t);
+      return apply_func(make_op(Sign_Extend, i), t);
     }
   };
 

@@ -10,41 +10,41 @@ namespace smt {
 // Primitive SMT operations (and identifiers for building indexed operators)
 // TODO add more smt ops
 enum PrimOp {
-  AND = 0,
-  OR,
-  XOR,
-  NOT,
-  IMPLIES,
-  IFF,
-  ITE,
-  EQUAL,
-  BVAND,
-  BVOR,
-  BVXOR,
-  BVNOT,
-  BVNEG,
-  BVADD,
-  BVSUB,
-  BVMUL,
-  BVUREM,
-  BVSREM,
-  BVMOD,
-  BVASHR,
-  BVLSHR,
-  BVSHL,
-  BVULT,
-  BVULE,
-  BVUGT,
-  BVUGE,
-  BVSLT,
-  BVSLE,
-  BVSGT,
-  BVSGE,
-  EXTRACT,
-  ZERO_EXTEND,
-  SIGN_EXTEND,
-  SELECT,
-  STORE,
+  And = 0,
+  Or,
+  Xor,
+  Not,
+  Implies,
+  Iff,
+  Ite,
+  Equal,
+  BVAnd,
+  BVOr,
+  BVXor,
+  BVNot,
+  BVNeg,
+  BVAdd,
+  BVSub,
+  BVMul,
+  BVUrem,
+  BVSrem,
+  BVMod,
+  BVAshr,
+  BVLshr,
+  BVShl,
+  BVUlt,
+  BVUle,
+  BVUgt,
+  BVUge,
+  BVSlt,
+  BVSle,
+  BVSgt,
+  BVSge,
+  Extract,
+  Zero_Extend,
+  Sign_Extend,
+  Select,
+  Store,
   // distinguish between const and variable in the leaves
   // TODO: Decide if it should be Value/Const instead
   CONST,
@@ -62,39 +62,39 @@ enum PrimOp {
 constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
   std::array<std::string_view, NUM_OPS_AND_NULL> primop2str;
 
-  primop2str[AND] = std::string_view("AND");
-  primop2str[OR] = std::string_view("OR");
-  primop2str[XOR] = std::string_view("XOR");
-  primop2str[NOT] = std::string_view("NOT");
-  primop2str[IMPLIES] = std::string_view("IMPLIES");
-  primop2str[IFF] = std::string_view("IFF");
-  primop2str[ITE] = std::string_view("ITE");
-  primop2str[EQUAL] = std::string_view("EQUAL");
-  primop2str[BVAND] = std::string_view("BVAND");
-  primop2str[BVOR] = std::string_view("BVOR");
-  primop2str[BVXOR] = std::string_view("BVXOR");
-  primop2str[BVNOT] = std::string_view("BVNOT");
-  primop2str[BVNEG] = std::string_view("BVNEG");
-  primop2str[BVADD] = std::string_view("BVADD");
-  primop2str[BVSUB] = std::string_view("BVSUB");
-  primop2str[BVMUL] = std::string_view("BVMUL");
-  primop2str[BVUREM] = std::string_view("BVUREM");
-  primop2str[BVSREM] = std::string_view("BVSREM");
-  primop2str[BVMOD] = std::string_view("BVMOD");
-  primop2str[BVASHR] = std::string_view("BVASHR");
-  primop2str[BVLSHR] = std::string_view("BVLSHR");
-  primop2str[BVSHL] = std::string_view("BVSHL");
-  primop2str[BVULT] = std::string_view("BVULT");
-  primop2str[BVULE] = std::string_view("BVULE");
-  primop2str[BVUGT] = std::string_view("BVUGT");
-  primop2str[BVUGE] = std::string_view("BVUGE");
-  primop2str[BVSLT] = std::string_view("BVSLT");
-  primop2str[BVSLE] = std::string_view("BVSLE");
-  primop2str[BVSGT] = std::string_view("BVSGT");
-  primop2str[BVSGE] = std::string_view("BVSGE");
-  primop2str[EXTRACT] = std::string_view("EXTRACT");
-  primop2str[SELECT] = std::string_view("SELECT");
-  primop2str[STORE] = std::string_view("STORE");
+  primop2str[And] = std::string_view("And");
+  primop2str[Or] = std::string_view("Or");
+  primop2str[Xor] = std::string_view("Xor");
+  primop2str[Not] = std::string_view("Not");
+  primop2str[Implies] = std::string_view("Implies");
+  primop2str[Iff] = std::string_view("Iff");
+  primop2str[Ite] = std::string_view("Ite");
+  primop2str[Equal] = std::string_view("Equal");
+  primop2str[BVAnd] = std::string_view("BVAnd");
+  primop2str[BVOr] = std::string_view("BVOr");
+  primop2str[BVXor] = std::string_view("BVXor");
+  primop2str[BVNot] = std::string_view("BVNot");
+  primop2str[BVNeg] = std::string_view("BVNeg");
+  primop2str[BVAdd] = std::string_view("BVAdd");
+  primop2str[BVSub] = std::string_view("BVSub");
+  primop2str[BVMul] = std::string_view("BVMul");
+  primop2str[BVUrem] = std::string_view("BVUrem");
+  primop2str[BVSrem] = std::string_view("BVSrem");
+  primop2str[BVMod] = std::string_view("BVMod");
+  primop2str[BVAshr] = std::string_view("BVAshr");
+  primop2str[BVLshr] = std::string_view("BVLshr");
+  primop2str[BVShl] = std::string_view("BVShl");
+  primop2str[BVUlt] = std::string_view("BVUlt");
+  primop2str[BVUle] = std::string_view("BVUle");
+  primop2str[BVUgt] = std::string_view("BVUgt");
+  primop2str[BVUge] = std::string_view("BVUge");
+  primop2str[BVSlt] = std::string_view("BVSlt");
+  primop2str[BVSle] = std::string_view("BVSle");
+  primop2str[BVSgt] = std::string_view("BVSgt");
+  primop2str[BVSge] = std::string_view("BVSge");
+  primop2str[Extract] = std::string_view("Extract");
+  primop2str[Select] = std::string_view("Select");
+  primop2str[Store] = std::string_view("Store");
   primop2str[CONST] = std::string_view("CONST");
   primop2str[VAR] = std::string_view("VAR");
 

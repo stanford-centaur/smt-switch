@@ -175,7 +175,7 @@ namespace smt
     }
     Func make_op(PrimOp prim_op, unsigned int idx0,
                     unsigned int idx1) const override {
-      if (prim_op != EXTRACT) {
+      if (prim_op != Extract) {
         std::string msg("Can't construct op from ");
         msg += to_string(prim_op);
         msg += " with two integer indices.";
@@ -265,7 +265,7 @@ namespace smt
           BoolectorNode *slice = boolector_slice(
               btor, bt->node, btor_io->get_upper(), btor_io->get_lower());
           Term term(
-              new BoolectorTerm(btor, slice, std::vector<Term>{t}, EXTRACT));
+              new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
           return term;
         } else {
           // TODO: apply different indexed operations (repeat, zero_extend and
