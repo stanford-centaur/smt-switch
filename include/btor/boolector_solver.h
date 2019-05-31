@@ -49,6 +49,7 @@ namespace smt
       // boolector_var)
       std::shared_ptr<BoolectorSortBase> bs =
           std::static_pointer_cast<BoolectorSortBase>(sort);
+      // note: give the symbol a null PrimOp
       Term term(new BoolectorTerm(btor,
                                   boolector_var(btor, bs->sort, name.c_str()),
                                   std::vector<Term>{}, NUM_OPS_AND_NULL));
@@ -58,6 +59,7 @@ namespace smt
     Term make_const(unsigned int i, Sort sort) const override {
       std::shared_ptr<BoolectorSortBase> bs =
           std::static_pointer_cast<BoolectorSortBase>(sort);
+      // note: give the constant value a null PrimOp
       Term term(new BoolectorTerm(btor, boolector_int(btor, i, bs->sort),
                                   std::vector<Term>{}, NUM_OPS_AND_NULL));
       return term;
@@ -79,6 +81,7 @@ namespace smt
         BoolectorNode *bc =
             boolector_const(btor, assignment);
         boolector_free_bv_assignment(btor, assignment);
+        // note: give the constant value a null PrimOp
         result = std::make_shared<BoolectorTerm>(btor, bc, std::vector<Term>{},
                                                  NUM_OPS_AND_NULL);
       } else if (k == ARRAY) {
