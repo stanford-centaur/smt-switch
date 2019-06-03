@@ -170,24 +170,6 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
-    // TODO: remove this
-    /* Func make_op(PrimOp prim_op, unsigned int idx) const override { */
-    /*   IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx); */
-    /*   Func f = io; */
-    /*   return f; */
-    /* } */
-    /* Func make_op(PrimOp prim_op, unsigned int idx0, */
-    /*                 unsigned int idx1) const override { */
-    /*   if (prim_op != Extract) { */
-    /*     std::string msg("Can't construct op from "); */
-    /*     msg += to_string(prim_op); */
-    /*     msg += " with two integer indices."; */
-    /*     throw IncorrectUsageException(msg.c_str()); */
-    /*   } */
-    /*   IndexedOp io = std::make_shared<BoolectorExtractOp>(prim_op, idx0, idx1); */
-    /*   Func f(io); */
-    /*   return f; */
-    /* } */
     Term apply_func(PrimOp op, Term t) const override {
       try {
         std::shared_ptr<BoolectorTerm> bt =
@@ -400,7 +382,6 @@ namespace smt
         Term term(new BoolectorTerm(btor, result, terms, f));
       }
 
-      // TODO: make this clearer -- might need to_string for generic op
       std::string msg("Can't find any matching ops to apply to ");
       msg += std::to_string(size);
       msg += " terms.";

@@ -66,57 +66,6 @@ namespace smt
   friend class BoolectorSolver;
   };
 
-  // TODO remove this
-  /* class BoolectorIndexedOp : public AbsIndexedOp */
-  /* { */
-  /* public: */
-  /*   BoolectorIndexedOp(PrimOp o) : AbsIndexedOp(o) {}; */
-  /*   virtual bool is_extract_op() const { return false; }; */
-  /*   virtual unsigned int get_upper() const { */
-  /*     throw IncorrectUsageException("Expecting BoolectorExtractOp."); */
-  /*   }; */
-  /*   virtual unsigned int get_lower() const { */
-  /*     throw IncorrectUsageException("Expecting BoolectorExtractOp."); */
-  /*   }; */
-  /*   virtual unsigned int get_idx() const { */
-  /*     throw IncorrectUsageException("Expecting Op with single index"); */
-  /*   }; */
-
-  /*   friend class BoolectorSolver; */
-  /* }; */
-
-  /* // boolector doesn't have a node type for indexed ops (only functions for performing them) */
-  /* // thus we track the information here */
-
-  /* class BoolectorExtractOp : public BoolectorIndexedOp */
-  /* { */
-  /* public: */
-  /*   BoolectorExtractOp(PrimOp o, unsigned int u, unsigned int l) */
-  /*       : BoolectorIndexedOp(o), upper(u), lower(l){}; */
-  /*   bool is_extract_op() const override { return true; }; */
-  /*   unsigned int get_upper() const override { return upper; }; */
-  /*   unsigned int get_lower() const override { return lower; }; */
-
-  /* protected: */
-  /*   unsigned int upper; */
-  /*   unsigned int lower; */
-
-  /*   friend class BoolectorSolver; */
-  /* }; */
-
-  /* class BoolectorSingleIndexOp : public BoolectorIndexedOp */
-  /* { */
-  /* public: */
-  /*   BoolectorSingleIndexOp(PrimOp o, unsigned int i) */
-  /*       : BoolectorIndexedOp(o), idx(i){}; */
-  /*   unsigned int get_idx() const override { return idx; }; */
-
-  /* protected: */
-  /*   unsigned int idx; */
-
-  /*   friend class BoolectorSolver; */
-  /* }; */
-
   // Boolector PrimOp mappings
   typedef BoolectorNode *(*un_fun)(Btor *, BoolectorNode *);
   typedef BoolectorNode *(*bin_fun)(Btor *, BoolectorNode *, BoolectorNode *);

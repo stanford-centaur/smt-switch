@@ -50,7 +50,6 @@ namespace smt
 
   // term iterators
   // impelementation based on https://www.codeproject.com/Articles/92671/How-to-write-abstract-iterators-in-Cplusplus
-  // TODO: Figure out who is responsible for deleting the pointer to TermIterBase
   class TermIterBase
   {
   public:
