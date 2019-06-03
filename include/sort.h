@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "utils.h"
+
 // Sort needs to have arguments
 //  could be integers or other sorts
 //  should use an enum for the different kinds of sorts probably
@@ -83,7 +85,7 @@ public:
       }
       else
       {
-        // TODO: Add an unreachable assertion
+        Unreachable();
       }
       return oss.str();
     }

@@ -30,6 +30,15 @@ inline void Assert(bool assertion)
   }
 }
 
+
+inline void Unreachable()
+{
+  if constexpr (assertion_mode)
+  {
+    assert(false);
+  }
+}
+
 // logs to stdout
 template <std::size_t lvl>
 inline void Log(std::string msg)

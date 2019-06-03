@@ -5,6 +5,7 @@
 
 #include "exceptions.h"
 #include "sort.h"
+#include "utils.h"
 
 #include "boolector/boolector.h"
 
@@ -75,8 +76,7 @@ namespace smt
         }
         default:
         {
-          // unreachable -- these are all the kinds that boolector supports
-          assert(false);
+          Unreachable();
           break;
         }
       }

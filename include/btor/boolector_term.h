@@ -6,6 +6,7 @@
 #include "boolector/boolector.h"
 #include "func.h"
 #include "term.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -98,9 +99,7 @@ class BoolectorTerm : public AbsTerm
     }
     else
     {
-      // Note: functions are not terms, and thus we don't need to check for fun_sort
-      // unreachable
-      assert(false);
+      Unreachable();
     }
     return sort;
   }
