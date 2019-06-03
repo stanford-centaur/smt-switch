@@ -4,8 +4,6 @@
 #include <array>
 #include <string>
 
-#include "uf.h"
-
 namespace smt {
 // Primitive SMT operations (and identifiers for building indexed operators)
 // TODO add more smt ops

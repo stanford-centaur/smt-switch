@@ -60,6 +60,35 @@ class BoolectorSolver : public AbsSmtSolver
     return term;
   }
   // TODO implement declare_fun
+  Func declare_fun(const std::string name, const std::vector<Sort>& sorts, Sort sort) const override
+  {
+    if (sorts.size() == 0)
+    {
+      throw IncorrectUsageException("API does not support zero arity functions with declare_fun, please use declare_const");
+    }
+    else
+    {
+      std::vector<BoolectorSort> btor_domain_sorts;
+      btor_domain_sorts.reserve(sorts.size());
+      std::shared_ptr<BoolectorSortBase> bsort;
+      for (Sort s : sorts)
+      {
+        bsort = std::static_pointer_cast<BoolectorSortBase>(s);
+        btor_domain_sorts.push_back(bsort->sort);
+      }
+
+      // now the codomain sort
+      bsort = std::static_pointer_cast<BoolectorSortBase>(sort);
+      BoolectorSort btor_codomain_sort = bsort->sort;
+      BoolectorSort btor_fun_sort = boolector_fun_sort(btor, &btor_domain_sorts[0],
+                                                       sorts.size(), btor_codomain_sort);
+      BoolectorNode * n = boolector_uf(btor, btor_fun_sort, name.c_str());
+      // uf_sort owns btor_fun_sort
+      Sort uf_sort(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
+      Func f(new BoolectorFunc(btor, n, uf_sort));
+      return f;
+    }
+  }
   Term make_const(unsigned int i, Sort sort) const override
   {
     std::shared_ptr<BoolectorSortBase> bs =
@@ -423,7 +452,7 @@ class BoolectorSolver : public AbsSmtSolver
     {
       std::shared_ptr<BoolectorFunc> bf =
           std::static_pointer_cast<BoolectorFunc>(f);
-      std::vector<BoolectorNode*> args(size);
+      std::vector<BoolectorNode*> args;
       std::shared_ptr<BoolectorTerm> bt;
       for (auto t : terms)
       {
@@ -432,6 +461,7 @@ class BoolectorSolver : public AbsSmtSolver
       }
       BoolectorNode* result = boolector_apply(btor, &args[0], size, bf->node);
       Term term(new BoolectorTerm(btor, result, terms, f));
+      return term;
     }
 
     std::string msg("Can't find any matching ops to apply to ");
@@ -439,8 +469,27 @@ class BoolectorSolver : public AbsSmtSolver
     msg += " terms.";
     throw IncorrectUsageException(msg.c_str());
   }
-
  protected:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   Btor* btor;
   };
 }

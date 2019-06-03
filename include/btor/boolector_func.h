@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 
+#include "exceptions.h"
 #include "func.h"
 #include "ops.h"
 

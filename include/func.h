@@ -6,7 +6,6 @@
 
 #include "ops.h"
 #include "sort.h"
-#include "uf.h"
 
 namespace smt {
 

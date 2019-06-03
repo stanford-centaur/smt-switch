@@ -38,24 +38,30 @@ int main()
   assert(f->get_op().prim_op == Equal);
 
   Op ext30 = Op(Extract, 3, 0);
-
   Term x_lower = s->apply_func(ext30, x);
+
+  Func uf = s->declare_fun("f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
+  Term uf_app = s->apply_func(uf, x_lower);
 
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUlt, y, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUgt, z, s->make_const(5, bvsort8)));
+  s->assert_formula(s->apply_func(BVUle, uf_app, s->make_const(3, bvsort8)));
+  s->assert_formula(s->apply_func(BVUge, uf_app, s->make_const(3, bvsort8)));
   assert(s->check_sat());
 
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);
   Term zc = s->get_value(z);
   Term x_lowerc = s->get_value(x_lower);
+  Term uf_appc = s->get_value(uf_app);
 
   cout << "Got the following values:" << endl;
   cout << "\txc = " << xc->as_bitstr() << endl;
   cout << "\tyc = " << yc->as_bitstr() << endl;
   cout << "\tzc = " << zc->as_bitstr() << endl;
   cout << "\tx[3:0] = " << x_lowerc->as_bitstr() << endl;
+  cout << "\tf(x[3:0]) = " << uf_appc->as_bitstr() << endl;
   return 0;
 }
