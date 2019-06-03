@@ -3,6 +3,7 @@
 
 #include <array>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -46,9 +47,9 @@ constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
 constexpr std::array<std::string_view, NUM_KINDS> kind2str =
     generate_kind2str();
 
-std::string_view to_string(Kind k)
+std::string to_string(Kind k)
 {
-  return kind2str[k];
+  return std::string(kind2str[k]);
 }
 
 /**
@@ -63,7 +64,30 @@ public:
   AbsSort(Kind k) : kind(k){};
   virtual ~AbsSort(){};
   // TODO: Implement to_string
-  std::string to_string() const { return "TODO"; };
+  std::string to_string() const {
+    if ((kind != BV) && (kind != ARRAY))
+    {
+      return ::smt::to_string(kind);
+    }
+    else
+    {
+      std::ostringstream oss;
+      if (kind == BV)
+      {
+        oss << "BV{" << get_width() << "}";
+      }
+      else if (kind == ARRAY)
+      {
+        oss << "ARRAY{" << get_indexsort()->to_string()
+            << ", " << get_elemsort()->to_string() << "}";
+      }
+      else
+      {
+        // TODO: Add an unreachable assertion
+      }
+      return oss.str();
+    }
+  };
   bool is_array() const { return kind == ARRAY; };
   bool is_bool() const { return kind == BOOL; };
   bool is_bv() const { return kind == BV; };
@@ -78,9 +102,9 @@ public:
   virtual bool compare(const std::shared_ptr<AbsSort> absort) const = 0;
   Kind get_kind() const { return kind; };
 
-protected:
+ protected:
   Kind kind;
-  };
+};
 
   using Sort = std::shared_ptr<AbsSort>;
 
@@ -88,6 +112,13 @@ protected:
   {
    return s1->compare(s2);
   }
+
+  std::ostream& operator<<(std::ostream& output, const Sort s)
+  {
+   output << s->to_string();
+   return output;
+  }
+
 }
 
 #endif
