@@ -327,9 +327,29 @@ class BoolectorSolver : public AbsSmtSolver
     else
     {
       std::shared_ptr<BoolectorTerm> bt =
-          std::static_pointer_cast<BoolectorTerm>(t);
-      BoolectorNode* slice = boolector_slice(btor, bt->node, op.idx0, op.idx1);
-      Term term(new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
+        std::static_pointer_cast<BoolectorTerm>(t);
+      Term term;
+      if (op.prim_op == Extract)
+      {
+        BoolectorNode* slice = boolector_slice(btor, bt->node, op.idx0, op.idx1);
+        term = Term(new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
+      }
+      else if (op.prim_op == Zero_Extend)
+      {
+        BoolectorNode* uext = boolector_uext(btor, bt->node, op.idx0);
+        term = Term(new BoolectorTerm(btor, uext, std::vector<Term>{t}, Zero_Extend));
+      }
+      else if (op.prim_op == Sign_Extend)
+      {
+        BoolectorNode* sext = boolector_sext(btor, bt->node, op.idx0);
+        term = Term(new BoolectorTerm(btor, sext, std::vector<Term>{t}, Sign_Extend));
+      }
+      else
+      {
+        std::string msg = "Could not find Boolector implementation of ";
+        msg += to_string(op.prim_op);
+        throw IncorrectUsageException(msg.c_str());
+      }
       return term;
     }
   }
@@ -369,12 +389,7 @@ class BoolectorSolver : public AbsSmtSolver
     {
       if (terms.size() == 1)
       {
-        std::shared_ptr<BoolectorTerm> bt =
-            std::static_pointer_cast<BoolectorTerm>(terms[0]);
-        BoolectorNode* slice =
-            boolector_slice(btor, bt->node, op.idx0, op.idx1);
-        Term term(new BoolectorTerm(btor, slice, terms, Extract));
-        return term;
+        return apply_func(op, terms[0]);
       }
       else
       {

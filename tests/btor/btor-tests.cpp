@@ -39,6 +39,7 @@ int main()
 
   Op ext30 = Op(Extract, 3, 0);
   Term x_lower = s->apply_func(ext30, x);
+  Term x_ext = s->apply_func(Op(Zero_Extend, 4), x_lower);
 
   Func uf = s->declare_fun(
       "f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
@@ -48,6 +49,8 @@ int main()
   s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUlt, y, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUgt, z, s->make_const(5, bvsort8)));
+  // This is actually a redundant assertion
+  s->assert_formula(s->apply_func(Equal, x_ext, x));
   s->assert_formula(s->apply_func(BVUle, uf_app, s->make_const(3, bvsort8)));
   s->assert_formula(s->apply_func(BVUge, uf_app, s->make_const(3, bvsort8)));
   assert(s->check_sat());
@@ -55,6 +58,7 @@ int main()
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);
   Term zc = s->get_value(z);
+  Term x_extc = s->get_value(x_ext);
   Term x_lowerc = s->get_value(x_lower);
   Term uf_appc = s->get_value(uf_app);
 
@@ -63,6 +67,7 @@ int main()
   cout << "\tyc = " << yc->as_bitstr() << endl;
   cout << "\tzc = " << zc->as_bitstr() << endl;
   cout << "\tx[3:0] = " << x_lowerc->as_bitstr() << endl;
+  cout << "\t((_ zero_extend 4) x[3:0]) = " << x_extc->as_bitstr() << endl;
   cout << "\tf(x[3:0]) = " << uf_appc->as_bitstr() << endl;
   return 0;
 }
