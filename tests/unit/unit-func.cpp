@@ -6,23 +6,23 @@ using namespace smt;
 using namespace std;
 
 int main() {
-  Func f1(AND);
-  assert(holds_alternative<PrimOp>(f1));
-  assert(get<PrimOp>(f1) == AND);
-  Func f2(AND);
+  Op f1(And);
+  assert(f1.num_idx == 0);
+  assert(f1.prim_op == And);
+  Op f2(And);
+  Op f3(Or);
   assert(f1 == f2);
+  assert(f1 != f3);
 
-  IndexedOp io(nullptr);
-  Func indexed_op;
-  indexed_op = io;
-  assert(holds_alternative<IndexedOp>(indexed_op));
-  assert(!holds_alternative<UF>(indexed_op));
-  Func indexed_op_copy = indexed_op;
-  assert(indexed_op_copy == indexed_op);
+  Op zext(Zero_Extend, 4);
+  Op zext2(Zero_Extend, 4);
+  Op zext3(Zero_Extend, 5);
+  assert(zext == zext2);
+  assert(zext != zext3);
 
-  UF fun(nullptr);
-  Func uninterpreted_func = fun;
-  assert(holds_alternative<UF>(uninterpreted_func));
-  assert(!holds_alternative<IndexedOp>(uninterpreted_func));
-  assert(get<UF>(uninterpreted_func) == fun);
+  Op ext(Extract, 3, 0);
+  Op ext2(Extract, 3, 0);
+  Op ext3(Extract, 3, 1);
+  assert(ext == ext2);
+  assert(ext != ext3);
 }
