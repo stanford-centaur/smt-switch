@@ -1,24 +1,26 @@
 #ifndef SMT_OP_H
 #define SMT_OP_H
 
+#include <memory>
+#include <vector>
+
 #include "uf.h"
 #include "ops.h"
-
-#include <memory>
-#include <variant>
+#include "sort.h"
 
 namespace smt {
-class AbsIndexedOp {
-public:
-  AbsIndexedOp(PrimOp o) : op(o){};
-  PrimOp get_prim_op() const { return op; };
-protected:
-  PrimOp op;
-};
 
-using IndexedOp = std::shared_ptr<AbsIndexedOp>;
+  class AbsFunc
+  {
+  public:
+    virtual ~AbsFunc() {};
+    virtual bool is_uf() const = 0;
+    virtual bool is_op() const = 0;
+    virtual Sort get_sort() const = 0;
+    virtual Op get_op() const = 0;
+  };
 
-using Func = std::variant<PrimOp, IndexedOp, UF>;
+using Func = std::shared_ptr<AbsFunc>;
 } // namespace smt
 
 #endif

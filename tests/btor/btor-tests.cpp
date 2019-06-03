@@ -34,10 +34,12 @@ int main() {
   Term z_eq_xpy = s->apply_func(Equal, z, xpy);
 
   Func f = z_eq_xpy->get_func();
-  assert(holds_alternative<PrimOp>(f));
-  assert(get<PrimOp>(f) == Equal);
+  assert(f->is_op());
+  assert(f->get_op().prim_op == Equal);
 
-  Term x_lower = s->extract(3, 0, x);
+  Op ext30 = Op(Extract, 3, 0);
+
+  Term x_lower = s->apply_func(ext30, x);
 
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));

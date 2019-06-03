@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "boolector_uf.h"
 #include "boolector_func.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
@@ -52,7 +51,7 @@ namespace smt
       // note: give the symbol a null PrimOp
       Term term(new BoolectorTerm(btor,
                                   boolector_var(btor, bs->sort, name.c_str()),
-                                  std::vector<Term>{}, NUM_OPS_AND_NULL));
+                                  std::vector<Term>{}, Op()));
       return term;
     }
     // TODO implement declare_fun
@@ -61,7 +60,7 @@ namespace smt
           std::static_pointer_cast<BoolectorSortBase>(sort);
       // note: give the constant value a null PrimOp
       Term term(new BoolectorTerm(btor, boolector_int(btor, i, bs->sort),
-                                  std::vector<Term>{}, NUM_OPS_AND_NULL));
+                                  std::vector<Term>{}, Op()));
       return term;
     }
     void assert_formula(const Term &t) const override {
@@ -171,23 +170,24 @@ namespace smt
           throw IncorrectUsageException(msg.c_str());
         }
     }
-    Func make_op(PrimOp prim_op, unsigned int idx) const override {
-      IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx);
-      Func f = io;
-      return f;
-    }
-    Func make_op(PrimOp prim_op, unsigned int idx0,
-                    unsigned int idx1) const override {
-      if (prim_op != Extract) {
-        std::string msg("Can't construct op from ");
-        msg += to_string(prim_op);
-        msg += " with two integer indices.";
-        throw IncorrectUsageException(msg.c_str());
-      }
-      IndexedOp io = std::make_shared<BoolectorExtractOp>(prim_op, idx0, idx1);
-      Func f(io);
-      return f;
-    }
+    // TODO: remove this
+    /* Func make_op(PrimOp prim_op, unsigned int idx) const override { */
+    /*   IndexedOp io = std::make_shared<BoolectorSingleIndexOp>(prim_op, idx); */
+    /*   Func f = io; */
+    /*   return f; */
+    /* } */
+    /* Func make_op(PrimOp prim_op, unsigned int idx0, */
+    /*                 unsigned int idx1) const override { */
+    /*   if (prim_op != Extract) { */
+    /*     std::string msg("Can't construct op from "); */
+    /*     msg += to_string(prim_op); */
+    /*     msg += " with two integer indices."; */
+    /*     throw IncorrectUsageException(msg.c_str()); */
+    /*   } */
+    /*   IndexedOp io = std::make_shared<BoolectorExtractOp>(prim_op, idx0, idx1); */
+    /*   Func f(io); */
+    /*   return f; */
+    /* } */
     Term apply_func(PrimOp op, Term t) const override {
       try {
         std::shared_ptr<BoolectorTerm> bt =
@@ -255,25 +255,79 @@ namespace smt
         throw IncorrectUsageException(msg.c_str());
       }
     }
-    Term apply_func(Func f, Term t) const override {
-      if (std::holds_alternative<PrimOp>(f)) {
-        return apply_func(std::get<PrimOp>(f), t);
-      } else if (std::holds_alternative<IndexedOp>(f)) {
-        std::shared_ptr<BoolectorIndexedOp> btor_io =
-            std::static_pointer_cast<BoolectorIndexedOp>(
-                std::get<IndexedOp>(f));
-        if (btor_io->is_extract_op()) {
+    Term apply_func(Op op, Term t) const override
+    {
+      if (op.num_idx == 0)
+      {
+        return apply_func(op.prim_op, t);
+      }
+      else
+      {
+        std::shared_ptr<BoolectorTerm> bt =
+          std::static_pointer_cast<BoolectorTerm>(t);
+        BoolectorNode *slice = boolector_slice(
+                                               btor, bt->node, op.idx0, op.idx1);
+        Term term(
+                  new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
+        return term;
+      }
+    }
+    Term apply_func(Op op, Term t0, Term t1) const override
+    {
+      if (op.num_idx == 0)
+      {
+        return apply_func(op.prim_op, t0, t1);
+      }
+      else
+      {
+        throw IncorrectUsageException("There are no supported indexed operators that take more than one argument");
+      }
+    }
+    Term apply_func(Op op, Term t0, Term t1, Term t2) const override
+    {
+      if (op.num_idx == 0)
+      {
+        return apply_func(op.prim_op, t0, t1, t2);
+      }
+      else
+      {
+        throw IncorrectUsageException("There are no supported indexed operators that take more than one argument");
+      }
+    }
+    Term apply_func(Op op, std::vector<Term> terms) const override
+    {
+      if (op.num_idx == 0)
+      {
+        return apply_func(op.prim_op, terms);
+      }
+      else
+      {
+        if (terms.size() == 1)
+        {
           std::shared_ptr<BoolectorTerm> bt =
-              std::static_pointer_cast<BoolectorTerm>(t);
+            std::static_pointer_cast<BoolectorTerm>(terms[0]);
           BoolectorNode *slice = boolector_slice(
-              btor, bt->node, btor_io->get_upper(), btor_io->get_lower());
+                                                 btor, bt->node, op.idx0, op.idx1);
           Term term(
-              new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
+                    new BoolectorTerm(btor, slice, terms, Extract));
           return term;
-        } else {
-          // TODO: apply different indexed operations (repeat, zero_extend and
-          // sign_extend)
-          throw NotImplementedException("Not implemented yet.");
+        }
+        else
+        {
+          throw IncorrectUsageException("There are no supported indexed operators that take more than one argument");
+        }
+      }
+    }
+    Term apply_func(Func f, Term t) const override {
+      if (f->is_op()) {
+        Op op = f->get_op();
+        if (op.num_idx == 0)
+        {
+          return apply_func(op.prim_op, t);
+        }
+        else
+        {
+          return apply_func(op, std::vector<Term>{t});
         }
       } else {
         // rely on the function application in the vector implementation
@@ -281,23 +335,38 @@ namespace smt
       }
     }
     Term apply_func(Func f, Term t0, Term t1) const override {
-      if (std::holds_alternative<PrimOp>(f)) {
-        return apply_func(std::get<PrimOp>(f), t0, t1);
-      } else if (std::holds_alternative<IndexedOp>(f)) {
-        throw IncorrectUsageException(
-            "No indexed operators that take two arguments");
-      } else {
+      if (f->is_op()) {
+        Op op = f->get_op();
+        if (op.num_idx == 0)
+        {
+          return apply_func(op.prim_op, t0, t1);
+        }
+        else
+        {
+          throw IncorrectUsageException(
+                                        "No indexed operators that take two arguments");
+        }
+      }
+      else {
         // rely on the function application in the vector implementation
         return apply_func(f, std::vector<Term>{t0, t1});
       }
     }
     Term apply_func(Func f, Term t0, Term t1, Term t2) const override {
-      if (std::holds_alternative<PrimOp>(f)) {
-        return apply_func(std::get<PrimOp>(f), t0, t1, t2);
-      } else if (std::holds_alternative<IndexedOp>(f)) {
-        throw IncorrectUsageException(
-            "No indexed operators that take three arguments");
-      } else {
+      if (f->is_op())
+      {
+        Op op = f->get_op();
+        if (op.num_idx == 0)
+        {
+          return apply_func(op.prim_op, t0, t1, t2);
+        }
+        else
+        {
+          throw IncorrectUsageException(
+                                        "No indexed operators that take three arguments");
+        }
+      }
+      else {
         // rely on the function application in the vector implementation
         return apply_func(f, std::vector<Term>{t0, t1, t2});
       }
@@ -306,17 +375,21 @@ namespace smt
       unsigned int size = terms.size();
       // Optimization: translate Op to PrimOp as early as possible to prevent
       // unpacking it multipe times
-      if (std::holds_alternative<PrimOp>(f)) {
-        return apply_func(std::get<PrimOp>(f), terms);
-      } else if (size == 1) {
-        return apply_func(f, terms[0]);
-      } else if (size == 2) {
-        return apply_func(f, terms[0], terms[1]);
-      } else if (size == 3) {
-        return apply_func(f, terms[0], terms[1], terms[2]);
-      } else if (std::holds_alternative<UF>(f)) {
-        std::shared_ptr<BoolectorUF> bf =
-            std::static_pointer_cast<BoolectorUF>(std::get<UF>(f));
+      if (f->is_op())
+      {
+        Op op = f->get_op();
+        if (op.num_idx == 0)
+        {
+          return apply_func(op.prim_op, terms);
+        }
+        else
+        {
+          return apply_func(op, terms);
+        }
+      }
+      else if (f->is_uf()) {
+        std::shared_ptr<BoolectorFunc> bf =
+          std::static_pointer_cast<BoolectorFunc>(f);
         std::vector<BoolectorNode *> args(size);
         std::shared_ptr<BoolectorTerm> bt;
         for (auto t : terms) {

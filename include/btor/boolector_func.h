@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "func.h"
+#include "ops.h"
 
 #include "boolector/boolector.h"
 
@@ -12,55 +13,96 @@ namespace smt
   // forward declaration
   class BoolectorSolver;
 
-  class BoolectorIndexedOp : public AbsIndexedOp
+  class BoolectorFunc : public AbsFunc
   {
   public:
-    BoolectorIndexedOp(PrimOp o) : AbsIndexedOp(o) {};
-    virtual bool is_extract_op() const { return false; };
-    virtual unsigned int get_upper() const {
-      throw IncorrectUsageException("Expecting BoolectorExtractOp.");
-    };
-    virtual unsigned int get_lower() const {
-      throw IncorrectUsageException("Expecting BoolectorExtractOp.");
-    };
-    virtual unsigned int get_idx() const {
-      throw IncorrectUsageException("Expecting Op with single index");
-    };
+    BoolectorFunc(Op op) : op(op), contains_op(true) {};
+    BoolectorFunc(Btor * b, BoolectorNode *n, Sort s)
+      : btor(b), node(n), sort(s), contains_op(false) {};
+    bool is_uf() const override { return !contains_op; };
+    bool is_op() const override { return contains_op; };
+    Sort get_sort() const override
+    {
+      if (!contains_op)
+      {
+        return sort;
+      }
+      else
+      {
+        throw IncorrectUsageException("Can't get sort from non-UF function.");
+      }
+    }
+    Op get_op() const override
+    {
+      if (contains_op)
+      {
+        return op;
+      }
+      else
+      {
+        throw IncorrectUsageException("Can't get op from UF function");
+      }
+    }
+  private:
+    Op op;
+    Btor * btor;
+    BoolectorNode * node;
+    Sort sort;
+    bool contains_op;
 
-    friend class BoolectorSolver;
+  friend class BoolectorSolver;
   };
 
-  // boolector doesn't have a node type for indexed ops (only functions for performing them)
-  // thus we track the information here
+  // TODO remove this
+  /* class BoolectorIndexedOp : public AbsIndexedOp */
+  /* { */
+  /* public: */
+  /*   BoolectorIndexedOp(PrimOp o) : AbsIndexedOp(o) {}; */
+  /*   virtual bool is_extract_op() const { return false; }; */
+  /*   virtual unsigned int get_upper() const { */
+  /*     throw IncorrectUsageException("Expecting BoolectorExtractOp."); */
+  /*   }; */
+  /*   virtual unsigned int get_lower() const { */
+  /*     throw IncorrectUsageException("Expecting BoolectorExtractOp."); */
+  /*   }; */
+  /*   virtual unsigned int get_idx() const { */
+  /*     throw IncorrectUsageException("Expecting Op with single index"); */
+  /*   }; */
 
-  class BoolectorExtractOp : public BoolectorIndexedOp
-  {
-  public:
-    BoolectorExtractOp(PrimOp o, unsigned int u, unsigned int l)
-        : BoolectorIndexedOp(o), upper(u), lower(l){};
-    bool is_extract_op() const override { return true; };
-    unsigned int get_upper() const override { return upper; };
-    unsigned int get_lower() const override { return lower; };
+  /*   friend class BoolectorSolver; */
+  /* }; */
 
-  protected:
-    unsigned int upper;
-    unsigned int lower;
+  /* // boolector doesn't have a node type for indexed ops (only functions for performing them) */
+  /* // thus we track the information here */
 
-    friend class BoolectorSolver;
-  };
+  /* class BoolectorExtractOp : public BoolectorIndexedOp */
+  /* { */
+  /* public: */
+  /*   BoolectorExtractOp(PrimOp o, unsigned int u, unsigned int l) */
+  /*       : BoolectorIndexedOp(o), upper(u), lower(l){}; */
+  /*   bool is_extract_op() const override { return true; }; */
+  /*   unsigned int get_upper() const override { return upper; }; */
+  /*   unsigned int get_lower() const override { return lower; }; */
 
-  class BoolectorSingleIndexOp : public BoolectorIndexedOp
-  {
-  public:
-    BoolectorSingleIndexOp(PrimOp o, unsigned int i)
-        : BoolectorIndexedOp(o), idx(i){};
-    unsigned int get_idx() const override { return idx; };
+  /* protected: */
+  /*   unsigned int upper; */
+  /*   unsigned int lower; */
 
-  protected:
-    unsigned int idx;
+  /*   friend class BoolectorSolver; */
+  /* }; */
 
-    friend class BoolectorSolver;
-  };
+  /* class BoolectorSingleIndexOp : public BoolectorIndexedOp */
+  /* { */
+  /* public: */
+  /*   BoolectorSingleIndexOp(PrimOp o, unsigned int i) */
+  /*       : BoolectorIndexedOp(o), idx(i){}; */
+  /*   unsigned int get_idx() const override { return idx; }; */
+
+  /* protected: */
+  /*   unsigned int idx; */
+
+  /*   friend class BoolectorSolver; */
+  /* }; */
 
   // Boolector PrimOp mappings
   typedef BoolectorNode *(*un_fun)(Btor *, BoolectorNode *);

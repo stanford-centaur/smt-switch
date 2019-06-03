@@ -38,30 +38,38 @@ namespace smt
     virtual Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
     virtual Sort make_sort(Kind k, std::vector<Sort> sorts,
                                 Sort sort) const = 0;
-    virtual Func make_op(PrimOp op, unsigned int idx) const = 0;
-    virtual Func make_op(PrimOp op, unsigned int idx0,
-                              unsigned int idx1) const = 0;
+    // TODO: Remove these
+    /* virtual Func make_op(PrimOp op, unsigned int idx) const = 0; */
+    /* virtual Func make_op(PrimOp op, unsigned int idx0, */
+                              /* unsigned int idx1) const = 0; */
+    // TODO: Figure out which variants to support directly
+    //       should it handled indexed ops directly, etc...
     virtual Term apply_func(PrimOp op, Term t) const = 0;
     virtual Term apply_func(PrimOp op, Term t0, Term t1) const = 0;
     virtual Term apply_func(PrimOp op, Term t0, Term t1, Term t2) const = 0;
     virtual Term apply_func(PrimOp op, std::vector<Term> terms) const = 0;
+    virtual Term apply_func(Op op, Term t) const = 0;
+    virtual Term apply_func(Op op, Term t0, Term t1) const = 0;
+    virtual Term apply_func(Op op, Term t0, Term t1, Term t2) const = 0;
+    virtual Term apply_func(Op op, std::vector<Term> terms) const = 0;
     virtual Term apply_func(Func fun, Term t) const = 0;
     virtual Term apply_func(Func fun, Term t0, Term t1) const = 0;
     virtual Term apply_func(Func fun, Term t0, Term t1, Term t2) const = 0;
     virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
+    // TODO: remove these
     /* convenience methods */
-    Term extract(unsigned int u, unsigned int l, Term t)
-    {
-      return apply_func(make_op(Extract, u, l), t);
-    }
-    Term zero_extend(unsigned int i, Term t)
-    {
-      return apply_func(make_op(Zero_Extend, i), t);
-    }
-    Term sign_extend(unsigned int i, Term t)
-    {
-      return apply_func(make_op(Sign_Extend, i), t);
-    }
+    /* Term extract(unsigned int u, unsigned int l, Term t) */
+    /* { */
+    /*   return apply_func(make_op(Extract, u, l), t); */
+    /* } */
+    /* Term zero_extend(unsigned int i, Term t) */
+    /* { */
+    /*   return apply_func(make_op(Zero_Extend, i), t); */
+    /* } */
+    /* Term sign_extend(unsigned int i, Term t) */
+    /* { */
+    /*   return apply_func(make_op(Sign_Extend, i), t); */
+    /* } */
   };
 
   using SmtSolver = std::shared_ptr<AbsSmtSolver>;
