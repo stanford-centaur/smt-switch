@@ -18,6 +18,7 @@ namespace smt {
     virtual bool is_op() const = 0;
     virtual Sort get_sort() const = 0;
     virtual Op get_op() const = 0;
+    virtual std::string get_name() const = 0;
   };
 
 using Func = std::shared_ptr<AbsFunc>;

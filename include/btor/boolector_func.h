@@ -43,6 +43,19 @@ namespace smt
         throw IncorrectUsageException("Can't get op from UF function");
       }
     }
+    std::string get_name() const override
+    {
+      if (!contains_op)
+      {
+        const char * btor_symbol = boolector_get_symbol(btor, node);
+        std::string symbol(btor_symbol);
+        return symbol;
+      }
+      else
+      {
+        throw IncorrectUsageException("Can't get name from non-UF function.");
+      }
+    }
   private:
     Op op;
     Btor * btor;
