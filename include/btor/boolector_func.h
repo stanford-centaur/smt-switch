@@ -87,23 +87,38 @@ const std::unordered_map<PrimOp, un_fun> unary_ops({{Not, boolector_not},
                                                     {BVNeg, boolector_neg}});
 
 const std::unordered_map<PrimOp, bin_fun> binary_ops(
-    {{And, boolector_and},     {Or, boolector_or},
-     {Xor, boolector_xor},     {Implies, boolector_implies},
-     {Iff, boolector_iff},     {Equal, boolector_eq},
-     {BVAnd, boolector_and},   {BVOr, boolector_or},
-     {BVXor, boolector_xor},   {BVAdd, boolector_add},
-     {BVSub, boolector_sub},   {BVMul, boolector_mul},
-     {BVUrem, boolector_urem}, {BVSrem, boolector_srem},
-     {BVMod, boolector_smod},  {BVAshr, boolector_sra},
-     {BVLshr, boolector_srl},  {BVShl, boolector_sll},
-     {BVUlt, boolector_ult},   {BVUle, boolector_ulte},
-     {BVUgt, boolector_ugt},   {BVUge, boolector_ugte},
-     {BVSlt, boolector_slt},   {BVSle, boolector_slte},
-     {BVSgt, boolector_sgt},   {BVSge, boolector_sgte},
+    {{And, boolector_and},
+     {Or, boolector_or},
+     {Xor, boolector_xor},
+     {Implies, boolector_implies},
+     {Iff, boolector_iff},
+     {Equal, boolector_eq},
+     {Distinct, boolector_ne},
+     {BVAnd, boolector_and},
+     {BVOr, boolector_or},
+     {BVXor, boolector_xor},
+     {BVAdd, boolector_add},
+     {BVSub, boolector_sub},
+     {BVMul, boolector_mul},
+     {BVUrem, boolector_urem},
+     {BVSrem, boolector_srem},
+     {BVMod, boolector_smod},
+     {BVAshr, boolector_sra},
+     {BVLshr, boolector_srl},
+     {BVShl, boolector_sll},
+     {BVUlt, boolector_ult},
+     {BVUle, boolector_ulte},
+     {BVUgt, boolector_ugt},
+     {BVUge, boolector_ugte},
+     {BVSlt, boolector_slt},
+     {BVSle, boolector_slte},
+     {BVSgt, boolector_sgt},
+     {BVSge, boolector_sgte},
      {Select, boolector_read}});
 
 const std::unordered_map<PrimOp, tern_fun> ternary_ops(
-    {{Ite, boolector_cond}, {Store, boolector_write}});
+    {{Ite, boolector_cond},
+     {Store, boolector_write}});
 }  // namespace smt
 
 #endif

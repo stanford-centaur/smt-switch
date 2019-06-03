@@ -49,8 +49,9 @@ int main()
   s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUlt, y, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply_func(BVUgt, z, s->make_const(5, bvsort8)));
-  // This is actually a redundant assertion
+  // This is actually a redundant assertion -- just testing
   s->assert_formula(s->apply_func(Equal, x_ext, x));
+  s->assert_formula(s->apply_func(Distinct, x, z));
   s->assert_formula(s->apply_func(BVUle, uf_app, s->make_const(3, bvsort8)));
   s->assert_formula(s->apply_func(BVUge, uf_app, s->make_const(3, bvsort8)));
   assert(s->check_sat());

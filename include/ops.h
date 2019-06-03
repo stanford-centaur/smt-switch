@@ -9,6 +9,7 @@ namespace smt {
 // TODO add more smt ops
 enum PrimOp
 {
+ /* Core Theory */
   And = 0,
   Or,
   Xor,
@@ -17,6 +18,7 @@ enum PrimOp
   Iff,
   Ite,
   Equal,
+  Distinct,
   BVAnd,
   BVOr,
   BVXor,
