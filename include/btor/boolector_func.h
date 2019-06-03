@@ -19,6 +19,13 @@ class BoolectorFunc : public AbsFunc
   BoolectorFunc(Op op) : op(op), contains_op(true){};
   BoolectorFunc(Btor* b, BoolectorNode* n, Sort s)
       : btor(b), node(n), sort(s), contains_op(false){};
+  ~BoolectorFunc()
+  {
+    if (!contains_op)
+    {
+      boolector_release(btor, node);
+    }
+  }
   bool is_uf() const override { return !contains_op; };
   bool is_op() const override { return contains_op; };
   Sort get_sort() const override
