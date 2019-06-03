@@ -52,9 +52,20 @@ class BoolectorSolver : public AbsSmtSolver
     // boolector_var)
     std::shared_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
-    // note: give the symbol a null PrimOp
+
+    BoolectorNode * n;
+    if (sort->get_kind() != ARRAY)
+    {
+      n = boolector_var(btor, bs->sort, name.c_str());
+    }
+    else
+    {
+      n = boolector_array(btor, bs->sort, name.c_str());
+    }
+
+    // note: giving the symbol a null Op
     Term term(new BoolectorTerm(btor,
-                                boolector_var(btor, bs->sort, name.c_str()),
+                                n,
                                 std::vector<Term>{},
                                 Op()));
     return term;
