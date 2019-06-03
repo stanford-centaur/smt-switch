@@ -1,15 +1,15 @@
-#include "assert.h"
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "assert.h"
 
 #include "smt.h"
 
 using namespace smt;
 using namespace std;
 
-int main() {
-
+int main()
+{
   SmtSolver s = create_solver(BOOLECTOR);
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);

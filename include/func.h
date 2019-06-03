@@ -4,24 +4,24 @@
 #include <memory>
 #include <vector>
 
-#include "uf.h"
 #include "ops.h"
 #include "sort.h"
+#include "uf.h"
 
 namespace smt {
 
-  class AbsFunc
-  {
-  public:
-    virtual ~AbsFunc() {};
-    virtual bool is_uf() const = 0;
-    virtual bool is_op() const = 0;
-    virtual Sort get_sort() const = 0;
-    virtual Op get_op() const = 0;
-    virtual std::string get_name() const = 0;
-  };
+class AbsFunc
+{
+ public:
+  virtual ~AbsFunc(){};
+  virtual bool is_uf() const = 0;
+  virtual bool is_op() const = 0;
+  virtual Sort get_sort() const = 0;
+  virtual Op get_op() const = 0;
+  virtual std::string get_name() const = 0;
+};
 
 using Func = std::shared_ptr<AbsFunc>;
-} // namespace smt
+}  // namespace smt
 
 #endif

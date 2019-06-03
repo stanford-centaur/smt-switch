@@ -6,20 +6,19 @@
 
 #include "term.h"
 
-namespace smt
+namespace smt {
+using TermVec = std::vector<Term>;
+
+struct TermHashFunction
 {
-  using TermVec = std::vector<Term>;
-
-  struct TermHashFunction
+  std::size_t operator()(const Term& t) const
   {
-    std::size_t operator()(const Term& t) const
-    {
-      // call the term's hash function, implemented by solvers
-      return t->hash();
-    }
-  };
+    // call the term's hash function, implemented by solvers
+    return t->hash();
+  }
+};
 
-  using TermUnorderedMap = std::unordered_map<Term, Term, TermHashFunction>;
-}
+using TermUnorderedMap = std::unordered_map<Term, Term, TermHashFunction>;
+}  // namespace smt
 
 #endif

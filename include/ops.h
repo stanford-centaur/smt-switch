@@ -9,7 +9,8 @@
 namespace smt {
 // Primitive SMT operations (and identifiers for building indexed operators)
 // TODO add more smt ops
-enum PrimOp {
+enum PrimOp
+{
   And = 0,
   Or,
   Xor,
@@ -55,22 +56,25 @@ enum PrimOp {
    Represents operators
    If num_idx > 0 then it's an indexed operator
  */
-struct Op {
-   Op() : prim_op(NUM_OPS_AND_NULL), num_idx(0) {};
-   explicit Op(PrimOp o) : prim_op(o), num_idx(0) {};
-   Op(PrimOp o, unsigned int idx0) : prim_op(o), num_idx(1), idx0(idx0) {};
-   Op(PrimOp o, unsigned int idx0, unsigned int idx1) : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1) {};
-   PrimOp prim_op;
-   unsigned int num_idx;
-   unsigned int idx0;
-   unsigned int idx1;
+struct Op
+{
+  Op() : prim_op(NUM_OPS_AND_NULL), num_idx(0){};
+  explicit Op(PrimOp o) : prim_op(o), num_idx(0){};
+  Op(PrimOp o, unsigned int idx0) : prim_op(o), num_idx(1), idx0(idx0){};
+  Op(PrimOp o, unsigned int idx0, unsigned int idx1)
+      : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};
+  PrimOp prim_op;
+  unsigned int num_idx;
+  unsigned int idx0;
+  unsigned int idx1;
 };
 
 /**
    This function should only be called once, to generate the constexpr
    primop2str for converting enums to string_views.
 */
-constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
+constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
+{
   std::array<std::string_view, NUM_OPS_AND_NULL> primop2str;
 
   primop2str[And] = std::string_view("And");
@@ -112,10 +116,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str() {
 constexpr std::array<std::string_view, NUM_OPS_AND_NULL> primop2str =
     generate_primop2str();
 
-std::string_view to_string(PrimOp op)
-{
-  return primop2str[op];
-}
+std::string_view to_string(PrimOp op) { return primop2str[op]; }
 
 bool operator==(Op o1, Op o2)
 {
@@ -129,30 +130,30 @@ bool operator==(Op o1, Op o2)
   }
   else
   {
-    return (o1.num_idx == 0) ||
-           ((o1.num_idx == 1) && (o1.idx0 == o2.idx0)) ||
-           ((o1.num_idx == 2) && (o1.idx0 == o2.idx0) && (o1.idx1 == o2.idx1));
+    return (o1.num_idx == 0) || ((o1.num_idx == 1) && (o1.idx0 == o2.idx0))
+           || ((o1.num_idx == 2) && (o1.idx0 == o2.idx0)
+               && (o1.idx1 == o2.idx1));
   }
 }
 
 bool operator!=(Op o1, Op o2)
 {
- if (o1.prim_op != o2.prim_op)
- {
-   return true;
- }
- else if (o1.num_idx != o2.num_idx)
- {
-   return true;
- }
- else
- {
-  return ((o1.num_idx > 1) || (o1.idx0 != o2.idx0)) &&
-         ((o1.num_idx != 2) || (o1.idx0 != o2.idx0) || (o1.idx1 != o2.idx1));
- }
+  if (o1.prim_op != o2.prim_op)
+  {
+    return true;
+  }
+  else if (o1.num_idx != o2.num_idx)
+  {
+    return true;
+  }
+  else
+  {
+    return ((o1.num_idx > 1) || (o1.idx0 != o2.idx0))
+           && ((o1.num_idx != 2) || (o1.idx0 != o2.idx0)
+               || (o1.idx1 != o2.idx1));
+  }
 }
 
-
-} // namespace smt
+}  // namespace smt
 
 #endif

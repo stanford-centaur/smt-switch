@@ -5,31 +5,30 @@
 
 #include "data_structures.h"
 
-// Eventually we should guard these imports depending on which solvers are included
+// Eventually we should guard these imports depending on which solvers are
+// included
 #include "boolector_func.h"
 #include "boolector_solver.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
 
-namespace smt
+namespace smt {
+// Supported solvers -- when adding a new solver, create an enum for it here
+enum SmtSolverEnum
 {
-  // Supported solvers -- when adding a new solver, create an enum for it here
-  enum SmtSolverEnum
-  {
-   BOOLECTOR
-  };
+  BOOLECTOR
+};
 
-  SmtSolver create_solver(SmtSolverEnum se)
+SmtSolver create_solver(SmtSolverEnum se)
+{
+  SmtSolver s;
+  if (se == BOOLECTOR)
   {
-    SmtSolver s;
-    if (se == BOOLECTOR)
-    {
-      s = std::make_shared<BoolectorSolver>();
-    }
-    return s;
+    s = std::make_shared<BoolectorSolver>();
   }
-
+  return s;
 }
 
+}  // namespace smt
 
 #endif

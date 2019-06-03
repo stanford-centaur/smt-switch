@@ -5,7 +5,8 @@
 using namespace smt;
 using namespace std;
 
-int main() {
+int main()
+{
   Op f1(And);
   assert(f1.num_idx == 0);
   assert(f1.prim_op == And);

@@ -4,13 +4,19 @@
 
 int throw_exception() { throw SmtException("test"); }
 
-bool catch_exception() {
-  try {
+bool catch_exception()
+{
+  try
+  {
     throw_exception();
     return false;
-  } catch (SmtException &e) {
+  }
+  catch (SmtException& e)
+  {
     return true;
-  } catch (...) {
+  }
+  catch (...)
+  {
     return false;
   }
 }

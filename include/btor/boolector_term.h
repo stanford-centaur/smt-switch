@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "boolector/boolector.h"
-#include "term.h"
 #include "func.h"
+#include "term.h"
 
 namespace smt {
 
@@ -15,40 +15,52 @@ class BoolectorSolver;
 class BoolectorTermIter : public TermIterBase
 {
  public:
-   BoolectorTermIter(const std::vector<Term>::const_iterator v_it) : v_it(v_it) {};
-   BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
-   ~BoolectorTermIter() {};
-   // TODO: Check if this is necessary
-   BoolectorTermIter& operator=(const BoolectorTermIter& it) { v_it = it.v_it;  return *this; };
-   void operator++() override { BoolectorTermIter self = *this; v_it++; };
-   void operator++(int junk) { v_it++; };
-   const Term operator*() const override { return *v_it; };
-   bool operator==(const BoolectorTermIter& it) { return v_it == it.v_it; };
-   bool operator!=(const BoolectorTermIter& it) { return v_it != it.v_it; };
+  BoolectorTermIter(const std::vector<Term>::const_iterator v_it)
+      : v_it(v_it){};
+  BoolectorTermIter(const BoolectorTermIter& it) { v_it = it.v_it; };
+  ~BoolectorTermIter(){};
+  // TODO: Check if this is necessary
+  BoolectorTermIter& operator=(const BoolectorTermIter& it)
+  {
+    v_it = it.v_it;
+    return *this;
+  };
+  void operator++() override
+  {
+    BoolectorTermIter self = *this;
+    v_it++;
+  };
+  void operator++(int junk) { v_it++; };
+  const Term operator*() const override { return *v_it; };
+  bool operator==(const BoolectorTermIter& it) { return v_it == it.v_it; };
+  bool operator!=(const BoolectorTermIter& it) { return v_it != it.v_it; };
+
  protected:
-   bool equal(const TermIterBase& other) const override
-   {
-     // guaranteed to be safe by caller of equal (TermIterBase)
-     const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-     return v_it == bti.v_it;
-   }
+  bool equal(const TermIterBase& other) const override
+  {
+    // guaranteed to be safe by caller of equal (TermIterBase)
+    const BoolectorTermIter& bti = static_cast<const BoolectorTermIter&>(other);
+    return v_it == bti.v_it;
+  }
+
  private:
-   std::vector<Term>::const_iterator v_it;
+  std::vector<Term>::const_iterator v_it;
 };
 
 class BoolectorTerm : public AbsTerm
 {
  public:
-   BoolectorTerm(Btor *b, BoolectorNode *n, std::vector<Term> c, Func o)
-       : btor(b), node(n), children(c), f(o){};
-   BoolectorTerm(Btor *b, BoolectorNode *n, std::vector<Term> c, Op o)
-     : btor(b), node(n), children(c), f(Func(new BoolectorFunc(o))) {};
-   BoolectorTerm(Btor *b, BoolectorNode *n, std::vector<Term> c, PrimOp o)
-     : btor(b), node(n), children(c), f(Func(new BoolectorFunc(Op(o)))) {};
-   ~BoolectorTerm() { boolector_release(btor, node); }
-   // TODO: check if this is okay -- probably not
-   std::size_t hash() const override {
-     return (std::size_t)boolector_get_node_id(btor, node); };
+  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Func o)
+      : btor(b), node(n), children(c), f(o){};
+  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Op o)
+      : btor(b), node(n), children(c), f(Func(new BoolectorFunc(o))){};
+  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, PrimOp o)
+      : btor(b), node(n), children(c), f(Func(new BoolectorFunc(Op(o)))){};
+  ~BoolectorTerm() { boolector_release(btor, node); }
+  // TODO: check if this is okay -- probably not
+  std::size_t hash() const override
+  {
+    return (std::size_t)boolector_get_node_id(btor, node); };
    bool compare(const Term & absterm) const override {
      std::shared_ptr<BoolectorTerm> other = std::static_pointer_cast<BoolectorTerm>(absterm);
      return boolector_get_node_id(this->btor, this->node) ==
@@ -59,12 +71,15 @@ class BoolectorTerm : public AbsTerm
   Sort get_sort() const override {
     Sort sort;
     BoolectorSort s = boolector_get_sort(btor, node);
-    if (boolector_is_bitvec_sort(btor, s)) {
+    if (boolector_is_bitvec_sort(btor, s))
+    {
       unsigned int width = boolector_get_width(btor, node);
       // increment reference counter for the sort
       boolector_copy_sort(btor, s);
       sort = std::make_shared<BoolectorBVSort>(btor, s, width);
-    } else if (boolector_is_array_sort(btor, s)) {
+    }
+    else if (boolector_is_array_sort(btor, s))
+    {
       unsigned int idxwidth = boolector_get_index_width(btor, node);
       unsigned int elemwidth = boolector_get_width(btor, node);
       // Note: Boolector does not support multidimensional arrays
@@ -77,7 +92,9 @@ class BoolectorTerm : public AbsTerm
       // increment reference counter for the sort
       boolector_copy_sort(btor, s);
       sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
-    } else {
+    }
+    else
+    {
       // Note: functions are not terms, and thus we don't need to check for fun_sort
       // unreachable
       assert(false);
@@ -88,22 +105,23 @@ class BoolectorTerm : public AbsTerm
   {
     try
     {
-      const char * btor_symbol = boolector_get_symbol(btor, node);
+      const char* btor_symbol = boolector_get_symbol(btor, node);
       std::string symbol(btor_symbol);
       return symbol;
     }
-    catch(std::logic_error)
+    catch (std::logic_error)
     {
       return "btor_expr";
     }
   }
-  std::string as_bitstr() const override {
+  std::string as_bitstr() const override
+  {
     if (!boolector_is_const(btor, node))
     {
       throw IncorrectUsageException(
           "Can't get bitstring from a non-constant term.");
     }
-    const char * assignment = boolector_bv_assignment(btor, node);
+    const char* assignment = boolector_bv_assignment(btor, node);
     std::string s(assignment);
     boolector_free_bv_assignment(btor, assignment);
     return s;
