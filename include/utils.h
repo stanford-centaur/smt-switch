@@ -1,8 +1,8 @@
 #ifndef SMT_UTILS_H
 #define SMT_UTILS_H
 
-#include "assert.h"
 #include <iostream>
+#include "assert.h"
 
 #ifdef _DEBUG
 constexpr bool debug_mode = true;
@@ -30,7 +30,6 @@ inline void Assert(bool assertion)
   }
 }
 
-
 inline void Unreachable()
 {
   if constexpr (assertion_mode)
@@ -43,7 +42,7 @@ inline void Unreachable()
 template <std::size_t lvl>
 inline void Log(std::string msg)
 {
-  if constexpr(global_log_level >= lvl)
+  if constexpr (global_log_level >= lvl)
   {
     std::cout << msg << std::endl;
   }

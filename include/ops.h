@@ -9,7 +9,7 @@ namespace smt {
 // TODO add more smt ops
 enum PrimOp
 {
- /* Core Theory */
+  /* Core Theory */
   And = 0,
   Or,
   Xor,

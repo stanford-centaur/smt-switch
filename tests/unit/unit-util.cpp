@@ -4,11 +4,11 @@ int main()
 {
   Log<0>("message!");
   Log<1>("no message!");
-  #ifdef _DEBUG
+#ifdef _DEBUG
   Assert(true);
-  #else
+#else
   // should compile to nothing
   Assert(false);
-  #endif
+#endif
   return 0;
 }
