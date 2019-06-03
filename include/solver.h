@@ -27,8 +27,8 @@ class AbsSmtSolver
                             unsigned int arity) const = 0;
   virtual Term declare_const(const std::string name, Sort sort) const = 0;
   virtual Func declare_fun(const std::string name,
-                               const std::vector<Sort>& sorts,
-                               Sort sort) const = 0;
+                           const std::vector<Sort>& sorts,
+                           Sort sort) const = 0;
   virtual Term make_const(unsigned int i, Sort sort) const = 0;
   virtual void assert_formula(const Term& t) const = 0;
   virtual bool check_sat() const = 0;

@@ -60,11 +60,15 @@ class BoolectorSolver : public AbsSmtSolver
     return term;
   }
   // TODO implement declare_fun
-  Func declare_fun(const std::string name, const std::vector<Sort>& sorts, Sort sort) const override
+  Func declare_fun(const std::string name,
+                   const std::vector<Sort>& sorts,
+                   Sort sort) const override
   {
     if (sorts.size() == 0)
     {
-      throw IncorrectUsageException("API does not support zero arity functions with declare_fun, please use declare_const");
+      throw IncorrectUsageException(
+          "API does not support zero arity functions with declare_fun, please "
+          "use declare_const");
     }
     else
     {
@@ -80,9 +84,9 @@ class BoolectorSolver : public AbsSmtSolver
       // now the codomain sort
       bsort = std::static_pointer_cast<BoolectorSortBase>(sort);
       BoolectorSort btor_codomain_sort = bsort->sort;
-      BoolectorSort btor_fun_sort = boolector_fun_sort(btor, &btor_domain_sorts[0],
-                                                       sorts.size(), btor_codomain_sort);
-      BoolectorNode * n = boolector_uf(btor, btor_fun_sort, name.c_str());
+      BoolectorSort btor_fun_sort = boolector_fun_sort(
+          btor, &btor_domain_sorts[0], sorts.size(), btor_codomain_sort);
+      BoolectorNode* n = boolector_uf(btor, btor_fun_sort, name.c_str());
       // uf_sort owns btor_fun_sort
       Sort uf_sort(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
       Func f(new BoolectorFunc(btor, n, uf_sort));
@@ -469,27 +473,8 @@ class BoolectorSolver : public AbsSmtSolver
     msg += " terms.";
     throw IncorrectUsageException(msg.c_str());
   }
+
  protected:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   Btor* btor;
   };
 }

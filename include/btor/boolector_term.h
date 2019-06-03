@@ -60,11 +60,14 @@ class BoolectorTerm : public AbsTerm
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override
   {
-    return (std::size_t)boolector_get_node_id(btor, node); };
-   bool compare(const Term & absterm) const override {
-     std::shared_ptr<BoolectorTerm> other = std::static_pointer_cast<BoolectorTerm>(absterm);
-     return boolector_get_node_id(this->btor, this->node) ==
-            boolector_get_node_id(other->btor, other->node);
+    return (std::size_t)boolector_get_node_id(btor, node);
+  };
+  bool compare(const Term& absterm) const override
+  {
+    std::shared_ptr<BoolectorTerm> other =
+        std::static_pointer_cast<BoolectorTerm>(absterm);
+    return boolector_get_node_id(this->btor, this->node)
+           == boolector_get_node_id(other->btor, other->node);
   }
   std::vector<Term> get_children() const override { return children; }
   Func get_func() const override { return f; };

@@ -40,7 +40,8 @@ int main()
   Op ext30 = Op(Extract, 3, 0);
   Term x_lower = s->apply_func(ext30, x);
 
-  Func uf = s->declare_fun("f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
+  Func uf = s->declare_fun(
+      "f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
   Term uf_app = s->apply_func(uf, x_lower);
 
   s->assert_formula(z_eq_xpy);

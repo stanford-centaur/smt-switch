@@ -101,6 +101,7 @@ namespace smt
    BoolectorBVSort(Btor* b, BoolectorSort s, unsigned int w)
        : BoolectorSortBase(BV, b, s), width(w){};
    unsigned int get_width() const override { return width; };
+
   protected:
     // bit-vector width
     // Note: we need to store this in addition to the BoolectorSort
@@ -117,6 +118,7 @@ namespace smt
        : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es){};
    Sort get_indexsort() const override { return indexsort; };
    Sort get_elemsort() const override { return elemsort; };
+
   protected:
     Sort indexsort;
     Sort elemsort;
@@ -133,6 +135,7 @@ namespace smt
          codomain_sort(sort){};
    std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };
    Sort get_codomain_sort() const override { return codomain_sort; };
+
   protected:
     std::vector<Sort> domain_sorts;
     Sort codomain_sort;
