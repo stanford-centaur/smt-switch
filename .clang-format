@@ -1,0 +1,23 @@
+---
+Language:        Cpp
+BasedOnStyle:  Google
+AlignTrailingComments: true
+AllowShortCaseLabelsOnASingleLine: true
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: BeforeColon
+Cpp11BracedListStyle: false
+DerivePointerAlignment: false
+PointerAlignment: Middle
+...
