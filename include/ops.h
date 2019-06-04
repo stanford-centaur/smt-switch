@@ -141,7 +141,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
 constexpr std::array<std::string_view, NUM_OPS_AND_NULL> primop2str =
     generate_primop2str();
 
-std::string_view to_string(PrimOp op) { return primop2str[op]; }
+std::string to_string(PrimOp op) { return std::string(primop2str[op]); }
 
 bool operator==(Op o1, Op o2)
 {
@@ -177,6 +177,21 @@ bool operator!=(Op o1, Op o2)
            && ((o1.num_idx != 2) || (o1.idx0 != o2.idx0)
                || (o1.idx1 != o2.idx1));
   }
+}
+
+std::ostream& operator<<(std::ostream& output, const Op o)
+{
+ output << "(" << ::smt::to_string(o.prim_op);
+ if (o.num_idx > 0)
+ {
+   output << " " << o.idx0;
+  }
+ if (o.num_idx == 2)
+ {
+   output << " " << o.idx1;
+ }
+ output << ")";
+ return output;
 }
 
 }  // namespace smt

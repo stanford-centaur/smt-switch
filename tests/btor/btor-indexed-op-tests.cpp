@@ -30,6 +30,8 @@ int main()
   // examine it
   assert(f->get_op() == ext74);
 
+  cout << "Op: " << f->get_op() << endl;
+
   Term y_ror = s->apply_func(Op(Rotate_Right, 2), y);
   Term y_rol = s->apply_func(Op(Rotate_Left, 2), y);
 
