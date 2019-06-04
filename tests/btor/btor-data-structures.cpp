@@ -42,9 +42,12 @@ int main()
   s->assert_formula(v0_eq_0);
 
   cout << "Children of term:" << endl;
-  for (TermIter it = v0_eq_0->begin(); it != v0_eq_0->end(); ++it)
+  // Could use iterators directly:
+  //   for (TermIter it = v0_eq_0->begin(); it != v0_eq_0->end(); ++it)
+  // Or use a range-based loop
+  for (auto c : v0_eq_0)
   {
-    cout << "got: " << *it << endl;
+    cout << "got: " << c << endl;
   }
 
   // just assign all ys to x counterparts
