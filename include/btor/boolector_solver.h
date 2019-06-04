@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "boolector_extensions.h"
 #include "boolector_func.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
@@ -348,6 +349,16 @@ class BoolectorSolver : public AbsSmtSolver
       {
         BoolectorNode * repeat = boolector_repeat(btor, bt->node, op.idx0);
         term = Term(new BoolectorTerm(btor, repeat, std::vector<Term>{t}, Repeat));
+      }
+      else if (op.prim_op == Rotate_Left)
+      {
+        BoolectorNode * rol = custom_boolector_rotate_left(btor, bt->node, op.idx0);
+        term = Term(new BoolectorTerm(btor, rol, std::vector<Term>{t}, Rotate_Left));
+      }
+      else if (op.prim_op == Rotate_Right)
+      {
+        BoolectorNode * ror = custom_boolector_rotate_left(btor, bt->node, op.idx0);
+        term = Term(new BoolectorTerm(btor, ror, std::vector<Term>{t}, Rotate_Right));
       }
       else
       {
