@@ -107,7 +107,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
   primop2str[BVMul] = std::string_view("BVMul");
   primop2str[BVUrem] = std::string_view("BVUrem");
   primop2str[BVSrem] = std::string_view("BVSrem");
-  primop2str[BVMod] = std::string_view("BVMod");
+  primop2str[BVSmod] = std::string_view("BVSmod");
   primop2str[BVAshr] = std::string_view("BVAshr");
   primop2str[BVLshr] = std::string_view("BVLshr");
   primop2str[BVShl] = std::string_view("BVShl");

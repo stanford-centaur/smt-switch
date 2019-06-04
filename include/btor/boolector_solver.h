@@ -330,35 +330,30 @@ class BoolectorSolver : public AbsSmtSolver
       std::shared_ptr<BoolectorTerm> bt =
         std::static_pointer_cast<BoolectorTerm>(t);
       Term term;
+      BoolectorNode * btor_res;
       if (op.prim_op == Extract)
       {
-        BoolectorNode * slice = boolector_slice(btor, bt->node, op.idx0, op.idx1);
-        term = Term(new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
+        btor_res = boolector_slice(btor, bt->node, op.idx0, op.idx1);
       }
       else if (op.prim_op == Zero_Extend)
       {
-        BoolectorNode * uext = boolector_uext(btor, bt->node, op.idx0);
-        term = Term(new BoolectorTerm(btor, uext, std::vector<Term>{t}, Zero_Extend));
+        btor_res = boolector_uext(btor, bt->node, op.idx0);
       }
       else if (op.prim_op == Sign_Extend)
       {
-        BoolectorNode * sext = boolector_sext(btor, bt->node, op.idx0);
-        term = Term(new BoolectorTerm(btor, sext, std::vector<Term>{t}, Sign_Extend));
+        btor_res = boolector_sext(btor, bt->node, op.idx0);
       }
       else if (op.prim_op == Repeat)
       {
-        BoolectorNode * repeat = boolector_repeat(btor, bt->node, op.idx0);
-        term = Term(new BoolectorTerm(btor, repeat, std::vector<Term>{t}, Repeat));
+        btor_res = boolector_repeat(btor, bt->node, op.idx0);
       }
       else if (op.prim_op == Rotate_Left)
       {
-        BoolectorNode * rol = custom_boolector_rotate_left(btor, bt->node, op.idx0);
-        term = Term(new BoolectorTerm(btor, rol, std::vector<Term>{t}, Rotate_Left));
+        btor_res = custom_boolector_rotate_left(btor, bt->node, op.idx0);
       }
       else if (op.prim_op == Rotate_Right)
       {
-        BoolectorNode * ror = custom_boolector_rotate_left(btor, bt->node, op.idx0);
-        term = Term(new BoolectorTerm(btor, ror, std::vector<Term>{t}, Rotate_Right));
+        btor_res = custom_boolector_rotate_left(btor, bt->node, op.idx0);
       }
       else
       {
@@ -366,6 +361,7 @@ class BoolectorSolver : public AbsSmtSolver
         msg += to_string(op.prim_op);
         throw IncorrectUsageException(msg.c_str());
       }
+      term = Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{t}, op));
       return term;
     }
   }

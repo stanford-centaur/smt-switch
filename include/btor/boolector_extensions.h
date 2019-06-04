@@ -12,7 +12,7 @@ namespace smt
     uint32_t width = boolector_get_width(btor, node);
     if ((n == 0) || (width == 1))
     {
-      return boolector_uext(node, 0);
+      return boolector_uext(btor, node, 0);
     }
 
     // compute directly with extracts
@@ -29,7 +29,7 @@ namespace smt
     uint32_t width = boolector_get_width(btor, node);
     if ((n == 0) || (width == 1))
     {
-      return boolector_uext(node, 0);
+      return boolector_uext(btor, node, 0);
     }
 
     // compute directly with extracts
