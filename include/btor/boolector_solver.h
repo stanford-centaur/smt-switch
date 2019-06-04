@@ -331,18 +331,23 @@ class BoolectorSolver : public AbsSmtSolver
       Term term;
       if (op.prim_op == Extract)
       {
-        BoolectorNode* slice = boolector_slice(btor, bt->node, op.idx0, op.idx1);
+        BoolectorNode * slice = boolector_slice(btor, bt->node, op.idx0, op.idx1);
         term = Term(new BoolectorTerm(btor, slice, std::vector<Term>{t}, Extract));
       }
       else if (op.prim_op == Zero_Extend)
       {
-        BoolectorNode* uext = boolector_uext(btor, bt->node, op.idx0);
+        BoolectorNode * uext = boolector_uext(btor, bt->node, op.idx0);
         term = Term(new BoolectorTerm(btor, uext, std::vector<Term>{t}, Zero_Extend));
       }
       else if (op.prim_op == Sign_Extend)
       {
-        BoolectorNode* sext = boolector_sext(btor, bt->node, op.idx0);
+        BoolectorNode * sext = boolector_sext(btor, bt->node, op.idx0);
         term = Term(new BoolectorTerm(btor, sext, std::vector<Term>{t}, Sign_Extend));
+      }
+      else if (op.prim_op == Repeat)
+      {
+        BoolectorNode * repeat = boolector_repeat(btor, bt->node, op.idx0);
+        term = Term(new BoolectorTerm(btor, repeat, std::vector<Term>{t}, Repeat));
       }
       else
       {
