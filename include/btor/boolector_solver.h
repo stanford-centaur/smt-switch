@@ -361,7 +361,8 @@ class BoolectorSolver : public AbsSmtSolver
         msg += to_string(op.prim_op);
         throw IncorrectUsageException(msg.c_str());
       }
-      term = Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{t}, op));
+      term =
+          Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{ t }, op));
       return term;
     }
   }

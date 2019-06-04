@@ -35,7 +35,8 @@ int main()
 
   s->assert_formula(s->apply_func(Equal, y_ror, y_rol));
   s->assert_formula(s->apply_func(Distinct, y, s->make_const(0, bvsort9)));
-  s->assert_formula(s->apply_func(Equal, x, s->apply_func(Op(Repeat, 9), unnecessary_rotation)));
+  s->assert_formula(s->apply_func(
+      Equal, x, s->apply_func(Op(Repeat, 9), unnecessary_rotation)));
 
   assert(s->check_sat());
 

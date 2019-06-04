@@ -131,8 +131,7 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
       { Select, boolector_read } });
 
 const std::unordered_map<PrimOp, tern_fun> ternary_ops(
-    {{Ite, boolector_cond},
-      {Store, boolector_write}});
+    { { Ite, boolector_cond }, { Store, boolector_write } });
 }  // namespace smt
 
 #endif
