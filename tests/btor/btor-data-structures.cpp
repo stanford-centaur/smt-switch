@@ -2,7 +2,9 @@
 #include <string>
 #include "assert.h"
 
-#include "smt.h"
+#include "data_structures.h"
+
+#include "boolector_create.h"
 
 using namespace smt;
 using namespace std;
@@ -11,7 +13,7 @@ int main()
 {
   unsigned int NUM_TERMS = 20;
 
-  SmtSolver s = create_solver(BOOLECTOR);
+  SmtSolver s = BoolectorSolverFactory::create();
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);
 

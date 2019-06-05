@@ -3,14 +3,14 @@
 #include <vector>
 #include "assert.h"
 
-#include "smt.h"
+#include "boolector_create.h"
 
 using namespace smt;
 using namespace std;
 
 int main()
 {
-  SmtSolver s = create_solver(BOOLECTOR);
+  SmtSolver s = BoolectorSolverFactory::create();
   s->set_opt("produce-models", true);
   Sort bvsort9 = s->make_sort(BV, 9);
   Term x = s->declare_const("x", bvsort9);
