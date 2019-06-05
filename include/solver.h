@@ -52,7 +52,7 @@ class AbsSmtSolver
   virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
   };
 
-  using SmtSolver = std::shared_ptr<AbsSmtSolver>;
+  using SmtSolver = std::unique_ptr<AbsSmtSolver>;
 }
 
 #endif

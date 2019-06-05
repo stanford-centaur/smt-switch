@@ -24,7 +24,7 @@ SmtSolver create_solver(SmtSolverEnum se)
   SmtSolver s;
   if (se == BOOLECTOR)
   {
-    s = std::make_shared<BoolectorSolver>();
+    s = std::make_unique<BoolectorSolver>();
   }
   return s;
 }
