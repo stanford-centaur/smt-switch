@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "boolector_extensions.h"
-#include "boolector_func.h"
+#include "boolector_fun.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
 #include "exceptions.h"
@@ -72,7 +72,7 @@ class BoolectorSolver : public AbsSmtSolver
     return term;
   }
   // TODO implement declare_fun
-  Func declare_fun(const std::string name,
+  Fun declare_fun(const std::string name,
                    const std::vector<Sort>& sorts,
                    Sort sort) const override
   {
@@ -101,7 +101,7 @@ class BoolectorSolver : public AbsSmtSolver
       BoolectorNode* n = boolector_uf(btor, btor_fun_sort, name.c_str());
       // uf_sort owns btor_fun_sort
       Sort uf_sort(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
-      Func f(new BoolectorFunc(btor, n, uf_sort));
+      Fun f(new BoolectorFun(btor, n, uf_sort));
       return f;
     }
   }
@@ -415,7 +415,7 @@ class BoolectorSolver : public AbsSmtSolver
       }
     }
   }
-  Term apply(Func f, Term t) const override
+  Term apply(Fun f, Term t) const override
   {
     if (f->is_op())
     {
@@ -435,7 +435,7 @@ class BoolectorSolver : public AbsSmtSolver
       return apply(f, std::vector<Term>{t});
     }
   }
-  Term apply(Func f, Term t0, Term t1) const override
+  Term apply(Fun f, Term t0, Term t1) const override
   {
     if (f->is_op())
     {
@@ -456,7 +456,7 @@ class BoolectorSolver : public AbsSmtSolver
       return apply(f, std::vector<Term>{t0, t1});
     }
   }
-  Term apply(Func f, Term t0, Term t1, Term t2) const override
+  Term apply(Fun f, Term t0, Term t1, Term t2) const override
   {
     if (f->is_op())
     {
@@ -477,7 +477,7 @@ class BoolectorSolver : public AbsSmtSolver
       return apply(f, std::vector<Term>{t0, t1, t2});
     }
   }
-  Term apply(Func f, std::vector<Term> terms) const override
+  Term apply(Fun f, std::vector<Term> terms) const override
   {
     unsigned int size = terms.size();
     // Optimization: translate Op to PrimOp as early as possible to prevent
@@ -496,8 +496,8 @@ class BoolectorSolver : public AbsSmtSolver
     }
     else if (f->is_uf())
     {
-      std::shared_ptr<BoolectorFunc> bf =
-          std::static_pointer_cast<BoolectorFunc>(f);
+      std::shared_ptr<BoolectorFun> bf =
+          std::static_pointer_cast<BoolectorFun>(f);
       std::vector<BoolectorNode*> args;
       std::shared_ptr<BoolectorTerm> bt;
       for (auto t : terms)

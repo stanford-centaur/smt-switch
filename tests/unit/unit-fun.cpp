@@ -1,6 +1,6 @@
 #include "assert.h"
 
-#include "func.h"
+#include "fun.h"
 
 using namespace smt;
 using namespace std;

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "boolector/boolector.h"
-#include "func.h"
+#include "fun.h"
 #include "term.h"
 #include "utils.h"
 
@@ -51,12 +51,12 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Func o)
+  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Fun o)
       : btor(b), node(n), children(c), f(o){};
   BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Op o)
-      : btor(b), node(n), children(c), f(Func(new BoolectorFunc(o))){};
+      : btor(b), node(n), children(c), f(Fun(new BoolectorFun(o))){};
   BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, PrimOp o)
-      : btor(b), node(n), children(c), f(Func(new BoolectorFunc(Op(o)))){};
+      : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))){};
   ~BoolectorTerm() { boolector_release(btor, node); }
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override
@@ -71,7 +71,7 @@ class BoolectorTerm : public AbsTerm
            == boolector_get_node_id(other->btor, other->node);
   }
   std::vector<Term> get_children() const override { return children; }
-  Func get_func() const override { return f; };
+  Fun get_fun() const override { return f; };
   Sort get_sort() const override {
     Sort sort;
     BoolectorSort s = boolector_get_sort(btor, node);
@@ -145,7 +145,7 @@ class BoolectorTerm : public AbsTerm
   Btor * btor;
   BoolectorNode * node;
   std::vector<Term> children;
-  Func f;
+  Fun f;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

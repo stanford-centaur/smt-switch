@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "exceptions.h"
-#include "func.h"
+#include "fun.h"
 #include "ops.h"
 
 #include "boolector/boolector.h"
@@ -13,13 +13,13 @@ namespace smt {
 // forward declaration
 class BoolectorSolver;
 
-class BoolectorFunc : public AbsFunc
+class BoolectorFun : public AbsFun
 {
  public:
-  BoolectorFunc(Op op) : op(op), contains_op(true){};
-  BoolectorFunc(Btor* b, BoolectorNode* n, Sort s)
+  BoolectorFun(Op op) : op(op), contains_op(true){};
+  BoolectorFun(Btor* b, BoolectorNode* n, Sort s)
       : btor(b), node(n), sort(s), contains_op(false){};
-  ~BoolectorFunc()
+  ~BoolectorFun()
   {
     if (!contains_op)
     {

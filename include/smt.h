@@ -7,7 +7,7 @@
 
 // Eventually we should guard these imports depending on which solvers are
 // included
-#include "boolector_func.h"
+#include "boolector_fun.h"
 #include "boolector_solver.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"

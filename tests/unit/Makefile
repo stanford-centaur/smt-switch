@@ -1,7 +1,7 @@
 CXX=clang++
 CXXFLAGS=""
 
-all: sorts exceptions funcs util
+all: sorts exceptions funs util
 debug: all
 debug: DEBUG=-g -D_DEBUG
 
@@ -13,8 +13,8 @@ sorts: unit-sort.cpp
 exceptions: unit-exceptions.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-exceptions.cpp -o unit-exceptions.out
 
-funcs: unit-func.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-func.cpp -o unit-func.out
+funs: unit-fun.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-fun.cpp -o unit-fun.out
 
 util: unit-util.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-util.cpp -o unit-util.out

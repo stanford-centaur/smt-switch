@@ -23,7 +23,7 @@
 There are four abstract classes:
 * `AbsSmtSolver`
 * `AbsSort`
-* `AbsFunc`
+* `AbsFun`
 * `AbsTerm`
 
 Each one has a `using` declaration which provides a convenient name for a `shared_ptr` to the abstract class, e.g. `using Solver=std::shared_ptr<AbsSolver>`.

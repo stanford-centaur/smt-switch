@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "exceptions.h"
-#include "func.h"
+#include "fun.h"
 #include "sort.h"
 #include "term.h"
 
@@ -26,7 +26,7 @@ class AbsSmtSolver
   virtual Sort declare_sort(const std::string name,
                             unsigned int arity) const = 0;
   virtual Term declare_const(const std::string name, Sort sort) const = 0;
-  virtual Func declare_fun(const std::string name,
+  virtual Fun declare_fun(const std::string name,
                            const std::vector<Sort>& sorts,
                            Sort sort) const = 0;
   virtual Term make_const(unsigned int i, Sort sort) const = 0;
@@ -42,10 +42,10 @@ class AbsSmtSolver
   virtual Term apply(Op op, Term t0, Term t1) const = 0;
   virtual Term apply(Op op, Term t0, Term t1, Term t2) const = 0;
   virtual Term apply(Op op, std::vector<Term> terms) const = 0;
-  virtual Term apply(Func fun, Term t) const = 0;
-  virtual Term apply(Func fun, Term t0, Term t1) const = 0;
-  virtual Term apply(Func fun, Term t0, Term t1, Term t2) const = 0;
-  virtual Term apply(Func fun, std::vector<Term> terms) const = 0;
+  virtual Term apply(Fun fun, Term t) const = 0;
+  virtual Term apply(Fun fun, Term t0, Term t1) const = 0;
+  virtual Term apply(Fun fun, Term t0, Term t1, Term t2) const = 0;
+  virtual Term apply(Fun fun, std::vector<Term> terms) const = 0;
   };
 
   using SmtSolver = std::unique_ptr<AbsSmtSolver>;

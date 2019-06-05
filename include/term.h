@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include "func.h"
+#include "fun.h"
 #include "sort.h"
 
 namespace smt
@@ -26,7 +26,7 @@ class AbsTerm
   virtual bool compare(const std::shared_ptr<AbsTerm>& absterm) const = 0;
   // Term methods
   virtual std::vector<std::shared_ptr<AbsTerm>> get_children() const = 0;
-  virtual Func get_func() const = 0;
+  virtual Fun get_fun() const = 0;
   virtual std::shared_ptr<AbsSort> get_sort() const = 0;
   virtual std::string to_string() const = 0;
   virtual std::string as_bitstr() const = 0;

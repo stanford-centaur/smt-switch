@@ -9,10 +9,10 @@
 
 namespace smt {
 
-class AbsFunc
+class AbsFun
 {
  public:
-  virtual ~AbsFunc(){};
+  virtual ~AbsFun(){};
   virtual bool is_uf() const = 0;
   virtual bool is_op() const = 0;
   virtual Sort get_sort() const = 0;
@@ -20,7 +20,7 @@ class AbsFunc
   virtual std::string get_name() const = 0;
 };
 
-using Func = std::shared_ptr<AbsFunc>;
+using Fun = std::shared_ptr<AbsFun>;
 }  // namespace smt
 
 #endif

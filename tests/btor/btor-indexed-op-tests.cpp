@@ -23,8 +23,8 @@ int main()
   Term x_upper = s->apply(ext74, x);
 
   // Op is the the generic object,
-  // Func is something solver specific
-  Func f = x_upper->get_func();
+  // Fun is something solver specific
+  Fun f = x_upper->get_fun();
   assert(f->is_op());
   // but you can always recover the Op if you want to
   // examine it

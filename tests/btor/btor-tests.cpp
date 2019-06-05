@@ -33,7 +33,7 @@ int main()
   Term xpy = s->apply(BVAdd, x, y);
   Term z_eq_xpy = s->apply(Equal, z, xpy);
 
-  Func f = z_eq_xpy->get_func();
+  Fun f = z_eq_xpy->get_fun();
   assert(f->is_op());
   assert(f->get_op().prim_op == Equal);
 
@@ -41,7 +41,7 @@ int main()
   Term x_lower = s->apply(ext30, x);
   Term x_ext = s->apply(Op(Zero_Extend, 4), x_lower);
 
-  Func uf = s->declare_fun(
+  Fun uf = s->declare_fun(
       "f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
   Term uf_app = s->apply(uf, x_lower);
 
