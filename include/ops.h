@@ -72,7 +72,7 @@ enum PrimOp
 struct Op
 {
   Op() : prim_op(NUM_OPS_AND_NULL), num_idx(0){};
-  explicit Op(PrimOp o) : prim_op(o), num_idx(0){};
+  Op(PrimOp o) : prim_op(o), num_idx(0){};
   Op(PrimOp o, unsigned int idx0) : prim_op(o), num_idx(1), idx0(idx0){};
   Op(PrimOp o, unsigned int idx0, unsigned int idx1)
       : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};

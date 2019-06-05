@@ -233,7 +233,8 @@ class BoolectorSolver : public AbsSmtSolver
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  Term apply_func(PrimOp op, Term t) const override
+  // helper methods for applyin a primitive op
+  Term apply_prim_op(PrimOp op, Term t) const
   {
     try
     {
@@ -251,7 +252,7 @@ class BoolectorSolver : public AbsSmtSolver
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  Term apply_func(PrimOp op, Term t0, Term t1) const override
+  Term apply_prim_op(PrimOp op, Term t0, Term t1) const
   {
     try
     {
@@ -271,7 +272,7 @@ class BoolectorSolver : public AbsSmtSolver
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  Term apply_func(PrimOp op, Term t0, Term t1, Term t2) const override
+  Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   {
     try
     {
@@ -295,21 +296,21 @@ class BoolectorSolver : public AbsSmtSolver
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  Term apply_func(PrimOp op, std::vector<Term> terms) const override
+  Term apply_prim_op(PrimOp op, std::vector<Term> terms) const
   {
     unsigned int size = terms.size();
     // binary ops are most common, check this first
     if (size == 2)
     {
-      return apply_func(op, terms[0], terms[1]);
+      return apply_prim_op(op, terms[0], terms[1]);
     }
     else if (size == 1)
     {
-      return apply_func(op, terms[0]);
+      return apply_prim_op(op, terms[0]);
     }
     else if (size == 3)
     {
-      return apply_func(op, terms[0], terms[1], terms[2]);
+      return apply_prim_op(op, terms[0], terms[1], terms[2]);
     }
     else
     {
@@ -319,11 +320,13 @@ class BoolectorSolver : public AbsSmtSolver
       throw IncorrectUsageException(msg.c_str());
     }
   }
+
+  // Implementation of the AbsSmtSolver methods
   Term apply_func(Op op, Term t) const override
   {
     if (op.num_idx == 0)
     {
-      return apply_func(op.prim_op, t);
+      return apply_prim_op(op.prim_op, t);
     }
     else
     {
@@ -370,7 +373,7 @@ class BoolectorSolver : public AbsSmtSolver
   {
     if (op.num_idx == 0)
     {
-      return apply_func(op.prim_op, t0, t1);
+      return apply_prim_op(op.prim_op, t0, t1);
     }
     else
     {
@@ -383,7 +386,7 @@ class BoolectorSolver : public AbsSmtSolver
   {
     if (op.num_idx == 0)
     {
-      return apply_func(op.prim_op, t0, t1, t2);
+      return apply_prim_op(op.prim_op, t0, t1, t2);
     }
     else
     {
@@ -396,7 +399,7 @@ class BoolectorSolver : public AbsSmtSolver
   {
     if (op.num_idx == 0)
     {
-      return apply_func(op.prim_op, terms);
+      return apply_prim_op(op.prim_op, terms);
     }
     else
     {
@@ -419,7 +422,7 @@ class BoolectorSolver : public AbsSmtSolver
       Op op = f->get_op();
       if (op.num_idx == 0)
       {
-        return apply_func(op.prim_op, t);
+        return apply_prim_op(op.prim_op, t);
       }
       else
       {
@@ -439,7 +442,7 @@ class BoolectorSolver : public AbsSmtSolver
       Op op = f->get_op();
       if (op.num_idx == 0)
       {
-        return apply_func(op.prim_op, t0, t1);
+        return apply_prim_op(op.prim_op, t0, t1);
       }
       else
       {
@@ -460,7 +463,7 @@ class BoolectorSolver : public AbsSmtSolver
       Op op = f->get_op();
       if (op.num_idx == 0)
       {
-        return apply_func(op.prim_op, t0, t1, t2);
+        return apply_prim_op(op.prim_op, t0, t1, t2);
       }
       else
       {
@@ -484,7 +487,7 @@ class BoolectorSolver : public AbsSmtSolver
       Op op = f->get_op();
       if (op.num_idx == 0)
       {
-        return apply_func(op.prim_op, terms);
+        return apply_prim_op(op.prim_op, terms);
       }
       else
       {
