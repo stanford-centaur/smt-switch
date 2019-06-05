@@ -15,9 +15,9 @@
 
 namespace smt
 {
-  /**
-     Boolector Solver
-   */
+/**
+   Boolector Solver
+ */
 class BoolectorSolver : public AbsSmtSolver
 {
  public:
@@ -27,7 +27,8 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver& operator=(const BoolectorSolver&) = delete;
   ~BoolectorSolver() { boolector_delete(btor); };
   void set_opt(const std::string option, bool value) const override;
-  void set_opt(const std::string option, const std::string value) const override;
+  void set_opt(const std::string option,
+               const std::string value) const override;
   Sort declare_sort(const std::string name, unsigned int arity) const override;
   Term declare_const(const std::string name, Sort sort) const override;
   // TODO implement declare_fun
@@ -36,9 +37,9 @@ class BoolectorSolver : public AbsSmtSolver
                   Sort sort) const override;
   Term make_const(unsigned int i, Sort sort) const override;
   Fun make_fun(Op op) const override;
-  void assert_formula(const Term& t) const override;
+  void assert_formula(const Term & t) const override;
   bool check_sat() const override;
-  Term get_value(Term& t) const override;
+  Term get_value(Term & t) const override;
   Sort make_sort(Kind k) const override;
   Sort make_sort(Kind k, unsigned int size) const override;
   Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const override;
@@ -57,6 +58,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply(Fun f, Term t0, Term t1) const override;
   Term apply(Fun f, Term t0, Term t1, Term t2) const override;
   Term apply(Fun f, std::vector<Term> terms) const override;
+
  protected:
   Btor* btor;
   };

@@ -2,8 +2,7 @@
 
 #include "boolector_solver.h"
 
-namespace smt
-{
+namespace smt {
 
 /* BoolectorSolverFactory implementation */
 SmtSolver BoolectorSolverFactory::create()
@@ -12,4 +11,4 @@ SmtSolver BoolectorSolverFactory::create()
 }
 /* end BoolectorSolverFactory implementation */
 
-}
+}  // namespace smt

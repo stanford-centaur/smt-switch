@@ -1,10 +1,9 @@
 #include "solver.h"
 
-namespace smt
+namespace smt {
+class BoolectorSolverFactory
 {
-  class BoolectorSolverFactory
-  {
-  public:
-    static SmtSolver create();
-  };
-}
+ public:
+  static SmtSolver create();
+};
+}  // namespace smt

@@ -2,8 +2,7 @@
 
 #include "boolector_extensions.h"
 
-namespace smt
-{
+namespace smt {
 BoolectorNode * custom_boolector_rotate_left(Btor * btor,
                                              BoolectorNode * node,
                                              uint32_t n)
@@ -41,4 +40,4 @@ BoolectorNode * custom_boolector_rotate_right(Btor * btor,
   boolector_release(btor, bot_slice);
   return res;
 }
-}
+}  // namespace smt
