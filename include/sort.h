@@ -49,10 +49,7 @@ constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
 constexpr std::array<std::string_view, NUM_KINDS> kind2str =
     generate_kind2str();
 
-std::string to_string(Kind k)
-{
-  return std::string(kind2str[k]);
-}
+std::string to_string(Kind k);
 
 /**
    Abstract base class for representing an SMT sort.
@@ -65,31 +62,7 @@ class AbsSort {
 public:
   AbsSort(Kind k) : kind(k){};
   virtual ~AbsSort(){};
-  // TODO: Implement to_string
-  std::string to_string() const {
-    if ((kind != BV) && (kind != ARRAY))
-    {
-      return ::smt::to_string(kind);
-    }
-    else
-    {
-      std::ostringstream oss;
-      if (kind == BV)
-      {
-        oss << "BV{" << get_width() << "}";
-      }
-      else if (kind == ARRAY)
-      {
-        oss << "ARRAY{" << get_indexsort()->to_string()
-            << ", " << get_elemsort()->to_string() << "}";
-      }
-      else
-      {
-        Unreachable();
-      }
-      return oss.str();
-    }
-  };
+  std::string to_string() const;
   bool is_array() const { return kind == ARRAY; };
   bool is_bool() const { return kind == BOOL; };
   bool is_bv() const { return kind == BV; };
@@ -110,16 +83,8 @@ public:
 
   using Sort = std::shared_ptr<AbsSort>;
 
-  bool operator==(const Sort& s1, const Sort& s2)
-  {
-   return s1->compare(s2);
-  }
-
-  std::ostream& operator<<(std::ostream& output, const Sort s)
-  {
-   output << s->to_string();
-   return output;
-  }
+  bool operator==(const Sort& s1, const Sort& s2);
+  std::ostream& operator<<(std::ostream& output, const Sort s);
 
 }
 
