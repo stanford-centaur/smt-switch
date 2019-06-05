@@ -37,16 +37,8 @@ class AbsTerm
 
   using Term=std::shared_ptr<AbsTerm>;
 
-  bool operator==(const Term& t1, const Term& t2)
-  {
-   return t1->compare(t2);
-  }
-
-  std::ostream& operator<<(std::ostream& output, const Term t)
-  {
-    output << t->to_string();
-    return output;
-  }
+  bool operator==(const Term& t1, const Term& t2);
+  std::ostream& operator<<(std::ostream& output, const Term t);
 
   // term iterators
   // impelementation based on
@@ -57,16 +49,9 @@ class AbsTerm
     TermIterBase() {}
     virtual ~TermIterBase() {}
     virtual void operator++() {}
-    const virtual Term operator*() const
-    {
-      std::shared_ptr<AbsTerm> s;
-      return s;
-    }
+    const virtual Term operator*() const;
     virtual TermIterBase* clone() const { return new TermIterBase(*this); }
-    bool operator==(const TermIterBase& other) const
-    {
-      return (typeid(*this) == typeid(other)) && equal(other);
-    }
+    bool operator==(const TermIterBase& other) const;
 
    protected:
     // TODO: should we make this pure virtual instead? needs to be implemented
@@ -81,23 +66,11 @@ class AbsTerm
     TermIter(TermIterBase* tib) : iter_(tib) {}
     ~TermIter() { delete iter_; }
     TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
-    TermIter& operator=(const TermIter& other)
-    {
-      delete iter_;
-      iter_ = other.iter_->clone();
-      return *this;
-    }
-    TermIter& operator++()
-    {
-      ++(*iter_);
-      return *this;
-    }
+    TermIter& operator=(const TermIter& other);
+    TermIter& operator++();
     Term operator*() const { return *(*iter_); }
-    bool operator==(const TermIter& other) const
-    {
-      return (iter_ == other.iter_) || (*iter_ == *other.iter_);
-    }
-    bool operator!=(const TermIter& other) const { return !(*this == other); }
+    bool operator==(const TermIter& other) const;
+    bool operator!=(const TermIter& other) const;
 
    protected:
     TermIterBase* iter_;

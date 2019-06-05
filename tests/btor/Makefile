@@ -1,5 +1,5 @@
 BTOR_HOME="/home/makaim/repos/boolector"
-SOURCE=../../src/sort.cpp ../../src/ops.cpp
+SOURCE=../../src/sort.cpp ../../src/ops.cpp ../../src/term.cpp
 
 all: btor-tests btor-arrays btor-data-structures btor-indexed-op-tests
 debug: all
