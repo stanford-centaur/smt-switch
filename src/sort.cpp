@@ -4,6 +4,7 @@ namespace smt {
 
 std::string to_string(Kind k) { return std::string(kind2str[k]); }
 
+/* AbsSort implementation */
 std::string AbsSort::to_string() const
 {
   if ((kind != BV) && (kind != ARRAY))
@@ -29,6 +30,7 @@ std::string AbsSort::to_string() const
     return oss.str();
   }
 };
+/* end AbsSort implementation */
 
 bool operator==(const Sort & s1, const Sort & s2) { return s1->compare(s2); }
 
