@@ -2,6 +2,7 @@
 #define SMT_OPS_H
 
 #include <array>
+#include <iostream>
 #include <string>
 
 namespace smt {
