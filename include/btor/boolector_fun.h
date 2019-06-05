@@ -17,7 +17,7 @@ class BoolectorFun : public AbsFun
 {
  public:
   BoolectorFun(Op op) : op(op), contains_op(true){};
-  BoolectorFun(Btor* b, BoolectorNode* n, Sort s)
+  BoolectorFun(Btor * b, BoolectorNode * n, Sort s)
       : btor(b), node(n), sort(s), contains_op(false){};
   ~BoolectorFun()
   {
@@ -54,7 +54,7 @@ class BoolectorFun : public AbsFun
   {
     if (!contains_op)
     {
-      const char* btor_symbol = boolector_get_symbol(btor, node);
+      const char * btor_symbol = boolector_get_symbol(btor, node);
       std::string symbol(btor_symbol);
       return symbol;
     }
@@ -66,8 +66,8 @@ class BoolectorFun : public AbsFun
 
  private:
   Op op;
-  Btor* btor;
-  BoolectorNode* node;
+  Btor * btor;
+  BoolectorNode * node;
   Sort sort;
   bool contains_op;
 
@@ -75,16 +75,17 @@ class BoolectorFun : public AbsFun
 };
 
 // Boolector PrimOp mappings
-typedef BoolectorNode* (*un_fun)(Btor*, BoolectorNode*);
-typedef BoolectorNode* (*bin_fun)(Btor*, BoolectorNode*, BoolectorNode*);
-typedef BoolectorNode* (*tern_fun)(Btor*,
-                                   BoolectorNode*,
-                                   BoolectorNode*,
-                                   BoolectorNode*);
+typedef BoolectorNode * (*un_fun)(Btor *, BoolectorNode *);
+typedef BoolectorNode * (*bin_fun)(Btor *, BoolectorNode *, BoolectorNode *);
+typedef BoolectorNode * (*tern_fun)(Btor *,
+                                    BoolectorNode *,
+                                    BoolectorNode *,
+                                    BoolectorNode *);
 
-const std::unordered_map<PrimOp, un_fun> unary_ops({{Not, boolector_not},
-                                                    {BVNot, boolector_not},
-                                                    {BVNeg, boolector_neg}});
+const std::unordered_map<PrimOp, un_fun> unary_ops({ { Not, boolector_not },
+                                                     { BVNot, boolector_not },
+                                                     { BVNeg,
+                                                       boolector_neg } });
 
 // Indexed Operators are implemented in boolector_solver.h in apply
 const std::unordered_map<PrimOp, bin_fun> binary_ops(

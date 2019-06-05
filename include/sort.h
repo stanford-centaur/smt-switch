@@ -83,9 +83,8 @@ public:
 
   using Sort = std::shared_ptr<AbsSort>;
 
-  bool operator==(const Sort& s1, const Sort& s2);
-  std::ostream& operator<<(std::ostream& output, const Sort s);
-
+  bool operator==(const Sort & s1, const Sort & s2);
+  std::ostream & operator<<(std::ostream & output, const Sort s);
 }
 
 #endif

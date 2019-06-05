@@ -73,8 +73,8 @@ class BoolectorSolver : public AbsSmtSolver
   }
   // TODO implement declare_fun
   Fun declare_fun(const std::string name,
-                   const std::vector<Sort>& sorts,
-                   Sort sort) const override
+                  const std::vector<Sort> & sorts,
+                  Sort sort) const override
   {
     if (sorts.size() == 0)
     {
@@ -431,13 +431,13 @@ class BoolectorSolver : public AbsSmtSolver
       }
       else
       {
-        return apply(op, std::vector<Term>{t});
+        return apply(op, std::vector<Term>{ t });
       }
     }
     else
     {
       // rely on the function application in the vector implementation
-      return apply(f, std::vector<Term>{t});
+      return apply(f, std::vector<Term>{ t });
     }
   }
   Term apply(Fun f, Term t0, Term t1) const override
@@ -458,7 +458,7 @@ class BoolectorSolver : public AbsSmtSolver
     else
     {
       // rely on the function application in the vector implementation
-      return apply(f, std::vector<Term>{t0, t1});
+      return apply(f, std::vector<Term>{ t0, t1 });
     }
   }
   Term apply(Fun f, Term t0, Term t1, Term t2) const override
@@ -479,7 +479,7 @@ class BoolectorSolver : public AbsSmtSolver
     else
     {
       // rely on the function application in the vector implementation
-      return apply(f, std::vector<Term>{t0, t1, t2});
+      return apply(f, std::vector<Term>{ t0, t1, t2 });
     }
   }
   Term apply(Fun f, std::vector<Term> terms) const override

@@ -42,7 +42,7 @@ int main()
   Term x_ext = s->apply(Op(Zero_Extend, 4), x_lower);
 
   Fun uf = s->declare_fun(
-      "f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
+      "f", std::vector<Sort>{ x_lower->get_sort() }, x->get_sort());
   Term uf_app = s->apply(uf, x_lower);
 
   s->assert_formula(z_eq_xpy);

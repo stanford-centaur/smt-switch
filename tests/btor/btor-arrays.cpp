@@ -21,17 +21,12 @@ int main()
   cout << "Sorts:" << endl;
   cout << "\tbvsort32 : " << bvsort32 << endl;
   cout << "\tarray32_32 : " << array32_32 << endl;
-  s->assert_formula(
-                    s->apply(Not,
-                    s->apply(Implies,
-                                  s->apply(Equal, x, y),
-                                  s->apply(Equal,
-                                                s->apply(Select, arr, x),
-                                                s->apply(Select, arr, y)
-                                                )
-                                  )
-                                  )
-  );
+  s->assert_formula(s->apply(Not,
+                             s->apply(Implies,
+                                      s->apply(Equal, x, y),
+                                      s->apply(Equal,
+                                               s->apply(Select, arr, x),
+                                               s->apply(Select, arr, y)))));
   assert(!s->check_sat());
   return 0;
 }

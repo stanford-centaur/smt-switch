@@ -145,7 +145,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> primop2str =
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);
 bool operator!=(Op o1, Op o2);
-std::ostream& operator<<(std::ostream& output, const Op o);
+std::ostream & operator<<(std::ostream & output, const Op o);
 
 }  // namespace smt
 

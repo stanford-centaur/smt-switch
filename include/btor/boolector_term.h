@@ -51,11 +51,11 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Fun o)
+  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Fun o)
       : btor(b), node(n), children(c), f(o){};
-  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, Op o)
+  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Op o)
       : btor(b), node(n), children(c), f(Fun(new BoolectorFun(o))){};
-  BoolectorTerm(Btor* b, BoolectorNode* n, std::vector<Term> c, PrimOp o)
+  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o)
       : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))){};
   ~BoolectorTerm() { boolector_release(btor, node); }
   // TODO: check if this is okay -- probably not

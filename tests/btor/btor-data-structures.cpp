@@ -30,9 +30,7 @@ int main()
   for (size_t i = 1; i < NUM_TERMS; ++i)
   {
     s->assert_formula(s->apply(
-        Equal,
-        v[i],
-        s->apply(BVAdd, trailing, s->make_const(1, bvsort8))));
+        Equal, v[i], s->apply(BVAdd, trailing, s->make_const(1, bvsort8))));
     trailing = v[i];
   }
   Term zero = s->make_const(0, bvsort8);
