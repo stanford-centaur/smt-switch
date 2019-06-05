@@ -22,12 +22,12 @@ int main()
   cout << "\tbvsort32 : " << bvsort32 << endl;
   cout << "\tarray32_32 : " << array32_32 << endl;
   s->assert_formula(
-                    s->apply_func(Not,
-                    s->apply_func(Implies,
-                                  s->apply_func(Equal, x, y),
-                                  s->apply_func(Equal,
-                                                s->apply_func(Select, arr, x),
-                                                s->apply_func(Select, arr, y)
+                    s->apply(Not,
+                    s->apply(Implies,
+                                  s->apply(Equal, x, y),
+                                  s->apply(Equal,
+                                                s->apply(Select, arr, x),
+                                                s->apply(Select, arr, y)
                                                 )
                                   )
                                   )

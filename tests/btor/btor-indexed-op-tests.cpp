@@ -17,10 +17,10 @@ int main()
   Term y = s->declare_const("y", bvsort9);
   Term onebit = s->declare_const("onebit", s->make_sort(BV, 1));
 
-  Term unnecessary_rotation = s->apply_func(Op(Rotate_Right, 1), onebit);
+  Term unnecessary_rotation = s->apply(Op(Rotate_Right, 1), onebit);
 
   Op ext74 = Op(Extract, 7, 4);
-  Term x_upper = s->apply_func(ext74, x);
+  Term x_upper = s->apply(ext74, x);
 
   // Op is the the generic object,
   // Func is something solver specific
@@ -32,13 +32,13 @@ int main()
 
   cout << "Op: " << f->get_op() << endl;
 
-  Term y_ror = s->apply_func(Op(Rotate_Right, 2), y);
-  Term y_rol = s->apply_func(Op(Rotate_Left, 2), y);
+  Term y_ror = s->apply(Op(Rotate_Right, 2), y);
+  Term y_rol = s->apply(Op(Rotate_Left, 2), y);
 
-  s->assert_formula(s->apply_func(Equal, y_ror, y_rol));
-  s->assert_formula(s->apply_func(Distinct, y, s->make_const(0, bvsort9)));
-  s->assert_formula(s->apply_func(
-      Equal, x, s->apply_func(Op(Repeat, 9), unnecessary_rotation)));
+  s->assert_formula(s->apply(Equal, y_ror, y_rol));
+  s->assert_formula(s->apply(Distinct, y, s->make_const(0, bvsort9)));
+  s->assert_formula(s->apply(
+      Equal, x, s->apply(Op(Repeat, 9), unnecessary_rotation)));
 
   assert(s->check_sat());
 

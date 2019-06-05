@@ -86,7 +86,7 @@ const std::unordered_map<PrimOp, un_fun> unary_ops({{Not, boolector_not},
                                                     {BVNot, boolector_not},
                                                     {BVNeg, boolector_neg}});
 
-// Indexed Operators are implemented in boolector_solver.h in apply_func
+// Indexed Operators are implemented in boolector_solver.h in apply
 const std::unordered_map<PrimOp, bin_fun> binary_ops(
     { { And, boolector_and },
       { Or, boolector_or },

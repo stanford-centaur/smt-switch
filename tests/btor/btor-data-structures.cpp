@@ -29,16 +29,16 @@ int main()
   Term trailing = v[0];
   for (size_t i = 1; i < NUM_TERMS; ++i)
   {
-    s->assert_formula(s->apply_func(
+    s->assert_formula(s->apply(
         Equal,
         v[i],
-        s->apply_func(BVAdd, trailing, s->make_const(1, bvsort8))));
+        s->apply(BVAdd, trailing, s->make_const(1, bvsort8))));
     trailing = v[i];
   }
   Term zero = s->make_const(0, bvsort8);
   cout << zero->to_string() << endl;
 
-  Term v0_eq_0 = s->apply_func(Equal, v[0], zero);
+  Term v0_eq_0 = s->apply(Equal, v[0], zero);
   s->assert_formula(v0_eq_0);
 
   cout << "Children of term:" << endl;
@@ -54,7 +54,7 @@ int main()
   for (auto it = tum.begin(); it != tum.end(); ++it)
   {
     std::cout << "assert: " << it->first << " = " << it->second << std::endl;
-    s->assert_formula(s->apply_func(Equal, it->first, it->second));
+    s->assert_formula(s->apply(Equal, it->first, it->second));
   }
 
   bool res = s->check_sat();

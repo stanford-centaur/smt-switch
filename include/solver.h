@@ -38,14 +38,14 @@ class AbsSmtSolver
   virtual Sort make_sort(Kind k, unsigned int size) const = 0;
   virtual Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
   virtual Sort make_sort(Kind k, std::vector<Sort> sorts, Sort sort) const = 0;
-  virtual Term apply_func(Op op, Term t) const = 0;
-  virtual Term apply_func(Op op, Term t0, Term t1) const = 0;
-  virtual Term apply_func(Op op, Term t0, Term t1, Term t2) const = 0;
-  virtual Term apply_func(Op op, std::vector<Term> terms) const = 0;
-  virtual Term apply_func(Func fun, Term t) const = 0;
-  virtual Term apply_func(Func fun, Term t0, Term t1) const = 0;
-  virtual Term apply_func(Func fun, Term t0, Term t1, Term t2) const = 0;
-  virtual Term apply_func(Func fun, std::vector<Term> terms) const = 0;
+  virtual Term apply(Op op, Term t) const = 0;
+  virtual Term apply(Op op, Term t0, Term t1) const = 0;
+  virtual Term apply(Op op, Term t0, Term t1, Term t2) const = 0;
+  virtual Term apply(Op op, std::vector<Term> terms) const = 0;
+  virtual Term apply(Func fun, Term t) const = 0;
+  virtual Term apply(Func fun, Term t0, Term t1) const = 0;
+  virtual Term apply(Func fun, Term t0, Term t1, Term t2) const = 0;
+  virtual Term apply(Func fun, std::vector<Term> terms) const = 0;
   };
 
   using SmtSolver = std::unique_ptr<AbsSmtSolver>;

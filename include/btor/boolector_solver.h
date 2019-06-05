@@ -322,7 +322,7 @@ class BoolectorSolver : public AbsSmtSolver
   }
 
   // Implementation of the AbsSmtSolver methods
-  Term apply_func(Op op, Term t) const override
+  Term apply(Op op, Term t) const override
   {
     if (op.num_idx == 0)
     {
@@ -369,7 +369,7 @@ class BoolectorSolver : public AbsSmtSolver
       return term;
     }
   }
-  Term apply_func(Op op, Term t0, Term t1) const override
+  Term apply(Op op, Term t0, Term t1) const override
   {
     if (op.num_idx == 0)
     {
@@ -382,7 +382,7 @@ class BoolectorSolver : public AbsSmtSolver
           "argument");
     }
   }
-  Term apply_func(Op op, Term t0, Term t1, Term t2) const override
+  Term apply(Op op, Term t0, Term t1, Term t2) const override
   {
     if (op.num_idx == 0)
     {
@@ -395,7 +395,7 @@ class BoolectorSolver : public AbsSmtSolver
           "argument");
     }
   }
-  Term apply_func(Op op, std::vector<Term> terms) const override
+  Term apply(Op op, std::vector<Term> terms) const override
   {
     if (op.num_idx == 0)
     {
@@ -405,7 +405,7 @@ class BoolectorSolver : public AbsSmtSolver
     {
       if (terms.size() == 1)
       {
-        return apply_func(op, terms[0]);
+        return apply(op, terms[0]);
       }
       else
       {
@@ -415,7 +415,7 @@ class BoolectorSolver : public AbsSmtSolver
       }
     }
   }
-  Term apply_func(Func f, Term t) const override
+  Term apply(Func f, Term t) const override
   {
     if (f->is_op())
     {
@@ -426,16 +426,16 @@ class BoolectorSolver : public AbsSmtSolver
       }
       else
       {
-        return apply_func(op, std::vector<Term>{t});
+        return apply(op, std::vector<Term>{t});
       }
     }
     else
     {
       // rely on the function application in the vector implementation
-      return apply_func(f, std::vector<Term>{t});
+      return apply(f, std::vector<Term>{t});
     }
   }
-  Term apply_func(Func f, Term t0, Term t1) const override
+  Term apply(Func f, Term t0, Term t1) const override
   {
     if (f->is_op())
     {
@@ -453,10 +453,10 @@ class BoolectorSolver : public AbsSmtSolver
     else
     {
       // rely on the function application in the vector implementation
-      return apply_func(f, std::vector<Term>{t0, t1});
+      return apply(f, std::vector<Term>{t0, t1});
     }
   }
-  Term apply_func(Func f, Term t0, Term t1, Term t2) const override
+  Term apply(Func f, Term t0, Term t1, Term t2) const override
   {
     if (f->is_op())
     {
@@ -474,10 +474,10 @@ class BoolectorSolver : public AbsSmtSolver
     else
     {
       // rely on the function application in the vector implementation
-      return apply_func(f, std::vector<Term>{t0, t1, t2});
+      return apply(f, std::vector<Term>{t0, t1, t2});
     }
   }
-  Term apply_func(Func f, std::vector<Term> terms) const override
+  Term apply(Func f, std::vector<Term> terms) const override
   {
     unsigned int size = terms.size();
     // Optimization: translate Op to PrimOp as early as possible to prevent
@@ -491,7 +491,7 @@ class BoolectorSolver : public AbsSmtSolver
       }
       else
       {
-        return apply_func(op, terms);
+        return apply(op, terms);
       }
     }
     else if (f->is_uf())

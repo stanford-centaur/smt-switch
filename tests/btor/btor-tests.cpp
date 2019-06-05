@@ -30,30 +30,30 @@ int main()
   assert(xsort != arr_sort->get_indexsort());
   assert(xsort == arr_sort->get_elemsort());
 
-  Term xpy = s->apply_func(BVAdd, x, y);
-  Term z_eq_xpy = s->apply_func(Equal, z, xpy);
+  Term xpy = s->apply(BVAdd, x, y);
+  Term z_eq_xpy = s->apply(Equal, z, xpy);
 
   Func f = z_eq_xpy->get_func();
   assert(f->is_op());
   assert(f->get_op().prim_op == Equal);
 
   Op ext30 = Op(Extract, 3, 0);
-  Term x_lower = s->apply_func(ext30, x);
-  Term x_ext = s->apply_func(Op(Zero_Extend, 4), x_lower);
+  Term x_lower = s->apply(ext30, x);
+  Term x_ext = s->apply(Op(Zero_Extend, 4), x_lower);
 
   Func uf = s->declare_fun(
       "f", std::vector<Sort>{x_lower->get_sort()}, x->get_sort());
-  Term uf_app = s->apply_func(uf, x_lower);
+  Term uf_app = s->apply(uf, x_lower);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->apply_func(BVUlt, x, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_func(BVUlt, y, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply_func(BVUgt, z, s->make_const(5, bvsort8)));
+  s->assert_formula(s->apply(BVUlt, x, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply(BVUlt, y, s->make_const(4, bvsort8)));
+  s->assert_formula(s->apply(BVUgt, z, s->make_const(5, bvsort8)));
   // This is actually a redundant assertion -- just testing
-  s->assert_formula(s->apply_func(Equal, x_ext, x));
-  s->assert_formula(s->apply_func(Distinct, x, z));
-  s->assert_formula(s->apply_func(BVUle, uf_app, s->make_const(3, bvsort8)));
-  s->assert_formula(s->apply_func(BVUge, uf_app, s->make_const(3, bvsort8)));
+  s->assert_formula(s->apply(Equal, x_ext, x));
+  s->assert_formula(s->apply(Distinct, x, z));
+  s->assert_formula(s->apply(BVUle, uf_app, s->make_const(3, bvsort8)));
+  s->assert_formula(s->apply(BVUge, uf_app, s->make_const(3, bvsort8)));
   assert(s->check_sat());
 
   Term xc = s->get_value(x);
