@@ -1,8 +1,6 @@
 #ifndef SMT_BOOLECTOR_SORT_H
 #define SMT_BOOLECTOR_SORT_H
 
-#include <variant>
-
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
@@ -19,69 +17,14 @@ namespace smt
   {
   public:
     BoolectorSortBase(Kind k, Btor * b, BoolectorSort s) : AbsSort(k), btor(b), sort(s) {};
-    virtual ~BoolectorSortBase() { boolector_release_sort(btor, sort); };
+    virtual ~BoolectorSortBase();
     // by default none of these work
-    unsigned int get_width() const override { throw IncorrectUsageException("Only defined for a bit-vector sort."); };
-    Sort get_indexsort() const override { throw IncorrectUsageException("Only defined for an array sort."); };
-    Sort get_elemsort() const override  { throw IncorrectUsageException("Only defined for an array sort."); };
-    std::vector<Sort> get_domain_sorts() const override  { throw IncorrectUsageException("Only defined for a function sort."); };
-    Sort get_codomain_sort() const override  { throw IncorrectUsageException("Only defined for a function sort."); };
-    bool compare(const Sort s) const override
-    {
-      std::shared_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
-      if (kind != bs->get_kind())
-      {
-        // Note: bool and bv will still be equal for boolector, because always
-        // create BV sort even if it's a bool
-        return false;
-      }
-
-      switch(kind)
-      {
-        case ARRAY:
-        {
-          return (get_indexsort() == bs->get_indexsort())
-                 && (get_elemsort() == bs->get_elemsort());
-          break;
-        }
-        case BOOL:
-        case BV:
-        {
-          return get_width() == bs->get_width();
-          break;
-        }
-        case UNINTERPRETED:
-        {
-          std::vector<Sort> domain_sorts = get_domain_sorts();
-          std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
-
-          if (domain_sorts.size() != bs_domain_sorts.size())
-          {
-            return false;
-          }
-          else if (get_codomain_sort() != bs->get_codomain_sort())
-          {
-            return false;
-          }
-
-          bool res = true;
-
-          for (unsigned i = 0; i < domain_sorts.size(); ++i)
-          {
-            res &= (domain_sorts[i] == bs_domain_sorts[i]);
-          }
-
-          return res;
-          break;
-        }
-        default:
-        {
-          Unreachable();
-          break;
-        }
-      }
-      return false;
-    }
+    unsigned int get_width() const override;
+    Sort get_indexsort() const override;
+    Sort get_elemsort() const override;
+    std::vector<Sort> get_domain_sorts() const override;
+    Sort get_codomain_sort() const override;
+    bool compare(const Sort s) const override;
   protected:
     Btor * btor;
     BoolectorSort sort;
