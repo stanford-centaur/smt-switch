@@ -1,6 +1,6 @@
 CXX=clang++
 CXXFLAGS=""
-SOURCE="../../src/sort.cpp"
+SOURCE=../../src/sort.cpp ../../src/ops.cpp
 
 all: sorts exceptions funs util
 debug: all
