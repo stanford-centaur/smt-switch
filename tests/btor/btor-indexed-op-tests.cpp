@@ -33,7 +33,11 @@ int main()
   cout << "Op: " << f->get_op() << endl;
 
   Term y_ror = s->apply(Op(Rotate_Right, 2), y);
-  Term y_rol = s->apply(Op(Rotate_Left, 2), y);
+
+  // can also create a Fun from an Op directly
+  // (Fun is the solver-specific object)
+  Fun rol2 = s->make_fun(Op(Rotate_Left, 2));
+  Term y_rol = s->apply(rol2, y);
 
   s->assert_formula(s->apply(Equal, y_ror, y_rol));
   s->assert_formula(s->apply(Distinct, y, s->make_const(0, bvsort9)));

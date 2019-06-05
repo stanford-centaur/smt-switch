@@ -114,6 +114,11 @@ class BoolectorSolver : public AbsSmtSolver
         btor, boolector_int(btor, i, bs->sort), std::vector<Term>{}, Op()));
     return term;
   }
+  Fun make_fun(Op op) const override
+  {
+    Fun f(new BoolectorFun(op));
+    return f;
+  }
   void assert_formula(const Term& t) const override
   {
     std::shared_ptr<BoolectorTerm> bt =
