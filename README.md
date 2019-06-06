@@ -13,9 +13,9 @@ Each of them has a `using` statement that names a smart pointer of that type, e.
 
 The function names are based on SMT-LIB. The general rule is that functions/methods in this library can be obtained syntactically from SMT-LIB commands by replacing dashes with underscores. There are a few exceptions, for example `assert` is `assert_formula` in this library to avoid clashing with the `assert` macro. Operator names are also based on SMT-LIB operators, and can be obtained syntactically from an SMT-LIB operator by capitalizing the first letter and any letter after an underscore. The only exception is `bv` which is always capitalized to `BV` and does not count towards the capitalization of the first letter. Some examples include:
 
-* And
-* BVAnd
-* Zero_Extend
-* BVAshr
+* `And`
+* `BVAnd`
+* `Zero_Extend`
+* `BVAshr`
 
 Please see the `tests` directory for some example usage.
