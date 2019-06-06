@@ -9,16 +9,16 @@ debug: DEBUG=-g -D_DEBUG
 main: sorts
 
 unit-sort.out: unit-sort.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-sort.cpp $(SOURCE) -o unit-sort.out
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ unit-sort.cpp $(SOURCE) -o unit-sort.out
 
 unit-exception.out: unit-exceptions.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-exceptions.cpp $(SOURCE) -o unit-exception.out
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ unit-exceptions.cpp $(SOURCE) -o unit-exception.out
 
 unit-fun.out: unit-fun.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-fun.cpp $(SOURCE) -o unit-fun.out
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ unit-fun.cpp $(SOURCE) -o unit-fun.out
 
 unit-util.out: unit-util.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-util.cpp $(SOURCE) -o unit-util.out
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ unit-util.cpp $(SOURCE) -o unit-util.out
 
 clean:
 	rm -rf *.o *.out
