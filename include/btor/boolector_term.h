@@ -25,15 +25,15 @@ class BoolectorTermIter : public TermIterBase
   BoolectorTermIter(const BoolectorTermIter& it) { v_it = it.v_it; };
   ~BoolectorTermIter(){};
   // TODO: Check if this is necessary
-  BoolectorTermIter& operator=(const BoolectorTermIter& it);
-    void operator++() override;
-    void operator++(int junk);
-    const Term operator*() const override;
-    bool operator==(const BoolectorTermIter& it);
-    bool operator!=(const BoolectorTermIter& it);
+  BoolectorTermIter & operator=(const BoolectorTermIter & it);
+  void operator++() override;
+  void operator++(int junk);
+  const Term operator*() const override;
+  bool operator==(const BoolectorTermIter & it);
+  bool operator!=(const BoolectorTermIter & it);
 
  protected:
-    bool equal(const TermIterBase& other) const override;
+  bool equal(const TermIterBase & other) const override;
 
  private:
   std::vector<Term>::const_iterator v_it;
@@ -51,16 +51,16 @@ class BoolectorTerm : public AbsTerm
   ~BoolectorTerm();
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override;
-    bool compare(const Term& absterm) const override;
-    std::vector<Term> get_children() const override;
-    Fun get_fun() const override;
-    Sort get_sort() const override;
-    virtual std::string to_string() const override;
-    std::string as_bitstr() const override;
+  bool compare(const Term & absterm) const override;
+  std::vector<Term> get_children() const override;
+  Fun get_fun() const override;
+  Sort get_sort() const override;
+  virtual std::string to_string() const override;
+  std::string as_bitstr() const override;
   /** Iterators for traversing the children
    */
-    TermIter begin() override;
-    TermIter end() override;
+  TermIter begin() override;
+  TermIter end() override;
 
  protected:
   Btor * btor;

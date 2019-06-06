@@ -25,7 +25,8 @@ namespace smt
     std::vector<Sort> get_domain_sorts() const override;
     Sort get_codomain_sort() const override;
     bool compare(const Sort s) const override;
-  protected:
+
+   protected:
     Btor * btor;
     BoolectorSort sort;
 
