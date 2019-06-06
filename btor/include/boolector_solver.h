@@ -29,6 +29,7 @@ class BoolectorSolver : public AbsSmtSolver
   void set_opt(const std::string option, bool value) const override;
   void set_opt(const std::string option,
                const std::string value) const override;
+  void set_logic(const std::string logic) const override;
   Sort declare_sort(const std::string name, unsigned int arity) const override;
   Term declare_const(const std::string name, Sort sort) const override;
   // TODO implement declare_fun

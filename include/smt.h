@@ -23,6 +23,7 @@ class AbsSmtSolver
   virtual void set_opt(const std::string option, bool value) const = 0;
   virtual void set_opt(const std::string option,
                        const std::string value) const = 0;
+  virtual void set_logic(const std::string logic) const = 0;
   virtual Sort declare_sort(const std::string name,
                             unsigned int arity) const = 0;
   virtual Term declare_const(const std::string name, Sort sort) const = 0;
