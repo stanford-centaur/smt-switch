@@ -29,26 +29,6 @@ enum Kind {
   NUM_KINDS
 };
 
-/**
-   This function should only be called once, to generate the constexpr
-   kind2str for converting enums to string_views.
-*/
-constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
-  std::array<std::string_view, NUM_KINDS> kind2str;
-
-  kind2str[ARRAY] = std::string_view("ARRAY");
-  kind2str[BOOL] = std::string_view("BOOL");
-  kind2str[BV] = std::string_view("BV");
-  kind2str[INT] = std::string_view("INT");
-  kind2str[REAL] = std::string_view("REAL");
-  kind2str[UNINTERPRETED] = std::string_view("UNINTERPRETED");
-
-  return kind2str;
-}
-
-constexpr std::array<std::string_view, NUM_KINDS> kind2str =
-    generate_kind2str();
-
 std::string to_string(Kind k);
 
 /**
