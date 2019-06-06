@@ -6,7 +6,8 @@ namespace smt {
    This function should only be called once, to generate the constexpr
    kind2str for converting enums to string_views.
 */
-constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
+constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str()
+{
   std::array<std::string_view, NUM_KINDS> kind2str;
 
   kind2str[ARRAY] = std::string_view("ARRAY");
@@ -20,7 +21,7 @@ constexpr std::array<std::string_view, NUM_KINDS> generate_kind2str() {
 }
 
 constexpr std::array<std::string_view, NUM_KINDS> kind2str =
-  generate_kind2str();
+    generate_kind2str();
 
 std::string to_string(Kind k) { return std::string(kind2str[k]); }
 

@@ -22,7 +22,7 @@ class BoolectorTermIter : public TermIterBase
  public:
   BoolectorTermIter(const std::vector<Term>::const_iterator v_it)
       : v_it(v_it){};
-  BoolectorTermIter(const BoolectorTermIter& it) { v_it = it.v_it; };
+  BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
   ~BoolectorTermIter(){};
   // TODO: Check if this is necessary
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
@@ -72,6 +72,6 @@ class BoolectorTerm : public AbsTerm
   friend class BoolectorTermIter;
 };
 
-}
+}  // namespace smt
 
 #endif

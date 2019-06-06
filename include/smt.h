@@ -10,11 +10,10 @@
 #include "sort.h"
 #include "term.h"
 
-namespace smt
-{
-  /**
-     Abstract solver class to be implemented by each supported solver.
-   */
+namespace smt {
+/**
+   Abstract solver class to be implemented by each supported solver.
+ */
 class AbsSmtSolver
 {
  public:
@@ -32,9 +31,9 @@ class AbsSmtSolver
                           Sort sort) const = 0;
   virtual Term make_const(unsigned int i, Sort sort) const = 0;
   virtual Fun make_fun(Op op) const = 0;
-  virtual void assert_formula(const Term& t) const = 0;
+  virtual void assert_formula(const Term & t) const = 0;
   virtual bool check_sat() const = 0;
-  virtual Term get_value(Term& t) const = 0;
+  virtual Term get_value(Term & t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
   virtual Sort make_sort(Kind k) const = 0;
   virtual Sort make_sort(Kind k, unsigned int size) const = 0;
@@ -48,9 +47,9 @@ class AbsSmtSolver
   virtual Term apply(Fun fun, Term t0, Term t1) const = 0;
   virtual Term apply(Fun fun, Term t0, Term t1, Term t2) const = 0;
   virtual Term apply(Fun fun, std::vector<Term> terms) const = 0;
-  };
+};
 
-  using SmtSolver = std::unique_ptr<AbsSmtSolver>;
-}
+using SmtSolver = std::unique_ptr<AbsSmtSolver>;
+}  // namespace smt
 
 #endif

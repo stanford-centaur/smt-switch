@@ -11,7 +11,7 @@ using TermVec = std::vector<Term>;
 
 struct TermHashFunction
 {
-  std::size_t operator()(const Term& t) const
+  std::size_t operator()(const Term & t) const
   {
     // call the term's hash function, implemented by solvers
     return t->hash();
@@ -20,17 +20,10 @@ struct TermHashFunction
 
 using TermUnorderedMap = std::unordered_map<Term, Term, TermHashFunction>;
 
-
 // range-based iteration
-inline TermIter begin(Term & t)
-{
-  return t->begin();
-}
+inline TermIter begin(Term & t) { return t->begin(); }
 
-inline TermIter end(Term & t)
-{
-  return t->end();
-}
+inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
 

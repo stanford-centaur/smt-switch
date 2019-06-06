@@ -13,8 +13,7 @@
 #include "smt.h"
 #include "sort.h"
 
-namespace smt
-{
+namespace smt {
 /**
    Boolector Solver
  */
@@ -23,8 +22,8 @@ class BoolectorSolver : public AbsSmtSolver
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
   BoolectorSolver() : btor(boolector_new()){};
-  BoolectorSolver(const BoolectorSolver&) = delete;
-  BoolectorSolver& operator=(const BoolectorSolver&) = delete;
+  BoolectorSolver(const BoolectorSolver &) = delete;
+  BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver() { boolector_delete(btor); };
   void set_opt(const std::string option, bool value) const override;
   void set_opt(const std::string option,
@@ -61,8 +60,8 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply(Fun f, std::vector<Term> terms) const override;
 
  protected:
-  Btor* btor;
-  };
-}
+  Btor * btor;
+};
+}  // namespace smt
 
 #endif

@@ -26,14 +26,13 @@ void BoolectorSolver::set_opt(const std::string option,
 
 void BoolectorSolver::set_logic(const std::string logic) const
 {
-  if ((logic != "QF_BV") &
-      (logic != "QF_UFBV") &
-      (logic != "QF_ABV") &
-      (logic != "QF_AUFBV"))
-    {
-      throw IncorrectUsageException("Boolector only supports logics using bit-vectors, arrays and uninterpreted functions");
-    }
-
+  if ((logic != "QF_BV") & (logic != "QF_UFBV") & (logic != "QF_ABV")
+      & (logic != "QF_AUFBV"))
+  {
+    throw IncorrectUsageException(
+        "Boolector only supports logics using bit-vectors, arrays and "
+        "uninterpreted functions");
+  }
 }
 
 Sort BoolectorSolver::declare_sort(const std::string name,
