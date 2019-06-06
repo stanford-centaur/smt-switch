@@ -1,4 +1,4 @@
-#include "solver.h"
+#include "smt.h"
 
 namespace smt {
 class BoolectorSolverFactory

@@ -10,7 +10,7 @@
 #include "boolector_sort.h"
 #include "boolector_term.h"
 #include "exceptions.h"
-#include "solver.h"
+#include "smt.h"
 #include "sort.h"
 
 namespace smt

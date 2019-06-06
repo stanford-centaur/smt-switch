@@ -1,5 +1,5 @@
-#ifndef SMT_SOLVER_H
-#define SMT_SOLVER_H
+#ifndef SMT_SMT_H
+#define SMT_SMT_H
 
 #include <memory>
 #include <string>
