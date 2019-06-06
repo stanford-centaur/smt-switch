@@ -19,50 +19,12 @@ class BoolectorFun : public AbsFun
   BoolectorFun(Op op) : op(op), contains_op(true){};
   BoolectorFun(Btor * b, BoolectorNode * n, Sort s)
       : btor(b), node(n), sort(s), contains_op(false){};
-  ~BoolectorFun()
-  {
-    if (!contains_op)
-    {
-      boolector_release(btor, node);
-    }
-  }
+  ~BoolectorFun();
   bool is_uf() const override { return !contains_op; };
   bool is_op() const override { return contains_op; };
-  Sort get_sort() const override
-  {
-    if (!contains_op)
-    {
-      return sort;
-    }
-    else
-    {
-      throw IncorrectUsageException("Can't get sort from non-UF function.");
-    }
-  }
-  Op get_op() const override
-  {
-    if (contains_op)
-    {
-      return op;
-    }
-    else
-    {
-      throw IncorrectUsageException("Can't get op from UF function");
-    }
-  }
-  std::string get_name() const override
-  {
-    if (!contains_op)
-    {
-      const char * btor_symbol = boolector_get_symbol(btor, node);
-      std::string symbol(btor_symbol);
-      return symbol;
-    }
-    else
-    {
-      throw IncorrectUsageException("Can't get name from non-UF function.");
-    }
-  }
+  Sort get_sort() const override;
+  Op get_op() const override;
+  std::string get_name() const override;
 
  private:
   Op op;
