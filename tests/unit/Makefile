@@ -2,22 +2,22 @@ CXX=clang++
 CXXFLAGS=""
 SOURCE=../../src/sort.cpp ../../src/ops.cpp ../../src/term.cpp
 
-all: sorts exceptions funs util
+all: unit-sort.out unit-exception.out unit-fun.out unit-util.out
 debug: all
 debug: DEBUG=-g -D_DEBUG
 
 main: sorts
 
-sorts: unit-sort.cpp
+unit-sort.out: unit-sort.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-sort.cpp $(SOURCE) -o unit-sort.out
 
-exceptions: unit-exceptions.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-exceptions.cpp $(SOURCE) -o unit-exceptions.out
+unit-exception.out: unit-exceptions.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-exceptions.cpp $(SOURCE) -o unit-exception.out
 
-funs: unit-fun.cpp
+unit-fun.out: unit-fun.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-fun.cpp $(SOURCE) -o unit-fun.out
 
-util: unit-util.cpp
+unit-util.out: unit-util.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ unit-util.cpp $(SOURCE) -o unit-util.out
 
 clean:
