@@ -1,7 +1,8 @@
-BTOR_HOME="/home/makaim/repos/boolector"
+BTOR_HOME="./boolector"
 GENERIC_SRC=../../src
 BTOR_SRC=../../btor/src
 SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp $(BTOR_SRC)/boolector_create.cpp $(BTOR_SRC)/boolector_solver.cpp $(BTOR_SRC)/boolector_extensions.cpp $(BTOR_SRC)/boolector_sort.cpp $(BTOR_SRC)/boolector_term.cpp $(BTOR_SRC)/boolector_fun.cpp
+CXXFLAGS=-no-pie
 
 all: btor-tests.out btor-arrays.out btor-data-structures.out btor-indexed-op-tests.out
 debug: all
