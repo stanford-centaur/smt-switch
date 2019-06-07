@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "boolector/boolector.h"
+#include "boolector.h"
 
 #include "fun.h"
 #include "term.h"

@@ -1,7 +1,7 @@
 #ifndef SMT_BOOLECTOR_EXTENSIONS_H
 #define SMT_BOOLECTOR_EXTENSIONS_H
 
-#include "boolector/boolector.h"
+#include "boolector.h"
 
 namespace smt {
 BoolectorNode * custom_boolector_rotate_left(Btor * btor,

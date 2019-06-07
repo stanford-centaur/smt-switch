@@ -7,7 +7,7 @@
 #include "fun.h"
 #include "ops.h"
 
-#include "boolector/boolector.h"
+#include "boolector.h"
 
 namespace smt {
 // forward declaration

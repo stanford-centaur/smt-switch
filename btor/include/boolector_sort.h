@@ -5,7 +5,7 @@
 #include "sort.h"
 #include "utils.h"
 
-#include "boolector/boolector.h"
+#include "boolector.h"
 
 namespace smt {
 
