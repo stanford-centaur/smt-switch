@@ -5,13 +5,19 @@
 
 namespace smt {
 
+class Op;
+
 class AbsSort;
 using Sort = std::shared_ptr<AbsSort>;
+
 class AbsFun;
 using Fun = std::shared_ptr<AbsFun>;
+
 class AbsTerm;
 using Term = std::shared_ptr<AbsTerm>;
-class Op;
+
+class AbsSmtSolver;
+using SmtSolver = std::unique_ptr<AbsSmtSolver>;
 
 }  // namespace smt
 

@@ -4,6 +4,7 @@
 #include "assert.h"
 
 #include "boolector_create.h"
+#include "smt.h"
 
 using namespace smt;
 using namespace std;
