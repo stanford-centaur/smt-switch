@@ -3,7 +3,7 @@
 #include <vector>
 #include "assert.h"
 
-#include "boolector_create.h"
+#include "boolector_factory.h"
 #include "smt.h"
 
 using namespace smt;

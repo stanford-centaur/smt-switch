@@ -1,4 +1,4 @@
-#include "boolector_create.h"
+#include "boolector_factory.h"
 
 #include "boolector_solver.h"
 
