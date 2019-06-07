@@ -1,14 +1,11 @@
 #ifndef SMT_OP_H
 #define SMT_OP_H
 
-#include <memory>
 #include <string>
 
-#include "ops.h"
+#include "smt_defs.h"
 
 namespace smt {
-class AbsSort;
-using Sort = std::shared_ptr<AbsSort>;
 
 class AbsFun
 {
@@ -20,8 +17,6 @@ class AbsFun
   virtual Op get_op() const = 0;
   virtual std::string get_name() const = 0;
 };
-
-using Fun = std::shared_ptr<AbsFun>;
 
 }  // namespace smt
 

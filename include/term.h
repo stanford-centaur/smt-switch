@@ -2,19 +2,13 @@
 #define SMT_TERM_H
 
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
+#include "smt_defs.h"
+
 namespace smt {
 
-// Forward declare abstract classes
-class AbsSort;
-using Sort = std::shared_ptr<AbsSort>;
-class AbsFun;
-using Fun = std::shared_ptr<AbsFun>;
-class AbsTerm;
-using Term = std::shared_ptr<AbsTerm>;
 class TermIter;
 
 // Abstract class for term

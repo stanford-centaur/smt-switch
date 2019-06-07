@@ -1,12 +1,9 @@
 #ifndef SMT_SMT_H
 #define SMT_SMT_H
 
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "exceptions.h"
 #include "fun.h"
+#include "ops.h"
 #include "sort.h"
 #include "term.h"
 

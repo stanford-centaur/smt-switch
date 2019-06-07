@@ -1,11 +1,28 @@
 #ifndef SMT_OPS_H
 #define SMT_OPS_H
 
-#include <array>
 #include <iostream>
 #include <string>
 
 namespace smt {
+
+// TODO : add other smt kinds
+enum Kind
+{
+  ARRAY = 0,
+  BOOL,
+  BV,
+  INT,
+  REAL,
+  UNINTERPRETED,
+  /** IMPORTANT: This must stay at the bottom.
+                 It's only use is for sizing the kind2str array
+  */
+  NUM_KINDS
+};
+
+std::string to_string(Kind k);
+
 // Primitive SMT operations (and identifiers for building indexed operators)
 // TODO add more smt ops
 enum PrimOp
