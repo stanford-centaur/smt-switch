@@ -85,7 +85,7 @@ struct Op
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);
 bool operator!=(Op o1, Op o2);
-std::ostream & operator<<(std::ostream & output, const Op o);
+std::ostream& operator<<(std::ostream& output, const Op o);
 
 }  // namespace smt
 

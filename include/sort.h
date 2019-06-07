@@ -1,22 +1,19 @@
 #ifndef SMT_SORT_H
 #define SMT_SORT_H
 
-#include <array>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
-
-#include "utils.h"
 
 // Sort needs to have arguments
 //  could be integers or other sorts
 //  should use an enum for the different kinds of sorts probably
 
-namespace smt
-{
+namespace smt {
+
 // TODO : add other smt kinds
-enum Kind {
+enum Kind
+{
   ARRAY = 0,
   BOOL,
   BV,
@@ -31,6 +28,9 @@ enum Kind {
 
 std::string to_string(Kind k);
 
+class AbsSort;
+using Sort = std::shared_ptr<AbsSort>;
+
 /**
    Abstract base class for representing an SMT sort.
    It holds a kind enum and any necessary data for that particular sort.
@@ -38,8 +38,9 @@ std::string to_string(Kind k);
    Sort objects should never be constructed directly, but instead provided
    by a Solver.
  */
-class AbsSort {
-public:
+class AbsSort
+{
+ public:
   AbsSort(Kind k) : kind(k){};
   virtual ~AbsSort(){};
   std::string to_string() const;
@@ -50,21 +51,20 @@ public:
   bool is_real() const { return kind == REAL; };
   // TODO: decide on exception or special value for incorrect usage
   virtual unsigned int get_width() const = 0;
-  virtual std::shared_ptr<AbsSort> get_indexsort() const = 0;
-  virtual std::shared_ptr<AbsSort> get_elemsort() const = 0;
-  virtual std::vector<std::shared_ptr<AbsSort>> get_domain_sorts() const = 0;
-  virtual std::shared_ptr<AbsSort> get_codomain_sort() const = 0;
-  virtual bool compare(const std::shared_ptr<AbsSort> absort) const = 0;
+  virtual Sort get_indexsort() const = 0;
+  virtual Sort get_elemsort() const = 0;
+  virtual std::vector<Sort> get_domain_sorts() const = 0;
+  virtual Sort get_codomain_sort() const = 0;
+  virtual bool compare(const Sort absort) const = 0;
   Kind get_kind() const { return kind; };
 
  protected:
   Kind kind;
 };
 
-  using Sort = std::shared_ptr<AbsSort>;
+bool operator==(const Sort& s1, const Sort& s2);
+std::ostream& operator<<(std::ostream& output, const Sort s);
 
-  bool operator==(const Sort & s1, const Sort & s2);
-  std::ostream & operator<<(std::ostream & output, const Sort s);
-}
+}  // namespace smt
 
 #endif

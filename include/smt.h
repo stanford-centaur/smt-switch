@@ -11,6 +11,7 @@
 #include "term.h"
 
 namespace smt {
+
 /**
    Abstract solver class to be implemented by each supported solver.
  */
@@ -27,13 +28,13 @@ class AbsSmtSolver
                             unsigned int arity) const = 0;
   virtual Term declare_const(const std::string name, Sort sort) const = 0;
   virtual Fun declare_fun(const std::string name,
-                          const std::vector<Sort> & sorts,
+                          const std::vector<Sort>& sorts,
                           Sort sort) const = 0;
   virtual Term make_const(unsigned int i, Sort sort) const = 0;
   virtual Fun make_fun(Op op) const = 0;
-  virtual void assert_formula(const Term & t) const = 0;
+  virtual void assert_formula(const Term& t) const = 0;
   virtual bool check_sat() const = 0;
-  virtual Term get_value(Term & t) const = 0;
+  virtual Term get_value(Term& t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
   virtual Sort make_sort(Kind k) const = 0;
   virtual Sort make_sort(Kind k, unsigned int size) const = 0;
@@ -50,6 +51,7 @@ class AbsSmtSolver
 };
 
 using SmtSolver = std::unique_ptr<AbsSmtSolver>;
+
 }  // namespace smt
 
 #endif

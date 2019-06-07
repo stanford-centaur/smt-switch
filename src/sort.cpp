@@ -1,4 +1,7 @@
+#include <sstream>
+
 #include "sort.h"
+#include "utils.h"
 
 namespace smt {
 

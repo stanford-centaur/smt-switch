@@ -2,12 +2,13 @@
 #define SMT_OP_H
 
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "ops.h"
-#include "sort.h"
 
 namespace smt {
+class AbsSort;
+using Sort = std::shared_ptr<AbsSort>;
 
 class AbsFun
 {
@@ -21,6 +22,7 @@ class AbsFun
 };
 
 using Fun = std::shared_ptr<AbsFun>;
+
 }  // namespace smt
 
 #endif
