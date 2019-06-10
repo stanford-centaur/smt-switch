@@ -18,14 +18,18 @@ int main()
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);
 
+  UnorderedTermSet uts;
   UnorderedTermMap utm;
   TermVec v;
   v.reserve(NUM_TERMS);
+  Term x;
+  Term y;
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    Term x = s->declare_const("x" + to_string(i), bvsort8);
-    Term y = s->declare_const("y" + to_string(i), bvsort8);
+    x = s->declare_const("x" + to_string(i), bvsort8);
+    y = s->declare_const("y" + to_string(i), bvsort8);
     v.push_back(x);
+    uts.insert(x);
     utm[x] = y;
   }
 
@@ -52,10 +56,12 @@ int main()
   }
 
   // just assign all ys to x counterparts
-  for (auto it = utm.begin(); it != utm.end(); ++it)
+  for (auto it = uts.begin(); it != uts.end(); ++it)
   {
-    std::cout << "assert: " << it->first << " = " << it->second << std::endl;
-    s->assert_formula(s->apply(Equal, it->first, it->second));
+    x = *it;
+    y = utm.at(*it);
+    std::cout << "assert: " << x << " = " << y << std::endl;
+    s->assert_formula(s->apply(Equal, x, y));
   }
 
   bool res = s->check_sat();
