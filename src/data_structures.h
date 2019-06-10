@@ -1,6 +1,7 @@
 #ifndef SMT_DATA_STRUCTURES_H
 #define SMT_DATA_STRUCTURES_H
 
+#include <map>
 #include <unordered_map>
 #include <vector>
 
@@ -18,7 +19,8 @@ struct TermHashFunction
   }
 };
 
-using TermUnorderedMap = std::unordered_map<Term, Term, TermHashFunction>;
+using TermMap = std::map<Term, Term, TermHashFunction>;
+using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
 
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
