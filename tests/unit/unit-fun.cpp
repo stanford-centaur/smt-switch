@@ -1,6 +1,7 @@
 #include "assert.h"
 
 #include "fun.h"
+#include "ops.h"
 
 using namespace smt;
 using namespace std;
