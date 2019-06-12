@@ -52,7 +52,6 @@ class BoolectorTerm : public AbsTerm
   // TODO: check if this is okay -- probably not
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
-  std::vector<Term> get_children() const override;
   Fun get_fun() const override;
   Sort get_sort() const override;
   virtual std::string to_string() const override;

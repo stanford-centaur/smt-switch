@@ -57,8 +57,6 @@ bool BoolectorTerm::compare(const Term & absterm) const
          == boolector_get_node_id(other->btor, other->node);
 }
 
-std::vector<Term> BoolectorTerm::get_children() const { return children; }
-
 Fun BoolectorTerm::get_fun() const { return f; };
 
 Sort BoolectorTerm::get_sort() const

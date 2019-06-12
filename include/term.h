@@ -23,7 +23,6 @@ class AbsTerm
   /* Should return true iff the terms are identical */
   virtual bool compare(const Term& absterm) const = 0;
   // Term methods
-  virtual std::vector<Term> get_children() const = 0;
   virtual Fun get_fun() const = 0;
   virtual Sort get_sort() const = 0;
   virtual std::string to_string() const = 0;
