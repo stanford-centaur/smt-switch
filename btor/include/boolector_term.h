@@ -55,7 +55,7 @@ class BoolectorTerm : public AbsTerm
   Fun get_fun() const override;
   Sort get_sort() const override;
   virtual std::string to_string() const override;
-  std::string as_bitstr() const override;
+  uint64_t to_int() const override;
   /** Iterators for traversing the children
    */
   TermIter begin() override;

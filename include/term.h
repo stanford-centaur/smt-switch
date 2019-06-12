@@ -26,7 +26,7 @@ class AbsTerm
   virtual Fun get_fun() const = 0;
   virtual Sort get_sort() const = 0;
   virtual std::string to_string() const = 0;
-  virtual std::string as_bitstr() const = 0;
+  virtual uint64_t to_int() const = 0;
   virtual TermIter begin() = 0;
   virtual TermIter end() = 0;
   // TODO Add other convenient term methods

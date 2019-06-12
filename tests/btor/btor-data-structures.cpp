@@ -73,9 +73,9 @@ int main()
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
     cout << "\t " << v[i]->to_string() << " = "
-         << s->get_value(v[i])->as_bitstr() << endl;
+         << s->get_value(v[i])->to_int() << endl;
     cout << "\t " << utm.at(v[i])->to_string() << " = "
-         << s->get_value(utm.at(v[i]))->as_bitstr() << endl;
+         << s->get_value(utm.at(v[i]))->to_int() << endl;
   }
   return 0;
 }

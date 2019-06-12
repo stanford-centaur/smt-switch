@@ -66,11 +66,11 @@ int main()
   Term uf_appc = s->get_value(uf_app);
 
   cout << "Got the following values:" << endl;
-  cout << "\txc = " << xc->as_bitstr() << endl;
-  cout << "\tyc = " << yc->as_bitstr() << endl;
-  cout << "\tzc = " << zc->as_bitstr() << endl;
-  cout << "\tx[3:0] = " << x_lowerc->as_bitstr() << endl;
-  cout << "\t((_ zero_extend 4) x[3:0]) = " << x_extc->as_bitstr() << endl;
-  cout << "\tf(x[3:0]) = " << uf_appc->as_bitstr() << endl;
+  cout << "\txc = " << xc->to_int() << endl;
+  cout << "\tyc = " << yc->to_int() << endl;
+  cout << "\tzc = " << zc->to_int() << endl;
+  cout << "\tx[3:0] = " << x_lowerc->to_int() << endl;
+  cout << "\t((_ zero_extend 4) x[3:0]) = " << x_extc->to_int() << endl;
+  cout << "\tf(x[3:0]) = " << uf_appc->to_int() << endl;
   return 0;
 }

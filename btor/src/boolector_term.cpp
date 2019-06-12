@@ -106,7 +106,7 @@ std::string BoolectorTerm::to_string() const
   }
 }
 
-std::string BoolectorTerm::as_bitstr() const
+uint64_t BoolectorTerm::to_int() const
 {
   if (!boolector_is_const(btor, node))
   {
@@ -116,7 +116,16 @@ std::string BoolectorTerm::as_bitstr() const
   const char * assignment = boolector_bv_assignment(btor, node);
   std::string s(assignment);
   boolector_free_bv_assignment(btor, assignment);
-  return s;
+  uint32_t width = boolector_get_width(btor, node);
+  if (width > 64)
+  {
+    std::string msg("Can't represent a bit-vector of size ");
+    msg += std::to_string(width);
+    msg += " in a uint64_t";
+    throw IncorrectUsageException(msg.c_str());
+  }
+  std::string::size_type sz = 0;
+  return std::stoull(s, &sz, 2);
 }
 
 /** Iterators for traversing the children
