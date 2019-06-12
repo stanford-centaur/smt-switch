@@ -24,7 +24,6 @@ class BoolectorTermIter : public TermIterBase
       : v_it(v_it){};
   BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
   ~BoolectorTermIter(){};
-  // TODO: Check if this is necessary
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   void operator++(int junk);
@@ -49,7 +48,6 @@ class BoolectorTerm : public AbsTerm
   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o)
       : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))){};
   ~BoolectorTerm();
-  // TODO: check if this is okay -- probably not
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
   Fun get_fun() const override;

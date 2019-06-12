@@ -18,8 +18,6 @@ class AbsTerm
   AbsTerm(){};
   virtual ~AbsTerm(){};
   virtual std::size_t hash() const = 0;
-  // it would be nice to make this private, but then can't be called by Term
-  // unless we make it a friend (which would be strange for CVC4)
   /* Should return true iff the terms are identical */
   virtual bool compare(const Term& absterm) const = 0;
   // Term methods
@@ -49,8 +47,6 @@ class TermIterBase
   bool operator==(const TermIterBase& other) const;
 
  protected:
-  // TODO: should we make this pure virtual instead? needs to be implemented
-  //       but then we'd have to use pointers for everything...
   virtual bool equal(const TermIterBase& other) const { return true; }
 };
 
