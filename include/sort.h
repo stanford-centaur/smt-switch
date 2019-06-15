@@ -23,9 +23,9 @@ namespace smt {
 class AbsSort
 {
  public:
-  AbsSort(Kind k) : kind(k){};
+  AbsSort() {};
   virtual ~AbsSort(){};
-  std::string to_string() const;
+  virtual std::string to_string() const = 0;
   // TODO: decide on exception or special value for incorrect usage
   virtual unsigned int get_width() const = 0;
   virtual Sort get_indexsort() const = 0;
@@ -33,10 +33,7 @@ class AbsSort
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
   virtual bool compare(const Sort sort) const = 0;
-  Kind get_kind() const { return kind; };
-
- protected:
-  Kind kind;
+  virtual Kind get_kind() const = 0;
 };
 
 bool operator==(const Sort& s1, const Sort& s2);

@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "boolector_sort.h"
 
 namespace smt {
@@ -5,6 +7,33 @@ namespace smt {
 /* BoolectorSolver implementation */
 
 BoolectorSortBase::~BoolectorSortBase() { boolector_release_sort(btor, sort); }
+
+std::string BoolectorSortBase::to_string() const
+{
+  if ((kind != BV) && (kind != ARRAY))
+    {
+      return ::smt::to_string(kind);
+    }
+  else
+    {
+      std::ostringstream oss;
+      if (kind == BV)
+        {
+          oss << "BV{" << get_width() << "}";
+        }
+      else if (kind == ARRAY)
+        {
+          oss << "ARRAY{" << get_indexsort()->to_string() << ", "
+              << get_elemsort()->to_string() << "}";
+        }
+      else
+        {
+          Unreachable();
+        }
+      return oss.str();
+    }
+};
+
 
 // by default the following get_* methods don't work
 // overloaded in derived classes

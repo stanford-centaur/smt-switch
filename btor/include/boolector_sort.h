@@ -16,19 +16,22 @@ class BoolectorSortBase : public AbsSort
 {
  public:
   BoolectorSortBase(Kind k, Btor * b, BoolectorSort s)
-      : AbsSort(k), btor(b), sort(s){};
+    : kind(k), btor(b), sort(s){};
   virtual ~BoolectorSortBase();
   // by default none of these work
+  std::string to_string() const override;
   unsigned int get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   std::vector<Sort> get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   bool compare(const Sort s) const override;
+  Kind get_kind() const override { return kind; };
 
  protected:
   Btor * btor;
   BoolectorSort sort;
+  Kind kind;
 
   friend class BoolectorSolver;
 };
@@ -59,7 +62,7 @@ class BoolectorArraySort : public BoolectorSortBase
 {
  public:
   BoolectorArraySort(Btor * b, BoolectorSort s, Sort is, Sort es)
-      : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es){};
+    : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
   Sort get_indexsort() const override { return indexsort; };
   Sort get_elemsort() const override { return elemsort; };
 
