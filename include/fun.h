@@ -1,5 +1,5 @@
-#ifndef SMT_OP_H
-#define SMT_OP_H
+#ifndef SMT_FUN_H
+#define SMT_FUN_H
 
 #include <string>
 
