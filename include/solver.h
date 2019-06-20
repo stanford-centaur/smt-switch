@@ -32,10 +32,10 @@ class AbsSmtSolver
   virtual bool check_sat() const = 0;
   virtual Term get_value(Term& t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
-  virtual Sort make_sort(Kind k) const = 0;
-  virtual Sort make_sort(Kind k, unsigned int size) const = 0;
-  virtual Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
-  virtual Sort make_sort(Kind k, std::vector<Sort> sorts, Sort sort) const = 0;
+  virtual Sort make_sort(SortCon sc) const = 0;
+  virtual Sort make_sort(SortCon sc, unsigned int size) const = 0;
+  virtual Sort make_sort(SortCon sc, Sort idxsort, Sort elemsort) const = 0;
+  virtual Sort make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const = 0;
   virtual Term apply(Op op, Term t) const = 0;
   virtual Term apply(Op op, Term t0, Term t1) const = 0;
   virtual Term apply(Op op, Term t0, Term t1, Term t2) const = 0;

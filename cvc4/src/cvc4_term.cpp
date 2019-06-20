@@ -27,6 +27,7 @@ Sort CVC4Term::get_sort() const
   return s;
 }
 std::string CVC4Term::to_string() const { return term.toString(); }
+// TODO: Implement iterator and to_int conversion
 uint64_t CVC4Term::to_int() const { throw NotImplementedException("not implemented"); }
 /** Iterators for traversing the children
  */

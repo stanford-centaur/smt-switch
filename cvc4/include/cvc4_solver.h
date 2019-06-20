@@ -30,10 +30,10 @@ namespace smt {
     void assert_formula(const Term& t) const override;
     bool check_sat() const override;
     Term get_value(Term& t) const override;
-    Sort make_sort(Kind k) const override;
-    Sort make_sort(Kind k, unsigned int size) const override;
-    Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const override;
-    Sort make_sort(Kind k, std::vector<Sort> sorts, Sort sort) const override;
+    Sort make_sort(SortCon sc) const override;
+    Sort make_sort(SortCon sc, unsigned int size) const override;
+    Sort make_sort(SortCon sc, Sort idxsort, Sort elemsort) const override;
+    Sort make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const override;
     Term apply(Op op, Term t) const override;
     Term apply(Op op, Term t0, Term t1) const override;
     Term apply(Op op, Term t0, Term t1, Term t2) const override;

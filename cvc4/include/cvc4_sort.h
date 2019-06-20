@@ -23,7 +23,7 @@ namespace smt
     std::vector<Sort> get_domain_sorts() const override;
     Sort get_codomain_sort() const override;
     bool compare(const Sort) const override;
-    Kind get_kind() const override;
+    SortCon get_sort_con() const override;
 
   protected:
     ::CVC4::api::Sort sort;
