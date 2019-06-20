@@ -108,6 +108,14 @@ Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
   return term;
 }
 
+Term BoolectorSolver::make_const(std::string val, Sort sort) const
+{
+  std::shared_ptr<BoolectorSortBase> bs =
+    std::static_pointer_cast<BoolectorSortBase>(sort);
+  Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op()));
+  return term;
+}
+
 Fun BoolectorSolver::make_fun(Op op) const
 {
   Fun f(new BoolectorFun(op));

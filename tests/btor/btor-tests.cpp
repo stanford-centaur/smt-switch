@@ -50,7 +50,7 @@ int main()
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->apply(BVUlt, x, s->make_const(4, bvsort8)));
   s->assert_formula(s->apply(BVUlt, y, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply(BVUgt, z, s->make_const(5, bvsort8)));
+  s->assert_formula(s->apply(BVUgt, z, s->make_const("5", bvsort8)));
   // This is actually a redundant assertion -- just testing
   s->assert_formula(s->apply(Equal, x_ext, x));
   s->assert_formula(s->apply(Distinct, x, z));
