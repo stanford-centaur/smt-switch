@@ -56,7 +56,7 @@ int main()
   s->assert_formula(s->apply(Distinct, x, z));
   s->assert_formula(s->apply(BVUle, uf_app, s->make_const(3, bvsort8)));
   s->assert_formula(s->apply(BVUge, uf_app, s->make_const(3, bvsort8)));
-  assert(s->check_sat());
+  assert(s->check_sat().is_sat());
 
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);

@@ -28,6 +28,6 @@ int main()
                                       s->apply(Equal,
                                                s->apply(Select, arr, x),
                                                s->apply(Select, arr, y)))));
-  assert(!s->check_sat());
+  assert(!s->check_sat().is_sat());
   return 0;
 }

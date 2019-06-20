@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "result.h"
 #include "smt_defs.h"
 
 namespace smt {
@@ -30,7 +31,7 @@ class AbsSmtSolver
   virtual Term make_const(std::string val, Sort sort) const = 0;
   virtual Fun make_fun(Op op) const = 0;
   virtual void assert_formula(const Term& t) const = 0;
-  virtual bool check_sat() const = 0;
+  virtual Result check_sat() const = 0;
   virtual Term get_value(Term& t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
   virtual Sort make_sort(SortCon sc) const = 0;

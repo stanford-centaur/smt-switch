@@ -9,7 +9,9 @@
 #include "boolector_fun.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
+
 #include "exceptions.h"
+#include "result.h"
 #include "smt.h"
 #include "sort.h"
 
@@ -39,7 +41,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_const(std::string val, Sort sort) const override;
   Fun make_fun(Op op) const override;
   void assert_formula(const Term & t) const override;
-  bool check_sat() const override;
+  Result check_sat() const override;
   Term get_value(Term & t) const override;
   Sort make_sort(SortCon sc) const override;
   Sort make_sort(SortCon sc, unsigned int size) const override;

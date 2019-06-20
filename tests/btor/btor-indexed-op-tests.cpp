@@ -45,7 +45,7 @@ int main()
   s->assert_formula(
       s->apply(Equal, x, s->apply(Op(Repeat, 9), unnecessary_rotation)));
 
-  assert(s->check_sat());
+  assert(s->check_sat().is_sat());
 
   Term xc = s->get_value(x);
   Term x_upperc = s->get_value(x_upper);

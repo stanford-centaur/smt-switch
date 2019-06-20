@@ -129,9 +129,16 @@ void BoolectorSolver::assert_formula(const Term & t) const
   boolector_assert(btor, bt->node);
 }
 
-bool BoolectorSolver::check_sat() const
+Result BoolectorSolver::check_sat() const
 {
-  return (BOOLECTOR_SAT == boolector_sat(btor));
+  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  {
+    return Result(SAT);
+  }
+  else
+  {
+    return Result(UNSAT);
+  }
 };
 
 Term BoolectorSolver::get_value(Term & t) const

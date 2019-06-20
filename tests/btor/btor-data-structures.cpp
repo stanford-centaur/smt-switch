@@ -64,7 +64,7 @@ int main()
     s->assert_formula(s->apply(Equal, x, y));
   }
 
-  bool res = s->check_sat();
+  bool res = s->check_sat().is_sat();
   assert(res);
 
   // can print variable names, but otherwise boolector doesn't maintain strings
