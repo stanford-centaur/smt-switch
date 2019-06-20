@@ -4,6 +4,12 @@
 
 namespace smt {
 
+CVC4Solver::CVC4Solver()
+{
+  // require the solver to use smt-lib format
+  solver.setOption("lang", "smt2");
+}
+
 void CVC4Solver::set_opt(const std::string option, bool value) const
 {
   if (value)
@@ -59,5 +65,60 @@ Fun CVC4Solver::declare_fun(const std::string name,
   return f;
 }
 
+Term CVC4Solver::make_const(std::string val, Sort sort) const
+{
+  std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+  Term t(new CVC4Term(solver.mkConst(csort->sort, val)));
+  return t;
+}
+
+Fun CVC4Solver::make_fun(Op op)
+{
+  Fun f;
+  if (op.num_idx == 0)
+  {
+    Fun f(new CVC4Fun(primop2kind[op.prim_op]));
+    return f;
+  }
+  else if (op.num_idx == 1)
+  {
+    ::CVC4::api::OpTerm ot = solver.mkOpTerm(primop2kind[op.prim_op], op.idx0);
+    Fun f(new CVC4Fun(ot));
+    return f;
+  }
+  else
+  {
+    ::CVC4::api::OpTerm ot = solver.mkOpTerm(primop2kind[op.prim_op], op.idx0, op.idx1);
+    Fun f(new CVC4Fun(ot));
+    return f;
+  }
+}
+
+void CVC4Solver::assert_formula(const Term& t) const
+{
+  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+  solver.assertFormula(cterm->term);
+}
+
+Result CVC4Solver::check_sat() const
+{
+  ::CVC4::api::Result r = solver.check_sat();
+  if (r.isUnsat())
+  {
+    return Result(UNSAT);
+  }
+  else if (r.isSat())
+  {
+    return Result(SAT);
+  }
+  else if (r.isUnknown())
+  {
+    return Result(UNKNOWN, r.getUnknownExplanation());
+  }
+  else
+  {
+    throw NotImplementedException("Unimplemented result type from CVC4");
+  }
+}
 
 }

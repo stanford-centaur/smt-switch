@@ -13,7 +13,7 @@ namespace smt {
   class CVC4Solver : public AbsSmtSolver
   {
   public:
-    CVC4Solver() = default;
+    CVC4Solver();
     ~CVC4Solver() = default;
     void set_opt(const std::string option, bool value) const override
     void set_opt(const std::string option,
@@ -26,6 +26,7 @@ namespace smt {
                           const std::vector<Sort>& sorts,
                           Sort sort) const override
     Term make_const(unsigned int i, Sort sort) const override;
+    Term make_const(std::string val, Sort sort) const override;
     Fun make_fun(Op op) const override;
     void assert_formula(const Term& t) const override;
     bool check_sat() const override;

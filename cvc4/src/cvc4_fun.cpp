@@ -60,6 +60,62 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Store, ::CVC4::api::STORE },
     });
 
+const std::unordered_map<PrimOp, ::CVC4::api::Kind> kind2primop(
+    { { ::CVC4::api::AND, And },
+      { ::CVC4::api::OR, Or },
+      { ::CVC4::api::XOR, Xor },
+      { ::CVC4::api::NOT, Not },
+      { ::CVC4::api::IMPLIES, Implies },
+      { ::CVC4::api::ITE, Ite },
+      { ::CVC4::api::EQUAL, Iff },
+      { ::CVC4::api::EQUAL, Equal },
+      { ::CVC4::api::DISTINCT, Distinct },
+      { ::CVC4::api::BITVECTOR_CONCAT, Concat },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_EXTRACT_OP, Extract },
+      { ::CVC4::api::BITVECTOR_NOT, BVNot },
+      { ::CVC4::api::BITVECTOR_NEG, BVNeg },
+      {  ::CVC4::api::BITVECTOR_AND, BVAnd },
+      { ::CVC4::api::BITVECTOR_OR, BVOr },
+      { ::CVC4::api::BITVECTOR_XOR, BVXor },
+      { ::CVC4::api::BITVECTOR_NAND, BVNand },
+      { ::CVC4::api::BITVECTOR_NOR, BVNor },
+      { ::CVC4::api::BITVECTOR_XNOR, BVXnor },
+      { ::CVC4::api::BITVECTOR_COMP, BVComp },
+      {  ::CVC4::api::BITVECTOR_PLU, BVAddS},
+      { ::CVC4::api::BITVECTOR_SUB, BVSub },
+      { ::CVC4::api::BITVECTOR_MULT, BVMul },
+      { ::CVC4::api::BITVECTOR_UDIV, BVUdiv },
+      { ::CVC4::api::BITVECTOR_SDIV, BVSdiv },
+      { ::CVC4::api::BITVECTOR_UREM, BVUrem },
+      { ::CVC4::api::BITVECTOR_SREM, BVSrem },
+      { ::CVC4::api::BITVECTOR_SMOD, BVSmod },
+      { ::CVC4::api::BITVECTOR_SHL, BVShl },
+      { ::CVC4::api::BITVECTOR_ASHR, BVAshr },
+      { ::CVC4::api::BITVECTOR_LSHR, BVLshr },
+      { ::CVC4::api::BITVECTOR_ULT, BVUlt },
+      { ::CVC4::api::BITVECTOR_ULE, BVUle },
+      { ::CVC4::api::BITVECTOR_UGT, BVUgt },
+      { ::CVC4::api::BITVECTOR_UGE, BVUge },
+      { ::CVC4::api::BITVECTOR_SLT, BVSlt },
+      { ::CVC4::api::BITVECTOR_SLE, BVSle },
+      { ::CVC4::api::BITVECTOR_SGT, BVSgt },
+      { ::CVC4::api::BITVECTOR_SGE, BVSge },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP, Zero_Extend },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP, Sign_Extend },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_REPEAT_OP, Repeat },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP, Rotate_Left },
+      // Indexed Op
+      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP, Rotate_Right },
+      { ::CVC4::api::SELECT, Select },
+      { ::CVC4::api::STORE, Store },
+    });
+
+
 }
 
 namespace smt {
@@ -85,8 +141,33 @@ Sort CVC4Fun::get_sort() const
 
 Op CVC4Fun::get_op() const
 {
-  // TODO: reverse look up of op from Kind enum
-  // Or special-case for indexed operators
+  if (is_uf) {
+    throw IncorrectUsageException("Can't get op from uninterpretd function.");
+  }
+  if (!indexed)
+  {
+    return Op(kind2primop[kind]);
+  }
+  else
+  {
+    PrimOp o = kind2primop[kind];
+    if (o == Extract)
+    {
+      std::string rep = op.toString();
+      std::string indices = rep.erase(0, rep.find(" ") + 1);
+      indices = indices.erase(0, indices.find(" ") + 1);
+      indices = indices.substr(0, indices.length()-1);
+      std::size_t pos = indices.find(" ");
+      std::string idx0 = indices.substr(0, pos);
+      std::string idx1 = indices.substr(pos+1, idx1.length() - pos);
+      return Op(Extract, std::atoi(idx0.c_str()), std::atoi(idx1.c_str()));
+    }
+    else
+    {
+      // TODO: Implement these
+      throw NotImplementedException("Other indexed operators currently unimplemented.");
+    }
+  }
 }
 
 std::string CVC4Fun::get_name() const
