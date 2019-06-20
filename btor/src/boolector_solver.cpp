@@ -63,7 +63,6 @@ Term BoolectorSolver::declare_const(const std::string name, Sort sort) const
   return term;
 }
 
-// TODO implement declare_fun
 Fun BoolectorSolver::declare_fun(const std::string name,
                                  const std::vector<Sort> & sorts,
                                  Sort sort) const

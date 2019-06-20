@@ -51,6 +51,12 @@ Fun CVC4Solver::declare_fun(const std::string name,
                 const std::vector<Sort>& sorts,
                 Sort sort) const
 {
+  if (sorts.size() == 0)
+  {
+    throw IncorrectUsageException(
+                                  "API does not support zero arity functions with declare_fun, please "
+                                  "use declare_const");
+  }
   std::vector<::CVC4::api::Sort> csorts;
   csorts.reserve(sorts.size());
   ::CVC4::api::Sort csort;
@@ -119,6 +125,90 @@ Result CVC4Solver::check_sat() const
   {
     throw NotImplementedException("Unimplemented result type from CVC4");
   }
+}
+
+Term CVC4Solver::get_value(Term & t) const
+{
+  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+  Term val(new CVC4Term(solver.getValue(cterm->term)));
+  return val;
+}
+
+Sort CVC4Solver::make_sort(SortCon sc) const
+{
+  if (sc == INT)
+  {
+    Sort s(new CVC4Sort(solver.getIntegerSort()));
+    return s;
+  }
+  else if (sc == REAL)
+  {
+    Sort s(new CVC4Sort(solver.getRealSort()));
+    return s;
+  }
+  else
+  {
+    std::string msg("Can't create sort with sort constructor ");
+    msg += to_string(sc);
+    msg += " and no arguments";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
+
+Sort CVC4Solver::make_sort(SortCon sc, unsigned int size)
+{
+  if (sc == BV)
+  {
+    Sort s(new CVC4Sort(solver.mkBitVectorSort(size)));
+    return s;
+  }
+  else
+  {
+    std::string msg("Can't create sort with sort constructor ");
+    msg += to_string(sc);
+    msg += " and an integer argument";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
+
+Sort CVC4Solver::make_sort(SortCon sc, Sort idxsort, Sort elemsort) const
+{
+  if (sc == ARRAY)
+  {
+    std::shared_ptr<CVC4Sort> csort0 = std::static_pointer_cast<CVC4Sort>(idxsort);
+    std::shared_ptr<CVC4Sort> csort1 = std::static_pointer_cast<CVC4Sort>(elemsort);
+    Sort s(new CVC4Sort(solver.mkArraySort(csort0->sort, csort1->sort)));
+    return s;
+  }
+  else
+    {
+      std::string msg("Can't create sort with sort constructor ");
+      msg += to_string(sc);
+      msg += " and two Sort arguments";
+      throw IncorrectUsageException(msg.c_str());
+    }
+
+}
+
+Sort CVC4Solver::make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const
+{
+  if (sorts.size() == 0)
+  {
+    return make_sort(sort);
+  }
+
+  std::vector<::CVC4::api::Sort> csorts;
+  csorts.reserve(sorts.size());
+  ::CVC4::api::Sort csort;
+  for (Sort s : sorts)
+    {
+      csort = *std::static_pointer_cast<CVC4Sort>(s);
+      csorts.push_back(csort);
+    }
+  csort = *std::static_pointer_cast<CVC4Sort>(sort);
+  ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
+  Sort funsort(new CVC4Sort(cfunsort));
+  return funsort;
 }
 
 }
