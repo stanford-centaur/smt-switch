@@ -1,15 +1,9 @@
 #include "cvc4_solver.h"
 
-#include <memory>
-#include <string>
-#include <vector>
+namespace smt
+{
 
-#include "cvc4_fun.h"
-#include "cvc4_sort.h"
-#include "cvc4_term.h"
-
-
-namespace smt {
+/* CVC4Solver implementation */
 
 void CVC4Solver::set_opt(const std::string option, bool value) const
 {
@@ -83,15 +77,15 @@ Term CVC4Solver::make_const(std::string val, Sort sort) const
    Helper function for creating an OpTerm from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op) const
+::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op)
 {
   if (op.num_idx == 1)
   {
-    return solver.mkOpTerm(primop2kind[op.prim_op], op.idx0);
+    return solver.mkOpTerm(primop2kind.at(op.prim_op), op.idx0);
   }
   else if (op.num_idx == 2)
   {
-    return solver.mkOpTerm(primop2kind[op.prim_op], op.idx1);
+    return solver.mkOpTerm(primop2kind.at(op.prim_op), op.idx1);
   }
   else
   {
@@ -105,7 +99,7 @@ Fun CVC4Solver::make_fun(Op op) const
   Fun f;
   if (op.num_idx == 0)
   {
-    Fun f(new CVC4Fun(primop2kind[op.prim_op]));
+    Fun f(new CVC4Fun(primop2kind.at(op.prim_op)));
     return f;
   }
   else
@@ -123,7 +117,7 @@ void CVC4Solver::assert_formula(const Term& t) const
 
 Result CVC4Solver::check_sat() const
 {
-  ::CVC4::api::Result r = solver.check_sat();
+  ::CVC4::api::Result r = solver.checkSat();
   if (r.isUnsat())
   {
     return Result(UNSAT);
@@ -132,7 +126,7 @@ Result CVC4Solver::check_sat() const
   {
     return Result(SAT);
   }
-  else if (r.isUnknown())
+  else if (r.isSatUnknown())
   {
     return Result(UNKNOWN, r.getUnknownExplanation());
   }
@@ -231,7 +225,7 @@ Term CVC4Solver::apply(Op op, Term t) const
   std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
   if (op.num_idx == 0)
   {
-    Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op], cterm->term)));
+    Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterm->term)));
     return result;
   }
   else
@@ -248,7 +242,7 @@ Term CVC4Solver::apply(Op op, Term t0, Term t1) const
   std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
   if (op.num_idx == 0)
     {
-      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+      Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
                                              cterm0->term,
                                              cterm1->term)));
       return result;
@@ -270,7 +264,7 @@ Term CVC4Solver::apply(Op op, Term t0, Term t1, Term t2) const
   std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
   if (op.num_idx == 0)
     {
-      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+      Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
                                              cterm0->term,
                                              cterm1->term,
                                              cterm2->term)));
@@ -302,7 +296,7 @@ Term CVC4Solver::apply(Op op, std::vector<Term> terms) const
   std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
   if (op.num_idx == 0)
     {
-      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+      Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
                                              cterm0->term,
                                              cterm1->term,
                                              cterm2->term)));
@@ -422,5 +416,8 @@ Term CVC4Solver::apply(Fun fun, std::vector<Term> terms) const
     return res;
   }
 }
+
+
+/* end CVC4Solver implementation */
 
 }

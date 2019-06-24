@@ -31,8 +31,8 @@ namespace smt
   protected:
     ::CVC4::api::Sort sort;
 
-  friend class CVC4Solver;
-  
+    friend class CVC4Solver;
+
   };
 
 }

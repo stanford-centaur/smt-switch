@@ -35,11 +35,8 @@ namespace smt {
     // only relevant if uf is false, says whether this Fun holds a kind or opterm
     bool indexed;
 
-  friend class CVC4Solver;
+    friend class CVC4Solver;
   };
-
-namespace
-{
 
 const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
     { { And, ::CVC4::api::AND },
