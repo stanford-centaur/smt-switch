@@ -1,14 +1,15 @@
-#include "exceptions.h"
-
 #include "cvc4_solver.h"
 
-namespace smt {
+#include <memory>
+#include <string>
+#include <vector>
 
-CVC4Solver::CVC4Solver()
-{
-  // require the solver to use smt-lib format
-  solver.setOption("lang", "smt2");
-}
+#include "cvc4_fun.h"
+#include "cvc4_sort.h"
+#include "cvc4_term.h"
+
+
+namespace smt {
 
 void CVC4Solver::set_opt(const std::string option, bool value) const
 {
@@ -36,15 +37,15 @@ Sort CVC4Solver::declare_sort(const std::string name,
                   unsigned int arity) const
 {
   Sort s(new CVC4Sort(solver.declareSort(name, arity)));
-  return s
-    }
+  return s;
+}
 
 Term CVC4Solver::declare_const(const std::string name, Sort sort) const
 {
-  CVC4Sort csort = *std::static_pointer<CVC4Sort>(sort);
-  ::CVC4::api::Term t = solver.mkVar(csort.sort, name);
-  Term t(new CVC4Term(t));
-  return t;
+  std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+  ::CVC4::api::Term t = solver.mkVar(csort->sort, name);
+  Term res(new ::smt::CVC4Term(t));
+  return res;
 }
 
 Fun CVC4Solver::declare_fun(const std::string name,
@@ -59,14 +60,14 @@ Fun CVC4Solver::declare_fun(const std::string name,
   }
   std::vector<::CVC4::api::Sort> csorts;
   csorts.reserve(sorts.size());
-  ::CVC4::api::Sort csort;
+  std::shared_ptr<CVC4Sort> csort;
   for (Sort s : sorts)
     {
-      csort = *std::static_pointer_cast<CVC4Sort>(s);
-      csorts.push_back(csort);
+      csort = std::static_pointer_cast<CVC4Sort>(s);
+      csorts.push_back(csort->sort);
     }
-  csort = *std::static_pointer_cast<CVC4Sort>(sort);
-  ::CVC4::api::Term fun = solver.declareFun(name, csorts, csort);
+  csort = std::static_pointer_cast<CVC4Sort>(sort);
+  ::CVC4::api::Term fun = solver.declareFun(name, csorts, csort->sort);
   Fun f(new CVC4Fun(fun));
   return f;
 }
@@ -78,7 +79,28 @@ Term CVC4Solver::make_const(std::string val, Sort sort) const
   return t;
 }
 
-Fun CVC4Solver::make_fun(Op op)
+/**
+   Helper function for creating an OpTerm from an Op
+   Preconditions: op must be indexed, i.e. op.num_idx > 0
+*/
+::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op) const
+{
+  if (op.num_idx == 1)
+  {
+    return solver.mkOpTerm(primop2kind[op.prim_op], op.idx0);
+  }
+  else if (op.num_idx == 2)
+  {
+    return solver.mkOpTerm(primop2kind[op.prim_op], op.idx1);
+  }
+  else
+  {
+    throw NotImplementedException("CVC4 does not have any indexed "
+                                  "operators with more than two indices");
+  }
+}
+
+Fun CVC4Solver::make_fun(Op op) const
 {
   Fun f;
   if (op.num_idx == 0)
@@ -86,16 +108,9 @@ Fun CVC4Solver::make_fun(Op op)
     Fun f(new CVC4Fun(primop2kind[op.prim_op]));
     return f;
   }
-  else if (op.num_idx == 1)
-  {
-    ::CVC4::api::OpTerm ot = solver.mkOpTerm(primop2kind[op.prim_op], op.idx0);
-    Fun f(new CVC4Fun(ot));
-    return f;
-  }
   else
   {
-    ::CVC4::api::OpTerm ot = solver.mkOpTerm(primop2kind[op.prim_op], op.idx0, op.idx1);
-    Fun f(new CVC4Fun(ot));
+    Fun f(new CVC4Fun(make_op_term(op)));
     return f;
   }
 }
@@ -209,6 +224,203 @@ Sort CVC4Solver::make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const
   ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
   Sort funsort(new CVC4Sort(cfunsort));
   return funsort;
+}
+
+Term CVC4Solver::apply(Op op, Term t) const
+{
+  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+  if (op.num_idx == 0)
+  {
+    Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op], cterm->term)));
+    return result;
+  }
+  else
+  {
+    ::CVC4::api::OpTerm ot = make_op_term(op);
+    Term result(new CVC4Term(solver.mkTerm(ot, cterm->term)));
+    return result;
+  }
+}
+
+Term CVC4Solver::apply(Op op, Term t0, Term t1) const
+{
+  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+  if (op.num_idx == 0)
+    {
+      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+                                             cterm0->term,
+                                             cterm1->term)));
+      return result;
+    }
+  else
+    {
+      ::CVC4::api::OpTerm ot = make_op_term(op);
+      Term result(new CVC4Term(solver.mkTerm(ot,
+                                             cterm0->term,
+                                             cterm1->term)));
+      return result;
+    }
+}
+
+Term CVC4Solver::apply(Op op, Term t0, Term t1, Term t2) const
+{
+  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+  std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+  if (op.num_idx == 0)
+    {
+      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+                                             cterm0->term,
+                                             cterm1->term,
+                                             cterm2->term)));
+      return result;
+    }
+  else
+    {
+      ::CVC4::api::OpTerm ot = make_op_term(op);
+      Term result(new CVC4Term(solver.mkTerm(ot,
+                                             cterm0->term,
+                                             cterm1->term,
+                                             cterm2->term)));
+      return result;
+    }
+}
+
+Term CVC4Solver::apply(Op op, std::vector<Term> terms) const
+{
+  std::vector<std::shared_ptr<CVC4Term>> cterms;
+  cterms.reserve(terms.size());
+  std::shared_ptr<CVC4Term> cterm;
+  for(auto t : terms)
+  {
+    cterm = std::static_pointer_cast<CVC4Term>(t);
+    cterms.push_back(cterm);
+  }
+  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+  std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+  if (op.num_idx == 0)
+    {
+      Term result(new CVC4Term(solver.mkTerm(primop2kind[op.prim_op],
+                                             cterm0->term,
+                                             cterm1->term,
+                                             cterm2->term)));
+      return result;
+    }
+  else
+    {
+      ::CVC4::api::OpTerm ot = make_op_term(op);
+      Term result(new CVC4Term(solver.mkTerm(ot,
+                                             cterm0->term,
+                                             cterm1->term,
+                                             cterm2->term)));
+      return result;
+    }
+}
+
+Term CVC4Solver::apply(Fun fun, Term t) const
+{
+  std::shared_ptr<CVC4Fun>  cfun  = std::static_pointer_cast<CVC4Fun>(fun);
+  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+
+  // check most likely case first
+  if (cfun.is_prim_op())
+    {
+      // primitive (non-indexed) op
+      return solver.mkTerm(cfun.kind, cterm.term);
+    }
+  else if (!cfun.is_indexed())
+  {
+    return solver.mkTerm(cfun.op, cterm.term);
+  }
+  else
+    {
+      // uninterpreted function
+      return solver.mkTerm(cfun.fun, cterm.term);
+    }
+}
+
+Term CVC4Solver::apply(Fun fun, Term t0, Term t1) const
+{
+  std::shared_ptr<CVC4Fun>  cfun  = std::static_pointer_cast<CVC4Fun>(fun);
+  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+
+  // check most likely case first
+  if (cfun.is_prim_op())
+    {
+      // primitive (non-indexed) op
+      return solver.mkTerm(cfun.kind, cterm0.term, cterm1.term);
+    }
+  else if (!cfun.is_indexed())
+    {
+      return solver.mkTerm(cfun.op, cterm0.term, cterm1.term);
+    }
+  else
+    {
+      // uninterpreted function
+      return solver.mkTerm(cfun.fun, cterm0.term, cterm1.term);
+    }
+
+}
+
+Term CVC4Solver::apply(Fun fun, Term t0, Term t1, Term t2) const
+{
+  std::shared_ptr<CVC4Fun>  cfun  = std::static_pointer_cast<CVC4Fun>(fun);
+  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+  std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+
+  // check most likely case first
+  if (cfun.is_prim_op())
+    {
+      // primitive (non-indexed) op
+      Term res(new CVC4Term(solver.mkTerm(cfun.kind, cterm0.term, cterm1.term, cterm2.term)));
+      return res;
+    }
+  else if (!cfun.is_indexed())
+  {
+    Term res(new CVC4Term(solver.mkTerm(cfun.op, cterm0.term, cterm1.term, cterm2.term)));
+    return res;
+  }
+  else
+  {
+    // uninterpreted function
+    Term res(new CVC4Term(solver.mkTerm(cfun.fun, cterm0.term, cterm1.term, cterm2.term)));
+    return res;
+  }
+}
+
+Term CVC4Solver::apply(Fun fun, std::vector<Term> terms) const
+{
+  std::shared_ptr<CVC4Fun>  cfun  = std::static_pointer_cast<CVC4Fun>(fun);
+  std::vector<::CVC4::api::Term> cterms;
+  cterms.reserve(terms.size());
+
+  std::shared_ptr<CVC4Term> cterm;
+  for (auto t : terms)
+  {
+    cterm = std::static_pointer_cast<CVC4Term>(t);
+    cterms.push_back(cterm.term);
+  }
+
+  // check most likely case first
+  if (cfun.is_prim_op())
+  {
+    Term res(new CVC4Term(solver.mkTerm(cfun.kind, cterms)));
+    return res;
+  }
+  else if (cfun.is_indexed())
+  {
+    Term res(new CVC4Term(solver.mkTerm(cfun.op, cterms)));
+    return res;
+  }
+  else
+  {
+    Term res(new CVC4Term(solver.mkTerm(cfun.fun, cterms)));
+    return res;
+  }
 }
 
 }

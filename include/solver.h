@@ -6,6 +6,7 @@
 
 #include "result.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 

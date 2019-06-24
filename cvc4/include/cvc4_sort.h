@@ -11,6 +11,9 @@
 namespace smt
 {
 
+  // forward declaration
+  class CVC4Solver;
+
   class CVC4Sort : public AbsSort
   {
   public:
@@ -27,6 +30,9 @@ namespace smt
 
   protected:
     ::CVC4::api::Sort sort;
+
+  friend class CVC4Solver;
+  
   };
 
 }

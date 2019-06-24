@@ -13,10 +13,10 @@ namespace smt {
   //class CVC4Solver;
 
   // TODO: Implement this
-  class CVC4TermIter : public TermIterBase
-  {
+  /* class CVC4TermIter : public TermIterBase */
+  /* { */
 
-  };
+  /* }; */
 
   class CVC4Term : public AbsTerm
   {
@@ -36,7 +36,10 @@ namespace smt {
 
   protected:
     CVC4::api::Term term;
+
+    //  friend class CVC4Solver;
   };
+
 }
 
 #endif
