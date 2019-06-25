@@ -45,7 +45,7 @@ class CVC4Solver : public AbsSmtSolver
      Helper function for creating an OpTerm from an Op
      Preconditions: op must be indexed, i.e. op.num_idx > 0
   */
-  ::CVC4::api::OpTerm make_op_term(Op op);
+  ::CVC4::api::OpTerm make_op_term(Op op) const;
   Fun make_fun(Op op) const override;
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;

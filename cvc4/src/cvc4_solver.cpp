@@ -77,7 +77,7 @@ Term CVC4Solver::make_const(std::string val, Sort sort) const
    Helper function for creating an OpTerm from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op)
+::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op) const
 {
   if (op.num_idx == 1)
   {
@@ -164,7 +164,7 @@ Sort CVC4Solver::make_sort(SortCon sc) const
   }
 }
 
-Sort CVC4Solver::make_sort(SortCon sc, unsigned int size)
+Sort CVC4Solver::make_sort(SortCon sc, unsigned int size) const
 {
   if (sc == BV)
   {
