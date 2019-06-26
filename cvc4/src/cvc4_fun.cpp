@@ -1,6 +1,7 @@
 #include <unordered_map>
 
 #include "cvc4_fun.h"
+#include "cvc4_sort.h"
 
 namespace smt {
 
@@ -40,11 +41,11 @@ Op CVC4Fun::get_op() const
   }
   if (!indexed)
   {
-    return Op(kind2primop[kind]);
+    return Op(kind2primop.at(kind));
   }
   else
   {
-    PrimOp o = kind2primop[kind];
+    PrimOp o = kind2primop.at(kind);
     if (o == Extract)
     {
       std::string rep = op.toString();
@@ -53,7 +54,7 @@ Op CVC4Fun::get_op() const
       indices = indices.substr(0, indices.length()-1);
       std::size_t pos = indices.find(" ");
       std::string idx0 = indices.substr(0, pos);
-      std::string idx1 = indices.substr(pos+1, idx1.length() - pos);
+      std::string idx1 = indices.substr(pos + 1, indices.length() - pos);
       return Op(Extract, std::atoi(idx0.c_str()), std::atoi(idx1.c_str()));
     }
     else

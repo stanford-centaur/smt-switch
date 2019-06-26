@@ -1,6 +1,6 @@
 CVC4_HOME="./CVC4"
 GENERIC_SRC="../../src"
-SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp ../../cvc4/src/cvc4_term.cpp ../../cvc4/src/cvc4_sort.cpp ../../cvc4/src/cvc4_solver.cpp
+SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp  ../../cvc4/src/cvc4_fun.cpp ../../cvc4/src/cvc4_sort.cpp ../../cvc4/src/cvc4_term.cpp ../../cvc4/src/cvc4_solver.cpp
 # ../../cvc4/src/cvc4_solver.cpp
 # ../../cvc4/src/cvc4_factory.cpp
 CXXFLAGS=-no-pie

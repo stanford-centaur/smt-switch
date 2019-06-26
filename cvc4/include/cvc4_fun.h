@@ -5,9 +5,10 @@
 
 #include "api/cvc4cpp.h"
 
+#include "exceptions.h"
 #include "fun.h"
-#include "sort.h"
 #include "ops.h"
+#include "sort.h"
 
 namespace smt {
   // forward declaration
@@ -18,7 +19,10 @@ namespace smt {
   public:
     CVC4Fun(::CVC4::api::Term fun) : fun(fun), uf(true), indexed(false) {}
     CVC4Fun(::CVC4::api::Kind kind) : kind(kind), uf(false), indexed(false) {}
-    CVC4Fun(::CVC4::api::OpTerm o) : op(o), uf(false), indexed(true) {}
+    CVC4Fun(::CVC4::api::Kind kind, ::CVC4::api::OpTerm o)
+        : kind(kind), op(o), uf(false), indexed(true)
+    {
+    }
     bool is_uf() const override;
     bool is_op() const override;
     bool is_prim_op() const;
