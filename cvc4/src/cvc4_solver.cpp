@@ -86,11 +86,11 @@ Term CVC4Solver::make_const(std::string val, Sort sort) const
 {
   if (op.num_idx == 1)
   {
-    return solver.mkOpTerm(primop2kind.at(op.prim_op), op.idx0);
+    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0);
   }
   else if (op.num_idx == 2)
   {
-    return solver.mkOpTerm(primop2kind.at(op.prim_op), op.idx1);
+    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0, op.idx1);
   }
   else
   {

@@ -3,6 +3,8 @@
 #include "smt.h"
 #include "cvc4_factory.h"
 
+#include "api/cvc4cpp.h"
+
 using namespace std;
 using namespace smt;
 
@@ -15,7 +17,7 @@ int main()
   cout << y->to_string() << endl;
   Term xpy = s->apply(BVAdd, x, y);
   cout << xpy->to_string() << endl;
-  // Term xext = s->apply(Op(Extract, 3, 0), x);
-  // cout << xext << endl;
+  Term xext = s->apply(Op(Extract, 3, 0), x);
+  cout << xext << endl;
   return 0;
 }

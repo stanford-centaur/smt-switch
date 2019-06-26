@@ -54,7 +54,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Distinct, ::CVC4::api::DISTINCT },
       { Concat, ::CVC4::api::BITVECTOR_CONCAT },
       // Indexed Op
-      { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
+      { Extract, ::CVC4::api::BITVECTOR_EXTRACT },
       { BVNot, ::CVC4::api::BITVECTOR_NOT },
       { BVNeg, ::CVC4::api::BITVECTOR_NEG },
       { BVAnd,  ::CVC4::api::BITVECTOR_AND },
@@ -84,15 +84,15 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { BVSgt, ::CVC4::api::BITVECTOR_SGT },
       { BVSge, ::CVC4::api::BITVECTOR_SGE },
       // Indexed Op
-      {Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP},
+      {Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND},
       // Indexed Op
-      {Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP},
+      {Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND},
       // Indexed Op
-      {Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP},
+      {Repeat, ::CVC4::api::BITVECTOR_REPEAT},
       // Indexed Op
-      {Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP},
+      {Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT},
       // Indexed Op
-      {Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP},
+      {Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT},
       { Select, ::CVC4::api::SELECT },
       { Store, ::CVC4::api::STORE },
     });
@@ -109,7 +109,7 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::DISTINCT, Distinct },
       { ::CVC4::api::BITVECTOR_CONCAT, Concat },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_EXTRACT_OP, Extract },
+      { ::CVC4::api::BITVECTOR_EXTRACT, Extract },
       { ::CVC4::api::BITVECTOR_NOT, BVNot },
       { ::CVC4::api::BITVECTOR_NEG, BVNeg },
       {  ::CVC4::api::BITVECTOR_AND, BVAnd },
@@ -139,18 +139,29 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::BITVECTOR_SGT, BVSgt },
       { ::CVC4::api::BITVECTOR_SGE, BVSge },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP, Zero_Extend },
+      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, Zero_Extend },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP, Sign_Extend },
+      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, Sign_Extend },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_REPEAT_OP, Repeat },
+      { ::CVC4::api::BITVECTOR_REPEAT, Repeat },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP, Rotate_Left },
+      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, Rotate_Left },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP, Rotate_Right },
+      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       { ::CVC4::api::SELECT, Select },
       { ::CVC4::api::STORE, Store }
       });
+
+ // the kinds CVC4 needs to build an OpTerm for an indexed op
+ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
+    { { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
+      {Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP },
+      {Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP },
+      {Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP },
+      {Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP },
+      {Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP },
+    });
+
 
 }
 
