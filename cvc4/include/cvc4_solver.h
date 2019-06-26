@@ -26,7 +26,10 @@ namespace smt {
 class CVC4Solver : public AbsSmtSolver
 {
  public:
- CVC4Solver() : solver(::CVC4::api::Solver()) {};
+  CVC4Solver() : solver(::CVC4::api::Solver())
+  {
+    solver.setOption("lang", "smt2");
+  };
   CVC4Solver(const CVC4Solver &) = delete;
   CVC4Solver & operator=(const CVC4Solver &) = delete;
   ~CVC4Solver() { };
