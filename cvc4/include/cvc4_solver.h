@@ -42,6 +42,7 @@ class CVC4Solver : public AbsSmtSolver
   Fun declare_fun(const std::string name,
                   const std::vector<Sort> & sorts,
                   Sort sort) const override;
+  Term make_const(bool b) const override;
   Term make_const(unsigned int i, Sort sort) const override;
   Term make_const(std::string val, Sort sort) const override;
   /**

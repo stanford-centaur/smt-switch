@@ -19,5 +19,15 @@ int main()
   cout << xpy->to_string() << endl;
   Term xext = s->apply(Op(Extract, 3, 0), x);
   cout << xext << endl;
+  Term _true = s->make_const(true);
+  cout << _true << endl;
+  Term _one = s->make_const(1, s->make_sort(INT));
+  cout << _one << endl;
+  Term _one_r = s->make_const("1.0", s->make_sort(REAL));
+  cout << _one_r << endl;
+  Term _two_bv = s->make_const(2, s->make_sort(BV, 4));
+  cout << _two_bv << endl;
+  Term _three_bv = s->make_const("3", s->make_sort(BV, 4));
+  cout << _three_bv << endl;
   return 0;
 }

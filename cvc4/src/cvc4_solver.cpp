@@ -66,16 +66,58 @@ Fun CVC4Solver::declare_fun(const std::string name,
   return f;
 }
 
+Term CVC4Solver::make_const(bool b) const
+{
+  Term c(new CVC4Term(solver.mkBoolean(b)));
+  return c;
+}
+
 Term CVC4Solver::make_const(unsigned int i, Sort sort) const
 {
-  // TODO: Implement this, need to split on the sort
-  throw NotImplementedException("not implemented yet.");
+  SortCon sc = sort->get_sort_con();
+  ::CVC4::api::Term c;
+
+  if ((sc == INT) || (sc == REAL))
+  {
+    c = solver.mkReal(i);
+  }
+  else if (sc == BV)
+  {
+    c = solver.mkBitVector(sort->get_width(), i);
+  }
+  else
+  {
+    std::string msg = "Can't create constant with integer for sort ";
+    msg += sort->to_string();
+    throw IncorrectUsageException(msg.c_str());
+  }
+
+  Term res(new CVC4Term(c));
+  return res;
 }
 
 Term CVC4Solver::make_const(std::string val, Sort sort) const
 {
-  // TODO: Implement this, need to split on the sort
-  throw NotImplementedException("not implemented yet.");
+  SortCon sc = sort->get_sort_con();
+  ::CVC4::api::Term c;
+
+  if ((sc == INT) || (sc == REAL))
+    {
+      c = solver.mkReal(val);
+    }
+  else if (sc == BV)
+    {
+      c = solver.mkBitVector(sort->get_width(), val, 10);
+    }
+  else
+    {
+      std::string msg = "Can't create constant with integer for sort ";
+      msg += sort->to_string();
+      throw IncorrectUsageException(msg.c_str());
+    }
+
+  Term res(new CVC4Term(c));
+  return res;
 }
 
 /**
