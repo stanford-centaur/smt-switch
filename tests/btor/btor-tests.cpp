@@ -18,6 +18,7 @@ int main()
   Term x = s->declare_const("x", bvsort8);
   Term y = s->declare_const("y", bvsort8);
   Term z = s->declare_const("z", bvsort8);
+  Term _true = s->make_const(true);
   assert(x != y);
   Term x_copy = x;
   assert(x == x_copy);

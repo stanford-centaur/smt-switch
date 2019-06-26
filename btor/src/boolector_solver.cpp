@@ -97,6 +97,24 @@ Fun BoolectorSolver::declare_fun(const std::string name,
   }
 }
 
+Term BoolectorSolver::make_const(bool b) const
+{
+  if (b)
+  {
+    Term term(new BoolectorTerm(
+                                btor, boolector_const(btor, "1"), std::vector<Term>{}, Op()
+    ));
+    return term;
+  }
+  else
+  {
+    Term term(new BoolectorTerm(
+                                btor, boolector_const(btor, "0"), std::vector<Term>{}, Op()
+                                ));
+    return term;
+  }
+}
+
 Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
