@@ -13,6 +13,23 @@
 
 namespace smt {
 
+  // TODO : add other smt kinds
+  enum SortCon
+  {
+   ARRAY = 0,
+   BOOL,
+   BV,
+   INT,
+   REAL,
+   UNINTERPRETED,
+   /** IMPORTANT: This must stay at the bottom.
+       It's only use is for sizing the kind2str array
+   */
+   NUM_SORT_CONS
+  };
+
+  std::string to_string(SortCon);
+
 /**
    Abstract base class for representing an SMT sort.
    It holds a kind enum and any necessary data for that particular sort.
@@ -33,7 +50,7 @@ class AbsSort
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
   virtual bool compare(const Sort sort) const = 0;
-  virtual Kind get_kind() const = 0;
+  virtual SortCon get_sort_con() const = 0;
 };
 
 bool operator==(const Sort& s1, const Sort& s2);

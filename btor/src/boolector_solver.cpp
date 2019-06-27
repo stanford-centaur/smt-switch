@@ -49,7 +49,7 @@ Term BoolectorSolver::declare_const(const std::string name, Sort sort) const
       std::static_pointer_cast<BoolectorSortBase>(sort);
 
   BoolectorNode * n;
-  if (sort->get_kind() != ARRAY)
+  if (sort->get_sort_con() != ARRAY)
   {
     n = boolector_var(btor, bs->sort, name.c_str());
   }
@@ -63,7 +63,6 @@ Term BoolectorSolver::declare_const(const std::string name, Sort sort) const
   return term;
 }
 
-// TODO implement declare_fun
 Fun BoolectorSolver::declare_fun(const std::string name,
                                  const std::vector<Sort> & sorts,
                                  Sort sort) const
@@ -98,6 +97,24 @@ Fun BoolectorSolver::declare_fun(const std::string name,
   }
 }
 
+Term BoolectorSolver::make_const(bool b) const
+{
+  if (b)
+  {
+    Term term(new BoolectorTerm(
+                                btor, boolector_const(btor, "1"), std::vector<Term>{}, Op()
+    ));
+    return term;
+  }
+  else
+  {
+    Term term(new BoolectorTerm(
+                                btor, boolector_const(btor, "0"), std::vector<Term>{}, Op()
+                                ));
+    return term;
+  }
+}
+
 Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
@@ -105,6 +122,14 @@ Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
   // note: give the constant value a null PrimOp
   Term term(new BoolectorTerm(
       btor, boolector_int(btor, i, bs->sort), std::vector<Term>{}, Op()));
+  return term;
+}
+
+Term BoolectorSolver::make_const(std::string val, Sort sort) const
+{
+  std::shared_ptr<BoolectorSortBase> bs =
+    std::static_pointer_cast<BoolectorSortBase>(sort);
+  Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op()));
   return term;
 }
 
@@ -121,9 +146,16 @@ void BoolectorSolver::assert_formula(const Term & t) const
   boolector_assert(btor, bt->node);
 }
 
-bool BoolectorSolver::check_sat() const
+Result BoolectorSolver::check_sat() const
 {
-  return (BOOLECTOR_SAT == boolector_sat(btor));
+  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  {
+    return Result(SAT);
+  }
+  else
+  {
+    return Result(UNSAT);
+  }
 };
 
 Term BoolectorSolver::get_value(Term & t) const
@@ -131,8 +163,8 @@ Term BoolectorSolver::get_value(Term & t) const
   Term result;
   std::shared_ptr<BoolectorTerm> bt =
       std::static_pointer_cast<BoolectorTerm>(t);
-  Kind k = t->get_sort()->get_kind();
-  if ((k == BV) || (k == BOOL))
+  SortCon sc = t->get_sort()->get_sort_con();
+  if ((sc == BV) || (sc == BOOL))
   {
     const char * assignment = boolector_bv_assignment(btor, bt->node);
     BoolectorNode * bc = boolector_const(btor, assignment);
@@ -141,26 +173,26 @@ Term BoolectorSolver::get_value(Term & t) const
     result = std::make_shared<BoolectorTerm>(
         btor, bc, std::vector<Term>{}, NUM_OPS_AND_NULL);
   }
-  else if (k == ARRAY)
+  else if (sc == ARRAY)
   {
     throw NotImplementedException("Array models unimplemented.");
   }
-  else if (k == UNINTERPRETED)
+  else if (sc == UNINTERPRETED)
   {
     throw NotImplementedException("UF models unimplemented.");
   }
   else
   {
-    std::string msg("Can't get value for term with kind = ");
-    msg += to_string(k);
+    std::string msg("Can't get value for term with sort constructor = ");
+    msg += to_string(sc);
     throw IncorrectUsageException(msg.c_str());
   }
   return result;
 }
 
-Sort BoolectorSolver::make_sort(Kind k) const
+Sort BoolectorSolver::make_sort(SortCon sc) const
 {
-  if (k == BOOL)
+  if (sc == BOOL)
   {
     Sort s(new BoolectorBVSort(btor, boolector_bool_sort(btor), 1));
     return s;
@@ -168,30 +200,30 @@ Sort BoolectorSolver::make_sort(Kind k) const
   else
   {
     std::string msg("Boolector does not support ");
-    msg += to_string(k);
+    msg += to_string(sc);
     throw NotImplementedException(msg.c_str());
   }
 }
 
-Sort BoolectorSolver::make_sort(Kind k, unsigned int size) const
+Sort BoolectorSolver::make_sort(SortCon sc, unsigned int size) const
 {
-  if (k == BV)
+  if (sc == BV)
   {
     Sort s(new BoolectorBVSort(btor, boolector_bitvec_sort(btor, size), size));
     return s;
   }
   else
   {
-    std::string msg("Can't create Kind ");
-    msg += to_string(k);
+    std::string msg("Can't create sort from sort constructor ");
+    msg += to_string(sc);
     msg += " with int argument.";
     throw IncorrectUsageException(msg.c_str());
   }
 }
 
-Sort BoolectorSolver::make_sort(Kind k, Sort idxsort, Sort elemsort) const
+Sort BoolectorSolver::make_sort(SortCon sc, Sort idxsort, Sort elemsort) const
 {
-  if (k == ARRAY)
+  if (sc == ARRAY)
   {
     std::shared_ptr<BoolectorSortBase> btor_idxsort =
         std::static_pointer_cast<BoolectorSortBase>(idxsort);
@@ -204,18 +236,18 @@ Sort BoolectorSolver::make_sort(Kind k, Sort idxsort, Sort elemsort) const
   }
   else
   {
-    std::string msg("Can't create Kind ");
-    msg += to_string(k);
+    std::string msg("Can't create sort from sort constructor ");
+    msg += to_string(sc);
     msg += " with two sort arguments.";
     throw IncorrectUsageException(msg.c_str());
   }
 }
 
-Sort BoolectorSolver::make_sort(Kind k,
+Sort BoolectorSolver::make_sort(SortCon sc,
                                 std::vector<Sort> sorts,
                                 Sort sort) const
 {
-  if (k == UNINTERPRETED)
+  if (sc == UNINTERPRETED)
   {
     int arity = sorts.size();
     std::vector<BoolectorSort> btor_sorts(arity);
@@ -234,8 +266,8 @@ Sort BoolectorSolver::make_sort(Kind k,
   }
   else
   {
-    std::string msg("Can't create Kind ");
-    msg += to_string(k);
+    std::string msg("Can't create sort from sort constructor ");
+    msg += to_string(sc);
     msg += " with a vector of sorts and a sort";
     throw IncorrectUsageException(msg.c_str());
   }

@@ -52,7 +52,7 @@ bool CVC4Sort::compare(const Sort s) const
   return sort == cs->sort;
 }
 
-Kind CVC4Sort::get_kind() const
+SortCon CVC4Sort::get_sort_con() const
 {
   if (sort.isBoolean())
   {

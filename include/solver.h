@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
+#include "result.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 
@@ -26,16 +28,18 @@ class AbsSmtSolver
   virtual Fun declare_fun(const std::string name,
                           const std::vector<Sort>& sorts,
                           Sort sort) const = 0;
+  virtual Term make_const(bool b) const = 0;
   virtual Term make_const(unsigned int i, Sort sort) const = 0;
+  virtual Term make_const(std::string val, Sort sort) const = 0;
   virtual Fun make_fun(Op op) const = 0;
   virtual void assert_formula(const Term& t) const = 0;
-  virtual bool check_sat() const = 0;
+  virtual Result check_sat() const = 0;
   virtual Term get_value(Term& t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
-  virtual Sort make_sort(Kind k) const = 0;
-  virtual Sort make_sort(Kind k, unsigned int size) const = 0;
-  virtual Sort make_sort(Kind k, Sort idxsort, Sort elemsort) const = 0;
-  virtual Sort make_sort(Kind k, std::vector<Sort> sorts, Sort sort) const = 0;
+  virtual Sort make_sort(SortCon sc) const = 0;
+  virtual Sort make_sort(SortCon sc, unsigned int size) const = 0;
+  virtual Sort make_sort(SortCon sc, Sort idxsort, Sort elemsort) const = 0;
+  virtual Sort make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const = 0;
   virtual Term apply(Op op, Term t) const = 0;
   virtual Term apply(Op op, Term t0, Term t1) const = 0;
   virtual Term apply(Op op, Term t0, Term t1, Term t2) const = 0;

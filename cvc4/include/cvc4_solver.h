@@ -1,45 +1,55 @@
-#ifndef SMT_BOOLECTOR_SOLVER_H
-#define SMT_BOOLECTOR_SOLVER_H
+#ifndef SMT_CVC4_SOLVER_H
+#define SMT_CVC4_SOLVER_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "boolector_extensions.h"
-#include "boolector_fun.h"
-#include "boolector_sort.h"
-#include "boolector_term.h"
+#include "cvc4_fun.h"
+#include "cvc4_sort.h"
+#include "cvc4_term.h"
+
+#include "api/cvc4cpp.h"
 
 #include "exceptions.h"
+#include "fun.h"
+#include "ops.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
+#include "term.h"
 
 namespace smt {
 /**
-   Boolector Solver
+   CVC4 Solver
  */
-class BoolectorSolver : public AbsSmtSolver
+class CVC4Solver : public AbsSmtSolver
 {
  public:
-  // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new()){};
-  BoolectorSolver(const BoolectorSolver &) = delete;
-  BoolectorSolver & operator=(const BoolectorSolver &) = delete;
-  ~BoolectorSolver() { boolector_delete(btor); };
+  CVC4Solver() : solver(::CVC4::api::Solver())
+  {
+    solver.setOption("lang", "smt2");
+  };
+  CVC4Solver(const CVC4Solver &) = delete;
+  CVC4Solver & operator=(const CVC4Solver &) = delete;
+  ~CVC4Solver() { };
   void set_opt(const std::string option, bool value) const override;
   void set_opt(const std::string option,
                const std::string value) const override;
   void set_logic(const std::string logic) const override;
   Sort declare_sort(const std::string name, unsigned int arity) const override;
   Term declare_const(const std::string name, Sort sort) const override;
-  // TODO implement declare_fun
   Fun declare_fun(const std::string name,
                   const std::vector<Sort> & sorts,
                   Sort sort) const override;
   Term make_const(bool b) const override;
   Term make_const(unsigned int i, Sort sort) const override;
   Term make_const(std::string val, Sort sort) const override;
+  /**
+     Helper function for creating an OpTerm from an Op
+     Preconditions: op must be indexed, i.e. op.num_idx > 0
+  */
+  ::CVC4::api::OpTerm make_op_term(Op op) const;
   Fun make_fun(Op op) const override;
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;
@@ -48,12 +58,6 @@ class BoolectorSolver : public AbsSmtSolver
   Sort make_sort(SortCon sc, unsigned int size) const override;
   Sort make_sort(SortCon sc, Sort idxsort, Sort elemsort) const override;
   Sort make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const override;
-  // helper methods for applying a primitive op
-  Term apply_prim_op(PrimOp op, Term t) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
-  Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
-  // Implementation of the AbsSmtSolver methods
   Term apply(Op op, Term t) const override;
   Term apply(Op op, Term t0, Term t1) const override;
   Term apply(Op op, Term t0, Term t1, Term t2) const override;
@@ -64,7 +68,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply(Fun f, std::vector<Term> terms) const override;
 
  protected:
-  Btor * btor;
+  ::CVC4::api::Solver solver;
 };
 }  // namespace smt
 

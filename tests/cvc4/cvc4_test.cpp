@@ -1,22 +1,33 @@
 #include <iostream>
 
-#include "sort.h"
+#include "smt.h"
+#include "cvc4_factory.h"
 
 #include "api/cvc4cpp.h"
 
-#include "cvc4_term.h"
-
 using namespace std;
-using namespace CVC4::api;
-
 using namespace smt;
 
 int main()
 {
-  Solver slv;
-  ::CVC4::api::Term x = slv.mkVar(slv.mkBitVectorSort(8), "x");
-  ::CVC4::api::Sort cs = x.getSort();
-  CVC4Term t(x);
-  cout << t.get_sort() << endl;
+  SmtSolver s = CVC4SolverFactory::create();
+  Term x = s->declare_const("x", s->make_sort(BV, 8));
+  Term y = s->declare_const("y", s->make_sort(BV, 8));
+  cout << x->to_string() << endl;
+  cout << y->to_string() << endl;
+  Term xpy = s->apply(BVAdd, x, y);
+  cout << xpy->to_string() << endl;
+  Term xext = s->apply(Op(Extract, 3, 0), x);
+  cout << xext << endl;
+  Term _true = s->make_const(true);
+  cout << _true << endl;
+  Term _one = s->make_const(1, s->make_sort(INT));
+  cout << _one << endl;
+  Term _one_r = s->make_const("1.0", s->make_sort(REAL));
+  cout << _one_r << endl;
+  Term _two_bv = s->make_const(2, s->make_sort(BV, 4));
+  cout << _two_bv << endl;
+  Term _three_bv = s->make_const("3", s->make_sort(BV, 4));
+  cout << _three_bv << endl;
   return 0;
 }
