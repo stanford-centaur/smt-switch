@@ -16,7 +16,7 @@ class BoolectorSortBase : public AbsSort
 {
  public:
   BoolectorSortBase(SortCon sc, Btor * b, BoolectorSort s)
-    : sc(sc), btor(b), sort(s){};
+    : btor(b), sort(s), sc(sc) {};
   virtual ~BoolectorSortBase();
   // by default none of these work
   std::string to_string() const override;

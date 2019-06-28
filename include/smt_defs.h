@@ -5,7 +5,7 @@
 
 namespace smt {
 
-class Op;
+struct Op;
 
 class AbsSort;
 using Sort = std::shared_ptr<AbsSort>;
