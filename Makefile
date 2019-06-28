@@ -61,3 +61,4 @@ uninstall:
 clean:
 	rm -rf *.o
 	rm -rf *.so.*
+	rm -rf *.out
