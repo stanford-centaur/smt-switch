@@ -8,21 +8,18 @@ all: btor-tests.out btor-arrays.out btor-data-structures.out btor-indexed-op-tes
 debug: all
 debug: DEBUG=-g -D_DEBUG
 
-btor-tests.out: btor-tests.cpp $(SOURCE)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ -I../../btor/include/ -I./boolector/src/ -o btor-tests.out btor-tests.cpp $(SOURCE) $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o $(BTOR_HOME)/build/lib/libboolector.a $(BTOR_HOME)/deps/lingeling/liblgl.a -lm -lpthread
-
-btor-arrays.out: btor-arrays.cpp $(SOURCE)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ -I../../btor/include/ -I./boolector/src/ -o btor-arrays.out btor-arrays.cpp $(SOURCE) $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o $(BTOR_HOME)/build/lib/libboolector.a $(BTOR_HOME)/deps/lingeling/liblgl.a -lm -lpthread
-
-btor-data-structures.out: btor-data-structures.cpp $(SOURCE)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ -I../../btor/include/ -I./boolector/src/ -o btor-data-structures.out btor-data-structures.cpp $(SOURCE) $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o $(BTOR_HOME)/build/lib/libboolector.a $(BTOR_HOME)/deps/lingeling/liblgl.a -lm -lpthread
-
-btor-indexed-op-tests.out: btor-indexed-op-tests.cpp $(SOURCE)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include/ -I../../src/ -I../../btor/include/ -I./boolector/src/ -o btor-indexed-op-tests.out btor-indexed-op-tests.cpp $(SOURCE) $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o $(BTOR_HOME)/build/lib/libboolector.a $(BTOR_HOME)/deps/lingeling/liblgl.a -lm -lpthread
-
 clean:
 	rm -rf *.o *.out
 
 # After installation
-# btor-tests.out: btor-tests.cpp $(SOURCE)
-# 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I/usr/local/include/smt-switch -o btor-tests.out btor-tests.cpp -lsmt-switch -lsmt-switch-btor
+btor-tests.out: btor-tests.cpp $(SOURCE)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -o btor-tests.out btor-tests.cpp -lsmt-switch -lsmt-switch-btor
+
+btor-arrays.out: btor-arrays.cpp $(SOURCE)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -o btor-arrays.out btor-arrays.cpp -lsmt-switch -lsmt-switch-btor
+
+btor-data-structures.out: btor-data-structures.cpp $(SOURCE)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -o btor-data-structures.out btor-data-structures.cpp -lsmt-switch -lsmt-switch-btor
+
+btor-indexed-op-tests.out: btor-indexed-op-tests.cpp $(SOURCE)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -o btor-indexed-op-tests.out btor-indexed-op-tests.cpp -lsmt-switch -lsmt-switch-btor

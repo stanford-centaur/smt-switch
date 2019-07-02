@@ -3,8 +3,8 @@
 #include <vector>
 #include "assert.h"
 
-#include "boolector_factory.h"
-#include "smt.h"
+#include "smt-switch/boolector_factory.h"
+#include "smt-switch/smt.h"
 
 using namespace smt;
 using namespace std;

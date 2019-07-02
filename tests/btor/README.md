@@ -1,3 +1,6 @@
 # Tests Using the Boolector Solver
 
-The boolector library is not included in this repository, please use the `build.sh` script to automatically build boolector and the tests. Note: the Makefile in this directory only links the necessary libraries for boolector built with lingeling.
+These tests demonstrate the usage of the API and test your installation of Boolector. These are meant to be run after an installation of `smt-switch`.
+
+To install `smt-switch` with `boolector`, you would run the following from the top-level directory:
+`sudo make install btor-install`
