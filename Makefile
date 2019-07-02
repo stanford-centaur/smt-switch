@@ -4,6 +4,8 @@ GENERIC_INC=./include
 BTOR=./btor
 BTOR_HOME=./tests/btor/boolector
 
+prefix=/usr/local
+
 # SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp $(BTOR_SRC)/boolector_factory.cpp $(BTOR_SRC)/boolector_solver.cpp $(BTOR_SRC)/boolector_extensions.cpp $(BTOR_SRC)/boolector_sort.cpp $(BTOR_SRC)/boolector_term.cpp $(BTOR_SRC)/boolector_fun.cpp
 
 all: ops.o sort.o term.o
@@ -21,17 +23,22 @@ libsmt-switch.so: ops.o sort.o term.o
 	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 -L$(BTOR_HOME)/build/lib ops.o sort.o term.o
 
 install: libsmt-switch.so
-	mkdir -p /usr/local/include/smt-switch
-	cp -r ./include/* /usr/local/include/smt-switch/
-	cp ./libsmt-switch.so.1.0.0 /usr/local/lib/
-	ldconfig -n /usr/local/lib
-	ln -f -s /usr/local/lib/libsmt-switch.so.1.0.0 /usr/local/lib/libsmt-switch.so
+	mkdir -p $(prefix)/include/smt-switch
+	mkdir -p $(prefix)/lib
+	cp -r ./include/* $(prefix)/include/smt-switch/
+	cp ./libsmt-switch.so.1.0.0 $(prefix)/lib/
+	ldconfig -n $(prefix)/lib
+	ln -f -s $(prefix)/lib/libsmt-switch.so.1.0.0 $(prefix)/lib/libsmt-switch.so
+
+install-all: install btor-install cvc4-install
 
 uninstall:
-	rm -rf /usr/local/include/smt-switch
-	rm -f /usr/local/lib/libsmt-switch.so.1.0.0
-	rm -f /usr/local/lib/libsmt-switch.so.1
-	rm -f /usr/local/lib/libsmt-switch.so
+	rm -rf $(prefix)/include/smt-switch
+	rm -f $(prefix)/lib/libsmt-switch.so.1.0.0
+	rm -f $(prefix)/lib/libsmt-switch.so.1
+	rm -f $(prefix)/lib/libsmt-switch.so
+
+uninstall-all: uninstall
 	$(MAKE) -C btor uninstall
 	$(MAKE) -C cvc4 uninstall
 
@@ -39,6 +46,8 @@ clean:
 	rm -rf *.o
 	rm -rf *.so.*
 	rm -rf *.out
+
+clean-all: clean
 	$(MAKE) -C btor clean
 	$(MAKE) -C cvc4 clean
 
