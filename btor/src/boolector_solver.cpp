@@ -283,7 +283,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
     Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t }, op));
     return term;
   }
-  catch (std::out_of_range o)
+  catch (std::out_of_range & o)
   {
     std::string msg("Can't apply ");
     msg += to_string(op);
@@ -304,7 +304,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
     Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1 }, op));
     return term;
   }
-  catch (std::out_of_range o)
+  catch (std::out_of_range & o)
   {
     std::string msg("Can't apply ");
     msg += to_string(op);
@@ -329,7 +329,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
         new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1, t2 }, op));
     return term;
   }
-  catch (std::out_of_range o)
+  catch (std::out_of_range & o)
   {
     std::string msg("Can't apply ");
     msg += to_string(op);

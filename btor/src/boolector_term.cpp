@@ -100,7 +100,7 @@ std::string BoolectorTerm::to_string() const
     std::string symbol(btor_symbol);
     return symbol;
   }
-  catch (std::logic_error)
+  catch (std::logic_error & e)
   {
     return "btor_expr";
   }
