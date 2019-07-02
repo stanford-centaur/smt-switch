@@ -1,9 +1,7 @@
 #include <iostream>
 
-#include "smt.h"
-#include "cvc4_factory.h"
-
-#include "api/cvc4cpp.h"
+#include "smt-switch/smt.h"
+#include "smt-switch/cvc4_factory.h"
 
 using namespace std;
 using namespace smt;

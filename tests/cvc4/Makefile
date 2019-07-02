@@ -8,8 +8,9 @@ all: cvc4_test.out
 debug: all
 debug: DEBUG=-g -D_DEBUG
 
+# After install
 cvc4_test.out: cvc4_test.cpp
-	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I../../include -I../../src/ -I../../cvc4/include -I$(CVC4_HOME)/src -I$(CVC4_HOME)/src/include -o cvc4_test.out cvc4_test.cpp $(SOURCE) -L$(CVC4_HOME)/build/src -L$(CVC4_HOME)/build/src/parser -lcvc4 -lcvc4parser
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I/usr/local/include/smt-switch -o cvc4_test.out cvc4_test.cpp -lsmt-switch -lsmt-switch-cvc4
 
 clean:
 	rm -rf *.out
