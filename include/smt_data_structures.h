@@ -24,7 +24,6 @@ using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
 
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
-
 inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
