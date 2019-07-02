@@ -31,6 +31,7 @@ install: libsmt-switch.so
 	ln -f -s $(prefix)/lib/libsmt-switch.so.1.0.0 $(prefix)/lib/libsmt-switch.so
 
 install-all: install btor-install cvc4-install
+	ldconfig -n $(prefix)/lib
 
 uninstall:
 	rm -rf $(prefix)/include/smt-switch
