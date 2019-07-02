@@ -19,12 +19,12 @@ std::string BoolectorSortBase::to_string() const
       std::ostringstream oss;
       if (sc == BV)
         {
-          oss << "BV{" << get_width() << "}";
+          oss << "(_ BitVec " << get_width() << ")";
         }
       else if (sc == ARRAY)
         {
-          oss << "ARRAY{" << get_indexsort()->to_string() << ", "
-              << get_elemsort()->to_string() << "}";
+          oss << "(Array " << get_indexsort()->to_string() << " "
+              << get_elemsort()->to_string() << ")";
         }
       else
         {
