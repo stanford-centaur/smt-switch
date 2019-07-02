@@ -22,3 +22,7 @@ btor-indexed-op-tests.out: btor-indexed-op-tests.cpp $(SOURCE)
 
 clean:
 	rm -rf *.o *.out
+
+# After installation
+# btor-tests.out: btor-tests.cpp $(SOURCE)
+# 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 -I/usr/local/include/smt-switch -o btor-tests.out btor-tests.cpp -lsmt-switch -lsmt-switch-btor

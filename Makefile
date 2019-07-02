@@ -21,36 +21,15 @@ sort.o: $(GENERIC_SRC)/sort.cpp $(GENERIC_INC)/sort.h
 term.o: $(GENERIC_SRC)/term.cpp $(GENERIC_INC)/term.h
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/term.cpp
 
-boolector_extensions.o: $(BTOR)/include/boolector_extensions.h $(BTOR)/src/boolector_extensions.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_extensions.cpp
-
-boolector_factory.o: $(GENERIC_INC)/boolector_factory.h $(BTOR)/src/boolector_factory.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_factory.cpp
-
-boolector_fun.o: $(BTOR)/include/boolector_fun.h $(BTOR)/src/boolector_fun.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_fun.cpp
-
-boolector_solver.o: $(BTOR)/include/boolector_solver.h $(BTOR)/src/boolector_solver.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_solver.cpp
-
-boolector_sort.o: $(BTOR)/include/boolector_sort.h $(BTOR)/src/boolector_sort.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_sort.cpp
-
-boolector_term.o: $(BTOR)/include/boolector_term.h $(BTOR)/src/boolector_term.cpp
-	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_term.cpp
-
-libsmt-switch.so: ops.o sort.o term.o boolector_extensions.o boolector_factory.o boolector_fun.o boolector_solver.o boolector_sort.o boolector_term.o
-	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 -L$(BTOR_HOME)/build/lib ops.o sort.o term.o boolector_extensions.o boolector_factory.o boolector_fun.o boolector_solver.o boolector_sort.o boolector_term.o -lboolector -lm -pthread
-
-btor-tests.out:
-	$(CXX) -std=c++17 $(CXXFLAGS) $(DEBUG) -I$(GENERIC_INC) -o btor-tests.out btor-tests.cpp -L./ -lsmt-switch
+libsmt-switch.so: ops.o sort.o term.o
+	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 -L$(BTOR_HOME)/build/lib ops.o sort.o term.o
 
 install: libsmt-switch.so
 	mkdir -p /usr/local/include/smt-switch
 	cp -r ./include/* /usr/local/include/smt-switch/
 	cp ./libsmt-switch.so.1.0.0 /usr/local/lib/
 	ldconfig -n /usr/local/lib
-	ln -s /usr/local/lib/libsmt-switch.so.1.0.0 /usr/local/lib/libsmt-switch.so
+	ln -f -s /usr/local/lib/libsmt-switch.so.1.0.0 /usr/local/lib/libsmt-switch.so
 
 uninstall:
 	rm -rf /usr/local/include/smt-switch
