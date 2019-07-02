@@ -7,6 +7,6 @@ if [ ! -d "./boolector" ]; then
     ./contrib/setup-lingeling.sh
     ./configure.sh --only-lingeling -fPIC
     cd build
-    make -j8
+    make -j$(nproc)
     cd ../../
 fi

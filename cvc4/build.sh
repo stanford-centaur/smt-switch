@@ -6,6 +6,6 @@ if [ ! -d "./CVC4" ]; then
     ./contrib/get-antlr-3.4
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static
     cd build
-    make -j16
+    make -j$(nproc)
     cd ../../
 fi
