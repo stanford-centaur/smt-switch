@@ -6,9 +6,7 @@ BTOR_HOME=./tests/btor/boolector
 
 # SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp $(BTOR_SRC)/boolector_factory.cpp $(BTOR_SRC)/boolector_solver.cpp $(BTOR_SRC)/boolector_extensions.cpp $(BTOR_SRC)/boolector_sort.cpp $(BTOR_SRC)/boolector_term.cpp $(BTOR_SRC)/boolector_fun.cpp
 
-all: generic btor
-
-generic: ops.o sort.o term.o
+all: ops.o sort.o term.o
 
 ops.o: $(GENERIC_SRC)/ops.cpp $(GENERIC_INC)/ops.h
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/ops.cpp
@@ -34,14 +32,25 @@ uninstall:
 	rm -f /usr/local/lib/libsmt-switch.so.1.0.0
 	rm -f /usr/local/lib/libsmt-switch.so.1
 	rm -f /usr/local/lib/libsmt-switch.so
+	$(MAKE) -C btor uninstall
+	$(MAKE) -C cvc4 uninstall
 
 clean:
 	rm -rf *.o
 	rm -rf *.so.*
 	rm -rf *.out
+	$(MAKE) -C btor clean
+	$(MAKE) -C cvc4 clean
 
-boolector:
-	$(MAKE) -C btor
+SOLVERS = btor cvc4
 
-boolector-install: btor
+.PHONY: $(SOLVERS)
+
+$(SOLVERS):
+	$(MAKE) -C $@
+
+btor-install:
 	$(MAKE) -C btor install
+
+cvc4-install:
+	$(MAKE) -C cvc4 install
