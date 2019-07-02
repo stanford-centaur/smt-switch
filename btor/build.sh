@@ -10,5 +10,3 @@ if [ ! -d "./boolector" ]; then
     make -j8
     cd ../../
 fi
-
-make all
