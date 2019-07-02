@@ -4,7 +4,10 @@ GENERIC_INC=../include
 BTOR=./
 BTOR_HOME=./boolector
 
-all: libsmt-switch-btor.so
+all: boolector libsmt-switch-btor.so
+
+boolector:
+	./build.sh
 
 boolector_extensions.o: $(BTOR)/include/boolector_extensions.h $(BTOR)/src/boolector_extensions.cpp
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) -I$(GENERIC_SRC) -I$(BTOR)/include -I$(BTOR_HOME)/src/ $(BTOR)/src/boolector_extensions.cpp
@@ -42,3 +45,4 @@ uninstall:
 
 clean:
 	rm -rf *.o *.so.*
+	rm -rf boolector

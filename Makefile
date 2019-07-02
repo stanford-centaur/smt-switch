@@ -10,8 +10,6 @@ all: generic btor
 
 generic: ops.o sort.o term.o
 
-btor: boolector_extensions.o boolector_factory.o boolector_fun.o boolector_solver.o boolector_sort.o boolector_term.o
-
 ops.o: $(GENERIC_SRC)/ops.cpp $(GENERIC_INC)/ops.h
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/ops.cpp
 
@@ -41,3 +39,9 @@ clean:
 	rm -rf *.o
 	rm -rf *.so.*
 	rm -rf *.out
+
+boolector:
+	$(MAKE) -C btor
+
+boolector-install: btor
+	$(MAKE) -C btor install
