@@ -14,6 +14,8 @@ if [ ! -d "$BTOR_HOME/boolector" ]; then
     cd build
     make -j$(nproc)
     cd $DIR
+else
+    echo "$BTOR_HOME/boolector already exists. If you want to rebuild, please remove it manually."
 fi
 
 if [ -f $BTOR_HOME/boolector/build/lib/libboolector.a ] && [ -f $BTOR_HOME/boolector/deps/lingeling/liblgl.a ] && [ -f $BTOR_HOME/boolector/deps/btor2tools/build/btor2parser.o ] ; then \

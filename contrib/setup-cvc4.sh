@@ -13,6 +13,8 @@ if [ ! -d "$CVC4_HOME/CVC4" ]; then
     cd build
     make -j$(nproc)
     cd $DIR
+else
+    echo "$CVC4_HOME/CVC4 already exists. If you want to rebuild, please remove it manually."
 fi
 
 if [ -f $CVC4_HOME/CVC4/build/src/libcvc4.a ] && [ -f $CVC4_HOME/CVC4/build/src/parser/libcvc4parser.a ]; then
