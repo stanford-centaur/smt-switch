@@ -51,7 +51,7 @@ class IncorrectUsageException : public SmtException
   IncorrectUsageException(const char* msg) : SmtException(msg){};
 };
 
-class NotImplementedException : SmtException
+class NotImplementedException : public SmtException
 {
  public:
   NotImplementedException(const char* msg) : SmtException(msg){};
