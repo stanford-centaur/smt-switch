@@ -65,7 +65,36 @@ Sort CVC4Term::get_sort() const
 }
 std::string CVC4Term::to_string() const { return term.toString(); }
 // TODO: Implement iterator and to_int conversion
-uint64_t CVC4Term::to_int() const { throw NotImplementedException("not implemented"); }
+uint64_t CVC4Term::to_int() const
+{
+  std::string val = term.toString();
+  ::CVC4::api::Sort sort = term.getSort();
+
+  // process smt-lib bit-vector format
+  if (sort.isBitVector())
+  {
+    if (val.find("(_ bv") == std::string::npos)
+    {
+      std::string msg = val;
+      msg += " is not a constant term, can't convert to int.";
+      throw IncorrectUsageException(msg.c_str());
+    }
+    val = val.substr(5, val.length());
+    val = val.substr(0, val.find(" "));
+  }
+
+  try
+  {
+    return std::stoi(val);
+  }
+  catch (std::exception const & e)
+  {
+    std::string msg("Term ");
+    msg += val;
+    msg += " does not contain an integer representable by a machine int.";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
 /** Iterators for traversing the children
  */
 TermIter CVC4Term::begin()
