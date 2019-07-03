@@ -4,7 +4,6 @@
 
 #include "smt-switch/boolector_factory.h"
 #include "smt-switch/smt.h"
-#include "smt-switch/smt_data_structures.h"
 
 using namespace smt;
 using namespace std;

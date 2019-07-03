@@ -2,7 +2,6 @@
 
 #include "smt-switch/smt.h"
 #include "smt-switch/cvc4_factory.h"
-#include "smt-switch/smt_data_structures.h"
 
 using namespace std;
 using namespace smt;
