@@ -11,11 +11,26 @@ namespace smt {
   //forward declaration
   class CVC4Solver;
 
-  // TODO: Implement this
-  /* class CVC4TermIter : public TermIterBase */
-  /* { */
+  class CVC4TermIter : public TermIterBase
+  {
+  public:
+    CVC4TermIter(const ::CVC4::api::Term::const_iterator term_it)
+      : term_it(term_it){};
+    CVC4TermIter(const CVC4TermIter & it) { term_it = it.term_it; };
+    ~CVC4TermIter() {};
+    CVC4TermIter & operator=(const CVC4TermIter & it);
+    void operator++() override;
+    void operator++(int junk);
+    const Term operator*() const override;
+    bool operator==(const CVC4TermIter & it);
+    bool operator!=(const CVC4TermIter & it);
 
-  /* }; */
+  protected:
+    bool equal(const TermIterBase & other) const override;
+
+  private:
+    ::CVC4::api::Term::const_iterator term_it;
+  };
 
   class CVC4Term : public AbsTerm
   {

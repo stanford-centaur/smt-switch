@@ -2,6 +2,7 @@
 
 #include "smt-switch/smt.h"
 #include "smt-switch/cvc4_factory.h"
+#include "smt-switch/smt_data_structures.h"
 
 using namespace std;
 using namespace smt;
@@ -27,5 +28,13 @@ int main()
   cout << _two_bv << endl;
   Term _three_bv = s->make_const("3", s->make_sort(BV, 4));
   cout << _three_bv << endl;
+
+  cout << "Children of " << xpy << endl;
+  for (auto c : xpy)
+  {
+    cout << "\t" << c << endl;
+  }
+
+
   return 0;
 }
