@@ -30,7 +30,7 @@ install: libsmt-switch.so
 	ldconfig -n $(prefix)/lib
 	ln -f -s $(prefix)/lib/libsmt-switch.so.1.0.0 $(prefix)/lib/libsmt-switch.so
 
-install-all: install btor-install cvc4-install
+install-all: install install-btor install-cvc4
 	ldconfig -n $(prefix)/lib
 
 uninstall:
@@ -59,8 +59,8 @@ SOLVERS = btor cvc4
 $(SOLVERS):
 	$(MAKE) -C $@
 
-btor-install:
+install-btor:
 	$(MAKE) -C btor install
 
-cvc4-install:
+install-cvc4:
 	$(MAKE) -C cvc4 install
