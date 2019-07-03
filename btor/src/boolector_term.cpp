@@ -10,11 +10,7 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
   return *this;
 };
 
-void BoolectorTermIter::operator++()
-{
-  BoolectorTermIter self = *this;
-  v_it++;
-};
+void BoolectorTermIter::operator++() { v_it++; };
 
 void BoolectorTermIter::operator++(int junk) { v_it++; };
 
