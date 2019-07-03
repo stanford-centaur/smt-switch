@@ -8,10 +8,11 @@ namespace smt
 void CVC4Solver::set_opt(const std::string option, bool value) const
 {
   if (value)
-    {
-      solver.setOption(option, "true");
-    }
-  else {
+  {
+    solver.setOption(option, "true");
+  }
+  else
+  {
     solver.setOption(option, "false");
   }
 }
@@ -37,7 +38,7 @@ Sort CVC4Solver::declare_sort(const std::string name,
 Term CVC4Solver::declare_const(const std::string name, Sort sort) const
 {
   std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
-  ::CVC4::api::Term t = solver.mkVar(csort->sort, name);
+  ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
   Term res(new ::smt::CVC4Term(t));
   return res;
 }
