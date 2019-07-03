@@ -365,11 +365,11 @@ Term CVC4Solver::apply(Fun fun, Term t) const
     // primitive (non-indexed) op
     Term res(new CVC4Term(solver.mkTerm(cfun->kind, cterm->term)));
     return res;
-    }
-    else if (!cfun->is_indexed())
-    {
-      Term res(new CVC4Term(solver.mkTerm(cfun->kind, cfun->op, cterm->term)));
-      return res;
+  }
+  else if (cfun->is_indexed())
+  {
+    Term res(new CVC4Term(solver.mkTerm(cfun->kind, cfun->op, cterm->term)));
+    return res;
   }
   else
     {
@@ -394,12 +394,12 @@ Term CVC4Solver::apply(Fun fun, Term t0, Term t1) const
         new CVC4Term(solver.mkTerm(cfun->kind, cterm0->term, cterm1->term)));
     return res;
     }
-    else if (!cfun->is_indexed())
-    {
-      Term res(new CVC4Term(
-          solver.mkTerm(cfun->kind, cfun->op, cterm0->term, cterm1->term)));
-      return res;
-    }
+  else if (cfun->is_indexed())
+  {
+    Term res(new CVC4Term(
+                          solver.mkTerm(cfun->kind, cfun->op, cterm0->term, cterm1->term)));
+    return res;
+  }
   else
     {
       // uninterpreted function
@@ -425,11 +425,11 @@ Term CVC4Solver::apply(Fun fun, Term t0, Term t1, Term t2) const
         solver.mkTerm(cfun->kind, cterm0->term, cterm1->term, cterm2->term)));
     return res;
     }
-    else if (!cfun->is_indexed())
-    {
-      Term res(new CVC4Term(solver.mkTerm(
-          cfun->kind, cfun->op, cterm0->term, cterm1->term, cterm2->term)));
-      return res;
+  else if (cfun->is_indexed())
+  {
+    Term res(new CVC4Term(solver.mkTerm(
+                                        cfun->kind, cfun->op, cterm0->term, cterm1->term, cterm2->term)));
+    return res;
   }
   else
   {
