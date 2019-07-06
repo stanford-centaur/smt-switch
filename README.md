@@ -1,4 +1,4 @@
-# generic-smt-api
+# SMT-Switch
 A generic C++ API for SMT solving. It provides abstract classes which can be implemented by different SMT solvers.
 
 # Architecture Overview
