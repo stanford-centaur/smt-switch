@@ -21,4 +21,4 @@ The function names are based on SMT-LIB. The general rule is that functions/meth
 Please see the `tests` directory for some example usage.
 
 # Solvers
-To setup and install different solvers, first run the `./setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can run `sudo make install-<solver>` to install that solver. This creates a shared object file named `libsmt-switch-<solver>.so` which is put in `/usr/local/lib` by default. Note that you will also need to build and install the regular `smt-switch` library with `sudo make install` to use the API.
+To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can run `sudo make install-<solver>` to install that solver. This creates a shared object file named `libsmt-switch-<solver>.so` which is put in `/usr/local/lib` by default. Note that you will also need to build and install the regular `smt-switch` library with `sudo make install` to use the API.
