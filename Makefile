@@ -1,12 +1,7 @@
 GENERIC_SRC=./src
 GENERIC_INC=./include
 
-BTOR=./btor
-BTOR_HOME=./tests/btor/boolector
-
 prefix=/usr/local
-
-# SOURCE=$(GENERIC_SRC)/sort.cpp $(GENERIC_SRC)/ops.cpp $(GENERIC_SRC)/term.cpp $(BTOR_SRC)/boolector_factory.cpp $(BTOR_SRC)/boolector_solver.cpp $(BTOR_SRC)/boolector_extensions.cpp $(BTOR_SRC)/boolector_sort.cpp $(BTOR_SRC)/boolector_term.cpp $(BTOR_SRC)/boolector_fun.cpp
 
 all: ops.o sort.o term.o
 
@@ -20,7 +15,7 @@ term.o: $(GENERIC_SRC)/term.cpp $(GENERIC_INC)/term.h
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/term.cpp
 
 libsmt-switch.so: ops.o sort.o term.o
-	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 -L$(BTOR_HOME)/build/lib ops.o sort.o term.o
+	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 ops.o sort.o term.o
 
 install: libsmt-switch.so
 	mkdir -p $(prefix)/include/smt-switch
