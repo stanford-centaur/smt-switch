@@ -1,3 +1,4 @@
+#include <array>
 #include <sstream>
 
 #include "sort.h"
