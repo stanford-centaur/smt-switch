@@ -9,10 +9,10 @@ prefix=/usr/local
 all: libsmt-switch-cvc4.so
 
 check-deps:
-	if [ ! -f $(CVC4_HOME)/build/src/libcvc4.a ]; then \
+	@if [ ! -f $(CVC4_HOME)/build/src/libcvc4.a ]; then \
 	echo "CVC4 not set up correctly, missing: $(CVC4_HOME)/build/src/libcvc4.a\nTry running ./contrib/setup-cvc4.sh"; \
 	false; fi;
-	if [ ! -f $(CVC4_HOME)/build/src/parser/libcvc4parser.a ]; then \
+	@if [ ! -f $(CVC4_HOME)/build/src/parser/libcvc4parser.a ]; then \
 	echo "CVC4 not set up correctly, missing: $(CVC4_HOME)/build/src/parser/libcvc4parser.a\nTry running ./contrib/setup-cvc4.sh"; \
 	false; fi;
 

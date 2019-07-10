@@ -9,13 +9,13 @@ prefix=/usr/local
 all: boolector libsmt-switch-btor.so
 
 check-deps:
-	if [ ! -f $(BTOR_HOME)/build/lib/libboolector.a ]; then \
+	@if [ ! -f $(BTOR_HOME)/build/lib/libboolector.a ]; then \
 	echo "btor not set up correctly, missing: $(BTOR_HOME)/build/lib/libboolector.a\nTry running ./contrib/setup-btor.sh"; \
 	false; fi;
-	if [ ! -f $(BTOR_HOME)/deps/lingeling/liblgl.a ]; then \
+	@if [ ! -f $(BTOR_HOME)/deps/lingeling/liblgl.a ]; then \
 	echo "btor not set up correctly, missing: $(BTOR_HOME)/deps/lingeling/liblgl.a\nTry running ./contrib/setup-btor.sh"; \
 	false; fi;
-	if [ ! -f $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o ]; then \
+	@if [ ! -f $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o ]; then \
 	echo "btor not set up correctly, missing: $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o\nTry running ./contrib/setup-btor.sh"; \
 	false; fi;
 
