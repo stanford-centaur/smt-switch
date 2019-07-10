@@ -22,3 +22,11 @@ Please see the `tests` directory for some example usage.
 
 # Solvers
 To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can run `sudo make install-<solver>` to install that solver. This creates a shared object file named `libsmt-switch-<solver>.so` which is put in `/usr/local/lib` by default. Note that you will also need to build and install the regular `smt-switch` library with `sudo make install` to use the API.
+
+# Building Tests
+To get started, please try building the tests included in `tests/<solver>`. This does not require a global installation of `smt-switch`. Here is a short walkthrough for building the tests for solver `<solver>`:
+* Run `./contrib/setup-<solver>.sh`.
+* [optional] Run `./configure.sh --prefix=<non-standard-location>`. The default is `/usr/local`.
+* Run `make install install-<solver>`. This installs `smt-switch` and the `smt-switch` implementation for `<solver>`.
+* Run `make <solver>-tests`.
+  * This builds the tests in `tests/<solver>` with `*.out` extension.
