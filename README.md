@@ -27,7 +27,7 @@ To setup and install different solvers, first run the `./contrib/setup-<solver>.
 If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of CVC4 like so:
 `./configure.sh --prefix=<your desired install location> --cvc4-home ./custom-cvc4`
 
-where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/libcvc4parser.a` already exist. `build` is the default build directory for `CVC4`, and thus that's where the `smt-switch` compiler looks.
+where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/libcvc4parser.a` already exist. `build` is the default build directory for `CVC4`, and thus that's where the `smt-switch` Makefiles look.
 
 # Building Tests
 To get started, please try building the tests included in `tests/<solver>`. This does not require a global installation of `smt-switch`. Here is a short walkthrough for building the tests for solver `<solver>`:
