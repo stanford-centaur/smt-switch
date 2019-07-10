@@ -26,7 +26,7 @@ To setup and install different solvers, first run the `./contrib/setup-<solver>.
 # Building Tests
 To get started, please try building the tests included in `tests/<solver>`. This does not require a global installation of `smt-switch`. Here is a short walkthrough for building the tests for solver `<solver>`:
 * Run `./contrib/setup-<solver>.sh`.
-* [optional] Run `./configure.sh --prefix=<non-standard-location>`. The default is `/usr/local`.
+* [optional] Run `./configure.sh --prefix=<non-standard-location>`. This supports relative paths. The default is `/usr/local`.
 * Run `make install install-<solver>`. This installs `smt-switch` and the `smt-switch` implementation for `<solver>`.
-* Run `make <solver>-tests`.
-  * This builds the tests in `tests/<solver>` with `*.out` extension.
+* Run `make tests-<solver>`.
+  * This builds the tests in `tests/<solver>` with `*.out` extensions.

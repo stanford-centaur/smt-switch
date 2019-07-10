@@ -73,18 +73,18 @@ install-btor:
 install-cvc4:
 	$(MAKE) -C cvc4 install
 
-btor-tests: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
-btor-tests: export INCLUDE_PATH=-I$(absprefix)/include
-btor-tests: export LIB_PATH=-L$(absprefix)/lib
+tests-btor: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
+tests-btor: export INCLUDE_PATH=-I$(absprefix)/include
+tests-btor: export LIB_PATH=-L$(absprefix)/lib
 
-btor-tests:
+tests-btor:
 	$(MAKE) -C tests/btor all
 
-cvc4-tests: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
-cvc4-tests: export INCLUDE_PATH=-I$(absprefix)/include
-cvc4-tests: export LIB_PATH=-L$(absprefix)/lib
+tests-cvc4: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
+tests-cvc4: export INCLUDE_PATH=-I$(absprefix)/include
+tests-cvc4: export LIB_PATH=-L$(absprefix)/lib
 
-cvc4-tests:
+tests-cvc4:
 	$(MAKE) -C tests/cvc4 all
 
-tests: btor-tests cvc4-tests
+tests: tests-btor tests-cvc4
