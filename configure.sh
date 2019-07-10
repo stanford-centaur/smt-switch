@@ -46,7 +46,7 @@ do
                 /*) ;;                                      # absolute path
                 *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
             esac
-            echo -e "prefix=$install_prefix" >> $CONF_FILE;;
+            echo -e "export prefix=$install_prefix" >> $CONF_FILE;;
         --btor-home=*)
             btor_home=${1##*=}
             # Check if btor_home is an absolute path and if not, make it
@@ -55,7 +55,7 @@ do
                 /*) ;;                                      # absolute path
                 *) btor_home=$(pwd)/$btor_home ;; # make absolute path
             esac
-            echo -e "BTOR_HOME=$btor_home" >> $CONF_FILE;;
+            echo -e "export BTOR_HOME=$btor_home" >> $CONF_FILE;;
         --cvc4-home=*)
             cvc4_home=${1##*=}
             # Check if cvc4_home is an absolute path and if not, make it
@@ -64,7 +64,7 @@ do
                 /*) ;;                                      # absolute path
                 *) cvc4_home=$(pwd)/$cvc4_home ;; # make absolute path
             esac
-            echo -e "CVC4_HOME=$cvc4_home" >> $CONF_FILE;;
+            echo -e "export CVC4_HOME=$cvc4_home" >> $CONF_FILE;;
         --clean) echo -e "Cleared configuration state" ;; # always removed above
         *) die "unexpected argument: $1";;
     esac

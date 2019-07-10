@@ -7,10 +7,6 @@ ifneq ($(wildcard Makefile.conf),)
 include Makefile.conf
 endif
 
-export prefix
-export BTOR_HOME
-export CVC4_HOME
-
 all: ops.o sort.o term.o
 
 ops.o: $(GENERIC_SRC)/ops.cpp $(GENERIC_INC)/ops.h
@@ -70,7 +66,6 @@ $(SOLVERS):
 	$(MAKE) -C $@
 
 install-btor:
-	echo $(BTOR_HOME)
 	$(MAKE) -C btor install
 
 install-cvc4:
