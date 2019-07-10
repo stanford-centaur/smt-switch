@@ -2,6 +2,11 @@ GENERIC_SRC=./src
 GENERIC_INC=./include
 
 prefix=/usr/local
+
+ifneq ($(wildcard Makefile.conf),)
+include Makefile.conf
+endif
+
 export absprefix=$(abspath $(prefix))
 
 all: ops.o sort.o term.o
@@ -23,11 +28,11 @@ install: libsmt-switch.so
 	mkdir -p $(absprefix)/lib
 	cp -r ./include/* $(absprefix)/include/smt-switch/
 	cp ./libsmt-switch.so.1.0.0 $(absprefix)/lib/
-	ldconfig -n $(absprefix)/lib
 	ln -f -s libsmt-switch.so.1.0.0 $(absprefix)/lib/libsmt-switch.so
+	ln -f -s libsmt-switch.so.1.0.0 $(absprefix)/lib/libsmt-switch.so.1
+	@echo "Successfully installed: You might need to run ldconfig"
 
 install-all: install install-btor install-cvc4
-	ldconfig
 
 uninstall:
 	rm -rf $(absprefix)/include/smt-switch
@@ -43,10 +48,17 @@ clean:
 	rm -rf *.o
 	rm -rf *.so.*
 	rm -rf *.out
+	./configure.sh --clean
 
-clean-all: clean
+clean-all: clean clean-solvers clean-tests
+
+clean-solvers:
 	$(MAKE) -C btor clean
 	$(MAKE) -C cvc4 clean
+
+clean-tests:
+	$(MAKE) -C tests/btor clean
+	$(MAKE) -C tests/cvc4 clean
 
 SOLVERS = btor cvc4
 
@@ -60,3 +72,19 @@ install-btor:
 
 install-cvc4:
 	$(MAKE) -C cvc4 install
+
+btor-tests: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
+btor-tests: export INCLUDE_PATH=-I$(absprefix)/include
+btor-tests: export LIB_PATH=-L$(absprefix)/lib
+
+btor-tests:
+	$(MAKE) -C tests/btor all
+
+cvc4-tests: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
+cvc4-tests: export INCLUDE_PATH=-I$(absprefix)/include
+cvc4-tests: export LIB_PATH=-L$(absprefix)/lib
+
+cvc4-tests:
+	$(MAKE) -C tests/cvc4 all
+
+tests: btor-tests cvc4-tests
