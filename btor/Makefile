@@ -46,7 +46,7 @@ install: libsmt-switch-btor.so
 	cp -r ./include/* $(prefix)/include/smt-switch/
 	cp ./libsmt-switch-btor.so.1.0.0 $(prefix)/lib/
 	ldconfig -n $(prefix)/lib
-	ln -f -s $(prefix)/lib/libsmt-switch-btor.so.1.0.0 $(prefix)/lib/libsmt-switch-btor.so
+	ln -f -s libsmt-switch-btor.so.1.0.0 $(prefix)/lib/libsmt-switch-btor.so
 
 uninstall:
 	rm -rf $(prefix)/include/smt-switch

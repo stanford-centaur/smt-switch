@@ -40,7 +40,7 @@ install: libsmt-switch-cvc4.so
 	cp -r ./include/* $(prefix)/include/smt-switch/
 	cp ./libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/
 	ldconfig -n $(prefix)/lib
-	ln -f -s $(prefix)/lib/libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/libsmt-switch-cvc4.so
+	ln -f -s libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/libsmt-switch-cvc4.so
 
 uninstall:
 	rm -rf $(prefix)/include/smt-switch
