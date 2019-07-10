@@ -8,6 +8,10 @@ usage () {
 cat <<EOF
 Usage: $0 [<option> ...]
 
+Generates a Makefile.conf file which is used for configuring the build.
+To clear the current configuration state, either remove that file directly,
+call ./configure.sh --clean, or run make clean.
+
 -h, --help              display this message and exit
 --prefix=STR            install directory
 --btor-home=STR         custom BTOR location
@@ -61,7 +65,7 @@ do
                 *) cvc4_home=$(pwd)/$cvc4_home ;; # make absolute path
             esac
             echo -e "CVC4_HOME=$cvc4_home" >> $CONF_FILE;;
-        --clean) rm -f $CONF_FILE;;
+        --clean) echo -e "Cleared configuration state" ;; # always removed above
         *) die "unexpected argument: $1";;
     esac
     shift
