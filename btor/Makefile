@@ -2,9 +2,9 @@ GENERIC_SRC=../src
 GENERIC_INC=../include
 
 BTOR=./
-BTOR_HOME=./boolector
+BTOR_HOME?=./boolector
 
-prefix=/usr/local
+prefix?=/usr/local
 
 all: boolector libsmt-switch-btor.so
 
@@ -41,19 +41,19 @@ libsmt-switch-btor.so: check-deps boolector_extensions.o boolector_factory.o boo
 	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch-btor.so.1 -o libsmt-switch-btor.so.1.0.0 boolector_extensions.o boolector_factory.o boolector_fun.o boolector_solver.o boolector_sort.o boolector_term.o $(BTOR_HOME)/deps/btor2tools/build/btor2parser.o $(BTOR_HOME)/build/lib/libboolector.a $(BTOR_HOME)/deps/lingeling/liblgl.a -lm -pthread
 
 install: libsmt-switch-btor.so
-	mkdir -p $(absprefix)/include/smt-switch
-	mkdir -p $(absprefix)/lib
-	cp -r ./include/* $(absprefix)/include/smt-switch/
-	cp ./libsmt-switch-btor.so.1.0.0 $(absprefix)/lib/
-	ln -f -s libsmt-switch-btor.so.1.0.0 $(absprefix)/lib/libsmt-switch-btor.so
-	ln -f -s libsmt-switch-btor.so.1.0.0 $(absprefix)/lib/libsmt-switch-btor.so.1
+	mkdir -p $(prefix)/include/smt-switch
+	mkdir -p $(prefix)/lib
+	cp -r ./include/* $(prefix)/include/smt-switch/
+	cp ./libsmt-switch-btor.so.1.0.0 $(prefix)/lib/
+	ln -f -s libsmt-switch-btor.so.1.0.0 $(prefix)/lib/libsmt-switch-btor.so
+	ln -f -s libsmt-switch-btor.so.1.0.0 $(prefix)/lib/libsmt-switch-btor.so.1
 	@echo "Successfully installed: You might need to run ldconfig"
 
 uninstall:
-	rm -rf $(absprefix)/include/smt-switch
-	rm -f $(absprefix)/lib/libsmt-switch-btor.so.1.0.0
-	rm -f $(absprefix)/lib/libsmt-switch-btor.so.1
-	rm -f $(absprefix)/lib/libsmt-switch-btor.so
+	rm -rf $(prefix)/include/smt-switch
+	rm -f $(prefix)/lib/libsmt-switch-btor.so.1.0.0
+	rm -f $(prefix)/lib/libsmt-switch-btor.so.1
+	rm -f $(prefix)/lib/libsmt-switch-btor.so
 
 clean:
 	rm -rf *.o *.so.*

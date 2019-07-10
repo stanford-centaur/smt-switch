@@ -7,7 +7,9 @@ ifneq ($(wildcard Makefile.conf),)
 include Makefile.conf
 endif
 
-export absprefix=$(abspath $(prefix))
+export prefix
+export BTOR_HOME
+export CVC4_HOME
 
 all: ops.o sort.o term.o
 
@@ -24,21 +26,21 @@ libsmt-switch.so: ops.o sort.o term.o
 	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 ops.o sort.o term.o
 
 install: libsmt-switch.so
-	mkdir -p $(absprefix)/include/smt-switch
-	mkdir -p $(absprefix)/lib
-	cp -r ./include/* $(absprefix)/include/smt-switch/
-	cp ./libsmt-switch.so.1.0.0 $(absprefix)/lib/
-	ln -f -s libsmt-switch.so.1.0.0 $(absprefix)/lib/libsmt-switch.so
-	ln -f -s libsmt-switch.so.1.0.0 $(absprefix)/lib/libsmt-switch.so.1
+	mkdir -p $(prefix)/include/smt-switch
+	mkdir -p $(prefix)/lib
+	cp -r ./include/* $(prefix)/include/smt-switch/
+	cp ./libsmt-switch.so.1.0.0 $(prefix)/lib/
+	ln -f -s libsmt-switch.so.1.0.0 $(prefix)/lib/libsmt-switch.so
+	ln -f -s libsmt-switch.so.1.0.0 $(prefix)/lib/libsmt-switch.so.1
 	@echo "Successfully installed: You might need to run ldconfig"
 
 install-all: install install-btor install-cvc4
 
 uninstall:
-	rm -rf $(absprefix)/include/smt-switch
-	rm -f $(absprefix)/lib/libsmt-switch.so.1.0.0
-	rm -f $(absprefix)/lib/libsmt-switch.so.1
-	rm -f $(absprefix)/lib/libsmt-switch.so
+	rm -rf $(prefix)/include/smt-switch
+	rm -f $(prefix)/lib/libsmt-switch.so.1.0.0
+	rm -f $(prefix)/lib/libsmt-switch.so.1
+	rm -f $(prefix)/lib/libsmt-switch.so
 
 uninstall-all: uninstall
 	$(MAKE) -C btor uninstall
@@ -68,21 +70,22 @@ $(SOLVERS):
 	$(MAKE) -C $@
 
 install-btor:
+	echo $(BTOR_HOME)
 	$(MAKE) -C btor install
 
 install-cvc4:
 	$(MAKE) -C cvc4 install
 
-tests-btor: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
-tests-btor: export INCLUDE_PATH=-I$(absprefix)/include
-tests-btor: export LIB_PATH=-L$(absprefix)/lib
+tests-btor: export LDFLAGS=-Wl,-rpath,$(prefix)/lib
+tests-btor: export INCLUDE_PATH=-I$(prefix)/include
+tests-btor: export LIB_PATH=-L$(prefix)/lib
 
 tests-btor:
 	$(MAKE) -C tests/btor all
 
-tests-cvc4: export LDFLAGS=-Wl,-rpath,$(absprefix)/lib
-tests-cvc4: export INCLUDE_PATH=-I$(absprefix)/include
-tests-cvc4: export LIB_PATH=-L$(absprefix)/lib
+tests-cvc4: export LDFLAGS=-Wl,-rpath,$(prefix)/lib
+tests-cvc4: export INCLUDE_PATH=-I$(prefix)/include
+tests-cvc4: export LIB_PATH=-L$(prefix)/lib
 
 tests-cvc4:
 	$(MAKE) -C tests/cvc4 all

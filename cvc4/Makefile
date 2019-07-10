@@ -2,9 +2,9 @@ GENERIC_SRC=../src
 GENERIC_INC=../include
 
 CVC4=./
-CVC4_HOME=./CVC4
+CVC4_HOME?=./CVC4
 
-prefix=/usr/local
+prefix?=/usr/local
 
 all: libsmt-switch-cvc4.so
 
@@ -35,19 +35,19 @@ libsmt-switch-cvc4.so: check-deps cvc4_factory.o cvc4_fun.o cvc4_solver.o cvc4_s
 	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch-cvc4.so.1 -o libsmt-switch-cvc4.so.1.0.0 cvc4_factory.o cvc4_fun.o cvc4_solver.o cvc4_sort.o cvc4_term.o $(CVC4_HOME)/build/src/parser/libcvc4parser.a $(CVC4_HOME)/build/src/libcvc4.a -lgmp
 
 install: libsmt-switch-cvc4.so
-	mkdir -p $(absprefix)/include/smt-switch
-	mkdir -p $(absprefix)/lib
-	cp -r ./include/* $(absprefix)/include/smt-switch/
-	cp ./libsmt-switch-cvc4.so.1.0.0 $(absprefix)/lib/
-	ln -f -s libsmt-switch-cvc4.so.1.0.0 $(absprefix)/lib/libsmt-switch-cvc4.so
-	ln -f -s libsmt-switch-cvc4.so.1.0.0 $(absprefix)/lib/libsmt-switch-cvc4.so.1
+	mkdir -p $(prefix)/include/smt-switch
+	mkdir -p $(prefix)/lib
+	cp -r ./include/* $(prefix)/include/smt-switch/
+	cp ./libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/
+	ln -f -s libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/libsmt-switch-cvc4.so
+	ln -f -s libsmt-switch-cvc4.so.1.0.0 $(prefix)/lib/libsmt-switch-cvc4.so.1
 	@echo "Successfully installed: You might need to run ldconfig"
 
 uninstall:
-	rm -rf $(absprefix)/include/smt-switch
-	rm -f $(absprefix)/lib/libsmt-switch-cvc4.so.1.0.0
-	rm -f $(absprefix)/lib/libsmt-switch-cvc4.so.1
-	rm -f $(absprefix)/lib/libsmt-switch-cvc4.so
+	rm -rf $(prefix)/include/smt-switch
+	rm -f $(prefix)/lib/libsmt-switch-cvc4.so.1.0.0
+	rm -f $(prefix)/lib/libsmt-switch-cvc4.so.1
+	rm -f $(prefix)/lib/libsmt-switch-cvc4.so
 
 clean:
 	rm -rf *.o *.so.*

@@ -10,6 +10,8 @@ Usage: $0 [<option> ...]
 
 -h, --help              display this message and exit
 --prefix=STR            install directory
+--btor-home=STR         custom BTOR location
+--cvc4-home=STR         custom CVC4 location
 --clean                 remove any existing configuration state
 EOF
   exit 0
@@ -40,7 +42,25 @@ do
                 /*) ;;                                      # absolute path
                 *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
             esac
-            echo -e "prefix=$install_prefix\n" > $CONF_FILE;;
+            echo -e "prefix=$install_prefix" >> $CONF_FILE;;
+        --btor-home=*)
+            btor_home=${1##*=}
+            # Check if btor_home is an absolute path and if not, make it
+            # absolute.
+            case $btor_home in
+                /*) ;;                                      # absolute path
+                *) btor_home=$(pwd)/$btor_home ;; # make absolute path
+            esac
+            echo -e "BTOR_HOME=$btor_home" >> $CONF_FILE;;
+        --cvc4-home=*)
+            cvc4_home=${1##*=}
+            # Check if cvc4_home is an absolute path and if not, make it
+            # absolute.
+            case $cvc4_home in
+                /*) ;;                                      # absolute path
+                *) cvc4_home=$(pwd)/$cvc4_home ;; # make absolute path
+            esac
+            echo -e "CVC4_HOME=$cvc4_home" >> $CONF_FILE;;
         --clean) rm -f $CONF_FILE;;
         *) die "unexpected argument: $1";;
     esac
