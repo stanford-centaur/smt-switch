@@ -42,7 +42,7 @@ int main()
     assert(f->is_op());
     assert(f->get_op().prim_op == Equal);
   }
-  catch (const NotImplementedException & e)
+  catch (const SmtException & e)
   {
     cout << e.what() << endl;
   }

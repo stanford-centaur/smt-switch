@@ -48,13 +48,13 @@ class SmtException : public std::exception
 class IncorrectUsageException : public SmtException
 {
  public:
-  IncorrectUsageException(const char* msg) : SmtException(msg){};
+  explicit IncorrectUsageException(const char* msg) : SmtException(msg){};
 };
 
 class NotImplementedException : public SmtException
 {
  public:
-  NotImplementedException(const char* msg) : SmtException(msg){};
+  explicit NotImplementedException(const char* msg) : SmtException(msg){};
 };
 
 #endif
