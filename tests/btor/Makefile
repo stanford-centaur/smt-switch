@@ -1,6 +1,6 @@
 CXXFLAGS=-no-pie
 
-all: btor-tests.out btor-arrays.out btor-data-structures.out btor-indexed-op-tests.out
+all: btor-tests.out btor-arrays.out btor-data-structures.out btor-indexed-op-tests.out btor-exceptions.out
 debug: all
 debug: DEBUG=-g -D_DEBUG
 
@@ -19,3 +19,6 @@ btor-data-structures.out: btor-data-structures.cpp
 
 btor-indexed-op-tests.out: btor-indexed-op-tests.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 $(LDFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o btor-indexed-op-tests.out btor-indexed-op-tests.cpp -lsmt-switch -lsmt-switch-btor
+
+btor-exceptions.out: btor-exceptions.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 $(LDFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o btor-exceptions.out btor-exceptions.cpp -lsmt-switch -lsmt-switch-btor
