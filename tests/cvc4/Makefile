@@ -1,6 +1,6 @@
 CXXFLAGS=-no-pie
 
-all: cvc4-tests.out cvc4-arrays.out cvc4-data-structures.out cvc4-indexed-op-tests.out cvc4_test.out
+all: cvc4-tests.out cvc4-int-arithmetic.out cvc4-arrays.out cvc4-data-structures.out cvc4-indexed-op-tests.out cvc4_test.out
 
 debug: all
 debug: DEBUG=-g -D_DEBUG
@@ -8,6 +8,9 @@ debug: DEBUG=-g -D_DEBUG
 # After install
 cvc4-tests.out: cvc4-tests.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 $(LDFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o cvc4-tests.out cvc4-tests.cpp -lsmt-switch -lsmt-switch-cvc4
+
+cvc4-int-arithmetic.out: cvc4-int-arithmetic.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 $(LDFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o cvc4-int-arithmetic.out cvc4-int-arithmetic.cpp -lsmt-switch -lsmt-switch-cvc4
 
 cvc4-arrays.out: cvc4-arrays.cpp
 	$(CXX) $(CXXFLAGS) $(DEBUG) -std=c++17 $(LDFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o cvc4-arrays.out cvc4-arrays.cpp -lsmt-switch -lsmt-switch-cvc4
