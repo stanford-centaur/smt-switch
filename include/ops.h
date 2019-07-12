@@ -20,6 +20,24 @@ enum PrimOp
   Ite,
   Equal,
   Distinct,
+  /* Arithmetic Theories */
+  Plus,
+  Minus,
+  Negate,
+  Mult,
+  Div,
+  Lt,
+  Le,
+  Gt,
+  Ge,
+  // Integers only
+  Mod,
+  Abs,
+  Pow,
+  // Conversion
+  To_Real,
+  To_Int,
+  Is_Int,
   /* Fixed Size BitVector Theory */
   Concat,
   Extract,

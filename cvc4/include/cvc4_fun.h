@@ -52,6 +52,23 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Iff, ::CVC4::api::EQUAL },
       { Equal, ::CVC4::api::EQUAL },
       { Distinct, ::CVC4::api::DISTINCT },
+      /* Arithmetic Theories */
+      {Plus, ::CVC4::api::PLUS},
+      {Minus, ::CVC4::api::MINUS},
+      {Negate, ::CVC4::api::UMINUS},
+      {Mult, ::CVC4::api::MULT},
+      {Div, ::CVC4::api::DIVISION},
+      {Lt, ::CVC4::api::LT},
+      {Le, ::CVC4::api::LEQ},
+      {Gt, ::CVC4::api::GT},
+      {Ge, ::CVC4::api::GEQ},
+      {Mod, ::CVC4::api::INTS_MODULUS},
+      {Abs, ::CVC4::api::ABS},
+      {Pow, ::CVC4::api::POW},
+      {To_Real, ::CVC4::api::TO_REAL},
+      {To_Int, ::CVC4::api::TO_INTEGER},
+      {Is_Int, ::CVC4::api::IS_INTEGER},
+      /* Fixed Size BitVector Theory */
       { Concat, ::CVC4::api::BITVECTOR_CONCAT },
       // Indexed Op
       { Extract, ::CVC4::api::BITVECTOR_EXTRACT },
