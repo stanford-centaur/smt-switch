@@ -18,8 +18,11 @@ sort.o: $(GENERIC_SRC)/sort.cpp $(GENERIC_INC)/sort.h
 term.o: $(GENERIC_SRC)/term.cpp $(GENERIC_INC)/term.h
 	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/term.cpp
 
-libsmt-switch.so: ops.o sort.o term.o
-	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 ops.o sort.o term.o
+result.o: $(GENERIC_SRC)/result.cpp $(GENERIC_INC)/result.h
+	$(CXX) -std=c++17 -fPIC -g -c -Wall -I$(GENERIC_INC) $(GENERIC_SRC)/result.cpp
+
+libsmt-switch.so: ops.o sort.o term.o result.o
+	$(CXX) -shared -std=c++17 -Wl,-soname,libsmt-switch.so.1 -o libsmt-switch.so.1.0.0 ops.o sort.o term.o result.o
 
 install: libsmt-switch.so
 	mkdir -p $(prefix)/include/smt-switch
