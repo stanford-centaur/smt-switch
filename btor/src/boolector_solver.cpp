@@ -199,7 +199,7 @@ Sort BoolectorSolver::make_sort(SortCon sc) const
   }
   else
   {
-    std::string msg("Boolector does not support ");
+    std::string msg("Boolector does not support sort ");
     msg += to_string(sc);
     throw NotImplementedException(msg.c_str());
   }
@@ -285,9 +285,8 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg("Can't apply ");
-    msg += to_string(op);
-    msg += " to a single term.";
+    std::string msg (to_string(op));
+    msg += " unsupported or can't be applied to a single term.";
     throw IncorrectUsageException(msg.c_str());
   }
 }
@@ -306,9 +305,8 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg("Can't apply ");
-    msg += to_string(op);
-    msg += " to a single term.";
+    std::string msg (to_string(op));
+    msg += " unsupported or can't be applied to two terms.";
     throw IncorrectUsageException(msg.c_str());
   }
 }
@@ -331,9 +329,8 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg("Can't apply ");
-    msg += to_string(op);
-    msg += " to a single term.";
+    std::string msg (to_string(op));
+    msg += " unsupported or can't be applied to three terms.";
     throw IncorrectUsageException(msg.c_str());
   }
 }
