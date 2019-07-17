@@ -28,7 +28,7 @@ int main()
   assert(r.is_sat());
 
   cout << "Model Values:" << endl;
-  for(auto t : std::vector{x, y, z})
+  for (auto t : std::vector{ x, y, z })
   {
     cout << "\t" << t << " = " << s->get_value(t) << endl;
   }

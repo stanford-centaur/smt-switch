@@ -285,7 +285,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg (to_string(op));
+    std::string msg(to_string(op));
     msg += " unsupported or can't be applied to a single term.";
     throw IncorrectUsageException(msg.c_str());
   }
@@ -305,7 +305,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg (to_string(op));
+    std::string msg(to_string(op));
     msg += " unsupported or can't be applied to two terms.";
     throw IncorrectUsageException(msg.c_str());
   }
@@ -329,7 +329,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   }
   catch (std::out_of_range & o)
   {
-    std::string msg (to_string(op));
+    std::string msg(to_string(op));
     msg += " unsupported or can't be applied to three terms.";
     throw IncorrectUsageException(msg.c_str());
   }

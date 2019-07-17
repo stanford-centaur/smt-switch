@@ -4,8 +4,7 @@
 
 #include "result.h"
 
-namespace smt
-{
+namespace smt {
 /**
    This function should only be called once, to generate the constexpr
    sortcon2str for converting enums to string_views.
@@ -21,7 +20,7 @@ constexpr std::array<std::string_view, NUM_RESULTS> generate_result2str()
 }
 
 constexpr std::array<std::string_view, NUM_RESULTS> result2str =
-  generate_result2str();
+    generate_result2str();
 
 std::string Result::to_string() const
 {
@@ -34,4 +33,4 @@ std::ostream & operator<<(std::ostream & output, const Result r)
   return output;
 }
 
-}
+}  // namespace smt

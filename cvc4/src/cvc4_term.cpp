@@ -77,12 +77,12 @@ bool CVC4Term::is_interpreted_const() const
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
   ::CVC4::api::Kind k = term.getKind();
-  return ((k == ::CVC4::api::CONST_BOOLEAN) ||
-          (k == ::CVC4::api::CONST_BITVECTOR) ||
-          (k == ::CVC4::api::CONST_RATIONAL) ||
-          (k == ::CVC4::api::CONST_FLOATINGPOINT) ||
-          (k == ::CVC4::api::CONST_ROUNDINGMODE) ||
-          (k == ::CVC4::api::CONST_STRING));
+  return ((k == ::CVC4::api::CONST_BOOLEAN)
+          || (k == ::CVC4::api::CONST_BITVECTOR)
+          || (k == ::CVC4::api::CONST_RATIONAL)
+          || (k == ::CVC4::api::CONST_FLOATINGPOINT)
+          || (k == ::CVC4::api::CONST_ROUNDINGMODE)
+          || (k == ::CVC4::api::CONST_STRING));
 }
 
 std::string CVC4Term::to_string() const { return term.toString(); }

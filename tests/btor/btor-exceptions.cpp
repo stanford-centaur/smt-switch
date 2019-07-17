@@ -18,7 +18,7 @@ int main()
   {
     s->set_logic("QF_NIA");
   }
-  catch(SmtException & e)
+  catch (SmtException & e)
   {
     cout << e.what() << endl;
   }
@@ -27,7 +27,7 @@ int main()
   {
     Sort intsort = s->make_sort(INT);
   }
-  catch(SmtException & e)
+  catch (SmtException & e)
   {
     cout << e.what() << endl;
   }
@@ -40,7 +40,7 @@ int main()
   {
     s->assert_formula(s->apply(Ge, x, y));
   }
-  catch(SmtException & e)
+  catch (SmtException & e)
   {
     cout << e.what() << endl;
   }
