@@ -52,6 +52,8 @@ class BoolectorTerm : public AbsTerm
   bool compare(const Term & absterm) const override;
   Fun get_fun() const override;
   Sort get_sort() const override;
+  bool is_symbolic_const() const override;
+  bool is_interpreted_const() const override;
   virtual std::string to_string() const override;
   uint64_t to_int() const override;
   /** Iterators for traversing the children

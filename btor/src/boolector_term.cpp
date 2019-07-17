@@ -88,6 +88,16 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
+bool BoolectorTerm::is_symbolic_const() const
+{
+  return boolector_is_var(btor, node);
+}
+
+bool BoolectorTerm::is_interpreted_const() const
+{
+  return boolector_is_const(btor, node);
+}
+
 std::string BoolectorTerm::to_string() const
 {
   try

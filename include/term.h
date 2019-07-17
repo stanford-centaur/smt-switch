@@ -21,11 +21,27 @@ class AbsTerm
   /* Should return true iff the terms are identical */
   virtual bool compare(const Term& absterm) const = 0;
   // Term methods
+  /* get the Fun used to create this term */
   virtual Fun get_fun() const = 0;
+  /* get the sort */
   virtual Sort get_sort() const = 0;
+  /* to_string in smt2 format */
   virtual std::string to_string() const = 0;
+  /* returns true iff this term is a symbolic constant */
+  virtual bool is_symbolic_const() const = 0;
+  /* returns true iff this term is an interpreted constant */
+  virtual bool is_interpreted_const() const = 0;
+  /** converts a constant that can be represented as an int to an int
+   *  otherwise, throws an IncorrectUsageException
+   */
   virtual uint64_t to_int() const = 0;
+  /** begin iterator
+   *  starts iteration through Term's children
+   */
   virtual TermIter begin() = 0;
+  /** end iterator
+   *  ends iteration through Term's children
+   */
   virtual TermIter end() = 0;
   // TODO Add other convenient term methods
 };

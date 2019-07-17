@@ -36,6 +36,9 @@ int main()
   Term xpy = s->apply(BVAdd, x, y);
   Term z_eq_xpy = s->apply(Equal, z, xpy);
 
+  assert(x->is_symbolic_const());
+  assert(!xpy->is_symbolic_const());
+
   try
   {
     Fun f = z_eq_xpy->get_fun();

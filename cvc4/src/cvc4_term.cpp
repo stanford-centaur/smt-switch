@@ -51,20 +51,42 @@ std::size_t CVC4Term::hash() const
 {
   return termhash(term);
 }
+
 bool CVC4Term::compare(const Term & absterm) const
 {
   std::shared_ptr<CVC4Term> other =
     std::static_pointer_cast<CVC4Term>(absterm);
   return term == other->term;
 }
+
 Fun CVC4Term::get_fun() const { throw NotImplementedException("not implemented"); }
+
 Sort CVC4Term::get_sort() const
 {
   Sort s(new CVC4Sort(term.getSort()));
   return s;
 }
+
+bool CVC4Term::is_symbolic_const() const
+{
+  return (term.getKind() == ::CVC4::api::CONSTANT);
+}
+
+bool CVC4Term::is_interpreted_const() const
+{
+  // checking all possible const types for future-proofing
+  // not all these sorts are even supported at this time
+  ::CVC4::api::Kind k = term.getKind();
+  return ((k == ::CVC4::api::CONST_BOOLEAN) ||
+          (k == ::CVC4::api::CONST_BITVECTOR) ||
+          (k == ::CVC4::api::CONST_RATIONAL) ||
+          (k == ::CVC4::api::CONST_FLOATINGPOINT) ||
+          (k == ::CVC4::api::CONST_ROUNDINGMODE) ||
+          (k == ::CVC4::api::CONST_STRING));
+}
+
 std::string CVC4Term::to_string() const { return term.toString(); }
-// TODO: Implement iterator and to_int conversion
+
 uint64_t CVC4Term::to_int() const
 {
   std::string val = term.toString();
@@ -95,6 +117,7 @@ uint64_t CVC4Term::to_int() const
     throw IncorrectUsageException(msg.c_str());
   }
 }
+
 /** Iterators for traversing the children
  */
 TermIter CVC4Term::begin()
