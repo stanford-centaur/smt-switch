@@ -9,7 +9,7 @@ if [ ! -d "$CVC4_HOME/CVC4" ]; then
     chmod -R 777 CVC4
     cd CVC4
     ./contrib/get-antlr-3.4
-    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static
+    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
     cd build
     make -j$(nproc)
     cd $DIR
