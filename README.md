@@ -20,6 +20,10 @@ The function names are based on SMT-LIB. The general rule is that functions/meth
 
 Please see the `tests` directory for some example usage.
 
+# Operating Systems
+
+The Makefiles in this repository currently only support Linux systems. Support for Mac OS and Windows is coming soon! See the [milestone](https://github.com/makaimann/smt-switch/milestone/4).
+
 # Solvers
 To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can run `sudo make install-<solver>` to install that solver. This creates a shared object file named `libsmt-switch-<solver>.so` which is put in `/usr/local/lib` by default. Note that you will also need to build and install the regular `smt-switch` library with `sudo make install` to use the API.
 
