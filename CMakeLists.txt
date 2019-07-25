@@ -14,6 +14,9 @@ add_library(smt-switch SHARED
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/term.cpp")
 
+# build testing infrastructure
+enable_testing()
+
 # should we build boolector?
 option (BUILD_BTOR
   "Should we build the libraries for boolector" ON)
@@ -22,6 +25,9 @@ if (BUILD_BTOR)
   set(BTOR_HOME "${PROJECT_SOURCE_DIR}/btor/boolector")
   add_subdirectory (btor)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-btor)
+
+  # testing
+  add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
 
 
@@ -33,6 +39,9 @@ if (BUILD_CVC4)
   set(CVC4_HOME "${PROJECT_SOURCE_DIR}/cvc4/CVC4")
   add_subdirectory (cvc4)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-cvc4)
+
+  # testing
+  add_subdirectory(tests/cvc4)
 endif (BUILD_CVC4)
 
 # install smt-switch
