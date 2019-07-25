@@ -14,6 +14,7 @@ target_include_directories (smt-switch-btor PUBLIC "${BTOR_HOME}/src")
 
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/build/lib/libboolector.a")
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/lingeling/liblgl.a")
+target_link_libraries(smt-switch-btor smt-switch)
 target_link_libraries(smt-switch-btor pthread)
 target_link_libraries(smt-switch-btor m)
 
