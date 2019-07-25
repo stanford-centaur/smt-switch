@@ -22,10 +22,12 @@ Please see the `tests` directory for some example usage.
 
 # Operating Systems
 
-The Makefiles in this repository currently only support Linux systems. Support for Mac OS and Windows is coming soon! See the [milestone](https://github.com/makaimann/smt-switch/milestone/4).
+Our `cmake` build system is currently only tested on Linux, but should work for other operating systems. Please file a GitHub issue if you have any problems!
 
 # Solvers
-To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can run `sudo make install-<solver>` to install that solver. This creates a shared object file named `libsmt-switch-<solver>.so` which is put in `/usr/local/lib` by default. Note that you will also need to build and install the regular `smt-switch` library with `sudo make install` to use the API.
+To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can configure your `cmake` build with the `configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By default only `libsmt-switch.so` is built without any solvers.
+
+Once you've configured the build system, simply enter the build directory (`./build` by default) and run `make`. Each solver you add produces a `libsmt-switch-<solver>.so` shared object file. Running `make install` installs these libraries and the public header files into the configured prefix (`/usr/local`) by default. Note that the header files are put in a directory, e.g. `/usr/local/include/smt-switch`.
 
 ## Custom Solver Location
 If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of CVC4 like so:
@@ -34,9 +36,4 @@ If you'd like to try your own version of a solver, you can use the `configure.sh
 where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/libcvc4parser.a` already exist. `build` is the default build directory for `CVC4`, and thus that's where the `smt-switch` Makefiles look.
 
 # Building Tests
-To get started, please try building the tests included in `tests/<solver>`. This does not require a global installation of `smt-switch`. Here is a short walkthrough for building the tests for solver `<solver>`:
-* Run `./contrib/setup-<solver>.sh`.
-* [optional] Run `./configure.sh --prefix=<non-standard-location>`. This supports relative paths. The default is `/usr/local`.
-* Run `make install install-<solver>`. This installs `smt-switch` and the `smt-switch` implementation for `<solver>`.
-* Run `make tests-<solver>`.
-  * This builds the tests in `tests/<solver>` with `*.out` extensions.
+ You can build tests with `make test` from the build directory. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc4_factory.h"` -> `#include "smt-switch/cvc4_factory.h"`.
