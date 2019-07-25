@@ -19,7 +19,7 @@ enable_testing()
 
 # should we build boolector?
 option (BUILD_BTOR
-  "Should we build the libraries for boolector" ON)
+  "Should we build the libraries for boolector" OFF)
 
 if (BUILD_BTOR)
   set(BTOR_HOME "${PROJECT_SOURCE_DIR}/btor/boolector")
@@ -33,7 +33,7 @@ endif (BUILD_BTOR)
 
 # should we build boolector?
 option (BUILD_CVC4
-  "Should we build the libraries for boolector" ON)
+  "Should we build the libraries for boolector" OFF)
 
 if (BUILD_CVC4)
   set(CVC4_HOME "${PROJECT_SOURCE_DIR}/cvc4/CVC4")
