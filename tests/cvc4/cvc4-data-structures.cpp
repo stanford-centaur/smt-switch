@@ -2,9 +2,11 @@
 #include <string>
 #include "assert.h"
 
-#include "smt-switch/cvc4_factory.h"
-#include "smt-switch/smt.h"
-#include "smt-switch/smt_data_structures.h"
+#include "cvc4_factory.h"
+#include "smt.h"
+// after full installation
+// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/smt.h"
 
 using namespace smt;
 using namespace std;
