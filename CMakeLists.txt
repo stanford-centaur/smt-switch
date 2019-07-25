@@ -52,11 +52,6 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
         DESTINATION include/smt-switch
         FILES_MATCHING PATTERN "*.h")
 
-# install requested solvers
-foreach(L ${EXTRA_LIBS})
-  install(TARGETS "${L}" DESTINATION lib)
-endforeach()
-
 # uninstall target
 # copied from https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake
 if(NOT TARGET uninstall)

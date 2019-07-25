@@ -16,3 +16,5 @@ target_link_libraries(smt-switch-btor "${BTOR_HOME}/build/lib/libboolector.a")
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/lingeling/liblgl.a")
 target_link_libraries(smt-switch-btor pthread)
 target_link_libraries(smt-switch-btor m)
+
+install(TARGETS smt-switch-btor DESTINATION lib)

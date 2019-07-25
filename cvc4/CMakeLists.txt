@@ -14,3 +14,5 @@ target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src/include")
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/libcvc4.a")
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/parser/libcvc4parser.a")
 target_link_libraries(smt-switch-cvc4 gmp)
+
+install(TARGETS smt-switch-cvc4 DESTINATION lib)
