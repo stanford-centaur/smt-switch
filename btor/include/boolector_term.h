@@ -41,12 +41,12 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Fun o)
-      : btor(b), node(n), children(c), f(o){};
-  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Op o)
-      : btor(b), node(n), children(c), f(Fun(new BoolectorFun(o))){};
-  BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o)
-      : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))){};
+   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Fun o, bool is_sym)
+     : btor(b), node(n), children(c), f(o), is_sym(is_sym){};
+   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
+     : btor(b), node(n), children(c), f(Fun(new BoolectorFun(o))), is_sym(is_sym){};
+   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o, bool is_sym)
+     : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))), is_sym(is_sym){};
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
@@ -66,6 +66,7 @@ class BoolectorTerm : public AbsTerm
   BoolectorNode * node;
   std::vector<Term> children;
   Fun f;
+  bool is_sym;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

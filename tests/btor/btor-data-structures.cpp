@@ -47,6 +47,7 @@ int main()
 
   assert(zero->is_interpreted_const());
   assert(!v[0]->is_interpreted_const());
+  assert(v[0]->is_symbolic_const());
 
   Term v0_eq_0 = s->apply(Equal, v[0], zero);
   s->assert_formula(v0_eq_0);
@@ -71,6 +72,8 @@ int main()
 
   bool res = s->check_sat().is_sat();
   assert(res);
+
+  assert(v[0]->is_symbolic_const());
 
   // can print variable names, but otherwise boolector doesn't maintain strings
   // for expressions

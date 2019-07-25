@@ -59,7 +59,7 @@ Term BoolectorSolver::declare_const(const std::string name, Sort sort) const
   }
 
   // note: giving the symbol a null Op
-  Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op()));
+  Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op(), true));
   return term;
 }
 
@@ -102,14 +102,14 @@ Term BoolectorSolver::make_const(bool b) const
   if (b)
   {
     Term term(new BoolectorTerm(
-                                btor, boolector_const(btor, "1"), std::vector<Term>{}, Op()
+                                btor, boolector_const(btor, "1"), std::vector<Term>{}, Op(), false
     ));
     return term;
   }
   else
   {
     Term term(new BoolectorTerm(
-                                btor, boolector_const(btor, "0"), std::vector<Term>{}, Op()
+                                btor, boolector_const(btor, "0"), std::vector<Term>{}, Op(), false
                                 ));
     return term;
   }
@@ -121,7 +121,7 @@ Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
       std::static_pointer_cast<BoolectorSortBase>(sort);
   // note: give the constant value a null PrimOp
   Term term(new BoolectorTerm(
-      btor, boolector_int(btor, i, bs->sort), std::vector<Term>{}, Op()));
+                              btor, boolector_int(btor, i, bs->sort), std::vector<Term>{}, Op(), false));
   return term;
 }
 
@@ -129,7 +129,7 @@ Term BoolectorSolver::make_const(std::string val, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
     std::static_pointer_cast<BoolectorSortBase>(sort);
-  Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op()));
+  Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op(), false));
   return term;
 }
 
@@ -171,7 +171,7 @@ Term BoolectorSolver::get_value(Term & t) const
     boolector_free_bv_assignment(btor, assignment);
     // note: give the constant value a null PrimOp
     result = std::make_shared<BoolectorTerm>(
-        btor, bc, std::vector<Term>{}, NUM_OPS_AND_NULL);
+                                             btor, bc, std::vector<Term>{}, NUM_OPS_AND_NULL, false);
   }
   else if (sc == ARRAY)
   {
@@ -280,7 +280,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
     std::shared_ptr<BoolectorTerm> bt =
         std::static_pointer_cast<BoolectorTerm>(t);
     BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
-    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t }, op));
+    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t }, op, false));
     return term;
   }
   catch (std::out_of_range & o)
@@ -300,7 +300,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
     std::shared_ptr<BoolectorTerm> bt1 =
         std::static_pointer_cast<BoolectorTerm>(t1);
     BoolectorNode * result = binary_ops.at(op)(btor, bt0->node, bt1->node);
-    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1 }, op));
+    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1 }, op, false));
     return term;
   }
   catch (std::out_of_range & o)
@@ -324,7 +324,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
     BoolectorNode * result =
         ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
     Term term(
-        new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1, t2 }, op));
+              new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1, t2 }, op, false));
     return term;
   }
   catch (std::out_of_range & o)
@@ -403,7 +403,7 @@ Term BoolectorSolver::apply(Op op, Term t) const
       msg += to_string(op.prim_op);
       throw IncorrectUsageException(msg.c_str());
     }
-    term = Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{ t }, op));
+    term = Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{ t }, op, false));
     return term;
   }
 }
@@ -551,7 +551,7 @@ Term BoolectorSolver::apply(Fun f, std::vector<Term> terms) const
       args.push_back(bt->node);
     }
     BoolectorNode * result = boolector_apply(btor, &args[0], size, bf->node);
-    Term term(new BoolectorTerm(btor, result, terms, f));
+    Term term(new BoolectorTerm(btor, result, terms, f, false));
     return term;
   }
 

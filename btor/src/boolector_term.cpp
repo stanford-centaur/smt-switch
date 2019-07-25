@@ -90,7 +90,7 @@ Sort BoolectorTerm::get_sort() const
 
 bool BoolectorTerm::is_symbolic_const() const
 {
-  return boolector_is_var(btor, node);
+  return is_sym;
 }
 
 bool BoolectorTerm::is_interpreted_const() const
@@ -100,16 +100,24 @@ bool BoolectorTerm::is_interpreted_const() const
 
 std::string BoolectorTerm::to_string() const
 {
-  try
+  std::string res_str;
+  if (is_sym)
   {
-    const char * btor_symbol = boolector_get_symbol(btor, node);
-    std::string symbol(btor_symbol);
-    return symbol;
+    const char * btor_cstr = boolector_get_symbol(btor, node);
+    res_str = std::string(btor_cstr);
   }
-  catch (std::logic_error & e)
+  else if (boolector_is_const(btor, node))
   {
-    return "btor_expr";
+    const char * btor_cstr = boolector_get_bits(btor, node);
+    res_str = std::string(btor_cstr);
+    boolector_free_bits(btor, btor_cstr);
   }
+  else
+  {
+    // TODO: represent arbitrary smt-lib for btor
+    res_str = "btor_expr";
+  }
+  return res_str;
 }
 
 uint64_t BoolectorTerm::to_int() const
