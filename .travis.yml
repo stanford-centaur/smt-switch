@@ -1,0 +1,26 @@
+language: cpp
+
+sudo: false
+dist: xenial
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      packages: &common_deps
+        - antlr3
+        - cmake
+        - cxxtest
+        - junit4
+        - libantlr3c-dev
+        - libcln-dev
+        - libgmp-dev
+        - libhamcrest-java
+        - openjdk-8-jdk
+        - swig3.0
+before_script:
+  - ./contrib/setup-btor.sh
+  - ./contrib/setup-cvc4.sh
+script:
+  - ./configure.sh --btor --cvc4
+  - cd build && make && make test
