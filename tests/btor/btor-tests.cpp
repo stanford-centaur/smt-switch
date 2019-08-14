@@ -21,7 +21,7 @@ int main()
   Term x = s->declare_const("x", bvsort8);
   Term y = s->declare_const("y", bvsort8);
   Term z = s->declare_const("z", bvsort8);
-  Term _true = s->make_const(true);
+  Term _true = s->make_value(true);
   assert(x != y);
   Term x_copy = x;
   assert(x == x_copy);
@@ -55,14 +55,14 @@ int main()
   Term uf_app = s->apply(uf, x_lower);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->apply(BVUlt, x, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply(BVUlt, y, s->make_const(4, bvsort8)));
-  s->assert_formula(s->apply(BVUgt, z, s->make_const("5", bvsort8)));
+  s->assert_formula(s->apply(BVUlt, x, s->make_value(4, bvsort8)));
+  s->assert_formula(s->apply(BVUlt, y, s->make_value(4, bvsort8)));
+  s->assert_formula(s->apply(BVUgt, z, s->make_value("5", bvsort8)));
   // This is actually a redundant assertion -- just testing
   s->assert_formula(s->apply(Equal, x_ext, x));
   s->assert_formula(s->apply(Distinct, x, z));
-  s->assert_formula(s->apply(BVUle, uf_app, s->make_const(3, bvsort8)));
-  s->assert_formula(s->apply(BVUge, uf_app, s->make_const(3, bvsort8)));
+  s->assert_formula(s->apply(BVUle, uf_app, s->make_value(3, bvsort8)));
+  s->assert_formula(s->apply(BVUge, uf_app, s->make_value(3, bvsort8)));
   assert(s->check_sat().is_sat());
 
   Term xc = s->get_value(x);

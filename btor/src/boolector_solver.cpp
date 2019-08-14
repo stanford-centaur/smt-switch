@@ -97,7 +97,7 @@ Fun BoolectorSolver::declare_fun(const std::string name,
   }
 }
 
-Term BoolectorSolver::make_const(bool b) const
+Term BoolectorSolver::make_value(bool b) const
 {
   if (b)
   {
@@ -115,7 +115,7 @@ Term BoolectorSolver::make_const(bool b) const
   }
 }
 
-Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
+Term BoolectorSolver::make_value(unsigned int i, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
@@ -125,7 +125,7 @@ Term BoolectorSolver::make_const(unsigned int i, Sort sort) const
   return term;
 }
 
-Term BoolectorSolver::make_const(std::string val, Sort sort) const
+Term BoolectorSolver::make_value(std::string val, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
     std::static_pointer_cast<BoolectorSortBase>(sort);

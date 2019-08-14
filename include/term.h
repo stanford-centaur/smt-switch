@@ -30,7 +30,7 @@ class AbsTerm
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */
-  virtual bool is_interpreted_const() const = 0;
+  virtual bool is_value() const = 0;
   /** converts a constant that can be represented as an int to an int
    *  otherwise, throws an IncorrectUsageException
    */

@@ -67,13 +67,13 @@ Fun CVC4Solver::declare_fun(const std::string name,
   return f;
 }
 
-Term CVC4Solver::make_const(bool b) const
+Term CVC4Solver::make_value(bool b) const
 {
   Term c(new CVC4Term(solver.mkBoolean(b)));
   return c;
 }
 
-Term CVC4Solver::make_const(unsigned int i, Sort sort) const
+Term CVC4Solver::make_value(unsigned int i, Sort sort) const
 {
   SortCon sc = sort->get_sort_con();
   ::CVC4::api::Term c;
@@ -97,7 +97,7 @@ Term CVC4Solver::make_const(unsigned int i, Sort sort) const
   return res;
 }
 
-Term CVC4Solver::make_const(std::string val, Sort sort) const
+Term CVC4Solver::make_value(std::string val, Sort sort) const
 {
   SortCon sc = sort->get_sort_con();
   ::CVC4::api::Term c;

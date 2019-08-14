@@ -42,9 +42,9 @@ class CVC4Solver : public AbsSmtSolver
   Fun declare_fun(const std::string name,
                   const std::vector<Sort> & sorts,
                   Sort sort) const override;
-  Term make_const(bool b) const override;
-  Term make_const(unsigned int i, Sort sort) const override;
-  Term make_const(std::string val, Sort sort) const override;
+  Term make_value(bool b) const override;
+  Term make_value(unsigned int i, Sort sort) const override;
+  Term make_value(std::string val, Sort sort) const override;
   /**
      Helper function for creating an OpTerm from an Op
      Preconditions: op must be indexed, i.e. op.num_idx > 0

@@ -44,7 +44,7 @@ int main()
   Term y_rol = s->apply(rol2, y);
 
   s->assert_formula(s->apply(Equal, y_ror, y_rol));
-  s->assert_formula(s->apply(Distinct, y, s->make_const(0, bvsort9)));
+  s->assert_formula(s->apply(Distinct, y, s->make_value(0, bvsort9)));
   s->assert_formula(
       s->apply(Equal, x, s->apply(Op(Repeat, 9), unnecessary_rotation)));
 

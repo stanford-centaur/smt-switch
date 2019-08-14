@@ -72,7 +72,7 @@ bool CVC4Term::is_symbolic_const() const
   return (term.getKind() == ::CVC4::api::CONSTANT);
 }
 
-bool CVC4Term::is_interpreted_const() const
+bool CVC4Term::is_value() const
 {
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time

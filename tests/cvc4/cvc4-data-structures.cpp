@@ -38,15 +38,15 @@ int main()
   for (size_t i = 1; i < NUM_TERMS; ++i)
   {
     s->assert_formula(s->apply(
-        Equal, v[i], s->apply(BVAdd, trailing, s->make_const(1, bvsort8))));
+        Equal, v[i], s->apply(BVAdd, trailing, s->make_value(1, bvsort8))));
     trailing = v[i];
   }
 
-  Term zero = s->make_const(0, bvsort8);
+  Term zero = s->make_value(0, bvsort8);
   cout << zero->to_string() << endl;
 
-  assert(zero->is_interpreted_const());
-  assert(!v[0]->is_interpreted_const());
+  assert(zero->is_value());
+  assert(!v[0]->is_value());
 
   Term v0_eq_0 = s->apply(Equal, v[0], zero);
   s->assert_formula(v0_eq_0);

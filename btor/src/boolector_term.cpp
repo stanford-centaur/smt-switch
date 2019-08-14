@@ -93,7 +93,7 @@ bool BoolectorTerm::is_symbolic_const() const
   return is_sym;
 }
 
-bool BoolectorTerm::is_interpreted_const() const
+bool BoolectorTerm::is_value() const
 {
   return boolector_is_const(btor, node);
 }

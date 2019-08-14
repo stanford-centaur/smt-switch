@@ -28,9 +28,9 @@ class AbsSmtSolver
   virtual Fun declare_fun(const std::string name,
                           const std::vector<Sort>& sorts,
                           Sort sort) const = 0;
-  virtual Term make_const(bool b) const = 0;
-  virtual Term make_const(unsigned int i, Sort sort) const = 0;
-  virtual Term make_const(std::string val, Sort sort) const = 0;
+  virtual Term make_value(bool b) const = 0;
+  virtual Term make_value(unsigned int i, Sort sort) const = 0;
+  virtual Term make_value(std::string val, Sort sort) const = 0;
   virtual Fun make_fun(Op op) const = 0;
   virtual void assert_formula(const Term& t) const = 0;
   virtual Result check_sat() const = 0;
