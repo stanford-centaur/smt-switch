@@ -76,7 +76,7 @@ SortCon CVC4Sort::get_sort_con() const
   }
   else if (sort.isFunction())
   {
-    return UNINTERPRETED;
+    return FUNCTION;
   }
   else
   {

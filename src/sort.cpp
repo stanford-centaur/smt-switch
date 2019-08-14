@@ -19,7 +19,7 @@ constexpr std::array<std::string_view, NUM_SORT_CONS> generate_sortcon2str()
   sortcon2str[BV] = std::string_view("BV");
   sortcon2str[INT] = std::string_view("INT");
   sortcon2str[REAL] = std::string_view("REAL");
-  sortcon2str[UNINTERPRETED] = std::string_view("UNINTERPRETED");
+  sortcon2str[FUNCTION] = std::string_view("FUNCTION");
 
   return sortcon2str;
 }

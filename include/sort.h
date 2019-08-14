@@ -21,7 +21,7 @@ namespace smt {
    BV,
    INT,
    REAL,
-   UNINTERPRETED,
+   FUNCTION,
    /** IMPORTANT: This must stay at the bottom.
        It's only use is for sizing the kind2str array
    */

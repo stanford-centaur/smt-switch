@@ -177,7 +177,7 @@ Term BoolectorSolver::get_value(Term & t) const
   {
     throw NotImplementedException("Array models unimplemented.");
   }
-  else if (sc == UNINTERPRETED)
+  else if (sc == FUNCTION)
   {
     throw NotImplementedException("UF models unimplemented.");
   }
@@ -247,7 +247,7 @@ Sort BoolectorSolver::make_sort(SortCon sc,
                                 std::vector<Sort> sorts,
                                 Sort sort) const
 {
-  if (sc == UNINTERPRETED)
+  if (sc == FUNCTION)
   {
     int arity = sorts.size();
     std::vector<BoolectorSort> btor_sorts(arity);

@@ -77,7 +77,7 @@ class BoolectorUFSort : public BoolectorSortBase
 {
  public:
   BoolectorUFSort(Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
-      : BoolectorSortBase(UNINTERPRETED, b, s),
+      : BoolectorSortBase(FUNCTION, b, s),
         domain_sorts(sorts),
         codomain_sort(sort){};
   std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };

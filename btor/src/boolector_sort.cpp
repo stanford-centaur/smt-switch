@@ -87,7 +87,7 @@ bool BoolectorSortBase::compare(const Sort s) const
       return get_width() == bs->get_width();
       break;
     }
-    case UNINTERPRETED:
+    case FUNCTION:
     {
       std::vector<Sort> domain_sorts = get_domain_sorts();
       std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
