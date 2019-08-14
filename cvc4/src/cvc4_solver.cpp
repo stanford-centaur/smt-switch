@@ -75,14 +75,14 @@ Term CVC4Solver::make_value(bool b) const
 
 Term CVC4Solver::make_value(unsigned int i, Sort sort) const
 {
-  SortCon sc = sort->get_sort_con();
+  SortKind sk = sort->get_sort_kind();
   ::CVC4::api::Term c;
 
-  if ((sc == INT) || (sc == REAL))
+  if ((sk == INT) || (sk == REAL))
   {
     c = solver.mkReal(i);
   }
-  else if (sc == BV)
+  else if (sk == BV)
   {
     c = solver.mkBitVector(sort->get_width(), i);
   }
@@ -99,14 +99,14 @@ Term CVC4Solver::make_value(unsigned int i, Sort sort) const
 
 Term CVC4Solver::make_value(std::string val, Sort sort) const
 {
-  SortCon sc = sort->get_sort_con();
+  SortKind sk = sort->get_sort_kind();
   ::CVC4::api::Term c;
 
-  if ((sc == INT) || (sc == REAL))
+  if ((sk == INT) || (sk == REAL))
     {
       c = solver.mkReal(val);
     }
-  else if (sc == BV)
+  else if (sk == BV)
     {
       c = solver.mkBitVector(sort->get_width(), val, 10);
     }
@@ -191,14 +191,14 @@ Term CVC4Solver::get_value(Term & t) const
   return val;
 }
 
-Sort CVC4Solver::make_sort(SortCon sc) const
+Sort CVC4Solver::make_sort(SortKind sk) const
 {
-  if (sc == INT)
+  if (sk == INT)
   {
     Sort s(new CVC4Sort(solver.getIntegerSort()));
     return s;
   }
-  else if (sc == REAL)
+  else if (sk == REAL)
   {
     Sort s(new CVC4Sort(solver.getRealSort()));
     return s;
@@ -206,15 +206,15 @@ Sort CVC4Solver::make_sort(SortCon sc) const
   else
   {
     std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sc);
+    msg += to_string(sk);
     msg += " and no arguments";
     throw IncorrectUsageException(msg.c_str());
   }
 }
 
-Sort CVC4Solver::make_sort(SortCon sc, unsigned int size) const
+Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
 {
-  if (sc == BV)
+  if (sk == BV)
   {
     Sort s(new CVC4Sort(solver.mkBitVectorSort(size)));
     return s;
@@ -222,15 +222,15 @@ Sort CVC4Solver::make_sort(SortCon sc, unsigned int size) const
   else
   {
     std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sc);
+    msg += to_string(sk);
     msg += " and an integer argument";
     throw IncorrectUsageException(msg.c_str());
   }
 }
 
-Sort CVC4Solver::make_sort(SortCon sc, Sort idxsort, Sort elemsort) const
+Sort CVC4Solver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
 {
-  if (sc == ARRAY)
+  if (sk == ARRAY)
   {
     std::shared_ptr<CVC4Sort> csort0 = std::static_pointer_cast<CVC4Sort>(idxsort);
     std::shared_ptr<CVC4Sort> csort1 = std::static_pointer_cast<CVC4Sort>(elemsort);
@@ -240,18 +240,18 @@ Sort CVC4Solver::make_sort(SortCon sc, Sort idxsort, Sort elemsort) const
   else
     {
       std::string msg("Can't create sort with sort constructor ");
-      msg += to_string(sc);
+      msg += to_string(sk);
       msg += " and two Sort arguments";
       throw IncorrectUsageException(msg.c_str());
     }
 
 }
 
-Sort CVC4Solver::make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const
+Sort CVC4Solver::make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const
 {
   if (sorts.size() == 0)
   {
-    return make_sort(sort->get_sort_con());
+    return make_sort(sort->get_sort_kind());
   }
 
   std::vector<::CVC4::api::Sort> csorts;

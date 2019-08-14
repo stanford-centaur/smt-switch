@@ -27,7 +27,7 @@ constexpr std::array<std::string_view, NUM_SORT_CONS> generate_sortcon2str()
 constexpr std::array<std::string_view, NUM_SORT_CONS> sortcon2str =
     generate_sortcon2str();
 
-std::string to_string(SortCon sc) { return std::string(sortcon2str[sc]); }
+std::string to_string(SortKind sk) { return std::string(sortcon2str[sk]); }
 
 bool operator==(const Sort & s1, const Sort & s2) { return s1->compare(s2); }
 

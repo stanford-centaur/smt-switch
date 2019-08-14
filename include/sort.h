@@ -14,7 +14,7 @@
 namespace smt {
 
   // TODO : add other smt kinds
-  enum SortCon
+  enum SortKind
   {
    ARRAY = 0,
    BOOL,
@@ -28,7 +28,7 @@ namespace smt {
    NUM_SORT_CONS
   };
 
-  std::string to_string(SortCon);
+  std::string to_string(SortKind);
 
 /**
    Abstract base class for representing an SMT sort.
@@ -50,7 +50,7 @@ class AbsSort
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
   virtual bool compare(const Sort sort) const = 0;
-  virtual SortCon get_sort_con() const = 0;
+  virtual SortKind get_sort_kind() const = 0;
 };
 
 bool operator==(const Sort& s1, const Sort& s2);

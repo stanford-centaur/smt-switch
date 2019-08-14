@@ -10,18 +10,18 @@ BoolectorSortBase::~BoolectorSortBase() { boolector_release_sort(btor, sort); }
 
 std::string BoolectorSortBase::to_string() const
 {
-  if ((sc != BV) && (sc != ARRAY))
+  if ((sk != BV) && (sk != ARRAY))
     {
-      return ::smt::to_string(sc);
+      return ::smt::to_string(sk);
     }
   else
     {
       std::ostringstream oss;
-      if (sc == BV)
+      if (sk == BV)
         {
           oss << "(_ BitVec " << get_width() << ")";
         }
-      else if (sc == ARRAY)
+      else if (sk == ARRAY)
         {
           oss << "(Array " << get_indexsort()->to_string() << " "
               << get_elemsort()->to_string() << ")";
@@ -66,14 +66,14 @@ bool BoolectorSortBase::compare(const Sort s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(s);
-  if (sc != bs->get_sort_con())
+  if (sk != bs->get_sort_kind())
   {
     // Note: bool and bv will still be equal for boolector, because always
     // create BV sort even if it's a bool
     return false;
   }
 
-  switch (sc)
+  switch (sk)
   {
     case ARRAY:
     {

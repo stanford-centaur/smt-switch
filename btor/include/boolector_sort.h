@@ -15,8 +15,8 @@ class BoolectorSolver;
 class BoolectorSortBase : public AbsSort
 {
  public:
-  BoolectorSortBase(SortCon sc, Btor * b, BoolectorSort s)
-    : btor(b), sort(s), sc(sc) {};
+  BoolectorSortBase(SortKind sk, Btor * b, BoolectorSort s)
+    : btor(b), sort(s), sk(sk) {};
   virtual ~BoolectorSortBase();
   // by default none of these work
   std::string to_string() const override;
@@ -26,12 +26,12 @@ class BoolectorSortBase : public AbsSort
   std::vector<Sort> get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   bool compare(const Sort s) const override;
-  SortCon get_sort_con() const override { return sc; };
+  SortKind get_sort_kind() const override { return sk; };
 
  protected:
   Btor * btor;
   BoolectorSort sort;
-  SortCon sc;
+  SortKind sk;
 
   friend class BoolectorSolver;
 };

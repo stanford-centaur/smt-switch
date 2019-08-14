@@ -44,10 +44,10 @@ class BoolectorSolver : public AbsSmtSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;
   Term get_value(Term & t) const override;
-  Sort make_sort(SortCon sc) const override;
-  Sort make_sort(SortCon sc, unsigned int size) const override;
-  Sort make_sort(SortCon sc, Sort idxsort, Sort elemsort) const override;
-  Sort make_sort(SortCon sc, std::vector<Sort> sorts, Sort sort) const override;
+  Sort make_sort(SortKind sk) const override;
+  Sort make_sort(SortKind sk, unsigned int size) const override;
+  Sort make_sort(SortKind sk, Sort idxsort, Sort elemsort) const override;
+  Sort make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const override;
   // helper methods for applying a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
