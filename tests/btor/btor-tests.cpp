@@ -42,10 +42,6 @@ int main()
   assert(x->is_symbolic_const());
   assert(!xpy->is_symbolic_const());
 
-  Fun f = z_eq_xpy->get_fun();
-  assert(f->is_op());
-  assert(f->get_op().prim_op == Equal);
-
   Op ext30 = Op(Extract, 3, 0);
   Term x_lower = s->make_term(ext30, x);
   Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);
@@ -54,6 +50,8 @@ int main()
       FUNCTION, std::vector<Sort>{ x_lower->get_sort() }, x->get_sort());
   Term uf = s->make_term("f", funsort);
   Term uf_app = s->make_term(Apply, uf, x_lower);
+  assert(uf_app->get_op() == Apply);
+  assert(*uf_app->begin() == uf);
 
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->make_term(BVUlt, x, s->make_value(4, bvsort8)));

@@ -53,7 +53,7 @@ bool BoolectorTerm::compare(const Term & absterm) const
          == boolector_get_node_id(other->btor, other->node);
 }
 
-Fun BoolectorTerm::get_fun() const { return f; };
+Op BoolectorTerm::get_op() const { return op; };
 
 Sort BoolectorTerm::get_sort() const
 {

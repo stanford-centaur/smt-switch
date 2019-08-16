@@ -2,6 +2,68 @@
 
 namespace smt {
 
+/* Boolector op mappings */
+// Boolector PrimOp mappings
+typedef BoolectorNode * (*un_fun)(Btor *, BoolectorNode *);
+typedef BoolectorNode * (*bin_fun)(Btor *, BoolectorNode *, BoolectorNode *);
+typedef BoolectorNode * (*tern_fun)(Btor *,
+                                    BoolectorNode *,
+                                    BoolectorNode *,
+                                    BoolectorNode *);
+
+const std::unordered_map<PrimOp, un_fun> unary_ops({ { Not, boolector_not },
+                                                     { BVNot, boolector_not },
+                                                     { BVNeg,
+                                                       boolector_neg } });
+
+// Indexed Operators are implemented in boolector_solver.h in apply
+const std::unordered_map<PrimOp, bin_fun> binary_ops(
+    { { And, boolector_and },
+      { Or, boolector_or },
+      { Xor, boolector_xor },
+      { Implies, boolector_implies },
+      { Iff, boolector_iff },
+      { Equal, boolector_eq },
+      { Distinct, boolector_ne },
+      { Concat, boolector_concat },
+      // Indexed Op: Extract
+      { BVAnd, boolector_and },
+      { BVOr, boolector_or },
+      { BVXor, boolector_xor },
+      { BVNand, boolector_nand },
+      { BVNor, boolector_nor },
+      { BVXnor, boolector_xnor },
+      { BVComp, boolector_eq },
+      { BVAdd, boolector_add },
+      { BVSub, boolector_sub },
+      { BVMul, boolector_mul },
+      { BVUdiv, boolector_udiv },
+      { BVSdiv, boolector_sdiv },
+      { BVUrem, boolector_urem },
+      { BVSrem, boolector_srem },
+      { BVSmod, boolector_smod },
+      { BVShl, boolector_sll },
+      { BVAshr, boolector_sra },
+      { BVLshr, boolector_srl },
+      { BVUlt, boolector_ult },
+      { BVUle, boolector_ulte },
+      { BVUgt, boolector_ugt },
+      { BVUge, boolector_ugte },
+      { BVSlt, boolector_slt },
+      { BVSle, boolector_slte },
+      { BVSgt, boolector_sgt },
+      { BVSge, boolector_sgte },
+      // Indexed Op: Zero_Extend
+      // Indexed Op: Sign_Extend
+      // Indexed Op: Repeat
+      // Indexed Op: Rotate_Left
+      // Indexed Op: Rotate_Right
+      { Select, boolector_read } });
+
+const std::unordered_map<PrimOp, tern_fun> ternary_ops(
+    { { Ite, boolector_cond }, { Store, boolector_write } });
+
+
 /* BoolectorSolver implementation */
 
 void BoolectorSolver::set_opt(const std::string option, bool value) const

@@ -26,15 +26,8 @@ int main()
   Op ext74 = Op(Extract, 7, 4);
   Term x_upper = s->make_term(ext74, x);
 
-  // Op is the the generic object,
-  // Fun is something solver specific
-  Fun f = x_upper->get_fun();
-  assert(f->is_op());
-  // but you can always recover the Op if you want to
-  // examine it
-  assert(f->get_op() == ext74);
-
-  cout << "Op: " << f->get_op() << endl;
+  Op op = x_upper->get_op();
+  cout << "Op: " << op << endl;
 
   Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
   Term y_rol = s->make_term(Op(Rotate_Left, 2), y);

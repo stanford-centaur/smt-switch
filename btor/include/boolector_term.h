@@ -5,11 +5,9 @@
 
 #include "boolector.h"
 
-#include "fun.h"
 #include "term.h"
 #include "utils.h"
 
-#include "boolector_fun.h"
 #include "boolector_sort.h"
 
 namespace smt {
@@ -41,16 +39,14 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Fun o, bool is_sym)
-     : btor(b), node(n), children(c), f(o), is_sym(is_sym){};
    BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
-     : btor(b), node(n), children(c), f(Fun(new BoolectorFun(o))), is_sym(is_sym){};
+     : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
    BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o, bool is_sym)
-     : btor(b), node(n), children(c), f(Fun(new BoolectorFun(Op(o)))), is_sym(is_sym){};
+     : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
-  Fun get_fun() const override;
+  Op get_op() const override;
   Sort get_sort() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
@@ -65,7 +61,7 @@ class BoolectorTerm : public AbsTerm
   Btor * btor;
   BoolectorNode * node;
   std::vector<Term> children;
-  Fun f;
+  Op op;
   bool is_sym;
 
   friend class BoolectorSolver;

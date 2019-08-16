@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "boolector_extensions.h"
-#include "boolector_fun.h"
 #include "boolector_sort.h"
 #include "boolector_term.h"
 
