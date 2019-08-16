@@ -7,6 +7,7 @@
 
 namespace smt {
 
+// TODO: Get rid of this!
 class AbsFun
 {
  public:

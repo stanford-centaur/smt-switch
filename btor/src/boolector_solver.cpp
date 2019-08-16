@@ -35,68 +35,6 @@ void BoolectorSolver::set_logic(const std::string logic) const
   }
 }
 
-Sort BoolectorSolver::declare_sort(const std::string name,
-                                   unsigned int arity) const
-{
-  throw IncorrectUsageException("Can't declare sorts with Boolector");
-}
-
-Term BoolectorSolver::declare_const(const std::string name, Sort sort) const
-{
-  // TODO handle arrays correctly (need boolector_array instead of
-  // boolector_var)
-  std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(sort);
-
-  BoolectorNode * n;
-  if (sort->get_sort_kind() != ARRAY)
-  {
-    n = boolector_var(btor, bs->sort, name.c_str());
-  }
-  else
-  {
-    n = boolector_array(btor, bs->sort, name.c_str());
-  }
-
-  // note: giving the symbol a null Op
-  Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op(), true));
-  return term;
-}
-
-Fun BoolectorSolver::declare_fun(const std::string name,
-                                 const std::vector<Sort> & sorts,
-                                 Sort sort) const
-{
-  if (sorts.size() == 0)
-  {
-    throw IncorrectUsageException(
-        "API does not support zero arity functions with declare_fun, please "
-        "use declare_const");
-  }
-  else
-  {
-    std::vector<BoolectorSort> btor_domain_sorts;
-    btor_domain_sorts.reserve(sorts.size());
-    std::shared_ptr<BoolectorSortBase> bsort;
-    for (Sort s : sorts)
-    {
-      bsort = std::static_pointer_cast<BoolectorSortBase>(s);
-      btor_domain_sorts.push_back(bsort->sort);
-    }
-
-    // now the codomain sort
-    bsort = std::static_pointer_cast<BoolectorSortBase>(sort);
-    BoolectorSort btor_codomain_sort = bsort->sort;
-    BoolectorSort btor_fun_sort = boolector_fun_sort(
-        btor, &btor_domain_sorts[0], sorts.size(), btor_codomain_sort);
-    BoolectorNode * n = boolector_uf(btor, btor_fun_sort, name.c_str());
-    // uf_sort owns btor_fun_sort
-    Sort uf_sort(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
-    Fun f(new BoolectorFun(btor, n, uf_sort));
-    return f;
-  }
-}
-
 Term BoolectorSolver::make_value(bool b) const
 {
   if (b)
@@ -131,12 +69,6 @@ Term BoolectorSolver::make_value(std::string val, Sort sort) const
     std::static_pointer_cast<BoolectorSortBase>(sort);
   Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op(), false));
   return term;
-}
-
-Fun BoolectorSolver::make_fun(Op op) const
-{
-  Fun f(new BoolectorFun(op));
-  return f;
 }
 
 void BoolectorSolver::assert_formula(const Term & t) const
@@ -188,6 +120,12 @@ Term BoolectorSolver::get_value(Term & t) const
     throw IncorrectUsageException(msg.c_str());
   }
   return result;
+}
+
+Sort BoolectorSolver::make_sort(const std::string name,
+                                   unsigned int arity) const
+{
+  throw IncorrectUsageException("Can't declare sorts with Boolector");
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk) const
@@ -250,7 +188,8 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   if (sk == FUNCTION)
   {
     int arity = sorts.size();
-    std::vector<BoolectorSort> btor_sorts(arity);
+    std::vector<BoolectorSort> btor_sorts;
+    btor_sorts.reserve(arity);
     for (auto s : sorts)
     {
       std::shared_ptr<BoolectorSortBase> bs =
@@ -273,95 +212,35 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
 }
 
-Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
+Term BoolectorSolver::make_term(const std::string name, Sort sort) const
 {
-  try
-  {
-    std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(t);
-    BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
-    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t }, op, false));
-    return term;
-  }
-  catch (std::out_of_range & o)
-  {
-    std::string msg(to_string(op));
-    msg += " unsupported or can't be applied to a single term.";
-    throw IncorrectUsageException(msg.c_str());
-  }
-}
+  // TODO handle arrays correctly (need boolector_array instead of
+  // boolector_var)
+  std::shared_ptr<BoolectorSortBase> bs =
+      std::static_pointer_cast<BoolectorSortBase>(sort);
 
-Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
-{
-  try
+  SortKind sk = sort->get_sort_kind();
+  BoolectorNode * n;
+  if (sk == ARRAY)
   {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
-    BoolectorNode * result = binary_ops.at(op)(btor, bt0->node, bt1->node);
-    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1 }, op, false));
-    return term;
+    n = boolector_array(btor, bs->sort, name.c_str());
   }
-  catch (std::out_of_range & o)
+  else if (sk == FUNCTION)
   {
-    std::string msg(to_string(op));
-    msg += " unsupported or can't be applied to two terms.";
-    throw IncorrectUsageException(msg.c_str());
-  }
-}
-
-Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
-{
-  try
-  {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
-    std::shared_ptr<BoolectorTerm> bt2 =
-        std::static_pointer_cast<BoolectorTerm>(t2);
-    BoolectorNode * result =
-        ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
-    Term term(
-              new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1, t2 }, op, false));
-    return term;
-  }
-  catch (std::out_of_range & o)
-  {
-    std::string msg(to_string(op));
-    msg += " unsupported or can't be applied to three terms.";
-    throw IncorrectUsageException(msg.c_str());
-  }
-}
-
-Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
-{
-  unsigned int size = terms.size();
-  // binary ops are most common, check this first
-  if (size == 2)
-  {
-    return apply_prim_op(op, terms[0], terms[1]);
-  }
-  else if (size == 1)
-  {
-    return apply_prim_op(op, terms[0]);
-  }
-  else if (size == 3)
-  {
-    return apply_prim_op(op, terms[0], terms[1], terms[2]);
+    n = boolector_uf(btor, bs->sort, name.c_str());
   }
   else
   {
-    std::string msg("There's no primitive op of arity ");
-    msg += std::to_string(size);
-    msg += ".";
-    throw IncorrectUsageException(msg.c_str());
+    n = boolector_var(btor, bs->sort, name.c_str());
   }
+
+  // note: giving the symbol a null Op
+  Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op(), true));
+  return term;
 }
 
 // Implementation of the AbsSmtSolver methods
-Term BoolectorSolver::apply(Op op, Term t) const
+Term BoolectorSolver::make_term(Op op, Term t) const
 {
   if (op.num_idx == 0)
   {
@@ -408,7 +287,7 @@ Term BoolectorSolver::apply(Op op, Term t) const
   }
 }
 
-Term BoolectorSolver::apply(Op op, Term t0, Term t1) const
+Term BoolectorSolver::make_term(Op op, Term t0, Term t1) const
 {
   if (op.num_idx == 0)
   {
@@ -422,7 +301,7 @@ Term BoolectorSolver::apply(Op op, Term t0, Term t1) const
   }
 }
 
-Term BoolectorSolver::apply(Op op, Term t0, Term t1, Term t2) const
+Term BoolectorSolver::make_term(Op op, Term t0, Term t1, Term t2) const
 {
   if (op.num_idx == 0)
   {
@@ -436,7 +315,7 @@ Term BoolectorSolver::apply(Op op, Term t0, Term t1, Term t2) const
   }
 }
 
-Term BoolectorSolver::apply(Op op, std::vector<Term> terms) const
+Term BoolectorSolver::make_term(Op op, std::vector<Term> terms) const
 {
   if (op.num_idx == 0)
   {
@@ -446,7 +325,7 @@ Term BoolectorSolver::apply(Op op, std::vector<Term> terms) const
   {
     if (terms.size() == 1)
     {
-      return apply(op, terms[0]);
+      return make_term(op, terms[0]);
     }
     else
     {
@@ -457,108 +336,141 @@ Term BoolectorSolver::apply(Op op, std::vector<Term> terms) const
   }
 }
 
-Term BoolectorSolver::apply(Fun f, Term t) const
+Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
 {
-  if (f->is_op())
+  try
   {
-    Op op = f->get_op();
-    if (op.num_idx == 0)
-    {
-      return apply_prim_op(op.prim_op, t);
-    }
-    else
-    {
-      return apply(op, std::vector<Term>{ t });
-    }
-  }
-  else
-  {
-    // rely on the function application in the vector implementation
-    return apply(f, std::vector<Term>{ t });
-  }
-}
-
-Term BoolectorSolver::apply(Fun f, Term t0, Term t1) const
-{
-  if (f->is_op())
-  {
-    Op op = f->get_op();
-    if (op.num_idx == 0)
-    {
-      return apply_prim_op(op.prim_op, t0, t1);
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "No indexed operators that take two arguments");
-    }
-  }
-  else
-  {
-    // rely on the function application in the vector implementation
-    return apply(f, std::vector<Term>{ t0, t1 });
-  }
-}
-
-Term BoolectorSolver::apply(Fun f, Term t0, Term t1, Term t2) const
-{
-  if (f->is_op())
-  {
-    Op op = f->get_op();
-    if (op.num_idx == 0)
-    {
-      return apply_prim_op(op.prim_op, t0, t1, t2);
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "No indexed operators that take three arguments");
-    }
-  }
-  else
-  {
-    // rely on the function application in the vector implementation
-    return apply(f, std::vector<Term>{ t0, t1, t2 });
-  }
-}
-
-Term BoolectorSolver::apply(Fun f, std::vector<Term> terms) const
-{
-  unsigned int size = terms.size();
-  // Optimization: translate Op to PrimOp as early as possible to prevent
-  // unpacking it multipe times
-  if (f->is_op())
-  {
-    Op op = f->get_op();
-    if (op.num_idx == 0)
-    {
-      return apply_prim_op(op.prim_op, terms);
-    }
-    else
-    {
-      return apply(op, terms);
-    }
-  }
-  else if (f->is_uf())
-  {
-    std::shared_ptr<BoolectorFun> bf =
-        std::static_pointer_cast<BoolectorFun>(f);
-    std::vector<BoolectorNode *> args;
-    std::shared_ptr<BoolectorTerm> bt;
-    for (auto t : terms)
-    {
-      bt = std::static_pointer_cast<BoolectorTerm>(t);
-      args.push_back(bt->node);
-    }
-    BoolectorNode * result = boolector_apply(btor, &args[0], size, bf->node);
-    Term term(new BoolectorTerm(btor, result, terms, f, false));
+    std::shared_ptr<BoolectorTerm> bt =
+        std::static_pointer_cast<BoolectorTerm>(t);
+    BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
+    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t }, op, false));
     return term;
   }
+  catch (std::out_of_range & o)
+  {
+    std::string msg(to_string(op));
+    msg += " unsupported or can't be applied to a single term.";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
 
-  std::string msg("Can't find any matching ops to apply to ");
-  msg += std::to_string(size);
-  msg += " terms.";
-  throw IncorrectUsageException(msg.c_str());
+Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
+{
+  try
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+
+    BoolectorNode * result;
+    if (op == Apply)
+    {
+      std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t1);
+      std::vector<BoolectorNode *> args = {bt->node};
+
+      std::shared_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+      result = boolector_apply(btor, &args[0], 1, bt0->node);
+    }
+    else
+    {
+      result = binary_ops.at(op)(btor, bt0->node, bt1->node);
+    }
+    Term term(new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1 }, op, false));
+    return term;
+  }
+  catch (std::out_of_range & o)
+  {
+    std::string msg(to_string(op));
+    msg += " unsupported or can't be applied to two terms.";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
+
+Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
+{
+  try
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+    std::shared_ptr<BoolectorTerm> bt2 =
+        std::static_pointer_cast<BoolectorTerm>(t2);
+    BoolectorNode * result;
+    if (op == Apply)
+    {
+      std::shared_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
+      std::shared_ptr<BoolectorTerm> bt2 = std::static_pointer_cast<BoolectorTerm>(t2);
+      std::vector<BoolectorNode *> args = {bt1->node, bt2->node};
+
+      std::shared_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+      result = boolector_apply(btor, &args[0], 1, bt0->node);
+    }
+    else
+    {
+      result = ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
+    }
+
+    Term term(
+              new BoolectorTerm(btor, result, std::vector<Term>{ t0, t1, t2 }, op, false));
+    return term;
+  }
+  catch (std::out_of_range & o)
+  {
+    std::string msg(to_string(op));
+    msg += " unsupported or can't be applied to three terms.";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
+
+Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
+{
+  unsigned int size = terms.size();
+  // binary ops are most common, check this first
+  if (size == 2)
+  {
+    return apply_prim_op(op, terms[0], terms[1]);
+  }
+  else if (size == 1)
+  {
+    return apply_prim_op(op, terms[0]);
+  }
+  else if (size == 3)
+  {
+    return apply_prim_op(op, terms[0], terms[1], terms[2]);
+  }
+  else
+  {
+    if (op == Apply)
+    {
+      std::vector<Term> termargs;
+      termargs.reserve(size-1);
+      std::vector<BoolectorNode *> args;
+      args.reserve(size-1);
+      std::shared_ptr<BoolectorTerm> bt;
+      for(size_t i = 1; i < size; ++i)
+      {
+         bt = std::static_pointer_cast<BoolectorTerm>(terms[i]);
+         args.push_back(bt->node);
+         termargs.push_back(terms[i]);
+      }
+      std::shared_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(terms[0]);
+      BoolectorNode * result = boolector_apply(btor, &args[0], 1, bt0->node);
+
+      Term term(
+                new BoolectorTerm(btor, result, termargs, op, false));
+      return term;
+    }
+    else
+    {
+      std::string msg(to_string(op));
+      msg += " cannot be applied to ";
+      msg += std::to_string(size);
+      msg += " terms.";
+      throw IncorrectUsageException(msg.c_str());
+    }
+  }
 }
 
 /* end BoolectorSolver implementation */

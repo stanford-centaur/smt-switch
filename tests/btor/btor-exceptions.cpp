@@ -36,12 +36,12 @@ int main()
   }
 
   Sort bvsort4 = s->make_sort(BV, 4);
-  Term x = s->declare_const("x", bvsort4);
-  Term y = s->declare_const("y", bvsort4);
+  Term x = s->make_term("x", bvsort4);
+  Term y = s->make_term("y", bvsort4);
 
   try
   {
-    s->assert_formula(s->apply(Ge, x, y));
+    s->assert_formula(s->make_term(Ge, x, y));
   }
   catch (SmtException & e)
   {

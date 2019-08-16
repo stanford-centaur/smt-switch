@@ -31,38 +31,29 @@ class BoolectorSolver : public AbsSmtSolver
   void set_opt(const std::string option,
                const std::string value) const override;
   void set_logic(const std::string logic) const override;
-  Sort declare_sort(const std::string name, unsigned int arity) const override;
-  Term declare_const(const std::string name, Sort sort) const override;
-  // TODO implement declare_fun
-  Fun declare_fun(const std::string name,
-                  const std::vector<Sort> & sorts,
-                  Sort sort) const override;
-  Term make_value(bool b) const override;
-  Term make_value(unsigned int i, Sort sort) const override;
-  Term make_value(std::string val, Sort sort) const override;
-  Fun make_fun(Op op) const override;
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;
   Term get_value(Term & t) const override;
+  Sort make_sort(const std::string name,
+                         unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, unsigned int size) const override;
   Sort make_sort(SortKind sk, Sort idxsort, Sort elemsort) const override;
   Sort make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const override;
-  // helper methods for applying a primitive op
+  Term make_value(bool b) const override;
+  Term make_value(unsigned int i, Sort sort) const override;
+  Term make_value(const std::string val, Sort sort) const override;
+  Term make_term(const std::string s, Sort sort) const override;
+  /* build a new term */
+  Term make_term(Op op, Term t) const override;
+  Term make_term(Op op, Term t0, Term t1) const override;
+  Term make_term(Op op, Term t0, Term t1, Term t2) const override;
+  Term make_term(Op op, std::vector<Term> terms) const override;
+  // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
-  // Implementation of the AbsSmtSolver methods
-  Term apply(Op op, Term t) const override;
-  Term apply(Op op, Term t0, Term t1) const override;
-  Term apply(Op op, Term t0, Term t1, Term t2) const override;
-  Term apply(Op op, std::vector<Term> terms) const override;
-  Term apply(Fun f, Term t) const override;
-  Term apply(Fun f, Term t0, Term t1) const override;
-  Term apply(Fun f, Term t0, Term t1, Term t2) const override;
-  Term apply(Fun f, std::vector<Term> terms) const override;
-
  protected:
   Btor * btor;
 };

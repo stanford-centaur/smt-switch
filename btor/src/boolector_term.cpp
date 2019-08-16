@@ -81,6 +81,18 @@ Sort BoolectorTerm::get_sort() const
     boolector_copy_sort(btor, s);
     sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
   }
+  // FIXME : combine all sorts into one class -- easier that way
+  // else if(boolector_is_fun_sort(btor, s))
+  // {
+  //   // FIXME: what if the arity is not one -- no way to get the domain sorts in current boolector api
+  //   if (boolector_get_fun_arity(btor, node) != 1)
+  //   {
+  //     throw NotImplementedException("Boolector does not support getting multiple domain sorts yet.");
+  //   }
+  //   Sort ds = boolector_fun_get_domain_sort(btor, node);
+  //   Sort cds = boolector_fun_get_codomain_sort(btor, node);
+  //   sort = std::make_shared<BoolectorUFSort>(btor, s, std::vector<BoolectorSort>{ds}, cds);
+  // }
   else
   {
     Unreachable();
