@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.1)
 
 project(smt-switch)
 
-set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories ("${PROJECT_SOURCE_DIR}/include")
+
+# add to search path for find_package
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
 
 add_library(smt-switch SHARED
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
@@ -22,7 +25,7 @@ option (BUILD_BTOR
   "Should we build the libraries for boolector" OFF)
 
 if (BUILD_BTOR)
-  set(BTOR_HOME "${PROJECT_SOURCE_DIR}/btor/boolector")
+  set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
   add_subdirectory (btor)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-btor)
 
@@ -36,7 +39,7 @@ option (BUILD_CVC4
   "Should we build the libraries for boolector" OFF)
 
 if (BUILD_CVC4)
-  set(CVC4_HOME "${PROJECT_SOURCE_DIR}/cvc4/CVC4")
+  set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
   add_subdirectory (cvc4)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-cvc4)
 

@@ -1,10 +1,12 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BTOR_HOME=$DIR/../btor
+DEPS=$DIR/../deps
 
-if [ ! -d "$BTOR_HOME/boolector" ]; then
-    cd $BTOR_HOME
+mkdir -p $DEPS
+
+if [ ! -d "$DEPS/boolector" ]; then
+    cd $DEPS
     git clone https://github.com/Boolector/boolector.git
     chmod -R 777 boolector
     cd boolector
@@ -15,12 +17,12 @@ if [ ! -d "$BTOR_HOME/boolector" ]; then
     make -j$(nproc)
     cd $DIR
 else
-    echo "$BTOR_HOME/boolector already exists. If you want to rebuild, please remove it manually."
+    echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $BTOR_HOME/boolector/build/lib/libboolector.a ] && [ -f $BTOR_HOME/boolector/deps/lingeling/liblgl.a ] && [ -f $BTOR_HOME/boolector/deps/btor2tools/build/btor2parser.o ] ; then \
-    echo "It appears boolector was setup successfully into $BTOR_HOME/boolector."
-    echo "You may now install it with make install-btor"
+if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/lingeling/liblgl.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/btor2parser.o ] ; then \
+    echo "It appears boolector was setup successfully into $DEPS/boolector."
+    echo "You may now install it with make ./configure.sh --btor && cd build && make"
 else
     echo "Building boolector failed."
     echo "You might be missing some dependencies."
