@@ -27,8 +27,8 @@ int main()
   Term y;
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    x = s->declare_const("x" + to_string(i), bvsort8);
-    y = s->declare_const("y" + to_string(i), bvsort8);
+    x = s->make_term("x" + to_string(i), bvsort8);
+    y = s->make_term("y" + to_string(i), bvsort8);
     v.push_back(x);
     uts.insert(x);
     utm[x] = y;
@@ -37,8 +37,8 @@ int main()
   Term trailing = v[0];
   for (size_t i = 1; i < NUM_TERMS; ++i)
   {
-    s->assert_formula(s->apply(
-        Equal, v[i], s->apply(BVAdd, trailing, s->make_value(1, bvsort8))));
+    s->assert_formula(s->make_term(
+        Equal, v[i], s->make_term(BVAdd, trailing, s->make_value(1, bvsort8))));
     trailing = v[i];
   }
 
@@ -48,7 +48,7 @@ int main()
   assert(zero->is_value());
   assert(!v[0]->is_value());
 
-  Term v0_eq_0 = s->apply(Equal, v[0], zero);
+  Term v0_eq_0 = s->make_term(Equal, v[0], zero);
   s->assert_formula(v0_eq_0);
 
   cout << "Children of term:" << endl;
@@ -66,7 +66,7 @@ int main()
     x = *it;
     y = utm.at(*it);
     std::cout << "assert: " << x << " = " << y << std::endl;
-    s->assert_formula(s->apply(Equal, x, y));
+    s->assert_formula(s->make_term(Equal, x, y));
   }
 
   bool res = s->check_sat().is_sat();

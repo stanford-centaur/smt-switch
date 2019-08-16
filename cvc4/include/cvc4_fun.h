@@ -52,6 +52,8 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Iff, ::CVC4::api::EQUAL },
       { Equal, ::CVC4::api::EQUAL },
       { Distinct, ::CVC4::api::DISTINCT },
+      /* Uninterpreted Functions */
+      { Apply, ::CVC4::api::APPLY_UF},
       /* Arithmetic Theories */
       {Plus, ::CVC4::api::PLUS},
       {Minus, ::CVC4::api::MINUS},

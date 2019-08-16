@@ -18,19 +18,19 @@ int main()
   s->set_opt("produce-models", true);
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
-  Term x = s->declare_const("x", bvsort32);
-  Term y = s->declare_const("y", bvsort32);
-  Term arr = s->declare_const("arr", array32_32);
+  Term x = s->make_term("x", bvsort32);
+  Term y = s->make_term("y", bvsort32);
+  Term arr = s->make_term("arr", array32_32);
 
   cout << "Sorts:" << endl;
   cout << "\tbvsort32 : " << bvsort32 << endl;
   cout << "\tarray32_32 : " << array32_32 << endl;
-  s->assert_formula(s->apply(Not,
-                             s->apply(Implies,
-                                      s->apply(Equal, x, y),
-                                      s->apply(Equal,
-                                               s->apply(Select, arr, x),
-                                               s->apply(Select, arr, y)))));
+  s->assert_formula(s->make_term(Not,
+                             s->make_term(Implies,
+                                      s->make_term(Equal, x, y),
+                                      s->make_term(Equal,
+                                               s->make_term(Select, arr, x),
+                                               s->make_term(Select, arr, y)))));
   assert(!s->check_sat().is_sat());
   return 0;
 }

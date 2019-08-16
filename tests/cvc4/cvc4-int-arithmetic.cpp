@@ -18,14 +18,14 @@ int main()
   s->set_opt("produce-models", true);
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);
-  Term x = s->declare_const("x", intsort);
-  Term y = s->declare_const("y", intsort);
-  Term z = s->declare_const("z", intsort);
+  Term x = s->make_term("x", intsort);
+  Term y = s->make_term("y", intsort);
+  Term z = s->make_term("z", intsort);
 
-  s->assert_formula(s->apply(Ge, x, y));
-  s->assert_formula(s->apply(Le, z, s->apply(Plus, x, y)));
-  s->assert_formula(s->apply(Lt, s->apply(Negate, z), s->apply(Minus, x, y)));
-  s->assert_formula(s->apply(Gt, s->apply(Minus, x, y), s->apply(Mult, x, y)));
+  s->assert_formula(s->make_term(Ge, x, y));
+  s->assert_formula(s->make_term(Le, z, s->make_term(Plus, x, y)));
+  s->assert_formula(s->make_term(Lt, s->make_term(Negate, z), s->make_term(Minus, x, y)));
+  s->assert_formula(s->make_term(Gt, s->make_term(Minus, x, y), s->make_term(Mult, x, y)));
 
   Result r = s->check_sat();
   assert(r.is_sat());
