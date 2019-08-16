@@ -63,7 +63,6 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
 const std::unordered_map<PrimOp, tern_fun> ternary_ops(
     { { Ite, boolector_cond }, { Store, boolector_write } });
 
-
 /* BoolectorSolver implementation */
 
 void BoolectorSolver::set_opt(const std::string option, bool value) const

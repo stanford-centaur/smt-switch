@@ -39,10 +39,12 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
-     : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
-   BoolectorTerm(Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o, bool is_sym)
-     : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
+  BoolectorTerm(
+      Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
+      : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
+  BoolectorTerm(
+      Btor * b, BoolectorNode * n, std::vector<Term> c, PrimOp o, bool is_sym)
+      : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
