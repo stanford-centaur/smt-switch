@@ -42,17 +42,6 @@ int main()
   assert(x->is_symbolic_const());
   assert(!xpy->is_symbolic_const());
 
-  try
-  {
-    Fun f = z_eq_xpy->get_fun();
-    assert(f->is_op());
-    assert(f->get_op().prim_op == Equal);
-  }
-  catch (const SmtException & e)
-  {
-    cout << e.what() << endl;
-  }
-
   Op ext30 = Op(Extract, 3, 0);
   Term x_lower = s->make_term(ext30, x);
   Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);

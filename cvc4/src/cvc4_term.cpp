@@ -59,7 +59,7 @@ bool CVC4Term::compare(const Term & absterm) const
   return term == other->term;
 }
 
-Fun CVC4Term::get_fun() const { throw NotImplementedException("not implemented"); }
+Op CVC4Term::get_op() const { throw NotImplementedException("not implemented"); }
 
 Sort CVC4Term::get_sort() const
 {

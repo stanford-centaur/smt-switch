@@ -5,14 +5,12 @@
 #include <string>
 #include <vector>
 
-#include "cvc4_fun.h"
 #include "cvc4_sort.h"
 #include "cvc4_term.h"
 
 #include "api/cvc4cpp.h"
 
 #include "exceptions.h"
-#include "fun.h"
 #include "ops.h"
 #include "result.h"
 #include "smt.h"
