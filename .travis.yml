@@ -23,8 +23,11 @@ addons:
       - openjdk-8-jdk
       - swig3.0
 
+env:
+  - SOLVER="btor"
+  - SOLVER="cvc4"
+
 script:
-  - ./contrib/setup-btor.sh
-  - ./contrib/setup-cvc4.sh
-  - ./configure.sh --btor --cvc4
+  - bash -c "./contrib/setup-${SOLVER}.sh"
+  - bash -c "./configure.sh --${SOLVER}"
   - cd build && make && make test
