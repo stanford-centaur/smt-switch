@@ -27,4 +27,5 @@ else
     echo "Building boolector failed."
     echo "You might be missing some dependencies."
     echo "Please see their github page for installation instructions: https://github.com/Boolector/boolector"
+    exit 1
 fi
