@@ -13,9 +13,6 @@
 // Abstract sort interface.
 #include "sort.h"
 
-// Abstract function interface.
-#include "fun.h"
-
 // Abstract term interface.
 #include "term.h"
 
