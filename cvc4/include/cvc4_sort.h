@@ -28,7 +28,7 @@ namespace smt
     bool compare(const Sort) const override;
     SortKind get_sort_kind() const override;
 
-  protected:
+   protected:
     ::CVC4::api::Sort sort;
 
     friend class CVC4Solver;

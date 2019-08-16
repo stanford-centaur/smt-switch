@@ -14,21 +14,21 @@
 namespace smt {
 
   // TODO : add other smt kinds
-  enum SortKind
-  {
-   ARRAY = 0,
-   BOOL,
-   BV,
-   INT,
-   REAL,
-   FUNCTION,
-   /** IMPORTANT: This must stay at the bottom.
-       It's only use is for sizing the kind2str array
-   */
-   NUM_SORT_CONS
-  };
+enum SortKind
+{
+  ARRAY = 0,
+  BOOL,
+  BV,
+  INT,
+  REAL,
+  FUNCTION,
+  /** IMPORTANT: This must stay at the bottom.
+      It's only use is for sizing the kind2str array
+  */
+  NUM_SORT_CONS
+};
 
-  std::string to_string(SortKind);
+std::string to_string(SortKind);
 
 /**
    Abstract base class for representing an SMT sort.

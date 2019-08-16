@@ -64,10 +64,10 @@ Term CVC4Solver::make_value(std::string val, Sort sort) const
   ::CVC4::api::Term c;
 
   if ((sk == INT) || (sk == REAL))
-    {
-      c = solver.mkReal(val);
+  {
+    c = solver.mkReal(val);
     }
-  else if (sk == BV)
+    else if (sk == BV)
     {
       c = solver.mkBitVector(sort->get_width(), val, 10);
     }
@@ -116,8 +116,7 @@ Term CVC4Solver::get_value(Term & t) const
   return val;
 }
 
-Sort CVC4Solver::make_sort(const std::string name,
-                           unsigned int arity) const
+Sort CVC4Solver::make_sort(const std::string name, unsigned int arity) const
 {
   Sort s(new CVC4Sort(solver.declareSort(name, arity)));
   return s;
@@ -179,7 +178,9 @@ Sort CVC4Solver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
 
 }
 
-Sort CVC4Solver::make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const
+Sort CVC4Solver::make_sort(SortKind sk,
+                           std::vector<Sort> sorts,
+                           Sort sort) const
 {
   if (sorts.size() == 0)
   {
@@ -283,14 +284,14 @@ Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
   if (op.num_idx == 0)
   {
     Term result(
-                new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterms)));
+        new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterms)));
     return result;
   }
   else
   {
     ::CVC4::api::OpTerm ot = make_op_term(op);
     Term result(
-                new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
+        new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
     return result;
   }
 }
@@ -311,8 +312,9 @@ Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
   }
   else
   {
-    throw NotImplementedException("CVC4 does not have any indexed "
-                                  "operators with more than two indices");
+    throw NotImplementedException(
+        "CVC4 does not have any indexed "
+        "operators with more than two indices");
   }
 }
 

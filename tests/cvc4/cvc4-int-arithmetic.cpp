@@ -24,8 +24,10 @@ int main()
 
   s->assert_formula(s->make_term(Ge, x, y));
   s->assert_formula(s->make_term(Le, z, s->make_term(Plus, x, y)));
-  s->assert_formula(s->make_term(Lt, s->make_term(Negate, z), s->make_term(Minus, x, y)));
-  s->assert_formula(s->make_term(Gt, s->make_term(Minus, x, y), s->make_term(Mult, x, y)));
+  s->assert_formula(
+      s->make_term(Lt, s->make_term(Negate, z), s->make_term(Minus, x, y)));
+  s->assert_formula(
+      s->make_term(Gt, s->make_term(Minus, x, y), s->make_term(Mult, x, y)));
 
   Result r = s->check_sat();
   assert(r.is_sat());

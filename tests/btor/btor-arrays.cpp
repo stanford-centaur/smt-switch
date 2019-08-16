@@ -25,12 +25,13 @@ int main()
   cout << "Sorts:" << endl;
   cout << "\tbvsort32 : " << bvsort32 << endl;
   cout << "\tarray32_32 : " << array32_32 << endl;
-  s->assert_formula(s->make_term(Not,
-                             s->make_term(Implies,
-                                      s->make_term(Equal, x, y),
-                                      s->make_term(Equal,
-                                               s->make_term(Select, arr, x),
-                                               s->make_term(Select, arr, y)))));
+  s->assert_formula(
+      s->make_term(Not,
+                   s->make_term(Implies,
+                                s->make_term(Equal, x, y),
+                                s->make_term(Equal,
+                                             s->make_term(Select, arr, x),
+                                             s->make_term(Select, arr, y)))));
   assert(!s->check_sat().is_sat());
   return 0;
 }

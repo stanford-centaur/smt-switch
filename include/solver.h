@@ -26,12 +26,13 @@ class AbsSmtSolver
   virtual Result check_sat() const = 0;
   virtual Term get_value(Term& t) const = 0;
   // virtual bool check_sat_assuming() const = 0;
-  virtual Sort make_sort(const std::string name,
-                         unsigned int arity) const = 0;
+  virtual Sort make_sort(const std::string name, unsigned int arity) const = 0;
   virtual Sort make_sort(SortKind sk) const = 0;
   virtual Sort make_sort(SortKind sk, unsigned int size) const = 0;
   virtual Sort make_sort(SortKind sk, Sort idxsort, Sort elemsort) const = 0;
-  virtual Sort make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const = 0;
+  virtual Sort make_sort(SortKind sk,
+                         std::vector<Sort> sorts,
+                         Sort sort) const = 0;
   /* make a boolean value term */
   virtual Term make_value(bool b) const = 0;
   /* make an integer or bit-vector value term */

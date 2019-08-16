@@ -11,17 +11,17 @@ BoolectorSortBase::~BoolectorSortBase() { boolector_release_sort(btor, sort); }
 std::string BoolectorSortBase::to_string() const
 {
   if ((sk != BV) && (sk != ARRAY))
-    {
-      return ::smt::to_string(sk);
+  {
+    return ::smt::to_string(sk);
     }
   else
     {
       std::ostringstream oss;
       if (sk == BV)
-        {
-          oss << "(_ BitVec " << get_width() << ")";
+      {
+        oss << "(_ BitVec " << get_width() << ")";
         }
-      else if (sk == ARRAY)
+        else if (sk == ARRAY)
         {
           oss << "(Array " << get_indexsort()->to_string() << " "
               << get_elemsort()->to_string() << ")";

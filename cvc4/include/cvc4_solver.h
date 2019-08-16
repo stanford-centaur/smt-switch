@@ -40,12 +40,13 @@ class CVC4Solver : public AbsSmtSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;
   Term get_value(Term & t) const override;
-  Sort make_sort(const std::string name,
-                         unsigned int arity) const override;
+  Sort make_sort(const std::string name, unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, unsigned int size) const override;
   Sort make_sort(SortKind sk, Sort idxsort, Sort elemsort) const override;
-  Sort make_sort(SortKind sk, std::vector<Sort> sorts, Sort sort) const override;
+  Sort make_sort(SortKind sk,
+                 std::vector<Sort> sorts,
+                 Sort sort) const override;
   Term make_value(bool b) const override;
   Term make_value(unsigned int i, Sort sort) const override;
   Term make_value(const std::string val, Sort sort) const override;
@@ -57,6 +58,7 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, std::vector<Term> terms) const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
+
  protected:
   ::CVC4::api::Solver solver;
 };
