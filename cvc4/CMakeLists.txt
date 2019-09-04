@@ -1,6 +1,5 @@
 add_library(smt-switch-cvc4 SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_factory.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_fun.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_term.cpp"

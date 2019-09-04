@@ -17,36 +17,25 @@ int main()
   SmtSolver s = BoolectorSolverFactory::create();
   s->set_opt("produce-models", true);
   Sort bvsort9 = s->make_sort(BV, 9);
-  Term x = s->declare_const("x", bvsort9);
-  Term y = s->declare_const("y", bvsort9);
-  Term onebit = s->declare_const("onebit", s->make_sort(BV, 1));
+  Term x = s->make_term("x", bvsort9);
+  Term y = s->make_term("y", bvsort9);
+  Term onebit = s->make_term("onebit", s->make_sort(BV, 1));
 
-  Term unnecessary_rotation = s->apply(Op(Rotate_Right, 1), onebit);
+  Term unnecessary_rotation = s->make_term(Op(Rotate_Right, 1), onebit);
 
   Op ext74 = Op(Extract, 7, 4);
-  Term x_upper = s->apply(ext74, x);
+  Term x_upper = s->make_term(ext74, x);
 
-  // Op is the the generic object,
-  // Fun is something solver specific
-  Fun f = x_upper->get_fun();
-  assert(f->is_op());
-  // but you can always recover the Op if you want to
-  // examine it
-  assert(f->get_op() == ext74);
+  Op op = x_upper->get_op();
+  cout << "Op: " << op << endl;
 
-  cout << "Op: " << f->get_op() << endl;
+  Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
+  Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
 
-  Term y_ror = s->apply(Op(Rotate_Right, 2), y);
-
-  // can also create a Fun from an Op directly
-  // (Fun is the solver-specific object)
-  Fun rol2 = s->make_fun(Op(Rotate_Left, 2));
-  Term y_rol = s->apply(rol2, y);
-
-  s->assert_formula(s->apply(Equal, y_ror, y_rol));
-  s->assert_formula(s->apply(Distinct, y, s->make_value(0, bvsort9)));
-  s->assert_formula(
-      s->apply(Equal, x, s->apply(Op(Repeat, 9), unnecessary_rotation)));
+  s->assert_formula(s->make_term(Equal, y_ror, y_rol));
+  s->assert_formula(s->make_term(Distinct, y, s->make_value(0, bvsort9)));
+  s->assert_formula(s->make_term(
+      Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
 
   assert(s->check_sat().is_sat());
 

@@ -18,9 +18,9 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->declare_const("x", bvsort8);
-  Term y = s->declare_const("y", bvsort8);
-  Term z = s->declare_const("z", bvsort8);
+  Term x = s->make_term("x", bvsort8);
+  Term y = s->make_term("y", bvsort8);
+  Term z = s->make_term("z", bvsort8);
   Term _true = s->make_value(true);
   assert(x != y);
   Term x_copy = x;
@@ -36,40 +36,30 @@ int main()
   assert(xsort != arr_sort->get_indexsort());
   assert(xsort == arr_sort->get_elemsort());
 
-  Term xpy = s->apply(BVAdd, x, y);
-  Term z_eq_xpy = s->apply(Equal, z, xpy);
+  Term xpy = s->make_term(BVAdd, x, y);
+  Term z_eq_xpy = s->make_term(Equal, z, xpy);
 
   assert(x->is_symbolic_const());
   assert(!xpy->is_symbolic_const());
 
-  try
-  {
-    Fun f = z_eq_xpy->get_fun();
-    assert(f->is_op());
-    assert(f->get_op().prim_op == Equal);
-  }
-  catch (const SmtException & e)
-  {
-    cout << e.what() << endl;
-  }
-
   Op ext30 = Op(Extract, 3, 0);
-  Term x_lower = s->apply(ext30, x);
-  Term x_ext = s->apply(Op(Zero_Extend, 4), x_lower);
+  Term x_lower = s->make_term(ext30, x);
+  Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);
 
-  Fun uf = s->declare_fun(
-      "f", std::vector<Sort>{ x_lower->get_sort() }, x->get_sort());
-  Term uf_app = s->apply(uf, x_lower);
+  Sort funsort = s->make_sort(
+      FUNCTION, std::vector<Sort>{ x_lower->get_sort() }, x->get_sort());
+  Term uf = s->make_term("f", funsort);
+  Term uf_app = s->make_term(Apply, uf, x_lower);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->apply(BVUlt, x, s->make_value(4, bvsort8)));
-  s->assert_formula(s->apply(BVUlt, y, s->make_value(4, bvsort8)));
-  s->assert_formula(s->apply(BVUgt, z, s->make_value("5", bvsort8)));
+  s->assert_formula(s->make_term(BVUlt, x, s->make_value(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUlt, y, s->make_value(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUgt, z, s->make_value("5", bvsort8)));
   // This is actually a redundant assertion -- just testing
-  s->assert_formula(s->apply(Equal, x_ext, x));
-  s->assert_formula(s->apply(Distinct, x, z));
-  s->assert_formula(s->apply(BVUle, uf_app, s->make_value(3, bvsort8)));
-  s->assert_formula(s->apply(BVUge, uf_app, s->make_value(3, bvsort8)));
+  s->assert_formula(s->make_term(Equal, x_ext, x));
+  s->assert_formula(s->make_term(Distinct, x, z));
+  s->assert_formula(s->make_term(BVUle, uf_app, s->make_value(3, bvsort8)));
+  s->assert_formula(s->make_term(BVUge, uf_app, s->make_value(3, bvsort8)));
   assert(s->check_sat().is_sat());
 
   Term xc = s->get_value(x);

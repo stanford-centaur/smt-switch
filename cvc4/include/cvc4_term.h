@@ -1,7 +1,6 @@
 #ifndef SMT_CVC4_TERM_H
 #define SMT_CVC4_TERM_H
 
-#include "fun.h"
 #include "term.h"
 #include "utils.h"
 
@@ -39,7 +38,7 @@ namespace smt {
     ~CVC4Term() {};
     std::size_t hash() const override;
     bool compare(const Term & absterm) const override;
-    Fun get_fun() const override;
+    Op get_op() const override;
     Sort get_sort() const override;
     bool is_symbolic_const() const override;
     bool is_value() const override;

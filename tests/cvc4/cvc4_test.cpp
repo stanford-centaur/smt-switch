@@ -12,13 +12,13 @@ using namespace smt;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
-  Term x = s->declare_const("x", s->make_sort(BV, 8));
-  Term y = s->declare_const("y", s->make_sort(BV, 8));
+  Term x = s->make_term("x", s->make_sort(BV, 8));
+  Term y = s->make_term("y", s->make_sort(BV, 8));
   cout << x->to_string() << endl;
   cout << y->to_string() << endl;
-  Term xpy = s->apply(BVAdd, x, y);
+  Term xpy = s->make_term(BVAdd, x, y);
   cout << xpy->to_string() << endl;
-  Term xext = s->apply(Op(Extract, 3, 0), x);
+  Term xext = s->make_term(Op(Extract, 3, 0), x);
   cout << xext << endl;
   Term _true = s->make_value(true);
   cout << _true << endl;

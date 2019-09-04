@@ -20,6 +20,8 @@ enum PrimOp
   Ite,
   Equal,
   Distinct,
+  /* Uninterpreted Functions */
+  Apply,
   /* Arithmetic Theories */
   Plus,
   Minus,

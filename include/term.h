@@ -21,8 +21,8 @@ class AbsTerm
   /* Should return true iff the terms are identical */
   virtual bool compare(const Term& absterm) const = 0;
   // Term methods
-  /* get the Fun used to create this term */
-  virtual Fun get_fun() const = 0;
+  /* get the Op used to create this term */
+  virtual Op get_op() const = 0;
   /* get the sort */
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
