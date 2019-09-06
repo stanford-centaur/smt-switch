@@ -15,7 +15,8 @@ add_library(smt-switch SHARED
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term.cpp")
+  "${PROJECT_SOURCE_DIR}/src/term.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver.cpp")
 
 # build testing infrastructure
 enable_testing()

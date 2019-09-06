@@ -6,6 +6,7 @@
 
 #include "result.h"
 #include "smt_defs.h"
+#include "smt_data_structures.h"
 #include "sort.h"
 
 namespace smt {
@@ -144,6 +145,13 @@ class AbsSmtSolver
    * @return the created term
    */
   virtual Term make_term(const Op op, const std::vector<Term> terms) const = 0;
+
+  /* Substitute all subterms using the provided mapping
+   * @param term the term to apply substitution map to
+   * @param substitution_map the map to use for substitution
+   * @return the term with the substitution map applied
+   */
+  Term substitute(const Term term, const UnorderedTermMap & substitution_map) const;
 };
 
 }  // namespace smt
