@@ -7,13 +7,8 @@ namespace smt {
 Term AbsSmtSolver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
-  UnorderedTermMap cache;
-  // populate cache with substitution map
-  for (auto elem : substitution_map)
-  {
-    cache[elem.first] = elem.second;
-  }
-
+  // cache starts with the substitutions
+  UnorderedTermMap cache(substitution_map);
   TermVec to_visit{ term };
   TermVec cached_children;
   Term t;
