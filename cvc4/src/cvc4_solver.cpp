@@ -263,7 +263,12 @@ Sort CVC4Solver::make_sort(const std::string name, unsigned int arity) const
 
 Sort CVC4Solver::make_sort(SortKind sk) const
 {
-  if (sk == INT)
+  if (sk == BOOL)
+  {
+    Sort s(new CVC4Sort(solver.getBooleanSort()));
+    return s;
+  }
+  else if (sk == INT)
   {
     Sort s(new CVC4Sort(solver.getIntegerSort()));
     return s;

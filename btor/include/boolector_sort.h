@@ -20,6 +20,7 @@ class BoolectorSortBase : public AbsSort
   virtual ~BoolectorSortBase();
   // by default none of these work
   std::string to_string() const override;
+  std::size_t hash() const override;
   unsigned int get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;

@@ -4,9 +4,17 @@
 
 namespace smt {
 
+// struct for hashing
+CVC4::api::SortHashFunction sorthash;
+
 std::string CVC4Sort::to_string() const
 {
   return sort.toString();
+}
+
+std::size_t CVC4Sort::hash() const
+{
+  return sorthash(sort);
 }
 
 unsigned int CVC4Sort::get_width() const

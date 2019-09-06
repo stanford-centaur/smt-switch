@@ -20,6 +20,7 @@ namespace smt
     CVC4Sort(::CVC4::api::Sort s) : sort(s) {};
     ~CVC4Sort() = default;
     std::string to_string() const override;
+    std::size_t hash() const override;
     unsigned int get_width() const override;
     Sort get_indexsort() const override;
     Sort get_elemsort() const override;

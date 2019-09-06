@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "term.h"
+#include "sort.h"
 
 namespace smt {
-using TermVec = std::vector<Term>;
 
 struct TermHashFunction
 {
@@ -19,12 +19,25 @@ struct TermHashFunction
   }
 };
 
+using TermVec = std::vector<Term>;
 using UnorderedTermSet = std::unordered_set<Term, TermHashFunction>;
 using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
 
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
 inline TermIter end(Term & t) { return t->end(); }
+
+struct SortHashFunction
+{
+  std::size_t operator()(const Sort & s) const
+  {
+    // call the sort's hash function, implemented by solvers
+    return s->hash();
+  }
+};
+
+ using SortVec = std::vector<Sort>;
+ using UnorderedSortSet = std::unordered_set<Sort, SortHashFunction>;
 
 }  // namespace smt
 

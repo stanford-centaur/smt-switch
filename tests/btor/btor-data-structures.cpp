@@ -92,5 +92,21 @@ int main()
     cout << "\t " << utm.at(v[i])->to_string() << " = "
          << s->get_value(utm.at(v[i]))->to_int() << endl;
   }
+
+  // create sets of sorts
+  UnorderedSortSet sset;
+  Sort s0, s1, s2, s3;
+  s0 = s->make_sort(BV, 1);
+  s1 = s->make_sort(BV, 4);
+  s2 = s->make_sort(BOOL);
+  s3 = s->make_sort(BV, 5);
+  sset.insert(s0);
+  sset.insert(s1);
+  sset.insert(s2);
+  sset.insert(s3);
+
+  cout << "sset size is: " << sset.size() << endl;
+  assert(sset.size() == 3); // only two because boolector treats bool and bv{1} the same
+
   return 0;
 }
