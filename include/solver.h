@@ -105,7 +105,7 @@ class AbsSmtSolver
   virtual Term make_value(const unsigned int i, const Sort sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
-   * @param val the value
+   * @param val the value in base 10, or a string
    * @param sort the sort to create
    * @return a value term with Sort sort and value val
    */
