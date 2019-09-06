@@ -1,23 +1,23 @@
 #include "solver.h"
 
-namespace smt
-{
+namespace smt {
 
 // TODO: Implement a generic visitor
 
-Term AbsSmtSolver::substitute(const Term term, const UnorderedTermMap & substitution_map) const
+Term AbsSmtSolver::substitute(const Term term,
+                              const UnorderedTermMap & substitution_map) const
 {
   UnorderedTermMap cache;
   // populate cache with substitution map
-  for(auto elem : substitution_map)
+  for (auto elem : substitution_map)
   {
     cache[elem.first] = elem.second;
   }
 
-  TermVec to_visit {term};
+  TermVec to_visit{ term };
   TermVec cached_children;
   Term t;
-  while(to_visit.size())
+  while (to_visit.size())
   {
     t = to_visit.back();
     to_visit.pop_back();
@@ -47,8 +47,6 @@ Term AbsSmtSolver::substitute(const Term term, const UnorderedTermMap & substitu
   }
 
   return cache.at(term);
-
 }
 
-}
-
+}  // namespace smt

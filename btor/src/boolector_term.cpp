@@ -102,15 +102,9 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbolic_const() const
-{
-  return is_sym;
-}
+bool BoolectorTerm::is_symbolic_const() const { return is_sym; }
 
-bool BoolectorTerm::is_value() const
-{
-  return boolector_is_const(btor, node);
-}
+bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
 
 std::string BoolectorTerm::to_string() const
 {

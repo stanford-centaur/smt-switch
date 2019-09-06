@@ -101,15 +101,13 @@ Term BoolectorSolver::make_value(bool b) const
   if (b)
   {
     Term term(new BoolectorTerm(
-                                btor, boolector_const(btor, "1"), std::vector<Term>{}, Op(), false
-    ));
+        btor, boolector_const(btor, "1"), std::vector<Term>{}, Op(), false));
     return term;
   }
   else
   {
     Term term(new BoolectorTerm(
-                                btor, boolector_const(btor, "0"), std::vector<Term>{}, Op(), false
-                                ));
+        btor, boolector_const(btor, "0"), std::vector<Term>{}, Op(), false));
     return term;
   }
 }
@@ -119,8 +117,11 @@ Term BoolectorSolver::make_value(unsigned int i, Sort sort) const
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
   // note: give the constant value a null PrimOp
-  Term term(new BoolectorTerm(
-                              btor, boolector_int(btor, i, bs->sort), std::vector<Term>{}, Op(), false));
+  Term term(new BoolectorTerm(btor,
+                              boolector_int(btor, i, bs->sort),
+                              std::vector<Term>{},
+                              Op(),
+                              false));
   return term;
 }
 
@@ -128,7 +129,11 @@ Term BoolectorSolver::make_value(std::string val, Sort sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
     std::static_pointer_cast<BoolectorSortBase>(sort);
-  Term term(new BoolectorTerm(btor, boolector_constd(btor, bs->sort, val.c_str()), std::vector<Term>{}, Op(), false));
+  Term term(new BoolectorTerm(btor,
+                              boolector_constd(btor, bs->sort, val.c_str()),
+                              std::vector<Term>{},
+                              Op(),
+                              false));
   return term;
 }
 
@@ -164,7 +169,7 @@ Term BoolectorSolver::get_value(Term & t) const
     boolector_free_bv_assignment(btor, assignment);
     // note: give the constant value a null PrimOp
     result = std::make_shared<BoolectorTerm>(
-                                             btor, bc, std::vector<Term>{}, NUM_OPS_AND_NULL, false);
+        btor, bc, std::vector<Term>{}, NUM_OPS_AND_NULL, false);
   }
   else if (sk == ARRAY)
   {
@@ -343,7 +348,8 @@ Term BoolectorSolver::make_term(Op op, Term t) const
       msg += to_string(op.prim_op);
       throw IncorrectUsageException(msg.c_str());
     }
-    term = Term(new BoolectorTerm(btor, btor_res, std::vector<Term>{ t }, op, false));
+    term = Term(
+        new BoolectorTerm(btor, btor_res, std::vector<Term>{ t }, op, false));
     return term;
   }
 }

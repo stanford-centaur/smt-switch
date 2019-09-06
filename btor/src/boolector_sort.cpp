@@ -25,7 +25,7 @@ std::string BoolectorSortBase::to_string() const
       {
         oss << "(Array " << get_indexsort()->to_string() << " "
             << get_elemsort()->to_string() << ")";
-        }
+      }
       else
         {
           Unreachable();

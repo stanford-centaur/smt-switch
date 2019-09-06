@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "result.h"
-#include "smt_defs.h"
 #include "smt_data_structures.h"
+#include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
@@ -60,7 +60,8 @@ class AbsSmtSolver
    * @param arity the arity of the sort
    * @return a Sort object
    */
-  virtual Sort make_sort(const std::string name, const unsigned int arity) const = 0;
+  virtual Sort make_sort(const std::string name,
+                         const unsigned int arity) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -78,7 +79,9 @@ class AbsSmtSolver
    * @param sk the SortKind (ARRAY)
    * @return a Sort object
    */
-  virtual Sort make_sort(const SortKind sk, const Sort idxsort, const Sort elemsort) const = 0;
+  virtual Sort make_sort(const SortKind sk,
+                         const Sort idxsort,
+                         const Sort elemsort) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (FUNCTION)
@@ -137,7 +140,10 @@ class AbsSmtSolver
    * @param t2 the third child term
    * @return the created term
    */
-  virtual Term make_term(const Op op, const Term t0, const Term t1, const Term t2) const = 0;
+  virtual Term make_term(const Op op,
+                         const Term t0,
+                         const Term t1,
+                         const Term t2) const = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -151,7 +157,8 @@ class AbsSmtSolver
    * @param substitution_map the map to use for substitution
    * @return the term with the substitution map applied
    */
-  Term substitute(const Term term, const UnorderedTermMap & substitution_map) const;
+  Term substitute(const Term term,
+                  const UnorderedTermMap & substitution_map) const;
 };
 
 }  // namespace smt

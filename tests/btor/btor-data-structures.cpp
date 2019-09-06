@@ -78,7 +78,8 @@ int main()
   cout << "Testing substitution:" << endl;
   for (size_t i = 0; i < v.size(); ++i)
   {
-    cout << "\t" << v[i]->to_string() << " => " << s->substitute(v[i], utm)->to_string() << endl;
+    cout << "\t" << v[i]->to_string() << " => "
+         << s->substitute(v[i], utm)->to_string() << endl;
   }
 
   // can print variable names, but otherwise boolector doesn't maintain strings

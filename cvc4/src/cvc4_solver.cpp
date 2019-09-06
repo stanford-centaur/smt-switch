@@ -209,7 +209,7 @@ Term CVC4Solver::make_value(std::string val, Sort sort) const
   else if (sk == BV)
   {
     c = solver.mkBitVector(sort->get_width(), val, 10);
-    }
+  }
   else
     {
       std::string msg = "Can't create constant with integer for sort ";
