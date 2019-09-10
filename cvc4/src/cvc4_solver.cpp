@@ -473,6 +473,16 @@ Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
   }
 }
 
+void CVC4Solver::reset() const
+{
+  solver.reset();
+}
+
+void CVC4Solver::reset_assertions() const
+{
+  solver.resetAssertions();
+}
+
 /**
    Helper function for creating an OpTerm from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0

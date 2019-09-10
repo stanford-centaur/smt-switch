@@ -24,8 +24,11 @@ int main()
   Term y = s->make_term("y", bvsort8);
   Term z = s->make_term("z", bvsort8);
 
-  s->assert_formula(s->make_term(Equal, z, s->make_term(BVAdd, y, z)));
-  s->assert_formula(s->make_term(Equal, z, s->make_term(BVSub, y, z)));
+  Term a = s->make_term(Equal, z, s->make_term(BVAdd, y, z));
+  Term b = s->make_term(Equal, z, s->make_term(BVSub, y, z));
+  s->assert_formula(a);
+  s->assert_formula(b);
+
   Result r = s->check_sat();
   assert(r.is_sat());
 
@@ -42,6 +45,14 @@ int main()
   r = s->check_sat();
   assert(r.is_unsat());
   s->pop();
+
+  r = s->check_sat();
+  assert(r.is_sat());
+
+  s->reset_assertions();
+  s->assert_formula(assumption);
+  r = s->check_sat();
+  assert(r.is_sat());
 
   return 0;
 }

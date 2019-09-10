@@ -168,6 +168,12 @@ class AbsSmtSolver
    */
   virtual Term make_term(const Op op, const std::vector<Term> terms) const = 0;
 
+  /* Return the solver to it's startup state */
+  virtual void reset() const = 0;
+
+  /* Reset all assertions */
+  virtual void reset_assertions() const = 0;
+
   /* Substitute all subterms using the provided mapping
    * @param term the term to apply substitution map to
    * @param substitution_map the map to use for substitution

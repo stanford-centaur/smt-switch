@@ -57,6 +57,8 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, Term t0, Term t1) const override;
   Term make_term(Op op, Term t0, Term t1, Term t2) const override;
   Term make_term(Op op, std::vector<Term> terms) const override;
+  void reset() const override;
+  void reset_assertions() const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
 
