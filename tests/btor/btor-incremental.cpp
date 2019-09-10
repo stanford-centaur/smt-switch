@@ -43,5 +43,13 @@ int main()
   assert(r.is_unsat());
   s->pop();
 
+  r = s->check_sat();
+  assert(r.is_sat());
+
+  s->reset_assertions();
+  s->assert_formula(assumption);
+  r = s->check_sat();
+  assert(r.is_sat());
+
   return 0;
 }

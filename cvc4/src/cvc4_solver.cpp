@@ -473,15 +473,9 @@ Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
   }
 }
 
-void CVC4Solver::reset() const
-{
-  solver.reset();
-}
+void CVC4Solver::reset() { solver.reset(); }
 
-void CVC4Solver::reset_assertions() const
-{
-  solver.resetAssertions();
-}
+void CVC4Solver::reset_assertions() { solver.resetAssertions(); }
 
 /**
    Helper function for creating an OpTerm from an Op

@@ -22,7 +22,13 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new()){};
+  BoolectorSolver() : btor(boolector_new())
+  {
+    // to support resetting assertions, wrap everything in a push/pop
+    // TODO: replace this with a proper implementation
+    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    boolector_push(btor, 1);
+  };
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver() { boolector_delete(btor); };
@@ -52,8 +58,8 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(Op op, Term t0, Term t1) const override;
   Term make_term(Op op, Term t0, Term t1, Term t2) const override;
   Term make_term(Op op, std::vector<Term> terms) const override;
-  void reset() const override;
-  void reset_assertions() const override;
+  void reset() override;
+  void reset_assertions() override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
