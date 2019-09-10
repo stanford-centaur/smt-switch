@@ -41,7 +41,23 @@ class BoolectorTerm : public AbsTerm
  public:
   BoolectorTerm(
       Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
-      : btor(b), node(n), children(c), op(o), is_sym(is_sym){};
+      : btor(b), node(n), children(c), op(o), is_sym(is_sym)
+  {
+    // set the btor node symbol, for retrieving string representation later
+    // Note: vars and constants already have ways of retrieving char
+    // representation
+    if (c.size())
+    {
+      std::string btor_node_repr("(");
+      btor_node_repr += op.to_string();
+      for (auto t : c)
+      {
+        btor_node_repr += " " + t->to_string();
+      }
+      btor_node_repr += ")";
+      boolector_set_symbol(btor, n, btor_node_repr.c_str());
+    }
+  };
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;

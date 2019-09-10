@@ -109,12 +109,7 @@ bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
 std::string BoolectorTerm::to_string() const
 {
   std::string res_str;
-  if (is_sym)
-  {
-    const char * btor_cstr = boolector_get_symbol(btor, node);
-    res_str = std::string(btor_cstr);
-  }
-  else if (boolector_is_const(btor, node))
+  if (boolector_is_const(btor, node))
   {
     const char * btor_cstr = boolector_get_bits(btor, node);
     res_str = std::string(btor_cstr);
@@ -122,13 +117,8 @@ std::string BoolectorTerm::to_string() const
   }
   else
   {
-    // TODO: Optimize this if it becomes a problem, currently recursive calls to children terms
-    res_str = "(" + op.to_string();
-    for(auto c : children)
-    {
-      res_str += " " + c->to_string();
-    }
-    res_str += ")";
+    const char * btor_cstr = boolector_get_symbol(btor, node);
+    res_str = std::string(btor_cstr);
   }
   return res_str;
 }
