@@ -80,12 +80,14 @@ std::string to_string(PrimOp op) { return std::string(primop2str[op]); }
 
 std::string Op::to_string() const
 {
-  std::string res("(");
+  std::string res;
   if (num_idx)
   {
-    res += "_ ";
+    res += "(_ ";
   }
+
   res += std::string(primop2str[prim_op]);
+
   if (num_idx >= 1)
   {
     res += " " + std::to_string(idx0);
@@ -94,7 +96,10 @@ std::string Op::to_string() const
   {
     res += " " + std::to_string(idx1);
   }
-  res += ")";
+  if (num_idx)
+  {
+    res += ")";
+  }
   return res;
 }
 
