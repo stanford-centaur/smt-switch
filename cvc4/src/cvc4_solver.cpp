@@ -248,6 +248,45 @@ Result CVC4Solver::check_sat() const
   }
 }
 
+Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
+{
+  std::vector<::CVC4::api::Term> cvc4assumps;
+  cvc4assumps.reserve(assumptions.size());
+
+  std::shared_ptr<CVC4Term> cterm;
+  for(auto a : assumptions)
+  {
+    cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
+  }
+  ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
+  if (r.isUnsat())
+    {
+      return Result(UNSAT);
+    }
+  else if (r.isSat())
+    {
+      return Result(SAT);
+    }
+  else if (r.isSatUnknown())
+    {
+      return Result(UNKNOWN, r.getUnknownExplanation());
+    }
+  else
+    {
+      throw NotImplementedException("Unimplemented result type from CVC4");
+    }
+}
+
+void CVC4Solver::push(unsigned int num) const
+{
+  solver.push(num);
+}
+
+void CVC4Solver::pop(unsigned int num) const
+{
+  solver.pop(num);
+}
+
 Term CVC4Solver::get_value(Term & t) const
 {
   std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);

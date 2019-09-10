@@ -47,6 +47,22 @@ class AbsSmtSolver
    */
   virtual Result check_sat() const = 0;
 
+  /* Check satisfiability of the current assertions under the given assumptions
+   * @param assumptions a vector of boolean assumption terms
+   * @return a result object - see result.h
+   */
+  virtual Result check_sat_assuming(const TermVec & assumptions) const = 0;
+
+  /* Push contexts
+   * @param num the number of contexts to push
+   */
+  virtual void push(unsigned int num=1) const = 0;
+
+  /* Pop contexts
+   * @param num the number of contexts to pop
+   */
+  virtual void pop(unsigned int num=1) const = 0;
+
   /* Get the value of a term after check_sat returns a satisfiable result
    * @param t the term to get the value of
    * @return a value term

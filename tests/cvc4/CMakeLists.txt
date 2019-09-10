@@ -5,6 +5,7 @@ set(CVC4_TESTS
   cvc4-int-arithmetic
   cvc4_test
   cvc4-tests
+  cvc4-incremental
 )
 
 foreach(test ${CVC4_TESTS})
