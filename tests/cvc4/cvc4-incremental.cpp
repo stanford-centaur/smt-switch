@@ -29,9 +29,10 @@ int main()
   Result r = s->check_sat();
   assert(r.is_sat());
 
-  Term assumption = s->make_term(And,
-                                 s->make_term(Distinct, x, s->make_value(0, bvsort8)),
-                                 s->make_term(Distinct, y, s->make_value(0, bvsort8)));
+  Term assumption =
+      s->make_term(And,
+                   s->make_term(Distinct, x, s->make_value(0, bvsort8)),
+                   s->make_term(Distinct, y, s->make_value(0, bvsort8)));
 
   r = s->check_sat_assuming(TermVec{ assumption });
   assert(r.is_unsat());

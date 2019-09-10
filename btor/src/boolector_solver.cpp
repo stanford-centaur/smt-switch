@@ -78,7 +78,7 @@ void BoolectorSolver::set_opt(const std::string option, bool value) const
   }
   else
   {
-    std::string msg = "Option "+ option;
+    std::string msg = "Option " + option;
     msg += " is not implemented for boolector.";
     throw NotImplementedException(msg.c_str());
   }
@@ -185,10 +185,7 @@ void BoolectorSolver::push(unsigned int num) const
   boolector_push(btor, num);
 }
 
-void BoolectorSolver::pop(unsigned int num) const
-{
-  boolector_pop(btor, num);
-}
+void BoolectorSolver::pop(unsigned int num) const { boolector_pop(btor, num); }
 
 Term BoolectorSolver::get_value(Term & t) const
 {
