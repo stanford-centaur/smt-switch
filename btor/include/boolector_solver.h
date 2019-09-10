@@ -32,6 +32,9 @@ class BoolectorSolver : public AbsSmtSolver
   void set_logic(const std::string logic) const override;
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;
+  Result check_sat_assuming(const TermVec & assumptions) const override;
+  void push(unsigned int num = 1) const override;
+  void pop(unsigned int num = 1) const override;
   Term get_value(Term & t) const override;
   Sort make_sort(const std::string name, unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;

@@ -67,13 +67,18 @@ const std::unordered_map<PrimOp, tern_fun> ternary_ops(
 
 void BoolectorSolver::set_opt(const std::string option, bool value) const
 {
+  // TODO: Implement this with a map
   if ((option == "produce-models") && value)
   {
     boolector_set_opt(btor, BTOR_OPT_MODEL_GEN, 1);
   }
+  else if ((option == "incremental") && value)
+  {
+    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+  }
   else
   {
-    std::string msg = option;
+    std::string msg = "Option "+ option;
     msg += " is not implemented for boolector.";
     throw NotImplementedException(msg.c_str());
   }
@@ -155,6 +160,35 @@ Result BoolectorSolver::check_sat() const
     return Result(UNSAT);
   }
 };
+
+Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions) const
+{
+  std::shared_ptr<BoolectorTerm> bt;
+  for (auto a : assumptions)
+  {
+    bt = std::static_pointer_cast<BoolectorTerm>(a);
+    boolector_assume(btor, bt->node);
+  }
+
+  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  {
+    return Result(SAT);
+  }
+  else
+  {
+    return Result(UNSAT);
+  }
+}
+
+void BoolectorSolver::push(unsigned int num) const
+{
+  boolector_push(btor, num);
+}
+
+void BoolectorSolver::pop(unsigned int num) const
+{
+  boolector_pop(btor, num);
+}
 
 Term BoolectorSolver::get_value(Term & t) const
 {

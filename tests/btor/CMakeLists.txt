@@ -4,6 +4,7 @@ set(BTOR_TESTS
   btor-exceptions
   btor-indexed-op-tests
   btor-tests
+  btor-incremental
 )
 
 foreach(test ${BTOR_TESTS})

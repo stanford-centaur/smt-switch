@@ -56,12 +56,12 @@ class AbsSmtSolver
   /* Push contexts
    * @param num the number of contexts to push
    */
-  virtual void push(unsigned int num=1) const = 0;
+  virtual void push(unsigned int num = 1) const = 0;
 
   /* Pop contexts
    * @param num the number of contexts to pop
    */
-  virtual void pop(unsigned int num=1) const = 0;
+  virtual void pop(unsigned int num = 1) const = 0;
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * @param t the term to get the value of

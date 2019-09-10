@@ -3,7 +3,7 @@
 #include <vector>
 #include "assert.h"
 
-#include "cvc4_factory.h"
+#include "boolector_factory.h"
 #include "smt.h"
 // after full installation
 // #include "smt-switch/cvc4_factory.h"
@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = BoolectorSolverFactory::create();
   s->set_logic("QF_BV");
   s->set_opt("produce-models", true);
   s->set_opt("incremental", true);
