@@ -44,9 +44,12 @@ class BoolectorTerm : public AbsTerm
       : btor(b), node(n), children(c), op(o), is_sym(is_sym)
   {
     // set the btor node symbol, for retrieving string representation later
-    // Note: vars and constants already have ways of retrieving char
-    // representation
-    if (c.size())
+    // Note 1: for nodes that are simplified to the same node, takes the first
+    //         set symbol (i.e. doesn't overwrite)
+    // Note 2: vars and constants already have ways of retrieving char
+    //         representation
+    // TODO: Replace with proper implementation in boolector
+    if (c.size() && !boolector_get_symbol(btor, n))
     {
       std::string btor_node_repr("(");
       btor_node_repr += op.to_string();
