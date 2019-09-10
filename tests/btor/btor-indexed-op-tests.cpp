@@ -44,8 +44,8 @@ int main()
   Term yc = s->get_value(y);
 
   cout << "Results:" << endl;
-  cout << "\tx = " << xc->to_int() << endl;
-  cout << "\tx[7:4] = " << x_upperc->to_int() << endl;
-  cout << "\ty = " << yc->to_int() << endl;
+  cout << x << ": " << xc->to_int() << endl;
+  cout << x_upper << ": " << x_upperc->to_int() << endl;
+  cout << y << ": " << yc->to_int() << endl;
   return 0;
 }

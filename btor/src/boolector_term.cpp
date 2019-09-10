@@ -122,8 +122,13 @@ std::string BoolectorTerm::to_string() const
   }
   else
   {
-    // TODO: represent arbitrary smt-lib for btor
-    res_str = "btor_expr";
+    // TODO: Optimize this if it becomes a problem, currently recursive calls to children terms
+    res_str = "(" + op.to_string();
+    for(auto c : children)
+    {
+      res_str += " " + c->to_string();
+    }
+    res_str += ")";
   }
   return res_str;
 }
