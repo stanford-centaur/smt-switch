@@ -96,6 +96,7 @@ struct Op
   Op(PrimOp o, unsigned int idx0) : prim_op(o), num_idx(1), idx0(idx0){};
   Op(PrimOp o, unsigned int idx0, unsigned int idx1)
       : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};
+  std::string to_string() const;
   PrimOp prim_op;
   unsigned int num_idx;
   unsigned int idx0;
