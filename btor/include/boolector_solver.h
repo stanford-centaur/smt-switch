@@ -52,6 +52,8 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(Op op, Term t0, Term t1) const override;
   Term make_term(Op op, Term t0, Term t1, Term t2) const override;
   Term make_term(Op op, std::vector<Term> terms) const override;
+  void reset() const override;
+  void reset_assertions() const override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;

@@ -434,6 +434,16 @@ Term BoolectorSolver::make_term(Op op, std::vector<Term> terms) const
   }
 }
 
+void BoolectorSolver::reset() const
+{
+  throw NotImplementedException("reset not implemented");
+}
+
+void BoolectorSolver::reset_assertions() const
+{
+  throw NotImplementedException("reset_assertions not implemented");
+}
+
 Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
 {
   try
