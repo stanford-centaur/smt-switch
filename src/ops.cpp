@@ -94,7 +94,7 @@ std::string Op::to_string() const
     res += "(_ ";
   }
 
-  res += std::string(primop2str[prim_op]);
+  res += ::smt::to_string(prim_op);
 
   if (num_idx >= 1)
   {
