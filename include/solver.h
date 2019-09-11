@@ -177,6 +177,10 @@ class AbsSmtSolver
   /* Reset all assertions */
   virtual void reset_assertions() = 0;
 
+  // Methods implemented at the abstract level
+  // Note: These can be overloaded in the specific solver implementation for
+  //       performance improvements
+
   /* Substitute all subterms using the provided mapping
    * @param term the term to apply substitution map to
    * @param substitution_map the map to use for substitution
@@ -184,6 +188,26 @@ class AbsSmtSolver
    */
   virtual Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const;
+
+  /* Transfer a sort from some other solver to this solver
+   *    Warning: does not check if the term already belongs to this solver
+   * @param the sort to transfer
+   * @return the transferred sort
+   */
+  virtual Sort transfer_sort(const Sort sort);
+
+  /* Transfer a term from some other solver to this solver
+   *    Warning: does not check if the term already belongs to this solver
+   * @param the term to transfer
+   * @return the transferred term
+   */
+  virtual Term transfer_term(const Term term);
+
+  /* Takes a smt-lib2 value term and creates a Term
+   * @param val value term in smt2 format
+   * @param sort how to interpret the value (e.g. Real vs Int)
+   */
+  virtual Term value_from_smt2(const std::string val, const Sort sort) const;
 };
 
 }  // namespace smt
