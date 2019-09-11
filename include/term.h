@@ -47,6 +47,7 @@ class AbsTerm
 };
 
 bool operator==(const Term& t1, const Term& t2);
+bool operator!=(const Term & t1, const Term & t2);
 std::ostream& operator<<(std::ostream& output, const Term t);
 
 // term iterators
