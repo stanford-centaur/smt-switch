@@ -4,6 +4,8 @@ namespace smt {
 
 bool operator==(const Term & t1, const Term & t2) { return t1->compare(t2); }
 
+bool operator!=(const Term & t1, const Term & t2) { return !t1->compare(t2); }
+
 std::ostream & operator<<(std::ostream & output, const Term t)
 {
   output << t->to_string();
