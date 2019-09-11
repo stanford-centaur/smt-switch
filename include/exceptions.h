@@ -57,4 +57,10 @@ class NotImplementedException : public SmtException
   explicit NotImplementedException(const char * msg) : SmtException(msg){};
 };
 
+class InternalSolverException : public SmtException
+{
+ public:
+  explicit InternalSolverException(const char * msg) : SmtException(msg){};
+};
+
 #endif

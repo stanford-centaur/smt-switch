@@ -24,6 +24,11 @@ class BoolectorSolver : public AbsSmtSolver
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
   BoolectorSolver() : btor(boolector_new())
   {
+    // set termination function -- throw an exception
+    auto throw_exception = [](const char * msg) -> void {
+      throw InternalSolverException(msg);
+    };
+    boolector_set_abort(throw_exception);
     // to support resetting assertions, wrap everything in a push/pop
     // TODO: replace this with a proper implementation
     boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
