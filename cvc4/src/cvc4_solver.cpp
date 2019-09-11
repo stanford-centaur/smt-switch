@@ -146,71 +146,108 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon({
 
 void CVC4Solver::set_opt(const std::string option, bool value) const
 {
-  if (value)
+  try
   {
-    solver.setOption(option, "true");
+    if (value)
+    {
+      solver.setOption(option, "true");
+    }
+    else
+    {
+      solver.setOption(option, "false");
+    }
   }
-  else
+  catch (std::exception & e)
   {
-    solver.setOption(option, "false");
+    throw InternalSolverException(e.what());
   }
 }
 
 void CVC4Solver::set_opt(const std::string option,
              const std::string value) const
 {
-  solver.setOption(option, value);
+  try
+  {
+    solver.setOption(option, value);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 void CVC4Solver::set_logic(const std::string logic) const
 {
-  solver.setLogic(logic);
+  try
+  {
+    solver.setLogic(logic);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_value(bool b) const
 {
-  Term c(new CVC4Term(solver.mkBoolean(b)));
-  return c;
+  try
+  {
+    Term c(new CVC4Term(solver.mkBoolean(b)));
+    return c;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_value(unsigned int i, Sort sort) const
 {
-  SortKind sk = sort->get_sort_kind();
-  ::CVC4::api::Term c;
+  try
+  {
+    SortKind sk = sort->get_sort_kind();
+    ::CVC4::api::Term c;
 
-  if ((sk == INT) || (sk == REAL))
-  {
-    c = solver.mkReal(i);
-  }
-  else if (sk == BV)
-  {
-    c = solver.mkBitVector(sort->get_width(), i);
-  }
-  else
-  {
-    std::string msg = "Can't create constant with integer for sort ";
-    msg += sort->to_string();
-    throw IncorrectUsageException(msg.c_str());
-  }
+    if ((sk == INT) || (sk == REAL))
+    {
+      c = solver.mkReal(i);
+    }
+    else if (sk == BV)
+    {
+      c = solver.mkBitVector(sort->get_width(), i);
+    }
+    else
+    {
+      std::string msg = "Can't create constant with integer for sort ";
+      msg += sort->to_string();
+      throw IncorrectUsageException(msg.c_str());
+    }
 
-  Term res(new CVC4Term(c));
-  return res;
+    Term res(new CVC4Term(c));
+    return res;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_value(std::string val, Sort sort) const
 {
-  SortKind sk = sort->get_sort_kind();
-  ::CVC4::api::Term c;
+  try
+  {
+    SortKind sk = sort->get_sort_kind();
+    ::CVC4::api::Term c;
 
-  if ((sk == INT) || (sk == REAL))
-  {
-    c = solver.mkReal(val);
-  }
-  else if (sk == BV)
-  {
-    c = solver.mkBitVector(sort->get_width(), val, 10);
-  }
-  else
+    if ((sk == INT) || (sk == REAL))
+    {
+      c = solver.mkReal(val);
+    }
+    else if (sk == BV)
+    {
+      c = solver.mkBitVector(sort->get_width(), val, 10);
+    }
+    else
     {
       std::string msg = "Can't create constant with integer for sort ";
       msg += sort->to_string();
@@ -219,155 +256,239 @@ Term CVC4Solver::make_value(std::string val, Sort sort) const
 
   Term res(new CVC4Term(c));
   return res;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 void CVC4Solver::assert_formula(const Term& t) const
 {
-  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
-  solver.assertFormula(cterm->term);
+  try
+  {
+    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    solver.assertFormula(cterm->term);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Result CVC4Solver::check_sat() const
 {
-  ::CVC4::api::Result r = solver.checkSat();
-  if (r.isUnsat())
+  try
   {
-    return Result(UNSAT);
+    ::CVC4::api::Result r = solver.checkSat();
+    if (r.isUnsat())
+    {
+      return Result(UNSAT);
+    }
+    else if (r.isSat())
+    {
+      return Result(SAT);
+    }
+    else if (r.isSatUnknown())
+    {
+      return Result(UNKNOWN, r.getUnknownExplanation());
+    }
+    else
+    {
+      throw NotImplementedException("Unimplemented result type from CVC4");
+    }
   }
-  else if (r.isSat())
+  catch (std::exception & e)
   {
-    return Result(SAT);
-  }
-  else if (r.isSatUnknown())
-  {
-    return Result(UNKNOWN, r.getUnknownExplanation());
-  }
-  else
-  {
-    throw NotImplementedException("Unimplemented result type from CVC4");
+    throw InternalSolverException(e.what());
   }
 }
 
 Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
 {
-  std::vector<::CVC4::api::Term> cvc4assumps;
-  cvc4assumps.reserve(assumptions.size());
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
 
-  std::shared_ptr<CVC4Term> cterm;
-  for (auto a : assumptions)
-  {
-    cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
+    {
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
+    }
+    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
+    if (r.isUnsat())
+    {
+      return Result(UNSAT);
+    }
+    else if (r.isSat())
+    {
+      return Result(SAT);
+    }
+    else if (r.isSatUnknown())
+    {
+      return Result(UNKNOWN, r.getUnknownExplanation());
+    }
+    else
+    {
+      throw NotImplementedException("Unimplemented result type from CVC4");
+    }
   }
-  ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
-  if (r.isUnsat())
+  catch (std::exception & e)
   {
-    return Result(UNSAT);
-  }
-  else if (r.isSat())
-  {
-    return Result(SAT);
-  }
-  else if (r.isSatUnknown())
-  {
-    return Result(UNKNOWN, r.getUnknownExplanation());
-  }
-  else
-  {
-    throw NotImplementedException("Unimplemented result type from CVC4");
+    throw InternalSolverException(e.what());
   }
 }
 
-void CVC4Solver::push(unsigned int num) const { solver.push(num); }
+void CVC4Solver::push(unsigned int num) const
+{
+  try
+  {
+    solver.push(num);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
-void CVC4Solver::pop(unsigned int num) const { solver.pop(num); }
+void CVC4Solver::pop(unsigned int num) const
+{
+  try
+  {
+    solver.pop(num);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 Term CVC4Solver::get_value(Term & t) const
 {
-  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
-  Term val(new CVC4Term(solver.getValue(cterm->term)));
-  return val;
+  try
+  {
+    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    Term val(new CVC4Term(solver.getValue(cterm->term)));
+    return val;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Sort CVC4Solver::make_sort(const std::string name, unsigned int arity) const
 {
-  Sort s(new CVC4Sort(solver.declareSort(name, arity)));
-  return s;
+  try
+  {
+    Sort s(new CVC4Sort(solver.declareSort(name, arity)));
+    return s;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Sort CVC4Solver::make_sort(SortKind sk) const
 {
-  if (sk == BOOL)
+  try
   {
-    Sort s(new CVC4Sort(solver.getBooleanSort()));
-    return s;
+    if (sk == BOOL)
+    {
+      Sort s(new CVC4Sort(solver.getBooleanSort()));
+      return s;
+    }
+    else if (sk == INT)
+    {
+      Sort s(new CVC4Sort(solver.getIntegerSort()));
+      return s;
+    }
+    else if (sk == REAL)
+    {
+      Sort s(new CVC4Sort(solver.getRealSort()));
+      return s;
+    }
+    else
+    {
+      std::string msg("Can't create sort with sort constructor ");
+      msg += to_string(sk);
+      msg += " and no arguments";
+      throw IncorrectUsageException(msg.c_str());
+    }
   }
-  else if (sk == INT)
+  catch (std::exception & e)
   {
-    Sort s(new CVC4Sort(solver.getIntegerSort()));
-    return s;
-  }
-  else if (sk == REAL)
-  {
-    Sort s(new CVC4Sort(solver.getRealSort()));
-    return s;
-  }
-  else
-  {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and no arguments";
-    throw IncorrectUsageException(msg.c_str());
+    throw InternalSolverException(e.what());
   }
 }
 
 Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
 {
-  if (sk == BV)
+  try
   {
-    Sort s(new CVC4Sort(solver.mkBitVectorSort(size)));
-    return s;
+    if (sk == BV)
+    {
+      Sort s(new CVC4Sort(solver.mkBitVectorSort(size)));
+      return s;
+    }
+    else
+    {
+      std::string msg("Can't create sort with sort constructor ");
+      msg += to_string(sk);
+      msg += " and an integer argument";
+      throw IncorrectUsageException(msg.c_str());
+    }
   }
-  else
+  catch (std::exception & e)
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and an integer argument";
-    throw IncorrectUsageException(msg.c_str());
+    throw InternalSolverException(e.what());
   }
 }
 
 Sort CVC4Solver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
 {
-  if (sk == ARRAY)
+  try
   {
-    std::shared_ptr<CVC4Sort> csort0 = std::static_pointer_cast<CVC4Sort>(idxsort);
-    std::shared_ptr<CVC4Sort> csort1 = std::static_pointer_cast<CVC4Sort>(elemsort);
-    Sort s(new CVC4Sort(solver.mkArraySort(csort0->sort, csort1->sort)));
-    return s;
-  }
-  else
+    if (sk == ARRAY)
+    {
+      std::shared_ptr<CVC4Sort> csort0 =
+          std::static_pointer_cast<CVC4Sort>(idxsort);
+      std::shared_ptr<CVC4Sort> csort1 =
+          std::static_pointer_cast<CVC4Sort>(elemsort);
+      Sort s(new CVC4Sort(solver.mkArraySort(csort0->sort, csort1->sort)));
+      return s;
+    }
+    else
     {
       std::string msg("Can't create sort with sort constructor ");
       msg += to_string(sk);
       msg += " and two Sort arguments";
       throw IncorrectUsageException(msg.c_str());
     }
-
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
                            std::vector<Sort> sorts,
                            Sort sort) const
 {
-  if (sorts.size() == 0)
+  try
   {
-    return make_sort(sort->get_sort_kind());
-  }
+    if (sorts.size() == 0)
+    {
+      return make_sort(sort->get_sort_kind());
+    }
 
-  std::vector<::CVC4::api::Sort> csorts;
-  csorts.reserve(sorts.size());
-  ::CVC4::api::Sort csort;
-  for (Sort s : sorts)
+    std::vector<::CVC4::api::Sort> csorts;
+    csorts.reserve(sorts.size());
+    ::CVC4::api::Sort csort;
+    for (Sort s : sorts)
     {
       csort = std::static_pointer_cast<CVC4Sort>(s)->sort;
       csorts.push_back(csort);
@@ -376,6 +497,11 @@ Sort CVC4Solver::make_sort(SortKind sk,
     ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
     Sort funsort(new CVC4Sort(cfunsort));
     return funsort;
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_term(const std::string name, Sort sort)
@@ -402,26 +528,36 @@ Term CVC4Solver::make_term(const std::string name, Sort sort)
 
 Term CVC4Solver::make_term(Op op, Term t) const
 {
-  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
-  if (op.num_idx == 0)
+  try
   {
-    Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterm->term)));
-    return result;
+    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    if (op.num_idx == 0)
+    {
+      Term result(
+          new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterm->term)));
+      return result;
+    }
+    else
+    {
+      ::CVC4::api::OpTerm ot = make_op_term(op);
+      Term result(new CVC4Term(
+          solver.mkTerm(primop2kind.at(op.prim_op), ot, cterm->term)));
+      return result;
+    }
   }
-  else
+  catch (std::exception & e)
   {
-    ::CVC4::api::OpTerm ot = make_op_term(op);
-    Term result(new CVC4Term(
-        solver.mkTerm(primop2kind.at(op.prim_op), ot, cterm->term)));
-    return result;
+    throw InternalSolverException(e.what());
   }
 }
 
 Term CVC4Solver::make_term(Op op, Term t0, Term t1) const
 {
-  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
-  if (op.num_idx == 0)
+  try
+  {
+    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+    if (op.num_idx == 0)
     {
       Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
                                              cterm0->term,
@@ -435,14 +571,21 @@ Term CVC4Solver::make_term(Op op, Term t0, Term t1) const
           primop2kind.at(op.prim_op), ot, cterm0->term, cterm1->term)));
       return result;
     }
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_term(Op op, Term t0, Term t1, Term t2) const
 {
-  std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-  std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
-  std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
-  if (op.num_idx == 0)
+  try
+  {
+    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+    std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+    if (op.num_idx == 0)
     {
       Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
                                              cterm0->term,
@@ -460,36 +603,68 @@ Term CVC4Solver::make_term(Op op, Term t0, Term t1, Term t2) const
                                              cterm2->term)));
       return result;
     }
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
 {
-  std::vector<::CVC4::api::Term> cterms;
-  cterms.reserve(terms.size());
-  std::shared_ptr<CVC4Term> cterm;
-  for(auto t : terms)
+  try
   {
-    cterm = std::static_pointer_cast<CVC4Term>(t);
-    cterms.push_back(cterm->term);
+    std::vector<::CVC4::api::Term> cterms;
+    cterms.reserve(terms.size());
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto t : terms)
+    {
+      cterm = std::static_pointer_cast<CVC4Term>(t);
+      cterms.push_back(cterm->term);
+    }
+    if (op.num_idx == 0)
+    {
+      Term result(
+          new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterms)));
+      return result;
+    }
+    else
+    {
+      ::CVC4::api::OpTerm ot = make_op_term(op);
+      Term result(
+          new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
+      return result;
+    }
   }
-  if (op.num_idx == 0)
+  catch (std::exception & e)
   {
-    Term result(
-        new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), cterms)));
-    return result;
-  }
-  else
-  {
-    ::CVC4::api::OpTerm ot = make_op_term(op);
-    Term result(
-        new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
-    return result;
+    throw InternalSolverException(e.what());
   }
 }
 
-void CVC4Solver::reset() { solver.reset(); }
+void CVC4Solver::reset()
+{
+  try
+  {
+    solver.reset();
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
-void CVC4Solver::reset_assertions() { solver.resetAssertions(); }
+void CVC4Solver::reset_assertions()
+{
+  try
+  {
+    solver.resetAssertions();
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 /**
    Helper function for creating an OpTerm from an Op
