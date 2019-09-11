@@ -182,7 +182,7 @@ class AbsSmtSolver
    * @param substitution_map the map to use for substitution
    * @return the term with the substitution map applied
    */
-  Term substitute(const Term term,
+  virtual Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const;
 };
 
