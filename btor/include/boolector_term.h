@@ -43,6 +43,19 @@ class BoolectorTerm : public AbsTerm
       Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
       : btor(b), node(n), children(c), op(o), is_sym(is_sym)
   {
+    // check that it hasn't been rewritten to one of the children
+    std::shared_ptr<BoolectorTerm> bt;
+    for (auto t : c)
+    {
+      bt = std::static_pointer_cast<BoolectorTerm>(t);
+      if (boolector_get_node_id(btor, n)
+          == boolector_get_node_id(btor, bt->node))
+      {
+        // set the children to the original value
+        children = bt->children;
+      }
+    }
+
     // set the btor node symbol, for retrieving string representation later
     // Note 1: for nodes that are simplified to the same node, takes the first
     //         set symbol (i.e. doesn't overwrite)
