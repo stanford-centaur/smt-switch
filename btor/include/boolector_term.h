@@ -51,8 +51,11 @@ class BoolectorTerm : public AbsTerm
       if (boolector_get_node_id(btor, n)
           == boolector_get_node_id(btor, bt->node))
       {
-        // set the children to the original value
+        // set the parameters to the original values
+        node = bt->node;
         children = bt->children;
+        op = bt->op;
+        is_sym = bt->is_sym;
       }
     }
 
