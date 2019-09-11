@@ -76,7 +76,15 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
 constexpr std::array<std::string_view, NUM_OPS_AND_NULL> primop2str =
     generate_primop2str();
 
-std::string to_string(PrimOp op) { return std::string(primop2str[op]); }
+std::string to_string(PrimOp op)
+{
+  if (op == NUM_OPS_AND_NULL)
+  {
+    return "null";
+  }
+
+  return std::string(primop2str[op]);
+}
 
 std::string Op::to_string() const
 {
