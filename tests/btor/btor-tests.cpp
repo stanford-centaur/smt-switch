@@ -83,7 +83,7 @@ int main()
   Term uf_appc = s->get_value(uf_app);
 
   cout << "Got the following values:" << endl;
-  cout << "\txc = " << xc->to_int() << endl;
+  cout << "\txc = " << xc << endl;
   cout << "\tyc = " << yc->to_int() << endl;
   cout << "\tzc = " << zc->to_int() << endl;
   cout << "\tx[3:0] = " << x_lowerc->to_int() << endl;

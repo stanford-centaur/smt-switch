@@ -155,7 +155,7 @@ std::string BoolectorTerm::to_string() const
   if (boolector_is_const(btor, node))
   {
     const char * btor_cstr = boolector_get_bits(btor, node);
-    res_str = std::string(btor_cstr);
+    res_str = "#b" + std::string(btor_cstr);
     boolector_free_bits(btor, btor_cstr);
   }
   else if (is_sym)
