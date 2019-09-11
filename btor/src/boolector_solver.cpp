@@ -311,8 +311,6 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 
 Term BoolectorSolver::make_term(const std::string name, Sort sort)
 {
-  // TODO handle arrays correctly (need boolector_array instead of
-  // boolector_var)
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
 
@@ -336,7 +334,6 @@ Term BoolectorSolver::make_term(const std::string name, Sort sort)
   return term;
 }
 
-// Implementation of the AbsSmtSolver methods
 Term BoolectorSolver::make_term(Op op, Term t) const
 {
   if (op.num_idx == 0)
