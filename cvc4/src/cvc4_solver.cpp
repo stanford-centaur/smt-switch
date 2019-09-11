@@ -254,8 +254,8 @@ Term CVC4Solver::make_value(std::string val, Sort sort) const
       throw IncorrectUsageException(msg.c_str());
     }
 
-  Term res(new CVC4Term(c));
-  return res;
+    Term res(new CVC4Term(c));
+    return res;
   }
   catch (std::exception & e)
   {
