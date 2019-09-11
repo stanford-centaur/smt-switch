@@ -49,18 +49,21 @@ class IncorrectUsageException : public SmtException
 {
  public:
   explicit IncorrectUsageException(const char * msg) : SmtException(msg){};
+  explicit IncorrectUsageException(const std::string& msg) : SmtException(msg){};
 };
 
 class NotImplementedException : public SmtException
 {
  public:
   explicit NotImplementedException(const char * msg) : SmtException(msg){};
+  explicit NotImplementedException(const std::string& msg) : SmtException(msg){};
 };
 
 class InternalSolverException : public SmtException
 {
  public:
   explicit InternalSolverException(const char * msg) : SmtException(msg){};
+  explicit InternalSolverException(const std::string& msg) : SmtException(msg){};
 };
 
 #endif
