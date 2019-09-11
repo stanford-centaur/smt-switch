@@ -130,12 +130,31 @@ Term BoolectorSolver::make_value(unsigned int i, Sort sort) const
   return term;
 }
 
-Term BoolectorSolver::make_value(std::string val, Sort sort) const
+Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
     std::static_pointer_cast<BoolectorSortBase>(sort);
+
+  BoolectorNode * node;
+  if (base == 10)
+  {
+    node = boolector_constd(btor, bs->sort, val.c_str());
+  }
+  else if (base == 2)
+  {
+    node = boolector_const(btor, val.c_str());
+  }
+  else if (base == 16)
+  {
+    node = boolector_consth(btor, bs->sort, val.c_str());
+  }
+  else
+  {
+    throw IncorrectUsageException("Only accepted bases are 2, 10 and 16, but got " + base);
+  }
+
   Term term(new BoolectorTerm(btor,
-                              boolector_constd(btor, bs->sort, val.c_str()),
+                              node,
                               std::vector<Term>{},
                               Op(),
                               false));

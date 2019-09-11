@@ -121,11 +121,12 @@ class AbsSmtSolver
   virtual Term make_value(const unsigned int i, const Sort sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
-   * @param val the value in base 10, or a string
+   * @param val the numeric value as a string, or a string value
    * @param sort the sort to create
+   * @param base the base to interpret the value, for bit-vector sorts (ignored otherwise)
    * @return a value term with Sort sort and value val
    */
-  virtual Term make_value(const std::string val, const Sort sort) const = 0;
+  virtual Term make_value(const std::string val, const Sort sort, unsigned int base = 10) const = 0;
 
   /* Make a symbolic constant or function term
    * @param name the name of constant or function

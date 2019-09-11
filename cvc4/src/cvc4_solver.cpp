@@ -232,7 +232,7 @@ Term CVC4Solver::make_value(unsigned int i, Sort sort) const
   }
 }
 
-Term CVC4Solver::make_value(std::string val, Sort sort) const
+Term CVC4Solver::make_value(std::string val, Sort sort, unsigned int base) const
 {
   try
   {
@@ -241,11 +241,16 @@ Term CVC4Solver::make_value(std::string val, Sort sort) const
 
     if ((sk == INT) || (sk == REAL))
     {
+      // TODO: Only do these checks in debug
+      if (base != 10)
+      {
+        throw IncorrectUsageException("Can't use non-decimal base for reals and ints");
+      }
       c = solver.mkReal(val);
     }
     else if (sk == BV)
     {
-      c = solver.mkBitVector(sort->get_width(), val, 10);
+      c = solver.mkBitVector(sort->get_width(), val, base);
     }
     else
     {

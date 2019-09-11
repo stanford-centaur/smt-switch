@@ -72,7 +72,7 @@ int main()
   s->assert_formula(s->make_term(Equal, x_ext, x));
   s->assert_formula(s->make_term(Distinct, x, z));
   s->assert_formula(s->make_term(BVUle, uf_app, s->make_value(3, bvsort8)));
-  s->assert_formula(s->make_term(BVUge, uf_app, s->make_value(3, bvsort8)));
+  s->assert_formula(s->make_term(BVUge, uf_app, s->make_value("00000011", bvsort8, 2)));
   assert(s->check_sat().is_sat());
 
   Term xc = s->get_value(x);
