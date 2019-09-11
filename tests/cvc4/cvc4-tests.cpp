@@ -19,6 +19,17 @@ int main()
   s->set_opt("produce-models", true);
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
+
+  try
+  {
+    Term x2 = s->make_term("x", bvsort8);
+    assert(false);
+  }
+  catch (SmtException & e)
+  {
+    cout << "caught error with message: " << e.what() << endl;
+  }
+
   Term y = s->make_term("y", bvsort8);
   Term z = s->make_term("z", bvsort8);
   Term _true = s->make_value(true);

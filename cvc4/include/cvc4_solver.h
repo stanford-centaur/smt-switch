@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "cvc4_sort.h"
@@ -51,7 +52,7 @@ class CVC4Solver : public AbsSmtSolver
   Term make_value(bool b) const override;
   Term make_value(unsigned int i, Sort sort) const override;
   Term make_value(const std::string val, Sort sort) const override;
-  Term make_term(const std::string s, Sort sort) const override;
+  Term make_term(const std::string s, Sort sort) override;
   /* build a new term */
   Term make_term(Op op, Term t) const override;
   Term make_term(Op op, Term t0, Term t1) const override;
@@ -64,6 +65,10 @@ class CVC4Solver : public AbsSmtSolver
 
  protected:
   ::CVC4::api::Solver solver;
+  // used to make CVC4 consistent with other solvers
+  // throws an exception if reusing a symbol
+  std::unordered_set<std::string> used_symbols;
+
 };
 }  // namespace smt
 

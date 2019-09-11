@@ -23,6 +23,7 @@ int main()
   try
   {
     Term x = s->make_term("x", bvsort8);
+    assert(false);
   }
   catch (InternalSolverException & e)
   {

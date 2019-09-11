@@ -309,7 +309,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
 }
 
-Term BoolectorSolver::make_term(const std::string name, Sort sort) const
+Term BoolectorSolver::make_term(const std::string name, Sort sort)
 {
   // TODO handle arrays correctly (need boolector_array instead of
   // boolector_var)

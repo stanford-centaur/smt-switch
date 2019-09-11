@@ -132,7 +132,7 @@ class AbsSmtSolver
    * @param sort the sort of this constant or function
    * @return the symbolic constant or function term
    */
-  virtual Term make_term(const std::string name, const Sort sort) const = 0;
+  virtual Term make_term(const std::string name, const Sort sort) = 0;
 
   /* Make a new term
    * @param op the operator to use

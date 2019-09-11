@@ -57,7 +57,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_value(bool b) const override;
   Term make_value(unsigned int i, Sort sort) const override;
   Term make_value(const std::string val, Sort sort) const override;
-  Term make_term(const std::string s, Sort sort) const override;
+  Term make_term(const std::string s, Sort sort) override;
   /* build a new term */
   Term make_term(Op op, Term t) const override;
   Term make_term(Op op, Term t0, Term t1) const override;
