@@ -1,6 +1,11 @@
 #include "boolector_term.h"
 
+#include <unordered_map>
+
 namespace smt {
+
+/* global variables */
+std::unordered_map<size_t, BoolectorTerm *> symbol_lookup;
 
 /* BoolectorTermIter implementation */
 
@@ -37,20 +42,58 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 
 /* BoolectorTerm implementation */
 
+BoolectorTerm::BoolectorTerm(
+    Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
+    : btor(b), node(n), children(c), op(o), is_sym(is_sym)
+{
+  bool rewritten = false;
+  // check that it hasn't been rewritten to one of the children
+  if (symbol_lookup.find((size_t)node) != symbol_lookup.end())
+  {
+    // cache hit
+    BoolectorTerm * bt = symbol_lookup.at((size_t)node);
+    children = bt->children;
+    op = bt->op;
+    is_sym = bt->is_sym;
+    repr = bt->repr;
+    rewritten = true;
+  }
+  else if (op.prim_op != NUM_OPS_AND_NULL)
+  {
+    symbol_lookup[(size_t)node] = this;
+  }
+
+  // set the representation, for retrieving string later
+  // Note: vars and constants already have ways of retrieving char
+  //         representation
+  // TODO: Replace with proper implementation in boolector
+  if (!rewritten)
+  {
+    if (c.size())
+    {
+      std::string btor_node_repr("(");
+      btor_node_repr += op.to_string();
+      for (auto t : c)
+      {
+        btor_node_repr += " " + t->to_string();
+      }
+      btor_node_repr += ")";
+      // boolector_set_symbol(btor, node, btor_node_repr.c_str());
+      repr = btor_node_repr;
+    }
+  }
+}
+
 BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
 
 // TODO: check if this is okay -- probably not
-std::size_t BoolectorTerm::hash() const
-{
-  return (std::size_t)boolector_get_node_id(btor, node);
-};
+std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {
   std::shared_ptr<BoolectorTerm> other =
       std::static_pointer_cast<BoolectorTerm>(absterm);
-  return boolector_get_node_id(this->btor, this->node)
-         == boolector_get_node_id(other->btor, other->node);
+  return this->node == other->node;
 }
 
 Op BoolectorTerm::get_op() const { return op; };
@@ -115,10 +158,14 @@ std::string BoolectorTerm::to_string() const
     res_str = std::string(btor_cstr);
     boolector_free_bits(btor, btor_cstr);
   }
-  else
+  else if (is_sym)
   {
     const char * btor_cstr = boolector_get_symbol(btor, node);
     res_str = std::string(btor_cstr);
+  }
+  else
+  {
+    res_str = repr;
   }
   return res_str;
 }
