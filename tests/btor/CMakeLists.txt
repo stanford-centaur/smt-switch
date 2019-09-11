@@ -5,6 +5,7 @@ set(BTOR_TESTS
   btor-indexed-op-tests
   btor-tests
   btor-incremental
+  btor-transfer
 )
 
 foreach(test ${BTOR_TESTS})

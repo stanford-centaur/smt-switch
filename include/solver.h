@@ -189,6 +189,20 @@ class AbsSmtSolver
   virtual Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const;
 
+  /* Transfer a sort from some other solver to this solver
+   *    Warning: does not check if the term already belongs to this solver
+   * @param the sort to transfer
+   * @return the transferred sort
+   */
+  virtual Sort transfer_sort(const Sort sort);
+
+  /* Transfer a term from some other solver to this solver
+   *    Warning: does not check if the term already belongs to this solver
+   * @param the term to transfer
+   * @return the transferred term
+   */
+  virtual Term transfer_term(const Term term);
+
   /* Takes a smt-lib2 value term and creates a Term
    * @param val value term in smt2 format
    * @param sort how to interpret the value (e.g. Real vs Int)
