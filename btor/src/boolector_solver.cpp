@@ -350,6 +350,7 @@ Term BoolectorSolver::make_term(const std::string name, Sort sort)
 
   // note: giving the symbol a null Op
   Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op(), true));
+  symbols->operator[](name) = term;
   return term;
 }
 

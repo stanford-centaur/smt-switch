@@ -208,6 +208,13 @@ class AbsSmtSolver
    * @param sort how to interpret the value (e.g. Real vs Int)
    */
   virtual Term value_from_smt2(const std::string val, const Sort sort) const;
+
+ protected:
+  // IMPORTANT: new symbols should be registered here
+  //            this is the responsibility of the solver implementation
+  // Note: has to be on heap or get strange errors
+  std::unordered_map<std::string, Term> * symbols =
+      new std::unordered_map<std::string, Term>();
 };
 
 }  // namespace smt

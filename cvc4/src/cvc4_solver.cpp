@@ -512,7 +512,8 @@ Sort CVC4Solver::make_sort(SortKind sk,
 Term CVC4Solver::make_term(const std::string name, Sort sort)
 {
   // check that name is available
-  if (used_symbols.find(name) != used_symbols.end())
+  // to make CVC4 behave the same as other solvers
+  if (symbols->find(name) != symbols->end())
   {
     throw IncorrectUsageException(name + " is not an available symbol name.");
   }
@@ -522,7 +523,7 @@ Term CVC4Solver::make_term(const std::string name, Sort sort)
     std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
     Term res(new ::smt::CVC4Term(t));
-    used_symbols.insert(name);
+    symbols->operator[](name) = res;
     return res;
   }
   catch(std::exception & e)

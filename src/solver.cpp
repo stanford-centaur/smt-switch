@@ -118,7 +118,16 @@ Term AbsSmtSolver::transfer_term(const Term term)
       else if (t->is_symbolic_const())
       {
         s = transfer_sort(t->get_sort());
-        cache[t] = make_term(t->to_string(), s);
+        std::string name = t->to_string();
+        if (symbols->find(name) != symbols->end())
+        {
+          // symbol cache hit
+          cache[t] = symbols->at(name);
+        }
+        else
+        {
+          cache[t] = make_term(t->to_string(), s);
+        }
       }
       else if (t->is_value())
       {

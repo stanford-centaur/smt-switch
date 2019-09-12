@@ -65,9 +65,6 @@ class CVC4Solver : public AbsSmtSolver
 
  protected:
   ::CVC4::api::Solver solver;
-  // used to make CVC4 consistent with other solvers
-  // throws an exception if reusing a symbol
-  std::unordered_set<std::string> used_symbols;
 
 };
 }  // namespace smt
