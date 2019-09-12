@@ -150,7 +150,7 @@ Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) 
   }
   else
   {
-    throw IncorrectUsageException("Only accepted bases are 2, 10 and 16, but got " + base);
+    throw IncorrectUsageException("Only accepted bases are 2, 10 and 16, but got " + std::to_string(base));
   }
 
   Term term(new BoolectorTerm(btor,
