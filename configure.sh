@@ -17,6 +17,7 @@ Configures the CMAKE build environment.
 --btor-home=STR         custom BTOR location    (default: btor/boolector)
 --cvc4-home=STR         custom CVC4 location    (default: cvc4/CVC4)
 --build-dir=STR         custom build directory  (default: build)
+--debug                 build debug with debug symbols (default: off)
 EOF
   exit 0
 }
@@ -32,6 +33,8 @@ build_btor=default
 build_cvc4=default
 btor_home=default
 cvc4_home=default
+build_type=default
+debug=default
 
 while [ $# -gt 0 ]
 do
@@ -83,6 +86,9 @@ do
                 *) build_dir=$(pwd)/$build_dir ;; # make absolute path
             esac
             ;;
+        --debug)
+            debug=yes
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -104,6 +110,9 @@ cmake_opts=""
 [ $cvc4_home != default ] \
     && cmake_opts="$cmake_opts -DCVC4_HOME=$cvc4_home"
 
+[ $debug != default ] \
+    && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=Debug"
+
 root_dir=$(pwd)
 
 [ -e "$build_dir" ] && rm -r "$build_dir"
@@ -112,5 +121,7 @@ mkdir -p "$build_dir"
 cd "$build_dir" || exit 1
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
+
+echo "Running with cmake options: $cmake_opts"
 
 cmake "$root_dir" $cmake_opts 2>&1
