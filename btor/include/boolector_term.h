@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "boolector.h"
+#include "btornode.h"
+#include "utils/btornodeiter.h"
 
 #include "term.h"
 #include "utils.h"
@@ -15,12 +17,15 @@ namespace smt {
 // forward declaration
 class BoolectorSolver;
 
+// helpers
+Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children);
+
 class BoolectorTermIter : public TermIterBase
 {
  public:
-  BoolectorTermIter(const std::vector<Term>::const_iterator v_it)
-      : v_it(v_it){};
-  BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
+  BoolectorTermIter(Btor * btor, std::vector<BtorNode *>::const_iterator v_it)
+    : btor(btor), v_it(v_it) {};
+  BoolectorTermIter(const BoolectorTermIter & it) { btor = it.btor; v_it = it.v_it; };
   ~BoolectorTermIter(){};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
@@ -33,14 +38,15 @@ class BoolectorTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  std::vector<Term>::const_iterator v_it;
+  Btor * btor;
+  std::vector<BtorNode *>::const_iterator v_it;
 };
 
 class BoolectorTerm : public AbsTerm
 {
  public:
   BoolectorTerm(
-      Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym);
+      Btor * b, BoolectorNode * n);
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
@@ -58,10 +64,10 @@ class BoolectorTerm : public AbsTerm
  protected:
   Btor * btor;
   BoolectorNode * node;
-  std::vector<Term> children;
+  BtorNode * bn;
+  std::vector<BtorNode *> children;
   Op op;
   bool is_sym;
-  std::string repr;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

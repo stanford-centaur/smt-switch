@@ -5,12 +5,72 @@
 namespace smt {
 
 /* global variables */
-std::unordered_map<size_t, BoolectorTerm *> symbol_lookup;
+const std::unordered_map<BtorNodeKind, PrimOp>
+btorkind2primop({//{BTOR_INVALID_NODE}, // this should never happen
+                 {BTOR_CONST_NODE, NUM_OPS_AND_NULL},
+                 {BTOR_VAR_NODE, NUM_OPS_AND_NULL},
+                 {BTOR_PARAM_NODE, NUM_OPS_AND_NULL},
+                 {BTOR_BV_SLICE_NODE, Extract},
+                 {BTOR_BV_AND_NODE, BVAnd},
+                 {BTOR_BV_EQ_NODE, BVComp},
+                 {BTOR_FUN_EQ_NODE, Equal},
+                 {BTOR_BV_ADD_NODE, BVAdd},
+                 {BTOR_BV_MUL_NODE, BVMul},
+                 {BTOR_BV_ULT_NODE, BVUlt},
+                 {BTOR_BV_SLL_NODE, BVShl},
+                 {BTOR_BV_SRL_NODE, BVLshr},
+                 {BTOR_BV_UDIV_NODE, BVUdiv},
+                 {BTOR_BV_UREM_NODE, BVUrem},
+                 {BTOR_BV_CONCAT_NODE, Concat},
+                 {BTOR_APPLY_NODE, Apply},
+                 // {BTOR_FORALL_NODE}, // TODO: implement later
+                 // {BTOR_EXISTS_NODE}, // TODO: implement later
+                 // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully only for quantifiers
+                 {BTOR_COND_NODE, Ite},
+                 // {BTOR_ARGS_NODE}, // should already be flattened in BoolectorTerm constructor
+                 {BTOR_UF_NODE, NUM_OPS_AND_NULL},
+                 {BTOR_UPDATE_NODE, Store},
+                 {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // simplified node without children
+                 // {BTOR_NUM_OPS_NOE} // should never be used
+  });
+
+// helpers
+Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
+{
+  Op op;
+
+  BtorNode * bn = (BtorNode *) n;
+  BtorNodeKind k = bn->kind;
+  if (btorkind2primop.find(k) == btorkind2primop.end())
+  {
+    throw SmtException("Can't find PrimOp for BtorNodeKind " + std::to_string(k) + " see boolector/btornode.h");
+  }
+
+  PrimOp po = btorkind2primop.at(k);
+
+  // handle special cases
+  if ((po == Apply) && children[0]->is_array)
+  {
+    op = Op(Select);
+  }
+  else if (po == Extract)
+  {
+    uint32_t upper = ((BtorBVSliceNode *) btor_node_real_addr (bn))->upper;
+    uint32_t lower = ((BtorBVSliceNode *) btor_node_real_addr (bn))->lower;
+    op = Op(Extract, upper, lower);
+  }
+  else
+  {
+    op = Op(po);
+  }
+  return op;
+}
 
 /* BoolectorTermIter implementation */
 
 BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 {
+  btor = it.btor;
   v_it = it.v_it;
   return *this;
 };
@@ -19,68 +79,90 @@ void BoolectorTermIter::operator++() { v_it++; };
 
 void BoolectorTermIter::operator++(int junk) { v_it++; };
 
-const Term BoolectorTermIter::operator*() const { return *v_it; };
+const Term BoolectorTermIter::operator*() const
+{
+  // need to increment reference counter, because accessing child doesn't increment it
+  //  but BoolectorTerm destructor will release it
+  BoolectorNode * n = boolector_copy(btor, (BoolectorNode *) *v_it);
+  Term t(new BoolectorTerm(btor, n));
+  return t;
+};
 
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
-  return v_it == it.v_it;
+  return (v_it == it.v_it);
 };
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 {
-  return v_it != it.v_it;
+  return (v_it != it.v_it);
 };
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
   // guaranteed to be safe by caller of equal (TermIterBase)
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return v_it == bti.v_it;
+  return (v_it == bti.v_it);
 }
 
 /* end BoolectorTermIter implementation */
 
 /* BoolectorTerm implementation */
 
-BoolectorTerm::BoolectorTerm(
-    Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym)
-    : btor(b), node(n), children(c), op(o), is_sym(is_sym)
+BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
+  : btor(b), node(n), bn((BtorNode *) n)
 {
-  bool rewritten = false;
-  // check that it hasn't been rewritten to one of the children
-  if (symbol_lookup.find((size_t)node) != symbol_lookup.end())
-  {
-    // cache hit
-    BoolectorTerm * bt = symbol_lookup.at((size_t)node);
-    children = bt->children;
-    op = bt->op;
-    is_sym = bt->is_sym;
-    repr = bt->repr;
-    rewritten = true;
-  }
-  else if (op.prim_op != NUM_OPS_AND_NULL)
-  {
-    symbol_lookup[(size_t)node] = this;
-  }
+  // BTOR_PARAM_NODE is not a symbol
+  //  because it's not a symbolic constant, it's a free variable
+  //  which will be bound by a lambda
+  is_sym = ((bn->kind == BTOR_VAR_NODE) ||
+            (bn->kind == BTOR_UF_NODE));
 
-  // set the representation, for retrieving string later
-  // Note: vars and constants already have ways of retrieving char
-  //         representation
-  // TODO: Replace with proper implementation in boolector
-  if (!rewritten)
+  // for use in flattening arg nodes if necessary
+  BtorNode * tmp;
+  size_t j;
+
+  children.clear();
+  // if LSB is 1, node is negated
+  if((((uintptr_t) node) % 2) == 0)
   {
-    if (c.size())
+    for(size_t i=0; i < bn->arity; ++i)
     {
-      std::string btor_node_repr("(");
-      btor_node_repr += op.to_string();
-      for (auto t : c)
+
+      // flatten Btor Argument Nodes
+      if (bn->e[i]->kind == BTOR_ARGS_NODE)
       {
-        btor_node_repr += " " + t->to_string();
+        tmp = bn->e[i];
+        while (tmp->kind == BTOR_ARGS_NODE)
+        {
+          // btor arg nodes should be changed
+          // e.g. only the last node can also be an arg node
+          // there's an iterator but the regular .a library
+          // doesn't seem to define the necessary functions?
+          // not too hard to do it manually
+          for(j = 0; j < tmp->arity; ++j)
+          {
+            if (tmp->e[j]->kind != BTOR_ARGS_NODE)
+            {
+              children.push_back(tmp->e[j]);
+            }
+          }
+          tmp = tmp->e[j-1];
+        }
       }
-      btor_node_repr += ")";
-      // boolector_set_symbol(btor, node, btor_node_repr.c_str());
-      repr = btor_node_repr;
+      else
+      {
+        children.push_back(bn->e[i]);
+      }
     }
+    op = lookup_op(btor, node, children);
+  }
+  else
+  {
+    // Handle special case for NOT
+    op = Op(Not);
+    BtorNode * unnegated = (BtorNode *) boolector_not(btor, node);
+    children.push_back(unnegated);
   }
 }
 
@@ -145,7 +227,10 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbolic_const() const { return is_sym; }
+bool BoolectorTerm::is_symbolic_const() const
+{
+  return is_sym;
+}
 
 bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
 
@@ -165,7 +250,7 @@ std::string BoolectorTerm::to_string() const
   }
   else
   {
-    res_str = repr;
+    res_str = "btor_expr";
   }
   return res_str;
 }
@@ -196,12 +281,12 @@ uint64_t BoolectorTerm::to_int() const
  */
 TermIter BoolectorTerm::begin()
 {
-  return TermIter(new BoolectorTermIter(children.begin()));
+  return TermIter(new BoolectorTermIter(btor, children.begin()));
 }
 
 TermIter BoolectorTerm::end()
 {
-  return TermIter(new BoolectorTermIter(children.end()));
+  return TermIter(new BoolectorTermIter(btor, children.end()));
 }
 
 /* end BoolectorTerm implementation */
