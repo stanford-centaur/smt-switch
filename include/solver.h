@@ -18,7 +18,7 @@ class AbsSmtSolver
 {
  public:
   AbsSmtSolver(){};
-  virtual ~AbsSmtSolver(){};
+  virtual ~AbsSmtSolver() { delete symbols; };
 
   /* Sets a solver option with smt-lib 2 syntax
    * @param option name of the option
