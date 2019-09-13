@@ -144,6 +144,8 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
           {
             if (tmp->e[j]->kind != BTOR_ARGS_NODE)
             {
+              // increment external ref count
+              tmp->e[j]->ext_refs++;
               children.push_back(tmp->e[j]);
             }
           }
@@ -152,6 +154,8 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
       }
       else
       {
+        // increment external ref count
+        bn->e[i]->ext_refs++;
         children.push_back(bn->e[i]);
       }
     }
