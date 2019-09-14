@@ -350,7 +350,7 @@ Term BoolectorSolver::make_term(const std::string name, Sort sort)
 
   // note: giving the symbol a null Op
   Term term(new BoolectorTerm(btor, n, std::vector<Term>{}, Op(), true));
-  symbols->operator[](name) = term;
+  symbol_names.insert(name);
   return term;
 }
 
@@ -462,6 +462,18 @@ void BoolectorSolver::reset_assertions()
 {
   boolector_pop(btor, 1);
   boolector_push(btor, 1);
+}
+
+bool BoolectorSolver::has_symbol(const std::string name) const
+{
+  return (symbol_names.find(name) != symbol_names.end());
+}
+
+Term BoolectorSolver::lookup_symbol(const std::string name) const
+{
+  // assumes has_symbol is true
+  Term term(new BoolectorTerm(btor, boolector_match_node_by_symbol(btor, name.c_str()), std::vector<Term>{}, Op(), true));
+  return term;
 }
 
 Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const

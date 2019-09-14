@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "boolector_extensions.h"
@@ -65,6 +66,8 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(Op op, std::vector<Term> terms) const override;
   void reset() override;
   void reset_assertions() override;
+  bool has_symbol(const std::string name) const override;
+  Term lookup_symbol(const std::string name) const override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
@@ -72,6 +75,8 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
  protected:
   Btor * btor;
+  // store the names of created symbols for has_symbol
+  std::unordered_set<std::string> symbol_names;
 };
 }  // namespace smt
 

@@ -513,9 +513,9 @@ Term CVC4Solver::make_term(const std::string name, Sort sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers
-  if (symbols->find(name) != symbols->end())
+  if (symbols.find(name) != symbols.end())
   {
-    throw IncorrectUsageException(name + " is not an available symbol name.");
+    throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
 
   try
@@ -523,7 +523,7 @@ Term CVC4Solver::make_term(const std::string name, Sort sort)
     std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
     Term res(new ::smt::CVC4Term(t));
-    symbols->operator[](name) = res;
+    symbols[name] = res;
     return res;
   }
   catch(std::exception & e)
@@ -671,6 +671,25 @@ void CVC4Solver::reset_assertions()
     throw InternalSolverException(e.what());
   }
 }
+
+bool CVC4Solver::has_symbol(const std::string name) const
+{
+  return (symbols.find(name) != symbols.end());
+}
+
+Term CVC4Solver::lookup_symbol(const std::string name) const
+{
+  try
+  {
+    return symbols.at(name);
+  }
+  catch(std::exception & e)
+  {
+    throw IncorrectUsageException("Cannot lookup unknown symbol: " + name);
+  }
+
+}
+
 
 /**
    Helper function for creating an OpTerm from an Op

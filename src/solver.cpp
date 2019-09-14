@@ -119,10 +119,10 @@ Term AbsSmtSolver::transfer_term(const Term term)
       {
         s = transfer_sort(t->get_sort());
         std::string name = t->to_string();
-        if (symbols->find(name) != symbols->end())
+        if (has_symbol(name))
         {
           // symbol cache hit
-          cache[t] = symbols->at(name);
+          cache[t] = lookup_symbol(name);
         }
         else
         {

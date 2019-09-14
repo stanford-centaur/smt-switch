@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -60,12 +61,15 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, std::vector<Term> terms) const override;
   void reset() override;
   void reset_assertions() override;
+  bool has_symbol(const std::string name) const override;
+  Term lookup_symbol(const std::string name) const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
 
  protected:
   ::CVC4::api::Solver solver;
-
+  // keep track of created symbols for has_symbol and lookup_symbol
+  std::unordered_map<std::string, Term> symbols;
 };
 }  // namespace smt
 
