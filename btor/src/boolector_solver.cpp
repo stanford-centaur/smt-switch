@@ -330,6 +330,14 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 
 Term BoolectorSolver::make_term(const std::string name, Sort sort)
 {
+
+  // check that name is available
+  // avoids memory leak when boolector aborts
+  if (symbol_names.find(name) != symbol_names.end())
+  {
+    throw IncorrectUsageException("symbol " + name + " has already been used.");
+  }
+
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
 
