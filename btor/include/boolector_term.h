@@ -63,7 +63,12 @@ class BoolectorTerm : public AbsTerm
 
  protected:
   Btor * btor;
+  // the actual API level node that is used
   BoolectorNode * node;
+  // the real address of the boolector node
+  // allows us to look up:
+  //   kind: for retrieving operator
+  //   e:    for getting children
   BtorNode * bn;
   std::vector<BtorNode *> children;
   Op op;

@@ -122,52 +122,54 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   BtorNode * tmp;
   size_t j;
 
+  // populate children
   children.clear();
+  for(size_t i=0; i < bn->arity; ++i)
+  {
+    // flatten Btor Argument Nodes
+    if (bn->e[i]->kind == BTOR_ARGS_NODE)
+    {
+      tmp = bn->e[i];
+      while (tmp->kind == BTOR_ARGS_NODE)
+      {
+        // btor arg nodes should be changed
+        // e.g. only the last node can also be an arg node
+        // there's an iterator but the regular .a library
+        // doesn't seem to define the necessary functions?
+        // not too hard to do it manually
+        for(j = 0; j < tmp->arity; ++j)
+        {
+          if (tmp->e[j]->kind != BTOR_ARGS_NODE)
+          {
+            // increment external ref count
+            tmp->e[j]->ext_refs++;
+            children.push_back(tmp->e[j]);
+          }
+        }
+        tmp = tmp->e[j-1];
+      }
+    }
+    else
+    {
+      // increment external ref count
+      bn->e[i]->ext_refs++;
+      children.push_back(bn->e[i]);
+    }
+  }
+
+  // Get operator -- NOTE: this MUST be AFTER populating children
   // if LSB is 1, node is negated
   // don't care about negated constants
+  //   constants are normalized in btor, but we don't care at the smt-switch level
   if(((((uintptr_t) node) % 2) == 0) ||
      bn->kind == BTOR_CONST_NODE)
   {
-    for(size_t i=0; i < bn->arity; ++i)
-    {
-      // flatten Btor Argument Nodes
-      if (bn->e[i]->kind == BTOR_ARGS_NODE)
-      {
-        tmp = bn->e[i];
-        while (tmp->kind == BTOR_ARGS_NODE)
-        {
-          // btor arg nodes should be changed
-          // e.g. only the last node can also be an arg node
-          // there's an iterator but the regular .a library
-          // doesn't seem to define the necessary functions?
-          // not too hard to do it manually
-          for(j = 0; j < tmp->arity; ++j)
-          {
-            if (tmp->e[j]->kind != BTOR_ARGS_NODE)
-            {
-              // increment external ref count
-              tmp->e[j]->ext_refs++;
-              children.push_back(tmp->e[j]);
-            }
-          }
-          tmp = tmp->e[j-1];
-        }
-      }
-      else
-      {
-        // increment external ref count
-        bn->e[i]->ext_refs++;
-        children.push_back(bn->e[i]);
-      }
-    }
     op = lookup_op(btor, node, children);
   }
   else
   {
     // Handle special case for NOT
-    op = Op(Not);
-    BtorNode * unnegated = (BtorNode *) boolector_not(btor, node);
-    children.push_back(unnegated);
+    op = Op(BVNot);
   }
 }
 
