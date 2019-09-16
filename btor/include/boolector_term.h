@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "boolector.h"
+#include "btorcore.h"
 #include "btornode.h"
-#include "utils/btornodeiter.h"
 
 #include "term.h"
 #include "utils.h"

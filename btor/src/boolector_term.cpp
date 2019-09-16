@@ -112,6 +112,14 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   : btor(b), node(n), bn((BtorNode *) n)
 {
+
+  if (btor_node_is_proxy(bn))
+  {
+    // // this doesn't get linked in correctly for some reason
+    // bn = btor_node_get_simplified(btor, bn);
+    // throw NotImplementedException("Need to handle proxy nodes");
+  }
+
   // BTOR_PARAM_NODE is not a symbol
   //  because it's not a symbolic constant, it's a free variable
   //  which will be bound by a lambda
