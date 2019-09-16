@@ -30,7 +30,7 @@ btorkind2primop({//{BTOR_INVALID_NODE}, // this should never happen
                  // {BTOR_ARGS_NODE}, // should already be flattened in BoolectorTerm constructor
                  {BTOR_UF_NODE, NUM_OPS_AND_NULL},
                  {BTOR_UPDATE_NODE, Store},
-                 {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // simplified node without children
+                 // {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // should never happen
                  // {BTOR_NUM_OPS_NOE} // should never be used
   });
 
@@ -115,9 +115,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
 
   if (btor_node_is_proxy(bn))
   {
-    // // this doesn't get linked in correctly for some reason
-    // bn = btor_node_get_simplified(btor, bn);
-    // throw NotImplementedException("Need to handle proxy nodes");
+    bn = btor_node_get_simplified(btor, bn);
   }
 
   // BTOR_PARAM_NODE is not a symbol
