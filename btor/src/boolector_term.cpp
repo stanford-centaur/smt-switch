@@ -39,7 +39,7 @@ Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
 {
   Op op;
 
-  BtorNode * bn = (BtorNode *) n;
+  BtorNode * bn = BTOR_IMPORT_BOOLECTOR_NODE(n);
   BtorNodeKind k = bn->kind;
   if (btorkind2primop.find(k) == btorkind2primop.end())
   {
@@ -83,7 +83,7 @@ const Term BoolectorTermIter::operator*() const
 {
   // need to increment reference counter, because accessing child doesn't increment it
   //  but BoolectorTerm destructor will release it
-  BoolectorNode * n = boolector_copy(btor, (BoolectorNode *) *v_it);
+  BoolectorNode * n = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(*v_it));
   Term t(new BoolectorTerm(btor, n));
   return t;
 };
@@ -110,7 +110,7 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 /* BoolectorTerm implementation */
 
 BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
-  : btor(b), node(n), bn((BtorNode *) n)
+  : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
 
   if (btor_node_is_proxy(bn))
