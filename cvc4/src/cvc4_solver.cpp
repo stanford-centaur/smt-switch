@@ -690,6 +690,12 @@ Term CVC4Solver::lookup_symbol(const std::string name) const
 
 }
 
+void CVC4Solver::dump_smt2(FILE * file) const
+{
+  throw NotImplementedException("Not yet implemented dumping smt2");
+}
+
+
 
 /**
    Helper function for creating an OpTerm from an Op

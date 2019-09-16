@@ -222,6 +222,8 @@ class AbsSmtSolver
    */
   virtual Term value_from_smt2(const std::string val, const Sort sort) const;
 
+  virtual void dump_smt2(FILE * file) const = 0;
+
  protected:
 };
 

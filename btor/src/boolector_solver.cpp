@@ -473,6 +473,11 @@ Term BoolectorSolver::lookup_symbol(const std::string name) const
   return term;
 }
 
+void BoolectorSolver::dump_smt2(FILE * file) const
+{
+  boolector_dump_smt2(btor, file);
+}
+
 Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
 {
   try

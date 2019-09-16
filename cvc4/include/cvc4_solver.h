@@ -63,6 +63,7 @@ class CVC4Solver : public AbsSmtSolver
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
   Term lookup_symbol(const std::string name) const override;
+  void dump_smt2(FILE * file) const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
 
