@@ -124,11 +124,12 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
 
   children.clear();
   // if LSB is 1, node is negated
-  if((((uintptr_t) node) % 2) == 0)
+  // don't care about negated constants
+  if(((((uintptr_t) node) % 2) == 0) ||
+     bn->kind == BTOR_CONST_NODE)
   {
     for(size_t i=0; i < bn->arity; ++i)
     {
-
       // flatten Btor Argument Nodes
       if (bn->e[i]->kind == BTOR_ARGS_NODE)
       {
