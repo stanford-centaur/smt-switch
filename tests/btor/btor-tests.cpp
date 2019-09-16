@@ -25,7 +25,7 @@ int main()
     Term x = s->make_term("x", bvsort8);
     assert(false);
   }
-  catch (InternalSolverException & e)
+  catch (IncorrectUsageException & e)
   {
     cout << "caught error with message: " << e.what() << endl;
   }
