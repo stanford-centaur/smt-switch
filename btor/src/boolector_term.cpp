@@ -115,7 +115,9 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
 
   if (btor_node_is_proxy(bn))
   {
-    bn = btor_node_get_simplified(btor, bn);
+    // change to this on smtcomp19 branch -- will be merged to master soon
+    // bn = btor_node_get_simplified(btor, bn);
+    bn = btor_pointer_chase_simplified_exp(btor, bn);
   }
 
   // BTOR_PARAM_NODE is not a symbol
