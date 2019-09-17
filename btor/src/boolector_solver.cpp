@@ -153,22 +153,28 @@ Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) 
   return term;
 }
 
-Term BoolectorSolver::make_value(const Op op, const Term val, const Sort sort) const
+Term BoolectorSolver::make_value(const Op op,
+                                 const Term val,
+                                 const Sort sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {
-    std::shared_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(val);
+    std::shared_ptr<BoolectorTerm> bt =
+        std::static_pointer_cast<BoolectorTerm>(val);
     std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(sort);
+        std::static_pointer_cast<BoolectorSortBase>(sort);
     // TODO: check if we can make two with the same symbol
     // TODO: smt-lib semantics don't allow naming constant arrays directly
     std::string name = "const-arr-" + val->to_string();
-    Term res(new BoolectorTerm(btor, boolector_const_array(btor, bs->sort, bt->node, name.c_str())));
+    Term res(new BoolectorTerm(
+        btor, boolector_const_array(btor, bs->sort, bt->node, name.c_str())));
     return res;
   }
   else
   {
-    throw IncorrectUsageException("Constant arrays are the only value that can be created with mkTerm(Op, Term, Sort) but the sort is not an array.");
+    throw IncorrectUsageException(
+        "Constant arrays are the only value that can be created with "
+        "mkTerm(Op, Term, Sort) but the sort is not an array.");
   }
 }
 

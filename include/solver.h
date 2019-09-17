@@ -134,7 +134,9 @@ class AbsSmtSolver
    * @param sort the sort of value to create
    * @return a value term with Sort sort
    */
-  virtual Term make_value(const Op op, const Term val, const Sort sort) const = 0;
+  virtual Term make_value(const Op op,
+                          const Term val,
+                          const Sort sort) const = 0;
 
   /* Make a symbolic constant or function term
    * @param name the name of constant or function
