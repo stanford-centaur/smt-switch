@@ -46,10 +46,17 @@ int main()
   r = s->check_sat();
   assert(r.is_sat());
 
-  s->reset_assertions();
-  s->assert_formula(assumption);
-  r = s->check_sat();
-  assert(r.is_sat());
+  try
+  {
+    s->reset_assertions();
+    s->assert_formula(assumption);
+    r = s->check_sat();
+    assert(r.is_sat());
+  }
+  catch (NotImplementedException & e)
+  {
+    cout << e.what() << endl;
+  }
 
   return 0;
 }

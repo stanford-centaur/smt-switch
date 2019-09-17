@@ -482,8 +482,8 @@ void BoolectorSolver::reset()
 
 void BoolectorSolver::reset_assertions()
 {
-  boolector_pop(btor, 1);
-  boolector_push(btor, 1);
+  throw NotImplementedException(
+      "Boolector does not have reset assertions yet.");
 }
 
 bool BoolectorSolver::has_symbol(const std::string name) const

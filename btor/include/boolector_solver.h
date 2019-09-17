@@ -30,10 +30,6 @@ class BoolectorSolver : public AbsSmtSolver
       throw InternalSolverException(msg);
     };
     boolector_set_abort(throw_exception);
-    // to support resetting assertions, wrap everything in a push/pop
-    // TODO: replace this with a proper implementation
-    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
-    boolector_push(btor, 1);
   };
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
