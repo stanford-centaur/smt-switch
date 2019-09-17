@@ -128,6 +128,14 @@ class AbsSmtSolver
    */
   virtual Term make_value(const std::string val, const Sort sort, unsigned int base = 10) const = 0;
 
+  /* Make a value of a particular sort, such as constant arrays
+   * @param op the operator used to create the value (.e.g Const_Array)
+   * @param val the Term used to create the value (.e.g constant array with 0)
+   * @param sort the sort of value to create
+   * @return a value term with Sort sort
+   */
+  virtual Term make_value(const Op op, const Term val, const Sort sort) const = 0;
+
   /* Make a symbolic constant or function term
    * @param name the name of constant or function
    * @param sort the sort of this constant or function

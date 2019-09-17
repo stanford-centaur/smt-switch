@@ -7,6 +7,7 @@ set(BTOR_TESTS
   btor-incremental
   btor-transfer
   btor-negation
+  btor-const-arrays
 )
 
 foreach(test ${BTOR_TESTS})
