@@ -18,7 +18,7 @@ class AbsSmtSolver
 {
  public:
   AbsSmtSolver(){};
-  virtual ~AbsSmtSolver() { };
+  virtual ~AbsSmtSolver(){};
 
   /* Sets a solver option with smt-lib 2 syntax
    * @param option name of the option
@@ -200,7 +200,7 @@ class AbsSmtSolver
    * @return the term with the substitution map applied
    */
   virtual Term substitute(const Term term,
-                  const UnorderedTermMap & substitution_map) const;
+                          const UnorderedTermMap & substitution_map) const;
 
   /* Transfer a sort from some other solver to this solver
    *    Warning: does not check if the term already belongs to this solver

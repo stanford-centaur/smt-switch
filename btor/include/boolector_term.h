@@ -4,8 +4,7 @@
 #include <vector>
 
 #include "boolector.h"
-extern "C"
-{
+extern "C" {
 #include "btorcore.h"
 #include "btornode.h"
 #include "utils/btornodeiter.h"
@@ -22,14 +21,20 @@ namespace smt {
 class BoolectorSolver;
 
 // helpers
-Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children);
+Op lookup_op(Btor * btor,
+             BoolectorNode * n,
+             std::vector<BtorNode *> & children);
 
 class BoolectorTermIter : public TermIterBase
 {
  public:
   BoolectorTermIter(Btor * btor, std::vector<BtorNode *>::const_iterator v_it)
-    : btor(btor), v_it(v_it) {};
-  BoolectorTermIter(const BoolectorTermIter & it) { btor = it.btor; v_it = it.v_it; };
+      : btor(btor), v_it(v_it){};
+  BoolectorTermIter(const BoolectorTermIter & it)
+  {
+    btor = it.btor;
+    v_it = it.v_it;
+  };
   ~BoolectorTermIter(){};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
@@ -49,8 +54,7 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(
-      Btor * b, BoolectorNode * n);
+  BoolectorTerm(Btor * b, BoolectorNode * n);
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;

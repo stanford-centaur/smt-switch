@@ -74,6 +74,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
   void dump_smt2(FILE * file) const override;
+
  protected:
   Btor * btor;
   // store the names of created symbols for has_symbol

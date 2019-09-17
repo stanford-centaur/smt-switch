@@ -62,18 +62,23 @@ Sort AbsSmtSolver::transfer_sort(const Sort sort)
   }
   else if (sk == ARRAY)
   {
-    // recursive call, but it should be okay because we don't expect deep nesting of arrays
-    return make_sort(sk, transfer_sort(sort->get_indexsort()), transfer_sort(sort->get_elemsort()));
+    // recursive call, but it should be okay because we don't expect deep
+    // nesting of arrays
+    return make_sort(sk,
+                     transfer_sort(sort->get_indexsort()),
+                     transfer_sort(sort->get_elemsort()));
   }
   else if (sk == FUNCTION)
   {
-    // recursive call, but it should be okay because we don't expect deep nesting of functions either
+    // recursive call, but it should be okay because we don't expect deep
+    // nesting of functions either
     std::vector<Sort> domain_sorts;
     for (auto s : sort->get_domain_sorts())
     {
       domain_sorts.push_back(transfer_sort(s));
     }
-    return make_sort(sk, domain_sorts, transfer_sort(sort->get_codomain_sort()));
+    return make_sort(
+        sk, domain_sorts, transfer_sort(sort->get_codomain_sort()));
   }
   else
   {
@@ -84,7 +89,7 @@ Sort AbsSmtSolver::transfer_sort(const Sort sort)
 Term AbsSmtSolver::transfer_term(const Term term)
 {
   UnorderedTermMap cache;
-  TermVec to_visit { term };
+  TermVec to_visit{ term };
   TermVec cached_children;
   Term t;
   Sort s;
@@ -152,7 +157,8 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
     // TODO: Only put checks in debug mode
     if (val.length() < 2)
     {
-      throw IncorrectUsageException("Can't read " + val + " as a bit-vector sort.");
+      throw IncorrectUsageException("Can't read " + val
+                                    + " as a bit-vector sort.");
     }
 
     std::string prefix = val.substr(0, 2);
@@ -160,30 +166,32 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
     if (prefix == "(_")
     {
       std::istringstream iss(val);
-      std::vector<std::string> tokens(std::istream_iterator<std::string>{iss},
+      std::vector<std::string> tokens(std::istream_iterator<std::string>{ iss },
                                       std::istream_iterator<std::string>());
       bvval = tokens[1];
       if (tokens[1].substr(0, 2) != "bv")
       {
-        throw IncorrectUsageException("Can't read " + val + " as a bit-vector sort.");
+        throw IncorrectUsageException("Can't read " + val
+                                      + " as a bit-vector sort.");
       }
 
-      bvval = bvval.substr(2, bvval.length()-2);
+      bvval = bvval.substr(2, bvval.length() - 2);
       return make_value(bvval, sort, 10);
     }
     else if (prefix == "#b")
     {
-      bvval = val.substr(2, val.length()-2);
+      bvval = val.substr(2, val.length() - 2);
       return make_value(bvval, sort, 2);
     }
     else if (prefix == "#x")
     {
-      bvval = val.substr(2, val.length()-2);
+      bvval = val.substr(2, val.length() - 2);
       return make_value(bvval, sort, 16);
     }
     else
     {
-      throw IncorrectUsageException("Can't read " + val + " as a bit-vector sort.");
+      throw IncorrectUsageException("Can't read " + val
+                                    + " as a bit-vector sort.");
     }
   }
   else if ((sk == INT) || (sk == REAL))
@@ -192,7 +200,8 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
   }
   else
   {
-    throw NotImplementedException("Only taking bv, int and real value terms currently.");
+    throw NotImplementedException(
+        "Only taking bv, int and real value terms currently.");
   }
 }
 

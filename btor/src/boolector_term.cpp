@@ -5,34 +5,36 @@
 namespace smt {
 
 /* global variables */
-const std::unordered_map<BtorNodeKind, PrimOp>
-btorkind2primop({//{BTOR_INVALID_NODE}, // this should never happen
-                 {BTOR_CONST_NODE, NUM_OPS_AND_NULL},
-                 {BTOR_VAR_NODE, NUM_OPS_AND_NULL},
-                 {BTOR_PARAM_NODE, NUM_OPS_AND_NULL},
-                 {BTOR_BV_SLICE_NODE, Extract},
-                 {BTOR_BV_AND_NODE, BVAnd},
-                 {BTOR_BV_EQ_NODE, BVComp},
-                 {BTOR_FUN_EQ_NODE, Equal},
-                 {BTOR_BV_ADD_NODE, BVAdd},
-                 {BTOR_BV_MUL_NODE, BVMul},
-                 {BTOR_BV_ULT_NODE, BVUlt},
-                 {BTOR_BV_SLL_NODE, BVShl},
-                 {BTOR_BV_SRL_NODE, BVLshr},
-                 {BTOR_BV_UDIV_NODE, BVUdiv},
-                 {BTOR_BV_UREM_NODE, BVUrem},
-                 {BTOR_BV_CONCAT_NODE, Concat},
-                 {BTOR_APPLY_NODE, Apply},
-                 // {BTOR_FORALL_NODE}, // TODO: implement later
-                 // {BTOR_EXISTS_NODE}, // TODO: implement later
-                 // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully only for quantifiers
-                 {BTOR_COND_NODE, Ite},
-                 // {BTOR_ARGS_NODE}, // should already be flattened in BoolectorTerm constructor
-                 {BTOR_UF_NODE, NUM_OPS_AND_NULL},
-                 {BTOR_UPDATE_NODE, Store},
-                 // {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // should never happen
-                 // {BTOR_NUM_OPS_NOE} // should never be used
-  });
+const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
+    //{BTOR_INVALID_NODE}, // this should never happen
+    { BTOR_CONST_NODE, NUM_OPS_AND_NULL },
+    { BTOR_VAR_NODE, NUM_OPS_AND_NULL },
+    { BTOR_PARAM_NODE, NUM_OPS_AND_NULL },
+    { BTOR_BV_SLICE_NODE, Extract },
+    { BTOR_BV_AND_NODE, BVAnd },
+    { BTOR_BV_EQ_NODE, BVComp },
+    { BTOR_FUN_EQ_NODE, Equal },
+    { BTOR_BV_ADD_NODE, BVAdd },
+    { BTOR_BV_MUL_NODE, BVMul },
+    { BTOR_BV_ULT_NODE, BVUlt },
+    { BTOR_BV_SLL_NODE, BVShl },
+    { BTOR_BV_SRL_NODE, BVLshr },
+    { BTOR_BV_UDIV_NODE, BVUdiv },
+    { BTOR_BV_UREM_NODE, BVUrem },
+    { BTOR_BV_CONCAT_NODE, Concat },
+    { BTOR_APPLY_NODE, Apply },
+    // {BTOR_FORALL_NODE}, // TODO: implement later
+    // {BTOR_EXISTS_NODE}, // TODO: implement later
+    // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully
+    // only for quantifiers
+    { BTOR_COND_NODE, Ite },
+    // {BTOR_ARGS_NODE}, // should already be flattened in BoolectorTerm
+    // constructor
+    { BTOR_UF_NODE, NUM_OPS_AND_NULL },
+    { BTOR_UPDATE_NODE, Store },
+    // {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // should never happen
+    // {BTOR_NUM_OPS_NOE} // should never be used
+});
 
 // helpers
 Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
@@ -43,7 +45,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
   BtorNodeKind k = bn->kind;
   if (btorkind2primop.find(k) == btorkind2primop.end())
   {
-    throw SmtException("Can't find PrimOp for BtorNodeKind " + std::to_string(k) + " see boolector/btornode.h");
+    throw SmtException("Can't find PrimOp for BtorNodeKind " + std::to_string(k)
+                       + " see boolector/btornode.h");
   }
 
   PrimOp po = btorkind2primop.at(k);
@@ -55,8 +58,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
   }
   else if (po == Extract)
   {
-    uint32_t upper = ((BtorBVSliceNode *) btor_node_real_addr (bn))->upper;
-    uint32_t lower = ((BtorBVSliceNode *) btor_node_real_addr (bn))->lower;
+    uint32_t upper = ((BtorBVSliceNode *)btor_node_real_addr(bn))->upper;
+    uint32_t lower = ((BtorBVSliceNode *)btor_node_real_addr(bn))->lower;
     op = Op(Extract, upper, lower);
   }
   else
@@ -81,7 +84,8 @@ void BoolectorTermIter::operator++(int junk) { v_it++; };
 
 const Term BoolectorTermIter::operator*() const
 {
-  // need to increment reference counter, because accessing child doesn't increment it
+  // need to increment reference counter, because accessing child doesn't
+  // increment it
   //  but BoolectorTerm destructor will release it
   BoolectorNode * n = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(*v_it));
   Term t(new BoolectorTerm(btor, n));
@@ -110,9 +114,8 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 /* BoolectorTerm implementation */
 
 BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
-  : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
+    : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
-
   if (btor_node_is_proxy(bn))
   {
     // change to this on smtcomp19 branch -- will be merged to master soon
@@ -123,8 +126,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   // BTOR_PARAM_NODE is not a symbol
   //  because it's not a symbolic constant, it's a free variable
   //  which will be bound by a lambda
-  is_sym = ((bn->kind == BTOR_VAR_NODE) ||
-            (bn->kind == BTOR_UF_NODE));
+  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
 
   // for use in flattening arg nodes if necessary
   BtorNode * tmp;
@@ -135,11 +137,11 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   // Get operator and children
   // if LSB is 1, node is negated
   // don't care about negated constants
-  //   constants are normalized in btor, but we don't care at the smt-switch level
-  if(((((uintptr_t) node) % 2) == 0) ||
-     bn->kind == BTOR_CONST_NODE)
+  //   constants are normalized in btor, but we don't care at the smt-switch
+  //   level
+  if (((((uintptr_t)node) % 2) == 0) || bn->kind == BTOR_CONST_NODE)
   {
-    for(size_t i=0; i < bn->arity; ++i)
+    for (size_t i = 0; i < bn->arity; ++i)
     {
       // flatten Btor Argument Nodes
       if (bn->e[i]->kind == BTOR_ARGS_NODE)
@@ -152,7 +154,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
           // there's an iterator but the regular .a library
           // doesn't seem to define the necessary functions?
           // not too hard to do it manually
-          for(j = 0; j < tmp->arity; ++j)
+          for (j = 0; j < tmp->arity; ++j)
           {
             if (tmp->e[j]->kind != BTOR_ARGS_NODE)
             {
@@ -161,7 +163,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
               children.push_back(tmp->e[j]);
             }
           }
-          tmp = tmp->e[j-1];
+          tmp = tmp->e[j - 1];
         }
       }
       else
@@ -243,10 +245,7 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbolic_const() const
-{
-  return is_sym;
-}
+bool BoolectorTerm::is_symbolic_const() const { return is_sym; }
 
 bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
 

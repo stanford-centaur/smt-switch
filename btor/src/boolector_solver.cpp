@@ -144,7 +144,9 @@ Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) 
   }
   else
   {
-    throw IncorrectUsageException("Only accepted bases are 2, 10 and 16, but got " + std::to_string(base));
+    throw IncorrectUsageException(
+        "Only accepted bases are 2, 10 and 16, but got "
+        + std::to_string(base));
   }
 
   Term term(new BoolectorTerm(btor, node));
@@ -319,7 +321,6 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 
 Term BoolectorSolver::make_term(const std::string name, Sort sort)
 {
-
   // check that name is available
   // avoids memory leak when boolector aborts
   if (symbol_names.find(name) != symbol_names.end())
@@ -393,8 +394,7 @@ Term BoolectorSolver::make_term(Op op, Term t) const
       msg += to_string(op.prim_op);
       throw IncorrectUsageException(msg.c_str());
     }
-    term = Term(
-        new BoolectorTerm(btor, btor_res));
+    term = Term(new BoolectorTerm(btor, btor_res));
     return term;
   }
 }
@@ -469,7 +469,8 @@ bool BoolectorSolver::has_symbol(const std::string name) const
 Term BoolectorSolver::lookup_symbol(const std::string name) const
 {
   // assumes has_symbol is true
-  Term term(new BoolectorTerm(btor, boolector_match_node_by_symbol(btor, name.c_str())));
+  Term term(new BoolectorTerm(
+      btor, boolector_match_node_by_symbol(btor, name.c_str())));
   return term;
 }
 
@@ -485,8 +486,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
     std::shared_ptr<BoolectorTerm> bt =
         std::static_pointer_cast<BoolectorTerm>(t);
     BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
-    Term term(
-        new BoolectorTerm(btor, result));
+    Term term(new BoolectorTerm(btor, result));
     return term;
   }
   catch (std::out_of_range & o)

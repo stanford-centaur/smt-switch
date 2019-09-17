@@ -77,7 +77,8 @@ int main()
   assert(s->check_sat().is_sat());
 
   assert(s->make_value(4, bvsort8) == s->value_from_smt2("(_ bv4 8)", bvsort8));
-  assert(s->make_value(4, bvsort8) == s->value_from_smt2("#b00000100", bvsort8));
+  assert(s->make_value(4, bvsort8)
+         == s->value_from_smt2("#b00000100", bvsort8));
 
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);
