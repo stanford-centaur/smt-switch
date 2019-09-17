@@ -269,6 +269,11 @@ Term CVC4Solver::make_value(std::string val, Sort sort, unsigned int base) const
   }
 }
 
+Term CVC4Solver::make_value(const Op op, const Term val, const Sort sort) const
+{
+  throw NotImplementedException("Constant arrays not yet implemented.");
+}
+
 void CVC4Solver::assert_formula(const Term& t) const
 {
   try
