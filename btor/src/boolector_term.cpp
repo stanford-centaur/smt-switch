@@ -159,7 +159,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
             if (tmp->e[j]->kind != BTOR_ARGS_NODE)
             {
               // increment external ref count
-              tmp->e[j]->ext_refs++;
+              btor_node_real_addr(tmp->e[j])->ext_refs++;
               children.push_back(tmp->e[j]);
             }
           }
@@ -169,7 +169,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
       else
       {
         // increment external ref count
-        bn->e[i]->ext_refs++;
+        btor_node_real_addr(bn->e[i])->ext_refs++;
         children.push_back(bn->e[i]);
       }
     }
@@ -179,6 +179,8 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   else
   {
     // child is the non-negated node, which is bn (used btor_node_real_addr)
+    // TODO: make sure we're supposed to increment here
+    bn->ext_refs++;
     children.push_back(bn);
     op = Op(BVNot);
   }
