@@ -22,12 +22,17 @@ int main()
   Sort bvsort8 = s->make_sort(BV, 8);
   Sort arrsort = s->make_sort(ARRAY, bvsort4, bvsort8);
 
-  Term idx = s->make_term("idx", bvsort4);
+  Term idx0 = s->make_term("idx0", bvsort4);
+  Term idx1 = s->make_term("idx1", bvsort4);
+  Term val = s->make_term("val", bvsort8);
   Term zero = s->make_value(0, bvsort8);
   Term const_arr = s->make_value(Const_Array, zero, arrsort);
+  Term wrarr = s->make_term(Store, const_arr, idx0, val);
 
-  Term constraint =
-      s->make_term(Distinct, s->make_term(Select, const_arr, idx), zero);
+  Term constraint = s->make_term(And,
+                                 s->make_term(Distinct, s->make_term(Select, wrarr, idx1), zero),
+                                 s->make_term(Distinct, idx0, idx1)
+                                 );
   s->assert_formula(constraint);
   Result r = s->check_sat();
   cout << r << endl;
