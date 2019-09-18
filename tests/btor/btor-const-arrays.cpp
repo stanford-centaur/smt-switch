@@ -29,10 +29,10 @@ int main()
   Term const_arr = s->make_value(Const_Array, zero, arrsort);
   Term wrarr = s->make_term(Store, const_arr, idx0, val);
 
-  Term constraint = s->make_term(And,
-                                 s->make_term(Distinct, s->make_term(Select, wrarr, idx1), zero),
-                                 s->make_term(Distinct, idx0, idx1)
-                                 );
+  Term constraint = s->make_term(
+      And,
+      s->make_term(Distinct, s->make_term(Select, wrarr, idx1), zero),
+      s->make_term(Distinct, idx0, idx1));
   s->assert_formula(constraint);
   Result r = s->check_sat();
   cout << r << endl;
