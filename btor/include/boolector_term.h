@@ -21,9 +21,7 @@ namespace smt {
 class BoolectorSolver;
 
 // helpers
-Op lookup_op(Btor * btor,
-             BoolectorNode * n,
-             std::vector<BtorNode *> & children);
+Op lookup_op(Btor * btor, BoolectorNode * n);
 
 class BoolectorTermIter : public TermIterBase
 {

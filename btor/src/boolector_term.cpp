@@ -37,7 +37,7 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
 });
 
 // helpers
-Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
+Op lookup_op(Btor * btor, BoolectorNode * n)
 {
   Op op;
 
@@ -52,7 +52,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n, std::vector<BtorNode *> & children)
   PrimOp po = btorkind2primop.at(k);
 
   // handle special cases
-  if ((po == Apply) && children[0]->is_array)
+  if ((po == Apply)
+      && btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n))->is_array)
   {
     op = Op(Select);
   }
@@ -173,8 +174,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
         children.push_back(bn->e[i]);
       }
     }
-    // NOTE: this must be AFTER populating children
-    op = lookup_op(btor, node, children);
+    op = lookup_op(btor, node);
   }
   else
   {
