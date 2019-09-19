@@ -76,6 +76,7 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 {
   btor = it.btor;
   total_idx = it.total_idx;
+  arity = it.arity;
   idx_access = it.idx_access;
   for (size_t i = 0; i < 3; i++)
   {
@@ -89,11 +90,12 @@ void BoolectorTermIter::operator++()
   total_idx++;
   idx_access++;
   // flattening array when hitting an args_node
-  if (e[2]->kind == BTOR_ARGS_NODE)
+  if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
   {
     for (size_t i = 0; i < 3; i++)
     {
       e[i] = e[2]->e[i];
+      arity = e[2]->arity;
     }
     // reset access index
     idx_access = 0;
@@ -105,11 +107,12 @@ void BoolectorTermIter::operator++(int junk)
   total_idx++;
   idx_access++;
   // flattening array when hitting an args_node
-  if (e[2]->kind == BTOR_ARGS_NODE)
+  if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
   {
     for (size_t i = 0; i < 3; i++)
     {
       e[i] = e[2]->e[i];
+      arity = e[2]->arity;
     }
     // reset access index
     idx_access = 0;
@@ -155,6 +158,10 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
       node(n),
       bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
+  // BTOR_PARAM_NODE is not a symbol
+  //  because it's not a symbolic constant, it's a free variable
+  //  which will be bound by a lambda
+  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
   if (btor_node_is_proxy(bn))
   {
     // change to this on smtcomp19 branch -- will be merged to master soon
@@ -245,10 +252,7 @@ Sort BoolectorTerm::get_sort() const
 
 bool BoolectorTerm::is_symbolic_const() const
 {
-  // BTOR_PARAM_NODE is not a symbol
-  //  because it's not a symbolic constant, it's a free variable
-  //  which will be bound by a lambda
-  return ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
+  return is_sym;
 }
 
 bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
@@ -262,7 +266,7 @@ std::string BoolectorTerm::to_string() const
     res_str = "#b" + std::string(btor_cstr);
     boolector_free_bits(btor, btor_cstr);
   }
-  else if (is_symbolic_const())
+  else if (is_sym)
   {
     const char * btor_cstr = boolector_get_symbol(btor, node);
     res_str = std::string(btor_cstr);
@@ -300,42 +304,52 @@ uint64_t BoolectorTerm::to_int() const
  */
 TermIter BoolectorTerm::begin()
 {
+  if (btor_node_is_proxy(bn))
+  {
+    bn = btor_pointer_chase_simplified_exp(btor, bn);
+  }
 
   if (negated)
   {
     BtorNode * e[3];
     // the negated value is the real address stored in bn
     e[0] = bn;
-    return TermIter(new BoolectorTermIter(btor, e, 0));
+    return TermIter(new BoolectorTermIter(btor, e, 0, 1));
   }
   else
   {
-    return TermIter(new BoolectorTermIter(btor, bn->e, 0));
+    return TermIter(new BoolectorTermIter(btor, bn->e, 0, bn->arity));
   }
 }
 
 TermIter BoolectorTerm::end()
 {
+  if (btor_node_is_proxy(bn))
+  {
+    bn = btor_pointer_chase_simplified_exp(btor, bn);
+  }
+
   if (negated)
   {
     BtorNode * e[3];
     // the negated value is the real address stored in bn
     e[0] = bn;
-    return TermIter(new BoolectorTermIter(btor, e, 1));
+    return TermIter(new BoolectorTermIter(btor, e, 1, 1));
   }
   else
   {
     // flatten args nodes (chains of arguments)
     int idx = 0;
     BtorNode * tmp = bn;
-    while (tmp->e[tmp->arity-1]->kind == BTOR_ARGS_NODE)
+    while (tmp->arity && (tmp->e[tmp->arity-1]->kind == BTOR_ARGS_NODE))
     {
       // adding one for each of the children before the ARGS node
       idx += tmp->arity-1;
       tmp = tmp->e[tmp->arity-1];
     }
     idx += tmp->arity;
-    return TermIter(new BoolectorTermIter(btor, tmp->e, idx));
+    int arity = tmp->arity;
+    return TermIter(new BoolectorTermIter(btor, tmp->e, idx, arity));
   }
 }
 

@@ -27,8 +27,8 @@ class BoolectorTermIter : public TermIterBase
 {
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of size 3
-  BoolectorTermIter(Btor * btor, BtorNode* (& refarray)[3], int total_idx)
-    : btor(btor), total_idx(total_idx), idx_access(0)
+  BoolectorTermIter(Btor * btor, BtorNode* (& refarray)[3], int total_idx, int arity)
+    : btor(btor), total_idx(total_idx), arity(arity), idx_access(0)
   {
     for (size_t i = 0; i < 3; i++)
     {
@@ -39,6 +39,7 @@ class BoolectorTermIter : public TermIterBase
   {
     btor = it.btor;
     total_idx = it.total_idx;
+    arity = it.arity;
     idx_access = it.idx_access;
     for (size_t i = 0; i < 3; i++)
     {
@@ -60,6 +61,7 @@ class BoolectorTermIter : public TermIterBase
   Btor * btor;
   BtorNode* e[3];
   int total_idx;
+  int arity;
   int idx_access;
 };
 
@@ -92,6 +94,8 @@ class BoolectorTerm : public AbsTerm
   BtorNode * bn;
   // true iff the node is negated
   bool negated;
+  // true iff the node is a symbolic constant
+  bool is_sym;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;
