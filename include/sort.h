@@ -55,6 +55,7 @@ class AbsSort
 };
 
 bool operator==(const Sort& s1, const Sort& s2);
+bool operator!=(const Sort& s1, const Sort& s2);
 std::ostream& operator<<(std::ostream& output, const Sort s);
 
 }  // namespace smt
