@@ -78,7 +78,7 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
   total_idx = it.total_idx;
   arity = it.arity;
   idx_access = it.idx_access;
-  for (size_t i = 0; i < 3; i++)
+  for (size_t i = 0; i < arity; i++)
   {
     e[i] = it.e[i];
   }
@@ -92,10 +92,10 @@ void BoolectorTermIter::operator++()
   // flattening array when hitting an args_node
   if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
   {
-    for (size_t i = 0; i < 3; i++)
+    arity = e[2]->arity;
+    for (size_t i = 0; i < arity; i++)
     {
       e[i] = e[2]->e[i];
-      arity = e[2]->arity;
     }
     // reset access index
     idx_access = 0;
@@ -109,10 +109,10 @@ void BoolectorTermIter::operator++(int junk)
   // flattening array when hitting an args_node
   if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
   {
-    for (size_t i = 0; i < 3; i++)
+    arity = e[2]->arity;
+    for (size_t i = 0; i < arity; i++)
     {
       e[i] = e[2]->e[i];
-      arity = e[2]->arity;
     }
     // reset access index
     idx_access = 0;

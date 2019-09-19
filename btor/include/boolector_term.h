@@ -30,7 +30,7 @@ class BoolectorTermIter : public TermIterBase
   BoolectorTermIter(Btor * btor, BtorNode* (& refarray)[3], int total_idx, int arity)
     : btor(btor), total_idx(total_idx), arity(arity), idx_access(0)
   {
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < arity; i++)
     {
       e[i] = refarray[i];
     }
@@ -41,7 +41,7 @@ class BoolectorTermIter : public TermIterBase
     total_idx = it.total_idx;
     arity = it.arity;
     idx_access = it.idx_access;
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < arity; i++)
     {
       e[i] = it.e[i];
     }
