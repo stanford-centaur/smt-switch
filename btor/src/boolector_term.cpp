@@ -177,8 +177,9 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     // bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
     bn = btor_node_real_addr(btor_pointer_chase_simplified_exp(btor, bn));
   }
-  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_CONST_NODE);
+  is_sym =
+      !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
 }
 
 BoolectorTerm::~BoolectorTerm()
