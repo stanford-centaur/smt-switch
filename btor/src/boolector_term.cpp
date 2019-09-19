@@ -161,7 +161,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     // bn = btor_node_get_simplified(btor, bn);
     bn = btor_pointer_chase_simplified_exp(btor, bn);
   }
-  negated = (((((uintptr_t)node) % 2) == 0) || bn->kind == BTOR_CONST_NODE);
+  negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_CONST_NODE);
 }
 
 BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
