@@ -21,7 +21,7 @@ void CVC4TermIter::operator++() { term_it++; }
 
 void CVC4TermIter::operator++(int junk) { ++term_it; }
 
-const Term CVC4TermIter::operator*() const
+const Term CVC4TermIter::operator*()
 {
   Term t(new CVC4Term(*term_it));
   return t;
