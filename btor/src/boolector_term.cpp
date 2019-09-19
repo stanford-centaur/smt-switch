@@ -124,8 +124,18 @@ const Term BoolectorTermIter::operator*() const
   // need to increment reference counter, because accessing child doesn't
   // increment it
   //  but BoolectorTerm destructor will release it
-  btor_node_real_addr(e[idx_access])->ext_refs++;
-  Term t(new BoolectorTerm(btor, BTOR_EXPORT_BOOLECTOR_NODE(e[idx_access])));
+  // use real_addr?
+  BtorNode * res = e[idx_access];
+  if (!btor_node_real_addr(res)->ext_refs)
+  {
+    if (btor_node_is_proxy(res))
+    {
+      res = btor_pointer_chase_simplified_exp(btor, res);
+    }
+    btor_node_inc_ext_ref_counter(btor, res);
+  }
+  BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
+  Term t(new BoolectorTerm(btor, node));
   return t;
 };
 
@@ -161,20 +171,19 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   // BTOR_PARAM_NODE is not a symbol
   //  because it's not a symbolic constant, it's a free variable
   //  which will be bound by a lambda
-  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
   if (btor_node_is_proxy(bn))
   {
     // change to this on smtcomp19 branch -- will be merged to master soon
-    // bn = btor_node_get_simplified(btor, bn);
-    bn = btor_pointer_chase_simplified_exp(btor, bn);
+    // bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
+    bn = btor_node_real_addr(btor_pointer_chase_simplified_exp(btor, bn));
   }
+  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_CONST_NODE);
 }
 
 BoolectorTerm::~BoolectorTerm()
 {
-  //boolector_release(btor, node);
-  bn->ext_refs--;
+  boolector_release(btor, node);
 }
 
 // TODO: check if this is okay -- probably not
