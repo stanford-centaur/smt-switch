@@ -49,8 +49,7 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   BtorNodeKind k = bn->kind;
 
   // handle special cases
-  if ((k == BTOR_APPLY_NODE)
-      && btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n))->is_array)
+  if ((k == BTOR_APPLY_NODE) && btor_node_real_addr(bn->e[0])->is_array)
   {
     op = Op(Select);
   }
