@@ -85,7 +85,7 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_RATIONAL)
           || (k == ::CVC4::api::CONST_FLOATINGPOINT)
           || (k == ::CVC4::api::CONST_ROUNDINGMODE)
-          || (k == ::CVC4::api::CONST_STRING));
+          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::STORE_ALL));
 }
 
 std::string CVC4Term::to_string() const { return term.toString(); }

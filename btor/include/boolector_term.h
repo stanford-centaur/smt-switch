@@ -27,8 +27,11 @@ class BoolectorTermIter : public TermIterBase
 {
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of size 3
-  BoolectorTermIter(Btor * btor, BtorNode* (& refarray)[3], int total_idx, int arity)
-    : btor(btor), total_idx(total_idx), arity(arity), idx_access(0)
+  BoolectorTermIter(Btor * btor,
+                    BtorNode * (&refarray)[3],
+                    int total_idx,
+                    int arity)
+      : btor(btor), total_idx(total_idx), arity(arity), idx_access(total_idx)
   {
     for (size_t i = 0; i < arity; i++)
     {
@@ -96,6 +99,9 @@ class BoolectorTerm : public AbsTerm
   bool negated;
   // true iff the node is a symbolic constant
   bool is_sym;
+
+  // helpers
+  bool is_const_array() const;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

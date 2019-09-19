@@ -43,28 +43,31 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 
   BtorNode * bn = BTOR_IMPORT_BOOLECTOR_NODE(n);
   BtorNodeKind k = bn->kind;
-  if (btorkind2primop.find(k) == btorkind2primop.end())
-  {
-    throw SmtException("Can't find PrimOp for BtorNodeKind " + std::to_string(k)
-                       + " see boolector/btornode.h");
-  }
-
-  PrimOp po = btorkind2primop.at(k);
 
   // handle special cases
-  if ((po == Apply)
+  if ((k == BTOR_APPLY_NODE)
       && btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n))->is_array)
   {
     op = Op(Select);
   }
-  else if (po == Extract)
+  else if (k == BTOR_BV_SLICE_NODE)
   {
     uint32_t upper = ((BtorBVSliceNode *)btor_node_real_addr(bn))->upper;
     uint32_t lower = ((BtorBVSliceNode *)btor_node_real_addr(bn))->lower;
     op = Op(Extract, upper, lower);
   }
+  else if ((k == BTOR_LAMBDA_NODE) && (bn->is_array))
+  {
+    op = Op(Const_Array);
+  }
   else
   {
+    if (btorkind2primop.find(k) == btorkind2primop.end())
+    {
+      throw SmtException("Can't find PrimOp for BtorNodeKind "
+                         + std::to_string(k) + " see boolector/btornode.h");
+    }
+    PrimOp po = btorkind2primop.at(k);
     op = Op(po);
   }
   return op;
@@ -90,12 +93,13 @@ void BoolectorTermIter::operator++()
   total_idx++;
   idx_access++;
   // flattening array when hitting an args_node
-  if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
+  if (arity && (idx_access == arity - 1)
+      && (e[idx_access]->kind == BTOR_ARGS_NODE))
   {
-    arity = e[2]->arity;
+    arity = e[idx_access]->arity;
     for (size_t i = 0; i < arity; i++)
     {
-      e[i] = e[2]->e[i];
+      e[i] = e[idx_access]->e[i];
     }
     // reset access index
     idx_access = 0;
@@ -107,12 +111,13 @@ void BoolectorTermIter::operator++(int junk)
   total_idx++;
   idx_access++;
   // flattening array when hitting an args_node
-  if ((arity > 2) && e[2]->kind == BTOR_ARGS_NODE)
+  if (arity && (idx_access == arity - 1)
+      && (e[idx_access]->kind == BTOR_ARGS_NODE))
   {
-    arity = e[2]->arity;
+    arity = e[idx_access]->arity;
     for (size_t i = 0; i < arity; i++)
     {
-      e[i] = e[2]->e[i];
+      e[i] = e[idx_access]->e[i];
     }
     // reset access index
     idx_access = 0;
@@ -133,6 +138,10 @@ const Term BoolectorTermIter::operator*() const
       res = btor_pointer_chase_simplified_exp(btor, res);
     }
     btor_node_inc_ext_ref_counter(btor, res);
+  }
+  if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
+  {
+    throw SmtException("Should never have an args node in children look up");
   }
   BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
   Term t(new BoolectorTerm(btor, node));
@@ -265,7 +274,13 @@ bool BoolectorTerm::is_symbolic_const() const
   return is_sym;
 }
 
-bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
+bool BoolectorTerm::is_value() const
+{
+  bool res = boolector_is_const(btor, node);
+  // constant arrays are considered values
+  res |= is_const_array();
+  return res;
+}
 
 std::string BoolectorTerm::to_string() const
 {
@@ -326,6 +341,12 @@ TermIter BoolectorTerm::begin()
     e[0] = bn;
     return TermIter(new BoolectorTermIter(btor, e, 0, 1));
   }
+  else if (is_const_array())
+  {
+    // constant array case
+    // don't expose the parameter node of the lambda -- start at 1 instead of 0
+    return TermIter(new BoolectorTermIter(btor, bn->e, 1, 2));
+  }
   else
   {
     return TermIter(new BoolectorTermIter(btor, bn->e, 0, bn->arity));
@@ -351,16 +372,24 @@ TermIter BoolectorTerm::end()
     // flatten args nodes (chains of arguments)
     int idx = 0;
     BtorNode * tmp = bn;
+
     while (tmp->arity && (tmp->e[tmp->arity-1]->kind == BTOR_ARGS_NODE))
     {
       // adding one for each of the children before the ARGS node
       idx += tmp->arity-1;
-      tmp = tmp->e[tmp->arity-1];
+      tmp = btor_node_real_addr(tmp->e[tmp->arity - 1]);
     }
     idx += tmp->arity;
     int arity = tmp->arity;
     return TermIter(new BoolectorTermIter(btor, tmp->e, idx, arity));
   }
+}
+
+// helpers
+
+bool BoolectorTerm::is_const_array() const
+{
+  return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
 }
 
 /* end BoolectorTerm implementation */

@@ -39,7 +39,9 @@ Term AbsSmtSolver::substitute(const Term term,
         cached_children.push_back(cache.at(c));
       }
 
-      if (cached_children.size())
+      // const arrays have children but don't need to be rebuilt
+      // (they're constructed in a particular way anyway)
+      if (cached_children.size() && !t->is_value())
       {
         cache[t] = make_term(t->get_op(), cached_children);
       }
@@ -116,11 +118,7 @@ Term AbsSmtSolver::transfer_term(const Term term)
         cached_children.push_back(cache.at(c));
       }
 
-      if (cached_children.size())
-      {
-        cache[t] = make_term(t->get_op(), cached_children);
-      }
-      else if (t->is_symbolic_const())
+      if (t->is_symbolic_const())
       {
         s = transfer_sort(t->get_sort());
         std::string name = t->to_string();
@@ -137,7 +135,24 @@ Term AbsSmtSolver::transfer_term(const Term term)
       else if (t->is_value())
       {
         s = transfer_sort(t->get_sort());
-        cache[t] = value_from_smt2(t->to_string(), s);
+        if (t->get_op() == Const_Array)
+        {
+          // special case for const-array (need op)
+          if (cached_children.size() != 1)
+          {
+            throw SmtException("Expecting one child but got "
+                               + cached_children.size());
+          }
+          cache[t] = make_value(cached_children[0], s);
+        }
+        else
+        {
+          cache[t] = value_from_smt2(t->to_string(), s);
+        }
+      }
+      else if (cached_children.size())
+      {
+        cache[t] = make_term(t->get_op(), cached_children);
       }
       else
       {

@@ -26,9 +26,17 @@ int main()
   Term idx1 = s->make_term("idx1", bvsort4);
   Term val = s->make_term("val", bvsort8);
   Term zero = s->make_value(0, bvsort8);
-  Term const_arr = s->make_value(Const_Array, zero, arrsort);
-  Term wrarr = s->make_term(Store, const_arr, idx0, val);
+  Term const_arr = s->make_value(zero, arrsort);
+  assert(!const_arr->is_symbolic_const());
+  assert(const_arr->is_value());
+  assert(const_arr->get_op() == Const_Array);
 
+  for (auto c : const_arr)
+  {
+    assert(c == zero);
+  }
+
+  Term wrarr = s->make_term(Store, const_arr, idx0, val);
   Term constraint = s->make_term(
       And,
       s->make_term(Distinct, s->make_term(Select, wrarr, idx1), zero),
@@ -37,4 +45,39 @@ int main()
   Result r = s->check_sat();
   cout << r << endl;
   assert(r.is_unsat());
+
+  // test transferring term to a different solver
+  SmtSolver s2 = BoolectorSolverFactory::create();
+  s2->set_logic("QF_ABV");
+  s2->set_opt("produce-models", true);
+  s2->set_opt("incremental", true);
+
+  Term const_arr2 = s2->transfer_term(const_arr);
+  assert(!const_arr2->is_symbolic_const());
+  assert(const_arr2->is_value());
+  assert(const_arr2->get_op() == Const_Array);
+
+  for (auto c : const_arr2)
+  {
+    assert(c == s2->transfer_term(zero));
+  }
+
+  // this solver has no assertions yet
+  assert(s2->check_sat().is_sat());
+  Term arr = s2->make_term("arr", arrsort);
+  Term arr2 = s2->make_term("arr2", arrsort);
+  Term constraint2 = s2->make_term(
+      And,
+      s2->make_term(Equal, arr, const_arr2),
+      s2->make_term(Distinct,
+                    s2->make_term(Select, arr, s2->transfer_term(idx0)),
+                    s2->transfer_term(zero)));
+
+  // test substitution
+  Term t = s2->substitute(constraint2, UnorderedTermMap{ { arr, arr2 } });
+  // s2->assert_formula(s2->substitute(constraint2, UnorderedTermMap{{arr,
+  // arr2}}));
+  // assert(s2->check_sat().is_unsat());
+
+  return 0;
 }

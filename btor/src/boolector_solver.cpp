@@ -153,9 +153,7 @@ Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) 
   return term;
 }
 
-Term BoolectorSolver::make_value(const Op op,
-                                 const Term val,
-                                 const Sort sort) const
+Term BoolectorSolver::make_value(const Term val, const Sort sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {
@@ -171,7 +169,7 @@ Term BoolectorSolver::make_value(const Op op,
   {
     throw IncorrectUsageException(
         "Constant arrays are the only value that can be created with "
-        "mkTerm(Op, Term, Sort) but the sort is not an array.");
+        "mkTerm(Term, Sort) but the sort is not an array sort.");
   }
 }
 
