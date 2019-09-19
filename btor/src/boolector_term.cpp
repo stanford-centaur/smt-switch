@@ -121,7 +121,7 @@ const Term BoolectorTermIter::operator*() const
   // need to increment reference counter, because accessing child doesn't
   // increment it
   //  but BoolectorTerm destructor will release it
-  e[idx_access]->ext_refs++;
+  btor_node_real_addr(e[idx_access])->ext_refs++;
   Term t(new BoolectorTerm(btor, BTOR_EXPORT_BOOLECTOR_NODE(e[idx_access])));
   return t;
 };
@@ -164,7 +164,11 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_CONST_NODE);
 }
 
-BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
+BoolectorTerm::~BoolectorTerm()
+{
+  //boolector_release(btor, node);
+  bn->ext_refs--;
+}
 
 // TODO: check if this is okay -- probably not
 std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
