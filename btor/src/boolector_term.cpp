@@ -75,39 +75,75 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 {
   btor = it.btor;
-  v_it = it.v_it;
+  total_idx = it.total_idx;
+  idx_access = it.idx_access;
+  for (size_t i = 0; i < 3; i++)
+  {
+    e[i] = it.e[i];
+  }
   return *this;
 };
 
-void BoolectorTermIter::operator++() { v_it++; };
+void BoolectorTermIter::operator++()
+{
+  total_idx++;
+  idx_access++;
+  // flattening array when hitting an args_node
+  if (e[2]->kind == BTOR_ARGS_NODE)
+  {
+    for (size_t i = 0; i < 3; i++)
+    {
+      e[i] = e[2]->e[i];
+    }
+    // reset access index
+    idx_access = 0;
+  }
+};
 
-void BoolectorTermIter::operator++(int junk) { v_it++; };
+void BoolectorTermIter::operator++(int junk)
+{
+  total_idx++;
+  idx_access++;
+  // flattening array when hitting an args_node
+  if (e[2]->kind == BTOR_ARGS_NODE)
+  {
+    for (size_t i = 0; i < 3; i++)
+    {
+      e[i] = e[2]->e[i];
+    }
+    // reset access index
+    idx_access = 0;
+  }
+};
 
 const Term BoolectorTermIter::operator*() const
 {
   // need to increment reference counter, because accessing child doesn't
   // increment it
   //  but BoolectorTerm destructor will release it
-  BoolectorNode * n = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(*v_it));
-  Term t(new BoolectorTerm(btor, n));
+  e[idx_access]->ext_refs++;
+  Term t(new BoolectorTerm(btor, BTOR_EXPORT_BOOLECTOR_NODE(e[idx_access])));
   return t;
 };
 
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
-  return (v_it == it.v_it);
+  return ((btor == it.btor) &&
+          (total_idx == it.total_idx));
 };
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 {
-  return (v_it != it.v_it);
+  return ((btor != it.btor) ||
+          (total_idx != it.total_idx));
 };
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
   // guaranteed to be safe by caller of equal (TermIterBase)
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return (v_it == bti.v_it);
+  return ((btor == bti.btor) &&
+          (total_idx == bti.total_idx));
 }
 
 /* end BoolectorTermIter implementation */
@@ -115,7 +151,9 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 /* BoolectorTerm implementation */
 
 BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
-    : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
+    : btor(b),
+      node(n),
+      bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
   if (btor_node_is_proxy(bn))
   {
@@ -123,67 +161,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     // bn = btor_node_get_simplified(btor, bn);
     bn = btor_pointer_chase_simplified_exp(btor, bn);
   }
-
-  // BTOR_PARAM_NODE is not a symbol
-  //  because it's not a symbolic constant, it's a free variable
-  //  which will be bound by a lambda
-  is_sym = ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
-
-  // for use in flattening arg nodes if necessary
-  BtorNode * tmp;
-  size_t j;
-
-  children.clear();
-
-  // Get operator and children
-  // if LSB is 1, node is negated
-  // don't care about negated constants
-  //   constants are normalized in btor, but we don't care at the smt-switch
-  //   level
-  if (((((uintptr_t)node) % 2) == 0) || bn->kind == BTOR_CONST_NODE)
-  {
-    for (size_t i = 0; i < bn->arity; ++i)
-    {
-      // flatten Btor Argument Nodes
-      if (bn->e[i]->kind == BTOR_ARGS_NODE)
-      {
-        tmp = bn->e[i];
-        while (tmp->kind == BTOR_ARGS_NODE)
-        {
-          // btor arg nodes should be changed
-          // e.g. only the last node can also be an arg node
-          // there's an iterator but the regular .a library
-          // doesn't seem to define the necessary functions?
-          // not too hard to do it manually
-          for (j = 0; j < tmp->arity; ++j)
-          {
-            if (tmp->e[j]->kind != BTOR_ARGS_NODE)
-            {
-              // increment external ref count
-              btor_node_real_addr(tmp->e[j])->ext_refs++;
-              children.push_back(tmp->e[j]);
-            }
-          }
-          tmp = tmp->e[j - 1];
-        }
-      }
-      else
-      {
-        // increment external ref count
-        btor_node_real_addr(bn->e[i])->ext_refs++;
-        children.push_back(bn->e[i]);
-      }
-    }
-    op = lookup_op(btor, node);
-  }
-  else
-  {
-    // child is the non-negated node, which is bn (used btor_node_real_addr)
-    // TODO: make sure we're supposed to increment here
-    bn->ext_refs++;
-    children.push_back(bn);
-    op = Op(BVNot);
-  }
+  negated = (((((uintptr_t)node) % 2) == 0) || bn->kind == BTOR_CONST_NODE);
 }
 
 BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
@@ -198,7 +176,21 @@ bool BoolectorTerm::compare(const Term & absterm) const
   return this->node == other->node;
 }
 
-Op BoolectorTerm::get_op() const { return op; };
+Op BoolectorTerm::get_op() const
+{
+  Op op;
+
+  if (negated)
+  {
+    op = Op(BVNot);
+  }
+  else
+  {
+    op = lookup_op(btor, node);
+  }
+
+  return op;
+};
 
 Sort BoolectorTerm::get_sort() const
 {
@@ -247,7 +239,13 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbolic_const() const { return is_sym; }
+bool BoolectorTerm::is_symbolic_const() const
+{
+  // BTOR_PARAM_NODE is not a symbol
+  //  because it's not a symbolic constant, it's a free variable
+  //  which will be bound by a lambda
+  return ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
+}
 
 bool BoolectorTerm::is_value() const { return boolector_is_const(btor, node); }
 
@@ -260,7 +258,7 @@ std::string BoolectorTerm::to_string() const
     res_str = "#b" + std::string(btor_cstr);
     boolector_free_bits(btor, btor_cstr);
   }
-  else if (is_sym)
+  else if (is_symbolic_const())
   {
     const char * btor_cstr = boolector_get_symbol(btor, node);
     res_str = std::string(btor_cstr);
@@ -298,12 +296,43 @@ uint64_t BoolectorTerm::to_int() const
  */
 TermIter BoolectorTerm::begin()
 {
-  return TermIter(new BoolectorTermIter(btor, children.begin()));
+
+  if (negated)
+  {
+    BtorNode * e[3];
+    // the negated value is the real address stored in bn
+    e[0] = bn;
+    return TermIter(new BoolectorTermIter(btor, e, 0));
+  }
+  else
+  {
+    return TermIter(new BoolectorTermIter(btor, bn->e, 0));
+  }
 }
 
 TermIter BoolectorTerm::end()
 {
-  return TermIter(new BoolectorTermIter(btor, children.end()));
+  if (negated)
+  {
+    BtorNode * e[3];
+    // the negated value is the real address stored in bn
+    e[0] = bn;
+    return TermIter(new BoolectorTermIter(btor, e, 1));
+  }
+  else
+  {
+    // flatten args nodes (chains of arguments)
+    int idx = 0;
+    BtorNode * tmp = bn;
+    while (tmp->e[tmp->arity-1]->kind == BTOR_ARGS_NODE)
+    {
+      // adding one for each of the children before the ARGS node
+      idx += tmp->arity-1;
+      tmp = tmp->e[tmp->arity-1];
+    }
+    idx += tmp->arity;
+    return TermIter(new BoolectorTermIter(btor, tmp->e, idx));
+  }
 }
 
 /* end BoolectorTerm implementation */

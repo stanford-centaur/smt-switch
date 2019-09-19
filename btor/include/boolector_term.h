@@ -26,12 +26,24 @@ Op lookup_op(Btor * btor, BoolectorNode * n);
 class BoolectorTermIter : public TermIterBase
 {
  public:
-  BoolectorTermIter(Btor * btor, std::vector<BtorNode *>::const_iterator v_it)
-      : btor(btor), v_it(v_it){};
+  // IMPORTANT: The correctness of this code depends on the array e being of size 3
+  BoolectorTermIter(Btor * btor, BtorNode* (& refarray)[3], int total_idx)
+    : btor(btor), total_idx(total_idx), idx_access(0)
+  {
+    for (size_t i = 0; i < 3; i++)
+    {
+      e[i] = refarray[i];
+    }
+  }
   BoolectorTermIter(const BoolectorTermIter & it)
   {
     btor = it.btor;
-    v_it = it.v_it;
+    total_idx = it.total_idx;
+    idx_access = it.idx_access;
+    for (size_t i = 0; i < 3; i++)
+    {
+      e[i] = it.e[i];
+    }
   };
   ~BoolectorTermIter(){};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
@@ -46,7 +58,9 @@ class BoolectorTermIter : public TermIterBase
 
  private:
   Btor * btor;
-  std::vector<BtorNode *>::const_iterator v_it;
+  BtorNode* e[3];
+  int total_idx;
+  int idx_access;
 };
 
 class BoolectorTerm : public AbsTerm
@@ -76,9 +90,8 @@ class BoolectorTerm : public AbsTerm
   //   kind: for retrieving operator
   //   e:    for getting children
   BtorNode * bn;
-  std::vector<BtorNode *> children;
-  Op op;
-  bool is_sym;
+  // true iff the node is negated
+  bool negated;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;
