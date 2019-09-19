@@ -124,13 +124,26 @@ void BoolectorTermIter::operator++(int junk)
   }
 };
 
-const Term BoolectorTermIter::operator*() const
+const Term BoolectorTermIter::operator*()
 {
+  // just in case the first node we look up is an args node,
+  // resolve that case
+  // don't need to increment total_idx because haven't reached
+  // the first "real node" yet
+  while (btor_node_real_addr(e[idx_access])->kind == BTOR_ARGS_NODE)
+  {
+    for (size_t i = 0; i < btor_node_real_addr(e[idx_access])->arity; ++i)
+    {
+      e[i] = e[idx_access]->e[i];
+    }
+    idx_access = 0;
+  }
+  BtorNode * res = e[idx_access];
+
   // need to increment reference counter, because accessing child doesn't
   // increment it
   //  but BoolectorTerm destructor will release it
   // use real_addr?
-  BtorNode * res = e[idx_access];
   if (!btor_node_real_addr(res)->ext_refs)
   {
     if (btor_node_is_proxy(res))
@@ -139,10 +152,12 @@ const Term BoolectorTermIter::operator*() const
     }
     btor_node_inc_ext_ref_counter(btor, res);
   }
+
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
     throw SmtException("Should never have an args node in children look up");
   }
+
   BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
   Term t(new BoolectorTerm(btor, node));
   return t;
