@@ -163,11 +163,8 @@ Term BoolectorSolver::make_value(const Op op,
         std::static_pointer_cast<BoolectorTerm>(val);
     std::shared_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
-    // TODO: check if we can make two with the same symbol
-    // TODO: smt-lib semantics don't allow naming constant arrays directly
-    std::string name = "const-arr-" + val->to_string();
     Term res(new BoolectorTerm(
-        btor, boolector_const_array(btor, bs->sort, bt->node, name.c_str())));
+        btor, boolector_const_array(btor, bs->sort, bt->node)));
     return res;
   }
   else
