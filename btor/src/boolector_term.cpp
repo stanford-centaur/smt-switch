@@ -42,6 +42,10 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   Op op;
 
   BtorNode * bn = BTOR_IMPORT_BOOLECTOR_NODE(n);
+  if (btor_node_is_proxy(bn))
+  {
+    bn = btor_node_real_addr(btor_pointer_chase_simplified_exp(btor, bn));
+  }
   BtorNodeKind k = bn->kind;
 
   // handle special cases
