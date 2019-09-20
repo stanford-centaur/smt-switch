@@ -1,10 +1,5 @@
 #include "boolector_solver.h"
 
-extern "C" {
-#include "btornode.h"
-#include "utils/boolectornodemap.h"
-}
-
 namespace smt {
 
 /* Boolector op mappings */
@@ -497,34 +492,6 @@ Term BoolectorSolver::lookup_symbol(const std::string name) const
   Term term(new BoolectorTerm(
       btor, boolector_match_node_by_symbol(btor, name.c_str())));
   return term;
-}
-
-Term BoolectorSolver::substitute(
-    const Term term, const UnorderedTermMap & substitution_map) const
-{
-  BoolectorNodeMap * bmap = boolector_nodemap_new(btor);
-
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(term);
-
-  std::shared_ptr<BoolectorTerm> key;
-  std::shared_ptr<BoolectorTerm> value;
-  for (auto elem : substitution_map)
-  {
-    key = std::static_pointer_cast<BoolectorTerm>(elem.first);
-    value = std::static_pointer_cast<BoolectorTerm>(elem.second);
-    boolector_nodemap_map(bmap, key->node, value->node);
-  }
-
-  // perform the substitution
-  BoolectorNode * substituted =
-      boolector_nodemap_substitute_node(btor, bmap, bt->node);
-  // need to copy it because deleting the map will decrement the reference
-  // counter
-  substituted = boolector_copy(btor, substituted);
-  boolector_nodemap_delete(bmap);
-  Term t(new BoolectorTerm(btor, substituted));
-  return t;
 }
 
 void BoolectorSolver::dump_smt2(FILE * file) const

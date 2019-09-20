@@ -68,8 +68,6 @@ int main()
   }
   assert(num_consts == orig_set.size());
 
-  cout << endl;
-
   Term timed_constraint = s->substitute(
       constraint,
       UnorderedTermMap{
