@@ -1,6 +1,7 @@
 #include "boolector_term.h"
 
 #include <unordered_map>
+#include "stdio.h"
 
 namespace smt {
 
@@ -302,23 +303,31 @@ bool BoolectorTerm::is_value() const
 
 std::string BoolectorTerm::to_string() const
 {
-  std::string res_str;
-  if (boolector_is_const(btor, node))
+  std::string sres;
+
+  // don't pointer chase!
+  char * sym = btor_node_get_symbol(btor, BTOR_IMPORT_BOOLECTOR_NODE(node));
+
+  if (sym)
   {
-    const char * btor_cstr = boolector_get_bits(btor, node);
-    res_str = "#b" + std::string(btor_cstr);
-    boolector_free_bits(btor, btor_cstr);
-  }
-  else if (is_sym)
-  {
-    const char * btor_cstr = boolector_get_symbol(btor, node);
-    res_str = std::string(btor_cstr);
+    // has a symbol
+    sres = sym;
+    return sres;
   }
   else
   {
-    res_str = "btor_expr";
+    // just print smt-lib
+    // won't necessarily use symbol names (might use auxiliary variables)
+    char * cres;
+    size_t size;
+    FILE * stream = open_memstream(&cres, &size);
+    boolector_dump_smt2_node(btor, stream, node);
+    fflush(stream);
+    sres = cres;
+    free(cres);
+    free(stream);
+    return sres;
   }
-  return res_str;
 }
 
 uint64_t BoolectorTerm::to_int() const

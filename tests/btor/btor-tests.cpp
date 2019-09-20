@@ -90,11 +90,11 @@ int main()
   Term uf_appc = s->get_value(uf_app);
 
   cout << "Got the following values:" << endl;
-  cout << "\txc = " << xc << endl;
-  cout << "\tyc = " << yc->to_int() << endl;
-  cout << "\tzc = " << zc->to_int() << endl;
-  cout << "\tx[3:0] = " << x_lowerc->to_int() << endl;
-  cout << "\t((_ zero_extend 4) x[3:0]) = " << x_extc->to_int() << endl;
-  cout << "\tf(x[3:0]) = " << uf_appc->to_int() << endl;
+  cout << "\t" << x << " " << xc << endl;
+  cout << "\t" << y << " " << yc->to_int() << endl;
+  cout << "\t" << z << " " << zc->to_int() << endl;
+  cout << "\t" << x_lower << " " << x_lowerc->to_int() << endl;
+  cout << "\t" << x_ext << " " << x_extc->to_int() << endl;
+  cout << "\t" << uf_app << " " << uf_appc->to_int() << endl;
   return 0;
 }
