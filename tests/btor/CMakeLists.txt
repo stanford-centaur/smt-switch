@@ -9,6 +9,7 @@ set(BTOR_TESTS
   btor-negation
   btor-const-arrays
   btor-substitute
+  btor-simple
 )
 
 foreach(test ${BTOR_TESTS})

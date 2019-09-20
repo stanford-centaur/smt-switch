@@ -27,27 +27,15 @@ class BoolectorTermIter : public TermIterBase
 {
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of size 3
-  BoolectorTermIter(Btor * btor,
-                    BtorNode * (&refarray)[3],
-                    int total_idx,
-                    int arity)
-      : btor(btor), total_idx(total_idx), arity(arity), idx_access(total_idx)
+  BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int idx)
+      : btor(btor), children(c), idx(idx)
   {
-    for (size_t i = 0; i < arity; i++)
-    {
-      e[i] = refarray[i];
-    }
   }
   BoolectorTermIter(const BoolectorTermIter & it)
   {
     btor = it.btor;
-    total_idx = it.total_idx;
-    arity = it.arity;
-    idx_access = it.idx_access;
-    for (size_t i = 0; i < arity; i++)
-    {
-      e[i] = it.e[i];
-    }
+    children = it.children;
+    idx = it.idx;
   };
   ~BoolectorTermIter(){};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
@@ -62,10 +50,8 @@ class BoolectorTermIter : public TermIterBase
 
  private:
   Btor * btor;
-  BtorNode* e[3];
-  int total_idx;
-  int arity;
-  int idx_access;
+  std::vector<BtorNode *> children;
+  int idx;
 };
 
 class BoolectorTerm : public AbsTerm
@@ -99,6 +85,10 @@ class BoolectorTerm : public AbsTerm
   bool negated;
   // true iff the node is a symbolic constant
   bool is_sym;
+  // for iterating args nodes
+  BtorArgsIterator ait;
+  // for storing nodes before iterating
+  std::vector<BtorNode *> children;
 
   // helpers
   bool is_const_array() const;
