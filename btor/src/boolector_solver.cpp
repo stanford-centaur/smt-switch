@@ -239,7 +239,44 @@ Term BoolectorSolver::get_value(Term & t) const
   }
   else if (sk == ARRAY)
   {
-    throw NotImplementedException("Array models unimplemented.");
+    // boolector just gives index / element pairs
+    // we want to create a term, so we make a store chain
+    // on a base array
+    std::string base_name = t->to_string() + "_base";
+    BoolectorNode * stores;
+    if (has_symbol(base_name))
+    {
+      stores = boolector_match_node_by_symbol(btor, base_name.c_str());
+    }
+    else
+    {
+      std::shared_ptr<BoolectorSortBase> bs =
+          std::static_pointer_cast<BoolectorSortBase>(t->get_sort());
+      stores = boolector_array(btor, bs->sort, base_name.c_str());
+    }
+    char ** indices;
+    char ** values;
+    uint32_t size;
+    boolector_array_assignment(btor, bt->node, &indices, &values, &size);
+    BoolectorNode * idx;
+    BoolectorNode * elem;
+    BoolectorNode * tmp;
+    for (uint32_t i = 0; i < size; i++)
+    {
+      idx = boolector_const(btor, indices[i]);
+      elem = boolector_const(btor, values[i]);
+
+      tmp = boolector_write(btor, stores, idx, elem);
+      boolector_release(btor, stores);
+      stores = tmp;
+
+      boolector_release(btor, idx);
+      boolector_release(btor, elem);
+    }
+    result = std::make_shared<BoolectorTerm>(btor, stores);
+
+    // free memory
+    boolector_free_array_assignment(btor, indices, values, size);
   }
   else if (sk == FUNCTION)
   {

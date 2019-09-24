@@ -10,6 +10,7 @@ set(BTOR_TESTS
   btor-const-arrays
   btor-substitute
   btor-simple
+  btor-array-models
 )
 
 foreach(test ${BTOR_TESTS})
