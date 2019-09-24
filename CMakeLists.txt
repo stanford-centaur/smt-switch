@@ -15,8 +15,6 @@ if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
-message("SMT_SWITCH_LIB_TYPE=${SMT_SWITCH_LIB_TYPE}")
-
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
