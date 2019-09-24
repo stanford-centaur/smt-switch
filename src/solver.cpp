@@ -141,7 +141,7 @@ Term AbsSmtSolver::transfer_term(const Term term)
           if (cached_children.size() != 1)
           {
             throw SmtException("Expecting one child but got "
-                               + cached_children.size());
+                               + std::to_string(cached_children.size()));
           }
           cache[t] = make_value(cached_children[0], s);
         }
