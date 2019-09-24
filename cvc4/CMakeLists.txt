@@ -1,4 +1,4 @@
-add_library(smt-switch-cvc4 SHARED
+add_library(smt-switch-cvc4 "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_sort.cpp"
@@ -6,7 +6,7 @@ add_library(smt-switch-cvc4 SHARED
   )
 target_include_directories (smt-switch-cvc4 PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories (smt-switch-cvc4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/btor/include")
+target_include_directories (smt-switch-cvc4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/cvc4/include")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src/include")
 

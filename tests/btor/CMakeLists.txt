@@ -14,7 +14,8 @@ set(BTOR_TESTS
 
 foreach(test ${BTOR_TESTS})
   add_executable(${test}.out ${test}.cpp)
-  target_link_libraries(${test}.out smt-switch smt-switch-btor)
   target_include_directories (${test}.out PUBLIC "${PROJECT_SOURCE_DIR}/include")
+  target_link_libraries(${test}.out smt-switch)
+  target_link_libraries(${test}.out smt-switch-btor)
   add_test(${test} ${test}.out)
 endforeach()
