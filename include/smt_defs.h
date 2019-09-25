@@ -14,7 +14,7 @@ class AbsFun;
 using Fun = std::shared_ptr<AbsFun>;
 
 class AbsTerm;
-using Term = std::shared_ptr<AbsTerm>;
+using Term = std::shared_ptr<const AbsTerm>;
 
 class AbsSmtSolver;
 using SmtSolver = std::unique_ptr<AbsSmtSolver>;

@@ -167,8 +167,8 @@ std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {
-  std::shared_ptr<BoolectorTerm> other =
-      std::static_pointer_cast<BoolectorTerm>(absterm);
+  std::shared_ptr<const BoolectorTerm> other =
+      std::static_pointer_cast<const BoolectorTerm>(absterm);
   return this->node == other->node;
 }
 
@@ -308,18 +308,21 @@ uint64_t BoolectorTerm::to_int() const
 
 /** Iterators for traversing the children
  */
-TermIter BoolectorTerm::begin()
+TermIter BoolectorTerm::begin() const
 {
-  if (btor_node_is_proxy(bn))
+  std::vector<BtorNode *> children;
+  BtorArgsIterator ait;
+  BtorNode * mbn = bn;
+  if (btor_node_is_proxy(mbn))
   {
-    bn = btor_pointer_chase_simplified_exp(btor, bn);
+    mbn = btor_pointer_chase_simplified_exp(btor, mbn);
   }
 
   children.clear();
   BtorNode * tmp;
-  for (size_t i = 0; i < bn->arity; ++i)
+  for (size_t i = 0; i < mbn->arity; ++i)
   {
-    tmp = bn->e[i];
+    tmp = mbn->e[i];
     // TODO: figure out if should we do this?
     // if (btor_node_is_proxy(tmp))
     // {
@@ -341,9 +344,9 @@ TermIter BoolectorTerm::begin()
 
   if (negated)
   {
-    // the negated value is the real address stored in bn
+    // the negated value is the real address stored in mbn
     children.clear();
-    children.push_back(bn);
+    children.push_back(mbn);
     return TermIter(new BoolectorTermIter(btor, children, 0));
   }
   else if (is_const_array())
@@ -358,18 +361,20 @@ TermIter BoolectorTerm::begin()
   }
 }
 
-TermIter BoolectorTerm::end()
+TermIter BoolectorTerm::end() const
 {
-  if (btor_node_is_proxy(bn))
+  BtorArgsIterator ait;
+  BtorNode * mbn = bn;
+  if (btor_node_is_proxy(mbn))
   {
-    bn = btor_pointer_chase_simplified_exp(btor, bn);
+    mbn = btor_pointer_chase_simplified_exp(btor, mbn);
   }
 
   if (negated)
   {
     BtorNode * e[3];
-    // the negated value is the real address stored in bn
-    e[0] = bn;
+    // the negated value is the real address stored in mbn
+    e[0] = mbn;
     // vector doesn't matter for end
     return TermIter(new BoolectorTermIter(btor, std::vector<BtorNode *>{}, 1));
   }
@@ -377,9 +382,9 @@ TermIter BoolectorTerm::end()
   {
     BtorNode * tmp;
     int num_children = 0;
-    for (size_t i = 0; i < bn->arity; ++i)
+    for (size_t i = 0; i < mbn->arity; ++i)
     {
-      tmp = bn->e[i];
+      tmp = mbn->e[i];
       // TODO: figure out if should we do this?
       // if (btor_node_is_proxy(tmp))
       // {

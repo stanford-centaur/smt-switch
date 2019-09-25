@@ -69,8 +69,8 @@ class BoolectorTerm : public AbsTerm
   uint64_t to_int() const override;
   /** Iterators for traversing the children
    */
-  TermIter begin() override;
-  TermIter end() override;
+  TermIter begin() const override;
+  TermIter end() const override;
 
  protected:
   Btor * btor;
@@ -85,10 +85,6 @@ class BoolectorTerm : public AbsTerm
   bool negated;
   // true iff the node is a symbolic constant
   bool is_sym;
-  // for iterating args nodes
-  BtorArgsIterator ait;
-  // for storing nodes before iterating
-  std::vector<BtorNode *> children;
 
   // helpers
   bool is_const_array() const;
