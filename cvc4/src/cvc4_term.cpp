@@ -54,8 +54,8 @@ std::size_t CVC4Term::hash() const
 
 bool CVC4Term::compare(const Term & absterm) const
 {
-  std::shared_ptr<CVC4Term> other =
-    std::static_pointer_cast<CVC4Term>(absterm);
+  std::shared_ptr<const CVC4Term> other =
+      std::static_pointer_cast<const CVC4Term>(absterm);
   return term == other->term;
 }
 
@@ -123,12 +123,12 @@ uint64_t CVC4Term::to_int() const
 
 /** Iterators for traversing the children
  */
-TermIter CVC4Term::begin()
+TermIter CVC4Term::begin() const
 {
   return TermIter(new CVC4TermIter(term.begin()));
 }
 
-TermIter CVC4Term::end()
+TermIter CVC4Term::end() const
 {
   return TermIter(new CVC4TermIter(term.end()));
 }

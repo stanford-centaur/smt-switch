@@ -46,10 +46,10 @@ namespace smt {
     uint64_t to_int() const override;
     /** Iterators for traversing the children
      */
-    TermIter begin() override;
-    TermIter end() override;
+    TermIter begin() const override;
+    TermIter end() const override;
 
-  protected:
+   protected:
     CVC4::api::Term term;
 
   friend class CVC4Solver;

@@ -280,7 +280,8 @@ void CVC4Solver::assert_formula(const Term& t) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    std::shared_ptr<const CVC4Term> cterm =
+        std::static_pointer_cast<const CVC4Term>(t);
     solver.assertFormula(cterm->term);
   }
   catch (std::exception & e)
@@ -324,10 +325,10 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
     std::vector<::CVC4::api::Term> cvc4assumps;
     cvc4assumps.reserve(assumptions.size());
 
-    std::shared_ptr<CVC4Term> cterm;
+    std::shared_ptr<const CVC4Term> cterm;
     for (auto a : assumptions)
     {
-      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
+      cvc4assumps.push_back(std::static_pointer_cast<const CVC4Term>(a)->term);
     }
     ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
     if (r.isUnsat())
@@ -381,7 +382,8 @@ Term CVC4Solver::get_value(Term & t) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    std::shared_ptr<const CVC4Term> cterm =
+        std::static_pointer_cast<const CVC4Term>(t);
     Term val(new CVC4Term(solver.getValue(cterm->term)));
     return val;
   }
@@ -546,7 +548,8 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    std::shared_ptr<const CVC4Term> cterm =
+        std::static_pointer_cast<const CVC4Term>(t);
     if (op.num_idx == 0)
     {
       Term result(
@@ -571,8 +574,10 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+    std::shared_ptr<const CVC4Term> cterm0 =
+        std::static_pointer_cast<const CVC4Term>(t0);
+    std::shared_ptr<const CVC4Term> cterm1 =
+        std::static_pointer_cast<const CVC4Term>(t1);
     if (op.num_idx == 0)
     {
       Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
@@ -601,9 +606,12 @@ Term CVC4Solver::make_term(Op op,
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
-    std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+    std::shared_ptr<const CVC4Term> cterm0 =
+        std::static_pointer_cast<const CVC4Term>(t0);
+    std::shared_ptr<const CVC4Term> cterm1 =
+        std::static_pointer_cast<const CVC4Term>(t1);
+    std::shared_ptr<const CVC4Term> cterm2 =
+        std::static_pointer_cast<const CVC4Term>(t2);
     if (op.num_idx == 0)
     {
       Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
@@ -635,10 +643,10 @@ Term CVC4Solver::make_term(Op op, const std::vector<Term> & terms) const
   {
     std::vector<::CVC4::api::Term> cterms;
     cterms.reserve(terms.size());
-    std::shared_ptr<CVC4Term> cterm;
+    std::shared_ptr<const CVC4Term> cterm;
     for (auto t : terms)
     {
-      cterm = std::static_pointer_cast<CVC4Term>(t);
+      cterm = std::static_pointer_cast<const CVC4Term>(t);
       cterms.push_back(cterm->term);
     }
     if (op.num_idx == 0)
