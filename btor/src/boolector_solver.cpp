@@ -120,7 +120,7 @@ Term BoolectorSolver::make_value(bool b) const
   }
 }
 
-Term BoolectorSolver::make_value(unsigned int i, Sort sort) const
+Term BoolectorSolver::make_value(unsigned int i, const Sort & sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
@@ -129,7 +129,9 @@ Term BoolectorSolver::make_value(unsigned int i, Sort sort) const
   return term;
 }
 
-Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) const
+Term BoolectorSolver::make_value(std::string val,
+                                 const Sort & sort,
+                                 unsigned int base) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
     std::static_pointer_cast<BoolectorSortBase>(sort);
@@ -158,7 +160,7 @@ Term BoolectorSolver::make_value(std::string val, Sort sort, unsigned int base) 
   return term;
 }
 
-Term BoolectorSolver::make_value(const Term val, const Sort sort) const
+Term BoolectorSolver::make_value(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {
@@ -328,7 +330,9 @@ Sort BoolectorSolver::make_sort(SortKind sk, unsigned int size) const
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
+Sort BoolectorSolver::make_sort(SortKind sk,
+                                const Sort & idxsort,
+                                const Sort & elemsort) const
 {
   if (sk == ARRAY)
   {
@@ -351,8 +355,8 @@ Sort BoolectorSolver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                std::vector<Sort> sorts,
-                                Sort sort) const
+                                const std::vector<Sort> & sorts,
+                                const Sort & sort) const
 {
   if (sk == FUNCTION)
   {
@@ -381,7 +385,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
 }
 
-Term BoolectorSolver::make_term(const std::string name, Sort sort)
+Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
 {
   // check that name is available
   // avoids memory leak when boolector aborts
@@ -414,7 +418,7 @@ Term BoolectorSolver::make_term(const std::string name, Sort sort)
   return term;
 }
 
-Term BoolectorSolver::make_term(Op op, Term t) const
+Term BoolectorSolver::make_term(Op op, const Term & t) const
 {
   if (op.num_idx == 0)
   {
@@ -461,7 +465,7 @@ Term BoolectorSolver::make_term(Op op, Term t) const
   }
 }
 
-Term BoolectorSolver::make_term(Op op, Term t0, Term t1) const
+Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   if (op.num_idx == 0)
   {
@@ -475,7 +479,10 @@ Term BoolectorSolver::make_term(Op op, Term t0, Term t1) const
   }
 }
 
-Term BoolectorSolver::make_term(Op op, Term t0, Term t1, Term t2) const
+Term BoolectorSolver::make_term(Op op,
+                                const Term & t0,
+                                const Term & t1,
+                                const Term & t2) const
 {
   if (op.num_idx == 0)
   {
@@ -489,7 +496,7 @@ Term BoolectorSolver::make_term(Op op, Term t0, Term t1, Term t2) const
   }
 }
 
-Term BoolectorSolver::make_term(Op op, std::vector<Term> terms) const
+Term BoolectorSolver::make_term(Op op, const std::vector<Term> & terms) const
 {
   if (op.num_idx == 0)
   {

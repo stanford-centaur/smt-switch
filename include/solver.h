@@ -96,16 +96,16 @@ class AbsSmtSolver
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk,
-                         const Sort idxsort,
-                         const Sort elemsort) const = 0;
+                         const Sort & idxsort,
+                         const Sort & elemsort) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (FUNCTION)
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk,
-                         const std::vector<Sort> sorts,
-                         const Sort sort) const = 0;
+                         const std::vector<Sort> & sorts,
+                         const Sort & sort) const = 0;
 
   /* Make a boolean value term
    * @param b boolean value
@@ -118,7 +118,7 @@ class AbsSmtSolver
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
-  virtual Term make_value(const unsigned int i, const Sort sort) const = 0;
+  virtual Term make_value(const unsigned int i, const Sort & sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
@@ -126,7 +126,9 @@ class AbsSmtSolver
    * @param base the base to interpret the value, for bit-vector sorts (ignored otherwise)
    * @return a value term with Sort sort and value val
    */
-  virtual Term make_value(const std::string val, const Sort sort, unsigned int base = 10) const = 0;
+  virtual Term make_value(const std::string val,
+                          const Sort & sort,
+                          unsigned int base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
    * @param op the operator used to create the value (.e.g Const_Array)
@@ -134,21 +136,21 @@ class AbsSmtSolver
    * @param sort the sort of value to create
    * @return a value term with Sort sort
    */
-  virtual Term make_value(const Term val, const Sort sort) const = 0;
+  virtual Term make_value(const Term & val, const Sort & sort) const = 0;
 
   /* Make a symbolic constant or function term
    * @param name the name of constant or function
    * @param sort the sort of this constant or function
    * @return the symbolic constant or function term
    */
-  virtual Term make_term(const std::string name, const Sort sort) = 0;
+  virtual Term make_term(const std::string name, const Sort & sort) = 0;
 
   /* Make a new term
    * @param op the operator to use
    * @param t the child term
    * @return the created term
    */
-  virtual Term make_term(const Op op, const Term t) const = 0;
+  virtual Term make_term(const Op op, const Term & t) const = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -156,7 +158,9 @@ class AbsSmtSolver
    * @param t1 the second child term
    * @return the created term
    */
-  virtual Term make_term(const Op op, const Term t0, const Term t1) const = 0;
+  virtual Term make_term(const Op op,
+                         const Term & t0,
+                         const Term & t1) const = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -166,16 +170,17 @@ class AbsSmtSolver
    * @return the created term
    */
   virtual Term make_term(const Op op,
-                         const Term t0,
-                         const Term t1,
-                         const Term t2) const = 0;
+                         const Term & t0,
+                         const Term & t1,
+                         const Term & t2) const = 0;
 
   /* Make a new term
    * @param op the operator to use
    * @param terms vector of children
    * @return the created term
    */
-  virtual Term make_term(const Op op, const std::vector<Term> terms) const = 0;
+  virtual Term make_term(const Op op,
+                         const std::vector<Term> & terms) const = 0;
 
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
