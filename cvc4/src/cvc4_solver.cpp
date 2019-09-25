@@ -202,7 +202,7 @@ Term CVC4Solver::make_value(bool b) const
   }
 }
 
-Term CVC4Solver::make_value(unsigned int i, Sort sort) const
+Term CVC4Solver::make_value(unsigned int i, const Sort & sort) const
 {
   try
   {
@@ -233,7 +233,9 @@ Term CVC4Solver::make_value(unsigned int i, Sort sort) const
   }
 }
 
-Term CVC4Solver::make_value(std::string val, Sort sort, unsigned int base) const
+Term CVC4Solver::make_value(std::string val,
+                            const Sort & sort,
+                            unsigned int base) const
 {
   try
   {
@@ -269,7 +271,7 @@ Term CVC4Solver::make_value(std::string val, Sort sort, unsigned int base) const
   }
 }
 
-Term CVC4Solver::make_value(const Term val, const Sort sort) const
+Term CVC4Solver::make_value(const Term & val, const Sort & sort) const
 {
   throw NotImplementedException("Constant arrays not yet implemented.");
 }
@@ -458,7 +460,9 @@ Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
   }
 }
 
-Sort CVC4Solver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
+Sort CVC4Solver::make_sort(SortKind sk,
+                           const Sort & idxsort,
+                           const Sort & elemsort) const
 {
   try
   {
@@ -486,8 +490,8 @@ Sort CVC4Solver::make_sort(SortKind sk, Sort idxsort, Sort elemsort) const
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
-                           std::vector<Sort> sorts,
-                           Sort sort) const
+                           const std::vector<Sort> & sorts,
+                           const Sort & sort) const
 {
   try
   {
@@ -515,7 +519,7 @@ Sort CVC4Solver::make_sort(SortKind sk,
   }
 }
 
-Term CVC4Solver::make_term(const std::string name, Sort sort)
+Term CVC4Solver::make_term(const std::string name, const Sort & sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers
@@ -538,7 +542,7 @@ Term CVC4Solver::make_term(const std::string name, Sort sort)
   }
 }
 
-Term CVC4Solver::make_term(Op op, Term t) const
+Term CVC4Solver::make_term(Op op, const Term & t) const
 {
   try
   {
@@ -563,7 +567,7 @@ Term CVC4Solver::make_term(Op op, Term t) const
   }
 }
 
-Term CVC4Solver::make_term(Op op, Term t0, Term t1) const
+Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try
   {
@@ -590,7 +594,10 @@ Term CVC4Solver::make_term(Op op, Term t0, Term t1) const
   }
 }
 
-Term CVC4Solver::make_term(Op op, Term t0, Term t1, Term t2) const
+Term CVC4Solver::make_term(Op op,
+                           const Term & t0,
+                           const Term & t1,
+                           const Term & t2) const
 {
   try
   {
@@ -622,7 +629,7 @@ Term CVC4Solver::make_term(Op op, Term t0, Term t1, Term t2) const
   }
 }
 
-Term CVC4Solver::make_term(Op op, std::vector<Term> terms) const
+Term CVC4Solver::make_term(Op op, const std::vector<Term> & terms) const
 {
   try
   {
