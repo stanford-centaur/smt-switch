@@ -261,6 +261,13 @@ std::string BoolectorTerm::to_string() const
     sres = sym;
     return sres;
   }
+  else if (boolector_is_const(btor, node))
+  {
+    const char * btor_cstr = boolector_get_bits(btor, node);
+    sres = "#b" + std::string(btor_cstr);
+    boolector_free_bits(btor, btor_cstr);
+    return sres;
+  }
   else
   {
     // just print smt-lib
