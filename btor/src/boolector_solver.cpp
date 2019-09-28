@@ -278,7 +278,10 @@ Term BoolectorSolver::get_value(Term & t) const
     result = std::make_shared<BoolectorTerm>(btor, stores);
 
     // free memory
-    boolector_free_array_assignment(btor, indices, values, size);
+    if (size)
+    {
+      boolector_free_array_assignment(btor, indices, values, size);
+    }
   }
   else if (sk == FUNCTION)
   {

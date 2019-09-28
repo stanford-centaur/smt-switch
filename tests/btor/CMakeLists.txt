@@ -11,6 +11,7 @@ set(BTOR_TESTS
   btor-substitute
   btor-simple
   btor-array-models
+  btor-array-empty-assignment
 )
 
 foreach(test ${BTOR_TESTS})
