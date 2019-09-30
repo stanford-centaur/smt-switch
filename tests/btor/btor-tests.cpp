@@ -79,7 +79,8 @@ int main()
   assert(s->check_sat().is_sat());
 
   assert(s->make_value(4, bvsort8) == s->value_from_smt2("(_ bv4 8)", bvsort8));
-  assert(s->make_value(4, bvsort8) == s->value_from_smt2("#b00000100", bvsort8));
+  assert(s->make_value(4, bvsort8)
+         == s->value_from_smt2("#b00000100", bvsort8));
 
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);
@@ -89,11 +90,11 @@ int main()
   Term uf_appc = s->get_value(uf_app);
 
   cout << "Got the following values:" << endl;
-  cout << "\txc = " << xc << endl;
-  cout << "\tyc = " << yc->to_int() << endl;
-  cout << "\tzc = " << zc->to_int() << endl;
-  cout << "\tx[3:0] = " << x_lowerc->to_int() << endl;
-  cout << "\t((_ zero_extend 4) x[3:0]) = " << x_extc->to_int() << endl;
-  cout << "\tf(x[3:0]) = " << uf_appc->to_int() << endl;
+  cout << "\t" << x << " " << xc << endl;
+  cout << "\t" << y << " " << yc->to_int() << endl;
+  cout << "\t" << z << " " << zc->to_int() << endl;
+  cout << "\t" << x_lower << " " << x_lowerc->to_int() << endl;
+  cout << "\t" << x_ext << " " << x_extc->to_int() << endl;
+  cout << "\t" << uf_app << " " << uf_appc->to_int() << endl;
   return 0;
 }

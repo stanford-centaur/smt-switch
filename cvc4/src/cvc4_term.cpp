@@ -21,7 +21,7 @@ void CVC4TermIter::operator++() { term_it++; }
 
 void CVC4TermIter::operator++(int junk) { ++term_it; }
 
-const Term CVC4TermIter::operator*() const
+const Term CVC4TermIter::operator*()
 {
   Term t(new CVC4Term(*term_it));
   return t;
@@ -85,7 +85,7 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_RATIONAL)
           || (k == ::CVC4::api::CONST_FLOATINGPOINT)
           || (k == ::CVC4::api::CONST_ROUNDINGMODE)
-          || (k == ::CVC4::api::CONST_STRING));
+          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::STORE_ALL));
 }
 
 std::string CVC4Term::to_string() const { return term.toString(); }

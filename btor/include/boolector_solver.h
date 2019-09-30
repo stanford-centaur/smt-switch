@@ -30,10 +30,6 @@ class BoolectorSolver : public AbsSmtSolver
       throw InternalSolverException(msg);
     };
     boolector_set_abort(throw_exception);
-    // to support resetting assertions, wrap everything in a push/pop
-    // TODO: replace this with a proper implementation
-    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
-    boolector_push(btor, 1);
   };
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
@@ -51,28 +47,41 @@ class BoolectorSolver : public AbsSmtSolver
   Sort make_sort(const std::string name, unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, unsigned int size) const override;
-  Sort make_sort(SortKind sk, Sort idxsort, Sort elemsort) const override;
   Sort make_sort(SortKind sk,
-                 std::vector<Sort> sorts,
-                 Sort sort) const override;
+                 const Sort & idxsort,
+                 const Sort & elemsort) const override;
+  Sort make_sort(SortKind sk,
+                 const std::vector<Sort> & sorts,
+                 const Sort & sort) const override;
   Term make_value(bool b) const override;
-  Term make_value(unsigned int i, Sort sort) const override;
-  Term make_value(const std::string val, Sort sort, unsigned int base = 10) const override;
-  Term make_term(const std::string s, Sort sort) override;
+  Term make_value(unsigned int i, const Sort & sort) const override;
+  Term make_value(const std::string val,
+                  const Sort & sort,
+                  unsigned int base = 10) const override;
+  Term make_value(const Term & val, const Sort & sort) const override;
+  Term make_term(const std::string s, const Sort & sort) override;
   /* build a new term */
-  Term make_term(Op op, Term t) const override;
-  Term make_term(Op op, Term t0, Term t1) const override;
-  Term make_term(Op op, Term t0, Term t1, Term t2) const override;
-  Term make_term(Op op, std::vector<Term> terms) const override;
+  Term make_term(Op op, const Term & t) const override;
+  Term make_term(Op op, const Term & t0, const Term & t1) const override;
+  Term make_term(Op op,
+                 const Term & t0,
+                 const Term & t1,
+                 const Term & t2) const override;
+  Term make_term(Op op, const std::vector<Term> & terms) const override;
   void reset() override;
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
   Term lookup_symbol(const std::string name) const override;
+  virtual Term substitute(
+      const Term term,
+      const UnorderedTermMap & substitution_map) const override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
+  void dump_smt2(FILE * file) const override;
+
  protected:
   Btor * btor;
   // store the names of created symbols for has_symbol

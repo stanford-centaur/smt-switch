@@ -18,6 +18,7 @@ Configures the CMAKE build environment.
 --cvc4-home=STR         custom CVC4 location    (default: cvc4/CVC4)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
+--static                create static libaries (default: off)
 EOF
   exit 0
 }
@@ -35,6 +36,7 @@ btor_home=default
 cvc4_home=default
 build_type=default
 debug=default
+static=default
 
 while [ $# -gt 0 ]
 do
@@ -89,6 +91,9 @@ do
         --debug)
             debug=yes
             ;;
+        --static)
+            static=yes
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -112,6 +117,9 @@ cmake_opts=""
 
 [ $debug != default ] \
     && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=Debug"
+
+[ $static != default ] \
+    && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"
 
 root_dir=$(pwd)
 

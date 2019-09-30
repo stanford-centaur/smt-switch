@@ -11,7 +11,11 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 # add to search path for find_package
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
 
-add_library(smt-switch SHARED
+if (NOT SMT_SWITCH_LIB_TYPE)
+  set(SMT_SWITCH_LIB_TYPE SHARED)
+endif()
+
+add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"

@@ -38,6 +38,8 @@ std::string to_string(SortKind sk)
 
 bool operator==(const Sort & s1, const Sort & s2) { return s1->compare(s2); }
 
+bool operator!=(const Sort & s1, const Sort & s2) { return !s1->compare(s2); }
+
 std::ostream & operator<<(std::ostream & output, const Sort s)
 {
   output << s->to_string();

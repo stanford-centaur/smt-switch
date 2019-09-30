@@ -4,6 +4,11 @@
 #include <vector>
 
 #include "boolector.h"
+extern "C" {
+#include "btorcore.h"
+#include "btornode.h"
+#include "utils/btornodeiter.h"
+}
 
 #include "term.h"
 #include "utils.h"
@@ -15,17 +20,28 @@ namespace smt {
 // forward declaration
 class BoolectorSolver;
 
+// helpers
+Op lookup_op(Btor * btor, BoolectorNode * n);
+
 class BoolectorTermIter : public TermIterBase
 {
  public:
-  BoolectorTermIter(const std::vector<Term>::const_iterator v_it)
-      : v_it(v_it){};
-  BoolectorTermIter(const BoolectorTermIter & it) { v_it = it.v_it; };
+  // IMPORTANT: The correctness of this code depends on the array e being of size 3
+  BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int idx)
+      : btor(btor), children(c), idx(idx)
+  {
+  }
+  BoolectorTermIter(const BoolectorTermIter & it)
+  {
+    btor = it.btor;
+    children = it.children;
+    idx = it.idx;
+  };
   ~BoolectorTermIter(){};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   void operator++(int junk);
-  const Term operator*() const override;
+  const Term operator*() override;
   bool operator==(const BoolectorTermIter & it);
   bool operator!=(const BoolectorTermIter & it);
 
@@ -33,14 +49,15 @@ class BoolectorTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  std::vector<Term>::const_iterator v_it;
+  Btor * btor;
+  std::vector<BtorNode *> children;
+  int idx;
 };
 
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(
-      Btor * b, BoolectorNode * n, std::vector<Term> c, Op o, bool is_sym);
+  BoolectorTerm(Btor * b, BoolectorNode * n);
   ~BoolectorTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
@@ -57,11 +74,24 @@ class BoolectorTerm : public AbsTerm
 
  protected:
   Btor * btor;
+  // the actual API level node that is used
   BoolectorNode * node;
-  std::vector<Term> children;
-  Op op;
+  // the real address of the boolector node
+  // allows us to look up:
+  //   kind: for retrieving operator
+  //   e:    for getting children
+  BtorNode * bn;
+  // true iff the node is negated
+  bool negated;
+  // true iff the node is a symbolic constant
   bool is_sym;
-  std::string repr;
+  // for iterating args nodes
+  BtorArgsIterator ait;
+  // for storing nodes before iterating
+  std::vector<BtorNode *> children;
+
+  // helpers
+  bool is_const_array() const;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

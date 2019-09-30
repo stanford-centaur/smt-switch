@@ -21,6 +21,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
   primop2str[Ite] = std::string_view("ite");
   primop2str[Equal] = std::string_view("=");
   primop2str[Distinct] = std::string_view("distinct");
+  primop2str[Apply] = std::string_view("apply");
   primop2str[Plus] = std::string_view("+");
   primop2str[Minus] = std::string_view("-");
   primop2str[Negate] = std::string_view("-");
@@ -70,6 +71,7 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
   primop2str[Rotate_Right] = std::string_view("rotate_right");
   primop2str[Select] = std::string_view("select");
   primop2str[Store] = std::string_view("store");
+  primop2str[Const_Array] = std::string_view("const_array");
   return primop2str;
 }
 
