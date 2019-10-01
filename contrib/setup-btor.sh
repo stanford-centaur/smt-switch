@@ -11,7 +11,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     chmod -R 777 boolector
     cd boolector
     # temporarily pull specific hash
-    git checkout 98aeefd27d0ce1188707dda013c1c63a00be7b4c
+    git checkout -f 98aeefd27d0ce1188707dda013c1c63a00be7b4c
     ./contrib/setup-btor2tools.sh
     ./contrib/setup-cadical.sh
     ./configure.sh --only-cadical -fPIC
