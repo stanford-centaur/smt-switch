@@ -11,8 +11,8 @@ if [ ! -d "$DEPS/boolector" ]; then
     chmod -R 777 boolector
     cd boolector
     ./contrib/setup-btor2tools.sh
-    ./contrib/setup-lingeling.sh
-    ./configure.sh --only-lingeling -fPIC
+    ./contrib/setup-cadical.sh
+    ./configure.sh --only-cadical -fPIC
     cd build
     make -j$(nproc)
     cd $DIR
