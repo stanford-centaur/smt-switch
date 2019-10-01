@@ -14,8 +14,8 @@ if [ ! -d "$DEPS/boolector" ]; then
     cd boolector
     git checkout -f $BTOR_VERSION
     ./contrib/setup-btor2tools.sh
-    ./contrib/setup-lingeling.sh
-    ./configure.sh --only-lingeling -fPIC
+    ./contrib/setup-cadical.sh
+    ./configure.sh --only-cadical -fPIC
     cd build
     make -j$(nproc)
     cd $DIR
