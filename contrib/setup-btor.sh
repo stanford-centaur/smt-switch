@@ -9,7 +9,7 @@ mkdir -p $DEPS
 
 if [ ! -d "$DEPS/boolector" ]; then
     cd $DEPS
-    git clone https://github.com/Boolector/boolector.git
+    git clone -b smtcomp19 https://github.com/Boolector/boolector.git
     chmod -R 777 boolector
     cd boolector
     git checkout -f $BTOR_VERSION
