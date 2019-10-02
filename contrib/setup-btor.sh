@@ -23,7 +23,7 @@ else
     echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/lingeling/liblgl.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/btor2parser.o ] ; then \
+if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/cadical/build/libcadical.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/btor2parser.o ] ; then \
     echo "It appears boolector was setup successfully into $DEPS/boolector."
     echo "You may now install it with make ./configure.sh --btor && cd build && make"
 else
