@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BTOR_VERSION=5a3b5c88ea9c9dcf4232e33546f69d80d7424b13
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -10,6 +12,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     git clone https://github.com/Boolector/boolector.git
     chmod -R 777 boolector
     cd boolector
+    git checkout -f $BTOR_VERSION
     ./contrib/setup-btor2tools.sh
     ./contrib/setup-lingeling.sh
     ./configure.sh --only-lingeling -fPIC
