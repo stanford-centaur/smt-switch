@@ -20,7 +20,7 @@ msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_nor(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1);
-msat_term ext_msat_make_bv_smod(msat_env e, msat_term t0, msat_term t1);
+msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t);
 msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1);

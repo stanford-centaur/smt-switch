@@ -94,9 +94,72 @@ msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1)
   return msat_make_bv_not(e, ext_msat_make_xor(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_smod(msat_env e, msat_term t0, msat_term t1)
+msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
 {
-  throw NotImplementedException("smod not implemented");
+  // From CVC4 rewrite rules
+  // (bvsmod s t) abbreviates
+  //     (let ((?msb_s ((_ extract |m-1| |m-1|) s))
+  //           (?msb_t ((_ extract |m-1| |m-1|) t)))
+  //       (let ((abs_s (ite (= ?msb_s #b0) s (bvneg s)))
+  //             (abs_t (ite (= ?msb_t #b0) t (bvneg t))))
+  //         (let ((u (bvurem abs_s abs_t)))
+  //           (ite (= u (_ bv0 m))
+  //                u
+  //           (ite (and (= ?msb_s #b0) (= ?msb_t #b0))
+  //                u
+  //           (ite (and (= ?msb_s #b1) (= ?msb_t #b0))
+  //                (bvadd (bvneg u) t)
+  //           (ite (and (= ?msb_s #b0) (= ?msb_t #b1))
+  //                (bvadd u t)
+  //                (bvneg u))))))))
+
+  size_t width;
+  if (!msat_is_bv_type(e, msat_term_get_type(s), &width))
+  {
+    throw IncorrectUsageException("Expecting a bit-vector type in bvsmod");
+  }
+
+  msat_term one_1bit = msat_make_bv_int_number(e, 1, 1);
+  msat_term zero_1bit = msat_make_bv_int_number(e, 0, 1);
+  msat_term zero_width = msat_make_bv_int_number(e, 0, width);
+
+  msat_term msb_s = msat_make_bv_extract(e, width - 1, width - 1, s);
+  msat_term msb_t = msat_make_bv_extract(e, width - 1, width - 1, t);
+
+  msat_term abs_s = msat_make_term_ite(
+      e, msat_make_eq(e, msb_s, zero_1bit), s, msat_make_bv_neg(e, s));
+  msat_term abs_t = msat_make_term_ite(
+      e, msat_make_eq(e, msb_t, zero_1bit), t, msat_make_bv_neg(e, t));
+
+  msat_term u = msat_make_bv_urem(e, abs_s, abs_t);
+
+  msat_term ite_3 =
+      msat_make_term_ite(e,
+                         msat_make_and(e,
+                                       msat_make_eq(e, msb_s, zero_1bit),
+                                       msat_make_eq(e, msb_t, one_1bit)),
+                         msat_make_bv_plus(e, u, t),
+                         msat_make_bv_neg(e, u));
+  msat_term ite_2 =
+      msat_make_term_ite(e,
+                         msat_make_and(e,
+                                       msat_make_eq(e, msb_s, one_1bit),
+                                       msat_make_eq(e, msb_t, zero_1bit)),
+                         msat_make_bv_plus(e, msat_make_bv_neg(e, u), t),
+                         ite_3);
+
+  msat_term ite_1 =
+      msat_make_term_ite(e,
+                         msat_make_and(e,
+                                       msat_make_eq(e, msb_s, zero_1bit),
+                                       msat_make_eq(e, msb_t, zero_1bit)),
+                         u,
+                         ite_2);
+
+  msat_term ite_0 =
+      msat_make_term_ite(e, msat_make_eq(e, u, zero_width), u, ite_1);
+
+  return ite_0;
 }
 
 msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1)
