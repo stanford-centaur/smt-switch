@@ -1,4 +1,5 @@
 add_library(smt-switch-msat "${SMT_SWITCH_LIB_TYPE}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_sort.cpp"

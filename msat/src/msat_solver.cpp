@@ -1,4 +1,5 @@
 #include "msat_solver.h"
+#include "msat_extensions.h"
 #include "msat_sort.h"
 #include "msat_term.h"
 
@@ -20,12 +21,11 @@ typedef msat_term (*msat_tern_fun)(msat_env, msat_term, msat_term, msat_term);
 // TODO: implement the external functions
 const unordered_map<PrimOp, msat_un_fun> msat_unary_ops({
     { Not, msat_make_not },
-    // { Negate, ext_msat_make_negate },
-    // TODO: use ite
-    // { Abs, ext_msat_make_abs },
-    // { To_Real, ext_msat_make_nop },
+    { Negate, ext_msat_make_negate },
+    { Abs, ext_msat_make_abs },
+    { To_Real, ext_msat_make_nop },
     { To_Int, msat_make_floor },
-    // { Is_Int, ext_msat_is_int },
+    { Is_Int, ext_msat_is_int },
     // Indexed Op
     // {Extract, },
     { BVNot, msat_make_bv_not },
@@ -47,34 +47,29 @@ const unordered_map<PrimOp, msat_un_fun> msat_unary_ops({
 const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
     { { And, msat_make_and },
       { Or, msat_make_or },
-      // { Xor, ext_msat_make_xor },
-      // { Implies, ext_msat_make_implies },
+      { Xor, ext_msat_make_xor },
+      { Implies, ext_msat_make_implies },
       { Iff, msat_make_iff },
       { Equal, msat_make_eq },
-      // { Distinct, ext_msat_make_distinct },
+      { Distinct, ext_msat_make_distinct },
       { Plus, msat_make_plus },
-      // Use -1 and times
-      // { Minus, ext_msat_make_minus },
-      // { Negate, ext_msat_make_negate },
+      { Minus, ext_msat_make_minus },
       { Mult, msat_make_times },
       { Div, msat_make_divide },
-      // { Lt, ext_msat_make_lt },
+      { Lt, ext_msat_make_lt },
       { Le, msat_make_leq },
-      // { Gt, ext_msat_make_gt },
-      // { Ge, ext_msat_make_geq },
-      // TODO: Look into mod, abs and pow
-      //       might have to repeatedly multiply
-      //       (pow only supports constant valeus right?)
-      //       and use ite for abs
-      // { Mod, ext_msat_make_mod },
-      // { Pow, ext_msat_make_pow },
+      { Gt, ext_msat_make_gt },
+      { Ge, ext_msat_make_geq },
+      // TODO: Actually implement mod and pow
+      { Mod, ext_msat_make_mod },
+      { Pow, ext_msat_make_pow },
       { Concat, msat_make_bv_concat },
       { BVAnd, msat_make_bv_and },
       { BVOr, msat_make_bv_or },
       { BVXor, msat_make_bv_xor },
-      // { BVNand, ext_msat_make_bv_nand},
-      // { BVNor, ext_msat_make_bv_nor},
-      // {BVXnor, ext_msat_make_bv_xnor},
+      { BVNand, ext_msat_make_bv_nand },
+      { BVNor, ext_msat_make_bv_nor },
+      { BVXnor, ext_msat_make_bv_xnor },
       { BVComp, msat_make_bv_comp },
       { BVAdd, msat_make_bv_plus },
       { BVSub, msat_make_bv_minus },
@@ -85,18 +80,18 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { BVSrem, msat_make_bv_srem },
       // TODO: figure out how to implement this
       //       tbh I don't really understand what smod does
-      // { BVSmod, ext_msat_make_bv_smod },
+      { BVSmod, ext_msat_make_bv_smod },
       { BVShl, msat_make_bv_lshl },
       { BVAshr, msat_make_bv_ashr },
       { BVLshr, msat_make_bv_lshr },
       { BVUlt, msat_make_bv_ult },
       { BVUle, msat_make_bv_uleq },
-      // { BVUgt, ext_msat_make_bv_ugt},
-      // { BVUge, ext_msat_make_bv_uge},
+      { BVUgt, ext_msat_make_bv_ugt },
+      { BVUge, ext_msat_make_bv_ugeq },
       { BVSlt, msat_make_bv_slt },
       { BVSle, msat_make_bv_sleq },
-      // { BVSgt, ext_msat_make_bv_sgt},
-      // { BVSge, ext_msat_make_bv_sge},
+      { BVSgt, ext_msat_make_bv_sgt },
+      { BVSge, ext_msat_make_bv_sgeq },
       { Select, msat_make_array_read } });
 
 const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
