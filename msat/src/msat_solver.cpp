@@ -296,6 +296,12 @@ Sort MsatSolver::make_sort(SortKind sk,
   {
     return make_sort(sort->get_sort_kind());
   }
+  else if (sk != FUNCTION)
+  {
+    throw IncorrectUsageException("Expecting function sort kind when creating sort with a vector of domain sorts");
+  }
+
+  string decl_name("internal_ref_fun");
 
   std::vector<msat_type> msorts;
   msorts.reserve(sorts.size());
@@ -304,11 +310,18 @@ Sort MsatSolver::make_sort(SortKind sk,
   {
     msort = std::static_pointer_cast<MsatSort>(s)->type;
     msorts.push_back(msort);
+    decl_name += ("_" + s->to_string());
   }
   msort = std::static_pointer_cast<MsatSort>(sort)->type;
+  decl_name += ("_return_" + sort->to_string());
   msat_type mfunsort =
       msat_get_function_type(env, &msorts[0], msorts.size(), msort);
-  Sort funsort(new MsatSort(env, mfunsort));
+
+  // creating a reference decl, because it's the only way to get codomain and domain sorts
+  // i.e. there's no msat_is_function_type(msat_env, msat_type)
+  msat_decl ref_fun_decl = msat_declare_function(env, decl_name.c_str(), mfunsort);
+
+  Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
   return funsort;
 }
 
@@ -395,9 +408,30 @@ Term MsatSolver::make_value(const Term & val, const Sort & sort) const
 
 Term MsatSolver::make_term(const string s, const Sort & sort)
 {
+  if (has_symbol(s))
+  {
+    string msg("Symbol ");
+    msg += s;
+    msg += " already exists.";
+    throw IncorrectUsageException(msg);
+  }
+
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
   msat_decl decl = msat_declare_function(env, s.c_str(), msort->type);
-  return Term(new MsatTerm(env, msat_make_constant(env, decl)));
+
+  if (sort->get_sort_kind() == FUNCTION)
+  {
+    return Term(new MsatTerm(env, decl));
+  }
+  else
+  {
+    msat_term res = msat_make_constant(env, decl);
+    if (MSAT_ERROR_TERM(res))
+    {
+      throw InternalSolverException("Got error term.");
+    }
+    return Term(new MsatTerm(env, res));
+  }
 }
 
 Term MsatSolver::make_term(Op op, const Term & t) const
@@ -406,14 +440,17 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   msat_term res;
   if (!op.num_idx)
   {
-    if (msat_unary_ops.find(op.prim_op) == msat_unary_ops.end())
+    if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
+    {
+      res = msat_unary_ops.at(op.prim_op)(env, mterm->term);
+    }
+    else
     {
       string msg("Can't apply ");
       msg += op.to_string();
       msg += " to a single term, or not supported by MathSAT backend yet.";
       throw IncorrectUsageException(msg);
     }
-    res = msat_unary_ops.at(op.prim_op)(env, mterm->term);
   }
   else if (op.prim_op == Extract)
   {
@@ -502,14 +539,26 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   msat_term res;
   if (!op.num_idx)
   {
-    if (msat_unary_ops.find(op.prim_op) == msat_unary_ops.end())
+    if (msat_binary_ops.find(op.prim_op) != msat_binary_ops.end())
+    {
+      res = msat_binary_ops.at(op.prim_op)(env, mterm0->term, mterm1->term);
+    }
+    else if (op.prim_op == Apply)
+    {
+      if (!mterm0->is_uf)
+      {
+        throw IncorrectUsageException("Expecting UF as first argument to Apply");
+      }
+      vector<msat_term> v({mterm1->term});
+      res = msat_make_uf(env, mterm0->decl, &v[0]);
+    }
+    else
     {
       string msg("Can't apply ");
       msg += op.to_string();
       msg += " to two terms, or not supported by MathSAT backend yet.";
       throw IncorrectUsageException(msg);
     }
-    res = msat_binary_ops.at(op.prim_op)(env, mterm0->term, mterm1->term);
   }
   else
   {
@@ -539,15 +588,27 @@ Term MsatSolver::make_term(Op op,
   msat_term res;
   if (!op.num_idx)
   {
-    if (msat_unary_ops.find(op.prim_op) == msat_unary_ops.end())
+    if (msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
+    {
+      res = msat_ternary_ops.at(op.prim_op)(
+                                            env, mterm0->term, mterm1->term, mterm2->term);
+    }
+    else if (op.prim_op == Apply)
+    {
+      if (!mterm0->is_uf)
+      {
+        throw IncorrectUsageException("Expecting UF as first argument to Apply");
+      }
+      vector<msat_term> v({mterm1->term, mterm2->term});
+      res = msat_make_uf(env, mterm0->decl, &v[0]);
+    }
+    else
     {
       string msg("Can't apply ");
       msg += op.to_string();
       msg += " to three terms, or not supported by MathSAT backend yet.";
       throw IncorrectUsageException(msg);
     }
-    res = msat_ternary_ops.at(op.prim_op)(
-        env, mterm0->term, mterm1->term, mterm2->term);
   }
   else
   {
@@ -610,7 +671,12 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
     msat_decl uf = mterm->decl;
-    return Term(new MsatTerm(env, msat_make_uf(env, uf, &margs[0])));
+    msat_term res = msat_make_uf(env, uf, &margs[0]);
+    if (MSAT_ERROR_TERM(res))
+    {
+      throw InternalSolverException("Got error term.");
+    }
+    return Term(new MsatTerm(env, res));
   }
   else
   {

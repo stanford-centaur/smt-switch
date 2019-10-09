@@ -103,12 +103,41 @@ Sort MsatSort::get_elemsort() const
 
 std::vector<Sort> MsatSort::get_domain_sorts() const
 {
-  throw NotImplementedException("UF sorts not implemented");
+  if (!is_uf_type)
+  {
+    throw IncorrectUsageException("Can't get domain sorts from non-function sort.");
+  }
+
+  size_t arity = msat_decl_get_arity(uf_decl);
+  vector<Sort> sorts;
+  sorts.reserve(arity);
+  msat_type type;
+  for (size_t i = 0; i < arity; i++)
+  {
+    type = msat_decl_get_arg_type(uf_decl, i);
+    if (MSAT_ERROR_TYPE(type))
+    {
+      throw InternalSolverException("Got error type");
+    }
+    // Note: assuming first-order, function can't take function arguments
+    sorts.push_back(Sort(new MsatSort(env, type)));
+  }
+  return sorts;
 }
 
 Sort MsatSort::get_codomain_sort() const
 {
-  throw NotImplementedException("UF sorts not implemented");
+  if (!is_uf_type)
+  {
+    throw IncorrectUsageException("Can't get codomain sort from non-function sort.");
+  }
+  msat_type t = msat_decl_get_return_type(uf_decl);
+  // Note: assuming first-order, e.g. functions can't return functions
+  if (MSAT_ERROR_TYPE(t))
+  {
+    throw InternalSolverException("Got error type");
+  }
+  return Sort(new MsatSort(env, t));
 }
 
 bool MsatSort::compare(const Sort s) const
@@ -139,9 +168,10 @@ SortKind MsatSort::get_sort_kind() const
   {
     return ARRAY;
   }
-  // TODO: Handle uninterpreted function types
-  // No way to check if the type is a function type
-  // could just use the else case, but what about when we add new sorts?
+  else if (is_uf_type)
+  {
+    return FUNCTION;
+  }
   else
   {
     throw NotImplementedException("Unknown MathSAT type.");

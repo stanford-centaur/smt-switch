@@ -9,16 +9,11 @@ namespace smt {
 // forward declaration
 class MsatSolver;
 
-// TODO
-// THOUGHTS
-// to implement UF, might need to optionally store a msat_decl
-// because all the function things are defined on the decl itself
-// could always just create a dummy one
-
 class MsatSort : public AbsSort
 {
  public:
-  MsatSort(msat_env e, msat_type t) : env(e), type(t){};
+  MsatSort(msat_env e, msat_type t) : env(e), type(t), is_uf_type(false) {};
+  MsatSort(msat_env e, msat_type t, msat_decl d) : env(e), type(t), uf_decl(d), is_uf_type(true) {};
   ~MsatSort() = default;
   std::string to_string() const override;
   std::size_t hash() const override;
@@ -33,6 +28,8 @@ class MsatSort : public AbsSort
  protected:
   msat_env env;
   msat_type type;
+  msat_decl uf_decl;
+  bool is_uf_type;
 
   friend class MsatSolver;
 };
