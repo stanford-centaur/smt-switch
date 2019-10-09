@@ -39,9 +39,9 @@ if (BUILD_BTOR)
 endif (BUILD_BTOR)
 
 
-# should we build boolector?
+# should we build cvc4?
 option (BUILD_CVC4
-  "Should we build the libraries for boolector" OFF)
+  "Should we build the libraries for cvc4" OFF)
 
 if (BUILD_CVC4)
   set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
@@ -51,6 +51,20 @@ if (BUILD_CVC4)
   # testing
   add_subdirectory(tests/cvc4)
 endif (BUILD_CVC4)
+
+# should we build msat?
+option (BUILD_MSAT
+  "Should we build the libraries for mathsat" OFF)
+
+if (BUILD_MSAT)
+  set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
+  add_subdirectory (msat)
+  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-msat)
+
+  # TODO:
+  # testing
+  # add_subdirectory(tests/msat)
+endif()
 
 # install smt-switch
 install(TARGETS smt-switch DESTINATION lib)
