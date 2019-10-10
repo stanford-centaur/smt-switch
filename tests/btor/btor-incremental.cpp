@@ -37,6 +37,10 @@ int main()
   r = s->check_sat_assuming(TermVec{ assumption });
   assert(r.is_unsat());
 
+  r = s->check_sat_assuming({s->make_term(Equal, x, s->make_value(1, bvsort8))});
+  assert(r.is_sat());
+  assert(s->get_value(x)->to_int() == 1);
+
   s->push();
   s->assert_formula(assumption);
   r = s->check_sat();
