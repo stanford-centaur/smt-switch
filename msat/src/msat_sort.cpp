@@ -49,9 +49,15 @@ std::size_t MsatSort::hash() const
     v = v ^ MsatSort(env, idx_type).hash();
     v = v ^ MsatSort(env, elem_type).hash();
   }
-  // TODO: Handle uninterpreted function types
-  // No way to check if the type is a function type
-  // could just use the else case, but what about when we add new sorts?
+  else if (is_uf_type)
+  {
+    v << 25;
+    for (auto t : get_domain_sorts())
+    {
+      v = v ^ t->hash();
+    }
+    v = v ^ get_codomain_sort()->hash();
+  }
   else
   {
     throw NotImplementedException("Unknown MathSAT type.");
@@ -111,16 +117,16 @@ std::vector<Sort> MsatSort::get_domain_sorts() const
   size_t arity = msat_decl_get_arity(uf_decl);
   vector<Sort> sorts;
   sorts.reserve(arity);
-  msat_type type;
+  msat_type tmp_type;
   for (size_t i = 0; i < arity; i++)
   {
-    type = msat_decl_get_arg_type(uf_decl, i);
+    tmp_type = msat_decl_get_arg_type(uf_decl, i);
     if (MSAT_ERROR_TYPE(type))
     {
       throw InternalSolverException("Got error type");
     }
     // Note: assuming first-order, function can't take function arguments
-    sorts.push_back(Sort(new MsatSort(env, type)));
+    sorts.push_back(Sort(new MsatSort(env, tmp_type)));
   }
   return sorts;
 }

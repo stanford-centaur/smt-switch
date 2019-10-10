@@ -156,7 +156,19 @@ size_t MsatTerm::hash() const
 bool MsatTerm::compare(const Term & absterm) const
 {
   shared_ptr<MsatTerm> mterm = std::static_pointer_cast<MsatTerm>(absterm);
-  return (msat_term_id(term) == msat_term_id(mterm->term));
+  if (is_uf ^ mterm->is_uf)
+  {
+    // can't be equal if one is a uf and the other is not
+    return false;
+  }
+  else if (!is_uf)
+  {
+    return (msat_term_id(term) == msat_term_id(mterm->term));
+  }
+  else
+  {
+    return (msat_decl_id(decl) == msat_decl_id(mterm->decl));
+  }
 }
 
 Op MsatTerm::get_op() const
@@ -341,7 +353,33 @@ Op MsatTerm::get_op() const
 
 Sort MsatTerm::get_sort() const
 {
-  return Sort(new MsatSort(env, msat_term_get_type(term)));
+  if (!is_uf)
+  {
+    return Sort(new MsatSort(env, msat_term_get_type(term)));
+  }
+  else
+  {
+    // need to reconstruct the function type
+    vector<msat_type> param_types;
+    size_t arity = msat_decl_get_arity(decl);
+    param_types.reserve(arity);
+    for (size_t i = 0; i < arity; i++)
+    {
+      param_types.push_back(msat_decl_get_arg_type(decl, i));
+    }
+
+    if (!param_types.size())
+    {
+      throw InternalSolverException("Expecting non-zero arity for UF.");
+    }
+
+    msat_type funtype = msat_get_function_type(env,
+                                               &param_types[0],
+                                               param_types.size(),
+                                               msat_decl_get_return_type(decl));
+
+    return Sort(new MsatSort(env, funtype, decl));
+  }
 }
 
 bool MsatTerm::is_symbolic_const() const
@@ -360,7 +398,17 @@ bool MsatTerm::is_value() const
   return ((msat_term_arity(term) == 0) && msat_term_is_number(env, term));
 }
 
-string MsatTerm::to_string() const { return msat_to_smtlib2_term(env, term); }
+string MsatTerm::to_string() const
+{
+  if (is_uf)
+  {
+    return msat_decl_repr(decl);
+  }
+  else
+  {
+    return msat_to_smtlib2_term(env, term);
+  }
+}
 
 uint64_t MsatTerm::to_int() const
 {
