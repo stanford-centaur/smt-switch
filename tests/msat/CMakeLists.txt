@@ -4,6 +4,10 @@ set(MSAT_TESTS
   msat-arrays2
   msat-data-structures
   msat-incremental
+  msat-traversal
+  msat-int-arithmetic
+  msat-transfer
+  msat-substitute
 )
 
 foreach(test ${MSAT_TESTS})
