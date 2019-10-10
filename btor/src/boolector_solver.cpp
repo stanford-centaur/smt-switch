@@ -187,7 +187,7 @@ void BoolectorSolver::assert_formula(const Term & t) const
   boolector_assert(btor, bt->node);
 }
 
-Result BoolectorSolver::check_sat() const
+Result BoolectorSolver::check_sat()
 {
   if (boolector_sat(btor) == BOOLECTOR_SAT)
   {
@@ -199,7 +199,7 @@ Result BoolectorSolver::check_sat() const
   }
 };
 
-Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions) const
+Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
   std::shared_ptr<BoolectorTerm> bt;
   for (auto a : assumptions)
@@ -218,12 +218,9 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions) const
   }
 }
 
-void BoolectorSolver::push(unsigned int num) const
-{
-  boolector_push(btor, num);
-}
+void BoolectorSolver::push(unsigned int num) { boolector_push(btor, num); }
 
-void BoolectorSolver::pop(unsigned int num) const { boolector_pop(btor, num); }
+void BoolectorSolver::pop(unsigned int num) { boolector_pop(btor, num); }
 
 Term BoolectorSolver::get_value(Term & t) const
 {

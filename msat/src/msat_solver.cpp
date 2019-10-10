@@ -108,6 +108,7 @@ void MsatSolver::set_opt(const string option, const string value)
   {
     msat_set_option(cfg, "model_generation", value.c_str());
     env = msat_create_env(cfg);
+    produce_model = true;
   }
   else if (option == "incremental")
   {
@@ -141,24 +142,30 @@ void MsatSolver::assert_formula(const Term & t) const
   }
 }
 
-Result MsatSolver::check_sat() const
+Result MsatSolver::check_sat()
 {
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
+    if (produce_model)
+    {
+      current_model = msat_get_model(env);
+    }
     return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
   {
+    invalidate_current_model();
     return Result(UNSAT);
   }
   else
   {
+    invalidate_current_model();
     return Result(UNKNOWN);
   }
 }
 
-Result MsatSolver::check_sat_assuming(const TermVec & assumptions) const
+Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // Note: solving with assumptions in MathSAT requires the use of indicator
   // boolean literals to simulate the same behavior, we just use push/pop here
@@ -174,6 +181,11 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions) const
 
   msat_result mres = msat_solve(env);
 
+  if (produce_model && mres == MSAT_SAT)
+  {
+    current_model = msat_get_model(env);
+  }
+
   msat_pop_backtrack_point(env);
 
   if (mres == MSAT_SAT)
@@ -182,15 +194,17 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions) const
   }
   else if (mres == MSAT_UNSAT)
   {
+    invalidate_current_model();
     return Result(UNSAT);
   }
   else
   {
+    invalidate_current_model();
     return Result(UNKNOWN);
   }
 }
 
-void MsatSolver::push(unsigned int num) const
+void MsatSolver::push(unsigned int num)
 {
   for (unsigned int i = 0; i < num; i++)
   {
@@ -198,8 +212,12 @@ void MsatSolver::push(unsigned int num) const
   }
 }
 
-void MsatSolver::pop(unsigned int num) const
+void MsatSolver::pop(unsigned int num)
 {
+  if (num)
+  {
+    invalidate_current_model();
+  }
   for (unsigned int i = 0; i < num; i++)
   {
     msat_pop_backtrack_point(env);
@@ -208,8 +226,14 @@ void MsatSolver::pop(unsigned int num) const
 
 Term MsatSolver::get_value(Term & t) const
 {
+  if (produce_model && MSAT_ERROR_MODEL(current_model))
+  {
+    throw IncorrectUsageException(
+        "There's no current model. Ensure the last call was sat and there have "
+        "been no pops since then.");
+  }
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-  msat_term val = msat_get_model_value(env, mterm->term);
+  msat_term val = msat_model_eval(current_model, mterm->term);
 
   if (MSAT_ERROR_TERM(val))
   {
@@ -784,6 +808,19 @@ Term MsatSolver::substitute(const Term term,
 void MsatSolver::dump_smt2(FILE * file) const
 {
   throw NotImplementedException("Can't dump all assertions to a file yet");
+}
+
+// helpers
+void MsatSolver::invalidate_current_model()
+{
+  if (!MSAT_ERROR_MODEL(current_model))
+  {
+    msat_destroy_model(current_model);
+    // interesting behavior is that destroying a model
+    // does not make it a null model
+    // doing that manually
+    (current_model).repr = NULL;
+  }
 }
 
 // end MsatSolver implementation

@@ -273,7 +273,7 @@ void CVC4Solver::assert_formula(const Term& t) const
   }
 }
 
-Result CVC4Solver::check_sat() const
+Result CVC4Solver::check_sat()
 {
   try
   {
@@ -301,7 +301,7 @@ Result CVC4Solver::check_sat() const
   }
 }
 
-Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
+Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
@@ -337,7 +337,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
   }
 }
 
-void CVC4Solver::push(unsigned int num) const
+void CVC4Solver::push(unsigned int num)
 {
   try
   {
@@ -349,7 +349,7 @@ void CVC4Solver::push(unsigned int num) const
   }
 }
 
-void CVC4Solver::pop(unsigned int num) const
+void CVC4Solver::pop(unsigned int num)
 {
   try
   {

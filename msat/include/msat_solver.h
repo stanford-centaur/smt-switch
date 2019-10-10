@@ -30,6 +30,7 @@ class MsatSolver : public AbsSmtSolver
   {
     cfg = msat_create_config();
     env = msat_create_env(cfg);
+    produce_model = false;
   };
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
@@ -37,10 +38,10 @@ class MsatSolver : public AbsSmtSolver
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
   void assert_formula(const Term & t) const override;
-  Result check_sat() const override;
-  Result check_sat_assuming(const TermVec & assumptions) const override;
-  void push(unsigned int num = 1) const override;
-  void pop(unsigned int num = 1) const override;
+  Result check_sat() override;
+  Result check_sat_assuming(const TermVec & assumptions) override;
+  void push(unsigned int num = 1) override;
+  void pop(unsigned int num = 1) override;
   Term get_value(Term & t) const override;
   Sort make_sort(const std::string name, unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;
@@ -77,9 +78,12 @@ class MsatSolver : public AbsSmtSolver
  protected:
   msat_config cfg;
   msat_env env;
-  // TODO: possibly remove this
-  // keep track of created symbols for has_symbol and lookup_symbol
-  // std::unordered_map<std::string, Term> symbols;
+  bool produce_model;
+  msat_model current_model;
+
+ private:
+  // helpers
+  void invalidate_current_model();
 };
 }  // namespace smt
 
