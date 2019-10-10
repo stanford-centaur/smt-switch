@@ -81,17 +81,17 @@ msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
 
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_and(e, t0, t1));
+  return msat_make_bv_not(e, msat_make_bv_and(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_nor(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_or(e, t0, t1));
+  return msat_make_bv_not(e, msat_make_bv_or(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, ext_msat_make_xor(e, t0, t1));
+  return msat_make_bv_not(e, msat_make_bv_xor(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
