@@ -42,7 +42,7 @@ class AbsSort
  public:
   AbsSort() {};
   virtual ~AbsSort(){};
-  virtual std::string to_string() const = 0;
+  virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;
   // TODO: decide on exception or special value for incorrect usage
   virtual unsigned int get_width() const = 0;

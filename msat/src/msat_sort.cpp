@@ -8,12 +8,6 @@ namespace smt {
 
 // MsatSort implementation
 
-std::string MsatSort::to_string() const
-{
-  // TODO: convert to smt-lib2 notation
-  return msat_type_repr(type);
-}
-
 std::size_t MsatSort::hash() const
 {
   // TODO: check this hash function

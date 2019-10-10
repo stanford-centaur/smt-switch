@@ -18,8 +18,6 @@ class BoolectorSortBase : public AbsSort
   BoolectorSortBase(SortKind sk, Btor * b, BoolectorSort s)
       : btor(b), sort(s), sk(sk){};
   virtual ~BoolectorSortBase();
-  // by default none of these work
-  std::string to_string() const override;
   std::size_t hash() const override;
   unsigned int get_width() const override;
   Sort get_indexsort() const override;
