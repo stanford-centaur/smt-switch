@@ -115,6 +115,18 @@ void MsatSolver::set_opt(const string option, const string value)
     // do nothing
     // it's incremental by default
   }
+  else if (option == "interpolation")
+  {
+    if (value == "true")
+    {
+      msat_set_option(cfg, "theory.bv.eager", "false");
+      msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
+      msat_set_option(cfg, "interpolation", "true");
+      // TODO: decide if we should add this
+      // msat_set_option(cfg, "theory.eq_propagation", "false");
+      env = msat_create_env(cfg);
+    }
+  }
   else
   {
     string msg("Option ");

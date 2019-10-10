@@ -11,6 +11,7 @@ set(MSAT_TESTS
   msat-indexed-op-tests
   msat-array-models
   msat-ext-ops
+  msat-interpolants
 )
 
 foreach(test ${MSAT_TESTS})
