@@ -79,6 +79,50 @@ int main()
                                                        s->make_term(BVXor, x, y)))});
   assert(r.is_unsat());
 
+  // BVSmod
+  size_t width = x->get_sort()->get_width();
+
+  Term zero_1bit = s->make_value(0, s->make_sort(BV, 1));
+  Term one_1bit = s->make_value(1, s->make_sort(BV, 1));
+  Term zero_width = s->make_value(0, s->make_sort(BV, width));
+
+  Term msb_x = s->make_term(Op(Extract, width - 1, width - 1), x);
+  Term msb_y = s->make_term(Op(Extract, width - 1, width - 1), y);
+
+  Term abs_x = s->make_term(
+      Ite, s->make_term(Equal, msb_x, zero_1bit), x, s->make_term(BVNeg, x));
+  Term abs_y = s->make_term(
+      Ite, s->make_term(Equal, msb_y, zero_1bit), y, s->make_term(BVNeg, y));
+
+  Term u = s->make_term(BVUrem, abs_x, abs_y);
+
+  Term smod_def = s->make_term(
+      Ite,
+      s->make_term(Equal, u, zero_width),
+      u,
+      s->make_term(
+          Ite,
+          s->make_term(And,
+                       s->make_term(Equal, msb_x, zero_1bit),
+                       s->make_term(Equal, msb_y, zero_1bit)),
+          u,
+          s->make_term(
+              Ite,
+              s->make_term(And,
+                           s->make_term(Equal, msb_x, one_1bit),
+                           s->make_term(Equal, msb_y, zero_1bit)),
+              s->make_term(BVAdd, s->make_term(BVNeg, u), y),
+              s->make_term(Ite,
+                           s->make_term(And,
+                                        s->make_term(Equal, msb_x, zero_1bit),
+                                        s->make_term(Equal, msb_y, one_1bit)),
+                           s->make_term(BVAdd, u, y),
+                           s->make_term(BVNeg, u)))));
+
+  r = s->check_sat_assuming(
+      { s->make_term(Distinct, s->make_term(BVSmod, x, y), smod_def) });
+  assert(r.is_unsat());
+
   // BVUgt
   r = s->check_sat_assuming({s->make_term(Not,
                                           s->make_term(Or,
