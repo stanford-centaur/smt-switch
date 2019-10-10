@@ -70,9 +70,8 @@ class BoolectorSolver : public AbsSmtSolver
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
   Term lookup_symbol(const std::string name) const override;
-  virtual Term substitute(
-      const Term term,
-      const UnorderedTermMap & substitution_map) const override;
+  Term substitute(const Term term,
+                  const UnorderedTermMap & substitution_map) const override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;

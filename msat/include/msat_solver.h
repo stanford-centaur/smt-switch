@@ -70,6 +70,8 @@ class MsatSolver : public AbsSmtSolver
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
   Term lookup_symbol(const std::string name) const override;
+  Term substitute(const Term term,
+                  const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(FILE * file) const override;
 
  protected:

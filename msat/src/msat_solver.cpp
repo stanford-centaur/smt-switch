@@ -742,6 +742,45 @@ Term MsatSolver::lookup_symbol(const string name) const
   return Term(new MsatTerm(env, msat_make_constant(env, decl)));
 }
 
+Term MsatSolver::substitute(const Term term,
+                            const UnorderedTermMap & substitution_map) const
+{
+  shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(term);
+
+  vector<msat_term> to_subst;
+  vector<msat_term> values;
+
+  shared_ptr<MsatTerm> tmp_key;
+  shared_ptr<MsatTerm> tmp_val;
+  // TODO: Fallback to parent class implementation if there are uninterpreted
+  // functions
+  //       in the map
+  for (auto elem : substitution_map)
+  {
+    tmp_key = static_pointer_cast<MsatTerm>(elem.first);
+    if (tmp_key->is_uf)
+    {
+      throw NotImplementedException(
+          "MathSAT does not support substituting functions");
+    }
+    to_subst.push_back(tmp_key->term);
+    tmp_val = static_pointer_cast<MsatTerm>(elem.second);
+    if (tmp_val->is_uf)
+    {
+      throw NotImplementedException(
+          "MathSAT does not support substituting functions");
+    }
+    values.push_back(tmp_val->term);
+  }
+
+  // TODO: add guarded assertion in debug mode about size of vectors
+
+  msat_term res = msat_apply_substitution(
+      env, mterm->term, to_subst.size(), &to_subst[0], &values[0]);
+
+  return Term(new MsatTerm(env, res));
+}
+
 void MsatSolver::dump_smt2(FILE * file) const
 {
   throw NotImplementedException("Can't dump all assertions to a file yet");
