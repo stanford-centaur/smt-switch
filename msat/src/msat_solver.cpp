@@ -810,6 +810,48 @@ void MsatSolver::dump_smt2(FILE * file) const
   throw NotImplementedException("Can't dump all assertions to a file yet");
 }
 
+bool MsatSolver::get_interpolant(const Term & A,
+                                 const Term & B,
+                                 Term & out_I) const
+{
+  msat_push_backtrack_point(env);
+
+  if (A->get_sort()->get_sort_kind() != BOOL
+      || B->get_sort()->get_sort_kind() != BOOL)
+  {
+    throw IncorrectUsageException("get_interpolant requires two boolean terms");
+  }
+
+  msat_term mA = static_pointer_cast<MsatTerm>(A)->term;
+  msat_term mB = static_pointer_cast<MsatTerm>(B)->term;
+
+  int group_A = msat_create_itp_group(env);
+  int group_B = msat_create_itp_group(env);
+
+  msat_set_itp_group(env, group_A);
+  msat_assert_formula(env, mA);
+  msat_set_itp_group(env, group_B);
+  msat_assert_formula(env, mB);
+
+  msat_result res = msat_solve(env);
+
+  if (res == MSAT_UNSAT)
+  {
+    out_I = Term(new MsatTerm(env, msat_get_interpolant(env, &group_A, 1)));
+    return true;
+  }
+  else if (res == MSAT_SAT)
+  {
+    return false;
+  }
+  else
+  {
+    throw InternalSolverException("Failed when computing interpolant.");
+  }
+
+  msat_pop_backtrack_point(env);
+}
+
 // helpers
 void MsatSolver::invalidate_current_model()
 {

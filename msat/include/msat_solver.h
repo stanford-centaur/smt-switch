@@ -73,7 +73,11 @@ class MsatSolver : public AbsSmtSolver
   Term lookup_symbol(const std::string name) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
+
   void dump_smt2(FILE * file) const override;
+  bool get_interpolant(const Term & A,
+                       const Term & B,
+                       Term & out_I) const override;
 
  protected:
   msat_config cfg;
