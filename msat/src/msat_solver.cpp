@@ -104,7 +104,6 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 
 void MsatSolver::set_opt(const string option, const string value)
 {
-  std::cout << "setting option " << option << " to " << value << std::endl;
   if (option == "produce-models")
   {
     msat_set_option(cfg, "model_generation", value.c_str());
