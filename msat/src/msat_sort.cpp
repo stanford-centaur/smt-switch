@@ -45,7 +45,7 @@ std::size_t MsatSort::hash() const
   }
   else if (is_uf_type)
   {
-    v << 25;
+    v = v << 25;
     for (auto t : get_domain_sorts())
     {
       v = v ^ t->hash();
