@@ -6,7 +6,7 @@
 #include "boolector_factory.h"
 #include "smt.h"
 // after full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/boolector_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
