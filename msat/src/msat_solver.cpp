@@ -498,7 +498,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
     res = mterm->term;
-    for (size_t i = 1; i < op.num_idx; i++)
+    for (size_t i = 1; i < op.idx0; i++)
     {
       res = msat_make_bv_concat(env, mterm->term, res);
     }

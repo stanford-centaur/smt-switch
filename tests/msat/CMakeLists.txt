@@ -8,6 +8,7 @@ set(MSAT_TESTS
   msat-int-arithmetic
   msat-transfer
   msat-substitute
+  msat-indexed-op-tests
 )
 
 foreach(test ${MSAT_TESTS})
