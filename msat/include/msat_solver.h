@@ -30,7 +30,8 @@ class MsatSolver : public AbsSmtSolver
   {
     cfg = msat_create_config();
     env = msat_create_env(cfg);
-    produce_model = false;
+    produce_models = false;
+    interpolation_enabled = false;
   };
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
@@ -82,7 +83,8 @@ class MsatSolver : public AbsSmtSolver
  protected:
   msat_config cfg;
   msat_env env;
-  bool produce_model;
+  bool produce_models;
+  bool interpolation_enabled;
   msat_model current_model;
 
  private:

@@ -108,7 +108,7 @@ void MsatSolver::set_opt(const string option, const string value)
   {
     msat_set_option(cfg, "model_generation", value.c_str());
     env = msat_create_env(cfg);
-    produce_model = true;
+    produce_models = true;
   }
   else if (option == "incremental")
   {
@@ -122,6 +122,7 @@ void MsatSolver::set_opt(const string option, const string value)
       msat_set_option(cfg, "theory.bv.eager", "false");
       msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
       msat_set_option(cfg, "interpolation", "true");
+      interpolation_enabled = true;
       // TODO: decide if we should add this
       // msat_set_option(cfg, "theory.eq_propagation", "false");
       env = msat_create_env(cfg);
@@ -145,6 +146,13 @@ void MsatSolver::set_logic(const std::string logic) const
 
 void MsatSolver::assert_formula(const Term & t) const
 {
+  if (interpolation_enabled)
+  {
+    throw IncorrectUsageException(
+        "This solver has been configured for interpolation, it cannot be used "
+        "for regular solving");
+  }
+
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   if (msat_assert_formula(env, mterm->term))
   {
@@ -159,7 +167,7 @@ Result MsatSolver::check_sat()
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
-    if (produce_model)
+    if (produce_models)
     {
       current_model = msat_get_model(env);
     }
@@ -193,7 +201,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   msat_result mres = msat_solve(env);
 
-  if (produce_model && mres == MSAT_SAT)
+  if (produce_models && mres == MSAT_SAT)
   {
     current_model = msat_get_model(env);
   }
@@ -238,7 +246,11 @@ void MsatSolver::pop(unsigned int num)
 
 Term MsatSolver::get_value(Term & t) const
 {
-  if (produce_model && MSAT_ERROR_MODEL(current_model))
+  if (!produce_models)
+  {
+    throw IncorrectUsageException("Model generation has not been enabled");
+  }
+  else if (MSAT_ERROR_MODEL(current_model))
   {
     throw IncorrectUsageException(
         "There's no current model. Ensure the last call was sat and there have "
@@ -742,9 +754,10 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
 
 void MsatSolver::reset()
 {
-  // MathSAT doesn't have a reset that also removes created terms
-  // so this does the same thing as reset_assertions
-  msat_reset_env(env);
+  cfg = msat_create_config();
+  env = msat_create_env(cfg);
+  produce_models = false;
+  interpolation_enabled = false;
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }
@@ -826,7 +839,12 @@ bool MsatSolver::get_interpolant(const Term & A,
                                  const Term & B,
                                  Term & out_I) const
 {
-  msat_push_backtrack_point(env);
+  if (!interpolation_enabled)
+  {
+    throw IncorrectUsageException(
+        "This solver is not configured for interpolation, but get_interpolant "
+        "was called.");
+  }
 
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
@@ -861,7 +879,6 @@ bool MsatSolver::get_interpolant(const Term & A,
     throw InternalSolverException("Failed when computing interpolant.");
   }
 
-  msat_pop_backtrack_point(env);
 }
 
 // helpers
