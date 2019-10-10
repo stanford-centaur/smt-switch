@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "exceptions.h"
 #include "result.h"
 #include "smt_data_structures.h"
 #include "smt_defs.h"
@@ -229,7 +230,28 @@ class AbsSmtSolver
    */
   virtual Term value_from_smt2(const std::string val, const Sort sort) const;
 
-  virtual void dump_smt2(FILE * file) const = 0;
+  // extra methods -- not required
+
+  /* Dumps full smt-lib representation of current context to a file */
+  virtual void dump_smt2(FILE * file) const
+  {
+    throw NotImplementedException("Dumping to FILE not supported for this solver.");
+  }
+
+  /* Compute a Craig interpolant given A and B such that A ^ B is unsat
+   *   i.e. an I such that: A -> I  and  I ^ B is unsat
+   *        and I only contains constants that are in both A and B
+   * @param A the A term for a craig interpolant
+   * @param B the B term for a craig interpolant
+   * @return the interpolant
+   *
+   * Throws an SmtException if the formula was actually sat or
+   *   if computing the interpolant failed.
+   */
+  virtual Term get_interpolant(Term & A, Term & B)
+  {
+    throw NotImplementedException("Interpolants are not supported by this solver.");
+  }
 
  protected:
 };
