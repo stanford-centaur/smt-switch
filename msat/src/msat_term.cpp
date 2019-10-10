@@ -343,9 +343,11 @@ Op MsatTerm::get_op() const
     }
     else
     {
+      char * s = msat_to_smtlib2_term(env, term);
       std::string msg("Msat term ");
-      msg += msat_to_smtlib2_term(env, term);
+      msg += s;
       msg += " has an unknown op.";
+      msat_free(s);
       throw NotImplementedException(msg);
     }
   }
@@ -406,13 +408,18 @@ string MsatTerm::to_string() const
   }
   else
   {
-    return msat_to_smtlib2_term(env, term);
+    char * s = msat_to_smtlib2_term(env, term);
+    string res = s;
+    msat_free(s);
+    return res;
   }
 }
 
 uint64_t MsatTerm::to_int() const
 {
-  std::string val = msat_to_smtlib2_term(env, term);
+  char * s = msat_to_smtlib2_term(env, term);
+  std::string val = s;
+  msat_free(s);
   bool is_bv = msat_is_bv_type(env, msat_term_get_type(term), nullptr);
 
   // process smt-lib bit-vector format

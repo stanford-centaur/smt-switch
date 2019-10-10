@@ -157,7 +157,7 @@ void MsatSolver::assert_formula(const Term & t) const
   if (msat_assert_formula(env, mterm->term))
   {
     string msg("Cannot assert term: ");
-    msg += msat_to_smtlib2_term(env, mterm->term);
+    msg += t->to_string();
     throw IncorrectUsageException(msg);
   }
 }
@@ -262,7 +262,7 @@ Term MsatSolver::get_value(Term & t) const
   if (MSAT_ERROR_TERM(val))
   {
     string msg("Error getting value for ");
-    msg += msat_to_smtlib2_term(env, mterm->term);
+    msg += t->to_string();
     msg +=
         ".\nBe sure the last check-sat call was sat and the term only contains "
         "constants in this solving environment.";
