@@ -10,6 +10,7 @@ set(MSAT_TESTS
   msat-substitute
   msat-indexed-op-tests
   msat-array-models
+  msat-ext-ops
 )
 
 foreach(test ${MSAT_TESTS})
