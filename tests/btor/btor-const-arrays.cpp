@@ -16,7 +16,7 @@ int main()
 {
   SmtSolver s = BoolectorSolverFactory::create();
   s->set_logic("QF_ABV");
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
 
   Sort bvsort4 = s->make_sort(BV, 4);
   Sort bvsort8 = s->make_sort(BV, 8);
@@ -49,8 +49,8 @@ int main()
   // test transferring term to a different solver
   SmtSolver s2 = BoolectorSolverFactory::create();
   s2->set_logic("QF_ABV");
-  s2->set_opt("produce-models", true);
-  s2->set_opt("incremental", true);
+  s2->set_opt("produce-models", "true");
+  s2->set_opt("incremental", "true");
 
   Term const_arr2 = s2->transfer_term(const_arr);
   assert(!const_arr2->is_symbolic_const());

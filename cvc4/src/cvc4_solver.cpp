@@ -149,27 +149,8 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
 
 /* CVC4Solver implementation */
 
-void CVC4Solver::set_opt(const std::string option, bool value) const
-{
-  try
-  {
-    if (value)
-    {
-      solver.setOption(option, "true");
-    }
-    else
-    {
-      solver.setOption(option, "false");
-    }
-  }
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
 void CVC4Solver::set_opt(const std::string option,
-             const std::string value) const
+             const std::string value)
 {
   try
   {

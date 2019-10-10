@@ -102,14 +102,21 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 
 // MsatSolver implementation
 
-void MsatSolver::set_opt(const string option, bool value) const
+void MsatSolver::set_opt(const string option, const string value)
 {
-  msat_set_option(cfg, option.c_str(), value ? "true" : "false");
-}
-
-void MsatSolver::set_opt(const string option, const string value) const
-{
-  msat_set_option(cfg, option.c_str(), value.c_str());
+  std::cout << "setting option " << option << " to " << value << std::endl;
+  if (option == "produce-models")
+  {
+    msat_set_option(cfg, "model_generation", value.c_str());
+    // env = msat_create_env(cfg);
+  }
+  else
+  {
+    string msg("Option ");
+    msg += option;
+    msg += " is not yet supported for the MathSAT backend";
+    throw NotImplementedException(msg);
+  }
 }
 
 void MsatSolver::set_logic(const std::string logic) const
@@ -122,8 +129,7 @@ void MsatSolver::set_logic(const std::string logic) const
 void MsatSolver::assert_formula(const Term & t) const
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-
-  if (!msat_assert_formula(env, mterm->term))
+  if (msat_assert_formula(env, mterm->term))
   {
     string msg("Cannot assert term: ");
     msg += msat_to_smtlib2_term(env, mterm->term);

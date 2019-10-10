@@ -70,29 +70,30 @@ const std::unordered_map<PrimOp, tern_fun> ternary_ops(
 
 /* BoolectorSolver implementation */
 
-void BoolectorSolver::set_opt(const std::string option, bool value) const
+void BoolectorSolver::set_opt(const std::string option,
+                              const std::string value)
 {
-  // TODO: Implement this with a map
-  if ((option == "produce-models") && value)
+  if (option == "produce-models")
   {
-    boolector_set_opt(btor, BTOR_OPT_MODEL_GEN, 1);
+    if (value == "true")
+    {
+      boolector_set_opt(btor, BTOR_OPT_MODEL_GEN, 1);
+    }
   }
-  else if ((option == "incremental") && value)
+  else if (option == "incremental")
   {
-    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    if (value == "true")
+    {
+      boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    }
   }
   else
   {
-    std::string msg = "Option " + option;
-    msg += " is not implemented for boolector.";
-    throw NotImplementedException(msg.c_str());
+    std::string msg("Option ");
+    msg += option;
+    msg += " is not implemented in the boolector backend.";
+    throw NotImplementedException(msg);
   }
-}
-
-void BoolectorSolver::set_opt(const std::string option,
-                              const std::string value) const
-{
-  throw NotImplementedException("String value for set_opt unimplemented");
 }
 
 void BoolectorSolver::set_logic(const std::string logic) const

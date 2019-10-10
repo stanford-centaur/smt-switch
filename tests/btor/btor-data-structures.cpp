@@ -16,7 +16,7 @@ int main()
   unsigned int NUM_TERMS = 20;
 
   SmtSolver s = BoolectorSolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
 
   UnorderedTermSet uts;

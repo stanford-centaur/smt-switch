@@ -16,8 +16,8 @@ int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
   s->set_logic("QF_BV");
-  s->set_opt("produce-models", true);
-  s->set_opt("incremental", true);
+  s->set_opt("produce-models", "true");
+  s->set_opt("incremental", "true");
 
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);

@@ -15,7 +15,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
   Term y = s->make_term("y", bvsort8);
@@ -29,8 +29,8 @@ int main()
   s->assert_formula(constraint);
 
   SmtSolver s2 = CVC4SolverFactory::create();
-  s2->set_opt("produce-models", true);
-  s2->set_opt("incremental", true);
+  s2->set_opt("produce-models", "true");
+  s2->set_opt("incremental", "true");
 
   Term constraint2 = s2->transfer_term(constraint);
   // ensure it can handle transfering again (even though it already built the

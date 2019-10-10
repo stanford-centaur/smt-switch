@@ -15,7 +15,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort9 = s->make_sort(BV, 9);
   Term x = s->make_term("x", bvsort9);
   Term y = s->make_term("y", bvsort9);

@@ -61,9 +61,8 @@ if (BUILD_MSAT)
   add_subdirectory (msat)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-msat)
 
-  # TODO:
   # testing
-  # add_subdirectory(tests/msat)
+  add_subdirectory(tests/msat)
 endif()
 
 # install smt-switch

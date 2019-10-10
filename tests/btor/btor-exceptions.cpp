@@ -15,7 +15,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = BoolectorSolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
 
   try
   {

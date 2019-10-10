@@ -16,7 +16,7 @@ int main()
 {
   SmtSolver s = BoolectorSolverFactory::create();
   s->set_logic("QF_ABV");
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
   Term y = s->make_term("y", bvsort8);
@@ -27,8 +27,8 @@ int main()
 
   SmtSolver s2 = BoolectorSolverFactory::create();
   s2->set_logic("QF_ABV");
-  s2->set_opt("produce-models", true);
-  s2->set_opt("incremental", true);
+  s2->set_opt("produce-models", "true");
+  s2->set_opt("incremental", "true");
 
   Term constraint2 = s2->transfer_term(constraint);
   // ensure it can handle transfering again (even though it already built the

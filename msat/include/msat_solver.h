@@ -34,9 +34,8 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver(){};
-  void set_opt(const std::string option, bool value) const override;
   void set_opt(const std::string option,
-               const std::string value) const override;
+               const std::string value) override;
   void set_logic(const std::string logic) const override;
   void assert_formula(const Term & t) const override;
   Result check_sat() const override;

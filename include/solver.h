@@ -22,15 +22,10 @@ class AbsSmtSolver
 
   /* Sets a solver option with smt-lib 2 syntax
    * @param option name of the option
-   * @param value boolean value
-   */
-  virtual void set_opt(const std::string option, const bool value) const = 0;
-  /* Sets a solver option with smt-lib 2 syntax
-   * @param option name of the option
    * @param value string value
    */
   virtual void set_opt(const std::string option,
-                       const std::string value) const = 0;
+                       const std::string value) = 0;
 
   /* Sets a solver logic -- see smt-lib 2 logics
    * @param logic name of logic
