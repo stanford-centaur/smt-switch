@@ -164,22 +164,22 @@ msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
 
 msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_bv_uleq(e, t0, t1));
+  return msat_make_not(e, msat_make_bv_uleq(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_bv_ult(e, t0, t1));
+  return msat_make_not(e, msat_make_bv_ult(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_bv_sleq(e, t0, t1));
+  return msat_make_not(e, msat_make_bv_sleq(e, t0, t1));
 }
 
 msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_bv_not(e, msat_make_bv_slt(e, t0, t1));
+  return msat_make_not(e, msat_make_bv_slt(e, t0, t1));
 }
 
 }  // namespace smt
