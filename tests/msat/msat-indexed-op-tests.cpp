@@ -32,6 +32,9 @@ int main()
   Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
   Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
 
+  assert(y_ror->to_string() == "((_ rotate_right 2) y)");
+  assert(y_rol->to_string() == "((_ rotate_left 2) y)");
+
   s->assert_formula(s->make_term(Equal, y_ror, y_rol));
   s->assert_formula(s->make_term(Distinct, y, s->make_value(0, bvsort9)));
   s->assert_formula(s->make_term(
