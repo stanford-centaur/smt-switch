@@ -3,6 +3,7 @@ set(MSAT_TESTS
   msat-arrays
   msat-arrays2
   msat-data-structures
+  msat-incremental
 )
 
 foreach(test ${MSAT_TESTS})

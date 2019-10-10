@@ -160,16 +160,21 @@ Result MsatSolver::check_sat() const
 
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions) const
 {
-  vector<msat_term> msat_assumptions;
+  // Note: solving with assumptions in MathSAT requires the use of indicator
+  // boolean literals to simulate the same behavior, we just use push/pop here
+
+  msat_push_backtrack_point(env);
+
   shared_ptr<MsatTerm> ma;
   for (auto a : assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
-    msat_assumptions.push_back(ma->term);
+    msat_assert_formula(env, ma->term);
   }
 
-  msat_result mres = msat_solve_with_assumptions(
-      env, &msat_assumptions[0], msat_assumptions.size());
+  msat_result mres = msat_solve(env);
+
+  msat_pop_backtrack_point(env);
 
   if (mres == MSAT_SAT)
   {
