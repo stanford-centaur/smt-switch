@@ -109,6 +109,11 @@ void MsatSolver::set_opt(const string option, const string value)
     msat_set_option(cfg, "model_generation", value.c_str());
     env = msat_create_env(cfg);
   }
+  else if (option == "incremental")
+  {
+    // do nothing
+    // it's incremental by default
+  }
   else
   {
     string msg("Option ");
