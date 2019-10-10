@@ -106,7 +106,7 @@ int main()
   sset.insert(s3);
 
   cout << "sset size is: " << sset.size() << endl;
-  assert(sset.size() == 3); // only two because boolector treats bool and bv{1} the same
+  assert(sset.size() == 3); // only three because boolector treats bool and bv{1} the same
 
   return 0;
 }
