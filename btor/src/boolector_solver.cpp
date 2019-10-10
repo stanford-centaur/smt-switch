@@ -70,8 +70,7 @@ const std::unordered_map<PrimOp, tern_fun> ternary_ops(
 
 /* BoolectorSolver implementation */
 
-void BoolectorSolver::set_opt(const std::string option,
-                              const std::string value)
+void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {

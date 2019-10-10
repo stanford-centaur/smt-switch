@@ -149,8 +149,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
 
 /* CVC4Solver implementation */
 
-void CVC4Solver::set_opt(const std::string option,
-             const std::string value)
+void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {

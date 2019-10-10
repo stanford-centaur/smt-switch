@@ -24,8 +24,7 @@ class AbsSmtSolver
    * @param option name of the option
    * @param value string value
    */
-  virtual void set_opt(const std::string option,
-                       const std::string value) = 0;
+  virtual void set_opt(const std::string option, const std::string value) = 0;
 
   /* Sets a solver logic -- see smt-lib 2 logics
    * @param logic name of logic
