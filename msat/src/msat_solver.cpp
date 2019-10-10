@@ -107,7 +107,7 @@ void MsatSolver::set_opt(const string option, const string value)
   if (option == "produce-models")
   {
     msat_set_option(cfg, "model_generation", value.c_str());
-    // env = msat_create_env(cfg);
+    env = msat_create_env(cfg);
   }
   else
   {
