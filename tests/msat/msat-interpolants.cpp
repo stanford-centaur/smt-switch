@@ -31,11 +31,24 @@ int main()
   }
 
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
-
   Term B = s->make_term(Gt, x, z);
-
   Term I;
   bool got_interpolant = s->get_interpolant(A, B, I);
+
+  if (got_interpolant)
+  {
+    cout << "Found interpolant: " << I << endl;
+  }
+  else
+  {
+    cout << "Didn't find an interpolant..." << endl;
+    assert(false);
+  }
+
+  // try getting a second interpolant with different A and B
+  A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
+  B = s->make_term(Lt, x, z);
+  got_interpolant = s->get_interpolant(A, B, I);
 
   if (got_interpolant)
   {
