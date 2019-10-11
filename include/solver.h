@@ -43,7 +43,7 @@ class AbsSmtSolver
   virtual Result check_sat() = 0;
 
   /* Check satisfiability of the current assertions under the given assumptions
-   * @param assumptions a vector of boolean assumption terms
+   * @param assumptions a vector of boolean literals
    * @return a result object - see result.h
    */
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
