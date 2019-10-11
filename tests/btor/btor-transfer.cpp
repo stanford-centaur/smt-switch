@@ -21,6 +21,7 @@ int main()
   Term x = s->make_term("x", bvsort8);
   Term y = s->make_term("y", bvsort8);
   Term z = s->make_term("z", bvsort8);
+  Term T = s->make_value(true);
 
   Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
   s->assert_formula(constraint);
@@ -31,6 +32,7 @@ int main()
   s2->set_opt("incremental", "true");
 
   Term constraint2 = s2->transfer_term(constraint);
+  Term T2 = s2->transfer_term(T);
   // ensure it can handle transfering again (even though it already built the
   // node)
   s2->transfer_term(constraint);

@@ -54,7 +54,7 @@ Term AbsSmtSolver::substitute(const Term term,
 Sort AbsSmtSolver::transfer_sort(const Sort sort)
 {
   SortKind sk = sort->get_sort_kind();
-  if ((sk == INT) || (sk == REAL))
+  if ((sk == INT) || (sk == REAL) || (sk == BOOL))
   {
     return make_sort(sk);
   }
@@ -213,10 +213,23 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
   {
     return make_value(val, sort);
   }
+  // this check HAS to come after bit-vector check
+  // because boolector aliases those two sorts
+  else if (sk == BOOL)
+  {
+    if (val != "true" && val != "false")
+    {
+      throw SmtException("Unexpected boolean value: " + val);
+    }
+    else
+    {
+      return make_value(val == "true");
+    }
+  }
   else
   {
     throw NotImplementedException(
-        "Only taking bv, int and real value terms currently.");
+        "Only taking bool, bv, int and real value terms currently.");
   }
 }
 

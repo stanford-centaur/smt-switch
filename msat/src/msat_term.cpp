@@ -401,11 +401,10 @@ bool MsatTerm::is_symbolic_const() const
 bool MsatTerm::is_value() const
 {
   // value if it has no children and a built-in interpretation
-  return (
-      ((msat_term_arity(term) == 0) && msat_term_is_number(env, term))
-      || msat_term_is_array_const(
-             env, term)  // constant arrays are considered values in smt-switch
-  );
+  return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
+          || msat_term_is_false(env, term) ||
+          // constant arrays are considered values in smt-switch
+          msat_term_is_array_const(env, term));
 }
 
 string MsatTerm::to_string() const
