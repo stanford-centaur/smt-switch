@@ -411,10 +411,18 @@ string MsatTerm::to_string() const
 {
   if (is_uf)
   {
+    if (MSAT_ERROR_DECL(decl))
+    {
+      throw SmtException("Can't get representation for MathSAT error decl!");
+    }
     return msat_decl_repr(decl);
   }
   else
   {
+    if (MSAT_ERROR_TERM(term))
+    {
+      throw SmtException("Can't get representation for MathSAT error term!");
+    }
     char * s = msat_to_smtlib2_term(env, term);
     string res = s;
     msat_free(s);
