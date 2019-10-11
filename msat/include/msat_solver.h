@@ -39,10 +39,7 @@ class MsatSolver : public AbsSmtSolver
     // a program that just creates a msat_env leaks
     //  -- be careful, valgrind won't report leaks on statically compiled
     //  binaries
-    if (!MSAT_ERROR_MODEL(current_model))
-    {
-      msat_destroy_model(current_model);
-    }
+    invalidate_current_model();
     msat_destroy_env(env);
     msat_destroy_config(cfg);
   }
@@ -51,7 +48,7 @@ class MsatSolver : public AbsSmtSolver
     cfg = msat_create_config();
     msat_set_option(cfg, "model_generation", "true");
     env = msat_create_env(cfg);
-    produce_models = true;
+    valid_model = false;
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
@@ -97,11 +94,12 @@ class MsatSolver : public AbsSmtSolver
  protected:
   msat_config cfg;
   msat_env env;
-  bool produce_models;
+  bool valid_model;
   msat_model current_model;
 
  private:
   // helpers
+  void set_current_model();
   void invalidate_current_model();
 };
 
@@ -122,7 +120,7 @@ class MsatInterpolatingSolver : public MsatSolver
     // TODO: decide if we should add this
     // msat_set_option(cfg, "theory.eq_propagation", "false");
     env = msat_create_env(cfg);
-    produce_models = false;
+    valid_model = false;
   }
   void set_opt(const std::string option, const std::string value) override;
   void assert_formula(const Term & t) const override;
