@@ -21,7 +21,7 @@ int main()
 
   SmtSolver s = BoolectorSolverFactory::create();
   s->set_logic("QF_ABV");
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
   Term five = s->make_value(5, bvsort8);

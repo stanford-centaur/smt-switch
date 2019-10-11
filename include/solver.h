@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "exceptions.h"
 #include "result.h"
 #include "smt_data_structures.h"
 #include "smt_defs.h"
@@ -22,15 +23,9 @@ class AbsSmtSolver
 
   /* Sets a solver option with smt-lib 2 syntax
    * @param option name of the option
-   * @param value boolean value
-   */
-  virtual void set_opt(const std::string option, const bool value) const = 0;
-  /* Sets a solver option with smt-lib 2 syntax
-   * @param option name of the option
    * @param value string value
    */
-  virtual void set_opt(const std::string option,
-                       const std::string value) const = 0;
+  virtual void set_opt(const std::string option, const std::string value) = 0;
 
   /* Sets a solver logic -- see smt-lib 2 logics
    * @param logic name of logic
@@ -45,23 +40,23 @@ class AbsSmtSolver
   /* Check satisfiability of the current assertions
    * @return a result object - see result.h
    */
-  virtual Result check_sat() const = 0;
+  virtual Result check_sat() = 0;
 
   /* Check satisfiability of the current assertions under the given assumptions
    * @param assumptions a vector of boolean assumption terms
    * @return a result object - see result.h
    */
-  virtual Result check_sat_assuming(const TermVec & assumptions) const = 0;
+  virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
 
   /* Push contexts
    * @param num the number of contexts to push
    */
-  virtual void push(unsigned int num = 1) const = 0;
+  virtual void push(unsigned int num = 1) = 0;
 
   /* Pop contexts
    * @param num the number of contexts to pop
    */
-  virtual void pop(unsigned int num = 1) const = 0;
+  virtual void pop(unsigned int num = 1) = 0;
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * @param t the term to get the value of
@@ -235,7 +230,31 @@ class AbsSmtSolver
    */
   virtual Term value_from_smt2(const std::string val, const Sort sort) const;
 
-  virtual void dump_smt2(FILE * file) const = 0;
+  // extra methods -- not required
+
+  /* Dumps full smt-lib representation of current context to a file */
+  virtual void dump_smt2(FILE * file) const
+  {
+    throw NotImplementedException("Dumping to FILE not supported for this solver.");
+  }
+
+  /* Compute a Craig interpolant given A and B such that A ^ B is unsat
+   *   i.e. an I such that: A -> I  and  I ^ B is unsat
+   *        and I only contains constants that are in both A and B
+   * @param A the A term for a craig interpolant
+   * @param B the B term for a craig interpolant
+   * @param out_I the term to store the computed interpolant in
+   * @return true iff an interpolant was computed
+   *
+   * Throws an SmtException if the formula was actually sat or
+   *   if computing the interpolant failed.
+   */
+  virtual bool get_interpolant(const Term & A,
+                               const Term & B,
+                               Term & out_I) const
+  {
+    throw NotImplementedException("Interpolants are not supported by this solver.");
+  }
 
  protected:
 };

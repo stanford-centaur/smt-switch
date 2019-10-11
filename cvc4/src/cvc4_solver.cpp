@@ -74,6 +74,10 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT },
       // Indexed Op
       { Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT },
+      // Conversion
+      { BV_To_Nat, ::CVC4::api::BITVECTOR_TO_NAT },
+      // Indexed Op
+      { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR },
       { Select, ::CVC4::api::SELECT },
       { Store, ::CVC4::api::STORE },
       { Const_Array, ::CVC4::api::STORE_ALL } });
@@ -134,38 +138,18 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::STORE_ALL, Const_Array } });
 
 // the kinds CVC4 needs to build an OpTerm for an indexed op
-const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon({
-    { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
-    { Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP },
-    { Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP },
-    { Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP },
-    { Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP },
-    { Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP },
-});
+const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
+    { { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
+      { Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP },
+      { Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP },
+      { Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP },
+      { Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP },
+      { Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP },
+      { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR_OP } });
 
 /* CVC4Solver implementation */
 
-void CVC4Solver::set_opt(const std::string option, bool value) const
-{
-  try
-  {
-    if (value)
-    {
-      solver.setOption(option, "true");
-    }
-    else
-    {
-      solver.setOption(option, "false");
-    }
-  }
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
-void CVC4Solver::set_opt(const std::string option,
-             const std::string value) const
+void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
@@ -289,7 +273,7 @@ void CVC4Solver::assert_formula(const Term& t) const
   }
 }
 
-Result CVC4Solver::check_sat() const
+Result CVC4Solver::check_sat()
 {
   try
   {
@@ -317,7 +301,7 @@ Result CVC4Solver::check_sat() const
   }
 }
 
-Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
+Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
@@ -353,7 +337,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
   }
 }
 
-void CVC4Solver::push(unsigned int num) const
+void CVC4Solver::push(unsigned int num)
 {
   try
   {
@@ -365,7 +349,7 @@ void CVC4Solver::push(unsigned int num) const
   }
 }
 
-void CVC4Solver::pop(unsigned int num) const
+void CVC4Solver::pop(unsigned int num)
 {
   try
   {

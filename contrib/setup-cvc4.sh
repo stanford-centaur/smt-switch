@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CVC4_VERSION=3fac8f369bd29f9856e2b61fbb5029d780fde64b
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -10,6 +12,7 @@ if [ ! -d "$DEPS/CVC4" ]; then
     git clone https://github.com/CVC4/CVC4.git
     chmod -R 777 CVC4
     cd CVC4
+    git checkout -f $CVC4_VERSION
     ./contrib/get-antlr-3.4
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
     cd build

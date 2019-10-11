@@ -16,9 +16,13 @@ int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
   s->set_logic("QF_ABV");
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
+
+  Term xnat = s->make_term(BV_To_Nat, x);
+  assert(xnat->get_sort()->get_sort_kind() == INT);
+  assert(s->make_term(Op(Int_To_BV, 8), xnat)->get_sort() == bvsort8);
 
   try
   {

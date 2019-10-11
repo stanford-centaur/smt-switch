@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TEMPORARILY set to an smtcomp19 hash
+BTOR_VERSION=98aeefd27d0ce1188707dda013c1c63a00be7b4c
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -10,8 +13,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     git clone -b smtcomp19 https://github.com/Boolector/boolector.git
     chmod -R 777 boolector
     cd boolector
-    # temporarily pull specific hash
-    git checkout -f 98aeefd27d0ce1188707dda013c1c63a00be7b4c
+    git checkout -f $BTOR_VERSION
     ./contrib/setup-btor2tools.sh
     ./contrib/setup-cadical.sh
     ./configure.sh --only-cadical -fPIC

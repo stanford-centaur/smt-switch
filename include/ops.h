@@ -36,7 +36,7 @@ enum PrimOp
   Mod,
   Abs,
   Pow,
-  // Conversion
+  // Int/Real Conversion and Queries
   To_Real,
   To_Int,
   Is_Int,
@@ -76,6 +76,9 @@ enum PrimOp
   Repeat,
   Rotate_Left,
   Rotate_Right,
+  // BitVector Conversion
+  BV_To_Nat,
+  Int_To_BV,
   /* Array Theory */
   Select,
   Store,

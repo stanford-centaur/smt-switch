@@ -26,6 +26,7 @@ addons:
 env:
   - SOLVER="btor"
   - SOLVER="cvc4"
+  - SOLVER="msat"
 
 script:
   - bash -c "./contrib/setup-${SOLVER}.sh"

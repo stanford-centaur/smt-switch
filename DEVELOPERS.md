@@ -20,10 +20,9 @@
   * The philosophy here is that it is better to rely on the new standard than adopt another dependency such as `boost`
 * The abstract classes provide a common interface, but they were designed to give each solver as much flexibility as possible
 
-There are four abstract classes:
+There are three abstract classes:
 * `AbsSmtSolver`
 * `AbsSort`
-* `AbsFun`
 * `AbsTerm`
 
 Each one has a `using` declaration which provides a convenient name for a `shared_ptr` to the abstract class, e.g. `using Solver=std::shared_ptr<AbsSolver>`.
@@ -36,8 +35,14 @@ An `Op` is a simple struct that holds a `PrimOp` and up to two integer indices. 
 There is an implementation of assertions and logging commands using `constexpr` functions in `include/utils.h`, these should be the only assertions/logging functions used throughout the codebase.
 
 
-# Boolector Notes
+# Implementing New Solvers
+As a general principle, smt-switch is meant to be as lightweight as possible. In other words, it should query the underlying solver for information (e.g. the sort of a term) whenever possible. To implement a new solver, look at the abstract classes in:
+* `include/sort.h`
+* `include/term.h`
+* `include/solver.h`
 
-Boolector does not expose the children of a node, nor the operation that was used to obtain a node. Thus, in this implementation for Boolector, we track those things at the generic API level. Furthermore,  Boolector queries nodes for type information (e.g. width of a bit-vector) rather than sorts. Thus, we also have a heavier-weight implementation of the sort class for Boolector that maintains the sort parameters.
+You will need to implement a solver-specific version of each of those classes. To be able to build terms, you should map each operator in `include/ops.h`. Note that some methods have default implementations in `*.cpp` files under the `src` directory. These default implementations can be replaced with solver-specific implementations for performance improvements. For example, `substitute` takes a map and a term and performs sub-term substitution. This has a default implementation but is overriden in the `boolector` implementation to rely on `boolector's` underlying substitution map infrastructure.
 
-Other solver implementations might not track these parameters directly, but instead query the underlying solver. It's possible that querying the solver each time may actually be slower, but that will take some benchmarking to evaluate. Notice that if we are performing unrolling for bounded model checking, we will need to traverse the formula each time and rebuild the nodes. Traversing the formula requires looking up the children and the operation. If we query the solver for these each time, it requires re-wrapping those objects in the generic API's data structures each time. This might be slower than just keeping a pointer to the operation and the children in the generic API's term object.
+All your solver header and source files should be put in `<solver name>/include` and `<solver name>/src`, respectively.
+
+Finally, you would make a `create` method which can instantiate a pointer to your new solver. For example, see `include/cvc4_factory.h`.

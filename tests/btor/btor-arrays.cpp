@@ -15,7 +15,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = BoolectorSolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
   Term x = s->make_term("x", bvsort32);
