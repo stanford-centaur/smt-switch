@@ -110,10 +110,10 @@ void MsatSolver::set_opt(const string option, const string value)
   // msat_destroy_env(env) but it still leaks
   if (option == "produce-models")
   {
-    msat_set_option(cfg, "model_generation", value.c_str());
-    msat_destroy_env(env);
-    env = msat_create_env(cfg);
-    produce_models = true;
+    // msat_set_option(cfg, "model_generation", value.c_str());
+    // msat_destroy_env(env);
+    // env = msat_create_env(cfg);
+    // produce_models = true;
   }
   else if (option == "incremental")
   {
@@ -152,14 +152,11 @@ Result MsatSolver::check_sat()
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
-    if (produce_models)
-    {
-      if (!MSAT_ERROR_MODEL(current_model))
+    if (!MSAT_ERROR_MODEL(current_model))
       {
         msat_destroy_model(current_model);
       }
-      current_model = msat_get_model(env);
-    }
+    current_model = msat_get_model(env);
     return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
@@ -190,7 +187,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   msat_result mres = msat_solve(env);
 
-  if (produce_models && mres == MSAT_SAT)
+  if (mres == MSAT_SAT)
   {
     if (!MSAT_ERROR_MODEL(current_model))
     {
@@ -239,11 +236,7 @@ void MsatSolver::pop(unsigned int num)
 
 Term MsatSolver::get_value(Term & t) const
 {
-  if (!produce_models)
-  {
-    throw IncorrectUsageException("Model generation has not been enabled");
-  }
-  else if (MSAT_ERROR_MODEL(current_model))
+  if (MSAT_ERROR_MODEL(current_model))
   {
     throw IncorrectUsageException(
         "There's no current model. Ensure the last call was sat and there have "
@@ -752,7 +745,6 @@ void MsatSolver::reset()
 
   cfg = msat_create_config();
   env = msat_create_env(cfg);
-  produce_models = false;
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }

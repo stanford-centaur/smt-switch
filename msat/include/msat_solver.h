@@ -49,8 +49,9 @@ class MsatSolver : public AbsSmtSolver
   virtual void setup_env()
   {
     cfg = msat_create_config();
+    msat_set_option(cfg, "model_generation", "true");
     env = msat_create_env(cfg);
-    produce_models = false;
+    //produce_models = true;
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
@@ -96,7 +97,8 @@ class MsatSolver : public AbsSmtSolver
  protected:
   msat_config cfg;
   msat_env env;
-  bool produce_models;
+  // uncommenting this makes the tests pass
+  //bool produce_models;
   msat_model current_model;
 
  private:
@@ -121,7 +123,7 @@ class MsatInterpolatingSolver : public MsatSolver
     // TODO: decide if we should add this
     // msat_set_option(cfg, "theory.eq_propagation", "false");
     env = msat_create_env(cfg);
-    produce_models = false;
+    //produce_models = false;
   }
   void set_opt(const std::string option, const std::string value) override;
   void assert_formula(const Term & t) const override;
