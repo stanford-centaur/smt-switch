@@ -49,8 +49,9 @@ class MsatSolver : public AbsSmtSolver
   virtual void setup_env()
   {
     cfg = msat_create_config();
+    msat_set_option(cfg, "model_generation", "true");
     env = msat_create_env(cfg);
-    produce_models = false;
+    produce_models = true;
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
@@ -127,6 +128,7 @@ class MsatInterpolatingSolver : public MsatSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Term get_value(Term & t) const override;
   bool get_interpolant(const Term & A,
                        const Term & B,
                        Term & out_I) const override;

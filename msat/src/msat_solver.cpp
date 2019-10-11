@@ -105,20 +105,28 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 void MsatSolver::set_opt(const string option, const string value)
 {
   // Note: mathsat needs options to be set on a configuration before creating an
-  // environment This approach works, but unfortunately it leaks memory
+  // environment. To handle this we just set them up front
+  //
+  // Could also rebuild the environment, but unfortunately it leaks memory
   // technically we should be able to free the environment using
   // msat_destroy_env(env) but it still leaks
   if (option == "produce-models")
   {
-    msat_set_option(cfg, "model_generation", value.c_str());
-    msat_destroy_env(env);
-    env = msat_create_env(cfg);
-    produce_models = true;
+    if (value == "false")
+    {
+      std::cout << "Warning: MathSAT backend always produces models -- it "
+                   "can't be disabled."
+                << std::endl;
+    }
   }
   else if (option == "incremental")
   {
-    // do nothing
-    // it's incremental by default
+    if (value == "false")
+    {
+      std::cout << "Warning: MathSAT backend is always incremental -- it can't "
+                   "be disabled."
+                << std::endl;
+    }
   }
   else
   {
@@ -152,15 +160,12 @@ Result MsatSolver::check_sat()
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
-    if (produce_models)
+    if (!MSAT_ERROR_MODEL(current_model))
     {
-      if (!MSAT_ERROR_MODEL(current_model))
-      {
-        msat_destroy_model(current_model);
+      msat_destroy_model(current_model);
       }
       current_model = msat_get_model(env);
-    }
-    return Result(SAT);
+      return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
   {
@@ -190,7 +195,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   msat_result mres = msat_solve(env);
 
-  if (produce_models && mres == MSAT_SAT)
+  if (mres == MSAT_SAT)
   {
     if (!MSAT_ERROR_MODEL(current_model))
     {
@@ -239,11 +244,7 @@ void MsatSolver::pop(unsigned int num)
 
 Term MsatSolver::get_value(Term & t) const
 {
-  if (!produce_models)
-  {
-    throw IncorrectUsageException("Model generation has not been enabled");
-  }
-  else if (MSAT_ERROR_MODEL(current_model))
+  if (MSAT_ERROR_MODEL(current_model))
   {
     throw IncorrectUsageException(
         "There's no current model. Ensure the last call was sat and there have "
@@ -752,7 +753,6 @@ void MsatSolver::reset()
 
   cfg = msat_create_config();
   env = msat_create_env(cfg);
-  produce_models = false;
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }
@@ -868,6 +868,11 @@ Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
 {
   throw IncorrectUsageException(
       "Can't call check_sat_assuming from interpolating solver");
+}
+
+Term MsatInterpolatingSolver::get_value(Term & t) const
+{
+  throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
 bool MsatInterpolatingSolver::get_interpolant(const Term & A,
