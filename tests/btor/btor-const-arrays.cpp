@@ -27,6 +27,7 @@ int main()
   Term val = s->make_term("val", bvsort8);
   Term zero = s->make_value(0, bvsort8);
   Term const_arr = s->make_value(zero, arrsort);
+  assert(zero->is_value());
   assert(!const_arr->is_symbolic_const());
   assert(const_arr->is_value());
   assert(const_arr->get_op() == Const_Array);
@@ -64,8 +65,11 @@ int main()
 
   // this solver has no assertions yet
   assert(s2->check_sat().is_sat());
-  Term arr = s2->make_term("arr", arrsort);
-  Term arr2 = s2->make_term("arr2", arrsort);
+  Sort bvsort4_2 = s2->make_sort(BV, 4);
+  Sort bvsort8_2 = s2->make_sort(BV, 8);
+  Sort arrsort_2 = s2->make_sort(ARRAY, bvsort4_2, bvsort8_2);
+  Term arr = s2->make_term("arr", arrsort_2);
+  Term arr2 = s2->make_term("arr2", arrsort_2);
   Term constraint2 = s2->make_term(
       And,
       s2->make_term(Equal, arr, const_arr2),

@@ -317,6 +317,10 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
+  else if (is_symbolic_const() || is_value())
+  {
+    return Op();
+  }
   else
   {
     size_t idx0;
@@ -397,7 +401,10 @@ bool MsatTerm::is_symbolic_const() const
 bool MsatTerm::is_value() const
 {
   // value if it has no children and a built-in interpretation
-  return ((msat_term_arity(term) == 0) && msat_term_is_number(env, term));
+  return (((msat_term_arity(term) == 0) &&
+          msat_term_is_number(env, term)) ||
+          msat_term_is_array_const(env, term) // constant arrays are considered values in smt-switch
+          );
 }
 
 string MsatTerm::to_string() const
