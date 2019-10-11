@@ -104,9 +104,14 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 
 void MsatSolver::set_opt(const string option, const string value)
 {
+  // Note: mathsat needs options to be set on a configuration before creating an
+  // environment This approach works, but unfortunately it leaks memory
+  // technically we should be able to free the environment using
+  // msat_destroy_env(env) but it still leaks
   if (option == "produce-models")
   {
     msat_set_option(cfg, "model_generation", value.c_str());
+    msat_destroy_env(env);
     env = msat_create_env(cfg);
     produce_models = true;
   }
@@ -125,6 +130,7 @@ void MsatSolver::set_opt(const string option, const string value)
       interpolation_enabled = true;
       // TODO: decide if we should add this
       // msat_set_option(cfg, "theory.eq_propagation", "false");
+      msat_destroy_env(env);
       env = msat_create_env(cfg);
     }
   }
@@ -169,6 +175,10 @@ Result MsatSolver::check_sat()
   {
     if (produce_models)
     {
+      if (!MSAT_ERROR_MODEL(current_model))
+      {
+        msat_destroy_model(current_model);
+      }
       current_model = msat_get_model(env);
     }
     return Result(SAT);
@@ -203,6 +213,10 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   if (produce_models && mres == MSAT_SAT)
   {
+    if (!MSAT_ERROR_MODEL(current_model))
+    {
+      msat_destroy_model(current_model);
+    }
     current_model = msat_get_model(env);
   }
 
@@ -754,6 +768,9 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
 
 void MsatSolver::reset()
 {
+  msat_destroy_env(env);
+  msat_destroy_config(cfg);
+
   cfg = msat_create_config();
   env = msat_create_env(cfg);
   produce_models = false;

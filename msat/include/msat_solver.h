@@ -37,15 +37,16 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
   {
-    // Technically should be calling this, but according to valgrind it makes things worse
-    // Regardless -- it appears that mathsat has memory leaks
-    //  -- be careful, valgrind won't report leaks on statically compiled binaries
-    /* msat_destroy_env(env); */
-    /* msat_destroy_config(cfg); */
-    /* if (!MSAT_ERROR_MODEL(current_model)) */
-    /* { */
-    /*   msat_destroy_model(current_model); */
-    /* } */
+    // Note: even with this, mathsat leaks
+    // a program that just creates a msat_env leaks
+    //  -- be careful, valgrind won't report leaks on statically compiled
+    //  binaries
+    if (!MSAT_ERROR_MODEL(current_model))
+    {
+      msat_destroy_model(current_model);
+    }
+    msat_destroy_env(env);
+    msat_destroy_config(cfg);
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
