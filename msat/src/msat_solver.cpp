@@ -903,8 +903,16 @@ bool MsatInterpolatingSolver::get_interpolant(const Term & A,
 
   if (res == MSAT_UNSAT)
   {
-    out_I = Term(new MsatTerm(env, msat_get_interpolant(env, &group_A, 1)));
-    return true;
+    msat_term itp = msat_get_interpolant(env, &group_A, 1);
+    if (MSAT_ERROR_TERM(itp))
+    {
+      throw InternalSolverException("Failed when computing interpolant.");
+    }
+    else
+    {
+      out_I = Term(new MsatTerm(env, itp));
+      return true;
+    }
   }
   else if (res == MSAT_SAT)
   {
