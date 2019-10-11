@@ -160,21 +160,15 @@ Result MsatSolver::check_sat()
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
-    if (!MSAT_ERROR_MODEL(current_model))
-    {
-      msat_destroy_model(current_model);
-      }
-      current_model = msat_get_model(env);
-      return Result(SAT);
+    set_current_model();
+    return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
   {
-    invalidate_current_model();
     return Result(UNSAT);
   }
   else
   {
-    invalidate_current_model();
     return Result(UNKNOWN);
   }
 }
@@ -197,11 +191,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   if (mres == MSAT_SAT)
   {
-    if (!MSAT_ERROR_MODEL(current_model))
-    {
-      msat_destroy_model(current_model);
-    }
-    current_model = msat_get_model(env);
+    set_current_model();
   }
 
   msat_pop_backtrack_point(env);
@@ -212,12 +202,10 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
   else if (mres == MSAT_UNSAT)
   {
-    invalidate_current_model();
     return Result(UNSAT);
   }
   else
   {
-    invalidate_current_model();
     return Result(UNKNOWN);
   }
 }
@@ -244,7 +232,7 @@ void MsatSolver::pop(unsigned int num)
 
 Term MsatSolver::get_value(Term & t) const
 {
-  if (MSAT_ERROR_MODEL(current_model))
+  if (MSAT_ERROR_MODEL(current_model) || !valid_model)
   {
     throw IncorrectUsageException(
         "There's no current model. Ensure the last call was sat and there have "
@@ -831,16 +819,20 @@ void MsatSolver::dump_smt2(FILE * file) const
 }
 
 // helpers
+void MsatSolver::set_current_model()
+{
+  invalidate_current_model();
+  current_model = msat_get_model(env);
+  valid_model = true;
+}
+
 void MsatSolver::invalidate_current_model()
 {
-  if (!MSAT_ERROR_MODEL(current_model))
+  if (valid_model)
   {
     msat_destroy_model(current_model);
-    // interesting behavior is that destroying a model
-    // does not make it a null model
-    // doing that manually
-    (current_model).repr = NULL;
   }
+  valid_model = false;
 }
 
 // end MsatSolver implementation
