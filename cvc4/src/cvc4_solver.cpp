@@ -149,27 +149,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
 
 /* CVC4Solver implementation */
 
-void CVC4Solver::set_opt(const std::string option, bool value) const
-{
-  try
-  {
-    if (value)
-    {
-      solver.setOption(option, "true");
-    }
-    else
-    {
-      solver.setOption(option, "false");
-    }
-  }
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
-void CVC4Solver::set_opt(const std::string option,
-             const std::string value) const
+void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
@@ -293,7 +273,7 @@ void CVC4Solver::assert_formula(const Term& t) const
   }
 }
 
-Result CVC4Solver::check_sat() const
+Result CVC4Solver::check_sat()
 {
   try
   {
@@ -321,7 +301,7 @@ Result CVC4Solver::check_sat() const
   }
 }
 
-Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
+Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
@@ -357,7 +337,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions) const
   }
 }
 
-void CVC4Solver::push(unsigned int num) const
+void CVC4Solver::push(unsigned int num)
 {
   try
   {
@@ -369,7 +349,7 @@ void CVC4Solver::push(unsigned int num) const
   }
 }
 
-void CVC4Solver::pop(unsigned int num) const
+void CVC4Solver::pop(unsigned int num)
 {
   try
   {

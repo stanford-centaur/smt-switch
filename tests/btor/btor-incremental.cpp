@@ -6,7 +6,7 @@
 #include "boolector_factory.h"
 #include "smt.h"
 // after full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/boolector_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
@@ -16,8 +16,8 @@ int main()
 {
   SmtSolver s = BoolectorSolverFactory::create();
   s->set_logic("QF_BV");
-  s->set_opt("produce-models", true);
-  s->set_opt("incremental", true);
+  s->set_opt("produce-models", "true");
+  s->set_opt("incremental", "true");
 
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_term("x", bvsort8);
@@ -36,6 +36,10 @@ int main()
 
   r = s->check_sat_assuming(TermVec{ assumption });
   assert(r.is_unsat());
+
+  r = s->check_sat_assuming({s->make_term(Equal, x, s->make_value(1, bvsort8))});
+  assert(r.is_sat());
+  assert(s->get_value(x)->to_int() == 1);
 
   s->push();
   s->assert_formula(assumption);

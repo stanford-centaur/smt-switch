@@ -15,7 +15,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_term("x", intsort);

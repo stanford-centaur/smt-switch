@@ -16,7 +16,7 @@ int main()
   unsigned int NUM_TERMS = 20;
 
   SmtSolver s = BoolectorSolverFactory::create();
-  s->set_opt("produce-models", true);
+  s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
 
   UnorderedTermSet uts;
@@ -106,7 +106,7 @@ int main()
   sset.insert(s3);
 
   cout << "sset size is: " << sset.size() << endl;
-  assert(sset.size() == 3); // only two because boolector treats bool and bv{1} the same
+  assert(sset.size() == 3); // only three because boolector treats bool and bv{1} the same
 
   return 0;
 }

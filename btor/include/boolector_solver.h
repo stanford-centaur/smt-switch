@@ -34,15 +34,13 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver() { boolector_delete(btor); };
-  void set_opt(const std::string option, bool value) const override;
-  void set_opt(const std::string option,
-               const std::string value) const override;
+  void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
   void assert_formula(const Term & t) const override;
-  Result check_sat() const override;
-  Result check_sat_assuming(const TermVec & assumptions) const override;
-  void push(unsigned int num = 1) const override;
-  void pop(unsigned int num = 1) const override;
+  Result check_sat() override;
+  Result check_sat_assuming(const TermVec & assumptions) override;
+  void push(unsigned int num = 1) override;
+  void pop(unsigned int num = 1) override;
   Term get_value(Term & t) const override;
   Sort make_sort(const std::string name, unsigned int arity) const override;
   Sort make_sort(SortKind sk) const override;
@@ -72,9 +70,8 @@ class BoolectorSolver : public AbsSmtSolver
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
   Term lookup_symbol(const std::string name) const override;
-  virtual Term substitute(
-      const Term term,
-      const UnorderedTermMap & substitution_map) const override;
+  Term substitute(const Term term,
+                  const UnorderedTermMap & substitution_map) const override;
   // helper methods for making a term with a primitive op
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
