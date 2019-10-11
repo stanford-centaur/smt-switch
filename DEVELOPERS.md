@@ -20,10 +20,9 @@
   * The philosophy here is that it is better to rely on the new standard than adopt another dependency such as `boost`
 * The abstract classes provide a common interface, but they were designed to give each solver as much flexibility as possible
 
-There are four abstract classes:
+There are three abstract classes:
 * `AbsSmtSolver`
 * `AbsSort`
-* `AbsFun`
 * `AbsTerm`
 
 Each one has a `using` declaration which provides a convenient name for a `shared_ptr` to the abstract class, e.g. `using Solver=std::shared_ptr<AbsSolver>`.
