@@ -879,6 +879,7 @@ bool MsatInterpolatingSolver::get_interpolant(const Term & A,
                                               const Term & B,
                                               Term & out_I) const
 {
+  // reset the environment -- each interpolant is it's own separate call
   msat_reset_env(env);
 
   if (A->get_sort()->get_sort_kind() != BOOL
