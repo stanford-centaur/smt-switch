@@ -29,21 +29,26 @@ int main()
   Result r = s->check_sat();
   assert(r.is_sat());
 
-  Term assumption =
+  Term assumption0 =
       s->make_term(And,
                    s->make_term(Distinct, x, s->make_value(0, bvsort8)),
                    s->make_term(Distinct, y, s->make_value(0, bvsort8)));
 
-  r = s->check_sat_assuming(TermVec{ assumption });
+  Sort boolsort = s->make_sort(BOOL);
+  Term il0 = s->make_term("il0", boolsort);
+  s->assert_formula(s->make_term(Implies, il0, assumption0));
+  r = s->check_sat_assuming(TermVec{ il0 });
   assert(r.is_unsat());
 
-  r = s->check_sat_assuming(
-      { s->make_term(Equal, x, s->make_value(1, bvsort8)) });
+  Term il1 = s->make_term("il1", boolsort);
+  Term assumption1 = s->make_term(Equal, x, s->make_value(1, bvsort8));
+  s->assert_formula(s->make_term(Implies, il1, assumption1));
+  r = s->check_sat_assuming({ il1 });
   assert(r.is_sat());
   assert(s->get_value(x)->to_int() == 1);
 
   s->push();
-  s->assert_formula(assumption);
+  s->assert_formula(assumption0);
   r = s->check_sat();
   assert(r.is_unsat());
   s->pop();
@@ -52,7 +57,7 @@ int main()
   assert(r.is_sat());
 
   s->reset_assertions();
-  s->assert_formula(assumption);
+  s->assert_formula(assumption0);
   r = s->check_sat();
   assert(r.is_sat());
 

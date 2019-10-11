@@ -175,29 +175,39 @@ Result MsatSolver::check_sat()
 
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  // Note: solving with assumptions in MathSAT requires the use of indicator
-  // boolean literals to simulate the same behavior, we just use push/pop here
+  // expecting (possibly negated) boolean literals
+  for (auto a : assumptions)
+  {
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
+  }
 
-  msat_push_backtrack_point(env);
+  vector<msat_term> m_assumps;
+  m_assumps.reserve(assumptions.size());
 
   shared_ptr<MsatTerm> ma;
   for (auto a : assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
-    msat_assert_formula(env, ma->term);
+    m_assumps.push_back(ma->term);
   }
 
-  msat_result mres = msat_solve(env);
+  msat_result mres =
+      msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
 
   if (mres == MSAT_SAT)
   {
     set_current_model();
-  }
-
-  msat_pop_backtrack_point(env);
-
-  if (mres == MSAT_SAT)
-  {
     return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)

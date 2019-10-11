@@ -201,6 +201,8 @@ Result BoolectorSolver::check_sat()
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  // boolector supports assuming arbitrary one-bit expressions,
+  // not just boolean literals
   std::shared_ptr<BoolectorTerm> bt;
   for (auto a : assumptions)
   {
