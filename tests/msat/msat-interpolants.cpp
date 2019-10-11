@@ -60,5 +60,9 @@ int main()
     assert(false);
   }
 
+  // now try a satisfiable formula
+  got_interpolant = s->get_interpolant(A, s->make_term(Gt, x, z), I);
+  assert(!got_interpolant);
+
   return 0;
 }
