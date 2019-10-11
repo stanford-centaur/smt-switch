@@ -26,13 +26,11 @@ namespace smt {
 class MsatSolver : public AbsSmtSolver
 {
  public:
-  MsatSolver()
-  {
-    cfg = msat_create_config();
-    env = msat_create_env(cfg);
-    produce_models = false;
-    interpolation_enabled = false;
-  };
+  // constructor does nothing
+  // but in mathsat factory, MUST setup_env
+  // this is done after constructing because need to call
+  // the virtual function -- e.g. simulating dynamic binding
+  MsatSolver(){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -47,6 +45,12 @@ class MsatSolver : public AbsSmtSolver
     }
     msat_destroy_env(env);
     msat_destroy_config(cfg);
+  }
+  virtual void setup_env()
+  {
+    cfg = msat_create_config();
+    env = msat_create_env(cfg);
+    produce_models = false;
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
@@ -88,21 +92,46 @@ class MsatSolver : public AbsSmtSolver
                   const UnorderedTermMap & substitution_map) const override;
 
   void dump_smt2(FILE * file) const override;
-  bool get_interpolant(const Term & A,
-                       const Term & B,
-                       Term & out_I) const override;
 
  protected:
   msat_config cfg;
   msat_env env;
   bool produce_models;
-  bool interpolation_enabled;
   msat_model current_model;
 
  private:
   // helpers
   void invalidate_current_model();
 };
+
+// Interpolating Solver
+class MsatInterpolatingSolver : public MsatSolver
+{
+ public:
+  MsatInterpolatingSolver() {}
+  MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
+  MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
+  ~MsatInterpolatingSolver() {}
+  virtual void setup_env() override
+  {
+    cfg = msat_create_config();
+    msat_set_option(cfg, "theory.bv.eager", "false");
+    msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
+    msat_set_option(cfg, "interpolation", "true");
+    // TODO: decide if we should add this
+    // msat_set_option(cfg, "theory.eq_propagation", "false");
+    env = msat_create_env(cfg);
+    produce_models = false;
+  }
+  void set_opt(const std::string option, const std::string value) override;
+  void assert_formula(const Term & t) const override;
+  Result check_sat() override;
+  Result check_sat_assuming(const TermVec & assumptions) override;
+  bool get_interpolant(const Term & A,
+                       const Term & B,
+                       Term & out_I) const override;
+};
+
 }  // namespace smt
 
 #endif

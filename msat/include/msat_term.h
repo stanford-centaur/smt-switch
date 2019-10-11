@@ -1,5 +1,5 @@
-#ifndef SMT_Msat_TERM_H
-#define SMT_Msat_TERM_H
+#ifndef SMT_MSAT_TERM_H
+#define SMT_MSAT_TERM_H
 
 #include "term.h"
 #include "utils.h"
@@ -10,6 +10,7 @@ namespace smt {
 
 // forward declaration
 class MsatSolver;
+class MsatInterpolatingSolver;
 
 class MsatTermIter : public TermIterBase
 {
@@ -61,6 +62,7 @@ class MsatTerm : public AbsTerm
   bool is_uf;
 
   friend class MsatSolver;
+  friend class MsatInterpolatingSolver;
 };
 
 }  // namespace smt

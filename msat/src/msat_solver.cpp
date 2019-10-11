@@ -120,20 +120,6 @@ void MsatSolver::set_opt(const string option, const string value)
     // do nothing
     // it's incremental by default
   }
-  else if (option == "interpolation")
-  {
-    if (value == "true")
-    {
-      msat_set_option(cfg, "theory.bv.eager", "false");
-      msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
-      msat_set_option(cfg, "interpolation", "true");
-      interpolation_enabled = true;
-      // TODO: decide if we should add this
-      // msat_set_option(cfg, "theory.eq_propagation", "false");
-      msat_destroy_env(env);
-      env = msat_create_env(cfg);
-    }
-  }
   else
   {
     string msg("Option ");
@@ -152,13 +138,6 @@ void MsatSolver::set_logic(const std::string logic) const
 
 void MsatSolver::assert_formula(const Term & t) const
 {
-  if (interpolation_enabled)
-  {
-    throw IncorrectUsageException(
-        "This solver has been configured for interpolation, it cannot be used "
-        "for regular solving");
-  }
-
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   if (msat_assert_formula(env, mterm->term))
   {
@@ -774,7 +753,6 @@ void MsatSolver::reset()
   cfg = msat_create_config();
   env = msat_create_env(cfg);
   produce_models = false;
-  interpolation_enabled = false;
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }
@@ -852,16 +830,51 @@ void MsatSolver::dump_smt2(FILE * file) const
   throw NotImplementedException("Can't dump all assertions to a file yet");
 }
 
-bool MsatSolver::get_interpolant(const Term & A,
-                                 const Term & B,
-                                 Term & out_I) const
+// helpers
+void MsatSolver::invalidate_current_model()
 {
-  if (!interpolation_enabled)
+  if (!MSAT_ERROR_MODEL(current_model))
   {
-    throw IncorrectUsageException(
-        "This solver is not configured for interpolation, but get_interpolant "
-        "was called.");
+    msat_destroy_model(current_model);
+    // interesting behavior is that destroying a model
+    // does not make it a null model
+    // doing that manually
+    (current_model).repr = NULL;
   }
+}
+
+// end MsatSolver implementation
+
+// begin MsatInterpolatingSolver implementation
+
+void MsatInterpolatingSolver::set_opt(const string option, const string value)
+{
+  throw IncorrectUsageException("Can't set options of interpolating solver.");
+}
+
+void MsatInterpolatingSolver::assert_formula(const Term & t) const
+{
+  throw IncorrectUsageException(
+      "Can't assert formulas in interpolating solver");
+}
+
+Result MsatInterpolatingSolver::check_sat()
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat from interpolating solver");
+}
+
+Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat_assuming from interpolating solver");
+}
+
+bool MsatInterpolatingSolver::get_interpolant(const Term & A,
+                                              const Term & B,
+                                              Term & out_I) const
+{
+  msat_reset_env(env);
 
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
@@ -895,22 +908,8 @@ bool MsatSolver::get_interpolant(const Term & A,
   {
     throw InternalSolverException("Failed when computing interpolant.");
   }
-
 }
 
-// helpers
-void MsatSolver::invalidate_current_model()
-{
-  if (!MSAT_ERROR_MODEL(current_model))
-  {
-    msat_destroy_model(current_model);
-    // interesting behavior is that destroying a model
-    // does not make it a null model
-    // doing that manually
-    (current_model).repr = NULL;
-  }
-}
-
-// end MsatSolver implementation
+// end MsatInterpolatingSolver implementation
 
 }  // namespace smt

@@ -14,8 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = MsatSolverFactory::create();
-  s->set_opt("interpolation", "true");
+  SmtSolver s = MsatSolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_term("x", intsort);
@@ -47,18 +46,6 @@ int main()
     cout << "Didn't find an interpolant..." << endl;
     assert(false);
   }
-
-  // You can reset the solver if you want to do regular solving
-  // but you have to recreate the terms
-  // because the original environment is gone
-  s->reset();
-  s->set_opt("produce-models", "true");
-  intsort = s->make_sort(INT);
-  x = s->make_term("x", intsort);
-  s->assert_formula(s->make_term(Equal, x, s->make_value(0, intsort)));
-  Result r = s->check_sat();
-  cout << r << endl;
-  assert(r.is_sat());
 
   return 0;
 }
