@@ -160,7 +160,6 @@ Result MsatSolver::check_sat()
   msat_result mres = msat_solve(env);
   if (mres == MSAT_SAT)
   {
-    set_current_model();
     return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
@@ -207,7 +206,6 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
   if (mres == MSAT_SAT)
   {
-    set_current_model();
     return Result(SAT);
   }
   else if (mres == MSAT_UNSAT)
@@ -230,10 +228,6 @@ void MsatSolver::push(unsigned int num)
 
 void MsatSolver::pop(unsigned int num)
 {
-  if (num)
-  {
-    invalidate_current_model();
-  }
   for (unsigned int i = 0; i < num; i++)
   {
     msat_pop_backtrack_point(env);
@@ -242,14 +236,8 @@ void MsatSolver::pop(unsigned int num)
 
 Term MsatSolver::get_value(Term & t) const
 {
-  if (MSAT_ERROR_MODEL(current_model) || !valid_model)
-  {
-    throw IncorrectUsageException(
-        "There's no current model. Ensure the last call was sat and there have "
-        "been no pops since then.");
-  }
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-  msat_term val = msat_model_eval(current_model, mterm->term);
+  msat_term val = msat_get_model_value(env, mterm->term);
 
   if (MSAT_ERROR_TERM(val))
   {
@@ -826,23 +814,6 @@ Term MsatSolver::substitute(const Term term,
 void MsatSolver::dump_smt2(FILE * file) const
 {
   throw NotImplementedException("Can't dump all assertions to a file yet");
-}
-
-// helpers
-void MsatSolver::set_current_model()
-{
-  invalidate_current_model();
-  current_model = msat_get_model(env);
-  valid_model = true;
-}
-
-void MsatSolver::invalidate_current_model()
-{
-  if (valid_model)
-  {
-    msat_destroy_model(current_model);
-  }
-  valid_model = false;
 }
 
 // end MsatSolver implementation
