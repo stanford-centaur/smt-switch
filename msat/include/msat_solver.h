@@ -39,7 +39,6 @@ class MsatSolver : public AbsSmtSolver
     // a program that just creates a msat_env leaks
     //  -- be careful, valgrind won't report leaks on statically compiled
     //  binaries
-    invalidate_current_model();
     msat_destroy_env(env);
     msat_destroy_config(cfg);
   }
@@ -95,12 +94,7 @@ class MsatSolver : public AbsSmtSolver
   msat_config cfg;
   msat_env env;
   bool valid_model;
-  msat_model current_model;
 
- private:
-  // helpers
-  void set_current_model();
-  void invalidate_current_model();
 };
 
 // Interpolating Solver
