@@ -38,9 +38,9 @@ build_msat=default
 btor_home=default
 cvc4_home=default
 msat_home=default
-build_type=default
-debug=default
 static=default
+
+build_type=Release
 
 while [ $# -gt 0 ]
 do
@@ -106,7 +106,7 @@ do
             esac
             ;;
         --debug)
-            debug=yes
+            build_type=Debug;
             ;;
         --static)
             static=yes
@@ -116,7 +116,8 @@ do
     shift
 done
 
-cmake_opts=""
+cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
+
 [ $install_prefix != default ] \
     && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 
@@ -137,9 +138,6 @@ cmake_opts=""
 
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
-
-[ $debug != default ] \
-    && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=Debug"
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"

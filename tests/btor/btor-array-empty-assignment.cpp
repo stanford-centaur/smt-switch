@@ -22,7 +22,9 @@ int main()
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
   Term arr = s->make_term("arr", array32_32);
-  assert(s->check_sat().is_sat());
+
+  Result r = s->check_sat();
+  assert(r.is_sat());
 
   Term arr_ass = s->get_value(arr);
   return 0;
