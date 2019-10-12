@@ -30,6 +30,9 @@ class BoolectorSolver : public AbsSmtSolver
       throw InternalSolverException(msg);
     };
     boolector_set_abort(throw_exception);
+
+    // set an option for hwmcc19
+    boolector_set_opt(btor, BTOR_OPT_NONDESTR_SUBST, 1);
   };
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
