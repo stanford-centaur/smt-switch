@@ -13,6 +13,7 @@ set(MSAT_TESTS
   msat-ext-ops
   msat-interpolants
   msat-const-arrays
+  msat-ite-test
 )
 
 foreach(test ${MSAT_TESTS})

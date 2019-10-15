@@ -41,6 +41,36 @@ msat_term ext_msat_make_implies(msat_env e, msat_term t0, msat_term t1)
   return msat_make_or(e, antecedent, t1);
 }
 
+msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
+{
+  msat_type itype = msat_term_get_type(i);
+  msat_type ttype = msat_term_get_type(t);
+  msat_type eltype = msat_term_get_type(el);
+
+  if (!msat_is_bool_type(e, itype))
+  {
+    string msg("Expecting a boolean term for first ITE argument but got\n\t");
+    throw IncorrectUsageException(msg + msat_to_smtlib2_term(e, i));
+  }
+
+  if (!msat_type_equals(ttype, eltype))
+  {
+    string msg("Expecting matching branch terms for ITE but got\n\t");
+    throw IncorrectUsageException(msg + msat_type_repr(ttype) + " "
+                                  + msat_type_repr(eltype));
+  }
+
+  if (msat_is_bool_type(e, ttype))
+  {
+    return msat_make_or(
+        e, msat_make_and(e, i, t), msat_make_and(e, msat_make_not(e, i), el));
+  }
+  else
+  {
+    return msat_make_term_ite(e, i, t, el);
+  }
+}
+
 msat_term ext_msat_make_distinct(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_eq(e, t0, t1));

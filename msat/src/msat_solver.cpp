@@ -95,7 +95,7 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Select, msat_make_array_read } });
 
 const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
-    { { Ite, msat_make_term_ite }, { Store, msat_make_array_write } });
+    { { Ite, ext_msat_make_ite }, { Store, msat_make_array_write } });
 
 // other special cases:
 // Apply -- needs to handle arbitrarily many terms

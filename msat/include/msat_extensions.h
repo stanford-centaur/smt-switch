@@ -10,6 +10,9 @@ msat_term ext_msat_make_nop(msat_env e, msat_term t);
 msat_term ext_msat_is_int(msat_env e, msat_term t);
 msat_term ext_msat_make_xor(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_implies(msat_env e, msat_term t0, msat_term t1);
+// mathsat doesn't support ites where the branch terms are bools
+// this rewrites that case so we can support it in smt-switch
+msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el);
 msat_term ext_msat_make_distinct(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_minus(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_lt(msat_env e, msat_term t0, msat_term t1);
