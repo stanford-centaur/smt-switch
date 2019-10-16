@@ -52,7 +52,7 @@ class BoolectorSolver : public AbsSmtSolver
                  const std::vector<Sort> & sorts,
                  const Sort & sort) const override;
   Term make_value(bool b) const override;
-  Term make_value(unsigned int i, const Sort & sort) const override;
+  Term make_value(int64_t i, const Sort & sort) const override;
   Term make_value(const std::string val,
                   const Sort & sort,
                   unsigned int base = 10) const override;

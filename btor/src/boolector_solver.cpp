@@ -120,7 +120,7 @@ Term BoolectorSolver::make_value(bool b) const
   }
 }
 
-Term BoolectorSolver::make_value(unsigned int i, const Sort & sort) const
+Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);

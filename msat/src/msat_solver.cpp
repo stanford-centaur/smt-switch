@@ -380,7 +380,7 @@ Term MsatSolver::make_value(bool b) const
   }
 }
 
-Term MsatSolver::make_value(unsigned int i, const Sort & sort) const
+Term MsatSolver::make_value(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)

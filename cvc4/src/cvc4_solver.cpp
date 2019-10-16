@@ -186,7 +186,7 @@ Term CVC4Solver::make_value(bool b) const
   }
 }
 
-Term CVC4Solver::make_value(unsigned int i, const Sort & sort) const
+Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
 {
   try
   {
