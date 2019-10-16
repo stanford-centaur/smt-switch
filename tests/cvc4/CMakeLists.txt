@@ -7,6 +7,7 @@ set(CVC4_TESTS
   cvc4-tests
   cvc4-incremental
   # cvc4-transfer # need to be able to get operator for rebuilding
+  cvc4-neg-numbers
 )
 
 foreach(test ${CVC4_TESTS})

@@ -14,6 +14,7 @@ set(MSAT_TESTS
   msat-interpolants
   msat-const-arrays
   msat-ite-test
+  msat-neg-numbers
 )
 
 foreach(test ${MSAT_TESTS})

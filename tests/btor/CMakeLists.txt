@@ -12,6 +12,7 @@ set(BTOR_TESTS
   btor-simple
   btor-array-models
   btor-array-empty-assignment
+  btor-neg-numbers
 )
 
 foreach(test ${BTOR_TESTS})
