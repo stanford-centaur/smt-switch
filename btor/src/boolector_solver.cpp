@@ -122,42 +122,58 @@ Term BoolectorSolver::make_value(bool b) const
 
 Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
 {
-  std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(sort);
-  // note: give the constant value a null PrimOp
-  Term term(new BoolectorTerm(btor, boolector_int(btor, i, bs->sort)));
-  return term;
+  try
+  {
+    std::shared_ptr<BoolectorSortBase> bs =
+        std::static_pointer_cast<BoolectorSortBase>(sort);
+    // note: give the constant value a null PrimOp
+    Term term(new BoolectorTerm(btor, boolector_int(btor, i, bs->sort)));
+    return term;
+  }
+  catch (InternalSolverException & e)
+  {
+    // pretty safe to assume that an error here is due to incorrect usage
+    throw IncorrectUsageException(e.what());
+  }
 }
 
 Term BoolectorSolver::make_value(std::string val,
                                  const Sort & sort,
                                  unsigned int base) const
 {
-  std::shared_ptr<BoolectorSortBase> bs =
-    std::static_pointer_cast<BoolectorSortBase>(sort);
+  try
+  {
+    std::shared_ptr<BoolectorSortBase> bs =
+        std::static_pointer_cast<BoolectorSortBase>(sort);
 
-  BoolectorNode * node;
-  if (base == 10)
-  {
-    node = boolector_constd(btor, bs->sort, val.c_str());
-  }
-  else if (base == 2)
-  {
-    node = boolector_const(btor, val.c_str());
-  }
-  else if (base == 16)
-  {
-    node = boolector_consth(btor, bs->sort, val.c_str());
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "Only accepted bases are 2, 10 and 16, but got "
-        + std::to_string(base));
-  }
+    BoolectorNode * node;
+    if (base == 10)
+    {
+      node = boolector_constd(btor, bs->sort, val.c_str());
+    }
+    else if (base == 2)
+    {
+      node = boolector_const(btor, val.c_str());
+    }
+    else if (base == 16)
+    {
+      node = boolector_consth(btor, bs->sort, val.c_str());
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "Only accepted bases are 2, 10 and 16, but got "
+          + std::to_string(base));
+    }
 
-  Term term(new BoolectorTerm(btor, node));
-  return term;
+    Term term(new BoolectorTerm(btor, node));
+    return term;
+  }
+  catch (InternalSolverException & e)
+  {
+    // pretty safe to assume that an error here is due to incorrect usage
+    throw IncorrectUsageException(e.what());
+  }
 }
 
 Term BoolectorSolver::make_value(const Term & val, const Sort & sort) const

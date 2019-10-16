@@ -212,6 +212,100 @@ msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1)
   return msat_make_not(e, msat_make_bv_slt(e, t0, t1));
 }
 
+msat_term ext_msat_make_bv_number(msat_env e,
+                                  const char * val,
+                                  size_t size,
+                                  int base)
+{
+  // gmp should be included because it's a dependency of mathsat
+  mpz_t mval;
+  mpz_init(mval);
+  int status = mpz_set_str(mval, val, base);
+
+  if (status != 0)
+  {
+    std::string msg("Could not create bv from ");
+    msg += val;
+    throw IncorrectUsageException(msg);
+  }
+
+  msat_term res;
+
+  // mpz_t values for bounds checking
+  mpz_t exclusive_upper_bnd;
+  mpz_init(exclusive_upper_bnd);
+  mpz_ui_pow_ui(exclusive_upper_bnd, 2, size);
+
+  if (mpz_sgn(mval) < 0)
+  {
+    // for overflow checking
+    mpz_t tmp;
+    mpz_init(tmp);
+    mpz_t lower_bnd;
+    mpz_init(lower_bnd);
+
+    mpz_ui_pow_ui(tmp, 2, size - 1);
+    mpz_neg(lower_bnd, tmp);
+
+    if (mpz_cmp(mval, lower_bnd) < 0)
+    {
+      std::string msg("Can't represent ");
+      msg += val;
+      msg += " in " + std::to_string(size) + " bits.";
+      mpz_clear(lower_bnd);
+      mpz_clear(tmp);
+      mpz_clear(exclusive_upper_bnd);
+      mpz_clear(mval);
+      throw IncorrectUsageException(msg);
+    }
+
+    mpz_t negval;
+    mpz_init(negval);
+    mpz_neg(negval, mval);
+    res = msat_make_bv_mpz_number(e, negval, size);
+    if (MSAT_ERROR_TERM(res))
+    {
+      std::string msg("Error creating bit-vector from ");
+      msg += val;
+      mpz_clear(negval);
+      mpz_clear(lower_bnd);
+      mpz_clear(tmp);
+      mpz_clear(exclusive_upper_bnd);
+      mpz_clear(mval);
+      throw IncorrectUsageException(msg);
+    }
+    res = msat_make_bv_neg(e, res);
+    mpz_clear(negval);
+    mpz_clear(lower_bnd);
+    mpz_clear(tmp);
+  }
+  else
+  {
+    if (mpz_cmp(mval, exclusive_upper_bnd) >= 0)
+    {
+      std::string msg("Can't represent ");
+      msg += val;
+      msg += " in " + std::to_string(size) + " bits.";
+      mpz_clear(exclusive_upper_bnd);
+      mpz_clear(mval);
+      throw IncorrectUsageException(msg);
+    }
+    res = msat_make_bv_mpz_number(e, mval, size);
+  }
+
+  mpz_clear(exclusive_upper_bnd);
+  mpz_clear(mval);
+
+  if (MSAT_ERROR_TERM(res))
+  {
+    std::string msg("Error creating bit-vector from ");
+    msg += val;
+    throw IncorrectUsageException(msg);
+  }
+
+  return res;
+}
+
 }  // namespace smt
 
 #endif

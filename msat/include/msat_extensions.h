@@ -28,6 +28,10 @@ msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1);
+msat_term ext_msat_make_bv_number(msat_env e,
+                                  const char * val,
+                                  size_t size,
+                                  int base);
 }  // namespace smt
 
 #endif

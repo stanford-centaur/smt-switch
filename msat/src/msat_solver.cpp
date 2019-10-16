@@ -385,8 +385,11 @@ Term MsatSolver::make_value(int64_t i, const Sort & sort) const
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
   {
-    return Term(
-        new MsatTerm(env, msat_make_bv_int_number(env, i, sort->get_width())));
+    // always use string version for consistency
+    std::string sval = std::to_string(i);
+    return Term(new MsatTerm(
+        env,
+        ext_msat_make_bv_number(env, sval.c_str(), sort->get_width(), 10)));
   }
   else if (sk == REAL || sk == INT)
   {
@@ -410,7 +413,8 @@ Term MsatSolver::make_value(const std::string val,
   if (sk == BV)
   {
     return Term(new MsatTerm(
-        env, msat_make_bv_number(env, val.c_str(), sort->get_width(), base)));
+        env,
+        ext_msat_make_bv_number(env, val.c_str(), sort->get_width(), base)));
   }
   else if (sk == REAL || sk == INT)
   {

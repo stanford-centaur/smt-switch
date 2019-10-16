@@ -199,7 +199,10 @@ Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
     }
     else if (sk == BV)
     {
-      c = solver.mkBitVector(sort->get_width(), i);
+      // CVC4 uses unsigned integers for mkBitVector
+      // to avoid casting issues, always use a string in base 10
+      std::string sval = std::to_string(i);
+      c = solver.mkBitVector(sort->get_width(), sval, 10);
     }
     else
     {
@@ -213,7 +216,8 @@ Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    // pretty safe to assume that an error is due to incorrect usage
+    throw IncorrectUsageException(e.what());
   }
 }
 
@@ -251,7 +255,8 @@ Term CVC4Solver::make_value(std::string val,
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    // pretty safe to assume that an error is due to incorrect usage
+    throw IncorrectUsageException(e.what());
   }
 }
 
