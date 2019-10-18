@@ -1,7 +1,11 @@
+os:
+  - linux
+    dist: bionic
+  - osx
+
 language: cpp
 
 sudo: false
-dist: bionic
 
 compiler:
   - gcc
