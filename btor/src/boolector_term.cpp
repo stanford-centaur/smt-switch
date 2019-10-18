@@ -1,5 +1,9 @@
 #include "boolector_term.h"
 
+// include standard version of open_memstream
+// for compatability with FreeBSD / Darwin which doesn't support it natively
+#include "memstream.h"
+
 #include <unordered_map>
 #include "stdio.h"
 

@@ -4,8 +4,10 @@ add_library(smt-switch-btor "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_term.cpp"
+  "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/memstream.c"
   )
 target_include_directories (smt-switch-btor PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories (smt-switch-btor PUBLIC "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 target_include_directories (smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/btor/include")
 target_include_directories (smt-switch-btor PUBLIC "${BTOR_HOME}/src")

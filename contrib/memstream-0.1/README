@@ -1,0 +1,3 @@
+Downloaded from: https://www.piumarta.com/software/memstream/
+
+Serves as an open_memstream definition for Free BSD / Darwin systems that don't support it natively
