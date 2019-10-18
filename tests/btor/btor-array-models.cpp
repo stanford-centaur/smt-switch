@@ -47,6 +47,8 @@ int main()
 
   Term arr_val = s->get_value(arr);
 
+  std::cout << "after get_value" << std::endl;
+
   cout << arr_val << endl;
 
   return 0;
