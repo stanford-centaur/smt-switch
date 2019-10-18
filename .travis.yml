@@ -61,4 +61,4 @@ jobs:
 script:
   - bash -c "./contrib/setup-${SOLVER}.sh"
   - bash -c "./configure.sh --${SOLVER}"
-  - cd build && make && make test
+  - cd build && make && ./tests/btor/btor-array-models.out
