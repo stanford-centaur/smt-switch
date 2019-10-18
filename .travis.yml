@@ -1,6 +1,5 @@
 os:
   - linux
-    dist: bionic
   - osx
 
 language: cpp
