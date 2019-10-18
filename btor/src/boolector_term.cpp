@@ -281,15 +281,23 @@ std::string BoolectorTerm::to_string() const
   {
     // just print smt-lib
     // won't necessarily use symbol names (might use auxiliary variables)
-    // char * cres;
-    // size_t size;
-    // FILE * stream = open_memstream(&cres, &size);
-    // boolector_dump_smt2_node(btor, stream, node);
-    // fflush(stream);
-    // sres = cres;
-    // free(cres);
-    // free(stream);
-    sres = "btor_expr";
+    char * cres;
+    size_t size;
+    FILE * stream = open_memstream(&cres, &size);
+    boolector_dump_smt2_node(btor, stream, node);
+    int status = fflush(stream);
+    if (status != 0)
+    {
+      std::cout << "got error code flushing: " << status << std::endl;
+    }
+    status = fclose(stream);
+    if (status != 0)
+    {
+      std::cout << "got error code closing: " << status << std::endl;
+    }
+    sres = cres;
+    free(cres);
+    free(stream);
     return sres;
   }
 }
