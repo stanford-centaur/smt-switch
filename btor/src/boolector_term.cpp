@@ -166,7 +166,9 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
 
 BoolectorTerm::~BoolectorTerm()
 {
+  std::cout << "before release" << std::endl;
   boolector_release(btor, node);
+  std::cout << "after release" << std::endl;
 }
 
 // TODO: check if this is okay -- probably not
