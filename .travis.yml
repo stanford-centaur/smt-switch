@@ -29,25 +29,34 @@ addons:
 
 jobs:
   include:
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor"
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor"
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4"
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4"
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="msat"
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor"
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor"
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4"
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4"
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="msat"
+    - os: osx
+      osx_image: xcode9
+      env: SOLVER='btor'
+    - os: osx
+      osx_image: xcode9
+      env: SOLVER='cvc4'
+    - os: osx
+      osx_image: xcode9
+      env: SOLVER='msat'
 
 script:
   - bash -c "./contrib/setup-${SOLVER}.sh"
