@@ -2,7 +2,10 @@
 
 // include standard version of open_memstream
 // for compatability with FreeBSD / Darwin which doesn't support it natively
+extern "C"
+{
 #include "memstream.h"
+}
 
 #include <unordered_map>
 #include "stdio.h"
