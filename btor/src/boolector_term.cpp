@@ -281,14 +281,15 @@ std::string BoolectorTerm::to_string() const
   {
     // just print smt-lib
     // won't necessarily use symbol names (might use auxiliary variables)
-    char * cres;
-    size_t size;
-    FILE * stream = open_memstream(&cres, &size);
-    boolector_dump_smt2_node(btor, stream, node);
-    fflush(stream);
-    sres = cres;
-    free(cres);
-    free(stream);
+    // char * cres;
+    // size_t size;
+    // FILE * stream = open_memstream(&cres, &size);
+    // boolector_dump_smt2_node(btor, stream, node);
+    // fflush(stream);
+    // sres = cres;
+    // free(cres);
+    // free(stream);
+    sres = "btor_expr";
     return sres;
   }
 }
