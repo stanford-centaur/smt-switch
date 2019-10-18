@@ -15,9 +15,11 @@ Configures the CMAKE build environment.
 --btor                  build boolector         (default: off)
 --cvc4                  build cvc4              (default: off)
 --msat                  build MathSAT           (default: off)
+--z3			build z3		(default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
+--z3-home=STR		custom Z3 location 	(default: deps/z3)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
@@ -35,9 +37,11 @@ install_prefix=default
 build_btor=default
 build_cvc4=default
 build_msat=default
+build_z3=default
 btor_home=default
 cvc4_home=default
 msat_home=default
+z3_home=default
 static=default
 
 build_type=Release
@@ -65,6 +69,9 @@ do
         --msat)
             build_msat=ON
             ;;
+	--z3)
+	    build_z3=ON
+	    ;;
         --btor-home) die "missing argument to $1 (see -h)" ;;
         --btor-home=*)
             btor_home=${1##*=}
@@ -93,6 +100,16 @@ do
             case $msat_home in
                 /*) ;;                                      # absolute path
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
+            esac
+            ;;
+	--z3-home) die "missing argument to $1 (see -h)" ;;
+        --z3-home=*)
+            z3_home=${1##*=}
+            # Check if z3_home is an absolute path and if not, make it
+            # absolute.
+            case $z3_home in
+                /*) ;;                                      # absolute path
+                *) z3_home=$(pwd)/$z3_home ;; # make absolute path
             esac
             ;;
         --build-dir) die "missing argument to $1 (see -h)" ;;
@@ -130,6 +147,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
+[ $build_z3 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
+
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
 
@@ -138,6 +158,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
+
+[ $z3_home != default ] \
+    && cmake_opts="$cmake_opts -DZ3_HOME=$z3_home"
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"

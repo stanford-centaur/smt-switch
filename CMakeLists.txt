@@ -65,6 +65,19 @@ if (BUILD_MSAT)
   add_subdirectory(tests/msat)
 endif()
 
+# should we build z3?
+option (BUILD_Z3
+  "Should we build the libraries for z3" OFF)
+
+if (BUILD_Z3)
+  set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
+  add_subdirectory (z3)
+  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-z3)
+
+  # testing
+  add_subdirectory(tests/z3)
+endif (BUILD_Z3)
+
 # install smt-switch
 install(TARGETS smt-switch DESTINATION lib)
 
