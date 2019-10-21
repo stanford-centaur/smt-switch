@@ -151,6 +151,7 @@ static int memstream_close(void *cookie)
 
 FILE *open_memstream(char **ptr, size_t *sizeloc)
 {
+  printf("In custom implementation of open_memstream");
     if (ptr && sizeloc) {
 	struct memstream *ms= calloc(1, sizeof(struct memstream));
 	FILE *fp= 0;							if (!ms) return 0;	/* errno == ENOMEM */
