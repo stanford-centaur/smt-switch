@@ -157,12 +157,18 @@ FILE *open_memstream(char **ptr, size_t *sizeloc)
 	FILE *fp= 0;							if (!ms) return 0;	/* errno == ENOMEM */
 	ms->position= ms->size= 0;
 	ms->capacity= 4096;
-	ms->contents= calloc(ms->capacity, 1);				if (!ms->contents) { free(ms);  return 0; } /* errno == ENOMEM */
+	ms->contents= calloc(ms->capacity, 1);
+  if (!ms->contents) {
+    printf("free 1");
+    free(ms);
+    return 0;
+  } /* errno == ENOMEM */
 	ms->ptr= ptr;
 	ms->sizeloc= sizeloc;
 	memstream_print(ms);
 	fp= funopen(ms, memstream_read, memstream_write, memstream_seek, memstream_close);
 	if (!fp) {
+    printf("free 2");
 	    free(ms->contents);
 	    free(ms);
 	    return 0;	/* errno set by funopen */
