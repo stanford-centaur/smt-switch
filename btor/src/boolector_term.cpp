@@ -294,7 +294,7 @@ std::string BoolectorTerm::to_string() const
       std::cout << "got error code closing: " << status << std::endl;
     }
     sres = cres;
-    // free(cres);
+    free(cres);
     // free(stream);
     return sres;
   }
