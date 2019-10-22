@@ -283,10 +283,18 @@ std::string BoolectorTerm::to_string() const
     size_t size;
     FILE * stream = open_memstream(&cres, &size);
     boolector_dump_smt2_node(btor, stream, node);
-    fflush(stream);
+    int status = fflush(stream);
+    if (status != 0)
+    {
+      throw InternalSolverException("Error flushing stream for btor to_string");
+    }
+    status = fclose(stream);
+    if (status != 0)
+    {
+      throw InternalSolverException("Error closing stream for btor to_string");
+    }
     sres = cres;
     free(cres);
-    free(stream);
     return sres;
   }
 }
