@@ -16,7 +16,7 @@ if [ ! -d "$DEPS/CVC4" ]; then
     ./contrib/get-antlr-3.4
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
     cd build
-    make
+    make -j4
     cd $DIR
 else
     echo "$DEPS/CVC4 already exists. If you want to rebuild, please remove it manually."
