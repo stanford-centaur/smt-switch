@@ -261,16 +261,12 @@ Term BoolectorSolver::get_value(Term & t) const
     // on a base array
     std::string base_name = t->to_string() + "_base";
     BoolectorNode * stores;
-    if (has_symbol(base_name))
+    if (!has_symbol(base_name))
     {
-      stores = boolector_match_node_by_symbol(btor, base_name.c_str());
+      throw InternalSolverException("Expecting base array symbol to already have been created.");
     }
-    else
-    {
-      std::shared_ptr<BoolectorSortBase> bs =
-          std::static_pointer_cast<BoolectorSortBase>(t->get_sort());
-      stores = boolector_array(btor, bs->sort, base_name.c_str());
-    }
+    stores = boolector_match_node_by_symbol(btor, base_name.c_str());
+
     char ** indices;
     char ** values;
     uint32_t size;
@@ -420,6 +416,14 @@ Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
   if (sk == ARRAY)
   {
     n = boolector_array(btor, bs->sort, name.c_str());
+    // TODO: get rid of this
+    //       only needed now because array models are partial
+    //       we want to represent it as a sequence of stores
+    //       ideally we could get this as a sequence of stores on a const array
+    //       from boolector directly
+    std::string base_name = name + "_base";
+    BoolectorNode * base_node = boolector_array(btor, bs->sort, base_name.c_str());
+    symbol_names.insert(base_name);
   }
   else if (sk == FUNCTION)
   {
