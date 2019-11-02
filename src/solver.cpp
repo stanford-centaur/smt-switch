@@ -129,7 +129,7 @@ Term AbsSmtSolver::transfer_term(const Term term)
         }
         else
         {
-          cache[t] = make_term(t->to_string(), s);
+          cache[t] = make_symbol(t->to_string(), s);
         }
       }
       else if (t->is_value())

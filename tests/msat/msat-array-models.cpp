@@ -18,10 +18,10 @@ int main()
   s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
-  Term x0 = s->make_term("x0", bvsort32);
-  Term x1 = s->make_term("x1", bvsort32);
-  Term y = s->make_term("y", bvsort32);
-  Term arr = s->make_term("arr", array32_32);
+  Term x0 = s->make_symbol("x0", bvsort32);
+  Term x1 = s->make_symbol("x1", bvsort32);
+  Term y = s->make_symbol("y", bvsort32);
+  Term arr = s->make_symbol("arr", array32_32);
 
   Term constraint = s->make_term(Equal, s->make_term(Select, arr, x0), x1);
   constraint = s->make_term(

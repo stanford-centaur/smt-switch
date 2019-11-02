@@ -18,9 +18,9 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
-  Term z = s->make_term("z", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
   Term T = s->make_value(true);
 
   Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));

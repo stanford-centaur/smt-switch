@@ -18,13 +18,13 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort boolsort = s->make_sort(BOOL);
-  Term a = s->make_term("a", boolsort);
-  Term b = s->make_term("b", boolsort);
-  Term c = s->make_term("c", boolsort);
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term c = s->make_symbol("c", boolsort);
 
   Sort intsort = s->make_sort(INT);
-  Term x = s->make_term("x", intsort);
-  Term y = s->make_term("y", intsort);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
 
   Term ite_bool = s->make_term(Ite, a, b, c);
   Term ite_axiom = s->make_term(

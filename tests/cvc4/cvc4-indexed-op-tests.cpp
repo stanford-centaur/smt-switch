@@ -17,9 +17,9 @@ int main()
   SmtSolver s = CVC4SolverFactory::create();
   s->set_opt("produce-models", "true");
   Sort bvsort9 = s->make_sort(BV, 9);
-  Term x = s->make_term("x", bvsort9);
-  Term y = s->make_term("y", bvsort9);
-  Term onebit = s->make_term("onebit", s->make_sort(BV, 1));
+  Term x = s->make_symbol("x", bvsort9);
+  Term y = s->make_symbol("y", bvsort9);
+  Term onebit = s->make_symbol("onebit", s->make_sort(BV, 1));
 
   Term unnecessary_rotation = s->make_term(Op(Rotate_Right, 1), onebit);
 

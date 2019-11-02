@@ -21,7 +21,7 @@ int main()
   s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
-  Term arr = s->make_term("arr", array32_32);
+  Term arr = s->make_symbol("arr", array32_32);
 
   Result r = s->check_sat();
   assert(r.is_sat());

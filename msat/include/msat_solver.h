@@ -72,7 +72,7 @@ class MsatSolver : public AbsSmtSolver
                   const Sort & sort,
                   unsigned int base = 10) const override;
   Term make_value(const Term & val, const Sort & sort) const override;
-  Term make_term(const std::string s, const Sort & sort) override;
+  Term make_symbol(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
   Term make_term(Op op, const Term & t0, const Term & t1) const override;

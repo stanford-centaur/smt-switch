@@ -399,7 +399,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
 }
 
-Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
+Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // avoids memory leak when boolector aborts

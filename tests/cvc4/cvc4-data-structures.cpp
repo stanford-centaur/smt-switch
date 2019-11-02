@@ -27,8 +27,8 @@ int main()
   Term y;
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    x = s->make_term("x" + to_string(i), bvsort8);
-    y = s->make_term("y" + to_string(i), bvsort8);
+    x = s->make_symbol("x" + to_string(i), bvsort8);
+    y = s->make_symbol("y" + to_string(i), bvsort8);
     v.push_back(x);
     uts.insert(x);
     utm[x] = y;

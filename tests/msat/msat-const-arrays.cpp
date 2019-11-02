@@ -22,9 +22,9 @@ int main()
   Sort bvsort8 = s->make_sort(BV, 8);
   Sort arrsort = s->make_sort(ARRAY, bvsort4, bvsort8);
 
-  Term idx0 = s->make_term("idx0", bvsort4);
-  Term idx1 = s->make_term("idx1", bvsort4);
-  Term val = s->make_term("val", bvsort8);
+  Term idx0 = s->make_symbol("idx0", bvsort4);
+  Term idx1 = s->make_symbol("idx1", bvsort4);
+  Term val = s->make_symbol("val", bvsort8);
   Term zero = s->make_value(0, bvsort8);
   Term const_arr = s->make_value(zero, arrsort);
   assert(zero->is_value());
@@ -68,8 +68,8 @@ int main()
   Sort bvsort4_2 = s2->make_sort(BV, 4);
   Sort bvsort8_2 = s2->make_sort(BV, 8);
   Sort arrsort_2 = s2->make_sort(ARRAY, bvsort4_2, bvsort8_2);
-  Term arr = s2->make_term("arr", arrsort_2);
-  Term arr2 = s2->make_term("arr2", arrsort_2);
+  Term arr = s2->make_symbol("arr", arrsort_2);
+  Term arr2 = s2->make_symbol("arr2", arrsort_2);
   Term constraint2 = s2->make_term(
       And,
       s2->make_term(Equal, arr, const_arr2),

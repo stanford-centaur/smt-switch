@@ -20,9 +20,9 @@ int main()
   s->set_opt("incremental", "true");
 
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
-  Term z = s->make_term("z", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
 
   s->assert_formula(s->make_term(Equal, z, s->make_term(BVAdd, y, z)));
   s->assert_formula(s->make_term(Equal, z, s->make_term(BVSub, y, z)));
@@ -35,12 +35,12 @@ int main()
                    s->make_term(Distinct, y, s->make_value(0, bvsort8)));
 
   Sort boolsort = s->make_sort(BOOL);
-  Term il0 = s->make_term("il0", boolsort);
+  Term il0 = s->make_symbol("il0", boolsort);
   s->assert_formula(s->make_term(Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });
   assert(r.is_unsat());
 
-  Term il1 = s->make_term("il1", boolsort);
+  Term il1 = s->make_symbol("il1", boolsort);
   Term assumption1 = s->make_term(Equal, x, s->make_value(1, bvsort8));
   s->assert_formula(s->make_term(Implies, il1, assumption1));
   r = s->check_sat_assuming({ il1 });

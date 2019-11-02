@@ -12,8 +12,8 @@ using namespace smt;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create();
-  Term x = s->make_term("x", s->make_sort(BV, 8));
-  Term y = s->make_term("y", s->make_sort(BV, 8));
+  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  Term y = s->make_symbol("y", s->make_sort(BV, 8));
   cout << x->to_string() << endl;
   cout << y->to_string() << endl;
   Term xpy = s->make_term(BVAdd, x, y);

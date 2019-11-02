@@ -17,9 +17,9 @@ int main()
   SmtSolver s = MsatSolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
-  Term x = s->make_term("x", intsort);
-  Term y = s->make_term("y", intsort);
-  Term z = s->make_term("z", intsort);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
 
   try
   {

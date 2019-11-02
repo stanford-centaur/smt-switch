@@ -453,18 +453,18 @@ Term MsatSolver::make_value(const Term & val, const Sort & sort) const
       new MsatTerm(env, msat_make_array_const(env, msort->type, mval->term)));
 }
 
-Term MsatSolver::make_term(const string s, const Sort & sort)
+Term MsatSolver::make_symbol(const string name, const Sort & sort)
 {
-  if (has_symbol(s))
+  if (has_symbol(name))
   {
     string msg("Symbol ");
-    msg += s;
+    msg += name;
     msg += " already exists.";
     throw IncorrectUsageException(msg);
   }
 
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
-  msat_decl decl = msat_declare_function(env, s.c_str(), msort->type);
+  msat_decl decl = msat_declare_function(env, name.c_str(), msort->type);
 
   if (sort->get_sort_kind() == FUNCTION)
   {

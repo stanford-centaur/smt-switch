@@ -23,7 +23,7 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
   Term five = s->make_value(5, bvsort8);
   Term ult5 = s->make_term(BVUlt, x, five);
   Term nult5 = s->make_term(Not, ult5);

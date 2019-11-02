@@ -526,7 +526,7 @@ Sort CVC4Solver::make_sort(SortKind sk,
   }
 }
 
-Term CVC4Solver::make_term(const std::string name, const Sort & sort)
+Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers

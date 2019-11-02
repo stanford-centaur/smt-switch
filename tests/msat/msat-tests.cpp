@@ -18,11 +18,11 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
 
   try
   {
-    Term x = s->make_term("x", bvsort8);
+    Term x = s->make_symbol("x", bvsort8);
     assert(false);
   }
   catch (IncorrectUsageException & e)
@@ -33,8 +33,8 @@ int main()
   assert(s->has_symbol("x"));
   assert(s->lookup_symbol("x") == x);
 
-  Term y = s->make_term("y", bvsort8);
-  Term z = s->make_term("z", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
   Term _true = s->make_value(true);
   assert(x != y);
   Term x_copy = x;
@@ -62,7 +62,7 @@ int main()
 
   Sort funsort =
       s->make_sort(FUNCTION, SortVec{ x_lower->get_sort() }, x->get_sort());
-  Term uf = s->make_term("f", funsort);
+  Term uf = s->make_symbol("f", funsort);
   Term uf_app = s->make_term(Apply, uf, x_lower);
   assert(uf_app->get_op() == Apply);
   assert(*uf_app->begin() == uf);
