@@ -113,7 +113,7 @@ class AbsSmtSolver
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
-  virtual Term make_term(const int64_t i, const Sort & sort) const = 0;
+  virtual Term make_term(int64_t i, const Sort & sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
