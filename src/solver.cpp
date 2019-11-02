@@ -143,7 +143,7 @@ Term AbsSmtSolver::transfer_term(const Term term)
             throw SmtException("Expecting one child but got "
                                + std::to_string(cached_children.size()));
           }
-          cache[t] = make_value(cached_children[0], s);
+          cache[t] = make_term(cached_children[0], s);
         }
         else
         {
@@ -191,17 +191,17 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
       }
 
       bvval = bvval.substr(2, bvval.length() - 2);
-      return make_value(bvval, sort, 10);
+      return make_term(bvval, sort, 10);
     }
     else if (prefix == "#b")
     {
       bvval = val.substr(2, val.length() - 2);
-      return make_value(bvval, sort, 2);
+      return make_term(bvval, sort, 2);
     }
     else if (prefix == "#x")
     {
       bvval = val.substr(2, val.length() - 2);
-      return make_value(bvval, sort, 16);
+      return make_term(bvval, sort, 16);
     }
     else
     {
@@ -211,7 +211,7 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
   }
   else if ((sk == INT) || (sk == REAL))
   {
-    return make_value(val, sort);
+    return make_term(val, sort);
   }
   // this check HAS to come after bit-vector check
   // because boolector aliases those two sorts
@@ -223,7 +223,7 @@ Term AbsSmtSolver::value_from_smt2(const std::string val, const Sort sort) const
     }
     else
     {
-      return make_value(val == "true");
+      return make_term(val == "true");
     }
   }
   else

@@ -34,15 +34,15 @@ int main()
 
   Term assumption0 =
       s->make_term(And,
-                   s->make_term(Distinct, x, s->make_value(0, bvsort8)),
-                   s->make_term(Distinct, y, s->make_value(0, bvsort8)));
+                   s->make_term(Distinct, x, s->make_term(0, bvsort8)),
+                   s->make_term(Distinct, y, s->make_term(0, bvsort8)));
 
   Sort boolsort = s->make_sort(BOOL);
   Term il0 = s->make_symbol("il0", boolsort);
   s->assert_formula(s->make_term(Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });
 
-  Term assumption1 = s->make_term(Equal, x, s->make_value(1, bvsort8));
+  Term assumption1 = s->make_term(Equal, x, s->make_term(1, bvsort8));
   Term il1 = s->make_symbol("il1", boolsort);
   s->assert_formula(s->make_term(Implies, il1, assumption1));
   r = s->check_sat_assuming({ il1 });

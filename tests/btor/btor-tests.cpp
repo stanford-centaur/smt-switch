@@ -35,7 +35,7 @@ int main()
 
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
-  Term _true = s->make_value(true);
+  Term _true = s->make_term(true);
   assert(x != y);
   Term x_copy = x;
   assert(x == x_copy);
@@ -68,21 +68,21 @@ int main()
   assert(*uf_app->begin() == uf);
 
   s->assert_formula(z_eq_xpy);
-  s->assert_formula(s->make_term(BVUlt, x, s->make_value(4, bvsort8)));
-  s->assert_formula(s->make_term(BVUlt, y, s->make_value(4, bvsort8)));
-  s->assert_formula(s->make_term(BVUgt, z, s->make_value("5", bvsort8)));
+  s->assert_formula(s->make_term(BVUlt, x, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUlt, y, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUgt, z, s->make_term("5", bvsort8)));
   // This is actually a redundant assertion -- just testing
   s->assert_formula(s->make_term(Equal, x_ext, x));
   s->assert_formula(s->make_term(Distinct, x, z));
-  s->assert_formula(s->make_term(BVUle, uf_app, s->make_value(3, bvsort8)));
-  s->assert_formula(s->make_term(BVUge, uf_app, s->make_value("00000011", bvsort8, 2)));
+  s->assert_formula(s->make_term(BVUle, uf_app, s->make_term(3, bvsort8)));
+  s->assert_formula(
+      s->make_term(BVUge, uf_app, s->make_term("00000011", bvsort8, 2)));
 
   Result r = s->check_sat();
   assert(r.is_sat());
 
-  assert(s->make_value(4, bvsort8) == s->value_from_smt2("(_ bv4 8)", bvsort8));
-  assert(s->make_value(4, bvsort8)
-         == s->value_from_smt2("#b00000100", bvsort8));
+  assert(s->make_term(4, bvsort8) == s->value_from_smt2("(_ bv4 8)", bvsort8));
+  assert(s->make_term(4, bvsort8) == s->value_from_smt2("#b00000100", bvsort8));
 
   Term xc = s->get_value(x);
   Term yc = s->get_value(y);

@@ -23,7 +23,7 @@ int main()
 
   try
   {
-    s->assert_formula(s->make_term(Equal, x, s->make_value(0, intsort)));
+    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
   }
   catch (IncorrectUsageException & e)
   {

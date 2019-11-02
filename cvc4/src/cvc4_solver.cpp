@@ -173,7 +173,7 @@ void CVC4Solver::set_logic(const std::string logic) const
   }
 }
 
-Term CVC4Solver::make_value(bool b) const
+Term CVC4Solver::make_term(bool b) const
 {
   try
   {
@@ -186,7 +186,7 @@ Term CVC4Solver::make_value(bool b) const
   }
 }
 
-Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
+Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
 {
   try
   {
@@ -221,9 +221,9 @@ Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term CVC4Solver::make_value(std::string val,
-                            const Sort & sort,
-                            unsigned int base) const
+Term CVC4Solver::make_term(std::string val,
+                           const Sort & sort,
+                           unsigned int base) const
 {
   try
   {
@@ -260,7 +260,7 @@ Term CVC4Solver::make_value(std::string val,
   }
 }
 
-Term CVC4Solver::make_value(const Term & val, const Sort & sort) const
+Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
 {
   throw NotImplementedException("Constant arrays not yet implemented.");
 }

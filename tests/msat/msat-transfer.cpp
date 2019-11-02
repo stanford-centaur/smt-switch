@@ -20,7 +20,7 @@ int main()
   Term x = s->make_symbol("x", bvsort8);
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
-  Term T = s->make_value(true);
+  Term T = s->make_term(true);
 
   Term a = s->make_symbol("a", s->make_sort(INT));
   Term b = s->make_symbol("b", s->make_sort(INT));

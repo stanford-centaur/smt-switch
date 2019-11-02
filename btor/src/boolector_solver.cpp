@@ -106,7 +106,7 @@ void BoolectorSolver::set_logic(const std::string logic) const
   }
 }
 
-Term BoolectorSolver::make_value(bool b) const
+Term BoolectorSolver::make_term(bool b) const
 {
   if (b)
   {
@@ -120,7 +120,7 @@ Term BoolectorSolver::make_value(bool b) const
   }
 }
 
-Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
+Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
   try
   {
@@ -137,9 +137,9 @@ Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term BoolectorSolver::make_value(std::string val,
-                                 const Sort & sort,
-                                 unsigned int base) const
+Term BoolectorSolver::make_term(std::string val,
+                                const Sort & sort,
+                                unsigned int base) const
 {
   try
   {
@@ -176,7 +176,7 @@ Term BoolectorSolver::make_value(std::string val,
   }
 }
 
-Term BoolectorSolver::make_value(const Term & val, const Sort & sort) const
+Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {

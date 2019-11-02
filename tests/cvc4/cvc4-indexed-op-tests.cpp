@@ -30,7 +30,7 @@ int main()
   Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
 
   s->assert_formula(s->make_term(Equal, y_ror, y_rol));
-  s->assert_formula(s->make_term(Distinct, y, s->make_value(0, bvsort9)));
+  s->assert_formula(s->make_term(Distinct, y, s->make_term(0, bvsort9)));
   s->assert_formula(s->make_term(
       Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
 

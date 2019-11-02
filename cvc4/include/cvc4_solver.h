@@ -50,12 +50,12 @@ class CVC4Solver : public AbsSmtSolver
   Sort make_sort(SortKind sk,
                  const SortVec & sorts,
                  const Sort & sort) const override;
-  Term make_value(bool b) const override;
-  Term make_value(int64_t i, const Sort & sort) const override;
-  Term make_value(const std::string val,
-                  const Sort & sort,
-                  unsigned int base = 10) const override;
-  Term make_value(const Term & val, const Sort & sort) const override;
+  Term make_term(bool b) const override;
+  Term make_term(int64_t i, const Sort & sort) const override;
+  Term make_term(const std::string val,
+                 const Sort & sort,
+                 unsigned int base = 10) const override;
+  Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;

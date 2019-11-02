@@ -25,8 +25,8 @@ int main()
   Term idx0 = s->make_symbol("idx0", bvsort4);
   Term idx1 = s->make_symbol("idx1", bvsort4);
   Term val = s->make_symbol("val", bvsort8);
-  Term zero = s->make_value(0, bvsort8);
-  Term const_arr = s->make_value(zero, arrsort);
+  Term zero = s->make_term(0, bvsort8);
+  Term const_arr = s->make_term(zero, arrsort);
   assert(zero->is_value());
   assert(!const_arr->is_symbolic_const());
   assert(const_arr->is_value());

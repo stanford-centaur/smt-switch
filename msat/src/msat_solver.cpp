@@ -368,7 +368,7 @@ Sort MsatSolver::make_sort(SortKind sk,
   return funsort;
 }
 
-Term MsatSolver::make_value(bool b) const
+Term MsatSolver::make_term(bool b) const
 {
   if (b)
   {
@@ -380,7 +380,7 @@ Term MsatSolver::make_value(bool b) const
   }
 }
 
-Term MsatSolver::make_value(int64_t i, const Sort & sort) const
+Term MsatSolver::make_term(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
@@ -405,9 +405,9 @@ Term MsatSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term MsatSolver::make_value(const std::string val,
-                            const Sort & sort,
-                            unsigned int base) const
+Term MsatSolver::make_term(const std::string val,
+                           const Sort & sort,
+                           unsigned int base) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
@@ -440,7 +440,7 @@ Term MsatSolver::make_value(const std::string val,
   }
 }
 
-Term MsatSolver::make_value(const Term & val, const Sort & sort) const
+Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() != ARRAY)
   {

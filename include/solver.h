@@ -106,14 +106,14 @@ class AbsSmtSolver
    * @param b boolean value
    * @return a value term with Sort BOOL and value b
    */
-  virtual Term make_value(const bool b) const = 0;
+  virtual Term make_term(const bool b) const = 0;
 
   /* Make a bit-vector, int or real value term
    * @param i the value
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
-  virtual Term make_value(const int64_t i, const Sort & sort) const = 0;
+  virtual Term make_term(const int64_t i, const Sort & sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
@@ -121,9 +121,9 @@ class AbsSmtSolver
    * @param base the base to interpret the value, for bit-vector sorts (ignored otherwise)
    * @return a value term with Sort sort and value val
    */
-  virtual Term make_value(const std::string val,
-                          const Sort & sort,
-                          unsigned int base = 10) const = 0;
+  virtual Term make_term(const std::string val,
+                         const Sort & sort,
+                         unsigned int base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
    * @param op the operator used to create the value (.e.g Const_Array)
@@ -131,7 +131,7 @@ class AbsSmtSolver
    * @param sort the sort of value to create
    * @return a value term with Sort sort
    */
-  virtual Term make_value(const Term & val, const Sort & sort) const = 0;
+  virtual Term make_term(const Term & val, const Sort & sort) const = 0;
 
   /* Make a symbolic constant or function term
    * @param name the name of constant or function
