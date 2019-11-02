@@ -53,14 +53,16 @@ int main()
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 
-  Term const_arr2 = s2->transfer_term(const_arr);
+  TermTranslator tt(s2);
+
+  Term const_arr2 = tt.transfer_term(const_arr);
   assert(!const_arr2->is_symbolic_const());
   assert(const_arr2->is_value());
   assert(const_arr2->get_op() == Const_Array);
 
   for (auto c : const_arr2)
   {
-    assert(c == s2->transfer_term(zero));
+    assert(c == tt.transfer_term(zero));
   }
 
   // this solver has no assertions yet
@@ -74,8 +76,8 @@ int main()
       And,
       s2->make_term(Equal, arr, const_arr2),
       s2->make_term(Distinct,
-                    s2->make_term(Select, arr, s2->transfer_term(idx0)),
-                    s2->transfer_term(zero)));
+                    s2->make_term(Select, arr, tt.transfer_term(idx0)),
+                    tt.transfer_term(zero)));
 
   // test substitution
   Term t = s2->substitute(constraint2, UnorderedTermMap{ { arr, arr2 } });

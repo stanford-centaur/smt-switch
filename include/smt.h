@@ -16,6 +16,9 @@
 // Abstract term interface.
 #include "term.h"
 
+// Transfer terms between solvers.
+#include "term_translator.h"
+
 // Main solver interface.
 #include "solver.h"
 

@@ -20,7 +20,8 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
-  "${PROJECT_SOURCE_DIR}/src/solver.cpp")
+  "${PROJECT_SOURCE_DIR}/src/solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp")
 
 # build testing infrastructure
 enable_testing()

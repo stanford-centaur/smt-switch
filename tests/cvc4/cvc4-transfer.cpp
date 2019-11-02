@@ -32,10 +32,12 @@ int main()
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 
-  Term constraint2 = s2->transfer_term(constraint);
+  TermTranslator tt(s2);
+
+  Term constraint2 = tt.transfer_term(constraint);
   // ensure it can handle transfering again (even though it already built the
   // node)
-  constraint2 = s2->transfer_term(constraint);
+  constraint2 = tt.transfer_term(constraint);
   s2->assert_formula(constraint2);
 
   cout << "term from solver 1: " << constraint << endl;
