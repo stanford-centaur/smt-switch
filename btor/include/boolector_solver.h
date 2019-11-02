@@ -68,8 +68,6 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  bool has_symbol(const std::string name) const override;
-  Term lookup_symbol(const std::string name) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
   // helper methods for making a term with a primitive op
@@ -81,7 +79,7 @@ class BoolectorSolver : public AbsSmtSolver
 
  protected:
   Btor * btor;
-  // store the names of created symbols for has_symbol
+  // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
 };
 }  // namespace smt

@@ -67,15 +67,13 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  bool has_symbol(const std::string name) const override;
-  Term lookup_symbol(const std::string name) const override;
   void dump_smt2(FILE * file) const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
 
  protected:
   ::CVC4::api::Solver solver;
-  // keep track of created symbols for has_symbol and lookup_symbol
+  // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
 };
 }  // namespace smt

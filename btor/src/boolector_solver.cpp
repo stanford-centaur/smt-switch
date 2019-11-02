@@ -261,7 +261,7 @@ Term BoolectorSolver::get_value(Term & t) const
     // on a base array
     std::string base_name = t->to_string() + "_base";
     BoolectorNode * stores;
-    if (!has_symbol(base_name))
+    if (symbol_names.find(base_name) == symbol_names.end())
     {
       throw InternalSolverException("Expecting base array symbol to already have been created.");
     }
@@ -550,19 +550,6 @@ void BoolectorSolver::reset_assertions()
 {
   throw NotImplementedException(
       "Boolector does not have reset assertions yet.");
-}
-
-bool BoolectorSolver::has_symbol(const std::string name) const
-{
-  return (symbol_names.find(name) != symbol_names.end());
-}
-
-Term BoolectorSolver::lookup_symbol(const std::string name) const
-{
-  // assumes has_symbol is true
-  Term term(new BoolectorTerm(
-      btor, boolector_match_node_by_symbol(btor, name.c_str())));
-  return term;
 }
 
 Term BoolectorSolver::substitute(

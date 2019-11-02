@@ -34,9 +34,6 @@ int main()
     cout << "caught error with message: " << e.what() << endl;
   }
 
-  assert(s->has_symbol("x"));
-  assert(s->lookup_symbol("x") == x);
-
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
   Term _true = s->make_term(true);

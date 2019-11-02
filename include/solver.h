@@ -184,19 +184,6 @@ class AbsSmtSolver
   /* Reset all assertions */
   virtual void reset_assertions() = 0;
 
-  /* Check if there's a symbol with this name
-   * @param name the name to check
-   * @return true iff there is a symbol with that name registered in this solver
-   */
-  virtual bool has_symbol(const std::string name) const = 0;
-
-  /* Lookup a symbol by name
-   * @param name the name of the symbol
-   * @return the Term for the symbol with that name
-   * see also: has_symbol
-   */
-  virtual Term lookup_symbol(const std::string name) const = 0;
-
   // Methods implemented at the abstract level
   // Note: These can be overloaded in the specific solver implementation for
   //       performance improvements

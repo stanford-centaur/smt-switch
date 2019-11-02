@@ -455,8 +455,10 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 
 Term MsatSolver::make_symbol(const string name, const Sort & sort)
 {
-  if (has_symbol(name))
+  msat_decl decl = msat_find_decl(env, name.c_str());
+  if (!MSAT_ERROR_DECL(decl))
   {
+    // symbol already exists
     string msg("Symbol ");
     msg += name;
     msg += " already exists.";
@@ -464,7 +466,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
-  msat_decl decl = msat_declare_function(env, name.c_str(), msort->type);
+  decl = msat_declare_function(env, name.c_str(), msort->type);
 
   if (sort->get_sort_kind() == FUNCTION)
   {
@@ -746,35 +748,6 @@ void MsatSolver::reset()
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }
-
-bool MsatSolver::has_symbol(const string name) const
-{
-  msat_decl decl = msat_find_decl(env, name.c_str());
-  if (MSAT_ERROR_DECL(decl))
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
-
-Term MsatSolver::lookup_symbol(const string name) const
-{
-  msat_decl decl = msat_find_decl(env, name.c_str());
-  if (MSAT_ERROR_DECL(decl))
-  {
-    string msg("Symbol ");
-    msg += name;
-    msg += " does not exist.";
-    throw IncorrectUsageException(msg);
-  }
-
-  // Creating a new constant with the same decl returns
-  // the same term in mathsat (e.g. constants are cached)
-  return Term(new MsatTerm(env, msat_make_constant(env, decl)));
-}
 
 Term MsatSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const

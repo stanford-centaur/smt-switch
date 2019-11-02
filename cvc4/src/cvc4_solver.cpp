@@ -692,23 +692,6 @@ void CVC4Solver::reset_assertions()
   }
 }
 
-bool CVC4Solver::has_symbol(const std::string name) const
-{
-  return (symbols.find(name) != symbols.end());
-}
-
-Term CVC4Solver::lookup_symbol(const std::string name) const
-{
-  try
-  {
-    return symbols.at(name);
-  }
-  catch (std::exception & e)
-  {
-    throw IncorrectUsageException("Cannot lookup unknown symbol: " + name);
-  }
-}
-
 void CVC4Solver::dump_smt2(FILE * file) const
 {
   throw NotImplementedException("Not yet implemented dumping smt2");
