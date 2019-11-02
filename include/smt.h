@@ -19,7 +19,4 @@
 // Main solver interface.
 #include "solver.h"
 
-// Convenient data structure definitions and range-based iteration
-#include "smt_data_structures.h"
-
 #endif

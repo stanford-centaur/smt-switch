@@ -74,7 +74,7 @@ Sort AbsSmtSolver::transfer_sort(const Sort sort)
   {
     // recursive call, but it should be okay because we don't expect deep
     // nesting of functions either
-    std::vector<Sort> domain_sorts;
+    SortVec domain_sorts;
     for (auto s : sort->get_domain_sorts())
     {
       domain_sorts.push_back(transfer_sort(s));

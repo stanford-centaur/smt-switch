@@ -101,7 +101,7 @@ Sort MsatSort::get_elemsort() const
   }
 }
 
-std::vector<Sort> MsatSort::get_domain_sorts() const
+SortVec MsatSort::get_domain_sorts() const
 {
   if (!is_uf_type)
   {
@@ -109,7 +109,7 @@ std::vector<Sort> MsatSort::get_domain_sorts() const
   }
 
   size_t arity = msat_decl_get_arity(uf_decl);
-  vector<Sort> sorts;
+  SortVec sorts;
   sorts.reserve(arity);
   msat_type tmp_type;
   for (size_t i = 0; i < arity; i++)

@@ -43,7 +43,7 @@ Sort BoolectorSortBase::get_elemsort() const
   throw IncorrectUsageException("Only defined for an array sort.");
 };
 
-std::vector<Sort> BoolectorSortBase::get_domain_sorts() const
+SortVec BoolectorSortBase::get_domain_sorts() const
 {
   throw IncorrectUsageException("Only defined for a function sort.");
 };
@@ -80,8 +80,8 @@ bool BoolectorSortBase::compare(const Sort s) const
     }
     case FUNCTION:
     {
-      std::vector<Sort> domain_sorts = get_domain_sorts();
-      std::vector<Sort> bs_domain_sorts = bs->get_domain_sorts();
+      SortVec domain_sorts = get_domain_sorts();
+      SortVec bs_domain_sorts = bs->get_domain_sorts();
 
       if (domain_sorts.size() != bs_domain_sorts.size())
       {

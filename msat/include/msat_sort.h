@@ -19,7 +19,7 @@ class MsatSort : public AbsSort
   unsigned int get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
-  std::vector<Sort> get_domain_sorts() const override;
+  SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   bool compare(const Sort) const override;
   SortKind get_sort_kind() const override;

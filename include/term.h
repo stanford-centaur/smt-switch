@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "smt_defs.h"
@@ -85,6 +87,22 @@ class TermIter
  protected:
   TermIterBase* iter_;
 };
+
+// Useful data structures and hashing
+struct TermHashFunction
+{
+  std::size_t operator()(const Term & t) const
+  {
+    // call the term's hash function, implemented by solvers
+    return t->hash();
+  }
+};
+using TermVec = std::vector<Term>;
+using UnorderedTermSet = std::unordered_set<Term, TermHashFunction>;
+using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
+// range-based iteration
+inline TermIter begin(Term & t) { return t->begin(); }
+inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
 

@@ -34,10 +34,10 @@ Sort CVC4Sort::get_elemsort() const
   return elemsort;
 }
 
-std::vector<Sort> CVC4Sort::get_domain_sorts() const
+SortVec CVC4Sort::get_domain_sorts() const
 {
   std::vector<::CVC4::api::Sort> cvc4_sorts = sort.getFunctionDomainSorts();
-  std::vector<Sort> domain_sorts;
+  SortVec domain_sorts;
   domain_sorts.reserve(cvc4_sorts.size());
   Sort s;
   for (auto cs : cvc4_sorts)

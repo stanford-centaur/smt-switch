@@ -22,7 +22,7 @@ class BoolectorSortBase : public AbsSort
   unsigned int get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
-  std::vector<Sort> get_domain_sorts() const override;
+  SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override { return sk; };
@@ -75,15 +75,15 @@ class BoolectorArraySort : public BoolectorSortBase
 class BoolectorUFSort : public BoolectorSortBase
 {
  public:
-  BoolectorUFSort(Btor * b, BoolectorSort s, std::vector<Sort> sorts, Sort sort)
+  BoolectorUFSort(Btor * b, BoolectorSort s, SortVec sorts, Sort sort)
       : BoolectorSortBase(FUNCTION, b, s),
         domain_sorts(sorts),
         codomain_sort(sort){};
-  std::vector<Sort> get_domain_sorts() const override { return domain_sorts; };
+  SortVec get_domain_sorts() const override { return domain_sorts; };
   Sort get_codomain_sort() const override { return codomain_sort; };
 
  protected:
-  std::vector<Sort> domain_sorts;
+  SortVec domain_sorts;
   Sort codomain_sort;
 
   friend class BoolectorSolver;

@@ -5,7 +5,6 @@
 
 #include "msat_factory.h"
 #include "smt.h"
-#include "smt_data_structures.h"
 // after a full installation
 // #include "smt-switch/msat_factory.h"
 // #include "smt-switch/smt.h"

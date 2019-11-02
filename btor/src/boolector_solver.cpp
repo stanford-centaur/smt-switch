@@ -369,7 +369,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                const std::vector<Sort> & sorts,
+                                const SortVec & sorts,
                                 const Sort & sort) const
 {
   if (sk == FUNCTION)
@@ -518,7 +518,7 @@ Term BoolectorSolver::make_term(Op op,
   }
 }
 
-Term BoolectorSolver::make_term(Op op, const std::vector<Term> & terms) const
+Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.num_idx == 0)
   {
@@ -690,7 +690,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   }
 }
 
-Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
+Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
 {
   unsigned int size = terms.size();
   // binary ops are most common, check this first
@@ -710,7 +710,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
   {
     if (op == Apply)
     {
-      std::vector<Term> termargs;
+      TermVec termargs;
       termargs.reserve(size - 1);
       std::vector<BoolectorNode *> args;
       args.reserve(size - 1);

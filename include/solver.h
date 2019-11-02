@@ -6,9 +6,9 @@
 
 #include "exceptions.h"
 #include "result.h"
-#include "smt_data_structures.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "term.h"
 
 namespace smt {
 
@@ -99,7 +99,7 @@ class AbsSmtSolver
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk,
-                         const std::vector<Sort> & sorts,
+                         const SortVec & sorts,
                          const Sort & sort) const = 0;
 
   /* Make a boolean value term
@@ -174,8 +174,7 @@ class AbsSmtSolver
    * @param terms vector of children
    * @return the created term
    */
-  virtual Term make_term(const Op op,
-                         const std::vector<Term> & terms) const = 0;
+  virtual Term make_term(const Op op, const TermVec & terms) const = 0;
 
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts

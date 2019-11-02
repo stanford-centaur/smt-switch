@@ -332,7 +332,7 @@ Sort MsatSolver::make_sort(SortKind sk,
 }
 
 Sort MsatSolver::make_sort(SortKind sk,
-                           const std::vector<Sort> & sorts,
+                           const SortVec & sorts,
                            const Sort & sort) const
 {
   if (sorts.size() == 0)

@@ -2,6 +2,7 @@
 #define SMT_SORT_H
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "ops.h"
@@ -57,6 +58,19 @@ class AbsSort
 bool operator==(const Sort& s1, const Sort& s2);
 bool operator!=(const Sort& s1, const Sort& s2);
 std::ostream& operator<<(std::ostream& output, const Sort s);
+
+// Useful data structures and hashing
+struct SortHashFunction
+{
+  std::size_t operator()(const Sort & s) const
+  {
+    // call the sort's hash function, implemented by solvers
+    return s->hash();
+  }
+};
+
+using SortVec = std::vector<Sort>;
+using UnorderedSortSet = std::unordered_set<Sort, SortHashFunction>;
 
 }  // namespace smt
 

@@ -497,7 +497,7 @@ Sort CVC4Solver::make_sort(SortKind sk,
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
-                           const std::vector<Sort> & sorts,
+                           const SortVec & sorts,
                            const Sort & sort) const
 {
   try
@@ -636,7 +636,7 @@ Term CVC4Solver::make_term(Op op,
   }
 }
 
-Term CVC4Solver::make_term(Op op, const std::vector<Term> & terms) const
+Term CVC4Solver::make_term(Op op, const TermVec & terms) const
 {
   try
   {

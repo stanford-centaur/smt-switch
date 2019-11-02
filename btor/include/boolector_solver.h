@@ -49,7 +49,7 @@ class BoolectorSolver : public AbsSmtSolver
                  const Sort & idxsort,
                  const Sort & elemsort) const override;
   Sort make_sort(SortKind sk,
-                 const std::vector<Sort> & sorts,
+                 const SortVec & sorts,
                  const Sort & sort) const override;
   Term make_value(bool b) const override;
   Term make_value(int64_t i, const Sort & sort) const override;
@@ -65,7 +65,7 @@ class BoolectorSolver : public AbsSmtSolver
                  const Term & t0,
                  const Term & t1,
                  const Term & t2) const override;
-  Term make_term(Op op, const std::vector<Term> & terms) const override;
+  Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
   bool has_symbol(const std::string name) const override;
@@ -76,7 +76,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, Term t) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
-  Term apply_prim_op(PrimOp op, std::vector<Term> terms) const;
+  Term apply_prim_op(PrimOp op, TermVec terms) const;
   void dump_smt2(FILE * file) const override;
 
  protected:
