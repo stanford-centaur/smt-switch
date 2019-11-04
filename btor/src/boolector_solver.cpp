@@ -261,11 +261,11 @@ Term BoolectorSolver::get_value(Term & t) const
     // on a base array
     std::string base_name = t->to_string() + "_base";
     BoolectorNode * stores;
-    if (!has_symbol(base_name))
+    if (array_bases.find(base_name) == array_bases.end())
     {
       throw InternalSolverException("Expecting base array symbol to already have been created.");
     }
-    stores = boolector_match_node_by_symbol(btor, base_name.c_str());
+    stores = boolector_copy(btor, array_bases.at(base_name));
 
     char ** indices;
     char ** values;
@@ -423,7 +423,11 @@ Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
     //       from boolector directly
     std::string base_name = name + "_base";
     BoolectorNode * base_node = boolector_array(btor, bs->sort, base_name.c_str());
-    symbol_names.insert(base_name);
+    if (array_bases.find(base_name) != array_bases.end())
+    {
+      throw InternalSolverException("Error in array model preparation");
+    }
+    array_bases[base_name] = base_node;
   }
   else if (sk == FUNCTION)
   {

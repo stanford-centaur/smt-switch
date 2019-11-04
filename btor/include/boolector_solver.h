@@ -33,7 +33,14 @@ class BoolectorSolver : public AbsSmtSolver
   };
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
-  ~BoolectorSolver() { boolector_delete(btor); };
+  ~BoolectorSolver()
+  {
+    for (auto elem : array_bases)
+    {
+      boolector_release(btor, elem.second);
+    }
+    boolector_delete(btor);
+  };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) const override;
   void assert_formula(const Term & t) const override;
@@ -83,6 +90,8 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols for has_symbol
   std::unordered_set<std::string> symbol_names;
+  // store array bases -- temporary until there are updates to boolector
+  std::unordered_map<std::string, BoolectorNode *> array_bases;
 };
 }  // namespace smt
 
