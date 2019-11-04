@@ -92,7 +92,7 @@ class BoolectorSolver : public AbsSmtSolver
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
   // store array bases -- temporary until there are updates to boolector
-  std::unordered_map<std::string, BoolectorNode *> array_bases;
+  std::unordered_map<uint64_t, BoolectorNode *> array_bases;
 };
 }  // namespace smt
 
