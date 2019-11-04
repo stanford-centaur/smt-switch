@@ -261,11 +261,12 @@ Term BoolectorSolver::get_value(Term & t) const
     // on a base array
     std::string base_name = t->to_string() + "_base";
     BoolectorNode * stores;
-    if (array_bases.find(base_name) == array_bases.end())
+    uint64_t node_id = (uint64_t)bt->node;
+    if (array_bases.find(node_id) == array_bases.end())
     {
       throw InternalSolverException("Expecting base array symbol to already have been created.");
     }
-    stores = boolector_copy(btor, array_bases.at(base_name));
+    stores = boolector_copy(btor, array_bases.at(node_id));
 
     char ** indices;
     char ** values;
@@ -421,13 +422,14 @@ Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
     //       we want to represent it as a sequence of stores
     //       ideally we could get this as a sequence of stores on a const array
     //       from boolector directly
+    uint64_t node_id = (uint64_t)n;
     std::string base_name = name + "_base";
     BoolectorNode * base_node = boolector_array(btor, bs->sort, base_name.c_str());
-    if (array_bases.find(base_name) != array_bases.end())
+    if (array_bases.find(node_id) != array_bases.end())
     {
       throw InternalSolverException("Error in array model preparation");
     }
-    array_bases[base_name] = base_node;
+    array_bases[node_id] = base_node;
   }
   else if (sk == FUNCTION)
   {
