@@ -44,12 +44,15 @@ class CVC4Solver : public AbsSmtSolver
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
+  Sort make_sort(SortKind sk, const Sort & sort1) const override;
   Sort make_sort(SortKind sk,
                  const Sort & sort1,
                  const Sort & sort2) const override;
   Sort make_sort(SortKind sk,
-                 const SortVec & sorts,
-                 const Sort & sort) const override;
+                 const Sort & sort1,
+                 const Sort & sort2,
+                 const Sort & sort3) const override;
+  Sort make_sort(SortKind sk, const SortVec & sorts) const override;
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,

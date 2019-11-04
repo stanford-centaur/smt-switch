@@ -343,6 +343,12 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
+Sort BoolectorSolver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw IncorrectUsageException(
+      "Boolector has no sort that takes a single sort argument.");
+}
+
 Sort BoolectorSolver::make_sort(SortKind sk,
                                 const Sort & sort1,
                                 const Sort & sort2) const
@@ -368,32 +374,62 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                const SortVec & sorts,
-                                const Sort & sort) const
+                                const Sort & sort1,
+                                const Sort & sort2,
+                                const Sort & sort3) const
+{
+  throw IncorrectUsageException(
+      "Boolector does not have a non-function sort that takes three sort "
+      "arguments");
+}
+
+Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   if (sk == FUNCTION)
   {
-    int64_t arity = sorts.size();
+    if (sorts.size() < 2)
+    {
+      throw IncorrectUsageException(
+          "Function sort must have >=2 sort arguments.");
+    }
+
+    Sort returnsort = sorts.back();
+    std::shared_ptr<BoolectorSortBase> btor_return_sort =
+        std::static_pointer_cast<BoolectorSortBase>(returnsort);
+
+    // arity is one less, because last sort is return sort
+    uint32_t arity = sorts.size() - 1;
     std::vector<BoolectorSort> btor_sorts;
     btor_sorts.reserve(arity);
-    for (auto s : sorts)
+    for (size_t i = 0; i < arity; i++)
     {
       std::shared_ptr<BoolectorSortBase> bs =
-          std::static_pointer_cast<BoolectorSortBase>(s);
+          std::static_pointer_cast<BoolectorSortBase>(sorts[i]);
       btor_sorts.push_back(bs->sort);
     }
-    std::shared_ptr<BoolectorSortBase> btor_sort =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
+
     BoolectorSort btor_fun_sort =
-        boolector_fun_sort(btor, &btor_sorts[0], arity, btor_sort->sort);
-    Sort s(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
+        boolector_fun_sort(btor, &btor_sorts[0], arity, btor_return_sort->sort);
+    Sort s(new BoolectorUFSort(btor, btor_fun_sort, sorts, returnsort));
     return s;
+  }
+  else if (sorts.size() == 1)
+  {
+    return make_sort(sk, sorts[0]);
+  }
+  else if (sorts.size() == 2)
+  {
+    return make_sort(sk, sorts[0], sorts[1]);
+  }
+  else if (sorts.size() == 3)
+  {
+    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
   }
   else
   {
     std::string msg("Can't create sort from sort constructor ");
     msg += to_string(sk);
-    msg += " with a vector of sorts and a sort";
+    msg += " with a vector of sorts";
     throw IncorrectUsageException(msg.c_str());
   }
 }
@@ -678,7 +714,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
 
 Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
 {
-  uint64_t size = terms.size();
+  uint32_t size = terms.size();
   // binary ops are most common, check this first
   if (size == 2)
   {

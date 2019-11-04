@@ -28,13 +28,13 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
   {
     // recursive call, but it should be okay because we don't expect deep
     // nesting of functions either
-    SortVec domain_sorts;
+    SortVec sorts;
     for (auto s : sort->get_domain_sorts())
     {
-      domain_sorts.push_back(transfer_sort(s));
+      sorts.push_back(transfer_sort(s));
     }
-    return solver->make_sort(
-        sk, domain_sorts, transfer_sort(sort->get_codomain_sort()));
+    sorts.push_back(transfer_sort(sort->get_codomain_sort()));
+    return solver->make_sort(sk, sorts);
   }
   else
   {

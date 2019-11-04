@@ -58,7 +58,7 @@ int main()
   Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);
 
   Sort funsort =
-      s->make_sort(FUNCTION, SortVec{ x_lower->get_sort() }, x->get_sort());
+      s->make_sort(FUNCTION, SortVec{ x_lower->get_sort(), x->get_sort() });
   Term uf = s->make_symbol("f", funsort);
   Term uf_app = s->make_term(Apply, uf, x_lower);
   assert(uf_app->get_op() == Apply);

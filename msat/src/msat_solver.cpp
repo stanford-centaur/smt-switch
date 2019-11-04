@@ -308,6 +308,12 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
+Sort MsatSolver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take one sort parameter yet.");
+}
+
 Sort MsatSolver::make_sort(SortKind sk,
                            const Sort & sort1,
                            const Sort & sort2) const
@@ -332,40 +338,71 @@ Sort MsatSolver::make_sort(SortKind sk,
 }
 
 Sort MsatSolver::make_sort(SortKind sk,
-                           const SortVec & sorts,
-                           const Sort & sort) const
+                           const Sort & sort1,
+                           const Sort & sort2,
+                           const Sort & sort3) const
 {
-  if (sorts.size() == 0)
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take three sort parameters "
+      "yet.");
+}
+
+Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
+{
+  if (sk == FUNCTION)
   {
-    return make_sort(sort->get_sort_kind());
+    if (sorts.size() < 2)
+    {
+      throw IncorrectUsageException(
+          "Function sort must have >=2 sort arguments.");
+    }
+
+    // arity is one less, because last sort is return sort
+    uint32_t arity = sorts.size() - 1;
+
+    string decl_name("internal_ref_fun");
+
+    std::vector<msat_type> msorts;
+    msorts.reserve(arity);
+    msat_type msort;
+    for (uint32_t i = 0; i < arity; i++)
+    {
+      msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
+      msorts.push_back(msort);
+      decl_name += ("_" + sorts[i]->to_string());
+    }
+    Sort sort = sorts.back();
+    msort = std::static_pointer_cast<MsatSort>(sort)->type;
+    decl_name += ("_return_" + sort->to_string());
+    msat_type mfunsort = msat_get_function_type(env, &msorts[0], arity, msort);
+
+    // creating a reference decl, because it's the only way to get codomain and
+    // domain sorts i.e. there's no msat_is_function_type(msat_env, msat_type)
+    msat_decl ref_fun_decl =
+        msat_declare_function(env, decl_name.c_str(), mfunsort);
+
+    Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
+    return funsort;
   }
-  else if (sk != FUNCTION)
+  else if (sorts.size() == 1)
   {
-    throw IncorrectUsageException("Expecting function sort kind when creating sort with a vector of domain sorts");
+    return make_sort(sk, sorts[0]);
   }
-
-  string decl_name("internal_ref_fun");
-
-  std::vector<msat_type> msorts;
-  msorts.reserve(sorts.size());
-  msat_type msort;
-  for (Sort s : sorts)
+  else if (sorts.size() == 2)
   {
-    msort = std::static_pointer_cast<MsatSort>(s)->type;
-    msorts.push_back(msort);
-    decl_name += ("_" + s->to_string());
+    return make_sort(sk, sorts[0], sorts[1]);
   }
-  msort = std::static_pointer_cast<MsatSort>(sort)->type;
-  decl_name += ("_return_" + sort->to_string());
-  msat_type mfunsort =
-      msat_get_function_type(env, &msorts[0], msorts.size(), msort);
-
-  // creating a reference decl, because it's the only way to get codomain and domain sorts
-  // i.e. there's no msat_is_function_type(msat_env, msat_type)
-  msat_decl ref_fun_decl = msat_declare_function(env, decl_name.c_str(), mfunsort);
-
-  Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
-  return funsort;
+  else if (sorts.size() == 3)
+  {
+    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+  }
+  else
+  {
+    std::string msg("Can't create sort from sort constructor ");
+    msg += to_string(sk);
+    msg += " with a vector of sorts";
+    throw IncorrectUsageException(msg.c_str());
+  }
 }
 
 Term MsatSolver::make_term(bool b) const

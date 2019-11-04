@@ -467,6 +467,12 @@ Sort CVC4Solver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
+Sort CVC4Solver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take one sort parameter yet.");
+}
+
 Sort CVC4Solver::make_sort(SortKind sk,
                            const Sort & sort1,
                            const Sort & sort2) const
@@ -497,28 +503,63 @@ Sort CVC4Solver::make_sort(SortKind sk,
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
-                           const SortVec & sorts,
-                           const Sort & sort) const
+                           const Sort & sort1,
+                           const Sort & sort2,
+                           const Sort & sort3) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take three sort parameters "
+      "yet.");
+}
+
+Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   try
   {
-    if (sorts.size() == 0)
+    if (sk == FUNCTION)
     {
-      return make_sort(sort->get_sort_kind());
-    }
+      if (sorts.size() < 2)
+      {
+        throw IncorrectUsageException(
+            "Function sort must have >=2 sort arguments.");
+      }
 
-    std::vector<::CVC4::api::Sort> csorts;
-    csorts.reserve(sorts.size());
-    ::CVC4::api::Sort csort;
-    for (Sort s : sorts)
-    {
-      csort = std::static_pointer_cast<CVC4Sort>(s)->sort;
-      csorts.push_back(csort);
+      // arity is one less, because last sort is return sort
+      uint32_t arity = sorts.size() - 1;
+
+      std::vector<::CVC4::api::Sort> csorts;
+      csorts.reserve(arity);
+      ::CVC4::api::Sort csort;
+      for (uint32_t i = 0; i < arity; i++)
+      {
+        csort = std::static_pointer_cast<CVC4Sort>(sorts[i])->sort;
+        csorts.push_back(csort);
+      }
+
+      csort = std::static_pointer_cast<CVC4Sort>(sorts.back())->sort;
+      ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
+      Sort funsort(new CVC4Sort(cfunsort));
+      return funsort;
     }
-    csort = std::static_pointer_cast<CVC4Sort>(sort)->sort;
-    ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
-    Sort funsort(new CVC4Sort(cfunsort));
-    return funsort;
+    else if (sorts.size() == 1)
+    {
+      return make_sort(sk, sorts[0]);
+    }
+    else if (sorts.size() == 2)
+    {
+      return make_sort(sk, sorts[0], sorts[1]);
+    }
+    else if (sorts.size() == 3)
+    {
+      return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+    }
+    else
+    {
+      std::string msg("Can't create sort from sort constructor ");
+      msg += to_string(sk);
+      msg += " with a vector of sorts";
+      throw IncorrectUsageException(msg.c_str());
+    }
   }
   catch (std::exception & e)
   {
