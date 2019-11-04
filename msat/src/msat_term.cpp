@@ -102,8 +102,6 @@ MsatTermIter & MsatTermIter::operator=(const MsatTermIter & it)
 
 void MsatTermIter::operator++() { pos++; }
 
-void MsatTermIter::operator++(int junk) { pos++; }
-
 const Term MsatTermIter::operator*()
 {
   if (!pos && msat_term_is_uf(env, term))

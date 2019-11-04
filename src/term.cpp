@@ -39,6 +39,13 @@ TermIter & TermIter::operator++()
   return *this;
 }
 
+TermIter TermIter::operator++(int)
+{
+  TermIter it = *this;
+  ++(*iter_);
+  return it;
+}
+
 bool TermIter::operator==(const TermIter & other) const
 {
   return (iter_ == other.iter_) || (*iter_ == *other.iter_);

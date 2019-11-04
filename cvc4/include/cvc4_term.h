@@ -19,7 +19,6 @@ namespace smt {
     ~CVC4TermIter() {};
     CVC4TermIter & operator=(const CVC4TermIter & it);
     void operator++() override;
-    void operator++(int junk);
     const Term operator*() override;
     bool operator==(const CVC4TermIter & it);
     bool operator!=(const CVC4TermIter & it);

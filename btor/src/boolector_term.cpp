@@ -96,8 +96,6 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 
 void BoolectorTermIter::operator++() { idx++; };
 
-void BoolectorTermIter::operator++(int junk) { idx++; };
-
 const Term BoolectorTermIter::operator*()
 {
   BtorNode * res = children[idx];

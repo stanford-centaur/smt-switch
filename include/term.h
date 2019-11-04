@@ -60,8 +60,6 @@ class TermIterBase
  public:
   TermIterBase() {}
   virtual ~TermIterBase() {}
-  // TODO: Look into post-fix and pre-fix incrementing and make sure it's
-  // implemented correctly Might not even need to implement operator++(int);
   virtual void operator++() {}
   const virtual Term operator*();
   virtual TermIterBase* clone() const { return new TermIterBase(*this); }
@@ -80,6 +78,7 @@ class TermIter
   TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
   TermIter& operator=(const TermIter& other);
   TermIter& operator++();
+  TermIter operator++(int junk);
   Term operator*() const { return *(*iter_); }
   bool operator==(const TermIter& other) const;
   bool operator!=(const TermIter& other) const;
