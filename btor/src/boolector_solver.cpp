@@ -345,18 +345,18 @@ Sort BoolectorSolver::make_sort(SortKind sk, unsigned int size) const
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                const Sort & idxsort,
-                                const Sort & elemsort) const
+                                const Sort & sort1,
+                                const Sort & sort2) const
 {
   if (sk == ARRAY)
   {
     std::shared_ptr<BoolectorSortBase> btor_idxsort =
-        std::static_pointer_cast<BoolectorSortBase>(idxsort);
+        std::static_pointer_cast<BoolectorSortBase>(sort1);
     std::shared_ptr<BoolectorSortBase> btor_elemsort =
-        std::static_pointer_cast<BoolectorSortBase>(elemsort);
+        std::static_pointer_cast<BoolectorSortBase>(sort2);
     BoolectorSort bs =
         boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
-    Sort s(new BoolectorArraySort(btor, bs, idxsort, elemsort));
+    Sort s(new BoolectorArraySort(btor, bs, sort1, sort2));
     return s;
   }
   else

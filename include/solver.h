@@ -87,12 +87,15 @@ class AbsSmtSolver
   virtual Sort make_sort(const SortKind sk, const unsigned int size) const = 0;
 
   /* Create a sort
-   * @param sk the SortKind (ARRAY)
+   * @param sk the SortKind
+   * @param sort1 first sort
+   * @param sort2 second sort
    * @return a Sort object
+   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
    */
   virtual Sort make_sort(const SortKind sk,
-                         const Sort & idxsort,
-                         const Sort & elemsort) const = 0;
+                         const Sort & sort1,
+                         const Sort & sort2) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (FUNCTION)

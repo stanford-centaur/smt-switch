@@ -309,17 +309,17 @@ Sort MsatSolver::make_sort(SortKind sk, unsigned int size) const
 }
 
 Sort MsatSolver::make_sort(SortKind sk,
-                           const Sort & idxsort,
-                           const Sort & elemsort) const
+                           const Sort & sort1,
+                           const Sort & sort2) const
 {
   if (sk == ARRAY)
   {
-    std::shared_ptr<MsatSort> msort0 =
-        std::static_pointer_cast<MsatSort>(idxsort);
-    std::shared_ptr<MsatSort> msort1 =
-        std::static_pointer_cast<MsatSort>(elemsort);
-    Sort s(new MsatSort(env,
-                        msat_get_array_type(env, msort0->type, msort1->type)));
+    std::shared_ptr<MsatSort> midxsort =
+        std::static_pointer_cast<MsatSort>(sort1);
+    std::shared_ptr<MsatSort> melemsort =
+        std::static_pointer_cast<MsatSort>(sort2);
+    Sort s(new MsatSort(
+        env, msat_get_array_type(env, midxsort->type, melemsort->type)));
     return s;
   }
   else

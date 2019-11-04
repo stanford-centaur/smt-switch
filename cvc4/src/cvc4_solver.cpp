@@ -468,18 +468,18 @@ Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
-                           const Sort & idxsort,
-                           const Sort & elemsort) const
+                           const Sort & sort1,
+                           const Sort & sort2) const
 {
   try
   {
     if (sk == ARRAY)
     {
-      std::shared_ptr<CVC4Sort> csort0 =
-          std::static_pointer_cast<CVC4Sort>(idxsort);
-      std::shared_ptr<CVC4Sort> csort1 =
-          std::static_pointer_cast<CVC4Sort>(elemsort);
-      Sort s(new CVC4Sort(solver.mkArraySort(csort0->sort, csort1->sort)));
+      std::shared_ptr<CVC4Sort> cidxsort =
+          std::static_pointer_cast<CVC4Sort>(sort1);
+      std::shared_ptr<CVC4Sort> celemsort =
+          std::static_pointer_cast<CVC4Sort>(sort2);
+      Sort s(new CVC4Sort(solver.mkArraySort(cidxsort->sort, celemsort->sort)));
       return s;
     }
     else

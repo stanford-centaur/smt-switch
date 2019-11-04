@@ -61,8 +61,8 @@ class MsatSolver : public AbsSmtSolver
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, unsigned int size) const override;
   Sort make_sort(SortKind sk,
-                 const Sort & idxsort,
-                 const Sort & elemsort) const override;
+                 const Sort & sort1,
+                 const Sort & sort2) const override;
   Sort make_sort(SortKind sk,
                  const SortVec & sorts,
                  const Sort & sort) const override;
