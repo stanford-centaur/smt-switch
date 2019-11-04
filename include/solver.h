@@ -71,8 +71,7 @@ class AbsSmtSolver
    * @param arity the arity of the sort
    * @return a Sort object
    */
-  virtual Sort make_sort(const std::string name,
-                         const unsigned int arity) const = 0;
+  virtual Sort make_sort(const std::string name, unsigned int arity) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -84,7 +83,7 @@ class AbsSmtSolver
    * @param sk the SortKind (BV)
    * @return a Sort object
    */
-  virtual Sort make_sort(const SortKind sk, const unsigned int size) const = 0;
+  virtual Sort make_sort(const SortKind sk, unsigned int size) const = 0;
 
   /* Create a sort
    * @param sk the SortKind
@@ -109,7 +108,7 @@ class AbsSmtSolver
    * @param b boolean value
    * @return a value term with Sort BOOL and value b
    */
-  virtual Term make_term(const bool b) const = 0;
+  virtual Term make_term(bool b) const = 0;
 
   /* Make a bit-vector, int or real value term
    * @param i the value
