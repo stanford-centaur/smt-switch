@@ -115,6 +115,11 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         cache[t] = solver->make_term(t->get_op(), cached_children);
       }
+      else if (t->is_symbolic_const())
+      {
+        // already created symbol and added to cache
+        continue;
+      }
       else
       {
         throw SmtException("Can't transfer term: " + t->to_string());
