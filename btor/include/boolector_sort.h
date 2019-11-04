@@ -19,7 +19,7 @@ class BoolectorSortBase : public AbsSort
       : btor(b), sort(s), sk(sk){};
   virtual ~BoolectorSortBase();
   std::size_t hash() const override;
-  unsigned int get_width() const override;
+  uint64_t get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
@@ -44,9 +44,9 @@ class BoolectorSortBase : public AbsSort
 class BoolectorBVSort : public BoolectorSortBase
 {
  public:
-  BoolectorBVSort(Btor * b, BoolectorSort s, unsigned int w)
+  BoolectorBVSort(Btor * b, BoolectorSort s, uint64_t w)
       : BoolectorSortBase(BV, b, s), width(w){};
-  unsigned int get_width() const override { return width; };
+  uint64_t get_width() const override { return width; };
 
  protected:
   // bit-vector width

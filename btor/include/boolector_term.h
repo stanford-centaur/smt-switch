@@ -27,7 +27,7 @@ class BoolectorTermIter : public TermIterBase
 {
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of size 3
-  BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int idx)
+  BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int64_t idx)
       : btor(btor), children(c), idx(idx)
   {
   }
@@ -51,7 +51,7 @@ class BoolectorTermIter : public TermIterBase
  private:
   Btor * btor;
   std::vector<BtorNode *> children;
-  int idx;
+  int64_t idx;
 };
 
 class BoolectorTerm : public AbsTerm

@@ -139,7 +139,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 
 Term BoolectorSolver::make_term(std::string val,
                                 const Sort & sort,
-                                unsigned int base) const
+                                uint64_t base) const
 {
   try
   {
@@ -236,9 +236,9 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BoolectorSolver::push(unsigned int num) { boolector_push(btor, num); }
+void BoolectorSolver::push(uint64_t num) { boolector_push(btor, num); }
 
-void BoolectorSolver::pop(unsigned int num) { boolector_pop(btor, num); }
+void BoolectorSolver::pop(uint64_t num) { boolector_pop(btor, num); }
 
 Term BoolectorSolver::get_value(Term & t) const
 {
@@ -307,8 +307,7 @@ Term BoolectorSolver::get_value(Term & t) const
   return result;
 }
 
-Sort BoolectorSolver::make_sort(const std::string name,
-                                unsigned int arity) const
+Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
 {
   throw IncorrectUsageException("Can't declare sorts with Boolector");
 }
@@ -328,7 +327,7 @@ Sort BoolectorSolver::make_sort(SortKind sk) const
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk, unsigned int size) const
+Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
@@ -374,7 +373,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 {
   if (sk == FUNCTION)
   {
-    int arity = sorts.size();
+    int64_t arity = sorts.size();
     std::vector<BoolectorSort> btor_sorts;
     btor_sorts.reserve(arity);
     for (auto s : sorts)
@@ -679,7 +678,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
 
 Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
 {
-  unsigned int size = terms.size();
+  uint64_t size = terms.size();
   // binary ops are most common, check this first
   if (size == 2)
   {

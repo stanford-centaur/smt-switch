@@ -60,7 +60,7 @@ std::size_t MsatSort::hash() const
   return v;
 }
 
-unsigned int MsatSort::get_width() const
+uint64_t MsatSort::get_width() const
 {
   size_t out_width;
   if (msat_is_bv_type(env, type, &out_width))

@@ -28,7 +28,7 @@ std::size_t BoolectorSortBase::hash() const
 
 // by default the following get_* methods don't work
 // overloaded in derived classes
-unsigned int BoolectorSortBase::get_width() const
+uint64_t BoolectorSortBase::get_width() const
 {
   throw IncorrectUsageException("Only defined for a bit-vector sort.");
 };

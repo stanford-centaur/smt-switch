@@ -97,14 +97,14 @@ struct Op
 {
   Op() : prim_op(NUM_OPS_AND_NULL), num_idx(0){};
   Op(PrimOp o) : prim_op(o), num_idx(0){};
-  Op(PrimOp o, unsigned int idx0) : prim_op(o), num_idx(1), idx0(idx0){};
-  Op(PrimOp o, unsigned int idx0, unsigned int idx1)
+  Op(PrimOp o, uint64_t idx0) : prim_op(o), num_idx(1), idx0(idx0){};
+  Op(PrimOp o, uint64_t idx0, uint64_t idx1)
       : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};
   std::string to_string() const;
   PrimOp prim_op;
-  unsigned int num_idx;
-  unsigned int idx0;
-  unsigned int idx1;
+  uint64_t num_idx;
+  uint64_t idx0;
+  uint64_t idx1;
 };
 
 std::string to_string(PrimOp op);

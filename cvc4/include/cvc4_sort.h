@@ -21,7 +21,7 @@ namespace smt
     ~CVC4Sort() = default;
     std::string to_string() const override;
     std::size_t hash() const override;
-    unsigned int get_width() const override;
+    uint64_t get_width() const override;
     Sort get_indexsort() const override;
     Sort get_elemsort() const override;
     SortVec get_domain_sorts() const override;

@@ -46,7 +46,7 @@ class AbsSort
   virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;
   // TODO: decide on exception or special value for incorrect usage
-  virtual unsigned int get_width() const = 0;
+  virtual uint64_t get_width() const = 0;
   virtual Sort get_indexsort() const = 0;
   virtual Sort get_elemsort() const = 0;
   virtual std::vector<Sort> get_domain_sorts() const = 0;

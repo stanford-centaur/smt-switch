@@ -218,17 +218,17 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void MsatSolver::push(unsigned int num)
+void MsatSolver::push(uint64_t num)
 {
-  for (unsigned int i = 0; i < num; i++)
+  for (uint64_t i = 0; i < num; i++)
   {
     msat_push_backtrack_point(env);
   }
 }
 
-void MsatSolver::pop(unsigned int num)
+void MsatSolver::pop(uint64_t num)
 {
-  for (unsigned int i = 0; i < num; i++)
+  for (uint64_t i = 0; i < num; i++)
   {
     msat_pop_backtrack_point(env);
   }
@@ -252,7 +252,7 @@ Term MsatSolver::get_value(Term & t) const
   return Term(new MsatTerm(env, val));
 }
 
-Sort MsatSolver::make_sort(const std::string name, unsigned int arity) const
+Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
   if (!arity)
   {
@@ -292,7 +292,7 @@ Sort MsatSolver::make_sort(SortKind sk) const
   }
 }
 
-Sort MsatSolver::make_sort(SortKind sk, unsigned int size) const
+Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
@@ -407,7 +407,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
 
 Term MsatSolver::make_term(const std::string val,
                            const Sort & sort,
-                           unsigned int base) const
+                           uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)

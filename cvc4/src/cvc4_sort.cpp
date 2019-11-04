@@ -17,10 +17,7 @@ std::size_t CVC4Sort::hash() const
   return sorthash(sort);
 }
 
-unsigned int CVC4Sort::get_width() const
-{
-  return sort.getBVSize();
-}
+uint64_t CVC4Sort::get_width() const { return sort.getBVSize(); }
 
 Sort CVC4Sort::get_indexsort() const
 {

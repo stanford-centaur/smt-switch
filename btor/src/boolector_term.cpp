@@ -201,15 +201,15 @@ Sort BoolectorTerm::get_sort() const
   BoolectorSort s = boolector_get_sort(btor, node);
   if (boolector_is_bitvec_sort(btor, s))
   {
-    unsigned int width = boolector_get_width(btor, node);
+    uint64_t width = boolector_get_width(btor, node);
     // increment reference counter for the sort
     boolector_copy_sort(btor, s);
     sort = std::make_shared<BoolectorBVSort>(btor, s, width);
   }
   else if (boolector_is_array_sort(btor, s))
   {
-    unsigned int idxwidth = boolector_get_index_width(btor, node);
-    unsigned int elemwidth = boolector_get_width(btor, node);
+    uint64_t idxwidth = boolector_get_index_width(btor, node);
+    uint64_t elemwidth = boolector_get_width(btor, node);
     // Note: Boolector does not support multidimensional arrays
     std::shared_ptr<BoolectorSortBase> idxsort =
         std::make_shared<BoolectorBVSort>(
@@ -283,7 +283,7 @@ std::string BoolectorTerm::to_string() const
     size_t size;
     FILE * stream = open_memstream(&cres, &size);
     boolector_dump_smt2_node(btor, stream, node);
-    int status = fflush(stream);
+    int64_t status = fflush(stream);
     if (status != 0)
     {
       throw InternalSolverException("Error flushing stream for btor to_string");
@@ -391,7 +391,7 @@ TermIter BoolectorTerm::end()
   else
   {
     BtorNode * tmp;
-    int num_children = 0;
+    int64_t num_children = 0;
     for (size_t i = 0; i < bn->arity; ++i)
     {
       tmp = bn->e[i];

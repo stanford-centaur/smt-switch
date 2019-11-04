@@ -39,12 +39,12 @@ class BoolectorSolver : public AbsSmtSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(unsigned int num = 1) override;
-  void pop(unsigned int num = 1) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
   Term get_value(Term & t) const override;
-  Sort make_sort(const std::string name, unsigned int arity) const override;
+  Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
-  Sort make_sort(SortKind sk, unsigned int size) const override;
+  Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk,
                  const Sort & sort1,
                  const Sort & sort2) const override;
@@ -55,7 +55,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
                  const Sort & sort,
-                 unsigned int base = 10) const override;
+                 uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   /* build a new term */

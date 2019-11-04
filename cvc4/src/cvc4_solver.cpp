@@ -223,7 +223,7 @@ Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
 
 Term CVC4Solver::make_term(std::string val,
                            const Sort & sort,
-                           unsigned int base) const
+                           uint64_t base) const
 {
   try
   {
@@ -360,7 +360,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void CVC4Solver::push(unsigned int num)
+void CVC4Solver::push(uint64_t num)
 {
   try
   {
@@ -372,7 +372,7 @@ void CVC4Solver::push(unsigned int num)
   }
 }
 
-void CVC4Solver::pop(unsigned int num)
+void CVC4Solver::pop(uint64_t num)
 {
   try
   {
@@ -398,7 +398,7 @@ Term CVC4Solver::get_value(Term & t) const
   }
 }
 
-Sort CVC4Solver::make_sort(const std::string name, unsigned int arity) const
+Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
@@ -444,7 +444,7 @@ Sort CVC4Solver::make_sort(SortKind sk) const
   }
 }
 
-Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
+Sort CVC4Solver::make_sort(SortKind sk, uint64_t size) const
 {
   try
   {

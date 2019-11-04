@@ -51,12 +51,12 @@ class AbsSmtSolver
   /* Push contexts
    * @param num the number of contexts to push
    */
-  virtual void push(unsigned int num = 1) = 0;
+  virtual void push(uint64_t num = 1) = 0;
 
   /* Pop contexts
    * @param num the number of contexts to pop
    */
-  virtual void pop(unsigned int num = 1) = 0;
+  virtual void pop(uint64_t num = 1) = 0;
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * @param t the term to get the value of
@@ -71,7 +71,7 @@ class AbsSmtSolver
    * @param arity the arity of the sort
    * @return a Sort object
    */
-  virtual Sort make_sort(const std::string name, unsigned int arity) const = 0;
+  virtual Sort make_sort(const std::string name, uint64_t arity) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -83,7 +83,7 @@ class AbsSmtSolver
    * @param sk the SortKind (BV)
    * @return a Sort object
    */
-  virtual Sort make_sort(const SortKind sk, unsigned int size) const = 0;
+  virtual Sort make_sort(const SortKind sk, uint64_t size) const = 0;
 
   /* Create a sort
    * @param sk the SortKind
@@ -125,7 +125,7 @@ class AbsSmtSolver
    */
   virtual Term make_term(const std::string val,
                          const Sort & sort,
-                         unsigned int base = 10) const = 0;
+                         uint64_t base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
    * @param op the operator used to create the value (.e.g Const_Array)
