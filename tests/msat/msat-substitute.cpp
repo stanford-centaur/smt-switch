@@ -21,19 +21,19 @@ int main()
   Sort bvsort8 = s->make_sort(BV, 8);
   Sort array4_8 = s->make_sort(ARRAY, bvsort4, bvsort8);
 
-  Term idx = s->make_term("idx", bvsort4);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
-  Term z = s->make_term("z", bvsort8);
-  Term arr = s->make_term("arr", array4_8);
+  Term idx = s->make_symbol("idx", bvsort4);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
+  Term arr = s->make_symbol("arr", array4_8);
 
   UnorderedTermSet orig_set = { idx, x, y, z, arr };
 
-  Term idx0 = s->make_term("idx0", bvsort4);
-  Term x0 = s->make_term("x0", bvsort8);
-  Term y0 = s->make_term("y0", bvsort8);
-  Term z0 = s->make_term("z0", bvsort8);
-  Term arr0 = s->make_term("arr0", array4_8);
+  Term idx0 = s->make_symbol("idx0", bvsort4);
+  Term x0 = s->make_symbol("x0", bvsort8);
+  Term y0 = s->make_symbol("y0", bvsort8);
+  Term z0 = s->make_symbol("z0", bvsort8);
+  Term arr0 = s->make_symbol("arr0", array4_8);
 
   UnorderedTermSet timed_set = { idx0, x0, y0, z0, arr0 };
 

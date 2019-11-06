@@ -173,7 +173,7 @@ void CVC4Solver::set_logic(const std::string logic) const
   }
 }
 
-Term CVC4Solver::make_value(bool b) const
+Term CVC4Solver::make_term(bool b) const
 {
   try
   {
@@ -186,7 +186,7 @@ Term CVC4Solver::make_value(bool b) const
   }
 }
 
-Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
+Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
 {
   try
   {
@@ -221,9 +221,9 @@ Term CVC4Solver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term CVC4Solver::make_value(std::string val,
-                            const Sort & sort,
-                            unsigned int base) const
+Term CVC4Solver::make_term(std::string val,
+                           const Sort & sort,
+                           uint64_t base) const
 {
   try
   {
@@ -260,7 +260,7 @@ Term CVC4Solver::make_value(std::string val,
   }
 }
 
-Term CVC4Solver::make_value(const Term & val, const Sort & sort) const
+Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
 {
   throw NotImplementedException("Constant arrays not yet implemented.");
 }
@@ -360,7 +360,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void CVC4Solver::push(unsigned int num)
+void CVC4Solver::push(uint64_t num)
 {
   try
   {
@@ -372,7 +372,7 @@ void CVC4Solver::push(unsigned int num)
   }
 }
 
-void CVC4Solver::pop(unsigned int num)
+void CVC4Solver::pop(uint64_t num)
 {
   try
   {
@@ -398,7 +398,7 @@ Term CVC4Solver::get_value(Term & t) const
   }
 }
 
-Sort CVC4Solver::make_sort(const std::string name, unsigned int arity) const
+Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
@@ -444,7 +444,7 @@ Sort CVC4Solver::make_sort(SortKind sk) const
   }
 }
 
-Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
+Sort CVC4Solver::make_sort(SortKind sk, uint64_t size) const
 {
   try
   {
@@ -467,19 +467,25 @@ Sort CVC4Solver::make_sort(SortKind sk, unsigned int size) const
   }
 }
 
+Sort CVC4Solver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take one sort parameter yet.");
+}
+
 Sort CVC4Solver::make_sort(SortKind sk,
-                           const Sort & idxsort,
-                           const Sort & elemsort) const
+                           const Sort & sort1,
+                           const Sort & sort2) const
 {
   try
   {
     if (sk == ARRAY)
     {
-      std::shared_ptr<CVC4Sort> csort0 =
-          std::static_pointer_cast<CVC4Sort>(idxsort);
-      std::shared_ptr<CVC4Sort> csort1 =
-          std::static_pointer_cast<CVC4Sort>(elemsort);
-      Sort s(new CVC4Sort(solver.mkArraySort(csort0->sort, csort1->sort)));
+      std::shared_ptr<CVC4Sort> cidxsort =
+          std::static_pointer_cast<CVC4Sort>(sort1);
+      std::shared_ptr<CVC4Sort> celemsort =
+          std::static_pointer_cast<CVC4Sort>(sort2);
+      Sort s(new CVC4Sort(solver.mkArraySort(cidxsort->sort, celemsort->sort)));
       return s;
     }
     else
@@ -497,28 +503,63 @@ Sort CVC4Solver::make_sort(SortKind sk,
 }
 
 Sort CVC4Solver::make_sort(SortKind sk,
-                           const std::vector<Sort> & sorts,
-                           const Sort & sort) const
+                           const Sort & sort1,
+                           const Sort & sort2,
+                           const Sort & sort3) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take three sort parameters "
+      "yet.");
+}
+
+Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   try
   {
-    if (sorts.size() == 0)
+    if (sk == FUNCTION)
     {
-      return make_sort(sort->get_sort_kind());
-    }
+      if (sorts.size() < 2)
+      {
+        throw IncorrectUsageException(
+            "Function sort must have >=2 sort arguments.");
+      }
 
-    std::vector<::CVC4::api::Sort> csorts;
-    csorts.reserve(sorts.size());
-    ::CVC4::api::Sort csort;
-    for (Sort s : sorts)
-    {
-      csort = std::static_pointer_cast<CVC4Sort>(s)->sort;
-      csorts.push_back(csort);
+      // arity is one less, because last sort is return sort
+      uint32_t arity = sorts.size() - 1;
+
+      std::vector<::CVC4::api::Sort> csorts;
+      csorts.reserve(arity);
+      ::CVC4::api::Sort csort;
+      for (uint32_t i = 0; i < arity; i++)
+      {
+        csort = std::static_pointer_cast<CVC4Sort>(sorts[i])->sort;
+        csorts.push_back(csort);
+      }
+
+      csort = std::static_pointer_cast<CVC4Sort>(sorts.back())->sort;
+      ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
+      Sort funsort(new CVC4Sort(cfunsort));
+      return funsort;
     }
-    csort = std::static_pointer_cast<CVC4Sort>(sort)->sort;
-    ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
-    Sort funsort(new CVC4Sort(cfunsort));
-    return funsort;
+    else if (sorts.size() == 1)
+    {
+      return make_sort(sk, sorts[0]);
+    }
+    else if (sorts.size() == 2)
+    {
+      return make_sort(sk, sorts[0], sorts[1]);
+    }
+    else if (sorts.size() == 3)
+    {
+      return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+    }
+    else
+    {
+      std::string msg("Can't create sort from sort constructor ");
+      msg += to_string(sk);
+      msg += " with a vector of sorts";
+      throw IncorrectUsageException(msg.c_str());
+    }
   }
   catch (std::exception & e)
   {
@@ -526,7 +567,7 @@ Sort CVC4Solver::make_sort(SortKind sk,
   }
 }
 
-Term CVC4Solver::make_term(const std::string name, const Sort & sort)
+Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers
@@ -636,7 +677,7 @@ Term CVC4Solver::make_term(Op op,
   }
 }
 
-Term CVC4Solver::make_term(Op op, const std::vector<Term> & terms) const
+Term CVC4Solver::make_term(Op op, const TermVec & terms) const
 {
   try
   {
@@ -689,23 +730,6 @@ void CVC4Solver::reset_assertions()
   catch (std::exception & e)
   {
     throw InternalSolverException(e.what());
-  }
-}
-
-bool CVC4Solver::has_symbol(const std::string name) const
-{
-  return (symbols.find(name) != symbols.end());
-}
-
-Term CVC4Solver::lookup_symbol(const std::string name) const
-{
-  try
-  {
-    return symbols.at(name);
-  }
-  catch (std::exception & e)
-  {
-    throw IncorrectUsageException("Cannot lookup unknown symbol: " + name);
   }
 }
 

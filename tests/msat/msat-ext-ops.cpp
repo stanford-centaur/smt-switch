@@ -22,8 +22,8 @@ int main()
   s->set_opt("incremental", "true");
 
   Sort boolsort = s->make_sort(BOOL);
-  Term a = s->make_term("a", boolsort);
-  Term b = s->make_term("b", boolsort);
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
 
   // xor
   s->push();
@@ -62,8 +62,8 @@ int main()
   assert(r.is_sat());
 
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
 
   // BVNand
   s->push();
@@ -98,9 +98,9 @@ int main()
   // BVSmod
   size_t width = x->get_sort()->get_width();
 
-  Term zero_1bit = s->make_value(0, s->make_sort(BV, 1));
-  Term one_1bit = s->make_value(1, s->make_sort(BV, 1));
-  Term zero_width = s->make_value(0, s->make_sort(BV, width));
+  Term zero_1bit = s->make_term(0, s->make_sort(BV, 1));
+  Term one_1bit = s->make_term(1, s->make_sort(BV, 1));
+  Term zero_width = s->make_term(0, s->make_sort(BV, width));
 
   Term msb_x = s->make_term(Op(Extract, width - 1, width - 1), x);
   Term msb_y = s->make_term(Op(Extract, width - 1, width - 1), y);
@@ -183,9 +183,9 @@ int main()
   assert(r.is_sat());
 
   Sort intsort = s->make_sort(INT);
-  Term w = s->make_term("w", intsort);
-  Term v = s->make_term("v", intsort);
-  Term zero = s->make_value(0, intsort);
+  Term w = s->make_symbol("w", intsort);
+  Term v = s->make_symbol("v", intsort);
+  Term zero = s->make_term(0, intsort);
 
   // Negate
   s->push();
@@ -204,10 +204,10 @@ int main()
   assert(r.is_unsat());
 
   // Is_Int
-  Term onep3 = s->make_term("onep3", s->make_sort(REAL));
+  Term onep3 = s->make_symbol("onep3", s->make_sort(REAL));
   s->push();
   s->assert_formula(
-      s->make_term(Equal, onep3, s->make_value("1.3", s->make_sort(REAL))));
+      s->make_term(Equal, onep3, s->make_term("1.3", s->make_sort(REAL))));
   s->assert_formula(s->make_term(Is_Int, onep3));
   r = s->check_sat();
   s->pop();

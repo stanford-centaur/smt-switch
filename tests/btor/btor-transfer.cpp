@@ -18,10 +18,10 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
-  Term z = s->make_term("z", bvsort8);
-  Term T = s->make_value(true);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
+  Term T = s->make_term(true);
 
   Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
   s->assert_formula(constraint);
@@ -31,11 +31,13 @@ int main()
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 
-  Term constraint2 = s2->transfer_term(constraint);
-  Term T2 = s2->transfer_term(T);
+  TermTranslator tt(s2);
+
+  Term constraint2 = tt.transfer_term(constraint);
+  Term T2 = tt.transfer_term(T);
   // ensure it can handle transfering again (even though it already built the
   // node)
-  s2->transfer_term(constraint);
+  tt.transfer_term(constraint);
   s2->assert_formula(constraint2);
 
   cout << "term from solver 1: " << constraint << endl;

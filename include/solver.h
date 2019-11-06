@@ -6,9 +6,9 @@
 
 #include "exceptions.h"
 #include "result.h"
-#include "smt_data_structures.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "term.h"
 
 namespace smt {
 
@@ -51,12 +51,12 @@ class AbsSmtSolver
   /* Push contexts
    * @param num the number of contexts to push
    */
-  virtual void push(unsigned int num = 1) = 0;
+  virtual void push(uint64_t num = 1) = 0;
 
   /* Pop contexts
    * @param num the number of contexts to pop
    */
-  virtual void pop(unsigned int num = 1) = 0;
+  virtual void pop(uint64_t num = 1) = 0;
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * @param t the term to get the value of
@@ -71,8 +71,7 @@ class AbsSmtSolver
    * @param arity the arity of the sort
    * @return a Sort object
    */
-  virtual Sort make_sort(const std::string name,
-                         const unsigned int arity) const = 0;
+  virtual Sort make_sort(const std::string name, uint64_t arity) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -82,38 +81,63 @@ class AbsSmtSolver
 
   /* Create a sort
    * @param sk the SortKind (BV)
+   * @param size (e.g. bitvector width for BV SortKind)
    * @return a Sort object
    */
-  virtual Sort make_sort(const SortKind sk, const unsigned int size) const = 0;
+  virtual Sort make_sort(const SortKind sk, uint64_t size) const = 0;
 
   /* Create a sort
-   * @param sk the SortKind (ARRAY)
+   * @param sk the SortKind
+   * @param sort1 first sort
+   * @return a Sort object
+   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
+   */
+  virtual Sort make_sort(const SortKind sk, const Sort & sort1) const = 0;
+
+  /* Create a sort
+   * @param sk the SortKind
+   * @param sort1 first sort
+   * @param sort2 second sort
+   * @return a Sort object
+   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
+   */
+  virtual Sort make_sort(const SortKind sk,
+                         const Sort & sort1,
+                         const Sort & sort2) const = 0;
+
+  /* Create a sort
+   * @param sk the SortKind
+   * @param sort1 first sort
+   * @param sort2 second sort
+   * @param sort3 third sort
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk,
-                         const Sort & idxsort,
-                         const Sort & elemsort) const = 0;
+                         const Sort & sort1,
+                         const Sort & sort2,
+                         const Sort & sort3) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (FUNCTION)
+   * @param sorts a vector of sorts (for function SortKind, last sort is return
+   * type)
    * @return a Sort object
+   * Note: This is the only way to make a function sort
    */
-  virtual Sort make_sort(const SortKind sk,
-                         const std::vector<Sort> & sorts,
-                         const Sort & sort) const = 0;
+  virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
 
   /* Make a boolean value term
    * @param b boolean value
    * @return a value term with Sort BOOL and value b
    */
-  virtual Term make_value(const bool b) const = 0;
+  virtual Term make_term(bool b) const = 0;
 
   /* Make a bit-vector, int or real value term
    * @param i the value
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
-  virtual Term make_value(const int64_t i, const Sort & sort) const = 0;
+  virtual Term make_term(int64_t i, const Sort & sort) const = 0;
 
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
@@ -121,9 +145,9 @@ class AbsSmtSolver
    * @param base the base to interpret the value, for bit-vector sorts (ignored otherwise)
    * @return a value term with Sort sort and value val
    */
-  virtual Term make_value(const std::string val,
-                          const Sort & sort,
-                          unsigned int base = 10) const = 0;
+  virtual Term make_term(const std::string val,
+                         const Sort & sort,
+                         uint64_t base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
    * @param op the operator used to create the value (.e.g Const_Array)
@@ -131,14 +155,14 @@ class AbsSmtSolver
    * @param sort the sort of value to create
    * @return a value term with Sort sort
    */
-  virtual Term make_value(const Term & val, const Sort & sort) const = 0;
+  virtual Term make_term(const Term & val, const Sort & sort) const = 0;
 
   /* Make a symbolic constant or function term
    * @param name the name of constant or function
    * @param sort the sort of this constant or function
    * @return the symbolic constant or function term
    */
-  virtual Term make_term(const std::string name, const Sort & sort) = 0;
+  virtual Term make_symbol(const std::string name, const Sort & sort) = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -174,8 +198,7 @@ class AbsSmtSolver
    * @param terms vector of children
    * @return the created term
    */
-  virtual Term make_term(const Op op,
-                         const std::vector<Term> & terms) const = 0;
+  virtual Term make_term(const Op op, const TermVec & terms) const = 0;
 
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
@@ -184,19 +207,6 @@ class AbsSmtSolver
 
   /* Reset all assertions */
   virtual void reset_assertions() = 0;
-
-  /* Check if there's a symbol with this name
-   * @param name the name to check
-   * @return true iff there is a symbol with that name registered in this solver
-   */
-  virtual bool has_symbol(const std::string name) const = 0;
-
-  /* Lookup a symbol by name
-   * @param name the name of the symbol
-   * @return the Term for the symbol with that name
-   * see also: has_symbol
-   */
-  virtual Term lookup_symbol(const std::string name) const = 0;
 
   // Methods implemented at the abstract level
   // Note: These can be overloaded in the specific solver implementation for
@@ -209,26 +219,6 @@ class AbsSmtSolver
    */
   virtual Term substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const;
-
-  /* Transfer a sort from some other solver to this solver
-   *    Warning: does not check if the term already belongs to this solver
-   * @param the sort to transfer
-   * @return the transferred sort
-   */
-  virtual Sort transfer_sort(const Sort sort);
-
-  /* Transfer a term from some other solver to this solver
-   *    Warning: does not check if the term already belongs to this solver
-   * @param the term to transfer
-   * @return the transferred term
-   */
-  virtual Term transfer_term(const Term term);
-
-  /* Takes a smt-lib2 value term and creates a Term
-   * @param val value term in smt2 format
-   * @param sort how to interpret the value (e.g. Real vs Int)
-   */
-  virtual Term value_from_smt2(const std::string val, const Sort sort) const;
 
   // extra methods -- not required
 

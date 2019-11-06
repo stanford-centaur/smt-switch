@@ -18,9 +18,9 @@ int main()
   s->set_opt("produce-models", "true");
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);
-  Term x = s->make_term("x", intsort);
-  Term y = s->make_term("y", intsort);
-  Term z = s->make_term("z", intsort);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
 
   s->assert_formula(s->make_term(Ge, x, y));
   s->assert_formula(s->make_term(Le, z, s->make_term(Plus, x, y)));

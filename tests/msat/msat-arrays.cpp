@@ -18,9 +18,9 @@ int main()
   s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
-  Term x = s->make_term("x", bvsort32);
-  Term y = s->make_term("y", bvsort32);
-  Term arr = s->make_term("arr", array32_32);
+  Term x = s->make_symbol("x", bvsort32);
+  Term y = s->make_symbol("y", bvsort32);
+  Term arr = s->make_symbol("arr", array32_32);
 
   cout << "Sorts:" << endl;
   cout << "\tbvsort32 : " << bvsort32 << endl;

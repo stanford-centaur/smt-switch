@@ -5,7 +5,6 @@
 
 #include "msat_factory.h"
 #include "smt.h"
-#include "smt_data_structures.h"
 // after a full installation
 // #include "smt-switch/msat_factory.h"
 // #include "smt-switch/smt.h"
@@ -20,11 +19,11 @@ int main()
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   cout << "making x" << endl;
-  Term x = s->make_term("x", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
   cout << "making y" << endl;
-  Term y = s->make_term("y", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
   cout << "making z" << endl;
-  Term z = s->make_term("z", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
 
   // cout << "making a" << endl;
   // Term a = s->make_term(BVAdd, x, y);

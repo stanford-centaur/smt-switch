@@ -18,8 +18,8 @@ int main()
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  Term x = s->make_term("x", bvsort8);
-  Term y = s->make_term("y", bvsort8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
   Term xpy = s->make_term(BVAdd, x, y);
 
   for (auto c : xpy)

@@ -16,10 +16,10 @@
 // Abstract term interface.
 #include "term.h"
 
+// Transfer terms between solvers.
+#include "term_translator.h"
+
 // Main solver interface.
 #include "solver.h"
-
-// Convenient data structure definitions and range-based iteration
-#include "smt_data_structures.h"
 
 #endif

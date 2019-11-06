@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "smt_defs.h"
@@ -58,8 +60,6 @@ class TermIterBase
  public:
   TermIterBase() {}
   virtual ~TermIterBase() {}
-  // TODO: Look into post-fix and pre-fix incrementing and make sure it's
-  // implemented correctly Might not even need to implement operator++(int);
   virtual void operator++() {}
   const virtual Term operator*();
   virtual TermIterBase* clone() const { return new TermIterBase(*this); }
@@ -78,6 +78,7 @@ class TermIter
   TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
   TermIter& operator=(const TermIter& other);
   TermIter& operator++();
+  TermIter operator++(int junk);
   Term operator*() const { return *(*iter_); }
   bool operator==(const TermIter& other) const;
   bool operator!=(const TermIter& other) const;
@@ -85,6 +86,22 @@ class TermIter
  protected:
   TermIterBase* iter_;
 };
+
+// Useful data structures and hashing
+struct TermHashFunction
+{
+  std::size_t operator()(const Term & t) const
+  {
+    // call the term's hash function, implemented by solvers
+    return t->hash();
+  }
+};
+using TermVec = std::vector<Term>;
+using UnorderedTermSet = std::unordered_set<Term, TermHashFunction>;
+using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
+// range-based iteration
+inline TermIter begin(Term & t) { return t->begin(); }
+inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
 

@@ -106,7 +106,7 @@ void BoolectorSolver::set_logic(const std::string logic) const
   }
 }
 
-Term BoolectorSolver::make_value(bool b) const
+Term BoolectorSolver::make_term(bool b) const
 {
   if (b)
   {
@@ -120,7 +120,7 @@ Term BoolectorSolver::make_value(bool b) const
   }
 }
 
-Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
+Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
   try
   {
@@ -137,9 +137,9 @@ Term BoolectorSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term BoolectorSolver::make_value(std::string val,
-                                 const Sort & sort,
-                                 unsigned int base) const
+Term BoolectorSolver::make_term(std::string val,
+                                const Sort & sort,
+                                uint64_t base) const
 {
   try
   {
@@ -176,7 +176,7 @@ Term BoolectorSolver::make_value(std::string val,
   }
 }
 
-Term BoolectorSolver::make_value(const Term & val, const Sort & sort) const
+Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {
@@ -236,9 +236,9 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BoolectorSolver::push(unsigned int num) { boolector_push(btor, num); }
+void BoolectorSolver::push(uint64_t num) { boolector_push(btor, num); }
 
-void BoolectorSolver::pop(unsigned int num) { boolector_pop(btor, num); }
+void BoolectorSolver::pop(uint64_t num) { boolector_pop(btor, num); }
 
 Term BoolectorSolver::get_value(Term & t) const
 {
@@ -308,8 +308,7 @@ Term BoolectorSolver::get_value(Term & t) const
   return result;
 }
 
-Sort BoolectorSolver::make_sort(const std::string name,
-                                unsigned int arity) const
+Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
 {
   throw IncorrectUsageException("Can't declare sorts with Boolector");
 }
@@ -329,7 +328,7 @@ Sort BoolectorSolver::make_sort(SortKind sk) const
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk, unsigned int size) const
+Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
@@ -345,19 +344,25 @@ Sort BoolectorSolver::make_sort(SortKind sk, unsigned int size) const
   }
 }
 
+Sort BoolectorSolver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw IncorrectUsageException(
+      "Boolector has no sort that takes a single sort argument.");
+}
+
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                const Sort & idxsort,
-                                const Sort & elemsort) const
+                                const Sort & sort1,
+                                const Sort & sort2) const
 {
   if (sk == ARRAY)
   {
     std::shared_ptr<BoolectorSortBase> btor_idxsort =
-        std::static_pointer_cast<BoolectorSortBase>(idxsort);
+        std::static_pointer_cast<BoolectorSortBase>(sort1);
     std::shared_ptr<BoolectorSortBase> btor_elemsort =
-        std::static_pointer_cast<BoolectorSortBase>(elemsort);
+        std::static_pointer_cast<BoolectorSortBase>(sort2);
     BoolectorSort bs =
         boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
-    Sort s(new BoolectorArraySort(btor, bs, idxsort, elemsort));
+    Sort s(new BoolectorArraySort(btor, bs, sort1, sort2));
     return s;
   }
   else
@@ -370,37 +375,67 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk,
-                                const std::vector<Sort> & sorts,
-                                const Sort & sort) const
+                                const Sort & sort1,
+                                const Sort & sort2,
+                                const Sort & sort3) const
+{
+  throw IncorrectUsageException(
+      "Boolector does not have a non-function sort that takes three sort "
+      "arguments");
+}
+
+Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   if (sk == FUNCTION)
   {
-    int arity = sorts.size();
+    if (sorts.size() < 2)
+    {
+      throw IncorrectUsageException(
+          "Function sort must have >=2 sort arguments.");
+    }
+
+    Sort returnsort = sorts.back();
+    std::shared_ptr<BoolectorSortBase> btor_return_sort =
+        std::static_pointer_cast<BoolectorSortBase>(returnsort);
+
+    // arity is one less, because last sort is return sort
+    uint32_t arity = sorts.size() - 1;
     std::vector<BoolectorSort> btor_sorts;
     btor_sorts.reserve(arity);
-    for (auto s : sorts)
+    for (size_t i = 0; i < arity; i++)
     {
       std::shared_ptr<BoolectorSortBase> bs =
-          std::static_pointer_cast<BoolectorSortBase>(s);
+          std::static_pointer_cast<BoolectorSortBase>(sorts[i]);
       btor_sorts.push_back(bs->sort);
     }
-    std::shared_ptr<BoolectorSortBase> btor_sort =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
+
     BoolectorSort btor_fun_sort =
-        boolector_fun_sort(btor, &btor_sorts[0], arity, btor_sort->sort);
-    Sort s(new BoolectorUFSort(btor, btor_fun_sort, sorts, sort));
+        boolector_fun_sort(btor, &btor_sorts[0], arity, btor_return_sort->sort);
+    Sort s(new BoolectorUFSort(btor, btor_fun_sort, sorts, returnsort));
     return s;
+  }
+  else if (sorts.size() == 1)
+  {
+    return make_sort(sk, sorts[0]);
+  }
+  else if (sorts.size() == 2)
+  {
+    return make_sort(sk, sorts[0], sorts[1]);
+  }
+  else if (sorts.size() == 3)
+  {
+    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
   }
   else
   {
     std::string msg("Can't create sort from sort constructor ");
     msg += to_string(sk);
-    msg += " with a vector of sorts and a sort";
+    msg += " with a vector of sorts";
     throw IncorrectUsageException(msg.c_str());
   }
 }
 
-Term BoolectorSolver::make_term(const std::string name, const Sort & sort)
+Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // avoids memory leak when boolector aborts
@@ -524,7 +559,7 @@ Term BoolectorSolver::make_term(Op op,
   }
 }
 
-Term BoolectorSolver::make_term(Op op, const std::vector<Term> & terms) const
+Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.num_idx == 0)
   {
@@ -556,19 +591,6 @@ void BoolectorSolver::reset_assertions()
 {
   throw NotImplementedException(
       "Boolector does not have reset assertions yet.");
-}
-
-bool BoolectorSolver::has_symbol(const std::string name) const
-{
-  return (symbol_names.find(name) != symbol_names.end());
-}
-
-Term BoolectorSolver::lookup_symbol(const std::string name) const
-{
-  // assumes has_symbol is true
-  Term term(new BoolectorTerm(
-      btor, boolector_match_node_by_symbol(btor, name.c_str())));
-  return term;
 }
 
 Term BoolectorSolver::substitute(
@@ -696,9 +718,9 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   }
 }
 
-Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
+Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
 {
-  unsigned int size = terms.size();
+  uint32_t size = terms.size();
   // binary ops are most common, check this first
   if (size == 2)
   {
@@ -716,7 +738,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, std::vector<Term> terms) const
   {
     if (op == Apply)
     {
-      std::vector<Term> termargs;
+      TermVec termargs;
       termargs.reserve(size - 1);
       std::vector<BoolectorNode *> args;
       args.reserve(size - 1);

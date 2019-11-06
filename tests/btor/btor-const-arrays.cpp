@@ -22,11 +22,11 @@ int main()
   Sort bvsort8 = s->make_sort(BV, 8);
   Sort arrsort = s->make_sort(ARRAY, bvsort4, bvsort8);
 
-  Term idx0 = s->make_term("idx0", bvsort4);
-  Term idx1 = s->make_term("idx1", bvsort4);
-  Term val = s->make_term("val", bvsort8);
-  Term zero = s->make_value(0, bvsort8);
-  Term const_arr = s->make_value(zero, arrsort);
+  Term idx0 = s->make_symbol("idx0", bvsort4);
+  Term idx1 = s->make_symbol("idx1", bvsort4);
+  Term val = s->make_symbol("val", bvsort8);
+  Term zero = s->make_term(0, bvsort8);
+  Term const_arr = s->make_term(zero, arrsort);
   assert(zero->is_value());
   assert(!const_arr->is_symbolic_const());
   assert(const_arr->is_value());
@@ -53,14 +53,16 @@ int main()
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 
-  Term const_arr2 = s2->transfer_term(const_arr);
+  TermTranslator tt(s2);
+
+  Term const_arr2 = tt.transfer_term(const_arr);
   assert(!const_arr2->is_symbolic_const());
   assert(const_arr2->is_value());
   assert(const_arr2->get_op() == Const_Array);
 
   for (auto c : const_arr2)
   {
-    assert(c == s2->transfer_term(zero));
+    assert(c == tt.transfer_term(zero));
   }
 
   // this solver has no assertions yet
@@ -68,14 +70,14 @@ int main()
   Sort bvsort4_2 = s2->make_sort(BV, 4);
   Sort bvsort8_2 = s2->make_sort(BV, 8);
   Sort arrsort_2 = s2->make_sort(ARRAY, bvsort4_2, bvsort8_2);
-  Term arr = s2->make_term("arr", arrsort_2);
-  Term arr2 = s2->make_term("arr2", arrsort_2);
+  Term arr = s2->make_symbol("arr", arrsort_2);
+  Term arr2 = s2->make_symbol("arr2", arrsort_2);
   Term constraint2 = s2->make_term(
       And,
       s2->make_term(Equal, arr, const_arr2),
       s2->make_term(Distinct,
-                    s2->make_term(Select, arr, s2->transfer_term(idx0)),
-                    s2->transfer_term(zero)));
+                    s2->make_term(Select, arr, tt.transfer_term(idx0)),
+                    tt.transfer_term(zero)));
 
   // test substitution
   Term t = s2->substitute(constraint2, UnorderedTermMap{ { arr, arr2 } });

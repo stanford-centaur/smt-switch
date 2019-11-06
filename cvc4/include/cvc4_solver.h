@@ -38,25 +38,28 @@ class CVC4Solver : public AbsSmtSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(unsigned int num = 1) override;
-  void pop(unsigned int num = 1) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
   Term get_value(Term & t) const override;
-  Sort make_sort(const std::string name, unsigned int arity) const override;
+  Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
-  Sort make_sort(SortKind sk, unsigned int size) const override;
+  Sort make_sort(SortKind sk, uint64_t size) const override;
+  Sort make_sort(SortKind sk, const Sort & sort1) const override;
   Sort make_sort(SortKind sk,
-                 const Sort & idxsort,
-                 const Sort & elemsort) const override;
+                 const Sort & sort1,
+                 const Sort & sort2) const override;
   Sort make_sort(SortKind sk,
-                 const std::vector<Sort> & sorts,
-                 const Sort & sort) const override;
-  Term make_value(bool b) const override;
-  Term make_value(int64_t i, const Sort & sort) const override;
-  Term make_value(const std::string val,
-                  const Sort & sort,
-                  unsigned int base = 10) const override;
-  Term make_value(const Term & val, const Sort & sort) const override;
-  Term make_term(const std::string s, const Sort & sort) override;
+                 const Sort & sort1,
+                 const Sort & sort2,
+                 const Sort & sort3) const override;
+  Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+  Term make_term(bool b) const override;
+  Term make_term(int64_t i, const Sort & sort) const override;
+  Term make_term(const std::string val,
+                 const Sort & sort,
+                 uint64_t base = 10) const override;
+  Term make_term(const Term & val, const Sort & sort) const override;
+  Term make_symbol(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
   Term make_term(Op op, const Term & t0, const Term & t1) const override;
@@ -64,18 +67,16 @@ class CVC4Solver : public AbsSmtSolver
                  const Term & t0,
                  const Term & t1,
                  const Term & t2) const override;
-  Term make_term(Op op, const std::vector<Term> & terms) const override;
+  Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  bool has_symbol(const std::string name) const override;
-  Term lookup_symbol(const std::string name) const override;
   void dump_smt2(FILE * file) const override;
   // helpers
   ::CVC4::api::OpTerm make_op_term(Op op) const;
 
  protected:
   ::CVC4::api::Solver solver;
-  // keep track of created symbols for has_symbol and lookup_symbol
+  // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
 };
 }  // namespace smt

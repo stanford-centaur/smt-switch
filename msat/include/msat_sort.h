@@ -16,10 +16,10 @@ class MsatSort : public AbsSort
   MsatSort(msat_env e, msat_type t, msat_decl d) : env(e), type(t), uf_decl(d), is_uf_type(true) {};
   ~MsatSort() = default;
   std::size_t hash() const override;
-  unsigned int get_width() const override;
+  uint64_t get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
-  std::vector<Sort> get_domain_sorts() const override;
+  SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   bool compare(const Sort) const override;
   SortKind get_sort_kind() const override;

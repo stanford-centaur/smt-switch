@@ -60,7 +60,7 @@ std::size_t MsatSort::hash() const
   return v;
 }
 
-unsigned int MsatSort::get_width() const
+uint64_t MsatSort::get_width() const
 {
   size_t out_width;
   if (msat_is_bv_type(env, type, &out_width))
@@ -101,7 +101,7 @@ Sort MsatSort::get_elemsort() const
   }
 }
 
-std::vector<Sort> MsatSort::get_domain_sorts() const
+SortVec MsatSort::get_domain_sorts() const
 {
   if (!is_uf_type)
   {
@@ -109,7 +109,7 @@ std::vector<Sort> MsatSort::get_domain_sorts() const
   }
 
   size_t arity = msat_decl_get_arity(uf_decl);
-  vector<Sort> sorts;
+  SortVec sorts;
   sorts.reserve(arity);
   msat_type tmp_type;
   for (size_t i = 0; i < arity; i++)

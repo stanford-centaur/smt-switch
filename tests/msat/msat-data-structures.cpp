@@ -27,8 +27,8 @@ int main()
   Term y;
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    x = s->make_term("x" + to_string(i), bvsort8);
-    y = s->make_term("y" + to_string(i), bvsort8);
+    x = s->make_symbol("x" + to_string(i), bvsort8);
+    y = s->make_symbol("y" + to_string(i), bvsort8);
     v.push_back(x);
     uts.insert(x);
     utm[x] = y;
@@ -38,11 +38,11 @@ int main()
   for (size_t i = 1; i < NUM_TERMS; ++i)
   {
     s->assert_formula(s->make_term(
-        Equal, v[i], s->make_term(BVAdd, trailing, s->make_value(1, bvsort8))));
+        Equal, v[i], s->make_term(BVAdd, trailing, s->make_term(1, bvsort8))));
     trailing = v[i];
   }
 
-  Term zero = s->make_value(0, bvsort8);
+  Term zero = s->make_term(0, bvsort8);
   cout << zero->to_string() << endl;
 
   assert(zero->is_value());

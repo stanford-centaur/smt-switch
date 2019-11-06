@@ -218,17 +218,17 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void MsatSolver::push(unsigned int num)
+void MsatSolver::push(uint64_t num)
 {
-  for (unsigned int i = 0; i < num; i++)
+  for (uint64_t i = 0; i < num; i++)
   {
     msat_push_backtrack_point(env);
   }
 }
 
-void MsatSolver::pop(unsigned int num)
+void MsatSolver::pop(uint64_t num)
 {
-  for (unsigned int i = 0; i < num; i++)
+  for (uint64_t i = 0; i < num; i++)
   {
     msat_pop_backtrack_point(env);
   }
@@ -252,7 +252,7 @@ Term MsatSolver::get_value(Term & t) const
   return Term(new MsatTerm(env, val));
 }
 
-Sort MsatSolver::make_sort(const std::string name, unsigned int arity) const
+Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
   if (!arity)
   {
@@ -292,7 +292,7 @@ Sort MsatSolver::make_sort(SortKind sk) const
   }
 }
 
-Sort MsatSolver::make_sort(SortKind sk, unsigned int size) const
+Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
@@ -308,18 +308,24 @@ Sort MsatSolver::make_sort(SortKind sk, unsigned int size) const
   }
 }
 
+Sort MsatSolver::make_sort(SortKind sk, const Sort & sort1) const
+{
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take one sort parameter yet.");
+}
+
 Sort MsatSolver::make_sort(SortKind sk,
-                           const Sort & idxsort,
-                           const Sort & elemsort) const
+                           const Sort & sort1,
+                           const Sort & sort2) const
 {
   if (sk == ARRAY)
   {
-    std::shared_ptr<MsatSort> msort0 =
-        std::static_pointer_cast<MsatSort>(idxsort);
-    std::shared_ptr<MsatSort> msort1 =
-        std::static_pointer_cast<MsatSort>(elemsort);
-    Sort s(new MsatSort(env,
-                        msat_get_array_type(env, msort0->type, msort1->type)));
+    std::shared_ptr<MsatSort> midxsort =
+        std::static_pointer_cast<MsatSort>(sort1);
+    std::shared_ptr<MsatSort> melemsort =
+        std::static_pointer_cast<MsatSort>(sort2);
+    Sort s(new MsatSort(
+        env, msat_get_array_type(env, midxsort->type, melemsort->type)));
     return s;
   }
   else
@@ -332,43 +338,74 @@ Sort MsatSolver::make_sort(SortKind sk,
 }
 
 Sort MsatSolver::make_sort(SortKind sk,
-                           const std::vector<Sort> & sorts,
-                           const Sort & sort) const
+                           const Sort & sort1,
+                           const Sort & sort2,
+                           const Sort & sort3) const
 {
-  if (sorts.size() == 0)
-  {
-    return make_sort(sort->get_sort_kind());
-  }
-  else if (sk != FUNCTION)
-  {
-    throw IncorrectUsageException("Expecting function sort kind when creating sort with a vector of domain sorts");
-  }
-
-  string decl_name("internal_ref_fun");
-
-  std::vector<msat_type> msorts;
-  msorts.reserve(sorts.size());
-  msat_type msort;
-  for (Sort s : sorts)
-  {
-    msort = std::static_pointer_cast<MsatSort>(s)->type;
-    msorts.push_back(msort);
-    decl_name += ("_" + s->to_string());
-  }
-  msort = std::static_pointer_cast<MsatSort>(sort)->type;
-  decl_name += ("_return_" + sort->to_string());
-  msat_type mfunsort =
-      msat_get_function_type(env, &msorts[0], msorts.size(), msort);
-
-  // creating a reference decl, because it's the only way to get codomain and domain sorts
-  // i.e. there's no msat_is_function_type(msat_env, msat_type)
-  msat_decl ref_fun_decl = msat_declare_function(env, decl_name.c_str(), mfunsort);
-
-  Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
-  return funsort;
+  throw NotImplementedException(
+      "Smt-switch does not have any sorts that take three sort parameters "
+      "yet.");
 }
 
-Term MsatSolver::make_value(bool b) const
+Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
+{
+  if (sk == FUNCTION)
+  {
+    if (sorts.size() < 2)
+    {
+      throw IncorrectUsageException(
+          "Function sort must have >=2 sort arguments.");
+    }
+
+    // arity is one less, because last sort is return sort
+    uint32_t arity = sorts.size() - 1;
+
+    string decl_name("internal_ref_fun");
+
+    std::vector<msat_type> msorts;
+    msorts.reserve(arity);
+    msat_type msort;
+    for (uint32_t i = 0; i < arity; i++)
+    {
+      msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
+      msorts.push_back(msort);
+      decl_name += ("_" + sorts[i]->to_string());
+    }
+    Sort sort = sorts.back();
+    msort = std::static_pointer_cast<MsatSort>(sort)->type;
+    decl_name += ("_return_" + sort->to_string());
+    msat_type mfunsort = msat_get_function_type(env, &msorts[0], arity, msort);
+
+    // creating a reference decl, because it's the only way to get codomain and
+    // domain sorts i.e. there's no msat_is_function_type(msat_env, msat_type)
+    msat_decl ref_fun_decl =
+        msat_declare_function(env, decl_name.c_str(), mfunsort);
+
+    Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
+    return funsort;
+  }
+  else if (sorts.size() == 1)
+  {
+    return make_sort(sk, sorts[0]);
+  }
+  else if (sorts.size() == 2)
+  {
+    return make_sort(sk, sorts[0], sorts[1]);
+  }
+  else if (sorts.size() == 3)
+  {
+    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+  }
+  else
+  {
+    std::string msg("Can't create sort from sort constructor ");
+    msg += to_string(sk);
+    msg += " with a vector of sorts";
+    throw IncorrectUsageException(msg.c_str());
+  }
+}
+
+Term MsatSolver::make_term(bool b) const
 {
   if (b)
   {
@@ -380,7 +417,7 @@ Term MsatSolver::make_value(bool b) const
   }
 }
 
-Term MsatSolver::make_value(int64_t i, const Sort & sort) const
+Term MsatSolver::make_term(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
@@ -405,9 +442,9 @@ Term MsatSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term MsatSolver::make_value(const std::string val,
-                            const Sort & sort,
-                            unsigned int base) const
+Term MsatSolver::make_term(const std::string val,
+                           const Sort & sort,
+                           uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
@@ -440,7 +477,7 @@ Term MsatSolver::make_value(const std::string val,
   }
 }
 
-Term MsatSolver::make_value(const Term & val, const Sort & sort) const
+Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() != ARRAY)
   {
@@ -453,18 +490,20 @@ Term MsatSolver::make_value(const Term & val, const Sort & sort) const
       new MsatTerm(env, msat_make_array_const(env, msort->type, mval->term)));
 }
 
-Term MsatSolver::make_term(const string s, const Sort & sort)
+Term MsatSolver::make_symbol(const string name, const Sort & sort)
 {
-  if (has_symbol(s))
+  msat_decl decl = msat_find_decl(env, name.c_str());
+  if (!MSAT_ERROR_DECL(decl))
   {
+    // symbol already exists
     string msg("Symbol ");
-    msg += s;
+    msg += name;
     msg += " already exists.";
     throw IncorrectUsageException(msg);
   }
 
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
-  msat_decl decl = msat_declare_function(env, s.c_str(), msort->type);
+  decl = msat_declare_function(env, name.c_str(), msort->type);
 
   if (sort->get_sort_kind() == FUNCTION)
   {
@@ -746,35 +785,6 @@ void MsatSolver::reset()
 }
 
 void MsatSolver::reset_assertions() { msat_reset_env(env); }
-
-bool MsatSolver::has_symbol(const string name) const
-{
-  msat_decl decl = msat_find_decl(env, name.c_str());
-  if (MSAT_ERROR_DECL(decl))
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
-
-Term MsatSolver::lookup_symbol(const string name) const
-{
-  msat_decl decl = msat_find_decl(env, name.c_str());
-  if (MSAT_ERROR_DECL(decl))
-  {
-    string msg("Symbol ");
-    msg += name;
-    msg += " does not exist.";
-    throw IncorrectUsageException(msg);
-  }
-
-  // Creating a new constant with the same decl returns
-  // the same term in mathsat (e.g. constants are cached)
-  return Term(new MsatTerm(env, msat_make_constant(env, decl)));
-}
 
 Term MsatSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const

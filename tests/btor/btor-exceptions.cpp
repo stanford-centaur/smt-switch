@@ -36,8 +36,8 @@ int main()
   }
 
   Sort bvsort4 = s->make_sort(BV, 4);
-  Term x = s->make_term("x", bvsort4);
-  Term y = s->make_term("y", bvsort4);
+  Term x = s->make_symbol("x", bvsort4);
+  Term y = s->make_symbol("y", bvsort4);
 
   try
   {
