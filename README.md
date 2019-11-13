@@ -28,6 +28,11 @@ To setup and install different solvers, first run the `./contrib/setup-<solver>.
 
 Once you've configured the build system, simply enter the build directory (`./build` by default) and run `make`. Each solver you add produces a `libsmt-switch-<solver>.so` shared object file. Running `make install` installs these libraries and the public header files into the configured prefix (`/usr/local` by default). Note that the header files are put in a directory, e.g. `/usr/local/include/smt-switch`.
 
+## Currently Supported Solvers
+* Boolector
+* CVC4 (partially implemented)
+* MathSAT
+
 ## Custom Solver Location
 If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of CVC4 like so:
 `./configure.sh --prefix=<your desired install location> --cvc4-home ./custom-cvc4`
