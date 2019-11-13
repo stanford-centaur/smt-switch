@@ -15,7 +15,7 @@ namespace smt {
 /* global variables */
 const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     //{BTOR_INVALID_NODE}, // this should never happen
-    { BTOR_BV_CONST_NODE, NUM_OPS_AND_NULL },
+    { BTOR_CONST_NODE, NUM_OPS_AND_NULL },
     { BTOR_VAR_NODE, NUM_OPS_AND_NULL },
     { BTOR_PARAM_NODE, NUM_OPS_AND_NULL },
     { BTOR_BV_SLICE_NODE, Extract },
@@ -157,7 +157,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     // bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
     bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
-  negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
+  negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_CONST_NODE);
   is_sym =
       !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
 }
