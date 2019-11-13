@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BTOR_VERSION=5a3b5c88ea9c9dcf4232e33546f69d80d7424b13
+# TEMPORARILY set to an smtcomp19 hash
+BTOR_VERSION=98aeefd27d0ce1188707dda013c1c63a00be7b4c
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
