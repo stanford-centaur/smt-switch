@@ -52,7 +52,7 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   BtorNode * bn = BTOR_IMPORT_BOOLECTOR_NODE(n);
   if (btor_node_is_proxy(bn))
   {
-    bn = btor_node_real_addr(btor_pointer_chase_simplified_exp(btor, bn));
+    bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
   BtorNodeKind k = bn->kind;
 
@@ -112,7 +112,7 @@ const Term BoolectorTermIter::operator*()
   {
     if (btor_node_is_proxy(res))
     {
-      res = btor_pointer_chase_simplified_exp(btor, res);
+      res = btor_node_get_simplified(btor, res);
     }
     btor_node_inc_ext_ref_counter(btor, res);
   }
@@ -155,7 +155,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   {
     // change to this on smtcomp19 branch -- will be merged to master soon
     // bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
-    bn = btor_node_real_addr(btor_pointer_chase_simplified_exp(btor, bn));
+    bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
   is_sym =
@@ -325,7 +325,7 @@ TermIter BoolectorTerm::begin()
 {
   if (btor_node_is_proxy(bn))
   {
-    bn = btor_pointer_chase_simplified_exp(btor, bn);
+    bn = btor_node_get_simplified(btor, bn);
   }
 
   children.clear();
@@ -336,7 +336,7 @@ TermIter BoolectorTerm::begin()
     // TODO: figure out if should we do this?
     // if (btor_node_is_proxy(tmp))
     // {
-    //   tmp = btor_pointer_chase_simplified_exp(btor, tmp);
+    //   tmp = btor_node_get_simplified(btor, tmp);
     // }
     if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
     {
@@ -375,7 +375,7 @@ TermIter BoolectorTerm::end()
 {
   if (btor_node_is_proxy(bn))
   {
-    bn = btor_pointer_chase_simplified_exp(btor, bn);
+    bn = btor_node_get_simplified(btor, bn);
   }
 
   if (negated)
@@ -396,7 +396,7 @@ TermIter BoolectorTerm::end()
       // TODO: figure out if should we do this?
       // if (btor_node_is_proxy(tmp))
       // {
-      //   tmp = btor_pointer_chase_simplified_exp(btor, tmp);
+      //   tmp = btor_node_get_simplified(btor, tmp);
       // }
       // flatten args nodes (chains of arguments)
       if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)

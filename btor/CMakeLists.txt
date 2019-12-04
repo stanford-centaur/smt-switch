@@ -13,7 +13,7 @@ target_include_directories (smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/
 target_include_directories (smt-switch-btor PUBLIC "${BTOR_HOME}/src")
 
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/build/lib/libboolector.a")
-target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/lingeling/liblgl.a")
+target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/cadical/build/libcadical.a")
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/btor2tools/build/libbtor2parser.a")
 target_link_libraries(smt-switch-btor smt-switch)
 target_link_libraries(smt-switch-btor pthread)
