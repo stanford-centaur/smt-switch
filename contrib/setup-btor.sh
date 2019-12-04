@@ -1,7 +1,6 @@
-#!/bin/bash
+thubB#!/bin/bash
 
-# TEMPORARILY set to an smtcomp19 hash
-BTOR_VERSION=98aeefd27d0ce1188707dda013c1c63a00be7b4c
+BTOR_VERSION=602dce65074d1580873dd55193278eea27c3643b
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
@@ -10,7 +9,7 @@ mkdir -p $DEPS
 
 if [ ! -d "$DEPS/boolector" ]; then
     cd $DEPS
-    git clone -b smtcomp19 https://github.com/Boolector/boolector.git
+    git clone https://github.com/Boolector/boolector.git
     chmod -R 777 boolector
     cd boolector
     git checkout -f $BTOR_VERSION
