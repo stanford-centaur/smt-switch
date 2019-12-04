@@ -1,4 +1,4 @@
-thubB#!/bin/bash
+#!/bin/bash
 
 BTOR_VERSION=602dce65074d1580873dd55193278eea27c3643b
 
