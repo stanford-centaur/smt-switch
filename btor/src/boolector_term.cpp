@@ -263,7 +263,14 @@ std::string BoolectorTerm::to_string() const
   if (sym)
   {
     // has a symbol
-    sres = sym;
+    if (negated)
+    {
+      sres = std::string("(bvnot ") + sym + ")";
+    }
+    else
+    {
+      sres = sym;
+    }
     return sres;
   }
   else if (boolector_is_const(btor, node))
