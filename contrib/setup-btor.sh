@@ -13,7 +13,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     chmod -R 777 boolector
     cd boolector
     git checkout -f $BTOR_VERSION
-    ./contrib/setup-btor2tools.sh
+    CFLAGS="" ./contrib/setup-btor2tools.sh
     ./contrib/setup-cadical.sh
     ./configure.sh --only-cadical -fPIC
     cd build
