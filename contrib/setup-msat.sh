@@ -5,6 +5,40 @@ DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
+
+usage () {
+    cat <<EOF
+Usage: $0 [<option> ...]
+
+Downloads the MathSAT SMT Solver. Note this solver is under a custom (non BSD compliant) license.
+
+-h, --help              display this message and exit
+-y, --auto-yes          automatically agree to conditions (default: off)
+EOF
+    exit 0
+}
+
+get_msat=default
+
+while [ $# -gt 0 ]
+do
+    case $1 in
+        -h|--help) usage;;
+        -y|--auto-yes) get_msat=y;;
+        *) die "unexpected argument: $1";;
+    esac
+    shift
+done
+
+if [[ "$get_msat" == default ]]; then
+    read -p "MathSAT is distributed under a custom (non-BSD compliant) license. By continuing you acknowledge this distinction and assume responsibility for meeting the license conditions. Continue? [y]es/[n]o: " get_msat
+fi
+
+if [[ "$get_msat" != y ]]; then
+    echo "Not downloading MathSAT"
+    exit 0
+fi
+
 if [ ! -d "$DEPS/mathsat" ]; then
     cd $DEPS
     mkdir mathsat
@@ -25,7 +59,7 @@ if [ ! -d "$DEPS/mathsat" ]; then
     rm mathsat.tar.gz
 
 else
-    echo "$DEPS/mathsat already exists. If you want to rebuild, please remove it manually."
+    echo "$DEPS/mathsat already exists. If you want to re-download, please remove it manually."
     exit 1
 fi
 
