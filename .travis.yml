@@ -21,34 +21,34 @@ jobs:
   include:
     - os: linux
       dist: bionic
-      env: SOLVER="btor"
+      env: SOLVER="btor" OPTS=""
       compiler: gcc
     - os: linux
       dist: bionic
-      env: SOLVER="btor"
+      env: SOLVER="btor" OPTS=""
       compiler: clang
     - os: linux
       dist: bionic
-      env: SOLVER="cvc4"
+      env: SOLVER="cvc4" OPTS=""
       compiler: gcc
     - os: linux
       dist: bionic
-      env: SOLVER="cvc4"
+      env: SOLVER="cvc4" OPTS=""
       compiler: clang
     - os: linux
       dist: bionic
-      env: SOLVER="msat"
+      env: SOLVER="msat" OPTS="--auto-yes"
     - os: osx
       osx_image: xcode9
-      env: SOLVER='btor'
+      env: SOLVER='btor' OPTS=""
     - os: osx
       osx_image: xcode9
-      env: SOLVER='cvc4'
+      env: SOLVER='cvc4' OPTS=""
     - os: osx
       osx_image: xcode9
-      env: SOLVER='msat'
+      env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
-  - bash -c "./contrib/setup-${SOLVER}.sh"
+  - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER}"
   - cd build && make && make test
