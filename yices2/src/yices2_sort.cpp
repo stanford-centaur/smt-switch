@@ -1,0 +1,141 @@
+#include <sstream>
+
+#include "yices2_sort.h"
+
+#include "exceptions.h"
+
+using namespace std;
+
+namespace smt {
+
+// Yices2Sort implementation
+
+std::size_t Yices2Sort::hash() const
+{
+  // type_t is a unique id, see Yices2 docs.
+  return type;
+}
+
+uint64_t Yices2Sort::get_width() const
+{
+  size_t out_width;
+  if (yices_type_is_bitvector(type)) 
+  {
+    return (unsigned int)yices_bvtype_size(type);
+  }
+  else
+  {
+    throw IncorrectUsageException("Can only get width from bit-vector sort");
+  }
+}
+
+Sort Yices2Sort::get_indexsort() const
+{
+  // Arrays are functions in Yices.
+  if (yices_type_is_function(type))
+  {
+    return Sort(new Yices2Sort(yices_type_child(type, 0)));
+  }
+  else
+  {
+    throw IncorrectUsageException("Can only get index sort from array sort");
+  }
+}
+
+Sort Yices2Sort::get_elemsort() const
+{
+  // Arrays are functions in Yices.
+  if (yices_type_is_function(type))
+  {
+    return Sort(new Yices2Sort(yices_type_child(type, 1)));
+  }
+  else
+  {
+    throw IncorrectUsageException("Can only get element sort from array sort");
+  }
+}
+
+SortVec Yices2Sort::get_domain_sorts() const
+{
+  if (yices_type_is_function(type))
+  {
+    // one less because last is return sort. 
+    int32_t s_arity = yices_type_num_children(type) - 1;
+    SortVec sorts;
+    sorts.reserve(s_arity);
+
+    for (size_t i = 0; i < s_arity; i++)
+    {
+      sorts.push_back(Sort(new Yices2Sort(yices_type_child(type, i))));
+    }
+
+    return sorts;
+  }
+  else
+  {
+    throw IncorrectUsageException("Can't get domain sorts from non-function sort.");
+  }
+}
+
+Sort Yices2Sort::get_codomain_sort() const
+{
+  if (yices_type_is_function(type))
+  {
+    // The last element of the result of num_children is the range/codomain type.
+    return Sort(new Yices2Sort(yices_type_child(type, yices_type_num_children(type) - 1)));
+  }
+  else
+  {
+    throw IncorrectUsageException("Can only get element sort from array sort");
+  }
+}
+
+bool Yices2Sort::compare(const Sort s) const
+{
+  shared_ptr<Yices2Sort> ys = std::static_pointer_cast<Yices2Sort>(s);
+  if (type == ys->type)
+  {
+    return true;
+  }
+  return false;
+}
+
+SortKind Yices2Sort::get_sort_kind() const
+{
+  if (yices_type_is_int(type))
+  {
+    return INT;
+  }
+  else if (yices_type_is_real(type))
+  {
+    return REAL;
+  }
+  else if (yices_type_is_bool(type))
+  {
+    return BOOL;
+  }
+  else if (yices_type_is_bitvector(type))
+  {
+    return BV;
+  }
+  else if (yices_type_is_function(type))
+  {
+
+    // Test if array or actually function.
+    // This may not be the most efective way to do this. 
+    if (!is_function)
+    {
+      return ARRAY;
+    }
+    else
+    {
+      return FUNCTION;
+    }
+  }
+  else
+  {
+    throw NotImplementedException("Unknown Yices2 type.");
+  }
+}
+
+}  // namespace smt
