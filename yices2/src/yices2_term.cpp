@@ -29,6 +29,7 @@ void Yices2TermIter::operator++() { pos++; }
 const Term Yices2TermIter::operator*()
 {
   term_constructor_t tc = yices_term_constructor(term);
+  uint32_t actual_idx = pos - 1;
 
   if (yices_term_is_function(term))
   {
@@ -36,13 +37,12 @@ const Term Yices2TermIter::operator*()
     {
       return Term(new Yices2Term(term));
     }
-
     else
     {
-      uint32_t actual_idx = pos - 1;
       return Term(new Yices2Term(yices_term_child(term, actual_idx)));
     }
   }
+  // Must handle polynomial format for bv sums. 
   else if (yices_term_is_bvsum(term))
   {
     term_t component;
@@ -52,6 +52,7 @@ const Term Yices2TermIter::operator*()
     return Term(new Yices2Term(
         yices_bvmul(yices_bvconst_from_array(w, val), component)));
   }
+  // Must handle polynomial format for products.
   else if (yices_term_is_product(term))
   {
     term_t component;
@@ -65,7 +66,7 @@ const Term Yices2TermIter::operator*()
       }
       else
       {
-        yices_product_component(term, pos - 1, &component, &exp);
+        yices_product_component(term, actual_idx, &component, &exp);
         return Term(new Yices2Term(yices_int64(exp)));
       }
     }
@@ -81,6 +82,7 @@ const Term Yices2TermIter::operator*()
       return Term(new Yices2Term(component));
     }
   }
+  // Must handle polynomial format for sums. 
   else if (yices_term_is_sum(term))
   {
     term_t component;
@@ -98,7 +100,7 @@ const Term Yices2TermIter::operator*()
       }
       else
       {
-        yices_sum_component(term, pos - 1, coeff, &component);
+        yices_sum_component(term, actual_idx, coeff, &component);
 
         return Term(new Yices2Term(component));
       }
@@ -326,6 +328,7 @@ TermIter Yices2Term::begin() { return TermIter(new Yices2TermIter(term, 0)); }
 
 TermIter Yices2Term::end()
 {
+  // Special cases for handling individual components of polynomials. 
   if (this->get_op() == Mult && yices_term_num_children(term) == 1)
   {
     return TermIter(
