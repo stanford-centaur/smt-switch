@@ -1,7 +1,5 @@
-#include <sstream>
-
 #include "yices2_sort.h"
-
+#include <sstream>
 #include "exceptions.h"
 
 using namespace std;
@@ -19,7 +17,7 @@ std::size_t Yices2Sort::hash() const
 uint64_t Yices2Sort::get_width() const
 {
   size_t out_width;
-  if (yices_type_is_bitvector(type)) 
+  if (yices_type_is_bitvector(type))
   {
     return (unsigned int)yices_bvtype_size(type);
   }
@@ -59,7 +57,7 @@ SortVec Yices2Sort::get_domain_sorts() const
 {
   if (yices_type_is_function(type))
   {
-    // one less because last is return sort. 
+    // one less because last is return sort.
     int32_t s_arity = yices_type_num_children(type) - 1;
     SortVec sorts;
     sorts.reserve(s_arity);
@@ -73,7 +71,8 @@ SortVec Yices2Sort::get_domain_sorts() const
   }
   else
   {
-    throw IncorrectUsageException("Can't get domain sorts from non-function sort.");
+    throw IncorrectUsageException(
+        "Can't get domain sorts from non-function sort.");
   }
 }
 
@@ -81,8 +80,10 @@ Sort Yices2Sort::get_codomain_sort() const
 {
   if (yices_type_is_function(type))
   {
-    // The last element of the result of num_children is the range/codomain type.
-    return Sort(new Yices2Sort(yices_type_child(type, yices_type_num_children(type) - 1)));
+    // The last element of the result of num_children is the range/codomain
+    // type.
+    return Sort(new Yices2Sort(
+        yices_type_child(type, yices_type_num_children(type) - 1)));
   }
   else
   {
@@ -120,9 +121,8 @@ SortKind Yices2Sort::get_sort_kind() const
   }
   else if (yices_type_is_function(type))
   {
-
     // Test if array or actually function.
-    // This may not be the most efective way to do this. 
+    // This may not be the most effective way to do this.
     if (!is_function)
     {
       return ARRAY;

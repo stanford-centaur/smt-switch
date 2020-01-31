@@ -16,12 +16,10 @@ class Yices2Sort : public AbsSort
 {
  public:
   // Non-functions
-  Yices2Sort(type_t y_type) 
-      : type(y_type), is_function(false) {};
+  Yices2Sort(type_t y_type) : type(y_type), is_function(false){};
 
   // Functions
-  Yices2Sort(type_t y_type, bool is_fun)
-      : type(y_type), is_function(is_fun) {};
+  Yices2Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun){};
 
   ~Yices2Sort() = default;
   std::size_t hash() const override;
@@ -32,10 +30,10 @@ class Yices2Sort : public AbsSort
   Sort get_codomain_sort() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override;
-  type_t get_ytype() { return type; } ;
+  type_t get_ytype() { return type; };
 
  protected:
-  type_t type; 
+  type_t type;
   bool is_function;
 
   friend class Yices2Solver;
