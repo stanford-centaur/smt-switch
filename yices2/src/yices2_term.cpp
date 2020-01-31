@@ -42,7 +42,7 @@ const Term Yices2TermIter::operator*()
       return Term(new Yices2Term(yices_term_child(term, actual_idx)));
     }
   }
-  // Must handle polynomial format for bv sums. 
+  // Must handle polynomial format for bv sums.
   else if (yices_term_is_bvsum(term))
   {
     term_t component;
@@ -82,7 +82,7 @@ const Term Yices2TermIter::operator*()
       return Term(new Yices2Term(component));
     }
   }
-  // Must handle polynomial format for sums. 
+  // Must handle polynomial format for sums.
   else if (yices_term_is_sum(term))
   {
     term_t component;
@@ -328,7 +328,7 @@ TermIter Yices2Term::begin() { return TermIter(new Yices2TermIter(term, 0)); }
 
 TermIter Yices2Term::end()
 {
-  // Special cases for handling individual components of polynomials. 
+  // Special cases for handling individual components of polynomials.
   if (this->get_op() == Mult && yices_term_num_children(term) == 1)
   {
     return TermIter(
