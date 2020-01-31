@@ -134,7 +134,8 @@ SortKind Yices2Sort::get_sort_kind() const
   }
   else
   {
-    throw NotImplementedException("Unknown Yices2 type.");
+    throw NotImplementedException("Unknown Yices2 type: "
+                                  + yices_type_to_string(type));
   }
 }
 
