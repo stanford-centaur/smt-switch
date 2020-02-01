@@ -95,21 +95,25 @@ const Term Yices2TermIter::operator*()
       if (!pos)
       {
         yices_sum_component(term, pos, coeff, &component);
-
         return Term(new Yices2Term(yices_mpq(coeff)));
       }
       else
       {
         yices_sum_component(term, actual_idx, coeff, &component);
-
         return Term(new Yices2Term(component));
       }
     }
     else
     {
       yices_sum_component(term, pos, coeff, &component);
-
-      return Term(new Yices2Term(yices_mul(component, yices_mpq(coeff))));
+      if (component != -1)
+      {
+        return Term(new Yices2Term(yices_mul(component, yices_mpq(coeff))));
+      }
+      else
+      {
+        return Term(new Yices2Term(yices_mpq(coeff)));
+      }
     }
   }
   else if (yices_term_is_composite(term))
