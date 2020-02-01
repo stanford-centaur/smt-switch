@@ -78,4 +78,3 @@ cdef extern from "include/ops.h" namespace "smt":
     cdef PrimOp Select
     cdef PrimOp Store
     cdef PrimOp Const_Array
-    

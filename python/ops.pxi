@@ -1,6 +1,3 @@
-# distutils: language = c++
-# distutils: extra_compile_args = -std=c++17
-
 cimport ops
 import sys
 from types import ModuleType
