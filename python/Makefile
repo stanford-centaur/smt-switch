@@ -1,6 +1,6 @@
 all: smt_switch
 
-smt_switch: setup-smt_switch.py smt_switch.pyx ops.pxd
+smt_switch: setup-smt_switch.py smt_switch.pyx enums.pxd
 	python setup-smt_switch.py build_ext --inplace
 
 clean:

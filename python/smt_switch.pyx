@@ -4,4 +4,4 @@
 # distutils: extra_compile_args = -std=c++17
 # distutils: libraries = smt-switch smt-switch-btor
 
-include "ops.pxi"
+include "enums.pxi"
