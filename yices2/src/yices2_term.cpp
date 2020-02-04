@@ -28,7 +28,6 @@ void Yices2TermIter::operator++() { pos++; }
 
 const Term Yices2TermIter::operator*()
 {
-  term_constructor_t tc = yices_term_constructor(term);
   uint32_t actual_idx = pos - 1;
 
   if (yices_term_is_function(term))
