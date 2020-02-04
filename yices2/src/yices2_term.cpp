@@ -43,20 +43,70 @@ const Term Yices2TermIter::operator*()
     }
   }
   // Must handle polynomial format for bv sums.
+  // See Yices documentation for yices_bvsum_component
   else if (yices_term_is_bvsum(term))
   {
     term_t component;
     uint64_t w = (Term(new Yices2Term(term))->get_sort()->get_width());
     int32_t val[w];
     yices_bvsum_component(term, pos, val, &component);
-    return Term(new Yices2Term(
-        yices_bvmul(yices_bvconst_from_array(w, val), component)));
+    if (component != NULL_TERM)
+    {
+      return Term(new Yices2Term(
+          yices_bvmul(yices_bvconst_from_array(w, val), component)));
+    }
+    else
+    {
+      return Term(new Yices2Term(yices_bvconst_from_array(w, val)));
+    }
+  }
+  // Must handle polynomial format for sums.
+  else if (yices_term_is_sum(term))
+  {
+    term_t component;
+    mpq_t coeff;
+    mpq_init(coeff);
+
+    // Special case for term components like (* -1 b),
+    // which, according to the Yices API, is an arithmetic sum.
+    // So yices_term_is_sum(term) will return true, and the
+    // number of children is 1.
+    if (yices_term_num_children(term) == 1)
+    {
+      if (!pos)
+      {
+        yices_sum_component(term, pos, coeff, &component);
+        return Term(new Yices2Term(yices_mpq(coeff)));
+      }
+      else
+      {
+        yices_sum_component(term, actual_idx, coeff, &component);
+        return Term(new Yices2Term(component));
+      }
+    }
+    else
+    {
+      yices_sum_component(term, pos, coeff, &component);
+      if (component != NULL_TERM)
+      {
+        return Term(new Yices2Term(yices_mul(component, yices_mpq(coeff))));
+      }
+      // Something like (+ 100 x) will have the 100 represented
+      // as (+ (* 100 NULL_TERM) (* 1 x))
+      else
+      {
+        return Term(new Yices2Term(yices_mpq(coeff)));
+      }
+    }
   }
   // Must handle polynomial format for products.
+  // See Yices documentation for yices_product_component
   else if (yices_term_is_product(term))
   {
     term_t component;
     uint32_t exp;
+    // Special case similar to sum case to handle
+    // terms like (^ b 4).
     if (yices_term_num_children(term) == 1)
     {
       if (!pos)
@@ -77,49 +127,18 @@ const Term Yices2TermIter::operator*()
     {
       return Term(new Yices2Term(yices_power(component, exp)));
     }
+    // If exp is one, just return the component. This is important
+    // because the component may be an uninterpreted term, and
+    // there will be an error if you try to call yices_power with
+    // an uninterpreted term.
     else
     {
       return Term(new Yices2Term(component));
     }
   }
-  // Must handle polynomial format for sums.
-  else if (yices_term_is_sum(term))
-  {
-    term_t component;
-    mpq_t coeff;
-    mpq_init(coeff);
-
-    // Special case for term components like (* -1 b)
-    if (yices_term_num_children(term) == 1)
-    {
-      if (!pos)
-      {
-        yices_sum_component(term, pos, coeff, &component);
-        return Term(new Yices2Term(yices_mpq(coeff)));
-      }
-      else
-      {
-        yices_sum_component(term, actual_idx, coeff, &component);
-        return Term(new Yices2Term(component));
-      }
-    }
-    else
-    {
-      yices_sum_component(term, pos, coeff, &component);
-      if (component != -1)
-      {
-        return Term(new Yices2Term(yices_mul(component, yices_mpq(coeff))));
-      }
-      else
-      {
-        return Term(new Yices2Term(yices_mpq(coeff)));
-      }
-    }
-  }
   else if (yices_term_is_composite(term))
   {
-    uint32_t actual_idx = pos;
-    return Term(new Yices2Term(yices_term_child(term, actual_idx)));
+    return Term(new Yices2Term(yices_term_child(term, pos)));
   }
   else
   {
