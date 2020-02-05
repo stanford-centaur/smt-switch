@@ -7,10 +7,10 @@ from enums cimport SortKind
 from enums cimport PrimOp
 
 ctypedef shared_ptr[AbsSort] Sort
-# ctypedef shared_ptr[AbsTerm] Term
+ctypedef shared_ptr[AbsTerm] Term
 # ctypedef shared_ptr[AbsSmtSolver] SmtSolver
-# ctypedef vector[Sort] SortVec
-# ctypedef vector[Term] TermVec
+ctypedef vector[Sort] SortVec
+ctypedef vector[Term] TermVec
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -50,33 +50,33 @@ cdef extern from "include/ops.h" namespace "smt":
     ostream& operator<<(ostream & output, const Op o) except +
 
 
-# cdef extern from "include/term.h" namespace "smt":
-#     cdef cppclass TermIter:
-#         TermIter() except +
-#         TermIter& operator++() except +
-#         Term operator*() except +
-#         bint operator==(const TermIter& other) except +
-#         bint operator!=(const TermIter& other) except +
+cdef extern from "include/term.h" namespace "smt":
+    cdef cppclass TermIter:
+        TermIter() except +
+        TermIter& operator++() except +
+        Term operator*() except +
+        bint operator==(const TermIter& other) except +
+        bint operator!=(const TermIter& other) except +
 
-#     cdef cppclass AbsTerm:
-#         AbsTerm() except +
-#         size_t hash() except +
-#         bint compare(const Term& absterm) except +
-#         Op get_op() except +
-#         Sort get_sort() except +
-#         string to_string() except +
-#         bint is_symbolic_const() except +
-#         bint is_value() except +
-#         uint64_t to_int() except +
-#         TermIter begin() except +
-#         TermIter end() except +
+    cdef cppclass AbsTerm:
+        AbsTerm() except +
+        size_t hash() except +
+        bint compare(const Term& absterm) except +
+        Op get_op() except +
+        Sort get_sort() except +
+        string to_string() except +
+        bint is_symbolic_const() except +
+        bint is_value() except +
+        uint64_t to_int() except +
+        TermIter begin() except +
+        TermIter end() except +
 
 
-# # TODO See if we can combine with above cdef extern
-# cdef extern from "include/term.h" namespace "smt":
-#     bint operator==(const Term& t1, const Term& t2) except +
-#     bint operator!=(const Term& t1, const Term& t2) except +
-#     ostream& operator<<(ostream& output, const Term t) except +
+# TODO See if we can combine with above cdef extern
+cdef extern from "include/term.h" namespace "smt":
+    bint operator==(const Term& t1, const Term& t2) except +
+    bint operator!=(const Term& t1, const Term& t2) except +
+    ostream& operator<<(ostream& output, const Term t) except +
 
 
 cdef extern from "include/result.h" namespace "smt":
