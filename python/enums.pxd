@@ -1,11 +1,25 @@
 cdef extern from "include/ops.h" namespace "smt":
+    cdef cppclass SortKind:
+    # TODO see if we could just declare them all here
+        pass
+
     cdef cppclass PrimOp:
         # TODO see if we could just declare them all here
         pass
 
-    cdef cppclass SortKind:
-        # TODO see if we could just declare them all here
+    # TODO see if we can go without this (need to delete below as well)
+    cdef cppclass ResultType:
         pass
+
+
+cdef extern from "include/sort.h" namespace "smt":
+    cdef SortKind ARRAY
+    cdef SortKind BOOL
+    cdef SortKind BV
+    cdef SortKind INT
+    cdef SortKind REAL
+    cdef SortKind FUNCTION
+
 
 # TODO try calling it c_PrimOp somewhere
 cdef extern from "include/ops.h" namespace "smt":
@@ -82,10 +96,8 @@ cdef extern from "include/ops.h" namespace "smt":
     cdef PrimOp Store
     cdef PrimOp Const_Array
 
-cdef extern from "include/sort.h" namespace "smt":
-    cdef SortKind ARRAY
-    cdef SortKind BOOL
-    cdef SortKind BV
-    cdef SortKind INT
-    cdef SortKind REAL
-    cdef SortKind FUNCTION
+
+cdef extern from "include/ops.h" namespace "smt":
+    cdef ResultType SAT
+    cdef ResultType UNSAT
+    cdef ResultType UNKNOWN
