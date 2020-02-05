@@ -6,7 +6,7 @@ from libcpp.vector cimport vector
 from enums cimport SortKind
 from enums cimport PrimOp
 
-# ctypedef shared_ptr[AbsSort] Sort
+ctypedef shared_ptr[AbsSort] Sort
 # ctypedef shared_ptr[AbsTerm] Term
 # ctypedef shared_ptr[AbsSmtSolver] SmtSolver
 # ctypedef vector[Sort] SortVec
@@ -19,19 +19,19 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-# cdef extern from "include/sort.h" namespace "smt":
-#    cdef cppclass AbsSort:
-#        AbsSort() except +
-#        string to_string() except +
-#        size_t hash() except +
-#        # Not declaring const methods -- not necessary for Cython?
-#        uint64_t get_width() except +
-#        Sort get_indexsort() except +
-#        Sort get_elemsort() except +
-#        vector[Sort] get_domain_sorts() except +
-#        Sort get_codomain_sort() except +
-#        bint compare(const Sort sort) except +
-#        SortKind get_sort_kind() except +
+cdef extern from "include/sort.h" namespace "smt":
+   cdef cppclass AbsSort:
+       AbsSort() except +
+       string to_string() except +
+       size_t hash() except +
+       # Not declaring const methods -- not necessary for Cython?
+       uint64_t get_width() except +
+       Sort get_indexsort() except +
+       Sort get_elemsort() except +
+       vector[Sort] get_domain_sorts() except +
+       Sort get_codomain_sort() except +
+       bint compare(const Sort sort) except +
+       SortKind get_sort_kind() except +
 
 
 cdef extern from "include/ops.h" namespace "smt":
