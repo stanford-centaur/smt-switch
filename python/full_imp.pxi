@@ -24,14 +24,9 @@ cdef class Op:
         if idx0 is None:
             self.op = c_Op(o.po)
         elif idx1 is None:
-            if not isinstance(idx0, int):
-                raise ValueError("Expecting int but got {}".format(type(idx0)))
-            self.op = c_Op(o.po, <int> idx0)
+            self.op = c_Op(o.po, <int?> idx0)
         else:
-            if not isinstance(idx0, int) or not isinstance(idx1, int):
-                raise ValueError("Expecting <int, int> but got <{}, {}>".format(type(idx0),
-                                                                                type(idx1)))
-            self.op = c_Op(o.po, <int> idx0, <int> idx1)
+            self.op = c_Op(o.po, <int?> idx0, <int?> idx1)
 
     def __str__(self):
         return self.op.to_string().decode()
@@ -212,31 +207,23 @@ cdef class SmtSolver:
         cdef c_SortVec csv
 
         if isinstance(arg0, str):
-            if not isinstance(arg1, int):
-                raise ValueError("Expecting second argument to be int but got {}".format(type(arg1)))
-            s.cs = dref(self.css).make_sort(<const string> arg0.encode(), <int> arg1)
+            s.cs = dref(self.css).make_sort(<const string> arg0.encode(), <int?> arg1)
         elif isinstance(arg0, SortKind):
             sk = (<SortKind> arg0).sk
             if isinstance(arg1, int):
                 s.cs = dref(self.css).make_sort(sk, <int> arg1)
             elif isinstance(arg1, Sort) and arg2 is None:
                 s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs)
-            elif [type(arg1), type(arg2)] == [Sort, Sort] and arg3 is None:
-                s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs, (<Sort> arg2).cs)
-            elif [type(arg1), type(arg2), type(arg3)] == [Sort, Sort, Sort]:
-                s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs,
-                                                    (<Sort> arg2).cs,
-                                                    (<Sort> arg3).cs)
-            elif isinstance(arg1, list):
-                for a in arg1:
-                    if not isinstance(a, Sort):
-                        raise ValueError("Expecting a sort but got {}".format(type(a)))
-                    csv.push_back((<Sort> a).cs)
-                s.cs = dref(self.css).make_sort(sk, csv)
+            elif arg3 is None:
+                s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs)
+            elif arg3 is not None:
+                s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs,
+                                                    (<Sort?> arg2).cs,
+                                                    (<Sort?> arg3).cs)
             else:
-                raise ValueError("Cannot find matching function for {}".format([type(a)
-                                                                                for a in
-                                                                                [arg0, arg1, arg2, arg3]]))
+                for a in arg1:
+                    csv.push_back((<Sort?> a).cs)
+                s.cs = dref(self.css).make_sort(sk, csv)
         else:
             raise ValueError("Cannot find matching function for {}".format([type(a)
                                                                             for a in
@@ -251,17 +238,15 @@ cdef class SmtSolver:
             arg0 = Op(arg0)
 
         if isinstance(arg0, Op):
-            if isinstance(arg1, Term) and arg2 is None:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term> arg1).ct)
-            elif [type(arg1), type(arg2)] == [Term, Term] and arg3 is None:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term> arg1).ct, (<Term> arg2).ct)
-            elif [type(arg1), type(arg2), type(arg3)] == [Term, Term, Term]:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term> arg1).ct, (<Term> arg2).ct, (<Term> arg3).ct)
+            if arg2 is None:
+                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct)
+            elif arg3 is None:
+                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct, (<Term?> arg2).ct)
+            elif arg3 is not None:
+                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct, (<Term?> arg2).ct, (<Term?> arg3).ct)
             elif isinstance(arg1, list):
                 for a in arg1:
-                    if not isinstance(a, Term):
-                        raise ValueError("Expecting a Term but got {}".format(type(a)))
-                    ctv.push_back((<Term> a).ct)
+                    ctv.push_back((<Term?> a).ct)
                 term.ct = dref(self.css).make_term((<Op> arg0).op, ctv)
             else:
                 raise ValueError("Expecting Op and Terms but got {}".format([type(a)
@@ -270,11 +255,9 @@ cdef class SmtSolver:
             if arg2 is None:
                 term.ct = dref(self.css).make_term(<const string> arg0.encode(), (<Sort> arg1).cs)
             else:
-                if not isinstance(arg2, int):
-                    raise ValueError("Expecting an int but got {}".format(type(arg2)))
                 term.ct = dref(self.css).make_term(<const string> arg0.encode(),
                                                    (<Sort> arg1).cs,
-                                                   <int> arg2)
+                                                    <int?> arg2)
         elif isinstance(arg0, int) and isinstance(arg1, Sort) and arg2 is None:
             term.ct = dref(self.css).make_term(<int> arg0, (<Sort> arg1).cs)
         elif isinstance(arg0, bool) and arg1 is None:
@@ -302,9 +285,7 @@ cdef class SmtSolver:
         cdef c_UnorderedTermMap utm
 
         for k, v in substitution_map.items():
-            if not isinstance(k, Term) or not isinstance(v, Term):
-                raise ValueError("Expecting Terms but got {}".format([type(k), type(v)]))
-            utm.emplace((<Term> k).ct, (<Term> v).ct)
+            utm.emplace((<Term?> k).ct, (<Term?> v).ct)
 
         term.ct = dref(self.css).substitute(t.ct, utm)
         return term
