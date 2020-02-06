@@ -124,3 +124,8 @@ cdef extern from "include/solver.h" namespace "smt":
         void reset() except +
         void reset_assertions() except +
         Term substitute(const Term term, const UnorderedTermMap & substitution_map) except +
+
+
+# TODO autogenerate this
+cdef extern from "include/msat_factory.h" namespace "smt::MsatSolverFactory":
+    SmtSolver create() except +
