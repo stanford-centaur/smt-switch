@@ -3,16 +3,16 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from full_imp cimport create
-from full_imp cimport Op as c_Op
-from full_imp cimport Result as c_Result
-from full_imp cimport SmtSolver as c_SmtSolver
-from full_imp cimport Sort as c_Sort
-from full_imp cimport SortVec as c_SortVec
-from full_imp cimport Term as c_Term
-from full_imp cimport TermVec as c_TermVec
-from full_imp cimport UnorderedTermMap as c_UnorderedTermMap
-from full_imp cimport TermIter as c_TermIter
+from smt_switch_imp cimport create
+from smt_switch_imp cimport Op as c_Op
+from smt_switch_imp cimport Result as c_Result
+from smt_switch_imp cimport SmtSolver as c_SmtSolver
+from smt_switch_imp cimport Sort as c_Sort
+from smt_switch_imp cimport SortVec as c_SortVec
+from smt_switch_imp cimport Term as c_Term
+from smt_switch_imp cimport TermVec as c_TermVec
+from smt_switch_imp cimport UnorderedTermMap as c_UnorderedTermMap
+from smt_switch_imp cimport TermIter as c_TermIter
 
 from enums cimport SortKind as c_SortKind
 # PrimOp, SortKind classes are defined at this scope

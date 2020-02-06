@@ -5,4 +5,4 @@
 # distutils: libraries = smt-switch smt-switch-msat smt-switch-btor
 
 include "enums.pxi"
-include "full_imp.pxi"
+include "smt_switch_imp.pxi"
