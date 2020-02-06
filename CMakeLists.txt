@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
 # add to search path for find_package
@@ -64,6 +66,14 @@ if (BUILD_MSAT)
 
   # testing
   add_subdirectory(tests/msat)
+endif()
+
+# Should we build python bindings
+option (BUILD_PYTHON_BINDINGS
+   "Build Python bindings")
+
+if (BUILD_PYTHON_BINDINGS)
+  add_subdirectory(python)
 endif()
 
 # install smt-switch

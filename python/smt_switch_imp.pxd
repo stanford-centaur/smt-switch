@@ -21,7 +21,7 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "include/sort.h" namespace "smt":
+cdef extern from "sort.h" namespace "smt":
    cdef cppclass AbsSort:
        AbsSort() except +
        string to_string() except +
@@ -36,7 +36,7 @@ cdef extern from "include/sort.h" namespace "smt":
        SortKind get_sort_kind() except +
 
 
-cdef extern from "include/ops.h" namespace "smt":
+cdef extern from "ops.h" namespace "smt":
     cdef cppclass Op:
         Op() except +
         Op(PrimOp o) except +
@@ -46,13 +46,13 @@ cdef extern from "include/ops.h" namespace "smt":
 
 
 # TODO See if we can combine with above cdef extern
-cdef extern from "include/ops.h" namespace "smt":
+cdef extern from "ops.h" namespace "smt":
     bint operator==(Op op1, Op op2) except +
     bint operator!=(Op op1, Op op2) except +
     ostream& operator<<(ostream & output, const Op o) except +
 
 
-cdef extern from "include/term.h" namespace "smt":
+cdef extern from "term.h" namespace "smt":
     cdef cppclass UnorderedTermMap:
         void emplace(Term k, Term v) except +
 
@@ -78,13 +78,13 @@ cdef extern from "include/term.h" namespace "smt":
 
 
 # TODO See if we can combine with above cdef extern
-cdef extern from "include/term.h" namespace "smt":
+cdef extern from "term.h" namespace "smt":
     bint operator==(const Term& t1, const Term& t2) except +
     bint operator!=(const Term& t1, const Term& t2) except +
     ostream& operator<<(ostream& output, const Term t) except +
 
 
-cdef extern from "include/result.h" namespace "smt":
+cdef extern from "result.h" namespace "smt":
     cdef cppclass Result:
         bint is_sat() except +
         bint is_unsat() except +
@@ -93,7 +93,7 @@ cdef extern from "include/result.h" namespace "smt":
         string to_string() except+
 
 
-cdef extern from "include/solver.h" namespace "smt":
+cdef extern from "solver.h" namespace "smt":
     cdef cppclass AbsSmtSolver:
         AbsSmtSolver() except +
         void set_opt(const string option, const string value) except +
@@ -127,5 +127,5 @@ cdef extern from "include/solver.h" namespace "smt":
 
 
 # TODO autogenerate this
-cdef extern from "include/msat_factory.h" namespace "smt::MsatSolverFactory":
+cdef extern from "msat_factory.h" namespace "smt::MsatSolverFactory":
     SmtSolver create() except +

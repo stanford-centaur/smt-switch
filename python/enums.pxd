@@ -1,4 +1,4 @@
-cdef extern from "include/ops.h" namespace "smt":
+cdef extern from "ops.h" namespace "smt":
     cdef cppclass SortKind:
     # TODO see if we could just declare them all here
         pass
@@ -12,7 +12,7 @@ cdef extern from "include/ops.h" namespace "smt":
         pass
 
 
-cdef extern from "include/sort.h" namespace "smt":
+cdef extern from "sort.h" namespace "smt":
     cdef SortKind ARRAY
     cdef SortKind BOOL
     cdef SortKind BV
@@ -22,7 +22,7 @@ cdef extern from "include/sort.h" namespace "smt":
 
 
 # TODO try calling it c_PrimOp somewhere
-cdef extern from "include/ops.h" namespace "smt":
+cdef extern from "ops.h" namespace "smt":
     cdef PrimOp And
     cdef PrimOp Or
     cdef PrimOp Xor
@@ -97,7 +97,7 @@ cdef extern from "include/ops.h" namespace "smt":
     cdef PrimOp Const_Array
 
 
-cdef extern from "include/ops.h" namespace "smt":
+cdef extern from "ops.h" namespace "smt":
     cdef ResultType SAT
     cdef ResultType UNSAT
     cdef ResultType UNKNOWN
