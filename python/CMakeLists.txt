@@ -16,8 +16,6 @@ endif()
 
 include_directories()
 
-# generate necessary collateral here
-
 add_cython_target(smt_switch CXX)
 
 add_library(smt_switch MODULE ${smt_switch})
@@ -25,20 +23,39 @@ add_library(smt_switch MODULE ${smt_switch})
 include_directories("${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(smt_switch smt-switch ${PYTHON_LIBRARIES})
 
+# generate necessary collateral here
+include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
+set(GEN_OPTIONS --template-dir ${PROJECT_SOURCE_DIR}/python/ --dest-dir ${CMAKE_CURRENT_LIST_DIR})
+
 if (BUILD_BTOR)
   include_directories("${PROJECT_SOURCE_DIR}/btor/include")
   target_link_libraries(smt_switch smt-switch-btor)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
 endif()
 
 if (BUILD_CVC4)
   include_directories("${PROJECT_SOURCE_DIR}/cvc4/include")
   target_link_libraries(smt_switch smt-switch-cvc4)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --cvc4)
 endif()
 
 if (BUILD_MSAT)
   include_directories("${PROJECT_SOURCE_DIR}/msat/include")
   target_link_libraries(smt_switch smt-switch-msat)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
 endif()
+
+add_custom_target(gen-smt-switch-imp
+  ALL
+  COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_LIST_DIR}/gen-smt-switch-imp.py
+    ${GEN_OPTIONS}
+  DEPENDS
+    gen-smt-switch-imp.py
+  COMMENT
+    "Generate smt_switch_imp.{pxd,pxi}"
+  )
 
 python_extension_module(smt_switch)
 
