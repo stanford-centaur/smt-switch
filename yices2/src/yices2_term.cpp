@@ -28,17 +28,18 @@ void Yices2TermIter::operator++() { pos++; }
 
 const Term Yices2TermIter::operator*()
 {
+  term_t ret_term;
   uint32_t actual_idx = pos - 1;
 
   if (yices_term_is_function(term))
   {
     if (!pos)
     {
-      return Term(new Yices2Term(term));
+      ret_term = term;
     }
     else
     {
-      return Term(new Yices2Term(yices_term_child(term, actual_idx)));
+      ret_term = yices_term_child(term, actual_idx);
     }
   }
   // Must handle polynomial format for bv sums.
@@ -51,12 +52,11 @@ const Term Yices2TermIter::operator*()
     yices_bvsum_component(term, pos, val, &component);
     if (component != NULL_TERM)
     {
-      return Term(new Yices2Term(
-          yices_bvmul(yices_bvconst_from_array(w, val), component)));
+      ret_term = yices_bvmul(yices_bvconst_from_array(w, val), component);
     }
     else
     {
-      return Term(new Yices2Term(yices_bvconst_from_array(w, val)));
+      ret_term = yices_bvconst_from_array(w, val);
     }
   }
   // Must handle polynomial format for sums.
@@ -75,12 +75,12 @@ const Term Yices2TermIter::operator*()
       if (!pos)
       {
         yices_sum_component(term, pos, coeff, &component);
-        return Term(new Yices2Term(yices_mpq(coeff)));
+        ret_term = yices_mpq(coeff);
       }
       else
       {
         yices_sum_component(term, actual_idx, coeff, &component);
-        return Term(new Yices2Term(component));
+        ret_term = component;
       }
     }
     else
@@ -88,13 +88,13 @@ const Term Yices2TermIter::operator*()
       yices_sum_component(term, pos, coeff, &component);
       if (component != NULL_TERM)
       {
-        return Term(new Yices2Term(yices_mul(component, yices_mpq(coeff))));
+        ret_term = yices_mul(component, yices_mpq(coeff));
       }
       // Something like (+ 100 x) will have the 100 represented
       // as (+ (* 100 NULL_TERM) (* 1 x))
       else
       {
-        return Term(new Yices2Term(yices_mpq(coeff)));
+        ret_term = yices_mpq(coeff);
       }
     }
   }
@@ -111,37 +111,48 @@ const Term Yices2TermIter::operator*()
       if (!pos)
       {
         yices_product_component(term, pos, &component, &exp);
-        return Term(new Yices2Term(component));
+        ret_term = component;
       }
       else
       {
         yices_product_component(term, actual_idx, &component, &exp);
-        return Term(new Yices2Term(yices_int64(exp)));
+        ret_term = yices_int64(exp);
       }
     }
-
-    yices_product_component(term, pos, &component, &exp);
-
-    if (exp != 1)
-    {
-      return Term(new Yices2Term(yices_power(component, exp)));
-    }
-    // If exp is one, just return the component. This is important
-    // because the component may be an uninterpreted term, and
-    // there will be an error if you try to call yices_power with
-    // an uninterpreted term.
     else
     {
-      return Term(new Yices2Term(component));
+      yices_product_component(term, pos, &component, &exp);
+
+      if (exp != 1)
+      {
+        ret_term = yices_power(component, exp);
+      }
+      // If exp is one, just return the component. This is important
+      // because the component may be an uninterpreted term, and
+      // there will be an error if you try to call yices_power with
+      // an uninterpreted term.
+      else
+      {
+        ret_term = component;
+      }
     }
   }
   else if (yices_term_is_composite(term))
   {
-    return Term(new Yices2Term(yices_term_child(term, pos)));
+    ret_term = yices_term_child(term, pos);
   }
   else
   {
-    return Term(new Yices2Term(term));
+    ret_term = term;
+  }
+
+  if (yices_term_is_function(ret_term))
+  {
+    return Term(new Yices2Term(ret_term, true));
+  }
+  else
+  {
+    return Term(new Yices2Term(ret_term));
   }
 }
 

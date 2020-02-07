@@ -94,11 +94,7 @@ Sort Yices2Sort::get_codomain_sort() const
 bool Yices2Sort::compare(const Sort s) const
 {
   shared_ptr<Yices2Sort> ys = std::static_pointer_cast<Yices2Sort>(s);
-  if (type == ys->type)
-  {
-    return true;
-  }
-  return false;
+  return type == ys->type;
 }
 
 SortKind Yices2Sort::get_sort_kind() const
