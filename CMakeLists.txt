@@ -71,6 +71,8 @@ endif()
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
    "Build Python bindings")
+option (USE_PYTHON2
+   "Use Python2 for bindings")
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)

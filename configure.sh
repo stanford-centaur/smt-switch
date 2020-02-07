@@ -22,6 +22,7 @@ Configures the CMAKE build environment.
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
 --python                compile with python bindings (default: off)
+--py2                   use python2 interpreter (default: python3)
 EOF
   exit 0
 }
@@ -41,6 +42,7 @@ cvc4_home=default
 msat_home=default
 static=default
 python=default
+py2=default
 
 build_type=Release
 
@@ -116,6 +118,9 @@ do
         --python)
             python=yes
             ;;
+        --py2)
+            py2=yes
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -149,6 +154,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
+
+[ $py2 != default ] \
+    && cmake_opts="$cmake_opts -DUSE_PYTHON2=ON"
 
 root_dir=$(pwd)
 
