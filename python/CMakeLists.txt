@@ -4,15 +4,15 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
-find_package(PythonExtensions REQUIRED)
-find_package(Cython 0.29 REQUIRED)
-
 if (USE_PYTHON2)
   message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
   find_package(PythonInterp 2.7 REQUIRED)
 else()
   find_package(PythonInterp 3 REQUIRED)
 endif()
+
+find_package(PythonExtensions REQUIRED)
+find_package(Cython 0.29 REQUIRED)
 
 include_directories()
 
