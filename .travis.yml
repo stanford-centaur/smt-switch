@@ -52,7 +52,8 @@ jobs:
     #   env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
-  - ./scripts/travis-setup-osx-python.sh
+  # brew fails on something, but we don't want the build to fail because of that
+  - ./scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER} --python"
