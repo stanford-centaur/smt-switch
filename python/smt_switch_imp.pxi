@@ -65,26 +65,34 @@ cdef class Result:
 
 cdef class Sort:
     cdef c_Sort cs
+    cdef SmtSolver _solver
     def __cinit__(self):
         pass
+
+    def __init__(self, SmtSolver solver):
+        # some backends require the solver to be present for destruction
+        # of sorts and terms
+        # Python doesn't know this and will garbage collect in the wrong order
+        # Keeping a reference to the solver prevents this
+        self._solver = solver
 
     def get_width(self):
         return dref(self.cs).get_width()
 
     def get_indexsort(self):
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self._solver)
         s.cs = dref(self.cs).get_indexsort()
         return s
 
     def get_elemsort(self):
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self._solver)
         s.cs = dref(self.cs).get_elemsort()
         return s
 
     def get_domain_sorts(self):
         sorts = []
 
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self._solver)
         for cs in dref(self.cs).get_domain_sorts():
             s.cs = cs
             sorts.append(s)
@@ -92,7 +100,7 @@ cdef class Sort:
         return sorts
 
     def get_codomain_sort(self):
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self._solver)
         s.cs = dref(self.cs).get_codomain_sort()
         return s
 
@@ -114,8 +122,16 @@ cdef class Sort:
 
 cdef class Term:
     cdef c_Term ct
+    cdef SmtSolver _solver
     def __cinit__(self):
         pass
+
+    def __init__(self, SmtSolver solver):
+        # some backends require the solver to be present for destruction
+        # of sorts and terms
+        # Python doesn't know this and will garbage collect in the wrong order
+        # Keeping a reference to the solver prevents this
+        self._solver = solver
 
     def get_op(self):
         # Technically not supporting the empty constructor
@@ -125,7 +141,7 @@ cdef class Term:
         return o
 
     def get_sort(self):
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self._solver)
         s.cs = dref(self.ct).get_sort()
         return s
 
@@ -155,7 +171,7 @@ cdef class Term:
 
     def __iter__(self):
         for ci in dref(self.ct):
-            t = Term()
+            t = Term(self._solver)
             t.ct = ci
             yield t
 
@@ -196,12 +212,12 @@ cdef class SmtSolver:
         dref(self.css).pop(num)
 
     def get_value(self, Term t):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         term.ct = dref(self.css).get_value(t.ct)
         return term
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
-        cdef Sort s = Sort()
+        cdef Sort s = Sort(self)
         cdef c_SortKind sk
         cdef c_SortVec csv
 
@@ -232,7 +248,7 @@ cdef class SmtSolver:
         return s
 
     def make_term(self, arg0, arg1=None, arg2=None, arg3=None):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         cdef c_TermVec ctv
 
         if isinstance(arg0, PrimOp):
@@ -271,7 +287,7 @@ cdef class SmtSolver:
         return term
 
     def make_symbol(self, str name, Sort sort):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         term.ct = dref(self.css).make_symbol(name.encode(), sort.cs)
         return term
 
@@ -282,7 +298,7 @@ cdef class SmtSolver:
         dref(self.css).reset_assertions()
 
     def substitute(self, Term t, dict substitution_map):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         cdef c_UnorderedTermMap utm
 
         for k, v in substitution_map.items():
