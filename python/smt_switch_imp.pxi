@@ -3,8 +3,6 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-# Imports will be substituted here
-%s
 from smt_switch_imp cimport Op as c_Op
 from smt_switch_imp cimport Result as c_Result
 from smt_switch_imp cimport SmtSolver as c_SmtSolver

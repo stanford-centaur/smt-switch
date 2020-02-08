@@ -25,7 +25,7 @@ target_link_libraries(smt_switch smt-switch ${PYTHON_LIBRARIES})
 
 # generate necessary collateral here
 include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
-set(GEN_OPTIONS --template-dir ${PROJECT_SOURCE_DIR}/python/ --dest-dir ${CMAKE_CURRENT_LIST_DIR})
+set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_LIST_DIR})
 
 if (BUILD_BTOR)
   include_directories("${PROJECT_SOURCE_DIR}/btor/include")
@@ -54,7 +54,7 @@ add_custom_target(gen-smt-switch-imp
   DEPENDS
     gen-smt-switch-imp.py
   COMMENT
-    "Generate smt_switch_imp.{pxd,pxi}"
+    "Generate solvers.{pxd,pxi}"
   )
 
 python_extension_module(smt_switch)

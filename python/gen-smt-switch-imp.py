@@ -51,49 +51,40 @@ cdef extern from "msat_factory.h":
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate smt_switch python binding implementations.")
-    parser.add_argument('--template-dir', help='The directory where the templates are kept', required=True)
     parser.add_argument('--dest-dir', help='Where to put the generated files', required=True)
     parser.add_argument('--btor', action='store_true', help='Build with Boolector')
     parser.add_argument('--cvc4', action='store_true', help='Build with CVC4')
     parser.add_argument('--msat', action='store_true', help='Build with MathSAT')
 
     args = parser.parse_args()
-    template_dir = args.template_dir
     dest_dir = args.dest_dir
 
-    pxd = None
-    pxi = None
     imports = []
-    with open(template_dir + '/smt_switch_imp_pxd.template', 'r') as f:
-        pxd = f.read()
-    assert pxd is not None, 'Error reading template pxd file'
 
-    with open(template_dir + '/smt_switch_imp_pxi.template', 'r') as f:
-        pxi = f.read()
-    assert pxi is not None, 'Error reading template pxi file'
-
+    pxd = ''
+    pxi = '%s'
     if args.btor:
-        pxd += "\n\n" + DECLARE_BTOR
-        pxi += "\n\n" + CREATE_BTOR
+        pxd += "\n" + DECLARE_BTOR
+        pxi += "\n" + CREATE_BTOR
         imports.append('cpp_create_btor_solver')
 
     if args.cvc4:
-        pxd += "\n\n" + DECLARE_CVC4
-        pxi += "\n\n" + CREATE_CVC4
+        pxd += "\n" + DECLARE_CVC4
+        pxi += "\n" + CREATE_CVC4
         imports.append('cpp_create_cvc4_solver')
 
     if args.msat:
-        pxd += "\n\n" + DECLARE_MSAT
-        pxi += "\n\n" + CREATE_MSAT
+        pxd += "\n" + DECLARE_MSAT
+        pxi += "\n" + CREATE_MSAT
         imports.append('cpp_create_msat_solver')
 
     if imports:
         CREATE_IMPORTS = 'from smt_switch_imp cimport ' + ','.join(imports)
     else:
-        CREATE_IMPORTS = '# No solvers substituted'
+        CREATE_IMPORTS = '# Built with no solvers...'
 
-    with open(dest_dir + "/smt_switch_imp.pxd", 'w') as f:
+    with open(dest_dir + "/solvers.pxd", 'w') as f:
         f.write(pxd)
 
-    with open(dest_dir + "/smt_switch_imp.pxi", 'w') as f:
+    with open(dest_dir + "/solvers.pxi", 'w') as f:
         f.write(pxi%CREATE_IMPORTS)
