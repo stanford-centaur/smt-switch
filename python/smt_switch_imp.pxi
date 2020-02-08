@@ -205,10 +205,10 @@ cdef class SmtSolver:
         dref(self.css).check_sat_assuming(ctv)
         return r
 
-    def push(self, int num):
+    def push(self, int num=1):
         dref(self.css).push(num)
 
-    def pop(self, int num):
+    def pop(self, int num=1):
         dref(self.css).pop(num)
 
     def get_value(self, Term t):
