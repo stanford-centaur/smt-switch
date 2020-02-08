@@ -52,8 +52,9 @@ jobs:
       env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
-  - python --version
   # - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   # - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
-  # - bash -c "./configure.sh --${SOLVER} --python"
+  - bash -c "./configure.sh --${SOLVER} --python"
+  - find . -name "smt_solvers.pxd"
+  - python --version
   # - cd build && make && make test
