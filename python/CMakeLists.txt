@@ -45,14 +45,14 @@ if (BUILD_MSAT)
   set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
 endif()
 
-add_custom_target(gen-smt-switch-imp
+add_custom_target(gen-smt-solver-declarations
   ALL
   COMMAND
     ${PYTHON_EXECUTABLE}
-    ${CMAKE_CURRENT_LIST_DIR}/gen-smt-switch-imp.py
+    ${CMAKE_CURRENT_LIST_DIR}/gen-smt-solver-declarations.py
     ${GEN_OPTIONS}
   DEPENDS
-    gen-smt-switch-imp.py
+    gen-smt-solver-declarations.py
   COMMENT
     "Generate smt_solvers.{pxd,pxi}"
   )
