@@ -41,3 +41,9 @@ where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/li
 
 # Building Tests
  You can build tests with `make test` from the build directory. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc4_factory.h"` -> `#include "smt-switch/cvc4_factory.h"`.
+
+## Debug
+The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
+
+# Python bindings
+To compile python bindings, use the `--python` flag of `configure.sh`. By adding the flag `--py2`, you can ask CMake to use `python2`; however, this is not tested with CI. The python bindings require [Cython](https://cython.org). After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch.so`. To install this in your python environment, you can run `pip install -e ./python` from the `build` directory.
