@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 
-# This file generates the Python implementation for the Cython bindings
-# It needs to be auto-generated because the solver creation functions
-# Depend on which solvers it is being compiled with
+# This file generates the declarations and python implementation for creating solvers
+# It needs to be auto-generated because they depend on which solvers it
+# is being compiled with
 
 import argparse
 
