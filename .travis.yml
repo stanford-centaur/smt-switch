@@ -59,6 +59,6 @@ script:
   - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER} --python"
   - bash -c "cd build && make -j"
-  - find . -name "smt_solvers.pxd"
+  - pwd && ls -lha && find . -name "smt_solvers.pxd"
   - python --version
   # - cd build && make && make test
