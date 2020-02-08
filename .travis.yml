@@ -61,5 +61,5 @@ script:
   # - bash -c "./configure.sh --${SOLVER} --python"
   # - bash -c "cd build && make -j"
   # - pwd && ls -lha && find . -name "smt_solvers.pxd"
-  - python --version
+  - python3 --version
   # - cd build && make && make test
