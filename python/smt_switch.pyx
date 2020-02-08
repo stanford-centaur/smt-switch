@@ -6,3 +6,4 @@
 
 include "enums.pxi"
 include "smt_switch_imp.pxi"
+include "smt_solvers.pxi"

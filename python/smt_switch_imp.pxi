@@ -209,7 +209,9 @@ cdef class SmtSolver:
             s.cs = dref(self.css).make_sort(<const string> arg0.encode(), <int?> arg1)
         elif isinstance(arg0, SortKind):
             sk = (<SortKind> arg0).sk
-            if isinstance(arg1, int):
+            if arg1 is None:
+                s.cs = dref(self.css).make_sort(sk)
+            elif isinstance(arg1, int):
                 s.cs = dref(self.css).make_sort(sk, <int> arg1)
             elif isinstance(arg1, Sort) and arg2 is None:
                 s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs)

@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = ''
+    pxd = 'from smt_switch_imp cimport SmtSolver'
     pxi = '%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
@@ -79,12 +79,12 @@ if __name__ == "__main__":
         imports.append('cpp_create_msat_solver')
 
     if imports:
-        CREATE_IMPORTS = 'from smt_switch_imp cimport ' + ','.join(imports)
+        CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)
     else:
         CREATE_IMPORTS = '# Built with no solvers...'
 
-    with open(dest_dir + "/solvers.pxd", 'w') as f:
+    with open(dest_dir + "/smt_solvers.pxd", 'w') as f:
         f.write(pxd)
 
-    with open(dest_dir + "/solvers.pxi", 'w') as f:
+    with open(dest_dir + "/smt_solvers.pxi", 'w') as f:
         f.write(pxi%CREATE_IMPORTS)

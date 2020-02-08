@@ -54,7 +54,7 @@ add_custom_target(gen-smt-switch-imp
   DEPENDS
     gen-smt-switch-imp.py
   COMMENT
-    "Generate solvers.{pxd,pxi}"
+    "Generate smt_solvers.{pxd,pxi}"
   )
 
 python_extension_module(smt_switch)
