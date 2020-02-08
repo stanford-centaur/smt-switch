@@ -22,44 +22,38 @@ addons:
 
 jobs:
   include:
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor" OPTS=""
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="msat" OPTS="--auto-yes"
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor" OPTS=""
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="msat" OPTS="--auto-yes"
     - os: osx
       osx_image: xcode9
       env: SOLVER='btor' OPTS=""
-    - os: osx
-      osx_image: xcode9
-      env: SOLVER='cvc4' OPTS=""
-    - os: osx
-      osx_image: xcode9
-      env: SOLVER='msat' OPTS="--auto-yes"
+    # - os: osx
+    #   osx_image: xcode9
+    #   env: SOLVER='cvc4' OPTS=""
+    # - os: osx
+    #   osx_image: xcode9
+    #   env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
   - ./scripts/travis-setup-osx-python.sh
-  # - bash -c "if [ $TRAVIS_OS_NAME == 'osx' ]; then
-  #    echo 'OSX!'
-  #    fi"
-  # - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
-  # - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
-  # - bash -c "./configure.sh --${SOLVER} --python"
-  # - bash -c "cd build && make -j"
-  # - pwd && ls -lha && find . -name "smt_solvers.pxd"
-  - python3 --version
-  # - cd build && make && make test
+  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
+  - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
+  - bash -c "./configure.sh --${SOLVER} --python"
+  - bash -c "cd build && make -j"
