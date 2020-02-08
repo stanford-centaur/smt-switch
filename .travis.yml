@@ -55,4 +55,4 @@ script:
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER} --python"
-  - cd build && make && make test
+  - bash -c "cd build && make -j && make test"
