@@ -2,21 +2,26 @@ import pytest
 import smt_switch as ss
 
 solvers=[]
+full_bv_support=[]
 try:
     from smt_switch import create_btor_solver
     solvers.append(create_btor_solver)
+    full_bv_support.append(create_btor_solver)
 except:
     pass
 
 try:
     from smt_switch import create_cvc4_solver
     solvers.append(create_cvc4_solver)
+    # TODO: Add CVC4 back in once get_op / substitute is implemented
+    # full_bv_support.append(create_cvc4_solver)
 except:
     pass
 
 try:
     from smt_switch import create_msat_solver
     solvers.append(create_msat_solver)
+    full_bv_support.append(create_msat_solver)
 except:
     pass
 
@@ -116,5 +121,45 @@ def test_hackers_delight(create_solver):
     assert(r.is_unsat())
     solver.pop()
 
-if __name__ == "__main__":
-    test_bvadd()
+
+@pytest.mark.parametrize("create_solver", full_bv_support)
+def test_complex_expr(create_solver):
+    from smt_switch import Op
+
+    solver = create_solver()
+    bv128 = solver.make_sort(ss.sortkinds.BV, 128)
+    bv32 = solver.make_sort(ss.sortkinds.BV, 32)
+
+    x = solver.make_symbol('x', bv128)
+    y = solver.make_symbol('y', bv128)
+    a = solver.make_symbol('a', bv32)
+    b = solver.make_symbol('b', bv32)
+    c = solver.make_symbol('c', bv32)
+    d = solver.make_symbol('d', bv32)
+
+    abcd = solver.make_term(ss.primops.Concat,
+                            a,
+                            solver.make_term(ss.primops.Concat,
+                                             b,
+                                             solver.make_term(ss.primops.Concat,
+                                                              c, d)))
+
+    t0 = solver.make_term(ss.primops.BVXor, x, y)
+    t1 = solver.make_term(ss.primops.BVSub, x, abcd)
+    t2 = solver.make_term(ss.primops.BVAdd, t0, t1)
+    t3 = solver.make_term(Op(ss.primops.Extract, 31, 0), t0)
+    t4 = solver.make_term(ss.primops.BVOr, t3, c)
+    t5 = solver.make_term(ss.primops.BVAshr, b, d)
+    t6 = solver.make_term(ss.primops.Concat,
+                            t4,
+                            solver.make_term(ss.primops.Concat,
+                                            a,
+                                            solver.make_term(ss.primops.Concat,
+                                                            t5, b)))
+    t7 = solver.make_term(ss.primops.Ite, solver.make_term(ss.primops.BVUle, x, y),
+                            t2, t6)
+    t8 = solver.make_term(ss.primops.BVLshr, t7, t0)
+
+    t8_sub = solver.substitute(t8, {x:x, y:y, a:a, b:b, c:c, d:d})
+    # should be identical
+    assert t8 == t8_sub, "Expecting identical terms but got:\n\t%s\n\t%s"%(t8, t8_sub)

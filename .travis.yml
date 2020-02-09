@@ -58,3 +58,4 @@ script:
   - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER} --python"
   - bash -c "cd build && make -j && make test"
+  - bash -c "sudo python3 -m pip install ./build/python && pytest"
