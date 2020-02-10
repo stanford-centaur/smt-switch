@@ -14,18 +14,43 @@ from smt_switch_imp cimport UnorderedTermMap as c_UnorderedTermMap
 from smt_switch_imp cimport TermIter as c_TermIter
 
 from enums cimport SortKind as c_SortKind
+from enums cimport PrimOp as c_PrimOp
 # PrimOp, SortKind classes are defined at this scope
 # because enums.pxi is inlined before this
 
 cdef class Op:
     cdef c_Op op
-    def __cinit__(self, PrimOp o, idx0=None, idx1=None):
-        if idx0 is None:
-            self.op = c_Op(o.po)
-        elif idx1 is None:
-            self.op = c_Op(o.po, <int?> idx0)
+    def __cinit__(self, prim_op=None, idx0=None, idx1=None):
+        if isinstance(prim_op, PrimOp):
+            if idx0 is None:
+                self.op = c_Op((<PrimOp?> prim_op).po)
+            elif idx1 is None:
+                self.op = c_Op((<PrimOp?> prim_op).po, <int?> idx0)
+            else:
+                self.op = c_Op((<PrimOp?> prim_op).po, <int?> idx0, <int?> idx1)
         else:
-            self.op = c_Op(o.po, <int?> idx0, <int?> idx1)
+            self.op = c_Op()
+
+    @property
+    def prim_op(self):
+        cdef PrimOp po = PrimOp()
+        po.po = self.op.prim_op
+        return po
+
+    @property
+    def num_idx(self):
+        return self.op.num_idx
+
+    @property
+    def idx0(self):
+        return self.op.idx0
+
+    @property
+    def idx1(self):
+        return self.op.idx1
+
+    def __bool__(self):
+        return not self.op.is_null()
 
     def __str__(self):
         return self.op.to_string().decode()
@@ -134,8 +159,6 @@ cdef class Term:
         self._solver = solver
 
     def get_op(self):
-        # Technically not supporting the empty constructor
-        # TODO check that this actually works
         cdef Op o = Op()
         o.op = dref(self.ct).get_op()
         return o
@@ -255,6 +278,9 @@ cdef class SmtSolver:
             arg0 = Op(arg0)
 
         if isinstance(arg0, Op):
+            if not arg0:
+                raise ValueError("Got a null Op in make_term")
+
             if arg2 is None:
                 term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct)
             elif arg3 is None:

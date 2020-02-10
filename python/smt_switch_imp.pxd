@@ -43,10 +43,12 @@ cdef extern from "ops.h" namespace "smt":
         Op(PrimOp o, uint64_t idx0) except +
         Op(PrimOp o, uint64_t idx0, uint64_t idx1) except +
         string to_string() except +
+        bint is_null() except +
+        PrimOp prim_op
+        uint64_t num_idx
+        uint64_t idx0
+        uint64_t idx1
 
-
-# TODO See if we can combine with above cdef extern
-cdef extern from "ops.h" namespace "smt":
     bint operator==(Op op1, Op op2) except +
     bint operator!=(Op op1, Op op2) except +
     ostream& operator<<(ostream & output, const Op o) except +
@@ -76,9 +78,6 @@ cdef extern from "term.h" namespace "smt":
         TermIter begin() except +
         TermIter end() except +
 
-
-# TODO See if we can combine with above cdef extern
-cdef extern from "term.h" namespace "smt":
     bint operator==(const Term& t1, const Term& t2) except +
     bint operator!=(const Term& t1, const Term& t2) except +
     ostream& operator<<(ostream& output, const Term t) except +
@@ -124,5 +123,3 @@ cdef extern from "solver.h" namespace "smt":
         void reset() except +
         void reset_assertions() except +
         Term substitute(const Term term, const UnorderedTermMap & substitution_map) except +
-
-

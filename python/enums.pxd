@@ -1,13 +1,12 @@
+from libcpp.string cimport string
+
 cdef extern from "ops.h" namespace "smt":
     cdef cppclass SortKind:
-    # TODO see if we could just declare them all here
         pass
 
     cdef cppclass PrimOp:
-        # TODO see if we could just declare them all here
         pass
 
-    # TODO see if we can go without this (need to delete below as well)
     cdef cppclass ResultType:
         pass
 
@@ -21,7 +20,6 @@ cdef extern from "sort.h" namespace "smt":
     cdef SortKind FUNCTION
 
 
-# TODO try calling it c_PrimOp somewhere
 cdef extern from "ops.h" namespace "smt":
     cdef PrimOp And
     cdef PrimOp Or
@@ -95,6 +93,7 @@ cdef extern from "ops.h" namespace "smt":
     cdef PrimOp Select
     cdef PrimOp Store
     cdef PrimOp Const_Array
+    string to_string(PrimOp op) except +
 
 
 cdef extern from "ops.h" namespace "smt":
