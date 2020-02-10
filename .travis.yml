@@ -59,4 +59,4 @@ script:
   - bash -c "./configure.sh --${SOLVER} --python"
   - bash -c "cd build && make -j && make test"
   - sudo python3 -m pip install ./build/python
-  - pytest
+  - bash -c "export PYTHONPATH=$PYTHONPATH:./build/python && pytest"
