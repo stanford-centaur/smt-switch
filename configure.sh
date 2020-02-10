@@ -13,9 +13,11 @@ Configures the CMAKE build environment.
 -h, --help              display this message and exit
 --prefix=STR            install directory       (default: /usr/local/)
 --btor                  build boolector         (default: off)
+--yices2                build yices2            (default: off)
 --cvc4                  build cvc4              (default: off)
 --msat                  build MathSAT           (default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
+--yices2-home=STR       custom YICES2 location  (default: deps/yices2)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --build-dir=STR         custom build directory  (default: build)
@@ -33,9 +35,11 @@ die () {
 build_dir=build
 install_prefix=default
 build_btor=default
+build_yices2=default
 build_cvc4=default
 build_msat=default
 btor_home=default
+yices2_home=default
 cvc4_home=default
 msat_home=default
 static=default
@@ -59,6 +63,9 @@ do
         --btor)
             build_btor=ON
             ;;
+        --yices2)
+            build_yices2=ON
+            ;;
         --cvc4)
             build_cvc4=ON
             ;;
@@ -73,6 +80,16 @@ do
             case $btor_home in
                 /*) ;;                                      # absolute path
                 *) btor_home=$(pwd)/$btor_home ;; # make absolute path
+            esac
+            ;;
+        --yices2-home) die "missing argument to $1 (see -h)" ;;
+        --yices2-home=*)
+            yices2_home=${1##*=}
+            # Check if yices2_home is an absolute path and if not, make it
+            # absolute.
+            case $yices2_home in
+                /*) ;;                                      # absolute path
+                *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
             esac
             ;;
         --cvc4-home) die "missing argument to $1 (see -h)" ;;
@@ -124,11 +141,17 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_btor != default ] \
     && cmake_opts="$cmake_opts -DBUILD_BTOR=$build_btor"
 
+[ $build_yices2 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
+
 [ $build_cvc4 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_CVC4=$build_cvc4"
 
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
+
+[ $yices2_home != default ] \
+    && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
 
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"

@@ -194,13 +194,6 @@ Op Yices2Term::get_op() const
   std::string sres;
   switch (tc)
   {
-    // atomic terms
-    case YICES_BOOL_CONSTANT:
-    case YICES_ARITH_CONSTANT:
-    case YICES_BV_CONSTANT:
-    case YICES_SCALAR_CONSTANT:
-    case YICES_VARIABLE:
-    case YICES_UNINTERPRETED_TERM: return Op();
     // composite terms
     case YICES_ITE_TERM: return Op(Ite);
     case YICES_APP_TERM:
@@ -261,19 +254,53 @@ Op Yices2Term::get_op() const
         return Op(Mult);
       }
       return Op(Pow);
-    case YICES_UPDATE_TERM:
-    case YICES_TUPLE_TERM:
-    case YICES_FORALL_TERM:
-    case YICES_LAMBDA_TERM:
+    case YICES_UPDATE_TERM: return Op();
+    case YICES_TUPLE_TERM: return Op();
+    case YICES_FORALL_TERM: return Op();
+    case YICES_LAMBDA_TERM: return Op();
     case YICES_BV_ARRAY:
-    case YICES_ARITH_ROOT_ATOM:
-    case YICES_CEIL:
-    case YICES_FLOOR:
-    case YICES_IS_INT_ATOM:
-    case YICES_DIVIDES_ATOM:
+      sres = this->to_string();
+      sres = sres.substr(sres.find("(") + 1, sres.length());
+      sres = sres.substr(0, sres.find(" "));
+      if (sres == "bv-concat")
+      {
+        return Op(Concat);
+      }
+      return Op();
+    case YICES_ARITH_ROOT_ATOM: return Op();
+    case YICES_CEIL: return Op();
+    case YICES_FLOOR: return Op();
+    case YICES_IS_INT_ATOM: return Op();
+    case YICES_DIVIDES_ATOM: return Op();
     // projections
-    case YICES_SELECT_TERM:
+    case YICES_SELECT_TERM: return Op();
     case YICES_BIT_TERM:
+      // TODO: Must fix this to extract coorect bit.
+      sres = this->to_string();
+      sres = sres.substr(sres.find("(") + 1, sres.length());
+      sres = sres.substr(0, sres.find(" "));
+      if (sres == "bv-extract")
+      {
+        return Op(Extract);
+      }
+      return Op();
+    // atomic terms
+    case YICES_BOOL_CONSTANT: return Op();
+    case YICES_ARITH_CONSTANT: return Op();
+    case YICES_BV_CONSTANT: return Op();
+    case YICES_SCALAR_CONSTANT: return Op();
+    case YICES_VARIABLE: return Op();
+    case YICES_UNINTERPRETED_TERM:
+      if (yices_term_is_function(term))
+      {
+        if (!is_function)
+        {
+          return Op(Select);
+        }
+        return Op(Apply);
+      }
+
+      return Op();
     default: return Op();
   }
 }
