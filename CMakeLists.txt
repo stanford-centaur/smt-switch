@@ -25,6 +25,21 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp")
 
+# Should we build python bindings
+option (BUILD_PYTHON_BINDINGS
+   "Build Python bindings")
+option (USE_PYTHON2
+   "Use Python2 for bindings")
+
+# Decide on Python version before setting up googletest
+# Otherwise might use wrong version
+if (USE_PYTHON2)
+  message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
+  find_package(PythonInterp 2.7 REQUIRED)
+else()
+  find_package(PythonInterp 3 REQUIRED)
+endif()
+
 # build testing infrastructure
 enable_testing()
 
@@ -88,12 +103,6 @@ if (BUILD_MSAT)
   # testing
   add_subdirectory(tests/msat)
 endif()
-
-# Should we build python bindings
-option (BUILD_PYTHON_BINDINGS
-   "Build Python bindings")
-option (USE_PYTHON2
-   "Use Python2 for bindings")
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
