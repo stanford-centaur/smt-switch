@@ -25,6 +25,11 @@ const Term CVC4TermIter::operator*()
   return t;
 };
 
+TermIterBase* CVC4TermIter::clone() const
+{
+  return new CVC4TermIter(term_it);
+}
+
 bool CVC4TermIter::operator==(const CVC4TermIter & it)
 {
   return term_it == it.term_it;

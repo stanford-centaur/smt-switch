@@ -23,6 +23,7 @@ class MsatTermIter : public TermIterBase
   MsatTermIter & operator=(const MsatTermIter & it);
   void operator++() override;
   const Term operator*() override;
+  TermIterBase* clone() const override;
   bool operator==(const MsatTermIter & it);
   bool operator!=(const MsatTermIter & it);
 

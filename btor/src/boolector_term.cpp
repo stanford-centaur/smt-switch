@@ -122,6 +122,11 @@ const Term BoolectorTermIter::operator*()
   return t;
 };
 
+TermIterBase* BoolectorTermIter::clone() const
+{
+  return new BoolectorTermIter(btor, children, idx);
+}
+
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
   return ((btor == it.btor) && (idx == it.idx));
