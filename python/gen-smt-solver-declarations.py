@@ -12,6 +12,7 @@ def create_btor_solver():
     cdef SmtSolver solver = SmtSolver()
     solver.css = cpp_create_btor_solver()
     return solver
+solvers["btor"] = create_btor_solver
 '''
 
 
@@ -20,6 +21,7 @@ def create_cvc4_solver():
     cdef SmtSolver solver = SmtSolver()
     solver.css = cpp_create_cvc4_solver()
     return solver
+solvers["cvc4"] = create_cvc4_solver
 '''
 
 
@@ -28,6 +30,7 @@ def create_msat_solver():
     cdef SmtSolver solver = SmtSolver()
     solver.css = cpp_create_msat_solver()
     return solver
+solvers["msat"] = create_msat_solver
 '''
 
 
@@ -62,7 +65,7 @@ if __name__ == "__main__":
     imports = []
 
     pxd = 'from smt_switch_imp cimport SmtSolver'
-    pxi = '%s'
+    pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
         pxi += "\n" + CREATE_BTOR

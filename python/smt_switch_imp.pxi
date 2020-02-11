@@ -18,6 +18,7 @@ from enums cimport PrimOp as c_PrimOp
 # PrimOp, SortKind classes are defined at this scope
 # because enums.pxi is inlined before this
 
+
 cdef class Op:
     cdef c_Op op
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):

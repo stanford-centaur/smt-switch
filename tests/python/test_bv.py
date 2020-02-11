@@ -1,9 +1,7 @@
 import pytest
 import smt_switch as ss
 
-from collect_solvers import solvers, full_bv_support
-
-@pytest.mark.parametrize("create_solver", solvers)
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bvadd(create_solver):
     solver = create_solver()
     solver.set_opt('produce-models', 'true')
@@ -22,7 +20,7 @@ def test_bvadd(create_solver):
     assert int(xv) + int(yv) == 6
 
 
-@pytest.mark.parametrize("create_solver", solvers)
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_hackers_delight(create_solver):
     # The following example has been adapted from the book
     # A Hacker's Delight by Henry S. Warren.
@@ -99,7 +97,8 @@ def test_hackers_delight(create_solver):
     solver.pop()
 
 
-@pytest.mark.parametrize("create_solver", full_bv_support)
+# TODO: Add CVC4 back in once get_op / substitute is implemented
+@pytest.mark.parametrize("create_solver", [cs for name, cs in ss.solvers.items() if name != 'cvc4'])
 def test_complex_expr(create_solver):
     from smt_switch import Op
 

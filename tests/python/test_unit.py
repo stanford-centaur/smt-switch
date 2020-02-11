@@ -1,9 +1,8 @@
 import pytest
 import smt_switch as ss
 
-from collect_solvers import solvers, full_bv_support
-
-@pytest.mark.parametrize("create_solver", full_bv_support)
+# TODO: Add CVC4 back in once get_op / substitute is implemented
+@pytest.mark.parametrize("create_solver", [cs for name, cs in ss.solvers.items() if name != 'cvc4'])
 def test_unit_op(create_solver):
     solver = create_solver()
 
