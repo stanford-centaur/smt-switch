@@ -21,7 +21,8 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp")
+  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
+  "${PROJECT_SOURCE_DIR}/src/available_solvers.cpp")
 
 # build testing infrastructure
 enable_testing()
@@ -56,6 +57,8 @@ if (BUILD_BTOR)
   add_subdirectory (btor)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-btor)
 
+  add_definitions(-DBUILD_BTOR)
+
   # testing
   add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
@@ -70,6 +73,8 @@ if (BUILD_CVC4)
   add_subdirectory (cvc4)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-cvc4)
 
+  add_definitions(-DBUILD_CVC4)
+
   # testing
   add_subdirectory(tests/cvc4)
 endif (BUILD_CVC4)
@@ -83,8 +88,11 @@ if (BUILD_MSAT)
   add_subdirectory (msat)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-msat)
 
+  add_definitions(-DBUILD_MSAT)
+
   # testing
   add_subdirectory(tests/msat)
+
 endif()
 
 # install smt-switch
