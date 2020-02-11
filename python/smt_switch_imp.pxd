@@ -12,7 +12,6 @@ ctypedef shared_ptr[AbsTerm] Term
 ctypedef shared_ptr[AbsSmtSolver] SmtSolver
 ctypedef vector[Sort] SortVec
 ctypedef vector[Term] TermVec
-# ctypedef unordered_map[Term, Term] UnorderedTermMap
 
 
 cdef extern from "<iostream>" namespace "std":
