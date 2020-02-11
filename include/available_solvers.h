@@ -16,8 +16,8 @@ enum SolverEnum
  MSAT
 };
 
-typedef std::unordered_map<SolverEnum, create_solver_fun> SolverMap;
+typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
 
-const SolverMap available_solvers();
+const CreateSolverFunsMap available_solvers();
 
 }

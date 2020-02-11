@@ -15,7 +15,7 @@
 namespace smt
 {
 
-const SolverMap solvers({
+const CreateSolverFunsMap solvers({
     #if BUILD_BTOR
     {BTOR, BoolectorSolverFactory::create},
     #endif
@@ -30,7 +30,7 @@ const SolverMap solvers({
 });
 
 
-const SolverMap available_solvers()
+const CreateSolverFunsMap available_solvers()
 {
   return solvers;
 }
