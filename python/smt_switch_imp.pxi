@@ -251,10 +251,14 @@ cdef class SmtSolver:
             sk = (<SortKind> arg0).sk
             if arg1 is None:
                 s.cs = dref(self.css).make_sort(sk)
-            elif isinstance(arg1, int):
+            elif isinstance(arg1, int) and arg2 is None:
                 s.cs = dref(self.css).make_sort(sk, <int> arg1)
             elif isinstance(arg1, Sort) and arg2 is None:
                 s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs)
+            elif isinstance(arg1, list) and arg2 is None:
+                for a in arg1:
+                    csv.push_back((<Sort?> a).cs)
+                s.cs = dref(self.css).make_sort(sk, csv)
             elif arg3 is None:
                 s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs)
             elif arg3 is not None:
@@ -262,9 +266,9 @@ cdef class SmtSolver:
                                                     (<Sort?> arg2).cs,
                                                     (<Sort?> arg3).cs)
             else:
-                for a in arg1:
-                    csv.push_back((<Sort?> a).cs)
-                s.cs = dref(self.css).make_sort(sk, csv)
+                raise ValueError("Cannot find matching function for {}".format([type(a)
+                                                                                for a in
+                                                                                [arg0, arg1, arg2, arg3]]))
         else:
             raise ValueError("Cannot find matching function for {}".format([type(a)
                                                                             for a in
