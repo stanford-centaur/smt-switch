@@ -1,15 +1,14 @@
 #include <utility>
 #include <vector>
 
+#include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
-#include "available_solvers.h"
 
 using namespace smt;
 using namespace std;
 
-namespace smt_tests
-{
+namespace smt_tests {
 
 // collect all the available solvers
 std::vector<SolverEnum> collect_solver_enums()
@@ -27,14 +26,13 @@ std::vector<SolverEnum> collect_solver_enums()
 class UnitTests : public ::testing::Test,
                   public testing::WithParamInterface<SolverEnum>
 {
-protected:
+ protected:
   void SetUp() override
   {
     s = available_solvers().at(GetParam())();
 
     bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{bvsort, bvsort});
-
+    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
   }
   SmtSolver s;
   Sort bvsort, funsort;
@@ -57,4 +55,4 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
                          testing::ValuesIn(collect_solver_enums()));
 
-}
+}  // namespace smt_tests
