@@ -30,7 +30,7 @@ const CreateSolverFunsMap solvers({
 });
 
 
-const CreateSolverFunsMap available_solvers()
+CreateSolverFunsMap available_solvers()
 {
   return solvers;
 }

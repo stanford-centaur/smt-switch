@@ -7,7 +7,7 @@
 namespace smt
 {
 
-typedef SmtSolver (*create_solver_fun)();
+typedef SmtSolver (*create_solver_fun)(void);
 
 enum SolverEnum
 {
@@ -18,6 +18,6 @@ enum SolverEnum
 
 typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
 
-const CreateSolverFunsMap available_solvers();
+CreateSolverFunsMap available_solvers();
 
 }

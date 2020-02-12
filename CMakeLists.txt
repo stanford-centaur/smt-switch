@@ -21,8 +21,7 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
-  "${PROJECT_SOURCE_DIR}/src/available_solvers.cpp")
+  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp")
 
 # build testing infrastructure
 enable_testing()
@@ -94,6 +93,20 @@ if (BUILD_MSAT)
   add_subdirectory(tests/msat)
 
 endif()
+
+# GoogleTests
+
+add_library(available-solvers "${SMT_SWITCH_LIB_TYPE}"
+  "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
+
+target_include_directories(available-solvers PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
+# TODO: Fix this
+target_link_libraries(available-solvers smt-switch ${EXTRA_LIBS})
+
+add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp")
+target_link_libraries(unit-termiter gtest_main)
+target_link_libraries(unit-termiter available-solvers)
+add_test(NAME unit-termiter_test COMMAND unit-termiter)
 
 # install smt-switch
 install(TARGETS smt-switch DESTINATION lib)
