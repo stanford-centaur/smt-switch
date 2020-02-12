@@ -1,13 +1,14 @@
 #pragma once
 
+#include <iostream>
 #include <unordered_map>
 
 #include "smt_defs.h"
 
-namespace smt
+namespace smt_tests
 {
 
-typedef SmtSolver (*create_solver_fun)(void);
+typedef ::smt::SmtSolver (*create_solver_fun)(void);
 
 enum SolverEnum
 {
@@ -19,5 +20,7 @@ enum SolverEnum
 typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
 
 CreateSolverFunsMap available_solvers();
+
+std::ostream& operator<<(std::ostream& o, SolverEnum e);
 
 }
