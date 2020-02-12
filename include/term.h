@@ -62,11 +62,11 @@ class TermIterBase
   virtual ~TermIterBase() {}
   virtual void operator++() {}
   const virtual Term operator*();
-  virtual TermIterBase* clone() const = 0;
+  virtual TermIterBase * clone() const = 0;
   bool operator==(const TermIterBase& other) const;
 
  protected:
-  virtual bool equal(const TermIterBase& other) const = 0;
+  virtual bool equal(const TermIterBase & other) const = 0;
 };
 
 class TermIter

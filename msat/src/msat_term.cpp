@@ -119,7 +119,7 @@ const Term MsatTermIter::operator*()
   }
 }
 
-TermIterBase* MsatTermIter::clone() const
+TermIterBase * MsatTermIter::clone() const
 {
   return new MsatTermIter(env, term, pos);
 }

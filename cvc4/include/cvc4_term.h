@@ -20,7 +20,7 @@ namespace smt {
     CVC4TermIter & operator=(const CVC4TermIter & it);
     void operator++() override;
     const Term operator*() override;
-    TermIterBase* clone() const override;
+    TermIterBase * clone() const override;
     bool operator==(const CVC4TermIter & it);
     bool operator!=(const CVC4TermIter & it);
 

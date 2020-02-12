@@ -15,43 +15,38 @@
 
 using namespace smt;
 
-namespace smt_tests
-{
+namespace smt_tests {
 
 const CreateSolverFunsMap solvers({
-    #if BUILD_BTOR
-    {BTOR, BoolectorSolverFactory::create},
-    #endif
+#if BUILD_BTOR
+  { BTOR, BoolectorSolverFactory::create },
+#endif
 
-    #if BUILD_CVC4
-    {CVC4, CVC4SolverFactory::create},
-    #endif
+#if BUILD_CVC4
+      { CVC4, CVC4SolverFactory::create },
+#endif
 
-    #if BUILD_MSAT
-    {MSAT, MsatSolverFactory::create},
-    #endif
+#if BUILD_MSAT
+      { MSAT, MsatSolverFactory::create },
+#endif
 });
 
+CreateSolverFunsMap available_solvers() { return solvers; }
 
-CreateSolverFunsMap available_solvers()
+std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {
-  return solvers;
-}
-
-std::ostream& operator<<(std::ostream& o, SolverEnum e)
-{
-  switch(e)
+  switch (e)
   {
-  case BTOR: o << "BTOR"; break;
-  case CVC4: o << "CVC4"; break;
-  case MSAT: o << "MSAT"; break;
-  default:
-    // should print the integer representation
-    throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
-    break;
+    case BTOR: o << "BTOR"; break;
+    case CVC4: o << "CVC4"; break;
+    case MSAT: o << "MSAT"; break;
+    default:
+      // should print the integer representation
+      throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
+      break;
   }
 
   return o;
 }
 
-}
+}  // namespace smt_tests

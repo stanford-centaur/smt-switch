@@ -41,7 +41,7 @@ class BoolectorTermIter : public TermIterBase
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   const Term operator*() override;
-  TermIterBase* clone() const override;
+  TermIterBase * clone() const override;
   bool operator==(const BoolectorTermIter & it);
   bool operator!=(const BoolectorTermIter & it);
 

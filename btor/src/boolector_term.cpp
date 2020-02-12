@@ -122,7 +122,7 @@ const Term BoolectorTermIter::operator*()
   return t;
 };
 
-TermIterBase* BoolectorTermIter::clone() const
+TermIterBase * BoolectorTermIter::clone() const
 {
   return new BoolectorTermIter(btor, children, idx);
 }
