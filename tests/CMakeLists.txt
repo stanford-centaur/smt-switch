@@ -44,8 +44,7 @@ add_library(available-solvers "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
 
 target_include_directories(available-solvers PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
-# TODO: Fix this
-target_link_libraries(available-solvers smt-switch ${EXTRA_LIBS})
+target_link_libraries(available-solvers smt-switch ${SOLVER_BACKEND_LIBS})
 
 add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp")
 target_link_libraries(unit-termiter gtest_main)

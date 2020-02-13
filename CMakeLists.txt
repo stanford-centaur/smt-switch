@@ -33,7 +33,7 @@ option (BUILD_BTOR
 if (BUILD_BTOR)
   set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
   add_subdirectory (btor)
-  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-btor)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
   # testing
   add_subdirectory(tests/btor)
@@ -47,7 +47,7 @@ option (BUILD_CVC4
 if (BUILD_CVC4)
   set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
   add_subdirectory (cvc4)
-  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-cvc4)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
 
   # testing
   add_subdirectory(tests/cvc4)
@@ -60,7 +60,7 @@ option (BUILD_MSAT
 if (BUILD_MSAT)
   set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
   add_subdirectory (msat)
-  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-msat)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
   # testing
   add_subdirectory(tests/msat)
