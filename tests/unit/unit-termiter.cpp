@@ -23,6 +23,21 @@ std::vector<SolverEnum> collect_solver_enums()
   return solver_enums;
 }
 
+// full support
+std::vector<SolverEnum> full_support_enums()
+{
+  std::vector<SolverEnum> solver_enums;
+  for (auto elem : available_solvers())
+  {
+    // TODO: Finish CVC4 back implementation
+    if (elem.first != CVC4)
+    {
+      solver_enums.push_back(elem.first);
+    }
+  }
+  return solver_enums;
+}
+
 class UnitTests : public ::testing::Test,
                   public testing::WithParamInterface<SolverEnum>
 {
@@ -33,10 +48,29 @@ class UnitTests : public ::testing::Test,
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
-  Sort bvsort, funsort;
+  Sort bvsort, funsort, arrsort;
 };
+
+
+class FullSupportUnitTests : public ::testing::Test,
+                             public testing::WithParamInterface<SolverEnum>
+{
+protected:
+  void SetUp() override
+  {
+    s = available_solvers().at(GetParam())();
+
+    bvsort = s->make_sort(BV, 4);
+    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+  }
+  SmtSolver s;
+  Sort bvsort, funsort, arrsort;
+};
+
 
 TEST_P(UnitTests, TermIter)
 {
@@ -51,8 +85,22 @@ TEST_P(UnitTests, TermIter)
   ASSERT_TRUE(it == it2);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
+TEST_P(FullSupportUnitTests, ConstArr)
+{
+  Term zero     = s->make_term(0, bvsort);
+  Term constarr = s->make_term(zero, arrsort);
+  ASSERT_TRUE(constarr->get_op().is_null());
+  ASSERT_TRUE(constarr->get_sort() == arrsort);
+  ASSERT_TRUE(constarr->get_sort()->get_indexsort() == bvsort);
+  ASSERT_TRUE(constarr->get_sort()->get_elemsort() == bvsort);
+}
+
+INSTANTIATE_TEST_SUITE_P(ParametrizedForwardOnlyUnit,
                          UnitTests,
                          testing::ValuesIn(collect_solver_enums()));
+
+INSTANTIATE_TEST_SUITE_P(ParametrizedFullSupportUnit,
+                         FullSupportUnitTests,
+                         testing::ValuesIn(full_support_enums()));
 
 }  // namespace smt_tests
