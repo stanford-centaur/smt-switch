@@ -71,7 +71,6 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
   primop2str[Rotate_Right] = std::string_view("rotate_right");
   primop2str[Select] = std::string_view("select");
   primop2str[Store] = std::string_view("store");
-  primop2str[Const_Array] = std::string_view("const_array");
   return primop2str;
 }
 

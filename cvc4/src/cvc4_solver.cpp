@@ -79,8 +79,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       // Indexed Op
       { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR },
       { Select, ::CVC4::api::SELECT },
-      { Store, ::CVC4::api::STORE },
-      { Const_Array, ::CVC4::api::STORE_ALL } });
+      { Store, ::CVC4::api::STORE }});
 
 const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
     { { ::CVC4::api::AND, And },
@@ -135,7 +134,8 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       { ::CVC4::api::SELECT, Select },
       { ::CVC4::api::STORE, Store },
-      { ::CVC4::api::STORE_ALL, Const_Array } });
+      { ::CVC4::api::STORE_ALL, NUM_OPS_AND_NULL } // Const Array is a value in smt-switch (no op)
+    });
 
 // the kinds CVC4 needs to build an OpTerm for an indexed op
 const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(

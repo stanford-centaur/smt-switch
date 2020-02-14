@@ -52,7 +52,7 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     { MSAT_TAG_BV_SEXT, Sign_Extend },
     { MSAT_TAG_ARRAY_READ, Select },
     { MSAT_TAG_ARRAY_WRITE, Store },
-    { MSAT_TAG_ARRAY_CONST, Const_Array },
+    { MSAT_TAG_ARRAY_CONST, NUM_OPS_AND_NULL }, // Const Array is a value (no op)
     { MSAT_TAG_INT_TO_BV, Int_To_BV },
     { MSAT_TAG_INT_FROM_UBV, BV_To_Nat },
     // MSAT_TAG_FP_EQ,
@@ -234,7 +234,8 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_array_const(env, term))
   {
-    return Op(Const_Array);
+    // constant array is a value (has a null operator)
+    return Op();
   }
   else if (msat_term_is_bv_concat(env, term))
   {

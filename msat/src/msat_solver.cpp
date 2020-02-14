@@ -41,7 +41,6 @@ const unordered_map<PrimOp, msat_un_fun> msat_unary_ops({
     // Indexed Op
     // { Int_To_BV, }
     // Special case
-    // { Const_Array, }
 });
 
 const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(

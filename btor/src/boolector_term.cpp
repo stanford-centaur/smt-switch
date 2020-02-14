@@ -69,7 +69,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   else if ((k == BTOR_LAMBDA_NODE) && (bn->is_array))
   {
-    op = Op(Const_Array);
+    // constant array is a value -- give it a null operator
+    op = Op();
   }
   else
   {
