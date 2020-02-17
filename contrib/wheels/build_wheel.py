@@ -52,11 +52,7 @@ class CMakeBuild(build_ext):
         if not os.path.isdir(extdir):
             os.mkdir(extdir)
 
-        # test env variable to determine whether to build in debug
-        if os.environ.get("DEBUG") is not None:
-            cfg = 'Debug'
-        else:
-            cfg = 'Release'
+        cfg = 'Release'
         build_args = ['--config', cfg]
 
         cpu_count = max(2, multiprocessing.cpu_count() // 2)
