@@ -4,7 +4,6 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
-find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 include_directories()

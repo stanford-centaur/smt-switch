@@ -34,12 +34,7 @@ option (USE_PYTHON2
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  if (USE_PYTHON2)
-    message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
-    find_package(PythonInterp 2.7 REQUIRED)
-  else()
-    find_package(PythonInterp 3 REQUIRED)
-  endif()
+    find_package(PythonLibs REQUIRED)
 endif()
 
 # build testing infrastructure
