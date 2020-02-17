@@ -16,6 +16,9 @@ addons:
       - libhamcrest-java
       - openjdk-8-jdk
       - swig3.0
+      - python3
+      - python3-pip
+      - python3-setuptools
 
 jobs:
   include:
@@ -49,6 +52,11 @@ jobs:
       env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
+  # brew sometimes fails on something after the python installation -- but we don't want the build to fail
+  - ./scripts/travis-setup-osx-python.sh || true
+  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
-  - bash -c "./configure.sh --${SOLVER}"
-  - cd build && make && make test
+  - bash -c "./configure.sh --${SOLVER} --python"
+  - bash -c "cd build && make -j && make test"
+  - sudo python3 -m pip install ./build/python
+  - bash -c "export PYTHONPATH=$PYTHONPATH:./build/python && pytest"

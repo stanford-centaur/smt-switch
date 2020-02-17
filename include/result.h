@@ -16,7 +16,7 @@ enum ResultType
 
 struct Result
 {
-  Result() = delete;
+  Result() : result(NUM_RESULTS), explanation("null") {}
   Result(ResultType rt, std::string explanation = "")
       : result(rt), explanation(explanation)
   {
@@ -24,6 +24,7 @@ struct Result
   bool is_sat() { return result == SAT; };
   bool is_unsat() { return result == UNSAT; };
   bool is_unknown() { return result == UNKNOWN; };
+  bool is_null() { return result == NUM_RESULTS; };
   std::string to_string() const;
   ResultType result;
   std::string explanation;
