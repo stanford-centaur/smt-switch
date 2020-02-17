@@ -264,7 +264,10 @@ function(python_extension_module _target)
       set_target_properties(${_target} PROPERTIES SUFFIX ".pyd")
     endif()
 
-    target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
+    if (APPLE)
+        # linux doesn't need to link against python libraries
+        target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
+    endif()
   endif()
 endfunction()
 

@@ -35,3 +35,7 @@
 build/
 dist/
 *egg-info
+
+# Cython
+*.pxd
+*.pxi
