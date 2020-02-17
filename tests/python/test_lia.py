@@ -32,9 +32,9 @@ def test_simple(create_solver):
     r = solver.check_sat()
     assert r.is_sat()
 
-    # xv = int(solver.get_value(x))
-    # yv = int(solver.get_value(y))
-    # zv = int(solver.get_value(z))
+    xv = int(solver.get_value(x))
+    yv = int(solver.get_value(y))
+    zv = int(solver.get_value(z))
 
-    # assert 2*xv + 3*yv < 5
-    # assert 5*yv - 3*zv >= 2
+    assert 2*xv + 3*yv < 5
+    assert 5*yv - 3*zv >= 2

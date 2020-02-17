@@ -18,6 +18,7 @@ cdef extern from "sort.h" namespace "smt":
     cdef SortKind INT
     cdef SortKind REAL
     cdef SortKind FUNCTION
+    string to_string(SortKind sk) except +
 
 
 cdef extern from "ops.h" namespace "smt":

@@ -130,6 +130,11 @@ cdef class Sort:
         s.cs = dref(self.cs).get_codomain_sort()
         return s
 
+    def get_sort_kind(self):
+        cdef SortKind sk = SortKind()
+        sk.sk = dref(self.cs).get_sort_kind()
+        return sk
+
     def __eq__(self, Sort other):
         return self.cs == other.cs
 
@@ -176,7 +181,30 @@ cdef class Term:
         return dref(self.ct).is_value()
 
     def __int__(self):
-        return dref(self.ct).to_int()
+        val = dref(self.ct).to_string().decode()
+        s = self.get_sort()
+        sk = s.get_sort_kind()
+
+        try:
+            if sk == BV:
+                if val[:2] == '#b':
+                    return int(val[2:], 2)
+                elif val[:5] == '(_ bv':
+                    val = val[5:]
+                    val = val[:val.find(" ")]
+                    return int(val)
+                else:
+                    raise ValueError("Unable to interpret % as int"%self)
+            elif sk == INT:
+                if val[:2] == '(-':
+                    val = val[3:-1]
+                    val = "-" + val
+                return int(val)
+            else:
+                raise ValueError("Unable to interpret % as int"%self)
+        except:
+            raise ValueError("Unable to interpret % as int"%self)
+
 
     def __str__(self):
         return dref(self.ct).to_string().decode()

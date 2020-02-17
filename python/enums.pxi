@@ -8,9 +8,8 @@ FILENAME="enums.pxi"
 ################################################ SortKind #################################################
 cdef class SortKind:
     cdef enums.SortKind sk
-    cdef str name
-    def __cinit__(self, str name):
-        self.name = name
+    def __cinit__(self):
+        pass
 
     def __eq__(self, SortKind other):
         return (<int> self.sk) == (<int> other.sk)
@@ -19,13 +18,13 @@ cdef class SortKind:
         return (<int> self.sk) != (<int> other.sk)
 
     def __hash__(self):
-        return hash((<int> self.sk, self.name))
+        return hash(<int> self.sk)
 
     def __str__(self):
-        return self.name
+        return enums.to_string(self.sk).decode()
 
     def __repr__(self):
-        return self.name
+        return enums.to_string(self.sk).decode()
 
     def as_int(self):
         return <int> self.sk
@@ -37,27 +36,27 @@ sortkinds = ModuleType('sortkinds')
 sys.modules['%s.%s'%(__name__, sortkinds.__name__)] = sortkinds
 sortkinds.__file__ = FILENAME
 
-cdef SortKind ARRAY = SortKind('ARRAY')
+cdef SortKind ARRAY = SortKind()
 ARRAY.sk = enums.ARRAY
 setattr(sortkinds, 'ARRAY', ARRAY)
 
-cdef SortKind BOOL = SortKind('BOOL')
+cdef SortKind BOOL = SortKind()
 BOOL.sk = enums.BOOL
 setattr(sortkinds, 'BOOL', BOOL)
 
-cdef SortKind BV = SortKind('BV')
+cdef SortKind BV = SortKind()
 BV.sk = enums.BV
 setattr(sortkinds, 'BV', BV)
 
-cdef SortKind INT = SortKind('INT')
+cdef SortKind INT = SortKind()
 INT.sk = enums.INT
 setattr(sortkinds, 'INT', INT)
 
-cdef SortKind REAL = SortKind('REAL')
+cdef SortKind REAL = SortKind()
 REAL.sk = enums.REAL
 setattr(sortkinds, 'REAL', REAL)
 
-cdef SortKind FUNCTION = SortKind('FUNCTION')
+cdef SortKind FUNCTION = SortKind()
 FUNCTION.sk = enums.FUNCTION
 setattr(sortkinds, 'FUNCTION', FUNCTION)
 
