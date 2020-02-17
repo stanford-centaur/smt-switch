@@ -66,7 +66,9 @@ class CMakeBuild(build_ext):
         # default install everything?
         solvers = ["btor"] #, "cvc4", "msat"]
         solver_path = {"btor": "boolector", "cvc4": "CVC4", "msat": "mathsat"}
-        root_path = os.path.abspath(os.path.dirname(__file__))
+        root_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+        build_dir = os.path.join(root_path, "build")
+
         for solver in solvers:
             solver_dir = os.path.join(root_path, "deps", solver_path[solver])
             if os.path.isdir(solver_dir):
@@ -75,12 +77,15 @@ class CMakeBuild(build_ext):
             opts = ["--auto-yes"] if solver == "msat" else []
             subprocess.check_call([filename] + opts)
 
-        args = ["--" + solver for solver in solvers] + ["--python"]
-        config_filename = os.path.join(root_path, "configure.sh")
-        subprocess.check_call([config_filename] + args)
+        # to avoid multiple build, only call reconfigure if we couldn't find the makefile
+        # for python
+        python_make_dir = os.path.join(build_dir, "python")
+        if not os.path.isfile(os.path.join(python_make_dir, "Makefile")):
+            args = ["--" + solver for solver in solvers] + ["--python"]
+            config_filename = os.path.join(root_path, "configure.sh")
+            subprocess.check_call([config_filename] + args)
 
         # build the main library
-        build_dir = os.path.join(root_path, "build")
         subprocess.check_call(
             ['cmake', '--build', '.', "--target", "smt-switch"] + build_args, cwd=build_dir)
         # build the python binding
