@@ -18,6 +18,7 @@
 #=============================================================================
 # Copyright 2001-2009 Kitware, Inc.
 # Copyright 2012 Continuum Analytics, Inc.
+# Copyright 2020 Keyi Zhang
 #
 # All rights reserved.
 #
@@ -56,15 +57,15 @@ if(PYTHONLIBS_FOUND AND PYTHON_MODULE_EXTENSION)
 endif()
 
 # Use the Python interpreter to find the libs.
-if(PythonLibsNew_FIND_REQUIRED)
-    find_package(PythonInterp ${PythonLibsNew_FIND_VERSION} REQUIRED)
+if(PythonLibs_FIND_REQUIRED)
+    find_package(PythonInterp ${PythonLibs_Version} ${PythonLibs_FIND_VERSION} REQUIRED)
 else()
-    find_package(PythonInterp ${PythonLibsNew_FIND_VERSION})
+    find_package(PythonInterp ${PythonLibs_Version} ${PythonLibs_FIND_VERSION})
 endif()
 
 if(NOT PYTHONINTERP_FOUND)
     set(PYTHONLIBS_FOUND FALSE)
-    set(PythonLibsNew_FOUND FALSE)
+    set(PythonLibs_FOUND FALSE)
     return()
 endif()
 
@@ -92,12 +93,12 @@ print(s.get_config_var('MULTIARCH') or '');
     ERROR_VARIABLE _PYTHON_ERROR_VALUE)
 
 if(NOT _PYTHON_SUCCESS MATCHES 0)
-    if(PythonLibsNew_FIND_REQUIRED)
+    if(PythonLibs_FIND_REQUIRED)
         message(FATAL_ERROR
             "Python config failure:\n${_PYTHON_ERROR_VALUE}")
     endif()
     set(PYTHONLIBS_FOUND FALSE)
-    set(PythonLibsNew_FOUND FALSE)
+    set(PythonLibs_FOUND FALSE)
     return()
 endif()
 
@@ -121,7 +122,7 @@ list(GET _PYTHON_VALUES 9 PYTHON_MULTIARCH)
 # Make sure the Python has the same pointer-size as the chosen compiler
 # Skip if CMAKE_SIZEOF_VOID_P is not defined
 if(CMAKE_SIZEOF_VOID_P AND (NOT "${PYTHON_SIZEOF_VOID_P}" STREQUAL "${CMAKE_SIZEOF_VOID_P}"))
-    if(PythonLibsNew_FIND_REQUIRED)
+    if(PythonLibs_FIND_REQUIRED)
         math(EXPR _PYTHON_BITS "${PYTHON_SIZEOF_VOID_P} * 8")
         math(EXPR _CMAKE_BITS "${CMAKE_SIZEOF_VOID_P} * 8")
         message(FATAL_ERROR
@@ -129,7 +130,7 @@ if(CMAKE_SIZEOF_VOID_P AND (NOT "${PYTHON_SIZEOF_VOID_P}" STREQUAL "${CMAKE_SIZE
             "chosen compiler is  ${_CMAKE_BITS}-bit")
     endif()
     set(PYTHONLIBS_FOUND FALSE)
-    set(PythonLibsNew_FOUND FALSE)
+    set(PythonLibs_FOUND FALSE)
     return()
 endif()
 
@@ -272,4 +273,3 @@ function(python_extension_module _target)
 endfunction()
 
 set(PYTHONLIBS_FOUND TRUE)
-set(PythonLibsNew_FOUND TRUE)

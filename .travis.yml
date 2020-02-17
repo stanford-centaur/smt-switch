@@ -1,8 +1,24 @@
 language: cpp
 sudo: false
 
-services:
-  - docker
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages: &common_deps
+      - antlr3
+      - cmake
+      - cxxtest
+      - junit4
+      - libantlr3c-dev
+      - libcln-dev
+      - libgmp-dev
+      - libhamcrest-java
+      - openjdk-8-jdk
+      - swig3.0
+      - python3
+      - python3-pip
+      - python3-setuptools
 
 jobs:
   include:
@@ -38,24 +54,11 @@ jobs:
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
   - ./scripts/travis-setup-osx-python.sh || true
-  # remove the python-dev installed from the apt
-  - |
-    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-       docker run -it -d --name manylinux --mount type=bind,source="$(pwd)"/../smt-switch,target=/smt-switch keyiz/manylinux-java /bin/bash
-       docker exec -i manylinux -c "pip install pip install Cython==0.29 --install-option=--no-cython-compile"
-       docker exec -i manylinux -c "cd /smt-switch && ./contrib/setup-${SOLVER}.sh ${OPTS}"
-       docker exec -i manylinux -c "cd /smt-switch/build && make -j && make test"
-       docker exec -i manylinux -c "cd /smt-switch/ && python contrib/wheels/build_wheel.py bdist_wheel"
-       docker exec -i manylinux -c "cd /smt-switch && pip install pytest dist/* && pytest tests/"
-    else
-        sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
-        bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
-        bash -c "./configure.sh --${SOLVER} --python"
-        bash -c "cd build && make -j && make test"
-        # install wheels
-        sudo python3 -m pip install --upgrade pip
-        sudo python3 -m pip install wheel setuptools
-        python3 contrib/wheels/build_wheel.py bdist_wheel
-        bash -c "pip install pytest dist/* && cd tests && pytest ."
-    fi
-
+  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
+  - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
+  - bash -c "./configure.sh --${SOLVER} --python"
+  - bash -c "cd build && make -j && make test"
+  # install wheels
+  - sudo python3 -m pip install wheel setuptools virtualenv
+  - python3 contrib/wheels/build_wheel.py bdist_wheel
+  - bash -c "python3 -m virtualenv env && source env/bin/activate && pip install dist/* pytest && pytest tests/"
