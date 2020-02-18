@@ -25,3 +25,25 @@ def test_array_read_over_write(create_solver):
     solver.assert_formula(solver.make_term(Equal, i, j))
     r = solver.check_sat()
     assert r.is_unsat()
+
+
+@pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor'])
+def test_array_lia_extensionality(create_solver):
+    solver = create_solver()
+    solver.set_logic('QF_ALIA')
+
+    intsort = solver.make_sort(ss.sortkinds.INT)
+    arrsort = solver.make_sort(ss.sortkinds.ARRAY, [intsort, intsort])
+
+    i = solver.make_symbol('i', intsort)
+    j = solver.make_symbol('j', intsort)
+    a = solver.make_symbol('a', arrsort)
+    b = solver.make_symbol('b', arrsort)
+
+    solver.assert_formula(solver.make_term(Equal, a, b))
+    solver.assert_formula(solver.make_term(Equal, i, j))
+    solver.assert_formula(solver.make_term(Distinct,
+                                           solver.make_term(Select, a, i),
+                                           solver.make_term(Select, b, j)))
+    r = solver.check_sat()
+    assert r.is_unsat()
