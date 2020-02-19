@@ -4,7 +4,6 @@ if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif()
 
-find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 include_directories()
@@ -14,7 +13,7 @@ add_cython_target(smt_switch CXX)
 add_library(smt_switch MODULE ${smt_switch})
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(smt_switch smt-switch ${PYTHON_LIBRARIES})
+target_link_libraries(smt_switch smt-switch)
 
 # generate necessary collateral here
 include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
