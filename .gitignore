@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Python wheels build artifacts
+build/
+dist/
+*egg-info
+
+# Cython
+*.pxd
+*.pxi

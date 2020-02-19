@@ -113,6 +113,11 @@ std::string Op::to_string() const
   return res;
 }
 
+bool Op::is_null() const
+{
+  return prim_op == NUM_OPS_AND_NULL;
+}
+
 bool operator==(Op o1, Op o2)
 {
   if (o1.prim_op != o2.prim_op)
