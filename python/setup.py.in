@@ -6,7 +6,7 @@ setup(name='smt_switch',
       long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
       url='http://github.com/makaimann/smt-switch',
       license='BSD',
-      install_requires=['pytest'],
+      tests_requires=['pytest'],
       zip_safe=True,
       package_data={'': ['smt_switch.so']}
 )
