@@ -1,0 +1,37 @@
+name: Docker
+
+# comment this out once in master and tested
+# on:
+#   push:
+#     tags:
+#     - '*'
+
+on: [push]
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [35, 36, 37, 38]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Build wheels
+      shell: bash
+      run: |
+          docker run --mount type=bind,source="$(pwd)"/../smt-switch,target=/smt-switch keyiz/manylinux-java:py${{ matrix.python-version }} /smt-switch/contrib/wheels/ci.sh
+      env:
+        PY_VERSION: ${{ matrix.python-version }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: py${{ matrix.python-version }} wheel
+        path: wheelhouse/
