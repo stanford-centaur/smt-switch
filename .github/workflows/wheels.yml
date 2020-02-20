@@ -1,4 +1,4 @@
-name: Docker
+name: Python Wheels
 
 # comment this out once in master and tested
 # on:
@@ -35,3 +35,22 @@ jobs:
       with:
         name: py${{ matrix.python-version }} wheel
         path: wheelhouse/
+    - name: Installing Python packages
+      shell: bash
+      run: |
+          sudo pip3 install setuptools
+          sudo pip3 install twine
+    - name: Uploading to PyPi
+      shell: bash
+      run: |
+          echo [distutils]                                  > ~/.pypirc
+          echo index-servers =                             >> ~/.pypirc
+          echo "  pypi"                                    >> ~/.pypirc
+          echo                                             >> ~/.pypirc
+          echo [pypi]                                      >> ~/.pypirc
+          echo repository=https://upload.pypi.org/legacy/  >> ~/.pypirc
+          echo username=keyi                               >> ~/.pypirc
+          echo password=$PYPI_PASSWORD                     >> ~/.pypirc
+          twine upload --config-file ~/.pypirc --skip-existing wheelhouse/*
+      env:
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
