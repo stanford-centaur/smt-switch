@@ -1,12 +1,9 @@
 name: Python Wheels
 
-# comment this out once in master and tested
-# on:
-#   push:
-#     tags:
-#     - '*'
-
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 
 jobs:
