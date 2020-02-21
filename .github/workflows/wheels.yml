@@ -46,7 +46,7 @@ jobs:
           echo                                             >> ~/.pypirc
           echo [pypi]                                      >> ~/.pypirc
           echo repository=https://upload.pypi.org/legacy/  >> ~/.pypirc
-          echo username=keyi                               >> ~/.pypirc
+          echo username=makaim                             >> ~/.pypirc
           echo password=$PYPI_PASSWORD                     >> ~/.pypirc
           twine upload --config-file ~/.pypirc --skip-existing wheelhouse/*
       env:
