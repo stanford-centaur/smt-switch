@@ -29,8 +29,7 @@ def test_reals_simple(create_solver):
     assert r.is_unsat()
 
 
-# TODO: Add CVC4 back in once ops are implemented
-@pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor' and n != 'cvc4'])
+@pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor'])
 def test_reals_subs_check(create_solver):
     solver = create_solver()
     solver.set_logic('QF_LRA')
