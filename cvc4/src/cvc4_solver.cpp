@@ -137,16 +137,6 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::STORE, Store },
       { ::CVC4::api::STORE_ALL, Const_Array } });
 
-// the kinds CVC4 needs to build an OpTerm for an indexed op
-const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
-    { { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
-      { Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP },
-      { Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP },
-      { Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP },
-      { Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP },
-      { Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP },
-      { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR_OP } });
-
 /* CVC4Solver implementation */
 
 void CVC4Solver::set_opt(const std::string option, const std::string value)
@@ -603,9 +593,8 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
     }
     else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(
-          solver.mkTerm(primop2kind.at(op.prim_op), ot, cterm->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(solver.mkTerm(cvc4_op, cterm->term)));
       return result;
     }
   }
@@ -630,9 +619,9 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
     }
   else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(solver.mkTerm(
-          primop2kind.at(op.prim_op), ot, cterm0->term, cterm1->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(
+          new CVC4Term(solver.mkTerm(cvc4_op, cterm0->term, cterm1->term)));
       return result;
     }
   }
@@ -662,12 +651,9 @@ Term CVC4Solver::make_term(Op op,
     }
   else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
-                                             ot,
-                                             cterm0->term,
-                                             cterm1->term,
-                                             cterm2->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(
+          solver.mkTerm(cvc4_op, cterm0->term, cterm1->term, cterm2->term)));
       return result;
     }
   }
@@ -697,9 +683,8 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
     }
     else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(
-          new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(solver.mkTerm(cvc4_op, cterms)));
       return result;
     }
   }
@@ -739,18 +724,24 @@ void CVC4Solver::dump_smt2(FILE * file) const
 }
 
 /**
-   Helper function for creating an OpTerm from an Op
+   Helper function for creating a CVC4 Op from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op) const
+::CVC4::api::Op CVC4Solver::make_cvc4_op(Op op) const
 {
+  if (op.num_idx < 0 || primop2kind.find(op.prim_op) == primop2kind.end())
+  {
+    throw IncorrectUsageException(
+        smt::to_string(op.prim_op)
+        + " not recognized as a PrimOp for an indexed operator.");
+  }
   if (op.num_idx == 1)
   {
-    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0);
+    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0);
   }
   else if (op.num_idx == 2)
   {
-    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0, op.idx1);
+    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0, op.idx1);
   }
   else
   {
