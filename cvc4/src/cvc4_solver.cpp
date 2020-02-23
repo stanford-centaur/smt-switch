@@ -82,60 +82,6 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Store, ::CVC4::api::STORE },
       { Const_Array, ::CVC4::api::STORE_ALL } });
 
-const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
-    { { ::CVC4::api::AND, And },
-      { ::CVC4::api::OR, Or },
-      { ::CVC4::api::XOR, Xor },
-      { ::CVC4::api::NOT, Not },
-      { ::CVC4::api::IMPLIES, Implies },
-      { ::CVC4::api::ITE, Ite },
-      { ::CVC4::api::EQUAL, Iff },
-      { ::CVC4::api::EQUAL, Equal },
-      { ::CVC4::api::DISTINCT, Distinct },
-      { ::CVC4::api::BITVECTOR_CONCAT, Concat },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_EXTRACT, Extract },
-      { ::CVC4::api::BITVECTOR_NOT, BVNot },
-      { ::CVC4::api::BITVECTOR_NEG, BVNeg },
-      { ::CVC4::api::BITVECTOR_AND, BVAnd },
-      { ::CVC4::api::BITVECTOR_OR, BVOr },
-      { ::CVC4::api::BITVECTOR_XOR, BVXor },
-      { ::CVC4::api::BITVECTOR_NAND, BVNand },
-      { ::CVC4::api::BITVECTOR_NOR, BVNor },
-      { ::CVC4::api::BITVECTOR_XNOR, BVXnor },
-      { ::CVC4::api::BITVECTOR_COMP, BVComp },
-      { ::CVC4::api::BITVECTOR_PLUS, BVAdd },
-      { ::CVC4::api::BITVECTOR_SUB, BVSub },
-      { ::CVC4::api::BITVECTOR_MULT, BVMul },
-      { ::CVC4::api::BITVECTOR_UDIV, BVUdiv },
-      { ::CVC4::api::BITVECTOR_SDIV, BVSdiv },
-      { ::CVC4::api::BITVECTOR_UREM, BVUrem },
-      { ::CVC4::api::BITVECTOR_SREM, BVSrem },
-      { ::CVC4::api::BITVECTOR_SMOD, BVSmod },
-      { ::CVC4::api::BITVECTOR_SHL, BVShl },
-      { ::CVC4::api::BITVECTOR_ASHR, BVAshr },
-      { ::CVC4::api::BITVECTOR_LSHR, BVLshr },
-      { ::CVC4::api::BITVECTOR_ULT, BVUlt },
-      { ::CVC4::api::BITVECTOR_ULE, BVUle },
-      { ::CVC4::api::BITVECTOR_UGT, BVUgt },
-      { ::CVC4::api::BITVECTOR_UGE, BVUge },
-      { ::CVC4::api::BITVECTOR_SLT, BVSlt },
-      { ::CVC4::api::BITVECTOR_SLE, BVSle },
-      { ::CVC4::api::BITVECTOR_SGT, BVSgt },
-      { ::CVC4::api::BITVECTOR_SGE, BVSge },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, Zero_Extend },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, Sign_Extend },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_REPEAT, Repeat },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, Rotate_Left },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
-      { ::CVC4::api::SELECT, Select },
-      { ::CVC4::api::STORE, Store },
-      { ::CVC4::api::STORE_ALL, Const_Array } });
 
 /* CVC4Solver implementation */
 
