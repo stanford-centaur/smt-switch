@@ -17,6 +17,20 @@ using namespace smt;
 
 namespace smt_tests {
 
+const std::vector<SolverEnum> solver_enums({
+#if BUILD_BTOR
+                                            BTOR,
+#endif
+
+#if BUILD_CVC4
+                                            CVC4,
+#endif
+
+#if BUILD_MSAT
+                                            MSAT,
+#endif
+});
+
 const CreateSolverFunsMap solvers({
 #if BUILD_BTOR
   { BTOR, BoolectorSolverFactory::create },
@@ -32,6 +46,8 @@ const CreateSolverFunsMap solvers({
 });
 
 CreateSolverFunsMap available_solvers() { return solvers; }
+
+std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {

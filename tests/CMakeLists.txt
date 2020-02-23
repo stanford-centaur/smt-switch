@@ -50,3 +50,8 @@ add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp
 target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter available-solvers)
 add_test(NAME unit-termiter_test COMMAND unit-termiter)
+
+add_executable(unit-op "${PROJECT_SOURCE_DIR}/tests/unit/unit-op.cpp")
+target_link_libraries(unit-op gtest_main)
+target_link_libraries(unit-op available-solvers)
+add_test(NAME unit-op_test COMMAND unit-op)

@@ -25,17 +25,27 @@ class UnitTests : public ::testing::Test,
   Sort bvsort, funsort;
 };
 
-TEST_P(UnitTests, TermIter)
+TEST_P(UnitTests, FunOp)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
   Term fx = s->make_term(Apply, f, x);
 
-  TermIter it = fx->begin();
-  TermIter it2;
-  it2 = it;
+  ASSERT_EQ(fx->get_op(), Apply);
+}
 
-  ASSERT_TRUE(it == it2);
+TEST_P(UnitTests, IndexedOps1)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Op ext = Op(Extract, 2, 0);
+  Term ext_x = s->make_term(ext, x);
+  ASSERT_EQ(ext_x->get_op(), ext);
+
+  Op rep = Op(Repeat, 2);
+  Term rep_x = s->make_term(rep, x);
+  // some solvers rewrite -- might be concats
+  // but we can check the sort
+  ASSERT_EQ(rep_x->get_sort()->get_width(), 8);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
