@@ -57,6 +57,9 @@ cdef extern from "term.h" namespace "smt":
     cdef cppclass UnorderedTermMap:
         void emplace(Term k, Term v) except +
 
+    cdef cppclass UnorderedTermSet:
+        pass
+
     cdef cppclass TermIter:
         TermIter() except +
         TermIter& operator++() except +
