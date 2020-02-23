@@ -11,13 +11,13 @@ namespace smt {
 
 // the kinds CVC4 needs to build an OpTerm for an indexed op
 const std::unordered_map<::CVC4::api::Kind, size_t> kind2numindices(
-                                                                    { { ::CVC4::api::BITVECTOR_EXTRACT, 2 },
-                                                                      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, 2 },
-                                                                      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, 2 },
-                                                                      { ::CVC4::api::BITVECTOR_REPEAT, 1 },
-                                                                      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, 1 },
-                                                                      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, 1 },
-                                                                      { ::CVC4::api::INT_TO_BITVECTOR, 1 } });
+    { { ::CVC4::api::BITVECTOR_EXTRACT, 2 },
+      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, 2 },
+      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, 2 },
+      { ::CVC4::api::BITVECTOR_REPEAT, 1 },
+      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, 1 },
+      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, 1 },
+      { ::CVC4::api::INT_TO_BITVECTOR, 1 } });
 
 const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
     { { ::CVC4::api::AND, And },
@@ -148,7 +148,8 @@ Op CVC4Term::get_op() const
   // implementation checking
   if (kind2primop.find(cvc4_kind) == kind2primop.end())
   {
-    throw NotImplementedException("get_op not implemented for CVC4 Kind " + CVC4::api::kindToString(cvc4_kind));
+    throw NotImplementedException("get_op not implemented for CVC4 Kind "
+                                  + CVC4::api::kindToString(cvc4_kind));
   }
   PrimOp po = kind2primop.at(cvc4_kind);
 
@@ -157,7 +158,8 @@ Op CVC4Term::get_op() const
   {
     if (kind2numindices.find(cvc4_kind) == kind2numindices.end())
     {
-      throw NotImplementedException("get_op not implemented for CVC4 Kind " + CVC4::api::kindToString(cvc4_kind));
+      throw NotImplementedException("get_op not implemented for CVC4 Kind "
+                                    + CVC4::api::kindToString(cvc4_kind));
     }
     size_t num_indices = kind2numindices.at(cvc4_kind);
     if (num_indices == 1)
@@ -168,7 +170,8 @@ Op CVC4Term::get_op() const
     else
     {
       assert(num_indices == 2);
-      std::pair<uint32_t, uint32_t> indices = cvc4_op.getIndices<std::pair<uint32_t, uint32_t>>();
+      std::pair<uint32_t, uint32_t> indices =
+          cvc4_op.getIndices<std::pair<uint32_t, uint32_t>>();
       return Op(po, indices.first, indices.second);
     }
   }
@@ -199,8 +202,7 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_RATIONAL)
           || (k == ::CVC4::api::CONST_FLOATINGPOINT)
           || (k == ::CVC4::api::CONST_ROUNDINGMODE)
-          || (k == ::CVC4::api::CONST_STRING)
-          || (k == ::CVC4::api::STORE_ALL));
+          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::STORE_ALL));
 }
 
 std::string CVC4Term::to_string() const { return term.toString(); }

@@ -19,15 +19,15 @@ namespace smt_tests {
 
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
-                                            BTOR,
+  BTOR,
 #endif
 
 #if BUILD_CVC4
-                                            CVC4,
+      CVC4,
 #endif
 
 #if BUILD_MSAT
-                                            MSAT,
+      MSAT,
 #endif
 });
 
