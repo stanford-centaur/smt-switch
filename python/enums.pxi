@@ -346,7 +346,3 @@ setattr(primops, 'Select', Select)
 cdef PrimOp Store = PrimOp()
 Store.po = enums.Store
 setattr(primops, 'Store', Store)
-
-cdef PrimOp Const_Array = PrimOp()
-Const_Array.po = enums.Const_Array
-setattr(primops, 'Const_Array', Const_Array)
