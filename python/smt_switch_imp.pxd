@@ -7,11 +7,11 @@ from libcpp.vector cimport vector
 from enums cimport SortKind
 from enums cimport PrimOp
 
-ctypedef shared_ptr[AbsSort] Sort
-ctypedef shared_ptr[AbsTerm] Term
-ctypedef shared_ptr[AbsSmtSolver] SmtSolver
-ctypedef vector[Sort] SortVec
-ctypedef vector[Term] TermVec
+ctypedef shared_ptr[AbsSort] c_Sort
+ctypedef shared_ptr[AbsTerm] c_Term
+ctypedef shared_ptr[AbsSmtSolver] c_SmtSolver
+ctypedef vector[c_Sort] c_SortVec
+ctypedef vector[c_Term] c_TermVec
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -27,11 +27,11 @@ cdef extern from "sort.h" namespace "smt":
        size_t hash() except +
        # Not declaring const methods -- not necessary for Cython?
        uint64_t get_width() except +
-       Sort get_indexsort() except +
-       Sort get_elemsort() except +
-       vector[Sort] get_domain_sorts() except +
-       Sort get_codomain_sort() except +
-       bint compare(const Sort sort) except +
+       c_Sort get_indexsort() except +
+       c_Sort get_elemsort() except +
+       c_SortVec get_domain_sorts() except +
+       c_Sort get_codomain_sort() except +
+       bint compare(const c_Sort sort) except +
        SortKind get_sort_kind() except +
 
 
@@ -55,7 +55,7 @@ cdef extern from "ops.h" namespace "smt":
 
 cdef extern from "term.h" namespace "smt":
     cdef cppclass UnorderedTermMap:
-        void emplace(Term k, Term v) except +
+        void emplace(c_Term k, c_Term v) except +
 
     cdef cppclass UnorderedTermSet:
         pass
@@ -63,16 +63,16 @@ cdef extern from "term.h" namespace "smt":
     cdef cppclass TermIter:
         TermIter() except +
         TermIter& operator++() except +
-        Term operator*() except +
+        c_Term operator*() except +
         bint operator==(const TermIter& other) except +
         bint operator!=(const TermIter& other) except +
 
     cdef cppclass AbsTerm:
         AbsTerm() except +
         size_t hash() except +
-        bint compare(const Term& absterm) except +
+        bint compare(const c_Term& absterm) except +
         Op get_op() except +
-        Sort get_sort() except +
+        c_Sort get_sort() except +
         string to_string() except +
         bint is_symbolic_const() except +
         bint is_value() except +
@@ -80,9 +80,9 @@ cdef extern from "term.h" namespace "smt":
         TermIter begin() except +
         TermIter end() except +
 
-    bint operator==(const Term& t1, const Term& t2) except +
-    bint operator!=(const Term& t1, const Term& t2) except +
-    ostream& operator<<(ostream& output, const Term t) except +
+    bint operator==(const c_Term& t1, const c_Term& t2) except +
+    bint operator!=(const c_Term& t1, const c_Term& t2) except +
+    ostream& operator<<(ostream& output, const c_Term t) except +
 
 
 cdef extern from "result.h" namespace "smt":
@@ -99,29 +99,29 @@ cdef extern from "solver.h" namespace "smt":
         AbsSmtSolver() except +
         void set_opt(const string option, const string value) except +
         void set_logic(const string logic) except +
-        void assert_formula(const Term & t) except +
+        void assert_formula(const c_Term & t) except +
         Result check_sat() except +
-        Result check_sat_assuming(const TermVec & assumptions) except +
+        Result check_sat_assuming(const c_TermVec & assumptions) except +
         void push(uint64_t num) except +
         void pop(uint64_t num) except +
-        Term get_value(Term& t) except +
-        Sort make_sort(const string name, uint64_t arity) except +
-        Sort make_sort(const SortKind sk) except +
-        Sort make_sort(const SortKind sk, uint64_t size) except +
-        Sort make_sort(const SortKind sk, const Sort & sort1) except +
-        Sort make_sort(const SortKind sk, const Sort & sort1, const Sort & sort2) except +
-        Sort make_sort(const SortKind sk, const Sort & sort1, const Sort & sort2, const Sort & sort3) except +
-        Sort make_sort(const SortKind sk, const SortVec & sorts) except +
-        Term make_term(bint b) except +
-        Term make_term(int64_t i, const Sort & sort) except +
-        Term make_term(const string val, const Sort & sort) except +
-        Term make_term(const string val, const Sort & sort, uint64_t base) except +
-        Term make_term(const Term & val, const Sort & sort) except +
-        Term make_symbol(const string name, const Sort & sort) except +
-        Term make_term(const Op op, const Term & t) except +
-        Term make_term(const Op op, const Term & t0, const Term & t1) except +
-        Term make_term(const Op op, const Term & t0, const Term & t1, const Term & t2) except +
-        Term make_term(const Op op, const TermVec & terms) except +
+        c_Term get_value(c_Term& t) except +
+        c_Sort make_sort(const string name, uint64_t arity) except +
+        c_Sort make_sort(const SortKind sk) except +
+        c_Sort make_sort(const SortKind sk, uint64_t size) except +
+        c_Sort make_sort(const SortKind sk, const c_Sort & sort1) except +
+        c_Sort make_sort(const SortKind sk, const c_Sort & sort1, const c_Sort & sort2) except +
+        c_Sort make_sort(const SortKind sk, const c_Sort & sort1, const c_Sort & sort2, const c_Sort & sort3) except +
+        c_Sort make_sort(const SortKind sk, const c_SortVec & sorts) except +
+        c_Term make_term(bint b) except +
+        c_Term make_term(int64_t i, const c_Sort & sort) except +
+        c_Term make_term(const string val, const c_Sort & sort) except +
+        c_Term make_term(const string val, const c_Sort & sort, uint64_t base) except +
+        c_Term make_term(const c_Term & val, const c_Sort & sort) except +
+        c_Term make_symbol(const string name, const c_Sort & sort) except +
+        c_Term make_term(const Op op, const c_Term & t) except +
+        c_Term make_term(const Op op, const c_Term & t0, const c_Term & t1) except +
+        c_Term make_term(const Op op, const c_Term & t0, const c_Term & t1, const c_Term & t2) except +
+        c_Term make_term(const Op op, const c_TermVec & terms) except +
         void reset() except +
         void reset_assertions() except +
-        Term substitute(const Term term, const UnorderedTermMap & substitution_map) except +
+        c_Term substitute(const c_Term term, const UnorderedTermMap & substitution_map) except +

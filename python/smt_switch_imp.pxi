@@ -5,11 +5,11 @@ from libcpp.vector cimport vector
 
 from smt_switch_imp cimport Op as c_Op
 from smt_switch_imp cimport Result as c_Result
-from smt_switch_imp cimport SmtSolver as c_SmtSolver
-from smt_switch_imp cimport Sort as c_Sort
-from smt_switch_imp cimport SortVec as c_SortVec
-from smt_switch_imp cimport Term as c_Term
-from smt_switch_imp cimport TermVec as c_TermVec
+from smt_switch_imp cimport c_SmtSolver
+from smt_switch_imp cimport c_Sort
+from smt_switch_imp cimport c_SortVec
+from smt_switch_imp cimport c_Term
+from smt_switch_imp cimport c_TermVec
 from smt_switch_imp cimport UnorderedTermMap as c_UnorderedTermMap
 from smt_switch_imp cimport TermIter as c_TermIter
 

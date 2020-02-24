@@ -36,19 +36,19 @@ solvers["msat"] = create_msat_solver
 
 DECLARE_BTOR='''
 cdef extern from "boolector_factory.h":
-    SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" () except +
+    c_SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" () except +
 '''
 
 
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
-    SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" () except +
+    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" () except +
 '''
 
 
 DECLARE_MSAT='''
 cdef extern from "msat_factory.h":
-    SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
+    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
 '''
 
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = 'from smt_switch_imp cimport SmtSolver'
+    pxd = 'from smt_switch_imp cimport c_SmtSolver'
     pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
