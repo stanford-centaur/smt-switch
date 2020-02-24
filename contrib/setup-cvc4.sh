@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CVC4_VERSION=ba175a951064250907494b7b5112f3882889df5e
+CVC4_VERSION=641f14f02de0fb4f6a852fe53eb50b69f34101e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
@@ -14,6 +14,8 @@ if [ ! -d "$DEPS/CVC4" ]; then
     cd CVC4
     git checkout -f $CVC4_VERSION
     ./contrib/get-antlr-3.4
+    git clone https://github.com/uiri/toml.git
+    export PYTHONPATH=$PYTHONPATH:`pwd`/toml
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
     cd build
     make -j4

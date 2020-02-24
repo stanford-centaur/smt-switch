@@ -1,8 +1,7 @@
 import pytest
 import smt_switch as ss
 
-# TODO: Add CVC4 back in once get_op / substitute is implemented
-@pytest.mark.parametrize("create_solver", [cs for name, cs in ss.solvers.items() if name != 'cvc4'])
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_unit_op(create_solver):
     solver = create_solver()
 
@@ -45,7 +44,7 @@ def test_sort(create_solver):
         assert t.get_sort().get_sort_kind() == s.get_sort_kind()
 
 
-@pytest.mark.parametrize("create_solver", [cs for name, cs in ss.solvers.items() if name != 'cvc4'])
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_unit_iter(create_solver):
     solver = create_solver()
 

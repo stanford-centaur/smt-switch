@@ -97,8 +97,7 @@ def test_hackers_delight(create_solver):
     solver.pop()
 
 
-# TODO: Add CVC4 back in once get_op / substitute is implemented
-@pytest.mark.parametrize("create_solver", [cs for name, cs in ss.solvers.items() if name != 'cvc4'])
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_complex_expr(create_solver):
     from smt_switch import Op
 
