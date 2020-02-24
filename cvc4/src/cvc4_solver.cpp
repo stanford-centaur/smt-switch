@@ -197,7 +197,10 @@ Term CVC4Solver::make_term(std::string val,
 
 Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
 {
-  throw NotImplementedException("Constant arrays not yet implemented.");
+  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(val);
+  std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+  ::CVC4::api::Term const_arr = solver.mkConstArray(csort->sort, cterm->term);
+  return Term(new CVC4Term(const_arr));
 }
 
 void CVC4Solver::assert_formula(const Term& t) const
