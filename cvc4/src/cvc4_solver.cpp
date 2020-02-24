@@ -81,71 +81,6 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Select, ::CVC4::api::SELECT },
       { Store, ::CVC4::api::STORE }});
 
-const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
-    { { ::CVC4::api::AND, And },
-      { ::CVC4::api::OR, Or },
-      { ::CVC4::api::XOR, Xor },
-      { ::CVC4::api::NOT, Not },
-      { ::CVC4::api::IMPLIES, Implies },
-      { ::CVC4::api::ITE, Ite },
-      { ::CVC4::api::EQUAL, Iff },
-      { ::CVC4::api::EQUAL, Equal },
-      { ::CVC4::api::DISTINCT, Distinct },
-      { ::CVC4::api::BITVECTOR_CONCAT, Concat },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_EXTRACT, Extract },
-      { ::CVC4::api::BITVECTOR_NOT, BVNot },
-      { ::CVC4::api::BITVECTOR_NEG, BVNeg },
-      { ::CVC4::api::BITVECTOR_AND, BVAnd },
-      { ::CVC4::api::BITVECTOR_OR, BVOr },
-      { ::CVC4::api::BITVECTOR_XOR, BVXor },
-      { ::CVC4::api::BITVECTOR_NAND, BVNand },
-      { ::CVC4::api::BITVECTOR_NOR, BVNor },
-      { ::CVC4::api::BITVECTOR_XNOR, BVXnor },
-      { ::CVC4::api::BITVECTOR_COMP, BVComp },
-      { ::CVC4::api::BITVECTOR_PLUS, BVAdd },
-      { ::CVC4::api::BITVECTOR_SUB, BVSub },
-      { ::CVC4::api::BITVECTOR_MULT, BVMul },
-      { ::CVC4::api::BITVECTOR_UDIV, BVUdiv },
-      { ::CVC4::api::BITVECTOR_SDIV, BVSdiv },
-      { ::CVC4::api::BITVECTOR_UREM, BVUrem },
-      { ::CVC4::api::BITVECTOR_SREM, BVSrem },
-      { ::CVC4::api::BITVECTOR_SMOD, BVSmod },
-      { ::CVC4::api::BITVECTOR_SHL, BVShl },
-      { ::CVC4::api::BITVECTOR_ASHR, BVAshr },
-      { ::CVC4::api::BITVECTOR_LSHR, BVLshr },
-      { ::CVC4::api::BITVECTOR_ULT, BVUlt },
-      { ::CVC4::api::BITVECTOR_ULE, BVUle },
-      { ::CVC4::api::BITVECTOR_UGT, BVUgt },
-      { ::CVC4::api::BITVECTOR_UGE, BVUge },
-      { ::CVC4::api::BITVECTOR_SLT, BVSlt },
-      { ::CVC4::api::BITVECTOR_SLE, BVSle },
-      { ::CVC4::api::BITVECTOR_SGT, BVSgt },
-      { ::CVC4::api::BITVECTOR_SGE, BVSge },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, Zero_Extend },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, Sign_Extend },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_REPEAT, Repeat },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, Rotate_Left },
-      // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
-      { ::CVC4::api::SELECT, Select },
-      { ::CVC4::api::STORE, Store },
-      { ::CVC4::api::STORE_ALL, NUM_OPS_AND_NULL } // Const Array is a value in smt-switch (no op)
-    });
-
-// the kinds CVC4 needs to build an OpTerm for an indexed op
-const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2optermcon(
-    { { Extract, ::CVC4::api::BITVECTOR_EXTRACT_OP },
-      { Zero_Extend, ::CVC4::api::BITVECTOR_ZERO_EXTEND_OP },
-      { Sign_Extend, ::CVC4::api::BITVECTOR_SIGN_EXTEND_OP },
-      { Repeat, ::CVC4::api::BITVECTOR_REPEAT_OP },
-      { Rotate_Left, ::CVC4::api::BITVECTOR_ROTATE_LEFT_OP },
-      { Rotate_Right, ::CVC4::api::BITVECTOR_ROTATE_RIGHT_OP },
-      { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR_OP } });
 
 /* CVC4Solver implementation */
 
@@ -603,9 +538,8 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
     }
     else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(
-          solver.mkTerm(primop2kind.at(op.prim_op), ot, cterm->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(solver.mkTerm(cvc4_op, cterm->term)));
       return result;
     }
   }
@@ -630,9 +564,9 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
     }
   else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(solver.mkTerm(
-          primop2kind.at(op.prim_op), ot, cterm0->term, cterm1->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(
+          new CVC4Term(solver.mkTerm(cvc4_op, cterm0->term, cterm1->term)));
       return result;
     }
   }
@@ -662,12 +596,9 @@ Term CVC4Solver::make_term(Op op,
     }
   else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op),
-                                             ot,
-                                             cterm0->term,
-                                             cterm1->term,
-                                             cterm2->term)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(
+          solver.mkTerm(cvc4_op, cterm0->term, cterm1->term, cterm2->term)));
       return result;
     }
   }
@@ -697,9 +628,8 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
     }
     else
     {
-      ::CVC4::api::OpTerm ot = make_op_term(op);
-      Term result(
-          new CVC4Term(solver.mkTerm(primop2kind.at(op.prim_op), ot, cterms)));
+      ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
+      Term result(new CVC4Term(solver.mkTerm(cvc4_op, cterms)));
       return result;
     }
   }
@@ -739,18 +669,24 @@ void CVC4Solver::dump_smt2(FILE * file) const
 }
 
 /**
-   Helper function for creating an OpTerm from an Op
+   Helper function for creating a CVC4 Op from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::CVC4::api::OpTerm CVC4Solver::make_op_term(Op op) const
+::CVC4::api::Op CVC4Solver::make_cvc4_op(Op op) const
 {
+  if (op.num_idx < 0 || primop2kind.find(op.prim_op) == primop2kind.end())
+  {
+    throw IncorrectUsageException(
+        smt::to_string(op.prim_op)
+        + " not recognized as a PrimOp for an indexed operator.");
+  }
   if (op.num_idx == 1)
   {
-    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0);
+    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0);
   }
   else if (op.num_idx == 2)
   {
-    return solver.mkOpTerm(primop2optermcon.at(op.prim_op), op.idx0, op.idx1);
+    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0, op.idx1);
   }
   else
   {

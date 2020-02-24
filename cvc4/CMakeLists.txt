@@ -9,6 +9,8 @@ target_include_directories (smt-switch-cvc4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/
 target_include_directories (smt-switch-cvc4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/cvc4/include")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src/include")
+# TEMP only until the internal kinds are no longer part of public API
+target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/build/src")
 
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/libcvc4.a")
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/parser/libcvc4parser.a")

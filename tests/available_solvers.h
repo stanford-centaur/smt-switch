@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 
 #include "smt_defs.h"
 
@@ -18,7 +19,11 @@ enum SolverEnum
 
 typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
 
+// Create a map from enums to available solver creation functions
 CreateSolverFunsMap available_solvers();
+
+// collect all the available solvers
+std::vector<SolverEnum> available_solver_enums();
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
