@@ -14,7 +14,7 @@ class AbsTerm;
 using Term = std::shared_ptr<AbsTerm>;
 
 class AbsSmtSolver;
-using SmtSolver = std::unique_ptr<AbsSmtSolver>;
+using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 
 }  // namespace smt
 
