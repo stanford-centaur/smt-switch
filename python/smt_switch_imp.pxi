@@ -15,7 +15,6 @@ from smt_switch cimport TermIter as c_TermIter
 from smt_switch cimport c_PrimOp, c_SortKind
 
 cdef class Op:
-    cdef c_Op op
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
             if idx0 is None:
@@ -61,7 +60,6 @@ cdef class Op:
         return self.op != other.op
 
 cdef class Result:
-    cdef c_Result cr
     def __cinit__(self):
         pass
 
@@ -85,8 +83,6 @@ cdef class Result:
 
 
 cdef class Sort:
-    cdef c_Sort cs
-    cdef SmtSolver _solver
     def __cinit__(self):
         pass
 
@@ -147,8 +143,6 @@ cdef class Sort:
 
 
 cdef class Term:
-    cdef c_Term ct
-    cdef SmtSolver _solver
     def __cinit__(self):
         pass
 
@@ -224,7 +218,6 @@ cdef class Term:
 
 
 cdef class SmtSolver:
-    cdef c_SmtSolver css
     def __cinit__(self):
         pass
 

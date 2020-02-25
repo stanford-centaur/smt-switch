@@ -124,3 +124,21 @@ cdef extern from "solver.h" namespace "smt":
         void reset() except +
         void reset_assertions() except +
         c_Term substitute(const c_Term term, const UnorderedTermMap & substitution_map) except +
+
+
+cdef class Op:
+    cdef c_Op op
+
+cdef class Result:
+    cdef c_Result cr
+
+cdef class Sort:
+    cdef c_Sort cs
+    cdef SmtSolver _solver
+
+cdef class Term:
+    cdef c_Term ct
+    cdef SmtSolver _solver
+
+cdef class SmtSolver:
+    cdef c_SmtSolver css
