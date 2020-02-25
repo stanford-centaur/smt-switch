@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = 'from smt_switch_imp cimport c_SmtSolver'
+    pxd = 'from smt_switch cimport c_SmtSolver'
     pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR

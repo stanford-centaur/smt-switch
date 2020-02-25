@@ -3,20 +3,16 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from smt_switch_imp cimport Op as c_Op
-from smt_switch_imp cimport Result as c_Result
-from smt_switch_imp cimport c_SmtSolver
-from smt_switch_imp cimport c_Sort
-from smt_switch_imp cimport c_SortVec
-from smt_switch_imp cimport c_Term
-from smt_switch_imp cimport c_TermVec
-from smt_switch_imp cimport UnorderedTermMap as c_UnorderedTermMap
-from smt_switch_imp cimport TermIter as c_TermIter
-
+from smt_switch cimport c_Op
+from smt_switch cimport c_Result
+from smt_switch cimport c_SmtSolver
+from smt_switch cimport c_Sort
+from smt_switch cimport c_SortVec
+from smt_switch cimport c_Term
+from smt_switch cimport c_TermVec
+from smt_switch cimport UnorderedTermMap as c_UnorderedTermMap
+from smt_switch cimport TermIter as c_TermIter
 from smt_switch cimport c_PrimOp, c_SortKind
-# PrimOp, SortKind classes are defined at this scope
-# because enums.pxi is inlined before this
-
 
 cdef class Op:
     cdef c_Op op

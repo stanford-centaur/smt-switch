@@ -35,11 +35,11 @@ cdef extern from "sort.h" namespace "smt":
 
 
 cdef extern from "ops.h" namespace "smt":
-    cdef cppclass Op:
-        Op() except +
-        Op(c_PrimOp o) except +
-        Op(c_PrimOp o, uint64_t idx0) except +
-        Op(c_PrimOp o, uint64_t idx0, uint64_t idx1) except +
+    cdef cppclass c_Op "smt::Op":
+        c_Op() except +
+        c_Op(c_PrimOp o) except +
+        c_Op(c_PrimOp o, uint64_t idx0) except +
+        c_Op(c_PrimOp o, uint64_t idx0, uint64_t idx1) except +
         string to_string() except +
         bint is_null() except +
         c_PrimOp prim_op
@@ -47,9 +47,9 @@ cdef extern from "ops.h" namespace "smt":
         uint64_t idx0
         uint64_t idx1
 
-    bint operator==(Op op1, Op op2) except +
-    bint operator!=(Op op1, Op op2) except +
-    ostream& operator<<(ostream & output, const Op o) except +
+    bint operator==(c_Op op1, c_Op op2) except +
+    bint operator!=(c_Op op1, c_Op op2) except +
+    ostream& operator<<(ostream & output, const c_Op o) except +
 
 
 cdef extern from "term.h" namespace "smt":
@@ -70,7 +70,7 @@ cdef extern from "term.h" namespace "smt":
         AbsTerm() except +
         size_t hash() except +
         bint compare(const c_Term& absterm) except +
-        Op get_op() except +
+        c_Op get_op() except +
         c_Sort get_sort() except +
         string to_string() except +
         bint is_symbolic_const() except +
@@ -85,7 +85,7 @@ cdef extern from "term.h" namespace "smt":
 
 
 cdef extern from "result.h" namespace "smt":
-    cdef cppclass Result:
+    cdef cppclass c_Result "smt::Result":
         bint is_sat() except +
         bint is_unsat() except +
         bint is_unknown() except +
@@ -99,8 +99,8 @@ cdef extern from "solver.h" namespace "smt":
         void set_opt(const string option, const string value) except +
         void set_logic(const string logic) except +
         void assert_formula(const c_Term & t) except +
-        Result check_sat() except +
-        Result check_sat_assuming(const c_TermVec & assumptions) except +
+        c_Result check_sat() except +
+        c_Result check_sat_assuming(const c_TermVec & assumptions) except +
         void push(uint64_t num) except +
         void pop(uint64_t num) except +
         c_Term get_value(c_Term& t) except +
@@ -117,10 +117,10 @@ cdef extern from "solver.h" namespace "smt":
         c_Term make_term(const string val, const c_Sort & sort, uint64_t base) except +
         c_Term make_term(const c_Term & val, const c_Sort & sort) except +
         c_Term make_symbol(const string name, const c_Sort & sort) except +
-        c_Term make_term(const Op op, const c_Term & t) except +
-        c_Term make_term(const Op op, const c_Term & t0, const c_Term & t1) except +
-        c_Term make_term(const Op op, const c_Term & t0, const c_Term & t1, const c_Term & t2) except +
-        c_Term make_term(const Op op, const c_TermVec & terms) except +
+        c_Term make_term(const c_Op op, const c_Term & t) except +
+        c_Term make_term(const c_Op op, const c_Term & t0, const c_Term & t1) except +
+        c_Term make_term(const c_Op op, const c_Term & t0, const c_Term & t1, const c_Term & t2) except +
+        c_Term make_term(const c_Op op, const c_TermVec & terms) except +
         void reset() except +
         void reset_assertions() except +
         c_Term substitute(const c_Term term, const UnorderedTermMap & substitution_map) except +
