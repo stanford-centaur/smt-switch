@@ -10,8 +10,8 @@ from smt_switch cimport c_Sort
 from smt_switch cimport c_SortVec
 from smt_switch cimport c_Term
 from smt_switch cimport c_TermVec
-from smt_switch cimport UnorderedTermMap as c_UnorderedTermMap
-from smt_switch cimport TermIter as c_TermIter
+from smt_switch cimport c_UnorderedTermMap
+from smt_switch cimport c_TermIter
 from smt_switch cimport c_PrimOp, c_SortKind
 
 cdef class Op:

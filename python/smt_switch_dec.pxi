@@ -24,7 +24,6 @@ cdef extern from "sort.h" namespace "smt":
        AbsSort() except +
        string to_string() except +
        size_t hash() except +
-       # Not declaring const methods -- not necessary for Cython?
        uint64_t get_width() except +
        c_Sort get_indexsort() except +
        c_Sort get_elemsort() except +
@@ -53,18 +52,18 @@ cdef extern from "ops.h" namespace "smt":
 
 
 cdef extern from "term.h" namespace "smt":
-    cdef cppclass UnorderedTermMap:
+    cdef cppclass c_UnorderedTermMap "smt::UnorderedTermMap":
         void emplace(c_Term k, c_Term v) except +
 
-    cdef cppclass UnorderedTermSet:
+    cdef cppclass c_UnorderedTermSet "smt::UnorderedTermSet":
         pass
 
-    cdef cppclass TermIter:
-        TermIter() except +
-        TermIter& operator++() except +
+    cdef cppclass c_TermIter "smt::TermIter":
+        c_TermIter() except +
+        c_TermIter& operator++() except +
         c_Term operator*() except +
-        bint operator==(const TermIter& other) except +
-        bint operator!=(const TermIter& other) except +
+        bint operator==(const c_TermIter& other) except +
+        bint operator!=(const c_TermIter& other) except +
 
     cdef cppclass AbsTerm:
         AbsTerm() except +
@@ -76,8 +75,8 @@ cdef extern from "term.h" namespace "smt":
         bint is_symbolic_const() except +
         bint is_value() except +
         uint64_t to_int() except +
-        TermIter begin() except +
-        TermIter end() except +
+        c_TermIter begin() except +
+        c_TermIter end() except +
 
     bint operator==(const c_Term& t1, const c_Term& t2) except +
     bint operator!=(const c_Term& t1, const c_Term& t2) except +
@@ -123,7 +122,7 @@ cdef extern from "solver.h" namespace "smt":
         c_Term make_term(const c_Op op, const c_TermVec & terms) except +
         void reset() except +
         void reset_assertions() except +
-        c_Term substitute(const c_Term term, const UnorderedTermMap & substitution_map) except +
+        c_Term substitute(const c_Term term, const c_UnorderedTermMap & substitution_map) except +
 
 
 cdef class Op:
