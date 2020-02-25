@@ -4,8 +4,7 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from enums cimport SortKind
-from enums cimport PrimOp
+from smt_switch cimport c_PrimOp, c_SortKind
 
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
@@ -32,18 +31,18 @@ cdef extern from "sort.h" namespace "smt":
        c_SortVec get_domain_sorts() except +
        c_Sort get_codomain_sort() except +
        bint compare(const c_Sort sort) except +
-       SortKind get_sort_kind() except +
+       c_SortKind get_sort_kind() except +
 
 
 cdef extern from "ops.h" namespace "smt":
     cdef cppclass Op:
         Op() except +
-        Op(PrimOp o) except +
-        Op(PrimOp o, uint64_t idx0) except +
-        Op(PrimOp o, uint64_t idx0, uint64_t idx1) except +
+        Op(c_PrimOp o) except +
+        Op(c_PrimOp o, uint64_t idx0) except +
+        Op(c_PrimOp o, uint64_t idx0, uint64_t idx1) except +
         string to_string() except +
         bint is_null() except +
-        PrimOp prim_op
+        c_PrimOp prim_op
         uint64_t num_idx
         uint64_t idx0
         uint64_t idx1
@@ -106,12 +105,12 @@ cdef extern from "solver.h" namespace "smt":
         void pop(uint64_t num) except +
         c_Term get_value(c_Term& t) except +
         c_Sort make_sort(const string name, uint64_t arity) except +
-        c_Sort make_sort(const SortKind sk) except +
-        c_Sort make_sort(const SortKind sk, uint64_t size) except +
-        c_Sort make_sort(const SortKind sk, const c_Sort & sort1) except +
-        c_Sort make_sort(const SortKind sk, const c_Sort & sort1, const c_Sort & sort2) except +
-        c_Sort make_sort(const SortKind sk, const c_Sort & sort1, const c_Sort & sort2, const c_Sort & sort3) except +
-        c_Sort make_sort(const SortKind sk, const c_SortVec & sorts) except +
+        c_Sort make_sort(const c_SortKind sk) except +
+        c_Sort make_sort(const c_SortKind sk, uint64_t size) except +
+        c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1) except +
+        c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2) except +
+        c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2, const c_Sort & sort3) except +
+        c_Sort make_sort(const c_SortKind sk, const c_SortVec & sorts) except +
         c_Term make_term(bint b) except +
         c_Term make_term(int64_t i, const c_Sort & sort) except +
         c_Term make_term(const string val, const c_Sort & sort) except +
