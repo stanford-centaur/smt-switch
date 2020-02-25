@@ -7,6 +7,6 @@ setup(name='smt_switch',
       url='http://github.com/makaimann/smt-switch',
       license='BSD',
       tests_requires=['pytest'],
-      zip_safe=True,
+      zip_safe=False,
       package_data={'': ['smt_switch.so']}
 )
