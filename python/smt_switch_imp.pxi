@@ -349,7 +349,7 @@ cdef class SmtSolver:
         cdef c_UnorderedTermMap utm
 
         for k, v in substitution_map.items():
-            utm.emplace((<Term?> k).ct, (<Term?> v).ct)
+            utm[(<Term?> k).ct] = (<Term?> v).ct
 
         term.ct = dref(self.css).substitute(t.ct, utm)
         return term

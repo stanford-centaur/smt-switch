@@ -11,6 +11,7 @@ ctypedef shared_ptr[AbsTerm] c_Term
 ctypedef shared_ptr[AbsSmtSolver] c_SmtSolver
 ctypedef vector[c_Sort] c_SortVec
 ctypedef vector[c_Term] c_TermVec
+ctypedef unordered_map[c_Term, c_Term] c_UnorderedTermMap
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -52,9 +53,6 @@ cdef extern from "ops.h" namespace "smt":
 
 
 cdef extern from "term.h" namespace "smt":
-    cdef cppclass c_UnorderedTermMap "smt::UnorderedTermMap":
-        void emplace(c_Term k, c_Term v) except +
-
     cdef cppclass c_TermIter "smt::TermIter":
         c_TermIter() except +
         c_TermIter& operator++() except +
