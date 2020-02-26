@@ -20,9 +20,6 @@ cdef extern from "<iostream>" namespace "std":
 
 
 cdef extern from "sort.h" namespace "smt":
-    cdef struct SortHashFunction:
-        size_t operator() except +
-
     cdef cppclass AbsSort:
         AbsSort() except +
         string to_string() except +
@@ -55,9 +52,6 @@ cdef extern from "ops.h" namespace "smt":
 
 
 cdef extern from "term.h" namespace "smt":
-    cdef struct TermHashFunction:
-        size_t operator() except +
-
     cdef cppclass c_UnorderedTermMap "smt::UnorderedTermMap":
         void emplace(c_Term k, c_Term v) except +
 
