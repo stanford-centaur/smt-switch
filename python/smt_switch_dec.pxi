@@ -20,17 +20,20 @@ cdef extern from "<iostream>" namespace "std":
 
 
 cdef extern from "sort.h" namespace "smt":
-   cdef cppclass AbsSort:
-       AbsSort() except +
-       string to_string() except +
-       size_t hash() except +
-       uint64_t get_width() except +
-       c_Sort get_indexsort() except +
-       c_Sort get_elemsort() except +
-       c_SortVec get_domain_sorts() except +
-       c_Sort get_codomain_sort() except +
-       bint compare(const c_Sort sort) except +
-       c_SortKind get_sort_kind() except +
+    cdef struct SortHashFunction:
+        size_t operator() except +
+
+    cdef cppclass AbsSort:
+        AbsSort() except +
+        string to_string() except +
+        size_t hash() except +
+        uint64_t get_width() except +
+        c_Sort get_indexsort() except +
+        c_Sort get_elemsort() except +
+        c_SortVec get_domain_sorts() except +
+        c_Sort get_codomain_sort() except +
+        bint compare(const c_Sort sort) except +
+        c_SortKind get_sort_kind() except +
 
 
 cdef extern from "ops.h" namespace "smt":
@@ -52,11 +55,11 @@ cdef extern from "ops.h" namespace "smt":
 
 
 cdef extern from "term.h" namespace "smt":
+    cdef struct TermHashFunction:
+        size_t operator() except +
+
     cdef cppclass c_UnorderedTermMap "smt::UnorderedTermMap":
         void emplace(c_Term k, c_Term v) except +
-
-    cdef cppclass c_UnorderedTermSet "smt::UnorderedTermSet":
-        pass
 
     cdef cppclass c_TermIter "smt::TermIter":
         c_TermIter() except +
