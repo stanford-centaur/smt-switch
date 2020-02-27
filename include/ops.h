@@ -101,6 +101,7 @@ struct Op
   Op(PrimOp o, uint64_t idx0, uint64_t idx1)
       : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};
   std::string to_string() const;
+  bool is_null() const;
   PrimOp prim_op;
   uint64_t num_idx;
   uint64_t idx0;

@@ -119,6 +119,11 @@ const Term MsatTermIter::operator*()
   }
 }
 
+TermIterBase * MsatTermIter::clone() const
+{
+  return new MsatTermIter(env, term, pos);
+}
+
 bool MsatTermIter::operator==(const MsatTermIter & it)
 {
   return ((msat_term_id(term) == msat_term_id(it.term)) && (pos == it.pos));

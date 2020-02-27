@@ -1,0 +1,12 @@
+from setuptools import setup, find_packages
+from distutils.core import Extension
+
+setup(name='smt_switch',
+      version='0.2.0',
+      long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
+      url='http://github.com/makaimann/smt-switch',
+      license='BSD',
+      tests_requires=['pytest'],
+      zip_safe=True,
+      package_data={'': ['smt_switch.so']}
+)
