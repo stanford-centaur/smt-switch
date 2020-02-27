@@ -79,8 +79,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       // Indexed Op
       { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR },
       { Select, ::CVC4::api::SELECT },
-      { Store, ::CVC4::api::STORE },
-      { Const_Array, ::CVC4::api::STORE_ALL } });
+      { Store, ::CVC4::api::STORE }});
 
 
 /* CVC4Solver implementation */

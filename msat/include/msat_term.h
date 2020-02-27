@@ -39,8 +39,16 @@ class MsatTermIter : public TermIterBase
 class MsatTerm : public AbsTerm
 {
  public:
-  MsatTerm(msat_env e, msat_term t) : env(e), term(t), is_uf(false){};
-  MsatTerm(msat_env e, msat_decl d) : env(e), decl(d), is_uf(true){};
+  MsatTerm(msat_env e, msat_term t) : env(e), term(t), is_uf(false)
+  {
+    // should know that decl is invalid
+    (decl).repr = NULL;
+  };
+  MsatTerm(msat_env e, msat_decl d) : env(e), decl(d), is_uf(true)
+  {
+    // should know that term is invalid
+    MSAT_MAKE_ERROR_TERM(term);
+  };
   ~MsatTerm(){};
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;

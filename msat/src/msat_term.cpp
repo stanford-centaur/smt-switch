@@ -52,7 +52,7 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     { MSAT_TAG_BV_SEXT, Sign_Extend },
     { MSAT_TAG_ARRAY_READ, Select },
     { MSAT_TAG_ARRAY_WRITE, Store },
-    { MSAT_TAG_ARRAY_CONST, Const_Array },
+    { MSAT_TAG_ARRAY_CONST, NUM_OPS_AND_NULL }, // Const Array is a value (no op)
     { MSAT_TAG_INT_TO_BV, Int_To_BV },
     { MSAT_TAG_INT_FROM_UBV, BV_To_Nat },
     // MSAT_TAG_FP_EQ,
@@ -126,17 +126,49 @@ TermIterBase * MsatTermIter::clone() const
 
 bool MsatTermIter::operator==(const MsatTermIter & it)
 {
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
+  {
+    return true;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
   return ((msat_term_id(term) == msat_term_id(it.term)) && (pos == it.pos));
 }
 
 bool MsatTermIter::operator!=(const MsatTermIter & it)
 {
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
+  {
+    return false;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
+
   return ((msat_term_id(term) != msat_term_id(it.term)) || (pos != it.pos));
 }
 
 bool MsatTermIter::equal(const TermIterBase & other) const
 {
   const MsatTermIter & cti = static_cast<const MsatTermIter &>(other);
+
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(cti.term))
+  {
+    return true;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(cti.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
   return ((msat_term_id(term) == msat_term_id(cti.term)) && (pos == cti.pos));
 }
 
@@ -176,7 +208,12 @@ bool MsatTerm::compare(const Term & absterm) const
 
 Op MsatTerm::get_op() const
 {
-  if (msat_term_is_and(env, term))
+  if (is_uf)
+  {
+    // uninterpreted function has no op
+    return Op();
+  }
+  else if (msat_term_is_and(env, term))
   {
     return Op(And);
   }
@@ -234,7 +271,8 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_array_const(env, term))
   {
-    return Op(Const_Array);
+    // constant array is a value (has a null operator)
+    return Op();
   }
   else if (msat_term_is_bv_concat(env, term))
   {
@@ -470,6 +508,13 @@ TermIter MsatTerm::begin() { return TermIter(new MsatTermIter(env, term, 0)); }
 
 TermIter MsatTerm::end()
 {
+  if (is_uf)
+  {
+    // term is null, but begin() and end() TermIter will evaluate as equal
+    // which is what we want because function symbols have no children
+    return TermIter(new MsatTermIter(env, term, 0));
+  }
+
   uint32_t arity = msat_term_arity(term);
   if (msat_term_is_uf(env, term))
   {
