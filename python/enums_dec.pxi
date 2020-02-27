@@ -93,7 +93,6 @@ cdef extern from "ops.h" namespace "smt":
     # Array Theory
     cdef c_PrimOp c_Select "smt::Select"
     cdef c_PrimOp c_Store "smt::Store"
-    cdef c_PrimOp c_Const_Array "smt::Const_Array"
     string to_string(c_PrimOp op) except +
 
 
