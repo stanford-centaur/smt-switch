@@ -82,7 +82,6 @@ enum PrimOp
   /* Array Theory */
   Select,
   Store,
-  Const_Array,
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */
