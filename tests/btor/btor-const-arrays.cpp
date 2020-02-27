@@ -30,7 +30,7 @@ int main()
   assert(zero->is_value());
   assert(!const_arr->is_symbolic_const());
   assert(const_arr->is_value());
-  assert(const_arr->get_op() == Const_Array);
+  assert(const_arr->get_op().is_null());
 
   for (auto c : const_arr)
   {
@@ -58,7 +58,7 @@ int main()
   Term const_arr2 = tt.transfer_term(const_arr);
   assert(!const_arr2->is_symbolic_const());
   assert(const_arr2->is_value());
-  assert(const_arr2->get_op() == Const_Array);
+  assert(const_arr2->get_op().is_null());
 
   for (auto c : const_arr2)
   {

@@ -150,7 +150,6 @@ class AbsSmtSolver
                          uint64_t base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
-   * @param op the operator used to create the value (.e.g Const_Array)
    * @param val the Term used to create the value (.e.g constant array with 0)
    * @param sort the sort of value to create
    * @return a value term with Sort sort
