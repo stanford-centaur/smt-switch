@@ -45,9 +45,25 @@ const CreateSolverFunsMap solvers({
 #endif
 });
 
+const std::vector<SolverEnum> itp_enums({
+#if BUILD_MSAT
+                                         MSAT
+#endif
+  });
+
+const CreateSolverFunsMap itps({
+#if BUILD_MSAT
+                                { MSAT, MsatSolverFactory::create }
+#endif
+  });
+
 CreateSolverFunsMap available_solvers() { return solvers; }
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
+
+CreateSolverFunsMap available_interpolators() { return itps; };
+
+std::vector<SolverEnum> available_interpolator_enums() { return itp_enums; };
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {

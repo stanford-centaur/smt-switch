@@ -353,3 +353,20 @@ cdef class SmtSolver:
 
         term.ct = dref(self.css).substitute(t.ct, utm)
         return term
+
+    def get_interpolant(self, Term A, Term B):
+        '''
+        Get an interpolant for A, and B. Note: this will throw an exception if called
+        on a solver that was not created with create_<solver>_interpolator
+
+        returns None if the interpolant could not be computed
+        '''
+        cdef c_Term cI
+        cdef Term I = Term(self)
+
+        success = dref(self.css).get_interpolant(A.ct, B.ct, cI)
+        if not success:
+            return None
+        else:
+            I.ct = cI
+            return I

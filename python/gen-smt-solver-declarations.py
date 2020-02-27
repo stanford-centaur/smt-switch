@@ -31,6 +31,11 @@ def create_msat_solver():
     solver.css = cpp_create_msat_solver()
     return solver
 solvers["msat"] = create_msat_solver
+
+def create_msat_interpolator():
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_msat_interpolator()
+    return solver
 '''
 
 
@@ -49,6 +54,7 @@ cdef extern from "cvc4_factory.h":
 DECLARE_MSAT='''
 cdef extern from "msat_factory.h":
     c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
+    c_SmtSolver cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 '''
 
 
@@ -80,6 +86,7 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_MSAT
         pxi += "\n" + CREATE_MSAT
         imports.append('cpp_create_msat_solver')
+        imports.append('cpp_create_msat_interpolator')
 
     if imports:
         CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)
