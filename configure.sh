@@ -151,17 +151,14 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_btor != default ] \
     && cmake_opts="$cmake_opts -DBUILD_BTOR=$build_btor"
 
-[ $build_yices2 != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
-
 [ $build_cvc4 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_CVC4=$build_cvc4"
 
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
-[ $yices2_home != default ] \
-    && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
+[ $build_yices2 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
 
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
@@ -171,6 +168,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
+
+[ $yices2_home != default ] \
+    && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"

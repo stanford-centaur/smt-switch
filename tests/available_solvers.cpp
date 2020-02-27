@@ -13,6 +13,10 @@
 #include "msat_factory.h"
 #endif
 
+#if BUILD_YICES2
+#include "yices2_factory.h"
+#endif
+
 using namespace smt;
 
 namespace smt_tests {
@@ -29,6 +33,10 @@ const std::vector<SolverEnum> solver_enums({
 #if BUILD_MSAT
       MSAT,
 #endif
+
+#if BUILD_YICES
+      YICES2,
+#endif
 });
 
 const CreateSolverFunsMap solvers({
@@ -43,6 +51,10 @@ const CreateSolverFunsMap solvers({
 #if BUILD_MSAT
       { MSAT, MsatSolverFactory::create },
 #endif
+
+#if BUILD_YICES2
+      { YICES2, Yices2SolverFactory::create },
+#endif
 });
 
 CreateSolverFunsMap available_solvers() { return solvers; }
@@ -56,6 +68,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case BTOR: o << "BTOR"; break;
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
+    case YICES2: o << "YICES2"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
