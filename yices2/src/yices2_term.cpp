@@ -156,6 +156,11 @@ const Term Yices2TermIter::operator*()
   }
 }
 
+TermIterBase * Yices2TermIter::clone() const
+{
+  return new Yices2TermIter(term, pos);
+}
+
 bool Yices2TermIter::operator==(const Yices2TermIter & it)
 {
   return ((term == it.term) && (pos == it.pos));

@@ -34,7 +34,7 @@ const std::vector<SolverEnum> solver_enums({
       MSAT,
 #endif
 
-#if BUILD_YICES
+#if BUILD_YICES2
       YICES2,
 #endif
 });

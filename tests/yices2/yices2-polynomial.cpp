@@ -37,7 +37,7 @@ void check(Term * constraint, SmtSolver * s)
   cout << "term from solver 1: " << *constraint << endl;
   cout << "term from solver 2: " << constraint2 << endl;
 
-  assert(s->check_sat().is_sat());
+  assert((*s)->check_sat().is_sat());
   assert(s2->check_sat().is_sat());
 }
 

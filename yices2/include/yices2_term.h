@@ -24,6 +24,7 @@ class Yices2TermIter : public TermIterBase
   Yices2TermIter & operator=(const Yices2TermIter & it);
   void operator++() override;
   const Term operator*() override;
+  TermIterBase * clone() const override;
   bool operator==(const Yices2TermIter & it);
   bool operator!=(const Yices2TermIter & it);
 

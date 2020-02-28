@@ -46,27 +46,6 @@ endif()
 # build testing infrastructure
 enable_testing()
 
-# Download and unpack googletest at configure time
-configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-  message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
-
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
-
 # should we build boolector?
 option (BUILD_BTOR
   "Should we build the libraries for boolector" OFF)
@@ -79,20 +58,6 @@ if (BUILD_BTOR)
   # testing
   add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
-
-# should we build yices2?
-option (BUILD_YICES2
-  "Should we build the libraries for boolector" OFF)
-
-if (BUILD_YICES2)
-  set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
-  add_subdirectory (yices2)
-  set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-yices2)
-
-  # testing
-  add_subdirectory(tests/yices2)
-endif (BUILD_YICES2)
-
 
 # should we build cvc4?
 option (BUILD_CVC4
@@ -120,6 +85,20 @@ if (BUILD_MSAT)
   add_subdirectory(tests/msat)
 
 endif()
+
+# should we build yices2?
+option (BUILD_YICES2
+  "Should we build the libraries for boolector" OFF)
+
+if (BUILD_YICES2)
+  set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
+  add_subdirectory (yices2)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
+
+  # testing
+  add_subdirectory(tests/yices2)
+  
+endif (BUILD_YICES2)
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)

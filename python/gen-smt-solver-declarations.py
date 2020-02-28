@@ -33,6 +33,14 @@ def create_msat_solver():
 solvers["msat"] = create_msat_solver
 '''
 
+CREATE_YICES2='''
+def create_yices2_solver():
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_yices2_solver()
+    return solver
+solvers["yices2"] = create_yices2_solver
+'''
+
 
 DECLARE_BTOR='''
 cdef extern from "boolector_factory.h":
@@ -51,6 +59,11 @@ cdef extern from "msat_factory.h":
     SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
 '''
 
+DECLARE_YICES2='''
+cdef extern from "yices2_factory.h":
+    SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" () except +
+'''
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate smt_switch python binding implementations.")
@@ -58,6 +71,7 @@ if __name__ == "__main__":
     parser.add_argument('--btor', action='store_true', help='Build with Boolector')
     parser.add_argument('--cvc4', action='store_true', help='Build with CVC4')
     parser.add_argument('--msat', action='store_true', help='Build with MathSAT')
+    parser.add_argument('--yices2', action='store_true', help='Build with Yices2')
 
     args = parser.parse_args()
     dest_dir = args.dest_dir
@@ -80,6 +94,11 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_MSAT
         pxi += "\n" + CREATE_MSAT
         imports.append('cpp_create_msat_solver')
+
+    if args.yices2:
+        pxd += "\n" + DECLARE_YICES2
+        pxi += "\n" + CREATE_YICES2
+        imports.append('cpp_create_yices2_solver')
 
     if imports:
         CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)

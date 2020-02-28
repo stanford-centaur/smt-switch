@@ -86,16 +86,6 @@ do
                 *) btor_home=$(pwd)/$btor_home ;; # make absolute path
             esac
             ;;
-        --yices2-home) die "missing argument to $1 (see -h)" ;;
-        --yices2-home=*)
-            yices2_home=${1##*=}
-            # Check if yices2_home is an absolute path and if not, make it
-            # absolute.
-            case $yices2_home in
-                /*) ;;                                      # absolute path
-                *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
-            esac
-            ;;
         --cvc4-home) die "missing argument to $1 (see -h)" ;;
         --cvc4-home=*)
             cvc4_home=${1##*=}
@@ -114,6 +104,16 @@ do
             case $msat_home in
                 /*) ;;                                      # absolute path
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
+            esac
+            ;;
+        --yices2-home) die "missing argument to $1 (see -h)" ;;
+        --yices2-home=*)
+            yices2_home=${1##*=}
+            # Check if yices2_home is an absolute path and if not, make it
+            # absolute.
+            case $yices2_home in
+                /*) ;;                                      # absolute path
+                *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
             esac
             ;;
         --build-dir) die "missing argument to $1 (see -h)" ;;

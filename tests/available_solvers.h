@@ -14,7 +14,8 @@ enum SolverEnum
 {
   BTOR = 0,
   CVC4,
-  MSAT
+  MSAT,
+  YICES2
 };
 
 typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
