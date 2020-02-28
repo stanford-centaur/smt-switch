@@ -106,7 +106,6 @@ cdef extern from "solver.h" namespace "smt":
         c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2, const c_Sort & sort3) except +
         c_Sort make_sort(const c_SortKind sk, const c_SortVec & sorts) except +
         c_Term make_term(bint b) except +
-        c_Term make_term(int64_t i, const c_Sort & sort) except +
         c_Term make_term(const string val, const c_Sort & sort) except +
         c_Term make_term(const string val, const c_Sort & sort, uint64_t base) except +
         c_Term make_term(const c_Term & val, const c_Sort & sort) except +

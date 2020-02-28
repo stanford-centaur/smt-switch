@@ -323,7 +323,7 @@ cdef class SmtSolver:
                                                    (<Sort> arg1).cs,
                                                     <int?> arg2)
         elif isinstance(arg0, int) and isinstance(arg1, Sort) and arg2 is None:
-            term.ct = dref(self.css).make_term(<int> arg0, (<Sort> arg1).cs)
+            term.ct = dref(self.css).make_term((<const string?> str(arg0).encode()), (<Sort> arg1).cs)
         elif isinstance(arg0, bool) and arg1 is None:
             term.ct = dref(self.css).make_term(<bint> arg0)
         elif isinstance(arg0, Term) and isinstance(arg1, Sort) and arg2 is None:
