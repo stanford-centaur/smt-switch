@@ -48,6 +48,16 @@ TEST_P(UnitTests, IndexedOps1)
   ASSERT_EQ(rep_x->get_sort()->get_width(), 8);
 }
 
+TEST_P(UnitTests, RotateOps)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term rotate_left = s->make_term(Op(Rotate_Left, 2), x);
+  Term rotate_right = s->make_term(Op(Rotate_Right, 2), rotate_left);
+  s->assert_formula(s->make_term(Distinct, x, rotate_right));
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
                          testing::ValuesIn(available_solver_enums()));

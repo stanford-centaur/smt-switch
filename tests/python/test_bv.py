@@ -138,3 +138,20 @@ def test_complex_expr(create_solver):
     t8_sub = solver.substitute(t8, {x:x, y:y, a:a, b:b, c:c, d:d})
     # should be identical
     assert t8 == t8_sub, "Expecting identical terms but got:\n\t%s\n\t%s"%(t8, t8_sub)
+
+
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
+def test_bv_ops(create_solver):
+    solver = create_solver()
+    bvsort32 = solver.make_sort(ss.sortkinds.BV, 32)
+
+    one = solver.make_term(1, bvsort32)
+    t0 = solver.make_term(ss.Op(ss.primops.Rotate_Left, 3), one)
+    t = solver.make_term(ss.Op(ss.primops.Rotate_Right, 3),
+                    t0)
+    constraint = solver.make_term(ss.primops.Distinct,
+                                 one,
+                                 t)
+    solver.assert_formula(constraint)
+    r = solver.check_sat()
+    assert r.is_unsat(), "{} and {} should be identical".format(one, t)

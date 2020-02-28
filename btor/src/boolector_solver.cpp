@@ -515,7 +515,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     }
     else if (op.prim_op == Rotate_Right)
     {
-      btor_res = custom_boolector_rotate_left(btor, bt->node, op.idx0);
+      btor_res = custom_boolector_rotate_right(btor, bt->node, op.idx0);
     }
     else
     {
