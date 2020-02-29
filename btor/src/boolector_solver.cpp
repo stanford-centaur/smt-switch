@@ -222,6 +222,12 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   std::shared_ptr<BoolectorTerm> bt;
   for (auto a : assumptions)
   {
+    if (!a->is_symbolic_const())
+    {
+      throw IncorrectUsageException(
+          "Assumptions to check_sat_assuming must be boolean literals");
+    }
+
     bt = std::static_pointer_cast<BoolectorTerm>(a);
     boolector_assume(btor, bt->node);
   }
