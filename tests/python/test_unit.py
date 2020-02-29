@@ -92,3 +92,27 @@ def test_bool(create_solver):
         assert False, "Shouldn't be able to call bool on non-value"
     except:
         pass
+
+
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
+def test_check_sat_assuming(create_solver):
+    solver = create_solver()
+    solver.set_opt("incremental", "true")
+    boolsort = solver.make_sort(ss.sortkinds.BOOL)
+    bvsort8  = solver.make_sort(ss.sortkinds.BV, 8)
+
+    x = solver.make_symbol("x", bvsort8)
+    b = solver.make_symbol("b", boolsort)
+
+    xeq0 = solver.make_term(ss.primops.Equal, x, solver.make_term(0, bvsort8))
+    solver.assert_formula(solver.make_term(ss.primops.Not, xeq0))
+    solver.assert_formula(solver.make_term(ss.primops.Implies, b, xeq0))
+
+    try:
+        solver.check_sat_assuming([xeq0])
+        assert False, "Expecting a thrown exception for check_sat_assuming with a formula"
+    except:
+        pass
+
+    r = solver.check_sat_assuming([b])
+    assert r.is_unsat()
