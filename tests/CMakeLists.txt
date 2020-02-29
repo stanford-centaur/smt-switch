@@ -60,3 +60,8 @@ add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)
 target_link_libraries(test_itp available-solvers)
 add_test(NAME test_itp_test COMMAND test_itp)
+
+add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-solving-interface.cpp")
+target_link_libraries(unit-solving-interface gtest_main)
+target_link_libraries(unit-solving-interface available-solvers)
+add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)

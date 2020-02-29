@@ -90,7 +90,7 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
   {
     solver.setOption(option, value);
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -102,7 +102,7 @@ void CVC4Solver::set_logic(const std::string logic) const
   {
     solver.setLogic(logic);
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -115,7 +115,7 @@ Term CVC4Solver::make_term(bool b) const
     Term c(new CVC4Term(solver.mkBoolean(b)));
     return c;
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -149,7 +149,7 @@ Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
     Term res(new CVC4Term(c));
     return res;
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     // pretty safe to assume that an error is due to incorrect usage
     throw IncorrectUsageException(e.what());
@@ -188,7 +188,7 @@ Term CVC4Solver::make_term(std::string val,
     Term res(new CVC4Term(c));
     return res;
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     // pretty safe to assume that an error is due to incorrect usage
     throw IncorrectUsageException(e.what());
@@ -210,7 +210,7 @@ void CVC4Solver::assert_formula(const Term& t) const
     std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
     solver.assertFormula(cterm->term);
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -238,7 +238,7 @@ Result CVC4Solver::check_sat()
       throw NotImplementedException("Unimplemented result type from CVC4");
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -292,7 +292,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
       throw NotImplementedException("Unimplemented result type from CVC4");
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -304,7 +304,7 @@ void CVC4Solver::push(uint64_t num)
   {
     solver.push(num);
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -316,7 +316,7 @@ void CVC4Solver::pop(uint64_t num)
   {
     solver.pop(num);
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -330,7 +330,7 @@ Term CVC4Solver::get_value(Term & t) const
     Term val(new CVC4Term(solver.getValue(cterm->term)));
     return val;
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -343,7 +343,7 @@ Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
     Sort s(new CVC4Sort(solver.declareSort(name, arity)));
     return s;
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -376,7 +376,7 @@ Sort CVC4Solver::make_sort(SortKind sk) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -399,7 +399,7 @@ Sort CVC4Solver::make_sort(SortKind sk, uint64_t size) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -434,7 +434,7 @@ Sort CVC4Solver::make_sort(SortKind sk,
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -499,7 +499,7 @@ Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -522,7 +522,7 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
     symbols[name] = res;
     return res;
   }
-  catch(std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -546,7 +546,7 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
       return result;
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -573,7 +573,7 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
       return result;
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -605,7 +605,7 @@ Term CVC4Solver::make_term(Op op,
       return result;
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -636,7 +636,7 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
       return result;
     }
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -648,7 +648,7 @@ void CVC4Solver::reset()
   {
     solver.reset();
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -660,7 +660,7 @@ void CVC4Solver::reset_assertions()
   {
     solver.resetAssertions();
   }
-  catch (std::exception & e)
+  catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
