@@ -253,7 +253,7 @@ cdef class SmtSolver:
             if not isinstance(a, Term):
                 raise ValueError("Expecting a Term but got {}")
             ctv.push_back((<Term> a).ct)
-        dref(self.css).check_sat_assuming(ctv)
+        r.cr = dref(self.css).check_sat_assuming(ctv)
         return r
 
     def push(self, int num=1):
