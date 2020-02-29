@@ -18,11 +18,12 @@ class UnitTests : public ::testing::Test,
   {
     s = available_solvers().at(GetParam())();
 
+    boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
   }
   SmtSolver s;
-  Sort bvsort, funsort;
+  Sort boolsort, bvsort, funsort;
 };
 
 TEST_P(UnitTests, FunOp)
@@ -56,6 +57,14 @@ TEST_P(UnitTests, RotateOps)
   s->assert_formula(s->make_term(Distinct, x, rotate_right));
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_unsat());
+}
+
+TEST_P(UnitTests, BoolFun)
+{
+  Term b = s->make_symbol("b", boolsort);
+  Sort boolfunsort = s->make_sort(FUNCTION, SortVec{ boolsort, boolsort });
+  Term f = s->make_symbol("f", boolfunsort);
+  Term fb = s->make_term(Apply, f, b);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,

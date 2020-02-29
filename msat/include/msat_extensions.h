@@ -32,6 +32,10 @@ msat_term ext_msat_make_bv_number(msat_env e,
                                   const char * val,
                                   size_t size,
                                   int base);
+msat_term ext_msat_make_uf(msat_env e,
+                           msat_decl func,
+                           std::vector<msat_term> args);
+
 }  // namespace smt
 
 #endif

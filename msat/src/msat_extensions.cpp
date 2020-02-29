@@ -1,6 +1,8 @@
 #ifndef SMT_MSAT_EXTENSIONS_H
 #define SMT_MSAT_EXTENSIONS_H
 
+#include <vector>
+
 #include "mathsat.h"
 
 #include "exceptions.h"
@@ -303,6 +305,41 @@ msat_term ext_msat_make_bv_number(msat_env e,
     throw IncorrectUsageException(msg);
   }
 
+  return res;
+}
+
+/**
+ * Wraps msat_make_uf and converts boolean arguments to bitvectors of size 1
+ * because mathsat doesn't support UF over booleans
+ */
+msat_term ext_msat_make_uf(msat_env e,
+                           msat_decl func,
+                           std::vector<msat_term> args)
+{
+  std::vector<msat_term> converted_args;
+  msat_type _type;
+  for (auto a : args)
+  {
+    _type = msat_term_get_type(a);
+    if (msat_is_bool_type(e, _type))
+    {
+      converted_args.push_back(
+          msat_make_term_ite(e,
+                             a,
+                             msat_make_bv_number(e, "1", 1, 2),
+                             msat_make_bv_number(e, "0", 1, 2)));
+    }
+    else
+    {
+      converted_args.push_back(a);
+    }
+  }
+
+  msat_term res = msat_make_uf(e, func, &converted_args[0]);
+  if (MSAT_ERROR_TERM(res))
+  {
+    throw InternalSolverException("Got an error term in function application");
+  }
   return res;
 }
 
