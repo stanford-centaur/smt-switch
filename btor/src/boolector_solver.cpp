@@ -222,13 +222,16 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   std::shared_ptr<BoolectorTerm> bt;
   for (auto a : assumptions)
   {
-    if (!a->is_symbolic_const())
+    bt = std::static_pointer_cast<BoolectorTerm>(a);
+    BoolectorSort s = boolector_get_sort(bt->btor, bt->node);
+    if (!boolector_is_bitvec_sort(bt->btor, s)
+        || boolector_get_width(bt->btor, bt->node) != 1
+        || bt->bn->kind != BTOR_VAR_NODE)
     {
       throw IncorrectUsageException(
           "Assumptions to check_sat_assuming must be boolean literals");
     }
 
-    bt = std::static_pointer_cast<BoolectorTerm>(a);
     boolector_assume(btor, bt->node);
   }
 
