@@ -64,3 +64,31 @@ def test_unit_iter(create_solver):
         cnt += 1
 
     assert cnt == 2, "Expecting two children"
+
+
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
+def test_bool(create_solver):
+    solver = create_solver()
+    solver.set_opt("produce-models", "true")
+
+    boolsort = solver.make_sort(ss.sortkinds.BOOL)
+    x = solver.make_symbol("x", boolsort)
+    y = solver.make_symbol('y', boolsort)
+
+    solver.assert_formula(solver.make_term(ss.primops.And,
+                                           x,
+                                           solver.make_term(ss.primops.Not,
+                                                            y)))
+    solver.check_sat()
+    xv = solver.get_value(x)
+    yv = solver.get_value(y)
+
+    assert bool(xv)
+    print(yv)
+    assert not bool(yv)
+
+    try:
+        val = bool(x)
+        assert False, "Shouldn't be able to call bool on non-value"
+    except:
+        pass

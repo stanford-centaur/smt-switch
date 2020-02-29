@@ -12,7 +12,7 @@ from smt_switch cimport c_Term
 from smt_switch cimport c_TermVec
 from smt_switch cimport c_UnorderedTermMap
 from smt_switch cimport c_TermIter
-from smt_switch cimport c_PrimOp, c_SortKind
+from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
 
 cdef class Op:
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
@@ -209,6 +209,17 @@ cdef class Term:
 
     def __ne__(self, Term other):
         return self.ct != other.ct
+
+    def __bool__(self):
+        cdef c_Sort csort = dref(self.ct).get_sort()
+        cdef c_Sort cboolsort = dref(self._solver.css).make_sort(c_BOOL)
+
+        if csort != cboolsort or not dref(self.ct).is_value():
+            raise ValueError("Cannot call bool on {}".format(str(self)))
+
+        cdef Term t = self._solver.make_term(True)
+
+        return (self.ct == t.ct)
 
     def __iter__(self):
         for ci in dref(self.ct):
