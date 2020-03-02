@@ -1,3 +1,6 @@
+#ifndef SMT_IDENTITY_WALKER_H
+#define SMT_IDENTITY_WALKER_H
+
 #include <utility>
 
 #include "exceptions.h"
@@ -34,9 +37,23 @@ class IdentityWalker
 public:
   IdentityWalker(smt::SmtSolver & solver, bool clear_cache)
     : solver_(solver), clear_cache_(clear_cache) {};
+
+  /** Visit a term and all its subterms in a pre- and post-order traversal
+   *  @param term the term to visit
+   *  @return the term after visiting (returns the value of cache[term]
+   *     -- if it has been cached and returns term otherwise)
+   */
   smt::Term visit(smt::Term & term);
-  virtual WalkerStepResult visit_term(smt::Term & term);
+
 protected:
+  /** Visit a single term.
+   *  Implement this method in a derived class to change the behavior
+   *  of the walker
+   *  @param term the term to visit
+   *  @return a WalkerStepResult to tell the visit method how to proceed
+  */
+  virtual WalkerStepResult visit_term(smt::Term & term);
+
   smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
   smt::UnorderedTermMap cache_; /**< cache for updating terms */
   bool clear_cache_; /**< if true, clears the cache between calls to visit */
@@ -45,3 +62,5 @@ protected:
 };
 
 }
+
+#endif // SMT_IDENTITY_WALKER_H
