@@ -1,3 +1,6 @@
+#ifndef SMT_IDENTITY_WALKER_H
+#define SMT_IDENTITY_WALKER_H
+
 #include <utility>
 
 #include "exceptions.h"
@@ -45,3 +48,5 @@ protected:
 };
 
 }
+
+#endif // SMT_IDENTITY_WALKER_H
