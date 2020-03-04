@@ -26,7 +26,8 @@ constexpr std::array<std::string_view, NUM_OPS_AND_NULL> generate_primop2str()
   primop2str[Minus] = std::string_view("-");
   primop2str[Negate] = std::string_view("-");
   primop2str[Mult] = std::string_view("*");
-  primop2str[Div] = std::string_view("div");
+  primop2str[Div] = std::string_view("/");
+  primop2str[IntDiv] = std::string_view("div");
   primop2str[Lt] = std::string_view("<");
   primop2str[Le] = std::string_view("<=");
   primop2str[Gt] = std::string_view(">");
