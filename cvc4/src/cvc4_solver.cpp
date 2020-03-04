@@ -22,6 +22,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Negate, ::CVC4::api::UMINUS },
       { Mult, ::CVC4::api::MULT },
       { Div, ::CVC4::api::DIVISION },
+      { IntDiv, ::CVC4::api::INTS_DIVISION },
       { Lt, ::CVC4::api::LT },
       { Le, ::CVC4::api::LEQ },
       { Gt, ::CVC4::api::GT },
@@ -79,8 +80,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       // Indexed Op
       { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR },
       { Select, ::CVC4::api::SELECT },
-      { Store, ::CVC4::api::STORE }});
-
+      { Store, ::CVC4::api::STORE } });
 
 /* CVC4Solver implementation */
 

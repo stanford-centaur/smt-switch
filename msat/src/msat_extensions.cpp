@@ -23,6 +23,12 @@ msat_term ext_msat_make_abs(msat_env e, msat_term t)
   return msat_make_term_ite(e, neg, ext_msat_make_negate(e, t), t);
 }
 
+msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
+{
+  msat_term div = msat_make_divide(e, t1, t2);
+  return msat_make_floor(e, div);
+}
+
 msat_term ext_msat_make_nop(msat_env e, msat_term t) { return t; }
 
 msat_term ext_msat_is_int(msat_env e, msat_term t)

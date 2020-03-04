@@ -55,6 +55,7 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Minus, ext_msat_make_minus },
       { Mult, msat_make_times },
       { Div, msat_make_divide },
+      { IntDiv, ext_msat_make_intdiv },
       { Lt, ext_msat_make_lt },
       { Le, msat_make_leq },
       { Gt, ext_msat_make_gt },
@@ -613,7 +614,11 @@ Term MsatSolver::make_term(Op op, const Term & t) const
 
   if (MSAT_ERROR_TERM(res))
   {
-    throw InternalSolverException("Got error term");
+    string msg("Failed to create term given ");
+    msg += op.to_string();
+    msg += " and";
+    msg += t->to_string();
+    throw InternalSolverException(msg);
   }
   else
   {
@@ -658,7 +663,11 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
 
   if (MSAT_ERROR_TERM(res))
   {
-    throw InternalSolverException("Got error term");
+    string msg("Failed to create term given ");
+    msg += op.to_string();
+    msg += " and";
+    msg += t0->to_string() + ", " + t1->to_string();
+    throw InternalSolverException(msg);
   }
   else
   {
@@ -708,7 +717,11 @@ Term MsatSolver::make_term(Op op,
 
   if (MSAT_ERROR_TERM(res))
   {
-    throw InternalSolverException("Got error term");
+    string msg("Failed to create term given ");
+    msg += op.to_string();
+    msg += " and";
+    msg += t0->to_string() + ", " + t1->to_string() + ", " + t2->to_string();
+    throw InternalSolverException(msg);
   }
   else
   {
@@ -763,7 +776,14 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     msat_term res = ext_msat_make_uf(env, uf, margs);
     if (MSAT_ERROR_TERM(res))
     {
-      throw InternalSolverException("Got error term.");
+      string msg("Failed to create term given ");
+      msg += op.to_string();
+      msg += " and";
+      for (auto t : terms)
+      {
+        msg += " " + t->to_string() + ",";
+      }
+      throw InternalSolverException(msg);
     }
     return Term(new MsatTerm(env, res));
   }
