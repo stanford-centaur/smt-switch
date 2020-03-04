@@ -67,6 +67,30 @@ TEST_P(UnitTests, BoolFun)
   Term fb = s->make_term(Apply, f, b);
 }
 
+TEST_P(UnitTests, MultiArgFun)
+{
+  SortVec argsorts(7, bvsort);
+  // return sort
+  argsorts.push_back(boolsort);
+  Sort multiargsort = s->make_sort(FUNCTION, argsorts);
+  Term f = s->make_symbol("f", multiargsort);
+
+  TermVec args1{f};
+  TermVec args2{f};
+  for (size_t i = 0; i < 7; i++)
+  {
+    args1.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
+    args2.push_back(s->make_symbol("y" + std::to_string(i), bvsort));
+  }
+
+  Term res = s->make_term(Apply, args1);
+  ASSERT_EQ(res, s->make_term(Apply, args1));
+
+  Term res2 = s->make_term(Apply, args2);
+  ASSERT_NE(res, res2);
+  ASSERT_EQ(res2, s->make_term(Apply, args2));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
                          testing::ValuesIn(available_solver_enums()));
