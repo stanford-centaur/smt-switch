@@ -722,7 +722,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
 
       std::shared_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(t0);
-      result = boolector_apply(btor, &args[0], 1, bt0->node);
+      result = boolector_apply(btor, &args[0], 2, bt0->node);
     }
     else
     {
@@ -773,7 +773,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
       }
       std::shared_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(terms[0]);
-      BoolectorNode * result = boolector_apply(btor, &args[0], 1, bt0->node);
+      BoolectorNode * result = boolector_apply(btor, &args[0], args.size(), bt0->node);
 
       Term term(new BoolectorTerm(btor, result));
       return term;

@@ -110,9 +110,6 @@ cdef extern from "solver.h" namespace "smt":
         c_Term make_term(const string val, const c_Sort & sort, uint64_t base) except +
         c_Term make_term(const c_Term & val, const c_Sort & sort) except +
         c_Term make_symbol(const string name, const c_Sort & sort) except +
-        c_Term make_term(const c_Op op, const c_Term & t) except +
-        c_Term make_term(const c_Op op, const c_Term & t0, const c_Term & t1) except +
-        c_Term make_term(const c_Op op, const c_Term & t0, const c_Term & t1, const c_Term & t2) except +
         c_Term make_term(const c_Op op, const c_TermVec & terms) except +
         void reset() except +
         void reset_assertions() except +

@@ -116,3 +116,27 @@ def test_check_sat_assuming(create_solver):
 
     r = solver.check_sat_assuming([b])
     assert r.is_unsat()
+
+
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
+def test_multi_arg_fun(create_solver):
+    solver = create_solver()
+    bvsort = solver.make_sort(ss.sortkinds.BV, 8)
+    funsort = solver.make_sort(ss.sortkinds.FUNCTION, [bvsort]*8)
+
+    vs=[]
+    for i in range(7):
+        vs.append(solver.make_symbol('x%i'%i, bvsort))
+
+    vs2=[]
+    for i in range(7):
+        vs2.append(solver.make_symbol('y%i'%i, bvsort))
+
+    f = solver.make_symbol('f', funsort)
+    res = solver.make_term(ss.primops.Apply, [f] + vs)
+    assert res == solver.make_term(ss.primops.Apply, f, *vs)
+
+    res2 = solver.make_term(ss.primops.Apply, f, *vs2)
+    assert res != res2
+    args = [f] + vs2
+    assert res2 == solver.make_term(ss.primops.Apply, args)
