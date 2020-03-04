@@ -55,6 +55,7 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Minus, ext_msat_make_minus },
       { Mult, msat_make_times },
       { Div, msat_make_divide },
+      { IntDiv, ext_msat_make_intdiv },
       { Lt, ext_msat_make_lt },
       { Le, msat_make_leq },
       { Gt, ext_msat_make_gt },

@@ -55,3 +55,8 @@ add_executable(unit-op "${PROJECT_SOURCE_DIR}/tests/unit/unit-op.cpp")
 target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op available-solvers)
 add_test(NAME unit-op_test COMMAND unit-op)
+
+add_executable(test-int "${PROJECT_SOURCE_DIR}/tests/test-int.cpp")
+target_link_libraries(test-int gtest_main)
+target_link_libraries(test-int available-solvers)
+add_test(NAME test-int_test COMMAND test-int)
