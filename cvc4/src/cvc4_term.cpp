@@ -108,7 +108,7 @@ const Term CVC4TermIter::operator*()
 {
   Term t(new CVC4Term(*term_it));
   return t;
-};
+}
 
 TermIterBase * CVC4TermIter::clone() const { return new CVC4TermIter(term_it); }
 
