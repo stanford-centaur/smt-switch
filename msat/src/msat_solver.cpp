@@ -370,6 +370,8 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
       msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
       if (msat_is_bool_type(env, msort))
       {
+        // mathsat does not support functions of booleans
+        // convert to width one bitvector instead
         msort = msat_get_bv_type(env, 1);
       }
       msorts.push_back(msort);
