@@ -8,7 +8,7 @@ There are three abstract classes:
 * `AbsSort`
 * `AbsTerm`
 
-Each of them has a `using` statement that names a smart pointer of that type, e.g. `using Term = shared_ptr<AbsTerm>;`. They all use `shared_ptr`s except `SmtSolver` which is a `unique_ptr` to an `AbsSmtSolver`. The key thing to remember when using this library is that all solver-specific objects are pointers to the abstract base class. `SmtSolver`, `Sort`, and `Term` are all smart pointers. Note: there are many convenience functions which operate on these pointers, so they may not *look* like pointers. Additionally, the library also includes `using` statements for commonly used data structures, for example, `TermVec` is a vector of shared pointers to `AbsTerm`s.
+Each of them has a `using` statement that names a smart pointer of that type, e.g. `using Term = shared_ptr<AbsTerm>;`. The key thing to remember when using this library is that all solver-specific objects are pointers to the abstract base class. `SmtSolver`, `Sort`, and `Term` are all smart pointers. Note: there are many convenience functions which operate on these pointers, so they may not *look* like pointers. Additionally, the library also includes `using` statements for commonly used data structures, for example, `TermVec` is a vector of shared pointers to `AbsTerm`s.
 
 The function names are based on SMT-LIB. The general rule is that functions/methods in this library can be obtained syntactically from SMT-LIB commands by replacing dashes with underscores. There are a few exceptions, for example `assert` is `assert_formula` in this library to avoid clashing with the `assert` macro. Operator names are also based on SMT-LIB operators, and can be obtained syntactically from an SMT-LIB operator by capitalizing the first letter and any letter after an underscore. The only exception is `bv` which is always capitalized to `BV` and does not count towards the capitalization of the first letter. Some examples include:
 
@@ -21,7 +21,7 @@ Please see the `tests` directory for some example usage.
 
 # Operating Systems
 
-Our `cmake` build system is currently only tested on Linux, but should work for other operating systems. Please file a GitHub issue if you have any problems!
+Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX with XCode 9 but should work for other sufficiently modern (e.g. has C++17 support) Unix-based operating systems. Please file a GitHub issue if you have any problems!
 
 # Solvers
 To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can configure your `cmake` build with the `configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By default only `libsmt-switch.so` is built without any solvers.
@@ -30,7 +30,7 @@ Once you've configured the build system, simply enter the build directory (`./bu
 
 ## Currently Supported Solvers
 * Boolector
-* CVC4 (partially implemented)
+* CVC4
 * MathSAT
 
 ## Custom Solver Location

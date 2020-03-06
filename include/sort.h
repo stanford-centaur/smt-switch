@@ -59,19 +59,24 @@ bool operator==(const Sort& s1, const Sort& s2);
 bool operator!=(const Sort& s1, const Sort& s2);
 std::ostream& operator<<(std::ostream& output, const Sort s);
 
-// Useful data structures and hashing
-struct SortHashFunction
-{
-  std::size_t operator()(const Sort & s) const
-  {
-    // call the sort's hash function, implemented by solvers
-    return s->hash();
-  }
-};
-
+// Useful typedefs for data structures
 using SortVec = std::vector<Sort>;
-using UnorderedSortSet = std::unordered_set<Sort, SortHashFunction>;
+using UnorderedSortSet = std::unordered_set<Sort>;
 
 }  // namespace smt
+
+namespace std
+{
+
+  template<>
+  struct hash<smt::Sort>
+  {
+    size_t operator()(const smt::Sort & s) const
+    {
+      return s->hash();
+    }
+  };
+
+}
 
 #endif

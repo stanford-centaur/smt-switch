@@ -109,6 +109,6 @@ setup(
     url='http://github.com/makaimann/smt-switch',
     license='BSD',
     tests_require=['pytest'],
-    zip_safe=True,
+    zip_safe=False,
 )
 
