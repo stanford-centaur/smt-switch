@@ -2,6 +2,7 @@
 #define SMT_TERM_H
 
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -72,6 +73,13 @@ class TermIterBase
 class TermIter
 {
  public:
+  // typedefs for marking as an input iterator
+  typedef Term value_type;
+  typedef std::ptrdiff_t difference_type;
+  typedef Term * pointer;
+  typedef Term & reference;
+  typedef std::input_iterator_tag iterator_category;
+
   TermIter() : iter_(0) {}
   TermIter(TermIterBase* tib) : iter_(tib) {}
   ~TermIter() { delete iter_; }
