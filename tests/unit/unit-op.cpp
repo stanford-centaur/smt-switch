@@ -47,6 +47,18 @@ TEST_P(UnitTests, IndexedOps1)
   // some solvers rewrite -- might be concats
   // but we can check the sort
   ASSERT_EQ(rep_x->get_sort()->get_width(), 8);
+
+  Op se = Op(Sign_Extend, 4);
+  Term se_x = s->make_term(se, x);
+  ASSERT_EQ(se_x->get_sort()->get_width(), 8);
+  Op op = se_x->get_op();
+  TermVec children;
+  for (auto tt : se_x)
+  {
+    children.push_back(tt);
+  }
+  Term se_x_rebuilt = s->make_term(op, children);
+  ASSERT_EQ(se_x_rebuilt, se_x);
 }
 
 TEST_P(UnitTests, RotateOps)
