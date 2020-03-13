@@ -12,8 +12,8 @@ namespace smt {
 // the kinds CVC4 needs to build an OpTerm for an indexed op
 const std::unordered_map<::CVC4::api::Kind, size_t> kind2numindices(
     { { ::CVC4::api::BITVECTOR_EXTRACT, 2 },
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, 2 },
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, 2 },
+      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, 1 },
+      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, 1 },
       { ::CVC4::api::BITVECTOR_REPEAT, 1 },
       { ::CVC4::api::BITVECTOR_ROTATE_LEFT, 1 },
       { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, 1 },
@@ -108,7 +108,7 @@ const Term CVC4TermIter::operator*()
 {
   Term t(new CVC4Term(*term_it));
   return t;
-};
+}
 
 TermIterBase * CVC4TermIter::clone() const { return new CVC4TermIter(term_it); }
 

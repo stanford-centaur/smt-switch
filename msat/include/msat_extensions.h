@@ -6,6 +6,7 @@
 namespace smt {
 msat_term ext_msat_make_negate(msat_env e, msat_term t);
 msat_term ext_msat_make_abs(msat_env e, msat_term t);
+msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2);
 msat_term ext_msat_make_nop(msat_env e, msat_term t);
 msat_term ext_msat_is_int(msat_env e, msat_term t);
 msat_term ext_msat_make_xor(msat_env e, msat_term t0, msat_term t1);

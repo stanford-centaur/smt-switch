@@ -36,6 +36,7 @@ enum PrimOp
   Mod,
   Abs,
   Pow,
+  IntDiv,
   // Int/Real Conversion and Queries
   To_Real,
   To_Int,

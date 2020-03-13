@@ -87,22 +87,27 @@ class TermIter
   TermIterBase* iter_;
 };
 
-// Useful data structures and hashing
-struct TermHashFunction
-{
-  std::size_t operator()(const Term & t) const
-  {
-    // call the term's hash function, implemented by solvers
-    return t->hash();
-  }
-};
+// useful typedefs for data structures
 using TermVec = std::vector<Term>;
-using UnorderedTermSet = std::unordered_set<Term, TermHashFunction>;
-using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
+using UnorderedTermSet = std::unordered_set<Term>;
+using UnorderedTermMap = std::unordered_map<Term, Term>;
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
 inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
+
+namespace std
+{
+  // Specialize the hash function for data structures
+  template<>
+  struct hash<smt::Term>
+  {
+    size_t operator()(const smt::Term & t) const
+    {
+      return t->hash();
+    }
+  };
+}
 
 #endif

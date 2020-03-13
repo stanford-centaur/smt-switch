@@ -26,6 +26,12 @@ CreateSolverFunsMap available_solvers();
 // collect all the available solvers
 std::vector<SolverEnum> available_solver_enums();
 
+CreateSolverFunsMap available_interpolators();
+
+std::vector<SolverEnum> available_interpolator_enums();
+
+std::vector<SolverEnum> available_int_solver_enums();
+
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 }  // namespace smt_tests

@@ -31,6 +31,11 @@ def create_msat_solver():
     solver.css = cpp_create_msat_solver()
     return solver
 solvers["msat"] = create_msat_solver
+
+def create_msat_interpolator():
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_msat_interpolator()
+    return solver
 '''
 
 CREATE_YICES2='''
@@ -44,19 +49,20 @@ solvers["yices2"] = create_yices2_solver
 
 DECLARE_BTOR='''
 cdef extern from "boolector_factory.h":
-    SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" () except +
+    c_SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" () except +
 '''
 
 
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
-    SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" () except +
+    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" () except +
 '''
 
 
 DECLARE_MSAT='''
 cdef extern from "msat_factory.h":
-    SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
+    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
+    c_SmtSolver cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 '''
 
 DECLARE_YICES2='''
@@ -78,7 +84,7 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = 'from smt_switch_imp cimport SmtSolver'
+    pxd = 'from smt_switch cimport c_SmtSolver'
     pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
@@ -94,6 +100,7 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_MSAT
         pxi += "\n" + CREATE_MSAT
         imports.append('cpp_create_msat_solver')
+        imports.append('cpp_create_msat_interpolator')
 
     if args.yices2:
         pxd += "\n" + DECLARE_YICES2

@@ -3,24 +3,18 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from smt_switch_imp cimport Op as c_Op
-from smt_switch_imp cimport Result as c_Result
-from smt_switch_imp cimport SmtSolver as c_SmtSolver
-from smt_switch_imp cimport Sort as c_Sort
-from smt_switch_imp cimport SortVec as c_SortVec
-from smt_switch_imp cimport Term as c_Term
-from smt_switch_imp cimport TermVec as c_TermVec
-from smt_switch_imp cimport UnorderedTermMap as c_UnorderedTermMap
-from smt_switch_imp cimport TermIter as c_TermIter
-
-from enums cimport SortKind as c_SortKind
-from enums cimport PrimOp as c_PrimOp
-# PrimOp, SortKind classes are defined at this scope
-# because enums.pxi is inlined before this
-
+from smt_switch cimport c_Op
+from smt_switch cimport c_Result
+from smt_switch cimport c_SmtSolver
+from smt_switch cimport c_Sort
+from smt_switch cimport c_SortVec
+from smt_switch cimport c_Term
+from smt_switch cimport c_TermVec
+from smt_switch cimport c_UnorderedTermMap
+from smt_switch cimport c_TermIter
+from smt_switch cimport c_PrimOp, c_SortKind
 
 cdef class Op:
-    cdef c_Op op
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
             if idx0 is None:
@@ -66,7 +60,6 @@ cdef class Op:
         return self.op != other.op
 
 cdef class Result:
-    cdef c_Result cr
     def __cinit__(self):
         pass
 
@@ -90,8 +83,6 @@ cdef class Result:
 
 
 cdef class Sort:
-    cdef c_Sort cs
-    cdef SmtSolver _solver
     def __cinit__(self):
         pass
 
@@ -152,8 +143,6 @@ cdef class Sort:
 
 
 cdef class Term:
-    cdef c_Term ct
-    cdef SmtSolver _solver
     def __cinit__(self):
         pass
 
@@ -229,7 +218,6 @@ cdef class Term:
 
 
 cdef class SmtSolver:
-    cdef c_SmtSolver css
     def __cinit__(self):
         pass
 
@@ -335,7 +323,7 @@ cdef class SmtSolver:
                                                    (<Sort> arg1).cs,
                                                     <int?> arg2)
         elif isinstance(arg0, int) and isinstance(arg1, Sort) and arg2 is None:
-            term.ct = dref(self.css).make_term(<int> arg0, (<Sort> arg1).cs)
+            term.ct = dref(self.css).make_term((<const string?> str(arg0).encode()), (<Sort> arg1).cs)
         elif isinstance(arg0, bool) and arg1 is None:
             term.ct = dref(self.css).make_term(<bint> arg0)
         elif isinstance(arg0, Term) and isinstance(arg1, Sort) and arg2 is None:
@@ -361,7 +349,24 @@ cdef class SmtSolver:
         cdef c_UnorderedTermMap utm
 
         for k, v in substitution_map.items():
-            utm.emplace((<Term?> k).ct, (<Term?> v).ct)
+            utm[(<Term?> k).ct] = (<Term?> v).ct
 
         term.ct = dref(self.css).substitute(t.ct, utm)
         return term
+
+    def get_interpolant(self, Term A, Term B):
+        '''
+        Get an interpolant for A, and B. Note: this will throw an exception if called
+        on a solver that was not created with create_<solver>_interpolator
+
+        returns None if the interpolant could not be computed
+        '''
+        cdef c_Term cI
+        cdef Term I = Term(self)
+
+        success = dref(self.css).get_interpolant(A.ct, B.ct, cI)
+        if not success:
+            return None
+        else:
+            I.ct = cI
+            return I
