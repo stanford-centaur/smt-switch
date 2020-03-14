@@ -1,5 +1,7 @@
 #include "yices2_solver.h"
+
 #include <inttypes.h>
+
 #include "yices.h"
 #include "yices2_extensions.h"
 
@@ -40,23 +42,23 @@ const unordered_map<PrimOp, yices_bin_fun> yices_binary_ops(
       { Iff, yices_iff },           { Plus, yices_add },
       { Minus, yices_sub },         { Mult, yices_mul },
       { Div, yices_division },      { Lt, yices_arith_lt_atom },
-      { Le, yices_arith_leq_atom }, { Gt, yices_arith_gt_atom },
-      { Ge, yices_arith_geq_atom }, { Equal, yices_eq },
-      { Mod, yices_imod },          { Concat, yices_bvconcat2 },
-      { BVAnd, yices_bvand2 },      { BVOr, yices_bvor2 },
-      { BVXor, yices_bvxor2 },      { BVNand, yices_bvnand },
-      { BVNor, yices_bvnor },       { BVXnor, yices_bvxnor },
-      { BVAdd, yices_bvadd },       { BVSub, yices_bvsub },
-      { BVMul, yices_bvmul },       { BVUdiv, yices_bvdiv },
-      { BVUrem, yices_bvrem },      { BVSdiv, yices_bvsdiv },
-      { BVSrem, yices_bvsrem },     { BVSmod, yices_bvsmod },
-      { BVShl, yices_bvshl },       { BVAshr, yices_bvashr },
-      { BVLshr, yices_bvlshr },     { BVUlt, yices_bvlt_atom },
-      { BVUle, yices_bvle_atom },   { BVUgt, yices_bvgt_atom },
-      { BVUge, yices_bvge_atom },   { BVSle, yices_bvsle_atom },
-      { BVSlt, yices_bvslt_atom },  { BVSge, yices_bvsge_atom },
-      { BVSgt, yices_bvsgt_atom },  { Select, ext_yices_select },
-      { Apply, yices_application1 }
+      { IntDiv, yices_idiv },       { Le, yices_arith_leq_atom },
+      { Gt, yices_arith_gt_atom },  { Ge, yices_arith_geq_atom },
+      { Equal, yices_eq },          { Mod, yices_imod },
+      { Concat, yices_bvconcat2 },  { BVAnd, yices_bvand2 },
+      { BVOr, yices_bvor2 },        { BVXor, yices_bvxor2 },
+      { BVNand, yices_bvnand },     { BVNor, yices_bvnor },
+      { BVXnor, yices_bvxnor },     { BVAdd, yices_bvadd },
+      { BVSub, yices_bvsub },       { BVMul, yices_bvmul },
+      { BVUdiv, yices_bvdiv },      { BVUrem, yices_bvrem },
+      { BVSdiv, yices_bvsdiv },     { BVSrem, yices_bvsrem },
+      { BVSmod, yices_bvsmod },     { BVShl, yices_bvshl },
+      { BVAshr, yices_bvashr },     { BVLshr, yices_bvlshr },
+      { BVUlt, yices_bvlt_atom },   { BVUle, yices_bvle_atom },
+      { BVUgt, yices_bvgt_atom },   { BVUge, yices_bvge_atom },
+      { BVSle, yices_bvsle_atom },  { BVSlt, yices_bvslt_atom },
+      { BVSge, yices_bvsge_atom },  { BVSgt, yices_bvsgt_atom },
+      { Select, ext_yices_select }, { Apply, yices_application1 }
 
     });
 
