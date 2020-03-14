@@ -33,15 +33,8 @@ msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
     mpq_t mval;
     mpq_init(mval);
     msat_term_to_number(e, t2, mval);
-
-    if (mpq_sgn(mval) >= 0)
-    {
-      res = div_floor;
-    }
-    else
-    {
-      res = div_ceil;
-    }
+    res = (mpq_sgn(mval) >= 0) ? div_floor : div_ceil;
+    mpq_clear(mval);
   }
   else
   {
