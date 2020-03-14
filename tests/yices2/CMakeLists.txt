@@ -1,4 +1,12 @@
 set(YICES2_TESTS
+  yices2-tests
+  yices2-arrays
+  yices2-arrays2
+  yices2-incremental
+  yices2-indexed-op-tests
+  yices2-ext-ops
+  yices2-ite-test
+  yices2-neg-numbers
   yices2-polynomial
 )
 

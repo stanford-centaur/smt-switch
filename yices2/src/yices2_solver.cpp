@@ -16,16 +16,16 @@ typedef term_t (*yices_tern_fun)(term_t, term_t, term_t);
 typedef term_t (*yices_variadic_fun)(uint32_t, term_t[]);
 
 // TODO's:
-// Not sure if these are implemeneted in Yices, may need extension.
+// Pretty sure not implemented in Yices.
+// Good candidates for extension.
 //  To_Real,
 //  BVComp,
 //  BV_To_Nat,
 
 // Arrays are represented as functions in Yices.
-// I don't think const_array can be supported, but Store
-// is probably something to go in yices extensions.
-//  Store,
-//  Const_Array,
+// I don't think const_array can be supported,
+// unless we use Yices lambdas.
+// Const_Array,
 
 const unordered_map<PrimOp, yices_un_fun> yices_unary_ops(
     { { Not, yices_not },
@@ -70,7 +70,8 @@ const unordered_map<PrimOp, yices_tern_fun> yices_ternary_ops(
       { BVAnd, yices_bvand3 },
       { BVOr, yices_bvor3 },
       { BVXor, yices_bvxor3 },
-      { Apply, yices_application2 } });
+      { Apply, yices_application2 },
+      { Store, ext_yices_store } });
 
 const unordered_map<PrimOp, yices_variadic_fun> yices_variadic_ops({
     { And, yices_and },
@@ -101,7 +102,6 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     }
     else if (value == "true")
     {
-      // TODO: unclear if yices_default_config_for_logic overwrites this.
       yices_set_config(config, "mode", "push-pop");
     }
   }
@@ -112,13 +112,14 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     msg += " is not yet supported for the Yices2 backend";
     throw NotImplementedException(msg);
   }
+  ctx = yices_new_context(config);
 }
 
 void Yices2Solver::set_logic(const std::string logic) const
 {
   yices_default_config_for_logic(config, logic.c_str());
   ctx = yices_new_context(config);
-  // TODO: This enforces and ordering of calling set_opt before set_logic.
+  // TODO: Does this enforce an ordering of calling set_logic before set_opt.
   // Need to decide on a better place to put the context creation.
   // yices_free_config(config);
 }
