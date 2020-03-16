@@ -1,5 +1,6 @@
 #include "cvc4_solver.h"
 
+
 namespace smt
 {
 
