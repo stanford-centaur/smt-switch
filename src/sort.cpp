@@ -1,32 +1,20 @@
 #include <array>
 #include <sstream>
 
+#include <unordered_map>
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
 
 namespace smt {
 
-/**
-   This function should only be called once, to generate the constexpr
-   sortcon2str for converting enums to string_views.
-*/
-constexpr std::array<std::string_view, NUM_SORT_CONS> generate_sortcon2str()
-{
-  std::array<std::string_view, NUM_SORT_CONS> sortcon2str;
-
-  sortcon2str[ARRAY] = std::string_view("ARRAY");
-  sortcon2str[BOOL] = std::string_view("BOOL");
-  sortcon2str[BV] = std::string_view("BV");
-  sortcon2str[INT] = std::string_view("INT");
-  sortcon2str[REAL] = std::string_view("REAL");
-  sortcon2str[FUNCTION] = std::string_view("FUNCTION");
-
-  return sortcon2str;
-}
-
-constexpr std::array<std::string_view, NUM_SORT_CONS> sortcon2str =
-    generate_sortcon2str();
+const std::unordered_map<SortKind, std::string> sortkind2str(
+    { { ARRAY, "ARRAY" },
+      { BOOL, "BOOL" },
+      { BV, "BV" },
+      { INT, "INT" },
+      { REAL, "REAL" },
+      { FUNCTION, "FUNCTION" } });
 
 std::string to_string(SortKind sk)
 {
@@ -34,7 +22,7 @@ std::string to_string(SortKind sk)
   {
     return "null";
   }
-  return std::string(sortcon2str[sk]);
+  return sortkind2str.at(sk);
 }
 
 bool operator==(const Sort & s1, const Sort & s2) { return s1->compare(s2); }
