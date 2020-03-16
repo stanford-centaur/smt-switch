@@ -37,6 +37,16 @@ TEST_P(UnitPrintTests, SortKind)
 
 TEST_P(UnitPrintTests, Sort) { ASSERT_EQ(bvsort->to_string(), "(_ BitVec 4)"); }
 
+TEST_P(UnitPrintTests, Result)
+{
+  Result sat(SAT);
+  Result unsat(UNSAT);
+  Result unknown(UNKNOWN);
+  ASSERT_EQ(sat.to_string(), "sat");
+  ASSERT_EQ(unsat.to_string(), "unsat");
+  ASSERT_EQ(unknown.to_string(), "unknown");
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverPringUnit,
                          UnitPrintTests,
                          testing::ValuesIn(available_solver_enums()));

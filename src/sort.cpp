@@ -1,7 +1,7 @@
 #include <array>
 #include <sstream>
-
 #include <unordered_map>
+
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
