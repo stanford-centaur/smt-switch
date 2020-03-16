@@ -47,6 +47,14 @@ TEST_P(UnitPrintTests, Result)
   ASSERT_EQ(unknown.to_string(), "unknown");
 }
 
+TEST_P(UnitPrintTests, Op)
+{
+  ASSERT_EQ(smt::to_string(BVAdd), "bvadd");
+  ASSERT_EQ(smt::to_string(Implies), "=>");
+  ASSERT_EQ(smt::to_string(Plus), "+");
+  ASSERT_EQ(Op(Extract, 4, 0).to_string(), "(_ extract 4 0)");
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverPringUnit,
                          UnitPrintTests,
                          testing::ValuesIn(available_solver_enums()));
