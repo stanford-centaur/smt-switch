@@ -1,3 +1,5 @@
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_library(smt-switch-btor "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_factory.cpp"
