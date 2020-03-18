@@ -88,7 +88,7 @@ endif()
 
 # should we build yices2?
 option (BUILD_YICES2
-  "Should we build the libraries for boolector" OFF)
+  "Should we build the libraries for yices2" OFF)
 
 if (BUILD_YICES2)
   set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
