@@ -25,6 +25,10 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # CVC4 was trickier because unpacking and repacking with ar seemed to lose info
   # This uses a bash script that pipes and MRI command to ar
   # It creates a new version of the static library and replaces the existing one
+  # NOTE: This might not work on Mac -- another option is the -T "thin" archive repacking
+  #       if that becomes a problem
+  #       Right now it's not a huge concern because static builds are discouraged on Mac
+  #       anyway
   add_custom_target(repack-cvc4-static-lib
     ALL
     COMMAND
