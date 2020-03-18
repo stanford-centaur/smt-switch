@@ -26,6 +26,9 @@ CreateSolverFunsMap available_solvers();
 // collect all the available solvers
 std::vector<SolverEnum> available_solver_enums();
 
+// collect all solvers that support term iteration
+std::vector<SolverEnum> available_termiter_solver_enums();
+
 CreateSolverFunsMap available_interpolators();
 
 std::vector<SolverEnum> available_interpolator_enums();

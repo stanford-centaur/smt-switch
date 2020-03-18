@@ -62,6 +62,6 @@ TEST_P(UnitTests, IndexedOps1)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_termiter_solver_enums()));
 
 }  // namespace smt_tests

@@ -74,6 +74,6 @@ TEST_P(UnitTests, IdentityWalker)
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_termiter_solver_enums()));
 
 }  // namespace smt_tests

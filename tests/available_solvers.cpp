@@ -73,6 +73,18 @@ CreateSolverFunsMap available_solvers() { return solvers; }
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
+std::vector<SolverEnum> available_termiter_solver_enums() {
+  std::vector<SolverEnum> termiter_solvers;
+  for (auto se : solver_enums)
+  {
+    if (se != YICES2)
+    {
+      termiter_solvers.push_back(se);
+    }
+  }
+  return termiter_solvers;
+}
+
 CreateSolverFunsMap available_interpolators() { return itps; };
 
 std::vector<SolverEnum> available_interpolator_enums() { return itp_enums; };
