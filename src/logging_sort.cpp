@@ -30,8 +30,8 @@ bool LoggingSort::compare(const Sort s) const
     }
     case FUNCTION:
     {
-      vector<Sort> domain_sorts = get_domain_sorts();
-      vector<Sort> other_domain_sorts = s->get_domain_sorts();
+      SortVec domain_sorts = get_domain_sorts();
+      SortVec other_domain_sorts = s->get_domain_sorts();
       Sort return_sort = get_codomain_sort();
       Sort other_return_sort = s->get_codomain_sort();
 
@@ -87,14 +87,14 @@ Sort ArrayLoggingSort::get_elemsort() const { return elemsort; }
 
 // FunctionLoggingSort
 
-FunctionLoggingSort::FunctionLoggingSort(Sort s, vector<Sort> sorts, Sort rsort)
+FunctionLoggingSort::FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort)
     : super(FUNCTION, s), domain_sorts(sorts), codomain_sort(rsort)
 {
 }
 
 FunctionLoggingSort::~FunctionLoggingSort() {}
 
-vector<Sort> FunctionLoggingSort::get_domain_sorts() const
+SortVec FunctionLoggingSort::get_domain_sorts() const
 {
   return domain_sorts;
 }

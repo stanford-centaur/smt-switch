@@ -41,7 +41,7 @@ class LoggingSort : public AbsSort
         "get_elemsort not implemented by generic LoggingSort");
   }
 
-  std::vector<Sort> get_domain_sorts() const override
+  SortVec get_domain_sorts() const override
   {
     throw NotImplementedException(
         "get_domain_sorts not implemented by generic LoggingSort");
@@ -91,16 +91,16 @@ class ArrayLoggingSort : public LoggingSort
 class FunctionLoggingSort : public LoggingSort
 {
  public:
-  FunctionLoggingSort(Sort s, std::vector<Sort> sorts, Sort rsort);
+  FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort);
   ~FunctionLoggingSort();
 
   typedef LoggingSort super;
 
-  std::vector<Sort> get_domain_sorts() const override;
+  SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
 
  protected:
-  std::vector<Sort> domain_sorts;
+  SortVec domain_sorts;
   Sort codomain_sort;
 };
 
