@@ -644,14 +644,7 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
 
 void CVC4Solver::reset()
 {
-  try
-  {
-    solver.reset();
-  }
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("CVC4 does not support reset");
 }
 
 void CVC4Solver::reset_assertions()
