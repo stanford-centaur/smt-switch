@@ -19,4 +19,27 @@ target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/parser/libcvc4pars
 target_link_libraries(smt-switch-cvc4 smt-switch)
 target_link_libraries(smt-switch-cvc4 gmp)
 
+if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
+  # we want the static library to include the cvc4 source
+  # we need to unpack and repack the libraries
+  # CVC4 was trickier because unpacking and repacking with ar seemed to lose info
+  # This uses a bash script that pipes and MRI command to ar
+  # It creates a new version of the static library and replaces the existing one
+  add_custom_target(repack-cvc4-static-lib
+    ALL
+    COMMAND
+      mkdir smt-switch-cvc4 && cd smt-switch-cvc4 &&
+      "${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh"
+      "$<TARGET_FILE_NAME:smt-switch-cvc4>"
+      "${CVC4_HOME}/build/src/libcvc4.a"
+      "${CVC4_HOME}/build/src/parser/libcvc4parser.a"
+      "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:smt-switch-cvc4>" &&
+      rm "../$<TARGET_FILE_NAME:smt-switch-cvc4>" && mv "./$<TARGET_FILE_NAME:smt-switch-cvc4>" ../ &&
+      # now clean up
+      cd ../ && rm -rf smt-switch-cvc4
+    DEPENDS
+      smt-switch-cvc4
+    )
+endif()
+
 install(TARGETS smt-switch-cvc4 DESTINATION lib)
