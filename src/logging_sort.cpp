@@ -5,7 +5,7 @@ using namespace std;
 namespace smt {
 
 // implementations
-Sort LoggingSort::get_sort_kind() const { return sk; }
+SortKind LoggingSort::get_sort_kind() const { return sk; }
 
 bool LoggingSort::compare(const Sort s) const
 {
@@ -51,6 +51,11 @@ bool LoggingSort::compare(const Sort s) const
 
       return true;
     }
+    case NUM_SORT_CONS:
+    {
+      // null sorts should not be equal
+      return false;
+    }
   }
 }
 
@@ -63,7 +68,7 @@ BVLoggingSort::BVLoggingSort(Sort s, uint64_t width)
 {
 }
 
-~BVLoggingSort() {}
+BVLoggingSort::~BVLoggingSort() {}
 
 uint64_t BVLoggingSort::get_width() const { return width; }
 
@@ -74,7 +79,7 @@ ArrayLoggingSort::ArrayLoggingSort(Sort s, Sort idxsort, Sort esort)
 {
 }
 
-~ArrayLoggingSort::ArrayLoggingSort() {}
+ArrayLoggingSort::~ArrayLoggingSort() {}
 
 Sort ArrayLoggingSort::get_indexsort() const { return indexsort; }
 
@@ -87,11 +92,14 @@ FunctionLoggingSort::FunctionLoggingSort(Sort s, vector<Sort> sorts, Sort rsort)
 {
 }
 
-~FunctionLoggingSort::FunctionLoggingSort() {}
+FunctionLoggingSort::~FunctionLoggingSort() {}
 
-vector<Sort> get_domain_sorts() const { return domain_sorts; }
+vector<Sort> FunctionLoggingSort::get_domain_sorts() const
+{
+  return domain_sorts;
+}
 
-Sort get_codomain_sort() const { return codomain_sort; }
+Sort FunctionLoggingSort::get_codomain_sort() const { return codomain_sort; }
 
 // methods dispatched to underlying sort
 

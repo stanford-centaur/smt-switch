@@ -1,5 +1,6 @@
 #pragma once
 
+#include "exceptions.h"
 #include "smt_defs.h"
 #include "sort.h"
 
@@ -14,7 +15,7 @@ class LoggingSort : public AbsSort
   LoggingSort(SortKind sk, Sort s) : sk(sk), sort(s) {}
   virtual ~LoggingSort(){};
   // implementations
-  Sort get_sort_kind() const override;
+  SortKind get_sort_kind() const override;
   bool compare(const Sort s) const override;
   // dispatch to underlying sort
   std::size_t hash() const override;
@@ -40,7 +41,7 @@ class LoggingSort : public AbsSort
         "get_elemsort not implemented by generic LoggingSort");
   }
 
-  vector<Sort> get_domain_sorts() const override
+  std::vector<Sort> get_domain_sorts() const override
   {
     throw NotImplementedException(
         "get_domain_sorts not implemented by generic LoggingSort");
@@ -69,7 +70,7 @@ class BVLoggingSort : public LoggingSort
 
  protected:
   uint64_t width;
-}
+};
 
 class ArrayLoggingSort : public LoggingSort
 {
@@ -95,7 +96,7 @@ class FunctionLoggingSort : public LoggingSort
 
   typedef LoggingSort super;
 
-  std::vector<Sort> get_domain_sorts() const ovverride;
+  std::vector<Sort> get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
 
  protected:
