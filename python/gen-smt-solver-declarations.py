@@ -67,7 +67,7 @@ cdef extern from "msat_factory.h":
 
 DECLARE_YICES2='''
 cdef extern from "yices2_factory.h":
-    SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" () except +
+    c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" () except +
 '''
 
 
