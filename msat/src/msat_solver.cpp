@@ -137,11 +137,12 @@ void MsatSolver::set_opt(const string option, const string value)
   }
 }
 
-void MsatSolver::set_logic(const std::string logic) const
+void MsatSolver::set_logic(const std::string log)
 {
   // TODO: See if there's a correct way to do this
   // this seems like a no-op (doesn't complain for other sorts)
-  msat_set_option(cfg, "logic", logic.c_str());
+  msat_set_option(cfg, "logic", log.c_str());
+  logic = log;
 }
 
 void MsatSolver::assert_formula(const Term & t) const
@@ -846,7 +847,21 @@ Term MsatSolver::substitute(const Term term,
 
 void MsatSolver::dump_smt2(FILE * file) const
 {
-  throw NotImplementedException("Can't dump all assertions to a file yet");
+  size_t num_asserted;
+  msat_term * assertions = msat_get_asserted_formulas(env, &num_asserted);
+  msat_term all_asserts = msat_make_true(env);
+  for (size_t i = 0; i < num_asserted; ++i)
+  {
+    all_asserts = msat_make_and(env, all_asserts, *assertions);
+    ++assertions;
+  }
+  if (MSAT_ERROR_TERM(all_asserts))
+  {
+    throw InternalSolverException("Failed to gather all assertions");
+  }
+  const char * log = logic.empty() ? NULL : logic.c_str();
+  msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
+  fprintf(file, "\n(check-sat)\n");
 }
 
 // end MsatSolver implementation

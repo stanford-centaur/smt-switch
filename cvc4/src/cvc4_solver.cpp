@@ -96,7 +96,7 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void CVC4Solver::set_logic(const std::string logic) const
+void CVC4Solver::set_logic(const std::string logic)
 {
   try
   {

@@ -30,7 +30,7 @@ class AbsSmtSolver
   /* Sets a solver logic -- see smt-lib 2 logics
    * @param logic name of logic
    */
-  virtual void set_logic(const std::string logic) const = 0;
+  virtual void set_logic(const std::string logic) = 0;
 
   /* Add an assertion to the solver
    * @param t a boolean term to assert
