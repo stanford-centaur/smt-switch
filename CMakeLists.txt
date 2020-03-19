@@ -25,6 +25,7 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp")
 

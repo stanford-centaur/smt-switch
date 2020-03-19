@@ -12,7 +12,7 @@ TermHashTable::~TermHashTable() {}
 
 void TermHashTable::insert(const Term & t) { table[t->hash()].insert(t); }
 
-bool lookup(Term t)
+bool TermHashTable::lookup(Term t)
 {
   size_t hashval = t->hash();
   if (table.find(hashval) != table.end()
@@ -21,12 +21,13 @@ bool lookup(Term t)
     // reassign t
     // should destroy the previous Term
     // when reference counter goes to zero
-    t = table[hashval].at() return true;
+    t = *(table[hashval].find(t));
+    return true;
   }
   return false;
 }
 
-void erase(const Term & t)
+void TermHashTable::erase(const Term & t)
 {
   size_t hashval = t->hash();
   if (table.find(hashval) != table.end()

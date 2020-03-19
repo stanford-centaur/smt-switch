@@ -23,6 +23,6 @@ class TermHashTable
 
  protected:
   std::unordered_map<std::size_t, UnorderedTermSet> table;
-}
+};
 
 }  // namespace smt
