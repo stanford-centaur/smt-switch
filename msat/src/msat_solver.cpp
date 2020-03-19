@@ -862,6 +862,7 @@ void MsatSolver::dump_smt2(FILE * file) const
   }
   const char * log = logic.empty() ? NULL : logic.c_str();
   msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
+  fprintf(file, "\n(check-sat)\n");
 }
 
 // end MsatSolver implementation
