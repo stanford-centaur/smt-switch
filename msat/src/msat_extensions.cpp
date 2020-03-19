@@ -130,11 +130,6 @@ msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
   return ext_msat_make_minus(e, t0, msat_make_times(e, t1, t0_div_t1));
 }
 
-msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
-{
-  throw NotImplementedException("pow not implemented");
-}
-
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_bv_not(e, msat_make_bv_and(e, t0, t1));
