@@ -137,7 +137,7 @@ void MsatSolver::set_opt(const string option, const string value)
   }
 }
 
-void MsatSolver::set_logic(const std::string logic) const
+void MsatSolver::set_logic(const std::string logic)
 {
   // TODO: See if there's a correct way to do this
   // this seems like a no-op (doesn't complain for other sorts)

@@ -95,7 +95,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void BoolectorSolver::set_logic(const std::string logic) const
+void BoolectorSolver::set_logic(const std::string logic)
 {
   if ((logic != "QF_BV") & (logic != "QF_UFBV") & (logic != "QF_ABV")
       & (logic != "QF_AUFBV"))

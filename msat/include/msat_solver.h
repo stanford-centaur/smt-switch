@@ -50,7 +50,7 @@ class MsatSolver : public AbsSmtSolver
     valid_model = false;
   }
   void set_opt(const std::string option, const std::string value) override;
-  void set_logic(const std::string logic) const override;
+  void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
