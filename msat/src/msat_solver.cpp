@@ -846,7 +846,28 @@ Term MsatSolver::substitute(const Term term,
 
 void MsatSolver::dump_smt2(FILE * file) const
 {
-  throw NotImplementedException("Can't dump all assertions to a file yet");
+  size_t num_asserted;
+  msat_term * assertions = msat_get_asserted_formulas(env, &num_asserted);
+  msat_term * ait = assertions;
+  msat_term all_asserts = msat_make_true(env);
+  for (size_t i = 0; i < num_asserted; i++)
+  {
+    all_asserts = msat_make_and(env, all_asserts, *ait);
+    ait++;
+  }
+  if (MSAT_ERROR_TERM(all_asserts))
+  {
+    throw InternalSolverException("Failed to gather all assertions");
+  }
+  msat_to_smtlib2_file(env, all_asserts, file);
+  fprintf(file, "true)\n");
+  ait = assertions;
+  for (size_t i = 0; i < num_asserted; i++)
+  {
+    fprintf(file, "(assert %s)\n", msat_to_smtlib2_term(env, *ait));
+    ait++;
+  }
+  fprintf(file, "(check-sat)\n");
 }
 
 // end MsatSolver implementation
