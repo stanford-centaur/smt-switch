@@ -137,11 +137,12 @@ void MsatSolver::set_opt(const string option, const string value)
   }
 }
 
-void MsatSolver::set_logic(const std::string logic)
+void MsatSolver::set_logic(const std::string log)
 {
   // TODO: See if there's a correct way to do this
   // this seems like a no-op (doesn't complain for other sorts)
-  msat_set_option(cfg, "logic", logic.c_str());
+  msat_set_option(cfg, "logic", log.c_str());
+  logic = log;
 }
 
 void MsatSolver::assert_formula(const Term & t) const
@@ -859,7 +860,8 @@ void MsatSolver::dump_smt2(FILE * file) const
   {
     throw InternalSolverException("Failed to gather all assertions");
   }
-  msat_to_smtlib2_ext_file(env, all_asserts, NULL, true, file);
+  const char * log = logic.empty() ? NULL : logic.c_str();
+  msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
 }
 
 // end MsatSolver implementation

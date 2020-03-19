@@ -26,11 +26,11 @@ namespace smt {
 class MsatSolver : public AbsSmtSolver
 {
  public:
-  // constructor does nothing
+  // constructor does basically nothing
   // but in mathsat factory, MUST setup_env
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
-  MsatSolver(){};
+  MsatSolver() : logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -50,7 +50,7 @@ class MsatSolver : public AbsSmtSolver
     valid_model = false;
   }
   void set_opt(const std::string option, const std::string value) override;
-  void set_logic(const std::string logic) override;
+  void set_logic(const std::string log) override;
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
@@ -95,7 +95,7 @@ class MsatSolver : public AbsSmtSolver
   msat_config cfg;
   msat_env env;
   bool valid_model;
-
+  std::string logic;
 };
 
 // Interpolating Solver
