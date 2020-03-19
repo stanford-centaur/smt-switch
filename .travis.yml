@@ -41,6 +41,14 @@ jobs:
     - os: linux
       dist: bionic
       env: SOLVER="msat" OPTS="--auto-yes"
+    - os: linux
+      dist: bionic
+      env: SOLVER="yices2" OPTS=""
+      compiler: gcc
+    - os: linux
+      dist: bionic
+      env: SOLVER="yices2" OPTS=""
+      compiler: clang
     - os: osx
       osx_image: xcode9
       env: SOLVER='btor' OPTS=""
@@ -50,6 +58,9 @@ jobs:
     - os: osx
       osx_image: xcode9
       env: SOLVER='msat' OPTS="--auto-yes"
+    - os: osx
+      osx_image: xcode9
+      env: SOLVER='yices2' OPTS=""
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
