@@ -849,12 +849,11 @@ void MsatSolver::dump_smt2(FILE * file) const
 {
   size_t num_asserted;
   msat_term * assertions = msat_get_asserted_formulas(env, &num_asserted);
-  msat_term * ait = assertions;
   msat_term all_asserts = msat_make_true(env);
-  for (size_t i = 0; i < num_asserted; i++)
+  for (size_t i = 0; i < num_asserted; ++i)
   {
-    all_asserts = msat_make_and(env, all_asserts, *ait);
-    ait++;
+    all_asserts = msat_make_and(env, all_asserts, *assertions);
+    ++assertions;
   }
   if (MSAT_ERROR_TERM(all_asserts))
   {
