@@ -60,7 +60,6 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Le, msat_make_leq },
       { Gt, ext_msat_make_gt },
       { Ge, ext_msat_make_geq },
-      // TODO: Actually implement mod and pow
       { Mod, ext_msat_make_mod },
       { Pow, msat_make_pow },
       { Concat, msat_make_bv_concat },
