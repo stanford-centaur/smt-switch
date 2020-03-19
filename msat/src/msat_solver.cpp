@@ -859,15 +859,7 @@ void MsatSolver::dump_smt2(FILE * file) const
   {
     throw InternalSolverException("Failed to gather all assertions");
   }
-  msat_to_smtlib2_file(env, all_asserts, file);
-  fprintf(file, "true)\n");
-  ait = assertions;
-  for (size_t i = 0; i < num_asserted; i++)
-  {
-    fprintf(file, "(assert %s)\n", msat_to_smtlib2_term(env, *ait));
-    ait++;
-  }
-  fprintf(file, "(check-sat)\n");
+  msat_to_smtlib2_ext_file(env, all_asserts, NULL, true, file);
 }
 
 // end MsatSolver implementation
