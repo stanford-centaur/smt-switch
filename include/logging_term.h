@@ -33,4 +33,22 @@ class LoggingTerm : public AbsTerm
   TermVec children;
 };
 
+class LoggingTermIter : public TermIterBase
+{
+ public:
+  LoggingTermIter(TermVec::iterator i);
+  LoggingTermIter(const LoggingTermIter & lit);
+  ~LoggingTermIter();
+  LoggingTermIter & operator=(const LoggingTermIter & lit);
+  void operator++() override;
+  const Term operator*() override;
+  TermIterBase * clone() const override;
+  bool operator==(const LoggingTermIter & lit);
+  bool operator!=(const LoggingTermIter & lit);
+
+ protected:
+  bool equal(const TermIterBase & other) const override;
+  TermVec::iterator it;
+};
+
 }  // namespace smt

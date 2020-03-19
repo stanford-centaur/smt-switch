@@ -6,6 +6,8 @@ using namespace std;
 
 namespace smt {
 
+/* LoggingTerm */
+
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
     : term(t), sort(s), op(o), children(c)
 {
@@ -34,12 +36,12 @@ string LoggingTerm::to_string() const
 
 TermIter LoggingTerm::begin()
 {
-  throw NotImplementedException("LoggingTerm doesn't have term iteration yet");
+  return TermIter(new LoggingTermIter(children.begin()));
 }
 
 TermIter LoggingTerm::end()
 {
-  throw NotImplementedException("LoggingTerm doesn't have term iteration yet");
+  return TermIter(new LoggingTermIter(children.end()));
 }
 
 // dispatched to underlying term
@@ -54,5 +56,44 @@ bool LoggingTerm::is_symbolic_const() const
 bool LoggingTerm::is_value() const { return term->is_value(); }
 
 uint64_t LoggingTerm::to_int() const { return term->to_int(); }
+
+/* LoggingTermIter */
+
+LoggingTermIter::LoggingTermIter(TermVec::iterator i) : it(i) {}
+
+LoggingTermIter::LoggingTermIter(const LoggingTermIter & lit) : it(lit.it) {}
+
+LoggingTermIter::~LoggingTermIter() {}
+
+LoggingTermIter & LoggingTermIter::operator=(const LoggingTermIter & lit)
+{
+  it = lit.it;
+  return *this;
+}
+
+void LoggingTermIter::operator++() { it++; }
+
+const Term LoggingTermIter::operator*() { return *it; }
+
+TermIterBase * LoggingTermIter::clone() const
+{
+  return new LoggingTermIter(it);
+}
+
+bool LoggingTermIter::operator==(const LoggingTermIter & lit)
+{
+  return it == lit.it;
+}
+
+bool LoggingTermIter::operator!=(const LoggingTermIter & lit)
+{
+  return it != lit.it;
+}
+
+bool LoggingTermIter::equal(const TermIterBase & other) const
+{
+  const LoggingTermIter & lit = static_cast<const LoggingTermIter &>(other);
+  return it == lit.it;
+}
 
 }  // namespace smt
