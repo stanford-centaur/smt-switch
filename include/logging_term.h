@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ops.h"
 #include "smt_defs.h"
 #include "term.h"
 
@@ -16,8 +17,8 @@ class LoggingTerm : public AbsTerm
   Op get_op() const override;
   Sort get_sort() const override;
   std::string to_string() const override;
-  TermIter begin();
-  TermIter end();
+  TermIter begin() override;
+  TermIter end() override;
 
   // dispatched to underlying term
   std::size_t hash() const override;

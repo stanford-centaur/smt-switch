@@ -20,7 +20,7 @@ bool LoggingTerm::compare(const Term & t) const
   // compare underlying term and sort
   // this will handle sort aliasing issues from solvers
   // that don't distinguish between certain sorts
-  return (term == t.term) && (sort == t.sort);
+  return (term == lt->term) && (sort == lt->sort);
 }
 
 Op LoggingTerm::get_op() const { return op; }
@@ -32,12 +32,12 @@ string LoggingTerm::to_string() const
   throw NotImplementedException("Logging term doesn't have to_string yet.");
 }
 
-TermIter begin()
+TermIter LoggingTerm::begin()
 {
   throw NotImplementedException("LoggingTerm doesn't have term iteration yet");
 }
 
-TermIter end()
+TermIter LoggingTerm::end()
 {
   throw NotImplementedException("LoggingTerm doesn't have term iteration yet");
 }
