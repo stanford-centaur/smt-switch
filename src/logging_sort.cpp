@@ -4,6 +4,91 @@ using namespace std;
 
 namespace smt {
 
+/* Helper functions */
+Sort make_logging_sort(SortKind sk, Sort s)
+{
+  if (sk != BOOL && sk != INT && sk != REAL)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk));
+  }
+  Sort loggingsort(new LoggingSort(sk, s));
+  return loggingsort;
+}
+
+Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
+{
+  if (sk != BV)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk)
+                                  + " and " + ::std::to_string(width));
+  }
+  Sort loggingsort(new BVLoggingSort(s, width));
+  return loggingsort;
+}
+
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1)
+{
+  throw IncorrectUsageException(
+      "No currently supported sort is created with a single sort argument");
+}
+
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2)
+{
+  Sort loggingsort;
+  if (sk == ARRAY)
+  {
+    loggingsort = Sort(new ArrayLoggingSort(s, sort1, sort2));
+  }
+  else if (sk == FUNCTION)
+  {
+    loggingsort = Sort(new FunctionLoggingSort(s, SortVec{ sort1 }, sort2));
+  }
+  else
+  {
+    throw IncorrectUsageException("Can't make sort from " + to_string(sk) + " "
+                                  + sort1->to_string() + " "
+                                  + sort2->to_string());
+  }
+  return loggingsort;
+}
+
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3)
+{
+  if (sk == FUNCTION)
+  {
+    Sort loggingsort(
+        new FunctionLoggingSort(s, SortVec{ sort1, sort2 }, sort3));
+    return loggingsort;
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "Can't make sort from " + to_string(sk) + " " + sort1->to_string() + " "
+        + sort2->to_string() + " " + sort3->to_string());
+  }
+}
+
+Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
+{
+  if (sk == FUNCTION)
+  {
+    Sort return_sort = sorts.back();
+    sorts.pop_back();
+    Sort loggingsort(new FunctionLoggingSort(s, sorts, return_sort));
+    return loggingsort;
+  }
+  else
+  {
+    std::string msg("Can't make sort from ");
+    msg += to_string(sk);
+    for (auto ss : sorts)
+    {
+      msg += " " + ss->to_string();
+    }
+    throw IncorrectUsageException(msg);
+  }
+}
+
 // implementations
 SortKind LoggingSort::get_sort_kind() const { return sk; }
 

@@ -6,6 +6,16 @@
 
 namespace smt {
 
+/* Helper functions for creating logging sorts */
+// Sort s is the underlying sort
+// all other sorts are LoggingSorts
+Sort make_logging_sort(SortKind sk, Sort s);
+Sort make_logging_sort(SortKind sk, Sort s, uint64_t width);
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1);
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2);
+Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3);
+Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts);
+
 /** \class LoggingSort
  *  An abstract class for logging created Sorts
  */
