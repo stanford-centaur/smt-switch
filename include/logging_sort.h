@@ -56,6 +56,9 @@ class LoggingSort : public AbsSort
  protected:
   SortKind sk;
   Sort sort;
+
+  // So LoggingSolver can access protected members:
+  friend class LoggingSolver;
 };
 
 class BVLoggingSort : public LoggingSort

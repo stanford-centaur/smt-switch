@@ -31,6 +31,9 @@ class LoggingTerm : public AbsTerm
   Sort sort;
   Op op;
   TermVec children;
+
+  // So LoggingSolver can access protected members:
+  friend class LoggingSolver;
 };
 
 class LoggingTermIter : public TermIterBase
