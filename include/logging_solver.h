@@ -1,11 +1,13 @@
 #pragma once
 
 #include "solver.h"
+#include "term_hashtable.h"
 
 namespace smt {
 
 class LoggingSolver : public AbsSmtSolver
 {
+ public:
   LoggingSolver(SmtSolver s);
   ~LoggingSolver();
 
@@ -35,6 +37,9 @@ class LoggingSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
+  // Will probably remove this eventually
+  // For now, need to clear the hash table
+  void reset() override;
 
   // dispatched to underlying solver
   void set_opt(const std::string option, const std::string value) override;
@@ -45,8 +50,10 @@ class LoggingSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(Term & t) const override;
-  void reset() override;
   void reset_assertions() override;
+
+ protected:
+  TermHashTable hashtable;
 };
 
 }  // namespace smt
