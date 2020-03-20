@@ -18,7 +18,11 @@ class TermHashTable
   TermHashTable();
   ~TermHashTable();
   void insert(const Term & t);
-  bool lookup(Term t);
+  /** lookup a term and modify pointer in place
+   *  @param t the term to look up and modify
+   *  @return true iff the term was found in the hash table
+   */
+  bool lookup(Term & t);
   void erase(const Term & t);
 
  protected:

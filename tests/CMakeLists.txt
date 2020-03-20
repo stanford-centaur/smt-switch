@@ -61,6 +61,11 @@ target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op available-solvers)
 add_test(NAME unit-op_test COMMAND unit-op)
 
+add_executable(unit-term-hashtable "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-hashtable.cpp")
+target_link_libraries(unit-term-hashtable gtest_main)
+target_link_libraries(unit-term-hashtable available-solvers)
+add_test(NAME unit-term-hashtable_test COMMAND unit-term-hashtable)
+
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)
 target_link_libraries(test_itp available-solvers)

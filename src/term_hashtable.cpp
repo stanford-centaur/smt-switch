@@ -12,7 +12,7 @@ TermHashTable::~TermHashTable() {}
 
 void TermHashTable::insert(const Term & t) { table[t->hash()].insert(t); }
 
-bool TermHashTable::lookup(Term t)
+bool TermHashTable::lookup(Term & t)
 {
   size_t hashval = t->hash();
   if (table.find(hashval) != table.end()
