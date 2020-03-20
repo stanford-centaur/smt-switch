@@ -37,6 +37,7 @@ class LoggingSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
+  Term get_value(Term & t) const override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;
@@ -49,10 +50,10 @@ class LoggingSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
-  Term get_value(Term & t) const override;
   void reset_assertions() override;
 
  protected:
+  SmtSolver solver;
   TermHashTable hashtable;
 };
 
