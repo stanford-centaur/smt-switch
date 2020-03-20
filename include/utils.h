@@ -18,18 +18,15 @@ const std::size_t global_log_level = _LOGGING_LEVEL;
 const std::size_t global_log_level = 0;
 #endif
 
+// TODO: Create an Assert with an optional message argument
 inline void Assert(bool assertion)
 {
-#if defined(_ASSERTIONS)
   assert(assertion);
-#endif
 }
 
 inline void Unreachable()
 {
-#if defined(_ASSERTIONS)
-    assert(false);
-#endif
+  assert(false);
 }
 
 // logs to stdout
