@@ -51,6 +51,11 @@ target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter available-solvers)
 add_test(NAME unit-termiter_test COMMAND unit-termiter)
 
+add_executable(unit-printing "${PROJECT_SOURCE_DIR}/tests/unit/unit-printing.cpp")
+target_link_libraries(unit-printing gtest_main)
+target_link_libraries(unit-printing available-solvers)
+add_test(NAME unit-printing_test COMMAND unit-printing)
+
 add_executable(unit-op "${PROJECT_SOURCE_DIR}/tests/unit/unit-op.cpp")
 target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op available-solvers)
