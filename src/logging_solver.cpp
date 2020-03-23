@@ -299,14 +299,22 @@ void LoggingSolver::set_logic(const std::string logic)
 
 void LoggingSolver::assert_formula(const Term & t) const
 {
-  solver->assert_formula(t);
+  shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
+  solver->assert_formula(lt->term);
 }
 
 Result LoggingSolver::check_sat() { return solver->check_sat(); }
 
 Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  return solver->check_sat_assuming(assumptions);
+  TermVec lassumps;
+  shared_ptr<LoggingTerm> la;
+  for (auto a : assumptions)
+  {
+    la = static_pointer_cast<LoggingTerm>(a);
+    lassumps.push_back(la->term);
+  }
+  return solver->check_sat_assuming(lassumps);
 }
 
 void LoggingSolver::push(uint64_t num) { solver->push(num); }

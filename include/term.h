@@ -7,7 +7,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ops.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 
