@@ -30,7 +30,7 @@ class AbsTerm
   /* get the sort */
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
-  virtual std::string to_string() const = 0;
+  virtual std::string to_string() = 0;
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */

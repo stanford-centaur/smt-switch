@@ -29,7 +29,7 @@ Op LoggingTerm::get_op() const { return op; }
 
 Sort LoggingTerm::get_sort() const { return sort; }
 
-string LoggingTerm::to_string() const
+string LoggingTerm::to_string()
 {
   throw NotImplementedException("Logging term doesn't have to_string yet.");
 }

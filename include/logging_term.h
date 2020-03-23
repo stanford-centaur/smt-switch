@@ -21,7 +21,7 @@ class LoggingTerm : public AbsTerm
   bool compare(const Term & t) const override;
   Op get_op() const override;
   Sort get_sort() const override;
-  std::string to_string() const override;
+  std::string to_string() override;
   TermIter begin() override;
   TermIter end() override;
 

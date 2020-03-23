@@ -461,7 +461,7 @@ bool MsatTerm::is_value() const
           msat_term_is_array_const(env, term));
 }
 
-string MsatTerm::to_string() const
+string MsatTerm::to_string()
 {
   if (is_uf)
   {

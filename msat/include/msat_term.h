@@ -56,7 +56,7 @@ class MsatTerm : public AbsTerm
   Sort get_sort() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
-  virtual std::string to_string() const override;
+  virtual std::string to_string() override;
   uint64_t to_int() const override;
   /** Iterators for traversing the children
    */

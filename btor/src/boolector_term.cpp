@@ -273,7 +273,7 @@ bool BoolectorTerm::is_value() const
   return res;
 }
 
-std::string BoolectorTerm::to_string() const
+std::string BoolectorTerm::to_string()
 {
   std::string sres;
 
