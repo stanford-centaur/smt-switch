@@ -1,6 +1,7 @@
 #include "logging_term.h"
 
 #include "exceptions.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -31,7 +32,47 @@ Sort LoggingTerm::get_sort() const { return sort; }
 
 string LoggingTerm::to_string()
 {
-  throw NotImplementedException("Logging term doesn't have to_string yet.");
+  if (is_symbolic_const())
+  {
+    // rely on underlying term
+    return term->to_string();
+  }
+  else if (is_value())
+  {
+    // special-case for Bool, because of sort-aliasing
+    if (get_sort()->get_sort_kind() == BOOL)
+    {
+      std::string repr = term->to_string();
+      // check truthy values
+      if (repr == "true" || repr == "#b1" || repr == "(_ bv0 1)")
+      {
+        return "true";
+      }
+      else
+      {
+        // Expect falsey values
+        Assert(repr == "false" || repr == "#b0" || repr == "(_ bv0 1)");
+        return "false";
+      }
+    }
+    else
+    {
+      return term->to_string();
+    }
+  }
+  else
+  {
+    // Op should not be null because handled symbols and values above
+    Assert(!get_op().is_null());
+    std::string res("(");
+    res += op.to_string();
+    for (auto c : children)
+    {
+      res += " " + c->to_string();
+    }
+    res += ")";
+    return res;
+  }
 }
 
 TermIter LoggingTerm::begin()
