@@ -4,12 +4,17 @@
 #include <iostream>
 #include "assert.h"
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define _ASSERTIONS
 #endif
 
-#if defined(_ASSERTIONS) && !defined(_DEBUG)
-bool assertion_mode = true;
+#if !defined(NDEBUG) || defined(_ASSERTIONS)
+#define Assert(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
+#define Unreachable() \
+  (void)((__assert("location should be unreachable", __FILE__, __LINE__), 0))
+#else
+#define Assert(EX)
+#define Unreachable()
 #endif
 
 #ifdef _LOGGING_LEVEL
@@ -17,17 +22,6 @@ const std::size_t global_log_level = _LOGGING_LEVEL;
 #else
 const std::size_t global_log_level = 0;
 #endif
-
-// TODO: Create an Assert with an optional message argument
-inline void Assert(bool assertion)
-{
-  assert(assertion);
-}
-
-inline void Unreachable()
-{
-  assert(false);
-}
 
 // logs to stdout
 template <std::size_t lvl>
