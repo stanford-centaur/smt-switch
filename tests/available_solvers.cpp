@@ -45,6 +45,22 @@ const CreateSolverFunsMap solvers({
 #endif
 });
 
+const CreateSolverFunsMap lite_solvers({
+#if BUILD_BTOR
+  // Boolector uses smt-switch logging by default
+  // This function provides the raw ("lite") solver backend
+  { BTOR, BoolectorSolverFactory::create_lite_solver },
+#endif
+
+#if BUILD_CVC4
+      { CVC4, CVC4SolverFactory::create },
+#endif
+
+#if BUILD_MSAT
+      { MSAT, MsatSolverFactory::create },
+#endif
+});
+
 const std::vector<SolverEnum> itp_enums({
 #if BUILD_MSAT
                                          MSAT
@@ -58,6 +74,8 @@ const CreateSolverFunsMap itps({
   });
 
 CreateSolverFunsMap available_solvers() { return solvers; }
+
+CreateSolverFunsMap available_lite_solvers() { return lite_solvers; }
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 

@@ -14,7 +14,10 @@ class UnitTestsHashTable : public testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    // need to make sure we're not using a LoggingSolver
+    // otherwise the reference counts of terms will be influenced
+    // thus, use the "lite" solvers
+    s = available_lite_solvers().at(GetParam())();
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });

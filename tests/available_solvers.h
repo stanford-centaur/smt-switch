@@ -22,6 +22,12 @@ typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
 // Create a map from enums to available solver creation functions
 CreateSolverFunsMap available_solvers();
 
+// Create a map from enums to available "lite" solver creation functions
+// More specifically the "raw" version of solvers with no logging
+// Some solvers (e.g. CVC4) never use logging
+// Others need to provide the create_lite_solver() function
+CreateSolverFunsMap available_lite_solvers();
+
 // collect all the available solvers
 std::vector<SolverEnum> available_solver_enums();
 
