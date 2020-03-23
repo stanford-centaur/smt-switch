@@ -135,8 +135,9 @@ Term LoggingSolver::make_term(const string name,
 
 Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 {
+  shared_ptr<LoggingTerm> lval = static_pointer_cast<LoggingTerm>(val);
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_res = solver->make_term(val, lsort->sort);
+  Term wrapped_res = solver->make_term(lval->term, lsort->sort);
   Term res(new LoggingTerm(wrapped_res, sort, Op(), TermVec{}));
 
   // check hash table
