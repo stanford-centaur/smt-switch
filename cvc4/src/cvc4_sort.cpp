@@ -51,7 +51,7 @@ Sort CVC4Sort::get_codomain_sort() const
   return s;
 }
 
-string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
+std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
 
 bool CVC4Sort::compare(const Sort s) const
 {

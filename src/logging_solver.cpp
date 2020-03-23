@@ -33,7 +33,7 @@ Sort LoggingSolver::make_sort(const SortKind sk) const
 Sort LoggingSolver::make_sort(const SortKind sk, uint64_t size) const
 {
   Sort sort = solver->make_sort(sk, size);
-  return make_logging_sort(sk, sort);
+  return make_logging_sort(sk, sort, size);
 }
 
 Sort LoggingSolver::make_sort(const SortKind sk, const Sort & sort1) const
@@ -154,7 +154,7 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 Term LoggingSolver::make_symbol(const string name, const Sort & sort)
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_sym = solver->make_term(name, lsort->sort);
+  Term wrapped_sym = solver->make_symbol(name, lsort->sort);
   Term res(new LoggingTerm(wrapped_sym, sort, Op(), TermVec{}));
 
   // check hash table
@@ -195,7 +195,7 @@ Term LoggingSolver::make_term(const Op op,
 {
   shared_ptr<LoggingTerm> lt1 = static_pointer_cast<LoggingTerm>(t1);
   shared_ptr<LoggingTerm> lt2 = static_pointer_cast<LoggingTerm>(t2);
-  Term wrapped_res = solver->make_term(op, lt1, lt2);
+  Term wrapped_res = solver->make_term(op, lt1->term, lt2->term);
   Sort res_logging_sort = compute_sort(
       op, SortVec{ t1->get_sort(), t2->get_sort() }, wrapped_res->get_sort());
   Term res(
