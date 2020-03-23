@@ -18,7 +18,11 @@ class LoggingTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = make_shared<LoggingSolver>(available_solvers().at(GetParam())());
+    // IMPORTANT : make sure not to use doubly nested LoggingSolvers
+    // can mess things up
+    // Thus, need to use the "lite" version of solvers
+    // before wrapping with a LoggingSolver
+    s = make_shared<LoggingSolver>(available_lite_solvers().at(GetParam())());
     s->set_opt("produce-models", "true");
     bvsort4 = s->make_sort(BV, 4);
     bvsort8 = s->make_sort(BV, 8);
