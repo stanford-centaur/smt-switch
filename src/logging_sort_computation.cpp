@@ -81,7 +81,7 @@ const std::unordered_map<PrimOp,
 
     });
 
-Sort compute_sort(Op op, SortVec & sorts, Sort & wrapped_res_sort)
+Sort compute_sort(Op op, SortVec sorts, Sort wrapped_res_sort)
 {
   if (sorts.size() == 0)
   {

@@ -54,7 +54,7 @@ class LoggingSolver : public AbsSmtSolver
 
  protected:
   SmtSolver solver;
-  TermHashTable hashtable;
+  std::unique_ptr<TermHashTable> hashtable;
 };
 
 }  // namespace smt

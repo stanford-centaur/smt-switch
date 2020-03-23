@@ -37,4 +37,6 @@ void TermHashTable::erase(const Term & t)
   }
 }
 
+void TermHashTable::clear() { table.clear(); }
+
 }  // namespace smt

@@ -11,7 +11,7 @@ namespace smt {
  *         result should wrap
  *  @return the new logging sort
  */
-Sort compute_sort(Op op, SortVec & sorts, Sort & wrapped_res_sort);
+Sort compute_sort(Op op, SortVec sorts, Sort wrapped_res_sort);
 
 /* Common sort computation helper functions */
 

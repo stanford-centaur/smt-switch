@@ -24,6 +24,7 @@ class TermHashTable
    */
   bool lookup(Term & t);
   void erase(const Term & t);
+  void clear();
 
  protected:
   std::unordered_map<std::size_t, UnorderedTermSet> table;

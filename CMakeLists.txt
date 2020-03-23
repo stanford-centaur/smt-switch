@@ -28,7 +28,8 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
-  "${PROJECT_SOURCE_DIR}/src/logging_sort_computation.cpp")
+  "${PROJECT_SOURCE_DIR}/src/logging_sort_computation.cpp"
+  "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp")
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
