@@ -52,6 +52,7 @@ class AbsSort
   virtual Sort get_elemsort() const = 0;
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
+  virtual std::string get_uninterpreted_name() const = 0;
   virtual bool compare(const Sort sort) const = 0;
   virtual SortKind get_sort_kind() const = 0;
 };

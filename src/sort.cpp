@@ -27,7 +27,8 @@ const std::unordered_map<SortKind, std::string> sortkind2str(
       { BV, "BV" },
       { INT, "INT" },
       { REAL, "REAL" },
-      { FUNCTION, "FUNCTION" } });
+      { FUNCTION, "FUNCTION" },
+      { UNINTERPRETED, "UNINTERPRETED" } });
 
 std::string to_string(SortKind sk)
 {
@@ -95,6 +96,10 @@ std::string AbsSort::to_string() const
     res += get_codomain_sort()->to_string();
     res += ")";
     return res;
+  }
+  else if (sk == UNINTERPRETED)
+  {
+    return get_uninterpreted_name();
   }
   else
   {

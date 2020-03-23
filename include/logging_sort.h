@@ -9,6 +9,7 @@ namespace smt {
 /* Helper functions for creating logging sorts */
 // Sort s is the underlying sort
 // all other sorts are LoggingSorts
+Sort make_uninterpreted_logging_sort(Sort s, std::string name, uint64_t arity);
 Sort make_logging_sort(SortKind sk, Sort s);
 Sort make_logging_sort(SortKind sk, Sort s, uint64_t width);
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1);
@@ -63,6 +64,12 @@ class LoggingSort : public AbsSort
         "get_codomain_sort not implemented by generic LoggingSort");
   }
 
+  std::string get_uninterpreted_name() const override
+  {
+    throw NotImplementedException(
+        "get_uninterpreted_name not implemented by generic LoggingSort");
+  }
+
  protected:
   SortKind sk;
   Sort sort;
@@ -115,6 +122,21 @@ class FunctionLoggingSort : public LoggingSort
  protected:
   SortVec domain_sorts;
   Sort codomain_sort;
+};
+
+class UninterpretedLoggingSort : public LoggingSort
+{
+ public:
+  UninterpretedLoggingSort(Sort s, std::string n, uint64_t a);
+  ~UninterpretedLoggingSort();
+
+  typedef LoggingSort super;
+
+  std::string get_uninterpreted_name() const override;
+
+ protected:
+  std::string name;
+  uint64_t arity;
 };
 
 }  // namespace smt

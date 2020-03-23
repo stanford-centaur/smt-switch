@@ -51,6 +51,8 @@ Sort CVC4Sort::get_codomain_sort() const
   return s;
 }
 
+string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
+
 bool CVC4Sort::compare(const Sort s) const
 {
   std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort> (s);

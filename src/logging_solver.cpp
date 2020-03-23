@@ -21,7 +21,7 @@ LoggingSolver::~LoggingSolver() {}
 Sort LoggingSolver::make_sort(const string name, uint64_t arity) const
 {
   Sort wrapped_sort = solver->make_sort(name, arity);
-  return make_logging_sort(name, arity);
+  return make_uninterpreted_logging_sort(wrapped_sort, name, arity);
 }
 
 Sort LoggingSolver::make_sort(const SortKind sk) const

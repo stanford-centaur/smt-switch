@@ -5,6 +5,13 @@ using namespace std;
 namespace smt {
 
 /* Helper functions */
+
+Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
+{
+  Sort loggingsort(new UninterpretedLoggingSort(s, name, arity));
+  return loggingsort;
+}
+
 Sort make_logging_sort(SortKind sk, Sort s)
 {
   if (sk != BOOL && sk != INT && sk != REAL)
@@ -136,6 +143,10 @@ bool LoggingSort::compare(const Sort s) const
 
       return true;
     }
+    case UNINTERPRETED:
+    {
+      return get_uninterpreted_name() == s->get_uninterpreted_name();
+    }
     case NUM_SORT_CONS:
     {
       // null sorts should not be equal
@@ -143,6 +154,8 @@ bool LoggingSort::compare(const Sort s) const
     }
   }
 }
+
+// dispatched to underlying sort
 
 size_t LoggingSort::hash() const { return sort->hash(); }
 
@@ -186,6 +199,18 @@ SortVec FunctionLoggingSort::get_domain_sorts() const
 
 Sort FunctionLoggingSort::get_codomain_sort() const { return codomain_sort; }
 
-// methods dispatched to underlying sort
+// UninterpretedLoggingSort
+
+UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s, string n, uint64_t a)
+    : super(UNINTERPRETED, s), name(n), arity(a)
+{
+}
+
+UninterpretedLoggingSort::~UninterpretedLoggingSort() {}
+
+std::string UninterpretedLoggingSort::get_uninterpreted_name() const
+{
+  return name;
+}
 
 }  // namespace smt

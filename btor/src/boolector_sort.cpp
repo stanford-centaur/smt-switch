@@ -53,6 +53,12 @@ Sort BoolectorSortBase::get_codomain_sort() const
   throw IncorrectUsageException("Only defined for a function sort.");
 };
 
+std::string BoolectorSortBase::get_uninterpreted_name() const
+{
+  throw IncorrectUsageException(
+      "Boolector doesn't support uninterpreted sorts.");
+}
+
 bool BoolectorSortBase::compare(const Sort s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
