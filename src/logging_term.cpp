@@ -20,10 +20,37 @@ LoggingTerm::~LoggingTerm() {}
 bool LoggingTerm::compare(const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
+  // compare op
+  if (op != lt->op)
+  {
+    return false;
+  }
+
   // compare underlying term and sort
   // this will handle sort aliasing issues from solvers
   // that don't distinguish between certain sorts
-  return (term == lt->term) && (sort == lt->sort);
+  if (term != lt->term || sort != lt->sort)
+  {
+    return false;
+  }
+
+  // finally need to make sure all children match
+  // this is the most expensive check, so we do it last
+  if (children.size() != lt->children.size())
+  {
+    return false;
+  }
+  else
+  {
+    for (size_t i = 0; i < children.size(); i++)
+    {
+      if (children[i] != lt->children[i])
+      {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 Op LoggingTerm::get_op() const { return op; }

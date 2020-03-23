@@ -57,8 +57,9 @@ void logging_solver_test()
     assert(c == ult5);
   }
 
-  assert(s->make_term(Not, nult5) == ult5);
-  assert(s->make_term(Not, nult5)->get_op() == BVUlt);
+  // terms no longer rewritten on the fly
+  assert(s->make_term(Not, nult5) != ult5);
+  assert(s->make_term(Not, nult5)->get_op() == Not);
 }
 
 int main()
