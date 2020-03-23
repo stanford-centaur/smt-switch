@@ -106,7 +106,10 @@ int main()
   sset.insert(s3);
 
   cout << "sset size is: " << sset.size() << endl;
-  assert(sset.size() == 3); // only three because boolector treats bool and bv{1} the same
+  // boolector wold alias bool and BV{1}, but the LoggingSolver
+  // wrapper will distinguish!
+  // So, we expect 4 sorts
+  assert(sset.size() == 4);
 
   return 0;
 }
