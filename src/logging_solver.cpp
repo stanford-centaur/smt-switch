@@ -138,7 +138,16 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
   shared_ptr<LoggingTerm> lval = static_pointer_cast<LoggingTerm>(val);
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
   Term wrapped_res = solver->make_term(lval->term, lsort->sort);
-  Term res(new LoggingTerm(wrapped_res, sort, Op(), TermVec{}));
+  // this make_term is for constant arrays
+  if (sort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException(
+        "make_term(Term, Sort) is for creating constant arrays.\nExpecting "
+        "array sort but got: "
+        + sort->to_string());
+  }
+  // the constant value must be the child
+  Term res(new LoggingTerm(wrapped_res, sort, Op(), TermVec{ val }));
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
