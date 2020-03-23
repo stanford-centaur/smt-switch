@@ -13,6 +13,11 @@ class LoggingTerm : public AbsTerm
   virtual ~LoggingTerm();
 
   // implemented
+
+  /** Returns true iff the underlying term AND sort are equivalent
+   *  @param t the term to compare with (assumed to be LoggingTerm)
+   *  @return true iff the underlying term and sort match t
+   */
   bool compare(const Term & t) const override;
   Op get_op() const override;
   Sort get_sort() const override;

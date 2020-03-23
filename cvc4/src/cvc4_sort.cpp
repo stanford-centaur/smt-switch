@@ -83,6 +83,10 @@ SortKind CVC4Sort::get_sort_kind() const
   {
     return FUNCTION;
   }
+  else if (sort.isUninterpretedSort())
+  {
+    return UNINTERPRETED;
+  }
   else
   {
     throw NotImplementedException("Unknown kind in CVC4 translation.");

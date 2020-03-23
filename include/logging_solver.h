@@ -12,6 +12,7 @@ class LoggingSolver : public AbsSmtSolver
   ~LoggingSolver();
 
   // implemented
+  Sort make_sort(const std::string name, uint64_t arity) const;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, uint64_t size) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
