@@ -19,6 +19,12 @@ LoggingTerm::~LoggingTerm() {}
 // implemented
 bool LoggingTerm::compare(const Term & t) const
 {
+  if (!t)
+  {
+    // not equivalent to null term
+    return false;
+  }
+
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   // compare op
   if (op != lt->op)

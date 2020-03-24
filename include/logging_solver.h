@@ -38,9 +38,9 @@ class LoggingSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
-  Term get_value(Term & t) const override;
-  TermMap get_array_values(Term & arr,
-                           Term out_const_base = nullptr) const override;
+  Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(
+      const Term & arr, Term out_const_base = nullptr) const override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;

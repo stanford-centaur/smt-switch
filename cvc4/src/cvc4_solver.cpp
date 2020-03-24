@@ -324,7 +324,7 @@ void CVC4Solver::pop(uint64_t num)
   }
 }
 
-Term CVC4Solver::get_value(Term & t) const
+Term CVC4Solver::get_value(const Term & t) const
 {
   try
   {
@@ -338,18 +338,23 @@ Term CVC4Solver::get_value(Term & t) const
   }
 }
 
-TermMap CVC4Solver::get_array_values(Term & arr, Term out_const_base) const
+UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
+                                              Term out_const_base) const
 {
   try
   {
-    TermMap assignments;
+    UnorderedTermMap assignments;
     out_const_base = nullptr;
     CVC4::api::Term carr = std::static_pointer_cast<CVC4Term>(arr)->term;
+    // get the array value
+    // CVC4 returns a sequence of stores
+    carr = solver.getValue(carr);
+
     TermVec indices;
     TermVec values;
     Term idx;
     Term val;
-    while (carr.getOp() == CVC4::api::STORE)
+    while (carr.hasOp() && carr.getOp() == CVC4::api::STORE)
     {
       idx = Term(new CVC4Term(carr[1]));
       val = Term(new CVC4Term(carr[2]));
@@ -358,7 +363,7 @@ TermMap CVC4Solver::get_array_values(Term & arr, Term out_const_base) const
       carr = carr[0];
     }
 
-    if (carr.getOp() == CVC4::api::STORE_ALL)
+    if (carr.hasOp() && carr.getOp() == CVC4::api::STORE_ALL)
     {
       out_const_base = Term(new CVC4Term(carr[0]));
     }

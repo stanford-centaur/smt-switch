@@ -32,7 +32,7 @@ int main()
 
   assert(r.is_sat());
 
-  TermMap arr_map = s->get_array_values(arr);
+  UnorderedTermMap arr_map = s->get_array_values(arr);
 
   for (auto elem : arr_map)
   {

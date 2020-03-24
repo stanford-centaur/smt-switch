@@ -56,9 +56,9 @@ class MsatSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
-  Term get_value(Term & t) const override;
-  TermMap get_array_values(Term & arr,
-                           Term out_const_base = nullptr) const override;
+  Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(
+      const Term & arr, Term out_const_base = nullptr) const override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -123,7 +123,7 @@ class MsatInterpolatingSolver : public MsatSolver
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  Term get_value(Term & t) const override;
+  Term get_value(const Term & t) const override;
   bool get_interpolant(const Term & A,
                        const Term & B,
                        Term & out_I) const override;

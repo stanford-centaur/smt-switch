@@ -76,6 +76,11 @@ target_link_libraries(test-int gtest_main)
 target_link_libraries(test-int available-solvers)
 add_test(NAME test-int_test COMMAND test-int)
 
+add_executable(test-array "${PROJECT_SOURCE_DIR}/tests/test-array.cpp")
+target_link_libraries(test-array gtest_main)
+target_link_libraries(test-array available-solvers)
+add_test(NAME test-array_test COMMAND test-array)
+
 add_executable(test_logging_solver "${PROJECT_SOURCE_DIR}/tests/test-logging-solver.cpp")
 target_link_libraries(test_logging_solver gtest_main)
 target_link_libraries(test_logging_solver available-solvers)

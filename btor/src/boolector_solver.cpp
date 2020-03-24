@@ -240,7 +240,7 @@ void BoolectorSolver::push(uint64_t num) { boolector_push(btor, num); }
 
 void BoolectorSolver::pop(uint64_t num) { boolector_pop(btor, num); }
 
-Term BoolectorSolver::get_value(Term & t) const
+Term BoolectorSolver::get_value(const Term & t) const
 {
   Term result;
   std::shared_ptr<BoolectorTerm> bt =
@@ -273,13 +273,14 @@ Term BoolectorSolver::get_value(Term & t) const
   return result;
 }
 
-TermMap BoolectorSolver::get_array_values(Term & arr, Term out_const_base) const
+UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
+                                                   Term out_const_base) const
 {
   // TODO: If Boolector adds const array bases to the array model, then set
   // out_const_base
   out_const_base = nullptr;
 
-  TermMap assignments;
+  UnorderedTermMap assignments;
 
   std::shared_ptr<BoolectorTerm> barr =
       std::static_pointer_cast<BoolectorTerm>(arr);

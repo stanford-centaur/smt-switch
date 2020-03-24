@@ -96,6 +96,19 @@ std::vector<SolverEnum> available_int_solver_enums()
   return int_solvers;
 }
 
+std::vector<SolverEnum> available_array_model_solver_enums()
+{
+  std::vector<SolverEnum> am_solvers;
+  for (auto se : solver_enums)
+  {
+    if (se != MSAT)
+    {
+      am_solvers.push_back(se);
+    }
+  }
+  return am_solvers;
+}
+
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {
   switch (e)

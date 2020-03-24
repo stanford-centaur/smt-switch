@@ -283,7 +283,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   return res;
 }
 
-Term LoggingSolver::get_value(Term & t) const
+Term LoggingSolver::get_value(const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   Term wrapped_val = solver->get_value(lt->term);
@@ -291,15 +291,16 @@ Term LoggingSolver::get_value(Term & t) const
   return val;
 }
 
-TermMap LoggingSolver::get_array_values(Term & arr, Term out_const_base) const
+UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
+                                                 Term out_const_base) const
 {
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
   shared_ptr<LoggingTerm> larr = static_pointer_cast<LoggingTerm>(arr);
-  TermMap assignments;
+  UnorderedTermMap assignments;
   Term wrapped_out_const_base;
-  TermMap wrapped_assignments =
+  UnorderedTermMap wrapped_assignments =
       solver->get_array_values(larr->term, wrapped_out_const_base);
   if (wrapped_out_const_base)
   {

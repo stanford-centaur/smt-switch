@@ -234,7 +234,7 @@ void MsatSolver::pop(uint64_t num)
   }
 }
 
-Term MsatSolver::get_value(Term & t) const
+Term MsatSolver::get_value(const Term & t) const
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   msat_term val = msat_get_model_value(env, mterm->term);
@@ -252,7 +252,8 @@ Term MsatSolver::get_value(Term & t) const
   return Term(new MsatTerm(env, val));
 }
 
-TermMap MsatSolver::get_array_values(Term & arr, Term out_const_base) const
+UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
+                                              Term out_const_base) const
 {
   throw NotImplementedException("Get array values not implemented for MathSAT");
 }
@@ -895,7 +896,7 @@ Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
       "Can't call check_sat_assuming from interpolating solver");
 }
 
-Term MsatInterpolatingSolver::get_value(Term & t) const
+Term MsatInterpolatingSolver::get_value(const Term & t) const
 {
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }

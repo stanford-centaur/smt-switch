@@ -2,8 +2,6 @@
 #define SMT_TERM_H
 
 #include <iostream>
-#include <map>
-#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -93,9 +91,7 @@ class TermIter
 
 // useful typedefs for data structures
 using TermVec = std::vector<Term>;
-using TermSet = std::set<Term>;
 using UnorderedTermSet = std::unordered_set<Term>;
-using TermMap = std::map<Term, Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
