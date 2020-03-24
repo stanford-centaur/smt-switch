@@ -84,6 +84,11 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
     Sort loggingsort(new FunctionLoggingSort(s, sorts, return_sort));
     return loggingsort;
   }
+  else if (sk == ARRAY && sorts.size() == 2)
+  {
+    Sort loggingsort(new ArrayLoggingSort(s, sorts[0], sorts[1]));
+    return loggingsort;
+  }
   else
   {
     std::string msg("Can't make sort from ");
