@@ -74,6 +74,8 @@ class TermIter
 {
  public:
   // typedefs for marking as an input iterator
+  // based on iterator_traits: https://en.cppreference.com/w/cpp/iterator/iterator_traits
+  // used by the compiler for statements such as: TermVec children(term->begin(), term->end())
   typedef Term value_type;
   typedef std::ptrdiff_t difference_type;
   typedef Term * pointer;
