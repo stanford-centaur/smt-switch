@@ -8,6 +8,7 @@ using namespace std;
 
 namespace smt {
 
+// map from Primitive Operators to the corresponding sort computation function
 const std::unordered_map<PrimOp,
                          std::function<Sort(Op op, SortVec & sorts, Sort & w)>>
     sort_comp_dispatch({ { And, bool_sort },
