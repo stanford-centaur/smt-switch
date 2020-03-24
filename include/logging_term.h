@@ -10,6 +10,7 @@ class LoggingTerm : public AbsTerm
 {
  public:
   LoggingTerm(Term t, Sort s, Op o, TermVec c);
+  LoggingTerm(Term t, Sort s, Op o, TermVec c, std::string r);
   virtual ~LoggingTerm();
 
   // implemented
@@ -36,6 +37,7 @@ class LoggingTerm : public AbsTerm
   Sort sort;
   Op op;
   TermVec children;
+  std::string repr;
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;

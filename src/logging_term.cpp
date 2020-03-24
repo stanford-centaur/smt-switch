@@ -14,6 +14,11 @@ LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
 {
 }
 
+LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r)
+    : term(t), sort(s), op(o), children(c), repr(r)
+{
+}
+
 LoggingTerm::~LoggingTerm() {}
 
 // implemented
@@ -65,12 +70,16 @@ Sort LoggingTerm::get_sort() const { return sort; }
 
 string LoggingTerm::to_string()
 {
-  if (is_symbolic_const())
+  if (!repr.empty())
   {
-    // rely on underlying term
-    return term->to_string();
+    return repr;
   }
-  else if (is_value())
+
+  // rely on underlying term for values
+  // this is because values are often produced by the underlying solver
+  // e.g. from get_value
+  // so we couldn't assign a string at the smt-switch level
+  if (is_value())
   {
     // special-case for Bool, because of sort-aliasing
     if (get_sort()->get_sort_kind() == BOOL)
@@ -95,16 +104,17 @@ string LoggingTerm::to_string()
   }
   else
   {
-    // Op should not be null because handled symbols and values above
+    // Op should not be null because handled values above
+    //     and symbols already have the repr set
     Assert(!get_op().is_null());
-    std::string res("(");
-    res += op.to_string();
+    repr = "(";
+    repr += op.to_string();
     for (auto c : children)
     {
-      res += " " + c->to_string();
+      repr += " " + c->to_string();
     }
-    res += ")";
-    return res;
+    repr += ")";
+    return repr;
   }
 }
 

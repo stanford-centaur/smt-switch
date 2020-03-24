@@ -167,7 +167,7 @@ Term LoggingSolver::make_symbol(const string name, const Sort & sort)
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
   Term wrapped_sym = solver->make_symbol(name, lsort->sort);
-  Term res(new LoggingTerm(wrapped_sym, sort, Op(), TermVec{}));
+  Term res(new LoggingTerm(wrapped_sym, sort, Op(), TermVec{}, name));
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
