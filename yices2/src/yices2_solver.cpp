@@ -115,7 +115,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   ctx = yices_new_context(config);
 }
 
-void Yices2Solver::set_logic(const std::string logic) const
+void Yices2Solver::set_logic(const std::string logic)
 {
   yices_default_config_for_logic(config, logic.c_str());
   ctx = yices_new_context(config);
