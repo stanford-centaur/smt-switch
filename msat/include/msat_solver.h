@@ -57,6 +57,8 @@ class MsatSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(Term & t) const override;
+  TermMap get_array_values(Term & arr,
+                           Term out_const_base = nullptr) const override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;

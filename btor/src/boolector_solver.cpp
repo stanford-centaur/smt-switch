@@ -256,44 +256,9 @@ Term BoolectorSolver::get_value(Term & t) const
   }
   else if (sk == ARRAY)
   {
-    // boolector just gives index / element pairs
-    // we want to create a term, so we make a store chain
-    // on a base array
-    std::string base_name = t->to_string() + "_base";
-    BoolectorNode * stores;
-    uint64_t node_id = (uint64_t)bt->node;
-    if (array_bases.find(node_id) == array_bases.end())
-    {
-      throw InternalSolverException("Expecting base array symbol to already have been created.");
-    }
-    stores = boolector_copy(btor, array_bases.at(node_id));
-
-    char ** indices;
-    char ** values;
-    uint32_t size;
-    boolector_array_assignment(btor, bt->node, &indices, &values, &size);
-    BoolectorNode * idx;
-    BoolectorNode * elem;
-    BoolectorNode * tmp;
-    for (uint32_t i = 0; i < size; i++)
-    {
-      idx = boolector_const(btor, indices[i]);
-      elem = boolector_const(btor, values[i]);
-
-      tmp = boolector_write(btor, stores, idx, elem);
-      boolector_release(btor, stores);
-      stores = tmp;
-
-      boolector_release(btor, idx);
-      boolector_release(btor, elem);
-    }
-    result = std::make_shared<BoolectorTerm>(btor, stores);
-
-    // free memory
-    if (size)
-    {
-      boolector_free_array_assignment(btor, indices, values, size);
-    }
+    throw NotImplementedException(
+        "get_value not implemented for arrays in boolector. Please use "
+        "get_array_values");
   }
   else if (sk == FUNCTION)
   {
@@ -306,6 +271,45 @@ Term BoolectorSolver::get_value(Term & t) const
     throw IncorrectUsageException(msg.c_str());
   }
   return result;
+}
+
+TermMap BoolectorSolver::get_array_values(Term & arr, Term out_const_base) const
+{
+  // TODO: If Boolector adds const array bases to the array model, then set
+  // out_const_base
+  out_const_base = nullptr;
+
+  TermMap assignments;
+
+  std::shared_ptr<BoolectorTerm> barr =
+      std::static_pointer_cast<BoolectorTerm>(arr);
+
+  char ** bindices;
+  char ** bvalues;
+  uint32_t size;
+  boolector_array_assignment(btor, barr->node, &bindices, &bvalues, &size);
+  BoolectorNode * bidx;
+  BoolectorNode * belem;
+  Term idx;
+  Term val;
+  for (uint32_t i = 0; i < size; i++)
+  {
+    bidx = boolector_const(btor, bindices[i]);
+    belem = boolector_const(btor, bvalues[i]);
+
+    Term idx = Term(new BoolectorTerm(btor, bidx));
+    Term val = Term(new BoolectorTerm(btor, belem));
+
+    assignments[idx] = val;
+  }
+
+  // free memory
+  if (size)
+  {
+    boolector_free_array_assignment(btor, bindices, bvalues, size);
+  }
+
+  return assignments;
 }
 
 Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
@@ -452,19 +456,6 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   if (sk == ARRAY)
   {
     n = boolector_array(btor, bs->sort, name.c_str());
-    // TODO: get rid of this
-    //       only needed now because array models are partial
-    //       we want to represent it as a sequence of stores
-    //       ideally we could get this as a sequence of stores on a const array
-    //       from boolector directly
-    uint64_t node_id = (uint64_t)n;
-    std::string base_name = name + "_base";
-    BoolectorNode * base_node = boolector_array(btor, bs->sort, base_name.c_str());
-    if (array_bases.find(node_id) != array_bases.end())
-    {
-      throw InternalSolverException("Error in array model preparation");
-    }
-    array_bases[node_id] = base_node;
   }
   else if (sk == FUNCTION)
   {

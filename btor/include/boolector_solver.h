@@ -35,10 +35,6 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver()
   {
-    for (auto elem : array_bases)
-    {
-      boolector_release(btor, elem.second);
-    }
     boolector_delete(btor);
   };
   void set_opt(const std::string option, const std::string value) override;
@@ -49,6 +45,8 @@ class BoolectorSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(Term & t) const override;
+  TermMap get_array_values(Term & arr,
+                           Term out_const_base = nullptr) const override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -91,8 +89,6 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
-  // store array bases -- temporary until there are updates to boolector
-  std::unordered_map<uint64_t, BoolectorNode *> array_bases;
 };
 }  // namespace smt
 

@@ -1,5 +1,6 @@
 #include "cvc4_solver.h"
 
+#include "utils.h"
 
 namespace smt
 {
@@ -337,6 +338,49 @@ Term CVC4Solver::get_value(Term & t) const
   }
 }
 
+TermMap CVC4Solver::get_array_values(Term & arr, Term out_const_base) const
+{
+  try
+  {
+    TermMap assignments;
+    out_const_base = nullptr;
+    CVC4::api::Term carr = std::static_pointer_cast<CVC4Term>(arr)->term;
+    TermVec indices;
+    TermVec values;
+    Term idx;
+    Term val;
+    while (carr.getOp() == CVC4::api::STORE)
+    {
+      idx = Term(new CVC4Term(carr[1]));
+      val = Term(new CVC4Term(carr[2]));
+      indices.push_back(idx);
+      values.push_back(val);
+      carr = carr[0];
+    }
+
+    if (carr.getOp() == CVC4::api::STORE_ALL)
+    {
+      out_const_base = Term(new CVC4Term(carr[0]));
+    }
+
+    // now populate the map in reverse order
+    Assert(indices.size() == values.size());
+
+    while (indices.size())
+    {
+      assignments[indices.back()] = values.back();
+      indices.pop_back();
+      values.pop_back();
+    }
+
+    return assignments;
+  }
+  catch (CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
@@ -645,14 +689,7 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
 
 void CVC4Solver::reset()
 {
-  try
-  {
-    solver.reset();
-  }
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("CVC4 does not implement reset");
 }
 
 void CVC4Solver::reset_assertions()

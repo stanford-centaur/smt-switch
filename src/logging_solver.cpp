@@ -3,6 +3,8 @@
 #include "logging_sort_computation.h"
 #include "logging_term.h"
 
+#include "utils.h"
+
 using namespace std;
 
 namespace smt {
@@ -287,6 +289,43 @@ Term LoggingSolver::get_value(Term & t) const
   Term wrapped_val = solver->get_value(lt->term);
   Term val(new LoggingTerm(wrapped_val, t->get_sort(), Op(), TermVec{}));
   return val;
+}
+
+TermMap LoggingSolver::get_array_values(Term & arr, Term out_const_base) const
+{
+  Sort arrsort = arr->get_sort();
+  Sort idxsort = arrsort->get_indexsort();
+  Sort elemsort = arrsort->get_elemsort();
+  shared_ptr<LoggingTerm> larr = static_pointer_cast<LoggingTerm>(arr);
+  TermMap assignments;
+  Term wrapped_out_const_base;
+  TermMap wrapped_assignments =
+      solver->get_array_values(larr->term, wrapped_out_const_base);
+  if (wrapped_out_const_base)
+  {
+    if (wrapped_out_const_base->get_sort()->get_sort_kind() == ARRAY)
+    {
+      throw NotImplementedException(
+          "const base for multidimensional array not implemented in "
+          "LoggingSolver");
+    }
+    out_const_base = Term(
+        new LoggingTerm(wrapped_out_const_base, elemsort, Op(), TermVec{}));
+  }
+
+  Term idx;
+  Term val;
+  for (auto elem : wrapped_assignments)
+  {
+    // expecting values in assignment map
+    Assert(elem.first->is_value());
+    Assert(elem.second->is_value());
+    idx = Term(new LoggingTerm(elem.first, idxsort, Op(), TermVec{}));
+    val = Term(new LoggingTerm(elem.second, elemsort, Op(), TermVec{}));
+    assignments[idx] = val;
+  }
+
+  return assignments;
 }
 
 void LoggingSolver::reset()

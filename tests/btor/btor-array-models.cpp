@@ -32,9 +32,12 @@ int main()
 
   assert(r.is_sat());
 
-  Term arr_val = s->get_value(arr);
+  TermMap arr_map = s->get_array_values(arr);
 
-  cout << arr_val << endl;
+  for (auto elem : arr_map)
+  {
+    cout << elem.first << ": " << elem.second << endl;
+  }
 
   return 0;
 }

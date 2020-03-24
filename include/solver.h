@@ -64,6 +64,16 @@ class AbsSmtSolver
    */
   virtual Term get_value(Term& t) const = 0;
 
+  /** Get a map of index-value pairs for an array term after check_sat returns
+   * sat
+   *  @param arr the array to get the value for
+   *  @param out_const_base a term that will be updated to the const base of the
+   * array if there is one. Otherwise, it will be assigned null
+   *  @return a map of index value pairs for the array
+   */
+  virtual TermMap get_array_values(Term & arr,
+                                   Term out_const_base = nullptr) const = 0;
+
   // virtual bool check_sat_assuming() const = 0;
 
   /* Make an uninterpreted sort

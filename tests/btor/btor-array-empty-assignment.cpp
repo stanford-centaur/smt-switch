@@ -26,6 +26,7 @@ int main()
   Result r = s->check_sat();
   assert(r.is_sat());
 
-  Term arr_ass = s->get_value(arr);
+  TermMap arr_ass = s->get_array_values(arr);
+  assert(arr_ass.size() == 0);
   return 0;
 }

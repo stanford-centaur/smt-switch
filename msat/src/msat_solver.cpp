@@ -252,6 +252,11 @@ Term MsatSolver::get_value(Term & t) const
   return Term(new MsatTerm(env, val));
 }
 
+TermMap MsatSolver::get_array_values(Term & arr, Term out_const_base) const
+{
+  throw NotImplementedException("Get array values not implemented for MathSAT");
+}
+
 Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
   if (!arity)
