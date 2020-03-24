@@ -44,7 +44,6 @@ class Yices2Solver : public AbsSmtSolver
     // yices_exit();
   };
   void set_opt(const std::string option, const std::string value) override;
-  void set_logic(const std::string logic) const override;
   void set_logic(const std::string logic);
   void assert_formula(const Term & t) const override;
   Result check_sat() override;
