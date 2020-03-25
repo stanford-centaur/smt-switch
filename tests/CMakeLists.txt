@@ -61,6 +61,11 @@ target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op available-solvers)
 add_test(NAME unit-op_test COMMAND unit-op)
 
+add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-solving-interface.cpp")
+target_link_libraries(unit-solving-interface gtest_main)
+target_link_libraries(unit-solving-interface available-solvers)
+add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
+
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)
 target_link_libraries(test_itp available-solvers)

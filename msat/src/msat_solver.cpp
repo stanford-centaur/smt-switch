@@ -368,6 +368,12 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     for (uint32_t i = 0; i < arity; i++)
     {
       msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
+      if (msat_is_bool_type(env, msort))
+      {
+        // mathsat does not support functions of booleans
+        // convert to width one bitvector instead
+        msort = msat_get_bv_type(env, 1);
+      }
       msorts.push_back(msort);
       decl_name += ("_" + sorts[i]->to_string());
     }
@@ -640,7 +646,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
         throw IncorrectUsageException("Expecting UF as first argument to Apply");
       }
       vector<msat_term> v({mterm1->term});
-      res = msat_make_uf(env, mterm0->decl, &v[0]);
+      res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else
     {
@@ -694,7 +700,7 @@ Term MsatSolver::make_term(Op op,
         throw IncorrectUsageException("Expecting UF as first argument to Apply");
       }
       vector<msat_term> v({mterm1->term, mterm2->term});
-      res = msat_make_uf(env, mterm0->decl, &v[0]);
+      res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else
     {
@@ -769,7 +775,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
     msat_decl uf = mterm->decl;
-    msat_term res = msat_make_uf(env, uf, &margs[0]);
+    msat_term res = ext_msat_make_uf(env, uf, margs);
     if (MSAT_ERROR_TERM(res))
     {
       string msg("Failed to create term given ");
