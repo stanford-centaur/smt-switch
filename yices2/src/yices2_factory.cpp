@@ -18,7 +18,7 @@ SmtSolver Yices2SolverFactory::create()
     initialized = true;
   }
 
-  return std::make_unique<Yices2Solver>();
+  return std::make_shared<Yices2Solver>();
 }
 /* end Yices2SolverFactory implementation */
 
