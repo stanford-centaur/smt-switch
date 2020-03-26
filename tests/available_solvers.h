@@ -38,3 +38,16 @@ std::vector<SolverEnum> available_int_solver_enums();
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 }  // namespace smt_tests
+
+// define hash for older compilers
+namespace std {
+// specialize template
+template <>
+struct hash<smt_tests::SolverEnum>
+{
+  size_t operator()(const smt_tests::SolverEnum se) const
+  {
+    return static_cast<size_t>(se);
+  }
+};
+}  // namespace std

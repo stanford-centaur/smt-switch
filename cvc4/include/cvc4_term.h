@@ -6,6 +6,22 @@
 
 #include "api/cvc4cpp.h"
 
+// define hash for old compilers
+namespace std
+{
+
+// specialize hash struct
+template<>
+struct hash<::CVC4::api::Kind>
+{
+  size_t operator()(const ::CVC4::api::Kind k) const
+  {
+    return static_cast<std::size_t>(k);
+  }
+};
+
+}
+
 namespace smt {
   //forward declaration
   class CVC4Solver;

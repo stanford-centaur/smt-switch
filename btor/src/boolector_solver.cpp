@@ -95,7 +95,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void BoolectorSolver::set_logic(const std::string logic) const
+void BoolectorSolver::set_logic(const std::string logic)
 {
   if ((logic != "QF_BV") & (logic != "QF_UFBV") & (logic != "QF_ABV")
       & (logic != "QF_AUFBV"))
@@ -223,6 +223,28 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   for (auto a : assumptions)
   {
     bt = std::static_pointer_cast<BoolectorTerm>(a);
+
+    bool is_literal = true;
+
+    BoolectorSort s = boolector_get_sort(bt->btor, bt->node);
+    // booleans are bit-vectors in boolector
+    is_literal &= boolector_is_bitvec_sort(bt->btor, s);
+    is_literal &= boolector_get_width(bt->btor, bt->node) == 1;
+
+    bool const_or_negated = a->is_symbolic_const();
+    if (!const_or_negated && bt->negated)
+    {
+      Term c = *(a->begin());
+      const_or_negated = c->is_symbolic_const();
+    }
+    is_literal &= const_or_negated;
+
+    if (!is_literal)
+    {
+      throw IncorrectUsageException(
+          "Assumptions to check_sat_assuming must be boolean literals");
+    }
+
     boolector_assume(btor, bt->node);
   }
 
@@ -515,7 +537,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     }
     else if (op.prim_op == Rotate_Right)
     {
-      btor_res = custom_boolector_rotate_left(btor, bt->node, op.idx0);
+      btor_res = custom_boolector_rotate_right(btor, bt->node, op.idx0);
     }
     else
     {
@@ -700,7 +722,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
 
       std::shared_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(t0);
-      result = boolector_apply(btor, &args[0], 1, bt0->node);
+      result = boolector_apply(btor, &args[0], 2, bt0->node);
     }
     else
     {
@@ -751,7 +773,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
       }
       std::shared_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(terms[0]);
-      BoolectorNode * result = boolector_apply(btor, &args[0], 1, bt0->node);
+      BoolectorNode * result = boolector_apply(btor, &args[0], args.size(), bt0->node);
 
       Term term(new BoolectorTerm(btor, result));
       return term;

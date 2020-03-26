@@ -72,6 +72,16 @@ TEST_P(UnitTests, IdentityWalker)
   ASSERT_EQ(final_term, id_final_term);
 }
 
+TEST_P(UnitTests, InputIterator)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+  TermVec children(fx->begin(), fx->end());
+  ASSERT_EQ(children[0], f);
+  ASSERT_EQ(children[1], x);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
                          testing::ValuesIn(available_termiter_solver_enums()));

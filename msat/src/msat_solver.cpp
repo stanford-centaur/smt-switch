@@ -60,9 +60,8 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Le, msat_make_leq },
       { Gt, ext_msat_make_gt },
       { Ge, ext_msat_make_geq },
-      // TODO: Actually implement mod and pow
       { Mod, ext_msat_make_mod },
-      { Pow, ext_msat_make_pow },
+      { Pow, msat_make_pow },
       { Concat, msat_make_bv_concat },
       { BVAnd, msat_make_bv_and },
       { BVOr, msat_make_bv_or },
@@ -137,11 +136,12 @@ void MsatSolver::set_opt(const string option, const string value)
   }
 }
 
-void MsatSolver::set_logic(const std::string logic) const
+void MsatSolver::set_logic(const std::string log)
 {
   // TODO: See if there's a correct way to do this
   // this seems like a no-op (doesn't complain for other sorts)
-  msat_set_option(cfg, "logic", logic.c_str());
+  msat_set_option(cfg, "logic", log.c_str());
+  logic = log;
 }
 
 void MsatSolver::assert_formula(const Term & t) const
@@ -368,6 +368,12 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     for (uint32_t i = 0; i < arity; i++)
     {
       msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
+      if (msat_is_bool_type(env, msort))
+      {
+        // mathsat does not support functions of booleans
+        // convert to width one bitvector instead
+        msort = msat_get_bv_type(env, 1);
+      }
       msorts.push_back(msort);
       decl_name += ("_" + sorts[i]->to_string());
     }
@@ -640,7 +646,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
         throw IncorrectUsageException("Expecting UF as first argument to Apply");
       }
       vector<msat_term> v({mterm1->term});
-      res = msat_make_uf(env, mterm0->decl, &v[0]);
+      res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else
     {
@@ -694,7 +700,7 @@ Term MsatSolver::make_term(Op op,
         throw IncorrectUsageException("Expecting UF as first argument to Apply");
       }
       vector<msat_term> v({mterm1->term, mterm2->term});
-      res = msat_make_uf(env, mterm0->decl, &v[0]);
+      res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else
     {
@@ -769,7 +775,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
     msat_decl uf = mterm->decl;
-    msat_term res = msat_make_uf(env, uf, &margs[0]);
+    msat_term res = ext_msat_make_uf(env, uf, margs);
     if (MSAT_ERROR_TERM(res))
     {
       string msg("Failed to create term given ");
@@ -846,7 +852,21 @@ Term MsatSolver::substitute(const Term term,
 
 void MsatSolver::dump_smt2(FILE * file) const
 {
-  throw NotImplementedException("Can't dump all assertions to a file yet");
+  size_t num_asserted;
+  msat_term * assertions = msat_get_asserted_formulas(env, &num_asserted);
+  msat_term all_asserts = msat_make_true(env);
+  for (size_t i = 0; i < num_asserted; ++i)
+  {
+    all_asserts = msat_make_and(env, all_asserts, *assertions);
+    ++assertions;
+  }
+  if (MSAT_ERROR_TERM(all_asserts))
+  {
+    throw InternalSolverException("Failed to gather all assertions");
+  }
+  const char * log = logic.empty() ? NULL : logic.c_str();
+  msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
+  fprintf(file, "\n(check-sat)\n");
 }
 
 // end MsatSolver implementation
