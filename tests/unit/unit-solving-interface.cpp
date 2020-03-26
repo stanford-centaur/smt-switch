@@ -47,6 +47,6 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,
                          UnitSolveTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_termiter_solver_enums()));
 
 }  // namespace smt_tests
