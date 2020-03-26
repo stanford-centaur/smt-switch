@@ -37,6 +37,12 @@ if (BUILD_MSAT)
   set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
 endif()
 
+if (BUILD_YICES2)
+  include_directories("${PROJECT_SOURCE_DIR}/yices2/include")
+  target_link_libraries(smt_switch smt-switch-yices2)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
+endif()
+
 add_custom_target(gen-smt-solver-declarations
   ALL
   COMMAND

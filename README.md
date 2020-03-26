@@ -32,6 +32,7 @@ Once you've configured the build system, simply enter the build directory (`./bu
 * Boolector
 * CVC4
 * MathSAT
+* Yices2
 
 ## Custom Solver Location
 If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of CVC4 like so:

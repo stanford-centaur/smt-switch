@@ -1,7 +1,8 @@
 import pytest
 import smt_switch as ss
+import available_solvers
 
-@pytest.mark.parametrize("create_solver", ss.solvers.values())
+@pytest.mark.parametrize("create_solver", available_solvers.termiter_support_solvers.values())
 def test_unit_op(create_solver):
     solver = create_solver()
 
@@ -44,7 +45,7 @@ def test_sort(create_solver):
         assert t.get_sort().get_sort_kind() == s.get_sort_kind()
 
 
-@pytest.mark.parametrize("create_solver", ss.solvers.values())
+@pytest.mark.parametrize("create_solver", available_solvers.termiter_support_solvers.values())
 def test_unit_iter(create_solver):
     solver = create_solver()
 

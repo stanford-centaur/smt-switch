@@ -40,6 +40,10 @@ if (BUILD_MSAT)
   add_definitions(-DBUILD_MSAT)
 endif(BUILD_MSAT)
 
+if (BUILD_YICES2)
+  add_definitions(-DBUILD_YICES2)
+endif(BUILD_YICES2)
+
 add_library(available-solvers "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
 
