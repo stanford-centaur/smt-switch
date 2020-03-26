@@ -7,7 +7,7 @@ namespace smt {
 /* BoolectorSolverFactory implementation */
 SmtSolver BoolectorSolverFactory::create()
 {
-  return std::make_unique<BoolectorSolver>();
+  return std::make_shared<BoolectorSolver>();
 }
 /* end BoolectorSolverFactory implementation */
 

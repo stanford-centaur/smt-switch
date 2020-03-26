@@ -10,7 +10,7 @@ SmtSolver MsatSolverFactory::create()
 {
   MsatSolver * ms = new MsatSolver();
   ms->setup_env();
-  std::unique_ptr<MsatSolver> s(ms);
+  std::shared_ptr<MsatSolver> s(ms);
   return s;
 }
 
@@ -18,7 +18,7 @@ SmtSolver MsatSolverFactory::create_interpolating_solver()
 {
   MsatInterpolatingSolver * mis = new MsatInterpolatingSolver();
   mis->setup_env();
-  std::unique_ptr<MsatInterpolatingSolver> s(mis);
+  std::shared_ptr<MsatInterpolatingSolver> s(mis);
   return s;
 }
 

@@ -20,7 +20,6 @@ msat_term ext_msat_make_lt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_gt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_geq(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1);
-msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_nor(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1);
@@ -33,6 +32,10 @@ msat_term ext_msat_make_bv_number(msat_env e,
                                   const char * val,
                                   size_t size,
                                   int base);
+msat_term ext_msat_make_uf(msat_env e,
+                           msat_decl func,
+                           std::vector<msat_term> args);
+
 }  // namespace smt
 
 #endif
