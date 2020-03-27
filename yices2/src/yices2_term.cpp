@@ -245,7 +245,7 @@ Op Yices2Term::get_op() const
     case YICES_ARITH_GE_ATOM: return Op(Ge);
     case YICES_ABS: return Op(Abs);
     case YICES_RDIV: return Op(Div);
-    case YICES_IDIV: return Op(Div);
+    case YICES_IDIV: return Op(IntDiv);
     case YICES_IMOD: return Op(Mod);
     // // sums
     case YICES_BV_SUM: return Op(BVAdd);
@@ -363,7 +363,7 @@ bool Yices2Term::is_value() const
           || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT);
 }
 
-string Yices2Term::to_string() { return yices_term_to_string(term, 120, 1, 0); }
+string Yices2Term::to_string() { return const_to_string(); }
 
 uint64_t Yices2Term::to_int() const
 {
@@ -433,7 +433,21 @@ TermIter Yices2Term::end()
 
 string Yices2Term::const_to_string() const
 {
-  return yices_term_to_string(term, 120, 1, 0);
+  term_constructor_t tc = yices_term_constructor(term);
+  if (tc != YICES_ARITH_CONSTANT)
+  {
+    return yices_term_to_string(term, 120, 1, 0);
+  }
+  else
+  {
+    string repr = yices_term_to_string(term, 120, 1, 0);
+    if (repr.substr(0, 1) == "-")
+    {
+      // put in smt-lib format
+      repr = "(- " + repr.substr(1, repr.length() - 1) + ")";
+    }
+    return repr;
+  }
 }
 
 // end Yices2Term implementation
