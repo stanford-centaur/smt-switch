@@ -363,7 +363,7 @@ bool Yices2Term::is_value() const
           || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT);
 }
 
-string Yices2Term::to_string() const
+string Yices2Term::to_string()
 {
   return yices_term_to_string(term, 120, 1, 0);
 }
