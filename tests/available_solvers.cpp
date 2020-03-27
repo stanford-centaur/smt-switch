@@ -71,6 +71,10 @@ const CreateSolverFunsMap lite_solvers({
 #if BUILD_MSAT
       { MSAT, MsatSolverFactory::create },
 #endif
+
+#if BUILD_YICES2
+  { YICES2, Yices2SolverFactory::create },
+#endif
 });
 
 const std::vector<SolverEnum> itp_enums({
@@ -125,7 +129,7 @@ std::vector<SolverEnum> available_array_model_solver_enums()
   std::vector<SolverEnum> am_solvers;
   for (auto se : solver_enums)
   {
-    if (se != MSAT)
+    if (se != MSAT && se != YICES2)
     {
       am_solvers.push_back(se);
     }
