@@ -338,6 +338,12 @@ Term Yices2Solver::get_value(const Term & t) const
   }
 }
 
+UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
+                                                Term out_const_base) const
+{
+  throw NotImplementedException("Yices does not support getting array values. Please use get_value on a particular select of the array.");
+}
+
 Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 {
   type_t y_sort;
