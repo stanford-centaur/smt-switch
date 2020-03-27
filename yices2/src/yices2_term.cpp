@@ -245,7 +245,7 @@ Op Yices2Term::get_op() const
     case YICES_ARITH_GE_ATOM: return Op(Ge);
     case YICES_ABS: return Op(Abs);
     case YICES_RDIV: return Op(Div);
-    case YICES_IDIV: return Op(Div);
+    case YICES_IDIV: return Op(IntDiv);
     case YICES_IMOD: return Op(Mod);
     // // sums
     case YICES_BV_SUM: return Op(BVAdd);
