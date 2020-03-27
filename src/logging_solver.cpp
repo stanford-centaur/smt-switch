@@ -287,7 +287,15 @@ Term LoggingSolver::get_value(const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   Term wrapped_val = solver->get_value(lt->term);
-  Term val(new LoggingTerm(wrapped_val, t->get_sort(), Op(), TermVec{}));
+
+  Op op;
+  if (!wrapped_val->is_value())
+  {
+    // only case is a negated number
+    op = Op(Negate);
+  }
+
+  Term val(new LoggingTerm(wrapped_val, t->get_sort(), op, TermVec{}));
   return val;
 }
 
