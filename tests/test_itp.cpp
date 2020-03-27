@@ -4,42 +4,13 @@
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
+#include "test-utils.h"
 
 using namespace smt;
 using namespace std;
 
 
 namespace smt_tests {
-
-UnorderedTermSet get_free_symbols(Term & t)
-{
-  UnorderedTermSet free_symbols;
-  TermVec to_visit({t});
-  UnorderedTermSet visited;
-
-  Term n;
-  while (to_visit.size())
-  {
-    n = to_visit.back();
-    to_visit.pop_back();
-
-    if (visited.find(n) == visited.end())
-    {
-      visited.insert(n);
-      for (auto nn : n)
-      {
-        to_visit.push_back(nn);
-      }
-
-      if (n->is_symbolic_const())
-      {
-        free_symbols.insert(n);
-      }
-    }
-  }
-
-  return free_symbols;
-}
 
 class ItpTests : public ::testing::Test,
                  public ::testing::WithParamInterface<SolverEnum>
@@ -68,7 +39,6 @@ TEST_P(ItpTests, Test_ITP)
   Term B = itp->make_term(Gt, z, w);
   B = itp->make_term(And, itp->make_term(Lt, z, x));
 
-  // TODO: finish this
   Term I;
   bool success = itp->get_interpolant(A, B, I);
   ASSERT_TRUE(success);
