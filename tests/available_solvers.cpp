@@ -96,15 +96,8 @@ CreateSolverFunsMap available_lite_solvers() { return lite_solvers; }
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
 std::vector<SolverEnum> available_termiter_solver_enums() {
-  std::vector<SolverEnum> termiter_solvers;
-  for (auto se : solver_enums)
-  {
-    if (se != YICES2)
-    {
-      termiter_solvers.push_back(se);
-    }
-  }
-  return termiter_solvers;
+  // all solvers support term iteration (at least via logging) so far
+  return solver_enums;
 }
 
 CreateSolverFunsMap available_interpolators() { return itps; };
@@ -135,6 +128,19 @@ std::vector<SolverEnum> available_array_model_solver_enums()
     }
   }
   return am_solvers;
+}
+
+std::vector<SolverEnum> available_constarr_solver_enums()
+{
+  std::vector<SolverEnum> ca_solvers;
+  for (auto se : solver_enums)
+  {
+    if (se != YICES2)
+    {
+      ca_solvers.push_back(se);
+    }
+  }
+  return ca_solvers;
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
