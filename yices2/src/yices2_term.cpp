@@ -365,7 +365,21 @@ bool Yices2Term::is_value() const
 
 string Yices2Term::to_string() const
 {
-  return yices_term_to_string(term, 120, 1, 0);
+  term_constructor_t tc = yices_term_constructor(term);
+  if (tc != YICES_ARITH_CONSTANT)
+  {
+    return yices_term_to_string(term, 120, 1, 0);
+  }
+  else
+  {
+    string repr = yices_term_to_string(term, 120, 1, 0);
+    if (repr.substr(0, 1) == "-")
+    {
+      // put in smt-lib format
+      repr = "(- " + repr.substr(1, repr.length() - 1) + ")";
+    }
+    return repr;
+  }
 }
 
 uint64_t Yices2Term::to_int() const

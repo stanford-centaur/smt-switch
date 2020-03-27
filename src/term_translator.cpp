@@ -180,7 +180,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
   {
     if (val.substr(0, 2) == "(-")
     {
-      string posval = val.substr(3, val.length()-4);
+      std::string posval = val.substr(3, val.length() - 4);
       Term posterm = solver->make_term(posval, sort);
       return solver->make_term(Negate, posterm);
     }
