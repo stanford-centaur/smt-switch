@@ -40,6 +40,10 @@ if (BUILD_MSAT)
   add_definitions(-DBUILD_MSAT)
 endif(BUILD_MSAT)
 
+if (BUILD_YICES2)
+  add_definitions(-DBUILD_YICES2)
+endif(BUILD_YICES2)
+
 add_library(available-solvers "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
 
@@ -65,6 +69,11 @@ add_executable(unit-term-hashtable "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-h
 target_link_libraries(unit-term-hashtable gtest_main)
 target_link_libraries(unit-term-hashtable available-solvers)
 add_test(NAME unit-term-hashtable_test COMMAND unit-term-hashtable)
+
+add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-solving-interface.cpp")
+target_link_libraries(unit-solving-interface gtest_main)
+target_link_libraries(unit-solving-interface available-solvers)
+add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
 
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)

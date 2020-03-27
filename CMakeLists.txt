@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include_directories ("${PROJECT_SOURCE_DIR}/include")
@@ -64,7 +65,6 @@ if (BUILD_BTOR)
   add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
 
-
 # should we build cvc4?
 option (BUILD_CVC4
   "Should we build the libraries for cvc4" OFF)
@@ -91,6 +91,20 @@ if (BUILD_MSAT)
   add_subdirectory(tests/msat)
 
 endif()
+
+# should we build yices2?
+option (BUILD_YICES2
+  "Should we build the libraries for yices2" OFF)
+
+if (BUILD_YICES2)
+  set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
+  add_subdirectory (yices2)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
+
+  # testing
+  add_subdirectory(tests/yices2)
+  
+endif (BUILD_YICES2)
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)

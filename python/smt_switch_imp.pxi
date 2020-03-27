@@ -12,7 +12,7 @@ from smt_switch cimport c_Term
 from smt_switch cimport c_TermVec
 from smt_switch cimport c_UnorderedTermMap
 from smt_switch cimport c_TermIter
-from smt_switch cimport c_PrimOp, c_SortKind
+from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
 
 cdef class Op:
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
@@ -210,6 +210,17 @@ cdef class Term:
     def __ne__(self, Term other):
         return self.ct != other.ct
 
+    def __bool__(self):
+        cdef c_Sort csort = dref(self.ct).get_sort()
+        cdef c_Sort cboolsort = dref(self._solver.css).make_sort(c_BOOL)
+
+        if csort != cboolsort or not dref(self.ct).is_value():
+            raise ValueError("Cannot call bool on {}".format(str(self)))
+
+        cdef Term t = self._solver.make_term(True)
+
+        return (self.ct == t.ct)
+
     def __iter__(self):
         for ci in dref(self.ct):
             t = Term(self._solver)
@@ -242,7 +253,7 @@ cdef class SmtSolver:
             if not isinstance(a, Term):
                 raise ValueError("Expecting a Term but got {}")
             ctv.push_back((<Term> a).ct)
-        dref(self.css).check_sat_assuming(ctv)
+        r.cr = dref(self.css).check_sat_assuming(ctv)
         return r
 
     def push(self, int num=1):
@@ -291,46 +302,49 @@ cdef class SmtSolver:
                                                                             [arg0, arg1, arg2, arg3]]))
         return s
 
-    def make_term(self, arg0, arg1=None, arg2=None, arg3=None):
+    def make_term(self, op_or_val, *args):
         cdef Term term = Term(self)
         cdef c_TermVec ctv
 
-        if isinstance(arg0, PrimOp):
-            arg0 = Op(arg0)
+        if isinstance(op_or_val, PrimOp):
+            op_or_val = Op(op_or_val)
 
-        if isinstance(arg0, Op):
-            if not arg0:
+        # expand a list argument
+        if len(args) > 0:
+            if (isinstance(args[0], list) and len(args) > 1) or \
+               any([isinstance(a, list) for a in args[1:]]):
+                raise ValueError("Cannot call make_term with signature {}".format([type(a) for a in args]))
+            elif isinstance(args[0], list):
+                # expand arguments in list to be args
+                args = args[0]
+
+        if isinstance(op_or_val, Op):
+            if not op_or_val:
                 raise ValueError("Got a null Op in make_term")
 
-            if arg2 is None:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct)
-            elif arg3 is None:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct, (<Term?> arg2).ct)
-            elif arg3 is not None:
-                term.ct = dref(self.css).make_term((<Op> arg0).op, (<Term?> arg1).ct, (<Term?> arg2).ct, (<Term?> arg3).ct)
-            elif isinstance(arg1, list):
-                for a in arg1:
-                    ctv.push_back((<Term?> a).ct)
-                term.ct = dref(self.css).make_term((<Op> arg0).op, ctv)
-            else:
-                raise ValueError("Expecting Op and Terms but got {}".format([type(a)
-                                                                             for a in [arg0, arg1, arg2, arg3]]))
-        elif isinstance(arg0, str) and isinstance(arg1, Sort):
-            if arg2 is None:
-                term.ct = dref(self.css).make_term(<const string> arg0.encode(), (<Sort> arg1).cs)
-            else:
-                term.ct = dref(self.css).make_term(<const string> arg0.encode(),
-                                                   (<Sort> arg1).cs,
-                                                    <int?> arg2)
-        elif isinstance(arg0, int) and isinstance(arg1, Sort) and arg2 is None:
-            term.ct = dref(self.css).make_term((<const string?> str(arg0).encode()), (<Sort> arg1).cs)
-        elif isinstance(arg0, bool) and arg1 is None:
-            term.ct = dref(self.css).make_term(<bint> arg0)
-        elif isinstance(arg0, Term) and isinstance(arg1, Sort) and arg2 is None:
-            term.ct = dref(self.css).make_term((<Term> arg0).ct, (<Sort> arg1).cs)
+            if not args:
+                raise ValueError("Can't call make_term with an Op ({}) and no arguments".format(op_or_val))
+
+            for a in args:
+                ctv.push_back((<Term?> a).ct)
+            term.ct = dref(self.css).make_term((<Op> op_or_val).op, ctv)
+        elif isinstance(op_or_val, bool) and len(args) == 0:
+            term.ct = dref(self.css).make_term(<bint> op_or_val)
+        elif isinstance(op_or_val, str) and len(args) == 1 and isinstance(args[0], Sort):
+            term.ct = dref(self.css).make_term(<const string> op_or_val.encode(), (<Sort> args[0]).cs)
+        elif isinstance(op_or_val, str) and len(args) == 2 and isinstance(args[0], Sort):
+            term.ct = dref(self.css).make_term(<const string> op_or_val.encode(),
+                                               (<Sort> args[0]).cs,
+                                               <int?> args[1])
+        elif isinstance(op_or_val, int) and len(args) == 1 and isinstance(args[0], Sort):
+            # always use the string representation of integers (to handle large ints)
+            term.ct = dref(self.css).make_term((<const string?> str(op_or_val).encode()), (<Sort> args[0]).cs)
+        elif isinstance(op_or_val, Term) and len(args) == 1 and isinstance(args[0], Sort):
+            # this is for creating a constant array
+            term.ct = dref(self.css).make_term((<Term?> op_or_val).ct, (<Sort?> args[0]).cs)
         else:
             raise ValueError("Couldn't find matching function for {}".format([type(a)
-                                                                             for a in [arg0, arg1, arg2, arg3]]))
+                                                                              for a in [op_or_val] + args]))
         return term
 
     def make_symbol(self, str name, Sort sort):

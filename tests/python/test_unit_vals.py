@@ -1,9 +1,13 @@
 import pytest
 import smt_switch as ss
 from smt_switch.primops import Distinct, Equal, Select, Store
+import available_solvers
+
+termiter_and_int_keys = available_solvers.termiter_support_solvers.keys() & available_solvers.int_support_solvers.keys()
+termiter_and_int_solvers = [f for f in {ss.solvers[n] for n in termiter_and_int_keys}]
 
 
-@pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor'])
+@pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
 def test_unit_bigint(create_solver):
     solver = create_solver()
     intsort = solver.make_sort(ss.sortkinds.INT)

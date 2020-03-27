@@ -14,7 +14,8 @@ enum SolverEnum
 {
   BTOR = 0,
   CVC4,
-  MSAT
+  MSAT,
+  YICES2
 };
 
 typedef std::unordered_map<SolverEnum, create_solver_fun> CreateSolverFunsMap;
@@ -30,6 +31,9 @@ CreateSolverFunsMap available_lite_solvers();
 
 // collect all the available solvers
 std::vector<SolverEnum> available_solver_enums();
+
+// collect all solvers that support term iteration
+std::vector<SolverEnum> available_termiter_solver_enums();
 
 CreateSolverFunsMap available_interpolators();
 

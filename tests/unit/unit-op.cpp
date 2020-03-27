@@ -18,11 +18,12 @@ class UnitTests : public ::testing::Test,
   {
     s = available_solvers().at(GetParam())();
 
+    boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
   }
   SmtSolver s;
-  Sort bvsort, funsort;
+  Sort boolsort, bvsort, funsort;
 };
 
 TEST_P(UnitTests, FunOp)
@@ -60,8 +61,50 @@ TEST_P(UnitTests, IndexedOps1)
   ASSERT_EQ(se_x_rebuilt, se_x);
 }
 
+TEST_P(UnitTests, RotateOps)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term rotate_left = s->make_term(Op(Rotate_Left, 2), x);
+  Term rotate_right = s->make_term(Op(Rotate_Right, 2), rotate_left);
+  s->assert_formula(s->make_term(Distinct, x, rotate_right));
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
+TEST_P(UnitTests, BoolFun)
+{
+  Term b = s->make_symbol("b", boolsort);
+  Sort boolfunsort = s->make_sort(FUNCTION, SortVec{ boolsort, boolsort });
+  Term f = s->make_symbol("f", boolfunsort);
+  Term fb = s->make_term(Apply, f, b);
+}
+
+TEST_P(UnitTests, MultiArgFun)
+{
+  SortVec argsorts(7, bvsort);
+  // return sort
+  argsorts.push_back(boolsort);
+  Sort multiargsort = s->make_sort(FUNCTION, argsorts);
+  Term f = s->make_symbol("f", multiargsort);
+
+  TermVec args1{f};
+  TermVec args2{f};
+  for (size_t i = 0; i < 7; i++)
+  {
+    args1.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
+    args2.push_back(s->make_symbol("y" + std::to_string(i), bvsort));
+  }
+
+  Term res = s->make_term(Apply, args1);
+  ASSERT_EQ(res, s->make_term(Apply, args1));
+
+  Term res2 = s->make_term(Apply, args2);
+  ASSERT_NE(res, res2);
+  ASSERT_EQ(res2, s->make_term(Apply, args2));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_termiter_solver_enums()));
 
 }  // namespace smt_tests
