@@ -322,7 +322,7 @@ void Yices2Solver::push(uint64_t num) { yices_push(ctx); }
 
 void Yices2Solver::pop(uint64_t num) { yices_pop(ctx); }
 
-Term Yices2Solver::get_value(Term & t) const
+Term Yices2Solver::get_value(const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
   model_t * model = yices_get_model(ctx, true);
