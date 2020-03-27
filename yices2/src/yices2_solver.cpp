@@ -273,7 +273,10 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
   {
     if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
     {
-      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      shared_ptr<Yices2Term> yt = static_pointer_cast<Yices2Term>(a);
+      if (a->get_op() == Not
+          && (yices_term_constructor(yices_term_child(yt->term, 0))
+              == YICES_UNINTERPRETED_TERM))
       {
         continue;
       }
