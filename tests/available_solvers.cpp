@@ -73,7 +73,7 @@ const CreateSolverFunsMap lite_solvers({
 #endif
 
 #if BUILD_YICES2
-  { YICES2, Yices2SolverFactory::create },
+      { YICES2, Yices2SolverFactory::create },
 #endif
 });
 
