@@ -178,7 +178,16 @@ Term TermTranslator::value_from_smt2(const std::string val,
   }
   else if ((sk == INT) || (sk == REAL))
   {
-    return solver->make_term(val, sort);
+    if (val.substr(0, 2) == "(-")
+    {
+      string posval = val.substr(3, val.length()-4);
+      Term posterm = solver->make_term(posval, sort);
+      return solver->make_term(Negate, posterm);
+    }
+    else
+    {
+      return solver->make_term(val, sort);
+    }
   }
   // this check HAS to come after bit-vector check
   // because boolector aliases those two sorts
