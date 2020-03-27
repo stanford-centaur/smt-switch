@@ -58,6 +58,11 @@ class Yices2Term : public AbsTerm
   term_t term;
   bool is_function;
 
+  // a const version of to_string
+  // the main to_string can't be const so that LoggingSolver
+  // can build its string representation lazily
+  std::string const_to_string() const;
+
   friend class Yices2Solver;
   friend class Yices2TermIter;
 };
