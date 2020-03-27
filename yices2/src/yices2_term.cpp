@@ -434,11 +434,7 @@ TermIter Yices2Term::end()
 string Yices2Term::const_to_string() const
 {
   term_constructor_t tc = yices_term_constructor(term);
-  if (tc != YICES_ARITH_CONSTANT)
-  {
-    return yices_term_to_string(term, 120, 1, 0);
-  }
-  else
+  if (tc == YICES_ARITH_CONSTANT)
   {
     string repr = yices_term_to_string(term, 120, 1, 0);
     if (repr.substr(0, 1) == "-")
@@ -447,6 +443,19 @@ string Yices2Term::const_to_string() const
       repr = "(- " + repr.substr(1, repr.length() - 1) + ")";
     }
     return repr;
+  }
+  else if (tc == YICES_BV_CONSTANT)
+  {
+    string repr = yices_term_to_string(term, 120, 1, 0);
+    if (repr.substr(0, 2) == "0b")
+    {
+      repr = "#b" + repr.substr(2, repr.length()-2);
+    }
+    return repr;
+  }
+  else
+  {
+    return yices_term_to_string(term, 120, 1, 0);
   }
 }
 
