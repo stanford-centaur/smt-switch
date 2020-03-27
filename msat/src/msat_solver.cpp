@@ -425,20 +425,37 @@ Term MsatSolver::make_term(bool b) const
 
 Term MsatSolver::make_term(int64_t i, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk == BV)
+  try
   {
-    // always use string version for consistency
-    std::string sval = std::to_string(i);
-    return Term(new MsatTerm(
-        env,
-        ext_msat_make_bv_number(env, sval.c_str(), sort->get_width(), 10)));
+    SortKind sk = sort->get_sort_kind();
+    if (sk == BV)
+    {
+      // always use string version for consistency
+      std::string sval = std::to_string(i);
+      msat_term mval = ext_msat_make_bv_number(env, sval.c_str(), sort->get_width(), 10);
+      if (MSAT_ERROR_TERM(mval))
+      {
+        throw IncorrectUsageException("");
+      }
+      return Term(new MsatTerm(
+                               env,
+                               mval));
+    }
+    else if (sk == REAL || sk == INT)
+    {
+      msat_term mval = msat_make_int_number(env, i);
+      if (MSAT_ERROR_TERM(mval))
+      {
+        throw IncorrectUsageException("");
+      }
+      return Term(new MsatTerm(env, mval));
+    }
+    else
+    {
+      throw IncorrectUsageException("");
+    }
   }
-  else if (sk == REAL || sk == INT)
-  {
-    return Term(new MsatTerm(env, msat_make_int_number(env, i)));
-  }
-  else
+  catch(IncorrectUsageException & e)
   {
     string msg("Can't create value ");
     msg += i;
@@ -452,28 +469,40 @@ Term MsatSolver::make_term(const std::string val,
                            const Sort & sort,
                            uint64_t base) const
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk == BV)
+  try
   {
-    return Term(new MsatTerm(
-        env,
-        ext_msat_make_bv_number(env, val.c_str(), sort->get_width(), base)));
-  }
-  else if (sk == REAL || sk == INT)
-  {
-    // TODO: could use gmp because mathsat needs it anyway
-    //       I ran into a nasty bug using the C version of GMP with mathsat
-    //       before though and never figured it out (almost seemed like a
-    //       compiler bug it was so bizarre)
-    if (base != 10)
+    SortKind sk = sort->get_sort_kind();
+    if (sk == BV)
     {
-      throw NotImplementedException(
-          "MathSAT only supports base 10 for real and integer values");
+      msat_term mval = ext_msat_make_bv_number(env, val.c_str(), sort->get_width(), base);
+      if (MSAT_ERROR_TERM(mval))
+      {
+        throw IncorrectUsageException("");
+      }
+      return Term(new MsatTerm(env,
+                               mval));
     }
+    else if (sk == REAL || sk == INT)
+    {
+      if (base != 10)
+      {
+        throw NotImplementedException(
+                                      "MathSAT only supports base 10 for real and integer values");
+      }
 
-    return Term(new MsatTerm(env, msat_make_number(env, val.c_str())));
+      msat_term mval = msat_make_number(env, val.c_str());
+      if (MSAT_ERROR_TERM(mval))
+      {
+        throw IncorrectUsageException("");
+      }
+      return Term(new MsatTerm(env, mval));
+    }
+    else
+    {
+      throw IncorrectUsageException("");
+    }
   }
-  else
+  catch(IncorrectUsageException & e)
   {
     string msg("Can't create value ");
     msg += val;
