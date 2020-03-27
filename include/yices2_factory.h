@@ -5,5 +5,6 @@ namespace smt {
   {
   public:
     static SmtSolver create();
+    static SmtSolver create_lite_solver();
   };
 }  // namespace smt
