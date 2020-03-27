@@ -69,6 +69,8 @@ class MsatTerm : public AbsTerm
   msat_decl decl;
   bool is_uf;
 
+  bool is_neg_number() const;
+
   friend class MsatSolver;
   friend class MsatInterpolatingSolver;
 };

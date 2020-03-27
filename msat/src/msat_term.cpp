@@ -121,6 +121,13 @@ const Term MsatTermIter::operator*()
   {
     return Term(new MsatTerm(env, msat_term_get_decl(term)));
   }
+  else if (!pos && msat_term_is_number(env, term)
+           && std::string(msat_to_smtlib2_term(env, term)).substr(0, 2) == "(-")
+  {
+    // if negative, return the positive version (double negation)
+    msat_term neg_one = msat_make_number(env, "-1");
+    return Term(new MsatTerm(env, msat_make_times(env, neg_one, term)));
+  }
   else
   {
     uint32_t actual_idx = pos;
@@ -371,7 +378,15 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
-  else if (is_symbolic_const() || is_value())
+  else if (is_symbolic_const())
+  {
+    return Op();
+  }
+  else if (is_neg_number())
+  {
+    return Op(Negate);
+  }
+  else if (is_value())
   {
     return Op();
   }
@@ -455,8 +470,10 @@ bool MsatTerm::is_symbolic_const() const
 bool MsatTerm::is_value() const
 {
   // value if it has no children and a built-in interpretation
-  return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
-          || msat_term_is_false(env, term) ||
+  // negative numbers are not considered values (it's a Negate operator on a
+  // value)
+  return ((msat_term_is_number(env, term) && !is_neg_number())
+          || msat_term_is_true(env, term) || msat_term_is_false(env, term) ||
           // constant arrays are considered values in smt-switch
           msat_term_is_array_const(env, term));
 }
@@ -529,12 +546,26 @@ TermIter MsatTerm::end()
   }
 
   uint32_t arity = msat_term_arity(term);
-  if (msat_term_is_uf(env, term))
+  if (msat_term_is_uf(env, term) || is_neg_number())
   {
     // consider the function itself a child
+    // and for negative numbers consider it a Negate Op
     arity++;
   }
   return TermIter(new MsatTermIter(env, term, arity));
+}
+
+bool MsatTerm::is_neg_number() const
+{
+  if (!msat_term_is_number(env, term))
+  {
+    return false;
+  }
+  else
+  {
+    std::string repr = msat_to_smtlib2_term(env, term);
+    return (repr.length() > 2 && repr.substr(0, 2) == "(-");
+  }
 }
 
 // end MsatTerm implementation
