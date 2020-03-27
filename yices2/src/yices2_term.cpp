@@ -310,7 +310,18 @@ Op Yices2Term::get_op() const
       return Op();
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
-    case YICES_ARITH_CONSTANT: return Op();
+    case YICES_ARITH_CONSTANT:
+      {
+        sres = const_to_string();
+        if (sres.length() > 1 && sres.substr(0, 1) == "-")
+        {
+          return Op(Negate);
+        }
+        else
+        {
+          return Op();
+        }
+      }
     case YICES_BV_CONSTANT: return Op();
     case YICES_SCALAR_CONSTANT: return Op();
     case YICES_VARIABLE: return Op();
@@ -359,8 +370,29 @@ bool Yices2Term::is_value() const
 {
   term_constructor_t tc = yices_term_constructor(term);
 
-  return (tc == YICES_BOOL_CONSTANT || tc == YICES_ARITH_CONSTANT
-          || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT);
+  if (tc == YICES_BOOL_CONSTANT || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT)
+  {
+    return true;
+  }
+  else if (tc == YICES_ARITH_CONSTANT)
+  {
+    // negative numbers are not considered values
+    // because (- 1) has an operator (Negate)
+    // thus it's an operator on a value
+    string repr = const_to_string();
+    if (repr.length() > 1 && repr.substr(0, 1) == "-")
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+  else
+  {
+    return false;
+  }
 }
 
 string Yices2Term::to_string() { return yices_term_to_string(term, 120, 1, 0); }
