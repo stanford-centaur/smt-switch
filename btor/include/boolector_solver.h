@@ -43,7 +43,7 @@ class BoolectorSolver : public AbsSmtSolver
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) const override;
+  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;

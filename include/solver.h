@@ -35,7 +35,7 @@ class AbsSmtSolver
   /* Add an assertion to the solver
    * @param t a boolean term to assert
    */
-  virtual void assert_formula(const Term& t) const = 0;
+  virtual void assert_formula(const Term& t) = 0;
 
   /* Check satisfiability of the current assertions
    * @return a result object - see result.h
