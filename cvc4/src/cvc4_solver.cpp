@@ -204,7 +204,7 @@ Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
   return Term(new CVC4Term(const_arr));
 }
 
-void CVC4Solver::assert_formula(const Term& t) const
+void CVC4Solver::assert_formula(const Term& t)
 {
   try
   {

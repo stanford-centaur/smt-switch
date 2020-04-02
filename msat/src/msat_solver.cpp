@@ -144,7 +144,7 @@ void MsatSolver::set_logic(const std::string log)
   logic = log;
 }
 
-void MsatSolver::assert_formula(const Term & t) const
+void MsatSolver::assert_formula(const Term & t)
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   if (msat_assert_formula(env, mterm->term))
@@ -907,7 +907,7 @@ void MsatInterpolatingSolver::set_opt(const string option, const string value)
   throw IncorrectUsageException("Can't set options of interpolating solver.");
 }
 
-void MsatInterpolatingSolver::assert_formula(const Term & t) const
+void MsatInterpolatingSolver::assert_formula(const Term & t)
 {
   throw IncorrectUsageException(
       "Can't assert formulas in interpolating solver");
