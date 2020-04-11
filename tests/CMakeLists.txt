@@ -79,3 +79,8 @@ add_executable(test-int "${PROJECT_SOURCE_DIR}/tests/test-int.cpp")
 target_link_libraries(test-int gtest_main)
 target_link_libraries(test-int available-solvers)
 add_test(NAME test-int_test COMMAND test-int)
+
+add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
+target_link_libraries(unit-transfer gtest_main)
+target_link_libraries(unit-transfer available-solvers)
+add_test(NAME unit-transfer_test COMMAND unit-transfer)

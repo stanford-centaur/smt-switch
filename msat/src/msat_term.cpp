@@ -444,6 +444,12 @@ Sort MsatTerm::get_sort() const
 
 bool MsatTerm::is_symbolic_const() const
 {
+  // functions are currently considered symbols
+  if (is_uf)
+  {
+    return true;
+  }
+
   // a symbolic constant is a term with no children and no built-in
   // interpretation
   return (
@@ -454,6 +460,11 @@ bool MsatTerm::is_symbolic_const() const
 
 bool MsatTerm::is_value() const
 {
+  if (is_uf)
+  {
+    return false;
+  }
+
   // value if it has no children and a built-in interpretation
   return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
           || msat_term_is_false(env, term) ||
