@@ -26,7 +26,6 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::NOT, Not },
       { ::CVC4::api::IMPLIES, Implies },
       { ::CVC4::api::ITE, Ite },
-      { ::CVC4::api::EQUAL, Iff },
       { ::CVC4::api::EQUAL, Equal },
       { ::CVC4::api::DISTINCT, Distinct },
       /* Uninterpreted Functions */
