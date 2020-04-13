@@ -480,13 +480,7 @@ string MsatTerm::to_string() const
     {
       throw SmtException("Can't get representation for MathSAT error decl!");
     }
-    string repr = msat_decl_repr(decl);
-    size_t idx = repr.find(":");
-    if (idx != string::npos)
-    {
-      repr = repr.substr(2, idx);
-    }
-    return repr;
+    return msat_decl_repr(decl);
   }
   else
   {
