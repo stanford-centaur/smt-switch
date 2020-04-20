@@ -288,17 +288,34 @@ Term BoolectorSolver::get_value(Term & t) const
     {
       throw InternalSolverException("Expecting base array symbol to already have been created.");
     }
+
     stores = boolector_copy(btor, array_bases.at(node_id));
 
     char ** indices;
     char ** values;
     uint32_t size;
     boolector_array_assignment(btor, bt->node, &indices, &values, &size);
+
+    // do a first pass to find constant array base
+    for (uint32_t i = 0; i < size; i++)
+    {
+      if (std::string(indices[i]) == "*")
+      {
+        boolector_release(btor, stores);
+        stores = boolector_const(btor, values[i]);
+      }
+    }
+
     BoolectorNode * idx;
     BoolectorNode * elem;
     BoolectorNode * tmp;
     for (uint32_t i = 0; i < size; i++)
     {
+      if (std::string(indices[i]) == "*")
+      {
+        continue;
+      }
+
       idx = boolector_const(btor, indices[i]);
       elem = boolector_const(btor, values[i]);
 
