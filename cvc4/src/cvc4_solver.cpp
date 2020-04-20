@@ -660,7 +660,7 @@ void CVC4Solver::reset_assertions()
   }
 }
 
-void CVC4Solver::dump_smt2(FILE * file) const
+void CVC4Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException("Not yet implemented dumping smt2");
 }

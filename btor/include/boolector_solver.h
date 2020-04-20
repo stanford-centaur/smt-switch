@@ -85,7 +85,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, TermVec terms) const;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
 
  protected:
   Btor * btor;

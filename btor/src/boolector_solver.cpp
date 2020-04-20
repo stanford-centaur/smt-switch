@@ -660,9 +660,11 @@ Term BoolectorSolver::substitute(
   return t;
 }
 
-void BoolectorSolver::dump_smt2(FILE * file) const
+void BoolectorSolver::dump_smt2(std::string filename) const
 {
+  FILE * file = fopen(filename.c_str(), "w");
   boolector_dump_smt2(btor, file);
+  fclose(file);
 }
 
 Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const

@@ -855,7 +855,7 @@ Term Yices2Solver::substitute(const Term term,
   return Term(new Yices2Term(res));
 }
 
-void Yices2Solver::dump_smt2(FILE * file) const
+void Yices2Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException(
       "Dumping smt2 not supported by Yices2 backend.");

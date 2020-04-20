@@ -82,7 +82,7 @@ class Yices2Solver : public AbsSmtSolver
   void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
 
  protected:
   mutable context_t * ctx;

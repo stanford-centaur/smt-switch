@@ -222,7 +222,7 @@ class AbsSmtSolver
   // extra methods -- not required
 
   /* Dumps full smt-lib representation of current context to a file */
-  virtual void dump_smt2(FILE * file) const
+  virtual void dump_smt2(std::string filename) const
   {
     throw NotImplementedException("Dumping to FILE not supported for this solver.");
   }

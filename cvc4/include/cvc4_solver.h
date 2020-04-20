@@ -70,7 +70,7 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
   // helpers
   ::CVC4::api::Op make_cvc4_op(Op op) const;
 
