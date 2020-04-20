@@ -368,6 +368,9 @@ cdef class SmtSolver:
         term.ct = dref(self.css).substitute(t.ct, utm)
         return term
 
+    def dump_smt2(self, str filename):
+        dref(self.css).dump_smt2(filename.encode());
+
     def get_interpolant(self, Term A, Term B):
         '''
         Get an interpolant for A, and B. Note: this will throw an exception if called
