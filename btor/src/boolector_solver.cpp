@@ -299,7 +299,6 @@ Term BoolectorSolver::get_value(Term & t) const
     {
       if (std::string(indices[i]) == "*")
       {
-        boolector_release(btor, stores);
         BoolectorNode * const_val = boolector_const(btor, values[i]);
         boolector_release(btor, stores);
         stores = boolector_const_array(btor, bs->sort, const_val);
