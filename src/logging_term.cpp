@@ -10,12 +10,12 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
-    : term(t), sort(s), op(o), children(c)
+  : term(t), sort(s), op(o), children(c), is_symbol(false)
 {
 }
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r)
-    : term(t), sort(s), op(o), children(c), repr(r)
+  : term(t), sort(s), op(o), children(c), repr(r), is_symbol(true)
 {
 }
 
@@ -118,6 +118,11 @@ string LoggingTerm::to_string()
   }
 }
 
+bool LoggingTerm::is_symbolic_const() const
+{
+  return is_symbol;
+}
+
 TermIter LoggingTerm::begin()
 {
   return TermIter(new LoggingTermIter(children.begin()));
@@ -131,11 +136,6 @@ TermIter LoggingTerm::end()
 // dispatched to underlying term
 
 size_t LoggingTerm::hash() const { return term->hash(); }
-
-bool LoggingTerm::is_symbolic_const() const
-{
-  return term->is_symbolic_const();
-}
 
 bool LoggingTerm::is_value() const { return term->is_value(); }
 
