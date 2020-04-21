@@ -224,7 +224,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
       "Constant arrays not supported for Yices2 backend.");
 }
 
-void Yices2Solver::assert_formula(const Term & t) const
+void Yices2Solver::assert_formula(const Term & t)
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
 
@@ -866,7 +866,7 @@ Term Yices2Solver::substitute(const Term term,
   return Term(new Yices2Term(res));
 }
 
-void Yices2Solver::dump_smt2(FILE * file) const
+void Yices2Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException(
       "Dumping smt2 not supported by Yices2 backend.");

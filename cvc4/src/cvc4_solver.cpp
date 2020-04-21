@@ -205,7 +205,7 @@ Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
   return Term(new CVC4Term(const_arr));
 }
 
-void CVC4Solver::assert_formula(const Term& t) const
+void CVC4Solver::assert_formula(const Term & t)
 {
   try
   {
@@ -709,7 +709,7 @@ void CVC4Solver::reset_assertions()
   }
 }
 
-void CVC4Solver::dump_smt2(FILE * file) const
+void CVC4Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException("Not yet implemented dumping smt2");
 }

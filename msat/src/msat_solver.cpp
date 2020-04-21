@@ -144,7 +144,7 @@ void MsatSolver::set_logic(const std::string log)
   logic = log;
 }
 
-void MsatSolver::assert_formula(const Term & t) const
+void MsatSolver::assert_formula(const Term & t)
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   if (msat_assert_formula(env, mterm->term))
@@ -885,7 +885,7 @@ Term MsatSolver::substitute(const Term term,
   return Term(new MsatTerm(env, res));
 }
 
-void MsatSolver::dump_smt2(FILE * file) const
+void MsatSolver::dump_smt2(std::string filename) const
 {
   size_t num_asserted;
   msat_term * assertions = msat_get_asserted_formulas(env, &num_asserted);
@@ -900,8 +900,10 @@ void MsatSolver::dump_smt2(FILE * file) const
     throw InternalSolverException("Failed to gather all assertions");
   }
   const char * log = logic.empty() ? NULL : logic.c_str();
+  FILE * file = fopen(filename.c_str(), "w");
   msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
   fprintf(file, "\n(check-sat)\n");
+  fclose(file);
 }
 
 // end MsatSolver implementation
@@ -913,7 +915,7 @@ void MsatInterpolatingSolver::set_opt(const string option, const string value)
   throw IncorrectUsageException("Can't set options of interpolating solver.");
 }
 
-void MsatInterpolatingSolver::assert_formula(const Term & t) const
+void MsatInterpolatingSolver::assert_formula(const Term & t)
 {
   throw IncorrectUsageException(
       "Can't assert formulas in interpolating solver");

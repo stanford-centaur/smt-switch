@@ -196,7 +196,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
   }
 }
 
-void BoolectorSolver::assert_formula(const Term & t) const
+void BoolectorSolver::assert_formula(const Term & t)
 {
   std::shared_ptr<BoolectorTerm> bt =
       std::static_pointer_cast<BoolectorTerm>(t);
@@ -278,9 +278,66 @@ Term BoolectorSolver::get_value(const Term & t) const
   }
   else if (sk == ARRAY)
   {
-    throw NotImplementedException(
-        "get_value not implemented for arrays in boolector. Please use "
-        "get_array_values");
+    // boolector just gives index / element pairs
+    // we want to create a term, so we make a store chain
+    // on a base array
+    std::string base_name = t->to_string() + "_base";
+    BoolectorNode * stores;
+    uint64_t node_id = (uint64_t)bt->node;
+    if (array_bases.find(node_id) == array_bases.end())
+    {
+      throw InternalSolverException(
+          "Expecting base array symbol to already have been created.");
+    }
+
+    stores = boolector_copy(btor, array_bases.at(node_id));
+
+    char ** indices;
+    char ** values;
+    uint32_t size;
+    boolector_array_assignment(btor, bt->node, &indices, &values, &size);
+
+    // do a first pass to find constant array base
+    for (uint32_t i = 0; i < size; i++)
+    {
+      if (std::string(indices[i]) == "*")
+      {
+        std::shared_ptr<BoolectorSortBase> bs =
+            std::static_pointer_cast<BoolectorSortBase>(bt->get_sort());
+        boolector_release(btor, stores);
+        BoolectorNode * const_val = boolector_const(btor, values[i]);
+        stores = boolector_const_array(btor, bs->sort, const_val);
+        boolector_release(btor, const_val);
+      }
+    }
+
+    BoolectorNode * idx;
+    BoolectorNode * elem;
+    BoolectorNode * tmp;
+    for (uint32_t i = 0; i < size; i++)
+    {
+      if (std::string(indices[i]) == "*")
+      {
+        continue;
+      }
+
+      idx = boolector_const(btor, indices[i]);
+      elem = boolector_const(btor, values[i]);
+
+      tmp = boolector_write(btor, stores, idx, elem);
+      boolector_release(btor, stores);
+      stores = tmp;
+
+      boolector_release(btor, idx);
+      boolector_release(btor, elem);
+    }
+    result = std::make_shared<BoolectorTerm>(btor, stores);
+
+    // free memory
+    if (size)
+    {
+      boolector_free_array_assignment(btor, indices, values, size);
+    }
   }
   else if (sk == FUNCTION)
   {
@@ -635,9 +692,11 @@ Term BoolectorSolver::substitute(
   return t;
 }
 
-void BoolectorSolver::dump_smt2(FILE * file) const
+void BoolectorSolver::dump_smt2(std::string filename) const
 {
+  FILE * file = fopen(filename.c_str(), "w");
   boolector_dump_smt2(btor, file);
+  fclose(file);
 }
 
 Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const

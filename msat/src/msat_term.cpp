@@ -444,6 +444,12 @@ Sort MsatTerm::get_sort() const
 
 bool MsatTerm::is_symbolic_const() const
 {
+  // functions are currently considered symbols
+  if (is_uf)
+  {
+    return true;
+  }
+
   // a symbolic constant is a term with no children and no built-in
   // interpretation
   return (
@@ -454,6 +460,11 @@ bool MsatTerm::is_symbolic_const() const
 
 bool MsatTerm::is_value() const
 {
+  if (is_uf)
+  {
+    return false;
+  }
+
   // value if it has no children and a built-in interpretation
   return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
           || msat_term_is_false(env, term) ||
@@ -469,7 +480,13 @@ string MsatTerm::to_string()
     {
       throw SmtException("Can't get representation for MathSAT error decl!");
     }
-    return msat_decl_repr(decl);
+    string repr = msat_decl_repr(decl);
+    size_t idx = repr.find(":");
+    if (idx != string::npos)
+    {
+      repr = repr.substr(0, idx);
+    }
+    return repr;
   }
   else
   {

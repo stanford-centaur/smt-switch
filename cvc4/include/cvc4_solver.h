@@ -35,7 +35,7 @@ class CVC4Solver : public AbsSmtSolver
   ~CVC4Solver() { };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) const override;
+  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
@@ -72,7 +72,7 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
   // helpers
   ::CVC4::api::Op make_cvc4_op(Op op) const;
 

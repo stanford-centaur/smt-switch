@@ -114,6 +114,7 @@ cdef extern from "solver.h" namespace "smt":
         void reset() except +
         void reset_assertions() except +
         c_Term substitute(const c_Term term, const c_UnorderedTermMap & substitution_map) except +
+        void dump_smt2(string filename) except +
         bint get_interpolant(const c_Term & A, const c_Term & B, c_Term & out_I) except +
 
 

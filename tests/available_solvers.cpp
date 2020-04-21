@@ -141,6 +141,18 @@ std::vector<SolverEnum> available_constarr_solver_enums()
     }
   }
   return ca_solvers;
+
+  std::vector<SolverEnum> available_full_transfer_solver_enums()
+  {
+    std::vector<SolverEnum> solvers;
+    for (auto se : available_termiter_solver_enums())
+    {
+      if (se != BTOR)
+      {
+        solvers.push_back(se);
+      }
+    }
+    return solvers;
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)

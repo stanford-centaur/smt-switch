@@ -45,7 +45,7 @@ class Yices2Solver : public AbsSmtSolver
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) const override;
+  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
@@ -84,7 +84,7 @@ class Yices2Solver : public AbsSmtSolver
   void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
 
  protected:
   mutable context_t * ctx;

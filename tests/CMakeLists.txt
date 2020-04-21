@@ -101,3 +101,13 @@ add_executable(test-term-translation "${PROJECT_SOURCE_DIR}/tests/test-term-tran
 target_link_libraries(test-term-translation gtest_main)
 target_link_libraries(test-term-translation test-deps)
 add_test(NAME test-term-translation_test COMMAND test-term-translation)
+
+add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
+target_link_libraries(unit-transfer gtest_main)
+target_link_libraries(unit-transfer available-solvers)
+add_test(NAME unit-transfer_test COMMAND unit-transfer)
+
+add_executable(unit-arrays "${PROJECT_SOURCE_DIR}/tests/unit/unit-arrays.cpp")
+target_link_libraries(unit-arrays gtest_main)
+target_link_libraries(unit-arrays available-solvers)
+add_test(NAME unit-arrays_test COMMAND unit-arrays)

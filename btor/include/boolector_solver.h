@@ -39,7 +39,7 @@ class BoolectorSolver : public AbsSmtSolver
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) const override;
+  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
@@ -83,7 +83,7 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, TermVec terms) const;
-  void dump_smt2(FILE * file) const override;
+  void dump_smt2(std::string filename) const override;
 
  protected:
   Btor * btor;

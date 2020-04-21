@@ -35,7 +35,7 @@ class AbsSmtSolver
   /* Add an assertion to the solver
    * @param t a boolean term to assert
    */
-  virtual void assert_formula(const Term& t) const = 0;
+  virtual void assert_formula(const Term & t) = 0;
 
   /* Check satisfiability of the current assertions
    * @return a result object - see result.h
@@ -232,7 +232,7 @@ class AbsSmtSolver
   // extra methods -- not required
 
   /* Dumps full smt-lib representation of current context to a file */
-  virtual void dump_smt2(FILE * file) const
+  virtual void dump_smt2(std::string filename) const
   {
     throw NotImplementedException("Dumping to FILE not supported for this solver.");
   }
