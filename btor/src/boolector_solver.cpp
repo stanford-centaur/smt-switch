@@ -267,7 +267,8 @@ Term BoolectorSolver::get_value(Term & t) const
   Term result;
   std::shared_ptr<BoolectorTerm> bt =
       std::static_pointer_cast<BoolectorTerm>(t);
-  SortKind sk = t->get_sort()->get_sort_kind();
+  Sort sort = t->get_sort();
+  SortKind sk = sort->get_sort_kind();
   if ((sk == BV) || (sk == BOOL))
   {
     const char * assignment = boolector_bv_assignment(btor, bt->node);
@@ -278,18 +279,15 @@ Term BoolectorSolver::get_value(Term & t) const
   }
   else if (sk == ARRAY)
   {
-    // boolector just gives index / element pairs
-    // we want to create a term, so we make a store chain
-    // on a base array
-    std::string base_name = t->to_string() + "_base";
-    BoolectorNode * stores;
-    uint64_t node_id = (uint64_t)bt->node;
-    if (array_bases.find(node_id) == array_bases.end())
-    {
-      throw InternalSolverException("Expecting base array symbol to already have been created.");
-    }
+    std::shared_ptr<BoolectorSortBase> bs =
+        std::static_pointer_cast<BoolectorSortBase>(sort);
 
-    stores = boolector_copy(btor, array_bases.at(node_id));
+    std::shared_ptr<BoolectorSortBase> b_elemsort =
+        std::static_pointer_cast<BoolectorSortBase>(sort->get_elemsort());
+
+    BoolectorNode * zero = boolector_zero(btor, b_elemsort->sort);
+    BoolectorNode * stores = boolector_const_array(btor, bs->sort, zero);
+    boolector_release(btor, zero);
 
     char ** indices;
     char ** values;
@@ -301,10 +299,9 @@ Term BoolectorSolver::get_value(Term & t) const
     {
       if (std::string(indices[i]) == "*")
       {
-        std::shared_ptr<BoolectorSortBase> bs =
-            std::static_pointer_cast<BoolectorSortBase>(bt->get_sort());
         boolector_release(btor, stores);
         BoolectorNode * const_val = boolector_const(btor, values[i]);
+        boolector_release(btor, stores);
         stores = boolector_const_array(btor, bs->sort, const_val);
         boolector_release(btor, const_val);
       }
@@ -330,6 +327,7 @@ Term BoolectorSolver::get_value(Term & t) const
       boolector_release(btor, idx);
       boolector_release(btor, elem);
     }
+    boolector_copy(btor, stores);
     result = std::make_shared<BoolectorTerm>(btor, stores);
 
     // free memory
