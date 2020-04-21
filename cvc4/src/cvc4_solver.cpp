@@ -339,7 +339,7 @@ Term CVC4Solver::get_value(const Term & t) const
 }
 
 UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
-                                              Term out_const_base) const
+                                              Term & out_const_base) const
 {
   try
   {

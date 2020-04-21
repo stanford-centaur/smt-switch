@@ -253,7 +253,7 @@ Term MsatSolver::get_value(const Term & t) const
 }
 
 UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
-                                              Term out_const_base) const
+                                              Term & out_const_base) const
 {
   throw NotImplementedException("Get array values not implemented for MathSAT");
 }

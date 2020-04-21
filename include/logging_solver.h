@@ -39,8 +39,8 @@ class LoggingSolver : public AbsSmtSolver
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
   Term get_value(const Term & t) const override;
-  UnorderedTermMap get_array_values(
-      const Term & arr, Term out_const_base = nullptr) const override;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;
@@ -48,7 +48,7 @@ class LoggingSolver : public AbsSmtSolver
   // dispatched to underlying solver
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) const override;
+  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;

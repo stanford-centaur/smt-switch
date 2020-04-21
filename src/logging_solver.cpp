@@ -286,13 +286,33 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 Term LoggingSolver::get_value(const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
-  Term wrapped_val = solver->get_value(lt->term);
-  Term val(new LoggingTerm(wrapped_val, t->get_sort(), Op(), TermVec{}));
-  return val;
+  if (t->get_sort()->get_sort_kind() != ARRAY)
+  {
+    Term wrapped_val = solver->get_value(lt->term);
+    Term val(new LoggingTerm(wrapped_val, t->get_sort(), Op(), TermVec{}));
+    return val;
+  }
+  else
+  {
+    Term out_const_base;
+    UnorderedTermMap pairs = get_array_values(t, out_const_base);
+    if (!out_const_base)
+    {
+      throw InternalSolverException(
+          "Wrapped solver did not provide constant base. Please use "
+          "get_array_values instead of get_value of an array");
+    }
+    Term res = make_term(out_const_base, t->get_sort());
+    for (auto elem : pairs)
+    {
+      res = make_term(Store, res, elem.first, elem.second);
+    }
+    return res;
+  }
 }
 
 UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
-                                                 Term out_const_base) const
+                                                 Term & out_const_base) const
 {
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
@@ -347,7 +367,7 @@ void LoggingSolver::set_logic(const std::string logic)
   solver->set_logic(logic);
 }
 
-void LoggingSolver::assert_formula(const Term & t) const
+void LoggingSolver::assert_formula(const Term & t)
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   solver->assert_formula(lt->term);

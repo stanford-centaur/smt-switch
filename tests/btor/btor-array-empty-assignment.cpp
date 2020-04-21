@@ -26,7 +26,8 @@ int main()
   Result r = s->check_sat();
   assert(r.is_sat());
 
-  UnorderedTermMap arr_ass = s->get_array_values(arr);
+  Term out_const_base;
+  UnorderedTermMap arr_ass = s->get_array_values(arr, out_const_base);
   assert(arr_ass.size() == 0);
   return 0;
 }

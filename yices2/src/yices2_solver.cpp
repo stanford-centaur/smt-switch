@@ -342,7 +342,7 @@ Term Yices2Solver::get_value(const Term & t) const
 }
 
 UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
-                                                Term out_const_base) const
+                                                Term & out_const_base) const
 {
   throw NotImplementedException(
       "Yices does not support getting array values. Please use get_value on a "

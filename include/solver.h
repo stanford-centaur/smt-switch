@@ -71,8 +71,8 @@ class AbsSmtSolver
    * array if there is one. Otherwise, it will be assigned null
    *  @return a map of index value pairs for the array
    */
-  virtual UnorderedTermMap get_array_values(
-      const Term & arr, Term out_const_base = nullptr) const = 0;
+  virtual UnorderedTermMap get_array_values(const Term & arr,
+                                            Term & out_const_base) const = 0;
 
   // virtual bool check_sat_assuming() const = 0;
 

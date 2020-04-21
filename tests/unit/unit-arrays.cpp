@@ -40,6 +40,7 @@ TEST_P(UnitArrayTests, ConstArr)
 
   ASSERT_TRUE(r.is_sat());
   Term aval = s->get_value(a);
+  ASSERT_EQ(aval->get_sort(), constarr0->get_sort());
   ASSERT_EQ(aval, constarr0);
 }
 
