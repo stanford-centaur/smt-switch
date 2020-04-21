@@ -301,8 +301,12 @@ Term BoolectorSolver::get_value(Term & t) const
     {
       if (std::string(indices[i]) == "*")
       {
+        std::shared_ptr<BoolectorSortBase> bs =
+            std::static_pointer_cast<BoolectorSortBase>(bt->get_sort());
         boolector_release(btor, stores);
-        stores = boolector_const(btor, values[i]);
+        BoolectorNode * const_val = boolector_const(btor, values[i]);
+        stores = boolector_const_array(btor, bs->sort, const_val);
+        boolector_release(btor, const_val);
       }
     }
 
