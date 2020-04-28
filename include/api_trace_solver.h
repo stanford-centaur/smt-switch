@@ -17,11 +17,11 @@ class ApiTraceSolver : public AbsSmtSolver
     trace_lines = new std::vector<std::string>();
     term2name = new std::unordered_map<std::uintptr_t, std::string>();
     sort2name = new std::unordered_map<std::uintptr_t, std::string>();
-    nid = new int;
+    nid = new uint64_t;
     *nid = 0;
-    sid = new int;
+    sid = new uint64_t;
     *sid = 0;
-    rid = new int;
+    rid = new uint64_t;
     *rid = 0;
 
     trace_lines->push_back("/* instantiate SmtSolver with name s here */");

@@ -25,7 +25,8 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
-  "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp")
+  "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/api_trace_solver.cpp")
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
