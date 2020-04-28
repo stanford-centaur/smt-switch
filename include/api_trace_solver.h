@@ -16,7 +16,7 @@ class ApiTraceSolver : public AbsSmtSolver
   {
     trace_lines = new std::vector<std::string>();
     term2name = new std::unordered_map<std::uintptr_t, std::string>();
-    sort2name = new std::unordered_map<std::uintptr_t, std::string>();
+    sort2name = new std::unordered_map<smt::Sort, std::string>();
     nid = new uint64_t;
     *nid = 0;
     sid = new uint64_t;
@@ -89,7 +89,7 @@ class ApiTraceSolver : public AbsSmtSolver
   // e.g. two terms might be equal in one run of the solver but not
   // when replayed with a different solver
   std::unordered_map<std::uintptr_t, std::string> * term2name;
-  std::unordered_map<std::uintptr_t, std::string> * sort2name;
+  std::unordered_map<smt::Sort, std::string> * sort2name;
   uint64_t * nid;
   uint64_t * sid;
   uint64_t * rid;

@@ -163,7 +163,7 @@ Sort ApiTraceSolver::make_sort(const std::string name, uint64_t arity) const
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort(\"" + name
                          + "\", " + std::to_string(arity) + ");");
   Sort sort = sub_solver->make_sort(name, arity);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -174,7 +174,7 @@ Sort ApiTraceSolver::make_sort(SortKind sk) const
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort("
                          + to_string(sk) + ");");
   Sort sort = sub_solver->make_sort(sk);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -185,7 +185,7 @@ Sort ApiTraceSolver::make_sort(SortKind sk, uint64_t size) const
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort("
                          + to_string(sk) + ", " + std::to_string(size) + ");");
   Sort sort = sub_solver->make_sort(sk, size);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -195,9 +195,9 @@ Sort ApiTraceSolver::make_sort(SortKind sk, const Sort & sort1) const
   (*sid)++;
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort("
                          + to_string(sk) + ", "
-                         + sort2name->at((uintptr_t)sort1.get()) + ");");
+                         + sort2name->at(sort1) + ");");
   Sort sort = sub_solver->make_sort(sk, sort1);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -209,10 +209,10 @@ Sort ApiTraceSolver::make_sort(SortKind sk,
   (*sid)++;
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort("
                          + to_string(sk) + ", "
-                         + sort2name->at((uintptr_t)sort1.get()) + ", "
-                         + sort2name->at((uintptr_t)sort2.get()) + ");");
+                         + sort2name->at(sort1) + ", "
+                         + sort2name->at(sort2) + ");");
   Sort sort = sub_solver->make_sort(sk, sort1, sort2);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -225,11 +225,11 @@ Sort ApiTraceSolver::make_sort(SortKind sk,
   (*sid)++;
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort("
                          + to_string(sk) + ", "
-                         + sort2name->at((uintptr_t)sort1.get()) + ", "
-                         + sort2name->at((uintptr_t)sort2.get()) + ", "
-                         + sort2name->at((uintptr_t)sort3.get()) + ");");
+                         + sort2name->at(sort1) + ", "
+                         + sort2name->at(sort2) + ", "
+                         + sort2name->at(sort3) + ");");
   Sort sort = sub_solver->make_sort(sk, sort1, sort2, sort3);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -240,13 +240,13 @@ Sort ApiTraceSolver::make_sort(SortKind sk, const SortVec & sorts) const
   string vec_input = "{";
   for (auto s : sorts)
   {
-    vec_input += sort2name->at((uintptr_t)s.get()) + ", ";
+    vec_input += sort2name->at(s) + ", ";
   }
   vec_input += "}";
   trace_lines->push_back("Sort " + sort_name + " = s->make_sort(" + vec_input
                          + ");");
   Sort sort = sub_solver->make_sort(sk, sorts);
-  (*sort2name)[(uintptr_t)sort.get()] = sort_name;
+  (*sort2name)[sort] = sort_name;
   return sort;
 }
 
@@ -267,7 +267,7 @@ Term ApiTraceSolver::make_term(int64_t i, const Sort & sort) const
   (*nid)++;
   trace_lines->push_back("Term " + term_name + " = s->make_term("
                          + std::to_string(i) + ", "
-                         + sort2name->at((uintptr_t)sort.get()) + ");");
+                         + sort2name->at(sort) + ");");
   Term term = sub_solver->make_term(i, sort);
   (*term2name)[(uintptr_t)term.get()] = term_name;
   return term;
@@ -280,7 +280,7 @@ Term ApiTraceSolver::make_term(const std::string val,
   string term_name = "n" + std::to_string(*nid);
   (*nid)++;
   trace_lines->push_back("Term " + term_name + " = s->make_term(\"" + val
-                         + "\", " + sort2name->at((uintptr_t)sort.get())
+                         + "\", " + sort2name->at(sort)
                          + std::to_string(base) + ");");
   Term term = sub_solver->make_term(val, sort, base);
   (*term2name)[(uintptr_t)term.get()] = term_name;
@@ -293,7 +293,7 @@ Term ApiTraceSolver::make_term(const Term & val, const Sort & sort) const
   (*nid)++;
   trace_lines->push_back("Term " + term_name + " = s->make_term("
                          + term2name->at((uintptr_t)val.get()) + ", "
-                         + sort2name->at((uintptr_t)sort.get()) + ");");
+                         + sort2name->at(sort) + ");");
   Term term = sub_solver->make_term(val, sort);
   (*term2name)[(uintptr_t)term.get()] = term_name;
   return term;
@@ -304,7 +304,7 @@ Term ApiTraceSolver::make_symbol(const std::string name, const Sort & sort)
   string term_name = "n" + std::to_string(*nid);
   (*nid)++;
   trace_lines->push_back("Term " + term_name + " = s->make_symbol(\"" + name
-                         + "\", " + sort2name->at((uintptr_t)sort.get())
+                         + "\", " + sort2name->at(sort)
                          + ");");
   Term term = sub_solver->make_symbol(name, sort);
   (*term2name)[(uintptr_t)term.get()] = term_name;
@@ -348,7 +348,7 @@ Term ApiTraceSolver::make_term(Op op,
                          + term2name->at((uintptr_t)t0.get()) + ", "
                          + term2name->at((uintptr_t)t1.get()) + ", "
                          + term2name->at((uintptr_t)t2.get()) + ");");
-  Term term = sub_solver->make_term(op, t0, t1);
+  Term term = sub_solver->make_term(op, t0, t1, t2);
   (*term2name)[(uintptr_t)term.get()] = term_name;
   return term;
 }
