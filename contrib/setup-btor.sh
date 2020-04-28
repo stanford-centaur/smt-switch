@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BTOR_VERSION=ee44ed2eadd1eef51549ac7236e6a4f02f24f12a
+BTOR_VERSION=76aafdf665e89e7a77681fe48ac5aaa5ebf95ebe
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
