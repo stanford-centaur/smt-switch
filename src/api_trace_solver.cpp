@@ -114,7 +114,7 @@ Result ApiTraceSolver::check_sat()
 {
   string result_name = "r" + std::to_string(*rid);
   (*rid)++;
-  trace_lines->push_back("Result " + result_name + " = s->check_sat()");
+  trace_lines->push_back("Result " + result_name + " = s->check_sat();");
   return sub_solver->check_sat();
 }
 
@@ -419,8 +419,8 @@ void ApiTraceSolver::dump_api_trace(std::string filename) const
   f.open(filename);
   f << "#include \"smt-switch/smt.h\"\n";
   f << "//include your chosen solver here\n";
-  f << "\n\nusing namespace smt;\nusingnamespace std;\n\n";
-  f << "int main() {";
+  f << "\n\nusing namespace smt;\nusing namespace std;\n\n";
+  f << "int main() {\n";
   for (auto line : (*trace_lines))
   {
     f << "  " << line << "\n";

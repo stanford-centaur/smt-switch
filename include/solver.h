@@ -227,6 +227,13 @@ class AbsSmtSolver
     throw NotImplementedException("Dumping to FILE not supported for this solver.");
   }
 
+  /* Dumps log of API calls to a file */
+  virtual void dump_api_trace(std::string filename) const
+  {
+    throw NotImplementedException(
+        "API trace dumping only implemented by ApiTraceSolver");
+  }
+
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
    *   i.e. an I such that: A -> I  and  I ^ B is unsat
    *        and I only contains constants that are in both A and B

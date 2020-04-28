@@ -79,7 +79,7 @@ class ApiTraceSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
   Term apply_prim_op(PrimOp op, TermVec terms) const;
   void dump_smt2(std::string filename) const override;
-  void dump_api_trace(std::string filename) const;
+  void dump_api_trace(std::string filename) const override;
 
  protected:
   std::vector<std::string> * trace_lines;
