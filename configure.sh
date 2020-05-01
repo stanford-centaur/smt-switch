@@ -143,6 +143,23 @@ do
     shift
 done
 
+# enable solvers automatically if a custom home is provided
+if [ $btor_home != default -a $build_btor = default ]; then
+    build_btor=ON
+fi
+
+if [ $cvc4_home != default -a $build_cvc4 = default ]; then
+    build_cvc4=ON
+fi
+
+if [ $msat_home != default -a $build_msat = default ]; then
+    build_msat=ON
+fi
+
+if [ $yices2_home != default -a $build_yices2 = default ]; then
+    build_yices2=ON
+fi
+
 cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $install_prefix != default ] \

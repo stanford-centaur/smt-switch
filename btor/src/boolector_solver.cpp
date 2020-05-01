@@ -299,7 +299,6 @@ Term BoolectorSolver::get_value(const Term & t) const
     {
       if (std::string(indices[i]) == "*")
       {
-        boolector_release(btor, stores);
         BoolectorNode * const_val = boolector_const(btor, values[i]);
         boolector_release(btor, stores);
         stores = boolector_const_array(btor, bs->sort, const_val);
@@ -327,6 +326,7 @@ Term BoolectorSolver::get_value(const Term & t) const
       boolector_release(btor, idx);
       boolector_release(btor, elem);
     }
+    boolector_copy(btor, stores);
     result = std::make_shared<BoolectorTerm>(btor, stores);
 
     // free memory

@@ -13,11 +13,12 @@ target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src")
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src/include")
 # TEMP only until the internal kinds are no longer part of public API
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/build/src")
+target_include_directories (smt-switch-cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/libcvc4.a")
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/parser/libcvc4parser.a")
 target_link_libraries(smt-switch-cvc4 smt-switch)
-target_link_libraries(smt-switch-cvc4 gmp)
+target_link_libraries(smt-switch-cvc4 ${GMP_LIBRARIES})
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the cvc4 source

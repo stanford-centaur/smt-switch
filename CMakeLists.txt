@@ -49,6 +49,10 @@ if (BUILD_PYTHON_BINDINGS)
   endif()
 endif()
 
+if (BUILD_CVC4 OR BUILD_MSAT)
+  find_package(GMP REQUIRED)
+endif()
+
 # build testing infrastructure
 enable_testing()
 
@@ -103,7 +107,7 @@ if (BUILD_YICES2)
 
   # testing
   add_subdirectory(tests/yices2)
-  
+
 endif (BUILD_YICES2)
 
 if (BUILD_PYTHON_BINDINGS)
