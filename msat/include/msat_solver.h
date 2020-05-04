@@ -100,7 +100,7 @@ class MsatSolver : public AbsSmtSolver
   // use assumptions if producing unsat cores
   bool produce_unsat_cores;
   // need to solve with assumptions to get unsat core
-  std::vector<msat_term> assumptions;
+  std::vector<msat_term> unsat_core_assumptions;
   std::unordered_map<size_t, msat_term> assump2term;
   // maps context levels to the size of the assumptions vector
   // popping a context means reverting to the previous size

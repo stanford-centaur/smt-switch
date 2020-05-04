@@ -159,7 +159,7 @@ void MsatSolver::assert_formula(const Term & t)
   {
     msat_term lbl = label(mterm->term);
     assump2term[msat_term_id(lbl)] = mterm->term;
-    assumptions.push_back(lbl);
+    unsat_core_assumptions.push_back(lbl);
     msat_assert_formula(env, msat_make_eq(env, lbl, mterm->term));
   }
   else if (msat_assert_formula(env, mterm->term))
@@ -176,7 +176,7 @@ Result MsatSolver::check_sat()
   if (produce_unsat_cores)
   {
     mres =
-        msat_solve_with_assumptions(env, &assumptions[0], assumptions.size());
+        msat_solve_with_assumptions(env, &unsat_core_assumptions[0], unsat_core_assumptions.size());
   }
   else
   {
@@ -197,10 +197,10 @@ Result MsatSolver::check_sat()
   }
 }
 
-Result MsatSolver::check_sat_assuming(const TermVec & local_assumptions)
+Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // expecting (possibly negated) boolean literals
-  for (auto a : local_assumptions)
+  for (auto a : assumptions)
   {
     if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
     {
@@ -217,10 +217,10 @@ Result MsatSolver::check_sat_assuming(const TermVec & local_assumptions)
   }
 
   vector<msat_term> m_assumps;
-  m_assumps.reserve(local_assumptions.size());
+  m_assumps.reserve(assumptions.size());
 
   shared_ptr<MsatTerm> ma;
-  for (auto a : local_assumptions)
+  for (auto a : assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
     m_assumps.push_back(ma->term);
@@ -229,17 +229,17 @@ Result MsatSolver::check_sat_assuming(const TermVec & local_assumptions)
   msat_result mres;
   if (produce_unsat_cores)
   {
-    size_t current_assumps_size = assumptions.size();
+    size_t current_assumps_size = unsat_core_assumptions.size();
     msat_term lbl;
     for (auto a : m_assumps)
     {
       assump2term[msat_term_id(a)] = a;
-      assumptions.push_back(a);
+      unsat_core_assumptions.push_back(a);
     }
     mres =
-      msat_solve_with_assumptions(env, &assumptions[0], assumptions.size());
+      msat_solve_with_assumptions(env, &unsat_core_assumptions[0], unsat_core_assumptions.size());
     // forget the local assumptions
-    assumptions.resize(current_assumps_size);
+    unsat_core_assumptions.resize(current_assumps_size);
   }
 
   else
@@ -268,7 +268,7 @@ void MsatSolver::push(uint64_t num)
   {
     for (uint64_t i = 0; i < num; i++)
     {
-      context2assumpsize[context] = assumptions.size();
+      context2assumpsize[context] = unsat_core_assumptions.size();
       context++;
     }
   }
@@ -293,7 +293,7 @@ void MsatSolver::pop(uint64_t num)
           "Popped more contexts than were pushed and got context: "
           + std::to_string(context));
     }
-    assumptions.resize(context2assumpsize.at(context));
+    unsat_core_assumptions.resize(context2assumpsize.at(context));
   }
   else
   {
