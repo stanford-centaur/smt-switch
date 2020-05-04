@@ -133,7 +133,7 @@ std::vector<SolverEnum> available_unsat_core_solver_enums()
   std::vector<SolverEnum> solvers;
   for (auto se : solver_enums)
   {
-    if (se != BTOR && se != MSAT && se != YICES2)
+    if (se != BTOR && se != YICES2)
     {
       solvers.push_back(se);
     }
