@@ -130,13 +130,7 @@ void MsatSolver::set_opt(const string option, const string value)
   }
   else if (option == "produce-unsat-cores")
   {
-    if (value == "false")
-    {
-      std::cout
-          << "Warning: MathSAT backend always produces unsat cores -- it can't "
-             "be disabled."
-          << std::endl;
-    }
+    produce_unsat_cores = true;
   }
   else
   {
@@ -158,7 +152,14 @@ void MsatSolver::set_logic(const std::string log)
 void MsatSolver::assert_formula(const Term & t)
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-  if (msat_assert_formula(env, mterm->term))
+  if (produce_unsat_cores)
+  {
+    msat_term lbl = label(mterm->term);
+    assump2term[msat_term_id(lbl)] = mterm->term;
+    assumptions.push_back(lbl);
+    msat_assert_formula(env, msat_make_eq(env, lbl, mterm->term));
+  }
+  else if (msat_assert_formula(env, mterm->term))
   {
     string msg("Cannot assert term: ");
     msg += t->to_string();
@@ -168,7 +169,17 @@ void MsatSolver::assert_formula(const Term & t)
 
 Result MsatSolver::check_sat()
 {
-  msat_result mres = msat_solve(env);
+  msat_result mres;
+  if (produce_unsat_cores)
+  {
+    mres =
+        msat_solve_with_assumptions(env, &assumptions[0], assumptions.size());
+  }
+  else
+  {
+    mres = msat_solve(env);
+  }
+
   if (mres == MSAT_SAT)
   {
     return Result(SAT);
@@ -231,17 +242,43 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
 void MsatSolver::push(uint64_t num)
 {
-  for (uint64_t i = 0; i < num; i++)
+  if (produce_unsat_cores)
   {
-    msat_push_backtrack_point(env);
+    for (uint64_t i = 0; i < num; i++)
+    {
+      context2assumpsize[context] = assumptions.size();
+      context++;
+    }
+  }
+  else
+  {
+    for (uint64_t i = 0; i < num; i++)
+    {
+      msat_push_backtrack_point(env);
+    }
   }
 }
 
 void MsatSolver::pop(uint64_t num)
 {
-  for (uint64_t i = 0; i < num; i++)
+  if (produce_unsat_cores)
   {
-    msat_pop_backtrack_point(env);
+    // keeping track of assumptions manually instead of asserting to the solver
+    context -= num;
+    if (context < 0)
+    {
+      throw IncorrectUsageException(
+          "Popped more contexts than were pushed and got context: "
+          + std::to_string(context));
+    }
+    assumptions.resize(context2assumpsize.at(context));
+  }
+  else
+  {
+    for (uint64_t i = 0; i < num; i++)
+    {
+      msat_pop_backtrack_point(env);
+    }
   }
 }
 
@@ -265,58 +302,23 @@ Term MsatSolver::get_value(Term & t) const
 
 TermVec MsatSolver::get_unsat_core()
 {
-  msat_config cfg = msat_create_config();
-  msat_set_option(cfg, "unsat_core_generation", "true");
-  msat_env unsat_core_env = msat_create_shared_env(cfg, env);
-
-  auto lbl = [=](msat_term p) -> msat_term {
-    std::ostringstream buf;
-    buf << ".ref_axiom_lbl{" << msat_term_id(p) << "}";
-    std::string name = buf.str();
-    msat_decl d = msat_declare_function(
-        unsat_core_env, name.c_str(), msat_get_bool_type(unsat_core_env));
-    return msat_make_constant(unsat_core_env, d);
-  };
-
-  msat_destroy_config(cfg);
-  size_t num_assertions;
-  msat_term * assertions = msat_get_asserted_formulas(env, &num_assertions);
-  msat_term * it = assertions;
-  msat_term label;
-  std::vector<msat_term> assumptions;
-  std::unordered_map<size_t, msat_term> label2term;
-  for (size_t i = 0; i < num_assertions; ++i)
-  {
-    label = lbl(*it);
-    msat_assert_formula(unsat_core_env,
-                        msat_make_eq(unsat_core_env, label, *it));
-    assumptions.push_back(label);
-    label2term[msat_term_id(label)] = *it;
-    it++;
-  }
-  msat_result r = msat_solve_with_assumptions(
-      unsat_core_env, &assumptions[0], assumptions.size());
-  if (r != MSAT_UNSAT)
-  {
-    throw IncorrectUsageException(
-        "Current solver status is not UNSAT, cannot get unsat core.");
-  }
   TermVec core;
   size_t core_size;
-  msat_term * mcore = msat_get_unsat_assumptions(unsat_core_env, &core_size);
+  msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
   if (!mcore)
   {
-    throw InternalSolverException("Got error term from msat unsat core");
+    throw InternalSolverException(
+        "Got error term from msat unsat core. Be sure the last call was "
+        "unsat.");
   }
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
     core.push_back(std::make_shared<MsatTerm>(
-        env, label2term.at(msat_term_id(*mcore_iter))));
+        env, assump2term.at(msat_term_id(*mcore_iter))));
     mcore_iter++;
   }
   msat_free(mcore);
-  msat_destroy_env(unsat_core_env);
   return core;
 }
 
@@ -966,6 +968,17 @@ void MsatSolver::dump_smt2(std::string filename) const
   msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
   fprintf(file, "\n(check-sat)\n");
   fclose(file);
+}
+
+// helpers
+msat_term MsatSolver::label(msat_term p) const
+{
+  std::ostringstream buf;
+  buf << ".ref_axiom_lbl{" << msat_term_id(p) << "}";
+  std::string name = buf.str();
+  msat_decl d =
+      msat_declare_function(env, name.c_str(), msat_get_bool_type(env));
+  return msat_make_constant(env, d);
 }
 
 // end MsatSolver implementation

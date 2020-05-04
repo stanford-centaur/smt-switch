@@ -30,7 +30,7 @@ class MsatSolver : public AbsSmtSolver
   // but in mathsat factory, MUST setup_env
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
-  MsatSolver() : logic(""){};
+  MsatSolver() : logic(""), produce_unsat_cores(false), context(0){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -97,6 +97,18 @@ class MsatSolver : public AbsSmtSolver
   msat_env env;
   bool valid_model;
   std::string logic;
+  // use assumptions if producing unsat cores
+  bool produce_unsat_cores;
+  // need to solve with assumptions to get unsat core
+  std::vector<msat_term> assumptions;
+  std::unordered_map<size_t, msat_term> assump2term;
+  // maps context levels to the size of the assumptions vector
+  // popping a context means reverting to the previous size
+  std::unordered_map<int64_t, size_t> context2assumpsize;
+  int64_t context;
+
+  // helper function for creating labels for assumptions
+  msat_term label(msat_term p) const;
 };
 
 // Interpolating Solver
