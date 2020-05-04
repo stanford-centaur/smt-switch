@@ -197,10 +197,10 @@ Result MsatSolver::check_sat()
   }
 }
 
-Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
+Result MsatSolver::check_sat_assuming(const TermVec & local_assumptions)
 {
   // expecting (possibly negated) boolean literals
-  for (auto a : assumptions)
+  for (auto a : local_assumptions)
   {
     if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
     {
@@ -217,17 +217,36 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
 
   vector<msat_term> m_assumps;
-  m_assumps.reserve(assumptions.size());
+  m_assumps.reserve(local_assumptions.size());
 
   shared_ptr<MsatTerm> ma;
-  for (auto a : assumptions)
+  for (auto a : local_assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
     m_assumps.push_back(ma->term);
   }
 
-  msat_result mres =
+  msat_result mres;
+  if (produce_unsat_cores)
+  {
+    size_t current_assumps_size = assumptions.size();
+    msat_term lbl;
+    for (auto a : m_assumps)
+    {
+      assump2term[msat_term_id(a)] = a;
+      assumptions.push_back(a);
+    }
+    mres =
+      msat_solve_with_assumptions(env, &assumptions[0], assumptions.size());
+    // forget the local assumptions
+    assumptions.resize(current_assumps_size);
+  }
+
+  else
+  {
+    mres =
       msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+  }
 
   if (mres == MSAT_SAT)
   {
