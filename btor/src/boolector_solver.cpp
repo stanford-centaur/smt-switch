@@ -86,6 +86,13 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
   }
+  else if (option == "produce-unsat-cores")
+  {
+    produce_unsat_cores = true;
+    unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
+    // needs to be incremental
+    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+  }
   else
   {
     std::string msg("Option ");
@@ -200,11 +207,31 @@ void BoolectorSolver::assert_formula(const Term & t)
 {
   std::shared_ptr<BoolectorTerm> bt =
       std::static_pointer_cast<BoolectorTerm>(t);
-  boolector_assert(btor, bt->node);
+  if (produce_unsat_cores)
+  {
+    // unsat core production needs to use assumptions
+    unsat_core_assumptions[unsat_core_assumptions.size() - 1].push_back(
+        bt->node);
+  }
+  else
+  {
+    boolector_assert(btor, bt->node);
+  }
 }
 
 Result BoolectorSolver::check_sat()
 {
+  if (produce_unsat_cores)
+  {
+    for (auto assumptions : unsat_core_assumptions)
+    {
+      for (auto a : assumptions)
+      {
+        boolector_assume(btor, a);
+      }
+    }
+  }
+
   if (boolector_sat(btor) == BOOLECTOR_SAT)
   {
     return Result(SAT);
@@ -217,6 +244,17 @@ Result BoolectorSolver::check_sat()
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  if (produce_unsat_cores)
+  {
+    for (auto assumptions : unsat_core_assumptions)
+    {
+      for (auto a : assumptions)
+      {
+        boolector_assume(btor, a);
+      }
+    }
+  }
+
   // boolector supports assuming arbitrary one-bit expressions,
   // not just boolean literals
   std::shared_ptr<BoolectorTerm> bt;
@@ -258,9 +296,30 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BoolectorSolver::push(uint64_t num) { boolector_push(btor, num); }
+void BoolectorSolver::push(uint64_t num)
+{
+  boolector_push(btor, num);
+  if (produce_unsat_cores)
+  {
+    for (size_t i = 0; i < num; ++i)
+    {
+      unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
+    }
+  }
+}
 
-void BoolectorSolver::pop(uint64_t num) { boolector_pop(btor, num); }
+void BoolectorSolver::pop(uint64_t num)
+{
+  boolector_pop(btor, num);
+
+  if (produce_unsat_cores)
+  {
+    for (size_t i = 0; i < num; ++i)
+    {
+      unsat_core_assumptions.pop_back();
+    }
+  }
+}
 
 Term BoolectorSolver::get_value(Term & t) const
 {
@@ -346,6 +405,23 @@ Term BoolectorSolver::get_value(Term & t) const
     throw IncorrectUsageException(msg.c_str());
   }
   return result;
+}
+
+TermVec BoolectorSolver::get_unsat_core()
+{
+  TermVec core;
+  for (auto assumptions : unsat_core_assumptions)
+  {
+    for (auto a : assumptions)
+    {
+      if (boolector_failed(btor, a))
+      {
+        core.push_back(
+            std::make_shared<BoolectorTerm>(btor, boolector_copy(btor, a)));
+      }
+    }
+  }
+  return core;
 }
 
 Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
