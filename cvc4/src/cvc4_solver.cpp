@@ -337,6 +337,24 @@ Term CVC4Solver::get_value(Term & t) const
   }
 }
 
+TermVec CVC4Solver::get_unsat_core()
+{
+  TermVec core;
+  Term f;
+  try
+  {
+    for (auto cterm : solver.getUnsatCore())
+    {
+      core.push_back(std::make_shared<CVC4Term>(cterm));
+    }
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+  return core;
+}
+
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try

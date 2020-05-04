@@ -128,6 +128,19 @@ std::vector<SolverEnum> available_full_transfer_solver_enums()
   return solvers;
 }
 
+std::vector<SolverEnum> available_unsat_core_solver_enums()
+{
+  std::vector<SolverEnum> solvers;
+  for (auto se : solver_enums)
+  {
+    if (se != BTOR && se != MSAT && se != YICES2)
+    {
+      solvers.push_back(se);
+    }
+  }
+  return solvers;
+}
+
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {
   switch (e)

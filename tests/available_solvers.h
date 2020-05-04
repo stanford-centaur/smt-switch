@@ -39,6 +39,8 @@ std::vector<SolverEnum> available_constarr_solver_enums();
 
 std::vector<SolverEnum> available_full_transfer_solver_enums();
 
+std::vector<SolverEnum> available_unsat_core_solver_enums();
+
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 }  // namespace smt_tests

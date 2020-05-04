@@ -64,6 +64,12 @@ class AbsSmtSolver
    */
   virtual Term get_value(Term& t) const = 0;
 
+  /** Get a vector of formulas that are sufficient to make the
+   *  assertions unsatisfiable
+   *  @return a vector of terms in the unsat core
+   */
+  virtual TermVec get_unsat_core() = 0;
+
   // virtual bool check_sat_assuming() const = 0;
 
   /* Make an uninterpreted sort
