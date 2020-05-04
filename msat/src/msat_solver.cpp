@@ -3,6 +3,7 @@
 #include "msat_sort.h"
 #include "msat_term.h"
 
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 
@@ -264,9 +265,45 @@ Term MsatSolver::get_value(Term & t) const
 
 TermVec MsatSolver::get_unsat_core()
 {
+  msat_config cfg = msat_create_config();
+  msat_set_option(cfg, "unsat_core_generation", "true");
+  msat_env unsat_core_env = msat_create_shared_env(cfg, env);
+
+  auto lbl = [=](msat_term p) -> msat_term {
+    std::ostringstream buf;
+    buf << ".ref_axiom_lbl{" << msat_term_id(p) << "}";
+    std::string name = buf.str();
+    msat_decl d = msat_declare_function(
+        unsat_core_env, name.c_str(), msat_get_bool_type(unsat_core_env));
+    return msat_make_constant(unsat_core_env, d);
+  };
+
+  msat_destroy_config(cfg);
+  size_t num_assertions;
+  msat_term * assertions = msat_get_asserted_formulas(env, &num_assertions);
+  msat_term * it = assertions;
+  msat_term label;
+  std::vector<msat_term> assumptions;
+  std::unordered_map<size_t, msat_term> label2term;
+  for (size_t i = 0; i < num_assertions; ++i)
+  {
+    label = lbl(*it);
+    msat_assert_formula(unsat_core_env,
+                        msat_make_eq(unsat_core_env, label, *it));
+    assumptions.push_back(label);
+    label2term[msat_term_id(label)] = *it;
+    it++;
+  }
+  msat_result r = msat_solve_with_assumptions(
+      unsat_core_env, &assumptions[0], assumptions.size());
+  if (r != MSAT_UNSAT)
+  {
+    throw IncorrectUsageException(
+        "Current solver status is not UNSAT, cannot get unsat core.");
+  }
   TermVec core;
   size_t core_size;
-  msat_term * mcore = msat_get_unsat_core(env, &core_size);
+  msat_term * mcore = msat_get_unsat_assumptions(unsat_core_env, &core_size);
   if (!mcore)
   {
     throw InternalSolverException("Got error term from msat unsat core");
@@ -274,10 +311,12 @@ TermVec MsatSolver::get_unsat_core()
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
-    core.push_back(std::make_shared<MsatTerm>(env, *mcore_iter));
+    core.push_back(std::make_shared<MsatTerm>(
+        env, label2term.at(msat_term_id(*mcore_iter))));
     mcore_iter++;
   }
   msat_free(mcore);
+  msat_destroy_env(unsat_core_env);
   return core;
 }
 

@@ -46,7 +46,6 @@ class MsatSolver : public AbsSmtSolver
   {
     cfg = msat_create_config();
     msat_set_option(cfg, "model_generation", "true");
-    msat_set_option(cfg, "unsat_core_generation", "1");
     env = msat_create_env(cfg);
     valid_model = false;
   }
