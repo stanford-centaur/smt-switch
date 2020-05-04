@@ -88,10 +88,13 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "produce-unsat-cores")
   {
-    produce_unsat_cores = true;
-    unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
-    // needs to be incremental
-    boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    if (value == "true")
+    {
+      produce_unsat_cores = true;
+      unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
+      // needs to be incremental
+      boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    }
   }
   else
   {

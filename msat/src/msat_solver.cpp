@@ -130,7 +130,10 @@ void MsatSolver::set_opt(const string option, const string value)
   }
   else if (option == "produce-unsat-cores")
   {
-    produce_unsat_cores = true;
+    if (value == "true")
+    {
+      produce_unsat_cores = true;
+    }
   }
   else
   {
