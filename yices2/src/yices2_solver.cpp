@@ -338,6 +338,11 @@ Term Yices2Solver::get_value(Term & t) const
   }
 }
 
+TermVec Yices2Solver::get_unsat_core()
+{
+  throw NotImplementedException("Yices2 backend does not implement get_unsat_core yet");
+}
+
 Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 {
   type_t y_sort;
