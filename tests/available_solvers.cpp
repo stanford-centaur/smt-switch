@@ -133,10 +133,7 @@ std::vector<SolverEnum> available_unsat_core_solver_enums()
   std::vector<SolverEnum> solvers;
   for (auto se : solver_enums)
   {
-    if (se != YICES2)
-    {
-      solvers.push_back(se);
-    }
+    solvers.push_back(se);
   }
   return solvers;
 }
