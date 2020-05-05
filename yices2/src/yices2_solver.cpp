@@ -388,9 +388,24 @@ TermVec Yices2Solver::get_unsat_core()
         "Last call to check_sat was not unsat, cannot get unsat core.");
   }
 
+  if(!v)
+  {
+    throw InternalSolverException("Got an uninitialized vector");
+  }
+
   TermVec core;
+
+  if (!v->size)
+  {
+    throw InternalSolverException("Core is empty");
+  }
+
   for (size_t i = 0; i < v->size; ++i)
   {
+    if (!v->data[i])
+    {
+      throw InternalSolverException("Got an empty term from vector");
+    }
     core.push_back(std::make_shared<Yices2Term>(v->data[i]));
   }
 
