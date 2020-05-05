@@ -379,37 +379,26 @@ Term Yices2Solver::get_value(Term & t) const
 
 TermVec Yices2Solver::get_unsat_core()
 {
-  term_vector_t * v;
-  yices_init_term_vector(v);
-  int32_t err_code = yices_get_unsat_core(ctx, v);
+  term_vector_t ycore;
+  yices_init_term_vector(&ycore);
+  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
   if (err_code == CTX_INVALID_OPERATION)
   {
     throw IncorrectUsageException(
         "Last call to check_sat was not unsat, cannot get unsat core.");
   }
 
-  if(!v)
-  {
-    throw InternalSolverException("Got an uninitialized vector");
-  }
-
   TermVec core;
-
-  if (!v->size)
+  for (size_t i = 0; i < ycore.size; ++i)
   {
-    throw InternalSolverException("Core is empty");
-  }
-
-  for (size_t i = 0; i < v->size; ++i)
-  {
-    if (!v->data[i])
+    if (!ycore.data[i])
     {
       throw InternalSolverException("Got an empty term from vector");
     }
-    core.push_back(std::make_shared<Yices2Term>(v->data[i]));
+    core.push_back(std::make_shared<Yices2Term>(ycore.data[i]));
   }
 
-  yices_delete_term_vector(v);
+  yices_delete_term_vector(&ycore);
 
   return core;
 }
