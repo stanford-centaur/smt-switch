@@ -413,16 +413,13 @@ Term BoolectorSolver::get_value(Term & t) const
 TermVec BoolectorSolver::get_unsat_core()
 {
   TermVec core;
-  for (auto assumptions : unsat_core_assumptions)
+  BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
+  BoolectorNode ** bcore_iter = bcore;
+  while (*bcore_iter)
   {
-    for (auto a : assumptions)
-    {
-      if (boolector_failed(btor, a))
-      {
-        core.push_back(
-            std::make_shared<BoolectorTerm>(btor, boolector_copy(btor, a)));
-      }
-    }
+    core.push_back(std::make_shared<BoolectorTerm>(
+        btor, boolector_copy(btor, *bcore_iter)));
+    bcore_iter++;
   }
   return core;
 }
