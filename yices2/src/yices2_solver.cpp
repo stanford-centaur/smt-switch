@@ -273,7 +273,7 @@ Result Yices2Solver::check_sat()
 
 Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 {
-  // TODO: possible check this in another way
+  // TODO: possibly check this in another way
   // for now, yices2 should throw an error for us
   // // expecting (possibly negated) boolean literals
   // for (auto a : assumptions)
