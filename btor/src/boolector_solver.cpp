@@ -213,6 +213,7 @@ void BoolectorSolver::assert_formula(const Term & t)
   if (produce_unsat_cores)
   {
     // unsat core production needs to use assumptions
+    // store the assertion at the current context level
     unsat_core_assumptions[unsat_core_assumptions.size() - 1].push_back(
         bt->node);
   }
