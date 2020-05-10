@@ -938,7 +938,7 @@ void MsatSolver::dump_smt2(std::string filename) const
 msat_term MsatSolver::label(msat_term p) const
 {
   std::ostringstream buf;
-  buf << ".ref_axiom_lbl{" << msat_term_id(p) << "}";
+  buf << ".assump_lbl{" << msat_term_id(p) << "}";
   std::string name = buf.str();
   msat_decl d =
       msat_declare_function(env, name.c_str(), msat_get_bool_type(env));
