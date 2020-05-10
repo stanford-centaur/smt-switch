@@ -105,9 +105,11 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
       yices_set_config(config, "mode", "push-pop");
     }
   }
-  else if (option == "produce-unsat-cores" && value == "true")
+  else if (option == "produce-unsat-cores")
   {
-    produce_unsat_cores = true;
+    // nothing to be done
+    ;
+    ;
   }
   else
   {
@@ -237,34 +239,17 @@ void Yices2Solver::assert_formula(const Term & t)
                                   + t->to_string());
   }
 
-  if (produce_unsat_cores)
+  int32_t my_error = yices_assert_formula(ctx, yterm->term);
+  if (yices_error_code() != 0)
   {
-    unsat_core_assumptions.push_back(yterm->term);
-  }
-  else
-  {
-    int32_t my_error = yices_assert_formula(ctx, yterm->term);
-    if (yices_error_code() != 0)
-    {
-      std::string msg(yices_error_string());
-      throw InternalSolverException(msg.c_str());
-    }
+    std::string msg(yices_error_string());
+    throw InternalSolverException(msg.c_str());
   }
 }
 
 Result Yices2Solver::check_sat()
 {
-  smt_status_t res;
-
-  if (produce_unsat_cores)
-  {
-    res = yices_check_context_with_assumptions(
-        ctx, NULL, unsat_core_assumptions.size(), &unsat_core_assumptions[0]);
-  }
-  else
-  {
-    res = yices_check_context(ctx, NULL);
-  }
+  smt_status_t res = yices_check_context(ctx, NULL);
 
   if (yices_error_code() != 0)
   {
@@ -318,24 +303,8 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
     y_assumps.push_back(ya->term);
   }
 
-  smt_status_t res;
-
-  if (produce_unsat_cores)
-  {
-    size_t current_assumps_size = unsat_core_assumptions.size();
-    for (auto a : y_assumps)
-    {
-      unsat_core_assumptions.push_back(a);
-    }
-    res = yices_check_context_with_assumptions(
-        ctx, NULL, unsat_core_assumptions.size(), &unsat_core_assumptions[0]);
-    unsat_core_assumptions.resize(current_assumps_size);
-  }
-  else
-  {
-    res = yices_check_context_with_assumptions(
-        ctx, NULL, y_assumps.size(), &y_assumps[0]);
-  }
+  smt_status_t res = yices_check_context_with_assumptions(
+      ctx, NULL, y_assumps.size(), &y_assumps[0]);
 
   if (yices_error_code() != 0)
   {
@@ -382,7 +351,8 @@ TermVec Yices2Solver::get_unsat_core()
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
   int32_t err_code = yices_get_unsat_core(ctx, &ycore);
-  if (err_code == CTX_INVALID_OPERATION)
+  // yices2 documentation: returns -1 if ctx status was not UNSAT
+  if (err_code == -1)
   {
     throw IncorrectUsageException(
         "Last call to check_sat was not unsat, cannot get unsat core.");

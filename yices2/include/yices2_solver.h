@@ -25,7 +25,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : produce_unsat_cores(false), assumps_context(0)
+  Yices2Solver()
   {
     // Had to move yices_init to the Factory
     // yices_init();
@@ -88,16 +88,6 @@ class Yices2Solver : public AbsSmtSolver
  protected:
   mutable context_t * ctx;
   mutable ctx_config_t * config;
-  // for unsat cores, need to always use assumptions instead of assertions
-  // requires some extra tracking
-  bool produce_unsat_cores;
-  std::vector<term_t> unsat_core_assumptions;
-  // maps context to the size of the assumptions array
-  // popping just resizes the array
-  std::unordered_map<int, size_t> context2assumpsize;
-  // keeps track of context for assumptions (only used when producing unsat
-  // cores)
-  int assumps_context;
 };
 }  // namespace smt
 
