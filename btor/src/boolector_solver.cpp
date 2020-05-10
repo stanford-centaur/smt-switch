@@ -366,12 +366,11 @@ TermVec BoolectorSolver::get_unsat_core()
 {
   TermVec core;
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
-  BoolectorNode ** bcore_iter = bcore;
-  while (*bcore_iter)
+  while (*bcore)
   {
     core.push_back(std::make_shared<BoolectorTerm>(
-        btor, boolector_copy(btor, *bcore_iter)));
-    bcore_iter++;
+        btor, boolector_copy(btor, *bcore)));
+    ++bcore;
   }
   return core;
 }
