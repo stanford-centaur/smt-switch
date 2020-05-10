@@ -130,9 +130,12 @@ void MsatSolver::set_opt(const string option, const string value)
   }
   else if (option == "produce-unsat-cores")
   {
-    if (value == "true")
+    if (value == "false")
     {
-      produce_unsat_cores = true;
+      std::cout << "Warning: MathSAT backend is always unsat core producing -- "
+                   "it can't "
+                   "be disabled."
+                << std::endl;
     }
   }
   else
@@ -155,14 +158,7 @@ void MsatSolver::set_logic(const std::string log)
 void MsatSolver::assert_formula(const Term & t)
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-  if (produce_unsat_cores)
-  {
-    msat_term lbl = label(mterm->term);
-    assump2term[msat_term_id(lbl)] = mterm->term;
-    unsat_core_assumptions.push_back(lbl);
-    msat_assert_formula(env, msat_make_eq(env, lbl, mterm->term));
-  }
-  else if (msat_assert_formula(env, mterm->term))
+  if (msat_assert_formula(env, mterm->term))
   {
     string msg("Cannot assert term: ");
     msg += t->to_string();
@@ -172,16 +168,7 @@ void MsatSolver::assert_formula(const Term & t)
 
 Result MsatSolver::check_sat()
 {
-  msat_result mres;
-  if (produce_unsat_cores)
-  {
-    mres =
-        msat_solve_with_assumptions(env, &unsat_core_assumptions[0], unsat_core_assumptions.size());
-  }
-  else
-  {
-    mres = msat_solve(env);
-  }
+  msat_result mres = msat_solve(env);
 
   if (mres == MSAT_SAT)
   {
@@ -226,27 +213,8 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
     m_assumps.push_back(ma->term);
   }
 
-  msat_result mres;
-  if (produce_unsat_cores)
-  {
-    size_t current_assumps_size = unsat_core_assumptions.size();
-    msat_term lbl;
-    for (auto a : m_assumps)
-    {
-      assump2term[msat_term_id(a)] = a;
-      unsat_core_assumptions.push_back(a);
-    }
-    mres =
-      msat_solve_with_assumptions(env, &unsat_core_assumptions[0], unsat_core_assumptions.size());
-    // forget the local assumptions
-    unsat_core_assumptions.resize(current_assumps_size);
-  }
-
-  else
-  {
-    mres =
+  msat_result mres =
       msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
-  }
 
   if (mres == MSAT_SAT)
   {
@@ -264,43 +232,17 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
 void MsatSolver::push(uint64_t num)
 {
-  if (produce_unsat_cores)
+  for (uint64_t i = 0; i < num; i++)
   {
-    for (uint64_t i = 0; i < num; i++)
-    {
-      context2assumpsize[context] = unsat_core_assumptions.size();
-      context++;
-    }
-  }
-  else
-  {
-    for (uint64_t i = 0; i < num; i++)
-    {
-      msat_push_backtrack_point(env);
-    }
+    msat_push_backtrack_point(env);
   }
 }
 
 void MsatSolver::pop(uint64_t num)
 {
-  if (produce_unsat_cores)
+  for (uint64_t i = 0; i < num; i++)
   {
-    // keeping track of assumptions manually instead of asserting to the solver
-    context -= num;
-    if (context < 0)
-    {
-      throw IncorrectUsageException(
-          "Popped more contexts than were pushed and got context: "
-          + std::to_string(context));
-    }
-    unsat_core_assumptions.resize(context2assumpsize.at(context));
-  }
-  else
-  {
-    for (uint64_t i = 0; i < num; i++)
-    {
-      msat_pop_backtrack_point(env);
-    }
+    msat_pop_backtrack_point(env);
   }
 }
 
@@ -327,17 +269,17 @@ TermVec MsatSolver::get_unsat_core()
   TermVec core;
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
-  if (!mcore)
+  if (!mcore || !core_size)
   {
     throw InternalSolverException(
-        "Got error term from msat unsat core. Be sure the last call was "
-        "unsat.");
+        "Got an empty unsat core. Ensure your last call was unsat and had "
+        "assumptions in check_sat_assuming that are required to get an unsat "
+        "result");
   }
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
-    core.push_back(std::make_shared<MsatTerm>(
-        env, assump2term.at(msat_term_id(*mcore_iter))));
+    core.push_back(std::make_shared<MsatTerm>(env, *mcore_iter));
     mcore_iter++;
   }
   msat_free(mcore);

@@ -29,30 +29,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
 {
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
-  s->assert_formula(a);
-  s->assert_formula(b);
-  s->assert_formula(s->make_term(Not, b));
-  Result r = s->check_sat();
-  ASSERT_TRUE(r.is_unsat());
-
-  TermVec core = s->get_unsat_core();
-  ASSERT_TRUE(core.size() > 1);
-
-  // for solvers using assumptions under the hood,
-  // make sure they are re-added correctly
-  r = s->check_sat();
-  ASSERT_TRUE(r.is_unsat());
-  core = s->get_unsat_core();
-  ASSERT_TRUE(core.size() > 1);
-}
-
-TEST_P(UnsatCoreTests, UnsatCoreCheckSatAssuming)
-{
-  Term a = s->make_symbol("a", boolsort);
-  Term b = s->make_symbol("b", boolsort);
-  s->assert_formula(a);
-  s->assert_formula(b);
-  Result r = s->check_sat_assuming({s->make_term(Not, b)});
+  Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
   TermVec core = s->get_unsat_core();
@@ -62,6 +39,7 @@ TEST_P(UnsatCoreTests, UnsatCoreCheckSatAssuming)
   // make sure they are re-added correctly
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
+  ASSERT_THROW(core = s->get_unsat_core(), SmtException);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreTests,
