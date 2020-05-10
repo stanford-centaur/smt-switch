@@ -23,7 +23,7 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new()), produce_unsat_cores(false)
+  BoolectorSolver() : btor(boolector_new())
   {
     // set termination function -- throw an exception
     auto throw_exception = [](const char * msg) -> void {
@@ -94,15 +94,6 @@ class BoolectorSolver : public AbsSmtSolver
   std::unordered_set<std::string> symbol_names;
   // store array bases -- temporary until there are updates to boolector
   std::unordered_map<uint64_t, BoolectorNode *> array_bases;
-  // set to true if producing unsat cores -- need to use assumptions instead of
-  // assertions
-  bool produce_unsat_cores;
-  // if producing unsat cores need to use assumptions
-  // assumptions are removed after each call to boolector_sat
-  // but in smt-switch we want to treat them as assertions
-  // this vector keeps a context-dependent list of assumptions
-  // to be added before each call to check_sat/check_sat_assuming
-  std::vector<std::vector<BoolectorNode *>> unsat_core_assumptions;
 };
 }  // namespace smt
 

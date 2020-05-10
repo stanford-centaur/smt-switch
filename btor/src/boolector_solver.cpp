@@ -90,8 +90,6 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   {
     if (value == "true")
     {
-      produce_unsat_cores = true;
-      unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
       // needs to be incremental
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
@@ -210,32 +208,11 @@ void BoolectorSolver::assert_formula(const Term & t)
 {
   std::shared_ptr<BoolectorTerm> bt =
       std::static_pointer_cast<BoolectorTerm>(t);
-  if (produce_unsat_cores)
-  {
-    // unsat core production needs to use assumptions
-    // store the assertion at the current context level
-    unsat_core_assumptions[unsat_core_assumptions.size() - 1].push_back(
-        bt->node);
-  }
-  else
-  {
-    boolector_assert(btor, bt->node);
-  }
+  boolector_assert(btor, bt->node);
 }
 
 Result BoolectorSolver::check_sat()
 {
-  if (produce_unsat_cores)
-  {
-    for (auto assumptions : unsat_core_assumptions)
-    {
-      for (auto a : assumptions)
-      {
-        boolector_assume(btor, a);
-      }
-    }
-  }
-
   if (boolector_sat(btor) == BOOLECTOR_SAT)
   {
     return Result(SAT);
@@ -248,17 +225,6 @@ Result BoolectorSolver::check_sat()
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  if (produce_unsat_cores)
-  {
-    for (auto assumptions : unsat_core_assumptions)
-    {
-      for (auto a : assumptions)
-      {
-        boolector_assume(btor, a);
-      }
-    }
-  }
-
   // boolector supports assuming arbitrary one-bit expressions,
   // not just boolean literals
   std::shared_ptr<BoolectorTerm> bt;
@@ -303,26 +269,11 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 void BoolectorSolver::push(uint64_t num)
 {
   boolector_push(btor, num);
-  if (produce_unsat_cores)
-  {
-    for (size_t i = 0; i < num; ++i)
-    {
-      unsat_core_assumptions.push_back(std::vector<BoolectorNode *>());
-    }
-  }
 }
 
 void BoolectorSolver::pop(uint64_t num)
 {
   boolector_pop(btor, num);
-
-  if (produce_unsat_cores)
-  {
-    for (size_t i = 0; i < num; ++i)
-    {
-      unsat_core_assumptions.pop_back();
-    }
-  }
 }
 
 Term BoolectorSolver::get_value(Term & t) const
