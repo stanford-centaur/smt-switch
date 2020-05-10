@@ -280,7 +280,7 @@ TermVec MsatSolver::get_unsat_core()
   for (size_t i = 0; i < core_size; ++i)
   {
     core.push_back(std::make_shared<MsatTerm>(env, *mcore_iter));
-    mcore_iter++;
+    ++mcore_iter;
   }
   msat_free(mcore);
   return core;
