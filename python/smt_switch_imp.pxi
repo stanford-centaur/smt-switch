@@ -267,6 +267,14 @@ cdef class SmtSolver:
         term.ct = dref(self.css).get_value(t.ct)
         return term
 
+    def get_unsat_core(self):
+        unsat_core = []
+        for l in dref(self.css).get_unsat_core():
+            term = Term(self)
+            term.ct = l
+            unsat_core.append(term)
+        return unsat_core
+
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
         cdef Sort s = Sort(self)
         cdef c_SortKind sk
