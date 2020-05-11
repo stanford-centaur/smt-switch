@@ -43,6 +43,7 @@ class AbsSmtSolver
   virtual Result check_sat() = 0;
 
   /* Check satisfiability of the current assertions under the given assumptions
+   * Note: the assumptions must be boolean literals, not arbitrary formulas
    * @param assumptions a vector of boolean literals
    * @return a result object - see result.h
    */
@@ -63,6 +64,13 @@ class AbsSmtSolver
    * @return a value term
    */
   virtual Term get_value(Term& t) const = 0;
+
+  /** After a call to check_sat_assuming that returns an unsatisfiable result
+   *  this function will return a subset of the assumption literals
+   *  that are sufficient to make the assertions unsat.
+   *  @return a vector of assumption literals in the unsat core
+   */
+  virtual TermVec get_unsat_core() = 0;
 
   // virtual bool check_sat_assuming() const = 0;
 

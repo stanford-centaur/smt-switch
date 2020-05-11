@@ -3,6 +3,7 @@
 #include "msat_sort.h"
 #include "msat_term.h"
 
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 
@@ -127,6 +128,16 @@ void MsatSolver::set_opt(const string option, const string value)
                 << std::endl;
     }
   }
+  else if (option == "produce-unsat-cores")
+  {
+    if (value == "false")
+    {
+      std::cout << "Warning: MathSAT backend is always unsat core producing -- "
+                   "it can't "
+                   "be disabled."
+                << std::endl;
+    }
+  }
   else
   {
     string msg("Option ");
@@ -158,6 +169,7 @@ void MsatSolver::assert_formula(const Term & t)
 Result MsatSolver::check_sat()
 {
   msat_result mres = msat_solve(env);
+
   if (mres == MSAT_SAT)
   {
     return Result(SAT);
@@ -250,6 +262,28 @@ Term MsatSolver::get_value(Term & t) const
   }
 
   return Term(new MsatTerm(env, val));
+}
+
+TermVec MsatSolver::get_unsat_core()
+{
+  TermVec core;
+  size_t core_size;
+  msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
+  if (!mcore || !core_size)
+  {
+    throw InternalSolverException(
+        "Got an empty unsat core. Ensure your last call was unsat and had "
+        "assumptions in check_sat_assuming that are required to get an unsat "
+        "result");
+  }
+  msat_term * mcore_iter = mcore;
+  for (size_t i = 0; i < core_size; ++i)
+  {
+    core.push_back(std::make_shared<MsatTerm>(env, *mcore_iter));
+    ++mcore_iter;
+  }
+  msat_free(mcore);
+  return core;
 }
 
 Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
@@ -898,6 +932,17 @@ void MsatSolver::dump_smt2(std::string filename) const
   msat_to_smtlib2_ext_file(env, all_asserts, log, true, file);
   fprintf(file, "\n(check-sat)\n");
   fclose(file);
+}
+
+// helpers
+msat_term MsatSolver::label(msat_term p) const
+{
+  std::ostringstream buf;
+  buf << ".assump_lbl{" << msat_term_id(p) << "}";
+  std::string name = buf.str();
+  msat_decl d =
+      msat_declare_function(env, name.c_str(), msat_get_bool_type(env));
+  return msat_make_constant(env, d);
 }
 
 // end MsatSolver implementation

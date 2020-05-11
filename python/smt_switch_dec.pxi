@@ -98,6 +98,7 @@ cdef extern from "solver.h" namespace "smt":
         void push(uint64_t num) except +
         void pop(uint64_t num) except +
         c_Term get_value(c_Term& t) except +
+        c_TermVec get_unsat_core() except +
         c_Sort make_sort(const string name, uint64_t arity) except +
         c_Sort make_sort(const c_SortKind sk) except +
         c_Sort make_sort(const c_SortKind sk, uint64_t size) except +

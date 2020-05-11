@@ -80,6 +80,11 @@ target_link_libraries(test-int gtest_main)
 target_link_libraries(test-int available-solvers)
 add_test(NAME test-int_test COMMAND test-int)
 
+add_executable(test-unsat-core "${PROJECT_SOURCE_DIR}/tests/test-unsat-core.cpp")
+target_link_libraries(test-unsat-core gtest_main)
+target_link_libraries(test-unsat-core available-solvers)
+add_test(NAME test-unsat-core_test COMMAND test-unsat-core)
+
 add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
 target_link_libraries(unit-transfer gtest_main)
 target_link_libraries(unit-transfer available-solvers)
