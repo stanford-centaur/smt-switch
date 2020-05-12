@@ -105,8 +105,7 @@ void CVC4TermIter::operator++() { term_it++; }
 
 const Term CVC4TermIter::operator*()
 {
-  Term t(new CVC4Term(*term_it));
-  return t;
+  return std::make_shared<CVC4Term> (*term_it);
 }
 
 TermIterBase * CVC4TermIter::clone() const { return new CVC4TermIter(term_it); }
@@ -199,8 +198,7 @@ Op CVC4Term::get_op() const
 
 Sort CVC4Term::get_sort() const
 {
-  Sort s(new CVC4Sort(term.getSort()));
-  return s;
+  return std::make_shared<CVC4Sort> (term.getSort());
 }
 
 bool CVC4Term::is_symbolic_const() const

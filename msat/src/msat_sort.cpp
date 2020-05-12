@@ -80,7 +80,7 @@ Sort MsatSort::get_indexsort() const
   msat_type idx_type;
   if (msat_is_array_type(env, type, &idx_type, nullptr))
   {
-    return Sort(new MsatSort(env, idx_type));
+    return std::make_shared<MsatSort> (env, idx_type);
   }
   else
   {
@@ -93,7 +93,7 @@ Sort MsatSort::get_elemsort() const
   msat_type elem_type;
   if (msat_is_array_type(env, type, nullptr, &elem_type))
   {
-    return Sort(new MsatSort(env, elem_type));
+    return std::make_shared<MsatSort> (env, elem_type);
   }
   else
   {
@@ -120,7 +120,7 @@ SortVec MsatSort::get_domain_sorts() const
       throw InternalSolverException("Got error type");
     }
     // Note: assuming first-order, function can't take function arguments
-    sorts.push_back(Sort(new MsatSort(env, tmp_type)));
+    sorts.push_back(std::make_shared<MsatSort> (env, tmp_type));
   }
   return sorts;
 }
@@ -137,7 +137,7 @@ Sort MsatSort::get_codomain_sort() const
   {
     throw InternalSolverException("Got error type");
   }
-  return Sort(new MsatSort(env, t));
+  return std::make_shared<MsatSort> (env, t);
 }
 
 bool MsatSort::compare(const Sort s) const

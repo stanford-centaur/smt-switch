@@ -261,7 +261,7 @@ Term MsatSolver::get_value(Term & t) const
     throw IncorrectUsageException(msg);
   }
 
-  return Term(new MsatTerm(env, val));
+  return std::make_shared<MsatTerm> (env, val);
 }
 
 TermVec MsatSolver::get_unsat_core()
@@ -290,7 +290,8 @@ Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
   if (!arity)
   {
-    return Sort(new MsatSort(env, msat_get_simple_type(env, name.c_str())));
+    return std::make_shared<MsatSort> (env,
+                                       msat_get_simple_type(env, name.c_str()));
   }
   else
   {
@@ -304,18 +305,15 @@ Sort MsatSolver::make_sort(SortKind sk) const
 {
   if (sk == BOOL)
   {
-    Sort s(new MsatSort(env, msat_get_bool_type(env)));
-    return s;
+    return std::make_shared<MsatSort> (env, msat_get_bool_type(env));
   }
   else if (sk == INT)
   {
-    Sort s(new MsatSort(env, msat_get_integer_type(env)));
-    return s;
+    return std::make_shared<MsatSort> (env, msat_get_integer_type(env));
   }
   else if (sk == REAL)
   {
-    Sort s(new MsatSort(env, msat_get_rational_type(env)));
-    return s;
+    return std::make_shared<MsatSort> (env, msat_get_rational_type(env));
   }
   else
   {
@@ -330,8 +328,7 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
-    Sort s(new MsatSort(env, msat_get_bv_type(env, size)));
-    return s;
+    return std::make_shared<MsatSort> (env, msat_get_bv_type(env, size));
   }
   else
   {
@@ -358,9 +355,8 @@ Sort MsatSolver::make_sort(SortKind sk,
         std::static_pointer_cast<MsatSort>(sort1);
     std::shared_ptr<MsatSort> melemsort =
         std::static_pointer_cast<MsatSort>(sort2);
-    Sort s(new MsatSort(
-        env, msat_get_array_type(env, midxsort->type, melemsort->type)));
-    return s;
+    return std::make_shared<MsatSort>
+        (env, msat_get_array_type(env, midxsort->type, melemsort->type));
   }
   else
   {
@@ -421,8 +417,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     msat_decl ref_fun_decl =
         msat_declare_function(env, decl_name.c_str(), mfunsort);
 
-    Sort funsort(new MsatSort(env, mfunsort, ref_fun_decl));
-    return funsort;
+    return std::make_shared<MsatSort> (env, mfunsort, ref_fun_decl);
   }
   else if (sorts.size() == 1)
   {
@@ -449,11 +444,11 @@ Term MsatSolver::make_term(bool b) const
 {
   if (b)
   {
-    return Term(new MsatTerm(env, msat_make_true(env)));
+    return std::make_shared<MsatTerm> (env, msat_make_true(env));
   }
   else
   {
-    return Term(new MsatTerm(env, msat_make_false(env)));
+    return std::make_shared<MsatTerm> (env, msat_make_false(env));
   }
 }
 
@@ -471,9 +466,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
       {
         throw IncorrectUsageException("");
       }
-      return Term(new MsatTerm(
-                               env,
-                               mval));
+      return std::make_shared<MsatTerm> (env, mval);
     }
     else if (sk == REAL || sk == INT)
     {
@@ -482,7 +475,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
       {
         throw IncorrectUsageException("");
       }
-      return Term(new MsatTerm(env, mval));
+      return std::make_shared<MsatTerm> (env, mval);
     }
     else
     {
@@ -513,8 +506,7 @@ Term MsatSolver::make_term(const std::string val,
       {
         throw IncorrectUsageException("");
       }
-      return Term(new MsatTerm(env,
-                               mval));
+      return std::make_shared<MsatTerm> (env, mval);
     }
     else if (sk == REAL || sk == INT)
     {
@@ -529,7 +521,7 @@ Term MsatSolver::make_term(const std::string val,
       {
         throw IncorrectUsageException("");
       }
-      return Term(new MsatTerm(env, mval));
+      return std::make_shared<MsatTerm> (env, mval);
     }
     else
     {
@@ -555,8 +547,8 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
   }
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
   shared_ptr<MsatTerm> mval = static_pointer_cast<MsatTerm>(val);
-  return Term(
-      new MsatTerm(env, msat_make_array_const(env, msort->type, mval->term)));
+  return std::make_shared<MsatTerm>
+      (env, msat_make_array_const(env, msort->type, mval->term));
 }
 
 Term MsatSolver::make_symbol(const string name, const Sort & sort)
@@ -576,7 +568,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
 
   if (sort->get_sort_kind() == FUNCTION)
   {
-    return Term(new MsatTerm(env, decl));
+    return std::make_shared<MsatTerm> (env, decl);
   }
   else
   {
@@ -585,7 +577,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     {
       throw InternalSolverException("Got error term.");
     }
-    return Term(new MsatTerm(env, res));
+    return std::make_shared<MsatTerm> (env, res);
   }
 }
 
@@ -687,7 +679,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else
   {
-    return Term(new MsatTerm(env, res));
+    return std::make_shared<MsatTerm> (env, res);
   }
 }
 
@@ -736,7 +728,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   }
   else
   {
-    return Term(new MsatTerm(env, res));
+    return std::make_shared<MsatTerm> (env, res);
   }
 }
 
@@ -790,7 +782,7 @@ Term MsatSolver::make_term(Op op,
   }
   else
   {
-    return Term(new MsatTerm(env, res));
+    return std::make_shared<MsatTerm> (env, res);
   }
 }
 

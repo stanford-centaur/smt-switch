@@ -21,14 +21,12 @@ uint64_t CVC4Sort::get_width() const { return sort.getBVSize(); }
 
 Sort CVC4Sort::get_indexsort() const
 {
-  Sort idxsort(new CVC4Sort(sort.getArrayIndexSort()));
-  return idxsort;
+  return std::make_shared<CVC4Sort> (sort.getArrayIndexSort());
 }
 
 Sort CVC4Sort::get_elemsort() const
 {
-  Sort elemsort(new CVC4Sort(sort.getArrayElementSort()));
-  return elemsort;
+  return std::make_shared<CVC4Sort> (sort.getArrayElementSort());
 }
 
 SortVec CVC4Sort::get_domain_sorts() const
@@ -47,8 +45,7 @@ SortVec CVC4Sort::get_domain_sorts() const
 
 Sort CVC4Sort::get_codomain_sort() const
 {
-  Sort s(new CVC4Sort(sort.getFunctionCodomainSort()));
-  return s;
+  return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
 }
 
 bool CVC4Sort::compare(const Sort s) const
