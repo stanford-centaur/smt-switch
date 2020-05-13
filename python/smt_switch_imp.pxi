@@ -53,11 +53,21 @@ cdef class Op:
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, Op other):
-        return self.op == other.op
+    def __eq__(self, other):
+        if isinstance(other, Op):
+            return self.op == (<Op> other).op
+        elif isinstance(other, PrimOp):
+            return self == Op(other)
+        else:
+            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
-    def __ne__(self, Op other):
-        return self.op != other.op
+    def __ne__(self, other):
+        if isinstance(other, Op):
+            return self.op != (<Op> other).op
+        elif isinstance(other, PrimOp):
+            return self != Op(other)
+        else:
+            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
 cdef class Result:
     def __cinit__(self):
