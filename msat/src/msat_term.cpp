@@ -119,7 +119,7 @@ const Term MsatTermIter::operator*()
 {
   if (!pos && msat_term_is_uf(env, term))
   {
-    return Term(new MsatTerm(env, msat_term_get_decl(term)));
+    return std::make_shared<MsatTerm> (env, msat_term_get_decl(term));
   }
   else
   {
@@ -128,7 +128,8 @@ const Term MsatTermIter::operator*()
     {
       actual_idx--;
     }
-    return Term(new MsatTerm(env, msat_term_get_arg(term, actual_idx)));
+    return std::make_shared<MsatTerm>
+        (env, msat_term_get_arg(term, actual_idx));
   }
 }
 
@@ -415,7 +416,7 @@ Sort MsatTerm::get_sort() const
 {
   if (!is_uf)
   {
-    return Sort(new MsatSort(env, msat_term_get_type(term)));
+    return std::make_shared<MsatSort> (env, msat_term_get_type(term));
   }
   else
   {
@@ -438,7 +439,7 @@ Sort MsatTerm::get_sort() const
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
 
-    return Sort(new MsatSort(env, funtype, decl));
+    return std::make_shared<MsatSort> (env, funtype, decl);
   }
 }
 

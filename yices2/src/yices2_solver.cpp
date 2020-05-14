@@ -148,7 +148,7 @@ Term Yices2Solver::make_term(bool b) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(y_term));
+  return std::make_shared<Yices2Term> (y_term);
 }
 
 Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
@@ -178,7 +178,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(y_term));
+  return std::make_shared<Yices2Term> (y_term);
 }
 
 Term Yices2Solver::make_term(const std::string val,
@@ -221,7 +221,7 @@ Term Yices2Solver::make_term(const std::string val,
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(y_term));
+  return std::make_shared<Yices2Term> (y_term);
 }
 
 Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
@@ -337,7 +337,8 @@ Term Yices2Solver::get_value(Term & t) const
 
   if (!yices_term_is_function(yterm->term))
   {
-    return Term(new Yices2Term(yices_get_value_as_term(model, yterm->term)));
+    return std::make_shared<Yices2Term>
+        (yices_get_value_as_term(model, yterm->term));
   }
   else
   {
@@ -394,7 +395,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Sort(new Yices2Sort(y_sort));
+  return std::make_shared<Yices2Sort> (y_sort);
 }
 
 Sort Yices2Solver::make_sort(SortKind sk) const
@@ -427,7 +428,7 @@ Sort Yices2Solver::make_sort(SortKind sk) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Sort(new Yices2Sort(y_sort));
+  return std::make_shared<Yices2Sort> (y_sort);
 }
 
 Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
@@ -452,7 +453,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Sort(new Yices2Sort(y_sort));
+  return std::make_shared<Yices2Sort>(y_sort);
 }
 
 Sort Yices2Solver::make_sort(SortKind sk, const Sort & sort1) const
@@ -471,12 +472,13 @@ Sort Yices2Solver::make_sort(SortKind sk,
 
   if (sk == ARRAY)
   {
-    ret_sort = Sort(new Yices2Sort(yices_function_type1(s1->type, s2->type)));
+    ret_sort = std::make_shared<Yices2Sort>
+        (yices_function_type1(s1->type, s2->type));
   }
   else if (sk == FUNCTION)
   {
-    ret_sort =
-        Sort(new Yices2Sort(yices_function_type1(s1->type, s2->type), true));
+    ret_sort = std::make_shared<Yices2Sort>
+        (yices_function_type1(s1->type, s2->type), true);
   }
   else
   {
@@ -562,7 +564,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Sort(new Yices2Sort(y_sort, true));
+  return std::make_shared<Yices2Sort> (y_sort, true);
 }
 
 Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
@@ -573,10 +575,10 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
 
   if (ysort->get_sort_kind() == FUNCTION)
   {
-    return Term(new Yices2Term(y_term, true));
+    return std::make_shared<Yices2Term> (y_term, true);
   }
 
-  return Term(new Yices2Term(y_term));
+  return std::make_shared<Yices2Term> (y_term);
 }
 
 Term Yices2Solver::make_term(Op op, const Term & t) const
@@ -668,7 +670,7 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(res));
+  return std::make_shared<Yices2Term> (res);
 }
 
 Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
@@ -715,11 +717,11 @@ Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
 
   if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
   {
-    return Term(new Yices2Term(res, true));
+    return std::make_shared<Yices2Term> (res, true);
   }
   else
   {
-    return Term(new Yices2Term(res));
+    return std::make_shared<Yices2Term> (res);
   }
 }
 
@@ -773,11 +775,11 @@ Term Yices2Solver::make_term(Op op,
 
   if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
   {
-    return Term(new Yices2Term(res, true));
+    return std::make_shared<Yices2Term> (res, true);
   }
   else
   {
-    return Term(new Yices2Term(res));
+    return std::make_shared<Yices2Term> (res);
   }
 }
 
@@ -845,7 +847,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(res));
+  return std::make_shared<Yices2Term> (res);
 }
 
 void Yices2Solver::reset()
@@ -887,7 +889,7 @@ Term Yices2Solver::substitute(const Term term,
     throw InternalSolverException(msg.c_str());
   }
 
-  return Term(new Yices2Term(res));
+  return std::make_shared<Yices2Term> (res);
 }
 
 void Yices2Solver::dump_smt2(std::string filename) const
