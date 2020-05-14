@@ -44,8 +44,9 @@ TEST_P(UnitArrayTests, ConstArr)
   ASSERT_EQ(aval, constarr0);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
-                         UnitArrayTests,
-                         testing::ValuesIn(filter_solver_enums({ CONSTARR })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitArray,
+    UnitArrayTests,
+    testing::ValuesIn(filter_solver_enums({ CONSTARR, ARRAY_MODELS })));
 
 }  // namespace smt_tests

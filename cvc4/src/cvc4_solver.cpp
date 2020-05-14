@@ -368,8 +368,10 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
       carr = carr[0];
     }
 
-    if (carr.hasOp() && carr.getOp() == CVC4::api::STORE_ALL)
+    // TODO: finish this and remove the false
+    if (false && carr.getKind() == CVC4::api::STORE_ALL)
     {
+      // TODO: after PR merged, need to use getStoreAllBase()
       out_const_base = Term(new CVC4Term(carr[0]));
     }
 

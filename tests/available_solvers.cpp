@@ -63,7 +63,8 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             THEORY_INT,
-            ARRAY_MODELS,
+            // TODO: put this back after getStoreAllBase() is in API
+            // ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE } },
