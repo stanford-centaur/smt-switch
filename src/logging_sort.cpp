@@ -157,7 +157,7 @@ bool LoggingSort::compare(const Sort s) const
 
 // dispatched to underlying sort
 
-size_t LoggingSort::hash() const { return sort->hash(); }
+size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
 
 // BVLoggingSort
 

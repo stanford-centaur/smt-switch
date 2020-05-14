@@ -43,7 +43,7 @@ Sort LoggingSolver::make_sort(const SortKind sk, uint64_t size) const
 Sort LoggingSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
   shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
-  Sort sort = solver->make_sort(sk, ls1->sort);
+  Sort sort = solver->make_sort(sk, ls1->wrapped_sort);
   return make_logging_sort(sk, sort, sort1);
 }
 
@@ -53,7 +53,7 @@ Sort LoggingSolver::make_sort(const SortKind sk,
 {
   shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
   shared_ptr<LoggingSort> ls2 = static_pointer_cast<LoggingSort>(sort2);
-  Sort sort = solver->make_sort(sk, ls1->sort, ls2->sort);
+  Sort sort = solver->make_sort(sk, ls1->wrapped_sort, ls2->wrapped_sort);
   return make_logging_sort(sk, sort, sort1, sort2);
 }
 
@@ -66,7 +66,7 @@ Sort LoggingSolver::make_sort(const SortKind sk,
 
   shared_ptr<LoggingSort> ls2 = static_pointer_cast<LoggingSort>(sort2);
   shared_ptr<LoggingSort> ls3 = static_pointer_cast<LoggingSort>(sort3);
-  Sort sort = solver->make_sort(sk, ls1->sort, ls2->sort, ls3->sort);
+  Sort sort = solver->make_sort(sk, ls1->wrapped_sort, ls2->wrapped_sort, ls3->wrapped_sort);
   return make_logging_sort(sk, sort, sort1, sort2, sort3);
 }
 
@@ -76,7 +76,7 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   SortVec sub_sorts;
   for (auto s : sorts)
   {
-    sub_sorts.push_back(static_pointer_cast<LoggingSort>(s)->sort);
+    sub_sorts.push_back(static_pointer_cast<LoggingSort>(s)->wrapped_sort);
   }
   Sort sort = solver->make_sort(sk, sub_sorts);
   return make_logging_sort(sk, sort, sorts);
@@ -104,7 +104,7 @@ Term LoggingSolver::make_term(bool b) const
 Term LoggingSolver::make_term(int64_t i, const Sort & sort) const
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_res = solver->make_term(i, lsort->sort);
+  Term wrapped_res = solver->make_term(i, lsort->wrapped_sort);
   Term res = std::make_shared<LoggingTerm>(wrapped_res, sort, Op(), TermVec{});
 
   // check hash table
@@ -124,7 +124,7 @@ Term LoggingSolver::make_term(const string name,
                               uint64_t base) const
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_res = solver->make_term(name, lsort->sort, base);
+  Term wrapped_res = solver->make_term(name, lsort->wrapped_sort, base);
   Term res = std::make_shared<LoggingTerm>(wrapped_res, sort, Op(), TermVec{});
 
   // check hash table
@@ -143,7 +143,7 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 {
   shared_ptr<LoggingTerm> lval = static_pointer_cast<LoggingTerm>(val);
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_res = solver->make_term(lval->term, lsort->sort);
+  Term wrapped_res = solver->make_term(lval->term, lsort->wrapped_sort);
   // this make_term is for constant arrays
   if (sort->get_sort_kind() != ARRAY)
   {
@@ -171,7 +171,7 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 Term LoggingSolver::make_symbol(const string name, const Sort & sort)
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_sym = solver->make_symbol(name, lsort->sort);
+  Term wrapped_sym = solver->make_symbol(name, lsort->wrapped_sort);
   Term res =
       std::make_shared<LoggingTerm>(wrapped_sym, sort, Op(), TermVec{}, name);
 

@@ -23,7 +23,7 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts);
 class LoggingSort : public AbsSort
 {
  public:
-  LoggingSort(SortKind sk, Sort s) : sk(sk), sort(s) {}
+  LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
   virtual ~LoggingSort(){};
   // implementations
   SortKind get_sort_kind() const override;
@@ -72,7 +72,7 @@ class LoggingSort : public AbsSort
 
  protected:
   SortKind sk;
-  Sort sort;
+  Sort wrapped_sort;
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;
