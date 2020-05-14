@@ -133,8 +133,7 @@ const Term BoolectorTermIter::operator*()
   }
 
   BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
-  Term t(new BoolectorTerm(btor, node));
-  return t;
+  return std::make_shared<BoolectorTerm> (btor, node);
 };
 
 TermIterBase * BoolectorTermIter::clone() const
