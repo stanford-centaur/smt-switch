@@ -445,6 +445,43 @@ TermIter BoolectorTerm::end()
   }
 }
 
+std::string BoolectorTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+
+  BoolectorSort s = boolector_get_sort(btor, node);
+  if (boolector_is_bitvec_sort(btor, s))
+  {
+    uint64_t width = boolector_get_width(btor, node);
+    if (width == 1 && sk == BOOL)
+    {
+      const char * charval = boolector_get_bits(btor, node);
+      std::string bits = charval;
+      boolector_free_bv_assignment(btor, charval);
+      if (bits == "1")
+      {
+        return "true";
+      }
+      else
+      {
+        return "false";
+      }
+    }
+    else
+    {
+      return to_string();
+    }
+  }
+  else
+  {
+    return to_string();
+  }
+}
+
 // helpers
 
 bool BoolectorTerm::is_const_array() const

@@ -33,6 +33,7 @@ class LoggingTerm : public AbsTerm
   std::size_t hash() const override;
   bool is_value() const override;
   uint64_t to_int() const override;
+  std::string print_value_as(SortKind sk) override;
 
  protected:
   Term wrapped_term;  ///< the term of the underlying solver

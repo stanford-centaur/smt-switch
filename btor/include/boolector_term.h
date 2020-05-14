@@ -71,6 +71,7 @@ class BoolectorTerm : public AbsTerm
    */
   TermIter begin() override;
   TermIter end() override;
+  std::string print_value_as(SortKind sk) override;
 
  protected:
   Btor * btor;

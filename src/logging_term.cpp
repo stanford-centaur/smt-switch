@@ -141,6 +141,11 @@ bool LoggingTerm::is_value() const { return wrapped_term->is_value(); }
 
 uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 
+std::string LoggingTerm::print_value_as(SortKind sk)
+{
+  return wrapped_term->print_value_as(sk);
+}
+
 /* LoggingTermIter */
 
 LoggingTermIter::LoggingTermIter(TermVec::iterator i) : it(i) {}
