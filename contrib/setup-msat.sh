@@ -43,13 +43,13 @@ if [ ! -d "$DEPS/mathsat" ]; then
     cd $DEPS
     mkdir mathsat
     if [[ "$OSTYPE" == linux* ]]; then
-        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.1-linux-x86_64.tar.gz
+        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.3-linux-x86_64.tar.gz
     elif [[ "$OSTYPE" == darwin* ]]; then
-        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.1-darwin-libcxx-x86_64.tar.gz
+        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.3-darwin-libcxx-x86_64.tar.gz
     elif [[ "$OSTYPE" == msys* ]]; then
-        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.1-win64-msvc.zip
+        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.3-win64-msvc.zip
     elif [[ "$OSTYPE" == cygwin* ]]; then
-        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.1-linux-x86_64.tar.gz
+        wget -O mathsat.tar.gz https://mathsat.fbk.eu/download.php?file=mathsat-5.6.3-linux-x86_64.tar.gz
     else
         echo "Unrecognized OSTYPE=$OSTYPE"
         exit 1

@@ -53,11 +53,21 @@ cdef class Op:
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, Op other):
-        return self.op == other.op
+    def __eq__(self, other):
+        if isinstance(other, Op):
+            return self.op == (<Op> other).op
+        elif isinstance(other, PrimOp):
+            return self == Op(other)
+        else:
+            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
-    def __ne__(self, Op other):
-        return self.op != other.op
+    def __ne__(self, other):
+        if isinstance(other, Op):
+            return self.op != (<Op> other).op
+        elif isinstance(other, PrimOp):
+            return self != Op(other)
+        else:
+            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
 cdef class Result:
     def __cinit__(self):
@@ -266,6 +276,14 @@ cdef class SmtSolver:
         cdef Term term = Term(self)
         term.ct = dref(self.css).get_value(t.ct)
         return term
+
+    def get_unsat_core(self):
+        unsat_core = []
+        for l in dref(self.css).get_unsat_core():
+            term = Term(self)
+            term.ct = l
+            unsat_core.append(term)
+        return unsat_core
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
         cdef Sort s = Sort(self)

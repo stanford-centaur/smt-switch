@@ -90,7 +90,16 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
-    solver.setOption(option, value);
+    if (option == "produce-unsat-cores")
+    {
+      // to be consistent with the smt-switch API, we actually use
+      // produce-unsat-assumptions
+      solver.setOption("produce-unsat-assumptions", value);
+    }
+    else
+    {
+      solver.setOption(option, value);
+    }
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -384,6 +393,25 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   {
     throw InternalSolverException(e.what());
   }
+}
+
+TermVec CVC4Solver::get_unsat_core()
+{
+  TermVec core;
+  Term f;
+  try
+  {
+    for (auto cterm : solver.getUnsatAssumptions())
+    {
+      core.push_back(std::make_shared<CVC4Term>(cterm));
+    }
+  }
+  // this function seems to return a different exception type
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+  return core;
 }
 
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const

@@ -86,6 +86,14 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
   }
+  else if (option == "produce-unsat-cores")
+  {
+    if (value == "true")
+    {
+      // needs to be incremental
+      boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
+    }
+  }
   else
   {
     std::string msg("Option ");
@@ -258,9 +266,15 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BoolectorSolver::push(uint64_t num) { boolector_push(btor, num); }
+void BoolectorSolver::push(uint64_t num)
+{
+  boolector_push(btor, num);
+}
 
-void BoolectorSolver::pop(uint64_t num) { boolector_pop(btor, num); }
+void BoolectorSolver::pop(uint64_t num)
+{
+  boolector_pop(btor, num);
+}
 
 Term BoolectorSolver::get_value(const Term & t) const
 {
@@ -394,6 +408,19 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   }
 
   return assignments;
+}
+
+TermVec BoolectorSolver::get_unsat_core()
+{
+  TermVec core;
+  BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
+  while (*bcore)
+  {
+    core.push_back(std::make_shared<BoolectorTerm>(
+        btor, boolector_copy(btor, *bcore)));
+    ++bcore;
+  }
+  return core;
 }
 
 Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const

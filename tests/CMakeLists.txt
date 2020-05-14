@@ -102,6 +102,11 @@ target_link_libraries(test-term-translation gtest_main)
 target_link_libraries(test-term-translation test-deps)
 add_test(NAME test-term-translation_test COMMAND test-term-translation)
 
+add_executable(test-unsat-core "${PROJECT_SOURCE_DIR}/tests/test-unsat-core.cpp")
+target_link_libraries(test-unsat-core gtest_main)
+target_link_libraries(test-unsat-core available-solvers)
+add_test(NAME test-unsat-core_test COMMAND test-unsat-core)
+
 add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
 target_link_libraries(unit-transfer gtest_main)
 target_link_libraries(unit-transfer test-deps)

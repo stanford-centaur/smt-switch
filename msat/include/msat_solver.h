@@ -59,6 +59,7 @@ class MsatSolver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
+  TermVec get_unsat_core() override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -98,6 +99,9 @@ class MsatSolver : public AbsSmtSolver
   msat_env env;
   bool valid_model;
   std::string logic;
+
+  // helper function for creating labels for assumptions
+  msat_term label(msat_term p) const;
 };
 
 // Interpolating Solver

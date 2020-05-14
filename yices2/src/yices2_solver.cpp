@@ -105,6 +105,12 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
       yices_set_config(config, "mode", "push-pop");
     }
   }
+  else if (option == "produce-unsat-cores")
+  {
+    // nothing to be done
+    ;
+    ;
+  }
   else
   {
     string msg("Option ");
@@ -227,24 +233,23 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
 void Yices2Solver::assert_formula(const Term & t)
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
+  if (!yices_type_is_bool(yices_type_of_term(yterm->term)))
+  {
+    throw IncorrectUsageException("Attempted to assert non-boolean to solver: "
+                                  + t->to_string());
+  }
 
   int32_t my_error = yices_assert_formula(ctx, yterm->term);
   if (yices_error_code() != 0)
   {
     std::string msg(yices_error_string());
-    if (my_error == TYPE_MISMATCH)
-    {
-      msg +=
-          ". Term provided to assert_formula was not a Boolean, which is "
-          "required by Yices.";
-    }
     throw InternalSolverException(msg.c_str());
   }
 }
 
 Result Yices2Solver::check_sat()
 {
-  auto res = yices_check_context(ctx, NULL);
+  smt_status_t res = yices_check_context(ctx, NULL);
 
   if (yices_error_code() != 0)
   {
@@ -268,25 +273,25 @@ Result Yices2Solver::check_sat()
 
 Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 {
-  // expecting (possibly negated) boolean literals
-  for (auto a : assumptions)
-  {
-    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-    {
-      shared_ptr<Yices2Term> yt = static_pointer_cast<Yices2Term>(a);
-      if (a->get_op() == Not
-          && (yices_term_constructor(yices_term_child(yt->term, 0))
-              == YICES_UNINTERPRETED_TERM))
-      {
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
+  // TODO: possibly check this in another way
+  // for now, yices2 should throw an error for us
+  // // expecting (possibly negated) boolean literals
+  // for (auto a : assumptions)
+  // {
+  //   if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+  //   {
+  //     if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+  //     {
+  //       continue;
+  //     }
+  //     else
+  //     {
+  //       throw IncorrectUsageException(
+  //           "Expecting boolean indicator literals but got: " +
+  //           a->to_string());
+  //     }
+  //   }
+  // }
 
   vector<term_t> y_assumps;
   y_assumps.reserve(assumptions.size());
@@ -298,7 +303,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
     y_assumps.push_back(ya->term);
   }
 
-  auto res = yices_check_context_with_assumptions(
+  smt_status_t res = yices_check_context_with_assumptions(
       ctx, NULL, y_assumps.size(), &y_assumps[0]);
 
   if (yices_error_code() != 0)
@@ -347,6 +352,33 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   throw NotImplementedException(
       "Yices does not support getting array values. Please use get_value on a "
       "particular select of the array.");
+}
+
+TermVec Yices2Solver::get_unsat_core()
+{
+  term_vector_t ycore;
+  yices_init_term_vector(&ycore);
+  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
+  // yices2 documentation: returns -1 if ctx status was not UNSAT
+  if (err_code == -1)
+  {
+    throw IncorrectUsageException(
+        "Last call to check_sat was not unsat, cannot get unsat core.");
+  }
+
+  TermVec core;
+  for (size_t i = 0; i < ycore.size; ++i)
+  {
+    if (!ycore.data[i])
+    {
+      throw InternalSolverException("Got an empty term from vector");
+    }
+    core.push_back(std::make_shared<Yices2Term>(ycore.data[i]));
+  }
+
+  yices_delete_term_vector(&ycore);
+
+  return core;
 }
 
 Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
