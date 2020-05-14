@@ -311,6 +311,22 @@ Term LoggingSolver::get_value(const Term & t) const
   }
 }
 
+TermVec LoggingSolver::get_unsat_core()
+{
+  TermVec underlying_core = solver->get_unsat_core();
+  TermVec core;
+  for (auto c : underlying_core)
+  {
+    // lookup will modify c in place
+    if (!hashtable->lookup(c))
+    {
+      throw InternalSolverException("Underlying solver of LoggingSolver returned an assumption from get_unsat_core that was not created. This should not be possible.");
+    }
+    core.push_back(c);
+  }
+  return core;
+}
+
 UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
