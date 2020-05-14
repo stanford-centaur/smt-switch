@@ -8,8 +8,7 @@ namespace smt {
 
 Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
 {
-  Sort loggingsort(new UninterpretedLoggingSort(s, name, arity));
-  return loggingsort;
+  return std::make_shared<UninterpretedLoggingSort>(s, name, arity);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s)
@@ -18,8 +17,7 @@ Sort make_logging_sort(SortKind sk, Sort s)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
-  Sort loggingsort(new LoggingSort(sk, s));
-  return loggingsort;
+  return std::make_shared<LoggingSort>(sk, s);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
@@ -29,8 +27,7 @@ Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
     throw IncorrectUsageException("Can't create sort from " + to_string(sk)
                                   + " and " + ::std::to_string(width));
   }
-  Sort loggingsort(new BVLoggingSort(s, width));
-  return loggingsort;
+  return std::make_shared<BVLoggingSort>(s, width);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1)
@@ -44,11 +41,12 @@ Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2)
   Sort loggingsort;
   if (sk == ARRAY)
   {
-    loggingsort = Sort(new ArrayLoggingSort(s, sort1, sort2));
+    loggingsort = std::make_shared<ArrayLoggingSort>(s, sort1, sort2);
   }
   else if (sk == FUNCTION)
   {
-    loggingsort = Sort(new FunctionLoggingSort(s, SortVec{ sort1 }, sort2));
+    loggingsort =
+        std::make_shared<FunctionLoggingSort>(s, SortVec{ sort1 }, sort2);
   }
   else
   {
@@ -63,9 +61,8 @@ Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3)
 {
   if (sk == FUNCTION)
   {
-    Sort loggingsort(
-        new FunctionLoggingSort(s, SortVec{ sort1, sort2 }, sort3));
-    return loggingsort;
+    return std::make_shared<FunctionLoggingSort>(
+        s, SortVec{ sort1, sort2 }, sort3);
   }
   else
   {
@@ -81,13 +78,11 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
   {
     Sort return_sort = sorts.back();
     sorts.pop_back();
-    Sort loggingsort(new FunctionLoggingSort(s, sorts, return_sort));
-    return loggingsort;
+    return std::make_shared<FunctionLoggingSort>(s, sorts, return_sort);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    Sort loggingsort(new ArrayLoggingSort(s, sorts[0], sorts[1]));
-    return loggingsort;
+    return std::make_shared<ArrayLoggingSort>(s, sorts[0], sorts[1]);
   }
   else
   {
