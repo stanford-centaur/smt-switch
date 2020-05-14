@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = Yices2SolverFactory::create();
+  SmtSolver s = Yices2SolverFactory::create(true);
   s->set_opt("produce-models", "true");
   Sort bvsort9 = s->make_sort(BV, 9);
   Term x = s->make_symbol("x", bvsort9);

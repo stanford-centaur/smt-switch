@@ -118,11 +118,11 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
                          SelfTranslationTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSelfTranslationIntTests,
     SelfTranslationIntTests,
-    testing::ValuesIn(filter_solver_enums({ THEORY_INT })));
+    testing::ValuesIn(filter_solver_enums({ FULL_TRANSFER, THEORY_INT })));
 
 }  // namespace smt_tests

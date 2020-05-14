@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = Yices2SolverFactory::create();
+  SmtSolver s = Yices2SolverFactory::create(true);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort boolsort = s->make_sort(BOOL);

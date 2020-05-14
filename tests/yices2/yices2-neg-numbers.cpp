@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = Yices2SolverFactory::create();
+  SmtSolver s = Yices2SolverFactory::create(true);
 
   // BitVector cases
   Sort bvsort8 = s->make_sort(BV, 8);
