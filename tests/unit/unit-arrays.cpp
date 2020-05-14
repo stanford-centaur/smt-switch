@@ -42,6 +42,11 @@ TEST_P(UnitArrayTests, ConstArr)
   Term aval = s->get_value(a);
   ASSERT_EQ(aval->get_sort(), constarr0->get_sort());
   ASSERT_EQ(aval, constarr0);
+
+  Term out_const_base;
+  UnorderedTermMap assignments = s->get_array_values(a, out_const_base);
+  ASSERT_TRUE(out_const_base);  // not null
+  ASSERT_EQ(out_const_base, zero);
 }
 
 INSTANTIATE_TEST_SUITE_P(

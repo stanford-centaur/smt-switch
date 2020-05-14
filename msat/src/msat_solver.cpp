@@ -267,7 +267,29 @@ Term MsatSolver::get_value(const Term & t) const
 UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
                                               Term & out_const_base) const
 {
-  throw NotImplementedException("Get array values not implemented for MathSAT");
+  UnorderedTermMap assignments;
+  out_const_base = nullptr;
+
+  shared_ptr<MsatTerm> marr = static_pointer_cast<MsatTerm>(arr);
+  msat_term mval = msat_get_model_value(env, marr->term);
+
+  Term idx;
+  Term val;
+  while (msat_term_is_array_write(env, mval))
+  {
+    idx = std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 1));
+    val = std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 2));
+    assignments[idx] = val;
+    mval = msat_term_get_arg(mval, 0);
+  }
+
+  if (msat_term_is_array_const(env, mval))
+  {
+    out_const_base =
+        std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 0));
+  }
+
+  return assignments;
 }
 
 TermVec MsatSolver::get_unsat_core()

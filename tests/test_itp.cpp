@@ -37,7 +37,7 @@ TEST_P(ItpTests, Test_ITP)
   A = itp->make_term(And, A, itp->make_term(Lt, y, w));
 
   Term B = itp->make_term(Gt, z, w);
-  B = itp->make_term(And, itp->make_term(Lt, z, x));
+  B = itp->make_term(And, B, itp->make_term(Lt, z, x));
 
   Term I;
   bool success = itp->get_interpolant(A, B, I);
