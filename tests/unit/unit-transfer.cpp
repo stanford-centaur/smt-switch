@@ -16,7 +16,7 @@ class UnitTransferTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
@@ -34,7 +34,7 @@ TEST_P(UnitTransferTests, SimpleUFTransfer)
   Term f = s->make_symbol("f", funsort);
   Term fa = s->make_term(Apply, f, a);
 
-  SmtSolver s2 = available_solvers().at(GetParam())();
+  SmtSolver s2 = create_solver(GetParam());
   TermTranslator tr(s2);
 
   Term f2 = tr.transfer_term(f);
@@ -50,6 +50,6 @@ TEST_P(UnitTransferTests, SimpleUFTransfer)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTransferUnit,
     UnitTransferTests,
-    testing::ValuesIn(available_full_transfer_solver_enums()));
+    testing::ValuesIn(filter_solver_enums({ FULL_TRANSFER })));
 
 }  // namespace smt_tests

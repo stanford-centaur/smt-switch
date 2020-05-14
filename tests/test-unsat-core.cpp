@@ -16,7 +16,7 @@ class UnsatCoreTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     s->set_opt("produce-unsat-cores", "true");
     boolsort = s->make_sort(BOOL);
@@ -42,8 +42,9 @@ TEST_P(UnsatCoreTests, UnsatCore)
   ASSERT_THROW(core = s->get_unsat_core(), SmtException);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreTests,
-                         UnsatCoreTests,
-                         testing::ValuesIn(available_unsat_core_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnsatCoreTests,
+    UnsatCoreTests,
+    testing::ValuesIn(filter_solver_enums({ UNSAT_CORE })));
 
 }  // namespace smt_tests

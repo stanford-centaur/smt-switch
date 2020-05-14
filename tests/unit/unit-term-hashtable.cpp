@@ -17,7 +17,7 @@ class UnitTestsHashTable : public testing::Test,
     // need to make sure we're not using a LoggingSolver
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
-    s = available_lite_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
@@ -52,8 +52,9 @@ TEST_P(UnitTestsHashTable, HashTable)
   ASSERT_EQ(cp_xp1_2.use_count(), 1);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParametrizedUnitHashTable,
-                         UnitTestsHashTable,
-                         testing::ValuesIn(available_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParametrizedUnitHashTable,
+    UnitTestsHashTable,
+    testing::ValuesIn(available_no_logging_solver_enums()));
 
 }  // namespace smt_tests

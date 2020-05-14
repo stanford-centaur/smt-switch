@@ -17,7 +17,7 @@ class UnitTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
@@ -88,10 +88,10 @@ TEST_P(UnitTests, InputIterator)
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
-                         testing::ValuesIn(available_termiter_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
                          ConstArrUnitTests,
-                         testing::ValuesIn(available_constarr_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ CONSTARR })));
 
 }  // namespace smt_tests

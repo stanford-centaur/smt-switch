@@ -22,7 +22,7 @@ class LoggingTests : public ::testing::Test,
     // can mess things up
     // Thus, need to use the "lite" version of solvers
     // before wrapping with a LoggingSolver
-    s = make_shared<LoggingSolver>(available_lite_solvers().at(GetParam())());
+    s = make_shared<LoggingSolver>(create_solver(GetParam()));
     s->set_opt("produce-models", "true");
     bvsort4 = s->make_sort(BV, 4);
     bvsort8 = s->make_sort(BV, 8);
@@ -95,8 +95,9 @@ TEST_P(LoggingTests, ConstantSorts)
   ASSERT_EQ(bv1->get_sort()->get_width(), 1);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverLoggingTests,
-                         LoggingTests,
-                         testing::ValuesIn(available_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverLoggingTests,
+    LoggingTests,
+    testing::ValuesIn(available_no_logging_solver_enums()));
 
 }  // namespace smt_tests

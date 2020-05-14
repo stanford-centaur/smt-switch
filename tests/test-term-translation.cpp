@@ -19,7 +19,7 @@ class SelfTranslationTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     bvsort8 = s->make_sort(BV, 8);
 
@@ -38,7 +38,7 @@ class SelfTranslationIntTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     intsort = s->make_sort(INT);
 
@@ -53,7 +53,7 @@ class SelfTranslationIntTests : public ::testing::Test,
 
 TEST_P(SelfTranslationTests, BVTransfer)
 {
-  SmtSolver s2 = available_solvers().at(GetParam())();
+  SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
   Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
   Term T = s->make_term(true);
@@ -77,7 +77,7 @@ TEST_P(SelfTranslationTests, BVTransfer)
 
 TEST_P(SelfTranslationIntTests, IntTransfer)
 {
-  SmtSolver s2 = available_solvers().at(GetParam())();
+  SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
 
   Term xpy = s->make_term(Plus, x, y);
@@ -120,8 +120,9 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
                          SelfTranslationTests,
                          testing::ValuesIn(available_solver_enums()));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationIntTests,
-                         SelfTranslationIntTests,
-                         testing::ValuesIn(available_int_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSelfTranslationIntTests,
+    SelfTranslationIntTests,
+    testing::ValuesIn(filter_solver_enums({ THEORY_INT })));
 
 }  // namespace smt_tests

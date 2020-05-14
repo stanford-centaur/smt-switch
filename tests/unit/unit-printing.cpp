@@ -16,7 +16,7 @@ class UnitPrintTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     boolsort = s->make_sort(BOOL);
     bvsort1 = s->make_sort(BV, 1);

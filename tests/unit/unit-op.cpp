@@ -16,7 +16,7 @@ class UnitTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
@@ -105,6 +105,6 @@ TEST_P(UnitTests, MultiArgFun)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
-                         testing::ValuesIn(available_termiter_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
 
 }  // namespace smt_tests

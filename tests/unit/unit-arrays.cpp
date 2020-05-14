@@ -16,7 +16,7 @@ class UnitArrayTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
 
     boolsort = s->make_sort(BOOL);
@@ -46,6 +46,6 @@ TEST_P(UnitArrayTests, ConstArr)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
                          UnitArrayTests,
-                         testing::ValuesIn(available_constarr_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ CONSTARR })));
 
 }  // namespace smt_tests

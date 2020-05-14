@@ -20,7 +20,7 @@ void lite_solver_test()
   // this simple test is to ensure that smt-switch is handling this correctly
 
   // creating a solver WITHOUT smt-switch level logging of terms
-  SmtSolver s = BoolectorSolverFactory::create_lite_solver();
+  SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
@@ -42,7 +42,7 @@ void lite_solver_test()
 void logging_solver_test()
 {
   // creating a solver WITH smt-switch level logging of terms
-  SmtSolver s = BoolectorSolverFactory::create();
+  SmtSolver s = BoolectorSolverFactory::create(true);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);

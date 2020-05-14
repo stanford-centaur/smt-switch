@@ -23,59 +23,156 @@ namespace smt_tests {
 
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
-  BTOR,
+  BTOR, BTOR_LOGGING,
 #endif
 
 #if BUILD_CVC4
-      CVC4,
+      CVC4, CVC4_LOGGING,
 #endif
 
 #if BUILD_MSAT
-      MSAT,
+      MSAT, MSAT_LOGGING,
 #endif
 
 #if BUILD_YICES2
-      YICES2,
+      YICES2, YICES2_LOGGING,
 #endif
 });
 
-const CreateSolverFunsMap solvers({
+const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
+    solver_attributes({
+        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE } },
+
+        { BTOR_LOGGING,
+          { LOGGING,
+            TERMITER,
+            ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
+
+        { CVC4,
+          { TERMITER,
+            THEORY_INT,
+            ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
+
+        { CVC4_LOGGING,
+          { LOGGING,
+            TERMITER,
+            THEORY_INT,
+            ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
+
+        { MSAT,
+          { TERMITER,
+            THEORY_INT,
+            ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
+
+        { MSAT_LOGGING,
+          { LOGGING,
+            TERMITER,
+            THEORY_INT,
+            ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
+
+        { YICES2, { THEORY_INT, UNSAT_CORE } },
+
+        { YICES2_LOGGING,
+          { LOGGING, TERMITER, THEORY_INT, FULL_TRANSFER, UNSAT_CORE } },
+
+    });
+
+SmtSolver create_solver(SolverEnum se)
+{
+  switch (se)
+  {
 #if BUILD_BTOR
-  { BTOR, BoolectorSolverFactory::create },
+    case BTOR:
+    {
+      return BoolectorSolverFactory::create(false);
+      break;
+      ;
+    }
+    case BTOR_LOGGING:
+    {
+      return BoolectorSolverFactory::create(true);
+      break;
+      ;
+    }
 #endif
-
 #if BUILD_CVC4
-      { CVC4, CVC4SolverFactory::create },
+    case CVC4:
+    {
+      return CVC4SolverFactory::create(false);
+      break;
+      ;
+    }
+    case CVC4_LOGGING:
+    {
+      return CVC4SolverFactory::create(true);
+      break;
+      ;
+    }
 #endif
-
 #if BUILD_MSAT
-      { MSAT, MsatSolverFactory::create },
+    case MSAT:
+    {
+      return MsatSolverFactory::create(false);
+      break;
+      ;
+    }
+    case MSAT_LOGGING:
+    {
+      return MsatSolverFactory::create(true);
+      break;
+      ;
+    }
 #endif
-
 #if BUILD_YICES2
-      { YICES2, Yices2SolverFactory::create },
+    case YICES2:
+    {
+      return Yices2SolverFactory::create(false);
+      break;
+      ;
+    }
+    case YICES2_LOGGING:
+    {
+      return Yices2SolverFactory::create(true);
+      break;
+      ;
+    }
 #endif
-});
+    default: { throw SmtException("Unhandled solver enum");
+    }
+  }
+}
 
-const CreateSolverFunsMap lite_solvers({
-#if BUILD_BTOR
-  // Boolector uses smt-switch logging by default
-  // This function provides the raw ("lite") solver backend
-  { BTOR, BoolectorSolverFactory::create_lite_solver },
-#endif
-
-#if BUILD_CVC4
-      { CVC4, CVC4SolverFactory::create },
-#endif
-
+SmtSolver create_interpolating_solver(SolverEnum se)
+{
+  switch (se)
+  {
 #if BUILD_MSAT
-      { MSAT, MsatSolverFactory::create },
+    case MSAT:
+    {
+      return MsatSolverFactory::create_interpolating_solver();
+      break;
+      ;
+    }
 #endif
-
-#if BUILD_YICES2
-      { YICES2, Yices2SolverFactory::create_lite_solver },
-#endif
-});
+    default: { throw SmtException("Unhandled solver enum");
+    }
+  }
+}
 
 const std::vector<SolverEnum> itp_enums({
 #if BUILD_MSAT
@@ -83,87 +180,83 @@ const std::vector<SolverEnum> itp_enums({
 #endif
   });
 
-const CreateSolverFunsMap itps({
-#if BUILD_MSAT
-                                { MSAT, MsatSolverFactory::create }
-#endif
-  });
-
-CreateSolverFunsMap available_solvers() { return solvers; }
-
-CreateSolverFunsMap available_lite_solvers() { return lite_solvers; }
-
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
-std::vector<SolverEnum> available_termiter_solver_enums() {
-  // all solvers support term iteration (at least via logging) so far
-  return solver_enums;
+// collect all the available non-logging solvers
+std::vector<SolverEnum> available_no_logging_solver_enums()
+{
+  std::vector<SolverEnum> enums;
+  for (auto se : solver_enums)
+  {
+    if (solver_attributes.find(se) == solver_attributes.end())
+    {
+      throw SmtException("Unhandled solver enum in solver_attributes");
+    }
+
+    const std::unordered_set<SolverAttribute> & se_attrs =
+        solver_attributes.at(se);
+    if (se_attrs.find(LOGGING) == se_attrs.end())
+    {
+      enums.push_back(se);
+    }
+  }
+  return enums;
 }
 
-CreateSolverFunsMap available_interpolators() { return itps; };
+// collect all the available logging solvers
+std::vector<SolverEnum> available_logging_solver_enums()
+{
+  std::vector<SolverEnum> enums;
+  for (auto se : solver_enums)
+  {
+    if (solver_attributes.find(se) == solver_attributes.end())
+    {
+      throw SmtException("Unhandled solver enum in solver_attributes");
+    }
+
+    const std::unordered_set<SolverAttribute> & se_attrs =
+        solver_attributes.at(se);
+    if (se_attrs.find(LOGGING) != se_attrs.end())
+    {
+      enums.push_back(se);
+    }
+  }
+  return enums;
+}
 
 std::vector<SolverEnum> available_interpolator_enums() { return itp_enums; };
 
-std::vector<SolverEnum> available_int_solver_enums()
+std::vector<SolverEnum> filter_solver_enums(
+    const std::unordered_set<SolverAttribute> attributes)
 {
-  std::vector<SolverEnum> int_solvers;
+  std::vector<SolverEnum> filtered_enums;
   for (auto se : solver_enums)
   {
-    if (se != BTOR)
+    if (solver_attributes.find(se) == solver_attributes.end())
     {
-      int_solvers.push_back(se);
+      throw SmtException("Unhandled solver enum in solver_attributes");
+    }
+
+    const std::unordered_set<SolverAttribute> & se_attrs =
+        solver_attributes.at(se);
+
+    bool all_attrs = true;
+    for (auto a : attributes)
+    {
+      if (se_attrs.find(a) == se_attrs.end())
+      {
+        all_attrs = false;
+        break;
+      }
+    }
+
+    if (all_attrs)
+    {
+      filtered_enums.push_back(se);
     }
   }
-  return int_solvers;
-}
 
-std::vector<SolverEnum> available_array_model_solver_enums()
-{
-  std::vector<SolverEnum> am_solvers;
-  for (auto se : solver_enums)
-  {
-    if (se != MSAT && se != YICES2)
-    {
-      am_solvers.push_back(se);
-    }
-  }
-  return am_solvers;
-}
-
-std::vector<SolverEnum> available_constarr_solver_enums()
-{
-  std::vector<SolverEnum> ca_solvers;
-  for (auto se : solver_enums)
-  {
-    if (se != YICES2)
-    {
-      ca_solvers.push_back(se);
-    }
-  }
-  return ca_solvers;
-}
-
-std::vector<SolverEnum> available_full_transfer_solver_enums()
-{
-  std::vector<SolverEnum> solvers;
-  for (auto se : available_termiter_solver_enums())
-  {
-    if (se != BTOR)
-    {
-      solvers.push_back(se);
-    }
-  }
-  return solvers;
-}
-
-std::vector<SolverEnum> available_unsat_core_solver_enums()
-{
-  std::vector<SolverEnum> solvers;
-  for (auto se : solver_enums)
-  {
-    solvers.push_back(se);
-  }
-  return solvers;
+  return filtered_enums;
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
@@ -174,6 +267,10 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
+    case BTOR_LOGGING: o << "BTOR_LOGGING"; break;
+    case CVC4_LOGGING: o << "CVC4_LOGGING"; break;
+    case MSAT_LOGGING: o << "MSAT_LOGGING"; break;
+    case YICES2_LOGGING: o << "YICES2_LOGGING"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));

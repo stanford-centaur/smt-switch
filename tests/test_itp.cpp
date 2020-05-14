@@ -18,7 +18,7 @@ class ItpTests : public ::testing::Test,
 protected:
   void SetUp() override
   {
-    itp = available_interpolators().at(GetParam())();
+    itp = create_interpolating_solver(GetParam());
 
     intsort = itp->make_sort(INT);
     x = itp->make_symbol("x", intsort);
@@ -49,4 +49,7 @@ TEST_P(ItpTests, Test_ITP)
   ASSERT_TRUE(free_symbols.find(z) == free_symbols.end());
 }
 
+INSTANTIATE_TEST_SUITE_P(ParameterizedItpTests,
+                         ItpTests,
+                         testing::ValuesIn(available_interpolator_enums()));
 }

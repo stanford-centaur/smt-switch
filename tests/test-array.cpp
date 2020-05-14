@@ -16,7 +16,7 @@ class ArrayModelTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     bvsort = s->make_sort(BV, 8);
     arrsort = s->make_sort(ARRAY, bvsort, bvsort);
@@ -61,6 +61,6 @@ TEST_P(ArrayModelTests, TestArrayModel)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedArrayModelTests,
     ArrayModelTests,
-    testing::ValuesIn(available_array_model_solver_enums()));
+    testing::ValuesIn(filter_solver_enums({ ARRAY_MODELS })));
 
 }  // namespace smt_tests
