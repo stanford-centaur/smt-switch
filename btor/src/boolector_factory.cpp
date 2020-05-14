@@ -5,14 +5,14 @@
 namespace smt {
 
 /* BoolectorSolverFactory implementation */
-SmtSolver BoolectorSolverFactory::create()
+SmtSolver BoolectorSolverFactory::create(bool logging)
 {
-  return std::make_shared<LoggingSolver>(create_lite_solver());
-}
-
-SmtSolver BoolectorSolverFactory::create_lite_solver()
-{
-  return std::make_shared<BoolectorSolver>();
+  SmtSolver solver = std::make_shared<BoolectorSolver>();
+  if (logging)
+  {
+    solver = std::make_shared<LoggingSolver>(solver);
+  }
+  return solver;
 }
 
 /* end BoolectorSolverFactory implementation */

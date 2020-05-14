@@ -9,7 +9,7 @@ namespace smt {
 bool initialized = false;
 
 /* Yices2SolverFactory implementation with logging */
-SmtSolver Yices2SolverFactory::create()
+SmtSolver Yices2SolverFactory::create(bool logging)
 {
   // Must initialize only once.
   // Different instances of the solver will have
@@ -20,24 +20,13 @@ SmtSolver Yices2SolverFactory::create()
     initialized = true;
   }
 
-  return std::make_shared<LoggingSolver>(create_lite_solver());
+  SmtSolver solver = std::make_shared<Yices2Solver>();
+  if (logging)
+  {
+    solver = std::make_shared<LoggingSolver>(solver);
+  }
+  return solver;
 }
 /* end Yices2SolverFactory logging implementation */
-
-/* Yices2SolverFactory implementation without logging */
-SmtSolver Yices2SolverFactory::create_lite_solver()
-{
-  // Must initialize only once.
-  // Different instances of the solver will have
-  // different contexts.
-  if (!initialized)
-  {
-    yices_init();
-    initialized = true;
-  }
-
-  return std::make_shared<Yices2Solver>();
-}
-/* end Yices2SolverFactory lite (no logging) implementation */
 
 }  // namespace smt

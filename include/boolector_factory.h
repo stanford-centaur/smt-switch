@@ -5,19 +5,15 @@ class BoolectorSolverFactory
 {
  public:
   /** Create a boolector SmtSolver
-   *  @return an SmtSolver
+   *  @param logging if true creates a LoggingSolver wrapper
+   *         around the solver that keeps a shadow DAG at
+   *         the smt-switch level.
+   *         For boolector, this is not required but will
+   *         but makes it easier to transfer terms to other
+   *         solvers because it avoids the bool / width one
+   *         bitvector sort aliasing
+   *  @return a Boolector SmtSolver
    */
-  static SmtSolver create();
-
-  /** Create a solver without a shadow DAG
-   *  Some solvers do on-the-fly rewriting and/or
-   *  alias sorts. Smt-switch provides a shadow
-   *  DAG so that term traversal and translation
-   *  is reliable.
-   *  This function creates a "raw" solver without
-   *  the extra logging at the smt-switch level
-   *  @return an SmtSolver
-   */
-  static SmtSolver create_lite_solver();
+  static SmtSolver create(bool logging);
 };
 }  // namespace smt
