@@ -15,7 +15,7 @@ int main()
 {
   unsigned int NUM_TERMS = 20;
 
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = CVC4SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
 

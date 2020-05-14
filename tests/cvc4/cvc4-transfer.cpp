@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = CVC4SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort8);
@@ -28,7 +28,7 @@ int main()
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
   s->assert_formula(constraint);
 
-  SmtSolver s2 = CVC4SolverFactory::create();
+  SmtSolver s2 = CVC4SolverFactory::create(false);
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 
