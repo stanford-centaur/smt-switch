@@ -35,8 +35,8 @@ class LoggingTerm : public AbsTerm
   uint64_t to_int() const override;
 
  protected:
-  Term term;
-  Sort sort;
+  Term wrapped_term;  ///< the term of the underlying solver
+  Sort sort;          ///< a LoggingSort
   Op op;
   TermVec children;
   std::string repr;

@@ -57,7 +57,7 @@ class LoggingSolver : public AbsSmtSolver
   void reset_assertions() override;
 
  protected:
-  SmtSolver solver;
+  SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;
   // stores a mapping from wrapped terms to logging terms
   // that were used in check_sat_assuming

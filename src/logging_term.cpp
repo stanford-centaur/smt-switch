@@ -10,12 +10,12 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
-  : term(t), sort(s), op(o), children(c), is_symbol(false)
+    : wrapped_term(t), sort(s), op(o), children(c), is_symbol(false)
 {
 }
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r)
-  : term(t), sort(s), op(o), children(c), repr(r), is_symbol(true)
+    : wrapped_term(t), sort(s), op(o), children(c), repr(r), is_symbol(true)
 {
 }
 
@@ -40,7 +40,7 @@ bool LoggingTerm::compare(const Term & t) const
   // compare underlying term and sort
   // this will handle sort aliasing issues from solvers
   // that don't distinguish between certain sorts
-  if (term != lt->term || sort != lt->sort)
+  if (wrapped_term != lt->wrapped_term || sort != lt->sort)
   {
     return false;
   }
@@ -84,7 +84,7 @@ string LoggingTerm::to_string()
     // special-case for Bool, because of sort-aliasing
     if (get_sort()->get_sort_kind() == BOOL)
     {
-      std::string repr = term->to_string();
+      std::string repr = wrapped_term->to_string();
       // check truthy values
       if (repr == "true" || repr == "#b1" || repr == "(_ bv0 1)")
       {
@@ -99,7 +99,7 @@ string LoggingTerm::to_string()
     }
     else
     {
-      return term->to_string();
+      return wrapped_term->to_string();
     }
   }
   else
@@ -135,11 +135,11 @@ TermIter LoggingTerm::end()
 
 // dispatched to underlying term
 
-size_t LoggingTerm::hash() const { return term->hash(); }
+size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
 
-bool LoggingTerm::is_value() const { return term->is_value(); }
+bool LoggingTerm::is_value() const { return wrapped_term->is_value(); }
 
-uint64_t LoggingTerm::to_int() const { return term->to_int(); }
+uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 
 /* LoggingTermIter */
 
