@@ -5,7 +5,7 @@ from smt_switch.primops import Distinct, Equal, Select, Store
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_array_read_over_write(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_logic('QF_ABV')
 
     bvsort8  = solver.make_sort(ss.sortkinds.BV, 8)
@@ -29,7 +29,7 @@ def test_array_read_over_write(create_solver):
 
 @pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor'])
 def test_array_lia_extensionality(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_logic('QF_ALIA')
 
     intsort = solver.make_sort(ss.sortkinds.INT)

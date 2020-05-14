@@ -5,7 +5,7 @@ import available_solvers
 # @pytest.mark.parametrize("create_solver", ss.solvers.values())
 @pytest.mark.parametrize("create_solver", available_solvers.termiter_support_solvers.values())
 def test_bvadd(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_opt('produce-models', 'true')
     solver.set_logic('QF_BV')
 
@@ -39,7 +39,7 @@ def test_hackers_delight(create_solver):
     #
     # We want to check that these are correct
 
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_logic('QF_BV')
     solver.set_opt('produce-models', 'true')
     solver.set_opt('incremental', 'true')
@@ -103,7 +103,7 @@ def test_hackers_delight(create_solver):
 def test_complex_expr(create_solver):
     from smt_switch import Op
 
-    solver = create_solver()
+    solver = create_solver(False)
     bv128 = solver.make_sort(ss.sortkinds.BV, 128)
     bv32 = solver.make_sort(ss.sortkinds.BV, 32)
 
@@ -144,7 +144,7 @@ def test_complex_expr(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bv_ops(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     bvsort32 = solver.make_sort(ss.sortkinds.BV, 32)
 
     one = solver.make_term(1, bvsort32)

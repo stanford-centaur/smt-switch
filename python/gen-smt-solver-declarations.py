@@ -8,27 +8,27 @@
 import argparse
 
 CREATE_BTOR='''
-def create_btor_solver():
+def create_btor_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_btor_solver()
+    solver.css = cpp_create_btor_solver(logging)
     return solver
 solvers["btor"] = create_btor_solver
 '''
 
 
 CREATE_CVC4='''
-def create_cvc4_solver():
+def create_cvc4_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_cvc4_solver()
+    solver.css = cpp_create_cvc4_solver(logging)
     return solver
 solvers["cvc4"] = create_cvc4_solver
 '''
 
 
 CREATE_MSAT='''
-def create_msat_solver():
+def create_msat_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_msat_solver()
+    solver.css = cpp_create_msat_solver(logging)
     return solver
 solvers["msat"] = create_msat_solver
 
@@ -39,9 +39,9 @@ def create_msat_interpolator():
 '''
 
 CREATE_YICES2='''
-def create_yices2_solver():
+def create_yices2_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_yices2_solver()
+    solver.css = cpp_create_yices2_solver(logging)
     return solver
 solvers["yices2"] = create_yices2_solver
 '''
@@ -49,25 +49,25 @@ solvers["yices2"] = create_yices2_solver
 
 DECLARE_BTOR='''
 cdef extern from "boolector_factory.h":
-    c_SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" () except +
+    c_SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" (bint logging) except +
 '''
 
 
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
-    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" () except +
+    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (logging) except +
 '''
 
 
 DECLARE_MSAT='''
 cdef extern from "msat_factory.h":
-    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" () except +
+    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" (logging) except +
     c_SmtSolver cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 '''
 
 DECLARE_YICES2='''
 cdef extern from "yices2_factory.h":
-    c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" () except +
+    c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (logging) except +
 '''
 
 
