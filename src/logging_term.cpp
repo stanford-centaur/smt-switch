@@ -79,34 +79,15 @@ string LoggingTerm::to_string()
   // this is because values are often produced by the underlying solver
   // e.g. from get_value
   // so we couldn't assign a string at the smt-switch level
-  if (is_value())
+  if (op.is_null() && is_value())
   {
-    // special-case for Bool, because of sort-aliasing
-    if (get_sort()->get_sort_kind() == BOOL)
-    {
-      std::string repr = wrapped_term->to_string();
-      // check truthy values
-      if (repr == "true" || repr == "#b1" || repr == "(_ bv0 1)")
-      {
-        return "true";
-      }
-      else
-      {
-        // Expect falsey values
-        Assert(repr == "false" || repr == "#b0" || repr == "(_ bv0 1)");
-        return "false";
-      }
-    }
-    else
-    {
-      return wrapped_term->to_string();
-    }
+    return wrapped_term->print_value_as(sort->get_sort_kind());
   }
   else
   {
     // Op should not be null because handled values above
     //     and symbols already have the repr set
-    Assert(!get_op().is_null());
+    Assert(!op.is_null());
     repr = "(";
     repr += op.to_string();
     for (auto c : children)
