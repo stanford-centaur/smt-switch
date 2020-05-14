@@ -59,6 +59,11 @@ class LoggingSolver : public AbsSmtSolver
  protected:
   SmtSolver solver;
   std::unique_ptr<TermHashTable> hashtable;
+  // stores a mapping from wrapped terms to logging terms
+  // that were used in check_sat_assuming
+  // this is so they can be recovered with the correct children/op
+  // after a call to get_unsat_core
+  std::unique_ptr<UnorderedTermMap> assumption_cache;
 };
 
 }  // namespace smt

@@ -14,7 +14,9 @@ namespace smt {
 // implementations
 
 LoggingSolver::LoggingSolver(SmtSolver s)
-    : solver(s), hashtable(new TermHashTable())
+    : solver(s),
+      hashtable(new TermHashTable()),
+      assumption_cache(new UnorderedTermMap())
 {
 }
 
@@ -61,6 +63,7 @@ Sort LoggingSolver::make_sort(const SortKind sk,
                               const Sort & sort3) const
 {
   shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
+
   shared_ptr<LoggingSort> ls2 = static_pointer_cast<LoggingSort>(sort2);
   shared_ptr<LoggingSort> ls3 = static_pointer_cast<LoggingSort>(sort3);
   Sort sort = solver->make_sort(sk, ls1->sort, ls2->sort, ls3->sort);
@@ -317,12 +320,17 @@ TermVec LoggingSolver::get_unsat_core()
   TermVec core;
   for (auto c : underlying_core)
   {
-    // lookup will modify c in place
-    if (!hashtable->lookup(c))
+    // assumption: these should be (possible negated) Boolean literals
+    // that were used in check_sat_assuming
+    // assumption_cache stored a mapping so we can recover the logging term
+    if (assumption_cache->find(c) == assumption_cache->end())
     {
-      throw InternalSolverException("Underlying solver of LoggingSolver returned an assumption from get_unsat_core that was not created. This should not be possible.");
+      throw InternalSolverException(
+          "Got an element in the unsat core that was not cached from "
+          "check_sat_assuming in LoggingSolver.");
     }
-    core.push_back(c);
+    Term log_c = assumption_cache->at(c);
+    core.push_back(log_c);
   }
   return core;
 }
@@ -393,12 +401,16 @@ Result LoggingSolver::check_sat() { return solver->check_sat(); }
 
 Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  // only needs to remember the latest set of assumptions
+  assumption_cache->clear();
   TermVec lassumps;
   shared_ptr<LoggingTerm> la;
   for (auto a : assumptions)
   {
     la = static_pointer_cast<LoggingTerm>(a);
     lassumps.push_back(la->term);
+    // store a mapping from the wrapped term to the logging term
+    (*assumption_cache)[la->term] = la;
   }
   return solver->check_sat_assuming(lassumps);
 }
