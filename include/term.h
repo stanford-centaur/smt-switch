@@ -65,6 +65,8 @@ class AbsTerm
    *
    *  @param sk the SortKind to print the term as
    *  @param a string representation of the term
+   *
+   *  throws an exception if the term is not a value
    */
   virtual std::string print_value_as(SortKind sk) = 0;
 };

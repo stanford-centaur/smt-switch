@@ -431,6 +431,16 @@ TermIter Yices2Term::end()
   // return TermIter(new Yices2TermIter(term, yices_term_num_children(term)));
 }
 
+std::string Yices2Term::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return to_string();
+}
+
 string Yices2Term::const_to_string() const
 {
   term_constructor_t tc = yices_term_constructor(term);

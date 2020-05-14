@@ -53,6 +53,7 @@ class Yices2Term : public AbsTerm
   /* Iterators for traversing the children */
   TermIter begin() override;
   TermIter end() override;
+  std::string print_value_as(SortKind sk) override;
 
  protected:
   term_t term;

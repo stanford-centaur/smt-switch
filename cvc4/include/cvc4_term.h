@@ -64,8 +64,9 @@ namespace smt {
      */
     TermIter begin() override;
     TermIter end() override;
+    std::string print_value_as(SortKind sk) override;
 
-  protected:
+   protected:
     CVC4::api::Term term;
 
   friend class CVC4Solver;

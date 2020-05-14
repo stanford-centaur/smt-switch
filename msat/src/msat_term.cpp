@@ -555,6 +555,16 @@ TermIter MsatTerm::end()
   return TermIter(new MsatTermIter(env, term, arity));
 }
 
+std::string MsatTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return to_string();
+}
+
 // end MsatTerm implementation
 
 }  // namespace smt

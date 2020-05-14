@@ -264,6 +264,16 @@ TermIter CVC4Term::end()
   return TermIter(new CVC4TermIter(term.end()));
 }
 
+std::string CVC4Term::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return term.toString();
+}
+
 /* end CVC4Term implementation */
 
 }
