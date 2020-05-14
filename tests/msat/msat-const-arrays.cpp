@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = MsatSolverFactory::create();
+  SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
 
@@ -48,7 +48,7 @@ int main()
   assert(r.is_unsat());
 
   // test transferring term to a different solver
-  SmtSolver s2 = MsatSolverFactory::create();
+  SmtSolver s2 = MsatSolverFactory::create(false);
   s2->set_logic("QF_ABV");
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");

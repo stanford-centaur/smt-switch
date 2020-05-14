@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = MsatSolverFactory::create();
+  SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);

@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = MsatSolverFactory::create();
+  SmtSolver s = MsatSolverFactory::create(false);
 
   // BitVector cases
   Sort bvsort8 = s->make_sort(BV, 8);
