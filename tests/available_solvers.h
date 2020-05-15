@@ -80,4 +80,15 @@ struct hash<smt_tests::SolverEnum>
     return static_cast<size_t>(se);
   }
 };
+
+// specialize template
+ template <>
+   struct hash<smt_tests::SolverAttribute>
+ {
+   size_t operator()(const smt_tests::SolverAttribute sa) const
+   {
+     return static_cast<size_t>(sa);
+   }
+ };
+
 }  // namespace std
