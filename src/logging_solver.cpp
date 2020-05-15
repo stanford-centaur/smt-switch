@@ -9,6 +9,15 @@ using namespace std;
 
 namespace smt {
 
+/* These are the only sortkinds that are supported for get_value
+   Terms returned by get_value were not created through the
+   smt-switch API, so the LoggingSolver needs to recover some
+   information. Most SortKinds are not an issue because they
+   have no Op or children
+ */
+const unordered_set<SortKind> supported_sortkinds_for_get_value(
+    { BOOL, BV, INT, REAL, ARRAY });
+
 /* LoggingSolver */
 
 // implementations
@@ -298,6 +307,14 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term LoggingSolver::get_value(const Term & t) const
 {
+  SortKind sk = t->get_sort()->get_sort_kind();
+  if (supported_sortkinds_for_get_value.find(sk)
+      == supported_sortkinds_for_get_value.end())
+  {
+    throw NotImplementedException(
+        "LoggingSolver does not support get_value for " + smt::to_string(sk));
+  }
+
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   if (t->get_sort()->get_sort_kind() != ARRAY)
   {
