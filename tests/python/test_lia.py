@@ -3,7 +3,7 @@ import smt_switch as ss
 
 @pytest.mark.parametrize("create_solver", [f for name, f in ss.solvers.items() if name != 'btor'])
 def test_simple(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_opt('produce-models', 'true')
     solver.set_logic('QF_LIA')
 

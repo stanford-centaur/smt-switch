@@ -140,6 +140,12 @@ Sort MsatSort::get_codomain_sort() const
   return std::make_shared<MsatSort> (env, t);
 }
 
+string MsatSort::get_uninterpreted_name() const
+{
+  string res(msat_type_repr(type));
+  return res;
+}
+
 bool MsatSort::compare(const Sort s) const
 {
   std::shared_ptr<MsatSort> msort = std::static_pointer_cast<MsatSort>(s);
@@ -172,9 +178,21 @@ SortKind MsatSort::get_sort_kind() const
   {
     return FUNCTION;
   }
+  else if (msat_is_fp_type(env, type, nullptr, nullptr))
+  {
+    throw NotImplementedException(
+        "Floating point not implemented for MathSAT yet.");
+  }
+  else if (msat_is_fp_roundingmode_type(env, type))
+  {
+    throw NotImplementedException(
+        "Floating point not implemented for MathSAT yet.");
+  }
   else
   {
-    throw NotImplementedException("Unknown MathSAT type.");
+    // no way to test if type is a simple type
+    // just process of elimination
+    return UNINTERPRETED;
   }
 }
 

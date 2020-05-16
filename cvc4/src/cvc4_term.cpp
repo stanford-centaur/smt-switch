@@ -219,7 +219,7 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::STORE_ALL));
 }
 
-std::string CVC4Term::to_string() const { return term.toString(); }
+std::string CVC4Term::to_string() { return term.toString(); }
 
 uint64_t CVC4Term::to_int() const
 {
@@ -262,6 +262,16 @@ TermIter CVC4Term::begin()
 TermIter CVC4Term::end()
 {
   return TermIter(new CVC4TermIter(term.end()));
+}
+
+std::string CVC4Term::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return term.toString();
 }
 
 /* end CVC4Term implementation */

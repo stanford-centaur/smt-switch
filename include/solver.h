@@ -35,7 +35,7 @@ class AbsSmtSolver
   /* Add an assertion to the solver
    * @param t a boolean term to assert
    */
-  virtual void assert_formula(const Term& t) = 0;
+  virtual void assert_formula(const Term & t) = 0;
 
   /* Check satisfiability of the current assertions
    * @return a result object - see result.h
@@ -63,7 +63,17 @@ class AbsSmtSolver
    * @param t the term to get the value of
    * @return a value term
    */
-  virtual Term get_value(Term& t) const = 0;
+  virtual Term get_value(const Term & t) const = 0;
+
+  /** Get a map of index-value pairs for an array term after check_sat returns
+   * sat
+   *  @param arr the array to get the value for
+   *  @param out_const_base a term that will be updated to the const base of the
+   * array if there is one. Otherwise, it will be assigned null
+   *  @return a map of index value pairs for the array
+   */
+  virtual UnorderedTermMap get_array_values(const Term & arr,
+                                            Term & out_const_base) const = 0;
 
   /** After a call to check_sat_assuming that returns an unsatisfiable result
    *  this function will return a subset of the assumption literals

@@ -24,6 +24,7 @@ class BoolectorSortBase : public AbsSort
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
+  std::string get_uninterpreted_name() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override { return sk; };
 

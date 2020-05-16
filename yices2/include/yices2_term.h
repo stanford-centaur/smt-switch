@@ -48,15 +48,21 @@ class Yices2Term : public AbsTerm
   Sort get_sort() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
-  virtual std::string to_string() const override;
+  virtual std::string to_string() override;
   uint64_t to_int() const override;
   /* Iterators for traversing the children */
   TermIter begin() override;
   TermIter end() override;
+  std::string print_value_as(SortKind sk) override;
 
  protected:
   term_t term;
   bool is_function;
+
+  // a const version of to_string
+  // the main to_string can't be const so that LoggingSolver
+  // can build its string representation lazily
+  std::string const_to_string() const;
 
   friend class Yices2Solver;
   friend class Yices2TermIter;

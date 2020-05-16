@@ -91,6 +91,12 @@ Sort Yices2Sort::get_codomain_sort() const
   }
 }
 
+string Yices2Sort::get_uninterpreted_name() const
+{
+  throw NotImplementedException(
+      "get_uninterpreted_name not implemented for Yices2Sort");
+}
+
 bool Yices2Sort::compare(const Sort s) const
 {
   shared_ptr<Yices2Sort> ys = std::static_pointer_cast<Yices2Sort>(s);

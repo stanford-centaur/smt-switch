@@ -246,7 +246,7 @@ void MsatSolver::pop(uint64_t num)
   }
 }
 
-Term MsatSolver::get_value(Term & t) const
+Term MsatSolver::get_value(const Term & t) const
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   msat_term val = msat_get_model_value(env, mterm->term);
@@ -262,6 +262,34 @@ Term MsatSolver::get_value(Term & t) const
   }
 
   return std::make_shared<MsatTerm> (env, val);
+}
+
+UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
+                                              Term & out_const_base) const
+{
+  UnorderedTermMap assignments;
+  out_const_base = nullptr;
+
+  shared_ptr<MsatTerm> marr = static_pointer_cast<MsatTerm>(arr);
+  msat_term mval = msat_get_model_value(env, marr->term);
+
+  Term idx;
+  Term val;
+  while (msat_term_is_array_write(env, mval))
+  {
+    idx = std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 1));
+    val = std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 2));
+    assignments[idx] = val;
+    mval = msat_term_get_arg(mval, 0);
+  }
+
+  if (msat_term_is_array_const(env, mval))
+  {
+    out_const_base =
+        std::make_shared<MsatTerm>(env, msat_term_get_arg(mval, 0));
+  }
+
+  return assignments;
 }
 
 TermVec MsatSolver::get_unsat_core()
@@ -964,7 +992,7 @@ Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
       "Can't call check_sat_assuming from interpolating solver");
 }
 
-Term MsatInterpolatingSolver::get_value(Term & t) const
+Term MsatInterpolatingSolver::get_value(const Term & t) const
 {
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }

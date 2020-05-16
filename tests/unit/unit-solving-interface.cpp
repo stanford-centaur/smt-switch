@@ -17,7 +17,7 @@ class UnitSolveTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     s->set_opt("produce-models", "true");
 
@@ -47,6 +47,6 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,
                          UnitSolveTests,
-                         testing::ValuesIn(available_termiter_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
 
 }  // namespace smt_tests

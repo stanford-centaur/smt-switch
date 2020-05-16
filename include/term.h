@@ -8,7 +8,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ops.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 
@@ -29,7 +31,7 @@ class AbsTerm
   /* get the sort */
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
-  virtual std::string to_string() const = 0;
+  virtual std::string to_string() = 0;
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */
@@ -46,7 +48,27 @@ class AbsTerm
    *  ends iteration through Term's children
    */
   virtual TermIter end() = 0;
-  // TODO Add other convenient term methods
+
+  // Methods used for strange edge-cases e.g. in the logging solver
+
+  /** Print a value term in a specific form
+   *  NOTE: this *only* exists for use in LoggingSolver
+   *        it is to handle printing of values from solvers that alias
+   *        sorts. For example, if Bool and (_ BitVec 1) are aliased,
+   *        this can be used to print #b1 as true.
+   *
+   *  This method canNOT be used to convert arbitrarily, e.g.
+   *  it cannot print a bitvector as an integer.
+   *
+   *  Thus, solvers that don't alias sorts can just use their to_string
+   *  to implement this method
+   *
+   *  @param sk the SortKind to print the term as
+   *  @param a string representation of the term
+   *
+   *  throws an exception if the term is not a value
+   */
+  virtual std::string print_value_as(SortKind sk) = 0;
 };
 
 bool operator==(const Term& t1, const Term& t2);

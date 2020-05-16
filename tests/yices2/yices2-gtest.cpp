@@ -12,7 +12,7 @@ class Yices2SolverTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    s = Yices2SolverFactory::create();
+    s = Yices2SolverFactory::create(true);
     s->set_opt("produce-models", "true");
     bvsort8 = s->make_sort(BV, 8);
     x = s->make_symbol("x", bvsort8);

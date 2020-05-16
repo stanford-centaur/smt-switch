@@ -40,7 +40,9 @@ class CVC4Solver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
-  Term get_value(Term & t) const override;
+  Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
   TermVec get_unsat_core() override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;

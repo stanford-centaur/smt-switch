@@ -17,7 +17,7 @@ class UnitTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
@@ -25,6 +25,10 @@ class UnitTests : public ::testing::Test,
   }
   SmtSolver s;
   Sort bvsort, funsort, arrsort;
+};
+
+class ConstArrUnitTests : public UnitTests
+{
 };
 
 TEST_P(UnitTests, TermIter)
@@ -40,7 +44,7 @@ TEST_P(UnitTests, TermIter)
   ASSERT_TRUE(it == it2);
 }
 
-TEST_P(UnitTests, ConstArr)
+TEST_P(ConstArrUnitTests, ConstArr)
 {
   Term zero     = s->make_term(0, bvsort);
   Term constarr = s->make_term(zero, arrsort);
@@ -50,7 +54,7 @@ TEST_P(UnitTests, ConstArr)
   ASSERT_TRUE(constarr->get_sort()->get_elemsort() == bvsort);
 }
 
-TEST_P(UnitTests, IdentityWalker)
+TEST_P(ConstArrUnitTests, IdentityWalker)
 {
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
@@ -84,6 +88,10 @@ TEST_P(UnitTests, InputIterator)
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
-                         testing::ValuesIn(available_termiter_solver_enums()));
+                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+
+INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
+                         ConstArrUnitTests,
+                         testing::ValuesIn(filter_solver_enums({ CONSTARR })));
 
 }  // namespace smt_tests

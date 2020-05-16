@@ -16,7 +16,7 @@ class UnitArrayTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = available_solvers().at(GetParam())();
+    s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
 
     boolsort = s->make_sort(BOOL);
@@ -40,11 +40,18 @@ TEST_P(UnitArrayTests, ConstArr)
 
   ASSERT_TRUE(r.is_sat());
   Term aval = s->get_value(a);
+  ASSERT_EQ(aval->get_sort(), constarr0->get_sort());
   ASSERT_EQ(aval, constarr0);
+
+  Term out_const_base;
+  UnorderedTermMap assignments = s->get_array_values(a, out_const_base);
+  ASSERT_TRUE(out_const_base);  // not null
+  ASSERT_EQ(out_const_base, zero);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
-                         UnitArrayTests,
-                         testing::ValuesIn(available_constarr_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitArray,
+    UnitArrayTests,
+    testing::ValuesIn(filter_solver_enums({ CONSTARR, ARRAY_MODELS })));
 
 }  // namespace smt_tests

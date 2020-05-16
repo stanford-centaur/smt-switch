@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = CVC4SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);

@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = BoolectorSolverFactory::create();
+  SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
@@ -32,9 +32,13 @@ int main()
 
   assert(r.is_sat());
 
-  Term arr_val = s->get_value(arr);
+  Term out_const_base;
+  UnorderedTermMap arr_map = s->get_array_values(arr, out_const_base);
 
-  cout << arr_val << endl;
+  for (auto elem : arr_map)
+  {
+    cout << elem.first << ": " << elem.second << endl;
+  }
 
   return 0;
 }

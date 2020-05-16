@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = MsatSolverFactory::create();
+  SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort boolsort = s->make_sort(BOOL);

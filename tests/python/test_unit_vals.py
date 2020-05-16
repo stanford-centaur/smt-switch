@@ -9,7 +9,7 @@ termiter_and_int_solvers = [f for f in {ss.solvers[n] for n in termiter_and_int_
 
 @pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
 def test_unit_bigint(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     intsort = solver.make_sort(ss.sortkinds.INT)
 
     bigint = solver.make_term(2**200, intsort)

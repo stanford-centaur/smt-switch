@@ -35,10 +35,6 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver()
   {
-    for (auto elem : array_bases)
-    {
-      boolector_release(btor, elem.second);
-    }
     boolector_delete(btor);
   };
   void set_opt(const std::string option, const std::string value) override;
@@ -48,7 +44,9 @@ class BoolectorSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
-  Term get_value(Term & t) const override;
+  Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
   TermVec get_unsat_core() override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
@@ -92,8 +90,6 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
-  // store array bases -- temporary until there are updates to boolector
-  std::unordered_map<uint64_t, BoolectorNode *> array_bases;
 };
 }  // namespace smt
 

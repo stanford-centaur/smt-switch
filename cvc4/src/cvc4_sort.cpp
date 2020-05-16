@@ -48,6 +48,8 @@ Sort CVC4Sort::get_codomain_sort() const
   return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
 }
 
+std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
+
 bool CVC4Sort::compare(const Sort s) const
 {
   std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort> (s);
@@ -79,6 +81,10 @@ SortKind CVC4Sort::get_sort_kind() const
   else if (sort.isFunction())
   {
     return FUNCTION;
+  }
+  else if (sort.isUninterpretedSort())
+  {
+    return UNINTERPRETED;
   }
   else
   {

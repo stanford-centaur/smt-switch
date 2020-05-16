@@ -4,7 +4,7 @@ import available_solvers
 
 @pytest.mark.parametrize("create_solver", available_solvers.termiter_support_solvers.values())
 def test_unit_op(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
 
     null_op = ss.Op()
     ext = ss.Op(ss.primops.Extract, 2, 0)
@@ -28,7 +28,7 @@ def test_unit_op(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_sort(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
     bvsort   = solver.make_sort(ss.sortkinds.BV, 8)
@@ -47,7 +47,7 @@ def test_sort(create_solver):
 
 @pytest.mark.parametrize("create_solver", available_solvers.termiter_support_solvers.values())
 def test_unit_iter(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
 
     null_op = ss.Op()
     ext = ss.Op(ss.primops.Extract, 2, 0)
@@ -69,7 +69,7 @@ def test_unit_iter(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bool(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_opt("produce-models", "true")
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
@@ -97,7 +97,7 @@ def test_bool(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_check_sat_assuming(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     solver.set_opt("incremental", "true")
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
     bvsort8  = solver.make_sort(ss.sortkinds.BV, 8)
@@ -121,7 +121,7 @@ def test_check_sat_assuming(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_multi_arg_fun(create_solver):
-    solver = create_solver()
+    solver = create_solver(False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     funsort = solver.make_sort(ss.sortkinds.FUNCTION, [bvsort]*8)
 

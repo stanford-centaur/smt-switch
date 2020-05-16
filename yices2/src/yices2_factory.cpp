@@ -2,24 +2,32 @@
 
 #include "yices2_solver.h"
 
+#include "logging_solver.h"
+
 namespace smt {
 
 bool initialized = false;
 
-/* Yices2SolverFactory implementation */
-SmtSolver Yices2SolverFactory::create()
+/* Yices2SolverFactory implementation with logging */
+SmtSolver Yices2SolverFactory::create(bool logging)
 {
   // Must initialize only once.
   // Different instances of the solver will have
   // different contexts.
   if (!initialized)
   {
+    std::cout << "initializing" << std::endl;
     yices_init();
     initialized = true;
   }
 
-  return std::make_shared<Yices2Solver>();
+  SmtSolver solver = std::make_shared<Yices2Solver>();
+  if (logging)
+  {
+    solver = std::make_shared<LoggingSolver>(solver);
+  }
+  return solver;
 }
-/* end Yices2SolverFactory implementation */
+/* end Yices2SolverFactory logging implementation */
 
 }  // namespace smt

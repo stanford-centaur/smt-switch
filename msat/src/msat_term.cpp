@@ -473,7 +473,7 @@ bool MsatTerm::is_value() const
           msat_term_is_array_const(env, term));
 }
 
-string MsatTerm::to_string() const
+string MsatTerm::to_string()
 {
   if (is_uf)
   {
@@ -553,6 +553,16 @@ TermIter MsatTerm::end()
     arity++;
   }
   return TermIter(new MsatTermIter(env, term, arity));
+}
+
+std::string MsatTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return to_string();
 }
 
 // end MsatTerm implementation

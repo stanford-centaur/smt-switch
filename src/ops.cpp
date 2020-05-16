@@ -125,23 +125,7 @@ bool operator==(Op o1, Op o2)
   }
 }
 
-bool operator!=(Op o1, Op o2)
-{
-  if (o1.prim_op != o2.prim_op)
-  {
-    return true;
-  }
-  else if (o1.num_idx != o2.num_idx)
-  {
-    return true;
-  }
-  else
-  {
-    return ((o1.num_idx > 1) || (o1.idx0 != o2.idx0))
-           && ((o1.num_idx != 2) || (o1.idx0 != o2.idx0)
-               || (o1.idx1 != o2.idx1));
-  }
-}
+bool operator!=(Op o1, Op o2) { return !(o1 == o2); }
 
 std::ostream & operator<<(std::ostream & output, const Op o)
 {
