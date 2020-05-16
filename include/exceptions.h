@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file exceptions.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann, Clark Barrett
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Custom exceptions for smt-switch.
+**
+**
+**/
+
 #ifndef SMT_EXCEPTIONS_H
 #define SMT_EXCEPTIONS_H
 
