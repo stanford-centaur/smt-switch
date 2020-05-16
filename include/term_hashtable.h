@@ -10,10 +10,11 @@
 ** directory for licensing information.\endverbatim
 **
 ** \brief A simple hash table for terms -- used for hash-consing in
-*LoggingSolver
+** LoggingSolver
 **
 **
 **/
+
 #pragma once
 
 #include <unordered_map>
