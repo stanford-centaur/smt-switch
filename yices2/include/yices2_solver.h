@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file yices2_solver.h
+** \verbatim
+** Top contributors (to current version):
+**   Amalee Wilson, Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Yices2 implementation of AbsSmtSolver
+**
+**
+**/
+
 #ifndef SMT_YICES2_SOLVER_H
 #define SMT_YICES2_SOLVER_H
 
