@@ -70,13 +70,20 @@ using UnorderedSortSet = std::unordered_set<Sort>;
 namespace std
 {
 
-  template<>
-  struct hash<smt::Sort>
+// for old compilers
+template <>
+struct hash<smt::SortKind>
+{
+  size_t operator()(const smt::SortKind & sk) const
   {
-    size_t operator()(const smt::Sort & s) const
-    {
-      return s->hash();
-    }
+    return static_cast<std::size_t>(sk);
+  }
+};
+
+template <>
+struct hash<smt::Sort>
+{
+  size_t operator()(const smt::Sort & s) const { return s->hash(); }
   };
 
 }

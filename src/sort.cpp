@@ -5,20 +5,6 @@
 #include "sort.h"
 #include "utils.h"
 
-namespace std
-{
-  // specialize the hash template
-  template<>
-  struct hash<smt::SortKind>
-  {
-    size_t operator()(const smt::SortKind sk) const
-    {
-      return static_cast<std::size_t>(sk);
-    }
-  };
-}
-
-
 namespace smt {
 
 const std::unordered_map<SortKind, std::string> sortkind2str(
