@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file yices2_sort.h
+** \verbatim
+** Top contributors (to current version):
+**   Amalee Wilson
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Yices2 implementation of AbsSort
+**
+**
+**/
+
 #ifndef SMT_YICES2_SORT_H
 #define SMT_YICES2_SORT_H
 
