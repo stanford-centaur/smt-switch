@@ -65,9 +65,9 @@ jobs:
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
-  - ./scripts/travis-setup-osx-python.sh || true
+  - ./travis-scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
-  - bash -c "./contrib/setup-${SOLVER}.sh ${OPTS}"
+  - bash -c "./travis-scripts/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "./configure.sh --${SOLVER} --python"
   - bash -c "cd build && make -j && make test"
   # install wheels
