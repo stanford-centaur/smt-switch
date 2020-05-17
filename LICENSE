@@ -1,7 +1,8 @@
 BSD 3-Clause License
 
-Copyright (c) 2019, makaimann
-All rights reserved.
+Copyright (c) 2019, 2020 by
+its authors and contributors (see the file AUTHORS) and their institutional
+affiliations. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -27,3 +28,23 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+-------------------------------------------------------------------------------
+ Third-Party Software
+-------------------------------------------------------------------------------
+
+smt-switch can optionally be linked with third-party software which has its own
+copywrite and licensing terms.
+
+smt-switch can be linked with the Boolector and CVC4 SMT solvers. Both of these
+libraries are compliant with the BSD license above. Linking against these
+libraries does not affect the license terms of smt-switch.
+
+smt-switch can be linked with the MathSAT5 SMT solver. If you choose to link
+against this library, you are responsible for meeting the conditions of the
+MathSAT5 license as described here: https://mathsat.fbk.eu/download.html
+
+smt-switch can be linked with the Yices2 SMT solver which is covered by the
+GPLv3 license. If you choose to link against this library, the combined work
+is covered by the GPLv3 license.
