@@ -43,6 +43,8 @@ Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX w
 # Solvers
 To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can configure your `cmake` build with the `configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By default only `libsmt-switch.so` is built without any solvers.
 
+Some of the backend solvers have non-BSD compatible licenses. There are no provided setup scripts for these solvers. However, there are instructions for setting up these solvers in `./contrib`. Should you choose to link against these solver libraries, you assume all responsibility for meeting the license requirements of those libraries.
+
 Once you've configured the build system, simply enter the build directory (`./build` by default) and run `make`. Each solver you add produces a `libsmt-switch-<solver>.so` shared object file. Running `make install` installs these libraries and the public header files into the configured prefix (`/usr/local` by default). Note that the header files are put in a directory, e.g. `/usr/local/include/smt-switch`.
 
 ## Currently Supported Solvers
