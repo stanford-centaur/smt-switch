@@ -1,0 +1,1 @@
+../contrib/setup-btor.sh
