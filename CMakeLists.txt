@@ -61,7 +61,9 @@ option (BUILD_BTOR
   "Should we build the libraries for boolector" OFF)
 
 if (BUILD_BTOR)
-  set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
+  if (NOT DEFINED BTOR_HOME)
+    set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
+  endif()
   add_subdirectory (btor)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
@@ -74,7 +76,9 @@ option (BUILD_CVC4
   "Should we build the libraries for cvc4" OFF)
 
 if (BUILD_CVC4)
-  set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
+  if (NOT DEFINED CVC4_HOME)
+    set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
+  endif()
   add_subdirectory (cvc4)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
 
@@ -87,7 +91,9 @@ option (BUILD_MSAT
   "Should we build the libraries for mathsat" OFF)
 
 if (BUILD_MSAT)
-  set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
+  if (NOT DEFINED MSAT_HOME)
+    set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
+  endif()
   add_subdirectory (msat)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
@@ -101,7 +107,9 @@ option (BUILD_YICES2
   "Should we build the libraries for yices2" OFF)
 
 if (BUILD_YICES2)
-  set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
+  if (NOT DEFINED YICES2_HOME)
+    set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
+  endif()
   add_subdirectory (yices2)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
 
