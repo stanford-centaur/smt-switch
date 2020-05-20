@@ -370,6 +370,11 @@ cdef class SmtSolver:
         term.ct = dref(self.css).make_symbol(name.encode(), sort.cs)
         return term
 
+    def make_param(self, str name, Sort sort):
+        cdef Term term = Term(self)
+        term.ct = dref(self.css).make_param(name.encode(), sort.cs)
+        return term
+
     def reset(self):
         dref(self.css).reset()
 
