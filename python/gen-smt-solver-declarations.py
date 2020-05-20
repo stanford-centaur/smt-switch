@@ -55,19 +55,19 @@ cdef extern from "boolector_factory.h":
 
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
-    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (logging) except +
+    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (bint logging) except +
 '''
 
 
 DECLARE_MSAT='''
 cdef extern from "msat_factory.h":
-    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" (logging) except +
+    c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" (bint logging) except +
     c_SmtSolver cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 '''
 
 DECLARE_YICES2='''
 cdef extern from "yices2_factory.h":
-    c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (logging) except +
+    c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (bint logging) except +
 '''
 
 
