@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "exceptions.h"
 #include "result.h"
 
 namespace std
@@ -38,6 +39,19 @@ namespace smt {
 
 const std::unordered_map<ResultType, std::string> result2str(
     { { SAT, "sat" }, { UNSAT, "unsat" }, { UNKNOWN, "unknown" } });
+
+std::string Result::get_explanation() const
+{
+  if (result != UNKNOWN)
+  {
+    throw IncorrectUsageException(
+        "Result was not unknown. Cannot get explanation");
+  }
+  else
+  {
+    return explanation;
+  }
+}
 
 std::string Result::to_string() const { return result2str.at(result); }
 

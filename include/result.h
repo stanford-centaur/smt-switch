@@ -33,14 +33,15 @@ enum ResultType
 struct Result
 {
   Result() : result(NUM_RESULTS), explanation("null") {}
-  Result(ResultType rt, std::string explanation = "")
+  Result(ResultType rt, std::string explanation = "no explanation")
       : result(rt), explanation(explanation)
   {
   }
-  bool is_sat() { return result == SAT; };
-  bool is_unsat() { return result == UNSAT; };
-  bool is_unknown() { return result == UNKNOWN; };
-  bool is_null() { return result == NUM_RESULTS; };
+  bool is_sat() const { return result == SAT; };
+  bool is_unsat() const { return result == UNSAT; };
+  bool is_unknown() const { return result == UNKNOWN; };
+  bool is_null() const { return result == NUM_RESULTS; };
+  std::string get_explanation() const;
   std::string to_string() const;
   ResultType result;
   std::string explanation;
