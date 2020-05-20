@@ -94,7 +94,9 @@ const std::unordered_map<PrimOp,
                          { BV_To_Nat, int_sort },
                          { Int_To_BV, int_to_bv_sort },
                          { Select, select_sort },
-                         { Store, store_sort }
+                         { Store, store_sort },
+                         { Forall, bool_sort },
+                         { Exists, bool_sort }
 
     });
 

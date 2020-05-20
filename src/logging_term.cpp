@@ -26,12 +26,23 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
-    : wrapped_term(t), sort(s), op(o), children(c), is_symbol(false)
+    : wrapped_term(t),
+      sort(s),
+      op(o),
+      children(c),
+      is_symbol(false),
+      is_param(false)
 {
 }
 
-LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r)
-    : wrapped_term(t), sort(s), op(o), children(c), repr(r), is_symbol(true)
+LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r, bool is_sym)
+    : wrapped_term(t),
+      sort(s),
+      op(o),
+      children(c),
+      repr(r),
+      is_symbol(is_sym),
+      is_param(!is_sym)
 {
 }
 

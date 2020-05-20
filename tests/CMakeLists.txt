@@ -77,6 +77,11 @@ target_link_libraries(unit-solving-interface gtest_main)
 target_link_libraries(unit-solving-interface test-deps)
 add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
 
+add_executable(unit-quantifiers "${PROJECT_SOURCE_DIR}/tests/unit/unit-quantifiers.cpp")
+target_link_libraries(unit-quantifiers gtest_main)
+target_link_libraries(unit-quantifiers test-deps)
+add_test(NAME unit-quantifiers_test COMMAND unit-quantifiers)
+
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)
 target_link_libraries(test_itp test-deps)
