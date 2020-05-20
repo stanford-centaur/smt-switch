@@ -649,6 +649,11 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      throw IncorrectUsageException(
+          "Quantifier ops require one parameter and the formula body.");
+    }
     throw InternalSolverException(e.what());
   }
 }
@@ -696,14 +701,7 @@ Term CVC4Solver::make_term(Op op,
     std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
     std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
     std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      ::CVC4::api::Term bound_vars =
-          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterm0->term, cterm1->term);
-      return std::make_shared<CVC4Term>(
-          solver.mkTerm(primop2kind.at(op.prim_op), bound_vars, cterm2->term));
-    }
-    else if (op.num_idx == 0)
+    if (op.num_idx == 0)
     {
       return std::make_shared<CVC4Term>
           (solver.mkTerm(primop2kind.at(op.prim_op),
@@ -720,6 +718,12 @@ Term CVC4Solver::make_term(Op op,
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      throw IncorrectUsageException(
+          "Can only bind one parameter at time with quantifiers in "
+          "smt-switch.");
+    }
     throw InternalSolverException(e.what());
   }
 }
@@ -738,6 +742,12 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
+      if (cterms.size() != 2)
+      {
+        throw IncorrectUsageException(
+            "smt-switch only supports binding one parameter at a time with a "
+            "quantifier");
+      }
       ::CVC4::api::Term quantified_body = cterms.back();
       cterms.pop_back();
       ::CVC4::api::Term bound_vars =
