@@ -342,3 +342,11 @@ setattr(primops, 'Select', Select)
 cdef PrimOp Store = PrimOp()
 Store.po = c_Store
 setattr(primops, 'Store', Store)
+
+cdef PrimOp Forall = PrimOp()
+Forall.po = c_Forall
+setattr(primops, 'Forall', Forall)
+
+cdef PrimOp Exists = PrimOp()
+Exists.po = c_Exists
+setattr(primops, 'Exists', Exists)
