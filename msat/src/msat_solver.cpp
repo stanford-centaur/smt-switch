@@ -625,6 +625,11 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 }
 
+Term MsatSolver::make_param(const std::string name, const Sort & sort)
+{
+  throw NotImplementedException("make_param not supported by MathSAT yet.");
+}
+
 Term MsatSolver::make_term(Op op, const Term & t) const
 {
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);

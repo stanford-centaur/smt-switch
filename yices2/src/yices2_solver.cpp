@@ -613,6 +613,11 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   return std::make_shared<Yices2Term> (y_term);
 }
 
+Term Yices2Solver::make_param(const std::string name, const Sort & sort)
+{
+  throw NotImplementedException("make_param not supported by Yices2 yet.");
+}
+
 Term Yices2Solver::make_term(Op op, const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
