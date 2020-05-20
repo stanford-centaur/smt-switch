@@ -640,144 +640,40 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
 }
 
 Sort CVC4Solver::make_sort(const DatatypeDecl & d) const {
-  // corresponds to CVC4::api::Solver::mkDatatypeSort
-  try
-  {
-    std::shared_ptr<CVC4DatatypeDecl> cd = std::static_pointer_cast<CVC4DatatypeDecl>(d);
-
-  return std::make_shared<CVC4Sort> (solver.mkDatatypeSort(cd->datatypedecl));
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 };
 DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)  {
-  //corresponds to CVC4::api::Solver::mkDatatypeDecl()
-  try
-  {
-  return std::make_shared<CVC4DatatypeDecl> (solver.mkDatatypeDecl(s));
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 }
 
 DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::string s) const {
-   // corresponds to CVC4::api::DatatypeConstructorDecl initializer
-  try
-  {
-  return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 };
 
 void CVC4Solver::addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
-  // corresponds to CVC4::api::DatatypeDecl::addConstructor
-  try
-  {
-    std::shared_ptr<CVC4DatatypeDecl> cdt = std::static_pointer_cast<CVC4DatatypeDecl>(dt);
-    std::shared_ptr<CVC4DatatypeConstructorDecl> ccon = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(con);
-    cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 };
 
 void CVC4Solver::addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
-  // corresponds to CVC4::api::DatatypeConstructorDecl::addSelector
-  try
-  {
-    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
-    std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-    cdt->datatypeconstructordecl.addSelector(name,cs->sort);
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-
+  throw NotImplementedException("");
 };
 
 void CVC4Solver::addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const {
-  // corresponds to CVC4::api::DatatypeConstructorDecl::addSelectorSelf
-  try
-  {
-    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
-    cdt->datatypeconstructordecl.addSelectorSelf(name);
-  }
-  catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 };
 
 Term CVC4Solver::get_constructor(const Sort & s, std::string name) const  {
-  //corresponds to CVC4::api::DatatypeConstructor::getConstructorTerm
-  // The constructor name is globally unique, so we can just search the
-  // constructors of the datatype (which can be gotten from the sort)
-  try
-  {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName()==name){
-      return std::make_shared<CVC4Term> (ct.getConstructorTerm());}
-  }
-  throw InternalSolverException("in CVC4Solver::get_constructor, "+name+" not found in "+cs->sort.toString());
-  } catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-
+  throw NotImplementedException("");
 };
 
 Term CVC4Solver::get_tester(const Sort & s, std::string name) const  {
-  //corresponds to CVC4::api::DatatypeConstructor::getConstructorTerm
-  // The constructor name is globally unique, so we can just search the
-  // constructors of the datatype (which can be gotten from the sort)
-  try
-  {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName() == name){
-      return std::make_shared<CVC4Term> (ct.getTesterTerm());}
-  }
-  throw InternalSolverException("in CVC4Solver::get_constructor, "+name+" not found in "+cs->sort.toString());
-  } catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-
+  throw NotImplementedException("");
 };
-
 
 Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name) const  {
-  //corresponds to CVC4::api::DatatypeConstructor::getSelectorTerm
-  try
-  {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName() == con){
-      return std::make_shared<CVC4Term> (ct.getSelectorTerm(name));}
-  }
-  throw InternalSolverException("in CVC4Solver::get_constructor, "+name+" not found in "+cs->sort.toString());
-  } catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw NotImplementedException("");
 };
+
 Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try
