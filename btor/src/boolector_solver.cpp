@@ -593,6 +593,11 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   return term;
 }
 
+Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
+{
+  throw NotImplementedException("make_param not supported by Boolector yet.");
+}
+
 Term BoolectorSolver::make_term(Op op, const Term & t) const
 {
   if (op.num_idx == 0)
