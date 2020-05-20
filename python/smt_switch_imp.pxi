@@ -85,6 +85,9 @@ cdef class Result:
     def is_null(self):
         return self.cr.is_null()
 
+    def get_explanation(self):
+        return self.cr.get_explanation()
+
     def __str__(self):
         return self.cr.to_string().decode()
 

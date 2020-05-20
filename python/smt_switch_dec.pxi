@@ -84,6 +84,7 @@ cdef extern from "result.h" namespace "smt":
         bint is_unsat() except +
         bint is_unknown() except +
         bint is_null() except +
+        string get_explanation() except+
         string to_string() except+
 
 
