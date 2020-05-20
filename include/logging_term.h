@@ -27,7 +27,7 @@ class LoggingTerm : public AbsTerm
  public:
   LoggingTerm(Term t, Sort s, Op o, TermVec c);
   // this one is for making symbols
-  // if passed with true, sets is_symbol true
+  // if passed with true, sets is_sym true
   // otherwise sets is_param true
   // only symbols and parameters have names
   LoggingTerm(Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym);
@@ -43,6 +43,8 @@ class LoggingTerm : public AbsTerm
   Op get_op() const override;
   Sort get_sort() const override;
   std::string to_string() override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   TermIter begin() override;
   TermIter end() override;
@@ -59,8 +61,8 @@ class LoggingTerm : public AbsTerm
   Op op;
   TermVec children;
   std::string repr;
-  bool is_symbol;
-  bool is_param;
+  bool is_sym;
+  bool is_par;
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;

@@ -234,9 +234,20 @@ Sort CVC4Term::get_sort() const
   return std::make_shared<CVC4Sort> (term.getSort());
 }
 
-bool CVC4Term::is_symbolic_const() const
+bool CVC4Term::is_symbol() const
 {
   return (term.getKind() == ::CVC4::api::CONSTANT);
+}
+
+bool CVC4Term::is_param() const
+{
+  return (term.getKind() == ::CVC4::api::VARIABLE);
+}
+
+bool CVC4Term::is_symbolic_const() const
+{
+  return (term.getKind() == ::CVC4::api::CONSTANT
+          && !term.getSort().isFunction());
 }
 
 bool CVC4Term::is_value() const
