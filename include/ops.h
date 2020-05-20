@@ -100,8 +100,13 @@ enum PrimOp
   Select,
   Store,
   /* Quantifiers */
-  Forall,
-  Exists,
+  Forall,  ///< used to bind *one* parameter in a formula with a universal
+           ///< quantifier
+  Exists,  ///< used to bind *one* parameter in a formula with an existential
+           ///< quanifier
+  // quantifiers only bind a single parameter to simplify term iteration
+  // e.g. the solvers don't align well on the representation unless only one
+  // parameter is bound
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */
