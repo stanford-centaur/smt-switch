@@ -55,6 +55,8 @@ enum SolverAttribute
   FULL_TRANSFER,
   // unsat core support
   UNSAT_CORE,
+  // quantifier support
+  QUANTIFIERS,
 };
 
 /** Creates an SmtSolver of the provided type */

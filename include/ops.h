@@ -99,6 +99,9 @@ enum PrimOp
   /* Array Theory */
   Select,
   Store,
+  /* Quantifiers */
+  Forall,
+  Exists,
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */

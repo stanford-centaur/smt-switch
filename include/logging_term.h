@@ -27,8 +27,10 @@ class LoggingTerm : public AbsTerm
  public:
   LoggingTerm(Term t, Sort s, Op o, TermVec c);
   // this one is for making symbols
-  // passing a name implies it's a symbol
-  LoggingTerm(Term t, Sort s, Op o, TermVec c, std::string r);
+  // if passed with true, sets is_symbol true
+  // otherwise sets is_param true
+  // only symbols and parameters have names
+  LoggingTerm(Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym);
   virtual ~LoggingTerm();
 
   // implemented
@@ -58,6 +60,7 @@ class LoggingTerm : public AbsTerm
   TermVec children;
   std::string repr;
   bool is_symbol;
+  bool is_param;
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;

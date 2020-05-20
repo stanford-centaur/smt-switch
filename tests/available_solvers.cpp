@@ -74,7 +74,8 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             // ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { CVC4_LOGGING,
           { LOGGING,
@@ -84,7 +85,8 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             // ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,

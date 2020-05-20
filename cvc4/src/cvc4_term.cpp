@@ -105,7 +105,9 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       // Indexed Op
       { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       { ::CVC4::api::SELECT, Select },
-      { ::CVC4::api::STORE, Store } });
+      { ::CVC4::api::STORE, Store },
+      { ::CVC4::api::FORALL, Forall },
+      { ::CVC4::api::EXISTS, Exists } });
 
 // struct for hashing
 CVC4::api::TermHashFunction termhash;
