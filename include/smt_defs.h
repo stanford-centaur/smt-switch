@@ -32,6 +32,16 @@ using Term = std::shared_ptr<AbsTerm>;
 class AbsSmtSolver;
 using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 
+// Datatype theory related
+class AbsDatatypeDecl;
+using DatatypeDecl = std::shared_ptr<AbsDatatypeDecl>;
+
+class AbsDatatypeConstructorDecl;
+using DatatypeConstructorDecl = std::shared_ptr<AbsDatatypeConstructorDecl>;
+
+class AbsDatatype;
+using Datatype = std::shared_ptr<AbsDatatype>;
+
 }  // namespace smt
 
 #endif

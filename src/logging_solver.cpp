@@ -109,6 +109,38 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return make_logging_sort(sk, sort, sorts);
 }
 
+
+Sort LoggingSolver::make_sort(const DatatypeDecl & d) const {
+  throw NotImplementedException("LoggingSolver::make_sort");
+};
+DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s)  {
+    throw NotImplementedException("LoggingSolver::make_datatype_decl");
+}
+DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(const std::string s) const {
+    throw NotImplementedException("LoggingSolver::make_datatype_constructor_decl");
+};
+void LoggingSolver::addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("LoggingSolver::addConstructor");
+};
+void LoggingSolver::addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("LoggingSolver::addSelector");
+};
+void LoggingSolver::addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("LoggingSolver::addSelectorSelf");
+};
+
+Term LoggingSolver::get_constructor(const Sort & s, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_constructor");
+};
+Term LoggingSolver::get_tester(const Sort & s, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_testeer");
+};
+
+Term LoggingSolver::get_selector(const Sort & s, std::string con, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_selector");
+};
+
+
 Term LoggingSolver::make_term(bool b) const
 {
   Term wrapped_res = wrapped_solver->make_term(b);

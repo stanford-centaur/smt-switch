@@ -81,7 +81,10 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Rotate_Left, "rotate_left" },
       { Rotate_Right, "rotate_right" },
       { Select, "select" },
-      { Store, "store" } });
+      { Store, "store" },
+      { Apply_Selector, "apply_selector"},
+      { Apply_Tester, "apply_tester"},
+      { Apply_Constructor, "apply_constructor"}  });
 
 std::string to_string(PrimOp op)
 {

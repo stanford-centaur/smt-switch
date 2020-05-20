@@ -102,6 +102,10 @@ SortKind CVC4Sort::get_sort_kind() const
   {
     return UNINTERPRETED;
   }
+  else if (sort.isDatatype())
+  {
+    return DATATYPE;
+  }
   else
   {
     throw NotImplementedException("Unknown kind in CVC4 translation.");
