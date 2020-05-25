@@ -65,6 +65,7 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
   ASSERT_FALSE(b->is_value());
   // forall b . b
   Term forallb = s->make_term(Forall, b, b);
+  ASSERT_EQ(forallb->get_op(), Forall);
   s->assert_formula(forallb);
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_unsat());
