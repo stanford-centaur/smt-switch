@@ -75,7 +75,7 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 {
   Term b = s->make_param("b", boolsort);
   Term x = s->make_param("x", bvsort);
-  Term f = s->make_param("f", funsort);
+  Term f = s->make_symbol("f", funsort);
 
   Term fx = s->make_term(Apply, f, x);
   Term bimpfxeq0 = s->make_term(
