@@ -461,7 +461,11 @@ void LoggingSolver::assert_formula(const Term & t)
   wrapped_solver->assert_formula(lt->wrapped_term);
 }
 
-Result LoggingSolver::check_sat() { return wrapped_solver->check_sat(); }
+Result LoggingSolver::check_sat()
+{
+  Result r = wrapped_solver->check_sat();
+  return r;
+}
 
 Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
 {

@@ -83,7 +83,7 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   ASSERT_THROW(s->make_term(Forall, b, x, bimpfxeq0), IncorrectUsageException);
   Term forallx = s->make_term(Forall, x, bimpfxeq0);
   Term forallbx = s->make_term(Forall, b, forallx);
-  ASSERT_EQ(forallbx->get_sort()->get_sort_kind(), BOOL);
+  ASSERT_EQ(forallbx->get_sort(), boolsort);
   TermVec children(forallbx->begin(), forallbx->end());
   ASSERT_EQ(children[0], b);
   ASSERT_EQ(children[1], forallx);

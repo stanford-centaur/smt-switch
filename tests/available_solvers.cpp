@@ -57,7 +57,7 @@ const std::vector<SolverEnum> solver_enums({
 
 const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
     solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE } },
+        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE, QUANTIFIERS } },
 
         { BTOR_LOGGING,
           { LOGGING,
@@ -65,7 +65,8 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { CVC4,
           { TERMITER,

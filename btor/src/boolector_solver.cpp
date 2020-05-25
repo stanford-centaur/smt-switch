@@ -604,6 +604,11 @@ Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
 
 Term BoolectorSolver::make_term(Op op, const Term & t) const
 {
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
   if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t);
@@ -655,7 +660,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
         std::static_pointer_cast<BoolectorTerm>(t0);
     std::shared_ptr<BoolectorTerm> bt1 =
         std::static_pointer_cast<BoolectorTerm>(t1);
-    std::vector params({ bt0->node });
+    std::vector<BoolectorNode *> params({ bt0->node });
     return std::make_shared<BoolectorTerm>(
         btor, boolector_forall(btor, &params[0], 1, bt1->node));
   }
@@ -665,7 +670,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
         std::static_pointer_cast<BoolectorTerm>(t0);
     std::shared_ptr<BoolectorTerm> bt1 =
         std::static_pointer_cast<BoolectorTerm>(t1);
-    std::vector params({ bt0->node });
+    std::vector<BoolectorNode *> params({ bt0->node });
     return std::make_shared<BoolectorTerm>(
         btor, boolector_exists(btor, &params[0], 1, bt1->node));
   }
@@ -686,7 +691,12 @@ Term BoolectorSolver::make_term(Op op,
                                 const Term & t1,
                                 const Term & t2) const
 {
-  if (op.num_idx == 0)
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1, t2);
   }
@@ -700,7 +710,12 @@ Term BoolectorSolver::make_term(Op op,
 
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (op.num_idx == 0)
+  if (terms.size() != 2 && (op.prim_op == Forall || op.prim_op == Exists))
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, terms);
   }
