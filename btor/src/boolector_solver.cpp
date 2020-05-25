@@ -595,7 +595,11 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 
 Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
 {
-  throw NotImplementedException("make_param not supported by Boolector yet.");
+  std::shared_ptr<BoolectorSortBase> bs =
+      std::static_pointer_cast<BoolectorSortBase>(sort);
+  BoolectorNode * n = boolector_param(btor, bs->sort, name.c_str());
+  Term term = std::make_shared<BoolectorTerm>(btor, n);
+  return term;
 }
 
 Term BoolectorSolver::make_term(Op op, const Term & t) const
@@ -645,7 +649,27 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
 
 Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  if (op.num_idx == 0)
+  if (op.prim_op == Forall)
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+    std::vector params({ bt0->node });
+    return std::make_shared<BoolectorTerm>(
+        btor, boolector_forall(btor, &params[0], 1, bt1->node));
+  }
+  else if (op.prim_op == Exists)
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+    std::vector params({ bt0->node });
+    return std::make_shared<BoolectorTerm>(
+        btor, boolector_exists(btor, &params[0], 1, bt1->node));
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1);
   }

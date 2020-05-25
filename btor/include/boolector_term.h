@@ -104,6 +104,8 @@ class BoolectorTerm : public AbsTerm
   bool negated;
   // true iff the node is a symbolic constant
   bool is_sym;
+  // true iff the node is a parameter (to be bound by a quantifier)
+  bool is_par;
   // for iterating args nodes
   BtorArgsIterator ait;
   // for storing nodes before iterating

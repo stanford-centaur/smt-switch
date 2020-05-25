@@ -61,8 +61,8 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     { BTOR_BV_UREM_NODE, BVUrem },
     { BTOR_BV_CONCAT_NODE, Concat },
     { BTOR_APPLY_NODE, Apply },
-    // {BTOR_FORALL_NODE}, // TODO: implement later
-    // {BTOR_EXISTS_NODE}, // TODO: implement later
+    { BTOR_FORALL_NODE, Forall },
+    { BTOR_EXISTS_NODE, Exists },
     // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully
     // only for quantifiers
     { BTOR_COND_NODE, Ite },
@@ -195,6 +195,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
   is_sym =
       !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
+  is_par = !negated && (bn->kind == BTOR_PARAM_NODE);
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -277,11 +278,7 @@ Sort BoolectorTerm::get_sort() const
 
 bool BoolectorTerm::is_symbol() const { return is_sym; }
 
-bool BoolectorTerm::is_param() const
-{
-  throw NotImplementedException(
-      "Boolector backend does not support parameters yet.");
-}
+bool BoolectorTerm::is_param() const { return is_par; }
 
 bool BoolectorTerm::is_symbolic_const() const
 {
