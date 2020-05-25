@@ -62,6 +62,8 @@ class Yices2Term : public AbsTerm
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;

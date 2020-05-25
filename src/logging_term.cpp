@@ -26,12 +26,7 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
-    : wrapped_term(t),
-      sort(s),
-      op(o),
-      children(c),
-      is_symbol(false),
-      is_param(false)
+    : wrapped_term(t), sort(s), op(o), children(c), is_sym(false), is_par(false)
 {
 }
 
@@ -41,8 +36,8 @@ LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r, bool is_sym)
       op(o),
       children(c),
       repr(r),
-      is_symbol(is_sym),
-      is_param(!is_sym)
+      is_sym(is_sym),
+      is_par(!is_sym)
 {
 }
 
@@ -126,9 +121,13 @@ string LoggingTerm::to_string()
   }
 }
 
+bool LoggingTerm::is_symbol() const { return is_sym; }
+
+bool LoggingTerm::is_param() const { return is_par; }
+
 bool LoggingTerm::is_symbolic_const() const
 {
-  return is_symbol;
+  return is_sym && sort->get_sort_kind() != FUNCTION;
 }
 
 TermIter LoggingTerm::begin()

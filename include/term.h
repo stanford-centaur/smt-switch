@@ -48,6 +48,10 @@ class AbsTerm
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
   virtual std::string to_string() = 0;
+  /* returns true iff this term is a symbol */
+  virtual bool is_symbol() const = 0;
+  /* returns true iff this term is a parameter (to be bound by a quantifier) */
+  virtual bool is_param() const = 0;
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */

@@ -52,6 +52,11 @@ add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
 target_link_libraries(test-deps smt-switch ${SOLVER_BACKEND_LIBS})
 
+add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
+target_link_libraries(unit-term gtest_main)
+target_link_libraries(unit-term test-deps)
+add_test(NAME unit-term_test COMMAND unit-term)
+
 add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp")
 target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter test-deps)

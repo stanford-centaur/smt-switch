@@ -388,7 +388,7 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
-  else if (is_symbolic_const() || is_value())
+  else if (is_symbol() || is_value())
   {
     return Op();
   }
@@ -459,12 +459,33 @@ Sort MsatTerm::get_sort() const
   }
 }
 
-bool MsatTerm::is_symbolic_const() const
+bool MsatTerm::is_symbol() const
 {
   // functions are currently considered symbols
   if (is_uf)
   {
     return true;
+  }
+
+  // a symbolic constant is a term with no children and no built-in
+  // interpretation
+  return (
+      (msat_term_arity(term) == 0)
+      && (msat_decl_get_tag(env, msat_term_get_decl(term)) == MSAT_TAG_UNKNOWN)
+      && !msat_term_is_number(env, term));
+}
+
+bool MsatTerm::is_param() const
+{
+  throw NotImplementedException("Msat backend doesn't support parameters yet.");
+}
+
+bool MsatTerm::is_symbolic_const() const
+{
+  // functions are not constants
+  if (is_uf)
+  {
+    return false;
   }
 
   // a symbolic constant is a term with no children and no built-in

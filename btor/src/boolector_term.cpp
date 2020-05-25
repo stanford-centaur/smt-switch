@@ -275,9 +275,18 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
+bool BoolectorTerm::is_symbol() const { return is_sym; }
+
+bool BoolectorTerm::is_param() const
+{
+  throw NotImplementedException(
+      "Boolector backend does not support parameters yet.");
+}
+
 bool BoolectorTerm::is_symbolic_const() const
 {
-  return is_sym;
+  bool is_fun = boolector_is_fun(btor, node);
+  return is_sym && !is_fun;
 }
 
 bool BoolectorTerm::is_value() const
