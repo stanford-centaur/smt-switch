@@ -639,27 +639,84 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
   }
 }
 
-Sort CVC4Solver::make_sort(const DatatypeDecl & d) const {
-  throw NotImplementedException("");
+Sort CVC4Solver::make_sort(const DatatypeDecl & d) const
+{
+  try
+  {
+    std::shared_ptr<CVC4DatatypeDecl> cd = std::static_pointer_cast<CVC4DatatypeDecl>(d);
+
+  return std::make_shared<CVC4Sort> (solver.mkDatatypeSort(cd->datatypedecl));
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
-DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)  {
-  throw NotImplementedException("");
+
+DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)
+{
+  try
+  {
+  return std::make_shared<CVC4DatatypeDecl> (solver.mkDatatypeDecl(s));
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
-DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::string s) const {
-  throw NotImplementedException("");
+DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::string s) const
+{
+  try
+  {
+  return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
 
-void CVC4Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
-  throw NotImplementedException("");
+void CVC4Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
+{
+  try
+  {
+    std::shared_ptr<CVC4DatatypeDecl> cdt = std::static_pointer_cast<CVC4DatatypeDecl>(dt);
+    std::shared_ptr<CVC4DatatypeConstructorDecl> ccon = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(con);
+    cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
 
-void CVC4Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
-  throw NotImplementedException("");
+void CVC4Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
+{
+  try
+  {
+    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
+    std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+    cdt->datatypeconstructordecl.addSelector(name,cs->sort);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+
 };
 
-void CVC4Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
-  throw NotImplementedException("");
+void CVC4Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
+{
+  try
+  {
+    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
+    cdt->datatypeconstructordecl.addSelectorSelf(name);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
 
 Term CVC4Solver::get_constructor(const Sort & s, std::string name) const  {

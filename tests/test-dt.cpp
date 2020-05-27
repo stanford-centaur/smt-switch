@@ -29,8 +29,15 @@ TEST_P(DTTests, Apply_Constructor)
 
     Term five = s->make_term(5, intsort);
 
-    // Can do things with datatypes after implementations are provided
+    DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
+    DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+    DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+    s->add_selector(consdecl, "head", s->make_sort(INT));
+    s->add_selector_self(consdecl, "tail");
+    s->add_constructor(consListSpec, nildecl);
+    s->add_constructor(consListSpec, consdecl);
+    Sort listsort = s->make_sort(consListSpec);
     Result res=s->check_sat();
 
     ASSERT_TRUE(res.is_sat());
