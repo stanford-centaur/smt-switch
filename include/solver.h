@@ -264,7 +264,7 @@ class AbsSmtSolver
    * @param dt Datatype
    * @param con Datatype constructor
    */
- virtual void addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const = 0; // what is const=0?
+ virtual void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const = 0; // what is const=0?
 
   /* Add a selector to a datatype constructor
    * @param dt DatatypeConstructorDecl
@@ -272,13 +272,13 @@ class AbsSmtSolver
    * @param s sort of the selector
    */
 
-  virtual void addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const = 0;
+  virtual void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const = 0;
 
   /* Add a selector to a datatype constructor where the sort is the datatype itself (whose sort doesn't exist yet)
    * @param dt DatatypeConstructorDecl
    * @param name name of the selector
    */
-  virtual void addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const = 0;
+  virtual void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const = 0;
 
   /* get a term representing to a datatype constructor
    * @param s A datatype sort (error otherwise)

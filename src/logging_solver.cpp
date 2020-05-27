@@ -119,14 +119,14 @@ DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s)  {
 DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(const std::string s) const {
     throw NotImplementedException("LoggingSolver::make_datatype_constructor_decl");
 };
-void LoggingSolver::addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
-  throw NotImplementedException("LoggingSolver::addConstructor");
+void LoggingSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("LoggingSolver::add_constructor");
 };
-void LoggingSolver::addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
-  throw NotImplementedException("LoggingSolver::addSelector");
+void LoggingSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("LoggingSolver::add_selector");
 };
-void LoggingSolver::addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const {
-  throw NotImplementedException("LoggingSolver::addSelectorSelf");
+void LoggingSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("LoggingSolver::add_selector_self");
 };
 
 Term LoggingSolver::get_constructor(const Sort & s, std::string name) const  {

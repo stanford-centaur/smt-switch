@@ -650,15 +650,15 @@ DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::st
   throw NotImplementedException("");
 };
 
-void CVC4Solver::addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+void CVC4Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("");
 };
 
-void CVC4Solver::addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+void CVC4Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
   throw NotImplementedException("");
 };
 
-void CVC4Solver::addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const {
+void CVC4Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
   throw NotImplementedException("");
 };
 

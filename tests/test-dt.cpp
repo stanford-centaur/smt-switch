@@ -29,7 +29,7 @@ TEST_P(DTTests, Apply_Constructor)
 
     Term five = s->make_term(5, intsort);
 
-    // Can do things with datatypes after impleementations are provided
+    // Can do things with datatypes after implementations are provided
 
     Result res=s->check_sat();
 

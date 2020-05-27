@@ -78,9 +78,9 @@ class CVC4Solver : public AbsSmtSolver
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
-  void addConstructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void addSelector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void addSelectorSelf(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
   Term get_selector(const Sort & s, std::string con, std::string name) const override;
