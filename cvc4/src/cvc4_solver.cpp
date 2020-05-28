@@ -719,16 +719,59 @@ void CVC4Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::stri
   }
 };
 
-Term CVC4Solver::get_constructor(const Sort & s, std::string name) const  {
-  throw NotImplementedException("");
+Term CVC4Solver::get_constructor(const Sort & s, std::string name) const
+{
+  try
+  {
+  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  CVC4::api::Datatype dt = cs->sort.getDatatype();
+  for (int i=0; i!=dt.getNumConstructors();i++) {
+    CVC4::api::DatatypeConstructor ct=dt[i];
+    if (ct.getName()==name){
+      return std::make_shared<CVC4Term> (ct.getConstructorTerm());}
+  }
+  throw InternalSolverException(name+" not found in "+cs->sort.toString());
+  } catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+
 };
 
-Term CVC4Solver::get_tester(const Sort & s, std::string name) const  {
-  throw NotImplementedException("");
+Term CVC4Solver::get_tester(const Sort & s, std::string name) const
+{
+  try
+  {
+  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  CVC4::api::Datatype dt = cs->sort.getDatatype();
+  for (int i=0; i!=dt.getNumConstructors();i++) {
+    CVC4::api::DatatypeConstructor ct=dt[i];
+    if (ct.getName() == name){
+      return std::make_shared<CVC4Term> (ct.getTesterTerm());}
+  }
+  throw InternalSolverException(name+" not found in "+cs->sort.toString());
+  } catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
 
-Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name) const  {
-  throw NotImplementedException("");
+Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name) const
+{
+ try
+  {
+  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  CVC4::api::Datatype dt = cs->sort.getDatatype();
+  for (int i=0; i!=dt.getNumConstructors();i++) {
+    CVC4::api::DatatypeConstructor ct=dt[i];
+    if (ct.getName() == con){
+      return std::make_shared<CVC4Term> (ct.getSelectorTerm(name));}
+  }
+  throw InternalSolverException(con+"."+name+" not found in "+cs->sort.toString());
+  } catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 };
 
 Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const

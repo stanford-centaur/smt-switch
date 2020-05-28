@@ -40,3 +40,5 @@ dist/
 deps/CVC4/
 
 deps/
+
+local/
