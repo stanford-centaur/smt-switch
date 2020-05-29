@@ -428,6 +428,14 @@ TermVec CVC4Solver::get_unsat_core()
   return core;
 }
 
+bool CVC4Solver::get_interpolant(const Term & A,
+                                              const Term & B,
+                                              Term & out_I) const
+{
+  return false;
+}
+
+
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try

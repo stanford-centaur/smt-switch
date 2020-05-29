@@ -60,6 +60,9 @@ class CVC4Solver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   TermVec get_unsat_core() override;
+  bool get_interpolant(const Term & A,
+                       const Term & B,
+                       Term & out_I) const override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
