@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CVC4_VERSION=ad0b69e6a6242c2c7a2d060ff70ddd78861ca50a
+CVC4_VERSION=Thursday
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
@@ -9,7 +9,7 @@ mkdir -p $DEPS
 
 if [ ! -d "$DEPS/CVC4" ]; then
     cd $DEPS
-    git clone https://github.com/CVC4/CVC4.git
+    git clone https://github.com/ying1123/CVC4.git
     chmod -R 777 CVC4
     cd CVC4
     git checkout -f $CVC4_VERSION
@@ -18,7 +18,7 @@ if [ ! -d "$DEPS/CVC4" ]; then
     export PYTHONPATH=$PYTHONPATH:`pwd`/toml
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
     cd build
-    make -j4
+    make -j16
     cd $DIR
 else
     echo "$DEPS/CVC4 already exists. If you want to rebuild, please remove it manually."
