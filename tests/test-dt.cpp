@@ -39,7 +39,7 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_constructor(consListSpec, nildecl);
     s->add_constructor(consListSpec, consdecl);
     Sort listsort = s->make_sort(consListSpec);
-
+    Datatype listdt = listsort->get_datatype();
     // Make datatype terms
     Term cons = s->get_constructor(listsort,"cons");
     Term nil = s->get_constructor(listsort,"nil");
@@ -59,6 +59,8 @@ TEST_P(DTTests, DatatypeDecl)
       Not, s->make_term(Apply_Tester, isNil, list5)));
 
     Result res=s->check_sat();
+
+    ASSERT_TRUE(listdt->get_name()=="list");
 
     ASSERT_TRUE(res.is_sat());
 

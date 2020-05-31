@@ -41,6 +41,16 @@ class AbsDatatypeConstructorDecl {
 };
 
 
+class AbsDatatype {
+
+ public:
+  AbsDatatype(){};
+  virtual ~AbsDatatype(){};
+  virtual std::string get_name() const=0;
+
+};
+
+
 
 }
 

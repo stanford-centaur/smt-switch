@@ -44,6 +44,20 @@ namespace smt {
   };
 
 
+  class CVC4Datatype : public AbsDatatype {
+    public :
+    CVC4Datatype(CVC4::api::Datatype t) : datatype(t) {};
+    std::string get_name() const override {
+      return datatype.getName();
+    }
+   protected:
+    CVC4::api::Datatype datatype;
+
+  friend class CVC4Solver;
+
+  };
+
+
 
 
 }
