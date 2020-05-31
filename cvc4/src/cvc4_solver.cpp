@@ -780,6 +780,7 @@ bool CVC4InterpolatingSolver::get_interpolant(const Term & A,
                                               const Term & B,
                                               Term & out_I) const
 {
+  solver.resetAssertions();
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
   {
