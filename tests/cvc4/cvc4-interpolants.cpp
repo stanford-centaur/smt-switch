@@ -67,7 +67,6 @@ int main()
   // try getting a second interpolant with different A and B
   A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
   B = s->make_term(Lt, x, z);
-  s->reset_assertions();
   got_interpolant = s->get_interpolant(A, B, I);
 
   if (got_interpolant)
@@ -83,6 +82,8 @@ int main()
   // now try a satisfiable formula
   got_interpolant = s->get_interpolant(A, s->make_term(Gt, x, z), I);
   assert(!got_interpolant);
+
+
 
   return 0;
 }
