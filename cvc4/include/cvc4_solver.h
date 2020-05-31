@@ -60,9 +60,6 @@ class CVC4Solver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   TermVec get_unsat_core() override;
-  bool get_interpolant(const Term & A,
-                       const Term & B,
-                       Term & out_I) const override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -101,6 +98,21 @@ class CVC4Solver : public AbsSmtSolver
   // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
 };
+
+//Interpolating Solver
+class CVC4InterpolatingSolver : public CVC4Solver
+{
+  public: 
+    CVC4InterpolatingSolver() {}
+    CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
+    CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
+    ~CVC4InterpolatingSolver() {}
+
+  bool get_interpolant(const Term & A,
+                       const Term & B,
+                       Term & out_I) const override;
+};
+
 }  // namespace smt
 
 #endif

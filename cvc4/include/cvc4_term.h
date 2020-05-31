@@ -86,6 +86,7 @@ namespace smt {
     CVC4::api::Term term;
 
   friend class CVC4Solver;
+  friend class CVC4InterpolatingSolver;
   };
 
 }

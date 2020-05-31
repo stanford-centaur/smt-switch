@@ -32,6 +32,24 @@ SmtSolver CVC4SolverFactory::create(bool logging)
   }
   return solver;
 }
+
+SmtSolver CVC4SolverFactory::create_interpolating_solver() {
+  SmtSolver solver = std::make_shared<CVC4InterpolatingSolver>();
+  /*
+   * In CVC4, turning on interpolation requiers choosing
+   * an interpolation mode.
+   * Here we set the default one.
+   * However, it is recommended to use
+   * s->set_opt("produce-interpols", "shared");
+   * or
+   * s->set_opt("produce-interpols", "conclustion");
+   *
+   * In addition, it is recommended to turn on another option:
+   * s->set_opt("sygus-active-gen", "enum");
+   * */
+  solver->set_opt("produce-interpols", "default");
+  return solver;
+}
 /* end CVC4SolverFactory implementation */
 
 } // namespace smt

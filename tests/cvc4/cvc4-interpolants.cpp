@@ -30,9 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create(false);
-  s->set_opt("produce-interpols", "conclusion");
-  s->set_opt("sygus-active-gen", "enum");
+  SmtSolver s = CVC4SolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_symbol("x", intsort);

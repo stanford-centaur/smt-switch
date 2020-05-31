@@ -428,25 +428,6 @@ TermVec CVC4Solver::get_unsat_core()
   return core;
 }
 
-bool CVC4Solver::get_interpolant(const Term & A,
-                                              const Term & B,
-                                              Term & out_I) const
-{
-  if (A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
-  {
-    throw IncorrectUsageException("get_interpolant requires two boolean terms");
-  }
-  std::shared_ptr<CVC4Term> cA = std::static_pointer_cast<CVC4Term>(A);
-  std::shared_ptr<CVC4Term> cB = std::static_pointer_cast<CVC4Term>(make_term(Not, B));
-  solver.assertFormula(cA->term);
-  CVC4::api::Term I;
-  bool success = solver.getInterpolant(cB->term, I);
-  if (success) {
-    out_I = Term(new CVC4Term(I));
-  }
-  return success;
-}
 
 
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
@@ -795,4 +776,25 @@ void CVC4Solver::dump_smt2(std::string filename) const
 
 /* end CVC4Solver implementation */
 
+bool CVC4InterpolatingSolver::get_interpolant(const Term & A,
+                                              const Term & B,
+                                              Term & out_I) const
+{
+  if (A->get_sort()->get_sort_kind() != BOOL
+      || B->get_sort()->get_sort_kind() != BOOL)
+  {
+    throw IncorrectUsageException("get_interpolant requires two boolean terms");
+  }
+  std::shared_ptr<CVC4Term> cA = std::static_pointer_cast<CVC4Term>(A);
+  std::shared_ptr<CVC4Term> cB = std::static_pointer_cast<CVC4Term>(make_term(Not, B));
+  solver.assertFormula(cA->term);
+  CVC4::api::Term I;
+  bool success = solver.getInterpolant(cB->term, I);
+  if (success) {
+    out_I = Term(new CVC4Term(I));
+  }
+  return success;
 }
+// begin CVC4InterpolatingSolver implementation
+}
+
