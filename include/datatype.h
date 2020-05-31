@@ -47,6 +47,8 @@ class AbsDatatype {
   AbsDatatype(){};
   virtual ~AbsDatatype(){};
   virtual std::string get_name() const=0;
+  virtual int get_num_selectors(std::string cons) const=0;
+  virtual int get_num_constructors() const=0;
 
 };
 

@@ -19,6 +19,7 @@
 #define SMT_CVC4_DATATYPE_H
 
 #include "datatype.h"
+#include "exceptions.h"
 #include "api/cvc4cpp.h"
 
 namespace smt {
@@ -50,6 +51,18 @@ namespace smt {
     std::string get_name() const override {
       return datatype.getName();
     }
+    int get_num_constructors() const override {
+      return datatype.getNumConstructors();
+    }
+    int get_num_selectors(std::string cons) const override {
+      for (int i=0; i!=datatype.getNumConstructors();i++) {
+        CVC4::api::DatatypeConstructor ct=datatype[i];
+        if (ct.getName() == cons){
+          return ct.getNumSelectors();}
+      }
+      throw InternalSolverException(datatype.getName()+"."+cons+" not found");
+    }
+
    protected:
     CVC4::api::Datatype datatype;
 

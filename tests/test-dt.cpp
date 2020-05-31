@@ -61,6 +61,9 @@ TEST_P(DTTests, DatatypeDecl)
     Result res=s->check_sat();
 
     ASSERT_TRUE(listdt->get_name()=="list");
+    ASSERT_TRUE(listdt->get_num_constructors()==2);
+    ASSERT_TRUE(listdt->get_num_selectors("cons")==2);
+    ASSERT_TRUE(listdt->get_num_selectors("nil")==0);
 
     ASSERT_TRUE(res.is_sat());
 
@@ -68,6 +71,7 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
     EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
     EXPECT_THROW(s->get_selector(listsort, "nil", "head"), InternalSolverException);
+    EXPECT_THROW(listdt->get_num_selectors("kons")==2,InternalSolverException);
 
 }
 
