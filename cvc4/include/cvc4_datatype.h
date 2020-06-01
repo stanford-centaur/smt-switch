@@ -3,16 +3,14 @@
 /*! \file cvc4_datatype.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Makai Mann
+**   Kristopher Brown
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsTerm
-**
-**
+** \brief Thin wrapper for CVC4 Datatype-related classes.
 **/
 
 #ifndef SMT_CVC4_DATATYPE_H
