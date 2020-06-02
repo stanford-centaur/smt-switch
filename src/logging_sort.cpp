@@ -168,6 +168,12 @@ bool LoggingSort::compare(const Sort s) const
       // null sorts should not be equal
       return false;
     }
+    default:
+    {
+      // this code should be unreachable
+      throw SmtException(
+          "Hit default case in LoggingSort comparison -- missing a SortCon");
+    }
   }
 }
 
