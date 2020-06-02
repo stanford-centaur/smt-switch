@@ -15,6 +15,7 @@
 **/
 
 #include "utils.h"
+#include "ops.h"
 
 void op_partition(smt::PrimOp o,
                   const smt::Term &term, smt::TermVec &out)

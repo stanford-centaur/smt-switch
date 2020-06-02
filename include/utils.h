@@ -21,7 +21,6 @@
 #include "assert.h"
 
 #include "smt.h"
-#include "ops.h"
 
 #ifndef NDEBUG
 #define _ASSERTIONS
