@@ -56,6 +56,6 @@ void conjunctive_partition(const smt::Term &term, smt::TermVec &out);
 
 void disjunctive_partition(const smt::Term &term, smt::TermVec &out);
 
-void get_free_vars(const smt::Term &term, smt::TermVec &out);
+void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
 #endif
