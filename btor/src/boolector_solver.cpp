@@ -130,6 +130,38 @@ void BoolectorSolver::set_logic(const std::string logic)
   }
 }
 
+
+Sort BoolectorSolver::make_sort(const DatatypeDecl & d) const {
+  throw NotImplementedException("BoolectorSolver::make_sort");
+};
+DatatypeDecl BoolectorSolver::make_datatype_decl(const std::string & s)  {
+    throw NotImplementedException("BoolectorSolver::make_datatype_decl");
+}
+DatatypeConstructorDecl BoolectorSolver::make_datatype_constructor_decl(const std::string s) const {
+    throw NotImplementedException("BoolectorSolver::make_datatype_constructor_decl");
+};
+void BoolectorSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("BoolectorSolver::add_constructor");
+};
+void BoolectorSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("BoolectorSolver::add_selector");
+};
+void BoolectorSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("BoolectorSolver::add_selector_self");
+};
+
+Term BoolectorSolver::get_constructor(const Sort & s, std::string name) const  {
+  throw NotImplementedException("BoolectorSolver::get_constructor");
+};
+Term BoolectorSolver::get_tester(const Sort & s, std::string name) const  {
+  throw NotImplementedException("BoolectorSolver::get_testeer");
+};
+
+Term BoolectorSolver::get_selector(const Sort & s, std::string con, std::string name) const  {
+  throw NotImplementedException("BoolectorSolver::get_selector");
+};
+
+
 Term BoolectorSolver::make_term(bool b) const
 {
   if (b)

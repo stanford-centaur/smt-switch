@@ -55,6 +55,9 @@ enum SolverAttribute
   FULL_TRANSFER,
   // unsat core support
   UNSAT_CORE,
+  // supports datatyoe theory
+  THEORY_DATATYPE,
+
 };
 
 /** Creates an SmtSolver of the provided type */

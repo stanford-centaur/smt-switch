@@ -86,6 +86,12 @@ class LoggingSort : public AbsSort
         "get_uninterpreted_name not implemented by generic LoggingSort");
   }
 
+  Datatype get_datatype() const override
+  {
+    throw NotImplementedException(
+        "get_datatype not implemented by generic LoggingSort");
+  }
+
  protected:
   SortKind sk;
   Sort wrapped_sort;

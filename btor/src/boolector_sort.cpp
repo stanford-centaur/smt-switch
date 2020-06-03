@@ -75,6 +75,12 @@ std::string BoolectorSortBase::get_uninterpreted_name() const
       "Boolector doesn't support uninterpreted sorts.");
 }
 
+
+Datatype BoolectorSortBase::get_datatype() const {
+  throw NotImplementedException("get_datatype");
+};
+
+
 bool BoolectorSortBase::compare(const Sort s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =

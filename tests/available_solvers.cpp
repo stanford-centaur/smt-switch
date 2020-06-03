@@ -74,7 +74,8 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             // ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            THEORY_DATATYPE, } },
 
         { CVC4_LOGGING,
           { LOGGING,

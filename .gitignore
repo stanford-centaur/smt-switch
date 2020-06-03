@@ -36,3 +36,9 @@ build/
 dist/
 *egg-info
 
+
+deps/CVC4/
+
+deps/
+
+local/

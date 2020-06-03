@@ -113,6 +113,12 @@ string Yices2Sort::get_uninterpreted_name() const
       "get_uninterpreted_name not implemented for Yices2Sort");
 }
 
+
+Datatype Yices2Sort::get_datatype() const {
+  throw NotImplementedException("get_datatype");
+};
+
+
 bool Yices2Sort::compare(const Sort s) const
 {
   shared_ptr<Yices2Sort> ys = std::static_pointer_cast<Yices2Sort>(s);

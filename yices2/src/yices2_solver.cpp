@@ -167,6 +167,38 @@ Term Yices2Solver::make_term(bool b) const
   return std::make_shared<Yices2Term> (y_term);
 }
 
+
+Sort Yices2Solver::make_sort(const DatatypeDecl & d) const {
+  throw NotImplementedException("Yices2Solver::make_sort");
+};
+DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s)  {
+    throw NotImplementedException("Yices2Solver::make_datatype_decl");
+}
+DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(const std::string s) const {
+    throw NotImplementedException("Yices2Solver::make_datatype_constructor_decl");
+};
+void Yices2Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("Yices2Solver::add_constructor");
+};
+void Yices2Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("Yices2Solver::add_selector");
+};
+void Yices2Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("Yices2Solver::add_selector_self");
+};
+
+Term Yices2Solver::get_constructor(const Sort & s, std::string name) const  {
+  throw NotImplementedException("Yices2Solver::get_constructor");
+};
+Term Yices2Solver::get_tester(const Sort & s, std::string name) const  {
+  throw NotImplementedException("Yices2Solver::get_testeer");
+};
+
+Term Yices2Solver::get_selector(const Sort & s, std::string con, std::string name) const  {
+  throw NotImplementedException("Yices2Solver::get_selector");
+};
+
+
 Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();

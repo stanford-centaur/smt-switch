@@ -88,6 +88,8 @@ namespace smt {
   friend class CVC4Solver;
   };
 
+
+
 }
 
 #endif

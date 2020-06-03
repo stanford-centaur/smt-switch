@@ -160,6 +160,12 @@ class AbsSmtSolver
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
 
+  /* Create a datatype sort
+   * @param d the Datatype Declaration
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const DatatypeDecl & d) const = 0;
+
   /* Make a boolean value term
    * @param b boolean value
    * @return a value term with Sort BOOL and value b
@@ -240,6 +246,61 @@ class AbsSmtSolver
 
   /* Reset all assertions */
   virtual void reset_assertions() = 0;
+
+
+  /* Initialize a datatype declaration with some name
+   * @param s Name of the datatype
+   * @return an empty Datatype declaration
+   */
+  virtual DatatypeDecl make_datatype_decl(const std::string & s) = 0;
+
+  /* Initialize a datatype constructor declaration with some name
+   * @param s Name of the datatype constructor
+   * @return an empty Datatype declaration
+   */
+  virtual DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const = 0; // what is const=0?
+
+  /* Add a datatype constructor to a datatype declaration
+   * @param dt Datatype
+   * @param con Datatype constructor
+   */
+ virtual void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const = 0; // what is const=0?
+
+  /* Add a selector to a datatype constructor
+   * @param dt DatatypeConstructorDecl
+   * @param name name of the selector
+   * @param s sort of the selector
+   */
+
+  virtual void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const = 0;
+
+  /* Add a selector to a datatype constructor where the sort is the datatype itself (whose sort doesn't exist yet)
+   * @param dt DatatypeConstructorDecl
+   * @param name name of the selector
+   */
+  virtual void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const = 0;
+
+  /* get a term representing to a datatype constructor
+   * @param s A datatype sort (error otherwise)
+   * @param name name of the constructor
+   */
+
+  virtual Term get_constructor(const Sort & s, std::string name) const = 0;
+
+  /* get a term representing to a datatype tester
+   * @param s A datatype sort (error otherwise)
+   * @param name name of the constructor
+   */
+
+  virtual Term get_tester(const Sort & s, std::string name) const = 0;
+
+  /* get a term representing to a datatype selector
+   * @param s A datatype sort (error otherwise)
+   * @param con name of the constructor
+   * @param name name of the selector
+   */
+  virtual Term get_selector(const Sort & s, std::string con, std::string name) const = 0;
+
 
   // Methods implemented at the abstract level
   // Note: These can be overloaded in the specific solver implementation for
