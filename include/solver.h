@@ -245,7 +245,8 @@ class AbsSmtSolver
   // Note: These can be overloaded in the specific solver implementation for
   //       performance improvements
 
-  /* Substitute all subterms using the provided mapping
+  /* Substitute all symbolic constants with terms in all subterms
+   *   using the provided mapping
    * @param term the term to apply substitution map to
    * @param substitution_map the map to use for substitution
    * @return the term with the substitution map applied
