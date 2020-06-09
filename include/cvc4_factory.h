@@ -30,5 +30,8 @@ namespace smt {
      *  @return a CVC4 SmtSolver
      */
     static SmtSolver create(bool logging);
+    
+
+    static SmtSolver create_printing_solver(std::streambuf* sb = NULL);
   };
 }  // namespace smt

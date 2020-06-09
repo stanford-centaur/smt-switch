@@ -26,10 +26,26 @@ namespace smt {
 
 // implementations
 
-PrintingSolver::PrintingSolver(SmtSolver s)
-    : wrapped_solver(s),
-      hashtable(new TermHashTable()),
-      assumption_cache(new UnorderedTermMap())
+#define SET_OPTION_STR "set-option"
+#define SET_LOGIC_STR "set-logic"
+#define DECLARE_FUN_STR "declare-fun"
+#define DECLARE_SORT_STR "declare-sort"
+#define ASSERT_STR "assert"
+#define CHECK_SAT_STR "check-sat"
+#define CHECK_SAT_ASSUMING_STR "check-sat-assuming"
+#define GET_VALUE_STR "get-value"
+#define GET_UNSAT_CORE_STR "get-unsat-core"
+#define PUSH_STR "push"
+#define POP_STR "pop"
+#define RESET_ASSERTIONS_STR "reset-assertions"
+
+PrintingSolver::PrintingSolver(SmtSolver s, std::streambuf* sb)
+    : wrapped_solver(s), out_stream(sb)
+{
+}
+
+
+PrintingSolver::PrintingSolver(SmtSolver s) : wrapped_solver(s), out_stream(std::cout.rdbuf()) 
 {
 }
 
@@ -37,6 +53,7 @@ PrintingSolver::~PrintingSolver() {}
 
 Sort PrintingSolver::make_sort(const string name, uint64_t arity) const
 {
+  cout << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")" << endl;
   Sort wrapped_sort = wrapped_solver->make_sort(name, arity);
   return wrapped_sort;
 }
@@ -55,8 +72,7 @@ Sort PrintingSolver::make_sort(const SortKind sk, uint64_t size) const
 
 Sort PrintingSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
-  shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
-  Sort sort = wrapped_solver->make_sort(sk, ls1->wrapped_sort);
+  Sort sort = wrapped_solver->make_sort(sk, sort1);
   return sort;
 }
 
@@ -64,10 +80,7 @@ Sort PrintingSolver::make_sort(const SortKind sk,
                               const Sort & sort1,
                               const Sort & sort2) const
 {
-  shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
-  shared_ptr<LoggingSort> ls2 = static_pointer_cast<LoggingSort>(sort2);
-  Sort sort =
-      wrapped_solver->make_sort(sk, ls1->wrapped_sort, ls2->wrapped_sort);
+  Sort sort = wrapped_solver->make_sort(sk, sort1, sort2);
   return sort;
 }
 
@@ -76,24 +89,13 @@ Sort PrintingSolver::make_sort(const SortKind sk,
                               const Sort & sort2,
                               const Sort & sort3) const
 {
-  shared_ptr<LoggingSort> ls1 = static_pointer_cast<LoggingSort>(sort1);
-
-  shared_ptr<LoggingSort> ls2 = static_pointer_cast<LoggingSort>(sort2);
-  shared_ptr<LoggingSort> ls3 = static_pointer_cast<LoggingSort>(sort3);
-  Sort sort = wrapped_solver->make_sort(
-      sk, ls1->wrapped_sort, ls2->wrapped_sort, ls3->wrapped_sort);
+  Sort sort = wrapped_solver->make_sort(sk, sort1, sort2, sort3);
   return sort;
 }
 
 Sort PrintingSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  // convert to sorts stored by LoggingSorts
-  SortVec sub_sorts;
-  for (auto s : sorts)
-  {
-    sub_sorts.push_back(static_pointer_cast<LoggingSort>(s)->wrapped_sort);
-  }
-  Sort sort = wrapped_solver->make_sort(sk, sub_sorts);
+  Sort sort = wrapped_solver->make_sort(sk, sorts);
   return sort;
 }
 
@@ -145,19 +147,7 @@ Term PrintingSolver::make_term(const string name,
                               const Sort & sort,
                               uint64_t base) const
 {
-  shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
-  Term wrapped_res = wrapped_solver->make_term(name, lsort->wrapped_sort, base);
-  Term res = std::make_shared<LoggingTerm>(wrapped_res, sort, Op(), TermVec{});
-
-  // check hash table
-  // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
-  if (!hashtable->lookup(res))
-  {
-    // this is the first time this term was created
-    hashtable->insert(res);
-  }
-
+  Term res = wrapped_solver->make_term(name, sort, base);
   return res;
 }
 
@@ -169,6 +159,18 @@ Term PrintingSolver::make_term(const Term & val, const Sort & sort) const
 
 Term PrintingSolver::make_symbol(const string name, const Sort & sort)
 {
+  SortKind sk = sort->get_sort_kind();
+  string domain_str = "";
+  string range_str = "";
+  if (sk == smt::SortKind::FUNCTION) {
+    for (Sort ds : sort->get_domain_sorts()) {
+      domain_str += ds->to_string() + " ";   
+    }
+    range_str = sort->get_codomain_sort()->to_string();
+  } else {
+    range_str = sort->to_string();
+  }
+  out_stream << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
   Term res = wrapped_solver->make_symbol(name, sort);
   return res;
 }
@@ -204,12 +206,15 @@ Term PrintingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term PrintingSolver::get_value(const Term & t) const
 {
+  //TODO support
+  throw NotImplementedException("PrintingSolver::get_value");
   Term res = wrapped_solver->get_value(t);
   return res;
 }
 
 TermVec PrintingSolver::get_unsat_core()
 {
+  out_stream << "(" << GET_UNSAT_CORE_STR << ")" << endl;
   TermVec res = wrapped_solver->get_unsat_core();
   return res;
 }
@@ -218,12 +223,14 @@ TermVec PrintingSolver::get_unsat_core()
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
+  throw NotImplementedException("PrintingSolver::get_array_value");
   UnorderedTermMap assignments = wrapped_solver->get_array_values(arr, out_const_base);
   return assignments;
 }
 
 void PrintingSolver::reset()
 {
+  //TODO ?
   wrapped_solver->reset();
 }
 
@@ -232,41 +239,50 @@ void PrintingSolver::reset()
 void PrintingSolver::set_opt(const std::string option, const std::string value)
 {
   wrapped_solver->set_opt(option, value);
+  out_stream << "(" <<  SET_OPTION_STR << " :" << option << " " << value << ")" << endl;
 }
 
 void PrintingSolver::set_logic(const std::string logic)
 {
+  out_stream << "(" << SET_LOGIC_STR << " " << logic << ")" << endl;
   wrapped_solver->set_logic(logic);
 }
 
 void PrintingSolver::assert_formula(const Term & t)
 {
-  shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
-  wrapped_solver->assert_formula(lt->wrapped_term);
+  out_stream << "(" << ASSERT_STR << " " << t->to_string() << ")" << endl;
+  wrapped_solver->assert_formula(t);
 }
 
-Result PrintingSolver::check_sat() { return wrapped_solver->check_sat(); }
+Result PrintingSolver::check_sat() { 
+  out_stream << "(" << CHECK_SAT_STR << ")" << endl;
+  return wrapped_solver->check_sat(); 
+
+}
 
 Result PrintingSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  // only needs to remember the latest set of assumptions
-  assumption_cache->clear();
-  TermVec lassumps;
-  shared_ptr<LoggingTerm> la;
-  for (auto a : assumptions)
-  {
-    la = static_pointer_cast<LoggingTerm>(a);
-    lassumps.push_back(la->wrapped_term);
-    // store a mapping from the wrapped term to the logging term
-    (*assumption_cache)[la->wrapped_term] = la;
+  string assumptions_str;
+  for (Term a : assumptions) {
+    assumptions_str += a->to_string() + " ";
   }
-  return wrapped_solver->check_sat_assuming(lassumps);
+  out_stream << "(" << CHECK_SAT_ASSUMING_STR << " (" << assumptions_str << "))" << endl;
+  return wrapped_solver->check_sat_assuming(assumptions);
 }
 
-void PrintingSolver::push(uint64_t num) { wrapped_solver->push(num); }
+void PrintingSolver::push(uint64_t num) { 
+  out_stream << "(" << PUSH_STR << " " << num << ")" << endl;
+  wrapped_solver->push(num); 
+}
 
-void PrintingSolver::pop(uint64_t num) { wrapped_solver->pop(num); }
+void PrintingSolver::pop(uint64_t num) { 
+  out_stream << "(" << POP_STR << " " << num << ")" << endl;
+  wrapped_solver->pop(num); 
+}
 
-void PrintingSolver::reset_assertions() { wrapped_solver->reset_assertions(); }
+void PrintingSolver::reset_assertions() { 
+  out_stream << "(" << RESET_ASSERTIONS_STR << ")" << endl;
+  wrapped_solver->reset_assertions(); 
+}
 
 }  // namespace smt

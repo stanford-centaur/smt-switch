@@ -25,6 +25,7 @@ class PrintingSolver : public AbsSmtSolver
 {
  public:
   PrintingSolver(SmtSolver s);
+  PrintingSolver(SmtSolver s, std::streambuf*); 
   ~PrintingSolver();
 
   // implemented
@@ -85,7 +86,7 @@ class PrintingSolver : public AbsSmtSolver
 
  protected:
   SmtSolver wrapped_solver;  ///< the underlying solver
-  ostream out_stream;
+  std::ostream out_stream;
 };
 
 }  // namespace smt
