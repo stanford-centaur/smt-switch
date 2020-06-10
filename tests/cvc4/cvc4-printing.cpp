@@ -61,7 +61,6 @@ int main()
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
   s->set_opt("produce-unsat-assumptions", "true");
-  s->push(1);
   Sort us = s->make_sort("S", 0);
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort fun_sort = s->make_sort(FUNCTION, SortVec{bvsort32,us});
@@ -75,6 +74,7 @@ int main()
 
   Term ind1 = s->make_symbol("ind1", s->make_sort(BOOL));
   Term f = s->make_term(Equal, s->make_term(Apply, fun, x), S0 );
+  s->push(1);
   s->assert_formula(ind1);
   s->assert_formula(s->make_term(Equal, ind1, f));
   s->assert_formula(f);
@@ -88,12 +88,14 @@ int main()
   assert(!s->check_sat_assuming(TermVec{ind1}).is_sat());
   TermVec usc = s->get_unsat_core();
   s->pop(1);
+  s->check_sat();
+  s->get_value(x);
   string filename = "cvc4-printing.cpp-sample.smt2";
   std::ofstream out(filename.c_str());
   out << strbuf.str() << endl;
   out.close();
   string command = "cvc4 " + filename;
   string result = exec(command.c_str());
-  assert(result == "unsat\n()\n");
+  assert(result == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
   return 0;
 }
