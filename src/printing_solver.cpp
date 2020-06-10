@@ -38,6 +38,7 @@ namespace smt {
 #define PUSH_STR "push"
 #define POP_STR "pop"
 #define RESET_ASSERTIONS_STR "reset-assertions"
+#define RESET_STR "reset"
 #define INTERPOLATION_GROUP_STR "interpolation-group"
 #define MSAT_GET_INTERPOLANT_STR "get-interpolant"
 
@@ -51,34 +52,29 @@ PrintingSolver::~PrintingSolver() {}
 Sort PrintingSolver::make_sort(const string name, uint64_t arity) const
 {
   (*out_stream) << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")" << endl;
-  Sort wrapped_sort = wrapped_solver->make_sort(name, arity);
-  return wrapped_sort;
+  return wrapped_solver->make_sort(name, arity);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk) const
 {
-  Sort sort = wrapped_solver->make_sort(sk);
-  return sort;
+  return wrapped_solver->make_sort(sk);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk, uint64_t size) const
 {
-  Sort sort = wrapped_solver->make_sort(sk, size);
-  return sort;
+  return wrapped_solver->make_sort(sk, size);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
-  Sort sort = wrapped_solver->make_sort(sk, sort1);
-  return sort;
+  return wrapped_solver->make_sort(sk, sort1);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk,
                               const Sort & sort1,
                               const Sort & sort2) const
 {
-  Sort sort = wrapped_solver->make_sort(sk, sort1, sort2);
-  return sort;
+  return wrapped_solver->make_sort(sk, sort1, sort2);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk,
@@ -86,14 +82,12 @@ Sort PrintingSolver::make_sort(const SortKind sk,
                               const Sort & sort2,
                               const Sort & sort3) const
 {
-  Sort sort = wrapped_solver->make_sort(sk, sort1, sort2, sort3);
-  return sort;
+  return wrapped_solver->make_sort(sk, sort1, sort2, sort3);
 }
 
 Sort PrintingSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  Sort sort = wrapped_solver->make_sort(sk, sorts);
-  return sort;
+  return wrapped_solver->make_sort(sk, sorts);
 }
 
 
@@ -130,28 +124,24 @@ Term PrintingSolver::get_selector(const Sort & s, std::string con, std::string n
 
 Term PrintingSolver::make_term(bool b) const
 {
-  Term wrapped_res = wrapped_solver->make_term(b);
-  return wrapped_res;
+  return wrapped_solver->make_term(b);
 }
 
 Term PrintingSolver::make_term(int64_t i, const Sort & sort) const
 {
-  Term wrapped_res = wrapped_solver->make_term(i, sort);
-  return wrapped_res;
+  return wrapped_solver->make_term(i, sort);
 }
 
 Term PrintingSolver::make_term(const string name,
                               const Sort & sort,
                               uint64_t base) const
 {
-  Term res = wrapped_solver->make_term(name, sort, base);
-  return res;
+  return wrapped_solver->make_term(name, sort, base);
 }
 
 Term PrintingSolver::make_term(const Term & val, const Sort & sort) const
 {
-  Term res = wrapped_solver->make_term(val, sort);
-  return res;
+  return wrapped_solver->make_term(val, sort);
 }
 
 Term PrintingSolver::make_symbol(const string name, const Sort & sort)
@@ -168,22 +158,19 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
     range_str = sort->to_string();
   }
   (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
-  Term res = wrapped_solver->make_symbol(name, sort);
-  return res;
+  return wrapped_solver->make_symbol(name, sort);
 }
 
 Term PrintingSolver::make_term(const Op op, const Term & t) const
 {
-  Term res = wrapped_solver->make_term(op, t);
-  return res;
+  return wrapped_solver->make_term(op, t);
 }
 
 Term PrintingSolver::make_term(const Op op,
                               const Term & t1,
                               const Term & t2) const
 {
-  Term res = wrapped_solver->make_term(op, t1, t2);
-  return res;
+  return wrapped_solver->make_term(op, t1, t2);
 }
 
 Term PrintingSolver::make_term(const Op op,
@@ -191,43 +178,37 @@ Term PrintingSolver::make_term(const Op op,
                               const Term & t2,
                               const Term & t3) const
 {
-  Term res = wrapped_solver->make_term(op, t1, t2, t3);
-  return res;
+  return wrapped_solver->make_term(op, t1, t2, t3);
 }
 
 Term PrintingSolver::make_term(const Op op, const TermVec & terms) const
 {
-  Term res = wrapped_solver->make_term(op, terms);
-  return res;
+  return wrapped_solver->make_term(op, terms);
 }
 
 Term PrintingSolver::get_value(const Term & t) const
 {
-  //TODO support
-  throw NotImplementedException("PrintingSolver::get_value");
-  Term res = wrapped_solver->get_value(t);
-  return res;
+  (*out_stream) << "(" << GET_VALUE_STR << " (" << t << "))" << endl;
+  return wrapped_solver->get_value(t);
 }
 
 TermVec PrintingSolver::get_unsat_core()
 {
   (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
-  TermVec res = wrapped_solver->get_unsat_core();
-  return res;
+  return wrapped_solver->get_unsat_core();
 }
 
 
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
-  throw NotImplementedException("PrintingSolver::get_array_value");
-  UnorderedTermMap assignments = wrapped_solver->get_array_values(arr, out_const_base);
-  return assignments;
+  (*out_stream) << "(get-value (" << arr << "))" << endl;
+  return wrapped_solver->get_array_values(arr, out_const_base);
 }
 
 void PrintingSolver::reset()
 {
-  //TODO ?
+  (*out_stream) << "(" << RESET_STR << ")" << endl;
   wrapped_solver->reset();
 }
 
