@@ -41,7 +41,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver()
+  Yices2Solver() : AbsSmtSolver(YICES2)
   {
     // Had to move yices_init to the Factory
     // yices_init();

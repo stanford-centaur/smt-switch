@@ -23,6 +23,7 @@
 #include "exceptions.h"
 #include "result.h"
 #include "smt_defs.h"
+#include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
 
@@ -34,7 +35,7 @@ namespace smt {
 class AbsSmtSolver
 {
  public:
-  AbsSmtSolver(){};
+  AbsSmtSolver(SolverEnum se) : solver_enum(se){};
   virtual ~AbsSmtSolver(){};
 
   /* Sets a solver option with smt-lib 2 syntax
@@ -356,7 +357,10 @@ class AbsSmtSolver
     throw NotImplementedException("Interpolants are not supported by this solver.");
   }
 
+  SolverEnum get_solver_enum() { return solver_enum; };
+
  protected:
+  SolverEnum solver_enum;  ///< an enum identifying the underlying solver
 };
 
 }  // namespace smt

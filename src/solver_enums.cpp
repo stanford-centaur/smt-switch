@@ -71,6 +71,36 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
 
     });
 
+const unordered_set<SolverEnum> logging_solver_enums(
+    { BTOR_LOGGING, CVC4_LOGGING, MSAT_LOGGING, YICES2_LOGGING });
+const unordered_map<SolverEnum, SolverEnum> to_logging_solver_enum(
+    { { BTOR, BTOR_LOGGING },
+      { CVC4, CVC4_LOGGING },
+      { MSAT, MSAT_LOGGING },
+      { YICES2, YICES2_LOGGING } });
+
+bool is_logging(SolverEnum se)
+{
+  return logging_solver_enums.find(se) != logging_solver_enums.end();
+}
+
+SolverEnum get_logging_solver_enum(SolverEnum se)
+{
+  if (is_logging(se))
+  {
+    throw IncorrectUsageException("Expecting non-logging solver enum but got "
+                                  + to_string(se));
+  }
+  else if (to_logging_solver_enum.find(se) == to_logging_solver_enum.end())
+  {
+    throw NotImplementedException(
+        "Don't have a mapping from solver enum to logging version for "
+        + to_string(se));
+  }
+
+  return to_logging_solver_enum.at(se);
+}
+
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
 {
   unordered_set<SolverAttribute> solver_attrs = get_solver_attributes(se);

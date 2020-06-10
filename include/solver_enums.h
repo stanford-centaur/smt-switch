@@ -13,6 +13,7 @@
 **
 **
 **/
+#pragma once
 
 #include <unordered_set>
 
@@ -50,6 +51,19 @@ enum SolverAttribute
   // supports datatype theory
   THEORY_DATATYPE,
 };
+
+/** Returns true iff the SolverEnum corresponds to a LoggingSolver
+ *  @param se the solver enum to check
+ *  @return true iff the se is a *_LOGGING enum
+ */
+bool is_logging(SolverEnum se);
+
+/** Maps a non-logging solver enum to the logging version
+ *  e.g. BTOR -> BTOR_LOGGING
+ *  @param se a non-logging solver enum to map
+ *  @return the logging solver version of this enum
+ */
+SolverEnum get_logging_solver_enum(SolverEnum se);
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa);
 
