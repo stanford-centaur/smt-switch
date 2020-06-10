@@ -68,14 +68,16 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             UNSAT_CORE } },
 
         { CVC4,
-          { TERMITER,
-            THEORY_INT,
-            // TODO: put this back after getStoreAllBase() is in API
-            // ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            THEORY_DATATYPE, } },
+          {
+              TERMITER,
+              THEORY_INT,
+              // TODO: put this back after getStoreAllBase() is in API
+              // ARRAY_MODELS,
+              CONSTARR,
+              FULL_TRANSFER,
+              UNSAT_CORE,
+              THEORY_DATATYPE,
+          } },
 
         { CVC4_LOGGING,
           { LOGGING,
@@ -199,9 +201,9 @@ SmtSolver create_interpolating_solver(SolverEnum se)
 
 const std::vector<SolverEnum> itp_enums({
 #if BUILD_MSAT
-                                         MSAT
+  MSAT
 #endif
-  });
+});
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 

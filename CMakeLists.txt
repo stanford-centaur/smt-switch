@@ -31,7 +31,9 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort_computation.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
-  "${PROJECT_SOURCE_DIR}/src/utils.cpp")
+  "${PROJECT_SOURCE_DIR}/src/utils.cpp"
+  "${PROJECT_SOURCE_DIR}/src/available_solvers.cpp"
+  )
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
@@ -65,6 +67,12 @@ if (BUILD_BTOR)
   if (NOT DEFINED BTOR_HOME)
     set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
   endif()
+
+  # Define C macros for available_solvers
+  # and tests parameterized by solver
+  add_definitions(-DBUILD_BTOR)
+  add_definitions(-DBTOR_HOME=${BTOR_HOME})
+
   add_subdirectory (btor)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
@@ -80,6 +88,12 @@ if (BUILD_CVC4)
   if (NOT DEFINED CVC4_HOME)
     set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
   endif()
+
+  # Define C macros for available_solvers
+  # and tests parameterized by solver
+  add_definitions(-DBUILD_CVC4)
+  add_definitions(-DCVC4_HOME=${CVC4_HOME})
+
   add_subdirectory (cvc4)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
 
@@ -95,6 +109,12 @@ if (BUILD_MSAT)
   if (NOT DEFINED MSAT_HOME)
     set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
   endif()
+
+  # Define C macros for available_solvers
+  # and tests parameterized by solver
+  add_definitions(-DBUILD_MSAT)
+  add_definitions(-DMSAT_HOME=${MSAT_HOME})
+
   add_subdirectory (msat)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
@@ -111,6 +131,12 @@ if (BUILD_YICES2)
   if (NOT DEFINED YICES2_HOME)
     set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
   endif()
+
+  # Define C macros for available_solvers
+  # and tests parameterized by solver
+  add_definitions(-DBUILD_YICES2)
+  add_definitions(-DYICES2_HOME=${YICES2_HOME})
+
   add_subdirectory (yices2)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
 

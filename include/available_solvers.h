@@ -101,13 +101,13 @@ struct hash<smt_tests::SolverEnum>
 };
 
 // specialize template
- template <>
-   struct hash<smt_tests::SolverAttribute>
- {
-   size_t operator()(const smt_tests::SolverAttribute sa) const
-   {
-     return static_cast<size_t>(sa);
-   }
- };
+template <>
+struct hash<smt_tests::SolverAttribute>
+{
+  size_t operator()(const smt_tests::SolverAttribute sa) const
+  {
+    return static_cast<size_t>(sa);
+  }
+};
 
 }  // namespace std
