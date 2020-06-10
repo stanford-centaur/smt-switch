@@ -285,6 +285,7 @@ void PrintingSolver::reset_assertions() {
 bool PrintingSolver::get_interpolant(const Term & A,
                                const Term & B,
                                Term & out_I) const {
+  assert(style == PrintingStyleEnum::MSAT);
   (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << INTERPOLATION_GROUP_STR << " g1))" << endl;
   (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :" << INTERPOLATION_GROUP_STR << " g2))" << endl;;
   (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
