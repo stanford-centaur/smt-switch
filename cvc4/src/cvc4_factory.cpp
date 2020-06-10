@@ -18,7 +18,6 @@
 #include "cvc4_solver.h"
 
 #include "logging_solver.h"
-#include "printing_solver.h"
 
 namespace smt
 {
@@ -33,7 +32,6 @@ SmtSolver CVC4SolverFactory::create(bool logging)
   }
   return solver;
 }
-
 /* end CVC4SolverFactory implementation */
 
 } // namespace smt

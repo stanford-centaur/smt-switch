@@ -30,7 +30,5 @@ namespace smt {
      *  @return a CVC4 SmtSolver
      */
     static SmtSolver create(bool logging);
-    
-
   };
 }  // namespace smt
