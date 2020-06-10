@@ -38,4 +38,7 @@
 // Main solver interface.
 #include "solver.h"
 
+// Solver enums for identifying solver
+#include "solver_enums.h"
+
 #endif
