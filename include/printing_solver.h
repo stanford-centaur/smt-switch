@@ -21,11 +21,19 @@
 
 namespace smt {
 
+enum PrintingStyleEnum
+{
+  DEFAULT = 0,
+  BTOR,
+  CVC4,
+  MSAT,
+  YICES2
+};
+
 class PrintingSolver : public AbsSmtSolver
 {
  public:
-  PrintingSolver(SmtSolver s);
-  PrintingSolver(SmtSolver s, std::streambuf*); 
+  PrintingSolver(SmtSolver s, std::ostream*, PrintingStyleEnum pse); 
   ~PrintingSolver();
 
   // implemented
@@ -86,7 +94,10 @@ class PrintingSolver : public AbsSmtSolver
 
  protected:
   SmtSolver wrapped_solver;  ///< the underlying solver
-  std::ostream out_stream;
+  std::ostream* out_stream;
+  PrintingStyleEnum style;
 };
+
+SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style);
 
 }  // namespace smt

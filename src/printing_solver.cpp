@@ -34,18 +34,13 @@ namespace smt {
 #define CHECK_SAT_STR "check-sat"
 #define CHECK_SAT_ASSUMING_STR "check-sat-assuming"
 #define GET_VALUE_STR "get-value"
-#define GET_UNSAT_CORE_STR "get-unsat-core"
+#define GET_UNSAT_ASSUMPTIONS_STR "get-unsat-assumptions"
 #define PUSH_STR "push"
 #define POP_STR "pop"
 #define RESET_ASSERTIONS_STR "reset-assertions"
 
-PrintingSolver::PrintingSolver(SmtSolver s, std::streambuf* sb)
-    : wrapped_solver(s), out_stream(sb)
-{
-}
-
-
-PrintingSolver::PrintingSolver(SmtSolver s) : wrapped_solver(s), out_stream(std::cout.rdbuf()) 
+PrintingSolver::PrintingSolver(SmtSolver s, std::ostream* os, PrintingStyleEnum pse)
+    : wrapped_solver(s), out_stream(os), style(pse)
 {
 }
 
@@ -53,7 +48,7 @@ PrintingSolver::~PrintingSolver() {}
 
 Sort PrintingSolver::make_sort(const string name, uint64_t arity) const
 {
-  cout << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")" << endl;
+  (*out_stream) << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")" << endl;
   Sort wrapped_sort = wrapped_solver->make_sort(name, arity);
   return wrapped_sort;
 }
@@ -170,7 +165,7 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
   } else {
     range_str = sort->to_string();
   }
-  out_stream << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
+  (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
   Term res = wrapped_solver->make_symbol(name, sort);
   return res;
 }
@@ -214,7 +209,7 @@ Term PrintingSolver::get_value(const Term & t) const
 
 TermVec PrintingSolver::get_unsat_core()
 {
-  out_stream << "(" << GET_UNSAT_CORE_STR << ")" << endl;
+  (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
   TermVec res = wrapped_solver->get_unsat_core();
   return res;
 }
@@ -239,23 +234,23 @@ void PrintingSolver::reset()
 void PrintingSolver::set_opt(const std::string option, const std::string value)
 {
   wrapped_solver->set_opt(option, value);
-  out_stream << "(" <<  SET_OPTION_STR << " :" << option << " " << value << ")" << endl;
+  (*out_stream) << "(" <<  SET_OPTION_STR << " :" << option << " " << value << ")" << endl;
 }
 
 void PrintingSolver::set_logic(const std::string logic)
 {
-  out_stream << "(" << SET_LOGIC_STR << " " << logic << ")" << endl;
+  (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << endl;
   wrapped_solver->set_logic(logic);
 }
 
 void PrintingSolver::assert_formula(const Term & t)
 {
-  out_stream << "(" << ASSERT_STR << " " << t->to_string() << ")" << endl;
+  (*out_stream) << "(" << ASSERT_STR << " " << t->to_string() << ")" << endl;
   wrapped_solver->assert_formula(t);
 }
 
 Result PrintingSolver::check_sat() { 
-  out_stream << "(" << CHECK_SAT_STR << ")" << endl;
+  (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
   return wrapped_solver->check_sat(); 
 
 }
@@ -266,23 +261,28 @@ Result PrintingSolver::check_sat_assuming(const TermVec & assumptions)
   for (Term a : assumptions) {
     assumptions_str += a->to_string() + " ";
   }
-  out_stream << "(" << CHECK_SAT_ASSUMING_STR << " (" << assumptions_str << "))" << endl;
+  (*out_stream) << "(" << CHECK_SAT_ASSUMING_STR << " (" << assumptions_str << "))" << endl;
   return wrapped_solver->check_sat_assuming(assumptions);
 }
 
 void PrintingSolver::push(uint64_t num) { 
-  out_stream << "(" << PUSH_STR << " " << num << ")" << endl;
+  (*out_stream) << "(" << PUSH_STR << " " << num << ")" << endl;
   wrapped_solver->push(num); 
 }
 
 void PrintingSolver::pop(uint64_t num) { 
-  out_stream << "(" << POP_STR << " " << num << ")" << endl;
+  (*out_stream) << "(" << POP_STR << " " << num << ")" << endl;
   wrapped_solver->pop(num); 
 }
 
 void PrintingSolver::reset_assertions() { 
-  out_stream << "(" << RESET_ASSERTIONS_STR << ")" << endl;
+  (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << endl;
   wrapped_solver->reset_assertions(); 
+}
+
+SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style) {
+  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream, style);
+
 }
 
 }  // namespace smt

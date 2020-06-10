@@ -32,6 +32,5 @@ namespace smt {
     static SmtSolver create(bool logging);
     
 
-    static SmtSolver create_printing_solver(std::streambuf* sb = NULL);
   };
 }  // namespace smt

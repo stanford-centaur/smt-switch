@@ -34,16 +34,6 @@ SmtSolver CVC4SolverFactory::create(bool logging)
   return solver;
 }
 
-SmtSolver CVC4SolverFactory::create_printing_solver(std::streambuf* sb) {
-  SmtSolver solver = std::make_shared<CVC4Solver>();
-  if (sb == NULL) {
-    solver = std::make_shared<PrintingSolver>(solver);
-  } else {
-    solver = std::make_shared<PrintingSolver>(solver, sb);
-  }
-  return solver;
-}
-
 /* end CVC4SolverFactory implementation */
 
 } // namespace smt
