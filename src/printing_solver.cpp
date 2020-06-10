@@ -38,6 +38,8 @@ namespace smt {
 #define PUSH_STR "push"
 #define POP_STR "pop"
 #define RESET_ASSERTIONS_STR "reset-assertions"
+#define INTERPOLATION_GROUP_STR "interpolation-group"
+#define MSAT_GET_INTERPOLANT_STR "get-interpolant"
 
 PrintingSolver::PrintingSolver(SmtSolver s, std::ostream* os, PrintingStyleEnum pse)
     : wrapped_solver(s), out_stream(os), style(pse)
@@ -278,6 +280,17 @@ void PrintingSolver::pop(uint64_t num) {
 void PrintingSolver::reset_assertions() { 
   (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << endl;
   wrapped_solver->reset_assertions(); 
+}
+
+bool PrintingSolver::get_interpolant(const Term & A,
+                               const Term & B,
+                               Term & out_I) const {
+  (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << INTERPOLATION_GROUP_STR << " g1))" << endl;
+  (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :" << INTERPOLATION_GROUP_STR << " g2))" << endl;;
+  (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
+  (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
+  (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
+  wrapped_solver->get_interpolant(A, B, out_I);
 }
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style) {

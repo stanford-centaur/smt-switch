@@ -91,6 +91,9 @@ class PrintingSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   void reset_assertions() override;
+  bool get_interpolant(const Term & A,
+                               const Term & B,
+                               Term & out_I) const override;
 
  protected:
   SmtSolver wrapped_solver;  ///< the underlying solver
