@@ -9,9 +9,8 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Class that wraps another SmtSolver and tracks the term DAG by
-**        wrapping sorts and terms and performs hash-consing.
-**
+** \brief Class that wraps another SmtSolver and dumps SMT-LIB
+**        that corresponds to the operations being performed.
 **/
 
 #pragma once
@@ -21,6 +20,14 @@
 
 namespace smt {
 
+/**
+ * Solvers may differ in the style of their expected SMT-LIB dumped files.
+ * Generally, this can include dagification, define-fun's etc.
+ * Concretely, we currently only consider different syntaxes of 
+ * getting interpolants in SMT-LIB-like fashion.
+ * Currently interpolation is only supported for mathsat, but this enum
+ * will be used for other solvers as well
+ */
 enum PrintingStyleEnum
 {
   DEFAULT = 0,
@@ -30,14 +37,41 @@ enum PrintingStyleEnum
   YICES2
 };
 
+/**
+ * A class that wraps an SMT-solver and prints corresponding
+ * SMT-LIB commands.
+ */
 class PrintingSolver : public AbsSmtSolver
 {
  public:
   PrintingSolver(SmtSolver s, std::ostream*, PrintingStyleEnum pse); 
   ~PrintingSolver();
 
-  // implemented
+  /* Operators that are printed */
   Sort make_sort(const std::string name, uint64_t arity) const override;
+
+  Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
+  TermVec get_unsat_core() override;
+  void reset() override;
+  void set_opt(const std::string option, const std::string value) override;
+  void set_logic(const std::string logic) override;
+  void assert_formula(const Term & t) override;
+  Result check_sat() override;
+  Result check_sat_assuming(const TermVec & assumptions) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
+  void reset_assertions() override;
+  bool get_interpolant(const Term & A,
+                               const Term & B,
+                               Term & out_I) const override;
+
+
+  /* Operators that are not printed 
+   * For example, creating terms is not printted, but the
+   * created terms will appear in other commands (e.g., assert). 
+   * */
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, uint64_t size) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
@@ -50,7 +84,6 @@ class PrintingSolver : public AbsSmtSolver
                  const Sort & sort3) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
-
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
   void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
@@ -74,32 +107,24 @@ class PrintingSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
-  Term get_value(const Term & t) const override;
-  UnorderedTermMap get_array_values(const Term & arr,
-                                    Term & out_const_base) const override;
-  TermVec get_unsat_core() override;
-  // Will probably remove this eventually
-  // For now, need to clear the hash table
-  void reset() override;
 
-  // dispatched to underlying solver
-  void set_opt(const std::string option, const std::string value) override;
-  void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) override;
-  Result check_sat() override;
-  Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  void reset_assertions() override;
-  bool get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const override;
+
 
  protected:
-  SmtSolver wrapped_solver;  ///< the underlying solver
-  std::ostream* out_stream;
+  /* The wrapped solver */
+  SmtSolver wrapped_solver;  
+  /* A stream to dump SMT-LIB commands to */
+  std::ostream* out_stream; 
+  /* A style to use while printing */
   PrintingStyleEnum style;
 };
+
+/* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.
+ * @param wrapped_solver the solver to wrap
+ * @param out_stream the stream to dump SMT-LIB to
+ * @param style the printing style
+ * @return an SmtSolver that dumps to out_stream each command that is executed.
+ */
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style);
 

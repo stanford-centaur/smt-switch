@@ -9,15 +9,14 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Class that wraps another SmtSolver and tracks the term DAG by
-**        wrapping sorts and terms and performs hash-consing.
-**
+** \brief Class that wraps another SmtSolver and dumps SMT-LIB
+**        that corresponds to the operations being performed.
 **/
 
 #include "printing_solver.h"
 #include "utils.h"
 
-
+/* string macros for the SMT-LIB commands */
 #define SET_OPTION_STR "set-option"
 #define SET_LOGIC_STR "set-logic"
 #define DECLARE_FUN_STR "declare-fun"
