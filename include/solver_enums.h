@@ -25,7 +25,6 @@ enum SolverEnum
   MSAT,
   YICES2,
   // have separate enum for solver wrapped by LoggingSolver with Shadow DAG
-  // test all versions of that also
   BTOR_LOGGING,
   CVC4_LOGGING,
   MSAT_LOGGING,
