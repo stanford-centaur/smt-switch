@@ -49,6 +49,7 @@ class PrintingSolver : public AbsSmtSolver
 
   /* Operators that are printed */
   Sort make_sort(const std::string name, uint64_t arity) const override;
+  Term make_symbol(const std::string name, const Sort & sort) override;
 
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
@@ -69,7 +70,7 @@ class PrintingSolver : public AbsSmtSolver
 
 
   /* Operators that are not printed 
-   * For example, creating terms is not printted, but the
+   * For example, creating terms is not printed, but the
    * created terms will appear in other commands (e.g., assert). 
    * */
   Sort make_sort(const SortKind sk) const override;
@@ -99,7 +100,6 @@ class PrintingSolver : public AbsSmtSolver
                  const Sort & sort,
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
-  Term make_symbol(const std::string name, const Sort & sort) override;
   Term make_term(const Op op, const Term & t) const override;
   Term make_term(const Op op, const Term & t0, const Term & t1) const override;
   Term make_term(const Op op,
