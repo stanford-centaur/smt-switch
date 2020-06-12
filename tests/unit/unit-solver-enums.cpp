@@ -42,7 +42,7 @@ TEST_P(UnitSolverEnumTests, SolverEnumMatch)
 TEST_P(UnitSolverEnumTests, LoggingMapping)
 {
   SolverEnum se = GetParam();
-  if (!is_logging(se))
+  if (!is_logging_solver_enum(se))
   {
     ASSERT_NO_THROW(get_logging_solver_enum(se));
   }

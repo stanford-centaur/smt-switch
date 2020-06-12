@@ -136,7 +136,7 @@ class MsatSolver : public AbsSmtSolver
 class MsatInterpolatingSolver : public MsatSolver
 {
  public:
-  MsatInterpolatingSolver() {}
+  MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}

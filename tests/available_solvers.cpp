@@ -37,6 +37,7 @@ using namespace smt;
 
 namespace smt_tests {
 
+// list of regular (non-interpolator) solver enums
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
   BTOR, BTOR_LOGGING,
@@ -126,7 +127,7 @@ SmtSolver create_interpolating_solver(SolverEnum se)
   switch (se)
   {
 #if BUILD_MSAT
-    case MSAT:
+    case MSAT_INTERPOLATOR:
     {
       return MsatSolverFactory::create_interpolating_solver();
       break;
@@ -140,9 +141,9 @@ SmtSolver create_interpolating_solver(SolverEnum se)
 
 const std::vector<SolverEnum> itp_enums({
 #if BUILD_MSAT
-                                         MSAT
+  MSAT_INTERPOLATOR
 #endif
-  });
+});
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 

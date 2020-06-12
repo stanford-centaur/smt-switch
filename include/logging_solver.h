@@ -102,7 +102,7 @@ class LoggingSolver : public AbsSmtSolver
    */
   static SolverEnum process_solver_enum(SolverEnum se)
   {
-    if (is_logging(se))
+    if (is_logging_solver_enum(se))
     {
       throw IncorrectUsageException(
           std::string("Got a logging solver as the underlying solver in ")

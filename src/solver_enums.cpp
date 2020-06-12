@@ -95,14 +95,22 @@ const unordered_map<SolverEnum, SolverEnum> to_logging_solver_enum(
       { MSAT, MSAT_LOGGING },
       { YICES2, YICES2_LOGGING } });
 
-bool is_logging(SolverEnum se)
+const unordered_set<SolverEnum> interpolator_solver_enums(
+    { MSAT_INTERPOLATOR });
+
+bool is_logging_solver_enum(SolverEnum se)
 {
   return logging_solver_enums.find(se) != logging_solver_enums.end();
 }
 
+bool is_interpolator_solver_enum(SolverEnum se)
+{
+  return interpolator_solver_enums.find(se) != interpolator_solver_enums.end();
+}
+
 SolverEnum get_logging_solver_enum(SolverEnum se)
 {
-  if (is_logging(se))
+  if (is_logging_solver_enum(se))
   {
     throw IncorrectUsageException("Expecting non-logging solver enum but got "
                                   + to_string(se));
@@ -145,6 +153,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case CVC4_LOGGING: o << "CVC4_LOGGING"; break;
     case MSAT_LOGGING: o << "MSAT_LOGGING"; break;
     case YICES2_LOGGING: o << "YICES2_LOGGING"; break;
+    case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
