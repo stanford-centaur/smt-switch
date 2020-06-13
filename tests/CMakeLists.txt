@@ -52,6 +52,11 @@ add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
 target_link_libraries(test-deps smt-switch ${SOLVER_BACKEND_LIBS})
 
+add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
+target_link_libraries(unit-solver-enums gtest_main)
+target_link_libraries(unit-solver-enums test-deps)
+add_test(NAME unit-solver-enums_test COMMAND unit-solver-enums)
+
 add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp")
 target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter test-deps)

@@ -46,7 +46,7 @@ class MsatSolver : public AbsSmtSolver
   // but in mathsat factory, MUST setup_env
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
-  MsatSolver() : logic(""){};
+  MsatSolver() : AbsSmtSolver(MSAT), logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -136,7 +136,7 @@ class MsatSolver : public AbsSmtSolver
 class MsatInterpolatingSolver : public MsatSolver
 {
  public:
-  MsatInterpolatingSolver() {}
+  MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}

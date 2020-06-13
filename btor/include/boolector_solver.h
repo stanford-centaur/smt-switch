@@ -39,7 +39,7 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new())
+  BoolectorSolver() : AbsSmtSolver(BTOR), btor(boolector_new())
   {
     // set termination function -- throw an exception
     auto throw_exception = [](const char * msg) -> void {

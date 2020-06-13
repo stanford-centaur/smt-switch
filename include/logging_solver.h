@@ -19,6 +19,8 @@
 #include "solver.h"
 #include "term_hashtable.h"
 
+#include <string>
+
 namespace smt {
 
 class LoggingSolver : public AbsSmtSolver
@@ -91,6 +93,24 @@ class LoggingSolver : public AbsSmtSolver
   // this is so they can be recovered with the correct children/op
   // after a call to get_unsat_core
   std::unique_ptr<UnorderedTermMap> assumption_cache;
+
+  /** Maps the wrapped_solver's SolverEnum to the logging
+   *  solver version
+   *  throws an exception if the SolverEnum is already
+   *  a logging solver (there's no reason to nest
+   *  LoggingSolvers)
+   */
+  static SolverEnum process_solver_enum(SolverEnum se)
+  {
+    if (is_logging_solver_enum(se))
+    {
+      throw IncorrectUsageException(
+          std::string("Got a logging solver as the underlying solver in ")
+          + "LoggingSolver construction. There's no reason to "
+          + "next LoggingSolvers");
+    }
+    return get_logging_solver_enum(se);
+  }
 };
 
 }  // namespace smt
