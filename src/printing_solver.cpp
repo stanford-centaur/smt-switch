@@ -11,6 +11,8 @@
 **
 ** \brief Class that wraps another SmtSolver and dumps SMT-LIB
 **        that corresponds to the operations being performed.
+**        The SMT-LIB sommand is printing before being executed,
+**        So that in case of an error it easier to see when it happened.
 **/
 
 #include "printing_solver.h"
@@ -265,6 +267,10 @@ void PrintingSolver::reset_assertions() {
 bool PrintingSolver::get_interpolant(const Term & A,
                                const Term & B,
                                Term & out_I) const {
+  /* currently we only support printing msat interpolation commands.
+   * The printing follows the internal implementation from msat_solver.h
+   * in which the assertions are labeled by interpolation groups
+   */
   assert(style == PrintingStyleEnum::MSAT_STYLE);
   (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << INTERPOLATION_GROUP_STR << " g1))" << endl;
   (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :" << INTERPOLATION_GROUP_STR << " g2))" << endl;;
