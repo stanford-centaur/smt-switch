@@ -30,11 +30,11 @@ namespace smt {
  */
 enum PrintingStyleEnum
 {
-  DEFAULT = 0,
-  BTOR,
-  CVC4,
-  MSAT,
-  YICES2
+  DEFAULT_STYLE = 0,
+  BTOR_STYLE,
+  CVC4_STYLE,
+  MSAT_STYLE,
+  YICES2_STYLE
 };
 
 /**
