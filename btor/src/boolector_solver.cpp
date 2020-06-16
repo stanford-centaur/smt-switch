@@ -256,13 +256,18 @@ void BoolectorSolver::assert_formula(const Term & t)
 
 Result BoolectorSolver::check_sat()
 {
-  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  int32_t res = boolector_sat(btor);
+  if (res == BOOLECTOR_SAT)
   {
     return Result(SAT);
   }
-  else
+  else if (res == BOOLECTOR_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
   }
 };
 
@@ -299,13 +304,18 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
     boolector_assume(btor, bt->node);
   }
 
-  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  int32_t res = boolector_sat(btor);
+  if (res == BOOLECTOR_SAT)
   {
     return Result(SAT);
   }
-  else
+  else if (res == BOOLECTOR_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
   }
 }
 
