@@ -100,7 +100,7 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Select, ::CVC4::api::SELECT },
       { Store, ::CVC4::api::STORE },
       { Forall, ::CVC4::api::FORALL },
-      { Store, ::CVC4::api::EXISTS } });
+      { Store, ::CVC4::api::EXISTS },
       { Apply_Selector,::CVC4::api::APPLY_SELECTOR},
       { Apply_Tester,::CVC4::api::APPLY_TESTER},
       { Apply_Constructor,::CVC4::api::APPLY_CONSTRUCTOR}  });
