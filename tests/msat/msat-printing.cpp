@@ -81,7 +81,7 @@ int main()
   // STRFY is defined in test-utils.h and converts
   // a macro to its string representation
   string command(STRFY(MSAT_HOME));
-  command += "/bin/mathsat ";
+  command += "/bin/mathsat -interpolation=true ";
   command += filename;
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
