@@ -55,7 +55,8 @@ class Yices2TermIter : public TermIterBase
 class Yices2Term : public AbsTerm
 {
  public:
-  Yices2Term(term_t t) : term(t){};
+  // assumes that term is not a function if flag is not passed
+  Yices2Term(term_t t) : term(t), is_function(false){};
   Yices2Term(term_t t, bool is_fun) : term(t), is_function(is_fun){};
   ~Yices2Term(){};
   std::size_t hash() const override;
