@@ -72,9 +72,6 @@ if (BUILD_BTOR)
 
   add_definitions(-DBUILD_BTOR)
   add_definitions(-DBTOR_HOME=${BTOR_HOME})
-
-  # testing
-  add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
 
 # should we build cvc4?
@@ -90,9 +87,6 @@ if (BUILD_CVC4)
 
   add_definitions(-DBUILD_CVC4)
   add_definitions(-DCVC4_HOME=${CVC4_HOME})
-
-  # testing
-  add_subdirectory(tests/cvc4)
 endif (BUILD_CVC4)
 
 # should we build msat?
@@ -108,10 +102,6 @@ if (BUILD_MSAT)
 
   add_definitions(-DBUILD_MSAT)
   add_definitions(-DMSAT_HOME=${MSAT_HOME})
-
-  # testing
-  add_subdirectory(tests/msat)
-
 endif()
 
 # should we build yices2?
@@ -127,10 +117,6 @@ if (BUILD_YICES2)
 
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_HOME=${YICES2_HOME})
-
-  # testing
-  add_subdirectory(tests/yices2)
-
 endif (BUILD_YICES2)
 
 if (BUILD_PYTHON_BINDINGS)

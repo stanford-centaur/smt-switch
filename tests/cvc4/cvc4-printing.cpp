@@ -24,17 +24,14 @@
 #include <sstream>
 #include "assert.h"
 
+// note: this file depends on the CMake build infrastructure
+// specifically defined macros
+// it cannot be compiled outside of the build
+#include "test-utils.h"
+
 #include "cvc4_factory.h"
 #include "printing_solver.h"
 #include "smt.h"
-// after full installation
-// #include "smt-switch/cvc4_factory.h"
-// #include "smt-switch/smt.h"
-
-// macros for getting string value of another macro
-// i.e. STRFY(FOO) := "FOO"
-#define STRHELPER(A) #A
-#define STRFY(A) STRHELPER(A)
 
 using namespace smt;
 using namespace std;
@@ -101,6 +98,8 @@ int main()
   out.close();
   // CVC4_HOME is a macro defined when built with CVC4
   // that points to the top-level CVC4 directory
+  // STRFY is defined in test-utils.h and converts
+  // a macro to its string representation
   string command(STRFY(CVC4_HOME));
   command += "/build/bin/cvc4 ";
   command += filename;

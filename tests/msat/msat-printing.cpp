@@ -24,12 +24,14 @@
 #include <sstream>
 #include "assert.h"
 
+// note: this file depends on the CMake build infrastructure
+// specifically defined macros
+// it cannot be compiled outside of the build
+#include "test-utils.h"
+
 #include "msat_factory.h"
 #include "printing_solver.h"
 #include "smt.h"
-// after full installation
-// #include "smt-switch/msat_factory.h"
-// #include "smt-switch/smt.h"
 
 using namespace smt;
 using namespace std;
@@ -74,7 +76,14 @@ int main()
   std::ofstream out(filename.c_str());
   out << strbuf.str() << endl;
   out.close();
-  string command = "/home/yoniz/mathsat-5.5.4-linux-x86_64/bin/mathsat -interpolation=true " + filename;
+  // MSAT_HOME is a macro defined when built with MSAT
+  // that points to the top-level MSAT directory
+  // STRFY is defined in test-utils.h and converts
+  // a macro to its string representation
+  string command(STRFY(MSAT_HOME));
+  command += "/bin/mathsat ";
+  command += filename;
+  std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
   assert(result == "unsat\n(<= 2 (+ z (* (- 1) x)))\n");
   return 0;

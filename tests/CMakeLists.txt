@@ -24,7 +24,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
-
 add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp"
   "${PROJECT_SOURCE_DIR}/tests/test-utils.cpp"
@@ -33,6 +32,25 @@ add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
 target_link_libraries(test-deps smt-switch ${SOLVER_BACKEND_LIBS})
 
+# add solver-specific test directories
+# these do not use googletest
+if (BUILD_BTOR)
+  add_subdirectory(btor)
+endif()
+
+if (BUILD_CVC4)
+  add_subdirectory(cvc4)
+endif()
+
+if (BUILD_MSAT)
+  add_subdirectory(msat)
+endif()
+
+if (BUILD_YICES2)
+  add_subdirectory(yices2)
+endif()
+
+# googletest tests
 add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
 target_link_libraries(unit-solver-enums gtest_main)
 target_link_libraries(unit-solver-enums test-deps)
