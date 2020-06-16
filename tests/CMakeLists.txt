@@ -25,25 +25,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 
 
-# Define C macros for available_solvers
-# used in the parametrized tests so that it knows which
-# solvers to run with
-if (BUILD_BTOR)
-  add_definitions(-DBUILD_BTOR)
-endif(BUILD_BTOR)
-
-if (BUILD_CVC4)
-  add_definitions(-DBUILD_CVC4)
-endif(BUILD_CVC4)
-
-if (BUILD_MSAT)
-  add_definitions(-DBUILD_MSAT)
-endif(BUILD_MSAT)
-
-if (BUILD_YICES2)
-  add_definitions(-DBUILD_YICES2)
-endif(BUILD_YICES2)
-
 add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp"
   "${PROJECT_SOURCE_DIR}/tests/test-utils.cpp"

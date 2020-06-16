@@ -70,6 +70,9 @@ if (BUILD_BTOR)
   add_subdirectory (btor)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
+  add_definitions(-DBUILD_BTOR)
+  add_definitions(-DBTOR_HOME=${BTOR_HOME})
+
   # testing
   add_subdirectory(tests/btor)
 endif (BUILD_BTOR)
@@ -84,6 +87,9 @@ if (BUILD_CVC4)
   endif()
   add_subdirectory (cvc4)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
+
+  add_definitions(-DBUILD_CVC4)
+  add_definitions(-DCVC4_HOME=${CVC4_HOME})
 
   # testing
   add_subdirectory(tests/cvc4)
@@ -100,6 +106,9 @@ if (BUILD_MSAT)
   add_subdirectory (msat)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
+  add_definitions(-DBUILD_MSAT)
+  add_definitions(-DMSAT_HOME=${MSAT_HOME})
+
   # testing
   add_subdirectory(tests/msat)
 
@@ -115,6 +124,9 @@ if (BUILD_YICES2)
   endif()
   add_subdirectory (yices2)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
+
+  add_definitions(-DBUILD_YICES2)
+  add_definitions(-DYICES2_HOME=${YICES2_HOME})
 
   # testing
   add_subdirectory(tests/yices2)

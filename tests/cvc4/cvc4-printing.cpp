@@ -31,6 +31,11 @@
 // #include "smt-switch/cvc4_factory.h"
 // #include "smt-switch/smt.h"
 
+// macros for getting string value of another macro
+// i.e. STRFY(FOO) := "FOO"
+#define STRHELPER(A) #A
+#define STRFY(A) STRHELPER(A)
+
 using namespace smt;
 using namespace std;
 
@@ -94,7 +99,12 @@ int main()
   std::ofstream out(filename.c_str());
   out << strbuf.str() << endl;
   out.close();
-  string command = "cvc4 " + filename;
+  // CVC4_HOME is a macro defined when built with CVC4
+  // that points to the top-level CVC4 directory
+  string command(STRFY(CVC4_HOME));
+  command += "/build/bin/cvc4 ";
+  command += filename;
+  std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
   assert(result == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
   return 0;
