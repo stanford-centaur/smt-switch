@@ -15,6 +15,7 @@ foreach(test ${YICES2_TESTS})
   target_include_directories (${test}.out PUBLIC "${PROJECT_SOURCE_DIR}/include")
   target_link_libraries(${test}.out smt-switch)
   target_link_libraries(${test}.out smt-switch-yices2)
+  target_link_libraries(${test}.out test-deps)
   add_test(${test} ${test}.out)
 endforeach()
 

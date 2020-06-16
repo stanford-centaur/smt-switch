@@ -14,5 +14,6 @@ set(CVC4_TESTS
 foreach(test ${CVC4_TESTS})
   add_executable(${test}.out ${test}.cpp)
   target_link_libraries(${test}.out smt-switch smt-switch-cvc4)
+  target_link_libraries(${test}.out test-deps)
   add_test(${test} ${test}.out)
 endforeach()
