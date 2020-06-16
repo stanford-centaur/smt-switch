@@ -85,6 +85,7 @@ int main()
   command += filename;
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
+  std::cout << "got result:\n" << result << std::endl;
   assert(result == "unsat\n(<= 2 (+ z (* (- 1) x)))\n");
   return 0;
 }
