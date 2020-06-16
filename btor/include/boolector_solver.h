@@ -39,7 +39,7 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new())
+  BoolectorSolver() : AbsSmtSolver(BTOR), btor(boolector_new())
   {
     // set termination function -- throw an exception
     auto throw_exception = [](const char * msg) -> void {
@@ -76,6 +76,18 @@ class BoolectorSolver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+
+  Sort make_sort(const DatatypeDecl & d) const override;
+
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,

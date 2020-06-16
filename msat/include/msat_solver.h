@@ -46,7 +46,7 @@ class MsatSolver : public AbsSmtSolver
   // but in mathsat factory, MUST setup_env
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
-  MsatSolver() : logic(""){};
+  MsatSolver() : AbsSmtSolver(MSAT), logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -88,6 +88,18 @@ class MsatSolver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+
+  Sort make_sort(const DatatypeDecl & d) const override;
+
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
@@ -125,7 +137,7 @@ class MsatSolver : public AbsSmtSolver
 class MsatInterpolatingSolver : public MsatSolver
 {
  public:
-  MsatInterpolatingSolver() {}
+  MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}

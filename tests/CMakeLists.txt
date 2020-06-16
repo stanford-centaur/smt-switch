@@ -57,6 +57,11 @@ target_link_libraries(unit-term gtest_main)
 target_link_libraries(unit-term test-deps)
 add_test(NAME unit-term_test COMMAND unit-term)
 
+add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
+target_link_libraries(unit-solver-enums gtest_main)
+target_link_libraries(unit-solver-enums test-deps)
+add_test(NAME unit-solver-enums_test COMMAND unit-solver-enums)
+
 add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp")
 target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter test-deps)
@@ -96,6 +101,12 @@ add_executable(test-int "${PROJECT_SOURCE_DIR}/tests/test-int.cpp")
 target_link_libraries(test-int gtest_main)
 target_link_libraries(test-int test-deps)
 add_test(NAME test-int_test COMMAND test-int)
+
+add_executable(test-dt "${PROJECT_SOURCE_DIR}/tests/test-dt.cpp")
+target_link_libraries(test-dt gtest_main)
+target_link_libraries(test-dt test-deps)
+add_test(NAME test-dt_test COMMAND test-dt)
+
 
 add_executable(test-array "${PROJECT_SOURCE_DIR}/tests/test-array.cpp")
 target_link_libraries(test-array gtest_main)

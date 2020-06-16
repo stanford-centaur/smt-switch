@@ -24,13 +24,16 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver_enums.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort_computation.cpp"
-  "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp")
+  "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS

@@ -37,6 +37,7 @@ using namespace smt;
 
 namespace smt_tests {
 
+// list of regular (non-interpolator) solver enums
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
   BTOR, BTOR_LOGGING,
@@ -55,67 +56,6 @@ const std::vector<SolverEnum> solver_enums({
 #endif
 });
 
-const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
-    solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE, QUANTIFIERS } },
-
-        { BTOR_LOGGING,
-          { LOGGING,
-            TERMITER,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
-        { CVC4,
-          { TERMITER,
-            THEORY_INT,
-            // TODO: put this back after getStoreAllBase() is in API
-            // ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
-        { CVC4_LOGGING,
-          { LOGGING,
-            TERMITER,
-            THEORY_INT,
-            // TODO: put this back after getStoreAllBase() is in API
-            // ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
-        { MSAT,
-          { TERMITER,
-            THEORY_INT,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE } },
-
-        { MSAT_LOGGING,
-          { LOGGING,
-            TERMITER,
-            THEORY_INT,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE } },
-
-        // TODO: Yices2 should support UNSAT_CORE
-        //       but something funky happens with testing
-        //       has something to do with the context and yices_init
-        //       look into this more and re-enable it
-        { YICES2, { THEORY_INT } },
-
-        { YICES2_LOGGING,
-          { LOGGING, TERMITER, THEORY_INT, FULL_TRANSFER, UNSAT_CORE } },
-
-    });
 
 SmtSolver create_solver(SolverEnum se)
 {
@@ -187,7 +127,7 @@ SmtSolver create_interpolating_solver(SolverEnum se)
   switch (se)
   {
 #if BUILD_MSAT
-    case MSAT:
+    case MSAT_INTERPOLATOR:
     {
       return MsatSolverFactory::create_interpolating_solver();
       break;
@@ -201,9 +141,9 @@ SmtSolver create_interpolating_solver(SolverEnum se)
 
 const std::vector<SolverEnum> itp_enums({
 #if BUILD_MSAT
-                                         MSAT
+  MSAT_INTERPOLATOR
 #endif
-  });
+});
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
@@ -213,13 +153,9 @@ std::vector<SolverEnum> available_no_logging_solver_enums()
   std::vector<SolverEnum> enums;
   for (auto se : solver_enums)
   {
-    if (solver_attributes.find(se) == solver_attributes.end())
-    {
-      throw SmtException("Unhandled solver enum in solver_attributes");
-    }
-
     const std::unordered_set<SolverAttribute> & se_attrs =
-        solver_attributes.at(se);
+        get_solver_attributes(se);
+
     if (se_attrs.find(LOGGING) == se_attrs.end())
     {
       enums.push_back(se);
@@ -234,13 +170,9 @@ std::vector<SolverEnum> available_logging_solver_enums()
   std::vector<SolverEnum> enums;
   for (auto se : solver_enums)
   {
-    if (solver_attributes.find(se) == solver_attributes.end())
-    {
-      throw SmtException("Unhandled solver enum in solver_attributes");
-    }
-
     const std::unordered_set<SolverAttribute> & se_attrs =
-        solver_attributes.at(se);
+        get_solver_attributes(se);
+
     if (se_attrs.find(LOGGING) != se_attrs.end())
     {
       enums.push_back(se);
@@ -257,13 +189,8 @@ std::vector<SolverEnum> filter_solver_enums(
   std::vector<SolverEnum> filtered_enums;
   for (auto se : solver_enums)
   {
-    if (solver_attributes.find(se) == solver_attributes.end())
-    {
-      throw SmtException("Unhandled solver enum in solver_attributes");
-    }
-
     const std::unordered_set<SolverAttribute> & se_attrs =
-        solver_attributes.at(se);
+        get_solver_attributes(se);
 
     bool all_attrs = true;
     for (auto a : attributes)
@@ -284,25 +211,5 @@ std::vector<SolverEnum> filter_solver_enums(
   return filtered_enums;
 }
 
-std::ostream & operator<<(std::ostream & o, SolverEnum e)
-{
-  switch (e)
-  {
-    case BTOR: o << "BTOR"; break;
-    case CVC4: o << "CVC4"; break;
-    case MSAT: o << "MSAT"; break;
-    case YICES2: o << "YICES2"; break;
-    case BTOR_LOGGING: o << "BTOR_LOGGING"; break;
-    case CVC4_LOGGING: o << "CVC4_LOGGING"; break;
-    case MSAT_LOGGING: o << "MSAT_LOGGING"; break;
-    case YICES2_LOGGING: o << "YICES2_LOGGING"; break;
-    default:
-      // should print the integer representation
-      throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
-      break;
-  }
-
-  return o;
-}
 
 }  // namespace smt_tests

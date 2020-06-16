@@ -108,6 +108,10 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::STORE, Store },
       { ::CVC4::api::FORALL, Forall },
       { ::CVC4::api::EXISTS, Exists } });
+      // Datatype
+      { ::CVC4::api::APPLY_CONSTRUCTOR, Apply_Constructor},
+      { ::CVC4::api::APPLY_TESTER, Apply_Tester},
+      { ::CVC4::api::APPLY_SELECTOR, Apply_Selector}});
 
 // struct for hashing
 CVC4::api::TermHashFunction termhash;

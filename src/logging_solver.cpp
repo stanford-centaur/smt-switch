@@ -39,7 +39,8 @@ const unordered_set<SortKind> supported_sortkinds_for_get_value(
 // implementations
 
 LoggingSolver::LoggingSolver(SmtSolver s)
-    : wrapped_solver(s),
+    : AbsSmtSolver(process_solver_enum(s->get_solver_enum())),
+      wrapped_solver(s),
       hashtable(new TermHashTable()),
       assumption_cache(new UnorderedTermMap())
 {
@@ -108,6 +109,38 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   Sort sort = wrapped_solver->make_sort(sk, sub_sorts);
   return make_logging_sort(sk, sort, sorts);
 }
+
+
+Sort LoggingSolver::make_sort(const DatatypeDecl & d) const {
+  throw NotImplementedException("LoggingSolver::make_sort");
+};
+DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s)  {
+    throw NotImplementedException("LoggingSolver::make_datatype_decl");
+}
+DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(const std::string s) const {
+    throw NotImplementedException("LoggingSolver::make_datatype_constructor_decl");
+};
+void LoggingSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("LoggingSolver::add_constructor");
+};
+void LoggingSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("LoggingSolver::add_selector");
+};
+void LoggingSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("LoggingSolver::add_selector_self");
+};
+
+Term LoggingSolver::get_constructor(const Sort & s, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_constructor");
+};
+Term LoggingSolver::get_tester(const Sort & s, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_testeer");
+};
+
+Term LoggingSolver::get_selector(const Sort & s, std::string con, std::string name) const  {
+  throw NotImplementedException("LoggingSolver::get_selector");
+};
+
 
 Term LoggingSolver::make_term(bool b) const
 {

@@ -135,20 +135,12 @@ const Term BoolectorTermIter::operator*()
     throw SmtException("Should never have an args node in children look up");
   }
 
-  // need to increment reference counter, because accessing child doesn't
-  // increment it
-  //  but BoolectorTerm destructor will release it
-  // use real_addr?
-  if (!btor_node_real_addr(res)->ext_refs)
-  {
-    if (btor_node_is_proxy(res))
-    {
-      res = btor_node_get_simplified(btor, res);
-    }
-    btor_node_inc_ext_ref_counter(btor, res);
-  }
+  // increment internal reference counter
+  res = btor_node_copy(btor, res);
+  // increment external reference counter
+  btor_node_inc_ext_ref_counter(btor, res);
 
-  BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
+  BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
   return std::make_shared<BoolectorTerm> (btor, node);
 };
 
@@ -374,6 +366,7 @@ TermIter BoolectorTerm::begin()
   if (btor_node_is_proxy(bn))
   {
     bn = btor_node_get_simplified(btor, bn);
+    bn = btor_node_real_addr(bn);
   }
 
   children.clear();
