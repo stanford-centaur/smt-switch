@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4-printinh.cpp
+/*! \file msat-printing.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Yoni Zohar
@@ -87,5 +87,6 @@ int main()
   string result = exec(command.c_str());
   std::cout << "got result:\n" << result << std::endl;
   assert(result == "unsat\n(<= 2 (+ z (* (- 1) x)))\n");
+  remove(filename.c_str());
   return 0;
 }

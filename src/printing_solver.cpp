@@ -11,8 +11,8 @@
 **
 ** \brief Class that wraps another SmtSolver and dumps SMT-LIB
 **        that corresponds to the operations being performed.
-**        The SMT-LIB sommand is printing before being executed,
-**        So that in case of an error it easier to see when it happened.
+**        The SMT-LIB command is printed before being executed,
+**        so that in case of an error it easier to see when it happened.
 **/
 
 #include "printing_solver.h"
@@ -277,7 +277,7 @@ bool PrintingSolver::get_interpolant(const Term & A,
   (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
   (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
   (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
-  wrapped_solver->get_interpolant(A, B, out_I);
+  return wrapped_solver->get_interpolant(A, B, out_I);
 }
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style) {

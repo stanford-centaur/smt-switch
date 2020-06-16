@@ -107,5 +107,7 @@ int main()
   string result = exec(command.c_str());
   std::cout << "got result:\n" << result << std::endl;
   assert(result == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+  remove(filename.c_str());
+
   return 0;
 }
