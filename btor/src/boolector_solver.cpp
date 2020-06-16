@@ -793,7 +793,12 @@ Term BoolectorSolver::substitute(
     key = std::static_pointer_cast<BoolectorTerm>(elem.first);
     value = std::static_pointer_cast<BoolectorTerm>(elem.second);
     // boolectornodemap only supports var -> term mappings
-    assert(key->is_symbolic_const());
+    if (!key->is_symbol())
+    {
+      throw IncorrectUsageException(
+          "boolector backend currently only supports symbol->term "
+          "substitution");
+    }
     boolector_nodemap_map(bmap, key->node, value->node);
   }
 
