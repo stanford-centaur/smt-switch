@@ -81,9 +81,12 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     { MSAT_TAG_BV_SEXT, Sign_Extend },
     { MSAT_TAG_ARRAY_READ, Select },
     { MSAT_TAG_ARRAY_WRITE, Store },
-    { MSAT_TAG_ARRAY_CONST, NUM_OPS_AND_NULL }, // Const Array is a value (no op)
+    { MSAT_TAG_ARRAY_CONST,
+      NUM_OPS_AND_NULL },  // Const Array is a value (no op)
     { MSAT_TAG_INT_TO_BV, Int_To_BV },
     { MSAT_TAG_INT_FROM_UBV, BV_To_Nat },
+    { MSAT_TAG_FORALL, Forall },
+    { MSAT_TAG_EXISTS, Exists },
     // MSAT_TAG_FP_EQ,
     // MSAT_TAG_FP_LT,
     // MSAT_TAG_FP_LE,
@@ -144,8 +147,8 @@ const Term MsatTermIter::operator*()
     {
       actual_idx--;
     }
-    return std::make_shared<MsatTerm>
-        (env, msat_term_get_arg(term, actual_idx));
+
+    return std::make_shared<MsatTerm>(env, msat_term_get_arg(term, actual_idx));
   }
 }
 
@@ -388,6 +391,14 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
+  else if (msat_term_is_forall(env, term))
+  {
+    return Op(Forall);
+  }
+  else if (msat_term_is_exists(env, term))
+  {
+    return Op(Exists);
+  }
   else if (is_symbol() || is_value())
   {
     return Op();
@@ -475,15 +486,12 @@ bool MsatTerm::is_symbol() const
       && !msat_term_is_number(env, term));
 }
 
-bool MsatTerm::is_param() const
-{
-  throw NotImplementedException("Msat backend doesn't support parameters yet.");
-}
+bool MsatTerm::is_param() const { return msat_term_is_variable(env, term); }
 
 bool MsatTerm::is_symbolic_const() const
 {
-  // functions are not constants
-  if (is_uf)
+  // functions and parameters are not constants
+  if (is_uf || is_param())
   {
     return false;
   }

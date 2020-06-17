@@ -68,7 +68,7 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
   ASSERT_EQ(forallb->get_op(), Forall);
   s->assert_formula(forallb);
   Result r = s->check_sat();
-  ASSERT_TRUE(r.is_unsat());
+  ASSERT_TRUE(!r.is_sat());
 }
 
 TEST_P(UnitQuantifierIterTests, QuantifierTraversal)

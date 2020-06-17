@@ -39,17 +39,15 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS } },
 
         { CVC4,
-          {
-              TERMITER,
-              THEORY_INT,
-              // TODO: put this back after getStoreAllBase() is in API
-              // ARRAY_MODELS,
-              CONSTARR,
-              FULL_TRANSFER,
-              UNSAT_CORE,
-              THEORY_DATATYPE,
-              QUANTIFIERS
-          } },
+          { TERMITER,
+            THEORY_INT,
+            // TODO: put this back after getStoreAllBase() is in API
+            // ARRAY_MODELS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE,
+            THEORY_DATATYPE,
+            QUANTIFIERS } },
 
         { CVC4_LOGGING,
           { LOGGING,
@@ -68,7 +66,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT_LOGGING,
           { LOGGING,

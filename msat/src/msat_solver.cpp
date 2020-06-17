@@ -108,7 +108,9 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { BVSle, msat_make_bv_sleq },
       { BVSgt, ext_msat_make_bv_sgt },
       { BVSge, ext_msat_make_bv_sgeq },
-      { Select, msat_make_array_read } });
+      { Select, msat_make_array_read },
+      { Forall, msat_make_forall },
+      { Exists, msat_make_exists } });
 
 const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
     { { Ite, ext_msat_make_ite }, { Store, msat_make_array_write } });
@@ -659,7 +661,9 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
 
 Term MsatSolver::make_param(const std::string name, const Sort & sort)
 {
-  throw NotImplementedException("make_param not supported by MathSAT yet.");
+  shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  msat_term var = msat_make_variable(env, name.c_str(), msort->type);
+  return std::make_shared<MsatTerm>(env, var);
 }
 
 Term MsatSolver::make_term(Op op, const Term & t) const
@@ -754,7 +758,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t->to_string();
     throw InternalSolverException(msg);
   }
@@ -803,7 +807,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t0->to_string() + ", " + t1->to_string();
     throw InternalSolverException(msg);
   }
@@ -857,7 +861,7 @@ Term MsatSolver::make_term(Op op,
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t0->to_string() + ", " + t1->to_string() + ", " + t2->to_string();
     throw InternalSolverException(msg);
   }
@@ -916,7 +920,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     {
       string msg("Failed to create term given ");
       msg += op.to_string();
-      msg += " and";
+      msg += " and ";
       for (auto t : terms)
       {
         msg += " " + t->to_string() + ",";
