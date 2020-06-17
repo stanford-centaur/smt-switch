@@ -185,9 +185,6 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
-  is_sym =
-      !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
-  is_par = !negated && (bn->kind == BTOR_PARAM_NODE);
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -271,14 +268,23 @@ Sort BoolectorTerm::get_sort() const
 bool BoolectorTerm::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols
-  return is_sym || is_par;
+  auto bkind = bn->kind;
+  return !negated
+         && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE)
+             || (bkind == BTOR_PARAM_NODE));
 }
 
-bool BoolectorTerm::is_param() const { return is_par; }
+bool BoolectorTerm::is_param() const
+{
+  return !negated && (bn->kind == BTOR_PARAM_NODE);
+}
 
 bool BoolectorTerm::is_symbolic_const() const
 {
   bool is_fun = boolector_is_fun(btor, node);
+  auto bkind = bn->kind;
+  bool is_sym =
+      !negated && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE));
   return is_sym && !is_fun;
 }
 
