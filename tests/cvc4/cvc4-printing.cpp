@@ -102,7 +102,7 @@ int main()
   // a macro to its string representation
   string command(STRFY(CVC4_HOME));
   command += "/build/bin/cvc4 ";
-  exec("chmod +x " + command);
+  exec(("chmod +x " + command).c_str());
   command += filename;
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
