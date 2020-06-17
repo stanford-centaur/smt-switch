@@ -87,7 +87,8 @@ int main()
                                 s->make_term(Equal,
                                              s->make_term(Select, arr, x),
                                              s->make_term(Select, arr, y)))));
-  assert(!s->check_sat_assuming(TermVec{ind1}).is_sat());
+  Result r = s->check_sat_assuming(TermVec{ ind1 });
+  assert(r.is_unsat());
   TermVec usc = s->get_unsat_core();
   s->pop(1);
   s->check_sat();
