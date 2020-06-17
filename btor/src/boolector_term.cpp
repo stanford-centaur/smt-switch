@@ -268,7 +268,11 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbol() const { return is_sym; }
+bool BoolectorTerm::is_symbol() const
+{
+  // functions, parameters, and symbolic constants are all symbols
+  return is_sym || is_par;
+}
 
 bool BoolectorTerm::is_param() const { return is_par; }
 

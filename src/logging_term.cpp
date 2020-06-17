@@ -121,7 +121,11 @@ string LoggingTerm::to_string()
   }
 }
 
-bool LoggingTerm::is_symbol() const { return is_sym; }
+bool LoggingTerm::is_symbol() const
+{
+  // functions, parameters, and symbolic constants are all symbols
+  return is_sym || is_par;
+}
 
 bool LoggingTerm::is_param() const { return is_par; }
 

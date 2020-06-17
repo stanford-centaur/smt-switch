@@ -240,7 +240,9 @@ Sort CVC4Term::get_sort() const
 
 bool CVC4Term::is_symbol() const
 {
-  return (term.getKind() == ::CVC4::api::CONSTANT);
+  // functions, parameters, and symbolic constants are all symbols
+  ::CVC4::api::Kind k = term.getKind();
+  return (k == ::CVC4::api::CONSTANT || k == ::CVC4::api::VARIABLE);
 }
 
 bool CVC4Term::is_param() const
