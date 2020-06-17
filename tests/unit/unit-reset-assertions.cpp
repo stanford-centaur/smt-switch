@@ -95,6 +95,8 @@ TEST_P(UnitResetAssertionsTests, ResetAssertions)
   ASSERT_TRUE(r.is_sat());
 }
 
+// only run this test if built with Boolector
+#ifdef BUILD_BTOR
 TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
 {
   // Boolector backend does not support reset_assertions by default
@@ -114,6 +116,7 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
 
   ASSERT_THROW(s->reset_assertions(), NotImplementedException);
 }
+#endif
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitResetAssertions,
                          UnitResetAssertionsTests,
