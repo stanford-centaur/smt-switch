@@ -110,6 +110,11 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
   }
+  else if (option == "base-context-1" && value == "true")
+  {
+    base_context_1 = true;
+    push(1);
+  }
   else
   {
     std::string msg("Option ");
@@ -312,11 +317,13 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 void BoolectorSolver::push(uint64_t num)
 {
   boolector_push(btor, num);
+  context_level += num;
 }
 
 void BoolectorSolver::pop(uint64_t num)
 {
   boolector_pop(btor, num);
+  context_level -= num;
 }
 
 Term BoolectorSolver::get_value(const Term & t) const
@@ -730,8 +737,22 @@ void BoolectorSolver::reset()
 
 void BoolectorSolver::reset_assertions()
 {
-  throw NotImplementedException(
-      "Boolector does not have reset assertions yet.");
+  if (!base_context_1)
+  {
+    throw NotImplementedException(
+        "Boolector does not support reset_assertions. "
+        "However, you can use set_opt(\"base-context-1\", \"true\")"
+        " to do all solving at context 1, which then will allow "
+        " calling reset_assertions. This may impact performance");
+  }
+  else
+  {
+    // pop the contexts
+    pop(context_level);
+    // push back to context level 1
+    push(1);
+    assert(context_level == 1);
+  }
 }
 
 Term BoolectorSolver::substitute(

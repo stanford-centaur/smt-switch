@@ -97,7 +97,6 @@ target_link_libraries(test-dt gtest_main)
 target_link_libraries(test-dt test-deps)
 add_test(NAME test-dt_test COMMAND test-dt)
 
-
 add_executable(test-array "${PROJECT_SOURCE_DIR}/tests/test-array.cpp")
 target_link_libraries(test-array gtest_main)
 target_link_libraries(test-array test-deps)
@@ -127,3 +126,8 @@ add_executable(unit-arrays "${PROJECT_SOURCE_DIR}/tests/unit/unit-arrays.cpp")
 target_link_libraries(unit-arrays gtest_main)
 target_link_libraries(unit-arrays test-deps)
 add_test(NAME unit-arrays_test COMMAND unit-arrays)
+
+add_executable(unit-reset-assertions "${PROJECT_SOURCE_DIR}/tests/unit/unit-reset-assertions.cpp")
+target_link_libraries(unit-reset-assertions gtest_main)
+target_link_libraries(unit-reset-assertions test-deps)
+add_test(NAME unit-reset-assertions_test COMMAND unit-reset-assertions)

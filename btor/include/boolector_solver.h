@@ -118,6 +118,14 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
+
+  bool base_context_1 = false;
+  ///< if set to true, do all solving at context 1 in the solver
+  ///< this then supports reset_assertions by popping and re-pushing
+  ///< the context. Without it, boolector does not support
+  ///< reset_assertions yet
+  ///< set this flag with set_opt("base-context-1", "true")
+  size_t context_level = 0;  ///< tracks the current solving context level
 };
 }  // namespace smt
 
