@@ -13,8 +13,14 @@
 **
 **
 **/
+#pragma once
 
 #include "smt.h"
+
+// macros for getting string value of another macro
+// i.e. STRFY(FOO) := "FOO"
+#define STRHELPER(A) #A
+#define STRFY(A) STRHELPER(A)
 
 namespace smt_tests {
 

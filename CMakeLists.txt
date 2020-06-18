@@ -70,8 +70,8 @@ if (BUILD_BTOR)
   add_subdirectory (btor)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
-  # testing
-  add_subdirectory(tests/btor)
+  add_definitions(-DBUILD_BTOR)
+  add_definitions(-DBTOR_HOME=${BTOR_HOME})
 endif (BUILD_BTOR)
 
 # should we build cvc4?
@@ -85,8 +85,8 @@ if (BUILD_CVC4)
   add_subdirectory (cvc4)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
 
-  # testing
-  add_subdirectory(tests/cvc4)
+  add_definitions(-DBUILD_CVC4)
+  add_definitions(-DCVC4_HOME=${CVC4_HOME})
 endif (BUILD_CVC4)
 
 # should we build msat?
@@ -100,9 +100,8 @@ if (BUILD_MSAT)
   add_subdirectory (msat)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
-  # testing
-  add_subdirectory(tests/msat)
-
+  add_definitions(-DBUILD_MSAT)
+  add_definitions(-DMSAT_HOME=${MSAT_HOME})
 endif()
 
 # should we build yices2?
@@ -116,9 +115,8 @@ if (BUILD_YICES2)
   add_subdirectory (yices2)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
 
-  # testing
-  add_subdirectory(tests/yices2)
-
+  add_definitions(-DBUILD_YICES2)
+  add_definitions(-DYICES2_HOME=${YICES2_HOME})
 endif (BUILD_YICES2)
 
 if (BUILD_PYTHON_BINDINGS)
