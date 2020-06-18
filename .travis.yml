@@ -23,10 +23,9 @@ addons:
 
 jobs:
   include:
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: gcc
+    - os: osx
+      osx_image: xcode9
+      env: SOLVER='msat' OPTS="--auto-yes"
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
@@ -35,7 +34,8 @@ script:
   - bash -c "./travis-scripts/setup-${SOLVER}.sh ${OPTS}"
   - bash -c "chmod +x ./deps/CVC4/build/bin/cvc4"
   - bash -c "./configure.sh --${SOLVER} --python"
-  - bash -c "cd build && make -j && make test"
+  - bash -c "cd build && make -j"
+  - bash -c "./tests/msat/msat-printing"
   # # install wheels
   # - sudo python3 -m pip install wheel setuptools virtualenv
   # - python3 contrib/wheels/build_wheel.py bdist_wheel
