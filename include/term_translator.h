@@ -29,13 +29,18 @@ class TermTranslator
 {
  public:
   TermTranslator(SmtSolver & s) : solver(s) {}
-  Sort transfer_sort(const Sort & sort);
+  Sort transfer_sort(const Sort & sort) const;
   Term transfer_term(const Term & term);
   /* Returns reference to cache -- can be used to populate with symbols */
   UnorderedTermMap & get_cache() { return cache; };
 
  protected:
-  Term value_from_smt2(const std::string val, const Sort sort) const;
+  /** Creates a term value from a string of the given sort
+   *  @param val the string representation of the value
+   *  @param orig_sort the sort from the original solver (transfer_sort is
+   * called in this function)
+   */
+  Term value_from_smt2(const std::string val, const Sort orig_sort) const;
   SmtSolver & solver;
   UnorderedTermMap cache;
 };

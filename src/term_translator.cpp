@@ -21,7 +21,7 @@
 
 namespace smt {
 
-Sort TermTranslator::transfer_sort(const Sort & sort)
+Sort TermTranslator::transfer_sort(const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   if ((sk == INT) || (sk == REAL) || (sk == BOOL))
@@ -124,7 +124,11 @@ Term TermTranslator::transfer_term(const Term & term)
         }
         else
         {
-          cache[t] = value_from_smt2(t->to_string(), s);
+          // pass the original sort here
+          // allows us to transfer from a solver that doesn't alias sorts
+          // to one that does alias sorts
+          // the sort will be transferred again in value_from_smt2
+          cache[t] = value_from_smt2(t->to_string(), t->get_sort());
         }
       }
       else if (cached_children.size())
@@ -147,9 +151,10 @@ Term TermTranslator::transfer_term(const Term & term)
 }
 
 Term TermTranslator::value_from_smt2(const std::string val,
-                                     const Sort sort) const
+                                     const Sort orig_sort) const
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = orig_sort->get_sort_kind();
+  Sort sort = transfer_sort(orig_sort);
   if (sk == BV)
   {
     // TODO: Only put checks in debug mode
