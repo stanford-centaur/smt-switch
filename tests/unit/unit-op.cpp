@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitTests : public ::testing::Test,
-                  public testing::WithParamInterface<SolverEnum>
+                  public ::testing::WithParamInterface<SolverEnum>
 {
  protected:
   void SetUp() override
