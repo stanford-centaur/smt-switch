@@ -368,42 +368,6 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   try
   {
     UnorderedTermMap assignments;
-    out_const_base = nullptr;
-    CVC4::api::Term carr = std::static_pointer_cast<CVC4Term>(arr)->term;
-    // get the array value
-    // CVC4 returns a sequence of stores
-    carr = solver.getValue(carr);
-
-    TermVec indices;
-    TermVec values;
-    Term idx;
-    Term val;
-    while (carr.hasOp() && carr.getOp() == CVC4::api::STORE)
-    {
-      idx = Term(new CVC4Term(carr[1]));
-      val = Term(new CVC4Term(carr[2]));
-      indices.push_back(idx);
-      values.push_back(val);
-      carr = carr[0];
-    }
-
-    // TODO: finish this and remove the false
-    if (false && carr.getKind() == CVC4::api::STORE_ALL)
-    {
-      // TODO: after PR merged, need to use getStoreAllBase()
-      out_const_base = Term(new CVC4Term(carr[0]));
-    }
-
-    // now populate the map in reverse order
-    Assert(indices.size() == values.size());
-
-    while (indices.size())
-    {
-      assignments[indices.back()] = values.back();
-      indices.pop_back();
-      values.pop_back();
-    }
-
     return assignments;
   }
   catch (CVC4::api::CVC4ApiException & e)
@@ -671,7 +635,7 @@ DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::st
 {
   try
   {
-  return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
+  return DatatypeConstructorDecl();
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
