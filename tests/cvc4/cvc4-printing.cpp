@@ -145,12 +145,14 @@ int main()
   SmtSolver cvc4_1 = CVC4SolverFactory::create(false);
   ostream os1(&strbuf1);
   SmtSolver s1 = create_printing_solver(cvc4_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
+  s1->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test1(s1, os1, strbuf1);
 
   stringbuf strbuf2;
   SmtSolver cvc4_2 = CVC4SolverFactory::create_interpolating_solver();
   ostream os2(&strbuf2);
   SmtSolver s2 = create_printing_solver(cvc4_2, &os2, PrintingStyleEnum::CVC4_STYLE);
+  s2->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test2(s2, os2, strbuf2);
 
   return 0;
