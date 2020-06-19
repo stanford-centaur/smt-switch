@@ -39,7 +39,7 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : btor(boolector_new())
+  BoolectorSolver() : AbsSmtSolver(BTOR), btor(boolector_new())
   {
     // set termination function -- throw an exception
     auto throw_exception = [](const char * msg) -> void {
@@ -76,6 +76,18 @@ class BoolectorSolver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+
+  Sort make_sort(const DatatypeDecl & d) const override;
+
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
@@ -106,6 +118,14 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
+
+  bool base_context_1 = false;
+  ///< if set to true, do all solving at context 1 in the solver
+  ///< this then supports reset_assertions by popping and re-pushing
+  ///< the context. Without it, boolector does not support
+  ///< reset_assertions yet
+  ///< set this flag with set_opt("base-context-1", "true")
+  size_t context_level = 0;  ///< tracks the current solving context level
 };
 }  // namespace smt
 

@@ -484,6 +484,38 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+
+Sort MsatSolver::make_sort(const DatatypeDecl & d) const {
+  throw NotImplementedException("MsatSolver::make_sort");
+};
+DatatypeDecl MsatSolver::make_datatype_decl(const std::string & s)  {
+    throw NotImplementedException("MsatSolver::make_datatype_decl");
+}
+DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(const std::string s) const {
+    throw NotImplementedException("MsatSolver::make_datatype_constructor_decl");
+};
+void MsatSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+  throw NotImplementedException("MsatSolver::add_constructor");
+};
+void MsatSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+  throw NotImplementedException("MsatSolver::add_selector");
+};
+void MsatSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+  throw NotImplementedException("MsatSolver::add_selector_self");
+};
+
+Term MsatSolver::get_constructor(const Sort & s, std::string name) const  {
+  throw NotImplementedException("MsatSolver::get_constructor");
+};
+Term MsatSolver::get_tester(const Sort & s, std::string name) const  {
+  throw NotImplementedException("MsatSolver::get_testeer");
+};
+
+Term MsatSolver::get_selector(const Sort & s, std::string con, std::string name) const  {
+  throw NotImplementedException("MsatSolver::get_selector");
+};
+
+
 Term MsatSolver::make_term(bool b) const
 {
   if (b)

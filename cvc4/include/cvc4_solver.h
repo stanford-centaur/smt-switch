@@ -25,6 +25,7 @@
 
 #include "cvc4_sort.h"
 #include "cvc4_term.h"
+#include "cvc4_datatype.h"
 
 #include "api/cvc4cpp.h"
 
@@ -34,6 +35,7 @@
 #include "smt.h"
 #include "sort.h"
 #include "term.h"
+#include "datatype.h"
 
 namespace smt {
 /**
@@ -42,7 +44,7 @@ namespace smt {
 class CVC4Solver : public AbsSmtSolver
 {
  public:
- CVC4Solver() : solver()
+  CVC4Solver() : AbsSmtSolver(CVC4), solver()
   {
     solver.setOption("lang", "smt2");
   };
@@ -72,6 +74,17 @@ class CVC4Solver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const DatatypeDecl & d) const override;
+
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,

@@ -99,6 +99,10 @@ enum PrimOp
   /* Array Theory */
   Select,
   Store,
+  /* Datatype Theory */
+  Apply_Selector,
+  Apply_Tester,
+  Apply_Constructor,
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */

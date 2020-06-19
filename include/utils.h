@@ -20,6 +20,8 @@
 #include <iostream>
 #include "assert.h"
 
+#include "smt.h"
+
 #ifndef NDEBUG
 #define _ASSERTIONS
 #endif
@@ -48,5 +50,12 @@ inline void Log(std::string msg)
     std::cout << msg << std::endl;
   }
 }
+
+// term helper methods
+void conjunctive_partition(const smt::Term &term, smt::TermVec &out);
+
+void disjunctive_partition(const smt::Term &term, smt::TermVec &out);
+
+void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
 #endif

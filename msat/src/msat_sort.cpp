@@ -162,6 +162,11 @@ string MsatSort::get_uninterpreted_name() const
   return res;
 }
 
+Datatype MsatSort::get_datatype() const {
+  throw NotImplementedException("get_datatype");
+};
+
+
 bool MsatSort::compare(const Sort s) const
 {
   std::shared_ptr<MsatSort> msort = std::static_pointer_cast<MsatSort>(s);

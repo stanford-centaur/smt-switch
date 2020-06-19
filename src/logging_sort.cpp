@@ -163,10 +163,20 @@ bool LoggingSort::compare(const Sort s) const
     {
       return get_uninterpreted_name() == s->get_uninterpreted_name();
     }
+    case DATATYPE:
+    {
+      throw NotImplementedException("LoggingSort::compare");
+    }
     case NUM_SORT_CONS:
     {
       // null sorts should not be equal
       return false;
+    }
+    default:
+    {
+      // this code should be unreachable
+      throw SmtException(
+          "Hit default case in LoggingSort comparison -- missing a SortCon");
     }
   }
 }

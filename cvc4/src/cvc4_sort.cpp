@@ -17,6 +17,7 @@
 #include "exceptions.h"
 
 #include "cvc4_sort.h"
+#include "cvc4_datatype.h"
 
 namespace smt {
 
@@ -72,6 +73,18 @@ bool CVC4Sort::compare(const Sort s) const
   return sort == cs->sort;
 }
 
+Datatype CVC4Sort::get_datatype() const
+{
+  try
+  {
+    return std::make_shared<CVC4Datatype> (sort.getDatatype());
+  } catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+};
+
+
 SortKind CVC4Sort::get_sort_kind() const
 {
   if (sort.isBoolean())
@@ -101,6 +114,10 @@ SortKind CVC4Sort::get_sort_kind() const
   else if (sort.isUninterpretedSort())
   {
     return UNINTERPRETED;
+  }
+  else if (sort.isDatatype())
+  {
+    return DATATYPE;
   }
   else
   {

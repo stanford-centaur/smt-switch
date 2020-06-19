@@ -89,6 +89,8 @@ namespace smt {
   friend class CVC4InterpolatingSolver;
   };
 
+
+
 }
 
 #endif
