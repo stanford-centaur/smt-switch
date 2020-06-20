@@ -31,6 +31,7 @@ using namespace std;
 int main()
 {
   SmtSolver s = CVC4SolverFactory::create(false);
+  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   s->set_opt("produce-models", "true");
   Sort bvsort9 = s->make_sort(BV, 9);
   Term x = s->make_symbol("x", bvsort9);

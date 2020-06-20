@@ -378,7 +378,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
     TermVec values;
     Term idx;
     Term val;
-    while (carr.hasOp() && carr.getOp() == CVC4::api::STORE)
+    while (carr.hasOp() && carr.getKind() == CVC4::api::STORE)
     {
       idx = Term(new CVC4Term(carr[1]));
       val = Term(new CVC4Term(carr[2]));
@@ -388,7 +388,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
     }
 
     // TODO: finish this and remove the false
-    if (false && carr.getKind() == CVC4::api::STORE_ALL)
+    if (false && carr.getKind() == CVC4::api::CONST_ARRAY)
     {
       // TODO: after PR merged, need to use getStoreAllBase()
       out_const_base = Term(new CVC4Term(carr[0]));
@@ -669,7 +669,9 @@ DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::st
 {
   try
   {
-  return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
+  //TODO fix!
+  //return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
+  return DatatypeConstructorDecl();
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {

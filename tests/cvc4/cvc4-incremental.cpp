@@ -32,6 +32,7 @@ int main()
 {
   SmtSolver s = CVC4SolverFactory::create(false);
   s->set_logic("QF_BV");
+  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
 
