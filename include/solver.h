@@ -139,7 +139,7 @@ class AbsSmtSolver
    * @param sk the SortKind
    * @param sort1 first sort
    * @return a Sort object
-   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
+   * this method is currently unused but kept for API consistency
    */
   virtual Sort make_sort(const SortKind sk, const Sort & sort1) const = 0;
 
