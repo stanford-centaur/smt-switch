@@ -35,6 +35,9 @@ namespace smt {
 class AbsSmtSolver
 {
  public:
+  /** SolverEnum identifies which underlying solver is being used.
+   *  It is provided by the derived class (backend implementation)
+   */
   AbsSmtSolver(SolverEnum se) : solver_enum(se){};
   virtual ~AbsSmtSolver(){};
 
