@@ -87,8 +87,7 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
     EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
     EXPECT_THROW(s->get_selector(listsort, "nil", "head"), InternalSolverException);
-    EXPECT_THROW(listdt->get_num_selectors("kons")==2,InternalSolverException);
-
+    EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,

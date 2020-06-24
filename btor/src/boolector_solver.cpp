@@ -142,8 +142,11 @@ Sort BoolectorSolver::make_sort(const DatatypeDecl & d) const {
 DatatypeDecl BoolectorSolver::make_datatype_decl(const std::string & s)  {
     throw NotImplementedException("BoolectorSolver::make_datatype_decl");
 }
-DatatypeConstructorDecl BoolectorSolver::make_datatype_constructor_decl(const std::string s) const {
-    throw NotImplementedException("BoolectorSolver::make_datatype_constructor_decl");
+DatatypeConstructorDecl BoolectorSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  throw NotImplementedException(
+      "BoolectorSolver::make_datatype_constructor_decl");
 };
 void BoolectorSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("BoolectorSolver::add_constructor");

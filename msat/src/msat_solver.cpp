@@ -491,8 +491,10 @@ Sort MsatSolver::make_sort(const DatatypeDecl & d) const {
 DatatypeDecl MsatSolver::make_datatype_decl(const std::string & s)  {
     throw NotImplementedException("MsatSolver::make_datatype_decl");
 }
-DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(const std::string s) const {
-    throw NotImplementedException("MsatSolver::make_datatype_constructor_decl");
+DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  throw NotImplementedException("MsatSolver::make_datatype_constructor_decl");
 };
 void MsatSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("MsatSolver::add_constructor");

@@ -665,13 +665,13 @@ DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)
   }
 }
 
-DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::string s) const
+DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(
+    const std::string s)
 {
   try
   {
-  //TODO fix!
-  //return std::make_shared<CVC4DatatypeConstructorDecl> (CVC4::api::DatatypeConstructorDecl(s));
-  return DatatypeConstructorDecl();
+    return std::make_shared<CVC4DatatypeConstructorDecl>(
+        solver.mkDatatypeConstructorDecl(s));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
