@@ -59,7 +59,6 @@ int main()
   SmtSolver cvc4 = CVC4SolverFactory::create(false);
   ostream os(&strbuf);
   SmtSolver s = create_printing_solver(cvc4, &os, PrintingStyleEnum::DEFAULT_STYLE);
-  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   s->set_logic("QF_AUFBV");
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
@@ -108,7 +107,8 @@ int main()
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
   std::cout << "got result:\n" << result << std::endl;
-  assert(result == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+  assert(result
+         == "unsat\n()\nsat\n((x #b00000000000000000000000000000000))\n");
   remove(filename.c_str());
 
   return 0;

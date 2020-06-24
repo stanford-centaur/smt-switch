@@ -47,6 +47,7 @@ class CVC4Solver : public AbsSmtSolver
   CVC4Solver() : AbsSmtSolver(CVC4), solver()
   {
     solver.setOption("lang", "smt2");
+    solver.setOption("bv-print-consts-as-indexed-symbols", "true");
   };
   CVC4Solver(const CVC4Solver &) = delete;
   CVC4Solver & operator=(const CVC4Solver &) = delete;
