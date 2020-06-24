@@ -387,11 +387,9 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
       carr = carr[0];
     }
 
-    // TODO: finish this and remove the false
-    if (false && carr.getKind() == CVC4::api::CONST_ARRAY)
+    if (carr.getKind() == CVC4::api::CONST_ARRAY)
     {
-      // TODO: after PR merged, need to use getStoreAllBase()
-      out_const_base = Term(new CVC4Term(carr[0]));
+      out_const_base = Term(new CVC4Term(carr.getConstArrayBase()));
     }
 
     // now populate the map in reverse order
