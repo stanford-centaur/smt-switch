@@ -277,7 +277,8 @@ class AbsSmtSolver
    * @param s Name of the datatype constructor
    * @return an empty Datatype declaration
    */
-  virtual DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const = 0; // what is const=0?
+  virtual DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) = 0;  // what is const=0?
 
   /* Add a datatype constructor to a datatype declaration
    * @param dt Datatype

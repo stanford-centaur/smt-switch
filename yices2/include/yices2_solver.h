@@ -86,7 +86,8 @@ class Yices2Solver : public AbsSmtSolver
   Sort make_sort(const DatatypeDecl & d) const override;
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
-  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) override;
   void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
   void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;

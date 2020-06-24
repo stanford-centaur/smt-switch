@@ -107,7 +107,8 @@ int main()
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
   std::cout << "got result:\n" << result << std::endl;
-  assert(result == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+  assert(result
+         == "unsat\n()\nsat\n((x #b00000000000000000000000000000000))\n");
   remove(filename.c_str());
 
   return 0;

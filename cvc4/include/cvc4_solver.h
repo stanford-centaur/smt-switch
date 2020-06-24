@@ -47,6 +47,7 @@ class CVC4Solver : public AbsSmtSolver
   CVC4Solver() : AbsSmtSolver(CVC4), solver()
   {
     solver.setOption("lang", "smt2");
+    solver.setOption("bv-print-consts-as-indexed-symbols", "true");
   };
   CVC4Solver(const CVC4Solver &) = delete;
   CVC4Solver & operator=(const CVC4Solver &) = delete;
@@ -77,7 +78,8 @@ class CVC4Solver : public AbsSmtSolver
   Sort make_sort(const DatatypeDecl & d) const override;
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
-  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) override;
   void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
   void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
