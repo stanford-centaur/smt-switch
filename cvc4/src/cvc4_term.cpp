@@ -174,7 +174,8 @@ Op CVC4Term::get_op() const
   CVC4::api::Kind cvc4_kind = cvc4_op.getKind();
 
   // special cases
-  if (cvc4_kind == CVC4::Kind::STORE_ALL)
+
+  if (cvc4_kind == CVC4::api::Kind::CONST_ARRAY)
   {
     // constant array is a value in smt-switch
     return Op();
@@ -236,7 +237,7 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_RATIONAL)
           || (k == ::CVC4::api::CONST_FLOATINGPOINT)
           || (k == ::CVC4::api::CONST_ROUNDINGMODE)
-          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::Kind::STORE_ALL));
+          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::CONST_ARRAY));
 }
 
 std::string CVC4Term::to_string() { return term.toString(); }

@@ -387,11 +387,9 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
       carr = carr[0];
     }
 
-    // TODO: finish this and remove the false
-    if (false && carr.getKind() == CVC4::Kind::STORE_ALL)
+    if (carr.getKind() == CVC4::api::CONST_ARRAY)
     {
-      // TODO: after PR merged, need to use getStoreAllBase()
-      out_const_base = Term(new CVC4Term(carr[0]));
+      out_const_base = Term(new CVC4Term(carr.getConstArrayBase()));
     }
 
     // now populate the map in reverse order
@@ -666,11 +664,13 @@ DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)
   }
 }
 
-DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(const std::string s) const
+DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(
+    const std::string s)
 {
   try
   {
-  return DatatypeConstructorDecl();
+    return std::make_shared<CVC4DatatypeConstructorDecl>(
+        solver.mkDatatypeConstructorDecl(s));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {

@@ -99,8 +99,11 @@ Sort PrintingSolver::make_sort(const DatatypeDecl & d) const {
 DatatypeDecl PrintingSolver::make_datatype_decl(const std::string & s)  {
     throw NotImplementedException("PrintingSolver::make_datatype_decl");
 }
-DatatypeConstructorDecl PrintingSolver::make_datatype_constructor_decl(const std::string s) const {
-    throw NotImplementedException("PrintingSolver::make_datatype_constructor_decl");
+DatatypeConstructorDecl PrintingSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  throw NotImplementedException(
+      "PrintingSolver::make_datatype_constructor_decl");
 };
 void PrintingSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("PrintingSolver::add_constructor");

@@ -117,8 +117,11 @@ Sort LoggingSolver::make_sort(const DatatypeDecl & d) const {
 DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s)  {
     throw NotImplementedException("LoggingSolver::make_datatype_decl");
 }
-DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(const std::string s) const {
-    throw NotImplementedException("LoggingSolver::make_datatype_constructor_decl");
+DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  throw NotImplementedException(
+      "LoggingSolver::make_datatype_constructor_decl");
 };
 void LoggingSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("LoggingSolver::add_constructor");
