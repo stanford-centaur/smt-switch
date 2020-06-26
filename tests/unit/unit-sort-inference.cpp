@@ -103,13 +103,20 @@ TEST_P(UnitSortInferenceTests, HelperTests)
 TEST_P(UnitSortInferenceTests, SortednessTests)
 {
   /******** Booleans ********/
-  EXPECT_TRUE(check_sortedness(And, { b1, b2 }));
-  EXPECT_TRUE(check_sortedness(Xor, { b1, b2 }));
   EXPECT_TRUE(check_sortedness(Equal, { b1, b2 }));
   EXPECT_TRUE(check_sortedness(Distinct, { b1, b2 }));
+
   // wrong operator
-  EXPECT_FALSE(check_sortedness(BVAnd, { b1, b2 }));
+  // doesn't work for BTOR because of sort aliasing
+  if (s->get_solver_enum() != BTOR)
+  {
+    EXPECT_TRUE(check_sortedness(And, { b1, b2 }));
+    EXPECT_TRUE(check_sortedness(Xor, { b1, b2 }));
+    EXPECT_FALSE(check_sortedness(BVAnd, { b1, b2 }));
+  }
+
   EXPECT_FALSE(check_sortedness(Ge, { b1, b2 }));
+
   // wrong number of arguments
   EXPECT_FALSE(check_sortedness(Xor, { b1 }));
 
