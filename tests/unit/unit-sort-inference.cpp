@@ -45,13 +45,29 @@ class UnitSortInferenceTests : public ::testing::Test,
 
 TEST_P(UnitSortInferenceTests, HelperTests)
 {
-  EXPECT_TRUE(is_sort_equal({ boolsort, boolsort }));
-  EXPECT_TRUE(is_sort_equal({ bvsort4, bvsort4 }));
-  EXPECT_TRUE(is_sort_equal({ arrsort, arrsort }));
-  EXPECT_TRUE(is_sort_equal({ funsort, funsort }));
-  EXPECT_FALSE(is_sort_equal({ boolsort, bvsort4 }));
-  EXPECT_FALSE(is_sort_equal({ bvsort4, bvsort5 }));
-  EXPECT_TRUE(is_sortkind_equal({ bvsort4, bvsort5 }));
+  EXPECT_TRUE(equal_sorts({ boolsort, boolsort }));
+  EXPECT_TRUE(equal_sorts({ bvsort4, bvsort4 }));
+  EXPECT_TRUE(equal_sorts({ arrsort, arrsort }));
+  EXPECT_TRUE(equal_sorts({ funsort, funsort }));
+  EXPECT_FALSE(equal_sorts({ boolsort, bvsort4 }));
+  EXPECT_FALSE(equal_sorts({ bvsort4, bvsort5 }));
+
+  EXPECT_TRUE(equal_sortkinds({ bvsort4, bvsort5 }));
+  EXPECT_TRUE(equal_sortkinds({ funsort, funsort }));
+  EXPECT_FALSE(equal_sortkinds({ funsort, bvsort4 }));
+
+  EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4, bvsort5 }));
+
+  // BTOR considers all BOOLs as BV of size 1, so these tests would fail
+  if (s->get_solver_enum() != BTOR)
+  {
+    EXPECT_TRUE(check_ite_sorts({ boolsort, bvsort4, bvsort4 }));
+    EXPECT_TRUE(bool_sorts({ boolsort }));
+  }
+
+  EXPECT_TRUE(bv_sorts({ bvsort4 }));
+  EXPECT_TRUE(array_sorts({ arrsort }));
+  EXPECT_TRUE(function_sorts({ funsort }));
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,

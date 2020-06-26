@@ -24,20 +24,38 @@ using namespace std;
 namespace smt {
 
 // helper function implementations
-bool is_sort_equal(const SortVec & sorts)
+bool equal_sorts(const SortVec & sorts)
 {
   assert(sorts.size());
   return (adjacent_find(sorts.begin(), sorts.end(), not_equal_to<Sort>())
           == sorts.end());
 }
 
-bool is_sortkind_equal(const SortVec & sorts)
+bool equal_sortkinds(const SortVec & sorts)
 {
   assert(sorts.size());
   SortKind first_sk = sorts[0]->get_sort_kind();
   for (auto it = next(sorts.begin()); it != sorts.end(); ++it)
   {
     if (first_sk != (*it)->get_sort_kind())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool check_ite_sorts(const SortVec & sorts)
+{
+  assert(sorts.size() == 3);
+  return sorts[0]->get_sort_kind() == BOOL && sorts[1] == sorts[2];
+}
+
+bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
+{
+  for (auto sort : sorts)
+  {
+    if (sk != sort->get_sort_kind())
     {
       return false;
     }
