@@ -51,6 +51,12 @@ if (BUILD_YICES2)
 endif()
 
 # googletest tests
+
+add_executable(unit-sort-inference "${PROJECT_SOURCE_DIR}/tests/unit/unit-sort-inference.cpp")
+target_link_libraries(unit-sort-inference gtest_main)
+target_link_libraries(unit-sort-inference test-deps)
+add_test(NAME unit-sort-inference_test COMMAND unit-sort-inference)
+
 add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
 target_link_libraries(unit-solver-enums gtest_main)
 target_link_libraries(unit-solver-enums test-deps)
