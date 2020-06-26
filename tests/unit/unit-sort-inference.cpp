@@ -141,15 +141,19 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_FALSE(check_sortedness(Store, {arr, p, w}));
   EXPECT_FALSE(check_sortedness(Store, {arr, w, p}));
 
-  /********* Functions ********/
-  EXPECT_TRUE(check_sortedness(Apply, { f, p, q }));
-  // wronge type
-  EXPECT_FALSE(check_sortedness(Apply, { f, p, w }));
-  EXPECT_FALSE(check_sortedness(Apply, { f, arr, q }));
-  // wrong number of arguments
-  EXPECT_FALSE(check_sortedness(Apply, {f}));
-  EXPECT_FALSE(check_sortedness(Apply, {f, p}));
-  EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+  // BTOR doesn't support getting the sort of a function yet
+  if (s->get_solver_enum() != BTOR)
+  {
+    /********* Functions ********/
+    EXPECT_TRUE(check_sortedness(Apply, { f, p, q }));
+    // wronge type
+    EXPECT_FALSE(check_sortedness(Apply, { f, p, w }));
+    EXPECT_FALSE(check_sortedness(Apply, { f, arr, q }));
+    // wrong number of arguments
+    EXPECT_FALSE(check_sortedness(Apply, {f}));
+    EXPECT_FALSE(check_sortedness(Apply, {f, p}));
+    EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+  }
 }
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)

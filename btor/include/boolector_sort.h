@@ -53,8 +53,9 @@ class BoolectorSortBase : public AbsSort
   friend class BoolectorSolver;
 };
 
-/** The Boolector C API doesn't support querying sorts for width, etc...
-    (in Boolector asking for the width is done on a node, i.e. Term, rather than
+/** The Boolector C API doesn't support querying sorts for the index sort
+    of an array sort, etc...
+    (in Boolector asking for the index is done on a node, i.e. Term, rather than
    a sort) Thus, we need to track some extra information for implementing
    AbsSort. To make this simpler, we have unique classes for each sort.
  */
