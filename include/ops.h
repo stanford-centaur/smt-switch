@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 namespace smt {
 
@@ -127,6 +128,12 @@ struct Op
   uint64_t idx0;
   uint64_t idx1;
 };
+
+/** Looks up the expected arity of a PrimOp
+ *  @return a tuple with the minimum and maximum
+ *          accepted arity (in that order)
+ */
+std::pair<size_t, size_t> get_arity(PrimOp po);
 
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);

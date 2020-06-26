@@ -90,6 +90,12 @@ bool bv_sorts(const SortVec & sorts)
   return check_sortkind_matches(BV, sorts);
 };
 
+bool eq_bv_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  return sorts[0]->get_sort_kind() == BV && equal_sorts(sorts);
+};
+
 bool real_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(REAL, sorts);

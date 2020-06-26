@@ -25,7 +25,9 @@ using namespace std;
 
 namespace smt {
 
-// a map used to look up the sortedness check in check_sortedness
+// a map used to look up the sortedness check functions in check_sortedness
+// maps primitive operators to a function used to check that the sorts are
+// expected
 const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
     sort_check_dispatch({ { And, bool_sorts },
                           { Or, bool_sorts },
@@ -50,8 +52,8 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           // technically Abs/Pow only defined for integers in
                           // SMT-LIB but not sure if that's true for all solvers
                           // might also be good to be forward looking
-                          { Abs, arithmetic_sorts },
-                          { Pow, arithmetic_sorts },
+                          { Abs, int_sorts },
+                          { Pow, int_sorts },
                           { IntDiv, int_sorts },
                           { To_Real, int_sorts },
                           { To_Int, real_sorts },
@@ -60,32 +62,32 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Extract, bv_sorts },
                           { BVNot, bv_sorts },
                           { BVNeg, bv_sorts },
-                          { BVAnd, bv_sorts },
-                          { BVOr, bv_sorts },
-                          { BVXor, bv_sorts },
-                          { BVNand, bv_sorts },
-                          { BVNor, bv_sorts },
-                          { BVXnor, bv_sorts },
-                          { BVAdd, bv_sorts },
-                          { BVSub, bv_sorts },
-                          { BVMul, bv_sorts },
-                          { BVUdiv, bv_sorts },
-                          { BVSdiv, bv_sorts },
-                          { BVUrem, bv_sorts },
-                          { BVSrem, bv_sorts },
-                          { BVSmod, bv_sorts },
-                          { BVShl, bv_sorts },
-                          { BVAshr, bv_sorts },
-                          { BVLshr, bv_sorts },
-                          { BVComp, bv_sorts },
-                          { BVUlt, bv_sorts },
-                          { BVUle, bv_sorts },
-                          { BVUgt, bv_sorts },
-                          { BVUge, bv_sorts },
-                          { BVSlt, bv_sorts },
-                          { BVSle, bv_sorts },
-                          { BVSgt, bv_sorts },
-                          { BVSge, bv_sorts },
+                          { BVAnd, eq_bv_sorts },
+                          { BVOr, eq_bv_sorts },
+                          { BVXor, eq_bv_sorts },
+                          { BVNand, eq_bv_sorts },
+                          { BVNor, eq_bv_sorts },
+                          { BVXnor, eq_bv_sorts },
+                          { BVAdd, eq_bv_sorts },
+                          { BVSub, eq_bv_sorts },
+                          { BVMul, eq_bv_sorts },
+                          { BVUdiv, eq_bv_sorts },
+                          { BVSdiv, eq_bv_sorts },
+                          { BVUrem, eq_bv_sorts },
+                          { BVSrem, eq_bv_sorts },
+                          { BVSmod, eq_bv_sorts },
+                          { BVShl, eq_bv_sorts },
+                          { BVAshr, eq_bv_sorts },
+                          { BVLshr, eq_bv_sorts },
+                          { BVComp, eq_bv_sorts },
+                          { BVUlt, eq_bv_sorts },
+                          { BVUle, eq_bv_sorts },
+                          { BVUgt, eq_bv_sorts },
+                          { BVUge, eq_bv_sorts },
+                          { BVSlt, eq_bv_sorts },
+                          { BVSle, eq_bv_sorts },
+                          { BVSgt, eq_bv_sorts },
+                          { BVSge, eq_bv_sorts },
                           { Zero_Extend, bv_sorts },
                           { Sign_Extend, bv_sorts },
                           { Repeat, bv_sorts },
@@ -101,6 +103,14 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
 // main function implementations
 bool check_sortedness(Op op, const TermVec & terms)
 {
+  auto min_max_arity = get_arity(op.prim_op);
+  size_t num_args = terms.size();
+  if (num_args < min_max_arity.first || num_args > min_max_arity.second)
+  {
+    // wrong number of arguments
+    return false;
+  }
+
   if (sort_check_dispatch.find(op.prim_op) != sort_check_dispatch.end())
   {
     SortVec sorts;
