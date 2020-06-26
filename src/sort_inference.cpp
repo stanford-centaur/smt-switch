@@ -36,18 +36,18 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Implies, bool_sorts },
                           { Iff, bool_sorts },
                           { Ite, check_ite_sorts },
-                          { Equal, bool_sorts },
-                          { Distinct, bool_sorts },
+                          { Equal, equal_sorts },
+                          { Distinct, equal_sorts },
                           { Apply, check_apply_sorts },
                           { Plus, arithmetic_sorts },
                           { Minus, arithmetic_sorts },
                           { Negate, arithmetic_sorts },
                           { Mult, arithmetic_sorts },
                           { Div, arithmetic_sorts },
-                          { Lt, bool_sorts },
-                          { Le, bool_sorts },
-                          { Gt, bool_sorts },
-                          { Ge, bool_sorts },
+                          { Lt, arithmetic_sorts },
+                          { Le, arithmetic_sorts },
+                          { Gt, arithmetic_sorts },
+                          { Ge, arithmetic_sorts },
                           { Mod, int_sorts },
                           // technically Abs/Pow only defined for integers in
                           // SMT-LIB but not sure if that's true for all solvers
@@ -178,7 +178,7 @@ bool check_apply_sorts(const SortVec & sorts)
   }
 
   SortVec domain_sorts = funsort->get_domain_sorts();
-  if (domain_sorts.size() != sorts.size() + 1)
+  if (domain_sorts.size() + 1 != sorts.size())
   {
     // expecting same number of arguments to function as arity
     return false;

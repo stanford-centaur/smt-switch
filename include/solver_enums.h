@@ -43,6 +43,8 @@ enum SolverAttribute
   TERMITER,
   // supports integer theory
   THEORY_INT,
+  // supports real theory
+  THEORY_REAL,
   // supports array models
   ARRAY_MODELS,
   // supports constant arrays

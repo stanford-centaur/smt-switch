@@ -41,6 +41,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           {
               TERMITER,
               THEORY_INT,
+              THEORY_REAL,
               ARRAY_MODELS,
               CONSTARR,
               FULL_TRANSFER,
@@ -52,6 +53,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
@@ -60,6 +62,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { MSAT,
           { TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
@@ -69,6 +72,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
@@ -78,10 +82,15 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { THEORY_INT } },
+        { YICES2, { THEORY_INT, THEORY_REAL } },
 
         { YICES2_LOGGING,
-          { LOGGING, TERMITER, THEORY_INT, FULL_TRANSFER, UNSAT_CORE } },
+          { LOGGING,
+            TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
 
     });
 

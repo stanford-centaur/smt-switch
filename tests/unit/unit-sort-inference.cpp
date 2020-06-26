@@ -65,9 +65,9 @@ class UnitArithmeticSortInferenceTests : public UnitSortInferenceTests
     y = s->make_symbol("y", realsort);
     z = s->make_symbol("z", realsort);
 
-    xint = s->make_symbol("xint", realsort);
-    yint = s->make_symbol("yint", realsort);
-    zint = s->make_symbol("zint", realsort);
+    xint = s->make_symbol("xint", intsort);
+    yint = s->make_symbol("yint", intsort);
+    zint = s->make_symbol("zint", intsort);
   }
   Sort realsort, intsort;
   Term x, y, z, xint, yint, zint;
@@ -105,22 +105,81 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   /******** Booleans ********/
   EXPECT_TRUE(check_sortedness(And, { b1, b2 }));
   EXPECT_TRUE(check_sortedness(Xor, { b1, b2 }));
+  EXPECT_TRUE(check_sortedness(Equal, { b1, b2 }));
+  EXPECT_TRUE(check_sortedness(Distinct, { b1, b2 }));
   // wrong operator
   EXPECT_FALSE(check_sortedness(BVAnd, { b1, b2 }));
+  EXPECT_FALSE(check_sortedness(Ge, { b1, b2 }));
   // wrong number of arguments
   EXPECT_FALSE(check_sortedness(Xor, { b1 }));
 
   /******* Bitvectors *******/
+  EXPECT_TRUE(check_sortedness(Equal, { p, q }));
+  EXPECT_TRUE(check_sortedness(Distinct, { p, q }));
   EXPECT_TRUE(check_sortedness(BVAdd, { p, q }));
   EXPECT_TRUE(check_sortedness(BVAnd, { p, q }));
   EXPECT_TRUE(check_sortedness(BVAdd, { p, q }));
+  EXPECT_TRUE(check_sortedness(BVUlt, { p, q }));
   EXPECT_TRUE(check_sortedness(BVNeg, { p }));
   // different bit-widths
   EXPECT_FALSE(check_sortedness(BVAdd, { p, w }));
+  EXPECT_FALSE(check_sortedness(Distinct, { p, w }));
+
+  /********* Arrays ********/
+  EXPECT_TRUE(check_sortedness(Select, {arr, p}));
+  EXPECT_TRUE(check_sortedness(Store, {arr, p, q}));
+  EXPECT_TRUE(check_sortedness(Equal, { arr, s->make_term(Store, arr, p, q) }));
+  // wrong bit-width
+  EXPECT_FALSE(check_sortedness(Select, {arr, w}));
+  EXPECT_FALSE(check_sortedness(Store, {arr, p, w}));
+  EXPECT_FALSE(check_sortedness(Store, {arr, w, p}));
+
+  /********* Functions ********/
+  EXPECT_TRUE(check_sortedness(Apply, { f, p, q }));
+  // wronge type
+  EXPECT_FALSE(check_sortedness(Apply, { f, p, w }));
+  EXPECT_FALSE(check_sortedness(Apply, { f, arr, q }));
+  // wrong number of arguments
+  EXPECT_FALSE(check_sortedness(Apply, {f}));
+  EXPECT_FALSE(check_sortedness(Apply, {f, p}));
+  EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+}
+
+TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
+{
+  EXPECT_TRUE(check_sortedness(Gt, {x, y}));
+  EXPECT_TRUE(check_sortedness(Ge, {xint, yint}));
+  EXPECT_TRUE(check_sortedness(Lt, {x, y}));
+  EXPECT_TRUE(check_sortedness(Le, {xint, yint}));
+
+  EXPECT_TRUE(check_sortedness(Plus, {x, y}));
+  EXPECT_TRUE(check_sortedness(Plus, {xint, yint}));
+  EXPECT_TRUE(check_sortedness(Minus, {x, y}));
+  EXPECT_TRUE(check_sortedness(Minus, {xint, yint}));
+  EXPECT_TRUE(check_sortedness(Negate, {xint}));
+
+  EXPECT_TRUE(check_sortedness(To_Int, {x}));
+  EXPECT_TRUE(check_sortedness(To_Real, {xint}));
+
+  // wrong operators
+  EXPECT_FALSE(check_sortedness(To_Real, {x}));
+  EXPECT_FALSE(check_sortedness(To_Int, {xint}));
+  EXPECT_FALSE(check_sortedness(BVUgt, {x, y}));
+  EXPECT_FALSE(check_sortedness(BVSgt, {xint, yint}));
+  EXPECT_FALSE(check_sortedness(BVUlt, {x, y}));
+  EXPECT_FALSE(check_sortedness(BVSge, {xint, yint}));
+  EXPECT_FALSE(check_sortedness(BVAdd, {xint, yint}));
+
+  // wrong number of arguments
+  EXPECT_FALSE(check_sortedness(Negate, {xint, yint}));
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
                          UnitSortInferenceTests,
                          testing::ValuesIn(available_solver_enums()));
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArithmeticSortInference,
+                         UnitArithmeticSortInferenceTests,
+                         testing::ValuesIn(filter_solver_enums({ THEORY_INT, THEORY_REAL })));
 
 }  // namespace smt_tests
