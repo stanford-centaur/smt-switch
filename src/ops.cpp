@@ -39,6 +39,9 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Mult, "*" },
       { Div, "/" },
       { IntDiv, "div" },
+      { To_Real, "to_real" },
+      { To_Int, "to_int" },
+      { Is_Int, "is_int" },
       { Lt, "<" },
       { Le, "<=" },
       { Gt, ">" },
@@ -81,11 +84,13 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Repeat, "repeat" },
       { Rotate_Left, "rotate_left" },
       { Rotate_Right, "rotate_right" },
+      { BV_To_Nat, "bv2nat" },
+      { Int_To_BV, "nat2bv" },
       { Select, "select" },
       { Store, "store" },
-      { Apply_Selector, "apply_selector"},
-      { Apply_Tester, "apply_tester"},
-      { Apply_Constructor, "apply_constructor"}  });
+      { Apply_Selector, "apply_selector" },
+      { Apply_Tester, "apply_tester" },
+      { Apply_Constructor, "apply_constructor" } });
 
 // a map from PrimOp to <minimum arity, maximum arity>
 // TODO: support INT_MAX arity for those that allow it in SMT-LIB
@@ -115,6 +120,9 @@ const std::unordered_map<PrimOp, std::pair<size_t, size_t>> primop2arity(
       { Mult, { 2, 2 } },
       { Div, { 2, 2 } },
       { IntDiv, { 2, 2 } },
+      { To_Real, { 1, 1 } },
+      { To_Int, { 1, 1 } },
+      { Is_Int, { 1, 1 } },
       { Lt, { 2, 2 } },
       { Le, { 2, 2 } },
       { Gt, { 2, 2 } },
@@ -157,6 +165,8 @@ const std::unordered_map<PrimOp, std::pair<size_t, size_t>> primop2arity(
       { Repeat, { 1, 1 } },
       { Rotate_Left, { 1, 1 } },
       { Rotate_Right, { 1, 1 } },
+      { BV_To_Nat, { 1, 1 } },
+      { Int_To_BV, { 1, 1 } },
       { Select, { 2, 2 } },
       { Store, { 3, 3 } },
       { Apply_Selector, { 2, 2 } },
