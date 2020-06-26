@@ -18,8 +18,18 @@
 
 #include "ops.h"
 #include "sort.h"
+#include "term.h"
 
 namespace smt {
+
+// main functions for sort checking and inference
+
+/** Checks if applying the operator to the terms is well-sorted
+ *  @param op the op to apply
+ *  @param terms the vector of terms to apply it to
+ *  @return true iff this is a well-sorted operation
+ */
+bool check_sortedness(Op op, const TermVec & terms);
 
 // useful helper functions -- used for sort checking
 
@@ -48,6 +58,28 @@ bool check_ite_sorts(const SortVec & sorts);
  */
 bool check_sortkind_matches(SortKind sk, const SortVec & sorts);
 
+/** Checks if the sorts are well-sorted for an apply operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is a function sort
+ *         and the rest of the sorts match the domain of the
+ *         function
+ */
+bool check_apply_sorts(const SortVec & sorts);
+
+/** Checks if the sorts are well-sorted for a select operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is an array sort
+ *         and the second sort is the index sort
+ */
+bool check_select_sorts(const SortVec & sorts);
+
+/** Checks if the sorts are well-sorted for a store operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is an array sort
+ *         and the next two match the index and element sort
+ */
+bool check_store_sorts(const SortVec & sorts);
+
 bool bool_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(BOOL, sorts);
@@ -67,6 +99,12 @@ bool int_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(INT, sorts);
 };
+
+bool arithmetic_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(INT, sorts)
+         || check_sortkind_matches(REAL, sorts);
+}
 
 bool array_sorts(const SortVec & sorts)
 {
