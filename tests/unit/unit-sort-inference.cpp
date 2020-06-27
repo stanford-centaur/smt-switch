@@ -146,13 +146,55 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   {
     /********* Functions ********/
     EXPECT_TRUE(check_sortedness(Apply, { f, p, q }));
-    // wronge type
+    // wrong type
     EXPECT_FALSE(check_sortedness(Apply, { f, p, w }));
     EXPECT_FALSE(check_sortedness(Apply, { f, arr, q }));
     // wrong number of arguments
     EXPECT_FALSE(check_sortedness(Apply, {f}));
     EXPECT_FALSE(check_sortedness(Apply, {f, p}));
     EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+  }
+}
+
+TEST_P(UnitSortInferenceTests, SortComputation)
+{
+  /******** Booleans ********/
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { b1, b2 }));
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { boolsort, boolsort }));
+  EXPECT_EQ(boolsort, compute_sort(Distinct, s, { boolsort, boolsort }));
+
+  /******* Bitvectors *******/
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { p, q }));
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(boolsort, compute_sort(BVUlt, s, { p, q }));
+  EXPECT_EQ(boolsort, compute_sort(BVUlt, s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(bvsort4, compute_sort(BVAdd, s, { p, q }));
+  EXPECT_EQ(bvsort4, compute_sort(BVAdd, s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(bvsort4, compute_sort(BVNeg, s, { p }));
+  EXPECT_EQ(bvsort4, compute_sort(BVNeg, s, { bvsort4 }));
+
+  Sort bvsort3 = s->make_sort(BV, 3);
+  Sort bvsort9 = s->make_sort(BV, 9);
+  Sort bvsort12 = s->make_sort(BV, 12);
+  EXPECT_EQ(bvsort3, compute_sort(Op(Extract, 2, 0), s, { p }));
+  EXPECT_EQ(bvsort3, compute_sort(Op(Extract, 2, 0), s, { bvsort4 }));
+  EXPECT_EQ(bvsort9, compute_sort(Concat, s, { p, w }));
+  EXPECT_EQ(bvsort12, compute_sort(Op(Repeat, 3), s, { p }));
+
+  EXPECT_NE(bvsort9, compute_sort(Concat, s, { bvsort4, bvsort4 }));
+
+  // /********* Arrays ********/
+  EXPECT_EQ(bvsort4, compute_sort(Select, s, { arr, p }));
+  EXPECT_EQ(bvsort4, compute_sort(Select, s, { arrsort, bvsort4 }));
+  EXPECT_EQ(arrsort, compute_sort(Store, s, { arrsort, bvsort4, bvsort4 }));
+  EXPECT_EQ(arrsort, compute_sort(Store, s, { arr, p, q }));
+
+  // BTOR doesn't support getting the sort of a function yet
+  if (s->get_solver_enum() != BTOR)
+  {
+    /********* Functions ********/
+    EXPECT_EQ(boolsort, compute_sort(Apply, s, { f, p, q }));
+    EXPECT_EQ(boolsort, compute_sort(Apply, s, { funsort, bvsort4, bvsort4 }));
   }
 }
 
@@ -183,6 +225,31 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
 
   // wrong number of arguments
   EXPECT_FALSE(check_sortedness(Negate, {xint, yint}));
+}
+
+TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
+{
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { x, y }));
+  EXPECT_EQ(boolsort, compute_sort(Equal, s, { realsort, realsort }));
+
+  EXPECT_EQ(boolsort, compute_sort(Ge, s, { x, y }));
+  EXPECT_EQ(boolsort, compute_sort(Le, s, { realsort, realsort }));
+
+  EXPECT_EQ(realsort, compute_sort(Plus, s, { x, y }));
+  EXPECT_EQ(realsort, compute_sort(Minus, s, { realsort, realsort }));
+
+  EXPECT_EQ(intsort, compute_sort(Plus, s, { xint, yint }));
+  EXPECT_EQ(intsort, compute_sort(Minus, s, { intsort, intsort }));
+
+  Sort aritharrsort = s->make_sort(ARRAY, intsort, realsort);
+  Term aritharr = s->make_symbol("aritharr", aritharrsort);
+
+  // /********* Arrays ********/
+  EXPECT_EQ(realsort, compute_sort(Select, s, { aritharr, yint }));
+  EXPECT_EQ(realsort, compute_sort(Select, s, { aritharrsort, intsort }));
+  EXPECT_EQ(aritharrsort,
+            compute_sort(Store, s, { aritharrsort, intsort, realsort }));
+  EXPECT_EQ(aritharrsort, compute_sort(Store, s, { aritharr, xint, y }));
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
