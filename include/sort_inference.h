@@ -17,6 +17,7 @@
 #include <initializer_list>
 
 #include "ops.h"
+#include "solver.h"
 #include "sort.h"
 #include "term.h"
 
@@ -31,7 +32,17 @@ namespace smt {
  */
 bool check_sortedness(Op op, const TermVec & terms);
 
-// useful helper functions -- used for sort checking
+/** Compute expected LoggingSort
+ *  @param op the operator
+ *  @param solver the solver to use to make the new sort
+ *         assumed that the passed sorts belong to this solver
+ *  @param sorts a vector of sorts corresponding to the op arguments
+ *         these should be logging sorts
+ *  @return the new logging sort
+ */
+Sort compute_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+/* useful helper functions for sort checking */
 
 /** Checks that the sorts are equivalent
  *  @param sorts a non-empty vector of sorts
@@ -121,5 +132,33 @@ bool function_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(FUNCTION, sorts);
 };
+
+/* Helper functions for sort inference */
+
+Sort same_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort bool_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort real_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort int_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort ite_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort extract_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort concat_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort extend_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort repeat_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort int_to_bv_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort apply_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort select_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+
+Sort store_sort(Op op, SmtSolver & solver, const SortVec & sorts);
 
 }  // namespace smt
