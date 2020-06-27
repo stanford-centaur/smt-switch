@@ -16,8 +16,8 @@
 
 #include "logging_solver.h"
 #include "logging_sort.h"
-#include "logging_sort_computation.h"
 #include "logging_term.h"
+#include "sort_inference.h"
 
 #include "utils.h"
 
@@ -255,8 +255,7 @@ Term LoggingSolver::make_term(const Op op, const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   Term wrapped_res = wrapped_solver->make_term(op, lt->wrapped_term);
-  Sort res_logging_sort =
-      compute_sort(op, SortVec{ t->get_sort() }, wrapped_res->get_sort());
+  Sort res_logging_sort = compute_sort(op, this, { t->get_sort() });
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t });
 
@@ -280,8 +279,8 @@ Term LoggingSolver::make_term(const Op op,
   shared_ptr<LoggingTerm> lt2 = static_pointer_cast<LoggingTerm>(t2);
   Term wrapped_res =
       wrapped_solver->make_term(op, lt1->wrapped_term, lt2->wrapped_term);
-  Sort res_logging_sort = compute_sort(
-      op, SortVec{ t1->get_sort(), t2->get_sort() }, wrapped_res->get_sort());
+  Sort res_logging_sort =
+      compute_sort(op, this, { t1->get_sort(), t2->get_sort() });
   Term res(
       new LoggingTerm(wrapped_res, res_logging_sort, op, TermVec{ t1, t2 }));
 
@@ -307,10 +306,8 @@ Term LoggingSolver::make_term(const Op op,
   shared_ptr<LoggingTerm> lt3 = static_pointer_cast<LoggingTerm>(t3);
   Term wrapped_res = wrapped_solver->make_term(
       op, lt1->wrapped_term, lt2->wrapped_term, lt3->wrapped_term);
-  Sort res_logging_sort =
-      compute_sort(op,
-                   SortVec{ t1->get_sort(), t2->get_sort(), t3->get_sort() },
-                   wrapped_res->get_sort());
+  Sort res_logging_sort = compute_sort(
+      op, this, { t1->get_sort(), t2->get_sort(), t3->get_sort() });
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t1, t2, t3 });
 
@@ -335,13 +332,9 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
     lterms.push_back(ltt->wrapped_term);
   }
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
-  SortVec logging_sorts;
-  for (auto tt : terms)
-  {
-    logging_sorts.push_back(tt->get_sort());
-  }
-  Sort res_logging_sort =
-      compute_sort(op, logging_sorts, wrapped_res->get_sort());
+  // Note: for convenience there's a version of compute_sort that takes terms
+  // since these are already in a vector, just let it unpack the sorts
+  Sort res_logging_sort = compute_sort(op, this, terms);
   Term res =
       std::make_shared<LoggingTerm>(wrapped_res, res_logging_sort, op, terms);
 

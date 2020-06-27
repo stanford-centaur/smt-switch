@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <functional>
-#include "assert.h"
 
 #include "exceptions.h"
 #include "sort_inference.h"
@@ -104,7 +103,8 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
 // used in compute_sort
 const std::unordered_map<
     PrimOp,
-    std::function<Sort(Op op, SmtSolver & solver, const SortVec & sorts)>>
+    std::function<
+        Sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)>>
     sort_comp_dispatch({ { And, bool_sort },
                          { Or, bool_sort },
                          { Xor, bool_sort },
@@ -207,7 +207,7 @@ bool check_sortedness(Op op, const SortVec & sorts)
   }
 }
 
-Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms)
+Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
 {
   assert(terms.size());
   SortVec sorts;
@@ -218,10 +218,20 @@ Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms)
   return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
 }
 
-Sort compute_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   assert(sorts.size());
   return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
+}
+
+Sort compute_sort(Op op, const SmtSolver solver, const TermVec & terms)
+{
+  return compute_sort(op, solver.get(), terms);
+}
+
+Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts)
+{
+  return compute_sort(op, solver.get(), sorts);
 }
 
 // helper function implementations
@@ -340,31 +350,73 @@ bool check_store_sorts(const SortVec & sorts)
   return true;
 }
 
+bool bool_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(BOOL, sorts);
+};
+
+bool bv_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(BV, sorts);
+};
+
+bool eq_bv_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  return sorts[0]->get_sort_kind() == BV && equal_sorts(sorts);
+};
+
+bool real_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(REAL, sorts);
+};
+
+bool int_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(INT, sorts);
+};
+
+bool arithmetic_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(INT, sorts)
+         || check_sortkind_matches(REAL, sorts);
+}
+
+bool array_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(ARRAY, sorts);
+};
+
+bool function_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(FUNCTION, sorts);
+};
+
 /* helpers for sort inference (return type of operation) */
 
 /* Common sort computation helper functions */
 
-Sort same_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return sorts[0];
 }
 
-Sort bool_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BOOL);
 }
 
-Sort real_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(REAL);
 }
 
-Sort int_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(INT);
 }
 
-Sort ite_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   if (sorts[1] != sorts[2])
   {
@@ -375,32 +427,32 @@ Sort ite_sort(Op op, SmtSolver & solver, const SortVec & sorts)
   return sorts[1];
 }
 
-Sort extract_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BV, op.idx0 - op.idx1 + 1);
 }
 
-Sort concat_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BV, sorts[0]->get_width() + sorts[1]->get_width());
 }
 
-Sort extend_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BV, op.idx0 + sorts[0]->get_width());
 }
 
-Sort repeat_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BV, op.idx0 * sorts[0]->get_width());
 }
 
-Sort int_to_bv_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BV, op.idx0);
 }
 
-Sort apply_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   Sort funsort = sorts[0];
   if (funsort->get_sort_kind() != FUNCTION)
@@ -412,7 +464,7 @@ Sort apply_sort(Op op, SmtSolver & solver, const SortVec & sorts)
   return funsort->get_codomain_sort();
 }
 
-Sort select_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort select_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
   if (arraysort->get_sort_kind() != ARRAY)
@@ -424,7 +476,7 @@ Sort select_sort(Op op, SmtSolver & solver, const SortVec & sorts)
   return arraysort->get_elemsort();
 }
 
-Sort store_sort(Op op, SmtSolver & solver, const SortVec & sorts)
+Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
   if (arraysort->get_sort_kind() != ARRAY)

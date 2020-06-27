@@ -14,7 +14,9 @@
 **
 **/
 
-#include <initializer_list>
+#pragma once
+
+#include "assert.h"
 
 #include "ops.h"
 #include "solver.h"
@@ -46,7 +48,7 @@ bool check_sortedness(Op op, const SortVec & sorts);
  *  @param terms the vector of terms the op would be applied to
  *  @return the expected sort
  */
-Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms);
+Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms);
 
 /** Compute the expected sort of applying an operator to terms of these sorts
  *  @param op the operator
@@ -55,7 +57,13 @@ Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms);
  *  @param sorts a vector of sorts corresponding to the op arguments
  *  @return the expected sort
  */
-Sort compute_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+
+// needed to use raw pointer so we could pass it from within
+// const functions in an AbsSmtSolver derived class
+// but also convenient to have regular SmtSolver support
+Sort compute_sort(Op op, const SmtSolver solver, const TermVec & terms);
+Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts);
 
 /* useful helper functions for sort checking */
 
@@ -106,74 +114,48 @@ bool check_select_sorts(const SortVec & sorts);
  */
 bool check_store_sorts(const SortVec & sorts);
 
-bool bool_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(BOOL, sorts);
-};
+bool bool_sorts(const SortVec & sorts);
 
-bool bv_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(BV, sorts);
-};
+bool bv_sorts(const SortVec & sorts);
 
-bool eq_bv_sorts(const SortVec & sorts)
-{
-  assert(sorts.size());
-  return sorts[0]->get_sort_kind() == BV && equal_sorts(sorts);
-};
+bool eq_bv_sorts(const SortVec & sorts);
 
-bool real_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(REAL, sorts);
-};
+bool real_sorts(const SortVec & sorts);
 
-bool int_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(INT, sorts);
-};
+bool int_sorts(const SortVec & sorts);
 
-bool arithmetic_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(INT, sorts)
-         || check_sortkind_matches(REAL, sorts);
-}
+bool arithmetic_sorts(const SortVec & sorts);
 
-bool array_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(ARRAY, sorts);
-};
+bool array_sorts(const SortVec & sorts);
 
-bool function_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(FUNCTION, sorts);
-};
+bool function_sorts(const SortVec & sorts);
 
 /* Helper functions for sort inference */
 
-Sort same_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort bool_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort real_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort int_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort ite_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort extract_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort concat_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort extend_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort repeat_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort int_to_bv_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort apply_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort select_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort select_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
-Sort store_sort(Op op, SmtSolver & solver, const SortVec & sorts);
+Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 }  // namespace smt
