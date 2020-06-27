@@ -177,8 +177,19 @@ const std::unordered_map<
 // main function implementations
 bool check_sortedness(Op op, const TermVec & terms)
 {
+  SortVec sorts;
+  sorts.reserve(terms.size());
+  for (auto t : terms)
+  {
+    sorts.push_back(t->get_sort());
+  }
+  return check_sortedness(op, sorts);
+}
+
+bool check_sortedness(Op op, const SortVec & sorts)
+{
   auto min_max_arity = get_arity(op.prim_op);
-  size_t num_args = terms.size();
+  size_t num_args = sorts.size();
   if (num_args < min_max_arity.first || num_args > min_max_arity.second)
   {
     // wrong number of arguments
@@ -187,12 +198,6 @@ bool check_sortedness(Op op, const TermVec & terms)
 
   if (sort_check_dispatch.find(op.prim_op) != sort_check_dispatch.end())
   {
-    SortVec sorts;
-    sorts.reserve(terms.size());
-    for (auto t : terms)
-    {
-      sorts.push_back(t->get_sort());
-    }
     return sort_check_dispatch.at(op.prim_op)(sorts);
   }
   else
@@ -200,6 +205,17 @@ bool check_sortedness(Op op, const TermVec & terms)
     throw NotImplementedException("Sort checking for operator " + op.to_string()
                                   + " is not yet implemented.");
   }
+}
+
+Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms)
+{
+  assert(terms.size());
+  SortVec sorts;
+  for (auto t : terms)
+  {
+    sorts.push_back(t->get_sort());
+  }
+  return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
 }
 
 Sort compute_sort(Op op, SmtSolver & solver, const SortVec & sorts)

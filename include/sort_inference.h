@@ -32,13 +32,28 @@ namespace smt {
  */
 bool check_sortedness(Op op, const TermVec & terms);
 
-/** Compute expected LoggingSort
+/** Checks if applying the operator to the terms of these sorts is well-sorted
+ *  @param op the op to apply
+ *  @param sorts the vector of sorts it would be applied to
+ *  @return true iff this is a well-sorted operation
+ */
+bool check_sortedness(Op op, const SortVec & sorts);
+
+/** Compute the expected sort of applying an operator to these terms
+ *  @param op the operator
+ *  @param solver the solver to use to make the new sort
+ *         assumed that the passed sorts belong to this solver
+ *  @param terms the vector of terms the op would be applied to
+ *  @return the expected sort
+ */
+Sort compute_sort(Op op, SmtSolver & solver, const TermVec & terms);
+
+/** Compute the expected sort of applying an operator to terms of these sorts
  *  @param op the operator
  *  @param solver the solver to use to make the new sort
  *         assumed that the passed sorts belong to this solver
  *  @param sorts a vector of sorts corresponding to the op arguments
- *         these should be logging sorts
- *  @return the new logging sort
+ *  @return the expected sort
  */
 Sort compute_sort(Op op, SmtSolver & solver, const SortVec & sorts);
 
