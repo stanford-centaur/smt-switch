@@ -16,6 +16,7 @@
 
 #include <iterator>
 #include <sstream>
+#include "assert.h"
 
 #include "term_translator.h"
 
@@ -66,6 +67,11 @@ Term TermTranslator::transfer_term(const Term & term)
   }
 
   TermVec to_visit{ term };
+  // better to keep a separate set for visited
+  // then if something is in the cache, we can
+  // assume it's already been processed
+  // not just visited
+  UnorderedTermSet visited;
   TermVec cached_children;
   Term t;
   Sort s;
@@ -74,7 +80,13 @@ Term TermTranslator::transfer_term(const Term & term)
     t = to_visit.back();
     to_visit.pop_back();
 
-    if (cache.find(t) == cache.end())
+    if (cache.find(t) != cache.end())
+    {
+      // cache hit
+      continue;
+    }
+
+    if (visited.find(t) == visited.end())
     {
       if (t->is_symbolic_const())
       {
@@ -82,10 +94,42 @@ Term TermTranslator::transfer_term(const Term & term)
         std::string name = t->to_string();
         cache[t] = solver->make_symbol(t->to_string(), s);
       }
+      else if (t->is_value())
+      {
+        s = transfer_sort(t->get_sort());
+        if (s->get_sort_kind() == ARRAY)
+        {
+          // special case for const-array
+          Term val = cache.at(*(t->begin()));
+          Sort valsort = val->get_sort();
+          if (s->get_sort_kind() != ARRAY)
+          {
+            throw SmtException("Expecting array sort but got: "
+                               + s->to_string());
+          }
+          else if (s->get_elemsort() != valsort)
+          {
+            throw SmtException("Expecting element sort but got "
+                               + val->get_sort()->to_string() + " and "
+                               + s->to_string());
+          }
+          else if (valsort->get_sort_kind() == ARRAY)
+          {
+            throw NotImplementedException(
+                "Transferring terms with multi-dimensional constant arrays is "
+                "not yet supported. Please contact the developers.");
+          }
+          cache[t] = solver->make_term(val, s);
+        }
+        else
+        {
+          cache[t] = value_from_smt2(t->to_string(), s);
+        }
+      }
       else
       {
         // doesn't get updated yet, just marking as visited
-        cache[t] = t;
+        visited.insert(t);
         // need to visit it again
         to_visit.push_back(t);
         for (auto c : t)
@@ -96,49 +140,26 @@ Term TermTranslator::transfer_term(const Term & term)
     }
     else
     {
+      // TODO change to is_symbol and is_value and is_param
+      assert(!t->is_symbolic_const());
+      assert(!t->is_value());
+      assert(!t->get_op().is_null());
+
       cached_children.clear();
       for (auto c : t)
       {
         cached_children.push_back(cache.at(c));
       }
 
-      if (t->is_value())
-      {
-        s = transfer_sort(t->get_sort());
-        if (s->get_sort_kind() == ARRAY)
-        {
-          // special case for const-array
-          Term val = cache.at(*(t->begin()));
-          if (s->get_sort_kind() != ARRAY)
-          {
-            throw SmtException("Expecting array sort but got: "
-                               + s->to_string());
-          }
-          else if (s->get_elemsort() != val->get_sort())
-          {
-            throw SmtException("Expecting element sort but got "
-                               + val->get_sort()->to_string() + " and "
-                               + s->to_string());
-          }
-          cache[t] = solver->make_term(val, s);
-        }
-        else
-        {
-          cache[t] = value_from_smt2(t->to_string(), s);
-        }
-      }
-      else if (cached_children.size())
+      if (cached_children.size())
       {
         cache[t] = solver->make_term(t->get_op(), cached_children);
       }
-      else if (t->is_symbolic_const())
-      {
-        // already created symbol and added to cache
-        continue;
-      }
       else
       {
-        throw SmtException("Can't transfer term: " + t->to_string());
+        // this case should not occur
+        // all the leaves should have already been handled
+        assert(false);
       }
     }
   }
