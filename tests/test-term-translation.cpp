@@ -161,10 +161,8 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   ASSERT_EQ(xp2_transfer, xp2_2);
 }
 
-TEST_P(TranslationTests, BVOne)
+TEST_P(TranslationTests, And)
 {
-  cout << "Testing with " << get<0>(GetParam()) << " and " << get<1>(GetParam())
-       << endl;
   Term a_and_b = s1->make_term(And, a, b);
   TermTranslator to_s2(s2);
 

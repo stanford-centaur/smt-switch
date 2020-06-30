@@ -18,6 +18,7 @@
 #include <sstream>
 #include "assert.h"
 
+#include "sort_inference.h"
 #include "term_translator.h"
 
 namespace smt {
@@ -151,6 +152,13 @@ Term TermTranslator::transfer_term(const Term & term)
           cached_children.push_back(cache.at(c));
         }
         assert(cached_children.size());
+
+        Op op = t->get_op();
+        if (!check_sortedness(op, cached_children))
+        {
+          throw NotImplementedException("Doesn't perform sort-casting yet.");
+        }
+
         cache[t] = solver->make_term(t->get_op(), cached_children);
       }
     }
@@ -235,6 +243,42 @@ Term TermTranslator::value_from_smt2(const std::string val,
   {
     throw NotImplementedException(
         "Only taking bool, bv, int and real value terms currently.");
+  }
+}
+
+Term cast_term(const Term & term, const Sort & sort)
+{
+  Sort cur_sort = term->get_sort();
+  if (cur_sort == sort)
+  {
+    // nothing to do
+    return term;
+  }
+
+  SortKind sk = sort->get_sort_kind();
+  SortKind cur_sk = cur_sort->get_sort_kind();
+
+  if (sk == BV && cur_sk == BOOL)
+  {
+    return solver->make_term(
+        Ite, term, solver->make_term(1, sort), solver->make_term(0, sort));
+  }
+  else if (sk == BOOL && cur_sk == BV)
+  {
+    return solver->make_term(Equal, term, solver->make_term(1, sort));
+  }
+  else if (sk == INT && cur_sk == REAL)
+  {
+    return solver->make_term(To_Int, term);
+  }
+  else if (sk == REAL && cur_sk == INT)
+  {
+    return solver->make_term(To_Real, term);
+  }
+  else
+  {
+    throw NotImplementedException("Cannot interpret " + term->to_string()
+                                  + " as " + sort->to_string());
   }
 }
 

@@ -35,7 +35,23 @@ class TermTranslator
   UnorderedTermMap & get_cache() { return cache; };
 
  protected:
+  /** interprets a string as a SMT value
+   *  @param val the string value in SMT-LIB2 format
+   *  @param the sort of the value
+   *  @return a term with that value
+   */
   Term value_from_smt2(const std::string val, const Sort sort) const;
+
+  /** casts a term to a different sort
+   *  could be more general in future, for now just does a few common
+   * conversions such as: Bool <-> BV1 Int  <-> Real
+   *  @param term the term to cast
+   *  @param the sort to cast it to
+   *  @return the new term
+   *  throws a NotImplementedException if it cannot interpret the cast
+   *  the term and sort MUST belong to the same solver
+   */
+  Term cast_term(const Term & term, const Sort & sort) const;
   SmtSolver & solver;
   UnorderedTermMap cache;
 };
