@@ -83,10 +83,22 @@ Term TermTranslator::transfer_term(const Term & term)
     if (cache.find(t) != cache.end())
     {
       // cache hit
+      // it's already been processed
       continue;
     }
 
     if (visited.find(t) == visited.end())
+    {
+      // doesn't get updated yet, just marking as visited
+      visited.insert(t);
+      // need to visit it again
+      to_visit.push_back(t);
+      for (auto c : t)
+      {
+        to_visit.push_back(c);
+      }
+    }
+    else
     {
       if (t->is_symbolic_const())
       {
@@ -128,43 +140,23 @@ Term TermTranslator::transfer_term(const Term & term)
       }
       else
       {
-        // doesn't get updated yet, just marking as visited
-        visited.insert(t);
-        // need to visit it again
-        to_visit.push_back(t);
+        // TODO change to is_symbol and is_value and is_param
+        assert(!t->is_symbolic_const());
+        assert(!t->is_value());
+        assert(!t->get_op().is_null());
+
+        cached_children.clear();
         for (auto c : t)
         {
-          to_visit.push_back(c);
+          cached_children.push_back(cache.at(c));
         }
-      }
-    }
-    else
-    {
-      // TODO change to is_symbol and is_value and is_param
-      assert(!t->is_symbolic_const());
-      assert(!t->is_value());
-      assert(!t->get_op().is_null());
-
-      cached_children.clear();
-      for (auto c : t)
-      {
-        cached_children.push_back(cache.at(c));
-      }
-
-      if (cached_children.size())
-      {
+        assert(cached_children.size());
         cache[t] = solver->make_term(t->get_op(), cached_children);
-      }
-      else
-      {
-        // this case should not occur
-        // all the leaves should have already been handled
-        assert(false);
       }
     }
   }
 
-  return cache[term];
+  return cache.at(term);
 }
 
 Term TermTranslator::value_from_smt2(const std::string val,
