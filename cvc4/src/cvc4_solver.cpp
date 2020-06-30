@@ -625,8 +625,7 @@ Term CVC4Solver::make_param(const std::string name, const Sort & sort)
   {
     std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkVar(csort->sort, name);
-    Term res = std::make_shared<::smt::CVC4Term>(t);
-    return res;
+    return std::make_shared<::smt::CVC4Term>(t);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
