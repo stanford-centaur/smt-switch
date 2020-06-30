@@ -496,12 +496,7 @@ bool MsatTerm::is_symbolic_const() const
     return false;
   }
 
-  // a symbolic constant is a term with no children and no built-in
-  // interpretation
-  return (
-      (msat_term_arity(term) == 0)
-      && (msat_decl_get_tag(env, msat_term_get_decl(term)) == MSAT_TAG_UNKNOWN)
-      && !msat_term_is_number(env, term));
+  return is_symbol();
 }
 
 bool MsatTerm::is_value() const

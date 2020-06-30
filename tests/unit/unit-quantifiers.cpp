@@ -62,6 +62,7 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
 {
   Term b = s->make_param("b", boolsort);
   // parameters are considered symbols but not symbolic constants
+  ASSERT_TRUE(b->is_param());
   ASSERT_TRUE(b->is_symbol());
   ASSERT_FALSE(b->is_symbolic_const());
   ASSERT_FALSE(b->is_value());

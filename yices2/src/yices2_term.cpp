@@ -384,15 +384,14 @@ bool Yices2Term::is_param() const
 
 bool Yices2Term::is_symbolic_const() const
 {
-  // functions are not constants
+  // functions and parameters are not constants
+  // don't need to check parameters because not supported yet
   if (is_function)
   {
     return false;
   }
 
-  term_constructor_t tc = yices_term_constructor(term);
-  return (
-      (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
+  return is_symbol();
 }
 
 bool Yices2Term::is_value() const

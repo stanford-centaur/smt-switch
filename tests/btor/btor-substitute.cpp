@@ -76,7 +76,7 @@ int main()
 
       if (t->is_symbol())
       {
-        num_symbols++;
+        ++num_symbols;
         cout << "checking " << t << endl;
         assert(orig_set.find(t) != orig_set.end());
       }
@@ -109,7 +109,7 @@ int main()
 
       if (t->is_symbol())
       {
-        num_symbols++;
+        ++num_symbols;
         cout << "checking " << t << endl;
         assert(timed_set.find(t) != timed_set.end());
       }

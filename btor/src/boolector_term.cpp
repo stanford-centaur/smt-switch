@@ -281,11 +281,9 @@ bool BoolectorTerm::is_param() const
 
 bool BoolectorTerm::is_symbolic_const() const
 {
-  bool is_fun = boolector_is_fun(btor, node);
   auto bkind = bn->kind;
-  bool is_sym =
-      !negated && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE));
-  return is_sym && !is_fun;
+  bool is_sym_const = !negated && (bkind == BTOR_VAR_NODE);
+  return is_sym_const;
 }
 
 bool BoolectorTerm::is_value() const
