@@ -82,7 +82,7 @@ class TranslationTests
 
     boolsort = s1->make_sort(BOOL);
     bvsort8 = s1->make_sort(BV, 8);
-    arrsort = s1->make_sort(ARRAY, bvsort8, bvsort8);
+    arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
 
     a = s1->make_symbol("a", boolsort);
     b = s1->make_symbol("b", boolsort);
@@ -179,8 +179,8 @@ TEST_P(TranslationTests, And)
 TEST_P(TranslationTests, Ite)
 {
   Term a_ite_x_y = s1->make_term(Ite, a, x, y);
-  TermTranslator to_s2(s2);
 
+  TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
   UnorderedTermMap & cache = to_s1.get_cache();
   cache[to_s2.transfer_term(a)] = a;
@@ -190,6 +190,26 @@ TEST_P(TranslationTests, Ite)
   Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
   Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
   ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
+}
+
+TEST_P(TranslationTests, Arrays)
+{
+  Term f = s1->make_term(false);
+  Term t = s1->make_term(false);
+  Term const_arr = s1->make_term(f, arrsort);
+  Term stores = s1->make_term(Store, arr, x, t);
+  stores = s1->make_term(Store, stores, y, t);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(arr)] = arr;
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term stores_2 = to_s2.transfer_term(stores);
+  Term stores_1 = to_s1.transfer_term(stores_2);
+  ASSERT_EQ(stores, stores_1);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
