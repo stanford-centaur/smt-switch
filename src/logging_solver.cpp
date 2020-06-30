@@ -154,7 +154,7 @@ Term LoggingSolver::make_term(bool b) const
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
+  // i.e. returns existing term and destroys the unnecessary new one
   if (!hashtable->lookup(res))
   {
     // this is the first time this term was created
