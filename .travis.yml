@@ -51,16 +51,16 @@ jobs:
       env: SOLVER="yices2" OPTS=""
       compiler: clang
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='btor' OPTS=""
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='cvc4' OPTS=""
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='msat' OPTS="--auto-yes"
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='yices2' OPTS=""
 
 script:
