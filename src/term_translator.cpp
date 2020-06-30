@@ -433,7 +433,7 @@ Term TermTranslator::cast_term(const Term & term, const Sort & sort) const
   }
   else if (sk == BOOL && cur_sk == BV)
   {
-    return solver->make_term(Equal, term, solver->make_term(1, sort));
+    return solver->make_term(Equal, term, solver->make_term(1, cur_sort));
   }
   else if (sk == INT && cur_sk == REAL)
   {
