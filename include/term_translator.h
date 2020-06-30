@@ -29,16 +29,17 @@ class TermTranslator
 {
  public:
   TermTranslator(SmtSolver & s) : solver(s) {}
-  Sort transfer_sort(const Sort & sort);
+  Sort transfer_sort(const Sort & sort) const;
   Term transfer_term(const Term & term);
   /* Returns reference to cache -- can be used to populate with symbols */
   UnorderedTermMap & get_cache() { return cache; };
 
  protected:
-  /** interprets a string as a SMT value
-   *  @param val the string value in SMT-LIB2 format
-   *  @param the sort of the value
-   *  @return a term with that value
+  /** Creates a term value from a string of the given sort
+   *  @param val the string representation of the value
+   *  @param orig_sort the sort from the original solver (transfer_sort is
+   *  called in this function)
+   *  @return a term with the given value
    */
   Term value_from_smt2(const std::string val, const Sort sort) const;
 
