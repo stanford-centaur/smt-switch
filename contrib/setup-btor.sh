@@ -7,6 +7,15 @@ DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
+
 if [ ! -d "$DEPS/boolector" ]; then
     cd $DEPS
     git clone https://github.com/Boolector/boolector.git
@@ -17,7 +26,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     ./contrib/setup-cadical.sh
     ./configure.sh --only-cadical -fPIC
     cd build
-    make -j$(nproc)
+    make -j$NUM_CORES
     cd $DIR
 else
     echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."
