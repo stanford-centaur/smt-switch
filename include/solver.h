@@ -35,6 +35,9 @@ namespace smt {
 class AbsSmtSolver
 {
  public:
+  /** SolverEnum identifies which underlying solver is being used.
+   *  It is provided by the derived class (backend implementation)
+   */
   AbsSmtSolver(SolverEnum se) : solver_enum(se){};
   virtual ~AbsSmtSolver(){};
 
@@ -136,7 +139,7 @@ class AbsSmtSolver
    * @param sk the SortKind
    * @param sort1 first sort
    * @return a Sort object
-   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
+   * this method is currently unused but kept for API consistency
    */
   virtual Sort make_sort(const SortKind sk, const Sort & sort1) const = 0;
 
@@ -281,7 +284,8 @@ class AbsSmtSolver
    * @param s Name of the datatype constructor
    * @return an empty Datatype declaration
    */
-  virtual DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const = 0; // what is const=0?
+  virtual DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) = 0;  // what is const=0?
 
   /* Add a datatype constructor to a datatype declaration
    * @param dt Datatype

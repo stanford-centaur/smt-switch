@@ -80,7 +80,8 @@ class BoolectorSolver : public AbsSmtSolver
   Sort make_sort(const DatatypeDecl & d) const override;
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
-  DatatypeConstructorDecl make_datatype_constructor_decl(const std::string s) const override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) override;
   void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
   void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
@@ -119,6 +120,14 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * btor;
   // store the names of created symbols
   std::unordered_set<std::string> symbol_names;
+
+  bool base_context_1 = false;
+  ///< if set to true, do all solving at context 1 in the solver
+  ///< this then supports reset_assertions by popping and re-pushing
+  ///< the context. Without it, boolector does not support
+  ///< reset_assertions yet
+  ///< set this flag with set_opt("base-context-1", "true")
+  size_t context_level = 0;  ///< tracks the current solving context level
 };
 }  // namespace smt
 

@@ -174,8 +174,10 @@ Sort Yices2Solver::make_sort(const DatatypeDecl & d) const {
 DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s)  {
     throw NotImplementedException("Yices2Solver::make_datatype_decl");
 }
-DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(const std::string s) const {
-    throw NotImplementedException("Yices2Solver::make_datatype_constructor_decl");
+DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  throw NotImplementedException("Yices2Solver::make_datatype_constructor_decl");
 };
 void Yices2Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
   throw NotImplementedException("Yices2Solver::add_constructor");

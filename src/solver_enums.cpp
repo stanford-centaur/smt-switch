@@ -41,8 +41,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { CVC4,
           { TERMITER,
             THEORY_INT,
-            // TODO: put this back after getStoreAllBase() is in API
-            // ARRAY_MODELS,
+            ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
@@ -53,8 +52,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             THEORY_INT,
-            // TODO: put this back after getStoreAllBase() is in API
-            // ARRAY_MODELS,
+            ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
