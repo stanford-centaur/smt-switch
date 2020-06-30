@@ -42,6 +42,19 @@ class TermTranslator
    */
   Term value_from_smt2(const std::string val, const Sort sort) const;
 
+  /** identifies relevant casts to perform an operation
+   *  assumes the operation is currently not well-sorted
+   *  e.g. check_sortedness returns false
+   *  could be more general in the future, for now focusing on
+   *  Bool / BV1 case
+   *  @param op the operator that should be applied
+   *  @param terms the terms to apply it to
+   *  @return a well-sorted term with an operator applied to casted terms
+   *  Note: the operator can change, e.g. BVAnd -> And
+   *  This method uses cast_term
+   */
+  Term cast_op(Op op, const TermVec & terms) const;
+
   /** casts a term to a different sort
    *  could be more general in future, for now just does a few common
    * conversions such as: Bool <-> BV1 Int  <-> Real
@@ -52,6 +65,18 @@ class TermTranslator
    *  the term and sort MUST belong to the same solver
    */
   Term cast_term(const Term & term, const Sort & sort) const;
+
+  /** casts a value term to a different sort
+   *  could be more general in future, for now just does
+   * conversions such as: Bool <-> BV1
+   *  @param val the value term to cast
+   *  @param the sort to cast it to
+   *  @return the new term
+   *  throws a NotImplementedException if it cannot interpret the cast
+   *  the term and sort MUST belong to the same solver
+   */
+  Term cast_value(const Term & term, const Sort & sort) const;
+
   SmtSolver & solver;
   UnorderedTermMap cache;
 };

@@ -16,12 +16,38 @@
 
 #include <iterator>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 #include "assert.h"
 
 #include "sort_inference.h"
 #include "term_translator.h"
 
+using namespace std;
+
 namespace smt {
+
+// boolean ops
+const unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies, Iff });
+
+const unordered_set<PrimOp> non_indexed_bv_ops({
+    BVNot,  BVNeg,  BVAnd, BVOr,   BVXor,  BVNand, BVNor,
+    BVXnor, BVAdd,  BVSub, BVMul,  BVUdiv, BVSdiv, BVUrem,
+    BVSrem, BVSmod, BVShl, BVAshr, BVLshr, BVComp, BVUlt,
+    BVUle,  BVUgt,  BVUge, BVSlt,  BVSle,  BVSgt,  BVSge,
+});
+
+// boolean ops that can easily be represented with bit-vector operators
+const unordered_map<PrimOp, PrimOp> bool_to_bv_ops({
+    { And, BVAnd },
+    { Or, BVOr },
+    { Xor, BVXor },
+    { Not, BVNot },
+});
+
+// bitvector ops that can easily be represented with boolean operators
+const unordered_map<PrimOp, PrimOp> bv_to_bool_ops(
+    { { BVAnd, And }, { BVOr, Or }, { BVXor, Xor }, { BVNot, Not } });
 
 Sort TermTranslator::transfer_sort(const Sort & sort)
 {
@@ -156,10 +182,12 @@ Term TermTranslator::transfer_term(const Term & term)
         Op op = t->get_op();
         if (!check_sortedness(op, cached_children))
         {
-          throw NotImplementedException("Doesn't perform sort-casting yet.");
+          cache[t] = cast_op(op, cached_children);
         }
-
-        cache[t] = solver->make_term(t->get_op(), cached_children);
+        else
+        {
+          cache[t] = solver->make_term(t->get_op(), cached_children);
+        }
       }
     }
   }
@@ -246,13 +274,148 @@ Term TermTranslator::value_from_smt2(const std::string val,
   }
 }
 
-Term cast_term(const Term & term, const Sort & sort)
+Term TermTranslator::cast_op(Op op, const TermVec & terms) const
+{
+  assert(!check_sortedness(op, terms));
+  PrimOp po = op.prim_op;
+
+  // priority is turning bitvector operations to boolean operations
+  // Heuristic, because boolector represents everything with bit-vector
+  // operators, the most common scenario is turning bitvector ops to
+  // boolean
+
+  // case 1 -- bitvector to boolean op
+  if (bv_to_bool_ops.find(po) != bv_to_bool_ops.end())
+  {
+    TermVec casted_children;
+    casted_children.reserve(terms.size());
+    Sort boolsort = solver->make_sort(BOOL);
+    for (auto t : terms)
+    {
+      casted_children.push_back(cast_term(t, boolsort));
+    }
+    return solver->make_term(bv_to_bool_ops.at(po), casted_children);
+  }
+  // case 2 -- boolean to bitvector op
+  else if (bool_to_bv_ops.find(po) != bool_to_bv_ops.end())
+  {
+    TermVec casted_children;
+    casted_children.reserve(terms.size());
+    Sort bv1sort = solver->make_sort(BV, 1);
+    for (auto t : terms)
+    {
+      casted_children.push_back(cast_term(t, bv1sort));
+    }
+    return solver->make_term(bool_to_bv_ops.at(po), casted_children);
+  }
+  // case 3 -- cast all bit-vectors to booleans
+  // a boolean operator that can't be converted to a bit-vector operator easily
+  // (easily meaning by just switching the PrimOp)
+  else if (bool_ops.find(po) != bool_ops.end())
+  {
+    TermVec casted_children;
+    casted_children.reserve(terms.size());
+    Sort boolsort = solver->make_sort(BOOL);
+    for (auto t : terms)
+    {
+      casted_children.push_back(cast_term(t, boolsort));
+    }
+    return solver->make_term(po, casted_children);
+  }
+  // case 4 -- cast all booleans to bitvectors
+  else if (non_indexed_bv_ops.find(po) != non_indexed_bv_ops.end())
+  {
+    TermVec casted_children;
+    casted_children.reserve(terms.size());
+    Sort bv1sort = solver->make_sort(BV, 1);
+    for (auto t : terms)
+    {
+      casted_children.push_back(cast_term(t, bv1sort));
+    }
+    return solver->make_term(po, casted_children);
+  }
+  // case 5 -- special case for Ite
+  else if (po == Ite)
+  {
+    assert(terms.size() == 3);
+    Sort boolsort = solver->make_sort(BOOL);
+    Term cond = cast_term(terms[0], boolsort);
+
+    Term ifbranch = terms[1];
+    Term elsebranch = terms[2];
+
+    if (ifbranch->get_sort() != elsebranch->get_sort())
+    {
+      // arbitrarily deciding to cast to the ifbranch sort
+      elsebranch = cast_term(elsebranch, ifbranch->get_sort());
+    }
+
+    return solver->make_term(Ite, cond, ifbranch, elsebranch);
+  }
+  // case 7 -- special case for ARRAY select
+  else if (po == Select)
+  {
+    // assuming the array itself doesn't need to be casted
+    // only the index
+    // we have no suport for or issue with that
+    return solver->make_term(
+        Select,
+        terms[0],
+        cast_term(terms[1], terms[0]->get_sort()->get_indexsort()));
+  }
+  // case 8 -- special case for ARRAY store
+  else if (po == Store)
+  {
+    // assuming the array itself doesn't need to be casted
+    // only the index
+    // we have no suport for or issue with that
+    Sort arrsort = terms[0]->get_sort();
+    return solver->make_term(Store,
+                             terms[0],
+                             cast_term(terms[1], arrsort->get_indexsort()),
+                             cast_term(terms[2], arrsort->get_elemsort()));
+  }
+  // case 9 -- special case for FUNCTION
+  else if (po == Apply)
+  {
+    Sort funsort = terms[0]->get_sort();
+    // assuming the function itself does not need to be cast
+    TermVec casted_children;
+    casted_children.reserve(terms.size());
+    casted_children.push_back(terms[0]);
+    SortVec domain_sorts = funsort->get_domain_sorts();
+    assert(terms.size() + 1 == domain_sorts.size());
+    for (size_t i = 1; i < terms.size(); ++i)
+    {
+      casted_children.push_back(cast_term(terms[i], domain_sorts[i - 1]));
+    }
+    return solver->make_term(Apply, casted_children);
+  }
+  // default case
+  else
+  {
+    string msg("Cannot cast this operation: (");
+    msg += op.to_string();
+    for (auto t : terms)
+    {
+      msg += " " + t->to_string();
+    }
+    msg += ")";
+    throw NotImplementedException(msg);
+  }
+}
+
+Term TermTranslator::cast_term(const Term & term, const Sort & sort) const
 {
   Sort cur_sort = term->get_sort();
   if (cur_sort == sort)
   {
     // nothing to do
     return term;
+  }
+  else if (term->is_value())
+  {
+    return cast_value(term, sort);
   }
 
   SortKind sk = sort->get_sort_kind();
@@ -279,6 +442,69 @@ Term cast_term(const Term & term, const Sort & sort)
   {
     throw NotImplementedException("Cannot interpret " + term->to_string()
                                   + " as " + sort->to_string());
+  }
+}
+
+Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
+{
+  SortKind sk = sort->get_sort_kind();
+  Sort cur_sort = term->get_sort();
+  SortKind cur_sk = cur_sort->get_sort_kind();
+
+  if (sk == BOOL && cur_sk == BV)
+  {
+    string term_repr = term->to_string();
+    if (term_repr == "(_ bv1 1)" || term_repr == "#b1" || term_repr == "#x1")
+    {
+      return solver->make_term(true);
+    }
+    else if (term_repr == "(_ bv0 1)" || term_repr == "#b0"
+             || term_repr == "#x0")
+    {
+      return solver->make_term(false);
+    }
+    else
+    {
+      throw SmtException("Cannot interpret " + term->to_string()
+                         + " as a bool.");
+    }
+  }
+  else if (sk == BV && cur_sk == BOOL)
+  {
+    if (sort->get_width() != 1)
+    {
+      throw SmtException("Cannot interpret " + term->to_string() + " as "
+                         + sort->to_string());
+    }
+
+    string term_repr = term->to_string();
+    if (term_repr == "true")
+    {
+      return solver->make_term(1, sort);
+    }
+    else if (term_repr == "false")
+    {
+      return solver->make_term(0, sort);
+    }
+    else
+    {
+      throw SmtException("Cannot interpret " + term->to_string() + " as "
+                         + sort->to_string());
+    }
+  }
+  else if (sk == ARRAY)
+  {
+    // this is a constant array
+    // the only value that has SortKind ARRAY
+    // make constant array by recursing on the element value
+    return solver->make_term(cast_value(*(term->begin()), sort->get_elemsort()),
+                             sort);
+  }
+  else
+  {
+    throw NotImplementedException("Interpreting " + term->to_string() + " as "
+                                  + sort->to_string()
+                                  + " is not yet implemented.");
   }
 }
 
