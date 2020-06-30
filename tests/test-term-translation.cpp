@@ -82,18 +82,29 @@ class TranslationTests
 
     boolsort = s1->make_sort(BOOL);
     bvsort8 = s1->make_sort(BV, 8);
-    arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
 
     a = s1->make_symbol("a", boolsort);
     b = s1->make_symbol("b", boolsort);
     x = s1->make_symbol("x", bvsort8);
     y = s1->make_symbol("y", bvsort8);
     z = s1->make_symbol("z", bvsort8);
-    arr = s1->make_symbol("arr", arrsort);
   }
   SmtSolver s1, s2;
-  Sort boolsort, bvsort8, arrsort;
-  Term a, b, x, y, z, arr;
+  Sort boolsort, bvsort8;
+  Term a, b, x, y, z;
+};
+
+class BoolArrayTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
+    arr = s1->make_symbol("arr", arrsort);
+  }
+  Sort arrsort;
+  Term arr;
 };
 
 TEST_P(SelfTranslationTests, BVTransfer)
@@ -192,7 +203,7 @@ TEST_P(TranslationTests, Ite)
   ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
 }
 
-TEST_P(TranslationTests, Arrays)
+TEST_P(BoolArrayTranslationTests, Arrays)
 {
   Term f = s1->make_term(false);
   Term t = s1->make_term(false);
@@ -226,5 +237,13 @@ INSTANTIATE_TEST_SUITE_P(
     TranslationTests,
     testing::Combine(testing::ValuesIn(filter_solver_enums({ TERMITER })),
                      testing::ValuesIn(filter_solver_enums({ TERMITER }))));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedBoolArrayTranslationTests,
+    BoolArrayTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_solver_enums(
+                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
+                     testing::ValuesIn(filter_solver_enums(
+                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
 
 }  // namespace smt_tests

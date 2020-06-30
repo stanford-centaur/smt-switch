@@ -51,6 +51,9 @@ enum SolverAttribute
   CONSTARR,
   // supports transferring to different solvers with TermTranslator
   FULL_TRANSFER,
+  // supports functions with boolean arguments
+  // and arrays with boolean elements
+  ARRAY_FUN_BOOLS,
   // unsat core support
   UNSAT_CORE,
   // supports datatype theory

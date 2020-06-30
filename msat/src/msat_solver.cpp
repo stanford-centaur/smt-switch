@@ -642,6 +642,10 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  if (MSAT_ERROR_TYPE(msort->type))
+  {
+    throw InternalSolverException("Got error type in MathSAT backend.");
+  }
   decl = msat_declare_function(env, name.c_str(), msort->type);
 
   if (sort->get_sort_kind() == FUNCTION)
