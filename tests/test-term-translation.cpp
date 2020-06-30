@@ -176,6 +176,22 @@ TEST_P(TranslationTests, And)
   ASSERT_EQ(a_and_b_1, a_and_b);
 }
 
+TEST_P(TranslationTests, Ite)
+{
+  Term a_ite_x_y = s1->make_term(Ite, a, x, y);
+  TermTranslator to_s2(s2);
+
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
+  Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
+  ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
                          SelfTranslationTests,
                          testing::ValuesIn(filter_solver_enums({ TERMITER })));
@@ -188,7 +204,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTranslationTests,
     TranslationTests,
-    testing::Combine(testing::ValuesIn(available_solver_enums()),
-                     testing::ValuesIn(available_solver_enums())));
+    testing::Combine(testing::ValuesIn(filter_solver_enums({ TERMITER })),
+                     testing::ValuesIn(filter_solver_enums({ TERMITER }))));
 
 }  // namespace smt_tests
