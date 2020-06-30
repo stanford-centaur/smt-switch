@@ -48,6 +48,7 @@ class TermTranslator
    *  e.g. check_sortedness returns false
    *  could be more general in the future, for now focusing on
    *  Bool / BV1 case
+   *  It can either change the operator or cast the terms
    *  @param op the operator that should be applied
    *  @param terms the terms to apply it to
    *  @return a well-sorted term with an operator applied to casted terms
