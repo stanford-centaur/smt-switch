@@ -9,6 +9,14 @@ DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
 if [ ! -d "$DEPS/yices2" ]; then
     cd $DEPS
     git clone https://github.com/SRI-CSL/yices2.git
@@ -17,7 +25,7 @@ if [ ! -d "$DEPS/yices2" ]; then
     git checkout -f $YICES2_VERSION
     autoconf
     ./configure
-    make build_dir=build BUILD=build -j$(nproc)
+    make build_dir=build BUILD=build -j$NUM_CORES
     cd $DIR
 else
     echo "$DEPS/yices2 already exists. If you want to rebuild, please remove it manually."
