@@ -106,6 +106,8 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
       { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       { ::CVC4::api::SELECT, Select },
       { ::CVC4::api::STORE, Store },
+      { ::CVC4::api::FORALL, Forall },
+      { ::CVC4::api::EXISTS, Exists },
       // Datatype
       { ::CVC4::api::APPLY_CONSTRUCTOR, Apply_Constructor},
       { ::CVC4::api::APPLY_TESTER, Apply_Tester},
@@ -125,6 +127,21 @@ void CVC4TermIter::operator++() { term_it++; }
 
 const Term CVC4TermIter::operator*()
 {
+  // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
+  // smt-switch guarantees that the length is only one by construction
+  ::CVC4::api::Term t = *term_it;
+  if (t.getKind() == ::CVC4::api::BOUND_VAR_LIST)
+  {
+    if (t.getNumChildren() != 1)
+    {
+      // smt-switch should only allow binding one parameter
+      // otherwise, we need to flatten arbitrary nestings of quantifiers and
+      // BOUND_VAR_LISTs ofr term iteration
+      throw InternalSolverException(
+          "Expected exactly one bound variable in CVC4 BOUND_VAR_LIST");
+    }
+    return std::make_shared<CVC4Term>(t[0]);
+  }
   return std::make_shared<CVC4Term> (*term_it);
 }
 
@@ -221,9 +238,22 @@ Sort CVC4Term::get_sort() const
   return std::make_shared<CVC4Sort> (term.getSort());
 }
 
+bool CVC4Term::is_symbol() const
+{
+  // functions, parameters, and symbolic constants are all symbols
+  ::CVC4::api::Kind k = term.getKind();
+  return (k == ::CVC4::api::CONSTANT || k == ::CVC4::api::VARIABLE);
+}
+
+bool CVC4Term::is_param() const
+{
+  return (term.getKind() == ::CVC4::api::VARIABLE);
+}
+
 bool CVC4Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::CVC4::api::CONSTANT);
+  return (term.getKind() == ::CVC4::api::CONSTANT
+          && !term.getSort().isFunction());
 }
 
 bool CVC4Term::is_value() const

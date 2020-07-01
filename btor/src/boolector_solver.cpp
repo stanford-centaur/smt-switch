@@ -264,13 +264,18 @@ void BoolectorSolver::assert_formula(const Term & t)
 
 Result BoolectorSolver::check_sat()
 {
-  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  int32_t res = boolector_sat(btor);
+  if (res == BOOLECTOR_SAT)
   {
     return Result(SAT);
   }
-  else
+  else if (res == BOOLECTOR_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
   }
 };
 
@@ -307,13 +312,18 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
     boolector_assume(btor, bt->node);
   }
 
-  if (boolector_sat(btor) == BOOLECTOR_SAT)
+  int32_t res = boolector_sat(btor);
+  if (res == BOOLECTOR_SAT)
   {
     return Result(SAT);
   }
-  else
+  else if (res == BOOLECTOR_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
   }
 }
 
@@ -634,8 +644,21 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   return term;
 }
 
+Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
+{
+  std::shared_ptr<BoolectorSortBase> bs =
+      std::static_pointer_cast<BoolectorSortBase>(sort);
+  BoolectorNode * n = boolector_param(btor, bs->sort, name.c_str());
+  return std::make_shared<BoolectorTerm>(btor, n);
+}
+
 Term BoolectorSolver::make_term(Op op, const Term & t) const
 {
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
   if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t);
@@ -681,7 +704,27 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
 
 Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  if (op.num_idx == 0)
+  if (op.prim_op == Forall)
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+    std::vector<BoolectorNode *> params({ bt0->node });
+    return std::make_shared<BoolectorTerm>(
+        btor, boolector_forall(btor, &params[0], 1, bt1->node));
+  }
+  else if (op.prim_op == Exists)
+  {
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(t0);
+    std::shared_ptr<BoolectorTerm> bt1 =
+        std::static_pointer_cast<BoolectorTerm>(t1);
+    std::vector<BoolectorNode *> params({ bt0->node });
+    return std::make_shared<BoolectorTerm>(
+        btor, boolector_exists(btor, &params[0], 1, bt1->node));
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1);
   }
@@ -698,7 +741,12 @@ Term BoolectorSolver::make_term(Op op,
                                 const Term & t1,
                                 const Term & t2) const
 {
-  if (op.num_idx == 0)
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1, t2);
   }
@@ -712,7 +760,12 @@ Term BoolectorSolver::make_term(Op op,
 
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (op.num_idx == 0)
+  if (terms.size() != 2 && (op.prim_op == Forall || op.prim_op == Exists))
+  {
+    throw IncorrectUsageException(
+        "Expecting exactly one parameter and a body formula for quantifier op");
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, terms);
   }
@@ -773,7 +826,12 @@ Term BoolectorSolver::substitute(
     key = std::static_pointer_cast<BoolectorTerm>(elem.first);
     value = std::static_pointer_cast<BoolectorTerm>(elem.second);
     // boolectornodemap only supports var -> term mappings
-    assert(key->is_symbolic_const());
+    if (!key->is_symbol())
+    {
+      throw IncorrectUsageException(
+          "boolector backend currently only supports symbol->term "
+          "substitution");
+    }
     boolector_nodemap_map(bmap, key->node, value->node);
   }
 

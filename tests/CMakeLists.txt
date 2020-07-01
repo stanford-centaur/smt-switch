@@ -51,6 +51,11 @@ if (BUILD_YICES2)
 endif()
 
 # googletest tests
+add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
+target_link_libraries(unit-term gtest_main)
+target_link_libraries(unit-term test-deps)
+add_test(NAME unit-term_test COMMAND unit-term)
+
 add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
 target_link_libraries(unit-solver-enums gtest_main)
 target_link_libraries(unit-solver-enums test-deps)
@@ -80,6 +85,11 @@ add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-sol
 target_link_libraries(unit-solving-interface gtest_main)
 target_link_libraries(unit-solving-interface test-deps)
 add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
+
+add_executable(unit-quantifiers "${PROJECT_SOURCE_DIR}/tests/unit/unit-quantifiers.cpp")
+target_link_libraries(unit-quantifiers gtest_main)
+target_link_libraries(unit-quantifiers test-deps)
+add_test(NAME unit-quantifiers_test COMMAND unit-quantifiers)
 
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)

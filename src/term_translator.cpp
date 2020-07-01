@@ -76,7 +76,7 @@ Term TermTranslator::transfer_term(const Term & term)
 
     if (cache.find(t) == cache.end())
     {
-      if (t->is_symbolic_const())
+      if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
         std::string name = t->to_string();
@@ -131,7 +131,7 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         cache[t] = solver->make_term(t->get_op(), cached_children);
       }
-      else if (t->is_symbolic_const())
+      else if (t->is_symbol())
       {
         // already created symbol and added to cache
         continue;

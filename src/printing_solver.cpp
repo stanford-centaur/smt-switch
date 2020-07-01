@@ -155,7 +155,7 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
   string range_str = "";
   if (sk == smt::SortKind::FUNCTION) {
     for (Sort ds : sort->get_domain_sorts()) {
-      domain_str += ds->to_string() + " ";   
+      domain_str += ds->to_string() + " ";
     }
     range_str = sort->get_codomain_sort()->to_string();
   } else {
@@ -163,6 +163,12 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
   }
   (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
   return wrapped_solver->make_symbol(name, sort);
+}
+
+Term PrintingSolver::make_param(const string name, const Sort & sort)
+{
+  // bound parameters are not declared -- they'll show up in the printed term
+  return wrapped_solver->make_param(name, sort);
 }
 
 Term PrintingSolver::make_term(const Op op, const Term & t) const
