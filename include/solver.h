@@ -219,6 +219,13 @@ class AbsSmtSolver
    */
   virtual Term make_symbol(const std::string name, const Sort & sort) = 0;
 
+  /* Make a parameter term to be bound by a quantifier
+   * @param name the name of the parameter
+   * @param sort the sort of this parameter
+   * @return the parameter term
+   */
+  virtual Term make_param(const std::string name, const Sort & sort) = 0;
+
   /* Make a new term
    * @param op the operator to use
    * @param t the child term

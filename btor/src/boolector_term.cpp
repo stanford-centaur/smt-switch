@@ -61,8 +61,8 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     { BTOR_BV_UREM_NODE, BVUrem },
     { BTOR_BV_CONCAT_NODE, Concat },
     { BTOR_APPLY_NODE, Apply },
-    // {BTOR_FORALL_NODE}, // TODO: implement later
-    // {BTOR_EXISTS_NODE}, // TODO: implement later
+    { BTOR_FORALL_NODE, Forall },
+    { BTOR_EXISTS_NODE, Exists },
     // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully
     // only for quantifiers
     { BTOR_COND_NODE, Ite },
@@ -185,8 +185,6 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
-  is_sym =
-      !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -267,9 +265,25 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
+bool BoolectorTerm::is_symbol() const
+{
+  // functions, parameters, and symbolic constants are all symbols
+  auto bkind = bn->kind;
+  return !negated
+         && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE)
+             || (bkind == BTOR_PARAM_NODE));
+}
+
+bool BoolectorTerm::is_param() const
+{
+  return !negated && (bn->kind == BTOR_PARAM_NODE);
+}
+
 bool BoolectorTerm::is_symbolic_const() const
 {
-  return is_sym;
+  auto bkind = bn->kind;
+  bool is_sym_const = !negated && (bkind == BTOR_VAR_NODE);
+  return is_sym_const;
 }
 
 bool BoolectorTerm::is_value() const

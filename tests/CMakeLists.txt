@@ -52,6 +52,11 @@ endif()
 
 # googletest tests
 
+add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
+target_link_libraries(unit-term gtest_main)
+target_link_libraries(unit-term test-deps)
+add_test(NAME unit-term_test COMMAND unit-term)
+
 add_executable(unit-sort-inference "${PROJECT_SOURCE_DIR}/tests/unit/unit-sort-inference.cpp")
 target_link_libraries(unit-sort-inference gtest_main)
 target_link_libraries(unit-sort-inference test-deps)
@@ -86,6 +91,11 @@ add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-sol
 target_link_libraries(unit-solving-interface gtest_main)
 target_link_libraries(unit-solving-interface test-deps)
 add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
+
+add_executable(unit-quantifiers "${PROJECT_SOURCE_DIR}/tests/unit/unit-quantifiers.cpp")
+target_link_libraries(unit-quantifiers gtest_main)
+target_link_libraries(unit-quantifiers test-deps)
+add_test(NAME unit-quantifiers_test COMMAND unit-quantifiers)
 
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)

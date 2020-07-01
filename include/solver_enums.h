@@ -55,6 +55,8 @@ enum SolverAttribute
   UNSAT_CORE,
   // supports datatype theory
   THEORY_DATATYPE,
+  // supports quantifiers
+  QUANTIFIERS,
 };
 
 /** Returns true iff the SolverEnum corresponds to a LoggingSolver

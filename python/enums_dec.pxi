@@ -93,6 +93,9 @@ cdef extern from "ops.h" namespace "smt":
     # Array Theory
     cdef c_PrimOp c_Select "smt::Select"
     cdef c_PrimOp c_Store "smt::Store"
+    # Quantifiers
+    cdef c_PrimOp c_Forall "smt::Forall"
+    cdef c_PrimOp c_Exists "smt::Exists"
     string to_string(c_PrimOp op) except +
 
 

@@ -364,11 +364,34 @@ Sort Yices2Term::get_sort() const
   return Sort(new Yices2Sort(yices_type_of_term(term)));
 }
 
-bool Yices2Term::is_symbolic_const() const
+bool Yices2Term::is_symbol() const
 {
+  // functions are symbols
+  if (is_function)
+  {
+    return true;
+  }
+
   term_constructor_t tc = yices_term_constructor(term);
   return (
-      (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
+          (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
+}
+
+bool Yices2Term::is_param() const
+{
+  throw NotImplementedException("Yices2 backend does not support parameters yet.");
+}
+
+bool Yices2Term::is_symbolic_const() const
+{
+  // functions and parameters are not constants
+  // don't need to check parameters because not supported yet
+  if (is_function)
+  {
+    return false;
+  }
+
+  return is_symbol();
 }
 
 bool Yices2Term::is_value() const

@@ -100,6 +100,14 @@ enum PrimOp
   /* Array Theory */
   Select,
   Store,
+  /* Quantifiers */
+  // quantifiers only bind a single parameter to simplify term iteration
+  // e.g. the solvers don't align well on the representation unless only one
+  // parameter is bound
+  Forall,  ///< used to bind *one* parameter in a formula with a universal
+           ///< quantifier
+  Exists,  ///< used to bind *one* parameter in a formula with an existential
+           ///< quanifier
   /* Datatype Theory */
   Apply_Selector,
   Apply_Tester,

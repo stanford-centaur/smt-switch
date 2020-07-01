@@ -67,6 +67,32 @@ Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts);
 
 /* useful helper functions for sort checking */
 
+/** Checks that terms match expected form for quantifiers
+ *  To make term traversal easier considering the different
+ *  handlings of quantifiers in the API's of underlying
+ *  smt-switch requires that quantified terms take the form:
+ *  <Forall/Exists> bound_param . body
+ *  thus it takes two arguments, the parameter and a formula
+ *  containing that parameter
+ *  this does not limit expressivity because you can nest them
+ *  @param terms the vector of terms
+ *  @return true iff the terms match the expected pattern
+ *  Note: this is applied directly in check_sortedness because it must
+ *  be over terms
+ */
+bool check_quantifier_terms(const TermVec & terms);
+
+/** Checks that sorts are expected for a quantified term
+ *  e.g. that the second argument is of sort Bool
+ *  similar to check_quantifier_terms but doesn't check that
+ *  first argument is a parameter
+ *  @param sorts the vector of sorts
+ *  @return true iff the terms match the expected pattern
+ *  Note: this is applied directly in compute_sort because it must
+ *  be over terms
+ */
+ bool check_quantifier_sorts(const SortVec & sorts);
+
 /** Checks that the sorts are equivalent
  *  @param sorts a non-empty vector of sorts
  *  @return true iff they're all equal
@@ -94,7 +120,7 @@ bool check_sortkind_matches(SortKind sk, const SortVec & sorts);
 
 /** Checks if the sorts are well-sorted for an apply operator
  *  @param sorts the vector of sorts
- *  @param returns true iff the first sort is a function sort
+ *  @return true iff the first sort is a function sort
  *         and the rest of the sorts match the domain of the
  *         function
  */
