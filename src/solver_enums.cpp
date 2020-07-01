@@ -27,7 +27,13 @@ namespace smt {
 
 const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE, QUANTIFIERS } },
+        { BTOR,
+          { TERMITER,
+            ARRAY_MODELS,
+            CONSTARR,
+            UNSAT_CORE,
+            QUANTIFIERS,
+            BOOL_BV1_ALIASING } },
 
         { BTOR_LOGGING,
           { LOGGING,

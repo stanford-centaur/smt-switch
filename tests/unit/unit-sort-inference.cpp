@@ -88,8 +88,8 @@ TEST_P(UnitSortInferenceTests, HelperTests)
 
   EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4, bvsort5 }));
 
-  // BTOR considers all BOOLs as BV of size 1, so these tests would fail
-  if (s->get_solver_enum() != BTOR)
+  // if solver aliases booleans and bitvectors of width 1, this test fails
+  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
   {
     EXPECT_TRUE(check_ite_sorts({ boolsort, bvsort4, bvsort4 }));
     EXPECT_TRUE(bool_sorts({ boolsort }));
@@ -107,8 +107,8 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_TRUE(check_sortedness(Distinct, { b1, b2 }));
 
   // wrong operator
-  // doesn't work for BTOR because of sort aliasing
-  if (s->get_solver_enum() != BTOR)
+  // if solver aliases booleans and bitvectors of width 1, this test fails
+  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
   {
     EXPECT_TRUE(check_sortedness(And, { b1, b2 }));
     EXPECT_TRUE(check_sortedness(Xor, { b1, b2 }));
@@ -153,6 +153,23 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
     EXPECT_FALSE(check_sortedness(Apply, {f}));
     EXPECT_FALSE(check_sortedness(Apply, {f, p}));
     EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+  }
+
+  /************** Quantifiers (if supported) ******************/
+  if (solver_has_attribute(s->get_solver_enum(), QUANTIFIERS))
+  {
+    Term param = s->make_param("param", bvsort4);
+    Term body = s->make_term(Equal, param, s->make_term(0, bvsort4));
+    // if bool and bv1 aliased, then body won't necessarily have type bool
+    // e.g. BTOR also returns the type as BV1
+    if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
+    {
+      EXPECT_TRUE(check_sortedness(Exists, {param, body}));
+    }
+    // not a parameter
+    EXPECT_FALSE(check_sortedness(Exists, {q, body}));
+    // not a formula for the body
+    EXPECT_FALSE(check_sortedness(Exists, {param, s->make_term(BVAdd, param, q)}));
   }
 }
 
