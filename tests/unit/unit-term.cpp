@@ -37,9 +37,10 @@ class UnitTermTests : public ::testing::Test,
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
-  Sort boolsort, bvsort, funsort;
+  Sort boolsort, bvsort, funsort, arrsort;
 };
 
 TEST_P(UnitTermTests, FunOp)
@@ -54,6 +55,12 @@ TEST_P(UnitTermTests, FunOp)
   ASSERT_FALSE(f->is_symbolic_const());
 }
 
+TEST_P(UnitTermTests, Array)
+{
+  Term arr = s->make_symbol("arr", arrsort);
+  ASSERT_TRUE(arr->is_symbol());
+  ASSERT_TRUE(arr->is_symbolic_const());
+}
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
                          UnitTermTests,
