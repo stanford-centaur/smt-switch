@@ -58,6 +58,10 @@ enum SolverAttribute
   UNSAT_CORE,
   // supports datatype theory
   THEORY_DATATYPE,
+  // supports quantifiers
+  QUANTIFIERS,
+  // aliases booleans and bit-vectors of size one
+  BOOL_BV1_ALIASING
 };
 
 /** Returns true iff the SolverEnum corresponds to a LoggingSolver

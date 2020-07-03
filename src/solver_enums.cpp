@@ -27,7 +27,13 @@ namespace smt {
 
 const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE } },
+        { BTOR,
+          { TERMITER,
+            ARRAY_MODELS,
+            CONSTARR,
+            UNSAT_CORE,
+            QUANTIFIERS,
+            BOOL_BV1_ALIASING } },
 
         { BTOR_LOGGING,
           { LOGGING,
@@ -36,7 +42,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { CVC4,
           {
@@ -49,6 +56,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               FULL_TRANSFER,
               UNSAT_CORE,
               THEORY_DATATYPE,
+              QUANTIFIERS
           } },
 
         { CVC4_LOGGING,
@@ -60,7 +68,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,
@@ -69,7 +78,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT_LOGGING,
           { LOGGING,
@@ -79,7 +89,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing

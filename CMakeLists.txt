@@ -52,7 +52,7 @@ if (BUILD_PYTHON_BINDINGS)
   endif()
 endif()
 
-if (BUILD_CVC4 OR BUILD_MSAT)
+if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2)
   find_package(GMP REQUIRED)
 endif()
 

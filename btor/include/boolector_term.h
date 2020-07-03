@@ -79,6 +79,8 @@ class BoolectorTerm : public AbsTerm
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
@@ -100,8 +102,6 @@ class BoolectorTerm : public AbsTerm
   BtorNode * bn;
   // true iff the node is negated
   bool negated;
-  // true iff the node is a symbolic constant
-  bool is_sym;
   // for iterating args nodes
   BtorArgsIterator ait;
   // for storing nodes before iterating

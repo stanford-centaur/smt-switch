@@ -70,6 +70,8 @@ class MsatTerm : public AbsTerm
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
@@ -84,7 +86,8 @@ class MsatTerm : public AbsTerm
   msat_env env;
   msat_term term;
   msat_decl decl;
-  bool is_uf;
+  bool is_uf;  ///< set to true if wrapping a msat_decl (e.g. an uninterpreted
+               ///< function)
 
   friend class MsatSolver;
   friend class MsatInterpolatingSolver;

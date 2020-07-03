@@ -95,7 +95,9 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { BV_To_Nat, bv_sorts },
                           { Int_To_BV, int_sorts },
                           { Select, check_select_sorts },
-                          { Store, check_store_sorts }
+                          { Store, check_store_sorts },
+                          { Forall, check_quantifier_sorts },
+                          { Exists, check_quantifier_sorts }
 
     });
 
@@ -172,11 +174,23 @@ const std::unordered_map<
                          { BV_To_Nat, int_sort },
                          { Int_To_BV, int_to_bv_sort },
                          { Select, select_sort },
-                         { Store, store_sort } });
+                         { Store, store_sort },
+                         { Forall, bool_sort },
+                         { Exists, bool_sort }
+      });
 
 // main function implementations
 bool check_sortedness(Op op, const TermVec & terms)
 {
+  PrimOp po = op.prim_op;
+  if (po == Forall || po == Exists)
+  {
+    // special-case check terms for quantified ops
+    // will check that first term is a parameter
+    // this info is not available over sorts
+    return check_quantifier_terms(terms);
+  }
+
   SortVec sorts;
   sorts.reserve(terms.size());
   for (auto t : terms)
@@ -236,7 +250,21 @@ Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts)
 
 // helper function implementations
 
+bool check_quantifier_terms(const TermVec & terms)
+{
+  return terms.size() == 2 &&
+    terms[0]->is_param() &&
+    terms[1]->get_sort()->get_sort_kind() == BOOL;
+}
+
 /* helpers for sort checking */
+
+bool check_quantifier_sorts(const SortVec & sorts)
+{
+  return sorts.size() == 2 &&
+    sorts[1]->get_sort_kind() == BOOL;
+}
+
 bool equal_sorts(const SortVec & sorts)
 {
   assert(sorts.size());

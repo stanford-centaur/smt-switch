@@ -88,6 +88,8 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Int_To_BV, "nat2bv" },
       { Select, "select" },
       { Store, "store" },
+      { Forall, "forall" },
+      { Exists, "exists" },
       { Apply_Selector, "apply_selector" },
       { Apply_Tester, "apply_tester" },
       { Apply_Constructor, "apply_constructor" } });
@@ -169,6 +171,12 @@ const std::unordered_map<PrimOp, std::pair<size_t, size_t>> primop2arity(
       { Int_To_BV, { 1, 1 } },
       { Select, { 2, 2 } },
       { Store, { 3, 3 } },
+      // to make term traversal easier considering the differences
+      // in the underlying solver's handling of quantifiers, smt-switch
+      // always uses the form <Forall/Exists> bound_param . body
+      // i.e. it takes two arguments, the parameter to bind and the body
+      { Forall, { 2, 2} },
+      { Exists, { 2, 2 } },
       { Apply_Selector, { 2, 2 } },
       { Apply_Tester, { 2, 2 } },
       { Apply_Constructor, { 2, INT_MAX } } });
