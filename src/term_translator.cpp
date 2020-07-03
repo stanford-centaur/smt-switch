@@ -400,7 +400,16 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     Sort bv1sort = solver->make_sort(BV, 1);
     for (auto t : terms)
     {
-      casted_children.push_back(cast_term(t, bv1sort));
+      if (t->get_sort()->get_sort_kind() == BOOL)
+      {
+        casted_children.push_back(cast_term(t, bv1sort));
+      }
+      else
+      {
+        // expecting a bit-vector
+        assert(t->get_sort()->get_sort_kind() == BV);
+        casted_children.push_back(t);
+      }
     }
     return solver->make_term(op, casted_children);
   }

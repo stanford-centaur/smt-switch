@@ -228,6 +228,52 @@ TEST_P(TranslationTests, Ite)
   ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
 }
 
+TEST_P(TranslationTests, Concat)
+{
+  Sort bvsort1 = s1->make_sort(BV, 1);
+  Term x_lt_y = s1->make_term(BVUlt, x, y);
+  Term bv_x_lt_y = s1->make_term(
+      Ite, x_lt_y, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+
+  Term concat_term = s1->make_term(Concat, bv_x_lt_y, x);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term concat_term_2 = to_s2.transfer_term(concat_term);
+  Term concat_term_1 = to_s1.transfer_term(concat_term_2);
+  ASSERT_EQ(concat_term_1, concat_term);
+}
+
+TEST_P(TranslationTests, Extract)
+{
+  Sort bvsort1 = s1->make_sort(BV, 1);
+  Term bv_a = s1->make_term(
+      Ite, a, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+
+  Term ext_bv_a = s1->make_term(Op(Extract, 0, 0), bv_a);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+
+  Term ext_bv_a_2 = to_s2.transfer_term(ext_bv_a);
+  // expect it to be a BV
+  // ambiguous when working with BTOR because it's width 1
+  Term ext_bv_a_1 = to_s1.transfer_term(ext_bv_a_2, BV);
+
+  // this one might get rewritten
+  // so it won't be syntactically equivalent
+  // but it should still be semantically equivalent
+  s1->assert_formula(s1->make_term(Distinct, ext_bv_a, ext_bv_a_1));
+  Result r = s1->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
   Term f = s1->make_term(false);
