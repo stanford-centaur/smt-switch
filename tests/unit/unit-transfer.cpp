@@ -42,6 +42,10 @@ class UnitTransferTests : public ::testing::Test,
   Sort boolsort, bvsort, funsort;
 };
 
+class UnitQuantifierTransferTests : public UnitTransferTests
+{
+};
+
 // TODO: Eventually test transferring terms between each pair of solvers
 
 TEST_P(UnitTransferTests, SimpleUFTransfer)
@@ -59,8 +63,26 @@ TEST_P(UnitTransferTests, SimpleUFTransfer)
 
   TermVec children(fa_2->begin(), fa_2->end());
   ASSERT_EQ(children.size(), 2);
-  ASSERT_EQ(f2, children[0]);
-  ASSERT_EQ(a2, children[1]);
+  EXPECT_EQ(f2, children[0]);
+  EXPECT_EQ(a2, children[1]);
+}
+
+TEST_P(UnitQuantifierTransferTests, MonotonicUF)
+{
+  Term x = s->make_param("x", bvsort);
+  Term y = s->make_param("y", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+  Term fy = s->make_term(Apply, f, y);
+
+  Term free_x_le_y = s->make_term(BVUle, x, y);
+  Term free_fx_le_fy = s->make_term(BVUle, fx, fy);
+  Term fx_le_fy = s->make_term(Forall, x, s->make_term(Forall, y, fx_le_fy));
+
+  SmtSolver s2 = create_solver(GetParam());
+  TermTranslator tr(s2);
+
+  EXPECT_NO_THROW(tr.transfer_term(fx_le_fy));
 }
 
 INSTANTIATE_TEST_SUITE_P(

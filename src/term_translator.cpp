@@ -127,11 +127,15 @@ Term TermTranslator::transfer_term(const Term & term)
     }
     else
     {
-      if (t->is_symbolic_const())
+      if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
-        std::string name = t->to_string();
         cache[t] = solver->make_symbol(t->to_string(), s);
+      }
+      else if (t->is_param())
+      {
+        s = transfer_sort(t->get_sort());
+        cache[t] = solver->make_param(t->to_string(), s);
       }
       else if (t->is_value())
       {
@@ -171,8 +175,8 @@ Term TermTranslator::transfer_term(const Term & term)
       }
       else
       {
-        // TODO change to is_symbol and is_value and is_param
-        assert(!t->is_symbolic_const());
+        assert(!t->is_symbol());
+        assert(!t->is_param());
         assert(!t->is_value());
         assert(!t->get_op().is_null());
 
