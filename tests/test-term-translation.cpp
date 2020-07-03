@@ -187,6 +187,31 @@ TEST_P(TranslationTests, And)
   ASSERT_EQ(a_and_b_1, a_and_b);
 }
 
+TEST_P(TranslationTests, Equal)
+{
+  Term a_equal_b = s1->make_term(Equal, a, b);
+  TermTranslator to_s2(s2);
+
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+  cache[to_s2.transfer_term(b)] = b;
+
+  Term a_equal_b_2 = to_s2.transfer_term(a_equal_b);
+  // need to specify expected sortkind
+  Term a_equal_b_1 = to_s1.transfer_term(a_equal_b_2, BOOL);
+
+  // not guaranteed to be structurally equal -- might use different operators
+  // or weird casting
+  // but they should be semantically equivalent AND have the same sort
+  // Note: boolector might still report that it's a BV1 instead of a Bool
+  // but it will consistent
+  ASSERT_EQ(a_equal_b->get_sort(), a_equal_b->get_sort());
+  s1->assert_formula(s1->make_term(Distinct, a_equal_b_1, a_equal_b));
+  Result r = s1->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
 TEST_P(TranslationTests, Ite)
 {
   Term a_ite_x_y = s1->make_term(Ite, a, x, y);

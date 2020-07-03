@@ -25,14 +25,46 @@
 #include "term.h"
 
 namespace smt {
+
+/** Class for translating terms from *one* other solver to *one* new solver
+ *  will fail if you try to convert terms from more than one solver
+ *  This class has no reference to the other solver because it's not needed
+ *  it only needs the solver that's being transferred *to* so that it can
+ *  make sorts and terms.
+ *  Because symbols can only be declared once, there will be errors
+ *  if the symbol is already declared in the new solver. To avoid this
+ *  populate the TermTranslator's cache with a mapping from
+ *  <other solver's symbol> -> <new solver's symbol>
+ */
 class TermTranslator
 {
  public:
   TermTranslator(SmtSolver & s) : solver(s) {}
+  /** Transfers a sort from the other solver to this solver
+   *  @param the sort transfer
+   *  @return a sort belonging to this solver
+   */
   Sort transfer_sort(const Sort & sort) const;
+
+  /** Transfers a term from the other solver to this solver
+   *  @param term the term to transfer to the member variable solver
+   *  @return a term belonging to this solver
+   */
   Term transfer_term(const Term & term);
+
+  /** Transfers a term and casts it to a particular SortKind
+   *  for now, only supports Bool <-> BV1 and Int <-> Real
+   *  will throw an exception if something else is requested
+   *  @param term the term to transfer to the member variable solver
+   *  @param sk the expected SortKind of the transferred term
+   *  @return a term belonging to this solver
+   */
+  Term transfer_term(const Term & term, const SortKind sk);
+
   /* Returns reference to cache -- can be used to populate with symbols */
   UnorderedTermMap & get_cache() { return cache; };
+
+  /* Returns a reference to the solver this object translates terms to */
   SmtSolver & get_solver() { return solver; };
 
  protected:
