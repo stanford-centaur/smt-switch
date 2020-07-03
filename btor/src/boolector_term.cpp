@@ -281,9 +281,14 @@ bool BoolectorTerm::is_param() const
 
 bool BoolectorTerm::is_symbolic_const() const
 {
-  auto bkind = bn->kind;
-  bool is_sym_const = !negated && (bkind == BTOR_VAR_NODE);
-  return is_sym_const;
+  // symbolic constant if it's a symbol but not a function
+  // or a parameter
+  // Important Note: Arrays are functions in boolector
+  // Thus, we need to check whether it's a function or an array
+  // because arrays should still be considered symbolic constants
+  // in smt-switch
+  bool is_fun = boolector_is_fun(btor, node) && !boolector_is_array(btor, node);
+  return !is_fun && !is_param() && is_symbol();
 }
 
 bool BoolectorTerm::is_value() const
