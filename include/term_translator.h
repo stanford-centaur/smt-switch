@@ -33,6 +33,7 @@ class TermTranslator
   Term transfer_term(const Term & term);
   /* Returns reference to cache -- can be used to populate with symbols */
   UnorderedTermMap & get_cache() { return cache; };
+  SmtSolver & get_solver() { return solver; };
 
  protected:
   /** Creates a term value from a string of the given sort
