@@ -30,11 +30,13 @@ namespace smt {
 // boolean ops
 const unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies, Iff });
 
-const unordered_set<PrimOp> non_indexed_bv_ops({
-    BVNot,  BVNeg,  BVAnd, BVOr,   BVXor,  BVNand, BVNor,
-    BVXnor, BVAdd,  BVSub, BVMul,  BVUdiv, BVSdiv, BVUrem,
-    BVSrem, BVSmod, BVShl, BVAshr, BVLshr, BVComp, BVUlt,
-    BVUle,  BVUgt,  BVUge, BVSlt,  BVSle,  BVSgt,  BVSge,
+const unordered_set<PrimOp> bv_ops({
+    Concat,      Extract,     BVNot,  BVNeg,       BVAnd,        BVOr,
+    BVXor,       BVNand,      BVNor,  BVXnor,      BVAdd,        BVSub,
+    BVMul,       BVUdiv,      BVSdiv, BVUrem,      BVSrem,       BVSmod,
+    BVShl,       BVAshr,      BVLshr, BVComp,      BVUlt,        BVUle,
+    BVUgt,       BVUge,       BVSlt,  BVSle,       BVSgt,        BVSge,
+    Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, BV_To_Nat,
 });
 
 // boolean ops that can easily be represented with bit-vector operators
@@ -391,7 +393,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     return solver->make_term(po, casted_children);
   }
   // case 4 -- cast all booleans to bitvectors
-  else if (non_indexed_bv_ops.find(po) != non_indexed_bv_ops.end())
+  else if (bv_ops.find(po) != bv_ops.end())
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
@@ -400,7 +402,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     {
       casted_children.push_back(cast_term(t, bv1sort));
     }
-    return solver->make_term(po, casted_children);
+    return solver->make_term(op, casted_children);
   }
   // case 5 -- special case for Ite
   else if (po == Ite)
