@@ -157,7 +157,7 @@ const std::unordered_map<
                          { BVShl, same_sort },
                          { BVAshr, same_sort },
                          { BVLshr, same_sort },
-                         { BVComp, bool_sort },
+                         { BVComp, single_bit_sort },
                          { BVUlt, bool_sort },
                          { BVUle, bool_sort },
                          { BVUgt, bool_sort },
@@ -432,6 +432,11 @@ Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(BOOL);
+}
+
+Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  return solver->make_sort(BV, 1);
 }
 
 Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
