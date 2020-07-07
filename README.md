@@ -48,8 +48,14 @@ Some of the backend solvers have non-BSD compatible licenses. There are no provi
 Once you've configured the build system, simply enter the build directory (`./build` by default) and run `make`. Each solver you add produces a `libsmt-switch-<solver>.so` shared object file. Running `make install` installs these libraries and the public header files into the configured prefix (`/usr/local` by default). Note that the header files are put in a directory, e.g. `/usr/local/include/smt-switch`.
 
 ## Currently Supported Solvers
+
+### BSD compatible
+
 * Boolector
 * CVC4
+
+### Non-BSD compatible
+
 * MathSAT
 * Yices2
 
