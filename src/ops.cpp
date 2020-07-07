@@ -14,6 +14,7 @@
 **
 **/
 
+#include <climits>
 #include <string>
 #include <unordered_map>
 
@@ -38,6 +39,9 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Mult, "*" },
       { Div, "/" },
       { IntDiv, "div" },
+      { To_Real, "to_real" },
+      { To_Int, "to_int" },
+      { Is_Int, "is_int" },
       { Lt, "<" },
       { Le, "<=" },
       { Gt, ">" },
@@ -80,6 +84,8 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Repeat, "repeat" },
       { Rotate_Left, "rotate_left" },
       { Rotate_Right, "rotate_right" },
+      { BV_To_Nat, "bv2nat" },
+      { Int_To_BV, "nat2bv" },
       { Select, "select" },
       { Store, "store" },
       { Forall, "forall" },
@@ -87,6 +93,93 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Apply_Selector, "apply_selector" },
       { Apply_Tester, "apply_tester" },
       { Apply_Constructor, "apply_constructor" } });
+
+// a map from PrimOp to <minimum arity, maximum arity>
+// TODO: support INT_MAX arity for those that allow it in SMT-LIB
+//       for example, AND/OR/DISTINCT should have maximum arity INT_MAX
+//       Requires some work in backend solvers because not all
+//       solvers support this through the API
+//       would need to add reduces for those operators in the backend
+//       For now, just keeping the arities conservative
+//       The expressiveness is not affected
+const std::unordered_map<PrimOp, std::pair<size_t, size_t>> primop2arity(
+    { { And, { 2, 2 } },
+      { Or, { 2, 2 } },
+      { Xor, { 2, 2 } },
+      { Not, { 1, 1 } },
+      { Implies, { 2, 2 } },
+      { Iff, { 2, 2 } },
+      { Ite, { 3, 3 } },
+      { Equal, { 2, 2 } },
+      { Distinct, { 2, 2 } },
+      // at least the function and one argument
+      // of course, to be well-sorted the number of arguments must
+      // match the function domain
+      { Apply, { 2, INT_MAX } },
+      { Plus, { 2, 2 } },
+      { Minus, { 2, 2 } },
+      { Negate, { 1, 1 } },
+      { Mult, { 2, 2 } },
+      { Div, { 2, 2 } },
+      { IntDiv, { 2, 2 } },
+      { To_Real, { 1, 1 } },
+      { To_Int, { 1, 1 } },
+      { Is_Int, { 1, 1 } },
+      { Lt, { 2, 2 } },
+      { Le, { 2, 2 } },
+      { Gt, { 2, 2 } },
+      { Ge, { 2, 2 } },
+      { Mod, { 2, 2 } },
+      { Abs, { 2, 2 } },
+      { Pow, { 2, 2 } },
+      { Concat, { 2, 2 } },
+      { Extract, { 1, 1 } },
+      { BVNot, { 1, 1 } },
+      { BVNeg, { 1, 1 } },
+      { BVAnd, { 2, 2 } },
+      { BVOr, { 2, 2 } },
+      { BVXor, { 2, 2 } },
+      { BVNand, { 2, 2 } },
+      { BVNor, { 2, 2 } },
+      { BVXnor, { 2, 2 } },
+      { BVComp, { 2, 2 } },
+      { BVAdd, { 2, 2 } },
+      { BVSub, { 2, 2 } },
+      { BVMul, { 2, 2 } },
+      { BVUdiv, { 2, 2 } },
+      { BVSdiv, { 2, 2 } },
+      { BVUrem, { 2, 2 } },
+      { BVSrem, { 2, 2 } },
+      { BVSmod, { 2, 2 } },
+      { BVShl, { 2, 2 } },
+      { BVAshr, { 2, 2 } },
+      { BVLshr, { 2, 2 } },
+      { BVUlt, { 2, 2 } },
+      { BVUle, { 2, 2 } },
+      { BVUgt, { 2, 2 } },
+      { BVUge, { 2, 2 } },
+      { BVSlt, { 2, 2 } },
+      { BVSle, { 2, 2 } },
+      { BVSgt, { 2, 2 } },
+      { BVSge, { 2, 2 } },
+      { Zero_Extend, { 1, 1 } },
+      { Sign_Extend, { 1, 1 } },
+      { Repeat, { 1, 1 } },
+      { Rotate_Left, { 1, 1 } },
+      { Rotate_Right, { 1, 1 } },
+      { BV_To_Nat, { 1, 1 } },
+      { Int_To_BV, { 1, 1 } },
+      { Select, { 2, 2 } },
+      { Store, { 3, 3 } },
+      // to make term traversal easier considering the differences
+      // in the underlying solver's handling of quantifiers, smt-switch
+      // always uses the form <Forall/Exists> bound_param . body
+      // i.e. it takes two arguments, the parameter to bind and the body
+      { Forall, { 2, 2} },
+      { Exists, { 2, 2 } },
+      { Apply_Selector, { 2, 2 } },
+      { Apply_Tester, { 2, 2 } },
+      { Apply_Constructor, { 2, INT_MAX } } });
 
 std::string to_string(PrimOp op)
 {
@@ -127,6 +220,8 @@ bool Op::is_null() const
 {
   return prim_op == NUM_OPS_AND_NULL;
 }
+
+std::pair<size_t, size_t> get_arity(PrimOp po) { return primop2arity.at(po); }
 
 bool operator==(Op o1, Op o2)
 {

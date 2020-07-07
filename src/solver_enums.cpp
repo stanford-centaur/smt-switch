@@ -27,7 +27,13 @@ namespace smt {
 
 const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE, QUANTIFIERS } },
+        { BTOR,
+          { TERMITER,
+            ARRAY_MODELS,
+            CONSTARR,
+            UNSAT_CORE,
+            QUANTIFIERS,
+            BOOL_BV1_ALIASING } },
 
         { BTOR_LOGGING,
           { LOGGING,
@@ -39,19 +45,23 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS } },
 
         { CVC4,
-          { TERMITER,
-            THEORY_INT,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            THEORY_DATATYPE,
-            QUANTIFIERS } },
+          {
+              TERMITER,
+              THEORY_INT,
+              THEORY_REAL,
+              ARRAY_MODELS,
+              CONSTARR,
+              FULL_TRANSFER,
+              UNSAT_CORE,
+              THEORY_DATATYPE,
+              QUANTIFIERS
+          } },
 
         { CVC4_LOGGING,
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
@@ -61,6 +71,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { MSAT,
           { TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
@@ -71,19 +82,26 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { THEORY_INT } },
+        { YICES2, { THEORY_INT, THEORY_REAL } },
 
         { YICES2_LOGGING,
-          { LOGGING, TERMITER, THEORY_INT, FULL_TRANSFER, UNSAT_CORE } },
+          { LOGGING,
+            TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
 
     });
 

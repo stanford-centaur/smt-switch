@@ -43,6 +43,8 @@ enum SolverAttribute
   TERMITER,
   // supports integer theory
   THEORY_INT,
+  // supports real theory
+  THEORY_REAL,
   // supports array models
   ARRAY_MODELS,
   // supports constant arrays
@@ -55,6 +57,8 @@ enum SolverAttribute
   THEORY_DATATYPE,
   // supports quantifiers
   QUANTIFIERS,
+  // aliases booleans and bit-vectors of size one
+  BOOL_BV1_ALIASING
 };
 
 /** Returns true iff the SolverEnum corresponds to a LoggingSolver
