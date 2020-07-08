@@ -30,11 +30,13 @@ namespace smt {
 // boolean ops
 const unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies, Iff });
 
-const unordered_set<PrimOp> non_indexed_bv_ops({
-    BVNot,  BVNeg,  BVAnd, BVOr,   BVXor,  BVNand, BVNor,
-    BVXnor, BVAdd,  BVSub, BVMul,  BVUdiv, BVSdiv, BVUrem,
-    BVSrem, BVSmod, BVShl, BVAshr, BVLshr, BVComp, BVUlt,
-    BVUle,  BVUgt,  BVUge, BVSlt,  BVSle,  BVSgt,  BVSge,
+const unordered_set<PrimOp> bv_ops({
+    Concat,      Extract,     BVNot,  BVNeg,       BVAnd,        BVOr,
+    BVXor,       BVNand,      BVNor,  BVXnor,      BVAdd,        BVSub,
+    BVMul,       BVUdiv,      BVSdiv, BVUrem,      BVSrem,       BVSmod,
+    BVShl,       BVAshr,      BVLshr, BVComp,      BVUlt,        BVUle,
+    BVUgt,       BVUge,       BVSlt,  BVSle,       BVSgt,        BVSge,
+    Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, BV_To_Nat,
 });
 
 // boolean ops that can easily be represented with bit-vector operators
@@ -43,11 +45,15 @@ const unordered_map<PrimOp, PrimOp> bool_to_bv_ops({
     { Or, BVOr },
     { Xor, BVXor },
     { Not, BVNot },
+    { Equal, BVComp },
 });
 
 // bitvector ops that can easily be represented with boolean operators
-const unordered_map<PrimOp, PrimOp> bv_to_bool_ops(
-    { { BVAnd, And }, { BVOr, Or }, { BVXor, Xor }, { BVNot, Not } });
+const unordered_map<PrimOp, PrimOp> bv_to_bool_ops({ { BVAnd, And },
+                                                     { BVOr, Or },
+                                                     { BVXor, Xor },
+                                                     { BVNot, Not },
+                                                     { BVComp, Equal } });
 
 Sort TermTranslator::transfer_sort(const Sort & sort) const
 {
@@ -209,7 +215,53 @@ Term TermTranslator::transfer_term(const Term & term)
     }
   }
 
+  assert(cache.find(term) != cache.end());
+  // make sure the sort is as-expected and cast if not
+  // for dealing with solvers that alias sorts
+
   return cache.at(term);
+}
+
+Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
+{
+  Term transferred_term = transfer_term(term);
+  Sort transferred_sort = transferred_term->get_sort();
+  SortKind transferred_sk = transferred_sort->get_sort_kind();
+  if (transferred_sk == sk)
+  {
+    return transferred_term;
+  }
+
+  // only handles Bool <-> BV1, and Int <-> Real
+  // otherwise throws an exception
+
+  // expect this to be the most common case
+  if (transferred_sk == BV && transferred_sort->get_width() == 1 && sk == BOOL)
+  {
+    Sort sort = solver->make_sort(BOOL);
+    return cast_term(transferred_term, sort);
+  }
+  else if (transferred_sk == BOOL && sk == BV)
+  {
+    Sort sort = solver->make_sort(BV, 1);
+    return cast_term(transferred_term, sort);
+  }
+  else if (transferred_sk == INT && sk == REAL)
+  {
+    Sort sort = solver->make_sort(REAL);
+    return cast_term(transferred_term, sort);
+  }
+  else if (transferred_sk == REAL && sk == INT)
+  {
+    Sort sort = solver->make_sort(INT);
+    return cast_term(transferred_term, sort);
+  }
+  else
+  {
+    string msg("Cannot cast ");
+    msg += transferred_term->to_string() + " to " + smt::to_string(sk);
+    throw IncorrectUsageException(msg);
+  }
 }
 
 Term TermTranslator::value_from_smt2(const std::string val,
@@ -341,16 +393,25 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     return solver->make_term(po, casted_children);
   }
   // case 4 -- cast all booleans to bitvectors
-  else if (non_indexed_bv_ops.find(po) != non_indexed_bv_ops.end())
+  else if (bv_ops.find(po) != bv_ops.end())
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
     Sort bv1sort = solver->make_sort(BV, 1);
     for (auto t : terms)
     {
-      casted_children.push_back(cast_term(t, bv1sort));
+      if (t->get_sort()->get_sort_kind() == BOOL)
+      {
+        casted_children.push_back(cast_term(t, bv1sort));
+      }
+      else
+      {
+        // expecting a bit-vector
+        assert(t->get_sort()->get_sort_kind() == BV);
+        casted_children.push_back(t);
+      }
     }
-    return solver->make_term(po, casted_children);
+    return solver->make_term(op, casted_children);
   }
   // case 5 -- special case for Ite
   else if (po == Ite)

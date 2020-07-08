@@ -163,6 +163,8 @@ Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
+Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts);
+
 Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);

@@ -50,7 +50,9 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     { BTOR_PARAM_NODE, NUM_OPS_AND_NULL },
     { BTOR_BV_SLICE_NODE, Extract },
     { BTOR_BV_AND_NODE, BVAnd },
-    { BTOR_BV_EQ_NODE, BVComp },
+    // note: could also use BVComp because they're indistinguishable
+    // in Boolector, but expect Equal is more common
+    { BTOR_BV_EQ_NODE, Equal },
     { BTOR_FUN_EQ_NODE, Equal },
     { BTOR_BV_ADD_NODE, BVAdd },
     { BTOR_BV_MUL_NODE, BVMul },
