@@ -35,6 +35,11 @@ class TermHashTable
   TermHashTable();
   ~TermHashTable();
   void insert(const Term & t);
+  /** check if a term is in the table
+   *  @param the term to check
+   *  @return true iff the term is already in the table
+   */
+  bool contains(const Term & t) const;
   /** lookup a term and modify pointer in place
    *  @param t the term to look up and modify
    *  @return true iff the term was found in the hash table

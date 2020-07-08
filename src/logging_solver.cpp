@@ -14,6 +14,8 @@
 **
 **/
 
+#include "assert.h"
+
 #include "logging_solver.h"
 #include "logging_sort.h"
 #include "logging_term.h"
@@ -277,6 +279,10 @@ Term LoggingSolver::make_term(const Op op, const Term & t) const
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   Term wrapped_res = wrapped_solver->make_term(op, lt->wrapped_term);
   Sort res_logging_sort = compute_sort(op, this, { t->get_sort() });
+
+  // check that child is already in hash table
+  assert(hashtable->contains(t));
+
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t });
 
@@ -302,6 +308,11 @@ Term LoggingSolver::make_term(const Op op,
       wrapped_solver->make_term(op, lt1->wrapped_term, lt2->wrapped_term);
   Sort res_logging_sort =
       compute_sort(op, this, { t1->get_sort(), t2->get_sort() });
+
+  // check that children are already in hash table
+  assert(hashtable->contains(t1));
+  assert(hashtable->contains(t2));
+
   Term res(
       new LoggingTerm(wrapped_res, res_logging_sort, op, TermVec{ t1, t2 }));
 
@@ -329,6 +340,12 @@ Term LoggingSolver::make_term(const Op op,
       op, lt1->wrapped_term, lt2->wrapped_term, lt3->wrapped_term);
   Sort res_logging_sort = compute_sort(
       op, this, { t1->get_sort(), t2->get_sort(), t3->get_sort() });
+
+  // check that children are already in hash table
+  assert(hashtable->contains(t1));
+  assert(hashtable->contains(t2));
+  assert(hashtable->contains(t3));
+
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t1, t2, t3 });
 
@@ -351,6 +368,9 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   {
     shared_ptr<LoggingTerm> ltt = static_pointer_cast<LoggingTerm>(tt);
     lterms.push_back(ltt->wrapped_term);
+
+    // check that children are already in the hash table
+    assert(hashtable->contains(tt));
   }
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
   // Note: for convenience there's a version of compute_sort that takes terms
