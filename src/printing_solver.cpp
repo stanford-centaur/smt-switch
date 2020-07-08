@@ -283,8 +283,8 @@ bool PrintingSolver::get_interpolant(const Term & A,
     (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
   } else {
     assert(style == PrintingStyleEnum::CVC4_STYLE);
-    (*out_stream) << "(" << ASSERT_STR << " " << A << ")";
-    (*out_stream) << "(" << CVC4_GET_INTERPOLANT_STR << " I (not " << B << "))";
+    (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << endl;
+    (*out_stream) << "(" << CVC4_GET_INTERPOLANT_STR << " I (not " << B << "))" << endl;
   }
   return wrapped_solver->get_interpolant(A, B, out_I);
 }
