@@ -373,6 +373,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term LoggingSolver::get_value(const Term & t) const
 {
+  Term res;
   SortKind sk = t->get_sort()->get_sort_kind();
   if (supported_sortkinds_for_get_value.find(sk)
       == supported_sortkinds_for_get_value.end())
@@ -385,7 +386,7 @@ Term LoggingSolver::get_value(const Term & t) const
   if (t->get_sort()->get_sort_kind() != ARRAY)
   {
     Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
-    return std::make_shared<LoggingTerm>(
+    res = std::make_shared<LoggingTerm>(
         wrapped_val, t->get_sort(), Op(), TermVec{});
   }
   else
@@ -398,13 +399,23 @@ Term LoggingSolver::get_value(const Term & t) const
           "Wrapped solver did not provide constant base. Please use "
           "get_array_values instead of get_value of an array");
     }
-    Term res = make_term(out_const_base, t->get_sort());
+    res = make_term(out_const_base, t->get_sort());
     for (auto elem : pairs)
     {
       res = make_term(Store, res, elem.first, elem.second);
     }
-    return res;
   }
+
+  // check hash table
+  // lookup modifies term in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+  }
+
+  return res;
 }
 
 TermVec LoggingSolver::get_unsat_core()
@@ -449,6 +460,15 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
     }
     out_const_base = Term(
         new LoggingTerm(wrapped_out_const_base, elemsort, Op(), TermVec{}));
+
+    // check hash table
+    // lookup modifies term in place and returns true if it's a known term
+    // i.e. returns existing term and destroys the unnecessary new one
+    if (!hashtable->lookup(out_const_base))
+    {
+      // this is the first time this term was created
+      hashtable->insert(out_const_base);
+    }
   }
 
   Term idx;
@@ -458,8 +478,21 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
     // expecting values in assignment map
     Assert(elem.first->is_value());
     Assert(elem.second->is_value());
+
     idx = std::make_shared<LoggingTerm>(elem.first, idxsort, Op(), TermVec{});
+    if (!hashtable->lookup(idx))
+    {
+      // this is the first time this term was created
+      hashtable->insert(idx);
+    }
+
     val = std::make_shared<LoggingTerm>(elem.second, elemsort, Op(), TermVec{});
+    if (!hashtable->lookup(val))
+    {
+      // this is the first time this term was created
+      hashtable->insert(val);
+    }
+
     assignments[idx] = val;
   }
 

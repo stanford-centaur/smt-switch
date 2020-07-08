@@ -53,16 +53,18 @@ bool LoggingTerm::compare(const Term & t) const
   }
 
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
-  // compare op
-  if (op != lt->op)
+
+  // compare wrapped term and the LoggingSort
+  // this handles values (e.g. null operators and no children)
+  // and because of the sort comparison also handles sort aliasing
+  // of the wrapped solver
+  if (wrapped_term != lt->wrapped_term || sort != lt->sort)
   {
     return false;
   }
 
-  // compare underlying term and sort
-  // this will handle sort aliasing issues from solvers
-  // that don't distinguish between certain sorts
-  if (wrapped_term != lt->wrapped_term || sort != lt->sort)
+  // compare op
+  if (op != lt->op)
   {
     return false;
   }
@@ -77,7 +79,9 @@ bool LoggingTerm::compare(const Term & t) const
   {
     for (size_t i = 0; i < children.size(); i++)
     {
-      if (children[i] != lt->children[i])
+      // because of hash-consing, we can compare the pointers
+      // otherwise would recursively call compare on the LoggingTerm children
+      if (children[i].get() != lt->children[i].get())
       {
         return false;
       }
