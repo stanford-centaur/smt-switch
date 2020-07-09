@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_TERM_H
-#define SMT_TERM_H
+#pragma once
 
 #include <iostream>
 #include <iterator>
@@ -162,4 +161,3 @@ namespace std
   };
 }
 
-#endif

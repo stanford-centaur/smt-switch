@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_RESULT_H
-#define SMT_RESULT_H
+#pragma once
 
 namespace smt
 {
@@ -50,4 +49,3 @@ struct Result
   std::ostream & operator<<(std::ostream & output, const Result r);
 }
 
-#endif

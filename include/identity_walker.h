@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_IDENTITY_WALKER_H
-#define SMT_IDENTITY_WALKER_H
+#pragma once
 
 #include <utility>
 
@@ -79,4 +78,3 @@ protected:
 
 }
 
-#endif // SMT_IDENTITY_WALKER_H

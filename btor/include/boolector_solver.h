@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_BOOLECTOR_SOLVER_H
-#define SMT_BOOLECTOR_SOLVER_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -131,4 +130,3 @@ class BoolectorSolver : public AbsSmtSolver
 };
 }  // namespace smt
 
-#endif

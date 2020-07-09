@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_MSAT_TERM_H
-#define SMT_MSAT_TERM_H
+#pragma once
 
 #include "term.h"
 #include "utils.h"
@@ -95,4 +94,3 @@ class MsatTerm : public AbsTerm
 
 }  // namespace smt
 
-#endif

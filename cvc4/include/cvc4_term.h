@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_CVC4_TERM_H
-#define SMT_CVC4_TERM_H
+#pragma once
 
 #include "term.h"
 #include "utils.h"
@@ -94,4 +93,3 @@ namespace smt {
 
 }
 
-#endif

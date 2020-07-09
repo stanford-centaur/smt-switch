@@ -14,9 +14,7 @@
 **
 **/
 
-
-#ifndef SMT_DATATYPE_H
-#define SMT_DATATYPE_H
+#pragma once
 
 #include "smt_defs.h"
 
@@ -57,4 +55,3 @@ class AbsDatatype {
 }
 
 
-#endif

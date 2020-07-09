@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_DEFS_H
-#define SMT_DEFS_H
+#pragma once
 
 #include <memory>
 
@@ -44,4 +43,3 @@ using Datatype = std::shared_ptr<AbsDatatype>;
 
 }  // namespace smt
 
-#endif

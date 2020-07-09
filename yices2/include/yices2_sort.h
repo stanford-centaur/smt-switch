@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_YICES2_SORT_H
-#define SMT_YICES2_SORT_H
+#pragma once
 
 #include "exceptions.h"
 #include "sort.h"
@@ -59,4 +58,3 @@ class Yices2Sort : public AbsSort
 
 }  // namespace smt
 
-#endif

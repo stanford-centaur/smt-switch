@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_BOOLECTOR_TERM_H
-#define SMT_BOOLECTOR_TERM_H
+#pragma once
 
 #include <vector>
 
@@ -116,4 +115,3 @@ class BoolectorTerm : public AbsTerm
 
 }  // namespace smt
 
-#endif

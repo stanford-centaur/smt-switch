@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_YICES2_TERM_H
-#define SMT_YICES2_TERM_H
+#pragma once
 
 #include <vector>
 
@@ -89,4 +88,3 @@ class Yices2Term : public AbsTerm
 
 }  // namespace smt
 
-#endif

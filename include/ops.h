@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_OPS_H
-#define SMT_OPS_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -164,4 +163,3 @@ namespace std
     };
 }
 
-#endif

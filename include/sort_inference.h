@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SWITCH_SORT_INFERENCE_H
-#define SMT_SWITCH_SORT_INFERENCE_H
+#pragma once
 
 #include "assert.h"
 
@@ -187,4 +186,3 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 }  // namespace smt
 
-#endif // SMT_SWITCH_SORT_INFERENCE_H
