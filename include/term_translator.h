@@ -28,6 +28,26 @@ namespace smt {
 
 /** Class for translating terms from *one* other solver to *one* new solver
  *  will fail if you try to convert terms from more than one solver
+ *  e.g.
+ *  SmtSolver s1 = CVC4SolverFactory::create(false);
+ *  SmtSolver s2 = MsatSolverFactory::create(false);
+ *  SmtSolver s3 = CVC4SolverFactory::create(false);
+ *
+ *  Term x = s1->make_symbol("x", s1->make_sort(INT));
+ *  Term y = s2->make_symbol("y", s2->make_sort(INT));
+ *
+ *  TermTranslator to_s3(s3);
+ *  Term x3 = to_s3.transfer_term(x);
+ *  // This line would segfault
+ *  Term y3 = to_s3.transfer_term(y);
+ *  // this is because the cache will already have x, a Term from s1 in it
+ *  // and then transferring y from s2 will trigger a comparison between x
+ *  // and y. But these are terms from two different solvers and the static
+ *  // pointer cast will be an incorrect cast.
+ *  // if s2 were also a CVC4Solver, it depends on how the underlying solver
+ *  // handles terms from different instances. In the case of CVC4, it will
+ *  // throw an exception
+ *
  *  This class has no reference to the other solver because it's not needed
  *  it only needs the solver that's being transferred *to* so that it can
  *  make sorts and terms.
