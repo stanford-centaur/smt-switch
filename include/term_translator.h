@@ -14,8 +14,7 @@
 **        symbols, which would throw an exception).
 **/
 
-#ifndef SMT_TERM_TRANSLATOR_H
-#define SMT_TERM_TRANSLATOR_H
+#pragma once
 
 #include <unordered_map>
 
@@ -41,4 +40,3 @@ class TermTranslator
 };
 }  // namespace smt
 
-#endif

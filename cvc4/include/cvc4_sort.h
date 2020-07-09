@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_CVC4_SORT_H
-#define SMT_CVC4_SORT_H
+#pragma once
 
 #include <unordered_map>
 
@@ -56,4 +55,3 @@ namespace smt
 
 }
 
-#endif

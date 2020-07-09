@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_MSAT_SOLVER_H
-#define SMT_MSAT_SOLVER_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -165,4 +164,3 @@ class MsatInterpolatingSolver : public MsatSolver
 
 }  // namespace smt
 
-#endif

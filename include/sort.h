@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SORT_H
-#define SMT_SORT_H
+#pragma once
 
 #include <string>
 #include <unordered_set>
@@ -108,4 +107,3 @@ struct hash<smt::Sort>
 
 }
 
-#endif

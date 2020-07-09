@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SMT_H
-#define SMT_SMT_H
+#pragma once
 
 // Exceptions used by SMT API.
 #include "exceptions.h"
@@ -41,4 +40,3 @@
 // Solver enums for identifying solver
 #include "solver_enums.h"
 
-#endif

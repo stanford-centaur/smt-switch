@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_BOOLECTOR_SORT_H
-#define SMT_BOOLECTOR_SORT_H
+#pragma once
 
 #include "exceptions.h"
 #include "sort.h"
@@ -109,4 +108,3 @@ class BoolectorUFSort : public BoolectorSortBase
 };
 }  // namespace smt
 
-#endif

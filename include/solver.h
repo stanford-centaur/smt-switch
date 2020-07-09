@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SOLVER_H
-#define SMT_SOLVER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -376,4 +375,3 @@ class AbsSmtSolver
 
 }  // namespace smt
 
-#endif

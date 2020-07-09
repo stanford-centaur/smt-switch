@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_UTILS_H
-#define SMT_UTILS_H
+#pragma once
 
 #include <iostream>
 #include "assert.h"
@@ -58,4 +57,3 @@ void disjunctive_partition(const smt::Term &term, smt::TermVec &out);
 
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
-#endif

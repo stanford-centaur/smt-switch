@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_YICES2_SOLVER_H
-#define SMT_YICES2_SOLVER_H
+#pragma once
 
 #include <gmp.h>
 #include <memory>
@@ -123,4 +122,3 @@ class Yices2Solver : public AbsSmtSolver
 };
 }  // namespace smt
 
-#endif

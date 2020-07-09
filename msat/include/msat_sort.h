@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_MSAT_SORT_H
-#define SMT_MSAT_SORT_H
+#pragma once
 
 #include "sort.h"
 
@@ -53,4 +52,3 @@ class MsatSort : public AbsSort
 
 }  // namespace smt
 
-#endif

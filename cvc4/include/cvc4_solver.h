@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_CVC4_SOLVER_H
-#define SMT_CVC4_SOLVER_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -116,4 +115,3 @@ class CVC4Solver : public AbsSmtSolver
 };
 }  // namespace smt
 
-#endif

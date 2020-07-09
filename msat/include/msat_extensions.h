@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_MSAT_EXTENSIONS_H
-#define SMT_MSAT_EXTENSIONS_H
+#pragma once
 
 #include "mathsat.h"
 
@@ -54,4 +53,3 @@ msat_term ext_msat_make_uf(msat_env e,
 
 }  // namespace smt
 
-#endif
