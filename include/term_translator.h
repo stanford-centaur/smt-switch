@@ -39,7 +39,7 @@ namespace smt {
 class TermTranslator
 {
  public:
-  TermTranslator(SmtSolver & s) : solver(s) {}
+  TermTranslator(const SmtSolver & s) : solver(s) {}
   /** Transfers a sort from the other solver to this solver
    *  @param the sort transfer
    *  @return a sort belonging to this solver
@@ -65,7 +65,7 @@ class TermTranslator
   UnorderedTermMap & get_cache() { return cache; };
 
   /* Returns a reference to the solver this object translates terms to */
-  SmtSolver & get_solver() { return solver; };
+  const SmtSolver & get_solver() { return solver; };
 
  protected:
   /** Creates a term value from a string of the given sort
@@ -112,7 +112,9 @@ class TermTranslator
    */
   Term cast_value(const Term & term, const Sort & sort) const;
 
-  SmtSolver & solver;
+  // Note: const meaning the solver doesn't change to a different solver
+  // it can still call non-const methods of the solver
+  const SmtSolver & solver;  ///< solver to translate terms to
   UnorderedTermMap cache;
 };
 }  // namespace smt
