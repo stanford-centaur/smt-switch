@@ -127,7 +127,7 @@ bool LoggingTerm::is_symbol() const
   return is_sym || is_par;
 }
 
-bool LoggingTerm::is_param() const { return is_par; }
+bool LoggingTerm::is_param() const { return op.is_null() && is_par; }
 
 bool LoggingTerm::is_symbolic_const() const
 {
@@ -148,7 +148,9 @@ TermIter LoggingTerm::end()
 
 size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
 
-bool LoggingTerm::is_value() const { return wrapped_term->is_value(); }
+// check if op is null because a non-value
+// may have been simplified to a value by the underlying solver
+bool LoggingTerm::is_value() const { return op.is_null() && wrapped_term->is_value(); }
 
 uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 

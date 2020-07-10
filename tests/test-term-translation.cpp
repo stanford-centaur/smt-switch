@@ -67,6 +67,46 @@ class SelfTranslationIntTests : public ::testing::Test,
   Term x, y, z;
 };
 
+class TranslationTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<tuple<SolverEnum, SolverEnum>>
+{
+ protected:
+  void SetUp() override
+  {
+    s1 = create_solver(get<0>(GetParam()));
+    s1->set_opt("produce-models", "true");
+
+    s2 = create_solver(get<1>(GetParam()));
+    s2->set_opt("produce-models", "true");
+
+    boolsort = s1->make_sort(BOOL);
+    bvsort8 = s1->make_sort(BV, 8);
+
+    a = s1->make_symbol("a", boolsort);
+    b = s1->make_symbol("b", boolsort);
+    x = s1->make_symbol("x", bvsort8);
+    y = s1->make_symbol("y", bvsort8);
+    z = s1->make_symbol("z", bvsort8);
+  }
+  SmtSolver s1, s2;
+  Sort boolsort, bvsort8;
+  Term a, b, x, y, z;
+};
+
+class BoolArrayTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
+    arr = s1->make_symbol("arr", arrsort);
+  }
+  Sort arrsort;
+  Term arr;
+};
+
 TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
@@ -132,6 +172,128 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   ASSERT_EQ(xp2_transfer, xp2_2);
 }
 
+TEST_P(TranslationTests, And)
+{
+  Term a_and_b = s1->make_term(And, a, b);
+  TermTranslator to_s2(s2);
+
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+  cache[to_s2.transfer_term(b)] = b;
+
+  Term a_and_b_2 = to_s2.transfer_term(a_and_b);
+  Term a_and_b_1 = to_s1.transfer_term(a_and_b_2);
+  ASSERT_EQ(a_and_b_1, a_and_b);
+}
+
+TEST_P(TranslationTests, Equal)
+{
+  Term a_equal_b = s1->make_term(Equal, a, b);
+  TermTranslator to_s2(s2);
+
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+  cache[to_s2.transfer_term(b)] = b;
+
+  Term a_equal_b_2 = to_s2.transfer_term(a_equal_b);
+  // need to specify expected sortkind
+  Term a_equal_b_1 = to_s1.transfer_term(a_equal_b_2, BOOL);
+
+  // not guaranteed to be structurally equal -- might use different operators
+  // or weird casting
+  // but they should be semantically equivalent AND have the same sort
+  // Note: boolector might still report that it's a BV1 instead of a Bool
+  // but it will consistent
+  ASSERT_EQ(a_equal_b->get_sort(), a_equal_b->get_sort());
+  s1->assert_formula(s1->make_term(Distinct, a_equal_b_1, a_equal_b));
+  Result r = s1->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
+TEST_P(TranslationTests, Ite)
+{
+  Term a_ite_x_y = s1->make_term(Ite, a, x, y);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
+  Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
+  ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
+}
+
+TEST_P(TranslationTests, Concat)
+{
+  Sort bvsort1 = s1->make_sort(BV, 1);
+  Term x_lt_y = s1->make_term(BVUlt, x, y);
+  Term bv_x_lt_y = s1->make_term(
+      Ite, x_lt_y, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+
+  Term concat_term = s1->make_term(Concat, bv_x_lt_y, x);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term concat_term_2 = to_s2.transfer_term(concat_term);
+  Term concat_term_1 = to_s1.transfer_term(concat_term_2);
+  ASSERT_EQ(concat_term_1, concat_term);
+}
+
+TEST_P(TranslationTests, Extract)
+{
+  Sort bvsort1 = s1->make_sort(BV, 1);
+  Term bv_a = s1->make_term(
+      Ite, a, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+
+  Term ext_bv_a = s1->make_term(Op(Extract, 0, 0), bv_a);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(a)] = a;
+
+  Term ext_bv_a_2 = to_s2.transfer_term(ext_bv_a);
+  // expect it to be a BV
+  // ambiguous when working with BTOR because it's width 1
+  Term ext_bv_a_1 = to_s1.transfer_term(ext_bv_a_2, BV);
+
+  // this one might get rewritten
+  // so it won't be syntactically equivalent
+  // but it should still be semantically equivalent
+  s1->assert_formula(s1->make_term(Distinct, ext_bv_a, ext_bv_a_1));
+  Result r = s1->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+}
+
+TEST_P(BoolArrayTranslationTests, Arrays)
+{
+  Term f = s1->make_term(false);
+  Term t = s1->make_term(false);
+  Term const_arr = s1->make_term(f, arrsort);
+  Term stores = s1->make_term(Store, arr, x, t);
+  stores = s1->make_term(Store, stores, y, t);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(arr)] = arr;
+  cache[to_s2.transfer_term(x)] = x;
+  cache[to_s2.transfer_term(y)] = y;
+
+  Term stores_2 = to_s2.transfer_term(stores);
+  Term stores_1 = to_s1.transfer_term(stores_2);
+  ASSERT_EQ(stores, stores_1);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
                          SelfTranslationTests,
                          testing::ValuesIn(filter_solver_enums({ TERMITER })));
@@ -140,5 +302,19 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedSelfTranslationIntTests,
     SelfTranslationIntTests,
     testing::ValuesIn(filter_solver_enums({ FULL_TRANSFER, THEORY_INT })));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedTranslationTests,
+    TranslationTests,
+    testing::Combine(testing::ValuesIn(filter_solver_enums({ TERMITER })),
+                     testing::ValuesIn(filter_solver_enums({ TERMITER }))));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedBoolArrayTranslationTests,
+    BoolArrayTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_solver_enums(
+                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
+                     testing::ValuesIn(filter_solver_enums(
+                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
 
 }  // namespace smt_tests
