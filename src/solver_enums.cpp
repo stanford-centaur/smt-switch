@@ -39,6 +39,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { LOGGING,
             TERMITER,
             ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
@@ -50,6 +51,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               THEORY_INT,
               THEORY_REAL,
               ARRAY_MODELS,
+              ARRAY_FUN_BOOLS,
               CONSTARR,
               FULL_TRANSFER,
               UNSAT_CORE,
@@ -63,6 +65,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             THEORY_INT,
             THEORY_REAL,
             ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
@@ -93,13 +96,14 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { THEORY_INT, THEORY_REAL } },
+        { YICES2, { THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
 
         { YICES2_LOGGING,
           { LOGGING,
             TERMITER,
             THEORY_INT,
             THEORY_REAL,
+            ARRAY_FUN_BOOLS,
             FULL_TRANSFER,
             UNSAT_CORE } },
 
