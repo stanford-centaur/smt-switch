@@ -23,3 +23,11 @@ foreach(test ${CVC4_TESTS})
   target_link_libraries(${test}.out test-deps)
   add_test(${test} ${test}.out)
 endforeach()
+
+# Google Test
+# TODO: move old tests to Google Test infrastructure
+
+add_executable(cvc4-term-iter "${PROJECT_SOURCE_DIR}/tests/cvc4/cvc4-term-iter.cpp")
+target_link_libraries(cvc4-term-iter gtest_main)
+target_link_libraries(cvc4-term-iter test-deps)
+add_test(NAME cvc4-term-iter_test COMMAND cvc4-term-iter)

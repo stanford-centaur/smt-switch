@@ -149,6 +149,7 @@ Term TermTranslator::transfer_term(const Term & term)
         if (s->get_sort_kind() == ARRAY)
         {
           // special case for const-array
+          assert(t->begin() != t->end());
           Term val = cache.at(*(t->begin()));
           Sort valsort = val->get_sort();
           if (s->get_sort_kind() != ARRAY)
