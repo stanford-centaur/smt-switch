@@ -436,18 +436,27 @@ bool BoolectorTerm::is_const_array() const
 
 void BoolectorTerm::collect_children()
 {
+  // TODO: consider having a flag that says when the children have been computed
+  if (btor_node_is_proxy(bn))
+  {
+    bn = btor_node_get_simplified(btor, bn);
+    bn = btor_node_real_addr(bn);
+  }
+  else if (!negated && children.size() == bn->arity)
+  {
+    // children have already been computed on an updated node
+    // can't do this if negated, because arity won't match
+    // boolector will say 0 because it's not considered an operator
+    // but in smt-switch we'd want one child
+    return;
+  }
+
   if (negated)
   {
     // the negated value is the real address stored in bn
     children.clear();
     children.push_back(bn);
     return;
-  }
-
-  if (btor_node_is_proxy(bn))
-  {
-    bn = btor_node_get_simplified(btor, bn);
-    bn = btor_node_real_addr(bn);
   }
 
   children.clear();
