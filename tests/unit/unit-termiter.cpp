@@ -102,6 +102,26 @@ TEST_P(UnitTests, InputIterator)
   ASSERT_EQ(children[1], x);
 }
 
+TEST_P(UnitTests, CopyIter)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+
+  Term v = s->make_symbol("v", bvsort);
+  Term fv = s->make_term(Apply, f, v);
+
+  ASSERT_NE(fx, fv);
+
+  TermIter it1 = fx->begin();
+  TermIter it2 = fx->begin();
+  EXPECT_EQ(it1, it2);
+  TermIter it3 = fv->begin();
+  EXPECT_NE(it1, it3);
+  it2 = it3;
+  EXPECT_NE(it1, it2);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
                          testing::ValuesIn(filter_solver_enums({ TERMITER })));
