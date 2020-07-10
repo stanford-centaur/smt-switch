@@ -163,7 +163,7 @@ bool CVC4TermIter::operator==(const CVC4TermIter & it)
 
 bool CVC4TermIter::operator!=(const CVC4TermIter & it)
 {
-  return term != term || pos != it.pos;
+  return term != it.term || pos != it.pos;
 }
 
 bool CVC4TermIter::equal(const TermIterBase & other) const
