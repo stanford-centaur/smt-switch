@@ -56,5 +56,6 @@ TEST(CVC4TermIterTest, Copy)
   EXPECT_TRUE(it1 != it3);
 
   CVC4TermIter it4(it3);
+  EXPECT_TRUE(it3 == it4);
   EXPECT_TRUE(it1 != it4);
 }
