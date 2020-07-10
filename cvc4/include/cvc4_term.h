@@ -45,7 +45,7 @@ namespace smt {
   {
   public:
    CVC4TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
-   CVC4TermIter(const CVC4TermIter & it) { term = term; };
+   CVC4TermIter(const CVC4TermIter & it) { term = it.term; };
    ~CVC4TermIter(){};
    CVC4TermIter & operator=(const CVC4TermIter & it);
    void operator++() override;
@@ -92,4 +92,3 @@ namespace smt {
 
 
 }
-
