@@ -108,6 +108,7 @@ class BoolectorTerm : public AbsTerm
 
   // helpers
   bool is_const_array() const;
+  void collect_children();
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;
