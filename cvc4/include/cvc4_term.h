@@ -44,22 +44,22 @@ namespace smt {
   class CVC4TermIter : public TermIterBase
   {
   public:
-    CVC4TermIter(const ::CVC4::api::Term::const_iterator term_it)
-      : term_it(term_it){};
-    CVC4TermIter(const CVC4TermIter & it) { term_it = it.term_it; };
-    ~CVC4TermIter() {};
-    CVC4TermIter & operator=(const CVC4TermIter & it);
-    void operator++() override;
-    const Term operator*() override;
-    TermIterBase * clone() const override;
-    bool operator==(const CVC4TermIter & it);
-    bool operator!=(const CVC4TermIter & it);
+   CVC4TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
+   CVC4TermIter(const CVC4TermIter & it) { term = term; };
+   ~CVC4TermIter(){};
+   CVC4TermIter & operator=(const CVC4TermIter & it);
+   void operator++() override;
+   const Term operator*() override;
+   TermIterBase * clone() const override;
+   bool operator==(const CVC4TermIter & it);
+   bool operator!=(const CVC4TermIter & it);
 
   protected:
     bool equal(const TermIterBase & other) const override;
 
   private:
-    ::CVC4::api::Term::const_iterator term_it;
+   ::CVC4::api::Term term;
+   uint32_t pos;
   };
 
   class CVC4Term : public AbsTerm

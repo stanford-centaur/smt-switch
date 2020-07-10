@@ -16,6 +16,7 @@
 
 #include <iterator>
 #include <sstream>
+#include "assert.h"
 
 #include "term_translator.h"
 
@@ -108,6 +109,7 @@ Term TermTranslator::transfer_term(const Term & term)
         if (s->get_sort_kind() == ARRAY)
         {
           // special case for const-array
+          assert(t->begin() != t->end());
           Term val = cache.at(*(t->begin()));
           if (s->get_sort_kind() != ARRAY)
           {

@@ -49,20 +49,26 @@ TEST_P(UnitArrayTests, ConstArr)
   Term a = s->make_symbol("a", arrsort);
   Term zero = s->make_term(0, bvsort);
   Term constarr0 = s->make_term(zero, arrsort);
-  ASSERT_TRUE(constarr0->get_op().is_null());
+  EXPECT_TRUE(constarr0->get_op().is_null());
+  EXPECT_FALSE(constarr0->is_symbol());
+  EXPECT_TRUE(constarr0->is_value());
+  // should have one child -- the value
+  ASSERT_NE(constarr0->begin(), constarr0->end());
+  Term val = *(constarr0->begin());
+  EXPECT_EQ(val, zero);
 
   s->assert_formula(s->make_term(Equal, a, constarr0));
   Result r = s->check_sat();
 
-  ASSERT_TRUE(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
   Term aval = s->get_value(a);
-  ASSERT_EQ(aval->get_sort(), constarr0->get_sort());
-  ASSERT_EQ(aval, constarr0);
+  EXPECT_EQ(aval->get_sort(), constarr0->get_sort());
+  EXPECT_EQ(aval, constarr0);
 
   Term out_const_base;
   UnorderedTermMap assignments = s->get_array_values(a, out_const_base);
-  ASSERT_TRUE(out_const_base);  // not null
-  ASSERT_EQ(out_const_base, zero);
+  EXPECT_TRUE(out_const_base);  // not null
+  EXPECT_EQ(out_const_base, zero);
 }
 
 INSTANTIATE_TEST_SUITE_P(
