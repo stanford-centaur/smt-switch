@@ -436,13 +436,12 @@ bool BoolectorTerm::is_const_array() const
 
 void BoolectorTerm::collect_children()
 {
-  // TODO: consider having a flag that says when the children have been computed
   if (btor_node_is_proxy(bn))
   {
     bn = btor_node_get_simplified(btor, bn);
     bn = btor_node_real_addr(bn);
   }
-  else if (!negated && children.size() == bn->arity)
+  else if (children_cached_)
   {
     // children have already been computed on an updated node
     // can't do this if negated, because arity won't match
@@ -485,6 +484,8 @@ void BoolectorTerm::collect_children()
       children.push_back(tmp);
     }
   }
+
+  children_cached_ = true;
 }
 
 /* end BoolectorTerm implementation */

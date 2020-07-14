@@ -105,6 +105,12 @@ class BoolectorTerm : public AbsTerm
   BtorArgsIterator ait;
   // for storing nodes before iterating
   std::vector<BtorNode *> children;
+  // flag that's set to true if children have already been gathered
+  // not straightforward to just rely on number of children / arity
+  // because boolector term representation isn't a perfect match
+  // for the smt-switch abstract interface
+  bool children_cached_ =
+      false;  ///< set to true if children have already been gathered
 
   // helpers
   bool is_const_array() const;
