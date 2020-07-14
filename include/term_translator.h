@@ -133,7 +133,7 @@ class TermTranslator
 
   // Note: const meaning the solver doesn't change to a different solver
   // it can still call non-const methods of the solver
-  const SmtSolver & solver;  ///< solver to translate terms to
+  SmtSolver solver;  ///< solver to translate terms to
   UnorderedTermMap cache;
 };
 }  // namespace smt
