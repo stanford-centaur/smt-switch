@@ -143,12 +143,6 @@ do
         --python-bin) die "missing argument to $1 (see -h)" ;;
         --python-bin=*)
             python_bin=${1##*=}
-            # Check if python_bin is an absolute path and if not, make it
-            # absolute.
-            case $python_bin in
-                /*) ;;                              # absolute path
-                *) python_bin=$(pwd)/$python_bin ;; # make absolute path
-            esac
             ;;
         *) die "unexpected argument: $1";;
     esac
