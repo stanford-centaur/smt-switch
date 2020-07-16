@@ -81,6 +81,10 @@ bool LoggingTerm::compare(const Term & t) const
     {
       // because of hash-consing, we can compare the pointers
       // otherwise would recursively call compare on the LoggingTerm children
+      // Note: calling get() intead of comparing the Term shared_ptrs directly
+      // because operator== is overloaded for Terms such that it uses the
+      // compare method of the underlying object (i.e. it would be a recursive
+      // call to compare)
       if (children[i].get() != lt->children[i].get())
       {
         return false;
