@@ -25,6 +25,7 @@ Configures the CMAKE build environment.
 --static                create static libaries (default: off)
 --python                compile with python bindings (default: off)
 --py2                   use python2 interpreter (default: python3)
+--python-bin            path to python binary
 EOF
   exit 0
 }
@@ -47,6 +48,7 @@ msat_home=default
 static=default
 python=default
 py2=default
+python_bin=default
 
 build_type=Release
 
@@ -138,6 +140,16 @@ do
         --py2)
             py2=yes
             ;;
+        --python-bin) die "missing argument to $1 (see -h)" ;;
+        --python-bin=*)
+            python_bin=${1##*=}
+            # Check if python_bin is an absolute path and if not, make it
+            # absolute.
+            case $python_bin in
+                /*) ;;                              # absolute path
+                *) python_bin=$(pwd)/$python_bin ;; # make absolute path
+            esac
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -197,6 +209,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $py2 != default ] \
     && cmake_opts="$cmake_opts -DUSE_PYTHON2=ON"
+
+[ $python_bin != default ] \
+    && cmake_opts="$cmake_opts -DPYTHON_EXECUTABLE:FILEPATH=$python_bin"
 
 root_dir=$(pwd)
 
