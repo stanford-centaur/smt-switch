@@ -61,7 +61,7 @@ bool LoggingTerm::compare(const Term & t) const
   // to compare children. See the use of .get() on the children below.
   // However, we do not just compare the pointer of this term with the argument
   // t. This is because we actually need to use this compare method for equality
-  // when looking up this term in the hash table to perform hash-consing
+  // when looking up this term in the hash table to perform hash-consing.
   // Thus, we cannot count on the pointers being equal for this term yet
   // only for the children which have already been resolved in the hash table.
 
