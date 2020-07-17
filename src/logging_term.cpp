@@ -59,11 +59,16 @@ bool LoggingTerm::compare(const Term & t) const
   // which rely on this method for equality
   // Because we perform hash-consing, we can only compare the pointer values
   // to compare children. See the use of .get() on the children below.
-  // However, we do not just compare the pointer of this term with the argument
-  // t. This is because we actually need to use this compare method for equality
+  // However, we do not just compare the pointer value of this term with
+  // the pointer value of the argument t.
+  // This is because we actually need to use this compare method for equality
   // when looking up this term in the hash table to perform hash-consing.
-  // Thus, we cannot count on the pointers being equal for this term yet
-  // only for the children which have already been resolved in the hash table.
+  // which is done when constructing the term. At this point, it still has
+  // a different pointer value.
+  // Thus, we cannot count on the pointers of this term and the argument t
+  // to be equal. Instead we want to check that they represent the same term.
+  // which is true if the underlying terms are the same, and they both have
+  // the same Op, Sort, and children.
 
   if (!t)
   {
