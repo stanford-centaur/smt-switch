@@ -46,6 +46,25 @@ LoggingTerm::~LoggingTerm() {}
 // implemented
 bool LoggingTerm::compare(const Term & t) const
 {
+  // This methods compares two LoggingTerms
+  // it is a particularly tricky implementation compared to the
+  // compare method in other implementations of AbsTerm
+  // If the underlying terms are different, then this will return false
+  // However, even if the underlying terms are the same, this might
+  // still need to return false. It needs to check that the sort,
+  // operator and children are the same to keep the contract that
+  // the logging term hides sort aliasing and term rewriting
+  // Furthermore, we want to avoid recursively calling compare
+  // on the whole term DAG because the children are also LoggingTerms
+  // which rely on this method for equality
+  // Because we perform hash-consing, we can only compare the pointer values
+  // to compare children. See the use of .get() on the children below.
+  // However, we do not just compare the pointer of this term with the argument
+  // t. This is because we actually need to use this compare method for equality
+  // when looking up this term in the hash table to perform hash-consing
+  // Thus, we cannot count on the pointers being equal for this term yet
+  // only for the children which have already been resolved in the hash table.
+
   if (!t)
   {
     // not equivalent to null term
