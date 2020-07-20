@@ -46,6 +46,30 @@ LoggingTerm::~LoggingTerm() {}
 // implemented
 bool LoggingTerm::compare(const Term & t) const
 {
+  // This methods compares two LoggingTerms
+  // it is a particularly tricky implementation compared to the
+  // compare method in other implementations of AbsTerm
+  // If the underlying terms are different, then this will return false
+  // However, even if the underlying terms are the same, this might
+  // still need to return false. It needs to check that the sort,
+  // operator and children are the same to keep the contract that
+  // the logging term hides sort aliasing and term rewriting
+  // Furthermore, we want to avoid recursively calling compare
+  // on the whole term DAG because the children are also LoggingTerms
+  // which rely on this method for equality
+  // Because we perform hash-consing, we can only compare the pointer values
+  // to compare children. See the use of .get() on the children below.
+  // However, we do not just compare the pointer value of this term with
+  // the pointer value of the argument t.
+  // This is because we actually need to use this compare method for equality
+  // when looking up this term in the hash table to perform hash-consing.
+  // which is done when constructing the term. At this point, it still has
+  // a different pointer value.
+  // Thus, we cannot count on the pointers of this term and the argument t
+  // to be equal. Instead we want to check that they represent the same term.
+  // which is true if the underlying terms are the same, and they both have
+  // the same Op, Sort, and children.
+
   if (!t)
   {
     // not equivalent to null term
@@ -53,16 +77,18 @@ bool LoggingTerm::compare(const Term & t) const
   }
 
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
-  // compare op
-  if (op != lt->op)
+
+  // compare wrapped term and the LoggingSort
+  // this handles values (e.g. null operators and no children)
+  // and because of the sort comparison also handles sort aliasing
+  // of the wrapped solver
+  if (wrapped_term != lt->wrapped_term || sort != lt->sort)
   {
     return false;
   }
 
-  // compare underlying term and sort
-  // this will handle sort aliasing issues from solvers
-  // that don't distinguish between certain sorts
-  if (wrapped_term != lt->wrapped_term || sort != lt->sort)
+  // compare op
+  if (op != lt->op)
   {
     return false;
   }
@@ -77,7 +103,13 @@ bool LoggingTerm::compare(const Term & t) const
   {
     for (size_t i = 0; i < children.size(); i++)
     {
-      if (children[i] != lt->children[i])
+      // because of hash-consing, we can compare the pointers
+      // otherwise would recursively call compare on the LoggingTerm children
+      // Note: calling get() intead of comparing the Term shared_ptrs directly
+      // because operator== is overloaded for Terms such that it uses the
+      // compare method of the underlying object (i.e. it would be a recursive
+      // call to compare)
+      if (children[i].get() != lt->children[i].get())
       {
         return false;
       }
