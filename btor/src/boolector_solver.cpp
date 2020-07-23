@@ -84,6 +84,9 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
 const std::unordered_map<PrimOp, tern_fun> ternary_ops(
     { { Ite, boolector_cond }, { Store, boolector_write } });
 
+const std::unordered_set<std::string> supported_logics(
+    { "QF_BV", "QF_ABV", "QF_UFBV", "QF_AUFBV", "BV", "UFBV", "ABV", "AUFBV" });
+
 /* BoolectorSolver implementation */
 
 void BoolectorSolver::set_opt(const std::string option, const std::string value)
@@ -157,8 +160,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 
 void BoolectorSolver::set_logic(const std::string logic)
 {
-  if ((logic != "QF_BV") & (logic != "QF_UFBV") & (logic != "QF_ABV")
-      & (logic != "QF_AUFBV"))
+  if (supported_logics.find(logic) == supported_logics.end())
   {
     throw IncorrectUsageException(
         "Boolector only supports logics using bit-vectors, arrays and "
@@ -735,27 +737,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
 
 Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  if (op.prim_op == Forall)
-  {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
-    std::vector<BoolectorNode *> params({ bt0->node });
-    return std::make_shared<BoolectorTerm>(
-        btor, boolector_forall(btor, &params[0], 1, bt1->node));
-  }
-  else if (op.prim_op == Exists)
-  {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
-    std::vector<BoolectorNode *> params({ bt0->node });
-    return std::make_shared<BoolectorTerm>(
-        btor, boolector_exists(btor, &params[0], 1, bt1->node));
-  }
-  else if (op.num_idx == 0)
+  if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1);
   }
@@ -919,6 +901,26 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
       std::shared_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(t0);
       result = boolector_apply(btor, &args[0], 1, bt0->node);
+    }
+    else if (op == Forall)
+    {
+      std::shared_ptr<BoolectorTerm> bt0 =
+          std::static_pointer_cast<BoolectorTerm>(t0);
+      std::shared_ptr<BoolectorTerm> bt1 =
+          std::static_pointer_cast<BoolectorTerm>(t1);
+      std::vector<BoolectorNode *> params({ bt0->node });
+      return std::make_shared<BoolectorTerm>(
+          btor, boolector_forall(btor, &params[0], 1, bt1->node));
+    }
+    else if (op == Exists)
+    {
+      std::shared_ptr<BoolectorTerm> bt0 =
+          std::static_pointer_cast<BoolectorTerm>(t0);
+      std::shared_ptr<BoolectorTerm> bt1 =
+          std::static_pointer_cast<BoolectorTerm>(t1);
+      std::vector<BoolectorNode *> params({ bt0->node });
+      return std::make_shared<BoolectorTerm>(
+          btor, boolector_exists(btor, &params[0], 1, bt1->node));
     }
     else
     {
