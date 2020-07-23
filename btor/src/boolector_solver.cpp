@@ -84,6 +84,9 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
 const std::unordered_map<PrimOp, tern_fun> ternary_ops(
     { { Ite, boolector_cond }, { Store, boolector_write } });
 
+const std::unordered_set<std::string> supported_logics(
+    { "QF_BV", "QF_ABV", "QF_UFBV", "QF_AUFBV", "BV", "UFBV", "ABV", "AUFBV" });
+
 /* BoolectorSolver implementation */
 
 void BoolectorSolver::set_opt(const std::string option, const std::string value)
@@ -126,8 +129,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 
 void BoolectorSolver::set_logic(const std::string logic)
 {
-  if ((logic != "QF_BV") & (logic != "QF_UFBV") & (logic != "QF_ABV")
-      & (logic != "QF_AUFBV"))
+  if (supported_logics.find(logic) == supported_logics.end())
   {
     throw IncorrectUsageException(
         "Boolector only supports logics using bit-vectors, arrays and "
