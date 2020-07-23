@@ -95,6 +95,19 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   ASSERT_EQ(children2[1], bimpfxeq0);
 }
 
+TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
+{
+  Term b = s->make_param("b", boolsort);
+  Term x = s->make_param("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+
+  Term fx = s->make_term(Apply, f, x);
+  Term fx_eq_0 = s->make_term(Equal, fx, s->make_term(0, bvsort));
+  Term existsx = s->make_term(Exists, x, fx_eq_0);
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedQuantifierTests,
     UnitQuantifierTests,
