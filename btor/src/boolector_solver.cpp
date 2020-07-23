@@ -117,10 +117,41 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else
   {
-    std::string msg("Option ");
-    msg += option;
-    msg += " is not implemented in the boolector backend.";
-    throw NotImplementedException(msg);
+    // decode the value -- boolector takes a uint32_t val
+    uint32_t uint_val;
+    if (value == "true")
+    {
+      uint_val = 1;
+    }
+    else if (value == "false")
+    {
+      uint_val = 0;
+    }
+    else
+    {
+      uint_val = std::stoi(value);
+    }
+
+    bool option_set = false;
+    BtorOption opt;
+    for (opt = boolector_first_opt(btor); boolector_has_opt(btor, opt);
+         opt = boolector_next_opt(btor, opt))
+    {
+      if (option == boolector_get_opt_lng(btor, opt))
+      {
+        boolector_set_opt(btor, opt, uint_val);
+        option_set = true;
+        break;
+      }
+    }
+
+    if (!option_set)
+    {
+      std::string msg("Option ");
+      msg += option;
+      msg += " could not be found in the boolector backend.";
+      throw NotImplementedException(msg);
+    }
   }
 }
 
