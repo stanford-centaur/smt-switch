@@ -402,13 +402,14 @@ cdef class SmtSolver:
         Get an interpolant for A, and B. Note: this will throw an exception if called
         on a solver that was not created with create_<solver>_interpolator
 
-        returns None if the interpolant could not be computed
+        returns None if the interpolant could not be computed or the query
+                was satisfiable
         '''
         cdef c_Term cI
         cdef Term I = Term(self)
 
-        success = dref(self.css).get_interpolant(A.ct, B.ct, cI)
-        if not success:
+        res = dref(self.css).get_interpolant(A.ct, B.ct, cI)
+        if not res.is_unsat():
             return None
         else:
             I.ct = cI

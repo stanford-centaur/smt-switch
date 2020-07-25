@@ -56,8 +56,8 @@ TEST_P(ItpTests, Test_ITP)
   B = itp->make_term(And, B, itp->make_term(Lt, z, x));
 
   Term I;
-  bool success = itp->get_interpolant(A, B, I);
-  ASSERT_TRUE(success);
+  Result r = itp->get_interpolant(A, B, I);
+  ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet free_symbols = get_free_symbols(I);
 
