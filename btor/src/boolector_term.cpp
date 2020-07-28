@@ -165,7 +165,8 @@ bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
-  return (*this == it);
+  const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
+  return (*this == bti);
 }
 
 /* end BoolectorTermIter implementation */
