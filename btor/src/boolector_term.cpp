@@ -23,6 +23,7 @@ extern "C"
 #include "memstream.h"
 }
 
+#include "assert.h"
 #include <unordered_map>
 #include "stdio.h"
 
@@ -131,6 +132,7 @@ void BoolectorTermIter::operator++() { idx++; };
 
 const Term BoolectorTermIter::operator*()
 {
+  assert(idx < children.size());
   BtorNode * res = children[idx];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
@@ -153,19 +155,18 @@ TermIterBase * BoolectorTermIter::clone() const
 
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
-  return ((btor == it.btor) && (idx == it.idx));
+  return equal(it);
 };
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 {
-  return ((btor != it.btor) || (idx != it.idx));
+  return !(*this == it);
 };
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
-  // guaranteed to be safe by caller of equal (TermIterBase)
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return ((btor == bti.btor) && (idx == bti.idx));
+  return ((btor == bti.btor) && (idx == bti.idx) && (children == bti.children));
 }
 
 /* end BoolectorTermIter implementation */
@@ -378,101 +379,14 @@ uint64_t BoolectorTerm::to_int() const
  */
 TermIter BoolectorTerm::begin()
 {
-  if (btor_node_is_proxy(bn))
-  {
-    bn = btor_node_get_simplified(btor, bn);
-    bn = btor_node_real_addr(bn);
-  }
-
-  children.clear();
-  BtorNode * tmp;
-  for (size_t i = 0; i < bn->arity; ++i)
-  {
-    tmp = bn->e[i];
-    // TODO: figure out if should we do this?
-    // if (btor_node_is_proxy(tmp))
-    // {
-    //   tmp = btor_node_get_simplified(btor, tmp);
-    // }
-    if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
-    {
-      btor_iter_args_init(&ait, tmp);
-      while (btor_iter_args_has_next(&ait))
-      {
-        children.push_back(btor_iter_args_next(&ait));
-      }
-    }
-    else
-    {
-      children.push_back(tmp);
-    }
-  }
-
-  if (negated)
-  {
-    // the negated value is the real address stored in bn
-    children.clear();
-    children.push_back(bn);
-    return TermIter(new BoolectorTermIter(btor, children, 0));
-  }
-  else if (is_const_array())
-  {
-    // constant array case
-    // don't expose the parameter node of the lambda -- start at 1 instead of 0
-    return TermIter(new BoolectorTermIter(btor, children, 1));
-  }
-  else
-  {
-    return TermIter(new BoolectorTermIter(btor, children, 0));
-  }
+  collect_children();
+  return TermIter(new BoolectorTermIter(btor, children, 0));
 }
 
 TermIter BoolectorTerm::end()
 {
-  if (btor_node_is_proxy(bn))
-  {
-    bn = btor_node_get_simplified(btor, bn);
-  }
-
-  if (negated)
-  {
-    BtorNode * e[3];
-    // the negated value is the real address stored in bn
-    e[0] = bn;
-    // vector doesn't matter for end
-    return TermIter(new BoolectorTermIter(btor, std::vector<BtorNode *>{}, 1));
-  }
-  else
-  {
-    BtorNode * tmp;
-    int64_t num_children = 0;
-    for (size_t i = 0; i < bn->arity; ++i)
-    {
-      tmp = bn->e[i];
-      // TODO: figure out if should we do this?
-      // if (btor_node_is_proxy(tmp))
-      // {
-      //   tmp = btor_node_get_simplified(btor, tmp);
-      // }
-      // flatten args nodes (chains of arguments)
-      if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
-      {
-        btor_iter_args_init(&ait, tmp);
-        while (btor_iter_args_has_next(&ait))
-        {
-          btor_iter_args_next(&ait);
-          num_children++;
-        }
-      }
-      else
-      {
-        num_children++;
-      }
-    }
-    // vector doesn't matter for end
-    return TermIter(
-        new BoolectorTermIter(btor, std::vector<BtorNode *>{}, num_children));
-  }
+  collect_children();
+  return TermIter(new BoolectorTermIter(btor, children, children.size()));
 }
 
 std::string BoolectorTerm::print_value_as(SortKind sk)
@@ -517,6 +431,57 @@ std::string BoolectorTerm::print_value_as(SortKind sk)
 bool BoolectorTerm::is_const_array() const
 {
   return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
+}
+
+void BoolectorTerm::collect_children()
+{
+  if (btor_node_is_proxy(bn))
+  {
+    bn = btor_node_get_simplified(btor, bn);
+    bn = btor_node_real_addr(bn);
+  }
+  else if (children_cached_)
+  {
+    // children have already been computed on an updated node
+    // can't do this if negated, because arity won't match
+    // boolector will say 0 because it's not considered an operator
+    // but in smt-switch we'd want one child
+    return;
+  }
+
+  if (negated)
+  {
+    // the negated value is the real address stored in bn
+    children.clear();
+    children.push_back(bn);
+    return;
+  }
+
+  children.clear();
+  BtorNode * tmp;
+  // don't expose the parameter node of the lambda -- start at 1 instead of 0
+  size_t start_idx = is_const_array() ? 1 : 0;
+  assert(!is_const_array() || bn->e[0]->kind == BTOR_PARAM_NODE);
+  for (size_t i = start_idx; i < bn->arity; ++i)
+  {
+    tmp = bn->e[i];
+    // a non-proxy node should never have proxy children
+    assert(!btor_node_is_proxy(tmp));
+    if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
+    {
+      btor_iter_args_init(&ait, tmp);
+      while (btor_iter_args_has_next(&ait))
+      {
+        children.push_back(btor_iter_args_next(&ait));
+      }
+    }
+    else
+    {
+      children.push_back(tmp);
+    }
+  }
+
+  children_cached_ = true;
 }
 
 /* end BoolectorTerm implementation */
