@@ -35,6 +35,26 @@ int main()
 
 ```
 
+# Dependencies
+
+Smt-Switch depends on the following libraries. Dependencies needed only for certain backends and/or optional features are marked \["optional" : _reason_\].
+* CMake >= 3.1
+* C compiler
+* C++ compiler supporting C++11
+* git
+* curl \[optional : setup scripts in `contrib`\]
+* Solver libraries
+  * Boolector (has setup script in `contrib`)
+  * CVC4 (has setup script in `contrib`)
+  * MathSAT (must be obtained independently; user responsible for meeting license conditions)
+  * Yices2 (must be obtained independently; user responsible for meeting license conditions)
+* pthread [optional: Boolector]
+* gmp [optional: CVC4, MathSAT, Yices2]
+* autoconf [optional: Yices2 setup script]
+* Java [optional: CVC4 ANTLR]
+* Python [optional: Python bindings]
+* Cython >= 0.29 [optional: Python bindings]
+
 # Operating Systems
 
 Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX with XCode 9 but should work for other sufficiently modern (e.g. has C++17 support) Unix-based operating systems. Please file a GitHub issue if you have any problems!
