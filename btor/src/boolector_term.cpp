@@ -160,14 +160,12 @@ bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 {
-  return ((btor != it.btor) || (idx != it.idx) || (children != it.children));
+  return !(*this == it);
 };
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
-  // guaranteed to be safe by caller of equal (TermIterBase)
-  const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return ((btor == bti.btor) && (idx == bti.idx) && (children == bti.children));
+  return (*this == it);
 }
 
 /* end BoolectorTermIter implementation */
