@@ -273,9 +273,10 @@ void PrintingSolver::reset_assertions() {
   wrapped_solver->reset_assertions(); 
 }
 
-bool PrintingSolver::get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const {
+Result PrintingSolver::get_interpolant(const Term & A,
+                                       const Term & B,
+                                       Term & out_I) const
+{
   /* currently we only support printing msat interpolation commands.
    * The printing follows the internal implementation from msat_solver.h
    * in which the assertions are labeled by interpolation groups

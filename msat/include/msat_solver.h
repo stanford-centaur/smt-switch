@@ -157,9 +157,9 @@ class MsatInterpolatingSolver : public MsatSolver
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   Term get_value(const Term & t) const override;
-  bool get_interpolant(const Term & A,
-                       const Term & B,
-                       Term & out_I) const override;
+  Result get_interpolant(const Term & A,
+                         const Term & B,
+                         Term & out_I) const override;
 };
 
 }  // namespace smt

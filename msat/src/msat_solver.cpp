@@ -1060,9 +1060,9 @@ Term MsatInterpolatingSolver::get_value(const Term & t) const
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
-bool MsatInterpolatingSolver::get_interpolant(const Term & A,
-                                              const Term & B,
-                                              Term & out_I) const
+Result MsatInterpolatingSolver::get_interpolant(const Term & A,
+                                                const Term & B,
+                                                Term & out_I) const
 {
   // reset the environment -- each interpolant is it's own separate call
   msat_reset_env(env);
@@ -1096,16 +1096,16 @@ bool MsatInterpolatingSolver::get_interpolant(const Term & A,
     else
     {
       out_I = Term(new MsatTerm(env, itp));
-      return true;
+      return Result(UNSAT);
     }
   }
   else if (res == MSAT_SAT)
   {
-    return false;
+    return Result(SAT);
   }
   else
   {
-    throw InternalSolverException("Failed when computing interpolant.");
+    return Result(UNKNOWN);
   }
 }
 

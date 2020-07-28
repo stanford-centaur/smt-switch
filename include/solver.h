@@ -355,14 +355,14 @@ class AbsSmtSolver
    * @param A the A term for a craig interpolant
    * @param B the B term for a craig interpolant
    * @param out_I the term to store the computed interpolant in
-   * @return true iff an interpolant was computed
+   * @return unsat    iff an interpolant was computed,
+   *         sat      iff the query was satisfiable,
+   *         unknown  iff interpolation failed
    *
-   * Throws an SmtException if the formula was actually sat or
-   *   if computing the interpolant failed.
    */
-  virtual bool get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const
+  virtual Result get_interpolant(const Term & A,
+                                 const Term & B,
+                                 Term & out_I) const
   {
     throw NotImplementedException("Interpolants are not supported by this solver.");
   }

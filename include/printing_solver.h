@@ -62,10 +62,9 @@ class PrintingSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   void reset_assertions() override;
-  bool get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const override;
-
+  Result get_interpolant(const Term & A,
+                         const Term & B,
+                         Term & out_I) const override;
 
   /* Operators that are not printed 
    * For example, creating terms is not printed, but the

@@ -70,7 +70,8 @@ int main()
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
   Term B = s->make_term(Gt, x, z);
   Term I;
-  bool got_interpolant = s->get_interpolant(A, B, I);
+  Result r = s->get_interpolant(A, B, I);
+  assert(r.is_unsat());
 
   string filename = "msat-printing.cpp-sample.smt2";
   std::ofstream out(filename.c_str());
