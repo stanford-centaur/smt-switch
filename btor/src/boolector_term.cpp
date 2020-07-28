@@ -155,7 +155,7 @@ TermIterBase * BoolectorTermIter::clone() const
 
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
-  return ((btor == it.btor) && (idx == it.idx) && (children == it.children));
+  return equal(it);
 };
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
@@ -166,7 +166,7 @@ bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return (*this == bti);
+  return ((btor == bti.btor) && (idx == bti.idx) && (children == bti.children));
 }
 
 /* end BoolectorTermIter implementation */
