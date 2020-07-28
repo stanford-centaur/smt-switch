@@ -464,11 +464,8 @@ void BoolectorTerm::collect_children()
   for (size_t i = start_idx; i < bn->arity; ++i)
   {
     tmp = bn->e[i];
-    // TODO: figure out if should we do this?
-    // if (btor_node_is_proxy(tmp))
-    // {
-    //   tmp = btor_node_get_simplified(btor, tmp);
-    // }
+    // a non-proxy node should never have proxy children
+    assert(!btor_node_is_proxy(tmp));
     if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
     {
       btor_iter_args_init(&ait, tmp);
