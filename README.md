@@ -35,6 +35,25 @@ int main()
 
 ```
 
+# Dependencies
+
+Smt-Switch depends on the following libraries. Dependencies needed only for certain backends and/or optional features are marked \["optional" : _reason_\].
+* CMake >= 3.1
+* C compiler
+* C++ compiler supporting C++11
+* git
+* curl \[optional : setup scripts in `contrib`\]
+* Solver libraries
+  * Boolector (has setup script in `contrib`)
+  * CVC4 (has setup script in `contrib`)
+  * MathSAT (must be obtained independently; user responsible for meeting license conditions)
+  * Yices2 (must be obtained independently; user responsible for meeting license conditions)
+* pthread [optional: Boolector]
+* gmp [optional: CVC4, MathSAT, Yices2]
+* autoconf [optional: Yices2 setup script]
+* Java [optional: CVC4 ANTLR]
+* Python [optional: Python bindings]
+* Cython >= 0.29 [optional: Python bindings]
 
 # Operating Systems
 
@@ -66,7 +85,7 @@ If you'd like to try your own version of a solver, you can use the `configure.sh
 where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/libcvc4parser.a` already exist. `build` is the default build directory for `CVC4`, and thus that's where `cmake` is configured to look.
 
 # Building Tests
- You can build tests with `make test` from the build directory. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc4_factory.h"` -> `#include "smt-switch/cvc4_factory.h"`.
+You can build tests with `make test` from the build directory. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc4_factory.h"` -> `#include "smt-switch/cvc4_factory.h"`.
 
 ## Debug
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
@@ -76,3 +95,30 @@ To compile python bindings, use the `--python` flag of `configure.sh`. By adding
 
 ## Testing python bindings
 Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). This can be installed using `pip` and is automatically installed if you use the `setup.py` install from the `build` directory. To run all tests, simply run `pytest ./tests` from the top-level directory. Note, running `pytest` alone might unnecessarily run tests in dependencies located in subdirectories. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.
+
+# Current Limitations and Gotchas
+While we try to guarantee that all solver backends are fully compliant with the abstract interface, and exhibit the exact same behavior given the same API calls, we are not able to do this in every case (yet). Below are some known, current limitations along with recommended usage.
+
+* Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
+* Z3 is not yet implemented as a backend (but hopefully will be soon!)
+* Datatypes are currently only supported in CVC4
+* **Undefined behavior.** Sharing terms between different solver instances will result in undefined behavior. This is because we use a static cast to recover the backend solver implementation from an abstract object. To move terms between solver instances, you can use a `TermTranslator` which will rebuild the term in another solver. A given `TermTranslator` object can only translate terms from **one** solver to **one** new one. If some symbols have already been created in the new solver, you can populate the `TermTranslator`'s cache so that it knows which symbols correspond to each other
+* Quantifiers are technically supported but are syntactically restricted to do one binding at a time. The bound variable is declared with `make_param`, and bound with `solver->make_term(Forall, <param>, <Term using param>)`. This does not limit expressivity because bindings can be nested.
+  * Furthermore, some solvers have limited or restricted quantifier support. For example, MathSAT has very limited quantifier support at this time. Boolector only supports quantifiers over bitvectors, not over UF or arrays. Additionally, quantifier support in Boolector cannot be used in incremental mode.
+* Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
+
+## Recommended usage
+
+### Logging solvers
+
+A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of Term DAGs at the smt-switch level. This guarantees that if you create a term and query it for it's sort, op, and children, it will give you back the exact same objects you built it with. Without the `LoggingSolver` wrapper, this is not guaranteed for all solvers. This is because some solvers perform on-the-fly rewriting and/or alias sorts (e.g. treat `BOOL` and `BV` of size one equivalently). Below, we give some recommendations for when to use a `LoggingSolver` for different backends. To use a `LoggingSolver`, pass `true` to the `create` function when instantiating a solver.
+
+* Boolector
+  * Use a `LoggingSolver` when you want to avoid issues with sort aliasing between booleans and bit-vectors of size one and/or if you'd like to ensure that a term's children are exactly what were used to create it. Boolector performs very smart on-the-fly rewriting. Additionally, use a `LoggingSolver` if you will need to use the `substitute` method on formulas that contain uninterpreted functions.
+* CVC4
+  * CVC4 does not alias sorts or perform on-the-fly rewriting. Thus, there should never be any reason to use a `LoggingSolver`.
+* MathSAT
+  * Use a `LoggingSolver` only if you want to guarantee that a term's Op and children are exactly what you used to create it. Without a `LoggingSolver`, MathSAT will perform _very_ light rewriting.
+* Yices2
+  * Use a `LoggingSolver` if you need term iteration
+  * Yices2 has a different term representation under the hood which cannot easily be converted back to SMT-LIB. Thus, term traversal is currently only supported through a `LoggingSolver`.
