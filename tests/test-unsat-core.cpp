@@ -41,6 +41,9 @@ class UnsatCoreTests : public ::testing::Test,
   Sort boolsort;
 };
 
+// FIXME there's some issue with the Yices2 context object which
+// fails if there are two separate tests using the unsat core feature
+
 TEST_P(UnsatCoreTests, UnsatCore)
 {
   // test that everything works in a fresh context
