@@ -43,6 +43,8 @@ class UnsatCoreTests : public ::testing::Test,
 
 TEST_P(UnsatCoreTests, UnsatCore)
 {
+  // test that everything works in a fresh context
+  s->push();
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
   Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
@@ -56,17 +58,6 @@ TEST_P(UnsatCoreTests, UnsatCore)
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
   ASSERT_THROW(core = s->get_unsat_core(), SmtException);
-}
-
-TEST_P(UnsatCoreTests, UnsatCoreAtContext)
-{
-  s->push();
-  Term b1 = s->make_symbol("b1", boolsort);
-  s->assert_formula(b1);
-  Result r = s->check_sat_assuming({ s->make_term(Not, b1) });
-  ASSERT_TRUE(r.is_unsat());
-  TermVec core = s->get_unsat_core();
-  ASSERT_EQ(core.size(), 1);
   s->pop();
 }
 
