@@ -41,8 +41,13 @@ class UnsatCoreTests : public ::testing::Test,
   Sort boolsort;
 };
 
+// FIXME there's some issue with the Yices2 context object which
+// fails if there are two separate tests using the unsat core feature
+
 TEST_P(UnsatCoreTests, UnsatCore)
 {
+  // test that everything works in a fresh context
+  s->push();
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
   Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
@@ -56,6 +61,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
   ASSERT_THROW(core = s->get_unsat_core(), SmtException);
+  s->pop();
 }
 
 INSTANTIATE_TEST_SUITE_P(
