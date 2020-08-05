@@ -70,7 +70,8 @@ std::size_t MsatSort::hash() const
   }
   else
   {
-    throw NotImplementedException("Unknown MathSAT type.");
+    // assume it's a simple type and hash the string
+    return std::hash<std::string>()(std::string(msat_type_repr(type)));
   }
 
   return v;
