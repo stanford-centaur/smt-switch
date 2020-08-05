@@ -282,7 +282,9 @@ cdef class SmtSolver:
 
     def get_unsat_core(self):
         unsat_core = []
-        for l in dref(self.css).get_unsat_core():
+        cdef c_TermVec ctv
+        dref(self.css).get_unsat_core(ctv)
+        for l in ctv:
             term = Term(self)
             term.ct = l
             unsat_core.append(term)
