@@ -72,7 +72,8 @@ class LoggingSolver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  TermVec get_unsat_core() override;
+  void get_unsat_core(TermVec & out) override;
+  void get_unsat_core(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;

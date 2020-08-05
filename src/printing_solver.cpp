@@ -202,12 +202,17 @@ Term PrintingSolver::get_value(const Term & t) const
   return wrapped_solver->get_value(t);
 }
 
-TermVec PrintingSolver::get_unsat_core()
+void PrintingSolver::get_unsat_core(TermVec & out)
 {
   (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
-  return wrapped_solver->get_unsat_core();
+  wrapped_solver->get_unsat_core(out);
 }
 
+void PrintingSolver::get_unsat_core(UnorderedTermSet & out)
+{
+  (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
+  wrapped_solver->get_unsat_core(out);
+}
 
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const

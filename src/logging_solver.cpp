@@ -438,10 +438,10 @@ Term LoggingSolver::get_value(const Term & t) const
   return res;
 }
 
-TermVec LoggingSolver::get_unsat_core()
+void LoggingSolver::get_unsat_core(TermVec & out)
 {
-  TermVec underlying_core = wrapped_solver->get_unsat_core();
-  TermVec core;
+  TermVec underlying_core;
+  wrapped_solver->get_unsat_core(underlying_core);
   for (auto c : underlying_core)
   {
     // assumption: these should be (possible negated) Boolean literals
@@ -454,9 +454,28 @@ TermVec LoggingSolver::get_unsat_core()
           "check_sat_assuming in LoggingSolver.");
     }
     Term log_c = assumption_cache->at(c);
-    core.push_back(log_c);
+    out.push_back(log_c);
   }
-  return core;
+}
+
+void LoggingSolver::get_unsat_core(UnorderedTermSet & out)
+{
+  UnorderedTermSet underlying_core;
+  wrapped_solver->get_unsat_core(underlying_core);
+  for (auto c : underlying_core)
+  {
+    // assumption: these should be (possible negated) Boolean literals
+    // that were used in check_sat_assuming
+    // assumption_cache stored a mapping so we can recover the logging term
+    if (assumption_cache->find(c) == assumption_cache->end())
+    {
+      throw InternalSolverException(
+          "Got an element in the unsat core that was not cached from "
+          "check_sat_assuming in LoggingSolver.");
+    }
+    Term log_c = assumption_cache->at(c);
+    out.insert(log_c);
+  }
 }
 
 UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
