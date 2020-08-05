@@ -106,8 +106,8 @@ class AbsSmtSolver
   /** After a call to check_sat_assuming that returns an unsatisfiable result
    *  this function will populate the out TermVec/UnorderedTermSet with a subset
    *  of the assumption literals that are sufficient to make the assertions
-   *  unsat. SMTLIB: (get-unsat-assumptions) @return a vector of assumption
-   *  literals in the unsat core
+   *  unsat.
+   *  SMTLIB: (get-unsat-assumptions) 
    */
   virtual void get_unsat_core(TermVec & out) = 0;
   virtual void get_unsat_core(UnorderedTermSet & out) = 0;
