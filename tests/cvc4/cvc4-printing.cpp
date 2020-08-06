@@ -89,7 +89,8 @@ int main()
                                              s->make_term(Select, arr, y)))));
   Result r = s->check_sat_assuming(TermVec{ ind1 });
   assert(r.is_unsat());
-  TermVec usc = s->get_unsat_core();
+  UnorderedTermSet usc;
+  s->get_unsat_core(usc);
   s->pop(1);
   s->check_sat();
   s->get_value(x);

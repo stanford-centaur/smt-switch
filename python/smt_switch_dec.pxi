@@ -2,6 +2,7 @@ from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libcpp.memory cimport shared_ptr
 from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
+from libcpp.unordered_set cimport unordered_set
 from libcpp.vector cimport vector
 
 from smt_switch cimport c_PrimOp, c_SortKind
@@ -11,6 +12,7 @@ ctypedef shared_ptr[AbsTerm] c_Term
 ctypedef shared_ptr[AbsSmtSolver] c_SmtSolver
 ctypedef vector[c_Sort] c_SortVec
 ctypedef vector[c_Term] c_TermVec
+ctypedef unordered_set[c_Term] c_UnorderedTermSet
 ctypedef unordered_map[c_Term, c_Term] c_UnorderedTermMap
 
 
@@ -99,7 +101,7 @@ cdef extern from "solver.h" namespace "smt":
         void push(uint64_t num) except +
         void pop(uint64_t num) except +
         c_Term get_value(c_Term& t) except +
-        c_TermVec get_unsat_core() except +
+        void get_unsat_core(c_UnorderedTermSet& out) except +
         c_Sort make_sort(const string name, uint64_t arity) except +
         c_Sort make_sort(const c_SortKind sk) except +
         c_Sort make_sort(const c_SortKind sk, uint64_t size) except +
