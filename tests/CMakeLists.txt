@@ -72,6 +72,11 @@ target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter test-deps)
 add_test(NAME unit-termiter_test COMMAND unit-termiter)
 
+add_executable(unit-walker "${PROJECT_SOURCE_DIR}/tests/unit/unit-walker.cpp")
+target_link_libraries(unit-walker gtest_main)
+target_link_libraries(unit-walker test-deps)
+add_test(NAME unit-walker_test COMMAND unit-walker)
+
 add_executable(unit-printing "${PROJECT_SOURCE_DIR}/tests/unit/unit-printing.cpp")
 target_link_libraries(unit-printing gtest_main)
 target_link_libraries(unit-printing test-deps)

@@ -85,7 +85,7 @@ protected:
   *  @param out this term is set to the cache result if there's a hit
   *  @return true iff there is a cache hit
   */
- bool query_cache(const Term & key, Term out) const;
+ bool query_cache(const Term & key, Term & out) const;
 
  /** Populate the cache. Automatically uses ext_cache_ if non-null.
   *  It will overwrite the existing mapping if the key is already in the cache

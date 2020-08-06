@@ -131,7 +131,7 @@ bool IdentityWalker::in_cache(const Term & key) const
   }
 }
 
-bool IdentityWalker::query_cache(const Term & key, Term out) const
+bool IdentityWalker::query_cache(const Term & key, Term & out) const
 {
   if (ext_cache_)
   {
