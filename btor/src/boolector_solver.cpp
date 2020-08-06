@@ -505,17 +505,6 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void BoolectorSolver::get_unsat_core(TermVec & out)
-{
-  BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
-  while (*bcore)
-  {
-    out.push_back(std::make_shared<BoolectorTerm>(
-        btor, boolector_copy(btor, *bcore)));
-    ++bcore;
-  }
-}
-
 void BoolectorSolver::get_unsat_core(UnorderedTermSet & out)
 {
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);

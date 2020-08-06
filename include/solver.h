@@ -109,7 +109,6 @@ class AbsSmtSolver
    *  unsat.
    *  SMTLIB: (get-unsat-assumptions) 
    */
-  virtual void get_unsat_core(TermVec & out) = 0;
   virtual void get_unsat_core(UnorderedTermSet & out) = 0;
 
   // virtual bool check_sat_assuming() const = 0;

@@ -413,30 +413,6 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
       "particular select of the array.");
 }
 
-void Yices2Solver::get_unsat_core(TermVec & out)
-{
-  term_vector_t ycore;
-  yices_init_term_vector(&ycore);
-  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
-  // yices2 documentation: returns -1 if ctx status was not UNSAT
-  if (err_code == -1)
-  {
-    throw IncorrectUsageException(
-        "Last call to check_sat was not unsat, cannot get unsat core.");
-  }
-
-  for (size_t i = 0; i < ycore.size; ++i)
-  {
-    if (!ycore.data[i])
-    {
-      throw InternalSolverException("Got an empty term from vector");
-    }
-    out.push_back(std::make_shared<Yices2Term>(ycore.data[i]));
-  }
-
-  yices_delete_term_vector(&ycore);
-}
-
 void Yices2Solver::get_unsat_core(UnorderedTermSet & out)
 {
   term_vector_t ycore;

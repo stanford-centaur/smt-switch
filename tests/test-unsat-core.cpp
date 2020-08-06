@@ -53,7 +53,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
-  TermVec core;
+  UnorderedTermSet core;
   s->get_unsat_core(core);
   ASSERT_TRUE(core.size() > 1);
 

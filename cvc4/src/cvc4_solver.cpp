@@ -412,23 +412,6 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   }
 }
 
-void CVC4Solver::get_unsat_core(TermVec & out)
-{
-  Term f;
-  try
-  {
-    for (auto cterm : solver.getUnsatAssumptions())
-    {
-      out.push_back(std::make_shared<CVC4Term>(cterm));
-    }
-  }
-  // this function seems to return a different exception type
-  catch (std::exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
 void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
 {
   Term f;
