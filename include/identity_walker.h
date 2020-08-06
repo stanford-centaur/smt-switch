@@ -92,7 +92,7 @@ protected:
   *  @param key the key term
   *  @param val the value term
   */
- void populate_cache(const Term & key, const Term & val);
+ void save_in_cache(const Term & key, const Term & val);
 
  smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
  bool clear_cache_; /**< if true, clears the cache between calls to visit */

@@ -107,12 +107,12 @@ WalkerStepResult IdentityWalker::visit_term(Term & term)
         query_cache(t, c);
         cached_children.push_back(c);
       }
-      populate_cache(term, solver_->make_term(op, cached_children));
+      save_in_cache(term, solver_->make_term(op, cached_children));
     }
     else
     {
       // just keep the leaves the same
-      populate_cache(term, term);
+      save_in_cache(term, term);
     }
   }
 
@@ -154,7 +154,7 @@ bool IdentityWalker::query_cache(const Term & key, Term & out) const
   return false;
 }
 
-void IdentityWalker::populate_cache(const Term & key, const Term & val)
+void IdentityWalker::save_in_cache(const Term & key, const Term & val)
 {
   if (ext_cache_)
   {
