@@ -281,7 +281,7 @@ cdef class SmtSolver:
         return term
 
     def get_unsat_core(self):
-        unsat_core = {}
+        unsat_core = set()
         cdef c_UnorderedTermSet cts
         dref(self.css).get_unsat_core(cts)
         for l in cts:
