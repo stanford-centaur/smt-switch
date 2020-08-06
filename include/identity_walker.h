@@ -60,7 +60,12 @@ public:
    */
   smt::Term visit(smt::Term & term);
 
-protected:
+  /** Returns a reference to the underlying cache
+   *  Can be used to pre-populate the cache (Experts only)
+   */
+  smt::UnorderedTermMap & get_cache() { return cache_; }
+
+ protected:
   /** Visit a single term.
    *  Implement this method in a derived class to change the behavior
    *  of the walker
