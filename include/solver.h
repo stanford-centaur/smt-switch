@@ -104,7 +104,7 @@ class AbsSmtSolver
                                             Term & out_const_base) const = 0;
 
   /** After a call to check_sat_assuming that returns an unsatisfiable result
-   *  this function will populate the out TermVec/UnorderedTermSet with a subset
+   *  this function will populate the 'out' UnorderedTermSet with a subset
    *  of the assumption literals that are sufficient to make the assertions
    *  unsat.
    *  SMTLIB: (get-unsat-assumptions) 
