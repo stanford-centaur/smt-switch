@@ -58,7 +58,9 @@ public:
                 smt::UnorderedTermMap * ext_cache = nullptr)
      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
 
- /** Visit a term and all its subterms in a pre- and post-order traversal
+ /** Visit a term and all its subterms in a post-order traversal
+  *  the member variable preorder_ is true if it's the first time seeing
+  *  a subterm and false if the traversal is in post-order already
   *  @param term the term to visit
   *  @return the term after visiting (returns the value of cache[term]
   *     -- if it has been cached and returns term otherwise)
