@@ -53,7 +53,7 @@ enum WalkerStepResult
 class IdentityWalker
 {
 public:
- IdentityWalker(smt::SmtSolver & solver,
+ IdentityWalker(const smt::SmtSolver & solver,
                 bool clear_cache,
                 smt::UnorderedTermMap * ext_cache = nullptr)
      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
@@ -96,7 +96,7 @@ protected:
   */
  void save_in_cache(const Term & key, const Term & val);
 
- smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
+ const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
  bool clear_cache_; /**< if true, clears the cache between calls to visit */
  bool preorder_; /**< true when the current term is being visited for the first
                     time. For use in visit_term */
