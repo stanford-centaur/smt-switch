@@ -27,6 +27,11 @@ Term IdentityWalker::visit(Term & term)
   if (clear_cache_)
   {
     cache_.clear();
+
+    if (ext_cache_)
+    {
+      ext_cache_->clear();
+    }
   }
 
   TermVec to_visit({term});
@@ -43,7 +48,7 @@ Term IdentityWalker::visit(Term & term)
     t = to_visit.back();
     to_visit.pop_back();
 
-    if (cache_.find(t) != cache_.end())
+    if (in_cache(t))
     {
       // cache hit
       continue;
@@ -58,11 +63,11 @@ Term IdentityWalker::visit(Term & term)
 
     if (res == Walker_Abort)
     {
-      if (cache_.find(term) != cache_.end())
-      {
-        return cache_.at(term);
-      }
-      return term;
+      // visit_term requested an abort
+      // return the mapping if it has been cached already
+      Term out = term;
+      query_cache(term, out);
+      return out;
     }
 
     if (preorder_)
@@ -78,15 +83,12 @@ Term IdentityWalker::visit(Term & term)
     }
   }
 
-
-  if (cache_.find(term) == cache_.end())
-  {
-    return term;
-  }
-  else
-  {
-    return cache_.at(term);
-  }
+  // finished the traversal
+  // return the cached term if available
+  // otherwise just returns the original term
+  Term out = term;
+  query_cache(term, out);
+  return out;
 }
 
 WalkerStepResult IdentityWalker::visit_term(Term & term)
@@ -97,20 +99,70 @@ WalkerStepResult IdentityWalker::visit_term(Term & term)
     if (!op.is_null())
     {
       TermVec cached_children;
+      Term c;
       for (auto t : term)
       {
-        cached_children.push_back(cache_.at(t));
+        // TODO: see if we can pass the same term as both arguments
+        c = t;
+        query_cache(t, c);
+        cached_children.push_back(c);
       }
-      cache_[term] = solver_->make_term(op, cached_children);
+      save_in_cache(term, solver_->make_term(op, cached_children));
     }
     else
     {
       // just keep the leaves the same
-      cache_[term] = term;
+      save_in_cache(term, term);
     }
   }
 
   return Walker_Continue;
 }
 
+bool IdentityWalker::in_cache(const Term & key) const
+{
+  if (ext_cache_)
+  {
+    return ext_cache_->find(key) != ext_cache_->end();
+  }
+  else
+  {
+    return cache_.find(key) != cache_.end();
+  }
+}
+
+bool IdentityWalker::query_cache(const Term & key, Term & out) const
+{
+  if (ext_cache_)
+  {
+    auto it = ext_cache_->find(key);
+    if (it != ext_cache_->end())
+    {
+      out = it->second;
+      return true;
+    }
+  }
+  else
+  {
+    auto it = cache_.find(key);
+    if (it != cache_.end())
+    {
+      out = it->second;
+      return true;
+    }
+  }
+  return false;
+}
+
+void IdentityWalker::save_in_cache(const Term & key, const Term & val)
+{
+  if (ext_cache_)
+  {
+    (*ext_cache_)[key] = val;
+  }
+  else
+  {
+    cache_[key] = val;
+  }
+}
 }
