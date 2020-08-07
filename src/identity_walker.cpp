@@ -34,6 +34,13 @@ Term IdentityWalker::visit(Term & term)
     }
   }
 
+  Term out = term;
+  if (query_cache(term, out))
+  {
+    // cache hit
+    return out;
+  }
+
   TermVec to_visit({term});
   // Note: visited is different than cache keys
   //       might want to visit without saving to the cache
@@ -86,7 +93,6 @@ Term IdentityWalker::visit(Term & term)
   // finished the traversal
   // return the cached term if available
   // otherwise just returns the original term
-  Term out = term;
   query_cache(term, out);
   return out;
 }
