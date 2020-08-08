@@ -281,11 +281,13 @@ cdef class SmtSolver:
         return term
 
     def get_unsat_core(self):
-        unsat_core = []
-        for l in dref(self.css).get_unsat_core():
+        unsat_core = set()
+        cdef c_UnorderedTermSet cts
+        dref(self.css).get_unsat_core(cts)
+        for l in cts:
             term = Term(self)
             term.ct = l
-            unsat_core.append(term)
+            unsat_core.add(term)
         return unsat_core
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):

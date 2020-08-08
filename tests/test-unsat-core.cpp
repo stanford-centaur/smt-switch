@@ -53,14 +53,15 @@ TEST_P(UnsatCoreTests, UnsatCore)
   Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
-  TermVec core = s->get_unsat_core();
+  UnorderedTermSet core;
+  s->get_unsat_core(core);
   ASSERT_TRUE(core.size() > 1);
 
   // for solvers using assumptions under the hood,
   // make sure they are re-added correctly
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
-  ASSERT_THROW(core = s->get_unsat_core(), SmtException);
+  ASSERT_THROW(s->get_unsat_core(core), SmtException);
   s->pop();
 }
 
