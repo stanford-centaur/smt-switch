@@ -26,54 +26,8 @@ namespace smt {
 
 std::size_t MsatSort::hash() const
 {
-  // TODO: check this hash function
-  // mathsat doesn't hash types
-  // so we need to generate a type
-  std::size_t v = 1;
-
-  // giving lower 20 bits for representing a width if it's a bit-vector
-  size_t out_width;
-  msat_type idx_type;
-  msat_type elem_type;
-
-  if (msat_is_integer_type(env, type))
-  {
-    v = v << 20;
-  }
-  else if (msat_is_rational_type(env, type))
-  {
-    v = v << 21;
-  }
-  else if (msat_is_bool_type(env, type))
-  {
-    v = v << 22;
-  }
-  else if (msat_is_bv_type(env, type, &out_width))
-  {
-    v = v << 23;
-    v = v ^ out_width;
-  }
-  else if (msat_is_array_type(env, type, &idx_type, &elem_type))
-  {
-    v = v << 24;
-    v = v ^ MsatSort(env, idx_type).hash();
-    v = v ^ MsatSort(env, elem_type).hash();
-  }
-  else if (is_uf_type)
-  {
-    v = v << 25;
-    for (auto t : get_domain_sorts())
-    {
-      v = v ^ t->hash();
-    }
-    v = v ^ get_codomain_sort()->hash();
-  }
-  else
-  {
-    throw NotImplementedException("Unknown MathSAT type.");
-  }
-
-  return v;
+  // msat_type ptr is unique
+  return (size_t)type.repr;
 }
 
 uint64_t MsatSort::get_width() const
