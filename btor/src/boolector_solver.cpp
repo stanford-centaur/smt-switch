@@ -460,9 +460,12 @@ Term BoolectorSolver::get_value(const Term & t) const
 UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
                                                    Term & out_const_base) const
 {
-  // TODO: If Boolector adds const array bases to the array model, then set
-  // out_const_base
-  out_const_base = nullptr;
+  Sort arrsort = arr->get_sort();
+  assert(arrsort->get_sort_kind() == ARRAY);
+
+  // assume base is zero
+  // if it's not, it will be changed below
+  out_const_base = make_term(0, arrsort->get_elemsort());
 
   UnorderedTermMap assignments;
 
