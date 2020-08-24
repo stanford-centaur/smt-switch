@@ -94,6 +94,13 @@ class TermTranslator
    *  @return a term with the given value
    */
   Term value_from_smt2(const std::string val, const Sort sort) const;
+  
+  /** translates an smtlib representation of a const rational "(/ a b)"
+   *  into a mathsat-style representation of a const rational "a / b"
+   * @param smtlib is the smtlib representation
+   * @return the mathsat-style representation
+   */
+  std::string mathsatize_rational(const std::string smtlib) const;
 
   /** identifies relevant casts to perform an operation
    *  assumes the operation is currently not well-sorted

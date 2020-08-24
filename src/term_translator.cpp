@@ -266,23 +266,17 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   }
 }
 
-std::string mathsatize(std::string smtlib) {
+std::string TermTranslator::mathsatize_rational(const std::string smtlib) const {
   // smtlib: (/ up down)
   // ind -- index
   std::string op;
   int ind_of_up_start = smtlib.find_first_of("/");
-  if (ind_of_up_start != std::string::npos) {
-    ind_of_up_start += 2;
-    op = "/";
-  } else {
-    ind_of_up_start = smtlib.find_first_of("mod");
-    if (ind_of_up_start == std::string::npos) {
-      return smtlib;
-    }
-    ind_of_up_start += 4;
-    op = "mod";
+  if (ind_of_up_start == std::string::npos) {
+    return smtlib;
   }
-  int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
+  ind_of_up_start += 2;
+  op = "/";
+    int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
   assert(ind_of_up_end != std::string::npos);
   ind_of_up_end -= 1;
   int ind_of_down_start = ind_of_up_end + 2; 
@@ -348,13 +342,13 @@ Term TermTranslator::value_from_smt2(const std::string val,
     if (val.substr(0, 2) == "(-")
     {
       std::string posval = val.substr(3, val.length() - 4);
-      posval = mathsatize(posval);
+      posval = mathsatize_rational(posval);
       Term posterm = solver->make_term(posval, sort);
       return solver->make_term(Negate, posterm);
     }
     else
     {
-      std::string mval = mathsatize(val);
+      std::string mval = mathsatize_rational(val);
       return solver->make_term(mval, sort);
     }
   }
