@@ -157,7 +157,9 @@ std::string mathsatize(std::string smtlib) {
     op = "/";
   } else {
     ind_of_up_start = smtlib.find_first_of("mod");
-    assert(ind_of_up_start != std::string::npos);
+    if (ind_of_up_start == std::string::npos) {
+      return smtlib;
+    }
     ind_of_up_start += 4;
     op = "mod";
   }
@@ -170,9 +172,8 @@ std::string mathsatize(std::string smtlib) {
   ind_of_down_end -= 1;
   
   std::string new_up = smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start +1);
-  std::string new_down = smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_up_start +1);
+  std::string new_down = smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start +1);
   std::string new_string = new_up + " " + op + " " + new_down;
-  std::cout << "panda: " << new_string << std::endl;
   return new_string;
 }
 
@@ -234,7 +235,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
     else
     {
       std::string mval = mathsatize(val);
-      return solver->make_term(val, sort);
+      return solver->make_term(mval, sort);
     }
   }
   // this check HAS to come after bit-vector check
