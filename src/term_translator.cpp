@@ -279,11 +279,10 @@ std::string TermTranslator::mathsatize_rational(const std::string smtlib) const 
     int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
   assert(ind_of_up_end != std::string::npos);
   ind_of_up_end -= 1;
-  int ind_of_down_start = ind_of_up_end + 2; 
+  int ind_of_down_start = ind_of_up_end + 2;
   int ind_of_down_end = smtlib.find_first_of(')', ind_of_down_start);
   assert(ind_of_down_end != std::string::npos);
   ind_of_down_end -= 1;
-  
   std::string new_up = smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start +1);
   std::string new_down = smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start +1);
   std::string new_string = new_up + " " + op + " " + new_down;
