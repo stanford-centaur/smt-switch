@@ -266,7 +266,7 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   }
 }
 
-std::string TermTranslator::mathsatize_rational(const std::string smtlib) const {
+std::string TermTranslator::infixize_rational(const std::string smtlib) const {
   // smtlib: (/ up down)
   // ind -- index
   std::string op;
@@ -341,13 +341,13 @@ Term TermTranslator::value_from_smt2(const std::string val,
     if (val.substr(0, 2) == "(-")
     {
       std::string posval = val.substr(3, val.length() - 4);
-      posval = mathsatize_rational(posval);
+      posval = infixize_rational(posval);
       Term posterm = solver->make_term(posval, sort);
       return solver->make_term(Negate, posterm);
     }
     else
     {
-      std::string mval = mathsatize_rational(val);
+      std::string mval = infixize_rational(val);
       return solver->make_term(mval, sort);
     }
   }
