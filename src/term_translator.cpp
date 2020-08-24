@@ -21,6 +21,7 @@
 #include "assert.h"
 
 #include "sort_inference.h"
+#include "utils.h"
 #include "term_translator.h"
 
 using namespace std;
@@ -265,6 +266,36 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   }
 }
 
+std::string mathsatize(std::string smtlib) {
+  // smtlib: (/ up down)
+  // ind -- index
+  std::string op;
+  int ind_of_up_start = smtlib.find_first_of("/");
+  if (ind_of_up_start != std::string::npos) {
+    ind_of_up_start += 2;
+    op = "/";
+  } else {
+    ind_of_up_start = smtlib.find_first_of("mod");
+    if (ind_of_up_start == std::string::npos) {
+      return smtlib;
+    }
+    ind_of_up_start += 4;
+    op = "mod";
+  }
+  int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
+  assert(ind_of_up_end != std::string::npos);
+  ind_of_up_end -= 1;
+  int ind_of_down_start = ind_of_up_end + 2; 
+  int ind_of_down_end = smtlib.find_first_of(')', ind_of_down_start);
+  assert(ind_of_down_end != std::string::npos);
+  ind_of_down_end -= 1;
+  
+  std::string new_up = smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start +1);
+  std::string new_down = smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start +1);
+  std::string new_string = new_up + " " + op + " " + new_down;
+  return new_string;
+}
+
 Term TermTranslator::value_from_smt2(const std::string val,
                                      const Sort orig_sort) const
 {
@@ -317,12 +348,14 @@ Term TermTranslator::value_from_smt2(const std::string val,
     if (val.substr(0, 2) == "(-")
     {
       std::string posval = val.substr(3, val.length() - 4);
+      posval = mathsatize(posval);
       Term posterm = solver->make_term(posval, sort);
       return solver->make_term(Negate, posterm);
     }
     else
     {
-      return solver->make_term(val, sort);
+      std::string mval = mathsatize(val);
+      return solver->make_term(mval, sort);
     }
   }
   // this check HAS to come after bit-vector check
