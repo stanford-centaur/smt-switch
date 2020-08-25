@@ -132,10 +132,11 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         if (t->to_string().find("to_int") == 1) {
           TermVec children;
+          assert(cached_children.size() == 1);
           for (Term c : cached_children[0]) {
             children.push_back(c);
           }
-          cache[t] = solver->make_term(Div, children);
+          cache[t] = solver->make_term(cached_children[0]->get_op(), children);
         } else {
           cache[t] = solver->make_term(t->get_op(), cached_children);
         } 
@@ -151,7 +152,6 @@ Term TermTranslator::transfer_term(const Term & term)
       }
     }
   }
-
   return cache[term];
 }
 
