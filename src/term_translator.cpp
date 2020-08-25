@@ -276,7 +276,7 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const {
   }
   ind_of_up_start += 2;
   op = "/";
-    int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
+  int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
   assert(ind_of_up_end != std::string::npos);
   ind_of_up_end -= 1;
   int ind_of_down_start = ind_of_up_end + 2;
