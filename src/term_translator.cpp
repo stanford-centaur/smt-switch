@@ -130,7 +130,15 @@ Term TermTranslator::transfer_term(const Term & term)
       }
       else if (cached_children.size())
       {
-        cache[t] = solver->make_term(t->get_op(), cached_children);
+        if (t->to_string().find("to_int") == 1) {
+          TermVec children;
+          for (Term c : cached_children[0]) {
+            children.push_back(c);
+          }
+          cache[t] = solver->make_term(Div, children);
+        } else {
+          cache[t] = solver->make_term(t->get_op(), cached_children);
+        } 
       }
       else if (t->is_symbolic_const())
       {
