@@ -129,6 +129,18 @@ TEST_P(UnitSortTests, UninterpretedSort)
   // Expecting an uninterpreted constructor sort
   EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
   EXPECT_EQ(sort_cons->get_arity(), 4);
+
+  // now try applying the sort constructor
+  Sort applied_sort_cons =
+      s->make_sort(sort_cons, { bvsort, bvsort, bvsort, boolsort });
+  EXPECT_EQ(applied_sort_cons->get_arity(), 0);
+  std::cout << "before param_sorts with " << s->get_solver_enum() << std::endl;
+  SortVec param_sorts = applied_sort_cons->get_uninterpreted_param_sorts();
+  EXPECT_EQ(param_sorts.size(), 4);
+  EXPECT_EQ(param_sorts[0], bvsort);
+  EXPECT_EQ(param_sorts[1], bvsort);
+  EXPECT_EQ(param_sorts[2], bvsort);
+  EXPECT_EQ(param_sorts[3], boolsort);
 }
 
 TEST_P(UnitSortArithTests, SameSortDiffObj)
