@@ -91,10 +91,10 @@ Sort PrintingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return wrapped_solver->make_sort(sk, sorts);
 }
 
-Sort PrintingSolver::make_sort(const Sort & uninterp_sort,
+Sort PrintingSolver::make_sort(const Sort & sort_con,
                                const SortVec & sorts) const
 {
-  return wrapped_solver->make_sort(uninterp_sort, sorts);
+  return wrapped_solver->make_sort(sort_con, sorts);
 }
 
 Sort PrintingSolver::make_sort(const DatatypeDecl & d) const {

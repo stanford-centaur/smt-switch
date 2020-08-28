@@ -645,7 +645,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort BoolectorSolver::make_sort(const Sort & uninterp_sort,
+Sort BoolectorSolver::make_sort(const Sort & sort_con,
                                 const SortVec & sorts) const
 
 {

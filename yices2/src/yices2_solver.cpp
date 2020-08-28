@@ -630,8 +630,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   return std::make_shared<Yices2Sort> (y_sort, true);
 }
 
-Sort Yices2Solver::make_sort(const Sort & uninterp_sort,
-                             const SortVec & sorts) const
+Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
   throw NotImplementedException(
       "Yices2 does not support uninterpreted sort constructors");

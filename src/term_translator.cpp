@@ -98,9 +98,9 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
     }
     else
     {
-      Sort uninterp_sort = solver->make_sort(name, 0);
-      uninterpreted_sorts[name] = uninterp_sort;
-      return uninterp_sort;
+      Sort sort_con = solver->make_sort(name, 0);
+      uninterpreted_sorts[name] = sort_con;
+      return sort_con;
     }
   }
   else
