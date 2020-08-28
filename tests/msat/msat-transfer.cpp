@@ -28,8 +28,47 @@
 using namespace smt;
 using namespace std;
 
-int main()
-{
+
+void transfer_int_test() {
+  SmtSolver s = MsatSolverFactory::create(false);
+  s->set_opt("produce-models", "true");
+  Sort realsort = s->make_sort(REAL);
+  Term x = s->make_symbol("x", realsort);
+  Term y = s->make_symbol("y", realsort);
+  Term one = s->make_term(1, realsort);
+  Term two = s->make_term(2, realsort);
+  Term half = s->make_term(Div, one, two);
+  Term one_mod_two = s->make_term(Mod, one, two);
+  Term T = s->make_term(true);
+
+  Term a = s->make_symbol("a", s->make_sort(INT));
+
+  Term constraint = s->make_term(Equal, half, s->make_term(Plus, x, y));
+  constraint = s->make_term(And, constraint, s->make_term(Lt, a, one_mod_two));
+  s->assert_formula(constraint);
+
+  SmtSolver s2 = MsatSolverFactory::create(false);
+  s2->set_opt("produce-models", "true");
+  s2->set_opt("incremental", "true");
+
+  TermTranslator tt(s2);
+
+  Term constraint2 = tt.transfer_term(constraint);
+  Term T2 = tt.transfer_term(T);
+  // ensure it can handle transfering again (even though it already built the
+  // node)
+  constraint2 = tt.transfer_term(constraint);
+  s2->assert_formula(constraint2);
+
+  cout << "term from solver 1: " << constraint << endl;
+  cout << "term from solver 2: " << constraint2 << endl;
+
+  assert(s->check_sat().is_sat());
+  assert(s2->check_sat().is_sat());
+}
+
+
+void transfer_bv_test() {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
@@ -63,6 +102,11 @@ int main()
 
   assert(s->check_sat().is_sat());
   assert(s2->check_sat().is_sat());
+}
 
+int main()
+{
+  transfer_bv_test();
+  transfer_int_test();
   return 0;
 }
