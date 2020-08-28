@@ -118,6 +118,11 @@ Datatype Yices2Sort::get_datatype() const {
   throw NotImplementedException("get_datatype");
 };
 
+size_t Yices2Sort::get_arity() const
+{
+  // yices2 does not support uninterpreted sorts with non-zero arity
+  return 0;
+}
 
 bool Yices2Sort::compare(const Sort s) const
 {
@@ -155,6 +160,10 @@ SortKind Yices2Sort::get_sort_kind() const
     {
       return FUNCTION;
     }
+  }
+  else if (yices_type_is_uninterpreted(type))
+  {
+    return UNINTERPRETED;
   }
   else
   {

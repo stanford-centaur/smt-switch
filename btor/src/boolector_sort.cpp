@@ -80,6 +80,11 @@ Datatype BoolectorSortBase::get_datatype() const {
   throw NotImplementedException("get_datatype");
 };
 
+size_t BoolectorSortBase::get_arity() const
+{
+  throw NotImplementedException(
+      "Boolector does not support uninterpreted sorts");
+}
 
 bool BoolectorSortBase::compare(const Sort s) const
 {

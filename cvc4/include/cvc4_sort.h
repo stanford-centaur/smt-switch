@@ -43,6 +43,7 @@ namespace smt
     Sort get_codomain_sort() const override;
     std::string get_uninterpreted_name() const override;
     Datatype get_datatype() const override;
+    size_t get_arity() const override;
     bool compare(const Sort) const override;
     SortKind get_sort_kind() const override;
 

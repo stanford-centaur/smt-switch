@@ -92,6 +92,12 @@ class LoggingSort : public AbsSort
         "get_datatype not implemented by generic LoggingSort");
   }
 
+  size_t get_arity() const override
+  {
+    throw NotImplementedException(
+        "get_arity not implemented by generic LoggingSort");
+  }
+
  protected:
   SortKind sk;
   Sort wrapped_sort;
@@ -155,6 +161,7 @@ class UninterpretedLoggingSort : public LoggingSort
   typedef LoggingSort super;
 
   std::string get_uninterpreted_name() const override;
+  size_t get_arity() const override;
 
  protected:
   std::string name;

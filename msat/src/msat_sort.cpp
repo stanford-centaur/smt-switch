@@ -120,6 +120,11 @@ Datatype MsatSort::get_datatype() const {
   throw NotImplementedException("get_datatype");
 };
 
+size_t MsatSort::get_arity() const
+{
+  // MathSAT does not support uninterpreted sorts with non-zero arity
+  return 0;
+}
 
 bool MsatSort::compare(const Sort s) const
 {

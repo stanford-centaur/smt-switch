@@ -84,6 +84,24 @@ Datatype CVC4Sort::get_datatype() const
   }
 };
 
+size_t CVC4Sort::get_arity() const
+{
+  try
+  {
+    if (sort.isUninterpretedSort())
+    {
+      return sort.getUninterpretedSortParamSorts().size();
+    }
+    else
+    {
+      return sort.getSortConstructorArity();
+    }
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 SortKind CVC4Sort::get_sort_kind() const
 {
@@ -114,6 +132,10 @@ SortKind CVC4Sort::get_sort_kind() const
   else if (sort.isUninterpretedSort())
   {
     return UNINTERPRETED;
+  }
+  else if (sort.isSortConstructor())
+  {
+    return UNINTERPRETED_CONS;
   }
   else if (sort.isDatatype())
   {

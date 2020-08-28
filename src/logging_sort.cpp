@@ -228,7 +228,9 @@ Sort FunctionLoggingSort::get_codomain_sort() const { return codomain_sort; }
 // UninterpretedLoggingSort
 
 UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s, string n, uint64_t a)
-    : super(UNINTERPRETED, s), name(n), arity(a)
+    // non-zero arity means it's a sort constructor
+    // otherwise it's just an uninterpreted sort
+    : super(a ? UNINTERPRETED_CONS : UNINTERPRETED, s), name(n), arity(a)
 {
 }
 
@@ -238,5 +240,7 @@ std::string UninterpretedLoggingSort::get_uninterpreted_name() const
 {
   return name;
 }
+
+size_t UninterpretedLoggingSort::get_arity() const { return arity; }
 
 }  // namespace smt
