@@ -91,6 +91,11 @@ Sort PrintingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return wrapped_solver->make_sort(sk, sorts);
 }
 
+Sort PrintingSolver::make_sort(const Sort & uninterp_sort,
+                               const SortVec & sorts) const
+{
+  return wrapped_solver->make_sort(uninterp_sort, sorts);
+}
 
 Sort PrintingSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("PrintingSolver::make_sort");

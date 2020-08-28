@@ -67,30 +67,13 @@ Sort CVC4Sort::get_codomain_sort() const
 
 std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
 
-bool CVC4Sort::compare(const Sort s) const
-{
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort> (s);
-  return sort == cs->sort;
-}
-
-Datatype CVC4Sort::get_datatype() const
-{
-  try
-  {
-    return std::make_shared<CVC4Datatype> (sort.getDatatype());
-  } catch (::CVC4::api::CVC4ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-};
-
 size_t CVC4Sort::get_arity() const
 {
   try
   {
     if (sort.isUninterpretedSort())
     {
-      return sort.getUninterpretedSortParamSorts().size();
+      return 0;
     }
     else
     {
@@ -102,6 +85,34 @@ size_t CVC4Sort::get_arity() const
     throw InternalSolverException(e.what());
   }
 }
+
+SortVec CVC4Sort::get_uninterpreted_param_sorts() const
+{
+  SortVec param_sorts;
+  for (auto cs : sort.getUninterpretedSortParamSorts())
+  {
+    param_sorts.push_back(std::make_shared<CVC4Sort>(cs));
+  }
+  return param_sorts;
+}
+
+bool CVC4Sort::compare(const Sort s) const
+{
+  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  return sort == cs->sort;
+}
+
+Datatype CVC4Sort::get_datatype() const
+{
+  try
+  {
+    return std::make_shared<CVC4Datatype>(sort.getDatatype());
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+};
 
 SortKind CVC4Sort::get_sort_kind() const
 {

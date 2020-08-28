@@ -174,6 +174,15 @@ class AbsSmtSolver
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
 
+  /* Create an uninterpreted sort
+   * @param uninterp_sort a sort with SortKind UNINTERPRETED_CONS (must have
+   * nonzero arity)
+   * @param sorts a vector of sorts of size matching uninterp_sort->get_arity()
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const Sort & uninterp_sort,
+                         const SortVec & sorts) const = 0;
+
   /* Create a datatype sort
    * @param d the Datatype Declaration
    * @return a Sort object

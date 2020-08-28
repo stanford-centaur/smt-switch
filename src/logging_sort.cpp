@@ -27,6 +27,20 @@ Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
   return std::make_shared<UninterpretedLoggingSort>(s, name, arity);
 }
 
+Sort make_uninterpreted_logging_sort(Sort s,
+                                     string name,
+                                     uint64_t arity,
+                                     const SortVec & sorts)
+{
+  if (sorts.size() != arity)
+  {
+    throw IncorrectUsageException(
+        "Number of uninterpreted param sorts must match sort constructor "
+        "arity");
+  }
+  return std::make_shared<UninterpretedLoggingSort>(s, name, arity, sorts);
+}
+
 Sort make_logging_sort(SortKind sk, Sort s)
 {
   if (sk != BOOL && sk != INT && sk != REAL)
@@ -234,6 +248,14 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s, string n, uint64_t a)
 {
 }
 
+UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
+                                                   string n,
+                                                   uint64_t a,
+                                                   const SortVec & sorts)
+    : super(UNINTERPRETED, s), name(n), arity(a), param_sorts(sorts)
+{
+}
+
 UninterpretedLoggingSort::~UninterpretedLoggingSort() {}
 
 std::string UninterpretedLoggingSort::get_uninterpreted_name() const
@@ -242,5 +264,10 @@ std::string UninterpretedLoggingSort::get_uninterpreted_name() const
 }
 
 size_t UninterpretedLoggingSort::get_arity() const { return arity; }
+
+SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
+{
+  return param_sorts;
+}
 
 }  // namespace smt

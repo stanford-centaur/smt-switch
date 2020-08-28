@@ -592,6 +592,25 @@ Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort CVC4Solver::make_sort(const Sort & uninterp_sort,
+                           const SortVec & sorts) const
+{
+  ::CVC4::api::Sort csort_con =
+      std::static_pointer_cast<CVC4Sort>(uninterp_sort)->sort;
+
+  size_t arity = sorts.size();
+  std::vector<::CVC4::api::Sort> csorts;
+  csorts.reserve(sorts.size());
+  ::CVC4::api::Sort csort;
+  for (uint32_t i = 0; i < arity; i++)
+  {
+    csort = std::static_pointer_cast<CVC4Sort>(sorts[i])->sort;
+    csorts.push_back(csort);
+  }
+
+  return std::make_shared<CVC4Sort>(csort_con.instantiate(csorts));
+}
+
 Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
