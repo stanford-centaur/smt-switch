@@ -274,6 +274,43 @@ TEST_P(TranslationTests, Extract)
   ASSERT_TRUE(r.is_unsat());
 }
 
+TEST_P(TranslationTests, UninterpretedSort)
+{
+  Sort uninterp_sort;
+  try
+  {
+    uninterp_sort = s1->make_sort("uninterp-sort", 0);
+    // need to fail if either solver doesn't support uninterpreted sorts
+    Sort dummy_sort = s2->make_sort("dummy", 0);
+  }
+  catch (SmtException & e)
+  {
+    // if this solver doesn't support uninterpreted sorts, that's fine
+    // just stop the test
+    return;
+  }
+
+  ASSERT_TRUE(uninterp_sort);
+  Sort ufsort = s1->make_sort(FUNCTION, { uninterp_sort, boolsort });
+  Term v = s1->make_symbol("v", uninterp_sort);
+  Term f = s1->make_symbol("f", ufsort);
+  Term fv = s1->make_term(Apply, f, v);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  Term fv_2 = to_s2.transfer_term(fv);
+  EXPECT_EQ(fv_2->get_op(), Apply);
+
+  // populate cache with symbols for back translation
+  UnorderedTermMap & cache = to_s1.get_cache();
+  cache[to_s2.transfer_term(v)] = v;
+  cache[to_s2.transfer_term(f)] = f;
+
+  Term fv_1 = to_s1.transfer_term(fv_2);
+  EXPECT_EQ(fv, fv_1);
+}
+
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
   Term f = s1->make_term(false);

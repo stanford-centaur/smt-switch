@@ -55,7 +55,7 @@ const unordered_map<PrimOp, PrimOp> bv_to_bool_ops({ { BVAnd, And },
                                                      { BVNot, Not },
                                                      { BVComp, Equal } });
 
-Sort TermTranslator::transfer_sort(const Sort & sort) const
+Sort TermTranslator::transfer_sort(const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();
   if ((sk == INT) || (sk == REAL) || (sk == BOOL))
@@ -85,6 +85,23 @@ Sort TermTranslator::transfer_sort(const Sort & sort) const
     }
     sorts.push_back(transfer_sort(sort->get_codomain_sort()));
     return solver->make_sort(sk, sorts);
+  }
+  else if (sk == UNINTERPRETED)
+  {
+    assert(sort->get_arity() == 0);
+    string name = sort->get_uninterpreted_name();
+    auto it = uninterpreted_sorts.find(name);
+    if (it != uninterpreted_sorts.end())
+    {
+      // cache hit
+      return it->second;
+    }
+    else
+    {
+      Sort uninterp_sort = solver->make_sort(name, 0);
+      uninterpreted_sorts[name] = uninterp_sort;
+      return uninterp_sort;
+    }
   }
   else
   {
@@ -266,7 +283,7 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
 }
 
 Term TermTranslator::value_from_smt2(const std::string val,
-                                     const Sort orig_sort) const
+                                     const Sort orig_sort)
 {
   SortKind sk = orig_sort->get_sort_kind();
   Sort sort = transfer_sort(orig_sort);
@@ -464,7 +481,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     casted_children.reserve(terms.size());
     casted_children.push_back(terms[0]);
     SortVec domain_sorts = funsort->get_domain_sorts();
-    assert(terms.size() + 1 == domain_sorts.size());
+    assert(terms.size() == domain_sorts.size() + 1);
     for (size_t i = 1; i < terms.size(); ++i)
     {
       casted_children.push_back(cast_term(terms[i], domain_sorts[i - 1]));
