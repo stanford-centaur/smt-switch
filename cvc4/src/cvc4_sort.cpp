@@ -88,6 +88,9 @@ size_t CVC4Sort::get_arity() const
 
 SortVec CVC4Sort::get_uninterpreted_param_sorts() const
 {
+  // TODO: enable this once getUninterpretedSortParamSorts is fixed in CVC4
+  throw NotImplementedException(
+      "CVC4 backend does not currently support sort constructors");
   SortVec param_sorts;
   for (auto cs : sort.getUninterpretedSortParamSorts())
   {
