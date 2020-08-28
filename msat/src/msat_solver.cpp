@@ -484,6 +484,12 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort MsatSolver::make_sort(const Sort & uninterp_sort,
+                           const SortVec & sorts) const
+{
+  throw NotImplementedException(
+      "MathSAT does not support uninterpreted sort constructors");
+}
 
 Sort MsatSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("MsatSolver::make_sort");

@@ -44,8 +44,9 @@ class Yices2Sort : public AbsSort
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
-  Datatype get_datatype() const override;
   size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
+  Datatype get_datatype() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override;
   type_t get_ytype() { return type; };

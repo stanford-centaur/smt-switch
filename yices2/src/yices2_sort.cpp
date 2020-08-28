@@ -113,16 +113,22 @@ string Yices2Sort::get_uninterpreted_name() const
       "get_uninterpreted_name not implemented for Yices2Sort");
 }
 
-
-Datatype Yices2Sort::get_datatype() const {
-  throw NotImplementedException("get_datatype");
-};
-
 size_t Yices2Sort::get_arity() const
 {
   // yices2 does not support uninterpreted sorts with non-zero arity
   return 0;
 }
+
+SortVec Yices2Sort::get_uninterpreted_param_sorts() const
+{
+  throw NotImplementedException(
+      "Yices2 does not support uninterpreted sort constructors");
+}
+
+Datatype Yices2Sort::get_datatype() const
+{
+  throw NotImplementedException("get_datatype");
+};
 
 bool Yices2Sort::compare(const Sort s) const
 {
