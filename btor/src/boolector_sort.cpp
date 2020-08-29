@@ -75,11 +75,22 @@ std::string BoolectorSortBase::get_uninterpreted_name() const
       "Boolector doesn't support uninterpreted sorts.");
 }
 
+size_t BoolectorSortBase::get_arity() const
+{
+  throw NotImplementedException(
+      "Boolector does not support uninterpreted sorts");
+}
 
-Datatype BoolectorSortBase::get_datatype() const {
+SortVec BoolectorSortBase::get_uninterpreted_param_sorts() const
+{
+  throw NotImplementedException(
+      "Boolector does not support uninterpreted sorts.");
+}
+
+Datatype BoolectorSortBase::get_datatype() const
+{
   throw NotImplementedException("get_datatype");
 };
-
 
 bool BoolectorSortBase::compare(const Sort s) const
 {

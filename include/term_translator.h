@@ -63,7 +63,7 @@ class TermTranslator
    *  @param the sort transfer
    *  @return a sort belonging to this solver
    */
-  Sort transfer_sort(const Sort & sort) const;
+  Sort transfer_sort(const Sort & sort);
 
   /** Transfers a term from the other solver to this solver
    *  @param term the term to transfer to the member variable solver
@@ -93,7 +93,7 @@ class TermTranslator
    *  called in this function)
    *  @return a term with the given value
    */
-  Term value_from_smt2(const std::string val, const Sort sort) const;
+  Term value_from_smt2(const std::string val, const Sort sort);
   
   /** translates an smtlib representation of a const rational "(/ a b)"
    *  into a infix-style representation of a const rational "a / b"
@@ -142,6 +142,10 @@ class TermTranslator
   // it can still call non-const methods of the solver
   SmtSolver solver;  ///< solver to translate terms to
   UnorderedTermMap cache;
+  // map from uninterpreted sort names to the sort in the destination solver
+  // necessary because it needs to be the same exact uninterpreted sort
+  // cannot recreate it with the same name and get the same object back
+  std::unordered_map<std::string, Sort> uninterpreted_sorts;
 };
 }  // namespace smt
 

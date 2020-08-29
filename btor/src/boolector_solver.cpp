@@ -645,6 +645,14 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort BoolectorSolver::make_sort(const Sort & sort_con,
+                                const SortVec & sorts) const
+
+{
+  throw IncorrectUsageException(
+      "Boolector does not support uninterpreted sort construction");
+}
+
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available

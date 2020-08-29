@@ -93,6 +93,44 @@ TEST_P(UnitSortTests, SortParams)
   // not every solver supports querying function types for domain/codomain yet
 }
 
+TEST_P(UnitSortTests, UninterpretedSort)
+{
+  Sort uninterp_sort;
+  try
+  {
+    uninterp_sort = s->make_sort("declared-sort", 0);
+  }
+  catch (SmtException & e)
+  {
+    // if not supported, that's fine.
+    std::cout << "got exception when declaring sort: " << e.what() << std::endl;
+    return;
+  }
+
+  ASSERT_TRUE(uninterp_sort);
+  EXPECT_EQ(uninterp_sort->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(uninterp_sort->get_arity(), 0);
+
+  // Now try non-zero arity (not supported by very many solvers)
+  Sort sort_cons;
+  try
+  {
+    sort_cons = s->make_sort("sort-con", 4);
+  }
+  catch (SmtException & e)
+  {
+    // if not supported, that's fine.
+    std::cout << "got exception when declaring nonzero arity sort: " << e.what()
+              << std::endl;
+    return;
+  }
+
+  ASSERT_TRUE(sort_cons);
+  // Expecting an uninterpreted constructor sort
+  EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
+  EXPECT_EQ(sort_cons->get_arity(), 4);
+}
+
 TEST_P(UnitSortArithTests, SameSortDiffObj)
 {
   Sort intsort_2 = s->make_sort(INT);

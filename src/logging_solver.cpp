@@ -112,6 +112,24 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return make_logging_sort(sk, sort, sorts);
 }
 
+Sort LoggingSolver::make_sort(const Sort & sort_con,
+                              const SortVec & sorts) const
+{
+  Sort sub_sort_con = static_pointer_cast<LoggingSort>(sort_con)->wrapped_sort;
+
+  // convert to sorts stored by LoggingSorts
+  SortVec sub_sorts;
+  for (auto s : sorts)
+  {
+    sub_sorts.push_back(static_pointer_cast<LoggingSort>(s)->wrapped_sort);
+  }
+
+  Sort ressort = wrapped_solver->make_sort(sub_sort_con, sub_sorts);
+  return make_uninterpreted_logging_sort(ressort,
+                                         sort_con->get_uninterpreted_name(),
+                                         0,  // has zero arity after applied
+                                         sorts);
+}
 
 Sort LoggingSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("LoggingSolver::make_sort");

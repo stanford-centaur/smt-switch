@@ -26,6 +26,10 @@ namespace smt {
 // Sort s is the underlying sort
 // all other sorts are LoggingSorts
 Sort make_uninterpreted_logging_sort(Sort s, std::string name, uint64_t arity);
+Sort make_uninterpreted_logging_sort(Sort s,
+                                     std::string name,
+                                     uint64_t arity,
+                                     const SortVec & sorts);
 Sort make_logging_sort(SortKind sk, Sort s);
 Sort make_logging_sort(SortKind sk, Sort s, uint64_t width);
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1);
@@ -84,6 +88,18 @@ class LoggingSort : public AbsSort
   {
     throw NotImplementedException(
         "get_uninterpreted_name not implemented by generic LoggingSort");
+  }
+
+  size_t get_arity() const override
+  {
+    throw NotImplementedException(
+        "get_arity not implemented by generic LoggingSort");
+  }
+
+  SortVec get_uninterpreted_param_sorts() const override
+  {
+    throw NotImplementedException(
+        "get_uninterpreted_param_sorts not implemented by generic LoggingSort");
   }
 
   Datatype get_datatype() const override
@@ -150,15 +166,22 @@ class UninterpretedLoggingSort : public LoggingSort
 {
  public:
   UninterpretedLoggingSort(Sort s, std::string n, uint64_t a);
+  UninterpretedLoggingSort(Sort s,
+                           std::string n,
+                           uint64_t a,
+                           const SortVec & sorts);
   ~UninterpretedLoggingSort();
 
   typedef LoggingSort super;
 
   std::string get_uninterpreted_name() const override;
+  size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
 
  protected:
   std::string name;
   uint64_t arity;
+  SortVec param_sorts;
 };
 
 }  // namespace smt
