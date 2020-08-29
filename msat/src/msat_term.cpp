@@ -14,6 +14,8 @@
 **
 **/
 
+#include "assert.h"
+
 #include "msat_term.h"
 #include "msat_sort.h"
 
@@ -402,6 +404,18 @@ Op MsatTerm::get_op() const
   else if (is_symbol() || is_value())
   {
     return Op();
+  }
+  else if (msat_term_is_int_from_ubv(env, term))
+  {
+    return Op(BV_To_Nat);
+  }
+  else if (msat_term_is_int_to_bv(env, term))
+  {
+    // need to include the width
+    size_t out_width;
+    bool ok = msat_is_bv_type(env, msat_term_get_type(term), &out_width);
+    assert(ok);
+    return Op(Int_To_BV, out_width);
   }
   else
   {
