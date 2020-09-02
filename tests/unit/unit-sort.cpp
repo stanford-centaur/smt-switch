@@ -44,6 +44,8 @@ class UnitSortTests : public ::testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
+    s->set_opt("produce-models", "true");
+    s->set_opt("incremental", "true");
 
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
@@ -129,6 +131,53 @@ TEST_P(UnitSortTests, UninterpretedSort)
   // Expecting an uninterpreted constructor sort
   EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
   EXPECT_EQ(sort_cons->get_arity(), 4);
+}
+
+TEST_P(UnitSortTests, UninterpSortEquality)
+{
+  if (is_logging_solver_enum(s->get_solver_enum()))
+  {
+    return;
+  }
+
+  Sort uninterp_sort;
+  try
+  {
+    uninterp_sort = s->make_sort("uninterp-sort", 0);
+  }
+  catch (SmtException & e)
+  {
+    std::cout << "got exception for SolverEnum: " << GetParam() << std::endl;
+    return;
+  }
+
+  Term x = s->make_symbol("x", uninterp_sort);
+  Term y = s->make_symbol("y", uninterp_sort);
+  ASSERT_EQ(x->get_sort(), uninterp_sort);
+  ASSERT_EQ(x->get_sort(), y->get_sort());
+
+  s->push();
+  s->make_term(Equal, x, y);
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
+
+  Term xv = s->get_value(x);
+  Term yv = s->get_value(y);
+  s->pop();
+
+  ASSERT_EQ(xv, yv);
+
+  Term xeq = s->make_term(Equal, x, xv);
+  Term yeq = s->make_term(Equal, y, yv);
+
+  std::cout << "xeq: " << xeq << std::endl;
+  std::cout << "yeq: " << yeq << std::endl;
+
+  s->assert_formula(s->make_term(Distinct, x, y));
+  s->assert_formula(xeq);
+  s->assert_formula(yeq);
+  r = s->check_sat();
+  ASSERT_TRUE(r.is_unsat());
 }
 
 TEST_P(UnitSortArithTests, SameSortDiffObj)
