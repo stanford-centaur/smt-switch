@@ -50,10 +50,19 @@ inline void Log(std::string msg)
   }
 }
 
-// term helper methods
-void conjunctive_partition(const smt::Term &term, smt::TermVec &out);
+namespace smt {
 
-void disjunctive_partition(const smt::Term &term, smt::TermVec &out);
+// term helper methods
+void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
+
+void conjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvand = false);
+
+void disjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvor = false);
 
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
+}  // namespace smt
