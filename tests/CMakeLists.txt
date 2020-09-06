@@ -93,6 +93,11 @@ target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op test-deps)
 add_test(NAME unit-op_test COMMAND unit-op)
 
+add_executable(unit-util "${PROJECT_SOURCE_DIR}/tests/unit/unit-util.cpp")
+target_link_libraries(unit-util gtest_main)
+target_link_libraries(unit-util test-deps)
+add_test(NAME unit-util_test COMMAND unit-util)
+
 add_executable(unit-term-hashtable "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-hashtable.cpp")
 target_link_libraries(unit-term-hashtable gtest_main)
 target_link_libraries(unit-term-hashtable test-deps)

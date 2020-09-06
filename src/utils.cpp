@@ -17,6 +17,8 @@
 #include "utils.h"
 #include "ops.h"
 
+namespace smt {
+
 void op_partition(smt::PrimOp o,
                   const smt::Term &term, smt::TermVec &out)
 {
@@ -44,14 +46,60 @@ void op_partition(smt::PrimOp o,
   }
 }
 
-void conjunctive_partition(const smt::Term &term, smt::TermVec &out)
+void conjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvand)
 {
-  op_partition(smt::And, term, out);
+  if (!include_bvand)
+  {
+    op_partition(smt::And, term, out);
+  }
+  else
+  {
+    TermVec tmp;
+    op_partition(smt::And, term, tmp);
+    Sort sort;
+    for (auto tt : tmp)
+    {
+      sort = tt->get_sort();
+      if (sort->get_sort_kind() == BV && sort->get_width() == 1)
+      {
+        op_partition(smt::BVAnd, tt, out);
+      }
+      else
+      {
+        out.push_back(tt);
+      }
+    }
+  }
 }
 
-void disjunctive_partition(const smt::Term &term, smt::TermVec &out)
+void disjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvor)
 {
-  op_partition(smt::Or, term, out);
+  if (!include_bvor)
+  {
+    op_partition(smt::Or, term, out);
+  }
+  else
+  {
+    TermVec tmp;
+    op_partition(smt::Or, term, tmp);
+    Sort sort;
+    for (auto tt : tmp)
+    {
+      sort = tt->get_sort();
+      if (sort->get_sort_kind() == BV && sort->get_width() == 1)
+      {
+        op_partition(smt::BVOr, tt, out);
+      }
+      else
+      {
+        out.push_back(tt);
+      }
+    }
+  }
 }
 
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
@@ -78,3 +126,4 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
   }
 }
 
+}  // namespace smt
