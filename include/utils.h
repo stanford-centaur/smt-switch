@@ -55,10 +55,24 @@ namespace smt {
 // term helper methods
 void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
 
+/** Populates a vector with conjuncts from a term
+ *  @param the term to partition
+ *  @param out the output vector
+ *  @param include_bvand also split on BVAnd over 1-bit signals
+ *         Note: this is mainly for use with Boolector which treats
+ *         booleans as 1-bit bit-vectors. Using this option on a term
+ *         that is known to be boolean will give you the expected
+ *         partition.
+ */
 void conjunctive_partition(const smt::Term & term,
                            smt::TermVec & out,
                            bool include_bvand = false);
 
+/** Populates a vector with disjuncts from a term
+ *  @param the term to partition
+ *  @param out the output vector
+ *  @param include_bvor also split on BVOr over 1-bit signals
+ */
 void disjunctive_partition(const smt::Term & term,
                            smt::TermVec & out,
                            bool include_bvor = false);
