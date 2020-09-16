@@ -18,7 +18,7 @@ target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/build/src")
 target_include_directories (smt-switch-cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 
 if (LIBRT)
-  target_link_libraries(smt-switch-cvc4 LIBRT)
+  target_link_libraries(smt-switch-cvc4 ${LIBRT})
 endif()
 
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/libcvc4.a")
