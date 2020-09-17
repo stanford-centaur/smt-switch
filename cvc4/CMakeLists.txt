@@ -1,5 +1,7 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+find_library(LIBRT rt)
+
 add_library(smt-switch-cvc4 "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_solver.cpp"
@@ -14,6 +16,10 @@ target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/src/include")
 # TEMP only until the internal kinds are no longer part of public API
 target_include_directories (smt-switch-cvc4 PUBLIC "${CVC4_HOME}/build/src")
 target_include_directories (smt-switch-cvc4 PUBLIC ${GMP_INCLUDE_DIR})
+
+if (LIBRT)
+  target_link_libraries(smt-switch-cvc4 ${LIBRT})
+endif()
 
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/libcvc4.a")
 target_link_libraries(smt-switch-cvc4 "${CVC4_HOME}/build/src/parser/libcvc4parser.a")
