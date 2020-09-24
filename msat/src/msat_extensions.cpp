@@ -1,5 +1,23 @@
+/*********************                                                        */
+/*! \file msat_extensions.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Helper functions for certain operations in MathSAT C API
+**
+**
+**/
+
 #ifndef SMT_MSAT_EXTENSIONS_H
 #define SMT_MSAT_EXTENSIONS_H
+
+#include <vector>
 
 #include "mathsat.h"
 
@@ -19,6 +37,31 @@ msat_term ext_msat_make_abs(msat_env e, msat_term t)
   msat_term negone = msat_make_number(e, "-1");
   msat_term neg = msat_make_leq(e, t, negone);
   return msat_make_term_ite(e, neg, ext_msat_make_negate(e, t), t);
+}
+
+msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
+{
+  msat_term res;
+  msat_term div = msat_make_divide(e, t1, t2);
+  msat_term div_floor = msat_make_floor(e, div);
+  msat_term div_ceil = msat_make_plus(e, div_floor, msat_make_number(e, "1"));
+
+  if (msat_term_is_number(e, t2))
+  {
+    mpq_t mval;
+    mpq_init(mval);
+    msat_term_to_number(e, t2, mval);
+    res = (mpq_sgn(mval) >= 0) ? div_floor : div_ceil;
+    mpq_clear(mval);
+  }
+  else
+  {
+    msat_term zero = msat_make_number(e, "0");
+    msat_term t2_pos = msat_make_leq(e, t2, zero);
+    res = msat_make_term_ite(e, t2_pos, div_floor, div_ceil);
+  }
+
+  return res;
 }
 
 msat_term ext_msat_make_nop(msat_env e, msat_term t) { return t; }
@@ -101,12 +144,8 @@ msat_term ext_msat_make_geq(msat_env e, msat_term t0, msat_term t1)
 
 msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
 {
-  throw NotImplementedException("mod not implemented.");
-}
-
-msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
-{
-  throw NotImplementedException("pow not implemented");
+  msat_term t0_div_t1 = ext_msat_make_intdiv(e, t0, t1);
+  return ext_msat_make_minus(e, t0, msat_make_times(e, t1, t0_div_t1));
 }
 
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
@@ -303,6 +342,41 @@ msat_term ext_msat_make_bv_number(msat_env e,
     throw IncorrectUsageException(msg);
   }
 
+  return res;
+}
+
+/**
+ * Wraps msat_make_uf and converts boolean arguments to bitvectors of size 1
+ * because mathsat doesn't support UF over booleans
+ */
+msat_term ext_msat_make_uf(msat_env e,
+                           msat_decl func,
+                           std::vector<msat_term> args)
+{
+  std::vector<msat_term> converted_args;
+  msat_type _type;
+  for (auto a : args)
+  {
+    _type = msat_term_get_type(a);
+    if (msat_is_bool_type(e, _type))
+    {
+      converted_args.push_back(
+          msat_make_term_ite(e,
+                             a,
+                             msat_make_bv_number(e, "1", 1, 2),
+                             msat_make_bv_number(e, "0", 1, 2)));
+    }
+    else
+    {
+      converted_args.push_back(a);
+    }
+  }
+
+  msat_term res = msat_make_uf(e, func, &converted_args[0]);
+  if (MSAT_ERROR_TERM(res))
+  {
+    throw InternalSolverException("Got an error term in function application");
+  }
   return res;
 }
 

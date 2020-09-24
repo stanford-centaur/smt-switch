@@ -13,16 +13,20 @@ Configures the CMAKE build environment.
 -h, --help              display this message and exit
 --prefix=STR            install directory       (default: /usr/local/)
 --btor                  build boolector         (default: off)
+--yices2                build yices2            (default: off)
 --cvc4                  build cvc4              (default: off)
 --msat                  build MathSAT           (default: off)
 --z3			build z3		(default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
+--yices2-home=STR       custom YICES2 location  (default: deps/yices2)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --z3-home=STR		custom Z3 location 	(default: deps/z3)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
+--python                compile with python bindings (default: off)
+--py2                   use python2 interpreter (default: python3)
 EOF
   exit 0
 }
@@ -35,14 +39,18 @@ die () {
 build_dir=build
 install_prefix=default
 build_btor=default
+build_yices2=default
 build_cvc4=default
 build_msat=default
 build_z3=default
 btor_home=default
+yices2_home=default
 cvc4_home=default
 msat_home=default
 z3_home=default
 static=default
+python=default
+py2=default
 
 build_type=Release
 
@@ -62,6 +70,9 @@ do
             ;;
         --btor)
             build_btor=ON
+            ;;
+        --yices2)
+            build_yices2=ON
             ;;
         --cvc4)
             build_cvc4=ON
@@ -110,6 +121,14 @@ do
             case $z3_home in
                 /*) ;;                                      # absolute path
                 *) z3_home=$(pwd)/$z3_home ;; # make absolute path
+        --yices2-home) die "missing argument to $1 (see -h)" ;;
+        --yices2-home=*)
+            yices2_home=${1##*=}
+            # Check if yices2_home is an absolute path and if not, make it
+            # absolute.
+            case $yices2_home in
+                /*) ;;                                      # absolute path
+                *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
             esac
             ;;
         --build-dir) die "missing argument to $1 (see -h)" ;;
@@ -128,10 +147,33 @@ do
         --static)
             static=yes
             ;;
+        --python)
+            python=yes
+            ;;
+        --py2)
+            py2=yes
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
 done
+
+# enable solvers automatically if a custom home is provided
+if [ $btor_home != default -a $build_btor = default ]; then
+    build_btor=ON
+fi
+
+if [ $cvc4_home != default -a $build_cvc4 = default ]; then
+    build_cvc4=ON
+fi
+
+if [ $msat_home != default -a $build_msat = default ]; then
+    build_msat=ON
+fi
+
+if [ $yices2_home != default -a $build_yices2 = default ]; then
+    build_yices2=ON
+fi
 
 cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
@@ -147,8 +189,13 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
+<<<<<<< HEAD
 [ $build_z3 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
+=======
+[ $build_yices2 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
+>>>>>>> 9bafbda74562f86c146a13a4050ab148fe4bb094
 
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
@@ -159,11 +206,22 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
 
+<<<<<<< HEAD
 [ $z3_home != default ] \
     && cmake_opts="$cmake_opts -DZ3_HOME=$z3_home"
+=======
+[ $yices2_home != default ] \
+    && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
+>>>>>>> 9bafbda74562f86c146a13a4050ab148fe4bb094
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"
+
+[ $python != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
+
+[ $py2 != default ] \
+    && cmake_opts="$cmake_opts -DUSE_PYTHON2=ON"
 
 root_dir=$(pwd)
 

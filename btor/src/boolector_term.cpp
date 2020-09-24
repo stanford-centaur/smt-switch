@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file boolector_term.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Boolector implementation of AbsTerm
+**
+**
+**/
+
 #include "boolector_term.h"
 
 // include standard version of open_memstream
@@ -7,8 +23,23 @@ extern "C"
 #include "memstream.h"
 }
 
+#include "assert.h"
 #include <unordered_map>
 #include "stdio.h"
+
+// defining hash for old compilers
+namespace std
+{
+  // specializing template
+  template<>
+  struct hash<BtorNodeKind>
+  {
+    size_t operator()(const BtorNodeKind k) const
+    {
+      return static_cast<size_t>(k);
+    }
+  };
+}
 
 namespace smt {
 
@@ -20,7 +51,9 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     { BTOR_PARAM_NODE, NUM_OPS_AND_NULL },
     { BTOR_BV_SLICE_NODE, Extract },
     { BTOR_BV_AND_NODE, BVAnd },
-    { BTOR_BV_EQ_NODE, BVComp },
+    // note: could also use BVComp because they're indistinguishable
+    // in Boolector, but expect Equal is more common
+    { BTOR_BV_EQ_NODE, Equal },
     { BTOR_FUN_EQ_NODE, Equal },
     { BTOR_BV_ADD_NODE, BVAdd },
     { BTOR_BV_MUL_NODE, BVMul },
@@ -31,8 +64,8 @@ const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
     { BTOR_BV_UREM_NODE, BVUrem },
     { BTOR_BV_CONCAT_NODE, Concat },
     { BTOR_APPLY_NODE, Apply },
-    // {BTOR_FORALL_NODE}, // TODO: implement later
-    // {BTOR_EXISTS_NODE}, // TODO: implement later
+    { BTOR_FORALL_NODE, Forall },
+    { BTOR_EXISTS_NODE, Exists },
     // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully
     // only for quantifiers
     { BTOR_COND_NODE, Ite },
@@ -69,7 +102,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   else if ((k == BTOR_LAMBDA_NODE) && (bn->is_array))
   {
-    op = Op(Const_Array);
+    // constant array is a value -- give it a null operator
+    op = Op();
   }
   else
   {
@@ -98,45 +132,41 @@ void BoolectorTermIter::operator++() { idx++; };
 
 const Term BoolectorTermIter::operator*()
 {
+  assert(idx < children.size());
   BtorNode * res = children[idx];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
     throw SmtException("Should never have an args node in children look up");
   }
 
-  // need to increment reference counter, because accessing child doesn't
-  // increment it
-  //  but BoolectorTerm destructor will release it
-  // use real_addr?
-  if (!btor_node_real_addr(res)->ext_refs)
-  {
-    if (btor_node_is_proxy(res))
-    {
-      res = btor_node_get_simplified(btor, res);
-    }
-    btor_node_inc_ext_ref_counter(btor, res);
-  }
+  // increment internal reference counter
+  res = btor_node_copy(btor, res);
+  // increment external reference counter
+  btor_node_inc_ext_ref_counter(btor, res);
 
-  BoolectorNode * node = boolector_copy(btor, BTOR_EXPORT_BOOLECTOR_NODE(res));
-  Term t(new BoolectorTerm(btor, node));
-  return t;
+  BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
+  return std::make_shared<BoolectorTerm> (btor, node);
 };
+
+TermIterBase * BoolectorTermIter::clone() const
+{
+  return new BoolectorTermIter(btor, children, idx);
+}
 
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
 {
-  return ((btor == it.btor) && (idx == it.idx));
+  return equal(it);
 };
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
 {
-  return ((btor != it.btor) || (idx != it.idx));
+  return !(*this == it);
 };
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
-  // guaranteed to be safe by caller of equal (TermIterBase)
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return ((btor == bti.btor) && (idx == bti.idx));
+  return ((btor == bti.btor) && (idx == bti.idx) && (children == bti.children));
 }
 
 /* end BoolectorTermIter implementation */
@@ -158,8 +188,6 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
     bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
   }
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
-  is_sym =
-      !negated && ((bn->kind == BTOR_VAR_NODE) || (bn->kind == BTOR_UF_NODE));
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -240,9 +268,30 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
+bool BoolectorTerm::is_symbol() const
+{
+  // functions, parameters, and symbolic constants are all symbols
+  auto bkind = bn->kind;
+  return !negated
+         && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE)
+             || (bkind == BTOR_PARAM_NODE));
+}
+
+bool BoolectorTerm::is_param() const
+{
+  return !negated && (bn->kind == BTOR_PARAM_NODE);
+}
+
 bool BoolectorTerm::is_symbolic_const() const
 {
-  return is_sym;
+  // symbolic constant if it's a symbol but not a function
+  // or a parameter
+  // Important Note: Arrays are functions in boolector
+  // Thus, we need to check whether it's a function or an array
+  // because arrays should still be considered symbolic constants
+  // in smt-switch
+  bool is_fun = boolector_is_fun(btor, node) && !boolector_is_array(btor, node);
+  return !is_fun && !is_param() && is_symbol();
 }
 
 bool BoolectorTerm::is_value() const
@@ -253,7 +302,7 @@ bool BoolectorTerm::is_value() const
   return res;
 }
 
-std::string BoolectorTerm::to_string() const
+std::string BoolectorTerm::to_string()
 {
   std::string sres;
 
@@ -263,7 +312,14 @@ std::string BoolectorTerm::to_string() const
   if (sym)
   {
     // has a symbol
-    sres = sym;
+    if (negated)
+    {
+      sres = std::string("(bvnot ") + sym + ")";
+    }
+    else
+    {
+      sres = sym;
+    }
     return sres;
   }
   else if (boolector_is_const(btor, node))
@@ -323,21 +379,94 @@ uint64_t BoolectorTerm::to_int() const
  */
 TermIter BoolectorTerm::begin()
 {
+  collect_children();
+  return TermIter(new BoolectorTermIter(btor, children, 0));
+}
+
+TermIter BoolectorTerm::end()
+{
+  collect_children();
+  return TermIter(new BoolectorTermIter(btor, children, children.size()));
+}
+
+std::string BoolectorTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+
+  BoolectorSort s = boolector_get_sort(btor, node);
+  if (boolector_is_bitvec_sort(btor, s))
+  {
+    uint64_t width = boolector_get_width(btor, node);
+    if (width == 1 && sk == BOOL)
+    {
+      const char * charval = boolector_get_bits(btor, node);
+      std::string bits = charval;
+      boolector_free_bv_assignment(btor, charval);
+      if (bits == "1")
+      {
+        return "true";
+      }
+      else
+      {
+        return "false";
+      }
+    }
+    else
+    {
+      return to_string();
+    }
+  }
+  else
+  {
+    return to_string();
+  }
+}
+
+// helpers
+
+bool BoolectorTerm::is_const_array() const
+{
+  return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
+}
+
+void BoolectorTerm::collect_children()
+{
   if (btor_node_is_proxy(bn))
   {
     bn = btor_node_get_simplified(btor, bn);
+    bn = btor_node_real_addr(bn);
+  }
+  else if (children_cached_)
+  {
+    // children have already been computed on an updated node
+    // can't do this if negated, because arity won't match
+    // boolector will say 0 because it's not considered an operator
+    // but in smt-switch we'd want one child
+    return;
+  }
+
+  if (negated)
+  {
+    // the negated value is the real address stored in bn
+    children.clear();
+    children.push_back(bn);
+    return;
   }
 
   children.clear();
   BtorNode * tmp;
-  for (size_t i = 0; i < bn->arity; ++i)
+  // don't expose the parameter node of the lambda -- start at 1 instead of 0
+  size_t start_idx = is_const_array() ? 1 : 0;
+  assert(!is_const_array() || bn->e[0]->kind == BTOR_PARAM_NODE);
+  for (size_t i = start_idx; i < bn->arity; ++i)
   {
     tmp = bn->e[i];
-    // TODO: figure out if should we do this?
-    // if (btor_node_is_proxy(tmp))
-    // {
-    //   tmp = btor_node_get_simplified(btor, tmp);
-    // }
+    // a non-proxy node should never have proxy children
+    assert(!btor_node_is_proxy(tmp));
     if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
     {
       btor_iter_args_init(&ait, tmp);
@@ -352,78 +481,7 @@ TermIter BoolectorTerm::begin()
     }
   }
 
-  if (negated)
-  {
-    // the negated value is the real address stored in bn
-    children.clear();
-    children.push_back(bn);
-    return TermIter(new BoolectorTermIter(btor, children, 0));
-  }
-  else if (is_const_array())
-  {
-    // constant array case
-    // don't expose the parameter node of the lambda -- start at 1 instead of 0
-    return TermIter(new BoolectorTermIter(btor, children, 1));
-  }
-  else
-  {
-    return TermIter(new BoolectorTermIter(btor, children, 0));
-  }
-}
-
-TermIter BoolectorTerm::end()
-{
-  if (btor_node_is_proxy(bn))
-  {
-    bn = btor_node_get_simplified(btor, bn);
-  }
-
-  if (negated)
-  {
-    BtorNode * e[3];
-    // the negated value is the real address stored in bn
-    e[0] = bn;
-    // vector doesn't matter for end
-    return TermIter(new BoolectorTermIter(btor, std::vector<BtorNode *>{}, 1));
-  }
-  else
-  {
-    BtorNode * tmp;
-    int64_t num_children = 0;
-    for (size_t i = 0; i < bn->arity; ++i)
-    {
-      tmp = bn->e[i];
-      // TODO: figure out if should we do this?
-      // if (btor_node_is_proxy(tmp))
-      // {
-      //   tmp = btor_node_get_simplified(btor, tmp);
-      // }
-      // flatten args nodes (chains of arguments)
-      if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
-      {
-        btor_iter_args_init(&ait, tmp);
-        while (btor_iter_args_has_next(&ait))
-        {
-          btor_iter_args_next(&ait);
-          num_children++;
-        }
-      }
-      else
-      {
-        num_children++;
-      }
-    }
-    // vector doesn't matter for end
-    return TermIter(
-        new BoolectorTermIter(btor, std::vector<BtorNode *>{}, num_children));
-  }
-}
-
-// helpers
-
-bool BoolectorTerm::is_const_array() const
-{
-  return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
+  children_cached_ = true;
 }
 
 /* end BoolectorTerm implementation */

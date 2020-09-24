@@ -1,51 +1,82 @@
-#ifndef SMT_UTILS_H
-#define SMT_UTILS_H
+/*********************                                                        */
+/*! \file utils.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Utility functions.
+**
+**
+**/
+
+#pragma once
 
 #include <iostream>
 #include "assert.h"
 
-#ifdef _DEBUG
-constexpr bool debug_mode = true;
-constexpr bool assertion_mode = true;
-#else
-constexpr bool debug_mode = false;
-constexpr bool assertion_mode = false;
+#include "smt.h"
+
+#ifndef NDEBUG
+#define _ASSERTIONS
 #endif
 
-#if defined(_ASSERTIONS) && !defined(_DEBUG)
-constexpr bool assertion_mode = true;
+#if !defined(NDEBUG) || defined(_ASSERTIONS)
+#define Assert(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
+#define Unreachable() \
+  (void)((__assert("location should be unreachable", __FILE__, __LINE__), 0))
+#else
+#define Assert(EX)
+#define Unreachable()
 #endif
 
 #ifdef _LOGGING_LEVEL
-constexpr std::size_t global_log_level = _LOGGING_LEVEL;
+const std::size_t global_log_level = _LOGGING_LEVEL;
 #else
-constexpr std::size_t global_log_level = 0;
+const std::size_t global_log_level = 0;
 #endif
-
-inline void Assert(bool assertion)
-{
-  if constexpr (assertion_mode)
-  {
-    assert(assertion);
-  }
-}
-
-inline void Unreachable()
-{
-  if constexpr (assertion_mode)
-  {
-    assert(false);
-  }
-}
 
 // logs to stdout
 template <std::size_t lvl>
 inline void Log(std::string msg)
 {
-  if constexpr (global_log_level >= lvl)
+  if (global_log_level >= lvl)
   {
     std::cout << msg << std::endl;
   }
 }
 
-#endif
+namespace smt {
+
+// term helper methods
+void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
+
+/** Populates a vector with conjuncts from a term
+ *  @param the term to partition
+ *  @param out the output vector
+ *  @param include_bvand also split on BVAnd over 1-bit signals
+ *         Note: this is mainly for use with Boolector which treats
+ *         booleans as 1-bit bit-vectors. Using this option on a term
+ *         that is known to be boolean will give you the expected
+ *         partition.
+ */
+void conjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvand = false);
+
+/** Populates a vector with disjuncts from a term
+ *  @param the term to partition
+ *  @param out the output vector
+ *  @param include_bvor also split on BVOr over 1-bit signals
+ */
+void disjunctive_partition(const smt::Term & term,
+                           smt::TermVec & out,
+                           bool include_bvor = false);
+
+void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
+
+}  // namespace smt

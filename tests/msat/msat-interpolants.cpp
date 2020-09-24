@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file msat-interpolants.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -33,9 +49,9 @@ int main()
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
   Term B = s->make_term(Gt, x, z);
   Term I;
-  bool got_interpolant = s->get_interpolant(A, B, I);
+  Result r = s->get_interpolant(A, B, I);
 
-  if (got_interpolant)
+  if (r.is_unsat())
   {
     cout << "Found interpolant: " << I << endl;
   }
@@ -48,9 +64,9 @@ int main()
   // try getting a second interpolant with different A and B
   A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
   B = s->make_term(Lt, x, z);
-  got_interpolant = s->get_interpolant(A, B, I);
+  r = s->get_interpolant(A, B, I);
 
-  if (got_interpolant)
+  if (r.is_unsat())
   {
     cout << "Found interpolant: " << I << endl;
   }
@@ -61,8 +77,8 @@ int main()
   }
 
   // now try a satisfiable formula
-  got_interpolant = s->get_interpolant(A, s->make_term(Gt, x, z), I);
-  assert(!got_interpolant);
+  r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
+  assert(r.is_sat());
 
   return 0;
 }

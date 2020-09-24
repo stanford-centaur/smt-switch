@@ -1,11 +1,27 @@
-#ifndef SMT_SORT_H
-#define SMT_SORT_H
+/*********************                                                        */
+/*! \file sort.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann, Clark Barrett
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Abstract interface for SMT sorts.
+**
+**
+**/
+
+#pragma once
 
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "ops.h"
+#include "datatype.h"
 #include "smt_defs.h"
 
 // Sort needs to have arguments
@@ -23,6 +39,12 @@ enum SortKind
   INT,
   REAL,
   FUNCTION,
+  UNINTERPRETED,
+  // an uninterpreted sort constructor (has non-zero arity and takes subsort
+  // arguments)
+  UNINTERPRETED_CONS,
+  DATATYPE,
+
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array
   */
@@ -51,6 +73,10 @@ class AbsSort
   virtual Sort get_elemsort() const = 0;
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
+  virtual std::string get_uninterpreted_name() const = 0;
+  virtual size_t get_arity() const = 0;
+  virtual std::vector<Sort> get_uninterpreted_param_sorts() const = 0;
+  virtual Datatype get_datatype() const = 0;
   virtual bool compare(const Sort sort) const = 0;
   virtual SortKind get_sort_kind() const = 0;
 };
@@ -59,19 +85,29 @@ bool operator==(const Sort& s1, const Sort& s2);
 bool operator!=(const Sort& s1, const Sort& s2);
 std::ostream& operator<<(std::ostream& output, const Sort s);
 
-// Useful data structures and hashing
-struct SortHashFunction
-{
-  std::size_t operator()(const Sort & s) const
-  {
-    // call the sort's hash function, implemented by solvers
-    return s->hash();
-  }
-};
-
+// Useful typedefs for data structures
 using SortVec = std::vector<Sort>;
-using UnorderedSortSet = std::unordered_set<Sort, SortHashFunction>;
+using UnorderedSortSet = std::unordered_set<Sort>;
 
 }  // namespace smt
 
-#endif
+namespace std
+{
+
+// for old compilers
+template <>
+struct hash<smt::SortKind>
+{
+  size_t operator()(const smt::SortKind & sk) const
+  {
+    return static_cast<std::size_t>(sk);
+  }
+};
+
+template <>
+struct hash<smt::Sort>
+{
+  size_t operator()(const smt::Sort & s) const { return s->hash(); }
+};
+}
+

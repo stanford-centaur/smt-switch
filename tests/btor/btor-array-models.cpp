@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file btor-array-models.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -14,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = BoolectorSolverFactory::create();
+  SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
@@ -32,9 +48,13 @@ int main()
 
   assert(r.is_sat());
 
-  Term arr_val = s->get_value(arr);
+  Term out_const_base;
+  UnorderedTermMap arr_map = s->get_array_values(arr, out_const_base);
 
-  cout << arr_val << endl;
+  for (auto elem : arr_map)
+  {
+    cout << elem.first << ": " << elem.second << endl;
+  }
 
   return 0;
 }

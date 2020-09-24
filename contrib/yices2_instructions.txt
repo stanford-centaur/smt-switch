@@ -1,0 +1,17 @@
+Yices2 is covered under the GPLv3 license. Linking smt-switch against the Yices2 library
+alters the license of smt-switch.
+
+If you choose to link against Yices2, you must obtain the Yices2 library yourself and
+ensure you meet all the license requirements.
+
+To link against the Yices2 library, download Yices2 from
+https://github.com/SRI-CSL/yices2 and place the directory in ./deps.
+
+Then, build the yices2 library:
+cd deps/yices2
+autoconf
+./configure
+make build_dir=build BUILD=build
+
+Now you should be able to build smt-switch with Yices2 as a backend solver by configuring
+smt-switch with the --yices2 flag.

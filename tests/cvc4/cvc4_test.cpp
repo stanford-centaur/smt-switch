@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file cvc4_test.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 
 #include "cvc4_factory.h"
@@ -11,7 +27,7 @@ using namespace smt;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = CVC4SolverFactory::create(false);
   Term x = s->make_symbol("x", s->make_sort(BV, 8));
   Term y = s->make_symbol("y", s->make_sort(BV, 8));
   cout << x->to_string() << endl;

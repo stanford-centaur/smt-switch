@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file btor-substitute.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -14,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = BoolectorSolverFactory::create();
+  SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort4 = s->make_sort(BV, 4);
@@ -45,7 +61,7 @@ int main()
   UnorderedTermSet visited;
   TermVec to_visit({ constraint });
   Term t;
-  int num_consts = 0;
+  int num_symbols = 0;
   while (to_visit.size())
   {
     t = to_visit.back();
@@ -58,15 +74,15 @@ int main()
         to_visit.push_back(c);
       }
 
-      if (t->is_symbolic_const())
+      if (t->is_symbol())
       {
-        num_consts++;
+        ++num_symbols;
         cout << "checking " << t << endl;
         assert(orig_set.find(t) != orig_set.end());
       }
     }
   }
-  assert(num_consts == orig_set.size());
+  assert(num_symbols == orig_set.size());
 
   cout << endl;
 
@@ -78,7 +94,7 @@ int main()
   visited.clear();
   to_visit.clear();
   to_visit.push_back(timed_constraint);
-  num_consts = 0;
+  num_symbols = 0;
   while (to_visit.size())
   {
     t = to_visit.back();
@@ -91,15 +107,15 @@ int main()
         to_visit.push_back(c);
       }
 
-      if (t->is_symbolic_const())
+      if (t->is_symbol())
       {
-        num_consts++;
+        ++num_symbols;
         cout << "checking " << t << endl;
         assert(timed_set.find(t) != timed_set.end());
       }
     }
   }
-  assert(num_consts == timed_set.size());
+  assert(num_symbols == timed_set.size());
 
   return 0;
 }

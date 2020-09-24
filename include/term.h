@@ -1,13 +1,31 @@
-#ifndef SMT_TERM_H
-#define SMT_TERM_H
+/*********************                                                        */
+/*! \file term.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann, Clark Barrett
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Abstract interface for SMT terms.
+**
+**
+**/
+
+#pragma once
 
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#include "ops.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 
@@ -28,7 +46,11 @@ class AbsTerm
   /* get the sort */
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
-  virtual std::string to_string() const = 0;
+  virtual std::string to_string() = 0;
+  /* returns true iff this term is a symbol */
+  virtual bool is_symbol() const = 0;
+  /* returns true iff this term is a parameter (to be bound by a quantifier) */
+  virtual bool is_param() const = 0;
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */
@@ -45,7 +67,27 @@ class AbsTerm
    *  ends iteration through Term's children
    */
   virtual TermIter end() = 0;
-  // TODO Add other convenient term methods
+
+  // Methods used for strange edge-cases e.g. in the logging solver
+
+  /** Print a value term in a specific form
+   *  NOTE: this *only* exists for use in LoggingSolver
+   *        it is to handle printing of values from solvers that alias
+   *        sorts. For example, if Bool and (_ BitVec 1) are aliased,
+   *        this can be used to print #b1 as true.
+   *
+   *  This method canNOT be used to convert arbitrarily, e.g.
+   *  it cannot print a bitvector as an integer.
+   *
+   *  Thus, solvers that don't alias sorts can just use their to_string
+   *  to implement this method
+   *
+   *  @param sk the SortKind to print the term as
+   *  @param a string representation of the term
+   *
+   *  throws an exception if the term is not a value
+   */
+  virtual std::string print_value_as(SortKind sk) = 0;
 };
 
 bool operator==(const Term& t1, const Term& t2);
@@ -62,16 +104,25 @@ class TermIterBase
   virtual ~TermIterBase() {}
   virtual void operator++() {}
   const virtual Term operator*();
-  virtual TermIterBase* clone() const { return new TermIterBase(*this); }
+  virtual TermIterBase * clone() const = 0;
   bool operator==(const TermIterBase& other) const;
 
  protected:
-  virtual bool equal(const TermIterBase& other) const { return true; }
+  virtual bool equal(const TermIterBase & other) const = 0;
 };
 
 class TermIter
 {
  public:
+  // typedefs for marking as an input iterator
+  // based on iterator_traits: https://en.cppreference.com/w/cpp/iterator/iterator_traits
+  // used by the compiler for statements such as: TermVec children(term->begin(), term->end())
+  typedef Term value_type;
+  typedef std::ptrdiff_t difference_type;
+  typedef Term * pointer;
+  typedef Term & reference;
+  typedef std::input_iterator_tag iterator_category;
+
   TermIter() : iter_(0) {}
   TermIter(TermIterBase* tib) : iter_(tib) {}
   ~TermIter() { delete iter_; }
@@ -87,22 +138,26 @@ class TermIter
   TermIterBase* iter_;
 };
 
-// Useful data structures and hashing
-struct TermHashFunction
-{
-  std::size_t operator()(const Term & t) const
-  {
-    // call the term's hash function, implemented by solvers
-    return t->hash();
-  }
-};
+// useful typedefs for data structures
 using TermVec = std::vector<Term>;
-using UnorderedTermSet = std::unordered_set<Term, TermHashFunction>;
-using UnorderedTermMap = std::unordered_map<Term, Term, TermHashFunction>;
+using UnorderedTermSet = std::unordered_set<Term>;
+using UnorderedTermMap = std::unordered_map<Term, Term>;
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
 inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
 
-#endif
+namespace std
+{
+  // Specialize the hash function for data structures
+  template<>
+  struct hash<smt::Term>
+  {
+    size_t operator()(const smt::Term & t) const
+    {
+      return t->hash();
+    }
+  };
+}
+

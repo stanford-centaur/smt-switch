@@ -1,3 +1,21 @@
+/*********************                                                        */
+/*! \file msat_term.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief MathSAT implementation of AbsTerm
+**
+**
+**/
+
+#include "assert.h"
+
 #include "msat_term.h"
 #include "msat_sort.h"
 
@@ -5,6 +23,19 @@
 #include "ops.h"
 
 #include <unordered_map>
+
+namespace std
+{
+  // defining hash for old compilers
+  template<>
+  struct hash<msat_symbol_tag>
+  {
+    size_t operator()(const msat_symbol_tag t) const
+    {
+      return static_cast<size_t>(t);
+    }
+  };
+}
 
 using namespace std;
 
@@ -52,9 +83,12 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     { MSAT_TAG_BV_SEXT, Sign_Extend },
     { MSAT_TAG_ARRAY_READ, Select },
     { MSAT_TAG_ARRAY_WRITE, Store },
-    { MSAT_TAG_ARRAY_CONST, Const_Array },
+    { MSAT_TAG_ARRAY_CONST,
+      NUM_OPS_AND_NULL },  // Const Array is a value (no op)
     { MSAT_TAG_INT_TO_BV, Int_To_BV },
     { MSAT_TAG_INT_FROM_UBV, BV_To_Nat },
+    { MSAT_TAG_FORALL, Forall },
+    { MSAT_TAG_EXISTS, Exists },
     // MSAT_TAG_FP_EQ,
     // MSAT_TAG_FP_LT,
     // MSAT_TAG_FP_LE,
@@ -106,7 +140,7 @@ const Term MsatTermIter::operator*()
 {
   if (!pos && msat_term_is_uf(env, term))
   {
-    return Term(new MsatTerm(env, msat_term_get_decl(term)));
+    return std::make_shared<MsatTerm> (env, msat_term_get_decl(term));
   }
   else
   {
@@ -115,23 +149,61 @@ const Term MsatTermIter::operator*()
     {
       actual_idx--;
     }
-    return Term(new MsatTerm(env, msat_term_get_arg(term, actual_idx)));
+
+    return std::make_shared<MsatTerm>(env, msat_term_get_arg(term, actual_idx));
   }
+}
+
+TermIterBase * MsatTermIter::clone() const
+{
+  return new MsatTermIter(env, term, pos);
 }
 
 bool MsatTermIter::operator==(const MsatTermIter & it)
 {
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
+  {
+    return true;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
   return ((msat_term_id(term) == msat_term_id(it.term)) && (pos == it.pos));
 }
 
 bool MsatTermIter::operator!=(const MsatTermIter & it)
 {
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
+  {
+    return false;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
+
   return ((msat_term_id(term) != msat_term_id(it.term)) || (pos != it.pos));
 }
 
 bool MsatTermIter::equal(const TermIterBase & other) const
 {
   const MsatTermIter & cti = static_cast<const MsatTermIter &>(other);
+
+  // null terms mean you're iterating over a function symbol
+  // it has no children, so the two iterators should be considered equal
+  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(cti.term))
+  {
+    return true;
+  }
+  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(cti.term))
+  {
+    throw SmtException("Undefined TermIter comparison (not from same term)");
+  }
   return ((msat_term_id(term) == msat_term_id(cti.term)) && (pos == cti.pos));
 }
 
@@ -171,7 +243,12 @@ bool MsatTerm::compare(const Term & absterm) const
 
 Op MsatTerm::get_op() const
 {
-  if (msat_term_is_and(env, term))
+  if (is_uf)
+  {
+    // uninterpreted function has no op
+    return Op();
+  }
+  else if (msat_term_is_and(env, term))
   {
     return Op(And);
   }
@@ -229,7 +306,8 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_array_const(env, term))
   {
-    return Op(Const_Array);
+    // constant array is a value (has a null operator)
+    return Op();
   }
   else if (msat_term_is_bv_concat(env, term))
   {
@@ -315,9 +393,29 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
-  else if (is_symbolic_const() || is_value())
+  else if (msat_term_is_forall(env, term))
+  {
+    return Op(Forall);
+  }
+  else if (msat_term_is_exists(env, term))
+  {
+    return Op(Exists);
+  }
+  else if (is_symbol() || is_value())
   {
     return Op();
+  }
+  else if (msat_term_is_int_from_ubv(env, term))
+  {
+    return Op(BV_To_Nat);
+  }
+  else if (msat_term_is_int_to_bv(env, term))
+  {
+    // need to include the width
+    size_t out_width;
+    bool ok = msat_is_bv_type(env, msat_term_get_type(term), &out_width);
+    assert(ok);
+    return Op(Int_To_BV, out_width);
   }
   else
   {
@@ -359,7 +457,7 @@ Sort MsatTerm::get_sort() const
 {
   if (!is_uf)
   {
-    return Sort(new MsatSort(env, msat_term_get_type(term)));
+    return std::make_shared<MsatSort> (env, msat_term_get_type(term));
   }
   else
   {
@@ -382,12 +480,18 @@ Sort MsatTerm::get_sort() const
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
 
-    return Sort(new MsatSort(env, funtype, decl));
+    return std::make_shared<MsatSort> (env, funtype, decl);
   }
 }
 
-bool MsatTerm::is_symbolic_const() const
+bool MsatTerm::is_symbol() const
 {
+  // functions are currently considered symbols
+  if (is_uf)
+  {
+    return true;
+  }
+
   // a symbolic constant is a term with no children and no built-in
   // interpretation
   return (
@@ -396,8 +500,26 @@ bool MsatTerm::is_symbolic_const() const
       && !msat_term_is_number(env, term));
 }
 
+bool MsatTerm::is_param() const { return msat_term_is_variable(env, term); }
+
+bool MsatTerm::is_symbolic_const() const
+{
+  // functions and parameters are not constants
+  if (is_uf || is_param())
+  {
+    return false;
+  }
+
+  return is_symbol();
+}
+
 bool MsatTerm::is_value() const
 {
+  if (is_uf)
+  {
+    return false;
+  }
+
   // value if it has no children and a built-in interpretation
   return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
           || msat_term_is_false(env, term) ||
@@ -405,7 +527,7 @@ bool MsatTerm::is_value() const
           msat_term_is_array_const(env, term));
 }
 
-string MsatTerm::to_string() const
+string MsatTerm::to_string()
 {
   if (is_uf)
   {
@@ -413,7 +535,13 @@ string MsatTerm::to_string() const
     {
       throw SmtException("Can't get representation for MathSAT error decl!");
     }
-    return msat_decl_repr(decl);
+    string repr = msat_decl_repr(decl);
+    size_t idx = repr.find(":");
+    if (idx != string::npos)
+    {
+      repr = repr.substr(0, idx);
+    }
+    return repr;
   }
   else
   {
@@ -465,6 +593,13 @@ TermIter MsatTerm::begin() { return TermIter(new MsatTermIter(env, term, 0)); }
 
 TermIter MsatTerm::end()
 {
+  if (is_uf)
+  {
+    // term is null, but begin() and end() TermIter will evaluate as equal
+    // which is what we want because function symbols have no children
+    return TermIter(new MsatTermIter(env, term, 0));
+  }
+
   uint32_t arity = msat_term_arity(term);
   if (msat_term_is_uf(env, term))
   {
@@ -472,6 +607,16 @@ TermIter MsatTerm::end()
     arity++;
   }
   return TermIter(new MsatTermIter(env, term, arity));
+}
+
+std::string MsatTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+  return to_string();
 }
 
 // end MsatTerm implementation

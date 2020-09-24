@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file cvc4-indexed-op-tests.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -14,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create();
+  SmtSolver s = CVC4SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort9 = s->make_sort(BV, 9);
   Term x = s->make_symbol("x", bvsort9);

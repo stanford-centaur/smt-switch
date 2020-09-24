@@ -1,5 +1,20 @@
-#ifndef SMT_BOOLECTOR_TERM_H
-#define SMT_BOOLECTOR_TERM_H
+/*********************                                                        */
+/*! \file boolector_term.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Boolector implementation of AbsTerm
+**
+**
+**/
+
+#pragma once
 
 #include <vector>
 
@@ -41,6 +56,7 @@ class BoolectorTermIter : public TermIterBase
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   const Term operator*() override;
+  TermIterBase * clone() const override;
   bool operator==(const BoolectorTermIter & it);
   bool operator!=(const BoolectorTermIter & it);
 
@@ -62,14 +78,17 @@ class BoolectorTerm : public AbsTerm
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
-  virtual std::string to_string() const override;
+  virtual std::string to_string() override;
   uint64_t to_int() const override;
   /** Iterators for traversing the children
    */
   TermIter begin() override;
   TermIter end() override;
+  std::string print_value_as(SortKind sk) override;
 
  protected:
   Btor * btor;
@@ -82,15 +101,20 @@ class BoolectorTerm : public AbsTerm
   BtorNode * bn;
   // true iff the node is negated
   bool negated;
-  // true iff the node is a symbolic constant
-  bool is_sym;
   // for iterating args nodes
   BtorArgsIterator ait;
   // for storing nodes before iterating
   std::vector<BtorNode *> children;
+  // flag that's set to true if children have already been gathered
+  // not straightforward to just rely on number of children / arity
+  // because boolector term representation isn't a perfect match
+  // for the smt-switch abstract interface
+  bool children_cached_ =
+      false;  ///< set to true if children have already been gathered
 
   // helpers
   bool is_const_array() const;
+  void collect_children();
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;
@@ -98,4 +122,3 @@ class BoolectorTerm : public AbsTerm
 
 }  // namespace smt
 
-#endif

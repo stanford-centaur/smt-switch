@@ -1,24 +1,45 @@
-#include "msat_factory.h"
+/*********************                                                        */
+/*! \file msat_factory.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Factory for creating a MathSAT SmtSolver
+**
+**
+**/
 
+#include "msat_factory.h"
 #include "msat_solver.h"
+
+#include "logging_solver.h"
 
 namespace smt {
 
 /* MsatSolverFactory implementation */
 
-SmtSolver MsatSolverFactory::create()
+SmtSolver MsatSolverFactory::create(bool logging)
 {
   MsatSolver * ms = new MsatSolver();
   ms->setup_env();
-  std::unique_ptr<MsatSolver> s(ms);
-  return s;
+  SmtSolver solver(ms);
+  if (logging)
+  {
+    solver = std::make_shared<LoggingSolver>(solver);
+  }
+  return solver;
 }
 
 SmtSolver MsatSolverFactory::create_interpolating_solver()
 {
   MsatInterpolatingSolver * mis = new MsatInterpolatingSolver();
   mis->setup_env();
-  std::unique_ptr<MsatInterpolatingSolver> s(mis);
+  std::shared_ptr<MsatInterpolatingSolver> s(mis);
   return s;
 }
 

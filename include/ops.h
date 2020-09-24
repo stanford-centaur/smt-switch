@@ -1,8 +1,24 @@
-#ifndef SMT_OPS_H
-#define SMT_OPS_H
+/*********************                                                        */
+/*! \file ops.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann, Clark Barrett
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief All the builtin operators.
+**
+**
+**/
+
+#pragma once
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 namespace smt {
 
@@ -36,6 +52,7 @@ enum PrimOp
   Mod,
   Abs,
   Pow,
+  IntDiv,
   // Int/Real Conversion and Queries
   To_Real,
   To_Int,
@@ -51,7 +68,6 @@ enum PrimOp
   BVNand,
   BVNor,
   BVXnor,
-  BVComp,
   BVAdd,
   BVSub,
   BVMul,
@@ -63,6 +79,7 @@ enum PrimOp
   BVShl,
   BVAshr,
   BVLshr,
+  BVComp,
   BVUlt,
   BVUle,
   BVUgt,
@@ -82,7 +99,18 @@ enum PrimOp
   /* Array Theory */
   Select,
   Store,
-  Const_Array,
+  /* Quantifiers */
+  // quantifiers only bind a single parameter to simplify term iteration
+  // e.g. the solvers don't align well on the representation unless only one
+  // parameter is bound
+  Forall,  ///< used to bind *one* parameter in a formula with a universal
+           ///< quantifier
+  Exists,  ///< used to bind *one* parameter in a formula with an existential
+           ///< quanifier
+  /* Datatype Theory */
+  Apply_Selector,
+  Apply_Tester,
+  Apply_Constructor,
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */
@@ -101,11 +129,18 @@ struct Op
   Op(PrimOp o, uint64_t idx0, uint64_t idx1)
       : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1){};
   std::string to_string() const;
+  bool is_null() const;
   PrimOp prim_op;
   uint64_t num_idx;
   uint64_t idx0;
   uint64_t idx1;
 };
+
+/** Looks up the expected arity of a PrimOp
+ *  @return a tuple with the minimum and maximum
+ *          accepted arity (in that order)
+ */
+std::pair<size_t, size_t> get_arity(PrimOp po);
 
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);
@@ -114,4 +149,17 @@ std::ostream& operator<<(std::ostream& output, const Op o);
 
 }  // namespace smt
 
-#endif
+// defining hash for old compilers
+namespace std
+{
+  // specialize the hash template
+  template<>
+    struct hash<smt::PrimOp>
+    {
+      size_t operator()(const smt::PrimOp o) const
+      {
+        return static_cast<std::size_t>(o);
+      }
+    };
+}
+

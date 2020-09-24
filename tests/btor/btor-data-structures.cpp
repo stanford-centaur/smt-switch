@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file btor-data-structures.cpp
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief
+**
+**
+**/
+
 #include <iostream>
 #include <string>
 #include "assert.h"
@@ -15,7 +31,8 @@ int main()
 {
   unsigned int NUM_TERMS = 20;
 
-  SmtSolver s = BoolectorSolverFactory::create();
+  // Create a LoggingSolver version
+  SmtSolver s = BoolectorSolverFactory::create(true);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
 
@@ -106,7 +123,10 @@ int main()
   sset.insert(s3);
 
   cout << "sset size is: " << sset.size() << endl;
-  assert(sset.size() == 3); // only three because boolector treats bool and bv{1} the same
+  // boolector wold alias bool and BV{1}, but the LoggingSolver
+  // wrapper will distinguish!
+  // So, we expect 4 sorts
+  assert(sset.size() == 4);
 
   return 0;
 }
