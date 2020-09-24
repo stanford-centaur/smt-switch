@@ -121,6 +121,8 @@ do
             case $z3_home in
                 /*) ;;                                      # absolute path
                 *) z3_home=$(pwd)/$z3_home ;; # make absolute path
+	    esac
+	    ;;
         --yices2-home) die "missing argument to $1 (see -h)" ;;
         --yices2-home=*)
             yices2_home=${1##*=}
@@ -189,13 +191,11 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
-<<<<<<< HEAD
 [ $build_z3 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
-=======
+
 [ $build_yices2 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
->>>>>>> 9bafbda74562f86c146a13a4050ab148fe4bb094
 
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
@@ -206,13 +206,11 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
 
-<<<<<<< HEAD
 [ $z3_home != default ] \
     && cmake_opts="$cmake_opts -DZ3_HOME=$z3_home"
-=======
+
 [ $yices2_home != default ] \
     && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
->>>>>>> 9bafbda74562f86c146a13a4050ab148fe4bb094
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"
