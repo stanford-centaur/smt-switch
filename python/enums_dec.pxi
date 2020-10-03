@@ -7,6 +7,8 @@ cdef extern from "ops.h" namespace "smt":
     cdef cppclass c_PrimOp "smt::PrimOp":
         pass
 
+
+cdef extern from "result.h" namespace "smt":
     cdef cppclass c_ResultType "smt::ResultType":
         pass
 
@@ -20,6 +22,40 @@ cdef extern from "sort.h" namespace "smt":
     cdef c_SortKind c_FUNCTION "smt::FUNCTION"
     string to_string(c_SortKind sk) except +
 
+
+cdef extern from "solver_enums.h" namespace "smt":
+    cdef cppclass c_SolverEnum "smt::SolverEnum":
+            pass
+
+    cdef c_SolverEnum c_BTOR "smt::BTOR"
+    cdef c_SolverEnum c_CVC4 "smt::CVC4"
+    cdef c_SolverEnum c_MSAT "smt::MSAT"
+    cdef c_SolverEnum c_YICES2 "smt::YICES2"
+    cdef c_SolverEnum c_BTOR_LOGGING "smt::BTOR_LOGGING"
+    cdef c_SolverEnum c_CVC4_LOGGING "smt::CVC4_LOGGING"
+    cdef c_SolverEnum c_MSAT_LOGGING "smt::MSAT_LOGGING"
+    cdef c_SolverEnum c_YICES2_LOGGING "smt::YICES2_LOGGING"
+    cdef c_SolverEnum c_MSAT_INTERPOLATOR "smt::MSAT_INTERPOLATOR"
+
+    string to_string(c_SolverEnum se) except +
+
+    cdef cppclass c_SolverAttribute "smt::SolverAttribute":
+        pass
+
+    cdef c_SolverAttribute c_LOGGING "smt::LOGGING"
+    cdef c_SolverAttribute c_TERMITER "smt::TERMITER"
+    cdef c_SolverAttribute c_THEORY_INT "smt::THEORY_INT"
+    cdef c_SolverAttribute c_THEORY_REAL "smt::THEORY_REAL"
+    cdef c_SolverAttribute c_ARRAY_MODELS "smt::ARRAY_MODELS"
+    cdef c_SolverAttribute c_CONSTARR "smt::CONSTARR"
+    cdef c_SolverAttribute c_FULL_TRANSFER "smt::FULL_TRANSFER"
+    cdef c_SolverAttribute c_ARRAY_FUN_BOOLS "smt::ARRAY_FUN_BOOLS"
+    cdef c_SolverAttribute c_UNSAT_CORE "smt::UNSAT_CORE"
+    cdef c_SolverAttribute c_THEORY_DATATYPE "smt::THEORY_DATATYPE"
+    cdef c_SolverAttribute c_QUANTIFIERS "smt::QUANTIFIERS"
+    cdef c_SolverAttribute c_BOOL_BV1_ALIASING "smt::BOOL_BV1_ALIASING"
+
+    string to_string(c_SolverAttribute sa) except +
 
 cdef extern from "ops.h" namespace "smt":
     cdef c_PrimOp c_And "smt::And"
@@ -99,7 +135,7 @@ cdef extern from "ops.h" namespace "smt":
     string to_string(c_PrimOp op) except +
 
 
-cdef extern from "ops.h" namespace "smt":
+cdef extern from "result.h" namespace "smt":
     cdef c_ResultType SAT
     cdef c_ResultType UNSAT
     cdef c_ResultType UNKNOWN
@@ -107,6 +143,14 @@ cdef extern from "ops.h" namespace "smt":
 
 cdef class SortKind:
     cdef c_SortKind sk
+
+
+cdef class SolverEnum:
+    cdef c_SolverEnum se
+
+
+cdef class SolverAttribute:
+    cdef c_SolverAttribute sa
 
 
 cdef class PrimOp:
