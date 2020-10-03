@@ -111,6 +111,8 @@ enum PrimOp
   Apply_Selector,
   Apply_Tester,
   Apply_Constructor,
+  // TODO if adding new operator, also add to Python bindings in enums_dec.pxi
+  // and enums_imp.pxi
   /**
      Serves as both the number of ops and a null element for builtin operators.
    */

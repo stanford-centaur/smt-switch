@@ -192,4 +192,37 @@ std::string to_string(SolverEnum e)
   return ostr.str();
 }
 
+std::ostream & operator<<(std::ostream & o, SolverAttribute a)
+{
+  switch (a)
+  {
+    case LOGGING: o << "LOGGING"; break;
+    case TERMITER: o << "TERMITER"; break;
+    case THEORY_INT: o << "THEORY_INT"; break;
+    case THEORY_REAL: o << "THEORY_REAL"; break;
+    case ARRAY_MODELS: o << "ARRAY_MODELS"; break;
+    case CONSTARR: o << "CONSTARR"; break;
+    case FULL_TRANSFER: o << "FULL_TRANSFER"; break;
+    case ARRAY_FUN_BOOLS: o << "ARRAY_FUN_BOOLS"; break;
+    case UNSAT_CORE: o << "UNSAT_CORE"; break;
+    case THEORY_DATATYPE: o << "THEORY_DATATYPE"; break;
+    case QUANTIFIERS: o << "QUANTIFIERS"; break;
+    case BOOL_BV1_ALIASING: o << "BOOL_BV1_ALIASING"; break;
+    default:
+      // should print the integer representation
+      throw NotImplementedException("Unknown SolverAttribute: "
+                                    + std::to_string(a));
+      break;
+  }
+
+  return o;
+}
+
+std::string to_string(SolverAttribute a)
+{
+  ostringstream ostr;
+  ostr << a;
+  return ostr.str();
+}
+
 }  // namespace smt
