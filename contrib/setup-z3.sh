@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Z3_VERSION=724a42b6f28f1c25b2b05a21e5947f11015612be
+Z3_VERSION=6cc52e04c3ea7e2534644a285d231bdaaafd8714
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
@@ -14,7 +14,6 @@ if [ ! -d "$DEPS/z3" ]; then
     cd z3
     git checkout -f $Z3_VERSION
     ./configure --staticlib
-    python scripts/mk_make.py
     cd build
     make -j$(nproc)
     cd $DIR
