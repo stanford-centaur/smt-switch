@@ -268,6 +268,7 @@ function(python_extension_module _target)
     # linux doesn't need to link against python libraries
     if (APPLE)
         # determine linkage of python
+        # see https://github.com/upscale-project/pono/issues/92 for context
         execute_process(
             COMMAND
             ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
@@ -277,8 +278,6 @@ function(python_extension_module _target)
         if(Py_ENABLE_SHARED)
           target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
         else()
-          # can't link against libpython, 
-          # see https://github.com/upscale-project/pono/issues/92 for context
           set_target_properties(${_target} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
         endif()
     endif()
