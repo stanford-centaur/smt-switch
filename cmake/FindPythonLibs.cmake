@@ -265,9 +265,20 @@ function(python_extension_module _target)
       set_target_properties(${_target} PROPERTIES SUFFIX ".pyd")
     endif()
 
+    # linux doesn't need to link against python libraries
     if (APPLE)
-        # linux doesn't need to link against python libraries
-        target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
+        # determine linkage of python
+        execute_process(
+            COMMAND
+            ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_config_var('Py_ENABLE_SHARED'))"
+            OUTPUT_VARIABLE Py_ENABLE_SHARED
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(Py_ENABLE_SHARED)
+          target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
+        else()
+          set_target_properties(${_target} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+        endif()
     endif()
   endif()
 endfunction()
