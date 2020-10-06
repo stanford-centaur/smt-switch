@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
@@ -46,9 +46,9 @@ option (USE_PYTHON2
 if (BUILD_PYTHON_BINDINGS)
   if (USE_PYTHON2)
     message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
-    find_package(PythonInterp 2.7 REQUIRED)
+    find_package (Python2 COMPONENTS Interpreter Development)
   else()
-    find_package(PythonInterp 3 REQUIRED)
+    find_package (Python3 COMPONENTS Interpreter Development)
   endif()
 endif()
 

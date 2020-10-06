@@ -54,6 +54,7 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * Java [optional: CVC4 ANTLR]
 * Python [optional: Python bindings]
 * Cython >= 0.29 [optional: Python bindings]
+* [Scikit-Build CMake Modules](https://github.com/scikit-build/scikit-build/tree/master/skbuild) [optional: Python bindings]
 
 # Operating Systems
 
@@ -91,7 +92,7 @@ You can build tests with `make test` from the build directory. After you have a 
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
 
 # Python bindings
-To compile python bindings, use the `--python` flag of `configure.sh`. By adding the flag `--py2`, you can ask CMake to use `python2`; however, this is not tested with CI. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that by default, it uses `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+First make sure that the `scikit-build` repository has been pulled for the CMake modules - use `./contrib/setup-skbuild.sh`. Then, to compile python bindings, use the `--python` flag of `configure.sh`. By adding the flag `--py2`, you can ask CMake to use `python2`; however, this is not tested with CI. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that by default, it uses `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
 
 ## Testing python bindings
 Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). This can be installed using `pip` and is automatically installed if you use the `setup.py` install from the `build` directory. To run all tests, simply run `pytest ./tests` from the top-level directory. Note, running `pytest` alone might unnecessarily run tests in dependencies located in subdirectories. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.
