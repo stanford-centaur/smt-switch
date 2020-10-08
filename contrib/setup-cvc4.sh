@@ -2,7 +2,6 @@
 
 CVC4_VERSION=35d080bfb56ff96fd41b31ce7025c019193f6abc
 
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
