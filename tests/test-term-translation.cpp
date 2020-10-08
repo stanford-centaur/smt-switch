@@ -133,9 +133,7 @@ TEST_P(SelfTranslationTests, BVTransfer)
 
 TEST_P(SelfTranslationIntTests, IntTransfer)
 {
-  std::cout << "panda 1 x = " << x << std::endl;
   SmtSolver s2 = create_solver(GetParam());
-  std::cout << "panda 2 x = " << x << std::endl;
   TermTranslator tt(s2);
 
   Term xpy = s->make_term(Plus, x, y);
