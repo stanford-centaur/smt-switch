@@ -370,7 +370,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   try
   {
     UnorderedTermMap assignments;
-        out_const_base = nullptr;
+    out_const_base = nullptr;
     CVC4::api::Term carr = std::static_pointer_cast<CVC4Term>(arr)->term;
     // get the array value
     // CVC4 returns a sequence of stores
@@ -403,6 +403,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
       indices.pop_back();
       values.pop_back();
     }
+
     return assignments;
   }
   catch (CVC4::api::CVC4ApiException & e)
@@ -427,8 +428,6 @@ void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
     throw InternalSolverException(e.what());
   }
 }
-
-
 
 Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
@@ -1010,6 +1009,5 @@ Result CVC4InterpolatingSolver::get_interpolant(const Term & A,
     return UNKNOWN;
   }
 }
-// begin CVC4InterpolatingSolver implementation
-}
 
+}

@@ -1,4 +1,4 @@
-/*********************                                                        */
+/***************************************************************************/
 /*! \file cvc4-interpolants.cpp
 ** \verbatim
 ** Top contributors (to current version):
@@ -46,7 +46,7 @@ int main()
   {
     cout << e.what() << endl;
   }
-  
+
   // x<y /\ y<z
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
   // x<z

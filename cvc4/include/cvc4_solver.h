@@ -118,7 +118,7 @@ class CVC4Solver : public AbsSmtSolver
 //Interpolating Solver
 class CVC4InterpolatingSolver : public CVC4Solver
 {
-  public: 
+  public:
     CVC4InterpolatingSolver() {}
     CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
     CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;

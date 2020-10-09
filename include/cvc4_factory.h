@@ -32,7 +32,7 @@ namespace smt {
      *  @return a CVC4 SmtSolver
      */
     static SmtSolver create(bool logging);
-    
+
     /** Create an interpolating CVC4 SmtSolver
      *  @return an interpolating CVC4 SmtSolver
      */

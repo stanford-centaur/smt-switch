@@ -43,9 +43,7 @@ int main()
   }
   catch (IncorrectUsageException & e)
   {
-    cout << "hi " << endl;
     cout << e.what() << endl;
-    cout << "bi " << endl;
   }
 
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
