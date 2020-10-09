@@ -122,6 +122,46 @@ SmtSolver create_solver(SolverEnum se)
   }
 }
 
+SmtSolver create_solver(SolverConfiguration sc)
+{
+  SolverEnum se = sc.get_solver_enum();
+  bool logging = sc.get_is_logging_solver();
+  switch (se)
+  {
+#if BUILD_BTOR
+    case BTOR: {
+      return BoolectorSolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_CVC4
+    case CVC4: {
+      return CVC4SolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_MSAT
+    case MSAT: {
+      return MsatSolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_YICES2
+    case YICES2: {
+      return Yices2SolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+    default: {
+      throw SmtException("Unhandled solver enum");
+    }
+  }
+}
+
 SmtSolver create_interpolating_solver(SolverEnum se)
 {
   switch (se)
@@ -146,6 +186,23 @@ const std::vector<SolverEnum> itp_enums({
 });
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
+
+SolverConfiguration::SolverConfiguration(SolverEnum e, bool logging)
+    : solver_enum(e), is_logging_solver(logging)
+{
+}
+
+std::vector<SolverConfiguration> available_solver_configurations()
+{
+  std::vector<SolverConfiguration> configs;
+  std::vector<SolverEnum> enums = available_no_logging_solver_enums();
+  for (SolverEnum e : enums)
+  {
+    configs.push_back(SolverConfiguration(e, true));
+    configs.push_back(SolverConfiguration(e, false));
+  }
+  return configs;
+}
 
 // collect all the available non-logging solvers
 std::vector<SolverEnum> available_no_logging_solver_enums()

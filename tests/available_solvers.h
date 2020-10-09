@@ -26,6 +26,20 @@
 
 namespace smt_tests {
 
+class SolverConfiguration
+{
+ public:
+  SolverConfiguration(smt::SolverEnum e, bool logging);
+  smt::SolverEnum get_solver_enum() { return solver_enum; }
+  bool get_is_logging_solver() { return is_logging_solver; }
+
+ protected:
+  smt::SolverEnum solver_enum;
+  bool is_logging_solver;
+};
+
+smt::SmtSolver create_solver(SolverConfiguration sc);
+
 /** Creates an SmtSolver of the provided type */
 smt::SmtSolver create_solver(smt::SolverEnum se);
 
@@ -34,6 +48,9 @@ smt::SmtSolver create_interpolating_solver(smt::SolverEnum se);
 
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
+
+// collect all the available solvers
+std::vector<SolverConfiguration> available_solver_configurations();
 
 // collect all the available non-logging solvers
 std::vector<smt::SolverEnum> available_no_logging_solver_enums();
