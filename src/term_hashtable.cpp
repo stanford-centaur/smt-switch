@@ -29,16 +29,21 @@ TermHashTable::~TermHashTable() {}
 
 void TermHashTable::insert(const Term & t) { table[t->hash()].insert(t); }
 
-bool TermHashTable::lookup(Term & t)
+bool TermHashTable::contains(const Term & t) const
 {
   size_t hashval = t->hash();
-  if (table.find(hashval) != table.end()
-      && table[hashval].find(t) != table[hashval].end())
+  return (table.find(hashval) != table.end()
+          && table.at(hashval).find(t) != table.at(hashval).end());
+}
+
+bool TermHashTable::lookup(Term & t)
+{
+  if (contains(t))
   {
     // reassign t
     // should destroy the previous Term
     // when reference counter goes to zero
-    t = *(table[hashval].find(t));
+    t = *(table[t->hash()].find(t));
     return true;
   }
   return false;

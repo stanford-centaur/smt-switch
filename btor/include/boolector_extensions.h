@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_BOOLECTOR_EXTENSIONS_H
-#define SMT_BOOLECTOR_EXTENSIONS_H
+#pragma once
 
 #include "boolector.h"
 
@@ -29,4 +28,3 @@ BoolectorNode * custom_boolector_rotate_right(Btor * btor,
                                               uint32_t n);
 }  // namespace smt
 
-#endif

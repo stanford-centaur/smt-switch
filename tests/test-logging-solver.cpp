@@ -57,19 +57,19 @@ class LoggingTests : public ::testing::Test,
 
 TEST_P(LoggingTests, Children)
 {
-  ASSERT_TRUE(x->get_op().is_null());
-  ASSERT_TRUE(y->is_symbolic_const());
-  ASSERT_FALSE(y->is_value());
+  EXPECT_TRUE(x->get_op().is_null());
+  EXPECT_TRUE(y->is_symbolic_const());
+  EXPECT_FALSE(y->is_value());
 
   Term xp1 = s->make_term(BVAdd, x, one);
-  ASSERT_EQ(xp1->get_op(), BVAdd);
+  EXPECT_EQ(xp1->get_op(), BVAdd);
   TermVec children;
   for (auto tt : xp1)
   {
     children.push_back(tt);
   }
-  ASSERT_EQ(children[0], x);
-  ASSERT_EQ(children[1], one);
+  EXPECT_EQ(children[0], x);
+  EXPECT_EQ(children[1], one);
 }
 
 TEST_P(LoggingTests, HashConsing)
@@ -77,38 +77,76 @@ TEST_P(LoggingTests, HashConsing)
   Term xp1 = s->make_term(BVAdd, x, one);
   // Check hash-consing using comparison of underlying pointers
   Term xp1_2 = s->make_term(BVAdd, x, one);
-  ASSERT_EQ(xp1.get(), xp1_2.get());
+  EXPECT_EQ(xp1.get(), xp1_2.get());
 }
 
 TEST_P(LoggingTests, Sorts)
 {
   Term cond = s->make_term(BVUge, x, zero);
-  ASSERT_EQ(cond->get_sort()->get_sort_kind(), BOOL);
+  EXPECT_EQ(cond->get_sort()->get_sort_kind(), BOOL);
   Term relu = s->make_term(Ite, cond, x, zero);
-  ASSERT_EQ(relu->get_sort(), x->get_sort());
+  EXPECT_EQ(relu->get_sort(), x->get_sort());
 }
 
 TEST_P(LoggingTests, ConstantSorts)
 {
   Term t = s->make_term(true);
   Term f = s->make_term(false);
-  ASSERT_NE(t, f);
-  ASSERT_EQ(t, t);
+  EXPECT_NE(t, f);
+  EXPECT_EQ(t, t);
 
   Sort bvsort1 = s->make_sort(BV, 1);
   Term bv0 = s->make_term(0, bvsort1);
   Term bv1 = s->make_term(1, bvsort1);
-  ASSERT_NE(bv0, bv1);
-  ASSERT_EQ(bv1, bv1);
+  EXPECT_NE(bv0, bv1);
+  EXPECT_EQ(bv1, bv1);
 
-  ASSERT_NE(f, bv0);
-  ASSERT_NE(f, bv1);
-  ASSERT_NE(t, bv0);
-  ASSERT_NE(t, bv1);
+  EXPECT_NE(f, bv0);
+  EXPECT_NE(f, bv1);
+  EXPECT_NE(t, bv0);
+  EXPECT_NE(t, bv1);
 
-  ASSERT_EQ(t->get_sort()->get_sort_kind(), BOOL);
-  ASSERT_EQ(bv0->get_sort()->get_sort_kind(), BV);
-  ASSERT_EQ(bv1->get_sort()->get_width(), 1);
+  EXPECT_EQ(t->get_sort()->get_sort_kind(), BOOL);
+  EXPECT_EQ(bv0->get_sort()->get_sort_kind(), BV);
+  EXPECT_EQ(bv1->get_sort()->get_width(), 1);
+}
+
+TEST_P(LoggingTests, Compare)
+{
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+  Term fx2 = s->make_term(Apply, f, x);
+  EXPECT_EQ(fx, fx2);
+
+  Term fy = s->make_term(Apply, f, y);
+  EXPECT_NE(fx, fy);
+
+  Term x_eq_y = s->make_term(Equal, x, y);
+  Term x_eq_y2 = s->make_term(Equal, x, y);
+  EXPECT_EQ(x_eq_y, x_eq_y2);
+
+  // LoggingTerms do no rewriting or normalization
+  // you always get exactly what you created
+  Term y_eq_x = s->make_term(Equal, y, x);
+  EXPECT_NE(x_eq_y, y_eq_x);
+
+  s->assert_formula(x_eq_y);
+
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
+
+  // compare values
+  // they should be hash-consed correctly in LoggingSolver
+  // so that comparison works as expected
+  Term xv = s->get_value(x);
+  Term yv = s->get_value(y);
+  EXPECT_EQ(xv, yv);
+
+  Term fxv = s->get_value(fx);
+  Term fxv2 = s->get_value(fx2);
+  Term fyv = s->get_value(fy);
+  EXPECT_EQ(fxv, fxv2);
+  EXPECT_EQ(fxv, fyv);
 }
 
 INSTANTIATE_TEST_SUITE_P(

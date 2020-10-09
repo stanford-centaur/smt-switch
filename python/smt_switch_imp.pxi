@@ -281,11 +281,13 @@ cdef class SmtSolver:
         return term
 
     def get_unsat_core(self):
-        unsat_core = []
-        for l in dref(self.css).get_unsat_core():
+        unsat_core = set()
+        cdef c_UnorderedTermSet cts
+        dref(self.css).get_unsat_core(cts)
+        for l in cts:
             term = Term(self)
             term.ct = l
-            unsat_core.append(term)
+            unsat_core.add(term)
         return unsat_core
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
@@ -373,6 +375,11 @@ cdef class SmtSolver:
         term.ct = dref(self.css).make_symbol(name.encode(), sort.cs)
         return term
 
+    def make_param(self, str name, Sort sort):
+        cdef Term term = Term(self)
+        term.ct = dref(self.css).make_param(name.encode(), sort.cs)
+        return term
+
     def reset(self):
         dref(self.css).reset()
 
@@ -397,13 +404,14 @@ cdef class SmtSolver:
         Get an interpolant for A, and B. Note: this will throw an exception if called
         on a solver that was not created with create_<solver>_interpolator
 
-        returns None if the interpolant could not be computed
+        returns None if the interpolant could not be computed or the query
+                was satisfiable
         '''
         cdef c_Term cI
         cdef Term I = Term(self)
 
-        success = dref(self.css).get_interpolant(A.ct, B.ct, cI)
-        if not success:
+        res = dref(self.css).get_interpolant(A.ct, B.ct, cI)
+        if not res.is_unsat():
             return None
         else:
             I.ct = cI

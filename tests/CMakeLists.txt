@@ -51,6 +51,23 @@ if (BUILD_YICES2)
 endif()
 
 # googletest tests
+
+add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
+target_link_libraries(unit-term gtest_main)
+target_link_libraries(unit-term test-deps)
+add_test(NAME unit-term_test COMMAND unit-term)
+
+add_executable(unit-sort "${PROJECT_SOURCE_DIR}/tests/unit/unit-sort.cpp")
+target_link_libraries(unit-sort gtest_main)
+target_link_libraries(unit-sort test-deps)
+add_test(NAME unit-sort_test COMMAND unit-sort)
+
+
+add_executable(unit-sort-inference "${PROJECT_SOURCE_DIR}/tests/unit/unit-sort-inference.cpp")
+target_link_libraries(unit-sort-inference gtest_main)
+target_link_libraries(unit-sort-inference test-deps)
+add_test(NAME unit-sort-inference_test COMMAND unit-sort-inference)
+
 add_executable(unit-solver-enums "${PROJECT_SOURCE_DIR}/tests/unit/unit-solver-enums.cpp")
 target_link_libraries(unit-solver-enums gtest_main)
 target_link_libraries(unit-solver-enums test-deps)
@@ -60,6 +77,11 @@ add_executable(unit-termiter "${PROJECT_SOURCE_DIR}/tests/unit/unit-termiter.cpp
 target_link_libraries(unit-termiter gtest_main)
 target_link_libraries(unit-termiter test-deps)
 add_test(NAME unit-termiter_test COMMAND unit-termiter)
+
+add_executable(unit-walker "${PROJECT_SOURCE_DIR}/tests/unit/unit-walker.cpp")
+target_link_libraries(unit-walker gtest_main)
+target_link_libraries(unit-walker test-deps)
+add_test(NAME unit-walker_test COMMAND unit-walker)
 
 add_executable(unit-printing "${PROJECT_SOURCE_DIR}/tests/unit/unit-printing.cpp")
 target_link_libraries(unit-printing gtest_main)
@@ -71,6 +93,11 @@ target_link_libraries(unit-op gtest_main)
 target_link_libraries(unit-op test-deps)
 add_test(NAME unit-op_test COMMAND unit-op)
 
+add_executable(unit-util "${PROJECT_SOURCE_DIR}/tests/unit/unit-util.cpp")
+target_link_libraries(unit-util gtest_main)
+target_link_libraries(unit-util test-deps)
+add_test(NAME unit-util_test COMMAND unit-util)
+
 add_executable(unit-term-hashtable "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-hashtable.cpp")
 target_link_libraries(unit-term-hashtable gtest_main)
 target_link_libraries(unit-term-hashtable test-deps)
@@ -80,6 +107,11 @@ add_executable(unit-solving-interface "${PROJECT_SOURCE_DIR}/tests/unit/unit-sol
 target_link_libraries(unit-solving-interface gtest_main)
 target_link_libraries(unit-solving-interface test-deps)
 add_test(NAME unit-solving-interface_test COMMAND unit-solving-interface)
+
+add_executable(unit-quantifiers "${PROJECT_SOURCE_DIR}/tests/unit/unit-quantifiers.cpp")
+target_link_libraries(unit-quantifiers gtest_main)
+target_link_libraries(unit-quantifiers test-deps)
+add_test(NAME unit-quantifiers_test COMMAND unit-quantifiers)
 
 add_executable(test_itp "${PROJECT_SOURCE_DIR}/tests/test_itp.cpp")
 target_link_libraries(test_itp gtest_main)

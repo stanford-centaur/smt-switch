@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_EXCEPTIONS_H
-#define SMT_EXCEPTIONS_H
+#pragma once
 
 #include <exception>
 #include <string>
@@ -82,4 +81,3 @@ class InternalSolverException : public SmtException
   explicit InternalSolverException(const std::string& msg) : SmtException(msg){};
 };
 
-#endif

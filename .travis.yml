@@ -51,16 +51,16 @@ jobs:
       env: SOLVER="yices2" OPTS=""
       compiler: clang
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='btor' OPTS=""
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='cvc4' OPTS=""
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='msat' OPTS="--auto-yes"
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode12
       env: SOLVER='yices2' OPTS=""
 
 script:
@@ -68,6 +68,7 @@ script:
   - ./travis-scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./travis-scripts/setup-${SOLVER}.sh ${OPTS}"
+  - bash -c "./contrib/setup-skbuild.sh"
   - bash -c "./configure.sh --debug --${SOLVER} --python"
   - bash -c "cd build && make -j && make test"
   # install wheels

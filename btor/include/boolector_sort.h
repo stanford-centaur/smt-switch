@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_BOOLECTOR_SORT_H
-#define SMT_BOOLECTOR_SORT_H
+#pragma once
 
 #include "exceptions.h"
 #include "sort.h"
@@ -41,6 +40,8 @@ class BoolectorSortBase : public AbsSort
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
+  size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override { return sk; };
@@ -53,8 +54,9 @@ class BoolectorSortBase : public AbsSort
   friend class BoolectorSolver;
 };
 
-/** The Boolector C API doesn't support querying sorts for width, etc...
-    (in Boolector asking for the width is done on a node, i.e. Term, rather than
+/** The Boolector C API doesn't support querying sorts for the index sort
+    of an array sort, etc...
+    (in Boolector asking for the index is done on a node, i.e. Term, rather than
    a sort) Thus, we need to track some extra information for implementing
    AbsSort. To make this simpler, we have unique classes for each sort.
  */
@@ -108,4 +110,3 @@ class BoolectorUFSort : public BoolectorSortBase
 };
 }  // namespace smt
 
-#endif

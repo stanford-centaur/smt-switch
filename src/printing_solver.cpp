@@ -92,6 +92,11 @@ Sort PrintingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return wrapped_solver->make_sort(sk, sorts);
 }
 
+Sort PrintingSolver::make_sort(const Sort & sort_con,
+                               const SortVec & sorts) const
+{
+  return wrapped_solver->make_sort(sort_con, sorts);
+}
 
 Sort PrintingSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("PrintingSolver::make_sort");
@@ -156,7 +161,7 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
   string range_str = "";
   if (sk == smt::SortKind::FUNCTION) {
     for (Sort ds : sort->get_domain_sorts()) {
-      domain_str += ds->to_string() + " ";   
+      domain_str += ds->to_string() + " ";
     }
     range_str = sort->get_codomain_sort()->to_string();
   } else {
@@ -164,6 +169,12 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
   }
   (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "(" << domain_str << ")" << " " << range_str << ")" << endl;
   return wrapped_solver->make_symbol(name, sort);
+}
+
+Term PrintingSolver::make_param(const string name, const Sort & sort)
+{
+  // bound parameters are not declared -- they'll show up in the printed term
+  return wrapped_solver->make_param(name, sort);
 }
 
 Term PrintingSolver::make_term(const Op op, const Term & t) const
@@ -197,12 +208,11 @@ Term PrintingSolver::get_value(const Term & t) const
   return wrapped_solver->get_value(t);
 }
 
-TermVec PrintingSolver::get_unsat_core()
+void PrintingSolver::get_unsat_core(UnorderedTermSet & out)
 {
   (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
-  return wrapped_solver->get_unsat_core();
+  wrapped_solver->get_unsat_core(out);
 }
-
 
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
@@ -268,9 +278,10 @@ void PrintingSolver::reset_assertions() {
   wrapped_solver->reset_assertions(); 
 }
 
-bool PrintingSolver::get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const {
+Result PrintingSolver::get_interpolant(const Term & A,
+                                       const Term & B,
+                                       Term & out_I) const
+{
   /* currently we only support printing msat interpolation commands.
    * The printing follows the internal implementation from msat_solver.h
    * in which the assertions are labeled by interpolation groups

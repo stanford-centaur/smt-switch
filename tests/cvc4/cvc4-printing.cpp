@@ -97,7 +97,7 @@ void test2(SmtSolver s, ostream& os, stringbuf& strbuf) {
   // x<z
   Term B = s->make_term(Gt, x, z);
   Term I;
-  bool got_interpolant = s->get_interpolant(A, B, I);
+  Result r = s->get_interpolant(A, B, I);
   dump_and_run(strbuf, "(define-fun I () Bool (<= x z))\n");
 }
 
@@ -132,7 +132,8 @@ void test1(SmtSolver s, ostream& os, stringbuf& strbuf) {
                                              s->make_term(Select, arr, y)))));
   Result r = s->check_sat_assuming(TermVec{ ind1 });
   assert(r.is_unsat());
-  TermVec usc = s->get_unsat_core();
+  UnorderedTermSet usc;
+  s->get_unsat_core(usc);
   s->pop(1);
   s->check_sat();
   s->get_value(x);
@@ -154,6 +155,24 @@ int main()
   SmtSolver s2 = create_printing_solver(cvc4_2, &os2, PrintingStyleEnum::CVC4_STYLE);
   s2->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test2(s2, os2, strbuf2);
+
+  string filename = "cvc4-printing.cpp-sample.smt2";
+  std::ofstream out(filename.c_str());
+  out << strbuf1.str() << endl;
+  out.close();
+  // CVC4_HOME is a macro defined when built with CVC4
+  // that points to the top-level CVC4 directory
+  // STRFY is defined in test-utils.h and converts
+  // a macro to its string representation
+  string command(STRFY(CVC4_HOME));
+  command += "/build/bin/cvc4 ";
+  command += filename;
+  std::cout << "Running command: " << command << std::endl;
+  string result = exec(command.c_str());
+  std::cout << "got result:\n" << result << std::endl;
+  assert(result
+         == "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+  remove(filename.c_str());
 
   return 0;
 }

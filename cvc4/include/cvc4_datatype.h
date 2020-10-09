@@ -13,8 +13,7 @@
 ** \brief Thin wrapper for CVC4 Datatype-related classes.
 **/
 
-#ifndef SMT_CVC4_DATATYPE_H
-#define SMT_CVC4_DATATYPE_H
+#pragma once
 
 #include "datatype.h"
 #include "exceptions.h"
@@ -72,4 +71,4 @@ namespace smt {
 
 
 }
-#endif
+

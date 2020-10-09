@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_MSAT_SORT_H
-#define SMT_MSAT_SORT_H
+#pragma once
 
 #include "sort.h"
 
@@ -38,6 +37,8 @@ class MsatSort : public AbsSort
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
+  size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort) const override;
   SortKind get_sort_kind() const override;
@@ -53,4 +54,3 @@ class MsatSort : public AbsSort
 
 }  // namespace smt
 
-#endif

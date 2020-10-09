@@ -58,6 +58,150 @@ FUNCTION.sk = c_FUNCTION
 setattr(sortkinds, 'FUNCTION', FUNCTION)
 
 
+################################################ SolverEnum #################################################
+cdef class SolverEnum:
+    def __cinit__(self):
+        pass
+
+    def __eq__(self, SolverEnum other):
+        return (<int> self.se) == (<int> other.se)
+
+    def __ne__(self, SolverEnum other):
+        return (<int> self.se) != (<int> other.se)
+
+    def __hash__(self):
+        return hash((<int> self.se, self.name))
+
+    def __str__(self):
+        return to_string(self.se).decode()
+
+    def __repr__(self):
+        return to_string(self.se).decode()
+
+    def as_int(self):
+        return <int> self.se
+
+# create a solverenums submodule
+solverenums = ModuleType('solverenums')
+# fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
+sys.modules['%s.%s'%(__name__, solverenums.__name__)] = solverenums
+solverenums.__file__ = FILENAME
+
+cdef SolverEnum BTOR = SolverEnum()
+BTOR.se = c_BTOR
+setattr(solverenums, 'BTOR', BTOR)
+
+cdef SolverEnum CVC4 = SolverEnum()
+CVC4.se = c_CVC4
+setattr(solverenums, 'CVC4', CVC4)
+
+cdef SolverEnum MSAT = SolverEnum()
+MSAT.se = c_MSAT
+setattr(solverenums, 'MSAT', MSAT)
+
+cdef SolverEnum YICES2 = SolverEnum()
+YICES2.se = c_YICES2
+setattr(solverenums, 'YICES2', YICES2)
+
+cdef SolverEnum BTOR_LOGGING = SolverEnum()
+BTOR_LOGGING.se = c_BTOR_LOGGING
+setattr(solverenums, 'BTOR_LOGGING', BTOR)
+
+cdef SolverEnum CVC4_LOGGING = SolverEnum()
+CVC4_LOGGING.se = c_CVC4_LOGGING
+setattr(solverenums, 'CVC4_LOGGING', CVC4_LOGGING)
+
+cdef SolverEnum MSAT_LOGGING = SolverEnum()
+MSAT_LOGGING.se = c_MSAT_LOGGING
+setattr(solverenums, 'MSAT_LOGGING', MSAT_LOGGING)
+
+cdef SolverEnum YICES2_LOGGING = SolverEnum()
+YICES2_LOGGING.se = c_YICES2_LOGGING
+setattr(solverenums, 'YICES2_LOGGING', YICES2_LOGGING)
+
+cdef SolverEnum MSAT_INTERPOLATOR = SolverEnum()
+MSAT_INTERPOLATOR.se = c_MSAT_INTERPOLATOR
+setattr(solverenums, "MSAT_INTERPOLATOR", MSAT_INTERPOLATOR)
+
+
+################################################ SolverAttribute #################################################
+cdef class SolverAttribute:
+    def __cinit__(self):
+        pass
+
+    def __eq__(self, SolverAttribute other):
+        return (<int> self.sa) == (<int> other.sa)
+
+    def __ne__(self, SolverAttribute other):
+        return (<int> self.sa) != (<int> other.sa)
+
+    def __hash__(self):
+        return hash((<int> self.sa, self.name))
+
+    def __str__(self):
+        return to_string(self.sa).decode()
+
+    def __repr__(self):
+        return to_string(self.sa).decode()
+
+    def as_int(self):
+        return <int> self.sa
+
+
+# create a solverattr submodule
+solverattr = ModuleType('solverattr')
+# fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
+sys.modules['%s.%s'%(__name__, solverattr.__name__)] = solverattr
+solverattr.__file__ = FILENAME
+
+cdef SolverAttribute LOGGING = SolverAttribute()
+LOGGING.sa = c_LOGGING
+setattr(solverattr, "LOGGING", LOGGING)
+
+cdef SolverAttribute TERMITER = SolverAttribute()
+TERMITER.sa = c_TERMITER
+setattr(solverattr, "TERMITER", TERMITER)
+
+cdef SolverAttribute THEORY_INT = SolverAttribute()
+THEORY_INT.sa = c_THEORY_INT
+setattr(solverattr, "THEORY_INT", THEORY_INT)
+
+cdef SolverAttribute THEORY_REAL = SolverAttribute()
+THEORY_REAL.sa = c_THEORY_REAL
+setattr(solverattr, "THEORY_REAL", THEORY_REAL)
+
+cdef SolverAttribute ARRAY_MODELS = SolverAttribute()
+ARRAY_MODELS.sa = c_ARRAY_MODELS
+setattr(solverattr, "ARRAY_MODELS", ARRAY_MODELS)
+
+cdef SolverAttribute CONSTARR = SolverAttribute()
+CONSTARR.sa = c_CONSTARR
+setattr(solverattr, "CONSTARR", CONSTARR)
+
+cdef SolverAttribute FULL_TRANSFER = SolverAttribute()
+FULL_TRANSFER.sa = c_FULL_TRANSFER
+setattr(solverattr, "FULL_TRANSFER", FULL_TRANSFER)
+
+cdef SolverAttribute ARRAY_FUN_BOOLS = SolverAttribute()
+ARRAY_FUN_BOOLS.sa = c_ARRAY_FUN_BOOLS
+setattr(solverattr, "ARRAY_FUN_BOOLS", ARRAY_FUN_BOOLS)
+
+cdef SolverAttribute UNSAT_CORE = SolverAttribute()
+UNSAT_CORE.sa = c_UNSAT_CORE
+setattr(solverattr, "UNSAT_CORE", UNSAT_CORE)
+
+cdef SolverAttribute THEORY_DATATYPE = SolverAttribute()
+THEORY_DATATYPE.sa = c_THEORY_DATATYPE
+setattr(solverattr, "THEORY_DATATYPE", THEORY_DATATYPE)
+
+cdef SolverAttribute QUANTIFIERS = SolverAttribute()
+QUANTIFIERS.sa = c_QUANTIFIERS
+setattr(solverattr, "QUANTIFIERS", QUANTIFIERS)
+
+cdef SolverAttribute BOOL_BV1_ALIASING = SolverAttribute()
+BOOL_BV1_ALIASING.sa = c_BOOL_BV1_ALIASING
+setattr(solverattr, "BOOL_BV1_ALIASING", BOOL_BV1_ALIASING)
+
 ################################################ PrimOps #################################################
 cdef class PrimOp:
     def __cinit__(self):
@@ -342,3 +486,11 @@ setattr(primops, 'Select', Select)
 cdef PrimOp Store = PrimOp()
 Store.po = c_Store
 setattr(primops, 'Store', Store)
+
+cdef PrimOp Forall = PrimOp()
+Forall.po = c_Forall
+setattr(primops, 'Forall', Forall)
+
+cdef PrimOp Exists = PrimOp()
+Exists.po = c_Exists
+setattr(primops, 'Exists', Exists)

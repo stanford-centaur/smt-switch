@@ -52,7 +52,8 @@ int main()
   // x<z
   Term B = s->make_term(Gt, x, z);
   Term I;
-  bool got_interpolant = s->get_interpolant(A, B, I);
+  Result r = s->get_interpolant(A, B, I);
+  bool got_interpolant = r.is_unsat();
 
   if (got_interpolant)
   {
@@ -67,7 +68,8 @@ int main()
   // try getting a second interpolant with different A and B
   A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
   B = s->make_term(Lt, x, z);
-  got_interpolant = s->get_interpolant(A, B, I);
+  r = s->get_interpolant(A, B, I);
+  got_interpolant = r.is_unsat();
 
   if (got_interpolant)
   {
@@ -80,7 +82,8 @@ int main()
   }
 
   // now try a satisfiable formula
-  got_interpolant = s->get_interpolant(A, s->make_term(Gt, x, z), I);
+  r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
+  got_interpolant = (r.is_unsat());
   assert(!got_interpolant);
 
 

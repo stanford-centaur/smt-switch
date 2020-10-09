@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_YICES2_TERM_H
-#define SMT_YICES2_TERM_H
+#pragma once
 
 #include <vector>
 
@@ -55,13 +54,16 @@ class Yices2TermIter : public TermIterBase
 class Yices2Term : public AbsTerm
 {
  public:
-  Yices2Term(term_t t) : term(t){};
+  // assumes that term is not a function if flag is not passed
+  Yices2Term(term_t t) : term(t), is_function(false){};
   Yices2Term(term_t t, bool is_fun) : term(t), is_function(is_fun){};
   ~Yices2Term(){};
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
@@ -86,4 +88,3 @@ class Yices2Term : public AbsTerm
 
 }  // namespace smt
 
-#endif

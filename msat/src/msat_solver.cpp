@@ -108,7 +108,9 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { BVSle, msat_make_bv_sleq },
       { BVSgt, ext_msat_make_bv_sgt },
       { BVSge, ext_msat_make_bv_sgeq },
-      { Select, msat_make_array_read } });
+      { Select, msat_make_array_read },
+      { Forall, msat_make_forall },
+      { Exists, msat_make_exists } });
 
 const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
     { { Ite, ext_msat_make_ite }, { Store, msat_make_array_write } });
@@ -308,9 +310,8 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-TermVec MsatSolver::get_unsat_core()
+void MsatSolver::get_unsat_core(UnorderedTermSet & out)
 {
-  TermVec core;
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
   if (!mcore || !core_size)
@@ -323,11 +324,10 @@ TermVec MsatSolver::get_unsat_core()
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
-    core.push_back(std::make_shared<MsatTerm>(env, *mcore_iter));
+    out.insert(std::make_shared<MsatTerm>(env, *mcore_iter));
     ++mcore_iter;
   }
   msat_free(mcore);
-  return core;
 }
 
 Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
@@ -484,6 +484,11 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  throw NotImplementedException(
+      "MathSAT does not support uninterpreted sort constructors");
+}
 
 Sort MsatSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("MsatSolver::make_sort");
@@ -642,6 +647,10 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  if (MSAT_ERROR_TYPE(msort->type))
+  {
+    throw InternalSolverException("Got error type in MathSAT backend.");
+  }
   decl = msat_declare_function(env, name.c_str(), msort->type);
 
   if (sort->get_sort_kind() == FUNCTION)
@@ -657,6 +666,13 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     }
     return std::make_shared<MsatTerm> (env, res);
   }
+}
+
+Term MsatSolver::make_param(const std::string name, const Sort & sort)
+{
+  shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  msat_term var = msat_make_variable(env, name.c_str(), msort->type);
+  return std::make_shared<MsatTerm>(env, var);
 }
 
 Term MsatSolver::make_term(Op op, const Term & t) const
@@ -751,7 +767,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t->to_string();
     throw InternalSolverException(msg);
   }
@@ -800,7 +816,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t0->to_string() + ", " + t1->to_string();
     throw InternalSolverException(msg);
   }
@@ -854,7 +870,7 @@ Term MsatSolver::make_term(Op op,
   {
     string msg("Failed to create term given ");
     msg += op.to_string();
-    msg += " and";
+    msg += " and ";
     msg += t0->to_string() + ", " + t1->to_string() + ", " + t2->to_string();
     throw InternalSolverException(msg);
   }
@@ -913,7 +929,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     {
       string msg("Failed to create term given ");
       msg += op.to_string();
-      msg += " and";
+      msg += " and ";
       for (auto t : terms)
       {
         msg += " " + t->to_string() + ",";
@@ -1047,9 +1063,9 @@ Term MsatInterpolatingSolver::get_value(const Term & t) const
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
-bool MsatInterpolatingSolver::get_interpolant(const Term & A,
-                                              const Term & B,
-                                              Term & out_I) const
+Result MsatInterpolatingSolver::get_interpolant(const Term & A,
+                                                const Term & B,
+                                                Term & out_I) const
 {
   // reset the environment -- each interpolant is it's own separate call
   msat_reset_env(env);
@@ -1083,16 +1099,16 @@ bool MsatInterpolatingSolver::get_interpolant(const Term & A,
     else
     {
       out_I = Term(new MsatTerm(env, itp));
-      return true;
+      return Result(UNSAT);
     }
   }
   else if (res == MSAT_SAT)
   {
-    return false;
+    return Result(SAT);
   }
   else
   {
-    throw InternalSolverException("Failed when computing interpolant.");
+    return Result(UNKNOWN);
   }
 }
 

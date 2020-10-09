@@ -99,6 +99,8 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Int_To_BV, ::CVC4::api::INT_TO_BITVECTOR },
       { Select, ::CVC4::api::SELECT },
       { Store, ::CVC4::api::STORE },
+      { Forall, ::CVC4::api::FORALL },
+      { Exists, ::CVC4::api::EXISTS },
       { Apply_Selector,::CVC4::api::APPLY_SELECTOR},
       { Apply_Tester,::CVC4::api::APPLY_TESTER},
       { Apply_Constructor,::CVC4::api::APPLY_CONSTRUCTOR}  });
@@ -409,15 +411,14 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   }
 }
 
-TermVec CVC4Solver::get_unsat_core()
+void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
 {
-  TermVec core;
   Term f;
   try
   {
     for (auto cterm : solver.getUnsatAssumptions())
     {
-      core.push_back(std::make_shared<CVC4Term>(cterm));
+      out.insert(std::make_shared<CVC4Term>(cterm));
     }
   }
   // this function seems to return a different exception type
@@ -425,7 +426,6 @@ TermVec CVC4Solver::get_unsat_core()
   {
     throw InternalSolverException(e.what());
   }
-  return core;
 }
 
 
@@ -434,6 +434,12 @@ Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
+    // TODO: enable this once getUninterpretedSortParamSorts is fixed in CVC4
+    if (arity)
+    {
+      throw NotImplementedException(
+          "CVC4 backend does not currently support sort constructors");
+    }
     return std::make_shared<CVC4Sort> (solver.declareSort(name, arity));
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -593,6 +599,28 @@ Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort CVC4Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  // TODO: enable this once getUninterpretedSortParamSorts is fixed in CVC4
+  throw NotImplementedException(
+      "CVC4 backend does not currently support sort constructors");
+
+  ::CVC4::api::Sort csort_con =
+      std::static_pointer_cast<CVC4Sort>(sort_con)->sort;
+
+  size_t arity = sorts.size();
+  std::vector<::CVC4::api::Sort> csorts;
+  csorts.reserve(sorts.size());
+  ::CVC4::api::Sort csort;
+  for (uint32_t i = 0; i < arity; i++)
+  {
+    csort = std::static_pointer_cast<CVC4Sort>(sorts[i])->sort;
+    csorts.push_back(csort);
+  }
+
+  return std::make_shared<CVC4Sort>(csort_con.instantiate(csorts));
+}
+
 Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
@@ -609,6 +637,20 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
     Term res = std::make_shared<::smt::CVC4Term> (t);
     symbols[name] = res;
     return res;
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Term CVC4Solver::make_param(const std::string name, const Sort & sort)
+{
+  try
+  {
+    std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+    ::CVC4::api::Term t = solver.mkVar(csort->sort, name);
+    return std::make_shared<::smt::CVC4Term>(t);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -634,6 +676,11 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      throw IncorrectUsageException(
+          "Quantifier ops require one parameter and the formula body.");
+    }
     throw InternalSolverException(e.what());
   }
 }
@@ -781,7 +828,14 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
   {
     std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
     std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
-    if (op.num_idx == 0)
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      ::CVC4::api::Term bound_vars =
+          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterm0->term);
+      return std::make_shared<CVC4Term>(
+          solver.mkTerm(primop2kind.at(op.prim_op), bound_vars, cterm1->term));
+    }
+    else if (op.num_idx == 0)
     {
       return std::make_shared<CVC4Term>
           (solver.mkTerm(primop2kind.at(op.prim_op),
@@ -828,6 +882,12 @@ Term CVC4Solver::make_term(Op op,
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      throw IncorrectUsageException(
+          "Can only bind one parameter at time with quantifiers in "
+          "smt-switch.");
+    }
     throw InternalSolverException(e.what());
   }
 }
@@ -844,7 +904,22 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
       cterm = std::static_pointer_cast<CVC4Term>(t);
       cterms.push_back(cterm->term);
     }
-    if (op.num_idx == 0)
+    if (op.prim_op == Forall || op.prim_op == Exists)
+    {
+      if (cterms.size() != 2)
+      {
+        throw IncorrectUsageException(
+            "smt-switch only supports binding one parameter at a time with a "
+            "quantifier");
+      }
+      ::CVC4::api::Term quantified_body = cterms.back();
+      cterms.pop_back();
+      ::CVC4::api::Term bound_vars =
+          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms);
+      return std::make_shared<CVC4Term>(solver.mkTerm(
+          primop2kind.at(op.prim_op), bound_vars, quantified_body));
+    }
+    else if (op.num_idx == 0)
     {
       return std::make_shared<CVC4Term>
           (solver.mkTerm(primop2kind.at(op.prim_op), cterms));
@@ -913,7 +988,7 @@ void CVC4Solver::dump_smt2(std::string filename) const
 
 /* end CVC4Solver implementation */
 
-bool CVC4InterpolatingSolver::get_interpolant(const Term & A,
+Result CVC4InterpolatingSolver::get_interpolant(const Term & A,
                                               const Term & B,
                                               Term & out_I) const
 {
@@ -930,8 +1005,10 @@ bool CVC4InterpolatingSolver::get_interpolant(const Term & A,
   bool success = solver.getInterpolant(cB->term, I);
   if (success) {
     out_I = Term(new CVC4Term(I));
+    return UNSAT;
+  } else {
+    return UNKNOWN;
   }
-  return success;
 }
 // begin CVC4InterpolatingSolver implementation
 }

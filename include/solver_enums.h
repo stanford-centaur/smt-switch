@@ -13,6 +13,7 @@
 **
 **
 **/
+
 #pragma once
 
 #include <unordered_set>
@@ -33,6 +34,9 @@ enum SolverEnum
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
   MSAT_INTERPOLATOR
+
+  // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
+  // and enums_imp.pxi
 };
 
 enum SolverAttribute
@@ -43,16 +47,28 @@ enum SolverAttribute
   TERMITER,
   // supports integer theory
   THEORY_INT,
+  // supports real theory
+  THEORY_REAL,
   // supports array models
   ARRAY_MODELS,
   // supports constant arrays
   CONSTARR,
   // supports transferring to different solvers with TermTranslator
   FULL_TRANSFER,
+  // supports functions with boolean arguments
+  // and arrays with boolean elements
+  ARRAY_FUN_BOOLS,
   // unsat core support
   UNSAT_CORE,
   // supports datatype theory
   THEORY_DATATYPE,
+  // supports quantifiers
+  QUANTIFIERS,
+  // aliases booleans and bit-vectors of size one
+  BOOL_BV1_ALIASING
+
+  // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
+  // and enums_imp.pxi
 };
 
 /** Returns true iff the SolverEnum corresponds to a LoggingSolver
@@ -81,6 +97,10 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se);
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 std::string to_string(SolverEnum e);
+
+std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
+
+std::string to_string(SolverAttribute a);
 
 }  // namespace smt
 

@@ -14,6 +14,8 @@
 **
 **/
 
+#pragma once
+
 #include "smt_defs.h"
 
 namespace smt {

@@ -27,61 +27,85 @@ namespace smt {
 
 const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
-        { BTOR, { TERMITER, ARRAY_MODELS, CONSTARR, UNSAT_CORE } },
+        { BTOR,
+          { TERMITER,
+            ARRAY_MODELS,
+            CONSTARR,
+            UNSAT_CORE,
+            QUANTIFIERS,
+            BOOL_BV1_ALIASING } },
 
         { BTOR_LOGGING,
           { LOGGING,
             TERMITER,
             ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { CVC4,
           {
               TERMITER,
               THEORY_INT,
+              THEORY_REAL,
               ARRAY_MODELS,
+              ARRAY_FUN_BOOLS,
               CONSTARR,
               FULL_TRANSFER,
               UNSAT_CORE,
               THEORY_DATATYPE,
+              QUANTIFIERS
           } },
 
         { CVC4_LOGGING,
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT_LOGGING,
           { LOGGING,
             TERMITER,
             THEORY_INT,
+            THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
-            UNSAT_CORE } },
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { THEORY_INT } },
+        { YICES2, { THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
 
         { YICES2_LOGGING,
-          { LOGGING, TERMITER, THEORY_INT, FULL_TRANSFER, UNSAT_CORE } },
+          { LOGGING,
+            TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            FULL_TRANSFER,
+            UNSAT_CORE } },
 
     });
 
@@ -165,6 +189,39 @@ std::string to_string(SolverEnum e)
 {
   ostringstream ostr;
   ostr << e;
+  return ostr.str();
+}
+
+std::ostream & operator<<(std::ostream & o, SolverAttribute a)
+{
+  switch (a)
+  {
+    case LOGGING: o << "LOGGING"; break;
+    case TERMITER: o << "TERMITER"; break;
+    case THEORY_INT: o << "THEORY_INT"; break;
+    case THEORY_REAL: o << "THEORY_REAL"; break;
+    case ARRAY_MODELS: o << "ARRAY_MODELS"; break;
+    case CONSTARR: o << "CONSTARR"; break;
+    case FULL_TRANSFER: o << "FULL_TRANSFER"; break;
+    case ARRAY_FUN_BOOLS: o << "ARRAY_FUN_BOOLS"; break;
+    case UNSAT_CORE: o << "UNSAT_CORE"; break;
+    case THEORY_DATATYPE: o << "THEORY_DATATYPE"; break;
+    case QUANTIFIERS: o << "QUANTIFIERS"; break;
+    case BOOL_BV1_ALIASING: o << "BOOL_BV1_ALIASING"; break;
+    default:
+      // should print the integer representation
+      throw NotImplementedException("Unknown SolverAttribute: "
+                                    + std::to_string(a));
+      break;
+  }
+
+  return o;
+}
+
+std::string to_string(SolverAttribute a)
+{
+  ostringstream ostr;
+  ostr << a;
   return ostr.str();
 }
 

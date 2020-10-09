@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SOLVER_H
-#define SMT_SOLVER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -35,6 +34,9 @@ namespace smt {
 class AbsSmtSolver
 {
  public:
+  /** SolverEnum identifies which underlying solver is being used.
+   *  It is provided by the derived class (backend implementation)
+   */
   AbsSmtSolver(SolverEnum se) : solver_enum(se){};
   virtual ~AbsSmtSolver(){};
 
@@ -65,7 +67,7 @@ class AbsSmtSolver
 
   /* Check satisfiability of the current assertions under the given assumptions
    * Note: the assumptions must be boolean literals, not arbitrary formulas
-   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with asssumptions = [t1,...,tn]
+   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with asssumption literals = [t1,...,tn]
    * @param assumptions a vector of boolean literals
    * @return a result object - see result.h
    */
@@ -102,12 +104,12 @@ class AbsSmtSolver
                                             Term & out_const_base) const = 0;
 
   /** After a call to check_sat_assuming that returns an unsatisfiable result
-   *  this function will return a subset of the assumption literals
-   *  that are sufficient to make the assertions unsat.
-   *  SMTLIB: (get-unsat-assumptions)
-   *  @return a vector of assumption literals in the unsat core
+   *  this function will populate the 'out' UnorderedTermSet with a subset
+   *  of the assumption literals that are sufficient to make the assertions
+   *  unsat.
+   *  SMTLIB: (get-unsat-assumptions) 
    */
-  virtual TermVec get_unsat_core() = 0;
+  virtual void get_unsat_core(UnorderedTermSet & out) = 0;
 
   // virtual bool check_sat_assuming() const = 0;
 
@@ -136,7 +138,7 @@ class AbsSmtSolver
    * @param sk the SortKind
    * @param sort1 first sort
    * @return a Sort object
-   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
+   * this method is currently unused but kept for API consistency
    */
   virtual Sort make_sort(const SortKind sk, const Sort & sort1) const = 0;
 
@@ -171,6 +173,15 @@ class AbsSmtSolver
    * Note: This is the only way to make a function sort
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
+
+  /* Create an uninterpreted sort
+   * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
+   * nonzero arity)
+   * @param sorts a vector of sorts of size matching sort_con->get_arity()
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const Sort & sort_con,
+                         const SortVec & sorts) const = 0;
 
   /* Create a datatype sort
    * @param d the Datatype Declaration
@@ -215,6 +226,13 @@ class AbsSmtSolver
    * @return the symbolic constant or function term
    */
   virtual Term make_symbol(const std::string name, const Sort & sort) = 0;
+
+  /* Make a parameter term to be bound by a quantifier
+   * @param name the name of the parameter
+   * @param sort the sort of this parameter
+   * @return the parameter term
+   */
+  virtual Term make_param(const std::string name, const Sort & sort) = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -346,14 +364,14 @@ class AbsSmtSolver
    * @param A the A term for a craig interpolant
    * @param B the B term for a craig interpolant
    * @param out_I the term to store the computed interpolant in
-   * @return true iff an interpolant was computed
+   * @return unsat    iff an interpolant was computed,
+   *         sat      iff the query was satisfiable,
+   *         unknown  iff interpolation failed
    *
-   * Throws an SmtException if the formula was actually sat or
-   *   if computing the interpolant failed.
    */
-  virtual bool get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const
+  virtual Result get_interpolant(const Term & A,
+                                 const Term & B,
+                                 Term & out_I) const
   {
     throw NotImplementedException("Interpolants are not supported by this solver.");
   }
@@ -366,4 +384,3 @@ class AbsSmtSolver
 
 }  // namespace smt
 
-#endif

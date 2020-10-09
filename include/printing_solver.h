@@ -48,11 +48,11 @@ class PrintingSolver : public AbsSmtSolver
   /* Operators that are printed */
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
-
+  Term make_param(const std::string name, const Sort & sort) override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  TermVec get_unsat_core() override;
+  void get_unsat_core(UnorderedTermSet & out) override;
   void reset() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
@@ -62,10 +62,9 @@ class PrintingSolver : public AbsSmtSolver
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   void reset_assertions() override;
-  bool get_interpolant(const Term & A,
-                               const Term & B,
-                               Term & out_I) const override;
-
+  Result get_interpolant(const Term & A,
+                         const Term & B,
+                         Term & out_I) const override;
 
   /* Operators that are not printed 
    * For example, creating terms is not printed, but the
@@ -82,6 +81,7 @@ class PrintingSolver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(

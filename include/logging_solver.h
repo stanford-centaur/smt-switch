@@ -42,6 +42,7 @@ class LoggingSolver : public AbsSmtSolver
                  const Sort & sort2,
                  const Sort & sort3) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
@@ -61,6 +62,7 @@ class LoggingSolver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term make_param(const std::string name, const Sort & sort) override;
   Term make_term(const Op op, const Term & t) const override;
   Term make_term(const Op op, const Term & t0, const Term & t1) const override;
   Term make_term(const Op op,
@@ -71,7 +73,7 @@ class LoggingSolver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  TermVec get_unsat_core() override;
+  void get_unsat_core(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;

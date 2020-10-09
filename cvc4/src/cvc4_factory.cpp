@@ -48,6 +48,7 @@ SmtSolver CVC4SolverFactory::create_interpolating_solver() {
    * s->set_opt("sygus-active-gen", "enum");
    * */
   solver->set_opt("produce-interpols", "default");
+  solver->set_opt("incremental", "false");
   return solver;
 }
 /* end CVC4SolverFactory implementation */

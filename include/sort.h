@@ -14,8 +14,7 @@
 **
 **/
 
-#ifndef SMT_SORT_H
-#define SMT_SORT_H
+#pragma once
 
 #include <string>
 #include <unordered_set>
@@ -41,6 +40,9 @@ enum SortKind
   REAL,
   FUNCTION,
   UNINTERPRETED,
+  // an uninterpreted sort constructor (has non-zero arity and takes subsort
+  // arguments)
+  UNINTERPRETED_CONS,
   DATATYPE,
 
   /** IMPORTANT: This must stay at the bottom.
@@ -72,6 +74,8 @@ class AbsSort
   virtual std::vector<Sort> get_domain_sorts() const = 0;
   virtual Sort get_codomain_sort() const = 0;
   virtual std::string get_uninterpreted_name() const = 0;
+  virtual size_t get_arity() const = 0;
+  virtual std::vector<Sort> get_uninterpreted_param_sorts() const = 0;
   virtual Datatype get_datatype() const = 0;
   virtual bool compare(const Sort sort) const = 0;
   virtual SortKind get_sort_kind() const = 0;
@@ -104,8 +108,6 @@ template <>
 struct hash<smt::Sort>
 {
   size_t operator()(const smt::Sort & s) const { return s->hash(); }
-  };
-
+};
 }
 
-#endif

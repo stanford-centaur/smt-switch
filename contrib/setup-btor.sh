@@ -1,11 +1,19 @@
 #!/bin/bash
 
-BTOR_VERSION=59c9ade58bdcef51e07b2239972d35647b40cadb
-
+BTOR_VERSION=95859db82fe5b08d063a16d6a7ffe4a941cb0f7d
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
 mkdir -p $DEPS
+
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
 
 if [ ! -d "$DEPS/boolector" ]; then
     cd $DEPS
@@ -17,7 +25,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     ./contrib/setup-cadical.sh
     ./configure.sh --only-cadical -fPIC
     cd build
-    make -j$(nproc)
+    make -j$NUM_CORES
     cd $DIR
 else
     echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."

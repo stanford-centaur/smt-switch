@@ -14,10 +14,12 @@
 **
 **/
 
+#include "assert.h"
+
 #include "logging_solver.h"
 #include "logging_sort.h"
-#include "logging_sort_computation.h"
 #include "logging_term.h"
+#include "sort_inference.h"
 
 #include "utils.h"
 
@@ -110,6 +112,24 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   return make_logging_sort(sk, sort, sorts);
 }
 
+Sort LoggingSolver::make_sort(const Sort & sort_con,
+                              const SortVec & sorts) const
+{
+  Sort sub_sort_con = static_pointer_cast<LoggingSort>(sort_con)->wrapped_sort;
+
+  // convert to sorts stored by LoggingSorts
+  SortVec sub_sorts;
+  for (auto s : sorts)
+  {
+    sub_sorts.push_back(static_pointer_cast<LoggingSort>(s)->wrapped_sort);
+  }
+
+  Sort ressort = wrapped_solver->make_sort(sub_sort_con, sub_sorts);
+  return make_uninterpreted_logging_sort(ressort,
+                                         sort_con->get_uninterpreted_name(),
+                                         0,  // has zero arity after applied
+                                         sorts);
+}
 
 Sort LoggingSolver::make_sort(const DatatypeDecl & d) const {
   throw NotImplementedException("LoggingSolver::make_sort");
@@ -154,7 +174,7 @@ Term LoggingSolver::make_term(bool b) const
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
+  // i.e. returns existing term and destroys the unnecessary new one
   if (!hashtable->lookup(res))
   {
     // this is the first time this term was created
@@ -236,8 +256,29 @@ Term LoggingSolver::make_symbol(const string name, const Sort & sort)
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
   Term wrapped_sym = wrapped_solver->make_symbol(name, lsort->wrapped_sort);
-  Term res =
-      std::make_shared<LoggingTerm>(wrapped_sym, sort, Op(), TermVec{}, name);
+  // bool true means it's a symbol
+  Term res = std::make_shared<LoggingTerm>(
+      wrapped_sym, sort, Op(), TermVec{}, name, true);
+
+  // check hash table
+  // lookup modifies term in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+  }
+
+  return res;
+}
+
+Term LoggingSolver::make_param(const string name, const Sort & sort)
+{
+  shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
+  Term wrapped_param = wrapped_solver->make_param(name, lsort->wrapped_sort);
+  // bool false means it's not a symbol
+  Term res = std::make_shared<LoggingTerm>(
+      wrapped_param, sort, Op(), TermVec{}, name, false);
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
@@ -255,8 +296,11 @@ Term LoggingSolver::make_term(const Op op, const Term & t) const
 {
   shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
   Term wrapped_res = wrapped_solver->make_term(op, lt->wrapped_term);
-  Sort res_logging_sort =
-      compute_sort(op, SortVec{ t->get_sort() }, wrapped_res->get_sort());
+  Sort res_logging_sort = compute_sort(op, this, { t->get_sort() });
+
+  // check that child is already in hash table
+  assert(hashtable->contains(t));
+
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t });
 
@@ -280,8 +324,13 @@ Term LoggingSolver::make_term(const Op op,
   shared_ptr<LoggingTerm> lt2 = static_pointer_cast<LoggingTerm>(t2);
   Term wrapped_res =
       wrapped_solver->make_term(op, lt1->wrapped_term, lt2->wrapped_term);
-  Sort res_logging_sort = compute_sort(
-      op, SortVec{ t1->get_sort(), t2->get_sort() }, wrapped_res->get_sort());
+  Sort res_logging_sort =
+      compute_sort(op, this, { t1->get_sort(), t2->get_sort() });
+
+  // check that children are already in hash table
+  assert(hashtable->contains(t1));
+  assert(hashtable->contains(t2));
+
   Term res(
       new LoggingTerm(wrapped_res, res_logging_sort, op, TermVec{ t1, t2 }));
 
@@ -307,10 +356,14 @@ Term LoggingSolver::make_term(const Op op,
   shared_ptr<LoggingTerm> lt3 = static_pointer_cast<LoggingTerm>(t3);
   Term wrapped_res = wrapped_solver->make_term(
       op, lt1->wrapped_term, lt2->wrapped_term, lt3->wrapped_term);
-  Sort res_logging_sort =
-      compute_sort(op,
-                   SortVec{ t1->get_sort(), t2->get_sort(), t3->get_sort() },
-                   wrapped_res->get_sort());
+  Sort res_logging_sort = compute_sort(
+      op, this, { t1->get_sort(), t2->get_sort(), t3->get_sort() });
+
+  // check that children are already in hash table
+  assert(hashtable->contains(t1));
+  assert(hashtable->contains(t2));
+  assert(hashtable->contains(t3));
+
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, TermVec{ t1, t2, t3 });
 
@@ -333,15 +386,14 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   {
     shared_ptr<LoggingTerm> ltt = static_pointer_cast<LoggingTerm>(tt);
     lterms.push_back(ltt->wrapped_term);
+
+    // check that children are already in the hash table
+    assert(hashtable->contains(tt));
   }
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
-  SortVec logging_sorts;
-  for (auto tt : terms)
-  {
-    logging_sorts.push_back(tt->get_sort());
-  }
-  Sort res_logging_sort =
-      compute_sort(op, logging_sorts, wrapped_res->get_sort());
+  // Note: for convenience there's a version of compute_sort that takes terms
+  // since these are already in a vector, just let it unpack the sorts
+  Sort res_logging_sort = compute_sort(op, this, terms);
   Term res =
       std::make_shared<LoggingTerm>(wrapped_res, res_logging_sort, op, terms);
 
@@ -359,6 +411,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term LoggingSolver::get_value(const Term & t) const
 {
+  Term res;
   SortKind sk = t->get_sort()->get_sort_kind();
   if (supported_sortkinds_for_get_value.find(sk)
       == supported_sortkinds_for_get_value.end())
@@ -371,7 +424,7 @@ Term LoggingSolver::get_value(const Term & t) const
   if (t->get_sort()->get_sort_kind() != ARRAY)
   {
     Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
-    return std::make_shared<LoggingTerm>(
+    res = std::make_shared<LoggingTerm>(
         wrapped_val, t->get_sort(), Op(), TermVec{});
   }
   else
@@ -384,19 +437,29 @@ Term LoggingSolver::get_value(const Term & t) const
           "Wrapped solver did not provide constant base. Please use "
           "get_array_values instead of get_value of an array");
     }
-    Term res = make_term(out_const_base, t->get_sort());
+    res = make_term(out_const_base, t->get_sort());
     for (auto elem : pairs)
     {
       res = make_term(Store, res, elem.first, elem.second);
     }
-    return res;
   }
+
+  // check hash table
+  // lookup modifies term in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+  }
+
+  return res;
 }
 
-TermVec LoggingSolver::get_unsat_core()
+void LoggingSolver::get_unsat_core(UnorderedTermSet & out)
 {
-  TermVec underlying_core = wrapped_solver->get_unsat_core();
-  TermVec core;
+  UnorderedTermSet underlying_core;
+  wrapped_solver->get_unsat_core(underlying_core);
   for (auto c : underlying_core)
   {
     // assumption: these should be (possible negated) Boolean literals
@@ -409,9 +472,8 @@ TermVec LoggingSolver::get_unsat_core()
           "check_sat_assuming in LoggingSolver.");
     }
     Term log_c = assumption_cache->at(c);
-    core.push_back(log_c);
+    out.insert(log_c);
   }
-  return core;
 }
 
 UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
@@ -435,6 +497,15 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
     }
     out_const_base = Term(
         new LoggingTerm(wrapped_out_const_base, elemsort, Op(), TermVec{}));
+
+    // check hash table
+    // lookup modifies term in place and returns true if it's a known term
+    // i.e. returns existing term and destroys the unnecessary new one
+    if (!hashtable->lookup(out_const_base))
+    {
+      // this is the first time this term was created
+      hashtable->insert(out_const_base);
+    }
   }
 
   Term idx;
@@ -444,8 +515,21 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
     // expecting values in assignment map
     Assert(elem.first->is_value());
     Assert(elem.second->is_value());
+
     idx = std::make_shared<LoggingTerm>(elem.first, idxsort, Op(), TermVec{});
+    if (!hashtable->lookup(idx))
+    {
+      // this is the first time this term was created
+      hashtable->insert(idx);
+    }
+
     val = std::make_shared<LoggingTerm>(elem.second, elemsort, Op(), TermVec{});
+    if (!hashtable->lookup(val))
+    {
+      // this is the first time this term was created
+      hashtable->insert(val);
+    }
+
     assignments[idx] = val;
   }
 
