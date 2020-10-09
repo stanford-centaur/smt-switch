@@ -124,9 +124,9 @@ class CVC4InterpolatingSolver : public CVC4Solver
     CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
     ~CVC4InterpolatingSolver() {}
 
-  Result get_interpolant(const Term & A,
-                       const Term & B,
-                       Term & out_I) const override;
+    Result get_interpolant(const Term & A,
+                           const Term & B,
+                           Term & out_I) const override;
 };
 
 }  // namespace smt
