@@ -33,7 +33,8 @@ enum SolverEnum
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
-  MSAT_INTERPOLATOR
+  MSAT_INTERPOLATOR,
+  CVC4_INTERPOLATOR
 
   // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
   // and enums_imp.pxi

@@ -34,6 +34,7 @@
 #define RESET_STR "reset"
 #define INTERPOLATION_GROUP_STR "interpolation-group"
 #define MSAT_GET_INTERPOLANT_STR "get-interpolant"
+#define CVC4_GET_INTERPOLANT_STR "get-interpol"
 
 using namespace std;
 
@@ -285,12 +286,17 @@ Result PrintingSolver::get_interpolant(const Term & A,
    * The printing follows the internal implementation from msat_solver.h
    * in which the assertions are labeled by interpolation groups
    */
-  assert(style == PrintingStyleEnum::MSAT_STYLE);
-  (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << INTERPOLATION_GROUP_STR << " g1))" << endl;
-  (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :" << INTERPOLATION_GROUP_STR << " g2))" << endl;;
-  (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
-  (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
-  (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
+  if (style == PrintingStyleEnum::MSAT_STYLE) {
+    (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << INTERPOLATION_GROUP_STR << " g1))" << endl;
+    (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :" << INTERPOLATION_GROUP_STR << " g2))" << endl;;
+    (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
+    (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
+    (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
+  } else {
+    assert(style == PrintingStyleEnum::CVC4_STYLE);
+    (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << endl;
+    (*out_stream) << "(" << CVC4_GET_INTERPOLANT_STR << " I (not " << B << "))" << endl;
+  }
   return wrapped_solver->get_interpolant(A, B, out_I);
 }
 

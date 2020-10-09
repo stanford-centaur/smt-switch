@@ -123,6 +123,9 @@ cdef SolverEnum MSAT_INTERPOLATOR = SolverEnum()
 MSAT_INTERPOLATOR.se = c_MSAT_INTERPOLATOR
 setattr(solverenums, "MSAT_INTERPOLATOR", MSAT_INTERPOLATOR)
 
+cdef SolverEnum CVC4_INTERPOLATOR = SolverEnum()
+CVC4_INTERPOLATOR.se = c_CVC4_INTERPOLATOR
+setattr(solverenums, "CVC4_INTERPOLATOR", CVC4_INTERPOLATOR)
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
