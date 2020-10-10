@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class DTTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverEnum>
+                 public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -42,7 +42,10 @@ class DTTests : public ::testing::Test,
 
 TEST_P(DTTests, DatatypeDecl)
 {
-
+    SolverConfiguration sc = GetParam();
+    if (sc.is_logging_solver) {
+      return;
+    }
     Term five = s->make_term(5, intsort);
 
     // Make datatype sort
@@ -92,6 +95,6 @@ TEST_P(DTTests, DatatypeDecl)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
                          DTTests,
-                         testing::ValuesIn(filter_solver_enums({ THEORY_DATATYPE })));
+                         testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })));
 
 }

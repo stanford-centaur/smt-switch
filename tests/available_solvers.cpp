@@ -164,6 +164,11 @@ SmtSolver create_solver(SolverConfiguration sc)
   }
 }
 
+SmtSolver create_interpolating_solver(SolverConfiguration sc) {
+  SolverEnum se = sc.solver_enum;
+  return create_interpolating_solver(se);
+}
+
 SmtSolver create_interpolating_solver(SolverEnum se)
 {
   switch (se)
@@ -262,6 +267,20 @@ std::vector<SolverEnum> available_interpolator_enums() {
   result.push_back(CVC4_INTERPOLATOR);
 #endif  
 
+  return result;
+}
+
+std::vector<SolverConfiguration> available_interpolator_configurations() { 
+  std::vector<SolverEnum> enums = available_interpolator_enums();
+  std::vector<SolverConfiguration> result;
+  for (SolverEnum e : enums) {
+    SolverConfiguration sc;
+    sc.solver_enum = e;
+    sc.is_logging_solver = false;
+    //TODO do we ignore logging_interpolator? 
+    // seems like this is the case currently on master?
+    result.push_back(sc);
+  }
   return result;
 }
 

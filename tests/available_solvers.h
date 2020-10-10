@@ -40,6 +40,10 @@ smt::SmtSolver create_solver(smt::SolverEnum se);
 /** Creates an interpolating SmtSolver of the provided type */
 smt::SmtSolver create_interpolating_solver(smt::SolverEnum se);
 
+/** Creates an interpolating SmtSolver of the provided type */
+smt::SmtSolver create_interpolating_solver(SolverConfiguration sc);
+
+
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
 
@@ -57,6 +61,9 @@ std::vector<smt::SolverEnum> available_logging_solver_enums();
 
 // collect all the available interpolating solvers
 std::vector<smt::SolverEnum> available_interpolator_enums();
+
+// collect all the available interpolating solvers
+std::vector<SolverConfiguration> available_interpolator_configurations();
 
 /** Filter the available solvers by a set of attributes
  * @return all available solvers that have *all* the attributes

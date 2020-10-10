@@ -30,7 +30,7 @@ using namespace std;
 namespace smt_tests {
 
 class SelfTranslationTests : public ::testing::Test,
-                             public ::testing::WithParamInterface<SolverEnum>
+                             public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -49,7 +49,7 @@ class SelfTranslationTests : public ::testing::Test,
 };
 
 class SelfTranslationIntTests : public ::testing::Test,
-                                public ::testing::WithParamInterface<SolverEnum>
+                                public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -69,7 +69,7 @@ class SelfTranslationIntTests : public ::testing::Test,
 
 class TranslationTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<tuple<SolverEnum, SolverEnum>>
+      public ::testing::WithParamInterface<tuple<SolverConfiguration, SolverConfiguration>>
 {
  protected:
   void SetUp() override
@@ -333,25 +333,25 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
                          SelfTranslationTests,
-                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSelfTranslationIntTests,
     SelfTranslationIntTests,
-    testing::ValuesIn(filter_solver_enums({ FULL_TRANSFER, THEORY_INT })));
+    testing::ValuesIn(filter_solver_configurations({ FULL_TRANSFER, THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTranslationTests,
     TranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_enums({ TERMITER })),
-                     testing::ValuesIn(filter_solver_enums({ TERMITER }))));
+    testing::Combine(testing::ValuesIn(filter_solver_configurations({ TERMITER })),
+                     testing::ValuesIn(filter_solver_configurations({ TERMITER }))));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedBoolArrayTranslationTests,
     BoolArrayTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_enums(
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
-                     testing::ValuesIn(filter_solver_enums(
+                     testing::ValuesIn(filter_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
 
 }  // namespace smt_tests
