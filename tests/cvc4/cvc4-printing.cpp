@@ -53,12 +53,55 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-int main()
-{
-  stringbuf strbuf;
-  SmtSolver cvc4 = CVC4SolverFactory::create(false);
-  ostream os(&strbuf);
-  SmtSolver s = create_printing_solver(cvc4, &os, PrintingStyleEnum::DEFAULT_STYLE);
+void dump_and_run(stringbuf& strbuf, string expected_result) {
+  string filename = "cvc4-printing.cpp-sample.smt2";
+  std::ofstream out(filename.c_str());
+  out << strbuf.str() << endl;
+  out.close();
+  // CVC4_HOME is a macro defined when built with CVC4
+  // that points to the top-level CVC4 directory
+  // STRFY is defined in test-utils.h and converts
+  // a macro to its string representation
+  string command(STRFY(CVC4_HOME));
+  command += "/build/bin/cvc4 --produce-interpols=default ";
+  command += filename;
+  std::cout << "Running command: " << command << std::endl;
+  string result = exec(command.c_str());
+  std::cout << "got result:\n" << result << std::endl;
+  assert(result == expected_result);
+  remove(filename.c_str());
+}
+
+
+void test2(SmtSolver s, ostream& os, stringbuf& strbuf) {
+
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+
+  try
+  {
+    // x=0
+    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
+  }
+  catch (IncorrectUsageException & e)
+  {
+    cout << e.what() << endl;
+  }
+
+  // x<y /\ y<z
+  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  // x<z
+  Term B = s->make_term(Gt, x, z);
+  Term I;
+  Result r = s->get_interpolant(A, B, I);
+  dump_and_run(strbuf, "(define-fun I () Bool (<= x z))\n");
+}
+
+void test1(SmtSolver s, ostream& os, stringbuf& strbuf) {
   s->set_logic("QF_AUFBV");
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
@@ -94,23 +137,24 @@ int main()
   s->pop(1);
   s->check_sat();
   s->get_value(x);
-  string filename = "cvc4-printing.cpp-sample.smt2";
-  std::ofstream out(filename.c_str());
-  out << strbuf.str() << endl;
-  out.close();
-  // CVC4_HOME is a macro defined when built with CVC4
-  // that points to the top-level CVC4 directory
-  // STRFY is defined in test-utils.h and converts
-  // a macro to its string representation
-  string command(STRFY(CVC4_HOME));
-  command += "/build/bin/cvc4 ";
-  command += filename;
-  std::cout << "Running command: " << command << std::endl;
-  string result = exec(command.c_str());
-  std::cout << "got result:\n" << result << std::endl;
-  assert(result
-         == "unsat\n()\nsat\n((x #b00000000000000000000000000000000))\n");
-  remove(filename.c_str());
+  dump_and_run(strbuf, "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+}
+
+int main()
+{
+  stringbuf strbuf1;
+  SmtSolver cvc4_1 = CVC4SolverFactory::create(false);
+  ostream os1(&strbuf1);
+  SmtSolver s1 = create_printing_solver(cvc4_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
+  s1->set_opt("bv-print-consts-as-indexed-symbols", "true");
+  test1(s1, os1, strbuf1);
+
+  stringbuf strbuf2;
+  SmtSolver cvc4_2 = CVC4SolverFactory::create_interpolating_solver();
+  ostream os2(&strbuf2);
+  SmtSolver s2 = create_printing_solver(cvc4_2, &os2, PrintingStyleEnum::CVC4_STYLE);
+  s2->set_opt("bv-print-consts-as-indexed-symbols", "true");
+  test2(s2, os2, strbuf2);
 
   return 0;
 }

@@ -174,16 +174,18 @@ SmtSolver create_interpolating_solver(SolverEnum se)
       ;
     }
 #endif
+#if BUILD_CVC4
+    case CVC4_INTERPOLATOR:
+    {
+      return CVC4SolverFactory::create_interpolating_solver();
+      break;
+      ;
+    }
+#endif
     default: { throw SmtException("Unhandled solver enum");
     }
   }
 }
-
-const std::vector<SolverEnum> itp_enums({
-#if BUILD_MSAT
-  MSAT_INTERPOLATOR
-#endif
-});
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
@@ -238,7 +240,17 @@ std::vector<SolverEnum> available_logging_solver_enums()
   return enums;
 }
 
-std::vector<SolverEnum> available_interpolator_enums() { return itp_enums; };
+std::vector<SolverEnum> available_interpolator_enums() { 
+  std::vector<SolverEnum> result;
+#if BUILD_MSAT
+  result.push_back(MSAT_INTERPOLATOR);
+#endif  
+#if BUILD_CVC4
+  result.push_back(CVC4_INTERPOLATOR);
+#endif  
+
+  return result;
+}
 
 std::vector<SolverEnum> filter_solver_enums(
     const std::unordered_set<SolverAttribute> attributes)

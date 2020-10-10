@@ -63,6 +63,7 @@ TEST_P(ItpTests, Test_ITP)
 
   ASSERT_TRUE(free_symbols.find(y) == free_symbols.end());
   ASSERT_TRUE(free_symbols.find(z) == free_symbols.end());
+  std::cout << "the interpolant is: " << I << endl;
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedItpTests,

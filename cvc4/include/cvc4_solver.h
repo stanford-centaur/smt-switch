@@ -114,5 +114,20 @@ class CVC4Solver : public AbsSmtSolver
   // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
 };
+
+//Interpolating Solver
+class CVC4InterpolatingSolver : public CVC4Solver
+{
+  public:
+    CVC4InterpolatingSolver() {}
+    CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
+    CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
+    ~CVC4InterpolatingSolver() {}
+
+    Result get_interpolant(const Term & A,
+                           const Term & B,
+                           Term & out_I) const override;
+};
+
 }  // namespace smt
 
