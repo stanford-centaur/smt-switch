@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitTransferTests : public ::testing::Test,
-                          public ::testing::WithParamInterface<SolverEnum>
+                          public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -88,6 +88,6 @@ TEST_P(UnitQuantifierTransferTests, MonotonicUF)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTransferUnit,
     UnitTransferTests,
-    testing::ValuesIn(filter_solver_enums({ FULL_TRANSFER })));
+    testing::ValuesIn(filter_solver_configurations({ FULL_TRANSFER })));
 
 }  // namespace smt_tests

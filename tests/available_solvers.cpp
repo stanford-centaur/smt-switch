@@ -33,6 +33,8 @@
 #include "yices2_factory.h"
 #endif
 
+#include <algorithm>
+
 using namespace smt;
 
 namespace smt_tests {
@@ -205,6 +207,18 @@ std::vector<SolverConfiguration> available_solver_configurations()
   return configs;
 }
 
+std::vector<SolverConfiguration> available_no_logging_solver_configurations() {
+  std::vector<SolverEnum> enums = available_no_logging_solver_enums();
+  std::vector<SolverConfiguration> result;
+  for (SolverEnum e : enums) {
+    SolverConfiguration sc;
+    sc.solver_enum = e;
+    sc.is_logging_solver = false;
+    result.push_back(sc);
+  }
+  return result;
+}
+
 // collect all the available non-logging solvers
 std::vector<SolverEnum> available_no_logging_solver_enums()
 {
@@ -279,5 +293,30 @@ std::vector<SolverEnum> filter_solver_enums(
   return filtered_enums;
 }
 
+std::vector<SolverConfiguration> filter_solver_configurations(
+    const std::unordered_set<SolverAttribute> attributes)
+{
+  // first get the enums
+  std::vector<SolverEnum> filtered_enums = filter_solver_enums(attributes);
+  // remove all the logging enums
+  std::vector<SolverEnum> logging_enums = available_logging_solver_enums();
+  for (SolverEnum e : filtered_enums) {
+    if (std::find(logging_enums.begin(), logging_enums.end(), e) != logging_enums.end()) {
+      filtered_enums.erase(std::find(filtered_enums.begin(), filtered_enums.end(), e));
+    }
+  }
+  
+  // compute result
+  std::vector<SolverConfiguration> result;
+  for (SolverEnum e : filtered_enums) {
+    SolverConfiguration sc;
+    sc.solver_enum = e;
+    sc.is_logging_solver = false;
+    result.push_back(sc);
+    sc.is_logging_solver = true;
+    result.push_back(sc);
+  }
+  return result;
+}
 
 }  // namespace smt_tests

@@ -32,13 +32,14 @@ namespace smt_tests {
 
 class UnitResetAssertionsTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverEnum>
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
   {
-    SolverEnum se = GetParam();
-    s = create_solver(se);
+    SolverConfiguration sc = GetParam();
+    SolverEnum se = sc.solver_enum;
+    s = create_solver(sc);
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
 
@@ -120,6 +121,6 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitResetAssertions,
                          UnitResetAssertionsTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

@@ -49,6 +49,9 @@ std::vector<SolverConfiguration> available_solver_configurations();
 // collect all the available non-logging solvers
 std::vector<smt::SolverEnum> available_no_logging_solver_enums();
 
+// collect all the available non-logging solvers
+std::vector<SolverConfiguration> available_no_logging_solver_configurations();
+
 // collect all the available logging solvers
 std::vector<smt::SolverEnum> available_logging_solver_enums();
 
@@ -59,6 +62,12 @@ std::vector<smt::SolverEnum> available_interpolator_enums();
  * @return all available solvers that have *all* the attributes
  */
 std::vector<smt::SolverEnum> filter_solver_enums(
+    const std::unordered_set<smt::SolverAttribute> attributes);
+
+/** Filter the available solvers by a set of attributes
+ * @return all available solvers that have *all* the attributes
+ */
+std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 }  // namespace smt_tests

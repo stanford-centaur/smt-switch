@@ -25,7 +25,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitTestsHashTable : public testing::Test,
-                           public testing::WithParamInterface<SolverEnum>
+                           public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -71,6 +71,6 @@ TEST_P(UnitTestsHashTable, HashTable)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
     UnitTestsHashTable,
-    testing::ValuesIn(available_no_logging_solver_enums()));
+    testing::ValuesIn(available_no_logging_solver_configurations()));
 
 }  // namespace smt_tests

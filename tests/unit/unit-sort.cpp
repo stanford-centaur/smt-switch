@@ -38,7 +38,7 @@ TEST(SortKind, ToString)
 }
 
 class UnitSortTests : public ::testing::Test,
-                      public ::testing::WithParamInterface<SolverEnum>
+                      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -147,7 +147,9 @@ TEST_P(UnitSortTests, UninterpSortEquality)
   }
   catch (SmtException & e)
   {
-    std::cout << "got exception for SolverEnum: " << GetParam() << std::endl;
+    SolverConfiguration sc = GetParam();
+    SolverEnum se = sc.solver_enum;
+    std::cout << "got exception for SolverEnum: " << se << std::endl;
     return;
   }
 
@@ -193,6 +195,6 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
                          UnitSortTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests
