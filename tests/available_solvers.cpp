@@ -124,8 +124,8 @@ SmtSolver create_solver(SolverEnum se)
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
-  SolverEnum se = sc.get_solver_enum();
-  bool logging = sc.get_is_logging_solver();
+  SolverEnum se = sc.solver_enum;
+  bool logging = sc.is_logging_solver;
   switch (se)
   {
 #if BUILD_BTOR
@@ -189,19 +189,18 @@ SmtSolver create_interpolating_solver(SolverEnum se)
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
-SolverConfiguration::SolverConfiguration(SolverEnum e, bool logging)
-    : solver_enum(e), is_logging_solver(logging)
-{
-}
-
 std::vector<SolverConfiguration> available_solver_configurations()
 {
   std::vector<SolverConfiguration> configs;
   std::vector<SolverEnum> enums = available_no_logging_solver_enums();
   for (SolverEnum e : enums)
   {
-    configs.push_back(SolverConfiguration(e, true));
-    configs.push_back(SolverConfiguration(e, false));
+    SolverConfiguration sc;
+    sc.solver_enum = e;
+    sc.is_logging_solver = true;
+    configs.push_back(sc);
+    sc.is_logging_solver = false;
+    configs.push_back(sc);
   }
   return configs;
 }

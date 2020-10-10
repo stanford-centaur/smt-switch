@@ -26,14 +26,8 @@
 
 namespace smt_tests {
 
-class SolverConfiguration
+struct SolverConfiguration
 {
- public:
-  SolverConfiguration(smt::SolverEnum e, bool logging);
-  smt::SolverEnum get_solver_enum() { return solver_enum; }
-  bool get_is_logging_solver() { return is_logging_solver; }
-
- protected:
   smt::SolverEnum solver_enum;
   bool is_logging_solver;
 };
