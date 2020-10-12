@@ -160,8 +160,6 @@ std::vector<SolverConfiguration> available_interpolator_configurations() {
     SolverConfiguration sc;
     sc.solver_enum = e;
     sc.is_logging_solver = false;
-    //TODO do we ignore logging_interpolator? 
-    // seems like this is the case currently on master?
     result.push_back(sc);
   }
   return result;
