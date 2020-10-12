@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitSolverEnumTests : public ::testing::Test,
-                            public ::testing::WithParamInterface<SolverEnum>
+                            public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }
@@ -36,24 +36,13 @@ class UnitSolverEnumTests : public ::testing::Test,
 
 TEST_P(UnitSolverEnumTests, SolverEnumMatch)
 {
-  ASSERT_EQ(GetParam(), s->get_solver_enum());
-}
-
-TEST_P(UnitSolverEnumTests, LoggingMapping)
-{
-  SolverEnum se = GetParam();
-  if (!is_logging_solver_enum(se))
-  {
-    ASSERT_NO_THROW(get_logging_solver_enum(se));
-  }
-  else
-  {
-    ASSERT_THROW(get_logging_solver_enum(se), IncorrectUsageException);
-  }
+  SolverConfiguration sc = GetParam();
+  SolverEnum se = sc.solver_enum;
+  ASSERT_EQ(se, s->get_solver_enum());
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolverEnum,
                          UnitSolverEnumTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

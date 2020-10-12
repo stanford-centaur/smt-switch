@@ -42,87 +42,21 @@ namespace smt_tests {
 // list of regular (non-interpolator) solver enums
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
-  BTOR, BTOR_LOGGING,
+  BTOR
 #endif
 
 #if BUILD_CVC4
-      CVC4, CVC4_LOGGING,
+      CVC4
 #endif
 
 #if BUILD_MSAT
-      MSAT, MSAT_LOGGING,
+      MSAT
 #endif
 
 #if BUILD_YICES2
-      YICES2, YICES2_LOGGING,
+      YICES2
 #endif
 });
-
-
-SmtSolver create_solver(SolverEnum se)
-{
-  switch (se)
-  {
-#if BUILD_BTOR
-    case BTOR:
-    {
-      return BoolectorSolverFactory::create(false);
-      break;
-      ;
-    }
-    case BTOR_LOGGING:
-    {
-      return BoolectorSolverFactory::create(true);
-      break;
-      ;
-    }
-#endif
-#if BUILD_CVC4
-    case CVC4:
-    {
-      return CVC4SolverFactory::create(false);
-      break;
-      ;
-    }
-    case CVC4_LOGGING:
-    {
-      return CVC4SolverFactory::create(true);
-      break;
-      ;
-    }
-#endif
-#if BUILD_MSAT
-    case MSAT:
-    {
-      return MsatSolverFactory::create(false);
-      break;
-      ;
-    }
-    case MSAT_LOGGING:
-    {
-      return MsatSolverFactory::create(true);
-      break;
-      ;
-    }
-#endif
-#if BUILD_YICES2
-    case YICES2:
-    {
-      return Yices2SolverFactory::create(false);
-      break;
-      ;
-    }
-    case YICES2_LOGGING:
-    {
-      return Yices2SolverFactory::create(true);
-      break;
-      ;
-    }
-#endif
-    default: { throw SmtException("Unhandled solver enum");
-    }
-  }
-}
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
@@ -166,11 +100,6 @@ SmtSolver create_solver(SolverConfiguration sc)
 
 SmtSolver create_interpolating_solver(SolverConfiguration sc) {
   SolverEnum se = sc.solver_enum;
-  return create_interpolating_solver(se);
-}
-
-SmtSolver create_interpolating_solver(SolverEnum se)
-{
   switch (se)
   {
 #if BUILD_MSAT
@@ -199,7 +128,7 @@ std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 std::vector<SolverConfiguration> available_solver_configurations()
 {
   std::vector<SolverConfiguration> configs;
-  std::vector<SolverEnum> enums = available_no_logging_solver_enums();
+  std::vector<SolverEnum> enums = available_solver_enums();
   for (SolverEnum e : enums)
   {
     SolverConfiguration sc;
@@ -210,52 +139,6 @@ std::vector<SolverConfiguration> available_solver_configurations()
     configs.push_back(sc);
   }
   return configs;
-}
-
-std::vector<SolverConfiguration> available_no_logging_solver_configurations() {
-  std::vector<SolverEnum> enums = available_no_logging_solver_enums();
-  std::vector<SolverConfiguration> result;
-  for (SolverEnum e : enums) {
-    SolverConfiguration sc;
-    sc.solver_enum = e;
-    sc.is_logging_solver = false;
-    result.push_back(sc);
-  }
-  return result;
-}
-
-// collect all the available non-logging solvers
-std::vector<SolverEnum> available_no_logging_solver_enums()
-{
-  std::vector<SolverEnum> enums;
-  for (auto se : solver_enums)
-  {
-    const std::unordered_set<SolverAttribute> & se_attrs =
-        get_solver_attributes(se);
-
-    if (se_attrs.find(LOGGING) == se_attrs.end())
-    {
-      enums.push_back(se);
-    }
-  }
-  return enums;
-}
-
-// collect all the available logging solvers
-std::vector<SolverEnum> available_logging_solver_enums()
-{
-  std::vector<SolverEnum> enums;
-  for (auto se : solver_enums)
-  {
-    const std::unordered_set<SolverAttribute> & se_attrs =
-        get_solver_attributes(se);
-
-    if (se_attrs.find(LOGGING) != se_attrs.end())
-    {
-      enums.push_back(se);
-    }
-  }
-  return enums;
 }
 
 std::vector<SolverEnum> available_interpolator_enums() { 
@@ -317,14 +200,7 @@ std::vector<SolverConfiguration> filter_solver_configurations(
 {
   // first get the enums
   std::vector<SolverEnum> filtered_enums = filter_solver_enums(attributes);
-  // remove all the logging enums
-  std::vector<SolverEnum> logging_enums = available_logging_solver_enums();
-  for (SolverEnum e : filtered_enums) {
-    if (std::find(logging_enums.begin(), logging_enums.end(), e) != logging_enums.end()) {
-      filtered_enums.erase(std::find(filtered_enums.begin(), filtered_enums.end(), e));
-    }
-  }
-  
+
   // compute result
   std::vector<SolverConfiguration> result;
   for (SolverEnum e : filtered_enums) {

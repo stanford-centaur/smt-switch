@@ -135,7 +135,7 @@ TEST_P(UnitSortTests, UninterpretedSort)
 
 TEST_P(UnitSortTests, UninterpSortEquality)
 {
-  if (is_logging_solver_enum(s->get_solver_enum()))
+  if (solver_has_attribute(s->get_solver_enum(), LOGGING))
   {
     return;
   }

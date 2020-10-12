@@ -152,6 +152,6 @@ TEST_P(LoggingTests, Compare)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverLoggingTests,
     LoggingTests,
-    testing::ValuesIn(available_no_logging_solver_configurations()));
+    testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

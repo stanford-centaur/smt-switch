@@ -25,7 +25,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitTestsHashTable : public testing::Test,
-                           public testing::WithParamInterface<SolverConfiguration>
+                           public testing::WithParamInterface<SolverEnum>
 {
  protected:
   void SetUp() override
@@ -33,7 +33,11 @@ class UnitTestsHashTable : public testing::Test,
     // need to make sure we're not using a LoggingSolver
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
-    s = create_solver(GetParam());
+    SolverEnum se = GetParam();
+    SolverConfiguration sc;
+    sc.solver_enum = se;
+    sc.is_logging_solver = false;
+    s = create_solver(sc);
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
@@ -71,6 +75,6 @@ TEST_P(UnitTestsHashTable, HashTable)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
     UnitTestsHashTable,
-    testing::ValuesIn(available_no_logging_solver_configurations()));
+    testing::ValuesIn(available_solver_enums()));
 
 }  // namespace smt_tests

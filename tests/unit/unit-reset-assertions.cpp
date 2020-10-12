@@ -43,7 +43,7 @@ class UnitResetAssertionsTests
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
 
-    if (se == BTOR || se == BTOR_LOGGING)
+    if (se == BTOR)
     {
       // special option for boolector
       // not enabled by default because it can affect performance
