@@ -114,7 +114,7 @@ if (BUILD_Z3)
   set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-z3)
 
   # testing
-  add_subdirectory(tests/z3)
+  # add_subdirectory(tests)
 endif (BUILD_Z3)
 
 # should we build yices2?
