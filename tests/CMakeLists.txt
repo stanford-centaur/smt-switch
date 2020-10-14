@@ -50,6 +50,10 @@ if (BUILD_YICES2)
   add_subdirectory(yices2)
 endif()
 
+if (BUILD_Z3)
+  add_subdirectory(z3)
+endif()
+
 # googletest tests
 
 add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
