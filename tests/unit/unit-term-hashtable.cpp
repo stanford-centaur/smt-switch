@@ -34,9 +34,7 @@ class UnitTestsHashTable : public testing::Test,
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
     SolverEnum se = GetParam();
-    SolverConfiguration sc;
-    sc.solver_enum = se;
-    sc.is_logging_solver = false;
+    SolverConfiguration sc(se, false);
     s = create_solver(sc);
 
     bvsort = s->make_sort(BV, 4);

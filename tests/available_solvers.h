@@ -28,8 +28,15 @@ namespace smt_tests {
 
 struct SolverConfiguration
 {
+  // fields
   smt::SolverEnum solver_enum;
   bool is_logging_solver;
+  
+  // constructor
+  SolverConfiguration(smt::SolverEnum se, bool ils) {
+    solver_enum = se;
+    is_logging_solver = ils;  
+  }
 };
 
 /** Creates an SmtSolver of the provided type */

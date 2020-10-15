@@ -128,15 +128,12 @@ std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 std::vector<SolverConfiguration> available_solver_configurations()
 {
   std::vector<SolverConfiguration> configs;
-  std::vector<SolverEnum> enums = available_solver_enums();
-  for (SolverEnum e : enums)
+  for (SolverEnum e : available_solver_enums())
   {
-    SolverConfiguration sc;
-    sc.solver_enum = e;
-    sc.is_logging_solver = true;
-    configs.push_back(sc);
-    sc.is_logging_solver = false;
-    configs.push_back(sc);
+    SolverConfiguration sct(e, true);
+    SolverConfiguration scf(e, false);
+    configs.push_back(sct);
+    configs.push_back(scf);
   }
   return configs;
 }
@@ -154,12 +151,9 @@ std::vector<SolverEnum> available_interpolator_enums() {
 }
 
 std::vector<SolverConfiguration> available_interpolator_configurations() { 
-  std::vector<SolverEnum> enums = available_interpolator_enums();
   std::vector<SolverConfiguration> result;
-  for (SolverEnum e : enums) {
-    SolverConfiguration sc;
-    sc.solver_enum = e;
-    sc.is_logging_solver = false;
+  for (SolverEnum e : available_interpolator_enums()) {
+    SolverConfiguration sc(e, false);
     result.push_back(sc);
   }
   return result;
@@ -202,12 +196,10 @@ std::vector<SolverConfiguration> filter_solver_configurations(
   // compute result
   std::vector<SolverConfiguration> result;
   for (SolverEnum e : filtered_enums) {
-    SolverConfiguration sc;
-    sc.solver_enum = e;
-    sc.is_logging_solver = false;
-    result.push_back(sc);
-    sc.is_logging_solver = true;
-    result.push_back(sc);
+    SolverConfiguration scf(e, false);
+    SolverConfiguration sct(e, true);
+    result.push_back(scf);
+    result.push_back(sct);
   }
   return result;
 }
