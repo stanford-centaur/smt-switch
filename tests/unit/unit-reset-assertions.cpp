@@ -104,7 +104,8 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
   // Underlying solver boolector does not have reset_assertions
   // but we can approximate it using solving contexts, but this
   // might impact performance
-  SmtSolver s = create_solver(BTOR);
+  SolverConfiguration sc(BTOR, false);
+  SmtSolver s = create_solver(sc);
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
   Sort bvsort = s->make_sort(BV, 8);

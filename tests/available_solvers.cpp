@@ -42,19 +42,19 @@ namespace smt_tests {
 // list of regular (non-interpolator) solver enums
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
-  BTOR
+  BTOR,
 #endif
 
 #if BUILD_CVC4
-      CVC4
+      CVC4,
 #endif
 
 #if BUILD_MSAT
-      MSAT
+      MSAT,
 #endif
 
 #if BUILD_YICES2
-      YICES2
+      YICES2,
 #endif
 });
 
