@@ -16,6 +16,7 @@ target_include_directories (smt-switch-msat PUBLIC "${GMP_INCLUDE_DIR}")
 target_link_libraries(smt-switch-msat "${MSAT_HOME}/lib/libmathsat.a")
 target_link_libraries(smt-switch-msat smt-switch)
 target_link_libraries(smt-switch-msat ${GMP_LIBRARIES})
+target_link_libraries(smt-switch-msat ${GMPXX_LIBRARIES})
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the mathsat source
