@@ -29,7 +29,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitUtilTests : public ::testing::Test,
-                      public ::testing::WithParamInterface<SolverEnum>
+                      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -104,6 +104,6 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,
-                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

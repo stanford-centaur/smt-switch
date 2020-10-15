@@ -32,17 +32,18 @@ namespace smt_tests {
 
 class UnitResetAssertionsTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverEnum>
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
   {
-    SolverEnum se = GetParam();
-    s = create_solver(se);
+    SolverConfiguration sc = GetParam();
+    SolverEnum se = sc.solver_enum;
+    s = create_solver(sc);
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
 
-    if (se == BTOR || se == BTOR_LOGGING)
+    if (se == BTOR)
     {
       // special option for boolector
       // not enabled by default because it can affect performance
@@ -103,7 +104,8 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
   // Underlying solver boolector does not have reset_assertions
   // but we can approximate it using solving contexts, but this
   // might impact performance
-  SmtSolver s = create_solver(BTOR);
+  SolverConfiguration sc(BTOR, false);
+  SmtSolver s = create_solver(sc);
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
   Sort bvsort = s->make_sort(BV, 8);
@@ -120,6 +122,6 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitResetAssertions,
                          UnitResetAssertionsTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

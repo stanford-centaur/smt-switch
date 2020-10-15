@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class ArrayModelTests : public ::testing::Test,
-                        public ::testing::WithParamInterface<SolverEnum>
+                        public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -77,6 +77,6 @@ TEST_P(ArrayModelTests, TestArrayModel)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedArrayModelTests,
     ArrayModelTests,
-    testing::ValuesIn(filter_solver_enums({ ARRAY_MODELS })));
+    testing::ValuesIn(filter_solver_configurations({ ARRAY_MODELS })));
 
 }  // namespace smt_tests

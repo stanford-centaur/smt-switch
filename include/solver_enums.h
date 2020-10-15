@@ -25,11 +25,6 @@ enum SolverEnum
   CVC4,
   MSAT,
   YICES2,
-  // have separate enum for solver wrapped by LoggingSolver with Shadow DAG
-  BTOR_LOGGING,
-  CVC4_LOGGING,
-  MSAT_LOGGING,
-  YICES2_LOGGING,
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
@@ -72,24 +67,11 @@ enum SolverAttribute
   // and enums_imp.pxi
 };
 
-/** Returns true iff the SolverEnum corresponds to a LoggingSolver
- *  @param se the solver enum to check
- *  @return true iff the se is a *_LOGGING enum
- */
-bool is_logging_solver_enum(SolverEnum se);
-
 /** Returns true iff the SolverEnum corresponds to an Interpolator
  *  @param se the solver enum to check
  *  @return true iff the se is a *_INTERPOLATOR enum
  */
 bool is_interpolator_solver_enum(SolverEnum se);
-
-/** Maps a non-logging solver enum to the logging version
- *  e.g. BTOR -> BTOR_LOGGING
- *  @param se a non-logging solver enum to map
- *  @return the logging solver version of this enum
- */
-SolverEnum get_logging_solver_enum(SolverEnum se);
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa);
 

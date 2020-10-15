@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitArrayTests : public ::testing::Test,
-                       public ::testing::WithParamInterface<SolverEnum>
+                       public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -74,6 +74,6 @@ TEST_P(UnitArrayTests, ConstArr)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitArray,
     UnitArrayTests,
-    testing::ValuesIn(filter_solver_enums({ CONSTARR, ARRAY_MODELS })));
+    testing::ValuesIn(filter_solver_configurations({ CONSTARR, ARRAY_MODELS })));
 
 }  // namespace smt_tests

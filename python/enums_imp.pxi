@@ -103,22 +103,6 @@ cdef SolverEnum YICES2 = SolverEnum()
 YICES2.se = c_YICES2
 setattr(solverenums, 'YICES2', YICES2)
 
-cdef SolverEnum BTOR_LOGGING = SolverEnum()
-BTOR_LOGGING.se = c_BTOR_LOGGING
-setattr(solverenums, 'BTOR_LOGGING', BTOR)
-
-cdef SolverEnum CVC4_LOGGING = SolverEnum()
-CVC4_LOGGING.se = c_CVC4_LOGGING
-setattr(solverenums, 'CVC4_LOGGING', CVC4_LOGGING)
-
-cdef SolverEnum MSAT_LOGGING = SolverEnum()
-MSAT_LOGGING.se = c_MSAT_LOGGING
-setattr(solverenums, 'MSAT_LOGGING', MSAT_LOGGING)
-
-cdef SolverEnum YICES2_LOGGING = SolverEnum()
-YICES2_LOGGING.se = c_YICES2_LOGGING
-setattr(solverenums, 'YICES2_LOGGING', YICES2_LOGGING)
-
 cdef SolverEnum MSAT_INTERPOLATOR = SolverEnum()
 MSAT_INTERPOLATOR.se = c_MSAT_INTERPOLATOR
 setattr(solverenums, "MSAT_INTERPOLATOR", MSAT_INTERPOLATOR)

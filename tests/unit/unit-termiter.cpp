@@ -28,7 +28,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitTests : public ::testing::Test,
-                  public testing::WithParamInterface<SolverEnum>
+                  public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -124,10 +124,10 @@ TEST_P(UnitTests, CopyIter)
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
-                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
                          ConstArrUnitTests,
-                         testing::ValuesIn(filter_solver_enums({ CONSTARR })));
+                         testing::ValuesIn(filter_solver_configurations({ CONSTARR })));
 
 }  // namespace smt_tests

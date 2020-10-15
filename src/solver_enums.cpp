@@ -29,25 +29,17 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
         { BTOR,
           { TERMITER,
+            LOGGING,
             ARRAY_MODELS,
             CONSTARR,
             UNSAT_CORE,
             QUANTIFIERS,
             BOOL_BV1_ALIASING } },
 
-        { BTOR_LOGGING,
-          { LOGGING,
-            TERMITER,
-            ARRAY_MODELS,
-            ARRAY_FUN_BOOLS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
         { CVC4,
           {
               TERMITER,
+              LOGGING,
               THEORY_INT,
               THEORY_REAL,
               ARRAY_MODELS,
@@ -59,31 +51,9 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               QUANTIFIERS
           } },
 
-        { CVC4_LOGGING,
-          { LOGGING,
-            TERMITER,
-            THEORY_INT,
-            THEORY_REAL,
-            ARRAY_MODELS,
-            ARRAY_FUN_BOOLS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
         { MSAT,
           { TERMITER,
-            THEORY_INT,
-            THEORY_REAL,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS } },
-
-        { MSAT_LOGGING,
-          { LOGGING,
-            TERMITER,
+            LOGGING,
             THEORY_INT,
             THEORY_REAL,
             ARRAY_MODELS,
@@ -96,55 +66,16 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
-
-        { YICES2_LOGGING,
-          { LOGGING,
-            TERMITER,
-            THEORY_INT,
-            THEORY_REAL,
-            ARRAY_FUN_BOOLS,
-            FULL_TRANSFER,
-            UNSAT_CORE } },
+        { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
 
     });
-
-const unordered_set<SolverEnum> logging_solver_enums(
-    { BTOR_LOGGING, CVC4_LOGGING, MSAT_LOGGING, YICES2_LOGGING });
-const unordered_map<SolverEnum, SolverEnum> to_logging_solver_enum(
-    { { BTOR, BTOR_LOGGING },
-      { CVC4, CVC4_LOGGING },
-      { MSAT, MSAT_LOGGING },
-      { YICES2, YICES2_LOGGING } });
 
 const unordered_set<SolverEnum> interpolator_solver_enums(
     { MSAT_INTERPOLATOR, CVC4_INTERPOLATOR });
 
-bool is_logging_solver_enum(SolverEnum se)
-{
-  return logging_solver_enums.find(se) != logging_solver_enums.end();
-}
-
 bool is_interpolator_solver_enum(SolverEnum se)
 {
   return interpolator_solver_enums.find(se) != interpolator_solver_enums.end();
-}
-
-SolverEnum get_logging_solver_enum(SolverEnum se)
-{
-  if (is_logging_solver_enum(se))
-  {
-    throw IncorrectUsageException("Expecting non-logging solver enum but got "
-                                  + to_string(se));
-  }
-  else if (to_logging_solver_enum.find(se) == to_logging_solver_enum.end())
-  {
-    throw NotImplementedException(
-        "Don't have a mapping from solver enum to logging version for "
-        + to_string(se));
-  }
-
-  return to_logging_solver_enum.at(se);
 }
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
@@ -171,10 +102,6 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
-    case BTOR_LOGGING: o << "BTOR_LOGGING"; break;
-    case CVC4_LOGGING: o << "CVC4_LOGGING"; break;
-    case MSAT_LOGGING: o << "MSAT_LOGGING"; break;
-    case YICES2_LOGGING: o << "YICES2_LOGGING"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     case CVC4_INTERPOLATOR: o << "CVC4_INTERPOLATOR"; break;
     default:

@@ -33,7 +33,9 @@ class UnitTestsHashTable : public testing::Test,
     // need to make sure we're not using a LoggingSolver
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
-    s = create_solver(GetParam());
+    SolverEnum se = GetParam();
+    SolverConfiguration sc(se, false);
+    s = create_solver(sc);
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
@@ -71,6 +73,6 @@ TEST_P(UnitTestsHashTable, HashTable)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
     UnitTestsHashTable,
-    testing::ValuesIn(available_no_logging_solver_enums()));
+    testing::ValuesIn(available_solver_enums()));
 
 }  // namespace smt_tests

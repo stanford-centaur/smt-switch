@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitPrintTests : public ::testing::Test,
-                       public testing::WithParamInterface<SolverEnum>
+                       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -96,6 +96,6 @@ TEST_P(UnitPrintTests, PrintValueAs)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverPringUnit,
                          UnitPrintTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests
