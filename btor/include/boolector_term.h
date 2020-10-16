@@ -90,6 +90,11 @@ class BoolectorTerm : public AbsTerm
   TermIter end() override;
   std::string print_value_as(SortKind sk) override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party Boolector-specific software
+
+  BoolectorNode * get_btor_node() const { return node; };
+
  protected:
   Btor * btor;
   // the actual API level node that is used

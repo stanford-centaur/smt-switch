@@ -115,6 +115,11 @@ class BoolectorSolver : public AbsSmtSolver
   Term apply_prim_op(PrimOp op, TermVec terms) const;
   void dump_smt2(std::string filename) const override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party Boolector-specific software
+
+  Btor * get_btor() const { return btor; };
+
  protected:
   Btor * btor;
   // store the names of created symbols

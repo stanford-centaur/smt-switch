@@ -81,6 +81,26 @@ class MsatTerm : public AbsTerm
   TermIter end() override;
   std::string print_value_as(SortKind sk) override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party MathSAT-specific software
+  msat_term get_msat_term() const
+  {
+    if (is_uf)
+    {
+      throw IncorrectUsageException("Cannot get msat_term from UF.");
+    }
+    return term;
+  }
+
+  msat_decl get_msat_decl() const
+  {
+    if (!is_uf)
+    {
+      throw IncorrectUsageException("Cannot get msat_decl from term.");
+    }
+    return decl;
+  }
+
  protected:
   msat_env env;
   msat_term term;

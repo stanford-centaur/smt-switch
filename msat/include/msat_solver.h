@@ -124,6 +124,10 @@ class MsatSolver : public AbsSmtSolver
 
   void dump_smt2(std::string filename) const override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party MathSAT-specific software
+  msat_env get_msat_env() const { return env; };
+
  protected:
   msat_config cfg;
   msat_env env;

@@ -48,6 +48,10 @@ namespace smt
     bool compare(const Sort) const override;
     SortKind get_sort_kind() const override;
 
+    // getters for solver-specific objects
+    // for interacting with third-party CVC4-specific software
+    ::CVC4::api::Sort get_cvc4_sort() const { return sort; };
+
    protected:
     ::CVC4::api::Sort sort;
 
