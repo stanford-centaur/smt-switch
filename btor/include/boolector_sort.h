@@ -46,6 +46,11 @@ class BoolectorSortBase : public AbsSort
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override { return sk; };
 
+  // getters for solver-specific objects
+  // for interacting with third-party Boolector-specific software
+
+  BoolectorSort get_btor_sort() const { return sort; };
+
  protected:
   Btor * btor;
   BoolectorSort sort;

@@ -106,8 +106,13 @@ class CVC4Solver : public AbsSmtSolver
   void reset() override;
   void reset_assertions() override;
   void dump_smt2(std::string filename) const override;
+
   // helpers
   ::CVC4::api::Op make_cvc4_op(Op op) const;
+
+  // getters for solver-specific objects
+  // for interacting with third-party CVC4-specific software
+  const ::CVC4::api::Solver & get_cvc4_solver() const { return solver; };
 
  protected:
   ::CVC4::api::Solver solver;
