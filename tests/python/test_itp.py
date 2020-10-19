@@ -41,11 +41,11 @@ def get_free_vars(t:ss.Term)->Set[ss.Term]:
     return free_vars
 
 # Note: Msat is only interpolant producing solver currently
-@pytest.mark.parametrize("itp_name", [name for name in ss.solvers if name == 'msat'])
+@pytest.mark.parametrize("itp_name", [name for name in ss.solvers if name in {'msat', 'cvc4'}])
 def test_simple_itp(itp_name):
-    if itp_name == 'msat':
-        itp = ss.create_msat_interpolator()
-    else:
+    try:
+        itp = eval(f'ss.create_{itp_name}_interpolator()')
+    except:
         raise NotImplementedError("Haven't handled interpolator {}".format(itp_name))
 
     intsort = itp.make_sort(ss.sortkinds.INT)
