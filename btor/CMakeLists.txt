@@ -40,3 +40,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
 endif()
 
 install(TARGETS smt-switch-btor DESTINATION lib)
+# install headers -- for expert use only
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+  DESTINATION include/smt-switch
+  FILES_MATCHING PATTERN "*.h")
