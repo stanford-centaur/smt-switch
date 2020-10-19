@@ -324,6 +324,10 @@ void MsatSolver::get_unsat_core(UnorderedTermSet & out)
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
+    if (MSAT_ERROR_TERM(*mcore_iter))
+    {
+      throw InternalSolverException("got an error term in the unsat core");
+    }
     out.insert(std::make_shared<MsatTerm>(env, *mcore_iter));
     ++mcore_iter;
   }
