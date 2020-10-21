@@ -44,12 +44,11 @@ class Z3Solver : public AbsSmtSolver
  public:
   Z3Solver() : AbsSmtSolver(Z3)
   {
-    // Had to move yices_init to the Factory
-    // yices_init();
-    // ctx = yices_new_context(NULL);
-    // config = yices_new_config();
-    // z3::context ctx;
-    // c = ctx;
+    context c;
+    // solver s(c);
+    ctx = &c;
+    // slv = &s;
+
   };
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
@@ -115,7 +114,8 @@ class Z3Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
  protected:
-//  ::z3::solver solver;
-  z3::context c;
+  z3::context *ctx;
+  // z3::solver *slv;
+
 };
 }  // namespace smt

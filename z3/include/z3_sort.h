@@ -22,6 +22,7 @@
 
 #include "z3++.h"
 
+using namespace z3;
 namespace smt {
 
 // forward declaration
@@ -31,7 +32,7 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  // Z3Sort(type_t y_type) : type(y_type), is_function(false){};
+  Z3Sort(sort z3sort) : type(z3sort), is_function(false){};
 
   // Functions
   // Z3Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun){};
@@ -52,7 +53,7 @@ class Z3Sort : public AbsSort
   // type_t get_ytype() { return type; };
 
  protected:
-  // type_t type;
+  sort type;
   bool is_function;
 
   friend class Z3Solver;

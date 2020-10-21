@@ -2,8 +2,8 @@
 #include "assert.h"
 
 #include "smt.h"
-//#include "z3_sort.h"
-//#include "z3++.h"
+#include "z3_sort.h"
+#include "z3++.h"
 
 #include "z3_factory.h"
 
@@ -13,8 +13,14 @@ using namespace std;
 
 int main()
 {
+	// z3::context c2; 
+	// z3::context *c3 = &c2;
+	// z3::sort x = c3->bool_sort();
+
+	cout << "before solver creation " << endl;
 	SmtSolver s = Z3SolverFactory::create(false);
-//	Sort bvsort8 = s->make_sort(BV, 8);
+	cout << "after solver creation " << endl;
+	Sort boolsort1 = s->make_sort(BOOL);
 	cout << "testing!!! :)" << endl;
 	return 0;
 }

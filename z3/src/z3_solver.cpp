@@ -2,6 +2,8 @@
 
 #include <inttypes.h>
 
+#include <iostream>
+
 #include <z3++.h>
 // #include "z3_extensions.h"
 
@@ -198,27 +200,36 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 
 Sort Z3Solver::make_sort(SortKind sk) const {
 
-	type_t y_sort;
+	std::cout << "making a sort with Z3!!!!!";
+	// z3::context rm_this;
+	z3::sort this_z3_sort = ctx->bool_sort();
+	std::cout << "no segfault!";
 
-	if (sk == BOOL) {
-		y_sort = yices_bool_type();
-	} else if (sk == INT) {
-		y_sort = yices_int_type();
-	} else if (sk == REAL) {
-		y_sort = yices_real_type();
-	} else {
-		std::string msg("Can't create sort with sort constructor ");
-		msg += to_string(sk);
-		msg += " and no arguments";
-		throw IncorrectUsageException(msg.c_str());
-	}
+	return NULL;
+	// return std::make_shared <Z3Sort> (this_z3_sort);
 
-	if (yices_error_code() != 0) {
-		std::string msg(yices_error_string());
-		throw InternalSolverException(msg.c_str());
-	}
+	// return NULL; 
+	// type_t y_sort;
 
-	return std::make_shared < Yices2Sort > (y_sort);
+	// if (sk == BOOL) {
+	// 	y_sort = yices_bool_type();
+	// } else if (sk == INT) {
+	// 	y_sort = yices_int_type();
+	// } else if (sk == REAL) {
+	// 	y_sort = yices_real_type();
+	// } else {
+	// 	std::string msg("Can't create sort with sort constructor ");
+	// 	msg += to_string(sk);
+	// 	msg += " and no arguments";
+	// 	throw IncorrectUsageException(msg.c_str());
+	// }
+
+	// if (yices_error_code() != 0) {
+	// 	std::string msg(yices_error_string());
+	// 	throw InternalSolverException(msg.c_str());
+	// }
+
+	// return std::make_shared < Yices2Sort > (y_sort);
 
 //  try
 //  {
@@ -248,8 +259,8 @@ Sort Z3Solver::make_sort(SortKind sk) const {
 //  {
 //    throw InternalSolverException(e.what());
 //  }
-	throw NotImplementedException(
-			"Term iteration not implemented for Z3 backend.");
+	// throw NotImplementedException(
+	// 		"Term iteration not implemented for Z3 backend.");
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
