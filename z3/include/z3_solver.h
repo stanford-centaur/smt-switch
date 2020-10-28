@@ -42,12 +42,8 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver() : AbsSmtSolver(Z3)
+  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx)
   {
-    context c;
-    // solver s(c);
-    ctx = &c;
-    // slv = &s;
 
   };
   Z3Solver(const Z3Solver &) = delete;
@@ -114,8 +110,8 @@ class Z3Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
  protected:
-  z3::context *ctx;
-  // z3::solver *slv;
+  mutable z3::context ctx;
+  mutable z3::solver slv;
 
 };
 }  // namespace smt

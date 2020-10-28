@@ -13,14 +13,18 @@ using namespace std;
 
 int main()
 {
-	// z3::context c2; 
-	// z3::context *c3 = &c2;
-	// z3::sort x = c3->bool_sort();
-
 	cout << "before solver creation " << endl;
 	SmtSolver s = Z3SolverFactory::create(false);
 	cout << "after solver creation " << endl;
+
+	cout << "..." << endl;
 	Sort boolsort1 = s->make_sort(BOOL);
-	cout << "testing!!! :)" << endl;
+	Sort realsort1 = s->make_sort(REAL);
+	Sort intsort1 = s->make_sort(INT);
+	cout << boolsort1 << endl << realsort1 << endl << intsort1 << endl;
+
+	Sort bvsort = s->make_sort(BV, 8);
+	cout << bvsort << endl;
+	cout << "testing done :)" << endl;
 	return 0;
 }

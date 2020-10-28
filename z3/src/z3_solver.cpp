@@ -200,72 +200,41 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 
 Sort Z3Solver::make_sort(SortKind sk) const {
 
-	std::cout << "making a sort with Z3!!!!!";
+	std::cout << "making a sort with Z3!!!!!" << endl;
 	// z3::context rm_this;
-	z3::sort this_z3_sort = ctx->bool_sort();
-	std::cout << "no segfault!";
+//	z3::sort this_z3_sort = ctx->bool_sort();
 
-	return NULL;
-	// return std::make_shared <Z3Sort> (this_z3_sort);
+//	z3::context rm_this;
 
-	// return NULL; 
-	// type_t y_sort;
+	std::cout << "ctx" << endl;
 
-	// if (sk == BOOL) {
-	// 	y_sort = yices_bool_type();
-	// } else if (sk == INT) {
-	// 	y_sort = yices_int_type();
-	// } else if (sk == REAL) {
-	// 	y_sort = yices_real_type();
-	// } else {
-	// 	std::string msg("Can't create sort with sort constructor ");
-	// 	msg += to_string(sk);
-	// 	msg += " and no arguments";
-	// 	throw IncorrectUsageException(msg.c_str());
-	// }
+	z3::sort z_sort = ctx.bool_sort();		//should be else
 
-	// if (yices_error_code() != 0) {
-	// 	std::string msg(yices_error_string());
-	// 	throw InternalSolverException(msg.c_str());
-	// }
+	std::cout << "api call" << endl;
 
-	// return std::make_shared < Yices2Sort > (y_sort);
+	if (sk == BOOL){
+		z_sort = ctx.bool_sort();
+	} else if (sk == INT){
+		z_sort = ctx.int_sort();
+	} else if (sk == REAL){
+		z_sort = ctx.real_sort();
+	} else {
+	 	std::string msg("Can't create sort with sort constructor ");
+	 	msg += to_string(sk);
+	 	msg += " and no arguments";
+	 	throw IncorrectUsageException(msg.c_str());
+	 }
 
-//  try
-//  {
-
-
-
-
-
-//	if (sk == BOOL) {
-//		return std::make_shared < Z3Sort > (solver.bool_sort());
-//	} else if (sk == INT) {
-//		return std::make_shared < Z3Sort > (solver.int_sort());
-//	} else if (sk == REAL) {
-//		return std::make_shared < Z3Sort > (solver.real_sort());
-//	} else {
-//		std::string msg("Can't create sort with sort constructor ");
-//		msg += to_string(sk);
-//		msg += " and no arguments";
-//		throw IncorrectUsageException(msg.c_str());
-//	}
-
-
-
-
-//  }
-//  catch (::CVC4::api::CVC4ApiException & e)
-//  {
-//    throw InternalSolverException(e.what());
-//  }
-	// throw NotImplementedException(
-	// 		"Term iteration not implemented for Z3 backend.");
+	Sort final_sort = std::make_shared<Z3Sort> (z_sort);
+	return final_sort;
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
-	throw NotImplementedException(
-			"Term iteration not implemented for Z3 backend.");
+	z3::sort z_sort = ctx.bool_sort();
+	if (sk == BV){
+		z_sort = ctx.bv_sort(size);
+	}
+	return std::make_shared<Z3Sort> (z_sort);
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1) const {
