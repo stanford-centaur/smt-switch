@@ -60,7 +60,7 @@ class CMakeBuild(build_ext):
 
         # call configure
         # default install everything?
-        solvers = ["btor"] #, "cvc4", "msat"]
+        solvers = ["btor", "cvc4"] # "msat"]
         solver_path = {"btor": "boolector", "cvc4": "CVC4", "msat": "mathsat"}
         root_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
         build_dir = os.path.join(root_path, "build")
@@ -72,6 +72,10 @@ class CMakeBuild(build_ext):
             filename = os.path.join(root_path, "contrib", "setup-" + solver + ".sh")
             opts = ["--auto-yes"] if solver == "msat" else []
             subprocess.check_call([filename] + opts)
+
+        # get cmake files from scikit-build
+        skbuild_script = os.path.join(root_path, "contrib", "setup-skbuild.sh")
+        subprocess.check_call([skbuild_script])
 
         # to avoid multiple build, only call reconfigure if we couldn't find the makefile
         # for python
