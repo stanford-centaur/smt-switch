@@ -21,7 +21,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           libgmp-dev \
-          libedit-dev \
+          libedit-dev
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
