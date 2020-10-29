@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-cd smt-switch/
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SWITCH_DIR=$DIR/../../
+
+cd $SWITCH_DIR
 mkdir -p build
 pip install Cython==0.29
 python contrib/wheels/build_wheel.py bdist_wheel
