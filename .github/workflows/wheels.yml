@@ -34,7 +34,7 @@ jobs:
     - name: Build wheels
       shell: bash
       run: |
-        ./smt-switch/contrib/wheels/ci.sh
+        ./contrib/wheels/ci.sh
           # docker run --mount type=bind,source="$(pwd)"/../smt-switch,target=/smt-switch keyiz/manylinux-java:py${{ matrix.python-version }} /smt-switch/contrib/wheels/ci.sh
       env:
         PY_VERSION: ${{ matrix.python-version }}
