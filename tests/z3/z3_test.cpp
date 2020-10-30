@@ -11,8 +11,7 @@ using namespace smt;
 using namespace std;
 //using namespace z3;
 
-int main()
-{
+int main() {
 	cout << "before solver creation " << endl;
 	SmtSolver s = Z3SolverFactory::create(false);
 	cout << "after solver creation " << endl;
@@ -25,6 +24,11 @@ int main()
 
 	Sort bvsort = s->make_sort(BV, 8);
 	cout << bvsort << endl;
+
+	Sort uninterpretedsort = s->make_sort("a", 0);
+	cout << uninterpretedsort << endl;
+
 	cout << "testing done :)" << endl;
+
 	return 0;
 }

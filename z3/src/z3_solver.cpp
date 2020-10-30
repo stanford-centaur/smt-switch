@@ -194,47 +194,55 @@ void Z3Solver::get_unsat_core(UnorderedTermSet &out) {
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
-	throw NotImplementedException(
-			"Term iteration not implemented for Z3 backend.");
+	z3::sort z_sort = ctx.bool_sort();       //fix this
+
+	if (!arity) {
+//		z_sort = ctx.uninterpreted_sort(name);
+		const char * c = name.c_str();
+		z3::symbol func_name = ctx.str_symbol(c);
+		z_sort = ctx.uninterpreted_sort(func_name);
+//		Z3_mk_string_symbol()
+	} else {
+		throw NotImplementedException(
+				"Z3 does not support uninterpreted type with non-zero arity.");
+	}
+
+//	if (yices_error_code() != 0) {
+//		std::string msg(yices_error_string());
+//
+//		throw InternalSolverException(msg.c_str());
+//	}
+
+	return std::make_shared < Z3Sort > (z_sort);
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const {
 
-	std::cout << "making a sort with Z3!!!!!" << endl;
-	// z3::context rm_this;
-//	z3::sort this_z3_sort = ctx->bool_sort();
-
-//	z3::context rm_this;
-
-	std::cout << "ctx" << endl;
-
 	z3::sort z_sort = ctx.bool_sort();		//should be else
 
-	std::cout << "api call" << endl;
-
-	if (sk == BOOL){
+	if (sk == BOOL) {
 		z_sort = ctx.bool_sort();
-	} else if (sk == INT){
+	} else if (sk == INT) {
 		z_sort = ctx.int_sort();
-	} else if (sk == REAL){
+	} else if (sk == REAL) {
 		z_sort = ctx.real_sort();
 	} else {
-	 	std::string msg("Can't create sort with sort constructor ");
-	 	msg += to_string(sk);
-	 	msg += " and no arguments";
-	 	throw IncorrectUsageException(msg.c_str());
-	 }
+		std::string msg("Can't create sort with sort constructor ");
+		msg += to_string(sk);
+		msg += " and no arguments";
+		throw IncorrectUsageException(msg.c_str());
+	}
 
-	Sort final_sort = std::make_shared<Z3Sort> (z_sort);
+	Sort final_sort = std::make_shared < Z3Sort > (z_sort);
 	return final_sort;
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
 	z3::sort z_sort = ctx.bool_sort();
-	if (sk == BV){
+	if (sk == BV) {
 		z_sort = ctx.bv_sort(size);
 	}
-	return std::make_shared<Z3Sort> (z_sort);
+	return std::make_shared < Z3Sort > (z_sort);
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1) const {
