@@ -7,6 +7,6 @@ SWITCH_DIR=$DIR/../../
 cd $SWITCH_DIR
 mkdir -p build
 pip install Cython==0.29
-python contrib/wheels/build_wheel.py bdist_wheel
+python3 contrib/wheels/build_wheel.py bdist_wheel
 auditwheel show dist/*
 auditwheel repair dist/*
