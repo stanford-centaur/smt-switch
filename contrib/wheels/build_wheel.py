@@ -82,7 +82,6 @@ class CMakeBuild(build_ext):
         python_make_dir = os.path.join(build_dir, "python")
         if not os.path.isfile(os.path.join(python_make_dir, "Makefile")):
             args = ["--" + solver for solver in solvers] + ["--python"]
-            args.append("--python{}".format(sys.version_info.major))
             config_filename = os.path.join(root_path, "configure.sh")
             subprocess.check_call([config_filename] + args)
 
