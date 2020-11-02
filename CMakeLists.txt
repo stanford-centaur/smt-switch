@@ -50,7 +50,7 @@ if (BUILD_PYTHON_BINDINGS)
   # else()
   #   find_package (Python3 COMPONENTS Interpreter Development)
   # endif()
-  find_package(Python COMPONENTS Interpreter Development)
+  find_package(PythonInterp 3 REQUIRED)
 endif()
 
 if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2)
