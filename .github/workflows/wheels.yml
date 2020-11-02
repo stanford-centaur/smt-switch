@@ -16,17 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install Packages
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libgmp-dev \
-          libedit-dev
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        python3 -m pip install wheel
-        sudo python3 -m pip install Cython==0.29.21 --install-option="--no-cython-compile"
     - name: Checkout submodules
       shell: bash
       run: |
@@ -36,8 +25,7 @@ jobs:
     - name: Build wheels
       shell: bash
       run: |
-        ./contrib/wheels/ci.sh
-          # docker run --mount type=bind,source="$(pwd)"/../smt-switch,target=/smt-switch keyiz/manylinux-java:py${{ matrix.python-version }} /smt-switch/contrib/wheels/ci.sh
+          docker run --mount type=bind,source="$(pwd)"/../smt-switch,target=/smt-switch keyiz/manylinux-java:py${{ matrix.python-version }} /smt-switch/contrib/wheels/ci.sh
       env:
         PY_VERSION: ${{ matrix.python-version }}
     - uses: actions/upload-artifact@v1

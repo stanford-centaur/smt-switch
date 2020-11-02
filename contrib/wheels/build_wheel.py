@@ -60,7 +60,7 @@ class CMakeBuild(build_ext):
 
         # call configure
         # default install everything?
-        solvers = ["btor", "cvc4"] # "msat"]
+        solvers = ["btor"] # "cvc4", "msat"]
         solver_path = {"btor": "boolector", "cvc4": "CVC4", "msat": "mathsat"}
         root_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
         build_dir = os.path.join(root_path, "build")
