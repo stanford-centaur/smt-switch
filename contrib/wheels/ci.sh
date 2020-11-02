@@ -8,7 +8,7 @@ cd $SWITCH_DIR
 mkdir -p build
 yum install -y gmp-devel libedit-devel
 pip install toml setuptools pexpect
-pip install Cython==0.29.21 --install-option="--no-cython-compile"
+pip install Cython==0.29
 python contrib/wheels/build_wheel.py bdist_wheel
 auditwheel show dist/*
 auditwheel repair dist/*
