@@ -45,10 +45,6 @@ option (USE_PYTHON2
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
   find_package(Python3 COMPONENTS Interpreter Development)
-  # TODO remove this option
-  if (USE_PYTHON2)
-    message(FATAL "no longer supporting python2")
-  endif()
 endif()
 
 if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2)
