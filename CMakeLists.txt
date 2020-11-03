@@ -44,11 +44,10 @@ option (USE_PYTHON2
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
+  find_package(Python3 COMPONENTS Interpreter Development)
+  # TODO remove this option
   if (USE_PYTHON2)
-    message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
-    find_package (Python2 COMPONENTS Interpreter Development)
-  else()
-    find_package (Python3 COMPONENTS Interpreter Development)
+    message(FATAL "no longer supporting python2")
   endif()
 endif()
 
