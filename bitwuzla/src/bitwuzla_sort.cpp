@@ -16,6 +16,8 @@
 
 #include "bitwuzla_sort.h"
 
+#include "assert.h"
+
 using namespace std;
 
 namespace smt {
@@ -45,11 +47,62 @@ SortVec BitwuzlaSort::get_domain_sorts() const
   SortVec domain_sorts;
   domain_sorts.reserve(arity);
 
-  // ask Aina about getting domain sorts from the sort
-  throw SmtException("NYI");
+  const BitwuzlaSort * bsorts = bitwuzla_sort_fun_get_domain_sort(bzla, sort);
+
+  for (size_t i = 0; i < arity; ++i)
+  {
+    // array is zero-terminated -- shouldn't hit the end
+    assert(bsorts);
+    domain_sorts.push_back(make_shared<BitwuzlaSort>(bzla, *bsorts));
+    ++bsorts;
+  }
+  // should be at end of the array
+  assert(bsort);
+
+  return domain_sorts;
 }
 
-// TODO implement all the methods -- starting with get_codomain_sorts (and
-// finish previous domain sorts one)
+Sort BitwuzlaSort::get_codomain_sort() const
+{
+  return make_shared<BitwuzlaSort>(bzla,
+                                   bitwuzla_sort_fun_get_codomain(bzla, sort));
+}
+
+std::string BitwuzlaSort::get_uninterpreted_name() const
+{
+  throw IncorrectUsageException(
+      "Bitwuzla does not support uninterpreted sorts.");
+}
+
+Datatype BitwuzlaSort::get_datatype() const
+{
+  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
+}
+
+bool BitwuzlaSort::compare(const Sort s)
+{
+  shared_ptr<BitwuzlaSort> bsort = static_pointer_cast<BitwuzlaSort>(s);
+  return bitwuzla_sort_is_equal(bzla, sort, bsort);
+}
+
+SortKind BitwuzlaSort::get_sort_kind() const
+{
+  if (bitwuzla_sort_is_bv(bzla, sort))
+  {
+    return BV;
+  }
+  else if (bitwuzla_sort_is_array(bzla, sort))
+  {
+    return ARRAY;
+  }
+  else if (bitwuzla_sort_is_fun(bzla, sort))
+  {
+    return FUNCTION;
+  }
+  else
+  {
+    throw SmtException("Got Bitwuzla sort of unknown SortKind.");
+  }
+}
 
 }  // namespace smt
