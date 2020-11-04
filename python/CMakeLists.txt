@@ -24,7 +24,7 @@ if (Python3_Development_FOUND)
   set(PYTHON_LIBRARY "${Python3_LIBRARIES}" CACHE STRING "Python libraries")
   set(PYTHON_INCLUDE_DIR "${Python3_INCLUDE_DIRS}" CACHE STRING "Python include directories")
 else()
-  message(STATUS "Didn't find python library and includes -- falling back")
+  message(STATUS "Didn't find python library and include directory -- falling back")
   execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
     "from distutils import sysconfig as s;
 print(s.get_python_inc(plat_specific=True));
@@ -45,7 +45,6 @@ print(s.get_config_var('LDVERSION') or s.get_config_var('VERSION'));
   list(GET PY_VALS 0 PY_INCLUDE_DIR)
   list(GET PY_VALS 1 PY_LIB_SUFFIX)
 
-  message("Got include dir: ${PY_INCLUDE_DIR}.")
   set(PYTHON_INCLUDE_DIR "${PY_INCLUDE_DIR}" CACHE STRING "Python include directory")
 
   # since cmake could not find the library, just set the name/version
