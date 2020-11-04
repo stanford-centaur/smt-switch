@@ -13,10 +13,6 @@ target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/in
 target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/bitwuzla/include")
-# TODO try removing this one
-target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/src")
-# TODO REMOVE
-message(STATUS "BITWUZLA_HOME=${BITWUZLA_HOME}")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/src/api/c")
 
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libcbitwuzla.a")
