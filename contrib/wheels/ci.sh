@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
+# This script is meant for running in the keyiz/manylinux docker image
+#   see .github/workflows/wheels.yml
+# It will create a wheel distribution for PyPi automatically
+# manylinux is an old version of Linux (CentOS 6) so that the
+# distribution will run on all newer versions
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SWITCH_DIR=$DIR/../../
 
