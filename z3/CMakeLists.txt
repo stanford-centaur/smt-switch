@@ -1,18 +1,3 @@
-# add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
-# 	"${CMAKE_CURRENT_SOURCE_DIR}/src/z3_sort.cpp"
-#   )
-# target_include_directories (smt-switch-z3 PUBLIC "${PROJECT_SOURCE_DIR}/include")
-# target_include_directories (smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-# target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src")
-# target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api")
-# target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api/c++")
-
-# target_link_libraries(smt-switch-z3 "${Z3_HOME}/build/libz3.a")
-# target_link_libraries(smt-switch-z3 smt-switch)
-
-# install(TARGETS smt-switch-z3 DESTINATION lib)
-
-
 add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
   # "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_factory.cpp"
@@ -25,9 +10,6 @@ target_include_directories (smt-switch-z3 PUBLIC "${PROJECT_SOURCE_DIR}/include"
 target_include_directories (smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/z3/include")
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/include")
-# target_include_directories (smt-switch-z3 PUBLIC "${GMP_INCLUDE_DIR}")
-# target_link_libraries(smt-switch-z3 "${GMP_LIBRARIES}")
-# target_link_libraries(smt-switch-z3 "${Z3_HOME}/build/lib/libyices.a")
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api")
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api/c++")
 target_link_libraries(smt-switch-z3 "${Z3_HOME}/build/libz3.a")
