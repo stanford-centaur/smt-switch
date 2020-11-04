@@ -24,13 +24,13 @@
 namespace smt {
 
 // forward declaration
-class BitwuzlaSolver;
+class BzlaSolver;
 
-class BitwuzlaSort : public AbsSort
+class BzlaSort : public AbsSort
 {
  public:
-  BitwuzlaSort(Bitwuzla * b, BitwuzlaSort s) : bzla(b), sort(s){};
-  virtual ~BitwuzlaSort();
+  BzlaSort(Bitwuzla * b, BitwuzlaSort s) : bzla(b), sort(s){};
+  virtual ~BzlaSort();
   std::size_t hash() const override;
   uint64_t get_width() const override;
   Sort get_indexsort() const override;
