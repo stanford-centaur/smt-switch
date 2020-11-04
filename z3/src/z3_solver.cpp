@@ -198,7 +198,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 
 	if (!arity) {
 //		z_sort = ctx.uninterpreted_sort(name);
-		const char * c = name.c_str();
+		const char *c = name.c_str();
 		z3::symbol func_name = ctx.str_symbol(c);
 		z_sort = ctx.uninterpreted_sort(func_name);
 //		Z3_mk_string_symbol()
@@ -252,8 +252,19 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1) const {
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1,
 		const Sort &sort2) const {
-	throw NotImplementedException(
-			"Term iteration not implemented for Z3 backend.");
+	if (sk == ARRAY) {
+		std::shared_ptr<Z3Sort> cidxsort = std::static_pointer_cast < Z3Sort
+				> (sort1);
+		std::shared_ptr<Z3Sort> celemsort = std::static_pointer_cast < Z3Sort
+				> (sort2);
+		return std::make_shared < Z3Sort
+				> (ctx.array_sort(cidxsort->type, celemsort->type));
+	} else {
+		std::string msg("Can't create sort with sort constructor ");
+		msg += to_string(sk);
+		msg += " and two Sort arguments";
+		throw IncorrectUsageException(msg.c_str());
+	}
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1, const Sort &sort2,
@@ -264,8 +275,49 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1, const Sort &sort2,
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
-	throw NotImplementedException(
-			"Term iteration not implemented for Z3 backend.");
+	z3::sort final_sort = ctx.bool_sort();		//should be else
+
+	if (sk == FUNCTION) {
+		if (sorts.size() < 2) {
+			throw IncorrectUsageException(
+					"Function sort must have >=2 sort arguments.");
+		}
+
+		// arity is one less, because last sort is return sort
+		uint32_t arity = sorts.size() - 1;
+
+		std::vector<z3::sort> zsorts;
+		zsorts.reserve(arity);
+		z3::sort z_sort = ctx.bool_sort();		//should be else
+
+		for (uint32_t i = 0; i < arity; i++) {
+			z_sort = std::static_pointer_cast < Z3Sort > (sorts[i])->type;
+			zsorts.push_back(z_sort);
+		}
+
+		Sort sort = sorts.back();
+		z_sort = std::static_pointer_cast < Z3Sort > (sort)->type;
+
+		const char *c = "throwaway name";
+		z3::symbol func_name = ctx.str_symbol(c);
+		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0], z_sort);
+
+//		return std::make_shared < Z3Sort > (z_func);
+//		final_sort = yices_function_type(arity, &zsorts[0], z_sort);
+	} else if (sorts.size() == 1) {
+		return make_sort(sk, sorts[0]);
+	} else if (sorts.size() == 2) {
+		return make_sort(sk, sorts[0], sorts[1]);
+	} else if (sorts.size() == 3) {
+		return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+	} else {
+		std::string msg("Can't create sort from sort constructor ");
+		msg += to_string(sk);
+		msg += " with a vector of sorts";
+		throw IncorrectUsageException(msg.c_str());
+	}
+
+	return std::make_shared < Z3Sort > (final_sort);
 }
 
 Sort Z3Solver::make_sort(const Sort &sort_con, const SortVec &sorts) const {

@@ -23,14 +23,21 @@ uint64_t Z3Sort::get_width() const {
 }
 
 Sort Z3Sort::get_indexsort() const {
-	throw NotImplementedException(
-			"Get_indexsort not implemented for Z3 backend.");
-
+	if (type.is_array()) {
+		return std::make_shared < Z3Sort > (type.array_domain());
+	} else {
+		throw IncorrectUsageException(
+				"Can only get width from bit-vector sort");
+	}
 }
 
 Sort Z3Sort::get_elemsort() const {
-	throw NotImplementedException(
-			"Get_elemsort not implemented for Z3 backend.");
+	if (type.is_array()) {
+		return std::make_shared < Z3Sort > (type.array_range());
+	} else {
+		throw IncorrectUsageException(
+				"Can only get width from bit-vector sort");
+	}
 }
 
 SortVec Z3Sort::get_domain_sorts() const {
@@ -44,6 +51,7 @@ Sort Z3Sort::get_codomain_sort() const {
 }
 
 string Z3Sort::get_uninterpreted_name() const {
+	return type.name().str();
 	throw NotImplementedException(
 			"get_uninterpreted_name not implemented for Z3Sort");
 }
@@ -64,7 +72,8 @@ Datatype Z3Sort::get_datatype() const {
 
 bool Z3Sort::compare(const Sort s) const {
 
-	throw NotImplementedException("compare not implemented for Z3 backend.");
+	std::shared_ptr < Z3Sort > zs = std::static_pointer_cast < Z3Sort > (s);
+	return true;//type == zs->type;
 }
 
 SortKind Z3Sort::get_sort_kind() const {
@@ -80,6 +89,8 @@ SortKind Z3Sort::get_sort_kind() const {
 		return ARRAY;
 	} else if (type.is_datatype()) {
 		return DATATYPE;
+	} else if (type.sort_kind() == Z3_UNINTERPRETED_SORT) {
+		return UNINTERPRETED;
 	}
 //	  else if (yices_type_is_function(type))			todo: look into functions and uniterpreted
 //	  {

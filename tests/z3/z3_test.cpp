@@ -25,8 +25,11 @@ int main() {
 	Sort bvsort = s->make_sort(BV, 8);
 	cout << bvsort << endl;
 
-	Sort uninterpretedsort = s->make_sort("a", 0);
+	Sort uninterpretedsort = s->make_sort("a test", 0);
 	cout << uninterpretedsort << endl;
+
+	Sort arraysort = s->make_sort(ARRAY, intsort1, bvsort);
+	cout << arraysort << endl;
 
 	cout << "testing done :)" << endl;
 
