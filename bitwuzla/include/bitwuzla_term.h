@@ -84,11 +84,11 @@ class BzlaTerm : public AbsTerm
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  BitwuzlaTerm * get_bitwuzla_term() const { return term; };
+  const BitwuzlaTerm * get_bitwuzla_term() const { return term; };
 
  protected:
   // the actual API level node that is used
-  BitwuzlaTerm * term;
+  const BitwuzlaTerm * term;
 
   // helpers
   /** Calls boolector's to_string with either btor or smt2 format*/
