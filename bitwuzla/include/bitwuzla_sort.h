@@ -29,7 +29,7 @@ class BzlaSolver;
 class BzlaSort : public AbsSort
 {
  public:
-  BzlaSort(Bitwuzla * b, BitwuzlaSort s) : bzla(b), sort(s){};
+  BzlaSort(Bitwuzla * b, const BitwuzlaSort * s) : bzla(b), sort(s){};
   virtual ~BzlaSort();
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -47,11 +47,12 @@ class BzlaSort : public AbsSort
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  BitwuzlaSort get_bitwuzla_sort() const { return sort; };
+  const BitwuzlaSort * get_bitwuzla_sort() const { return sort; };
 
  protected:
+  // objects from Bitwuzla API
   Bitwuzla * bzla;
-  BitwuzlaSort sort;
+  const BitwuzlaSort * sort;
 
   friend class BitwuzlaSolver;
 };

@@ -27,37 +27,34 @@ BzlaSort::~BzlaSort()
   // TODO: figure out if sorts need to be destroyed
 }
 
-size_t BzlaSort::hash() const { return bitwuzla_sort_hash(bzla, sort); }
+size_t BzlaSort::hash() const { return bitwuzla_sort_hash(sort); }
 
-uint64_t BzlaSort::get_width() const
-{
-  return bitwuzla_sort_bv_get_size(bzla, sort);
-}
+uint64_t BzlaSort::get_width() const { return bitwuzla_sort_bv_get_size(sort); }
 
 Sort BzlaSort::get_indexsort() const
 {
-  return make_shared<BzlaSort>(bzla, bitwuzla_sort_array_get_index(bzla, sort));
+  return make_shared<BzlaSort>(bzla, bitwuzla_sort_array_get_index(sort));
 }
 
 Sort BzlaSort::get_elemsort() const
 {
-  return make_shared<BzlaSort>(bzla,
-                               bitwuzla_sort_array_get_element(bzla, sort));
+  return make_shared<BzlaSort>(bzla, bitwuzla_sort_array_get_element(sort));
 }
 
 SortVec BzlaSort::get_domain_sorts() const
 {
-  uint32_t arity = bitwuzla_sort_fun_get_arity(bzla, sort);
+  uint32_t arity = bitwuzla_sort_fun_get_arity(sort);
   SortVec domain_sorts;
   domain_sorts.reserve(arity);
 
-  const BitwuzlaSort * bsorts = bitwuzla_sort_fun_get_domain_sorts(bzla, sort);
+  const BitwuzlaSort ** bsorts = bitwuzla_sort_fun_get_domain_sorts(sort);
 
   for (size_t i = 0; i < arity; ++i)
   {
     // array is zero-terminated -- shouldn't hit the end
     assert(bsorts);
-    domain_sorts.push_back(make_shared<BzlaSort>(bzla, *bsorts));
+    Sort s(new BzlaSort(bzla, *bsorts));
+    domain_sorts.push_back(s);
     ++bsorts;
   }
   // should be at end of the array
@@ -68,8 +65,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
-  return make_shared<BzlaSort>(bzla,
-                               bitwuzla_sort_fun_get_codomain(bzla, sort));
+  return make_shared<BzlaSort>(bzla, bitwuzla_sort_fun_get_codomain(sort));
 }
 
 std::string BzlaSort::get_uninterpreted_name() const
@@ -78,10 +74,7 @@ std::string BzlaSort::get_uninterpreted_name() const
       "Bitwuzla does not support uninterpreted sorts.");
 }
 
-size_t BzlaSort::get_arity() const
-{
-  return bitwuzla_sort_fun_get_arity(bzla, sort);
-}
+size_t BzlaSort::get_arity() const { return bitwuzla_sort_fun_get_arity(sort); }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
@@ -96,20 +89,20 @@ Datatype BzlaSort::get_datatype() const
 bool BzlaSort::compare(const Sort s) const
 {
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(s);
-  return bitwuzla_sort_is_equal(bzla, sort, bsort->sort);
+  return bitwuzla_sort_is_equal(sort, bsort->sort);
 }
 
 SortKind BzlaSort::get_sort_kind() const
 {
-  if (bitwuzla_sort_is_bv(bzla, sort))
+  if (bitwuzla_sort_is_bv(sort))
   {
     return BV;
   }
-  else if (bitwuzla_sort_is_array(bzla, sort))
+  else if (bitwuzla_sort_is_array(sort))
   {
     return ARRAY;
   }
-  else if (bitwuzla_sort_is_fun(bzla, sort))
+  else if (bitwuzla_sort_is_fun(sort))
   {
     return FUNCTION;
   }
