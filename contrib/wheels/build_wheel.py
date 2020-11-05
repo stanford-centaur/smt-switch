@@ -105,7 +105,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='smt-switch',
-    version='0.2.1',
+    version='0.2.2',
     author='Makai Mann',
     ext_modules=[CMakeExtension('smt-switch')],
     cmdclass=dict(build_ext=CMakeBuild),
