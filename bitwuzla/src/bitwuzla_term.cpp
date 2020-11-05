@@ -49,13 +49,20 @@ Sort BzlaTerm::get_sort() const
   return make_shared<BzlaSort>(bitwuzla_term_get_sort(term));
 }
 
-bool BzlaTerm::is_symbol() const { throw SmtException("NYI"); }
+bool BzlaTerm::is_symbol() const { return bitwuzla_term_is_var(term); }
 
-bool BzlaTerm::is_param() const { throw SmtException("NYI"); }
+bool BzlaTerm::is_param() const { return bitwuzla_term_is_bound_var(term); }
 
-bool BzlaTerm::is_symbolic_const() const { throw SmtException("NYI"); }
+bool BzlaTerm::is_symbolic_const() const
+{
+  return is_symbol() && !bitwuzla_term_is_fun(term);
+}
 
-bool BzlaTerm::is_value() const { throw SmtException("NYI"); }
+bool BzlaTerm::is_value() const
+{
+  // TODO: figure out if we need to include _const_array check
+  return bitwuzla_term_is_const(term);
+}
 
 std::string BzlaTerm::to_string() { return to_string_formatted("smt2"); }
 
