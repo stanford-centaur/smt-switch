@@ -88,6 +88,8 @@ class DisjointSet
   DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b));
   ~DisjointSet();
 
+  DisjointSet() = delete;
+
   void add(const smt::Term & a, const smt::Term & b);
   smt::Term find(const smt::Term & t) const;
   void clear();
