@@ -126,4 +126,94 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
   }
 }
 
+DisjointSet::DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b))
+    : comp(c)
+{
+}
+
+DisjointSet::~DisjointSet() {}
+
+void DisjointSet::add(const Term & a, const Term & b)
+{
+  if (leader_.find(a) != leader_.end())
+  {
+    Term leadera = leader_.at(a);
+    UnorderedTermSet & groupa = group_.at(leadera);
+
+    if (leader_.find(b) != leader_.end())
+    {
+      Term leaderb = leader_.at(b);
+
+      if (leadera != leaderb)
+      {
+        UnorderedTermSet & groupb = group_.at(leaderb);
+
+        if (comp(leadera, leaderb))
+        {
+          // Choose according to the given Ranking
+          groupa.insert(groupb.begin(), groupb.end());
+
+          for (const Term & t : groupb)
+          {
+            leader_[t] = leadera;
+          }
+          groupb.clear();
+          group_.erase(leaderb);
+        }
+        else
+        {
+          groupb.insert(groupa.begin(), groupa.end());
+
+          for (const Term & t : groupa)
+          {
+            leader_[t] = leaderb;
+          }
+          groupa.clear();
+          group_.erase(leadera);
+        }
+      }
+    }
+    else
+    {
+      groupa.insert(b);
+      leader_[b] = leadera;
+    }
+  }
+  else if (leader_.find(b) != leader_.end())
+  {
+    Term leaderb = leader_.at(b);
+    group_[leaderb].insert(a);
+    leader_[a] = leaderb;
+  }
+  else
+  {
+    // Choose according to the given Ranking
+    if (comp(a, b))
+    {
+      leader_[a] = a;
+      leader_[b] = a;
+      group_[a] = UnorderedTermSet({ a, b });
+    }
+    else
+    {
+      assert(!b->is_value());
+      leader_[a] = b;
+      leader_[b] = b;
+      group_[b] = UnorderedTermSet({ a, b });
+    }
+  }
+}
+
+Term DisjointSet::find(const Term & t) const
+{
+  assert(leader_.find(t) != leader_.end());
+  return leader_.at(t);
+}
+
+void DisjointSet::clear()
+{
+  leader_.clear();
+  group_.clear();
+}
+
 }  // namespace smt

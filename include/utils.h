@@ -79,4 +79,27 @@ void disjunctive_partition(const smt::Term & term,
 
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
+/** A generic implementation of Disjoint Sets for smt-switch terms.
+ *  Supports a comparator for Ranking of terms.
+ */
+class DisjointSet
+{
+ public:
+  DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b));
+  ~DisjointSet();
+
+  void add(const smt::Term & a, const smt::Term & b);
+  smt::Term find(const smt::Term & t) const;
+  void clear();
+
+ private:
+  // Compare function for ranking
+  bool (*comp)(const smt::Term & a, const smt::Term & b);
+
+  // member to group's leader
+  smt::UnorderedTermMap leader_;
+  // group leader to group
+  std::unordered_map<smt::Term, smt::UnorderedTermSet> group_;
+};
+
 }  // namespace smt
