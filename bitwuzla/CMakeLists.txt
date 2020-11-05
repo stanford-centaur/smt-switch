@@ -6,7 +6,7 @@ add_library(smt-switch-bitwuzla "${SMT_SWITCH_LIB_TYPE}"
   # "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_factory.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_sort.cpp"
-  # "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
   # "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/memstream.c"
   )
 target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/include")

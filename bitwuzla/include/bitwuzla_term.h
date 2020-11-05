@@ -28,42 +28,42 @@ namespace smt {
 // forward declaration
 class BzlaSolver;
 
-class BzlaTermIter : public TermIterBase
-{
- public:
-  // IMPORTANT: The correctness of this code depends on the array e being of
-  // size 3
-  BzlaTermIter(Btor * btor, std::vector<BtorNode *> c, int64_t idx)
-      : btor(btor), children(c), idx(idx)
-  {
-  }
-  BzlaTermIter(const BzlaTermIter & it)
-  {
-    btor = it.btor;
-    children = it.children;
-    idx = it.idx;
-  };
-  ~BzlaTermIter(){};
-  BzlaTermIter & operator=(const BzlaTermIter & it);
-  void operator++() override;
-  const Term operator*() override;
-  TermIterBase * clone() const override;
-  bool operator==(const BzlaTermIter & it);
-  bool operator!=(const BzlaTermIter & it);
+// class BzlaTermIter : public TermIterBase
+// {
+//  public:
+//   // IMPORTANT: The correctness of this code depends on the array e being of
+//   // size 3
+//   BzlaTermIter(Bitwuzla * b, std::vector<BitwuzlaTerm *> c, int64_t idx)
+//       : bzla(b), children(c), idx(idx)
+//   {
+//   }
+//   BzlaTermIter(const BzlaTermIter & it)
+//   {
+//     bzla = it.bzla;
+//     children = it.children;
+//     idx = it.idx;
+//   };
+//   ~BzlaTermIter(){};
+//   BzlaTermIter & operator=(const BzlaTermIter & it);
+//   void operator++() override;
+//   const Term operator*() override;
+//   TermIterBase * clone() const override;
+//   bool operator==(const BzlaTermIter & it);
+//   bool operator!=(const BzlaTermIter & it);
 
- protected:
-  bool equal(const TermIterBase & other) const override;
+//  protected:
+//   bool equal(const TermIterBase & other) const override;
 
- private:
-  Btor * btor;
-  std::vector<BtorNode *> children;
-  int64_t idx;
-};
+//  private:
+//   Bitwuzla * bzla;
+//   std::vector<BitwuzlaTerm *> children;
+//   int64_t idx;
+// };
 
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(Bitwuzla * b, BitwuzlaTerm * n);
+  BzlaTerm(BitwuzlaTerm * n);
   ~BzlaTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
@@ -82,12 +82,11 @@ class BzlaTerm : public AbsTerm
   std::string print_value_as(SortKind sk) override;
 
   // getters for solver-specific objects
-  // for interacting with third-party Bzla-specific software
+  // for interacting with third-party Bitwuzla-specific software
 
-  BzlaNode * get_bitwuzla_node() const { return node; };
+  BitwuzlaTerm * get_bitwuzla_term() const { return term; };
 
  protected:
-  Bitwuzla * bzla;
   // the actual API level node that is used
   BitwuzlaTerm * term;
 

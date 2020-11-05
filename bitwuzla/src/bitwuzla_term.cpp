@@ -29,7 +29,7 @@ namespace smt {
 // TODO: add implementation for all of BzlaTermIter
 
 // TODO: add implementation for BzlaTerm
-BzlaTerm::BzlaTerm(Bitwuzla * b, BitwuzlaTerm * t) : bzla(b), term(t) {}
+BzlaTerm::BzlaTerm(BitwuzlaTerm * t) : term(t) {}
 
 BzlaTerm::~BzlaTerm() {}
 
@@ -46,7 +46,7 @@ Op BzlaTerm::get_op() const { throw SmtException("NYI"); }
 
 Sort BzlaTerm::get_sort() const
 {
-  return make_shared<BzlaSort>(bzla, bitwuzla_term_get_sort(bzla, term));
+  return make_shared<BzlaSort>(bitwuzla_term_get_sort(term));
 }
 
 bool BzlaTerm::is_symbol() const { throw SmtException("NYI"); }
@@ -61,30 +61,65 @@ std::string BzlaTerm::to_string() { return to_string_formatted("smt2"); }
 
 uint64_t BzlaTerm::to_int() const
 {
-  if (!bitwuzla_term_is_bv_value(bzla, term))
+  if (!bitwuzla_term_is_bv_value(term))
   {
     throw IncorrectUsageException(
         "Can't get bitstring from a non-bitvector value term.");
   }
-  std::string bits = to_string_formatted("btor");
   uint32_t width = bitwuzla_term_bv_get_size(term);
   if (width > 64)
   {
-    std::string msg("Can't represent a bit-vector of size ");
+    string msg("Can't represent a bit-vector of size ");
     msg += std::to_string(width);
     msg += " in a uint64_t";
     throw IncorrectUsageException(msg.c_str());
   }
-  std::string::size_type sz = 0;
-  return std::stoull(s, &sz, 2);
+  string bits = to_string_formatted("btor");
+  string::size_type sz = 0;
+  return std::stoull(bits, &sz, 2);
 }
 
 TermIter BzlaTerm::begin() { throw SmtException("NYI"); }
 
 TermIter BzlaTerm::end() { throw SmtException("NYI"); }
 
+string BzlaTerm::print_value_as(SortKind sk)
+{
+  if (!is_value())
+  {
+    throw IncorrectUsageException(
+        "Cannot use print_value_as on a non-value term.");
+  }
+
+  // BitwuzlaSort * s = bitwuzla_term_get_sort(term);
+  if (bitwuzla_term_is_bv(term))
+  {
+    uint64_t width = bitwuzla_term_bv_get_size(term);
+    if (width == 1 && sk == BOOL)
+    {
+      string bits = to_string_formatted("btor");
+      if (bits == "1")
+      {
+        return "true";
+      }
+      else
+      {
+        return "false";
+      }
+    }
+    else
+    {
+      return to_string();
+    }
+  }
+  else
+  {
+    return to_string();
+  }
+}
+
 // protected helpers
-std::string to_string_formatted(const char * fmt) const
+std::string BzlaTerm::to_string_formatted(const char * fmt) const
 {
   // TODO: make sure this works all right for symbols etc...
   char * cres;
@@ -103,7 +138,7 @@ std::string to_string_formatted(const char * fmt) const
     throw InternalSolverException(
         "Error closing stream for bitwuzla to_string");
   }
-  sres = cres;
+  string sres(cres);
   free(cres);
   return sres;
 }
