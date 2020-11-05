@@ -33,12 +33,12 @@ uint64_t BzlaSort::get_width() const { return bitwuzla_sort_bv_get_size(sort); }
 
 Sort BzlaSort::get_indexsort() const
 {
-  return make_shared<BzlaSort>(bzla, bitwuzla_sort_array_get_index(sort));
+  return make_shared<BzlaSort>(bitwuzla_sort_array_get_index(sort));
 }
 
 Sort BzlaSort::get_elemsort() const
 {
-  return make_shared<BzlaSort>(bzla, bitwuzla_sort_array_get_element(sort));
+  return make_shared<BzlaSort>(bitwuzla_sort_array_get_element(sort));
 }
 
 SortVec BzlaSort::get_domain_sorts() const
@@ -53,8 +53,7 @@ SortVec BzlaSort::get_domain_sorts() const
   {
     // array is zero-terminated -- shouldn't hit the end
     assert(bsorts);
-    Sort s(new BzlaSort(bzla, *bsorts));
-    domain_sorts.push_back(s);
+    domain_sorts.push_back(make_shared<BzlaSort>(*bsorts));
     ++bsorts;
   }
   // should be at end of the array
@@ -65,7 +64,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
-  return make_shared<BzlaSort>(bzla, bitwuzla_sort_fun_get_codomain(sort));
+  return make_shared<BzlaSort>(bitwuzla_sort_fun_get_codomain(sort));
 }
 
 std::string BzlaSort::get_uninterpreted_name() const
