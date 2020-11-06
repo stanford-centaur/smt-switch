@@ -148,6 +148,11 @@ target_link_libraries(test-unsat-core gtest_main)
 target_link_libraries(test-unsat-core test-deps)
 add_test(NAME test-unsat-core_test COMMAND test-unsat-core)
 
+add_executable(test-unsat-core-reducer "${PROJECT_SOURCE_DIR}/tests/test-unsat-core-reducer.cpp")
+target_link_libraries(test-unsat-core-reducer gtest_main)
+target_link_libraries(test-unsat-core-reducer test-deps)
+add_test(NAME test-unsat-core-reducer_test COMMAND test-unsat-core-reducer)
+
 add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
 target_link_libraries(unit-transfer gtest_main)
 target_link_libraries(unit-transfer test-deps)
