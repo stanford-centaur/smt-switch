@@ -150,7 +150,7 @@ void DisjointSet::add(const Term & a, const Term & b)
 
         if (comp(leadera, leaderb))
         {
-          // Choose according to the given Ranking
+          // Choose according to the given ranking
           groupa.insert(groupb.begin(), groupb.end());
 
           for (const Term & t : groupb)
