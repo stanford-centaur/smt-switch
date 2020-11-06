@@ -131,7 +131,8 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
 
 // ----------------------------------------------------------------------------
 
-UnsatcoreReducer::UnsatcoreReducer(SmtSolver reducer_solver, const SmtSolver &ext_solver)
+UnsatcoreReducer::UnsatcoreReducer(SmtSolver reducer_solver,
+                                   const SmtSolver &ext_solver)
   : reducer_(reducer_solver),
     to_reducer_(ext_solver)
 {
