@@ -80,7 +80,7 @@ void disjunctive_partition(const smt::Term & term,
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
 /** A generic implementation of Disjoint Sets for smt-switch terms.
- *  Supports a comparator for Ranking of terms.
+ *  Supports a comparator for ranking of terms.
  */
 class DisjointSet
 {
