@@ -1,6 +1,18 @@
 # Smt-Switch
 A generic C++ API for SMT solving. It provides abstract classes which can be implemented by different SMT solvers.
 
+# Quick Start
+```
+$ git clone git@github.com:makaimann/smt-switch.git
+$ cd smt-switch 
+$ ./contrib/setup-<solver>.sh
+$ ./configure.sh --<solver>
+$ cd build 
+$ make 
+$ make test
+```
+More details are in the Solvers section of this README. 
+
 # Architecture Overview
 
 There are three abstract classes:
