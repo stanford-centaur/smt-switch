@@ -122,7 +122,8 @@ private:
   smt::Term label(const Term & t);
 
   smt::SmtSolver reducer_; // solver for unsatcore-based reduction
-  smt::TermTranslator to_reducer_; // translator for converting terms from ext_solver to reducer_
+  smt::TermTranslator to_reducer_; // translator for converting terms from
+                                   // ext_solver to reducer_
 
   smt::UnorderedTermMap labels_;  //< labels for unsat cores
 
