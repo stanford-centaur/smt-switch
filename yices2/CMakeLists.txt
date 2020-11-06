@@ -18,7 +18,7 @@ target_link_libraries(smt-switch-yices2 pthread)
 
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the mathsat source
+  # we want the static library to include the yices2 source
   # we need to unpack and repack the libraries
   add_custom_target(repack-yices2-static-lib
     ALL
