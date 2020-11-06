@@ -131,18 +131,18 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
 
 // ----------------------------------------------------------------------------
 
-UnsatcoreReducer::UnsatcoreReducer(SmtSolver reducer_solver,
-                                   const SmtSolver &ext_solver)
+UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
+
   : reducer_(reducer_solver),
-    to_reducer_(ext_solver)
+    to_reducer_(reducer_solver)
 {
 }
 
-UnsatcoreReducer::~UnsatcoreReducer()
+UnsatCoreReducer::~UnsatCoreReducer()
 {
 }
 
-void UnsatcoreReducer::reduce_assump_unsatcore(const Term &formula,
+void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
                                                const TermVec &assump,
                                                TermVec &out_red,
                                                TermVec *out_rem,
@@ -152,18 +152,19 @@ void UnsatcoreReducer::reduce_assump_unsatcore(const Term &formula,
   TermVec bool_assump, tmp_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (const auto &a : assump) {
+  for (auto a : assump) {
     Term t = to_reducer_.transfer_term(a);
     cand_res.push_back(t);
     to_ext_assump[t] = a;
   }
 
-  reducer_->reset_assertions();
+  reducer_->push();
   reducer_->assert_formula(to_reducer_.transfer_term(formula));
 
   // exit if the formula is unsat without assumptions.
   Result r = reducer_->check_sat();
   if (r.is_unsat()) {
+    reducer_->pop();
     return;
   }
 
@@ -208,13 +209,15 @@ void UnsatcoreReducer::reduce_assump_unsatcore(const Term &formula,
     }
   }
 
+  reducer_->pop();
+
   // copy the result
   for (const auto &a : cand_res) {
     out_red.push_back(to_ext_assump.at(a));
   }
 }
 
-Term UnsatcoreReducer::label(const Term & t)
+Term UnsatCoreReducer::label(const Term & t)
 {
   auto it = labels_.find(t);
   if (it != labels_.end()) {

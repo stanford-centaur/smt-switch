@@ -91,11 +91,10 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
  * create the formula and assump)
  *
  */
-class UnsatcoreReducer {
+class UnsatCoreReducer {
 public:
-  UnsatcoreReducer(smt::SmtSolver reducer_solver,
-                   const smt::SmtSolver &ext_solver);
-  ~UnsatcoreReducer();
+  UnsatCoreReducer(smt::SmtSolver reducer_solver);
+  ~UnsatCoreReducer();
 
   /** The main method to reduce the assump (vector of assumptions). The method
    *  assumes that the conjunction of the formula and assump is unsatisfiable.
