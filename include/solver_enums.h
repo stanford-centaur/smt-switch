@@ -21,9 +21,10 @@
 namespace smt {
 enum SolverEnum
 {
-  BTOR = 0,
+  BTOR = 0,  // boolector
+  BZLA,      // bitwuzla
   CVC4,
-  MSAT,
+  MSAT,  // mathsat
   YICES2,
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
