@@ -99,7 +99,7 @@ SortVec CVC4Sort::get_uninterpreted_param_sorts() const
   return param_sorts;
 }
 
-bool CVC4Sort::compare(const Sort s) const
+bool CVC4Sort::compare(const Sort & s) const
 {
   std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
   return sort == cs->sort;
