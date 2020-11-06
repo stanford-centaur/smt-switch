@@ -79,4 +79,30 @@ void disjunctive_partition(const smt::Term & term,
 
 void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
 
+
+// -----------------------------------------------------------------------------
+
+class UnsatcoreReducer {
+public:
+  UnsatcoreReducer(smt::SmtSolver reducer_solver,
+                   const smt::SmtSolver &ext_solver);
+  ~UnsatcoreReducer();
+
+  void reduce_assump_unsatcore(const smt::Term &formula,
+                               const smt::TermVec &assump,
+                               smt::TermVec &out_red,
+                               smt::TermVec *out_rem = NULL,
+                               unsigned iter = 1,
+                               unsigned rand_seed = 0);
+
+private:
+  smt::Term label(const Term & t);
+
+  smt::SmtSolver reducer_;
+  smt::TermTranslator to_reducer_;
+
+  smt::UnorderedTermMap labels_;  //< labels for unsat cores
+
+};
+
 }  // namespace smt
