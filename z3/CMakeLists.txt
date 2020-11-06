@@ -18,13 +18,13 @@ target_link_libraries(smt-switch-z3 pthread)
 
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the mathsat source
+  # we want the static library to include the z3 source
   # we need to unpack and repack the libraries
   add_custom_target(repack-z3-static-lib
     ALL
     COMMAND
       mkdir smt-switch-z3 && cd smt-switch-z3 && ar -x "../$<TARGET_FILE_NAME:smt-switch-z3>" && cd ../ &&
-      mkdir z3 && cd z3 && ar -x "${Z3_HOME}/build/lib/libyices.a" && cd ../ &&
+      mkdir z3 && cd z3 && ar -x "${Z3_HOME}/build/lib/libz3.a" && cd ../ &&
       ar -qc "$<TARGET_FILE_NAME:smt-switch-z3>" ./z3/*.o ./smt-switch-z3/*.o &&
       # now clean up
       rm -rf smt-switch-z3 z3
