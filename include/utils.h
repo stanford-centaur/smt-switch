@@ -90,8 +90,20 @@ class DisjointSet
 
   DisjointSet() = delete;
 
+  /** Add two terms a and b in the same set.
+   * @param Term a to be added in the same set
+   * @param Term b to be added in the same set
+   */
   void add(const smt::Term & a, const smt::Term & b);
+
+  /** Find the representative (leader) of the term t.
+   * @param Term t whose respresentative to be returned.
+   * returns the representative term.
+   */
   smt::Term find(const smt::Term & t) const;
+
+  /** Clears the disjoint set
+   */
   void clear();
 
  private:
