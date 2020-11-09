@@ -113,7 +113,15 @@ public:
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
 
-private:
+  /** This clears the term translation cache. Note, term translator is used to
+   *  translate the terms of the external solver to the
+   *  unsat-core-reducer-solver. A use-case of this method is to call it before
+   *  calling the reduce_assump_unsat from one call to another call when the
+   *  external solver in the first call is different from the second call.
+   */
+  void clear_term_translation_cache() { to_reducer_.get_cache().clear(); };
+
+ private:
   /** returns a label that will be used to precondition the assumption term 't'
    *  @param Input term t
    *  @return a boolean label for the term t
