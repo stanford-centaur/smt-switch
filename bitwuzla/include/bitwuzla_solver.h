@@ -106,13 +106,9 @@ class BzlaSolver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
-  Term substitute(const Term term,
-                  const UnorderedTermMap & substitution_map) const override;
-  // helper methods for making a term with a primitive op
-  Term apply_prim_op(PrimOp op, Term t) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
-  Term apply_prim_op(PrimOp op, TermVec terms) const;
+  // TODO: put this back in if there's a substitute method
+  // Term substitute(const Term term,
+  //                 const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects

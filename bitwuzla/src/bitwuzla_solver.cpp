@@ -38,8 +38,7 @@ const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
       { Apply, BITWUZLA_KIND_APPLY },
       /* Fixed Size BitVector Theory */
       { Concat, BITWUZLA_KIND_BV_CONCAT },
-      // Indexed
-      // Extract
+      { Extract, BITWUZLA_KIND_BV_EXTRACT },  // Indexed
       { BVNot, BITWUZLA_KIND_BV_NOT },
       { BVNeg, BITWUZLA_KIND_BV_NEG },
       { BVAnd, BITWUZLA_KIND_BV_AND },
@@ -68,12 +67,11 @@ const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
       { BVSle, BITWUZLA_KIND_BV_SLE },
       { BVSgt, BITWUZLA_KIND_BV_SGT },
       { BVSge, BITWUZLA_KIND_BV_SGE },
-      // Indexed
-      // Zero_Extend
-      // Sign_Extend
-      // Repeat
-      // Rotate_Left
-      // Rotate_Right
+      { Zero_Extend, BITWUZLA_KIND_ZERO_EXTEND },  // Indexed
+      { Sign_Extend, BITWUZLA_KIND_SIGN_EXTEND },  // Indexed
+      { Repeat, BITWUZLA_KIND_REPEAT },            // Indexed
+      { Rotate_Left, BITWUZLA_KIND_ROLI },         // Indexed
+      { Rotate_Right, BITWUZLA_KIND_RORI },        // Indexed
       /* Array Theory */
       { Select, BITWUZLA_KIND_ARRAY_SELECT },
       { Store, BITWUZLA_KIND_ARRAY_STORE },
@@ -424,8 +422,169 @@ Term BzlaSolver::make_symbol(const string name, const Sort & sort)
       bitwuzla_mk_const(bzla, bsort->sort, name.c_str()));
 }
 
-Term BzlaSolver::make_param(const std::string name, const Sort & sort) override;
+Term BzlaSolver::make_param(const std::string name, const Sort & sort)
+{
+  shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
+  return make_shared<BzlaTerm>(
+      bitwuzla_mk_var(bzla, bsort->sort, name.c_str()));
+}
 
-// TODO keep implementing methods starting with make_term(Op, Term)
+Term BzlaSolver::make_term(Op op, const Term & t) const
+{
+  shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(t);
+
+  auto it = op2bkind.find(op.prim_op);
+  if (it == op2bkind.end())
+  {
+    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
+                                  + to_string(op));
+  }
+  BitwuzlaKind bkind = *it;
+
+  if (!op.num_idx)
+  {
+    return make_shared<BzlaTerm>(bitwuzla_mk_term1(bzla, bkind, bterm->term));
+  }
+  else if (op.num_idx == 1)
+  {
+    return make_shared<BzlaTerm>(
+        bitwuzla_mk_term1_indexed1(bzla, bkind, bterm->term, op.idx0));
+  }
+  else
+  {
+    assert(op.num_idx == 2);
+    return make_shared<BzlaTerm>(
+        bitwuzla_mk_term1_indexed2(bzla, bkind, bterm->term, op.idx0, op.idx1));
+  }
+}
+
+Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
+{
+  shared_ptr<BzlaTerm> bterm0 = static_pointer_cast<BzlaTerm>(t0);
+  shared_ptr<BzlaTerm> bterm1 = static_pointer_cast<BzlaTerm>(t1);
+
+  auto it = op2bkind.find(op.prim_op);
+  if (it == op2bkind.end())
+  {
+    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
+                                  + to_string(op));
+  }
+  BitwuzlaKind bkind = *it;
+
+  if (!op.num_idx)
+  {
+    return make_shared<BzlaTerm>(
+        bitwuzla_mk_term2(bzla, bkind, bterm0->term, bterm1->term));
+  }
+  else if (op.num_idx == 1)
+  {
+    return make_shared<BzlaTerm>(bitwuzla_mk_term2_indexed1(
+        bzla, bkind, bterm0->term, bterm1->term, op.idx0));
+  }
+  else
+  {
+    assert(op.num_idx == 2);
+    return make_shared<BzlaTerm>(bitwuzla_mk_term2_indexed2(
+        bzla, bkind, bterm0->term, bterm1->term, op.idx0, op.idx1));
+  }
+}
+
+Term BzlaSolver::make_term(Op op,
+                           const Term & t0,
+                           const Term & t1,
+                           const Term & t2) const
+{
+  shared_ptr<BzlaTerm> bterm0 = static_pointer_cast<BzlaTerm>(t0);
+  shared_ptr<BzlaTerm> bterm1 = static_pointer_cast<BzlaTerm>(t1);
+  shared_ptr<BzlaTerm> bterm2 = static_pointer_cast<BzlaTerm>(t2);
+
+  auto it = op2bkind.find(op.prim_op);
+  if (it == op2bkind.end())
+  {
+    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
+                                  + to_string(op));
+  }
+  BitwuzlaKind bkind = *it;
+
+  if (!op.num_idx)
+  {
+    return make_shared<BzlaTerm>(bitwuzla_mk_term3(
+        bzla, bkind, bterm0->term, bterm1->term, bterm2->term));
+  }
+  else if (op.num_idx == 1)
+  {
+    return make_shared<BzlaTerm>(bitwuzla_mk_term3_indexed1(
+        bzla, bkind, bterm0->term, bterm1->term, bterm2->term, op.idx0));
+  }
+  else
+  {
+    assert(op.num_idx == 2);
+    return make_shared<BzlaTerm>(bitwuzla_mk_term3_indexed2(bzla,
+                                                            bkind,
+                                                            bterm0->term,
+                                                            bterm1->term,
+                                                            bterm2->term,
+                                                            op.idx0,
+                                                            op.idx1));
+  }
+}
+
+Term BzlaSolver::make_term(Op op, const TermVec & terms) const
+{
+  vector<BitwuzlaTerm *> bitwuzla_terms;
+  for (auto t : terms)
+  {
+    bitwuzla_terms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
+  }
+
+  auto it = op2bkind.find(op.prim_op);
+  if (it == op2bkind.end())
+  {
+    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
+                                  + to_string(op));
+  }
+  BitwuzlaKind bkind = *it;
+
+  if (!op.num_idx)
+  {
+    return make_shared < BzlaTerm(bitwuzla_mk_term(
+               bzla, bkind, bitwuzla_terms.size(), &bitwuzla_terms[0]));
+  }
+  else
+  {
+    assert(op.num_idx > 0 && op.num_idx <= 1);
+    vector<uint32_t> indices({ op.idx0 });
+    if (op.num_idx == 2)
+    {
+      indices.push_back(op.idx1);
+    }
+    return make_shared<BzlaTerm>(bitwuzla_mk_term_indexed(bzla,
+                                                          bkind,
+                                                          bitwuzla_terms.size(),
+                                                          &bitwuzla_terms[0],
+                                                          indices.size(),
+                                                          &indices[0]));
+  }
+}
+
+void BzlaSolver::reset()
+{
+  // TODO: will it clean up memory automatically on delete?
+  bitwuzla_delete(bzla);
+  bzla = bitwuzla_new();
+}
+
+void BzlaSolver::reset_assertions()
+{
+  throw NotImplementedException(
+      "Bitwuzla does not currently support reset_assertions");
+}
+
+void BzlaSolver::dump_smt2(std::string filename) const
+{
+  FILE * file = fopen(filename.c_str(), "w");
+  bitwuzla_dump_formula(bzla, "smt2", file);
+  fclose(file);
+}
 
 }  // namespace smt
