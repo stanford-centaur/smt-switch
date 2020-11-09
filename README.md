@@ -70,7 +70,7 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 
 # Operating Systems
 
-Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX with XCode 12 but should work for other sufficiently modern (e.g. has C++17 support) Unix-based operating systems. Please file a GitHub issue if you have any problems!
+Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX with XCode 12 but should work for other sufficiently modern (e.g. has C++11 support and CMake >= 3.1) Unix-based operating systems. Please file a GitHub issue if you have any problems!
 
 # Solvers
 To setup and install different solvers, first run the `./contrib/setup-<solver>.sh` script which builds position-independent static libraries in the `<solver>` directory. Then you can configure your `cmake` build with the `configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By default only `libsmt-switch.so` is built without any solvers.
