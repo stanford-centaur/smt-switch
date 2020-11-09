@@ -37,7 +37,7 @@ const std::unordered_map<PrimOp, un_fun> unary_ops({ { Not, boolector_not },
                                                      { BVNeg,
                                                        boolector_neg } });
 
-// Indexed Operators are implemented in boolector_solver.h in apply
+// Indexed Operators are implemented inline for make_term
 const std::unordered_map<PrimOp, bin_fun> binary_ops(
     { { And, boolector_and },
       { Or, boolector_or },

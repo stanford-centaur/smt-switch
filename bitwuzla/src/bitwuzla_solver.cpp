@@ -22,6 +22,65 @@ using namespace std;
 
 namespace smt {
 
+const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
+    { /* Core Theory */
+      { And, BITWUZLA_KIND_AND },
+      { Or, BITWUZLA_KIND_OR },
+      { Xor, BITWUZLA_KIND_XOR },
+      { Not, BITWUZLA_KIND_NOT },
+      // needs to be translated
+      { Implies, BITWUZLA_KIND_IMPLIES },
+      { Iff, BITWUZLA_KIND_IFF },
+      { Ite, BITWUZLA_KIND_ITE },
+      { Equal, BITWUZLA_KIND_EQUAL },
+      { Distinct, BITWUZLA_KIND_DISTINCT },
+      /* Uninterpreted Functions */
+      { Apply, BITWUZLA_KIND_APPLY },
+      /* Fixed Size BitVector Theory */
+      { Concat, BITWUZLA_KIND_BV_CONCAT },
+      // Indexed
+      // Extract
+      { BVNot, BITWUZLA_KIND_BV_NOT },
+      { BVNeg, BITWUZLA_KIND_BV_NEG },
+      { BVAnd, BITWUZLA_KIND_BV_AND },
+      { BVOr, BITWUZLA_KIND_BV_OR },
+      { BVXor, BITWUZLA_KIND_BV_XOR },
+      { BVNand, BITWUZLA_KIND_BV_NAND },
+      { BVNor, BITWUZLA_KIND_BV_NOR },
+      { BVXnor, BITWUZLA_KIND_BV_XNOR },
+      { BVAdd, BITWUZLA_KIND_BV_ADD },
+      { BVSub, BITWUZLA_KIND_BV_SUB },
+      { BVMul, BITWUZLA_KIND_BV_MUL },
+      { BVUdiv, BITWUZLA_KIND_BV_UDIV },
+      { BVSdiv, BITWUZLA_KIND_BV_SDIV },
+      { BVUrem, BITWUZLA_KIND_BV_UREM },
+      { BVSrem, BITWUZLA_KIND_BV_SREM },
+      { BVSmod, BITWUZLA_KIND_BV_SMOD },
+      { BVShl, BITWUZLA_KIND_BV_SHL },
+      { BVAshr, BITWUZLA_KIND_BV_ASHR },
+      { BVLshr, BITWUZLA_KIND_BV_SHR },
+      { BVComp, BITWUZLA_KIND_BV_COMP },
+      { BVUlt, BITWUZLA_KIND_BV_ULT },
+      { BVUle, BITWUZLA_KIND_BV_ULE },
+      { BVUgt, BITWUZLA_KIND_BV_UGT },
+      { BVUge, BITWUZLA_KIND_BV_UGE },
+      { BVSlt, BITWUZLA_KIND_BV_SLT },
+      { BVSle, BITWUZLA_KIND_BV_SLE },
+      { BVSgt, BITWUZLA_KIND_BV_SGT },
+      { BVSge, BITWUZLA_KIND_BV_SGE },
+      // Indexed
+      // Zero_Extend
+      // Sign_Extend
+      // Repeat
+      // Rotate_Left
+      // Rotate_Right
+      /* Array Theory */
+      { Select, BITWUZLA_KIND_ARRAY_SELECT },
+      { Store, BITWUZLA_KIND_ARRAY_STORE },
+      /* Quantifiers */
+      { Forall, BITWUZLA_KIND_FORALL },
+      { Exists, BITWUZLA_KIND_EXISTS } });
+
 void BzlaSolver::set_opt(const string option, const string value)
 {
   // TODO support more options
