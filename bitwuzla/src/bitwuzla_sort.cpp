@@ -85,7 +85,7 @@ Datatype BzlaSort::get_datatype() const
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-bool BzlaSort::compare(const Sort s) const
+bool BzlaSort::compare(const Sort & s) const
 {
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(s);
   return bitwuzla_sort_is_equal(sort, bsort->sort);

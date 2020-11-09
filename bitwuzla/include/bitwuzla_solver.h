@@ -114,10 +114,10 @@ class BzlaSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  Bzla * get_bzla() const { return bzla; };
+  Bitwuzla * get_bitwuzla() const { return bzla; };
 
  protected:
-  Bzla * bzla;
+  Bitwuzla * bzla;
 
   // TODO: figure out if we need those -- was used in btor backend
   /* // store the names of created symbols */

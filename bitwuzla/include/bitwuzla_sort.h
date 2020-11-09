@@ -41,7 +41,7 @@ class BzlaSort : public AbsSort
   size_t get_arity() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
-  bool compare(const Sort s) const override;
+  bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override;
 
   // getters for solver-specific objects
@@ -53,7 +53,7 @@ class BzlaSort : public AbsSort
   // objects from Bitwuzla API
   const BitwuzlaSort * sort;
 
-  friend class BitwuzlaSolver;
+  friend class BzlaSolver;
 };
 
 }  // namespace smt

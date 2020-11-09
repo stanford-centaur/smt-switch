@@ -29,7 +29,7 @@ namespace smt {
 // TODO: add implementation for all of BzlaTermIter
 
 // TODO: add implementation for BzlaTerm
-BzlaTerm::BzlaTerm(BitwuzlaTerm * t) : term(t) {}
+BzlaTerm::BzlaTerm(const BitwuzlaTerm * t) : term(t) {}
 
 BzlaTerm::~BzlaTerm() {}
 

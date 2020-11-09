@@ -63,7 +63,7 @@ class BzlaSolver;
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(BitwuzlaTerm * n);
+  BzlaTerm(const BitwuzlaTerm * n);
   ~BzlaTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
