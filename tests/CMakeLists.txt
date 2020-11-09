@@ -162,3 +162,9 @@ add_executable(unit-reset-assertions "${PROJECT_SOURCE_DIR}/tests/unit/unit-rese
 target_link_libraries(unit-reset-assertions gtest_main)
 target_link_libraries(unit-reset-assertions test-deps)
 add_test(NAME unit-reset-assertions_test COMMAND unit-reset-assertions)
+
+add_executable(test-disjointset "${PROJECT_SOURCE_DIR}/tests/test-disjointset.cpp")
+target_link_libraries(test-disjointset gtest_main)
+target_link_libraries(test-disjointset test-deps)
+add_test(NAME test-disjointset_test COMMAND test-disjointset)
+

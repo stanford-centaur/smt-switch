@@ -43,7 +43,7 @@ class BoolectorSortBase : public AbsSort
   size_t get_arity() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
-  bool compare(const Sort s) const override;
+  bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override { return sk; };
 
   // getters for solver-specific objects
