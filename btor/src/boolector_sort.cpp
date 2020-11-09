@@ -92,7 +92,7 @@ Datatype BoolectorSortBase::get_datatype() const
   throw NotImplementedException("get_datatype");
 };
 
-bool BoolectorSortBase::compare(const Sort s) const
+bool BoolectorSortBase::compare(const Sort & s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(s);
