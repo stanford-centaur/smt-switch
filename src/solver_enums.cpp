@@ -33,6 +33,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             UNSAT_CORE,
             QUANTIFIERS,
+            GET_OP,
             BOOL_BV1_ALIASING } },
 
         { BZLA, { CONSTARR, UNSAT_CORE, QUANTIFIERS, BOOL_BV1_ALIASING } },
@@ -47,7 +48,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            GET_OP } },
 
         { MSAT,
           { TERMITER,
@@ -57,7 +59,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            GET_OP } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing

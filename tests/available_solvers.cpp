@@ -222,11 +222,13 @@ std::vector<SolverConfiguration> filter_solver_configurations(
   // there are some features that logging solvers support even if the base
   // solver does not
   if (attributes.find(TERMITER) != attributes.end()
-      || attributes.find(FULL_TRANSFER) != attributes.end())
+      || attributes.find(FULL_TRANSFER) != attributes.end()
+      || attributes.find(GET_OP) != attributes.end())
   {
     std::unordered_set<SolverAttribute> reduced_attributes = attributes;
     reduced_attributes.erase(TERMITER);
     reduced_attributes.erase(FULL_TRANSFER);
+    reduced_attributes.erase(GET_OP);
     // get filtered enums for the rest of the attributes
     std::vector<SolverEnum> reduced_filtered_enums =
         filter_solver_enums(reduced_attributes);
