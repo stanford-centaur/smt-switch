@@ -109,14 +109,12 @@ string BzlaTerm::print_value_as(SortKind sk)
         "Cannot use print_value_as on a non-value term.");
   }
 
-  // BitwuzlaSort * s = bitwuzla_term_get_sort(term);
   if (bitwuzla_term_is_bv(term))
   {
     uint64_t width = bitwuzla_term_bv_get_size(term);
     if (width == 1 && sk == BOOL)
     {
-      string bits = to_string_formatted("btor");
-      if (bits == "1")
+      if (bitwuzla_term_is_bv_value_one(term))
       {
         return "true";
       }
