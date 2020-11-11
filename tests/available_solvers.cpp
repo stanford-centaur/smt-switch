@@ -21,6 +21,10 @@
 #include "boolector_factory.h"
 #endif
 
+#if BUILD_BITWUZLA
+#include "bitwuzla_factory.h"
+#endif
+
 #if BUILD_CVC4
 #include "cvc4_factory.h"
 #endif
@@ -45,6 +49,10 @@ const std::vector<SolverEnum> solver_enums({
   BTOR,
 #endif
 
+#if BUILD_BITWUZLA
+      BZLA,
+#endif
+
 #if BUILD_CVC4
       CVC4,
 #endif
@@ -67,6 +75,13 @@ SmtSolver create_solver(SolverConfiguration sc)
 #if BUILD_BTOR
     case BTOR: {
       return BoolectorSolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_BITWUZLA
+    case BZLA: {
+      return BitwuzlaSolverFactory::create(logging);
       break;
       ;
     }
@@ -226,6 +241,12 @@ std::vector<SolverConfiguration> filter_solver_configurations(
     }
   }
   return result;
+}
+
+std::ostream & operator<<(std::ostream & o, SolverConfiguration sc)
+{
+  o << sc.solver_enum << "(logging=" << sc.is_logging_solver << ")";
+  return o;
 }
 
 }  // namespace smt_tests

@@ -31,11 +31,11 @@ struct SolverConfiguration
   // fields
   smt::SolverEnum solver_enum;
   bool is_logging_solver;
-  
+
   // constructor
   SolverConfiguration(smt::SolverEnum se, bool ils) {
     solver_enum = se;
-    is_logging_solver = ils;  
+    is_logging_solver = ils;
   }
 };
 
@@ -69,5 +69,7 @@ std::vector<smt::SolverEnum> filter_solver_enums(
  */
 std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
+
+std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
 
 }  // namespace smt_tests

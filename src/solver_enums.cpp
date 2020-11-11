@@ -35,6 +35,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS,
             BOOL_BV1_ALIASING } },
 
+        { BZLA, { CONSTARR, UNSAT_CORE, QUANTIFIERS, BOOL_BV1_ALIASING } },
+
         { CVC4,
           { TERMITER,
             THEORY_INT,
@@ -94,6 +96,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
   switch (e)
   {
     case BTOR: o << "BTOR"; break;
+    case BZLA: o << "BZLA"; break;
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
