@@ -29,7 +29,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
         { BTOR,
           { TERMITER,
-            LOGGING,
             ARRAY_MODELS,
             CONSTARR,
             UNSAT_CORE,
@@ -37,23 +36,19 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             BOOL_BV1_ALIASING } },
 
         { CVC4,
-          {
-              TERMITER,
-              LOGGING,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_MODELS,
-              ARRAY_FUN_BOOLS,
-              CONSTARR,
-              FULL_TRANSFER,
-              UNSAT_CORE,
-              THEORY_DATATYPE,
-              QUANTIFIERS
-          } },
+          { TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE,
+            THEORY_DATATYPE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,
-            LOGGING,
             THEORY_INT,
             THEORY_REAL,
             ARRAY_MODELS,
@@ -66,7 +61,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
+        { YICES2, { THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
 
     });
 
@@ -124,7 +119,6 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
 {
   switch (a)
   {
-    case LOGGING: o << "LOGGING"; break;
     case TERMITER: o << "TERMITER"; break;
     case THEORY_INT: o << "THEORY_INT"; break;
     case THEORY_REAL: o << "THEORY_REAL"; break;

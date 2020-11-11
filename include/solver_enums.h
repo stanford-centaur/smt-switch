@@ -38,10 +38,8 @@ enum SolverEnum
 
 enum SolverAttribute
 {
-  // this enum is wrapped by a LoggingSolver
-  LOGGING = 0,
   // supports traversing terms with iteration
-  TERMITER,
+  TERMITER = 0,
   // supports integer theory
   THEORY_INT,
   // supports real theory
