@@ -51,10 +51,7 @@ Sort BzlaTerm::get_sort() const
 
 bool BzlaTerm::is_symbol() const { return bitwuzla_term_is_const(term); }
 
-bool BzlaTerm::is_param() const
-{
-  return bitwuzla_term_is_var(term) || bitwuzla_term_is_bound_var(term);
-}
+bool BzlaTerm::is_param() const { return bitwuzla_term_is_var(term); }
 
 bool BzlaTerm::is_symbolic_const() const
 {
