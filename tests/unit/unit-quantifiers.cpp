@@ -83,6 +83,8 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   Term fx = s->make_term(Apply, f, x);
   Term bimpfxeq0 = s->make_term(
       Implies, b, s->make_term(Equal, fx, s->make_term(0, bvsort)));
+  // In smt-switch we constrain the backends to only bind one quantifier at a
+  // time this makes traversing the term later easier
   ASSERT_THROW(s->make_term(Forall, b, x, bimpfxeq0), IncorrectUsageException);
   Term forallx = s->make_term(Forall, x, bimpfxeq0);
   Term forallbx = s->make_term(Forall, b, forallx);
