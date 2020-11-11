@@ -49,7 +49,15 @@ Sort BzlaTerm::get_sort() const
   return make_shared<BzlaSort>(bitwuzla_term_get_sort(term));
 }
 
-bool BzlaTerm::is_symbol() const { return bitwuzla_term_is_const(term); }
+bool BzlaTerm::is_symbol() const
+{
+  // Bitwuzla handles negations differently than other solvers internally
+  // so it could consider a negated term to still be a constant
+  // make sure semantics match up. A negated symbol is not a constant,
+  // because it has an operator: (not sym)
+  // TODO handle the case above (no way to check if term is negated yet)
+  return bitwuzla_term_is_const(term);
+}
 
 bool BzlaTerm::is_param() const { return bitwuzla_term_is_var(term); }
 

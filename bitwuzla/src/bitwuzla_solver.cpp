@@ -133,8 +133,16 @@ Result BzlaSolver::check_sat()
 
 Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  // TODO need to check they're all literals
-  throw NotImplementedException("");
+  for (auto a : assumptions)
+  {
+    if (!a->is_symbolic_const())
+    {
+      throw IncorrectUsageException(
+          "Expecting literal assumptions to check_sat_assuming");
+    }
+    bitwuzla_assume(bzla, static_pointer_cast<BzlaTerm>(a)->term);
+  }
+  return check_sat();
 }
 
 void BzlaSolver::push(uint64_t num) { bitwuzla_push(bzla, num); }
