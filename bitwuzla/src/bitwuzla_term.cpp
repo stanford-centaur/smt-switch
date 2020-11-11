@@ -58,7 +58,11 @@ bool BzlaTerm::is_param() const
 
 bool BzlaTerm::is_symbolic_const() const
 {
-  return is_symbol() && !bitwuzla_term_is_fun(term);
+  // in Bitwuzla arrays are functions
+  // for smt-switch we consider arrays symbolic constants but not functions
+  bool is_function =
+      bitwuzla_term_is_fun(term) && !bitwuzla_term_is_array(term);
+  return is_symbol() && !is_function;
 }
 
 bool BzlaTerm::is_value() const
