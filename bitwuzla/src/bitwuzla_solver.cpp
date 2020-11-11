@@ -156,9 +156,11 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 
 void BzlaSolver::get_unsat_core(UnorderedTermSet & out)
 {
-  const BitwuzlaTerm ** bcore = bitwuzla_get_unsat_core(bzla);
-  while (*bcore)
+  size_t size;
+  BitwuzlaTerm ** bcore = bitwuzla_get_unsat_assumptions(bzla, &size);
+  for (size_t i = 0; i < size; ++i)
   {
+    assert(*bcore);
     out.insert(make_shared<BzlaTerm>(*bcore));
     bcore++;
   }

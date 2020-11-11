@@ -47,7 +47,7 @@ SortVec BzlaSort::get_domain_sorts() const
   SortVec domain_sorts;
   domain_sorts.reserve(arity);
 
-  const BitwuzlaSort ** bsorts = bitwuzla_sort_fun_get_domain_sorts(sort);
+  BitwuzlaSort ** bsorts = bitwuzla_sort_fun_get_domain_sorts(sort);
 
   for (size_t i = 0; i < arity; ++i)
   {
