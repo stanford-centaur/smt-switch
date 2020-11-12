@@ -32,22 +32,28 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(sort z3sort) : type(z3sort), is_function(false){
+  Z3Sort(sort z3sort, context &c) : type(z3sort), is_function(false), z_func(c){
+    ctx = &c;
 //	  context c;
 //	  z_func = func_decl(ctx);
   };
 
   // Functions
-   Z3Sort(sort z3sort, bool is_fun, func_decl zfunc) :
-	   type(z3sort), is_function(is_fun){//, z_func(zfunc){
-	   z_func = &zfunc;
+   Z3Sort(sort z3sort, bool is_fun, func_decl zfunc, context &c) :
+	   type(c), is_function(is_fun), z_func(zfunc){//, z_func(zfunc){
+	  //  z_func = &zfunc;
    };
 
-   Z3Sort(sort z3sort, bool tmp, bool is_fun, func_decl zfunc) :
-	   type(z3sort), is_function(is_fun), zsort(zfunc) {
-//	   new (zsort.f) = zfunc;
-//	   zsort f = &zfunc;
-   };
+  // int p = 5;
+  // int *q = &p;
+  // int &r = p; 
+  // int &r2 = q; 
+
+//    Z3Sort(sort z3sort, bool tmp, bool is_fun, func_decl zfunc) :
+// 	   type(z3sort), is_function(is_fun), zsort(zfunc) {
+// //	   new (zsort.f) = zfunc;
+// //	   zsort f = &zfunc;
+//    };
 
 //   Z3Sort(sort z3sort, bool t) : type(z3sort), is_function(false){
 //	   test a = t;
@@ -69,15 +75,16 @@ class Z3Sort : public AbsSort
 
  protected:
   sort type;
-  z3::func_decl *z_func; //= func_decl(ctx);
+  func_decl z_func; //= func_decl(ctx);
   bool is_function;
-  union zsort {
-	  sort s;
-	  func_decl f;
-//
-//	  zsort(sort a) : s(a) {};
-//	  zsort(func_decl b) : f(b) {};
-  };
+  context *ctx;
+//   union zsort {
+// 	  sort s;
+// 	  func_decl f;
+// //
+// //	  zsort(sort a) : s(a) {};
+// //	  zsort(func_decl b) : f(b) {};
+//   };
 //  union test { bool a; int b; };
 //  std::variant<int, float> v, w;
 

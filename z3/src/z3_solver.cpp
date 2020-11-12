@@ -213,7 +213,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 //		throw InternalSolverException(msg.c_str());
 //	}
 
-	return std::make_shared < Z3Sort > (z_sort);
+	return std::make_shared < Z3Sort > (z_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const {
@@ -233,7 +233,7 @@ Sort Z3Solver::make_sort(SortKind sk) const {
 		throw IncorrectUsageException(msg.c_str());
 	}
 
-	Sort final_sort = std::make_shared < Z3Sort > (z_sort);
+	Sort final_sort = std::make_shared < Z3Sort > (z_sort, ctx);
 	return final_sort;
 }
 
@@ -242,7 +242,7 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
 	if (sk == BV) {
 		z_sort = ctx.bv_sort(size);
 	}
-	return std::make_shared < Z3Sort > (z_sort);
+	return std::make_shared < Z3Sort > (z_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1) const {
@@ -257,8 +257,7 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1,
 				> (sort1);
 		std::shared_ptr<Z3Sort> celemsort = std::static_pointer_cast < Z3Sort
 				> (sort2);
-		return std::make_shared < Z3Sort
-				> (ctx.array_sort(cidxsort->type, celemsort->type));
+		return std::make_shared < Z3Sort > (ctx.array_sort(cidxsort->type, celemsort->type), ctx);
 	} else {
 		std::string msg("Can't create sort with sort constructor ");
 		msg += to_string(sk);
@@ -302,7 +301,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 		z3::symbol func_name = ctx.str_symbol(c);
 		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0], z_sort);
 
-		return std::make_shared < Z3Sort > (final_sort, true, z_func);
+		return std::make_shared < Z3Sort > (final_sort, true, z_func, ctx);
 //		final_sort = yices_function_type(arity, &zsorts[0], z_sort);
 	} else if (sorts.size() == 1) {
 		return make_sort(sk, sorts[0]);
@@ -317,7 +316,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 		throw IncorrectUsageException(msg.c_str());
 	}
 
-	return std::make_shared < Z3Sort > (final_sort);
+	return std::make_shared < Z3Sort > (final_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(const Sort &sort_con, const SortVec &sorts) const {

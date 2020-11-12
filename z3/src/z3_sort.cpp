@@ -24,7 +24,7 @@ uint64_t Z3Sort::get_width() const {
 
 Sort Z3Sort::get_indexsort() const {
 	if (type.is_array()) {
-		return std::make_shared < Z3Sort > (type.array_domain());
+		return std::make_shared < Z3Sort > (type.array_domain(), *ctx);
 	} else {
 		throw IncorrectUsageException(
 				"Can only get width from bit-vector sort");
@@ -33,7 +33,7 @@ Sort Z3Sort::get_indexsort() const {
 
 Sort Z3Sort::get_elemsort() const {
 	if (type.is_array()) {
-		return std::make_shared < Z3Sort > (type.array_range());
+		return std::make_shared < Z3Sort > (type.array_range(), *ctx);
 	} else {
 		throw IncorrectUsageException(
 				"Can only get width from bit-vector sort");
