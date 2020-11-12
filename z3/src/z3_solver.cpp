@@ -302,7 +302,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 		z3::symbol func_name = ctx.str_symbol(c);
 		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0], z_sort);
 
-//		return std::make_shared < Z3Sort > (z_func);
+		return std::make_shared < Z3Sort > (final_sort, true, z_func);
 //		final_sort = yices_function_type(arity, &zsorts[0], z_sort);
 	} else if (sorts.size() == 1) {
 		return make_sort(sk, sorts[0]);

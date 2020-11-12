@@ -2,7 +2,7 @@
 /*! \file z3_sort.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Amalee Wilson
+**   Lindsey Stuntz
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
@@ -32,10 +32,26 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(sort z3sort) : type(z3sort), is_function(false){};
+  Z3Sort(sort z3sort) : type(z3sort), is_function(false){
+//	  context c;
+//	  z_func = func_decl(ctx);
+  };
 
   // Functions
-  // Z3Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun){};
+   Z3Sort(sort z3sort, bool is_fun, func_decl zfunc) :
+	   type(z3sort), is_function(is_fun){//, z_func(zfunc){
+	   z_func = &zfunc;
+   };
+
+   Z3Sort(sort z3sort, bool tmp, bool is_fun, func_decl zfunc) :
+	   type(z3sort), is_function(is_fun), zsort(zfunc) {
+//	   new (zsort.f) = zfunc;
+//	   zsort f = &zfunc;
+   };
+
+//   Z3Sort(sort z3sort, bool t) : type(z3sort), is_function(false){
+//	   test a = t;
+//     };
 
   ~Z3Sort() = default;
   std::size_t hash() const override;
@@ -50,11 +66,20 @@ class Z3Sort : public AbsSort
   Datatype get_datatype() const override;
   bool compare(const Sort s) const override;
   SortKind get_sort_kind() const override;
-  // type_t get_ytype() { return type; };
 
  protected:
   sort type;
+  z3::func_decl *z_func; //= func_decl(ctx);
   bool is_function;
+  union zsort {
+	  sort s;
+	  func_decl f;
+//
+//	  zsort(sort a) : s(a) {};
+//	  zsort(func_decl b) : f(b) {};
+  };
+//  union test { bool a; int b; };
+//  std::variant<int, float> v, w;
 
   friend class Z3Solver;
 };
