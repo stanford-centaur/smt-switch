@@ -112,15 +112,15 @@ string BzlaTerm::print_value_as(SortKind sk)
   if (bitwuzla_term_is_bv(term))
   {
     uint64_t width = bitwuzla_term_bv_get_size(term);
-    if (width == 1 && sk == BOOL)
+    if (width == 1 && sk == BV)
     {
       if (bitwuzla_term_is_bv_value_one(term))
       {
-        return "true";
+        return "#b1";
       }
       else
       {
-        return "false";
+        return "#b0";
       }
     }
     else
