@@ -95,6 +95,10 @@ void BzlaSolver::set_opt(const string option, const string value)
   {
     bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_MODELS, (value == "true"));
   }
+  else if (option == "produce-unsat-cores")
+  {
+    bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_UNSAT_CORES, (value == "true"));
+  }
   else
   {
     throw SmtException("Bitwuzla backend does not support option: " + option);
