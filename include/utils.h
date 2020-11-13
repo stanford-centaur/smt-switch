@@ -77,7 +77,10 @@ void disjunctive_partition(const smt::Term & term,
                            smt::TermVec & out,
                            bool include_bvor = false);
 
-void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
+void get_free_symbolic_consts(const smt::Term & term,
+                              smt::UnorderedTermSet & out);
+
+void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
 
 
 // -----------------------------------------------------------------------------
