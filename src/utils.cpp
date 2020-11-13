@@ -102,7 +102,8 @@ void disjunctive_partition(const smt::Term & term,
   }
 }
 
-void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
+void get_free_symbolic_consts(const smt::Term & term,
+                              smt::UnorderedTermSet & out)
 {
   smt::TermVec to_visit({ term });
   smt::UnorderedTermSet visited;
@@ -116,9 +117,39 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
       visited.insert(t);
 
       if (t->is_symbolic_const()) {
-        out.push_back(t);
+        out.insert(t);
       } else {// add children to queue
         for (auto tt : t) {
+          to_visit.push_back(tt);
+        }
+      }
+    }
+  }
+}
+
+void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
+{
+  smt::TermVec to_visit({ term });
+  smt::UnorderedTermSet visited;
+
+  smt::Term t;
+  while (to_visit.size())
+  {
+    t = to_visit.back();
+    to_visit.pop_back();
+
+    if (visited.find(t) == visited.end())
+    {
+      visited.insert(t);
+
+      if (t->is_symbol())
+      {
+        out.insert(t);
+      }
+      else
+      {  // add children to queue
+        for (auto tt : t)
+        {
           to_visit.push_back(tt);
         }
       }
