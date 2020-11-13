@@ -136,6 +136,8 @@ UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
   : reducer_(reducer_solver),
     to_reducer_(reducer_solver)
 {
+  reducer_->set_opt("produce-unsat-cores", "true");
+  reducer_->set_opt("incremental", "true");
 }
 
 UnsatCoreReducer::~UnsatCoreReducer()

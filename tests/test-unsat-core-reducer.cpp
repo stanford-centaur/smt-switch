@@ -38,8 +38,6 @@ class UnsatCoreReducerTests
     boolsort = s->make_sort(BOOL);
 
     r = create_solver(GetParam());
-    r->set_opt("incremental", "true");
-    r->set_opt("produce-unsat-cores", "true");
   }
   SmtSolver s;
   Sort boolsort;
