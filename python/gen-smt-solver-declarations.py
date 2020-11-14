@@ -16,6 +16,15 @@ solvers["btor"] = create_btor_solver
 '''
 
 
+CREATE_BITWUZLA='''
+def create_bitwuzla_solver(logging):
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_bitwuzla_solver(logging)
+    return solver
+solvers["bitwuzla"] = create_bitwuzla_solver
+'''
+
+
 CREATE_CVC4='''
 def create_cvc4_solver(logging):
     cdef SmtSolver solver = SmtSolver()
@@ -58,6 +67,12 @@ cdef extern from "boolector_factory.h":
 '''
 
 
+DECLARE_BITWUZLA='''
+cdef extern from "bitwuzla_factory.h":
+    c_SmtSolver cpp_create_bitwuzla_solver "smt::BitwuzlaSolverFactory::create" (bint logging) except +
+'''
+
+
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
     c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (bint logging) except +
@@ -81,6 +96,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate smt_switch python binding implementations.")
     parser.add_argument('--dest-dir', help='Where to put the generated files', required=True)
     parser.add_argument('--btor', action='store_true', help='Build with Boolector')
+    parser.add_argument('--bitwuzla', action='store_true', help='Build with Bitwuzla')
     parser.add_argument('--cvc4', action='store_true', help='Build with CVC4')
     parser.add_argument('--msat', action='store_true', help='Build with MathSAT')
     parser.add_argument('--yices2', action='store_true', help='Build with Yices2')
@@ -96,6 +112,11 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_BTOR
         pxi += "\n" + CREATE_BTOR
         imports.append('cpp_create_btor_solver')
+
+    if args.bitwuzla:
+        pxd += "\n" + DECLARE_BITWUZLA
+        pxi += "\n" + CREATE_BITWUZLA
+        imports.append('cpp_create_bitwuzla_solver')
 
     if args.cvc4:
         pxd += "\n" + DECLARE_CVC4
