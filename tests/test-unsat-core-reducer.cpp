@@ -63,6 +63,7 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducer)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverUnsatCoreReducerTests,
     UnsatCoreReducerTests,
-    testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE })));
+    // needs term iteration for translation term to a different solver
+    testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE, TERMITER })));
 
 }  // namespace smt_tests
