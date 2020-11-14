@@ -125,10 +125,24 @@ Op BzlaTerm::get_op() const
 
   PrimOp po = it->second;
 
-  if (indexed_ops.find(po) != indexed_ops.end())
+  if (bitwuzla_term_is_indexed(term))
   {
-    throw NotImplementedException(
-        "Can't get indexed operator from bitwuzla yet.");
+    assert(indexed_ops.find(po) != indexed_ops.end());
+    size_t num_indices;
+    uint32_t * indices = bitwuzla_term_get_indices(term, &num_indices);
+    assert(num_indices);
+    assert(num_indices <= 2);
+    uint32_t idx0 = *indices;
+    if (num_indices == 1)
+    {
+      return Op(po, idx0);
+    }
+    else
+    {
+      indices++;
+      uint32_t idx1 = *indices;
+      return Op(po, idx0, idx1);
+    }
   }
 
   return Op(po);
