@@ -126,9 +126,9 @@ INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-INSTANTIATE_TEST_SUITE_P(
-    ParametrizedConstArrUnit,
-    ConstArrUnitTests,
-    testing::ValuesIn(filter_solver_configurations({ CONSTARR, GET_OP })));
+INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
+                         ConstArrUnitTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { CONSTARR, TERMITER, GET_OP })));
 
 }  // namespace smt_tests

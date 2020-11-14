@@ -116,6 +116,12 @@ bool BzlaTerm::compare(const Term & absterm) const
 
 Op BzlaTerm::get_op() const
 {
+  if (bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term)
+      || bitwuzla_term_is_const_array(term) || bitwuzla_term_is_bv_value(term))
+  {
+    return Op();
+  }
+
   BitwuzlaKind bkind = bitwuzla_term_get_kind(term);
   auto it = bkind2primop.find(bkind);
   if (it == bkind2primop.end())
