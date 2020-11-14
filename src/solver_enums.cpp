@@ -36,7 +36,13 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             GET_OP,
             BOOL_BV1_ALIASING } },
 
-        { BZLA, { CONSTARR, UNSAT_CORE, QUANTIFIERS, GET_OP, BOOL_BV1_ALIASING } },
+        { BZLA,
+          { TERMITER,
+            CONSTARR,
+            UNSAT_CORE,
+            QUANTIFIERS,
+            GET_OP,
+            BOOL_BV1_ALIASING } },
 
         { CVC4,
           { TERMITER,

@@ -57,7 +57,8 @@ TEST_P(UnitTests, TermIter)
   TermIter it2;
   it2 = it;
 
-  ASSERT_TRUE(it == it2);
+  EXPECT_EQ(it, it);
+  EXPECT_EQ(it, it2);
 }
 
 TEST_P(ConstArrUnitTests, ConstArr)

@@ -133,7 +133,7 @@ bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
 bool BzlaTermIter::equal(const TermIterBase & other) const
 {
   const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  return (terms == bti.terms) && (size == bti.size) && (idx == bti.size);
+  return (terms == bti.terms) && (size == bti.size) && (idx == bti.idx);
 }
 
 /*  end BzlaTermIter implementation */
