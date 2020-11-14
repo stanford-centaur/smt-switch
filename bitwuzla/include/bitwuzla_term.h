@@ -28,37 +28,35 @@ namespace smt {
 // forward declaration
 class BzlaSolver;
 
-// class BzlaTermIter : public TermIterBase
-// {
-//  public:
-//   // IMPORTANT: The correctness of this code depends on the array e being of
-//   // size 3
-//   BzlaTermIter(Bitwuzla * b, std::vector<BitwuzlaTerm *> c, int64_t idx)
-//       : bzla(b), children(c), idx(idx)
-//   {
-//   }
-//   BzlaTermIter(const BzlaTermIter & it)
-//   {
-//     bzla = it.bzla;
-//     children = it.children;
-//     idx = it.idx;
-//   };
-//   ~BzlaTermIter(){};
-//   BzlaTermIter & operator=(const BzlaTermIter & it);
-//   void operator++() override;
-//   const Term operator*() override;
-//   TermIterBase * clone() const override;
-//   bool operator==(const BzlaTermIter & it);
-//   bool operator!=(const BzlaTermIter & it);
+class BzlaTermIter : public TermIterBase
+{
+ public:
+  BzlaTermIter(BitwuzlaTerm ** terms, size_t size, size_t idx)
+      : terms(terms), size(size), idx(idx)
+  {
+  }
+  BzlaTermIter(const BzlaTermIter & it)
+  {
+    terms = it.terms;
+    size = it.size;
+    idx = it.idx;
+  };
+  ~BzlaTermIter(){};
+  BzlaTermIter & operator=(const BzlaTermIter & it);
+  void operator++() override;
+  const Term operator*() override;
+  TermIterBase * clone() const override;
+  bool operator==(const BzlaTermIter & it);
+  bool operator!=(const BzlaTermIter & it);
 
-//  protected:
-//   bool equal(const TermIterBase & other) const override;
+ protected:
+  bool equal(const TermIterBase & other) const override;
 
-//  private:
-//   Bitwuzla * bzla;
-//   std::vector<BitwuzlaTerm *> children;
-//   int64_t idx;
-// };
+ private:
+  BitwuzlaTerm ** terms;  // terms to iterate over (e.g. children)
+  size_t size;            // number of terms to iterate over
+  size_t idx;             // current idx of iteration
+};
 
 class BzlaTerm : public AbsTerm
 {

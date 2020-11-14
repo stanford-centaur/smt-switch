@@ -98,9 +98,46 @@ const std::unordered_map<BitwuzlaKind, PrimOp> bkind2primop(
 const unordered_set<PrimOp> indexed_ops(
     { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
 
-// TODO: add implementation for all of BzlaTermIter
+/*  start BzlaTermIter implementation */
 
-// TODO: add implementation for BzlaTerm
+BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
+{
+  terms = it.terms;
+  size = it.size;
+  idx = it.idx;
+  return *this;
+}
+
+void BzlaTermIter::operator++()
+{
+  // need to keep terms and idx in line
+  terms++;
+  idx++;
+}
+
+const Term BzlaTermIter::operator*()
+{
+  assert(idx < size);
+  return make_shared<BzlaTerm>(*terms);
+}
+
+TermIterBase * BzlaTermIter::clone() const
+{
+  return new BzlaTermIter(terms, size, idx);
+}
+
+bool BzlaTermIter::operator==(const BzlaTermIter & it) { return equal(it); }
+
+bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
+
+bool BzlaTermIter::equal(const TermIterBase & other) const
+{
+  const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
+  return (terms == bti.terms) && (size == bti.size) && (idx == bti.size);
+}
+
+/*  end BzlaTermIter implementation */
+
 BzlaTerm::BzlaTerm(BitwuzlaTerm * t) : term(t) {}
 
 BzlaTerm::~BzlaTerm() {}
@@ -207,9 +244,19 @@ uint64_t BzlaTerm::to_int() const
   return std::stoull(bits, &sz, 2);
 }
 
-TermIter BzlaTerm::begin() { throw SmtException("NYI"); }
+TermIter BzlaTerm::begin()
+{
+  size_t size;
+  BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
+  return TermIter(new BzlaTermIter(children, size, 0));
+}
 
-TermIter BzlaTerm::end() { throw SmtException("NYI"); }
+TermIter BzlaTerm::end()
+{
+  size_t size;
+  BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
+  return TermIter(new BzlaTermIter(children, size, size));
+}
 
 string BzlaTerm::print_value_as(SortKind sk)
 {
