@@ -24,7 +24,79 @@ extern "C" {
 
 using namespace std;
 
+namespace std {
+// specialize the hash template
+template <>
+struct hash<BitwuzlaKind>
+{
+  size_t operator()(const BitwuzlaKind bk) const
+  {
+    return static_cast<std::size_t>(bk);
+  }
+};
+}  // namespace std
+
 namespace smt {
+
+const std::unordered_map<BitwuzlaKind, PrimOp> bkind2primop(
+    { /* Core Theory */
+      { BITWUZLA_KIND_AND, And },
+      { BITWUZLA_KIND_OR, Or },
+      { BITWUZLA_KIND_XOR, Xor },
+      { BITWUZLA_KIND_NOT, Not },
+      // needs to be translated
+      { BITWUZLA_KIND_IMPLIES, Implies },
+      { BITWUZLA_KIND_IFF, Iff },
+      { BITWUZLA_KIND_ITE, Ite },
+      { BITWUZLA_KIND_EQUAL, Equal },
+      { BITWUZLA_KIND_DISTINCT, Distinct },
+      /* Uninterpreted Functions */
+      { BITWUZLA_KIND_APPLY, Apply },
+      /* Fixed Size BitVector Theory */
+      { BITWUZLA_KIND_BV_CONCAT, Concat },
+      { BITWUZLA_KIND_BV_EXTRACT, Extract },
+      { BITWUZLA_KIND_BV_NOT, BVNot },
+      { BITWUZLA_KIND_BV_NEG, BVNeg },
+      { BITWUZLA_KIND_BV_AND, BVAnd },
+      { BITWUZLA_KIND_BV_OR, BVOr },
+      { BITWUZLA_KIND_BV_XOR, BVXor },
+      { BITWUZLA_KIND_BV_NAND, BVNand },
+      { BITWUZLA_KIND_BV_NOR, BVNor },
+      { BITWUZLA_KIND_BV_XNOR, BVXnor },
+      { BITWUZLA_KIND_BV_ADD, BVAdd },
+      { BITWUZLA_KIND_BV_SUB, BVSub },
+      { BITWUZLA_KIND_BV_MUL, BVMul },
+      { BITWUZLA_KIND_BV_UDIV, BVUdiv },
+      { BITWUZLA_KIND_BV_SDIV, BVSdiv },
+      { BITWUZLA_KIND_BV_UREM, BVUrem },
+      { BITWUZLA_KIND_BV_SREM, BVSrem },
+      { BITWUZLA_KIND_BV_SMOD, BVSmod },
+      { BITWUZLA_KIND_BV_SHL, BVShl },
+      { BITWUZLA_KIND_BV_ASHR, BVAshr },
+      { BITWUZLA_KIND_BV_SHR, BVLshr },
+      { BITWUZLA_KIND_BV_COMP, BVComp },
+      { BITWUZLA_KIND_BV_ULT, BVUlt },
+      { BITWUZLA_KIND_BV_ULE, BVUle },
+      { BITWUZLA_KIND_BV_UGT, BVUgt },
+      { BITWUZLA_KIND_BV_UGE, BVUge },
+      { BITWUZLA_KIND_BV_SLT, BVSlt },
+      { BITWUZLA_KIND_BV_SLE, BVSle },
+      { BITWUZLA_KIND_BV_SGT, BVSgt },
+      { BITWUZLA_KIND_BV_SGE, BVSge },
+      { BITWUZLA_KIND_BV_ZERO_EXTEND, Zero_Extend },  // Indexed
+      { BITWUZLA_KIND_BV_SIGN_EXTEND, Sign_Extend },  // Indexed
+      { BITWUZLA_KIND_BV_REPEAT, Repeat },            // Indexed
+      { BITWUZLA_KIND_BV_ROLI, Rotate_Left },         // Indexed
+      { BITWUZLA_KIND_BV_RORI, Rotate_Right },        // Indexed
+                                                      /* Array Theory */
+      { BITWUZLA_KIND_ARRAY_SELECT, Select },
+      { BITWUZLA_KIND_ARRAY_STORE, Store },
+      /* Quantifiers */
+      { BITWUZLA_KIND_FORALL, Forall },
+      { BITWUZLA_KIND_EXISTS, Exists } });
+
+const unordered_set<PrimOp> indexed_ops(
+    { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
 
 // TODO: add implementation for all of BzlaTermIter
 
@@ -42,7 +114,25 @@ bool BzlaTerm::compare(const Term & absterm) const
   return term == bterm->term;
 }
 
-Op BzlaTerm::get_op() const { throw SmtException("NYI"); }
+Op BzlaTerm::get_op() const
+{
+  BitwuzlaKind bkind = bitwuzla_term_get_kind(term);
+  auto it = bkind2primop.find(bkind);
+  if (it == bkind2primop.end())
+  {
+    throw NotImplementedException("Unknown operator in bitwuzla backend.");
+  }
+
+  PrimOp po = it->second;
+
+  if (indexed_ops.find(po) != indexed_ops.end())
+  {
+    throw NotImplementedException(
+        "Can't get indexed operator from bitwuzla yet.");
+  }
+
+  return Op(po);
+}
 
 Sort BzlaTerm::get_sort() const
 {
