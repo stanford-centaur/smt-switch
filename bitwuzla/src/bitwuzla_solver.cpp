@@ -605,7 +605,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    assert(op.num_idx > 0 && op.num_idx <= 1);
+    assert(op.num_idx > 0 && op.num_idx <= 2);
     vector<uint32_t> indices({ (uint32_t)op.idx0 });
     if (op.num_idx == 2)
     {
