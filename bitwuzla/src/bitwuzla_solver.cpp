@@ -633,6 +633,26 @@ void BzlaSolver::reset_assertions()
       "Bitwuzla does not currently support reset_assertions");
 }
 
+Term BzlaSolver::substitute(const Term term,
+                            const UnorderedTermMap & substitution_map) const
+{
+  shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
+  vector<BitwuzlaTerm *> map_keys;
+  vector<BitwuzlaTerm *> map_vals;
+  for (auto elem : substitution_map)
+  {
+    if (!elem.second->is_symbolic_const() && !elem.second->is_param())
+    {
+      throw SmtException(
+          "Bitwuzla backend doesn't support substitution with non symbol keys");
+    }
+    map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
+    map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
+  }
+  return make_shared<BzlaTerm>(bitwuzla_substitute_term(
+      bzla, bterm->term, map_keys.size(), map_keys.data(), map_vals.data()));
+}
+
 void BzlaSolver::dump_smt2(std::string filename) const
 {
   FILE * file = fopen(filename.c_str(), "w");
