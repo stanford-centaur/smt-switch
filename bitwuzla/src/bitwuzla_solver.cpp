@@ -137,9 +137,19 @@ Result BzlaSolver::check_sat()
 
 Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  Sort boolsort = make_sort(BOOL);
+  bool is_lit;
   for (auto a : assumptions)
   {
-    if (!a->is_symbolic_const())
+    is_lit = a->is_symbolic_const();
+    if (!is_lit)
+    {
+      // could be negated
+      // Bitwuzla always returns BVNot instead of Not
+      is_lit = (a->get_op() == BVNot) && ((*(a->begin()))->is_symbolic_const());
+    }
+    is_lit &= (a->get_sort() == boolsort);
+    if (!is_lit)
     {
       throw IncorrectUsageException(
           "Expecting literal assumptions to check_sat_assuming");
