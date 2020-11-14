@@ -63,7 +63,7 @@ class BzlaSolver;
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(const BitwuzlaTerm * n);
+  BzlaTerm(BitwuzlaTerm * n);
   ~BzlaTerm();
   std::size_t hash() const override;
   bool compare(const Term & absterm) const override;
@@ -88,7 +88,7 @@ class BzlaTerm : public AbsTerm
 
  protected:
   // the actual API level node that is used
-  const BitwuzlaTerm * term;
+  BitwuzlaTerm * term;
 
   // helpers
   /** Calls boolector's to_string with either btor or smt2 format*/

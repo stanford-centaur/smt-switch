@@ -232,7 +232,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   }
   else if (sk == FUNCTION)
   {
-    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort });
+    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), &domain_sorts[0], bsort2->sort));
   }
@@ -256,7 +256,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
 
   if (sk == FUNCTION)
   {
-    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
+    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), &domain_sorts[0], bsort3->sort));
   }
@@ -284,7 +284,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     // arity is one less, because last sort is return sort
     uint32_t arity = sorts.size() - 1;
-    std::vector<const BitwuzlaSort *> bzla_sorts;
+    std::vector<BitwuzlaSort *> bzla_sorts;
     bzla_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
     {
@@ -555,7 +555,7 @@ Term BzlaSolver::make_term(Op op,
   else
   {
     assert(op.num_idx > 0 && op.num_idx <= 1);
-    vector<const BitwuzlaTerm *> bitwuzla_terms(
+    vector<BitwuzlaTerm *> bitwuzla_terms(
         { bterm0->term, bterm1->term, bterm2->term });
     vector<uint32_t> indices({ (uint32_t)op.idx0 });
     if (op.num_idx == 2)
@@ -574,7 +574,7 @@ Term BzlaSolver::make_term(Op op,
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
-  vector<const BitwuzlaTerm *> bitwuzla_terms;
+  vector<BitwuzlaTerm *> bitwuzla_terms;
   for (auto t : terms)
   {
     bitwuzla_terms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
