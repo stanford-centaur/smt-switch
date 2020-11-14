@@ -2,7 +2,7 @@
 /*! \file utils.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Makai Mann
+**   Makai Mann, Ahmed Irfan
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
@@ -77,7 +77,68 @@ void disjunctive_partition(const smt::Term & term,
                            smt::TermVec & out,
                            bool include_bvor = false);
 
-void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out);
+void get_free_symbolic_consts(const smt::Term & term,
+                              smt::UnorderedTermSet & out);
+
+void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
+
+
+// -----------------------------------------------------------------------------
+
+/** \class
+ * UnsatcoreReducer class.
+ * Implents an interative unsatcore reducer procedure. 
+ *
+ * reducer_solver is the solver that will be used for unsatcore extraction in
+ * the procedure. It is different from the ext_solver (external solver used to
+ * create the formula and assump)
+ *
+ */
+class UnsatCoreReducer {
+public:
+  UnsatCoreReducer(smt::SmtSolver reducer_solver);
+  ~UnsatCoreReducer();
+
+  /** The main method to reduce the assump (vector of assumptions). The method
+   *  assumes that the conjunction of the formula and assump is unsatisfiable.
+   *  @param input formula
+   *  @param input vector of assumptions
+   *  @param output vector for the reduced assumptions
+   *  @param output vector for the removed assumptions
+   *  @param iter is the number of iterations done in the method. Default is 0,
+   *    and it means that the result in out_red will be minimal.
+   *  @param rand_seed if strickly positive then assump will be shuffled.
+   */
+  void reduce_assump_unsatcore(const smt::Term &formula,
+                               const smt::TermVec &assump,
+                               smt::TermVec &out_red,
+                               smt::TermVec *out_rem = NULL,
+                               unsigned iter = 0,
+                               unsigned rand_seed = 0);
+
+  /** This clears the term translation cache. Note, term translator is used to
+   *  translate the terms of the external solver to the
+   *  unsat-core-reducer-solver. A use-case of this method is to call it before
+   *  calling the reduce_assump_unsat from one call to another call when the
+   *  external solver in the first call is different from the second call.
+   */
+  void clear_term_translation_cache() { to_reducer_.get_cache().clear(); };
+
+ private:
+  /** returns a label that will be used to precondition the assumption term 't'
+   *  @param Input term t
+   *  @return a boolean label for the term t
+   */
+  smt::Term label(const Term & t);
+
+  smt::SmtSolver reducer_; // solver for unsatcore-based reduction
+  smt::TermTranslator to_reducer_; // translator for converting terms from
+                                   // ext_solver to reducer_
+
+  smt::UnorderedTermMap labels_;  //< labels for unsat cores
+};
+
+// -----------------------------------------------------------------------------
 
 /** A generic implementation of Disjoint Sets for smt-switch terms.
  *  Supports a comparator for ranking of terms.

@@ -14,6 +14,9 @@
 **
 **/
 
+#include <algorithm>
+#include <random>
+
 #include "utils.h"
 #include "ops.h"
 
@@ -102,7 +105,8 @@ void disjunctive_partition(const smt::Term & term,
   }
 }
 
-void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
+void get_free_symbolic_consts(const smt::Term & term,
+                              smt::UnorderedTermSet & out)
 {
   smt::TermVec to_visit({ term });
   smt::UnorderedTermSet visited;
@@ -116,7 +120,7 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
       visited.insert(t);
 
       if (t->is_symbolic_const()) {
-        out.push_back(t);
+        out.insert(t);
       } else {// add children to queue
         for (auto tt : t) {
           to_visit.push_back(tt);
@@ -125,6 +129,156 @@ void get_free_symbolic_consts(const smt::Term &term, smt::TermVec &out)
     }
   }
 }
+
+void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
+{
+  smt::TermVec to_visit({ term });
+  smt::UnorderedTermSet visited;
+
+  smt::Term t;
+  while (to_visit.size())
+  {
+    t = to_visit.back();
+    to_visit.pop_back();
+
+    if (visited.find(t) == visited.end())
+    {
+      visited.insert(t);
+
+      if (t->is_symbol())
+      {
+        out.insert(t);
+      }
+      else
+      {  // add children to queue
+        for (auto tt : t)
+        {
+          to_visit.push_back(tt);
+        }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
+
+  : reducer_(reducer_solver),
+    to_reducer_(reducer_solver)
+{
+  reducer_->set_opt("produce-unsat-cores", "true");
+  reducer_->set_opt("incremental", "true");
+}
+
+UnsatCoreReducer::~UnsatCoreReducer()
+{
+}
+
+void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
+                                               const TermVec &assump,
+                                               TermVec &out_red,
+                                               TermVec *out_rem,
+                                               unsigned iter,
+                                               unsigned rand_seed)
+{
+  TermVec bool_assump, tmp_assump;
+  UnorderedTermMap to_ext_assump;
+  TermVec cand_res;
+  for (auto a : assump) {
+    Term t = to_reducer_.transfer_term(a);
+    cand_res.push_back(t);
+    to_ext_assump[t] = a;
+  }
+
+  reducer_->push();
+  reducer_->assert_formula(to_reducer_.transfer_term(formula));
+
+  // exit if the formula is unsat without assumptions.
+  Result r = reducer_->check_sat();
+  if (r.is_unsat()) {
+    reducer_->pop();
+    return;
+  }
+
+  if (rand_seed > 0) {
+    shuffle(cand_res.begin(), cand_res.end(),
+            std::default_random_engine(rand_seed));
+  }
+
+  for (auto &a : cand_res) {
+    Term l = label(a);
+    reducer_->assert_formula(reducer_->make_term(Implies, l, a));
+    bool_assump.push_back(l);
+  }
+
+  unsigned cur_iter = 0;
+  while (cur_iter <= iter) {
+    cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
+    r = reducer_->check_sat_assuming(bool_assump);
+    assert(r.is_unsat());
+
+    bool_assump.clear();
+    tmp_assump.clear();
+
+    UnorderedTermSet core_set;
+    reducer_->get_unsat_core(core_set);
+    for (auto a : cand_res) {
+      Term l = label(a);
+      if (core_set.find(l) != core_set.end()) {
+        tmp_assump.push_back(a);
+        bool_assump.push_back(l);
+      } else if (out_rem) {
+        // add the removed assumption in the out_rem (after translating to the
+        // external solver)
+        out_rem->push_back(to_ext_assump.at(a));
+      }
+    }
+
+    if (tmp_assump.size() == cand_res.size()) {
+      break;
+    } else {
+      cand_res = tmp_assump;
+    }
+  }
+
+  reducer_->pop();
+
+  // copy the result
+  for (const auto &a : cand_res) {
+    out_red.push_back(to_ext_assump.at(a));
+  }
+}
+
+Term UnsatCoreReducer::label(const Term & t)
+{
+  auto it = labels_.find(t);
+  if (it != labels_.end()) {
+    return labels_.at(t);
+  }
+
+  unsigned i = 0;
+  Term l;
+  while (true) {
+    try {
+      l = reducer_->make_symbol(
+          "assump_" + std::to_string(t->hash()) + "_" + std::to_string(i),
+          reducer_->make_sort(BOOL));
+      break;
+    }
+    catch (IncorrectUsageException & e) {
+      ++i;
+    }
+    catch (SmtException & e) {
+      throw e;
+    }
+  }
+
+  labels_[t] = l;
+  return l;
+}
+
+// ----------------------------------------------------------------------------
 
 DisjointSet::DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b))
     : comp(c)
