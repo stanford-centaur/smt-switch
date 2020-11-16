@@ -103,27 +103,24 @@ const unordered_set<PrimOp> indexed_ops(
 BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
 {
   terms = it.terms;
-  size = it.size;
   idx = it.idx;
   return *this;
 }
 
 void BzlaTermIter::operator++()
 {
-  // need to keep terms and idx in line
-  terms++;
   idx++;
 }
 
 const Term BzlaTermIter::operator*()
 {
-  assert(idx < size);
-  return make_shared<BzlaTerm>(*terms);
+  assert(idx < terms.size());
+  return make_shared<BzlaTerm>(terms.at(idx));
 }
 
 TermIterBase * BzlaTermIter::clone() const
 {
-  return new BzlaTermIter(terms, size, idx);
+  return new BzlaTermIter(terms, idx);
 }
 
 bool BzlaTermIter::operator==(const BzlaTermIter & it) { return equal(it); }
@@ -133,22 +130,13 @@ bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
 bool BzlaTermIter::equal(const TermIterBase & other) const
 {
   const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  bool other_equal = (size == bti.size) && (idx == bti.idx);
-  if (!other_equal)
+  if (idx != bti.idx || terms.size() != bti.terms.size())
   {
+    // do a cheap equality test first
     return false;
   }
-  else if (idx == size)
-  {
-    // tricky situation here: if we're at the size, then the pointer could be
-    // pointing to garbage
-    return true;
-  }
-  else
-  {
-    // not at the end so we should compare the terms
-    return (terms == bti.terms);
-  }
+  // more expensive vector equality
+  return terms == bti.terms;
 }
 
 /*  end BzlaTermIter implementation */
@@ -263,14 +251,16 @@ TermIter BzlaTerm::begin()
 {
   size_t size;
   BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
-  return TermIter(new BzlaTermIter(children, size, 0));
+  return TermIter(
+      new BzlaTermIter(vector<BitwuzlaTerm *>(children, children + size), 0));
 }
 
 TermIter BzlaTerm::end()
 {
   size_t size;
   BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
-  return TermIter(new BzlaTermIter(children, size, size));
+  return TermIter(new BzlaTermIter(
+      vector<BitwuzlaTerm *>(children, children + size), size));
 }
 
 string BzlaTerm::print_value_as(SortKind sk)

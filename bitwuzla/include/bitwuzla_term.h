@@ -31,14 +31,13 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(BitwuzlaTerm ** terms, size_t size, size_t idx)
-      : terms(terms), size(size), idx(idx)
+  BzlaTermIter(std::vector<BitwuzlaTerm *> terms, size_t idx)
+      : terms(terms), idx(idx)
   {
   }
   BzlaTermIter(const BzlaTermIter & it)
   {
     terms = it.terms;
-    size = it.size;
     idx = it.idx;
   };
   ~BzlaTermIter(){};
@@ -53,8 +52,7 @@ class BzlaTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  BitwuzlaTerm ** terms;  // terms to iterate over (e.g. children)
-  size_t size;            // number of terms to iterate over
+  std::vector<BitwuzlaTerm *> terms;  // terms to iterate over (e.g. children)
   size_t idx;             // current idx of iteration
 };
 
