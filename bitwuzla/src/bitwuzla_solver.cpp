@@ -651,7 +651,7 @@ Term BzlaSolver::substitute(const Term term,
   vector<BitwuzlaTerm *> map_vals;
   for (auto elem : substitution_map)
   {
-    if (!elem.second->is_symbolic_const() && !elem.second->is_param())
+    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
       throw SmtException(
           "Bitwuzla backend doesn't support substitution with non symbol keys");
