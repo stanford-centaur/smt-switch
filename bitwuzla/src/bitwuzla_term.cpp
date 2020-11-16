@@ -201,12 +201,8 @@ Sort BzlaTerm::get_sort() const
 
 bool BzlaTerm::is_symbol() const
 {
-  // Bitwuzla handles negations differently than other solvers internally
-  // so it could consider a negated term to still be a constant
-  // make sure semantics match up. A negated symbol is not a constant,
-  // because it has an operator: (not sym)
-  // TODO handle the case above (no way to check if term is negated yet)
-  return bitwuzla_term_is_const(term);
+  // symbols include constants, parameters, and function symbols
+  return bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term);
 }
 
 bool BzlaTerm::is_param() const { return bitwuzla_term_is_var(term); }
@@ -215,9 +211,8 @@ bool BzlaTerm::is_symbolic_const() const
 {
   // in Bitwuzla arrays are functions
   // for smt-switch we consider arrays symbolic constants but not functions
-  bool is_function =
-      bitwuzla_term_is_fun(term) && !bitwuzla_term_is_array(term);
-  return is_symbol() && !is_function;
+  return bitwuzla_term_is_const(term) && bitwuzla_term_is_array(term)
+         && !bitwuzla_term_is_fun(term);
 }
 
 bool BzlaTerm::is_value() const
