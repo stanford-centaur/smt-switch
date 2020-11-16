@@ -195,7 +195,8 @@ Term TermTranslator::transfer_term(const Term & term)
           // allows us to transfer from a solver that doesn't alias sorts
           // to one that does alias sorts
           // the sort will be transferred again in value_from_smt2
-          cache[t] = value_from_smt2(t->to_string(), t->get_sort());
+          cache[t] = value_from_smt2(
+              t->print_value_as(t->get_sort()->get_sort_kind()), t->get_sort());
         }
       }
       else
