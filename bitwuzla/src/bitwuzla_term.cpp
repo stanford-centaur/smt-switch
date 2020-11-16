@@ -133,7 +133,22 @@ bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
 bool BzlaTermIter::equal(const TermIterBase & other) const
 {
   const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  return (terms == bti.terms) && (size == bti.size) && (idx == bti.idx);
+  bool other_equal = (size == bti.size) && (idx == bti.idx);
+  if (!other_equal)
+  {
+    return false;
+  }
+  else if (idx == size)
+  {
+    // tricky situation here: if we're at the size, then the pointer could be
+    // pointing to garbage
+    return true;
+  }
+  else
+  {
+    // not at the end so we should compare the terms
+    return (terms == bti.terms);
+  }
 }
 
 /*  end BzlaTermIter implementation */
