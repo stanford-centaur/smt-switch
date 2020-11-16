@@ -73,9 +73,9 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
 
 TEST_P(UnitUtilTests, DisjunctivePartition)
 {
-  if (s->get_solver_enum() == BTOR)
+  if (s->get_solver_enum() == BTOR || s->get_solver_enum() == BZLA)
   {
-    // Boolector rewrites Ors as Not And
+    // Boolector and Bitwuzla rewrite Ors as Not And
     // it's equivalent, but disjunctive partition won't work
     return;
   }
