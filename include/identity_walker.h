@@ -39,7 +39,7 @@ enum WalkerStepResult
 /** \class
  * IdentityWalker class.
  * To implement your own walker, inherit this class and implement the
- * visit_term method.
+ * visit_term method. See substitution_walker.[h/cpp] for an example
  *
  * If clear_cache is set, the cache is cleared between calls to visit
  * otherwise, the cache persists

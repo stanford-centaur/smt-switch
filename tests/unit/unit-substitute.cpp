@@ -17,8 +17,10 @@
 #include <utility>
 #include <vector>
 
-#include "available_solvers.h"
 #include "gtest/gtest.h"
+
+#include "available_solvers.h"
+#include "substitution_walker.h"
 #include "utils.h"
 
 using namespace smt;
@@ -35,20 +37,20 @@ class UnitSubstituteTests
   {
     s = create_solver(GetParam());
     bvsort = s->make_sort(BV, 4);
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+    xpy = s->make_term(BVAdd, x, y);
+
+    a = s->make_symbol("a", bvsort);
+    b = s->make_symbol("b", bvsort);
   }
   SmtSolver s;
   Sort bvsort;
+  Term x, y, xpy, a, b;
 };
 
 TEST_P(UnitSubstituteTests, SimpleSubstitution)
 {
-  Term x = s->make_symbol("x", bvsort);
-  Term y = s->make_symbol("y", bvsort);
-  Term xpy = s->make_term(BVAdd, x, y);
-
-  Term a = s->make_symbol("a", bvsort);
-  Term b = s->make_symbol("b", bvsort);
-
   UnorderedTermMap subs_map({ { x, a }, { y, b } });
   Term apb = s->substitute(xpy, subs_map);
 
@@ -60,6 +62,31 @@ TEST_P(UnitSubstituteTests, SimpleSubstitution)
   {
     EXPECT_TRUE(free_syms.find(v) != free_syms.end());
   }
+}
+
+TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)
+{
+  // substitution walker can substitute arbitrary terms
+  // not just symbol keys
+  Term apb_spec = s->make_term(BVAdd, a, b);
+  UnorderedTermMap subs_map({ { xpy, apb_spec } });
+  SubstitutionWalker sw(s, subs_map);
+
+  Term apb = sw.visit(xpy);
+  EXPECT_EQ(apb, apb_spec);
+
+  // test it again to make sure not corrupted
+  apb = sw.visit(xpy);
+  EXPECT_EQ(apb, apb_spec);
+}
+
+TEST_P(UnitSubstituteTests, BadSubstitution)
+{
+  Sort diff_bvsort = s->make_sort(BV, bvsort->get_width() + 1);
+  Term newvar = s->make_symbol("newvar", diff_bvsort);
+
+  EXPECT_THROW(SubstitutionWalker(s, { { x, newvar } }),
+               IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(
