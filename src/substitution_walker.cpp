@@ -25,6 +25,14 @@ SubstitutionWalker::SubstitutionWalker(
   // pre-populate the cache with substitutions
   for (auto elem : substitution_map)
   {
+    if (elem.first->get_sort() != elem.second->get_sort())
+    {
+      throw IncorrectUsageException("Got mismatch in sorts for substitution: "
+                                    + elem.first->to_string() + ":"
+                                    + elem.first->get_sort()->to_string() + " "
+                                    + elem.second->to_string() + ":"
+                                    + elem.second->get_sort()->to_string());
+    }
     save_in_cache(elem.first, elem.second);
   }
 }
