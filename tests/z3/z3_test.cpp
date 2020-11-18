@@ -31,8 +31,8 @@ int main() {
 	Sort arraysort = s->make_sort(ARRAY, intsort1, bvsort);
 	cout << arraysort << endl;
 
-//	Sort functionsort = s->make_sort(FUNCTION, true, )
-//		make_sort(FUNCTION, SortVec{ x_lower->get_sort(), x->get_sort() })
+	Sort functionsort = s->make_sort(FUNCTION, SortVec{ boolsort1, intsort1, realsort1, boolsort1 } );
+	cout << functionsort << endl;
 
 	cout << "testing done :)" << endl;
 

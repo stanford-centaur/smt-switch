@@ -197,21 +197,13 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 	z3::sort z_sort = ctx.bool_sort();       //fix this
 
 	if (!arity) {
-//		z_sort = ctx.uninterpreted_sort(name);
 		const char *c = name.c_str();
 		z3::symbol func_name = ctx.str_symbol(c);
 		z_sort = ctx.uninterpreted_sort(func_name);
-//		Z3_mk_string_symbol()
 	} else {
 		throw NotImplementedException(
 				"Z3 does not support uninterpreted type with non-zero arity.");
 	}
-
-//	if (yices_error_code() != 0) {
-//		std::string msg(yices_error_string());
-//
-//		throw InternalSolverException(msg.c_str());
-//	}
 
 	return std::make_shared < Z3Sort > (z_sort, ctx);
 }
@@ -238,7 +230,7 @@ Sort Z3Solver::make_sort(SortKind sk) const {
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
-	z3::sort z_sort = ctx.bool_sort();
+	z3::sort z_sort = ctx.bool_sort();		//should be else
 	if (sk == BV) {
 		z_sort = ctx.bv_sort(size);
 	}
@@ -257,7 +249,8 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1,
 				> (sort1);
 		std::shared_ptr<Z3Sort> celemsort = std::static_pointer_cast < Z3Sort
 				> (sort2);
-		return std::make_shared < Z3Sort > (ctx.array_sort(cidxsort->type, celemsort->type), ctx);
+		return std::make_shared < Z3Sort
+				> (ctx.array_sort(cidxsort->type, celemsort->type), ctx);
 	} else {
 		std::string msg("Can't create sort with sort constructor ");
 		msg += to_string(sk);
@@ -299,10 +292,10 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 
 		const char *c = "throwaway name";
 		z3::symbol func_name = ctx.str_symbol(c);
-		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0], z_sort);
+		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0],
+				z_sort);
 
 		return std::make_shared < Z3Sort > (final_sort, true, z_func, ctx);
-//		final_sort = yices_function_type(arity, &zsorts[0], z_sort);
 	} else if (sorts.size() == 1) {
 		return make_sort(sk, sorts[0]);
 	} else if (sorts.size() == 2) {

@@ -9,11 +9,10 @@ namespace smt {
 // Z3Sort implementation
 
 std::size_t Z3Sort::hash() const {
-	throw NotImplementedException("Hash not implemented for Z3 backend. ");
+	throw NotImplementedException("not implemented");
 }
 
 uint64_t Z3Sort::get_width() const {
-//	size_t out_width;
 	if (type.is_bv()) {
 		return type.bv_size();
 	} else {
@@ -35,29 +34,56 @@ Sort Z3Sort::get_elemsort() const {
 	if (type.is_array()) {
 		return std::make_shared < Z3Sort > (type.array_range(), *ctx);
 	} else {
-		throw IncorrectUsageException(
-				"Can only get width from bit-vector sort");
+		throw IncorrectUsageException("Can only get elemsort from array sort");
 	}
 }
 
 SortVec Z3Sort::get_domain_sorts() const {
-	throw NotImplementedException(
-			"Get_domain_sorts not implemented for Z3 backend.");
+	if (is_function) {
+		int32_t s_arity = z_func.arity(); // - 1;
+		SortVec sorts;
+		sorts.reserve(s_arity);
+		Sort s;
+
+		for (size_t i = 0; i < s_arity; i++) {
+			s.reset(new Z3Sort(z_func.domain(i), *ctx));
+			sorts.push_back(s);
+		}
+
+		return sorts;
+	} else {
+		throw IncorrectUsageException(
+				"Can only get domain sorts from function sort");
+	}
 }
 
 Sort Z3Sort::get_codomain_sort() const {
-	throw NotImplementedException(
-			"Get_codomain_sort not implemented for Z3 backend.");
+	if (is_function) {
+		return std::make_shared < Z3Sort > (z_func.range(), *ctx);
+	} else {
+		throw IncorrectUsageException(
+				"Can only get codomain sort from function sort");
+	}
 }
 
 string Z3Sort::get_uninterpreted_name() const {
+	if (type.sort_kind() == Z3_UNINTERPRETED_SORT) {
+		return type.name().str();
+	} else {
+		throw IncorrectUsageException(
+				"Can only get uninterpreted name from uninterpreted sort");
+	}
 	return type.name().str();
-	throw NotImplementedException(
-			"get_uninterpreted_name not implemented for Z3Sort");
 }
 
 size_t Z3Sort::get_arity() const {
-	throw NotImplementedException("Get_arity not implemented for Z3 backend.");
+	if (is_function) {
+		return z_func.arity();
+	} else {
+		return 0;
+	}
+	// is this the proper return? yices just always returns 0, why?
+	// throw NotImplementedException("Get_arity not implemented for Z3 backend.");
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const {
@@ -71,9 +97,9 @@ Datatype Z3Sort::get_datatype() const {
 ;
 
 bool Z3Sort::compare(const Sort s) const {
-
-	std::shared_ptr < Z3Sort > zs = std::static_pointer_cast < Z3Sort > (s);
-	return true;//type == zs->type;
+	throw NotImplementedException("not implemented yet");
+//	std::shared_ptr<Z3Sort> zs = std::static_pointer_cast < Z3Sort > (s);
+//	return type == zs->type;
 }
 
 SortKind Z3Sort::get_sort_kind() const {
@@ -91,27 +117,10 @@ SortKind Z3Sort::get_sort_kind() const {
 		return DATATYPE;
 	} else if (type.sort_kind() == Z3_UNINTERPRETED_SORT) {
 		return UNINTERPRETED;
-	}
-//	  else if (yices_type_is_function(type))			todo: look into functions and uniterpreted
-//	  {
-//	    // Test if array or actually function.
-//	    // This may not be the most effective way to do this.
-//	    if (!is_function)
-//	    {
-//	      return ARRAY;
-//	    }
-//	    else
-//	    {
-//	      return FUNCTION;
-//	    }
-//	  }
-//	  else if (yices_type_is_uninterpreted(type))
-//	  {
-//	    return UNINTERPRETED;
-//	  }
-	else {
+	} else if (is_function) {
+		return FUNCTION;
+	} else {
 		std::string msg("Unknown Z3 type");
-//	    msg += yices_type_to_string(type, 120, 1, 0);
 		throw NotImplementedException(msg.c_str());
 	}
 }
