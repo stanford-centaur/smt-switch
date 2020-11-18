@@ -64,6 +64,18 @@ TEST_P(UnitSubstituteTests, SimpleSubstitution)
   }
 }
 
+TEST_P(UnitSubstituteTests, SubstituteTerms)
+{
+  UnorderedTermMap subs_map({ { x, a }, { y, b } });
+  Term apb = s->substitute(xpy, subs_map);
+  TermVec subs = s->substitute_terms({ x, y, xpy }, subs_map);
+
+  ASSERT_EQ(subs.size(), 3);
+  EXPECT_EQ(subs[0], a);
+  EXPECT_EQ(subs[1], b);
+  EXPECT_EQ(subs[2], apb);
+}
+
 TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)
 {
   // substitution walker can substitute arbitrary terms

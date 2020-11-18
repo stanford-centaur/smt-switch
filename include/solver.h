@@ -348,6 +348,9 @@ class AbsSmtSolver
   virtual Term substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const;
 
+  virtual TermVec substitute_terms(
+      const TermVec & terms, const UnorderedTermMap & substitution_map) const;
+
   // extra methods -- not required
 
   /* Dumps full smt-lib representation of current context to a file */
