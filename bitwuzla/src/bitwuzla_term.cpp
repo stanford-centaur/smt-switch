@@ -294,6 +294,11 @@ string BzlaTerm::print_value_as(SortKind sk)
 std::string BzlaTerm::to_string_formatted(const char * fmt) const
 {
   // TODO: make sure this works all right for symbols etc...
+  if (bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term))
+  {
+    return bitwuzla_term_get_symbol(term);
+  }
+
   char * cres;
   size_t size;
   FILE * stream = open_memstream(&cres, &size);
