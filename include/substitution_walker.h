@@ -15,18 +15,26 @@
 
 #pragma once
 
-#include "identity_walker.h"
+#include "exceptions.h"
+#include "smt.h"
 
 namespace smt {
 // class for doing substitutions
-// can more efficient than SmtSolver::substitute if it
+// can be more efficient than SmtSolver::substitute if it
 // is called repeatedly since it has a persistent cache
 // NOTE: don't even need to override visit_term
 //       just need to prepulate the cache
-class SubstitutionWalker : public IdentityWalker
+class SubstitutionWalker
 {
  public:
   SubstitutionWalker(const smt::SmtSolver & solver,
                      const smt::UnorderedTermMap & smap);
+
+  smt::Term visit(smt::Term & term);
+
+ protected:
+  const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
+  UnorderedTermMap substitution_map;
+  UnorderedTermMap cache;
 };
 }  // namespace smt

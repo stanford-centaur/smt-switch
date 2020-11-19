@@ -15,17 +15,74 @@
 
 #include "substitution_walker.h"
 
+#include "assert.h"
+
 namespace smt {
 
-SubstitutionWalker::SubstitutionWalker(
-    const smt::SmtSolver & solver,
-    const smt::UnorderedTermMap & substitution_map)
-    : IdentityWalker(solver, false)
+SubstitutionWalker::SubstitutionWalker(const smt::SmtSolver & solver,
+                                       const smt::UnorderedTermMap & smap)
+    : solver_(solver), substitution_map(smap)
 {
   // pre-populate the cache with substitutions
-  for (auto elem : substitution_map)
+  for (auto elem : smap)
   {
-    save_in_cache(elem.first, elem.second);
+    if (elem.first->get_sort() != elem.second->get_sort())
+    {
+      throw IncorrectUsageException(
+          "Got bad substitution in SubstitutionWalker");
+    }
+    cache[elem.first] = elem.second;
   }
 }
+
+Term SubstitutionWalker::visit(smt::Term & term)
+{
+  TermVec to_visit({ term });
+  UnorderedTermSet visited;
+
+  Term t;
+  while (to_visit.size())
+  {
+    t = to_visit.back();
+    to_visit.pop_back();
+    auto it = cache.find(t);
+    if (it != cache.end())
+    {
+      // cache hit
+      continue;
+    }
+    else if (visited.find(t) == visited.end())
+    {
+      visited.insert(t);
+      to_visit.push_back(t);
+      for (auto tt : t)
+      {
+        to_visit.push_back(tt);
+      }
+    }
+    else
+    {
+      assert(cache.find(t) == cache.end());
+      if (t->is_symbol() || t->is_value())
+      {
+        cache[t] = t;
+      }
+
+      Op op = t->get_op();
+      TermVec children(t->begin(), t->end());
+      assert(!op.is_null());
+      assert(children.size());
+
+      cache[t] = solver_->make_term(op, children);
+    }
+  }
+
+  for (auto elem : substitution_map)
+  {
+    assert(cache.at(elem.first) == elem.second);
+  }
+
+  return cache.at(term);
+}
+
 }  // namespace smt
