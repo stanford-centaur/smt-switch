@@ -73,11 +73,15 @@ Term SubstitutionWalker::visit(smt::Term & term)
       else
       {
         Op op = t->get_op();
-        TermVec children(t->begin(), t->end());
         assert(!op.is_null());
-        assert(children.size());
+        TermVec cached_children;
+        for (auto tt : t)
+        {
+          cached_children.push_back(cache.at(tt));
+        }
+        assert(cached_children.size());
 
-        cache[t] = solver_->make_term(op, children);
+        cache[t] = solver_->make_term(op, cached_children);
       }
       assert(cache.find(t) != cache.end());
     }
