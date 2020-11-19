@@ -15,7 +15,10 @@
 
 #include "substitution_walker.h"
 
+#include <iostream>
 #include "assert.h"
+
+using namespace std;
 
 namespace smt {
 
@@ -67,13 +70,16 @@ Term SubstitutionWalker::visit(smt::Term & term)
       {
         cache[t] = t;
       }
+      else
+      {
+        Op op = t->get_op();
+        TermVec children(t->begin(), t->end());
+        assert(!op.is_null());
+        assert(children.size());
 
-      Op op = t->get_op();
-      TermVec children(t->begin(), t->end());
-      assert(!op.is_null());
-      assert(children.size());
-
-      cache[t] = solver_->make_term(op, children);
+        cache[t] = solver_->make_term(op, children);
+      }
+      assert(cache.find(t) != cache.end());
     }
   }
 
