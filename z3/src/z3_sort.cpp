@@ -9,7 +9,10 @@ namespace smt {
 // Z3Sort implementation
 
 std::size_t Z3Sort::hash() const {
-	throw NotImplementedException("not implemented");
+	if (is_function) {
+		return z_func.hash();
+	}
+	return type.hash();
 }
 
 uint64_t Z3Sort::get_width() const {
@@ -40,7 +43,7 @@ Sort Z3Sort::get_elemsort() const {
 
 SortVec Z3Sort::get_domain_sorts() const {
 	if (is_function) {
-		int32_t s_arity = z_func.arity(); // - 1;
+		int32_t s_arity = z_func.arity();
 		SortVec sorts;
 		sorts.reserve(s_arity);
 		Sort s;
@@ -82,8 +85,6 @@ size_t Z3Sort::get_arity() const {
 	} else {
 		return 0;
 	}
-	// is this the proper return? yices just always returns 0, why?
-	// throw NotImplementedException("Get_arity not implemented for Z3 backend.");
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const {
@@ -97,9 +98,8 @@ Datatype Z3Sort::get_datatype() const {
 ;
 
 bool Z3Sort::compare(const Sort s) const {
-	throw NotImplementedException("not implemented yet");
-//	std::shared_ptr<Z3Sort> zs = std::static_pointer_cast < Z3Sort > (s);
-//	return type == zs->type;
+	std::shared_ptr<Z3Sort> zs = std::static_pointer_cast < Z3Sort > (s);
+	return type.hash() == (zs->type).hash();
 }
 
 SortKind Z3Sort::get_sort_kind() const {

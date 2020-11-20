@@ -12,11 +12,9 @@ using namespace std;
 //using namespace z3;
 
 int main() {
-	cout << "before solver creation " << endl;
 	SmtSolver s = Z3SolverFactory::create(false);
-	cout << "after solver creation " << endl;
 
-	cout << "..." << endl;
+	cout << "sort testing: " << endl;
 	Sort boolsort1 = s->make_sort(BOOL);
 	Sort realsort1 = s->make_sort(REAL);
 	Sort intsort1 = s->make_sort(INT);

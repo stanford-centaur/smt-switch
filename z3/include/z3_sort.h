@@ -59,7 +59,7 @@ public:
 
 protected:
 	sort type;
-	func_decl z_func; //= func_decl(ctx);
+	func_decl z_func;
 	bool is_function;
 	context *ctx;
 

@@ -194,7 +194,7 @@ void Z3Solver::get_unsat_core(UnorderedTermSet &out) {
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
-	z3::sort z_sort = ctx.bool_sort();       //fix this
+	z3::sort z_sort = ctx.bool_sort();
 
 	if (!arity) {
 		const char *c = name.c_str();
@@ -209,8 +209,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const {
-
-	z3::sort z_sort = ctx.bool_sort();		//should be else
+	z3::sort z_sort = ctx.bool_sort();
 
 	if (sk == BOOL) {
 		z_sort = ctx.bool_sort();
@@ -230,9 +229,14 @@ Sort Z3Solver::make_sort(SortKind sk) const {
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
-	z3::sort z_sort = ctx.bool_sort();		//should be else
+	z3::sort z_sort = ctx.bool_sort();
 	if (sk == BV) {
 		z_sort = ctx.bv_sort(size);
+	} else {
+		std::string msg("Can't create sort with sort constructor ");
+		msg += to_string(sk);
+		msg += " and an integer argument";
+		throw IncorrectUsageException(msg.c_str());
 	}
 	return std::make_shared < Z3Sort > (z_sort, ctx);
 }
@@ -267,7 +271,7 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1, const Sort &sort2,
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
-	z3::sort final_sort = ctx.bool_sort();		//should be else
+	z3::sort final_sort = ctx.bool_sort();
 
 	if (sk == FUNCTION) {
 		if (sorts.size() < 2) {
@@ -280,7 +284,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 
 		std::vector<z3::sort> zsorts;
 		zsorts.reserve(arity);
-		z3::sort z_sort = ctx.bool_sort();		//should be else
+		z3::sort z_sort = ctx.bool_sort();
 
 		for (uint32_t i = 0; i < arity; i++) {
 			z_sort = std::static_pointer_cast < Z3Sort > (sorts[i])->type;
