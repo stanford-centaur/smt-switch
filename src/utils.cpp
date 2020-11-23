@@ -105,9 +105,9 @@ void disjunctive_partition(const smt::Term & term,
   }
 }
 
-void get_kind_terms(const smt::Term & term,
+void get_matching_terms(const smt::Term & term,
                     smt::UnorderedTermSet & out,
-                    bool (*f)(const smt::Term & term))
+                    bool (*matching_fun)(const smt::Term & term))
 {
   smt::TermVec to_visit({ term });
   smt::UnorderedTermSet visited;
@@ -120,7 +120,7 @@ void get_kind_terms(const smt::Term & term,
     if (visited.find(t) == visited.end()) {
       visited.insert(t);
 
-      if (f(t))
+      if (matching_fun(t))
       {
         out.insert(t);
       }
@@ -138,13 +138,13 @@ void get_free_symbolic_consts(const smt::Term & term,
                               smt::UnorderedTermSet & out)
 {
   auto f = [](const smt::Term & t) { return t->is_symbolic_const(); };
-  get_kind_terms(term, out, f);
+  get_matching_terms(term, out, f);
 }
 
 void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
 {
   auto f = [](const smt::Term & t) { return t->is_symbol(); };
-  get_kind_terms(term, out, f);
+  get_matching_terms(term, out, f);
 }
 
 // ----------------------------------------------------------------------------
