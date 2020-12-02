@@ -14,49 +14,49 @@ namespace smt {
 Z3TermIter::Z3TermIter(const Z3TermIter & it)
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 void Z3TermIter::operator++()
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 const Term Z3TermIter::operator*()
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 TermIterBase * Z3TermIter::clone() const
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3TermIter::operator!=(const Z3TermIter & it)
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 // end Z3TermIter implementation
@@ -66,31 +66,31 @@ bool Z3TermIter::equal(const TermIterBase & other) const
 size_t Z3Term::hash() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3Term::compare(const Term & absterm) const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 Op Z3Term::get_op() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 Sort Z3Term::get_sort() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3Term::is_symbol() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3Term::is_param() const
@@ -101,47 +101,47 @@ bool Z3Term::is_param() const
 bool Z3Term::is_symbolic_const() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 bool Z3Term::is_value() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 string Z3Term::to_string() {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend."); }
+      "Term iteration not implemented for Z3 backend."); }
 
 uint64_t Z3Term::to_int() const
 {
     throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 TermIter Z3Term::begin()
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 TermIter Z3Term::end()
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 std::string Z3Term::print_value_as(SortKind sk)
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 string Z3Term::const_to_string() const
 {
 throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+      "Term iteration not implemented for Z3 backend.");
 }
 
 // end Z3Term implementation

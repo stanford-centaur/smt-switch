@@ -38,8 +38,8 @@ public:
 	;
 
 	// Functions
-	Z3Sort(sort z3sort, bool is_fun, func_decl zfunc, context &c) :
-			type(c), is_function(is_fun), z_func(zfunc) {
+	Z3Sort(func_decl zfunc, context &c) :
+			type(c), is_function(true), z_func(zfunc) {
 	}
 	;
 

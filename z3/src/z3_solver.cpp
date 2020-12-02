@@ -5,76 +5,11 @@
 #include <iostream>
 
 #include <z3++.h>
-// #include "z3_extensions.h"
 
 using namespace std;
 
 namespace smt {
 
-/* Z3 Op mappings */
-// typedef term_t (*Z3_un_fun)(term_t);
-// typedef term_t (*Z3_bin_fun)(term_t, term_t);
-// typedef term_t (*Z3_tern_fun)(term_t, term_t, term_t);
-// typedef term_t (*Z3_variadic_fun)(uint32_t, term_t[]);
-// TODO's:
-// Pretty sure not implemented in Z3.
-// Good candidates for extension.
-//  To_Real,
-//  BVComp,
-//  BV_To_Nat,
-// Arrays are represented as functions in Z3.
-// I don't think const_array can be supported,
-// unless we use Z3 lambdas.
-// Const_Array,
-// const unordered_map<PrimOp, Z3_un_fun> Z3_unary_ops(
-//     { { Not, Z3_not },
-//       { Negate, Z3_neg },
-//       { Abs, Z3_abs },
-//       { To_Int, Z3_floor },
-//       { Is_Int, Z3_is_int_atom },
-//       { BVNot, Z3_bvnot },
-//       { BVNeg, Z3_bvneg } });
-// const unordered_map<PrimOp, Z3_bin_fun> Z3_binary_ops(
-//     { { And, Z3_and2 },          { Or, Z3_or2 },
-//       { Xor, Z3_xor2 },          { Implies, Z3_implies },
-//       { Iff, Z3_iff },           { Plus, Z3_add },
-//       { Minus, Z3_sub },         { Mult, Z3_mul },
-//       { Div, Z3_division },      { Lt, Z3_arith_lt_atom },
-//       { IntDiv, Z3_idiv },       { Le, Z3_arith_leq_atom },
-//       { Gt, Z3_arith_gt_atom },  { Ge, Z3_arith_geq_atom },
-//       { Equal, Z3_eq },          { Mod, Z3_imod },
-//       { Concat, Z3_bvconcat2 },  { BVAnd, Z3_bvand2 },
-//       { BVOr, Z3_bvor2 },        { BVXor, Z3_bvxor2 },
-//       { BVNand, Z3_bvnand },     { BVNor, Z3_bvnor },
-//       { BVXnor, Z3_bvxnor },     { BVAdd, Z3_bvadd },
-//       { BVSub, Z3_bvsub },       { BVMul, Z3_bvmul },
-//       { BVUdiv, Z3_bvdiv },      { BVUrem, Z3_bvrem },
-//       { BVSdiv, Z3_bvsdiv },     { BVSrem, Z3_bvsrem },
-//       { BVSmod, Z3_bvsmod },     { BVShl, Z3_bvshl },
-//       { BVAshr, Z3_bvashr },     { BVLshr, Z3_bvlshr },
-//       { BVUlt, Z3_bvlt_atom },   { BVUle, Z3_bvle_atom },
-//       { BVUgt, Z3_bvgt_atom },   { BVUge, Z3_bvge_atom },
-//       { BVSle, Z3_bvsle_atom },  { BVSlt, Z3_bvslt_atom },
-//       { BVSge, Z3_bvsge_atom },  { BVSgt, Z3_bvsgt_atom },
-//       { Select, ext_Z3_select }, { Apply, Z3_application1 }
-//     });
-// const unordered_map<PrimOp, Z3_tern_fun> Z3_ternary_ops(
-//     { { And, Z3_and3 },
-//       { Or, Z3_or3 },
-//       { Xor, Z3_xor3 },
-//       { Ite, Z3_ite },
-//       { BVAnd, Z3_bvand3 },
-//       { BVOr, Z3_bvor3 },
-//       { BVXor, Z3_bvxor3 },
-//       { Apply, Z3_application2 },
-//       { Store, ext_Z3_store } });
-// const unordered_map<PrimOp, Z3_variadic_fun> Z3_variadic_ops({
-//     { And, Z3_and },
-//     { Or, Z3_or },
-//     { Xor, Z3_xor },
-//     { Distinct, Z3_distinct }
-//     // { BVAnd, Z3_bvand } has different format.
-// });
 /* Z3Solver implementation */
 
 void Z3Solver::set_opt(const std::string option, const std::string value) {
@@ -194,7 +129,7 @@ void Z3Solver::get_unsat_core(UnorderedTermSet &out) {
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
-	z3::sort z_sort = ctx.bool_sort();
+	z3::sort z_sort = z3::sort(ctx);
 
 	if (!arity) {
 		const char *c = name.c_str();
@@ -209,7 +144,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const {
-	z3::sort z_sort = ctx.bool_sort();
+	z3::sort z_sort = z3::sort(ctx);
 
 	if (sk == BOOL) {
 		z_sort = ctx.bool_sort();
@@ -229,16 +164,14 @@ Sort Z3Solver::make_sort(SortKind sk) const {
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const {
-	z3::sort z_sort = ctx.bool_sort();
 	if (sk == BV) {
-		z_sort = ctx.bv_sort(size);
+		return std::make_shared < Z3Sort > (ctx.bv_sort(size), ctx);
 	} else {
 		std::string msg("Can't create sort with sort constructor ");
 		msg += to_string(sk);
 		msg += " and an integer argument";
 		throw IncorrectUsageException(msg.c_str());
 	}
-	return std::make_shared < Z3Sort > (z_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1) const {
@@ -271,8 +204,6 @@ Sort Z3Solver::make_sort(SortKind sk, const Sort &sort1, const Sort &sort2,
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
-	z3::sort final_sort = ctx.bool_sort();
-
 	if (sk == FUNCTION) {
 		if (sorts.size() < 2) {
 			throw IncorrectUsageException(
@@ -299,7 +230,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 		z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0],
 				z_sort);
 
-		return std::make_shared < Z3Sort > (final_sort, true, z_func, ctx);
+		return std::make_shared < Z3Sort > (z_func, ctx);
 	} else if (sorts.size() == 1) {
 		return make_sort(sk, sorts[0]);
 	} else if (sorts.size() == 2) {
@@ -312,8 +243,6 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec &sorts) const {
 		msg += " with a vector of sorts";
 		throw IncorrectUsageException(msg.c_str());
 	}
-
-	return std::make_shared < Z3Sort > (final_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(const Sort &sort_con, const SortVec &sorts) const {
