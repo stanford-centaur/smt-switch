@@ -41,5 +41,18 @@ using DatatypeConstructorDecl = std::shared_ptr<AbsDatatypeConstructorDecl>;
 class AbsDatatype;
 using Datatype = std::shared_ptr<AbsDatatype>;
 
+template <typename _Tp>
+using my_ptr = std::shared_ptr<_Tp>;
+
+template <typename _Tp, typename... _Args>
+inline my_ptr<_Tp> make_my_ptr(_Args &&... __args)
+{
+  // adapted the make_shared function
+  // typedef typename std::remove_const<_Tp>::type _Tp_nc;
+  // return allocate_shared<_Tp>(std::allocator<_Tp_nc>(),
+  //                             std::forward<_Args>(__args)...);
+  return std::make_shared<_Tp>(std::forward<_Args>(__args)...);
+}
+
 }  // namespace smt
 
