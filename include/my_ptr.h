@@ -5,7 +5,7 @@
 #include "assert.h"
 
 // determine if my_ptr is just an alias for shared_ptr
-//#define USE_SHARED_PTR
+#define USE_SHARED_PTR
 
 // TODO: implement static_pointer_cast for my_ptr
 // TODO: get rid of all the special deleter code? Could always be no-op
