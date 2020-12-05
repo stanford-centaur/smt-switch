@@ -31,8 +31,9 @@ std::ostream & operator<<(std::ostream & output, const Term t)
 /* TermIterBase implementation */
 const Term TermIterBase::operator*()
 {
-  std::shared_ptr<AbsTerm> s;
-  return s;
+  // return a null ptr
+  Term t;
+  return t;
 }
 
 bool TermIterBase::operator==(const TermIterBase & other) const

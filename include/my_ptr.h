@@ -5,7 +5,13 @@
 #include "assert.h"
 
 // determine if my_ptr is just an alias for shared_ptr
-#define USE_SHARED_PTR
+//#define USE_SHARED_PTR
+
+// TODO: implement static_pointer_cast for my_ptr
+// TODO: get rid of all the special deleter code? Could always be no-op
+//       doesn't really makes sense to have deleter
+//       either it's an owner and it should reference count
+//       or it's not an owner (like now) and it should have a nop deleter
 
 namespace smt {
 
@@ -61,7 +67,7 @@ class my_ptr
   }
 
   my_ptr(pointer __p, typename std::remove_reference<deleter_type>::type && __d)
-      : _M_t(std::move(__p), std::move(__d))
+      : _M_t(__p, __d)
   {
     static_assert(!std::is_reference<deleter_type>::value,
                   "rvalue deleter bound to reference");
@@ -133,8 +139,31 @@ class my_ptr
     swap(_M_t, __u._M_t);
   }
 
+  template <typename _Tp1,
+            typename _Tp1_Deleter,
+            typename = typename std::enable_if<
+                std::is_convertible<_Tp1 *, _Tp *>::value>::type>
+  my_ptr(const my_ptr<_Tp1, _Tp1_Deleter> & u)
+      : _M_t((pointer)std::get<0>(u._M_t), (_Tp_Deleter)std::get<1>(u._M_t))
+  {
+  }
+
+  template <typename _Tp1,
+            typename _Tp1_Deleter,
+            typename = typename std::enable_if<
+                std::is_convertible<_Tp1 *, _Tp *>::value>::type>
+  my_ptr & operator=(my_ptr<_Tp1, _Tp1_Deleter> u)
+  {
+    _M_t = std::make_tuple<pointer, _Tp_Deleter>(
+        (pointer)std::get<0>(u._M_t), (_Tp_Deleter)std::get<1>(u._M_t));
+    return *this;
+  }
+
  private:
   __tuple_type _M_t;
+
+  template <typename _Tp1, typename _Tp1_Deleter>
+  friend class my_ptr;
 };
 #endif
 }  // namespace smt
