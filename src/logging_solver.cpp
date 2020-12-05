@@ -331,8 +331,8 @@ Term LoggingSolver::make_term(const Op op,
   assert(hashtable->contains(t1));
   assert(hashtable->contains(t2));
 
-  Term res(
-      new LoggingTerm(wrapped_res, res_logging_sort, op, TermVec{ t1, t2 }));
+  Term res = make_shared<LoggingTerm>(
+      wrapped_res, res_logging_sort, op, TermVec{ t1, t2 });
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term
@@ -495,8 +495,8 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
           "const base for multidimensional array not implemented in "
           "LoggingSolver");
     }
-    out_const_base = Term(
-        new LoggingTerm(wrapped_out_const_base, elemsort, Op(), TermVec{}));
+    out_const_base = make_shared<LoggingTerm>(
+        wrapped_out_const_base, elemsort, Op(), TermVec{});
 
     // check hash table
     // lookup modifies term in place and returns true if it's a known term
