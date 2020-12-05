@@ -18,12 +18,11 @@
 
 #include <memory>
 
+#include "my_ptr.h"
+
 namespace smt {
 
 struct Op;
-
-template <typename _Tp>
-using my_ptr = std::shared_ptr<_Tp>;
 
 class AbsSort;
 using Sort = my_ptr<AbsSort>;
@@ -51,7 +50,11 @@ inline my_ptr<_Tp> make_my_ptr(_Args &&... __args)
   // typedef typename std::remove_const<_Tp>::type _Tp_nc;
   // return allocate_shared<_Tp>(std::allocator<_Tp_nc>(),
   //                             std::forward<_Args>(__args)...);
+#ifdef USE_SHARED_PTR
   return std::make_shared<_Tp>(std::forward<_Args>(__args)...);
+#else
+  return my_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...));
+#endif
 }
 
 }  // namespace smt
