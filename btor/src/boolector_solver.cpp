@@ -485,15 +485,15 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
     if (std::string(bindices[i]) == "*")
     {
       belem = boolector_const(btor, bvalues[i]);
-      out_const_base = Term(new BoolectorTerm(btor, belem));
+      out_const_base = std::make_shared<BoolectorTerm>(btor, belem);
     }
     else
     {
       bidx = boolector_const(btor, bindices[i]);
       belem = boolector_const(btor, bvalues[i]);
 
-      Term idx = Term(new BoolectorTerm(btor, bidx));
-      Term val = Term(new BoolectorTerm(btor, belem));
+      Term idx = std::make_shared<BoolectorTerm>(btor, bidx);
+      Term val = std::make_shared<BoolectorTerm>(btor, belem);
 
       assignments[idx] = val;
     }
