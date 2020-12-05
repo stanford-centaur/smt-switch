@@ -31,37 +31,37 @@ jobs:
       dist: bionic
       env: SOLVER="btor" OPTS=""
       compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="msat" OPTS="--auto-yes"
-    - os: linux
-      dist: bionic
-      env: SOLVER="yices2" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="yices2" OPTS=""
-      compiler: clang
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='btor' OPTS=""
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='cvc4' OPTS=""
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='msat' OPTS="--auto-yes"
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='yices2' OPTS=""
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="msat" OPTS="--auto-yes"
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="yices2" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="yices2" OPTS=""
+    #   compiler: clang
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='btor' OPTS=""
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='cvc4' OPTS=""
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='msat' OPTS="--auto-yes"
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='yices2' OPTS=""
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
