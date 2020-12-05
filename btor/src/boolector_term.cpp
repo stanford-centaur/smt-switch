@@ -145,7 +145,7 @@ const Term BoolectorTermIter::operator*()
   btor_node_inc_ext_ref_counter(btor, res);
 
   BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
-  return std::make_shared<BoolectorTerm> (btor, node);
+  return make_my_ptr<BoolectorTerm>(btor, node);
 };
 
 TermIterBase * BoolectorTermIter::clone() const
@@ -230,20 +230,20 @@ Sort BoolectorTerm::get_sort() const
     uint64_t width = boolector_get_width(btor, node);
     // increment reference counter for the sort
     boolector_copy_sort(btor, s);
-    sort = std::make_shared<BoolectorBVSort>(btor, s, width);
+    sort = make_my_ptr<BoolectorBVSort>(btor, s, width);
   }
   else if (boolector_is_array_sort(btor, s))
   {
     uint64_t idxwidth = boolector_get_index_width(btor, node);
     uint64_t elemwidth = boolector_get_width(btor, node);
     // Note: Boolector does not support multidimensional arrays
-    my_ptr<BoolectorSortBase> idxsort = std::make_shared<BoolectorBVSort>(
+    my_ptr<BoolectorSortBase> idxsort = make_my_ptr<BoolectorBVSort>(
         btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
-    my_ptr<BoolectorSortBase> elemsort = std::make_shared<BoolectorBVSort>(
+    my_ptr<BoolectorSortBase> elemsort = make_my_ptr<BoolectorBVSort>(
         btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
     // increment reference counter for the sort
     boolector_copy_sort(btor, s);
-    sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
+    sort = make_my_ptr<BoolectorArraySort>(btor, s, idxsort, elemsort);
   }
   // FIXME : combine all sorts into one class -- easier that way
   // else if(boolector_is_fun_sort(btor, s))
@@ -256,7 +256,7 @@ Sort BoolectorTerm::get_sort() const
   //   }
   //   Sort ds = boolector_fun_get_domain_sort(btor, node);
   //   Sort cds = boolector_fun_get_codomain_sort(btor, node);
-  //   sort = std::make_shared<BoolectorUFSort>(btor, s,
+  //   sort = make_my_ptr<BoolectorUFSort>(btor, s,
   //   std::vector<BoolectorSort>{ds}, cds);
   // }
   else

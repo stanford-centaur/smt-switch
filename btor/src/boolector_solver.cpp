@@ -207,11 +207,11 @@ Term BoolectorSolver::make_term(bool b) const
 {
   if (b)
   {
-    return std::make_shared<BoolectorTerm> (btor, boolector_const(btor, "1"));
+    return make_my_ptr<BoolectorTerm>(btor, boolector_const(btor, "1"));
   }
   else
   {
-    return std::make_shared<BoolectorTerm> (btor, boolector_const(btor, "0"));
+    return make_my_ptr<BoolectorTerm>(btor, boolector_const(btor, "0"));
   }
 }
 
@@ -222,7 +222,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
     my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
     // note: give the constant value a null PrimOp
-    return std::make_shared<BoolectorTerm> (btor, boolector_int(btor, i, bs->sort));
+    return make_my_ptr<BoolectorTerm>(btor, boolector_int(btor, i, bs->sort));
   }
   catch (InternalSolverException & e)
   {
@@ -260,7 +260,7 @@ Term BoolectorSolver::make_term(std::string val,
           + std::to_string(base));
     }
 
-    return std::make_shared<BoolectorTerm> (btor, node);
+    return make_my_ptr<BoolectorTerm>(btor, node);
   }
   catch (InternalSolverException & e)
   {
@@ -276,8 +276,8 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
     my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(val);
     my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
-    return std::make_shared<BoolectorTerm>
-        (btor, boolector_const_array(btor, bs->sort, bt->node));
+    return make_my_ptr<BoolectorTerm>(
+        btor, boolector_const_array(btor, bs->sort, bt->node));
   }
   else
   {
@@ -382,7 +382,7 @@ Term BoolectorSolver::get_value(const Term & t) const
     BoolectorNode * bc = boolector_const(btor, assignment);
     boolector_free_bv_assignment(btor, assignment);
     // note: give the constant value a null PrimOp
-    result = std::make_shared<BoolectorTerm>(btor, bc);
+    result = make_my_ptr<BoolectorTerm>(btor, bc);
   }
   else if (sk == ARRAY)
   {
@@ -433,7 +433,7 @@ Term BoolectorSolver::get_value(const Term & t) const
       boolector_release(btor, idx);
       boolector_release(btor, elem);
     }
-    result = std::make_shared<BoolectorTerm>(btor, stores);
+    result = make_my_ptr<BoolectorTerm>(btor, stores);
 
     // free memory
     if (size)
@@ -481,15 +481,15 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
     if (std::string(bindices[i]) == "*")
     {
       belem = boolector_const(btor, bvalues[i]);
-      out_const_base = std::make_shared<BoolectorTerm>(btor, belem);
+      out_const_base = make_my_ptr<BoolectorTerm>(btor, belem);
     }
     else
     {
       bidx = boolector_const(btor, bindices[i]);
       belem = boolector_const(btor, bvalues[i]);
 
-      Term idx = std::make_shared<BoolectorTerm>(btor, bidx);
-      Term val = std::make_shared<BoolectorTerm>(btor, belem);
+      Term idx = make_my_ptr<BoolectorTerm>(btor, bidx);
+      Term val = make_my_ptr<BoolectorTerm>(btor, belem);
 
       assignments[idx] = val;
     }
@@ -509,8 +509,7 @@ void BoolectorSolver::get_unsat_core(UnorderedTermSet & out)
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
   while (*bcore)
   {
-    out.insert(std::make_shared<BoolectorTerm>(
-        btor, boolector_copy(btor, *bcore)));
+    out.insert(make_my_ptr<BoolectorTerm>(btor, boolector_copy(btor, *bcore)));
     ++bcore;
   }
 }
@@ -524,8 +523,7 @@ Sort BoolectorSolver::make_sort(SortKind sk) const
 {
   if (sk == BOOL)
   {
-    return std::make_shared<BoolectorBVSort>
-        (btor, boolector_bool_sort(btor), 1);
+    return make_my_ptr<BoolectorBVSort>(btor, boolector_bool_sort(btor), 1);
   }
   else
   {
@@ -539,8 +537,8 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
-    return std::make_shared<BoolectorBVSort>
-        (btor, boolector_bitvec_sort(btor, size), size);
+    return make_my_ptr<BoolectorBVSort>(
+        btor, boolector_bitvec_sort(btor, size), size);
   }
   else
   {
@@ -569,7 +567,7 @@ Sort BoolectorSolver::make_sort(SortKind sk,
         std::static_pointer_cast<BoolectorSortBase>(sort2);
     BoolectorSort bs =
         boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
-    return std::make_shared<BoolectorArraySort> (btor, bs, sort1, sort2);
+    return make_my_ptr<BoolectorArraySort>(btor, bs, sort1, sort2);
   }
   else
   {
@@ -617,8 +615,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     BoolectorSort btor_fun_sort =
         boolector_fun_sort(btor, &btor_sorts[0], arity, btor_return_sort->sort);
-    return std::make_shared<BoolectorUFSort>
-        (btor, btor_fun_sort, sorts, returnsort);
+    return make_my_ptr<BoolectorUFSort>(btor, btor_fun_sort, sorts, returnsort);
   }
   else if (sorts.size() == 1)
   {
@@ -677,7 +674,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   }
 
   // note: giving the symbol a null Op
-  Term term = std::make_shared<BoolectorTerm> (btor, n);
+  Term term = make_my_ptr<BoolectorTerm>(btor, n);
   symbol_names.insert(name);
   return term;
 }
@@ -687,7 +684,7 @@ Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
   my_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
   BoolectorNode * n = boolector_param(btor, bs->sort, name.c_str());
-  return std::make_shared<BoolectorTerm>(btor, n);
+  return make_my_ptr<BoolectorTerm>(btor, n);
 }
 
 Term BoolectorSolver::make_term(Op op, const Term & t) const
@@ -735,7 +732,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
       msg += to_string(op.prim_op);
       throw IncorrectUsageException(msg.c_str());
     }
-    return std::make_shared<BoolectorTerm> (btor, btor_res);
+    return make_my_ptr<BoolectorTerm>(btor, btor_res);
   }
 }
 
@@ -858,7 +855,7 @@ Term BoolectorSolver::substitute(
   // counter
   substituted = boolector_copy(btor, substituted);
   boolector_nodemap_delete(bmap);
-  return std::make_shared<BoolectorTerm> (btor, substituted);
+  return make_my_ptr<BoolectorTerm>(btor, substituted);
 }
 
 void BoolectorSolver::dump_smt2(std::string filename) const
@@ -874,7 +871,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
   {
     my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
     BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
-    return std::make_shared<BoolectorTerm> (btor, result);
+    return make_my_ptr<BoolectorTerm>(btor, result);
   }
   catch (std::out_of_range & o)
   {
@@ -905,7 +902,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
       my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
       my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
       std::vector<BoolectorNode *> params({ bt0->node });
-      return std::make_shared<BoolectorTerm>(
+      return make_my_ptr<BoolectorTerm>(
           btor, boolector_forall(btor, &params[0], 1, bt1->node));
     }
     else if (op == Exists)
@@ -913,14 +910,14 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
       my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
       my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
       std::vector<BoolectorNode *> params({ bt0->node });
-      return std::make_shared<BoolectorTerm>(
+      return make_my_ptr<BoolectorTerm>(
           btor, boolector_exists(btor, &params[0], 1, bt1->node));
     }
     else
     {
       result = binary_ops.at(op)(btor, bt0->node, bt1->node);
     }
-    return std::make_shared<BoolectorTerm> (btor, result);
+    return make_my_ptr<BoolectorTerm>(btor, result);
   }
   catch (std::out_of_range & o)
   {
@@ -952,7 +949,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
       result = ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
     }
 
-    return std::make_shared<BoolectorTerm> (btor, result);
+    return make_my_ptr<BoolectorTerm>(btor, result);
   }
   catch (std::out_of_range & o)
   {
@@ -997,7 +994,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
           std::static_pointer_cast<BoolectorTerm>(terms[0]);
       BoolectorNode * result = boolector_apply(btor, &args[0], args.size(), bt0->node);
 
-      return std::make_shared<BoolectorTerm> (btor, result);
+      return make_my_ptr<BoolectorTerm>(btor, result);
     }
     else
     {

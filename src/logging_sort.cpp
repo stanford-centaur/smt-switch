@@ -24,7 +24,7 @@ namespace smt {
 
 Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
 {
-  return std::make_shared<UninterpretedLoggingSort>(s, name, arity);
+  return make_my_ptr<UninterpretedLoggingSort>(s, name, arity);
 }
 
 Sort make_uninterpreted_logging_sort(Sort s,
@@ -38,7 +38,7 @@ Sort make_uninterpreted_logging_sort(Sort s,
         "Number of uninterpreted param sorts must match sort constructor "
         "arity");
   }
-  return std::make_shared<UninterpretedLoggingSort>(s, name, arity, sorts);
+  return make_my_ptr<UninterpretedLoggingSort>(s, name, arity, sorts);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s)
@@ -47,7 +47,7 @@ Sort make_logging_sort(SortKind sk, Sort s)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
-  return std::make_shared<LoggingSort>(sk, s);
+  return make_my_ptr<LoggingSort>(sk, s);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
@@ -57,7 +57,7 @@ Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
     throw IncorrectUsageException("Can't create sort from " + to_string(sk)
                                   + " and " + ::std::to_string(width));
   }
-  return std::make_shared<BVLoggingSort>(s, width);
+  return make_my_ptr<BVLoggingSort>(s, width);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1)
@@ -71,12 +71,11 @@ Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2)
   Sort loggingsort;
   if (sk == ARRAY)
   {
-    loggingsort = std::make_shared<ArrayLoggingSort>(s, sort1, sort2);
+    loggingsort = make_my_ptr<ArrayLoggingSort>(s, sort1, sort2);
   }
   else if (sk == FUNCTION)
   {
-    loggingsort =
-        std::make_shared<FunctionLoggingSort>(s, SortVec{ sort1 }, sort2);
+    loggingsort = make_my_ptr<FunctionLoggingSort>(s, SortVec{ sort1 }, sort2);
   }
   else
   {
@@ -91,8 +90,7 @@ Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3)
 {
   if (sk == FUNCTION)
   {
-    return std::make_shared<FunctionLoggingSort>(
-        s, SortVec{ sort1, sort2 }, sort3);
+    return make_my_ptr<FunctionLoggingSort>(s, SortVec{ sort1, sort2 }, sort3);
   }
   else
   {
@@ -108,11 +106,11 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
   {
     Sort return_sort = sorts.back();
     sorts.pop_back();
-    return std::make_shared<FunctionLoggingSort>(s, sorts, return_sort);
+    return make_my_ptr<FunctionLoggingSort>(s, sorts, return_sort);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    return std::make_shared<ArrayLoggingSort>(s, sorts[0], sorts[1]);
+    return make_my_ptr<ArrayLoggingSort>(s, sorts[0], sorts[1]);
   }
   else
   {
