@@ -76,7 +76,7 @@ bool LoggingTerm::compare(const Term & t) const
     return false;
   }
 
-  shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
+  my_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
 
   // compare wrapped term and the LoggingSort
   // this handles values (e.g. null operators and no children)
@@ -105,7 +105,7 @@ bool LoggingTerm::compare(const Term & t) const
     {
       // because of hash-consing, we can compare the pointers
       // otherwise would recursively call compare on the LoggingTerm children
-      // Note: calling get() intead of comparing the Term shared_ptrs directly
+      // Note: calling get() intead of comparing the Term my_ptrs directly
       // because operator== is overloaded for Terms such that it uses the
       // compare method of the underlying object (i.e. it would be a recursive
       // call to compare)

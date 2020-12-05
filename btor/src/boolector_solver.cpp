@@ -219,7 +219,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
   try
   {
-    std::shared_ptr<BoolectorSortBase> bs =
+    my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
     // note: give the constant value a null PrimOp
     return std::make_shared<BoolectorTerm> (btor, boolector_int(btor, i, bs->sort));
@@ -237,7 +237,7 @@ Term BoolectorSolver::make_term(std::string val,
 {
   try
   {
-    std::shared_ptr<BoolectorSortBase> bs =
+    my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
 
     BoolectorNode * node;
@@ -273,9 +273,8 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() == ARRAY)
   {
-    std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(val);
-    std::shared_ptr<BoolectorSortBase> bs =
+    my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(val);
+    my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
     return std::make_shared<BoolectorTerm>
         (btor, boolector_const_array(btor, bs->sort, bt->node));
@@ -290,8 +289,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 
 void BoolectorSolver::assert_formula(const Term & t)
 {
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(t);
+  my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
   boolector_assert(btor, bt->node);
 }
 
@@ -316,7 +314,7 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // boolector supports assuming arbitrary one-bit expressions,
   // not just boolean literals
-  std::shared_ptr<BoolectorTerm> bt;
+  my_ptr<BoolectorTerm> bt;
   for (auto a : assumptions)
   {
     bt = std::static_pointer_cast<BoolectorTerm>(a);
@@ -375,8 +373,7 @@ void BoolectorSolver::pop(uint64_t num)
 Term BoolectorSolver::get_value(const Term & t) const
 {
   Term result;
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(t);
+  my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
   Sort sort = t->get_sort();
   SortKind sk = sort->get_sort_kind();
   if ((sk == BV) || (sk == BOOL))
@@ -389,10 +386,10 @@ Term BoolectorSolver::get_value(const Term & t) const
   }
   else if (sk == ARRAY)
   {
-    std::shared_ptr<BoolectorSortBase> bs =
+    my_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
 
-    std::shared_ptr<BoolectorSortBase> b_elemsort =
+    my_ptr<BoolectorSortBase> b_elemsort =
         std::static_pointer_cast<BoolectorSortBase>(sort->get_elemsort());
 
     BoolectorNode * zero = boolector_zero(btor, b_elemsort->sort);
@@ -469,8 +466,7 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
 
   UnorderedTermMap assignments;
 
-  std::shared_ptr<BoolectorTerm> barr =
-      std::static_pointer_cast<BoolectorTerm>(arr);
+  my_ptr<BoolectorTerm> barr = std::static_pointer_cast<BoolectorTerm>(arr);
 
   char ** bindices;
   char ** bvalues;
@@ -567,9 +563,9 @@ Sort BoolectorSolver::make_sort(SortKind sk,
 {
   if (sk == ARRAY)
   {
-    std::shared_ptr<BoolectorSortBase> btor_idxsort =
+    my_ptr<BoolectorSortBase> btor_idxsort =
         std::static_pointer_cast<BoolectorSortBase>(sort1);
-    std::shared_ptr<BoolectorSortBase> btor_elemsort =
+    my_ptr<BoolectorSortBase> btor_elemsort =
         std::static_pointer_cast<BoolectorSortBase>(sort2);
     BoolectorSort bs =
         boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
@@ -605,7 +601,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     Sort returnsort = sorts.back();
-    std::shared_ptr<BoolectorSortBase> btor_return_sort =
+    my_ptr<BoolectorSortBase> btor_return_sort =
         std::static_pointer_cast<BoolectorSortBase>(returnsort);
 
     // arity is one less, because last sort is return sort
@@ -614,7 +610,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     btor_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
     {
-      std::shared_ptr<BoolectorSortBase> bs =
+      my_ptr<BoolectorSortBase> bs =
           std::static_pointer_cast<BoolectorSortBase>(sorts[i]);
       btor_sorts.push_back(bs->sort);
     }
@@ -662,7 +658,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
 
-  std::shared_ptr<BoolectorSortBase> bs =
+  my_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
 
   SortKind sk = sort->get_sort_kind();
@@ -688,7 +684,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 
 Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
 {
-  std::shared_ptr<BoolectorSortBase> bs =
+  my_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
   BoolectorNode * n = boolector_param(btor, bs->sort, name.c_str());
   return std::make_shared<BoolectorTerm>(btor, n);
@@ -707,8 +703,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
   }
   else
   {
-    std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(t);
+    my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
     BoolectorNode * btor_res;
     if (op.prim_op == Extract)
     {
@@ -838,11 +833,10 @@ Term BoolectorSolver::substitute(
 {
   BoolectorNodeMap * bmap = boolector_nodemap_new(btor);
 
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(term);
+  my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(term);
 
-  std::shared_ptr<BoolectorTerm> key;
-  std::shared_ptr<BoolectorTerm> value;
+  my_ptr<BoolectorTerm> key;
+  my_ptr<BoolectorTerm> value;
   for (auto elem : substitution_map)
   {
     key = std::static_pointer_cast<BoolectorTerm>(elem.first);
@@ -878,8 +872,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
 {
   try
   {
-    std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(t);
+    my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t);
     BoolectorNode * result = unary_ops.at(op)(btor, bt->node);
     return std::make_shared<BoolectorTerm> (btor, result);
   }
@@ -895,38 +888,30 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
 {
   try
   {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
+    my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+    my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
 
     BoolectorNode * result;
     if (op == Apply)
     {
-      std::shared_ptr<BoolectorTerm> bt =
-          std::static_pointer_cast<BoolectorTerm>(t1);
+      my_ptr<BoolectorTerm> bt = std::static_pointer_cast<BoolectorTerm>(t1);
       std::vector<BoolectorNode *> args = { bt->node };
 
-      std::shared_ptr<BoolectorTerm> bt0 =
-          std::static_pointer_cast<BoolectorTerm>(t0);
+      my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
       result = boolector_apply(btor, &args[0], 1, bt0->node);
     }
     else if (op == Forall)
     {
-      std::shared_ptr<BoolectorTerm> bt0 =
-          std::static_pointer_cast<BoolectorTerm>(t0);
-      std::shared_ptr<BoolectorTerm> bt1 =
-          std::static_pointer_cast<BoolectorTerm>(t1);
+      my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+      my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
       std::vector<BoolectorNode *> params({ bt0->node });
       return std::make_shared<BoolectorTerm>(
           btor, boolector_forall(btor, &params[0], 1, bt1->node));
     }
     else if (op == Exists)
     {
-      std::shared_ptr<BoolectorTerm> bt0 =
-          std::static_pointer_cast<BoolectorTerm>(t0);
-      std::shared_ptr<BoolectorTerm> bt1 =
-          std::static_pointer_cast<BoolectorTerm>(t1);
+      my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+      my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
       std::vector<BoolectorNode *> params({ bt0->node });
       return std::make_shared<BoolectorTerm>(
           btor, boolector_exists(btor, &params[0], 1, bt1->node));
@@ -949,23 +934,17 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
 {
   try
   {
-    std::shared_ptr<BoolectorTerm> bt0 =
-        std::static_pointer_cast<BoolectorTerm>(t0);
-    std::shared_ptr<BoolectorTerm> bt1 =
-        std::static_pointer_cast<BoolectorTerm>(t1);
-    std::shared_ptr<BoolectorTerm> bt2 =
-        std::static_pointer_cast<BoolectorTerm>(t2);
+    my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
+    my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
+    my_ptr<BoolectorTerm> bt2 = std::static_pointer_cast<BoolectorTerm>(t2);
     BoolectorNode * result;
     if (op == Apply)
     {
-      std::shared_ptr<BoolectorTerm> bt1 =
-          std::static_pointer_cast<BoolectorTerm>(t1);
-      std::shared_ptr<BoolectorTerm> bt2 =
-          std::static_pointer_cast<BoolectorTerm>(t2);
+      my_ptr<BoolectorTerm> bt1 = std::static_pointer_cast<BoolectorTerm>(t1);
+      my_ptr<BoolectorTerm> bt2 = std::static_pointer_cast<BoolectorTerm>(t2);
       std::vector<BoolectorNode *> args = { bt1->node, bt2->node };
 
-      std::shared_ptr<BoolectorTerm> bt0 =
-          std::static_pointer_cast<BoolectorTerm>(t0);
+      my_ptr<BoolectorTerm> bt0 = std::static_pointer_cast<BoolectorTerm>(t0);
       result = boolector_apply(btor, &args[0], 2, bt0->node);
     }
     else
@@ -1007,14 +986,14 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
       termargs.reserve(size - 1);
       std::vector<BoolectorNode *> args;
       args.reserve(size - 1);
-      std::shared_ptr<BoolectorTerm> bt;
+      my_ptr<BoolectorTerm> bt;
       for (size_t i = 1; i < size; ++i)
       {
         bt = std::static_pointer_cast<BoolectorTerm>(terms[i]);
         args.push_back(bt->node);
         termargs.push_back(terms[i]);
       }
-      std::shared_ptr<BoolectorTerm> bt0 =
+      my_ptr<BoolectorTerm> bt0 =
           std::static_pointer_cast<BoolectorTerm>(terms[0]);
       BoolectorNode * result = boolector_apply(btor, &args[0], args.size(), bt0->node);
 

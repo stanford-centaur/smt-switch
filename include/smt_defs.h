@@ -22,11 +22,14 @@ namespace smt {
 
 struct Op;
 
+template <typename _Tp>
+using my_ptr = std::shared_ptr<_Tp>;
+
 class AbsSort;
-using Sort = std::shared_ptr<AbsSort>;
+using Sort = my_ptr<AbsSort>;
 
 class AbsTerm;
-using Term = std::shared_ptr<AbsTerm>;
+using Term = my_ptr<AbsTerm>;
 
 class AbsSmtSolver;
 using SmtSolver = std::shared_ptr<AbsSmtSolver>;
@@ -40,9 +43,6 @@ using DatatypeConstructorDecl = std::shared_ptr<AbsDatatypeConstructorDecl>;
 
 class AbsDatatype;
 using Datatype = std::shared_ptr<AbsDatatype>;
-
-template <typename _Tp>
-using my_ptr = std::shared_ptr<_Tp>;
 
 template <typename _Tp, typename... _Args>
 inline my_ptr<_Tp> make_my_ptr(_Args &&... __args)

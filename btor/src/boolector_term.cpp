@@ -200,7 +200,7 @@ std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {
-  std::shared_ptr<BoolectorTerm> other =
+  my_ptr<BoolectorTerm> other =
       std::static_pointer_cast<BoolectorTerm>(absterm);
   return this->node == other->node;
 }
@@ -237,12 +237,10 @@ Sort BoolectorTerm::get_sort() const
     uint64_t idxwidth = boolector_get_index_width(btor, node);
     uint64_t elemwidth = boolector_get_width(btor, node);
     // Note: Boolector does not support multidimensional arrays
-    std::shared_ptr<BoolectorSortBase> idxsort =
-        std::make_shared<BoolectorBVSort>(
-            btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
-    std::shared_ptr<BoolectorSortBase> elemsort =
-        std::make_shared<BoolectorBVSort>(
-            btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
+    my_ptr<BoolectorSortBase> idxsort = std::make_shared<BoolectorBVSort>(
+        btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
+    my_ptr<BoolectorSortBase> elemsort = std::make_shared<BoolectorBVSort>(
+        btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
     // increment reference counter for the sort
     boolector_copy_sort(btor, s);
     sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);

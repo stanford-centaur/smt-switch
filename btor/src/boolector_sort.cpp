@@ -94,8 +94,7 @@ Datatype BoolectorSortBase::get_datatype() const
 
 bool BoolectorSortBase::compare(const Sort & s) const
 {
-  std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(s);
+  my_ptr<BoolectorSortBase> bs = std::static_pointer_cast<BoolectorSortBase>(s);
   if (sk != bs->get_sort_kind())
   {
     // Note: bool and bv will still be equal for boolector, because always
