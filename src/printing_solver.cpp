@@ -301,7 +301,7 @@ Result PrintingSolver::get_interpolant(const Term & A,
 }
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver, std::ostream* out_stream, PrintingStyleEnum style) {
-  return make_my_ptr<PrintingSolver>(wrapped_solver, out_stream, style);
+  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream, style);
 }
 
 }  // namespace smt

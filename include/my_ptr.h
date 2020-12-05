@@ -5,7 +5,7 @@
 #include "assert.h"
 
 // determine if my_ptr is just an alias for shared_ptr
-#define USE_SHARED_PTR
+//#define USE_SHARED_PTR
 
 // TODO: implement static_pointer_cast for my_ptr
 // TODO: get rid of all the special deleter code? Could always be no-op
@@ -165,5 +165,17 @@ class my_ptr
   template <typename _Tp1, typename _Tp1_Deleter>
   friend class my_ptr;
 };
+
 #endif
 }  // namespace smt
+
+#ifndef USE_SHARED_PTR
+namespace std {
+template <typename _Tp, typename _Tp1>
+inline smt::my_ptr<_Tp> static_pointer_cast(const smt::my_ptr<_Tp1> & __r)
+{
+  return smt::my_ptr<_Tp>(static_cast<_Tp *>(__r.get()));
+}
+
+}  // namespace std
+#endif

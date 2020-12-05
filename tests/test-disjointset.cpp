@@ -50,7 +50,7 @@ static bool disjoint_set_rank(const Term & t1, const Term & t2)
 {
   if (!t1->is_value() && !t2->is_value())
   {
-    return t1 < t2;
+    return t1->hash() < t2->hash();
   }
   return !t1->is_value();
 }

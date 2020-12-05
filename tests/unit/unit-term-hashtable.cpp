@@ -46,6 +46,9 @@ class UnitTestsHashTable : public testing::Test,
   TermHashTable table;
 };
 
+// This test only makes sense if using shared_ptr for Terms
+#ifdef USE_SHARED_PTR
+
 TEST_P(UnitTestsHashTable, HashTable)
 {
   Term x = s->make_symbol("x", bvsort);
@@ -69,6 +72,8 @@ TEST_P(UnitTestsHashTable, HashTable)
             3);  // two references here and one in the hash table
   ASSERT_EQ(cp_xp1_2.use_count(), 1);
 }
+
+#endif
 
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
