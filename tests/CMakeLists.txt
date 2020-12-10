@@ -148,6 +148,11 @@ target_link_libraries(test-unsat-core gtest_main)
 target_link_libraries(test-unsat-core test-deps)
 add_test(NAME test-unsat-core_test COMMAND test-unsat-core)
 
+add_executable(test-unsat-core-reducer "${PROJECT_SOURCE_DIR}/tests/test-unsat-core-reducer.cpp")
+target_link_libraries(test-unsat-core-reducer gtest_main)
+target_link_libraries(test-unsat-core-reducer test-deps)
+add_test(NAME test-unsat-core-reducer_test COMMAND test-unsat-core-reducer)
+
 add_executable(unit-transfer "${PROJECT_SOURCE_DIR}/tests/unit/unit-transfer.cpp")
 target_link_libraries(unit-transfer gtest_main)
 target_link_libraries(unit-transfer test-deps)
@@ -158,7 +163,18 @@ target_link_libraries(unit-arrays gtest_main)
 target_link_libraries(unit-arrays test-deps)
 add_test(NAME unit-arrays_test COMMAND unit-arrays)
 
+add_executable(unit-substitute "${PROJECT_SOURCE_DIR}/tests/unit/unit-substitute.cpp")
+target_link_libraries(unit-substitute gtest_main)
+target_link_libraries(unit-substitute test-deps)
+add_test(NAME unit-substitute_test COMMAND unit-substitute)
+
 add_executable(unit-reset-assertions "${PROJECT_SOURCE_DIR}/tests/unit/unit-reset-assertions.cpp")
 target_link_libraries(unit-reset-assertions gtest_main)
 target_link_libraries(unit-reset-assertions test-deps)
 add_test(NAME unit-reset-assertions_test COMMAND unit-reset-assertions)
+
+add_executable(test-disjointset "${PROJECT_SOURCE_DIR}/tests/test-disjointset.cpp")
+target_link_libraries(test-disjointset gtest_main)
+target_link_libraries(test-disjointset test-deps)
+add_test(NAME test-disjointset_test COMMAND test-disjointset)
+

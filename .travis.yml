@@ -68,6 +68,7 @@ script:
   - ./travis-scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./travis-scripts/setup-${SOLVER}.sh ${OPTS}"
+  - bash -c "./contrib/setup-skbuild.sh"
   - bash -c "./configure.sh --debug --${SOLVER} --python"
   - bash -c "cd build && make -j && make test"
   # install wheels

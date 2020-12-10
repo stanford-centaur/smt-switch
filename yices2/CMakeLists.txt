@@ -18,7 +18,7 @@ target_link_libraries(smt-switch-yices2 pthread)
 
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the mathsat source
+  # we want the static library to include the yices2 source
   # we need to unpack and repack the libraries
   add_custom_target(repack-yices2-static-lib
     ALL
@@ -34,3 +34,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
 endif()
 
 install(TARGETS smt-switch-yices2 DESTINATION lib)
+# install headers -- for expert use only
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+  DESTINATION include/smt-switch
+  FILES_MATCHING PATTERN "*.h")

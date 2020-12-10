@@ -106,13 +106,33 @@ class CVC4Solver : public AbsSmtSolver
   void reset() override;
   void reset_assertions() override;
   void dump_smt2(std::string filename) const override;
+
   // helpers
   ::CVC4::api::Op make_cvc4_op(Op op) const;
+
+  // getters for solver-specific objects
+  // for interacting with third-party CVC4-specific software
+  const ::CVC4::api::Solver & get_cvc4_solver() const { return solver; };
 
  protected:
   ::CVC4::api::Solver solver;
   // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
 };
+
+//Interpolating Solver
+class CVC4InterpolatingSolver : public CVC4Solver
+{
+  public:
+    CVC4InterpolatingSolver() {}
+    CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
+    CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
+    ~CVC4InterpolatingSolver() {}
+
+    Result get_interpolant(const Term & A,
+                           const Term & B,
+                           Term & out_I) const override;
+};
+
 }  // namespace smt
 

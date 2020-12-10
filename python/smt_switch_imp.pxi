@@ -14,6 +14,9 @@ from smt_switch cimport c_UnorderedTermMap
 from smt_switch cimport c_TermIter
 from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
 
+from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
+from smt_switch cimport get_free_symbols as c_get_free_symbols
+
 cdef class Op:
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
@@ -416,3 +419,39 @@ cdef class SmtSolver:
         else:
             I.ct = cI
             return I
+
+
+# Utils
+
+def get_free_symbolic_consts(Term term):
+    '''
+    Return a set of all the free symbolic constants (e.g. excludes function symbols) in the provided term.
+    '''
+
+    cdef c_UnorderedTermSet out_symbols
+    c_get_free_symbolic_consts(term.ct, out_symbols)
+
+    python_out_set = set()
+    for s in out_symbols:
+        t = Term(term._solver)
+        t.ct = s
+        python_out_set.add(t)
+
+    return python_out_set
+
+
+def get_free_symbols(Term term):
+    '''
+    Return a set of all the free symbols in the provided term.
+    '''
+
+    cdef c_UnorderedTermSet out_symbols
+    c_get_free_symbols(term.ct, out_symbols)
+
+    python_out_set = set()
+    for s in out_symbols:
+        t = Term(term._solver)
+        t.ct = s
+        python_out_set.add(t)
+
+    return python_out_set

@@ -28,7 +28,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitWalkerTests : public ::testing::Test,
-                        public ::testing::WithParamInterface<SolverEnum>
+                        public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -117,6 +117,6 @@ TEST_P(UnitWalkerTests, FunSubstitution)
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnitWalker,
                          UnitWalkerTests,
-                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

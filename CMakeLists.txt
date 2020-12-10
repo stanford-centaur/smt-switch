@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
@@ -27,6 +27,7 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/solver_enums.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/substitution_walker.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort_inference.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
@@ -44,12 +45,7 @@ option (USE_PYTHON2
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  if (USE_PYTHON2)
-    message("-- We understand: it's hard to let go. We'll try to use Python2, but it's not really supported, so no promises.")
-    find_package(PythonInterp 2.7 REQUIRED)
-  else()
-    find_package(PythonInterp 3 REQUIRED)
-  endif()
+  find_package(Python3 COMPONENTS Interpreter Development)
 endif()
 
 if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2)

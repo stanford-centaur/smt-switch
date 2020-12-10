@@ -107,11 +107,9 @@ class AbsSmtSolver
    *  this function will populate the 'out' UnorderedTermSet with a subset
    *  of the assumption literals that are sufficient to make the assertions
    *  unsat.
-   *  SMTLIB: (get-unsat-assumptions) 
+   *  SMTLIB: (get-unsat-assumptions)
    */
   virtual void get_unsat_core(UnorderedTermSet & out) = 0;
-
-  // virtual bool check_sat_assuming() const = 0;
 
   /* Make an uninterpreted sort
    * SMTLIB: (declare-sort <name> <arity>)
@@ -276,7 +274,7 @@ class AbsSmtSolver
    */
   virtual void reset() = 0;
 
-  /* Reset all assertions 
+  /* Reset all assertions
    * SMTLIB: (reset-assertions)
    */
   virtual void reset_assertions() = 0;
@@ -383,4 +381,3 @@ class AbsSmtSolver
 };
 
 }  // namespace smt
-

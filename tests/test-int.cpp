@@ -27,7 +27,7 @@ using namespace std;
 namespace smt_tests {
 
 class IntTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverEnum>
+                 public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -83,6 +83,6 @@ TEST_P(IntTests, Bv2Int)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverIntTests,
     IntTests,
-    testing::ValuesIn(filter_solver_enums({ THEORY_INT })));
+    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })));
 
 }  // namespace smt_tests

@@ -29,7 +29,7 @@ using namespace std;
 namespace smt_tests {
 
 class LoggingTests : public ::testing::Test,
-                     public ::testing::WithParamInterface<SolverEnum>
+                     public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -152,6 +152,6 @@ TEST_P(LoggingTests, Compare)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverLoggingTests,
     LoggingTests,
-    testing::ValuesIn(available_no_logging_solver_enums()));
+    testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

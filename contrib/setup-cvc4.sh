@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CVC4_VERSION=3d44636a3080831bd8ea4c6b2d4f60adf6b37e9d
+CVC4_VERSION=35d080bfb56ff96fd41b31ce7025c019193f6abc
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps

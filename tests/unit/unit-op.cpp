@@ -33,7 +33,7 @@ class UnitPrimOpTests : public ::testing::Test,
 };
 
 class UnitTests : public ::testing::Test,
-                  public ::testing::WithParamInterface<SolverEnum>
+                  public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -144,6 +144,6 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedPrimOp,
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
                          UnitTests,
-                         testing::ValuesIn(filter_solver_enums({ TERMITER })));
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

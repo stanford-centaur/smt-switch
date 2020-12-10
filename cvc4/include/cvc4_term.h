@@ -54,6 +54,10 @@ namespace smt {
    bool operator==(const CVC4TermIter & it);
    bool operator!=(const CVC4TermIter & it);
 
+   // getters for solver-specific objects
+   // for interacting with third-party CVC4-specific software
+   ::CVC4::api::Term get_cvc4_term() const { return term; };
+
   protected:
     bool equal(const TermIterBase & other) const override;
 
@@ -87,6 +91,7 @@ namespace smt {
     CVC4::api::Term term;
 
   friend class CVC4Solver;
+  friend class CVC4InterpolatingSolver;
   };
 
 
