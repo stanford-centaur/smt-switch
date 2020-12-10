@@ -47,7 +47,7 @@ class LoggingSort : public AbsSort
   virtual ~LoggingSort(){};
   // implementations
   SortKind get_sort_kind() const override;
-  bool compare(const Sort s) const override;
+  bool compare(const Sort & s) const override;
   // dispatch to underlying sort
   std::size_t hash() const override;
 

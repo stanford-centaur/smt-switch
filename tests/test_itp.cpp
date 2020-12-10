@@ -29,7 +29,7 @@ using namespace std;
 namespace smt_tests {
 
 class ItpTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverEnum>
+                 public ::testing::WithParamInterface<SolverConfiguration>
 {
 protected:
   void SetUp() override
@@ -63,9 +63,10 @@ TEST_P(ItpTests, Test_ITP)
 
   ASSERT_TRUE(free_symbols.find(y) == free_symbols.end());
   ASSERT_TRUE(free_symbols.find(z) == free_symbols.end());
+  std::cout << "the interpolant is: " << I << endl;
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedItpTests,
                          ItpTests,
-                         testing::ValuesIn(available_interpolator_enums()));
+                         testing::ValuesIn(available_interpolator_configurations()));
 }

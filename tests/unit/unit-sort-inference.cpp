@@ -25,7 +25,7 @@ using namespace std;
 namespace smt_tests {
 
 class UnitSortInferenceTests : public ::testing::Test,
-                               public ::testing::WithParamInterface<SolverEnum>
+                               public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -271,10 +271,10 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
                          UnitSortInferenceTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_configurations()));
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArithmeticSortInference,
                          UnitArithmeticSortInferenceTests,
-                         testing::ValuesIn(filter_solver_enums({ THEORY_INT, THEORY_REAL })));
+                         testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_REAL })));
 
 }  // namespace smt_tests

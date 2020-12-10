@@ -123,6 +123,11 @@ cdef extern from "solver.h" namespace "smt":
         c_Result get_interpolant(const c_Term & A, const c_Term & B, c_Term & out_I) except +
 
 
+cdef extern from "utils.h" namespace "smt":
+    void get_free_symbolic_consts(const c_Term & term, c_UnorderedTermSet & out) except +
+    void get_free_symbols(const c_Term & term, c_UnorderedTermSet & out) except +
+
+
 cdef class Op:
     cdef c_Op op
 

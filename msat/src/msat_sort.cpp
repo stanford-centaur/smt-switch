@@ -133,7 +133,7 @@ Datatype MsatSort::get_datatype() const
   throw NotImplementedException("get_datatype");
 };
 
-bool MsatSort::compare(const Sort s) const
+bool MsatSort::compare(const Sort & s) const
 {
   std::shared_ptr<MsatSort> msort = std::static_pointer_cast<MsatSort>(s);
   return msat_type_equals(type, msort->type);

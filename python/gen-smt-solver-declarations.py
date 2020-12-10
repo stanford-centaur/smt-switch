@@ -22,6 +22,11 @@ def create_cvc4_solver(logging):
     solver.css = cpp_create_cvc4_solver(logging)
     return solver
 solvers["cvc4"] = create_cvc4_solver
+
+def create_cvc4_interpolator():
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_cvc4_interpolator()
+    return solver
 '''
 
 
@@ -56,6 +61,7 @@ cdef extern from "boolector_factory.h":
 DECLARE_CVC4='''
 cdef extern from "cvc4_factory.h":
     c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (bint logging) except +
+    c_SmtSolver cpp_create_cvc4_interpolator "smt::CVC4SolverFactory::create_interpolating_solver" () except +
 '''
 
 
@@ -95,6 +101,7 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_CVC4
         pxi += "\n" + CREATE_CVC4
         imports.append('cpp_create_cvc4_solver')
+        imports.append('cpp_create_cvc4_interpolator')
 
     if args.msat:
         pxd += "\n" + DECLARE_MSAT

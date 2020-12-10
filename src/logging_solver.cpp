@@ -41,7 +41,7 @@ const unordered_set<SortKind> supported_sortkinds_for_get_value(
 // implementations
 
 LoggingSolver::LoggingSolver(SmtSolver s)
-    : AbsSmtSolver(process_solver_enum(s->get_solver_enum())),
+    : AbsSmtSolver(s->get_solver_enum()),
       wrapped_solver(s),
       hashtable(new TermHashTable()),
       assumption_cache(new UnorderedTermMap())

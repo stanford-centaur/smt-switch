@@ -129,7 +129,7 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
 // implementations
 SortKind LoggingSort::get_sort_kind() const { return sk; }
 
-bool LoggingSort::compare(const Sort s) const
+bool LoggingSort::compare(const Sort & s) const
 {
   SortKind other_sk = s->get_sort_kind();
   if (sk != other_sk)
