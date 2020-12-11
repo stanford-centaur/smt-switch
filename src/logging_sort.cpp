@@ -181,8 +181,7 @@ bool LoggingSort::compare(const Sort & s) const
     {
       throw NotImplementedException("LoggingSort::compare");
     }
-    case NUM_SORT_CONS:
-    {
+    case NUM_SORT_KINDS: {
       // null sorts should not be equal
       return false;
     }
@@ -190,7 +189,9 @@ bool LoggingSort::compare(const Sort & s) const
     {
       // this code should be unreachable
       throw SmtException(
-          "Hit default case in LoggingSort comparison -- missing a SortCon");
+          "Hit default case in LoggingSort comparison -- missing case for "
+          "SortKind: "
+          + smt::to_string(sk));
     }
   }
 }
