@@ -97,7 +97,7 @@ Datatype Z3Sort::get_datatype() const {
 }
 ;
 
-bool Z3Sort::compare(const Sort s) const {
+bool Z3Sort::compare(const Sort & s) const {
 	std::shared_ptr<Z3Sort> zs = std::static_pointer_cast < Z3Sort > (s);
 	return type.hash() == (zs->type).hash();
 }

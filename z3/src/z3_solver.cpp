@@ -129,18 +129,19 @@ void Z3Solver::get_unsat_core(UnorderedTermSet &out) {
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const {
-	z3::sort z_sort = z3::sort(ctx);
+	// z3::sort z_sort = z3::sort(ctx);
 
 	if (!arity) {
 		const char *c = name.c_str();
 		z3::symbol func_name = ctx.str_symbol(c);
-		z_sort = ctx.uninterpreted_sort(func_name);
+		z3::sort z_sort = ctx.uninterpreted_sort(func_name);
+		return std::make_shared < Z3Sort > (z_sort, ctx);
 	} else {
 		throw NotImplementedException(
 				"Z3 does not support uninterpreted type with non-zero arity.");
 	}
 
-	return std::make_shared < Z3Sort > (z_sort, ctx);
+	// return std::make_shared < Z3Sort > (z_sort, ctx);
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const {
