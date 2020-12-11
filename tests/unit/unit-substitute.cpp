@@ -80,6 +80,15 @@ TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)
   EXPECT_EQ(apb, apb_spec);
 }
 
+TEST_P(UnitSubstituteTests, BadSubstitution)
+{
+  Sort diff_bvsort = s->make_sort(BV, bvsort->get_width() + 1);
+  Term newvar = s->make_symbol("newvar", diff_bvsort);
+
+  EXPECT_THROW(SubstitutionWalker(s, { { x, newvar } }),
+               IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitSubstitute,
     UnitSubstituteTests,
