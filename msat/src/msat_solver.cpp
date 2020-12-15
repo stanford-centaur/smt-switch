@@ -1133,27 +1133,40 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
                         static_pointer_cast<MsatTerm>(formulae.at(k))->term);
   }
 
-  msat_result res = msat_solve(env);
+  msat_result msat_res = msat_solve(env);
 
-  if (res == MSAT_SAT)
+  if (msat_res == MSAT_SAT)
   {
     return Result(SAT);
   }
-  else if (res == MSAT_UNKNOWN)
+  else if (msat_res == MSAT_UNKNOWN)
   {
     return Result(UNKNOWN, "Interpolation failure.");
   }
 
-  assert(res == MSAT_UNSAT);
+  assert(msat_res == MSAT_UNSAT);
 
+  Result r = Result(UNSAT);
   for (size_t i = 1; i < itp_groups.size(); ++i)
   {
     msat_term mI = msat_get_interpolant(env, itp_groups.data(), i);
-    out_I.push_back(make_shared<MsatTerm>(env, mI));
+    if (MSAT_ERROR_TERM(mI))
+    {
+      // add a null term -- see solver.h documentation for this function
+      Term nullterm;
+      out_I.push_back(nullterm);
+      r = Result(UNKNOWN,
+                 "Had at least one interpolation failure in "
+                 "get_sequence_interpolants.");
+    }
+    else
+    {
+      out_I.push_back(make_shared<MsatTerm>(env, mI));
+    }
   }
 
   assert(out_I.size() == formulae.size() - 1);
-  return Result(UNSAT);
+  return r;
 }
 
 // end MsatInterpolatingSolver implementation

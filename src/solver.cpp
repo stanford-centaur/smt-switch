@@ -97,6 +97,7 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
   // now do a loop and create an interpolant for each partition
   // NOTE: this is likely much less performant than asking the solver
   //       for a sequence interpolant directly (if supported)
+  bool any_fails = false;
   while (Bvec.size())
   {
     // Note: have to pass the solver (defaults to solver_)
@@ -109,12 +110,12 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
     Result r = get_interpolant(A, B, I);
     if (!r.is_unsat())
     {
-      return r;
+      any_fails = true;
     }
-    else
-    {
-      out_I.push_back(I);
-    }
+    // if unsat then interpolation didn't fail
+    // and interpolant should be non-null
+    assert(!r.is_unsat() || I != nullptr);
+    out_I.push_back(I);
     // move formula to A and remove from Bvec
     // recall they were added to Bvec in reverse order
     A = make_term(And, A, Bvec.back());
@@ -122,8 +123,18 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
   }
 
   assert(out_I.size() == formulae.size() - 1);
-  // created all the interpolants
-  return Result(UNSAT);
+
+  if (any_fails)
+  {
+    return Result(
+        UNKNOWN,
+        "Had at least one interpolation failure in get_sequence_interpolants");
+  }
+  else
+  {
+    // created all the interpolants
+    return Result(UNSAT);
+  }
 }
 
 }  // namespace smt

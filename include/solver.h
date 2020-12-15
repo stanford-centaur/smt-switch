@@ -379,9 +379,12 @@ class AbsSmtSolver
    *  the vector formulae
    * @param formulae the formula terms to get sequence interpolants for
    * @param out_I the vector to store sequence interpolants in
+   *              NOTE out_I can have null terms in it -- see below
    * @return unsat    iff the interpolants were computed,
    *         sat      iff the query was satisfiable,
-   *         unknown  iff interpolation failed
+   *         unknown  iff any step of the interpolation failed
+   *                  in this case, out_I is still populated but any
+   *                  failed steps have null terms
    *
    */
   virtual Result get_sequence_interpolants(const TermVec & formulae,
