@@ -91,7 +91,7 @@ void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
 
 /** \class
  * UnsatcoreReducer class.
- * Implents an interative unsatcore reducer procedure. 
+ * Implements an interative unsatcore reducer procedure. 
  *
  * reducer_solver is the solver that will be used for unsatcore extraction in
  * the procedure. It is different from the ext_solver (external solver used to
@@ -110,10 +110,10 @@ public:
    *  @param output vector for the reduced assumptions
    *  @param output vector for the removed assumptions
    *  @param iter is the number of iterations done in the method. Default is 0,
-   *    and it means that the result in out_red will be minimal.
+   *         and it means that the result in out_red will be minimal.
    *  @param rand_seed if strickly positive then assump will be shuffled.
    *  returns false if the formula conjoined with the assump is satisfiable,
-   *    otherwise returns true
+   *          otherwise returns true
    */
   bool reduce_assump_unsatcore(const smt::Term &formula,
                                const smt::TermVec &assump,
@@ -133,7 +133,7 @@ public:
  private:
   /** returns a label that will be used to precondition the assumption term 't'
    *  @param Input term t
-   *  @return a boolean label for the term t
+   *  return a boolean label for the term t
    */
   smt::Term label(const Term & t);
 
