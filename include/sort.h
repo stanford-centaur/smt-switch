@@ -2,7 +2,7 @@
 /*! \file sort.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Lindsey Stuntz
+**   Makai Mann, Clark Barrett
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.

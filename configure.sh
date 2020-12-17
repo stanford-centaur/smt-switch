@@ -16,12 +16,12 @@ Configures the CMAKE build environment.
 --yices2                build yices2            (default: off)
 --cvc4                  build cvc4              (default: off)
 --msat                  build MathSAT           (default: off)
---z3			build z3		(default: off)
+--z3					build z3				(default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
---z3-home=STR		custom Z3 location 	(default: deps/z3)
+--z3-home=STR			custom Z3 location 		(default: deps/z3)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
@@ -78,9 +78,9 @@ do
         --msat)
             build_msat=ON
             ;;
-	--z3)
-	    build_z3=ON
-	    ;;
+		--z3)
+	   		build_z3=ON
+	    	;;
         --btor-home) die "missing argument to $1 (see -h)" ;;
         --btor-home=*)
             btor_home=${1##*=}
@@ -111,7 +111,7 @@ do
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
             esac
             ;;
-	--z3-home) die "missing argument to $1 (see -h)" ;;
+		--z3-home) die "missing argument to $1 (see -h)" ;;
         --z3-home=*)
             z3_home=${1##*=}
             # Check if z3_home is an absolute path and if not, make it
@@ -119,8 +119,8 @@ do
             case $z3_home in
                 /*) ;;                                      # absolute path
                 *) z3_home=$(pwd)/$z3_home ;; # make absolute path
-	    esac
-	    ;;
+	   		esac
+	    	;;
         --yices2-home) die "missing argument to $1 (see -h)" ;;
         --yices2-home=*)
             yices2_home=${1##*=}

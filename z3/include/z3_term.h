@@ -18,7 +18,6 @@
 
 #include <vector>
 
-//#include "gmp.h"
 #include "term.h"
 #include "utils.h"
 #include "z3++.h"

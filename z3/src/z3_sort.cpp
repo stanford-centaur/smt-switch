@@ -99,7 +99,12 @@ Datatype Z3Sort::get_datatype() const {
 
 bool Z3Sort::compare(const Sort & s) const {
 	std::shared_ptr<Z3Sort> zs = std::static_pointer_cast < Z3Sort > (s);
-	return type.hash() == (zs->type).hash();
+	return hash() == zs->hash();
+//	if (zs->is_function) {
+//		cout << "FUNCTOIN" << endl;
+//		return hash() == (zs->z_func).hash()
+//	}
+//	return hash() == (zs->type).hash();
 }
 
 SortKind Z3Sort::get_sort_kind() const {

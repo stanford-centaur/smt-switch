@@ -16,15 +16,12 @@
 
 #pragma once
 
-// #include <gmp.h>
-// #include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include <z3++.h>
 
-// #include "z3_extensions.h"
 #include "z3_sort.h"
 #include "z3_term.h"
 

@@ -8,7 +8,6 @@
 
 using namespace smt;
 using namespace std;
-//using namespace z3;
 
 int main() {
 	SmtSolver s = Z3SolverFactory::create(false);
@@ -32,7 +31,9 @@ int main() {
 	Sort functionsort = s->make_sort(FUNCTION, SortVec{ boolsort1, intsort, realsort, boolsort1 } );
 	cout << functionsort << endl;
 
-//	cout << functionsort->compare(intsort) << boolsort1->compare(boolsort2) << endl;
+	assert(!functionsort->compare(intsort));
+	assert(!intsort->compare(functionsort));
+	assert(boolsort1->compare(boolsort2));
 
 	cout << "testing done :)" << endl;
 
