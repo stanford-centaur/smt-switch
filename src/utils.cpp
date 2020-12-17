@@ -162,7 +162,7 @@ UnsatCoreReducer::~UnsatCoreReducer()
 {
 }
 
-void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
+bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
                                                const TermVec &assump,
                                                TermVec &out_red,
                                                TermVec *out_rem,
@@ -185,7 +185,7 @@ void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
   Result r = reducer_->check_sat();
   if (r.is_unsat()) {
     reducer_->pop();
-    return;
+    return true;
   }
 
   if (rand_seed > 0) {
@@ -200,9 +200,14 @@ void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
   }
 
   unsigned cur_iter = 0;
+  bool first_iter = true;
   while (cur_iter <= iter) {
     cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
     r = reducer_->check_sat_assuming(bool_assump);
+
+    if (first_iter && r.is_sat())
+      return false;
+
     assert(r.is_unsat());
 
     bool_assump.clear();
@@ -227,6 +232,8 @@ void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
     } else {
       cand_res = tmp_assump;
     }
+
+    first_iter = false;
   }
 
   reducer_->pop();
@@ -235,6 +242,8 @@ void UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
   for (const auto &a : cand_res) {
     out_red.push_back(to_ext_assump.at(a));
   }
+
+  return true;
 }
 
 Term UnsatCoreReducer::label(const Term & t)
