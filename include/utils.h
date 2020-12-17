@@ -112,8 +112,10 @@ public:
    *  @param iter is the number of iterations done in the method. Default is 0,
    *    and it means that the result in out_red will be minimal.
    *  @param rand_seed if strickly positive then assump will be shuffled.
+   *  returns false if the formula conjoined with the assump is satisfiable,
+   *    otherwise returns true
    */
-  void reduce_assump_unsatcore(const smt::Term &formula,
+  bool reduce_assump_unsatcore(const smt::Term &formula,
                                const smt::TermVec &assump,
                                smt::TermVec &out_red,
                                smt::TermVec *out_rem = NULL,
