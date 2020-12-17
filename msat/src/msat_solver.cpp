@@ -1102,7 +1102,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
     }
     else
     {
-      out_I = Term(new MsatTerm(env, itp));
+      out_I = make_shared<MsatTerm>(env, itp);
       return Result(UNSAT);
     }
   }
@@ -1114,6 +1114,59 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
   {
     return Result(UNKNOWN);
   }
+}
+
+Result MsatInterpolatingSolver::get_sequence_interpolants(
+    const TermVec & formulae, TermVec & out_I) const
+{
+  // reset the environment -- each get_sequence_interpolants is it's own
+  // separate call
+  msat_reset_env(env);
+
+  vector<int> itp_groups;
+  for (size_t k = 0; k < formulae.size(); ++k)
+  {
+    int grp = msat_create_itp_group(env);
+    itp_groups.push_back(grp);
+    msat_set_itp_group(env, grp);
+    msat_assert_formula(env,
+                        static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+  }
+
+  msat_result msat_res = msat_solve(env);
+
+  if (msat_res == MSAT_SAT)
+  {
+    return Result(SAT);
+  }
+  else if (msat_res == MSAT_UNKNOWN)
+  {
+    return Result(UNKNOWN, "Interpolation failure.");
+  }
+
+  assert(msat_res == MSAT_UNSAT);
+
+  Result r = Result(UNSAT);
+  for (size_t i = 1; i < itp_groups.size(); ++i)
+  {
+    msat_term mI = msat_get_interpolant(env, itp_groups.data(), i);
+    if (MSAT_ERROR_TERM(mI))
+    {
+      // add a null term -- see solver.h documentation for this function
+      Term nullterm;
+      out_I.push_back(nullterm);
+      r = Result(UNKNOWN,
+                 "Had at least one interpolation failure in "
+                 "get_sequence_interpolants.");
+    }
+    else
+    {
+      out_I.push_back(make_shared<MsatTerm>(env, mI));
+    }
+  }
+
+  assert(out_I.size() == formulae.size() - 1);
+  return r;
 }
 
 // end MsatInterpolatingSolver implementation

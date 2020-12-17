@@ -16,6 +16,7 @@
 
 #include "solver.h"
 
+#include "assert.h"
 #include "exceptions.h"
 
 namespace smt {
@@ -62,6 +63,78 @@ Term AbsSmtSolver::substitute(const Term term,
   }
 
   return cache.at(term);
+}
+
+Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
+                                               TermVec & out_I) const
+{
+  // we'll give a default implementation for sequence interpolants that
+  // does a loop outside the solver
+  // most solvers don't support interpolation, so this will fail with
+  // a NotImplementedException from get_interpolant
+  // for better performance, should specialize sequence_interpolants
+  // in the backend solver implementation (if supported)
+  // this way, the proof doesn't need to be regenerated for each new
+  // interpolant the solver will likely use the same proof and just manipulate
+  // it to get each sequence interpolant
+
+  size_t formulae_size = formulae.size();
+  if (formulae_size < 2)
+  {
+    throw IncorrectUsageException(
+        "Require at least 2 input formulae for sequence interpolation.");
+  }
+
+  Term A = formulae.at(0);
+  TermVec Bvec;
+  Bvec.reserve(formulae_size - 1);
+  // add to Bvec in reverse order so we can pop_back later
+  for (int i = formulae_size - 1; i >= 1; --i)
+  {
+    Bvec.push_back(formulae[i]);
+  }
+
+  // now do a loop and create an interpolant for each partition
+  // NOTE: this is likely much less performant than asking the solver
+  //       for a sequence interpolant directly (if supported)
+  bool any_fails = false;
+  while (Bvec.size())
+  {
+    // Note: have to pass the solver (defaults to solver_)
+    Term B = make_term(true);
+    for (auto tt : Bvec)
+    {
+      B = make_term(And, B, tt);
+    }
+    Term I;
+    Result r = get_interpolant(A, B, I);
+    if (!r.is_unsat())
+    {
+      any_fails = true;
+    }
+    // if unsat then interpolation didn't fail
+    // and interpolant should be non-null
+    assert(!r.is_unsat() || I != nullptr);
+    out_I.push_back(I);
+    // move formula to A and remove from Bvec
+    // recall they were added to Bvec in reverse order
+    A = make_term(And, A, Bvec.back());
+    Bvec.pop_back();
+  }
+
+  assert(out_I.size() == formulae.size() - 1);
+
+  if (any_fails)
+  {
+    return Result(
+        UNKNOWN,
+        "Had at least one interpolation failure in get_sequence_interpolants");
+  }
+  else
+  {
+    // created all the interpolants
+    return Result(UNSAT);
+  }
 }
 
 }  // namespace smt
