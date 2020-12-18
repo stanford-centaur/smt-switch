@@ -112,7 +112,7 @@ class CVC4Solver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party CVC4-specific software
-  const ::CVC4::api::Solver & get_cvc4_solver() const { return solver; };
+  ::CVC4::api::Solver & get_cvc4_solver() { return solver; };
 
  protected:
   ::CVC4::api::Solver solver;

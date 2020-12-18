@@ -165,6 +165,8 @@ class MsatInterpolatingSolver : public MsatSolver
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
+  Result get_sequence_interpolants(const TermVec & formulae,
+                                   TermVec & out_I) const override;
 };
 
 }  // namespace smt

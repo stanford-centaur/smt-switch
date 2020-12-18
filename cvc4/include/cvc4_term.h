@@ -54,10 +54,6 @@ namespace smt {
    bool operator==(const CVC4TermIter & it);
    bool operator!=(const CVC4TermIter & it);
 
-   // getters for solver-specific objects
-   // for interacting with third-party CVC4-specific software
-   ::CVC4::api::Term get_cvc4_term() const { return term; };
-
   protected:
     bool equal(const TermIterBase & other) const override;
 
@@ -86,6 +82,10 @@ namespace smt {
     TermIter begin() override;
     TermIter end() override;
     std::string print_value_as(SortKind sk) override;
+
+    // getters for solver-specific objects
+    // for interacting with third-party CVC4-specific software
+    ::CVC4::api::Term get_cvc4_term() const { return term; };
 
    protected:
     CVC4::api::Term term;
