@@ -65,7 +65,6 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Or, msat_make_or },
       { Xor, ext_msat_make_xor },
       { Implies, ext_msat_make_implies },
-      { Iff, msat_make_iff },
       { Equal, msat_make_eq },
       { Distinct, ext_msat_make_distinct },
       { Plus, msat_make_plus },

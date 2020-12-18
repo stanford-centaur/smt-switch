@@ -60,7 +60,6 @@ cdef extern from "ops.h" namespace "smt":
     cdef c_PrimOp c_Xor "smt::Xor"
     cdef c_PrimOp c_Not "smt::Not"
     cdef c_PrimOp c_Implies "smt::Implies"
-    cdef c_PrimOp c_Iff "smt::Iff"
     cdef c_PrimOp c_Ite "smt::Ite"
     cdef c_PrimOp c_Equal "smt::Equal"
     cdef c_PrimOp c_Distinct "smt::Distinct"

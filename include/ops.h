@@ -32,7 +32,6 @@ enum PrimOp
   Xor,
   Not,
   Implies,
-  Iff,
   Ite,
   Equal,
   Distinct,
