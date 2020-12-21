@@ -78,6 +78,9 @@ TEST_P(UnitSortTests, SameSortDiffObj)
   EXPECT_EQ(bvsort->hash(), bvsort_2->hash());
   EXPECT_EQ(bvsort, bvsort_2);
 
+  Sort bvsort8 = s->make_sort(BV, 8);
+  EXPECT_NE(bvsort, bvsort8);
+
   Sort funsort_2 = s->make_sort(FUNCTION, { bvsort, bvsort_2 });
   EXPECT_EQ(funsort->hash(), funsort_2->hash());
   EXPECT_EQ(funsort, funsort_2);
@@ -196,5 +199,10 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
                          UnitSortTests,
                          testing::ValuesIn(available_solver_configurations()));
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
+                         UnitSortArithTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_REAL })));
 
 }  // namespace smt_tests
