@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Utility functions.
+** \brief SMT-LIB Utility functions.
 **
 **
 **/
