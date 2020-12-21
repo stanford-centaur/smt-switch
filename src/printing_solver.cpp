@@ -17,6 +17,7 @@
 
 #include "printing_solver.h"
 #include "utils.h"
+#include "smtlib_utils.h"
 
 using namespace std;
 
