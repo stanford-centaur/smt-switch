@@ -16,7 +16,7 @@
 
 #pragma once
 
-/* string macros for the SMT-LIB commands */
+/* string constants for the SMT-LIB commands */
 const std::string SET_OPTION_STR = "set-option";
 const std::string SET_LOGIC_STR = "set-logic";
 const std::string DECLARE_FUN_STR = "declare-fun";
