@@ -56,7 +56,7 @@ class GenericSort : public AbsSort
         "get_width not implemented by GenericSort");
   }
 
-  uint64_t get_arity() const override
+  size_t get_arity() const override
   {
     throw NotImplementedException(
         "get_width not implemented by GenericSort");
