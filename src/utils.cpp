@@ -170,16 +170,15 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
                                                unsigned rand_seed)
 {
   TermVec bool_assump, tmp_assump;
-  UnorderedTermMap to_ext_assump;
+  // UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (auto a : assump) {
-    Term t = to_reducer_.transfer_term(a);
+  for (auto t : assump) {
     cand_res.push_back(t);
-    to_ext_assump[t] = a;
+    // to_ext_assump[t] = a;
   }
 
   reducer_->push();
-  reducer_->assert_formula(to_reducer_.transfer_term(formula));
+  reducer_->assert_formula(formula);
 
   // exit if the formula is unsat without assumptions.
   Result r = reducer_->check_sat();
@@ -223,7 +222,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
       } else if (out_rem) {
         // add the removed assumption in the out_rem (after translating to the
         // external solver)
-        out_rem->push_back(to_ext_assump.at(a));
+        out_rem->push_back(a);
       }
     }
 
@@ -240,7 +239,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
   // copy the result
   for (const auto &a : cand_res) {
-    out_red.push_back(to_ext_assump.at(a));
+    out_red.push_back(a);
   }
 
   return true;
