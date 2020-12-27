@@ -32,6 +32,7 @@ size_t GenericSort::hash() const {
 
 string GenericSort::to_string() const {
   return compute_string();
+}
 
 string GenericSort::compute_string() const {
     if (get_sort_kind() == SortKind::ARRAY) {

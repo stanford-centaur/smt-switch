@@ -28,7 +28,7 @@
 // specifically defined macros
 // it cannot be compiled outside of the build
 #include "test-utils.h"
-
+#include "gtest/gtest.h"
 #include "cvc4_factory.h"
 #include "generic_sort.h"
 #include "smt.h"
@@ -38,5 +38,8 @@ using namespace std;
 
 int main()
 {
+  GenericSort s1(INT);
+  GenericSort s2(INT);
+  assert(s1 == s2);
   return 0;
 }
