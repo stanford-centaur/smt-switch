@@ -173,6 +173,11 @@ target_link_libraries(unit-substitute gtest_main)
 target_link_libraries(unit-substitute test-deps)
 add_test(NAME unit-substitute_test COMMAND unit-substitute)
 
+add_executable(unit-term-id "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-id.cpp")
+target_link_libraries(unit-term-id gtest_main)
+target_link_libraries(unit-term-id test-deps)
+add_test(NAME unit-term-id_test COMMAND unit-term-id)
+
 add_executable(unit-reset-assertions "${PROJECT_SOURCE_DIR}/tests/unit/unit-reset-assertions.cpp")
 target_link_libraries(unit-reset-assertions gtest_main)
 target_link_libraries(unit-reset-assertions test-deps)
