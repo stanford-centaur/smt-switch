@@ -28,7 +28,7 @@
 // specifically defined macros
 // it cannot be compiled outside of the build
 #include "test-utils.h"
-
+#include "gtest/gtest.h"
 #include "cvc4_factory.h"
 #include "generic_sort.h"
 #include "smt.h"
@@ -38,5 +38,14 @@ using namespace std;
 
 int main()
 {
+  GenericSort s1(INT);
+  GenericSort s2(INT);
+  std::cout << "testing basic properties of sorts" << std::endl;
+  assert(s1.hash() == s2.hash());
+  assert(s1.to_string() == s2.to_string());
+  assert(s2.to_string() == s1.to_string());
+  assert((s1.get_sort_kind()) == (s2.get_sort_kind()));
+  assert(s1.get_sort_kind() == INT);
+ 
   return 0;
 }
