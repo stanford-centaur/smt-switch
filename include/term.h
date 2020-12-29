@@ -93,8 +93,31 @@ class AbsTerm
   virtual std::string print_value_as(SortKind sk) = 0;
 };
 
-bool operator==(const Term& t1, const Term& t2);
-bool operator!=(const Term & t1, const Term & t2);
+inline bool operator==(const Term & t1, const Term & t2)
+{
+  return t1->compare(t2);
+}
+inline bool operator!=(const Term & t1, const Term & t2)
+{
+  return !t1->compare(t2);
+}
+inline bool operator<(const Term & t1, const Term & t2)
+{
+  return t1->get_id() < t2->get_id();
+}
+inline bool operator>(const Term & t1, const Term & t2)
+{
+  return t1->get_id() > t2->get_id();
+}
+inline bool operator<=(const Term & t1, const Term & t2)
+{
+  return t1->get_id() <= t2->get_id();
+}
+inline bool operator>=(const Term & t1, const Term & t2)
+{
+  return t1->get_id() >= t2->get_id();
+}
+
 std::ostream& operator<<(std::ostream& output, const Term t);
 
 // term iterators
