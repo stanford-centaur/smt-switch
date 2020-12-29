@@ -25,25 +25,36 @@ namespace smt {
 
 /* LoggingTerm */
 
-LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c)
-    : wrapped_term(t), sort(s), op(o), children(c), is_sym(false), is_par(false)
+LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, size_t id)
+    : wrapped_term(t),
+      sort(s),
+      op(o),
+      children(c),
+      is_sym(false),
+      is_par(false),
+      id_(id)
 {
 }
 
-LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, string r, bool is_sym)
+LoggingTerm::LoggingTerm(
+    Term t, Sort s, Op o, TermVec c, string r, bool is_sym, size_t id)
     : wrapped_term(t),
       sort(s),
       op(o),
       children(c),
       repr(r),
       is_sym(is_sym),
-      is_par(!is_sym)
+      is_par(!is_sym),
+      id_(id)
 {
 }
 
 LoggingTerm::~LoggingTerm() {}
 
 // implemented
+
+size_t LoggingTerm::get_id() const { return id_; }
+
 bool LoggingTerm::compare(const Term & t) const
 {
   // This methods compares two LoggingTerms

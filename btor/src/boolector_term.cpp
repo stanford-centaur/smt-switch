@@ -195,8 +195,11 @@ BoolectorTerm::~BoolectorTerm()
   boolector_release(btor, node);
 }
 
-// TODO: check if this is okay -- probably not
+// BoolectorNode * -> id
+
 std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
+
+std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; };
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {

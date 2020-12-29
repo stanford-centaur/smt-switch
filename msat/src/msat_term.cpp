@@ -211,7 +211,9 @@ bool MsatTermIter::equal(const TermIterBase & other) const
 
 // MsatTerm implementation
 
-size_t MsatTerm::hash() const
+size_t MsatTerm::hash() const { return get_id(); }
+
+size_t MsatTerm::get_id() const
 {
   if (!is_uf)
   {
