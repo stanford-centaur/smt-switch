@@ -130,7 +130,7 @@ bool GenericSort::compare(const Sort & s) const
     }
     case DATATYPE:
     {
-      throw NotImplementedException("StatefulSort::compare");
+      throw NotImplementedException("GenericSort::compare");
     }
     case NUM_SORT_KINDS:
     {
@@ -141,7 +141,7 @@ bool GenericSort::compare(const Sort & s) const
     {
       // this code should be unreachable
       throw SmtException(
-          "Hit default case in StatefulSort comparison -- missing a SortCon");
+          "Hit default case in GenericSort comparison -- missing a SortCon");
     }
   }
 }
