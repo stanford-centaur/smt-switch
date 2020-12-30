@@ -151,5 +151,4 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-
 }  // namespace smt_tests
