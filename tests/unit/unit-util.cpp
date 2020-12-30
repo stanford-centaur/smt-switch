@@ -102,8 +102,49 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
   }
 }
 
+TEST_P(UnitUtilTests, Oracles)
+{
+  SolverConfiguration c = GetParam();
+  if (c.is_logging_solver && c.solver_enum != BTOR) {
+    Sort int_sort = s->make_sort(INT);
+    Sort bv_sort = s->make_sort(BV, 4);
+    Term int1 = s->make_symbol("int1", int_sort);
+    Term bv1 = s->make_symbol("bv1", bv_sort);
+    
+    Term term1 = s->make_term(Plus, int1, int1);
+    term1 = s->make_term(Mult, term1, int1);
+    term1 = s->make_term(Lt, term1, int1);
+
+    Term term2 = s->make_term(BVAdd, bv1, bv1);
+    term2 = s->make_term(BVMul, term2, bv1);
+    term2 = s->make_term(BVUlt, term2, bv1);
+
+    Term term = s->make_term(And, term1, term2);
+  
+    UnorderedTermSet expected_symbols, concrete_symbols;
+    expected_symbols.insert(int1);
+    expected_symbols.insert(bv1);
+    get_free_symbolic_consts(term, concrete_symbols);
+  
+    UnorderedOpSet expected_ops, concrete_ops;
+    expected_ops.insert(Op(And));
+    expected_ops.insert(Op(Plus));
+    expected_ops.insert(Op(Mult));
+    expected_ops.insert(Op(Lt));
+    expected_ops.insert(Op(BVAdd));
+    expected_ops.insert(Op(BVMul));
+    expected_ops.insert(Op(BVUlt));
+    get_ops(term, concrete_ops);
+
+    ASSERT_EQ(expected_symbols, concrete_symbols);
+    ASSERT_EQ(expected_ops, concrete_ops);
+  }
+}
+
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+
 
 }  // namespace smt_tests
