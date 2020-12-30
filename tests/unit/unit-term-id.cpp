@@ -60,6 +60,13 @@ TEST_P(UnitTermIdTests, BasicTest)
   EXPECT_NE(x->get_id(), y->get_id());
   EXPECT_NE(x->get_id(), one->get_id());
 
+  Term second_one = s->make_term(1, bvsort);
+  Term two = s->make_term(2, bvsort);
+  EXPECT_EQ(one->get_id(), second_one->get_id());
+  EXPECT_EQ(one, second_one);
+  EXPECT_NE(one->get_id(), two->get_id());
+  EXPECT_NE(one, two);
+
   Term a_and_b = s->make_term(And, a, b);
   EXPECT_NE(b->get_id(), a_and_b->get_id());
 
