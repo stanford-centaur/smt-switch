@@ -105,12 +105,17 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
 TEST_P(UnitUtilTests, Oracles)
 {
   SolverConfiguration c = GetParam();
+  // We only test get_ops and get_free_symbolic_consts
+  // on logging solvers different from BTOR.
+  // We exclude BTOR because we test integers.
+  // We only include logging solvers because otherwise
+  // the operators and symbols might change due to internal rewrites.
   if (c.is_logging_solver && c.solver_enum != BTOR) {
     Sort int_sort = s->make_sort(INT);
     Sort bv_sort = s->make_sort(BV, 4);
     Term int1 = s->make_symbol("int1", int_sort);
     Term bv1 = s->make_symbol("bv1", bv_sort);
-    
+
     Term term1 = s->make_term(Plus, int1, int1);
     term1 = s->make_term(Mult, term1, int1);
     term1 = s->make_term(Lt, term1, int1);
@@ -120,12 +125,12 @@ TEST_P(UnitUtilTests, Oracles)
     term2 = s->make_term(BVUlt, term2, bv1);
 
     Term term = s->make_term(And, term1, term2);
-  
+
     UnorderedTermSet expected_symbols, concrete_symbols;
     expected_symbols.insert(int1);
     expected_symbols.insert(bv1);
     get_free_symbolic_consts(term, concrete_symbols);
-  
+
     UnorderedOpSet expected_ops, concrete_ops;
     expected_ops.insert(Op(And));
     expected_ops.insert(Op(Plus));

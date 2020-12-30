@@ -147,6 +147,7 @@ void get_ops(const smt::Term & term,
     if (visited.find(t) == visited.end()) {
       visited.insert(t);
       Op op = t->get_op();
+      // Only add non-null operators to the set
       if (!op.is_null()) {
         out.insert(t->get_op());
         // add children to queue
