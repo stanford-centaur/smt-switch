@@ -75,6 +75,7 @@ class BoolectorTerm : public AbsTerm
   BoolectorTerm(Btor * b, BoolectorNode * n);
   ~BoolectorTerm();
   std::size_t hash() const override;
+  std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
   Op get_op() const override;
   Sort get_sort() const override;

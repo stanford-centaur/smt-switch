@@ -222,6 +222,8 @@ size_t Yices2Term::hash() const
   return term;
 }
 
+size_t Yices2Term::get_id() const { return term; }
+
 bool Yices2Term::compare(const Term & absterm) const
 {
   shared_ptr<Yices2Term> yterm = std::static_pointer_cast<Yices2Term>(absterm);

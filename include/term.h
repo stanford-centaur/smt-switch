@@ -37,7 +37,10 @@ class AbsTerm
  public:
   AbsTerm(){};
   virtual ~AbsTerm(){};
+  /** Returns a hash for this term */
   virtual std::size_t hash() const = 0;
+  /** Returns a unique id for this term */
+  virtual std::size_t get_id() const = 0;
   /* Should return true iff the terms are identical */
   virtual bool compare(const Term& absterm) const = 0;
   // Term methods
@@ -90,8 +93,31 @@ class AbsTerm
   virtual std::string print_value_as(SortKind sk) = 0;
 };
 
-bool operator==(const Term& t1, const Term& t2);
-bool operator!=(const Term & t1, const Term & t2);
+inline bool operator==(const Term & t1, const Term & t2)
+{
+  return t1->compare(t2);
+}
+inline bool operator!=(const Term & t1, const Term & t2)
+{
+  return !t1->compare(t2);
+}
+inline bool operator<(const Term & t1, const Term & t2)
+{
+  return t1->get_id() < t2->get_id();
+}
+inline bool operator>(const Term & t1, const Term & t2)
+{
+  return t1->get_id() > t2->get_id();
+}
+inline bool operator<=(const Term & t1, const Term & t2)
+{
+  return t1->get_id() <= t2->get_id();
+}
+inline bool operator>=(const Term & t1, const Term & t2)
+{
+  return t1->get_id() >= t2->get_id();
+}
+
 std::ostream& operator<<(std::ostream& output, const Term t);
 
 // term iterators
