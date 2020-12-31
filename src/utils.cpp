@@ -317,7 +317,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
         }
         // std::cout << "unsat, bool_assump size : " << bool_assump.size() << std::endl;
       }
-      assert(bool_assump.size() <= bool_assump_query);
+      assert(bool_assump.size() <= bool_assump_query.size());
       // we don't need to change assump_pos, because the size of
       // bool_assump is reduced by at least one, so in the next round
       // it is another element sitting at this location
