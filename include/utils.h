@@ -121,6 +121,24 @@ public:
                                smt::TermVec *out_rem = NULL,
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
+  
+
+  /** The additional method to reduce the assump (vector of assumptions). The method
+   *  assumes that the conjunction of the formula and assump is unsatisfiable.
+   *  This will iterate through the assump and requires at most size(assump) query
+   *  @param input formula
+   *  @param input vector of assumptions
+   *  @param output vector for the reduced assumptions
+   *  @param output vector for the removed assumptions
+   *  @param iter is the number of iterations done in the method. Default is 0,
+   *         and it means that the result in out_red will be minimal.
+   */
+  bool linear_reduce_assump_unsatcore(
+                               const smt::Term &formula,
+                               const smt::TermVec &assump,
+                               smt::TermVec &out_red,
+                               smt::TermVec *out_rem = NULL,
+                               unsigned iter = 0);
 
   /** This clears the term translation cache. Note, term translator is used to
    *  translate the terms of the external solver to the
