@@ -287,7 +287,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
   }
   assert(r.is_unsat());
   TermVec bool_assump_query;
-  UnorderedTermSet core_set;
+  UnorderedTermSet core_set(bool_assump.begin(), bool_assump.end());
 
   while (cur_iter <= iter && assump_pos < bool_assump.size()) {
     cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
