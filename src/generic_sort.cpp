@@ -22,6 +22,104 @@ using namespace std;
 
 namespace smt {
 
+Sort make_uninterpreted_generic_sort(string name, uint64_t arity)
+{
+  return make_shared<UninterpretedGenericSort>(name, arity);
+}
+
+Sort make_uninterpreted_generic_sort(Sort sort_cons,
+                                     const SortVec & sorts) {
+  return make_shared<UninterpretedGenericSort>(sort_cons, sorts);
+}
+
+
+Sort make_generic_sort(SortKind sk)
+{
+  if (sk != BOOL && sk != INT && sk != REAL)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk));
+  }
+  return make_shared<GenericSort>(sk);
+}
+
+Sort make_generic_sort(SortKind sk, uint64_t width)
+{
+  if (sk != BV)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk)
+                                  + " and " + ::std::to_string(width));
+  }
+  return make_shared<BVGenericSort>(width);
+}
+
+Sort make_generic_sort(SortKind sk, Sort sort1)
+{
+  throw IncorrectUsageException(
+      "No currently supported sort is created with a single sort argument");
+}
+
+Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2)
+{
+  Sort genericsort;
+  if (sk == ARRAY)
+  {
+    genericsort = make_shared<ArrayGenericSort>(sort1, sort2);
+  }
+  else if (sk == FUNCTION)
+  {
+    genericsort =
+        make_shared<FunctionGenericSort>(SortVec{ sort1 }, sort2);
+  }
+  else
+  {
+    throw IncorrectUsageException("Can't make sort from " + to_string(sk) + " "
+                                  + sort1->to_string() + " "
+                                  + sort2->to_string());
+  }
+  return genericsort;
+}
+
+Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3)
+{
+  if (sk == FUNCTION)
+  {
+    return make_shared<FunctionGenericSort>(
+        SortVec{ sort1, sort2 }, sort3);
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "Can't make sort from " + to_string(sk) + " " + sort1->to_string() + " "
+        + sort2->to_string() + " " + sort3->to_string());
+  }
+}
+
+Sort make_generic_sort(SortKind sk, SortVec sorts)
+{
+  if (sk == FUNCTION)
+  {
+    Sort return_sort = sorts.back();
+    sorts.pop_back();
+    return make_shared<FunctionGenericSort>(sorts, return_sort);
+  }
+  else if (sk == ARRAY && sorts.size() == 2)
+  {
+    return make_shared<ArrayGenericSort>(sorts[0], sorts[1]);
+  }
+  else
+  {
+    string msg("Can't make sort from ");
+    msg += to_string(sk);
+    for (auto ss : sorts)
+    {
+      msg += " " + ss->to_string();
+    }
+    throw IncorrectUsageException(msg);
+  }
+}
+
+// implementations
+
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 GenericSort::~GenericSort() {}
@@ -157,5 +255,73 @@ std::string to_smtlib(SortKind sk)
   assert(sortkind2smtlib.find(sk) != sortkind2smtlib.end());
   return sortkind2smtlib.at(sk);
 }
+
+
+BVGenericSort::BVGenericSort(uint64_t width)
+    : GenericSort(BV), width(width)
+{
+}
+
+BVGenericSort::~BVGenericSort() {}
+
+uint64_t BVGenericSort::get_width() const { return width; }
+
+// ArrayGenericSort
+
+ArrayGenericSort::ArrayGenericSort(Sort idxsort, Sort esort)
+    : GenericSort(ARRAY), indexsort(idxsort), elemsort(esort)
+{
+}
+
+ArrayGenericSort::~ArrayGenericSort() {}
+
+Sort ArrayGenericSort::get_indexsort() const { return indexsort; }
+
+Sort ArrayGenericSort::get_elemsort() const { return elemsort; }
+
+// FunctionGenericSort
+
+FunctionGenericSort::FunctionGenericSort(SortVec sorts, Sort rsort)
+    : GenericSort(FUNCTION), domain_sorts(sorts), codomain_sort(rsort)
+{
+}
+
+FunctionGenericSort::~FunctionGenericSort() {}
+
+SortVec FunctionGenericSort::get_domain_sorts() const
+{
+  return domain_sorts;
+}
+
+Sort FunctionGenericSort::get_codomain_sort() const { return codomain_sort; }
+
+// UninterpretedGenericSort
+
+UninterpretedGenericSort::UninterpretedGenericSort(string n, uint64_t a)
+    : GenericSort(a == 0 ? UNINTERPRETED : UNINTERPRETED_CONS), name(n), arity(a)
+{
+}
+
+UninterpretedGenericSort::UninterpretedGenericSort(Sort sort_cons, const SortVec& sorts)
+    : GenericSort(UNINTERPRETED), name(""), arity(0), param_sorts(sorts)
+{
+  assert(sort_cons->get_arity() == sorts.size());
+}
+
+
+UninterpretedGenericSort::~UninterpretedGenericSort() {}
+
+std::string UninterpretedGenericSort::get_uninterpreted_name() const
+{
+  return name;
+}
+
+size_t UninterpretedGenericSort::get_arity() const { return arity; }
+
+SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
+{
+  return param_sorts;
+}
+
 
 }  // namespace smt
