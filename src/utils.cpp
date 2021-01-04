@@ -172,7 +172,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
   TermVec bool_assump, tmp_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (auto a : assump) {
+  for (const auto & a : assump) {
     Term t = to_reducer_.transfer_term(a);
     cand_res.push_back(t);
     to_ext_assump[t] = a;
@@ -193,7 +193,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
             std::default_random_engine(rand_seed));
   }
 
-  for (auto &a : cand_res) {
+  for (const auto & a : cand_res) {
     Term l = label(a);
     reducer_->assert_formula(reducer_->make_term(Implies, l, a));
     bool_assump.push_back(l);
@@ -215,7 +215,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
     UnorderedTermSet core_set;
     reducer_->get_unsat_core(core_set);
-    for (auto a : cand_res) {
+    for (const auto & a : cand_res) {
       Term l = label(a);
       if (core_set.find(l) != core_set.end()) {
         tmp_assump.push_back(a);
@@ -256,7 +256,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
   TermVec bool_assump, tmp_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (auto a : assump) {
+  for (const auto & a : assump) {
     Term t = to_reducer_.transfer_term(a);
     cand_res.push_back(t);
     to_ext_assump[t] = a;
@@ -272,7 +272,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
     return true;
   }
 
-  for (auto &a : cand_res) {
+  for (const auto & a : cand_res) {
     Term l = label(a);
     reducer_->assert_formula(reducer_->make_term(Implies, l, a));
     bool_assump.push_back(l);
@@ -310,7 +310,8 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
         auto bool_assump_pos = bool_assump.begin();
         while(bool_assump_pos != bool_assump.end()) {
           // if not in the unsat core, remove it
-          if ( core_set.find(*bool_assump_pos) == core_set.end() )
+          if ( (bool_assump_pos - bool_assump.begin() == assump_pos) ||
+              core_set.find(*bool_assump_pos) == core_set.end() )
             bool_assump_pos = bool_assump.erase(bool_assump_pos);
           else
             ++ bool_assump_pos;  
