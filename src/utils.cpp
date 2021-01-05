@@ -272,10 +272,12 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
     return true;
   }
 
+  UnorderedTermMap label_to_cand_;
   for (const auto & a : cand_res) {
     Term l = label(a);
     reducer_->assert_formula(reducer_->make_term(Implies, l, a));
     bool_assump.push_back(l);
+    label_to_cand_.emplace(l, a);
   }
 
   unsigned cur_iter = 0;
@@ -287,37 +289,32 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
   }
   assert(r.is_unsat());
   TermVec bool_assump_query;
-  UnorderedTermSet core_set(bool_assump.begin(), bool_assump.end());
 
   while (cur_iter <= iter && assump_pos < bool_assump.size()) {
     cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
     bool_assump_query = bool_assump;
-    // std::cout << "try erasing : #" << assump_pos << std::endl;
     bool_assump_query.erase(bool_assump_query.begin()+assump_pos);
     r = reducer_->check_sat_assuming(bool_assump_query);
     if (r.is_sat()) {
       // we cannot remove this assumption, then try next one
       ++ assump_pos;
-      // std::cout << "sat, update assump_pos ：= " << assump_pos << std::endl;
     } else {
       // we can remove this assumption
       assert(r.is_unsat());
 
-      core_set.clear();
+      UnorderedTermSet core_set;
       reducer_->get_unsat_core(core_set);
-      
       { // remove from bool_assump
         auto bool_assump_pos = bool_assump.begin();
         while(bool_assump_pos != bool_assump.end()) {
           // if not in the unsat core, remove it
-          if ( (bool_assump_pos - bool_assump.begin() == assump_pos) ||
-              core_set.find(*bool_assump_pos) == core_set.end() )
+          if ( core_set.find(*bool_assump_pos) == core_set.end() )
             bool_assump_pos = bool_assump.erase(bool_assump_pos);
           else
             ++ bool_assump_pos;  
         }
-        // std::cout << "unsat, bool_assump size : " << bool_assump.size() << std::endl;
       }
+      assert(!bool_assump.empty());
       assert(bool_assump.size() <= bool_assump_query.size());
       // we don't need to change assump_pos, because the size of
       // bool_assump is reduced by at least one, so in the next round
@@ -326,18 +323,24 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
     // at this point, bool_assump should be the output
   }
 
-  // std::cout << "iteration complete  :  core_set size = " << core_set.size() << std::endl;
-
-  for (auto a : cand_res) {
-    Term l = label(a);
-    if (core_set.find(l) != core_set.end()) {
-      out_red.push_back(to_ext_assump.at(a));
-    } else if (out_rem) {
-      // add the removed assumption in the out_rem (after translating to the
-      // external solver)
-      out_rem->push_back(to_ext_assump.at(a));
-    }
+  for (const auto & l : bool_assump) {
+    const Term & a = label_to_cand_.at(l);
+    out_red.push_back(to_ext_assump.at(a));
   }
+
+  // in the case that we don't need the removed ones
+  // we don't have to iterate through the constraint vector
+  if (out_rem) {
+    UnorderedTermSet remaining_labels(bool_assump.begin(), bool_assump.end());
+    for (const auto & a : cand_res) {
+      Term l = label(a);
+      if (remaining_labels.find(l) == remaining_labels.end()) {
+        // add the removed assumption in the out_rem (after translating to the
+        // external solver)
+        out_rem->push_back(to_ext_assump.at(a));
+      }
+    } // for each in cand_res
+  } // if (out_red)
 
   reducer_->pop();
 
