@@ -205,8 +205,10 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
     cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
     r = reducer_->check_sat_assuming(bool_assump);
 
-    if (first_iter && r.is_sat())
+    if (first_iter && r.is_sat()) {
+      reducer_->pop();
       return false;
+    }
 
     assert(r.is_unsat());
 
