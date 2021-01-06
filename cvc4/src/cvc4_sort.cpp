@@ -38,12 +38,12 @@ uint64_t CVC4Sort::get_width() const { return sort.getBVSize(); }
 
 Sort CVC4Sort::get_indexsort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getArrayIndexSort());
+  return make_my_ptr<CVC4Sort>(sort.getArrayIndexSort());
 }
 
 Sort CVC4Sort::get_elemsort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getArrayElementSort());
+  return make_my_ptr<CVC4Sort>(sort.getArrayElementSort());
 }
 
 SortVec CVC4Sort::get_domain_sorts() const
@@ -62,7 +62,7 @@ SortVec CVC4Sort::get_domain_sorts() const
 
 Sort CVC4Sort::get_codomain_sort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
+  return make_my_ptr<CVC4Sort>(sort.getFunctionCodomainSort());
 }
 
 std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
@@ -94,14 +94,14 @@ SortVec CVC4Sort::get_uninterpreted_param_sorts() const
   SortVec param_sorts;
   for (auto cs : sort.getUninterpretedSortParamSorts())
   {
-    param_sorts.push_back(std::make_shared<CVC4Sort>(cs));
+    param_sorts.push_back(make_my_ptr<CVC4Sort>(cs));
   }
   return param_sorts;
 }
 
 bool CVC4Sort::compare(const Sort & s) const
 {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  my_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
   return sort == cs->sort;
 }
 
@@ -109,7 +109,7 @@ Datatype CVC4Sort::get_datatype() const
 {
   try
   {
-    return std::make_shared<CVC4Datatype>(sort.getDatatype());
+    return make_my_ptr<CVC4Datatype>(sort.getDatatype());
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {

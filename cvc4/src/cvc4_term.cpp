@@ -135,7 +135,7 @@ const Term CVC4TermIter::operator*()
   if (pos == term.getNumChildren()
       && term.getKind() == ::CVC4::api::Kind::CONST_ARRAY)
   {
-    return std::make_shared<CVC4Term>(term.getConstArrayBase());
+    return make_my_ptr<CVC4Term>(term.getConstArrayBase());
   }
   // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
   // smt-switch guarantees that the length is only one by construction
@@ -150,9 +150,9 @@ const Term CVC4TermIter::operator*()
       throw InternalSolverException(
           "Expected exactly one bound variable in CVC4 BOUND_VAR_LIST");
     }
-    return std::make_shared<CVC4Term>(t[0]);
+    return make_my_ptr<CVC4Term>(t[0]);
   }
-  return std::make_shared<CVC4Term>(t);
+  return make_my_ptr<CVC4Term>(t);
 }
 
 TermIterBase * CVC4TermIter::clone() const
@@ -187,8 +187,7 @@ std::size_t CVC4Term::hash() const
 
 bool CVC4Term::compare(const Term & absterm) const
 {
-  std::shared_ptr<CVC4Term> other =
-    std::static_pointer_cast<CVC4Term>(absterm);
+  my_ptr<CVC4Term> other = std::static_pointer_cast<CVC4Term>(absterm);
   return term == other->term;
 }
 
@@ -248,7 +247,7 @@ Op CVC4Term::get_op() const
 
 Sort CVC4Term::get_sort() const
 {
-  return std::make_shared<CVC4Sort> (term.getSort());
+  return make_my_ptr<CVC4Sort>(term.getSort());
 }
 
 bool CVC4Term::is_symbol() const

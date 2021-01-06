@@ -144,7 +144,7 @@ Term CVC4Solver::make_term(bool b) const
 {
   try
   {
-    return std::make_shared<CVC4Term> (solver.mkBoolean(b));
+    return make_my_ptr<CVC4Term>(solver.mkBoolean(b));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -177,7 +177,7 @@ Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
       throw IncorrectUsageException(msg.c_str());
     }
 
-    return std::make_shared<CVC4Term> (c);
+    return make_my_ptr<CVC4Term>(c);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -215,7 +215,7 @@ Term CVC4Solver::make_term(std::string val,
       throw IncorrectUsageException(msg.c_str());
     }
 
-    return std::make_shared<CVC4Term> (c);
+    return make_my_ptr<CVC4Term>(c);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -226,17 +226,17 @@ Term CVC4Solver::make_term(std::string val,
 
 Term CVC4Solver::make_term(const Term & val, const Sort & sort) const
 {
-  std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(val);
-  std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+  my_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(val);
+  my_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
   ::CVC4::api::Term const_arr = solver.mkConstArray(csort->sort, cterm->term);
-  return std::make_shared<CVC4Term> (const_arr);
+  return make_my_ptr<CVC4Term>(const_arr);
 }
 
 void CVC4Solver::assert_formula(const Term & t)
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    my_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
     solver.assertFormula(cterm->term);
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -298,7 +298,7 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
     std::vector<::CVC4::api::Term> cvc4assumps;
     cvc4assumps.reserve(assumptions.size());
 
-    std::shared_ptr<CVC4Term> cterm;
+    my_ptr<CVC4Term> cterm;
     for (auto a : assumptions)
     {
       cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
@@ -355,8 +355,8 @@ Term CVC4Solver::get_value(const Term & t) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
-    return std::make_shared<CVC4Term> (solver.getValue(cterm->term));
+    my_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    return make_my_ptr<CVC4Term>(solver.getValue(cterm->term));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -419,7 +419,7 @@ void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
   {
     for (auto cterm : solver.getUnsatAssumptions())
     {
-      out.insert(std::make_shared<CVC4Term>(cterm));
+      out.insert(make_my_ptr<CVC4Term>(cterm));
     }
   }
   // this function seems to return a different exception type
@@ -439,7 +439,7 @@ Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
       throw NotImplementedException(
           "CVC4 backend does not currently support sort constructors");
     }
-    return std::make_shared<CVC4Sort> (solver.declareSort(name, arity));
+    return make_my_ptr<CVC4Sort>(solver.declareSort(name, arity));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -453,15 +453,15 @@ Sort CVC4Solver::make_sort(SortKind sk) const
   {
     if (sk == BOOL)
     {
-      return std::make_shared<CVC4Sort> (solver.getBooleanSort());
+      return make_my_ptr<CVC4Sort>(solver.getBooleanSort());
     }
     else if (sk == INT)
     {
-      return std::make_shared<CVC4Sort> (solver.getIntegerSort());
+      return make_my_ptr<CVC4Sort>(solver.getIntegerSort());
     }
     else if (sk == REAL)
     {
-      return std::make_shared<CVC4Sort> (solver.getRealSort());
+      return make_my_ptr<CVC4Sort>(solver.getRealSort());
     }
     else
     {
@@ -483,7 +483,7 @@ Sort CVC4Solver::make_sort(SortKind sk, uint64_t size) const
   {
     if (sk == BV)
     {
-      return std::make_shared<CVC4Sort> (solver.mkBitVectorSort(size));
+      return make_my_ptr<CVC4Sort>(solver.mkBitVectorSort(size));
     }
     else
     {
@@ -513,12 +513,10 @@ Sort CVC4Solver::make_sort(SortKind sk,
   {
     if (sk == ARRAY)
     {
-      std::shared_ptr<CVC4Sort> cidxsort =
-          std::static_pointer_cast<CVC4Sort>(sort1);
-      std::shared_ptr<CVC4Sort> celemsort =
-          std::static_pointer_cast<CVC4Sort>(sort2);
-      return std::make_shared<CVC4Sort>
-          (solver.mkArraySort(cidxsort->sort, celemsort->sort));
+      my_ptr<CVC4Sort> cidxsort = std::static_pointer_cast<CVC4Sort>(sort1);
+      my_ptr<CVC4Sort> celemsort = std::static_pointer_cast<CVC4Sort>(sort2);
+      return make_my_ptr<CVC4Sort>(
+          solver.mkArraySort(cidxsort->sort, celemsort->sort));
     }
     else
     {
@@ -570,7 +568,7 @@ Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
       csort = std::static_pointer_cast<CVC4Sort>(sorts.back())->sort;
       ::CVC4::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
-      return std::make_shared<CVC4Sort> (cfunsort);
+      return make_my_ptr<CVC4Sort>(cfunsort);
     }
     else if (sorts.size() == 1)
     {
@@ -617,7 +615,7 @@ Sort CVC4Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
     csorts.push_back(csort);
   }
 
-  return std::make_shared<CVC4Sort>(csort_con.instantiate(csorts));
+  return make_my_ptr<CVC4Sort>(csort_con.instantiate(csorts));
 }
 
 Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
@@ -631,9 +629,9 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 
   try
   {
-    std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+    my_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
-    Term res = std::make_shared<::smt::CVC4Term> (t);
+    Term res = make_my_ptr<::smt::CVC4Term>(t);
     symbols[name] = res;
     return res;
   }
@@ -647,9 +645,9 @@ Term CVC4Solver::make_param(const std::string name, const Sort & sort)
 {
   try
   {
-    std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
+    my_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkVar(csort->sort, name);
-    return std::make_shared<::smt::CVC4Term>(t);
+    return make_my_ptr<::smt::CVC4Term>(t);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -661,16 +659,16 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
+    my_ptr<CVC4Term> cterm = std::static_pointer_cast<CVC4Term>(t);
     if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op), cterm->term));
+      return make_my_ptr<CVC4Term>(
+          solver.mkTerm(primop2kind.at(op.prim_op), cterm->term));
     }
     else
     {
       ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
-      return std::make_shared<CVC4Term> (solver.mkTerm(cvc4_op, cterm->term));
+      return make_my_ptr<CVC4Term>(solver.mkTerm(cvc4_op, cterm->term));
     }
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -688,9 +686,9 @@ Sort CVC4Solver::make_sort(const DatatypeDecl & d) const
 {
   try
   {
-    std::shared_ptr<CVC4DatatypeDecl> cd = std::static_pointer_cast<CVC4DatatypeDecl>(d);
+    my_ptr<CVC4DatatypeDecl> cd = std::static_pointer_cast<CVC4DatatypeDecl>(d);
 
-  return std::make_shared<CVC4Sort> (solver.mkDatatypeSort(cd->datatypedecl));
+    return make_my_ptr<CVC4Sort>(solver.mkDatatypeSort(cd->datatypedecl));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -702,7 +700,7 @@ DatatypeDecl CVC4Solver::make_datatype_decl(const std::string & s)
 {
   try
   {
-  return std::make_shared<CVC4DatatypeDecl> (solver.mkDatatypeDecl(s));
+    return make_my_ptr<CVC4DatatypeDecl>(solver.mkDatatypeDecl(s));
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -715,7 +713,7 @@ DatatypeConstructorDecl CVC4Solver::make_datatype_constructor_decl(
 {
   try
   {
-    return std::make_shared<CVC4DatatypeConstructorDecl>(
+    return make_my_ptr<CVC4DatatypeConstructorDecl>(
         solver.mkDatatypeConstructorDecl(s));
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -728,8 +726,10 @@ void CVC4Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDec
 {
   try
   {
-    std::shared_ptr<CVC4DatatypeDecl> cdt = std::static_pointer_cast<CVC4DatatypeDecl>(dt);
-    std::shared_ptr<CVC4DatatypeConstructorDecl> ccon = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(con);
+    my_ptr<CVC4DatatypeDecl> cdt =
+        std::static_pointer_cast<CVC4DatatypeDecl>(dt);
+    my_ptr<CVC4DatatypeConstructorDecl> ccon =
+        std::static_pointer_cast<CVC4DatatypeConstructorDecl>(con);
     cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -742,8 +742,9 @@ void CVC4Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & 
 {
   try
   {
-    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
-    std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+    my_ptr<CVC4DatatypeConstructorDecl> cdt =
+        std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
+    my_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
     cdt->datatypeconstructordecl.addSelector(name,cs->sort);
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -757,7 +758,8 @@ void CVC4Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::stri
 {
   try
   {
-    std::shared_ptr<CVC4DatatypeConstructorDecl> cdt = std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
+    my_ptr<CVC4DatatypeConstructorDecl> cdt =
+        std::static_pointer_cast<CVC4DatatypeConstructorDecl>(dt);
     cdt->datatypeconstructordecl.addSelectorSelf(name);
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -770,12 +772,15 @@ Term CVC4Solver::get_constructor(const Sort & s, std::string name) const
 {
   try
   {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName()==name){
-      return std::make_shared<CVC4Term> (ct.getConstructorTerm());}
+    my_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+    CVC4::api::Datatype dt = cs->sort.getDatatype();
+    for (int i = 0; i != dt.getNumConstructors(); i++)
+    {
+      CVC4::api::DatatypeConstructor ct = dt[i];
+      if (ct.getName() == name)
+      {
+        return make_my_ptr<CVC4Term>(ct.getConstructorTerm());
+      }
   }
   throw InternalSolverException(name+" not found in "+cs->sort.toString());
   } catch (::CVC4::api::CVC4ApiException & e)
@@ -789,12 +794,15 @@ Term CVC4Solver::get_tester(const Sort & s, std::string name) const
 {
   try
   {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName() == name){
-      return std::make_shared<CVC4Term> (ct.getTesterTerm());}
+    my_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+    CVC4::api::Datatype dt = cs->sort.getDatatype();
+    for (int i = 0; i != dt.getNumConstructors(); i++)
+    {
+      CVC4::api::DatatypeConstructor ct = dt[i];
+      if (ct.getName() == name)
+      {
+        return make_my_ptr<CVC4Term>(ct.getTesterTerm());
+      }
   }
   throw InternalSolverException(name+" not found in "+cs->sort.toString());
   } catch (::CVC4::api::CVC4ApiException & e)
@@ -807,12 +815,15 @@ Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name)
 {
  try
   {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
-  CVC4::api::Datatype dt = cs->sort.getDatatype();
-  for (int i=0; i!=dt.getNumConstructors();i++) {
-    CVC4::api::DatatypeConstructor ct=dt[i];
-    if (ct.getName() == con){
-      return std::make_shared<CVC4Term> (ct.getSelectorTerm(name));}
+    my_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+    CVC4::api::Datatype dt = cs->sort.getDatatype();
+    for (int i = 0; i != dt.getNumConstructors(); i++)
+    {
+      CVC4::api::DatatypeConstructor ct = dt[i];
+      if (ct.getName() == con)
+      {
+        return make_my_ptr<CVC4Term>(ct.getSelectorTerm(name));
+      }
   }
   throw InternalSolverException(con+"."+name+" not found in "+cs->sort.toString());
   } catch (::CVC4::api::CVC4ApiException & e)
@@ -825,27 +836,25 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+    my_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+    my_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
       ::CVC4::api::Term bound_vars =
           solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterm0->term);
-      return std::make_shared<CVC4Term>(
+      return make_my_ptr<CVC4Term>(
           solver.mkTerm(primop2kind.at(op.prim_op), bound_vars, cterm1->term));
     }
     else if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op),
-                         cterm0->term,
-                         cterm1->term));
+      return make_my_ptr<CVC4Term>(solver.mkTerm(
+          primop2kind.at(op.prim_op), cterm0->term, cterm1->term));
     }
   else
     {
       ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(cvc4_op, cterm0->term, cterm1->term));
+      return make_my_ptr<CVC4Term>(
+          solver.mkTerm(cvc4_op, cterm0->term, cterm1->term));
     }
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -861,22 +870,21 @@ Term CVC4Solver::make_term(Op op,
 {
   try
   {
-    std::shared_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
-    std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
-    std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
+    my_ptr<CVC4Term> cterm0 = std::static_pointer_cast<CVC4Term>(t0);
+    my_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
+    my_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
     if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op),
-                         cterm0->term,
-                         cterm1->term,
-                         cterm2->term));
+      return make_my_ptr<CVC4Term>(solver.mkTerm(primop2kind.at(op.prim_op),
+                                                 cterm0->term,
+                                                 cterm1->term,
+                                                 cterm2->term));
     }
     else
     {
       ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(cvc4_op, cterm0->term, cterm1->term, cterm2->term));
+      return make_my_ptr<CVC4Term>(
+          solver.mkTerm(cvc4_op, cterm0->term, cterm1->term, cterm2->term));
     }
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -897,7 +905,7 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
   {
     std::vector<::CVC4::api::Term> cterms;
     cterms.reserve(terms.size());
-    std::shared_ptr<CVC4Term> cterm;
+    my_ptr<CVC4Term> cterm;
     for (auto t : terms)
     {
       cterm = std::static_pointer_cast<CVC4Term>(t);
@@ -915,18 +923,18 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
       cterms.pop_back();
       ::CVC4::api::Term bound_vars =
           solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms);
-      return std::make_shared<CVC4Term>(solver.mkTerm(
+      return make_my_ptr<CVC4Term>(solver.mkTerm(
           primop2kind.at(op.prim_op), bound_vars, quantified_body));
     }
     else if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op), cterms));
+      return make_my_ptr<CVC4Term>(
+          solver.mkTerm(primop2kind.at(op.prim_op), cterms));
     }
     else
     {
       ::CVC4::api::Op cvc4_op = make_cvc4_op(op);
-      return std::make_shared<CVC4Term> (solver.mkTerm(cvc4_op, cterms));
+      return make_my_ptr<CVC4Term>(solver.mkTerm(cvc4_op, cterms));
     }
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -997,8 +1005,8 @@ Result CVC4InterpolatingSolver::get_interpolant(const Term & A,
   {
     throw IncorrectUsageException("get_interpolant requires two boolean terms");
   }
-  std::shared_ptr<CVC4Term> cA = std::static_pointer_cast<CVC4Term>(A);
-  std::shared_ptr<CVC4Term> cB = std::static_pointer_cast<CVC4Term>(make_term(Not, B));
+  my_ptr<CVC4Term> cA = std::static_pointer_cast<CVC4Term>(A);
+  my_ptr<CVC4Term> cB = std::static_pointer_cast<CVC4Term>(make_term(Not, B));
   solver.assertFormula(cA->term);
   CVC4::api::Term I;
   bool success = solver.getInterpolant(cB->term, I);

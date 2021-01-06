@@ -35,13 +35,13 @@ using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 
 // Datatype theory related
 class AbsDatatypeDecl;
-using DatatypeDecl = std::shared_ptr<AbsDatatypeDecl>;
+using DatatypeDecl = my_ptr<AbsDatatypeDecl>;
 
 class AbsDatatypeConstructorDecl;
-using DatatypeConstructorDecl = std::shared_ptr<AbsDatatypeConstructorDecl>;
+using DatatypeConstructorDecl = my_ptr<AbsDatatypeConstructorDecl>;
 
 class AbsDatatype;
-using Datatype = std::shared_ptr<AbsDatatype>;
+using Datatype = my_ptr<AbsDatatype>;
 
 template <typename _Tp, typename... _Args>
 inline my_ptr<_Tp> make_my_ptr(_Args &&... __args)
