@@ -46,6 +46,8 @@ class MsatSolver : public AbsSmtSolver
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
   MsatSolver() : AbsSmtSolver(MSAT), logic(""){};
+  MsatSolver(msat_config c, msat_env e)
+      : AbsSmtSolver(MSAT), cfg(c), env(e), valid_model("false"), logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -143,6 +145,12 @@ class MsatInterpolatingSolver : public MsatSolver
 {
  public:
   MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
+  MsatInterpolatingSolver(msat_config c, msat_env e)
+  {
+    cfg = c;
+    env = e;
+    solver_enum = MSAT_INTERPOLATOR;
+  };
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}

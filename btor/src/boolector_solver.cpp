@@ -43,7 +43,6 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
       { Or, boolector_or },
       { Xor, boolector_xor },
       { Implies, boolector_implies },
-      { Iff, boolector_iff },
       { Equal, boolector_eq },
       { Distinct, boolector_ne },
       { Concat, boolector_concat },

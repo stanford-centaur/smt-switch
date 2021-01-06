@@ -185,6 +185,8 @@ std::size_t CVC4Term::hash() const
   return termhash(term);
 }
 
+std::size_t CVC4Term::get_id() const { return term.getId(); }
+
 bool CVC4Term::compare(const Term & absterm) const
 {
   my_ptr<CVC4Term> other = std::static_pointer_cast<CVC4Term>(absterm);

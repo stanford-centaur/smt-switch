@@ -86,6 +86,8 @@ void get_free_symbolic_consts(const smt::Term & term,
 
 void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
 
+void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
+
 
 // -----------------------------------------------------------------------------
 

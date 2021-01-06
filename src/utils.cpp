@@ -134,6 +134,32 @@ void get_matching_terms(const smt::Term & term,
   }
 }
 
+void get_ops(const smt::Term & term,
+                    smt::UnorderedOpSet & out)
+{
+  smt::TermVec to_visit({ term });
+  smt::UnorderedTermSet visited;
+
+  smt::Term t;
+  while (to_visit.size()) {
+    t = to_visit.back();
+    to_visit.pop_back();
+    if (visited.find(t) == visited.end()) {
+      visited.insert(t);
+      Op op = t->get_op();
+      // Only add non-null operators to the set
+      if (!op.is_null()) {
+        out.insert(t->get_op());
+        // add children to queue
+        for (auto tt : t) {
+          to_visit.push_back(tt);
+        }
+      }
+    }
+  }
+}
+
+
 void get_free_symbolic_consts(const smt::Term & term,
                               smt::UnorderedTermSet & out)
 {

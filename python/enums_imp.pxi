@@ -238,10 +238,6 @@ cdef PrimOp Implies = PrimOp()
 Implies.po = c_Implies
 setattr(primops, 'Implies', Implies)
 
-cdef PrimOp Iff = PrimOp()
-Iff.po = c_Iff
-setattr(primops, 'Iff', Iff)
-
 cdef PrimOp Ite = PrimOp()
 Ite.po = c_Ite
 setattr(primops, 'Ite', Ite)

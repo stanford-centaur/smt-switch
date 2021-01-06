@@ -195,8 +195,11 @@ BoolectorTerm::~BoolectorTerm()
   boolector_release(btor, node);
 }
 
-// TODO: check if this is okay -- probably not
+// BoolectorNode * -> id
+
 std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
+
+std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; };
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {
@@ -225,44 +228,61 @@ Sort BoolectorTerm::get_sort() const
 {
   Sort sort;
   BoolectorSort s = boolector_get_sort(btor, node);
+  // increment reference counter for the sort
+  boolector_copy_sort(btor, s);
   if (boolector_is_bitvec_sort(btor, s))
   {
-    uint64_t width = boolector_get_width(btor, node);
-    // increment reference counter for the sort
-    boolector_copy_sort(btor, s);
-    sort = make_my_ptr<BoolectorBVSort>(btor, s, width);
+    uint64_t width = boolector_bitvec_sort_get_width(btor, s);
+    sort = std::make_shared<BoolectorBVSort>(btor, s, width);
   }
   else if (boolector_is_array_sort(btor, s))
   {
     uint64_t idxwidth = boolector_get_index_width(btor, node);
     uint64_t elemwidth = boolector_get_width(btor, node);
     // Note: Boolector does not support multidimensional arrays
-    my_ptr<BoolectorSortBase> idxsort = make_my_ptr<BoolectorBVSort>(
-        btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
-    my_ptr<BoolectorSortBase> elemsort = make_my_ptr<BoolectorBVSort>(
-        btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
-    // increment reference counter for the sort
-    boolector_copy_sort(btor, s);
-    sort = make_my_ptr<BoolectorArraySort>(btor, s, idxsort, elemsort);
+    std::shared_ptr<BoolectorSortBase> idxsort =
+        std::make_shared<BoolectorBVSort>(
+            btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
+    std::shared_ptr<BoolectorSortBase> elemsort =
+        std::make_shared<BoolectorBVSort>(
+            btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
+    sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
   }
-  // FIXME : combine all sorts into one class -- easier that way
-  // else if(boolector_is_fun_sort(btor, s))
-  // {
-  //   // FIXME: what if the arity is not one -- no way to get the domain sorts
-  //   in current boolector api if (boolector_get_fun_arity(btor, node) != 1)
-  //   {
-  //     throw NotImplementedException("Boolector does not support getting
-  //     multiple domain sorts yet.");
-  //   }
-  //   Sort ds = boolector_fun_get_domain_sort(btor, node);
-  //   Sort cds = boolector_fun_get_codomain_sort(btor, node);
-  //   sort = make_my_ptr<BoolectorUFSort>(btor, s,
-  //   std::vector<BoolectorSort>{ds}, cds);
-  // }
+  else if (boolector_is_fun_sort(btor, s))
+  {
+    BoolectorSort bcds = boolector_fun_get_codomain_sort(btor, node);
+    assert(
+        boolector_is_bitvec_sort(btor, bcds));  // no other options in boolector
+    uint64_t bcds_width = boolector_bitvec_sort_get_width(btor, bcds);
+    // increment reference counter for the sort
+    boolector_copy_sort(btor, bcds);
+    Sort cds = std::make_shared<BoolectorBVSort>(btor, bcds, bcds_width);
+
+    // boolector has no way of getting domain sorts when arity is not 1
+    // it will return a TupleSort but there's no way to unpack them
+    if (boolector_get_fun_arity(btor, node) == 1)
+    {
+      BoolectorSort bds = boolector_fun_get_domain_sort(btor, node);
+      assert(boolector_is_bitvec_sort(btor, bds));
+      uint64_t bds_width = boolector_bitvec_sort_get_width(btor, bds);
+      // increment reference counter for the sort
+      boolector_copy_sort(btor, bds);
+      Sort ds = std::make_shared<BoolectorBVSort>(btor, bds, bds_width);
+      sort = std::make_shared<BoolectorUFSort>(btor, s, SortVec{ ds }, cds);
+    }
+    else
+    {
+      // constructor will mark this sort incomplete so it knows that it can't
+      // return the domain sorts
+      sort = std::make_shared<BoolectorUFSort>(btor, s, cds);
+    }
+  }
   else
   {
-    Unreachable();
+    throw SmtException("Failed to translate boolector sort to smt-switch sort");
   }
+
+  assert(sort);
   return sort;
 }
 
