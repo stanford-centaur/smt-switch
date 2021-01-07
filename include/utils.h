@@ -126,12 +126,16 @@ public:
   /** The additional method to reduce the assump (vector of assumptions). The method
    *  assumes that the conjunction of the formula and assump is unsatisfiable.
    *  This will iterate through the assump and requires at most size(assump) query
+   *  Note: this function assumes that there are no duplicate assumptions from the
+   *  second input vector.
    *  @param input formula
    *  @param input vector of assumptions
    *  @param output vector for the reduced assumptions
    *  @param output vector for the removed assumptions
    *  @param iter is the number of iterations done in the method. Default is 0,
    *         and it means that the result in out_red will be minimal.
+   *  returns false if the formula conjoined with the assump is satisfiable,
+   *          otherwise returns true
    */
   bool linear_reduce_assump_unsatcore(
                                const smt::Term &formula,

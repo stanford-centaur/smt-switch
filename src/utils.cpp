@@ -169,7 +169,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
                                                unsigned iter,
                                                unsigned rand_seed)
 {
-  TermVec bool_assump, tmp_assump;
+  TermVec bool_assump, local_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
   for (const auto & a : assump) {
@@ -213,14 +213,14 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
     assert(r.is_unsat());
 
     bool_assump.clear();
-    tmp_assump.clear();
+    local_assump.clear();
 
     UnorderedTermSet core_set;
     reducer_->get_unsat_core(core_set);
     for (const auto & a : cand_res) {
       Term l = label(a);
       if (core_set.find(l) != core_set.end()) {
-        tmp_assump.push_back(a);
+        local_assump.push_back(a);
         bool_assump.push_back(l);
       } else if (out_rem) {
         // add the removed assumption in the out_rem (after translating to the
@@ -229,10 +229,10 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
       }
     }
 
-    if (tmp_assump.size() == cand_res.size()) {
+    if (local_assump.size() == cand_res.size()) {
       break;
     } else {
-      cand_res = tmp_assump;
+      cand_res = local_assump;
     }
 
     first_iter = false;
@@ -255,7 +255,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
                               smt::TermVec *out_rem,
                               unsigned iter)
 {
-  TermVec bool_assump, tmp_assump;
+  TermVec bool_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
   for (const auto & a : assump) {
@@ -283,45 +283,52 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
   }
 
   unsigned cur_iter = 0;
-  unsigned assump_pos = 0;
+  size_t assump_pos_for_removal = 0;
   r = reducer_->check_sat_assuming(bool_assump);
   if (r.is_sat()) {
     reducer_->pop();
     return false;
   }
   assert(r.is_unsat());
-  TermVec bool_assump_query;
 
-  while (cur_iter <= iter && assump_pos < bool_assump.size()) {
+  while (cur_iter <= iter && assump_pos_for_removal < bool_assump.size()) {
     cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
-    bool_assump_query = bool_assump;
-    bool_assump_query.erase(bool_assump_query.begin()+assump_pos);
-    r = reducer_->check_sat_assuming(bool_assump_query);
+
+    TermVec bool_assump_for_query;
+    bool_assump_for_query.reserve(bool_assump.size()-1);
+    for (size_t idx = 0; idx < bool_assump.size(); ++ idx) {
+      if (idx != assump_pos_for_removal)
+        bool_assump_for_query.push_back(bool_assump.at(idx));
+    }
+
+    r = reducer_->check_sat_assuming(bool_assump_for_query);
     if (r.is_sat()) {
       // we cannot remove this assumption, then try next one
-      ++ assump_pos;
+      ++ assump_pos_for_removal;
     } else {
       // we can remove this assumption
       assert(r.is_unsat());
 
+      // the reason of using unsat core rather than the removal
+      // of bool_assump[bool_assump_for_query] is because
+      // the core could be even smaller
       UnorderedTermSet core_set;
       reducer_->get_unsat_core(core_set);
-      { // remove from bool_assump
-        auto bool_assump_pos = bool_assump.begin();
-        while(bool_assump_pos != bool_assump.end()) {
-          // if not in the unsat core, remove it
-          if ( core_set.find(*bool_assump_pos) == core_set.end() )
-            bool_assump_pos = bool_assump.erase(bool_assump_pos);
-          else
-            ++ bool_assump_pos;  
+      { // remove those not in core_set from bool_assump
+        TermVec new_bool_assump;
+        new_bool_assump.reserve(core_set.size());
+        for (const auto & l : bool_assump) {
+          if (core_set.find(l) != core_set.end())
+            new_bool_assump.push_back(l);
         }
+        bool_assump.swap(new_bool_assump); // do "bool_assump = new_bool_assump" w.o. copy
       }
       assert(!bool_assump.empty());
-      assert(bool_assump.size() <= bool_assump_query.size());
-      // we don't need to change assump_pos, because the size of
+      assert(bool_assump.size() <= bool_assump_for_query.size());
+      // we don't need to change assump_pos_for_removal, because the size of
       // bool_assump is reduced by at least one, so in the next round
       // it is another element sitting at this location
-    } // end of else if (unsat)
+    } // end of the unsat case
     // at this point, bool_assump should be the output
   }
 
