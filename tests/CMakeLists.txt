@@ -138,6 +138,11 @@ target_link_libraries(test_logging_solver gtest_main)
 target_link_libraries(test_logging_solver test-deps)
 add_test(NAME test_logging_solver_test COMMAND test_logging_solver)
 
+add_executable(test_generic_term "${PROJECT_SOURCE_DIR}/tests/test-generic-term.cpp")
+target_link_libraries(test_generic_term gtest_main)
+target_link_libraries(test_generic_term test-deps)
+add_test(NAME test_generic_term_test COMMAND test_generic_term)
+
 add_executable(test_generic_sort "${PROJECT_SOURCE_DIR}/tests/test-generic-sort.cpp")
 target_link_libraries(test_generic_sort gtest_main)
 target_link_libraries(test_generic_sort test-deps)
