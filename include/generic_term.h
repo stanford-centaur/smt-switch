@@ -47,7 +47,6 @@ class GenericTerm : public AbsTerm
   Sort get_sort() const override;
   std::size_t get_id() const override;
   std::string to_string() override;
-  std::string compute_string() const;
   std::size_t hash() const override;
   bool is_value() const override;
   uint64_t to_int() const override;
@@ -66,6 +65,7 @@ class GenericTerm : public AbsTerm
    * (does not have free variables)
    */
   bool compute_ground();
+  std::string compute_string() const;
 
   // true iff this is a ground term
   bool ground;
