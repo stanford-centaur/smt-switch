@@ -52,6 +52,16 @@ inline void Log(std::string msg)
 
 namespace smt {
 
+/** returns true iff l is a literal
+ *  e.g. either a boolean symbolic constant or its negation
+ *  NOTE will return false for nested negations, i.e. (not (not (not l)))
+ *  @param l the term to check
+ *  @param boolsort a boolean sort from the corresponding solver
+ *         this way sort aliasing solvers are still supported
+ *  @return true iff l is a literal
+ */
+bool is_lit(const Term & l, const Sort & boolsort);
+
 // term helper methods
 void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
 
@@ -93,7 +103,7 @@ void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
 
 /** \class
  * UnsatcoreReducer class.
- * Implements an interative unsatcore reducer procedure. 
+ * Implements an interative unsatcore reducer procedure.
  *
  * reducer_solver is the solver that will be used for unsatcore extraction in
  * the procedure. It is different from the ext_solver (external solver used to
@@ -113,17 +123,16 @@ public:
    *  @param output vector for the removed assumptions
    *  @param iter is the number of iterations done in the method. Default is 0,
    *         and it means that the result in out_red will be minimal.
-   *  @param rand_seed if strickly positive then assump will be shuffled.
+   *  @param rand_seed if strictly positive then assump will be shuffled.
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
    */
-  bool reduce_assump_unsatcore(const smt::Term &formula,
-                               const smt::TermVec &assump,
-                               smt::TermVec &out_red,
-                               smt::TermVec *out_rem = NULL,
+  bool reduce_assump_unsatcore(const Term & formula,
+                               const TermVec & assump,
+                               TermVec & out_red,
+                               TermVec * out_rem = NULL,
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
-  
 
   /** The additional method to reduce the assump (vector of assumptions). The method
    *  assumes that the conjunction of the formula and assump is unsatisfiable.
@@ -139,12 +148,11 @@ public:
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
    */
-  bool linear_reduce_assump_unsatcore(
-                               const smt::Term &formula,
-                               const smt::TermVec &assump,
-                               smt::TermVec &out_red,
-                               smt::TermVec *out_rem = NULL,
-                               unsigned iter = 0);
+  bool linear_reduce_assump_unsatcore(const Term & formula,
+                                      const TermVec & assump,
+                                      TermVec & out_red,
+                                      TermVec * out_rem = NULL,
+                                      unsigned iter = 0);
 
   /** This clears the term translation cache. Note, term translator is used to
    *  translate the terms of the external solver to the
@@ -154,18 +162,56 @@ public:
    */
   void clear_term_translation_cache() { to_reducer_.get_cache().clear(); };
 
+  /** Assume l -> f at the base context level
+   *  will use l as label for f from now on
+   *  @param l a boolean literal label
+   *  @param f a boolean formula
+   */
+  void assume_label(const Term & l, const Term & f)
+  {
+    // TODO move to src
+    // TODO just use label to always map to a fresh label instead of this
+    //      complicated case checking
+    // special-case for sort-aliasing solvers
+    const Sort & sort = l->get_sort();
+    SortKind sk = sort->get_sort_kind();
+    if (sk != BOOL && sk == BV
+        && to_reducer_.get_cache().find(l) == to_reducer_.get_cache().end())
+    {
+      if (sort->get_width() != 1)
+      {
+        throw IncorrectUsageException("Cannot use sort " + sort->to_string()
+                                      + " as label.");
+      }
+      // make sure this is a boolean symbol
+      to_reducer_.get_cache()[l] =
+          reducer_->make_symbol(l->to_string(), boolsort_);
+    }
+
+    Term reducer_l = to_reducer_.transfer_term(l, BOOL);
+    Term reducer_f = to_reducer_.transfer_term(f, BOOL);
+    reducer_->assert_formula(
+        reducer_->make_term(Implies, reducer_l, reducer_f));
+
+    labels_[reducer_f] = reducer_l;
+  }
+
+  void reset_assertions() { reducer_->reset_assertions(); }
+
  private:
   /** returns a label that will be used to precondition the assumption term 't'
    *  @param Input term t
    *  return a boolean label for the term t
    */
-  smt::Term label(const Term & t);
+  Term label(const Term & t);
 
-  smt::SmtSolver reducer_; // solver for unsatcore-based reduction
-  smt::TermTranslator to_reducer_; // translator for converting terms from
-                                   // ext_solver to reducer_
+  SmtSolver reducer_;          // solver for unsatcore-based reduction
+  TermTranslator to_reducer_;  // translator for converting terms from
+                               // ext_solver to reducer_
 
-  smt::UnorderedTermMap labels_;  //< labels for unsat cores
+  UnorderedTermMap labels_;  //< labels for unsat cores
+
+  Sort boolsort_;
 };
 
 // -----------------------------------------------------------------------------

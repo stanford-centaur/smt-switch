@@ -22,6 +22,30 @@
 
 namespace smt {
 
+bool is_lit(const Term & l, const Sort & boolsort)
+{
+  // take a boolsort as an argument for sort aliasing solvers
+  if (l->get_sort() != boolsort)
+  {
+    return false;
+  }
+
+  if (l->is_symbolic_const())
+  {
+    return true;
+  }
+
+  Op op = l->get_op();
+  // check both for sort aliasing solvers
+  if (op == Not || op == BVNot)
+  {
+    Term first_child = *(l->begin());
+    return first_child->is_symbolic_const();
+  }
+
+  return false;
+}
+
 void op_partition(smt::PrimOp o,
                   const smt::Term &term, smt::TermVec &out)
 {
@@ -177,8 +201,9 @@ void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
 
 UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
 
-  : reducer_(reducer_solver),
-    to_reducer_(reducer_solver)
+    : reducer_(reducer_solver),
+      to_reducer_(reducer_solver),
+      boolsort_(reducer_->make_sort(BOOL))
 {
   reducer_->set_opt("produce-unsat-cores", "true");
   reducer_->set_opt("incremental", "true");
@@ -389,23 +414,37 @@ Term UnsatCoreReducer::label(const Term & t)
     return labels_.at(t);
   }
 
-  unsigned i = 0;
   Term l;
-  while (true) {
-    try {
-      l = reducer_->make_symbol(
-          "assump_" + std::to_string(t->hash()) + "_" + std::to_string(i),
-          reducer_->make_sort(BOOL));
-      break;
-    }
-    catch (IncorrectUsageException & e) {
-      ++i;
-    }
-    catch (SmtException & e) {
-      throw e;
+  if (is_lit(t, boolsort_))
+  {
+    // if it's already a literal, don't need a
+    // separate label
+    l = t;
+  }
+  else
+  {
+    unsigned i = 0;
+    while (true)
+    {
+      try
+      {
+        l = reducer_->make_symbol(
+            "assump_" + std::to_string(t->hash()) + "_" + std::to_string(i),
+            reducer_->make_sort(BOOL));
+        break;
+      }
+      catch (IncorrectUsageException & e)
+      {
+        ++i;
+      }
+      catch (SmtException & e)
+      {
+        throw e;
+      }
     }
   }
 
+  assert(l);
   labels_[t] = l;
   return l;
 }
