@@ -51,8 +51,6 @@ class GenericTerm : public AbsTerm
   bool is_value() const override;
   uint64_t to_int() const override;
   std::string print_value_as(SortKind sk) override;
-  // used to hash terms via their string representation
-  bool is_ground() const;
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
@@ -61,14 +59,7 @@ class GenericTerm : public AbsTerm
   TermVec get_children();
 
  protected:
-  /** check whether this is a ground term
-   * (does not have free variables)
-   */
-  bool compute_ground();
   std::string compute_string() const;
-
-  // true iff this is a ground term
-  bool ground;
 
   /**
    * A hash function for strings,
