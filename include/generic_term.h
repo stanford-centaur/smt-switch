@@ -47,13 +47,10 @@ class GenericTerm : public AbsTerm
   Sort get_sort() const override;
   std::size_t get_id() const override;
   std::string to_string() override;
-  std::string compute_string() const;
   std::size_t hash() const override;
   bool is_value() const override;
   uint64_t to_int() const override;
   std::string print_value_as(SortKind sk) override;
-  // used to hash terms via their string representation
-  bool is_ground() const;
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
@@ -62,13 +59,7 @@ class GenericTerm : public AbsTerm
   TermVec get_children();
 
  protected:
-  /** check whether this is a ground term
-   * (does not have free variables)
-   */
-  bool compute_ground();
-
-  // true iff this is a ground term
-  bool ground;
+  std::string compute_string() const;
 
   /**
    * A hash function for strings,
