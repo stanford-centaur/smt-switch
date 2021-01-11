@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test-generic-term.cpp
+/*! \file test-generic-solver.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Yoni Zohar
