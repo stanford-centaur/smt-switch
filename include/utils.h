@@ -170,30 +170,18 @@ public:
   void assume_label(const Term & l, const Term & f)
   {
     // TODO move to src
-    // TODO just use label to always map to a fresh label instead of this
-    //      complicated case checking
-    // special-case for sort-aliasing solvers
-    const Sort & sort = l->get_sort();
-    SortKind sk = sort->get_sort_kind();
-    if (sk != BOOL && sk == BV
-        && to_reducer_.get_cache().find(l) == to_reducer_.get_cache().end())
-    {
-      if (sort->get_width() != 1)
-      {
-        throw IncorrectUsageException("Cannot use sort " + sort->to_string()
-                                      + " as label.");
-      }
-      // make sure this is a boolean symbol
-      to_reducer_.get_cache()[l] =
-          reducer_->make_symbol(l->to_string(), boolsort_);
-    }
 
-    Term reducer_l = to_reducer_.transfer_term(l, BOOL);
     Term reducer_f = to_reducer_.transfer_term(f, BOOL);
-    reducer_->assert_formula(
-        reducer_->make_term(Implies, reducer_l, reducer_f));
+    Term lblf = label(reducer_f);
 
-    labels_[reducer_f] = reducer_l;
+    // set the translation
+    to_reducer_.get_cache()[l] = lblf;
+
+    labels_[reducer_f] = lblf;
+
+    reducer_->assert_formula(reducer_->make_term(Implies, lblf, reducer_f));
+
+    labels_[reducer_f] = lblf;
   }
 
   void reset_assertions() { reducer_->reset_assertions(); }
