@@ -88,6 +88,15 @@ void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
 
 void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
 
+/** returns true iff l is a literal
+ *  e.g. either a boolean symbolic constant or its negation
+ *  NOTE will return false for nested negations, i.e. (not (not (not l)))
+ *  @param l the term to check
+ *  @param boolsort a boolean sort from the corresponding solver
+ *         this way sort aliasing solvers are still supported
+ *  @return true iff l is a literal
+ */
+bool is_lit(const Term & l, const Sort & boolsort);
 
 // -----------------------------------------------------------------------------
 

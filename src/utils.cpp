@@ -134,8 +134,20 @@ void get_matching_terms(const smt::Term & term,
   }
 }
 
-void get_ops(const smt::Term & term,
-                    smt::UnorderedOpSet & out)
+void get_free_symbolic_consts(const smt::Term & term,
+                              smt::UnorderedTermSet & out)
+{
+  auto f = [](const smt::Term & t) { return t->is_symbolic_const(); };
+  get_matching_terms(term, out, f);
+}
+
+void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
+{
+  auto f = [](const smt::Term & t) { return t->is_symbol(); };
+  get_matching_terms(term, out, f);
+}
+
+void get_ops(const smt::Term & term, smt::UnorderedOpSet & out)
 {
   smt::TermVec to_visit({ term });
   smt::UnorderedTermSet visited;
@@ -159,18 +171,28 @@ void get_ops(const smt::Term & term,
   }
 }
 
-
-void get_free_symbolic_consts(const smt::Term & term,
-                              smt::UnorderedTermSet & out)
+bool is_lit(const Term & l, const Sort & boolsort)
 {
-  auto f = [](const smt::Term & t) { return t->is_symbolic_const(); };
-  get_matching_terms(term, out, f);
-}
+  // take a boolsort as an argument for sort aliasing solvers
+  if (l->get_sort() != boolsort)
+  {
+    return false;
+  }
 
-void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
-{
-  auto f = [](const smt::Term & t) { return t->is_symbol(); };
-  get_matching_terms(term, out, f);
+  if (l->is_symbolic_const())
+  {
+    return true;
+  }
+
+  Op op = l->get_op();
+  // check both for sort aliasing solvers
+  if (op == Not || op == BVNot)
+  {
+    Term first_child = *(l->begin());
+    return first_child->is_symbolic_const();
+  }
+
+  return false;
 }
 
 // ----------------------------------------------------------------------------
