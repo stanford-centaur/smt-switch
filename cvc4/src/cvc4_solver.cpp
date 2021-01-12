@@ -276,24 +276,6 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
-    // expecting (possibly negated) boolean literals
-    for (auto a : assumptions)
-    {
-      if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-      {
-        if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-        {
-          continue;
-        }
-        else
-        {
-          throw IncorrectUsageException(
-              "Expecting boolean indicator literals but got: "
-              + a->to_string());
-        }
-      }
-    }
-
     std::vector<::CVC4::api::Term> cvc4assumps;
     cvc4assumps.reserve(assumptions.size());
 
