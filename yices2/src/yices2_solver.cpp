@@ -321,34 +321,6 @@ Result Yices2Solver::check_sat()
 
 Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 {
-  // expecting (possibly negated) boolean literals
-  for (auto a : assumptions)
-  {
-    if (a->get_sort()->get_sort_kind() != BOOL)
-    {
-      throw IncorrectUsageException(
-          "Cannot assume a term with sort other than BOOL.");
-    }
-    else if (!a->is_symbolic_const())
-    {
-      shared_ptr<Yices2Term> yt = static_pointer_cast<Yices2Term>(a);
-      term_constructor_t tc = yices_term_constructor(yt->term);
-      if (tc == YICES_NOT_TERM && yices_term_num_children(yt->term) == 1
-          && yices_term_constructor(yices_term_child(yt->term, 0))
-                 == YICES_UNINTERPRETED_TERM
-          && yices_term_num_children(yices_term_child(yt->term, 0)) == 0)
-      {
-        // this is a negated boolean literal
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
-
   vector<term_t> y_assumps;
   y_assumps.reserve(assumptions.size());
 
