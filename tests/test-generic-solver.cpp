@@ -40,5 +40,9 @@ using namespace smt;
 using namespace std;
 
 int main() {
+
+#if BUILD_CVC4
+  cout << "testing with CVC4 binary" << endl;
   GenericSolver s(STRFY(CVC4_HOME), std::vector<string>{"--lang=smt2", "--incremental", "--dag-thresh=0"}, 5, 5);
+#endif
 }
