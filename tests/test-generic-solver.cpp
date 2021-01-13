@@ -39,4 +39,6 @@
 using namespace smt;
 using namespace std;
 
-int main() {}
+int main() {
+  GenericSolver s(STRFY(CVC4_HOME), std::vector<string>{"--lang=smt2", "--incremental", "--dag-thresh=0"}, 5, 5);
+}

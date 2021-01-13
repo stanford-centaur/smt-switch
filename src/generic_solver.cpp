@@ -66,8 +66,9 @@ GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint wri
     read_buf[i]=0;
   }
 
-  //start the process with the solver binary
-  start_solver();
+  // start the process with the solver binary
+  // TODO uncomment when start_solver is implemented
+  // start_solver();
 }
 
 GenericSolver::~GenericSolver() {
@@ -75,57 +76,224 @@ GenericSolver::~GenericSolver() {
   delete write_buf;
   delete read_buf;
   delete term_counter;
-  //deallocate maps
-  delete name_sort_map;
-  delete sort_name_map;
-  delete name_term_map;
-  delete term_name_map;
-  //close the solver process
-  close_solver();
+  // close the solver process
+  // TODO uncomment when close_solver is implemented
+  // close_solver();
 }
 
 void GenericSolver::start_solver() {
-  pid = 0;
-
-  pipe(inpipefd);
-  pipe(outpipefd);
-  pid = fork();
-  if (pid == 0)
-  {
-    // Child
-    dup2(outpipefd[0], STDIN_FILENO);
-    dup2(inpipefd[1], STDOUT_FILENO);
-    dup2(inpipefd[1], STDERR_FILENO);
-
-    //ask kernel to deliver SIGTERM in case the parent dies
-    prctl(PR_SET_PDEATHSIG, SIGTERM);
-    // The following part is based on: https://stackoverflow.com/a/5797901/1364765
-    // The execv command expects an array, and so we create one.
-    // First element is the program name, last element is NULL, and in between are
-    // the elements of cmd_line_args, casted to (char*) from std::string.
-    // Here we identify the program name with its path.
-    const char **argv = new const char* [cmd_line_args.size()+2];  
-    argv[0] = path.c_str();     
-    for (int i = 1;  i <= cmd_line_args.size();  i++) {
-            argv[i] = cmd_line_args[i-1].c_str();
-    }
-    argv[cmd_line_args.size() + 1] = NULL;    
-    execv (path.c_str(), (char **)argv);
-    // Nothing below this line should be executed by child process. If so, 
-    // it means that the execl function wasn't successfull, so lets exit:
-    // TODO should we free the memory of argv?
-    assert(false);
-    exit(1);
-  }
-  //close unused pipe ends
-  close(outpipefd[0]);
-  close(inpipefd[1]);
-  // TODO uncomment when set_opt is implemented
-  // set_opt("print-success", "true");
+  assert(false);
 }
 
 void GenericSolver::close_solver() {
-  kill(pid, SIGKILL); //send SIGKILL signal to the child process
-  waitpid(pid, &status, 0); 
+  assert(false);
 }
+ 
+Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const SortKind sk) const
+{
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const SortKind sk, uint64_t size) const
+{
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const SortKind sk, const Sort & sort1) const
+{
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const SortKind sk,
+                              const Sort & sort1,
+                              const Sort & sort2) const
+{
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(const SortKind sk,
+                              const Sort & sort1,
+                              const Sort & sort2,
+                              const Sort & sort3) const
+{
+  assert(false);
+}
+
+Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
+{
+  assert(false);
+}
+
+
+Sort GenericSolver::make_sort(const DatatypeDecl & d) const
+{
+  assert(false);  
+}
+  
+DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
+  {
+  assert(false);  
+  }
+DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  assert(false);  
+}
+  
+void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
+  {
+  assert(false);  
+}
+void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
+{
+  assert(false);  
+}
+  
+void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
+  {
+  assert(false);  
+}
+
+Term GenericSolver::get_constructor(const Sort & s, std::string name) const
+{
+  assert(false);  
+}
+
+  
+Term GenericSolver::get_tester(const Sort & s, std::string name) const
+{
+  assert(false);  
+}
+
+Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
+{
+  assert(false);  
+}
+
+Term GenericSolver::make_term(bool b) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(int64_t i, const Sort & sort) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const string name,
+                              const Sort & sort,
+                              uint64_t base) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const Term & val, const Sort & sort) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_symbol(const string name, const Sort & sort)
+{
+  assert(false);
+}
+
+Term GenericSolver::make_param(const string name, const Sort & sort)
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const Op op, const Term & t) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const Op op,
+                              const Term & t1,
+                              const Term & t2) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const Op op,
+                              const Term & t1,
+                              const Term & t2,
+                              const Term & t3) const
+{
+  assert(false);
+}
+
+Term GenericSolver::make_term(const Op op, const TermVec & terms) const
+{
+  assert(false);
+}
+
+Term GenericSolver::get_value(const Term & t) const
+{
+  assert(false);
+}
+
+void GenericSolver::get_unsat_core(UnorderedTermSet & out)
+{
+  assert(false);
+}
+
+UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
+                                                 Term & out_const_base) const
+{
+  assert(false);  
+}
+
+void GenericSolver::reset()
+{
+  assert(false);
+}
+
+void GenericSolver::set_opt(const std::string option, const std::string value)
+{
+  assert(false);
+}
+
+void GenericSolver::set_logic(const std::string logic)
+{
+  assert(false);
+}
+
+void GenericSolver::assert_formula(const Term & t)
+{
+  assert(false);
+}
+
+Result GenericSolver::check_sat()
+{
+  assert(false);
+}
+
+Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
+{
+  assert(false);
+}
+
+void GenericSolver::push(uint64_t num)
+  {
+    assert(false);
+  }
+
+void GenericSolver::pop(uint64_t num)
+{
+  assert(false);
+}
+
+void GenericSolver::reset_assertions()
+  {
+    assert(false);
+  }
+
 }  // namespace smt
