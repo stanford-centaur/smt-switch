@@ -99,57 +99,6 @@ class GenericSolver : public AbsSmtSolver
   void reset_assertions() override;
 
  protected:
-  // parse solver's response from get-sat-assumptions
-  UnorderedTermSet get_assumptions_from_string(std::string result) const;
-  // parse solver's from a constant array value
-  std::string cons_arr_string(const Term & val, const Sort & sort) const;
-  // store a term in the internal cache
-  Term store_term(Term term) const;
-  // parse result (sat, unsat, unknown) from solver's output
-  Result str_to_result(std::string result) const;
-  // parse actual value from a get-value response
-  std::string strip_value_from_result(std::string result) const;
-  // helper function for bv constant
-  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
-  // helper function for bv constant
-  Term make_non_negative_bv_const(std::string abs_decimal, uint width) const;
-  // helper function for bv constant
-  Term make_negative_bv_const(int64_t abs_value, uint width) const;
-  // helper function for bv constant
-  Term make_non_negative_bv_const(int64_t i, uint width) const;
-  // open a process with a pipe to a binary
-  void start_solver();
-  // close the process and the pipe
-  void close_solver();
-  // internal function to read solver's response
-  std::string read_internal() const;
-  // internal function to write to the solver's process
-  void write_internal(std::string str) const;
-  // internally defining and storing a sort
-  void define_sort(std::string str, smt::Sort sort) const;
-  // internally defining and storing a function symbol
-  void define_fun(std::string str,
-                  smt::SortVec args_sorts,
-                  smt::Sort res_sort,
-                  smt::Term defining_term) const;
-  // run a command with the binary
-  std::string run_command(std::string cmd,
-                          bool verify_success_flag = true) const;
-  // get the name of a sort
-  std::string get_name(SortKind sk) const;
-  // get the name of a sort
-  std::string get_name(SortKind sk, uint64_t size) const;
-  // get the name of a sort
-  std::string get_name(SortKind sk, std::vector<Sort> sorts) const;
-  // get the name of a term
-  std::string get_name(Term t) const;
-  // flag that states whether current command is done being executed
-  bool is_done(int just_read, std::string result) const;
-  // verify that we got `success`
-  void verify_success(std::string result) const;
-  // helper debugging function
-  void print_name_term_map() const;
-
   // path to the solver binary
   std::string path;
   // command line arguments for the binary
