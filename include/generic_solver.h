@@ -31,7 +31,8 @@ class GenericSolver : public AbsSmtSolver
   GenericSolver(std::string path,
                 std::vector<std::string> cmd_line_args,
                 uint write_buf_size = 256,
-                uint read_buf_size = 256);
+                uint read_buf_size = 256,
+                SolverEnum se = SolverEnum::GENERIC_SOLVER);
   ~GenericSolver();
   std::string to_smtlib_def(Term term) const;
   Sort make_sort(const std::string name, uint64_t arity) const override;
@@ -99,6 +100,16 @@ class GenericSolver : public AbsSmtSolver
   void reset_assertions() override;
 
  protected:
+
+  /******************
+   * helper methods *
+   *******************/
+  void start_solver();
+  void close_solver();
+
+  /***********
+   * members *
+   ***********/
   // path to the solver binary
   std::string path;
   // command line arguments for the binary

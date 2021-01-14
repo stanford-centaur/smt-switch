@@ -51,6 +51,17 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               QUANTIFIERS
           } },
 
+        { GENERIC_SOLVER,
+          {
+              TERMITER,
+              THEORY_INT,
+              THEORY_REAL,
+              ARRAY_FUN_BOOLS,
+              UNSAT_CORE,
+              QUANTIFIERS
+          } },
+
+
         { MSAT,
           { TERMITER,
             LOGGING,
@@ -104,6 +115,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case YICES2: o << "YICES2"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     case CVC4_INTERPOLATOR: o << "CVC4_INTERPOLATOR"; break;
+    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
