@@ -1,3 +1,4 @@
+#ifndef __APPLE__
 /*********************                                                        */
 /*! \file generic_solver.cpp
 ** \verbatim
@@ -29,6 +30,7 @@
 
 #include<unistd.h>
 #include<sys/wait.h>
+#include<sys/prctl.h>
 #include<signal.h>
 #include<stdlib.h>
 #include<string.h>
@@ -41,8 +43,8 @@ using namespace std;
 
 namespace smt {
 
-GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint write_buf_size, uint read_buf_size, SolverEnum se)
-  : AbsSmtSolver(se), path(path), cmd_line_args(cmd_line_args), write_buf_size(write_buf_size), read_buf_size(read_buf_size),
+GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint write_buf_size, uint read_buf_size)
+  : AbsSmtSolver(SolverEnum::GENERIC_SOLVER), path(path), cmd_line_args(cmd_line_args), write_buf_size(write_buf_size), read_buf_size(read_buf_size),
   name_sort_map(new unordered_map<string, Sort>()),
   sort_name_map(new unordered_map<Sort, string>()),
   name_term_map(new unordered_map<string, Term>()),
@@ -296,3 +298,4 @@ void GenericSolver::reset_assertions()
   }
 
 }  // namespace smt
+#endif

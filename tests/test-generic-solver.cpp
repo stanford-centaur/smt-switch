@@ -1,3 +1,4 @@
+#ifndef __APPLE__
 /*********************                                                        */
 /*! \file test-generic-solver.cpp
 ** \verbatim
@@ -46,3 +47,4 @@ int main() {
   GenericSolver s(STRFY(CVC4_HOME), std::vector<string>{"--lang=smt2", "--incremental", "--dag-thresh=0"}, 5, 5);
 #endif
 }
+#endif
