@@ -1,4 +1,3 @@
-#ifndef __APPLE__
 /*********************                                                        */
 /*! \file generic_solver.cpp
 ** \verbatim
@@ -18,6 +17,10 @@
 /* Uses code to interact with a process from:
 ** https://stackoverflow.com/a/6172578/1364765
 */
+
+
+// generic solvers are not supported on macos
+#ifndef __APPLE__
 
 #include "assert.h"
 
@@ -298,4 +301,5 @@ void GenericSolver::reset_assertions()
   }
 
 }  // namespace smt
-#endif
+
+#endif // __APPLE__

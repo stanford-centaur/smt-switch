@@ -1,4 +1,3 @@
-#ifndef __APPLE__
 /*********************                                                        */
 /*! \file test-generic-solver.cpp
 ** \verbatim
@@ -14,6 +13,10 @@
 **
 **
 **/
+
+// generic solvers are not supported on macos
+#ifndef __APPLE__
+
 #include <array>
 #include <cstdio>
 #include <fstream>
@@ -47,4 +50,5 @@ int main() {
   GenericSolver s(STRFY(CVC4_HOME), std::vector<string>{"--lang=smt2", "--incremental", "--dag-thresh=0"}, 5, 5);
 #endif
 }
-#endif
+
+#endif // __APPLE__
