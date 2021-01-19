@@ -43,11 +43,58 @@
 using namespace smt;
 using namespace std;
 
-int main() {
+void test_binary(string path, vector<string> args)
+{
+  std::cout << "testing binary: " << path << std::endl;
+  std::cout << "constructing solver" << std::endl;
+  SmtSolver gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  std::cout << "setting an option" << std::endl;
+  gs->set_opt("produce-models", "true");
+}
 
+int main() {
+  // testing a non-existing binary
+  string path;
+  vector<string> args;
+  try
+  {
+    path = "/non/existing/path";
+    test_binary(path, args);
+  }
+  catch (IncorrectUsageException e)
+  {
+    std::cout << "caught an exception" << std::endl;
+  }
+
+// testing with cvc4 binary
 #if BUILD_CVC4
-  cout << "testing with CVC4 binary" << endl;
-  GenericSolver s(STRFY(CVC4_HOME), std::vector<string>{"--lang=smt2", "--incremental", "--dag-thresh=0"}, 5, 5);
+  path = (STRFY(CVC4_HOME));
+  path += "/build/bin/cvc4";
+  args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
+  test_binary(path, args);
+#endif
+
+// testing with msat binary
+#if BUILD_MSAT
+  path = (STRFY(MSAT_HOME));
+  path += "/bin/mathsat";
+  args = { "" };
+  test_binary(path, args);
+#endif
+
+  // testing with cvc4 binary
+#if BUILD_YICES2
+  path = (STRFY(YICES2_HOME));
+  path += "/build/bin/yices_smt2";
+  args = { "--incremental" };
+  test_binary(path, args);
+#endif
+
+  // testing with cvc4 binary
+#if BUILD_BTOR
+  path = (STRFY(BTOR_HOME));
+  path += "/build/bin/btor";
+  args = { "--incremental" } test_binary(path, args);
 #endif
 }
 

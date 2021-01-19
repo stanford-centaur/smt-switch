@@ -46,6 +46,27 @@ using namespace std;
 
 namespace smt {
 
+// helper functions
+//
+bool new_line(char c) { return (c == '\n' || c == '\r' || c == 0); }
+
+// from: https://stackoverflow.com/a/36000453/1364765
+std::string & trim(std::string & str)
+{
+  // right trim
+  while (str.length() > 0
+         && (str[str.length() - 1] == ' ' || str[str.length() - 1] == '\t'
+             || str[str.length() - 1] == '\n'))
+    str.erase(str.length() - 1, 1);
+
+  // left trim
+  while (str.length() > 0
+         && (str[0] == ' ' || str[0] == '\t' || str[0] == '\n'))
+    str.erase(0, 1);
+  return str;
+}
+
+// class methods implementation
 GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint write_buf_size, uint read_buf_size)
   : AbsSmtSolver(SolverEnum::GENERIC_SOLVER), path(path), cmd_line_args(cmd_line_args), write_buf_size(write_buf_size), read_buf_size(read_buf_size),
   name_sort_map(new unordered_map<string, Sort>()),
@@ -71,8 +92,7 @@ GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint wri
   }
 
   // start the process with the solver binary
-  // TODO uncomment when start_solver is implemented
-  // start_solver();
+  start_solver();
 }
 
 GenericSolver::~GenericSolver() {
@@ -81,16 +101,189 @@ GenericSolver::~GenericSolver() {
   delete read_buf;
   delete term_counter;
   // close the solver process
-  // TODO uncomment when close_solver is implemented
-  // close_solver();
+  close_solver();
 }
 
 void GenericSolver::start_solver() {
-  assert(false);
+  pid = 0;
+
+  pipe(inpipefd);
+  pipe(outpipefd);
+  pid = fork();
+  if (pid == 0)
+  {
+    // Child
+    dup2(outpipefd[0], STDIN_FILENO);
+    dup2(inpipefd[1], STDOUT_FILENO);
+    dup2(inpipefd[1], STDERR_FILENO);
+
+    // ask kernel to deliver SIGTERM in case the parent dies
+    prctl(PR_SET_PDEATHSIG, SIGTERM);
+    //    fcntl(inpipefd[1], F_SETFL, O_NONBLOCK);
+    // The following part is based on:
+    // https://stackoverflow.com/a/5797901/1364765 The execv command expects an
+    // array, and so we create one. First element is the program name, last
+    // element is NULL, and in between are the elements of cmd_line_args, casted
+    // to (char*) from std::string. Here we identify the program name with its
+    // path.
+    const char ** argv = new const char *[cmd_line_args.size() + 2];
+    argv[0] = path.c_str();
+    for (int i = 1; i <= cmd_line_args.size(); i++)
+    {
+      argv[i] = cmd_line_args[i - 1].c_str();
+    }
+    argv[cmd_line_args.size() + 1] = NULL;
+    execv(path.c_str(), (char **)argv);
+    // Nothing below this line should be executed by child process. If so,
+    // it means that the execl function wasn't successfull, so lets exit:
+    string msg("failure to run binary: ");
+    msg += path;
+    throw IncorrectUsageException(msg);
+    exit(1);
+  }
+  // close unused pipe ends
+  close(outpipefd[0]);
+  close(inpipefd[1]);
+  set_opt("print-success", "true");
+}
+
+void GenericSolver::write_internal(string str) const
+{
+  // track how many charas were written so far
+  uint written_chars = 0;
+  // continue writing  until entire str was written
+  while (written_chars < str.size())
+  {
+    // how many characters are there left to write
+    uint remaining = str.size() - written_chars;
+    // how many characters are we writing in this iteration
+    uint substr_size;
+    if (remaining < write_buf_size)
+    {
+      substr_size = remaining;
+    }
+    else
+    {
+      substr_size = write_buf_size;
+    }
+    // write
+    strcpy(write_buf, str.substr(written_chars, substr_size).c_str());
+    write(outpipefd[1], write_buf, substr_size);
+    written_chars += substr_size;
+  }
+}
+
+bool GenericSolver::is_done(int just_read, std::string result) const
+{
+  bool done = false;
+  int count = 0;
+  // if we didn't read anything now, the command is done executing
+  if (just_read == 0)
+  {
+    done = true;
+  }
+  else if (result[0] == '(')
+  {
+    // if the output of the solver starts with '('
+    // we will be done only when we see the matching ')'
+    for (int i = 0; i < result.size(); i++)
+    {
+      if (result[i] == '(')
+      {
+        count++;
+      }
+      else if (result[i] == ')')
+      {
+        count--;
+      }
+    }
+    done = (count == 0) && new_line(result[result.size() - 1]);
+  }
+  else
+  {
+    // if the output of the solver does not start with '('
+    // we will be done when we reach a newline character
+    assert(just_read <= read_buf_size);
+    for (int i = 0; i < just_read; i++)
+    {
+      if (new_line(read_buf[i]))
+      {
+        done = true;
+      }
+    }
+  }
+  return done;
+}
+
+string GenericSolver::read_internal() const
+{
+  string result = "";
+  bool done = false;
+  // read to the buffer until no more output to read
+  while (!done)
+  {
+    // read command, and how many chars were read.
+    int just_read = read(inpipefd[0], read_buf, read_buf_size);
+    // store the content and trim it
+    string read_buf_str(read_buf);
+    read_buf_str = read_buf_str.substr(0, read_buf_size);
+    result = result.append(read_buf_str);
+    done = is_done(just_read, result);
+    // clear buffer
+    for (int i = 0; i < read_buf_size; i++)
+    {
+      read_buf[i] = 0;
+    }
+  }
+  // normalize outout of solver:
+  // - no newlines in the middle of the content
+  // - no double spaces
+  while (result.find("\n") != string::npos)
+  {
+    result.replace(result.find("\n"), 1, " ");
+  }
+  while (result.find("  ") != string::npos)
+  {
+    result.replace(result.find("  "), 2, " ");
+  }
+  return result;
+}
+
+string GenericSolver::run_command(string cmd, bool verify_success_flag) const
+{
+  // adding a newline to simulate an "enter" hit.
+  cmd = cmd + "\n";
+  // writing the cmd string to the process
+  write_internal(cmd);
+  // reading the result
+  string result = read_internal();
+  result = trim(result);
+  // verify success if needed
+  if (verify_success_flag)
+  {
+    verify_success(result);
+  }
+  return result;
+}
+
+void GenericSolver::verify_success(string result) const
+{
+  if (result == "success")
+  {
+    return;
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "The command did not end with a success message from the solver. The "
+        "result was: "
+        + result);
+  }
 }
 
 void GenericSolver::close_solver() {
-  assert(false);
+  kill(pid, SIGKILL);
+  waitpid(pid, &status, 0);
 }
  
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
@@ -262,7 +455,7 @@ void GenericSolver::reset()
 
 void GenericSolver::set_opt(const std::string option, const std::string value)
 {
-  assert(false);
+  run_command("(" + SET_OPTION_STR + " :" + option + " " + value + ")");
 }
 
 void GenericSolver::set_logic(const std::string logic)
