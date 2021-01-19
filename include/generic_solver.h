@@ -31,8 +31,7 @@ class GenericSolver : public AbsSmtSolver
   GenericSolver(std::string path,
                 std::vector<std::string> cmd_line_args,
                 uint write_buf_size = 256,
-                uint read_buf_size = 256,
-                SolverEnum se = SolverEnum::GENERIC_SOLVER);
+                uint read_buf_size = 256);
   ~GenericSolver();
   std::string to_smtlib_def(Term term) const;
   Sort make_sort(const std::string name, uint64_t arity) const override;
