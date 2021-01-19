@@ -48,7 +48,7 @@ namespace smt {
 
 // helper functions
 //
-bool new_line(char c) { return (c == '\n' || c == '\r' || c == 0); }
+bool is_new_line(char c) { return (c == '\n' || c == '\r' || c == 0); }
 
 // from: https://stackoverflow.com/a/36000453/1364765
 std::string & trim(std::string & str)
@@ -197,7 +197,7 @@ bool GenericSolver::is_done(int just_read, std::string result) const
         count--;
       }
     }
-    done = (count == 0) && new_line(result[result.size() - 1]);
+    done = (count == 0) && is_new_line(result[result.size() - 1]);
   }
   else
   {
@@ -206,7 +206,7 @@ bool GenericSolver::is_done(int just_read, std::string result) const
     assert(just_read <= read_buf_size);
     for (int i = 0; i < just_read; i++)
     {
-      if (new_line(read_buf[i]))
+      if (is_new_line(read_buf[i]))
       {
         done = true;
       }

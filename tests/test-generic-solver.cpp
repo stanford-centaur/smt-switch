@@ -93,8 +93,9 @@ int main() {
   // testing with cvc4 binary
 #if BUILD_BTOR
   path = (STRFY(BTOR_HOME));
-  path += "/build/bin/btor";
-  args = { "--incremental" } test_binary(path, args);
+  path += "/build/bin/boolector";
+  args = { "--incremental" }; 
+  test_binary(path, args);
 #endif
 }
 
