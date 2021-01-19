@@ -121,6 +121,12 @@ class GenericSolver : public AbsSmtSolver
 
   // verify that we got `success`
   void verify_success(std::string result) const;
+
+  // cmoputes  whether the current output from the solver
+  // is done being read
+  bool is_done(int just_read, std::string result) const;
+
+
   /***********
    * members *
    ***********/
@@ -156,8 +162,6 @@ class GenericSolver : public AbsSmtSolver
   // used to hash terms via their internal string representation
   std::hash<std::string> str_hash;
 
-  // flag that states whether current command is done being executed
-  bool is_done(int just_read, std::string result) const;
 };
 
 }  // namespace smt
