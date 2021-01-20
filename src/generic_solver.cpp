@@ -47,7 +47,6 @@ using namespace std;
 namespace smt {
 
 // helper functions
-//
 bool is_new_line(char c) { return (c == '\n' || c == '\r' || c == 0); }
 
 // from: https://stackoverflow.com/a/36000453/1364765
@@ -287,33 +286,85 @@ void GenericSolver::close_solver() {
 }
  
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
-  assert(false);
+  assert(sort_name_map->find(sort_con) != sort_name_map->end());
+  assert(sort_con->get_arity() == sorts.size());
+  for (Sort sort : sorts)
+  {
+    assert(sort_name_map->find(sort) != sort_name_map->end());
+  }
+  Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
+  string name = sort->get_uninterpreted_name();
+  if (name_sort_map->find(name) != name_sort_map->end())
+  {
+    return (*name_sort_map)[name];
+  }
+  else
+  {
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    return sort;
+  }
 }
 
 Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
-  assert(false);
+  if (name_sort_map->find(name) == name_sort_map->end())
+  {
+    Sort sort = make_uninterpreted_generic_sort(name, arity);
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    run_command("(" + DECLARE_SORT_STR + " " + name + " "
+                + std::to_string(arity) + ")");
+    return sort;
+  }
+  else
+  {
+    throw IncorrectUsageException(string("sort name: ") + name
+                                  + string(" already taken"));
+  }
 }
 
 Sort GenericSolver::make_sort(const SortKind sk) const
 {
-  assert(false);
+  Sort sort = make_generic_sort(sk);
+  string name = sort->to_string();
+  if (name_sort_map->find(name) == name_sort_map->end())
+  {
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    return sort;
+  }
+  else
+  {
+    return name_sort_map->at(name);
+  }
 }
 
 Sort GenericSolver::make_sort(const SortKind sk, uint64_t size) const
 {
-  assert(false);
+  Sort sort = make_generic_sort(sk, size);
+  string name = sort->to_string();
+  if (name_sort_map->find(name) == name_sort_map->end())
+  {
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    return sort;
+  }
+  else
+  {
+    return name_sort_map->at(name);
+  }
 }
 
 Sort GenericSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
-  assert(false);
+  return make_sort(sk, SortVec({ sort1 }));
 }
 
 Sort GenericSolver::make_sort(const SortKind sk,
                               const Sort & sort1,
                               const Sort & sort2) const
 {
-  assert(false);
+  return make_sort(sk, SortVec({ sort1, sort2 }));
 }
 
 Sort GenericSolver::make_sort(const SortKind sk,
@@ -321,12 +372,23 @@ Sort GenericSolver::make_sort(const SortKind sk,
                               const Sort & sort2,
                               const Sort & sort3) const
 {
-  assert(false);
+  return make_sort(sk, SortVec({ sort1, sort2, sort3 }));
 }
 
 Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  assert(false);
+  Sort sort = make_generic_sort(sk, sorts);
+  string name = sort->to_string();
+  if (name_sort_map->find(name) == name_sort_map->end())
+  {
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    return sort;
+  }
+  else
+  {
+    return name_sort_map->at(name);
+  }
 }
 
 
@@ -460,7 +522,7 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
 
 void GenericSolver::set_logic(const std::string logic)
 {
-  assert(false);
+  run_command("(" + SET_LOGIC_STR + " " + logic + ")");
 }
 
 void GenericSolver::assert_formula(const Term & t)
