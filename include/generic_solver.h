@@ -103,16 +103,40 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+
+  // open a connection to the binary via a pipe
   void start_solver();
+  // close the connection to the binary
   void close_solver();
+
+  // internal function to read solver's response
+  std::string read_internal() const;
+
+  // internal function to write to the solver's process
+  void write_internal(std::string str) const;
+
+  // run a command with the binary
+  std::string run_command(std::string cmd,
+                          bool verify_success_flag = true) const;
+
+  // verify that we got `success`
+  void verify_success(std::string result) const;
+
+  // cmoputes  whether the current output from the solver
+  // is done being read
+  bool is_done(int just_read, std::string result) const;
+
 
   /***********
    * members *
    ***********/
+
   // path to the solver binary
   std::string path;
+
   // command line arguments for the binary
   std::vector<std::string> cmd_line_args;
+
   // variables used for running processes
   int inpipefd[2];
   int outpipefd[2];
@@ -120,19 +144,24 @@ class GenericSolver : public AbsSmtSolver
   int status;
   char * write_buf;
   char * read_buf;
+
   // buffer sizes
   uint write_buf_size;
   uint read_buf_size;
+
   // maps between sort name and actual sort and vice verse
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;
   std::unique_ptr<std::unordered_map<Sort, std::string>> sort_name_map;
+
   // internal counter for naming terms
   uint * term_counter;
+
   // maps between sort name and actual sort and vice verse
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
   // used to hash terms via their internal string representation
   std::hash<std::string> str_hash;
+
 };
 
 }  // namespace smt
