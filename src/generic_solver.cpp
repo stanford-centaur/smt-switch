@@ -286,14 +286,26 @@ void GenericSolver::close_solver() {
 }
  
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
+  // When constructing a sort, the sort constructor
+  // must have been already processed
   assert(sort_name_map->find(sort_con) != sort_name_map->end());
+  // The arity of the sort constructor must match
+  // the number of arguments
   assert(sort_con->get_arity() == sorts.size());
+
+  // All the input sorts must have been processed
   for (Sort sort : sorts)
   {
     assert(sort_name_map->find(sort) != sort_name_map->end());
   }
+
+  // creating the new sort
   Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
+
+  // assigning a name to the new sort
   string name = sort->get_uninterpreted_name();
+
+  // store in the map if missing, and return the new sort
   if (name_sort_map->find(name) != name_sort_map->end())
   {
     return (*name_sort_map)[name];
@@ -307,11 +319,16 @@ Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) cons
 }
 
 Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
+  // when creating a new uninterpreted sort, the name
+  // must be new.
   if (name_sort_map->find(name) == name_sort_map->end())
   {
+    // create the sort
     Sort sort = make_uninterpreted_generic_sort(name, arity);
+    // store the sort and the name in the maps
     (*name_sort_map)[name] = sort;
     (*sort_name_map)[sort] = name;
+    // declare the sort to the binary of the solver
     run_command("(" + DECLARE_SORT_STR + " " + name + " "
                 + std::to_string(arity) + ")");
     return sort;
@@ -325,8 +342,11 @@ Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
 
 Sort GenericSolver::make_sort(const SortKind sk) const
 {
+  // create the sort
   Sort sort = make_generic_sort(sk);
+  // compute the name of the sort
   string name = sort->to_string();
+  // store in local maps if needed, and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
     (*name_sort_map)[name] = sort;
@@ -341,8 +361,11 @@ Sort GenericSolver::make_sort(const SortKind sk) const
 
 Sort GenericSolver::make_sort(const SortKind sk, uint64_t size) const
 {
+  // create the sort
   Sort sort = make_generic_sort(sk, size);
+  // compute the name
   string name = sort->to_string();
+  // store in maps if needed and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
     (*name_sort_map)[name] = sort;
@@ -377,8 +400,11 @@ Sort GenericSolver::make_sort(const SortKind sk,
 
 Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
+  // create the sort
   Sort sort = make_generic_sort(sk, sorts);
+  // compute the name
   string name = sort->to_string();
+  // store in maps if needed and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
     (*name_sort_map)[name] = sort;
@@ -390,7 +416,6 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
     return name_sort_map->at(name);
   }
 }
-
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
