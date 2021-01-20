@@ -302,6 +302,10 @@ Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) cons
   // creating the new sort
   Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
 
+  // note that there is no need to communicate anything
+  // to the solver yet. When the sort will be used,
+  // we will print the right name to the solver.
+
   // assigning a name to the new sort
   string name = sort->get_uninterpreted_name();
 
@@ -346,6 +350,10 @@ Sort GenericSolver::make_sort(const SortKind sk) const
   Sort sort = make_generic_sort(sk);
   // compute the name of the sort
   string name = sort->to_string();
+
+  // note that nothing needs to be communicated to the solver,
+  // as in this case the sort is built in.
+
   // store in local maps if needed, and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
@@ -365,6 +373,10 @@ Sort GenericSolver::make_sort(const SortKind sk, uint64_t size) const
   Sort sort = make_generic_sort(sk, size);
   // compute the name
   string name = sort->to_string();
+
+  // note that nothing needs to be communicated to the solver,
+  // as in this case the sort is built in.
+
   // store in maps if needed and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
@@ -404,6 +416,11 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   Sort sort = make_generic_sort(sk, sorts);
   // compute the name
   string name = sort->to_string();
+
+  // note that nothing needs to be communicated to the solver,
+  // as in this case the sort is built in, or can used
+  // by combining sorts that were already defined.
+
   // store in maps if needed and return the sort
   if (name_sort_map->find(name) == name_sort_map->end())
   {
