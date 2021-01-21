@@ -13,7 +13,9 @@ if [ ! -d "$DEPS/CVC4" ]; then
     chmod -R 777 CVC4
     cd CVC4
     git checkout -f $CVC4_VERSION
-    echo "try webget directly"
+    echo "try wget directly"
+    wget -c -O ./antlr-3.4-complete.jar "https://www.antlr3.org/download/antlr-3.4-complete.jar"
+    echo "try curl directly"
     curl -L "https://www.antlr3.org/download/antlr-3.4-complete.jar" > ./antlr-3.4-complete.jar
     echo "before CVC4 get-antlr-3.4"
     ./contrib/get-antlr-3.4
