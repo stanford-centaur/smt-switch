@@ -14,9 +14,9 @@ if [ ! -d "$DEPS/CVC4" ]; then
     cd CVC4
     git checkout -f $CVC4_VERSION
     echo "try wget directly"
-    wget -c -O ./antlr-3.4-complete.jar "https://www.antlr3.org/download/antlr-3.4-complete.jar"
+    wget -c -O ./antlr-3.4-complete_wget.jar "https://www.antlr3.org/download/antlr-3.4-complete.jar"
     echo "try curl directly"
-    curl -L "https://www.antlr3.org/download/antlr-3.4-complete.jar" > ./antlr-3.4-complete.jar
+    curl -L "https://www.antlr3.org/download/antlr-3.4-complete.jar" > ./antlr-3.4-complete_curl.jar
     echo "try copied script"
     $DEPS/../contrib/get-antlr-test
     echo "before CVC4 get-antlr-3.4"
