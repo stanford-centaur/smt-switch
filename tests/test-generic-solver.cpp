@@ -71,8 +71,8 @@ void test_uf_1(SmtSolver gs)
   }
 }
 
-
-void test_bool_1(SmtSolver gs) {
+void test_bool_1(SmtSolver gs)
+{
   Sort bool_sort = gs->make_sort(BOOL);
   Term term_1 = gs->make_symbol("term_1", bool_sort);
   Result r;
@@ -145,8 +145,6 @@ void test_bv_2(SmtSolver gs)
   }
 }
 
-
-
 void init_solver(SmtSolver gs)
 {
   gs->set_opt("produce-models", "true");
@@ -218,7 +216,6 @@ void test_msat()
   test_bv_2(gs);
 }
 
-
 void test_yices2()
 {
   cout << "testing yices2" << endl;
@@ -243,7 +240,6 @@ void test_yices2()
   test_bv_2(gs);
 }
 
-
 void test_cvc4()
 {
   cout << "testing cvc4" << endl;
@@ -254,7 +250,7 @@ void test_cvc4()
 
   new_cvc4(gs);
   test_bool_1(gs);
-  
+
   new_cvc4(gs);
   test_uf_1(gs);
 
@@ -267,7 +263,6 @@ void test_cvc4()
   new_cvc4(gs);
   test_bv_2(gs);
 }
-
 
 void test_btor()
 {
@@ -310,30 +305,29 @@ int main() {
     std::cout << "caught an exception" << std::endl;
   }
 
-  // testing with cvc4 binary
-  #if BUILD_CVC4
-  std::cout << "testing cvc4" <<std::endl;
-    test_cvc4();
-  #endif
+// testing with cvc4 binary
+#if BUILD_CVC4
+  std::cout << "testing cvc4" << std::endl;
+  test_cvc4();
+#endif
 
-  // testing with msat binary
-  #if BUILD_MSAT
-    std::cout << "testing msat" <<std::endl;
-    test_msat();
-  #endif
+// testing with msat binary
+#if BUILD_MSAT
+  std::cout << "testing msat" << std::endl;
+  test_msat();
+#endif
 
-    // testing with yices2binary
-  #if BUILD_YICES2
-    std::cout << "testing yices2" <<std::endl;
-    test_yices2();
-  #endif
+  // testing with yices2binary
+#if BUILD_YICES2
+  std::cout << "testing yices2" << std::endl;
+  test_yices2();
+#endif
 
-    // testing with btorbinary
-  #if BUILD_BTOR
-    std::cout << "testing btor" <<std::endl;
-    test_btor();
-  #endif
-
+  // testing with btorbinary
+#if BUILD_BTOR
+  std::cout << "testing btor" << std::endl;
+  test_btor();
+#endif
 }
 
-#endif // __APPLE__
+#endif  // __APPLE__

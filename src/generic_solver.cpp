@@ -18,29 +18,28 @@
 ** https://stackoverflow.com/a/6172578/1364765
 */
 
-
 // generic solvers are not supported on macos
 #ifndef __APPLE__
 
-#include "assert.h"
-
 #include "generic_solver.h"
-#include "sort_inference.h"
-#include "sort.h"
-#include "smtlib_utils.h"
-#include "utils.h"
 
-
-#include<unistd.h>
-#include<sys/wait.h>
-#include<sys/prctl.h>
-#include<signal.h>
-#include<stdlib.h>
-#include<string.h>
-#include<stdio.h>
-#include<algorithm>
-#include<fcntl.h>
+#include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/prctl.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include <algorithm>
+
+#include "assert.h"
+#include "smtlib_utils.h"
+#include "sort.h"
+#include "sort_inference.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -66,12 +65,19 @@ std::string & trim(std::string & str)
 }
 
 // class methods implementation
-GenericSolver::GenericSolver(string path, vector<string> cmd_line_args, uint write_buf_size, uint read_buf_size)
-  : AbsSmtSolver(SolverEnum::GENERIC_SOLVER), path(path), cmd_line_args(cmd_line_args), write_buf_size(write_buf_size), read_buf_size(read_buf_size),
-  name_sort_map(new unordered_map<string, Sort>()),
-  sort_name_map(new unordered_map<Sort, string>()),
-  name_term_map(new unordered_map<string, Term>()),
-  term_name_map(new unordered_map<Term, string>())
+GenericSolver::GenericSolver(string path,
+                             vector<string> cmd_line_args,
+                             uint write_buf_size,
+                             uint read_buf_size)
+    : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
+      path(path),
+      cmd_line_args(cmd_line_args),
+      write_buf_size(write_buf_size),
+      read_buf_size(read_buf_size),
+      name_sort_map(new unordered_map<string, Sort>()),
+      sort_name_map(new unordered_map<Sort, string>()),
+      name_term_map(new unordered_map<string, Term>()),
+      term_name_map(new unordered_map<Term, string>())
 {
   term_counter = new uint;
   //allocate memory for the buffers
@@ -503,13 +509,27 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 
 Term GenericSolver::make_symbol(const string name, const Sort & sort)
 {
-  if (name_term_map->find(name) != name_term_map->end()) {
-    throw IncorrectUsageException(string("symbol name: ") + name + string(" already taken, either by another symbol or by a param"));
+  // make sure that the symbol name is not aready taken.
+  if (name_term_map->find(name) != name_term_map->end())
+  {
+    throw IncorrectUsageException(
+        string("symbol name: ") + name
+        + string(" already taken, either by another symbol or by a param"));
   }
+
+  // create the sumbol and store it in the maps
   Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = term;
   (*term_name_map)[term] = name;
-  run_command("(" + DECLARE_FUN_STR + " " + name + (sort->get_sort_kind() == FUNCTION ? " " : " () ") + (*sort_name_map)[sort] + ")");
+
+  // communicate the creation of the symbol to the binary of the solver.
+  // When the sort is not a fucntion, we specify an empty domain.
+  // Otherwise, the name of the sort includes the domain.
+  run_command("(" + DECLARE_FUN_STR + " " + name
+              + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
+              + (*sort_name_map)[sort] + ")");
+
+  // return the created symbol as a term
   return (*name_term_map)[name];
 }
 
@@ -576,24 +596,37 @@ void GenericSolver::set_logic(const std::string logic)
 
 void GenericSolver::assert_formula(const Term & t)
 {
+  // cast to generic term, as we need to print it to the solver
   shared_ptr<GenericTerm> lt = static_pointer_cast<GenericTerm>(t);
+
+  // obtain the name of the term from the internal map
   assert(term_name_map->find(lt) != term_name_map->end());
   string name = (*term_name_map)[lt];
+
+  // communicate the assertion to the binary of the solver
   run_command("(" + ASSERT_STR + " " + name + ")");
 }
 
-Result GenericSolver::str_to_result(string result) const {
-  if (result == "unsat") {
+Result GenericSolver::str_to_result(string result) const
+{
+  if (result == "unsat")
+  {
     return Result(UNSAT);
-  } 
-  else if (result == "sat") {
-    return Result(SAT);
-  } else if (result == "unknown") {
-    return Result(UNKNOWN);
-  } else {
-    throw NotImplementedException("Unimplemented result type from the generic solver. The result was: " + result);
   }
-
+  else if (result == "sat")
+  {
+    return Result(SAT);
+  }
+  else if (result == "unknown")
+  {
+    return Result(UNKNOWN);
+  }
+  else
+  {
+    throw NotImplementedException(
+        "Unimplemented result type from the generic solver. The result was: "
+        + result);
+  }
 }
 
 Result GenericSolver::check_sat()
@@ -610,12 +643,13 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 
 void GenericSolver::push(uint64_t num)
   {
-    string result = run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+    string result =
+        run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
   }
 
 void GenericSolver::pop(uint64_t num)
 {
-    string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
 }
 
 void GenericSolver::reset_assertions()
@@ -625,4 +659,4 @@ void GenericSolver::reset_assertions()
 
 }  // namespace smt
 
-#endif // __APPLE__
+#endif  // __APPLE__

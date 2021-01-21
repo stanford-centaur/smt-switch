@@ -105,7 +105,7 @@ class GenericSolver : public AbsSmtSolver
    *******************/
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
-  
+
   // open a connection to the binary via a pipe
   void start_solver();
   // close the connection to the binary
@@ -127,7 +127,6 @@ class GenericSolver : public AbsSmtSolver
   // cmoputes  whether the current output from the solver
   // is done being read
   bool is_done(int just_read, std::string result) const;
-
 
   /***********
    * members *
@@ -163,7 +162,6 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
   // used to hash terms via their internal string representation
   std::hash<std::string> str_hash;
-
 };
 
 }  // namespace smt
