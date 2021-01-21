@@ -503,7 +503,14 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 
 Term GenericSolver::make_symbol(const string name, const Sort & sort)
 {
-  assert(false);
+  if (name_term_map->find(name) != name_term_map->end()) {
+    throw IncorrectUsageException(string("symbol name: ") + name + string(" already taken, either by another symbol or by a param"));
+  }
+  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = term;
+  (*term_name_map)[term] = name;
+  run_command("(" + DECLARE_FUN_STR + " " + name + (sort->get_sort_kind() == FUNCTION ? " " : " () ") + (*sort_name_map)[sort] + ")");
+  return (*name_term_map)[name];
 }
 
 Term GenericSolver::make_param(const string name, const Sort & sort)
@@ -569,12 +576,31 @@ void GenericSolver::set_logic(const std::string logic)
 
 void GenericSolver::assert_formula(const Term & t)
 {
-  assert(false);
+  shared_ptr<GenericTerm> lt = static_pointer_cast<GenericTerm>(t);
+  assert(term_name_map->find(lt) != term_name_map->end());
+  string name = (*term_name_map)[lt];
+  run_command("(" + ASSERT_STR + " " + name + ")");
+}
+
+Result GenericSolver::str_to_result(string result) const {
+  if (result == "unsat") {
+    return Result(UNSAT);
+  } 
+  else if (result == "sat") {
+    return Result(SAT);
+  } else if (result == "unknown") {
+    return Result(UNKNOWN);
+  } else {
+    throw NotImplementedException("Unimplemented result type from the generic solver. The result was: " + result);
+  }
+
 }
 
 Result GenericSolver::check_sat()
 {
-  assert(false);
+  string result = run_command("(" + CHECK_SAT_STR + ")", false);
+  Result r = str_to_result(result);
+  return r;
 }
 
 Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
@@ -584,17 +610,17 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 
 void GenericSolver::push(uint64_t num)
   {
-    assert(false);
+    string result = run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
   }
 
 void GenericSolver::pop(uint64_t num)
 {
-  assert(false);
+    string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
 }
 
 void GenericSolver::reset_assertions()
   {
-    assert(false);
+    string result = run_command("(" + RESET_ASSERTIONS_STR + ")");
   }
 
 }  // namespace smt

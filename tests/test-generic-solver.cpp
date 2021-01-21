@@ -43,53 +43,6 @@
 using namespace smt;
 using namespace std;
 
-void init_solver(SmtSolver gs)
-{
-  gs->set_opt("produce-models", "true");
-  gs->set_opt("produce-unsat-assumptions", "true");
-  gs->set_logic("ALL");
-}
-
-void new_btor(SmtSolver & gs)
-{
-  gs.reset();
-  string path = (STRFY(BTOR_HOME));
-  path += "/build/bin/boolector";
-  vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
-  init_solver(gs);
-}
-
-void new_msat(SmtSolver & gs)
-{
-  gs.reset();
-  string path = (STRFY(MSAT_HOME));
-  path += "/bin/mathsat";
-  vector<string> args = { "" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
-  init_solver(gs);
-}
-
-void new_yices2(SmtSolver & gs)
-{
-  gs.reset();
-  string path = (STRFY(YICES2_HOME));
-  path += "/build/bin/yices_smt2";
-  vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
-  init_solver(gs);
-}
-
-void new_cvc4(SmtSolver & gs)
-{
-  gs.reset();
-  string path = (STRFY(CVC4_HOME));
-  path += "/build/bin/cvc4";
-  vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
-  init_solver(gs);
-}
-
 void test_bad_cmd(SmtSolver gs)
 {
   cout << "trying a bad command:" << endl;
@@ -116,6 +69,25 @@ void test_uf_1(SmtSolver gs)
   {
     cout << "caught the exception" << endl;
   }
+}
+
+
+void test_bool_1(SmtSolver gs) {
+  Sort bool_sort = gs->make_sort(BOOL);
+  Term term_1 = gs->make_symbol("term_1", bool_sort);
+  Result r;
+  cout << "checking satisfiability with no assertions" << endl;
+  gs->push(1);
+  r = gs->check_sat();
+  assert(r.is_sat());
+  gs->pop(1);
+
+  cout << "checking satisfiability with assertion " << std::endl;
+  gs->push(1);
+  gs->assert_formula(term_1);
+  r = gs->check_sat();
+  assert(r.is_sat());
+  gs->pop(1);
 }
 
 void test_int_1(SmtSolver gs)
@@ -173,46 +145,53 @@ void test_bv_2(SmtSolver gs)
   }
 }
 
-void test_cvc4()
+
+
+void init_solver(SmtSolver gs)
 {
-  cout << "testing cvc4" << endl;
-  SmtSolver gs;
-
-  new_cvc4(gs);
-  test_bad_cmd(gs);
-
-  new_cvc4(gs);
-  test_uf_1(gs);
-
-  new_cvc4(gs);
-  test_int_1(gs);
-
-  new_cvc4(gs);
-  test_bv_1(gs);
-
-  new_cvc4(gs);
-  test_bv_2(gs);
+  gs->set_opt("produce-models", "true");
+  gs->set_opt("produce-unsat-assumptions", "true");
+  gs->set_logic("ALL");
 }
 
-void test_yices2()
+void new_btor(SmtSolver & gs)
 {
-  cout << "testing yices2" << endl;
-  SmtSolver gs;
+  gs.reset();
+  string path = (STRFY(BTOR_HOME));
+  path += "/build/bin/boolector";
+  vector<string> args = { "--incremental" };
+  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  init_solver(gs);
+}
 
-  new_yices2(gs);
-  test_bad_cmd(gs);
+void new_msat(SmtSolver & gs)
+{
+  gs.reset();
+  string path = (STRFY(MSAT_HOME));
+  path += "/bin/mathsat";
+  vector<string> args = { "" };
+  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  init_solver(gs);
+}
 
-  new_yices2(gs);
-  test_uf_1(gs);
+void new_yices2(SmtSolver & gs)
+{
+  gs.reset();
+  string path = (STRFY(YICES2_HOME));
+  path += "/build/bin/yices_smt2";
+  vector<string> args = { "--incremental" };
+  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  init_solver(gs);
+}
 
-  new_yices2(gs);
-  test_int_1(gs);
-
-  new_yices2(gs);
-  test_bv_1(gs);
-
-  new_yices2(gs);
-  test_bv_2(gs);
+void new_cvc4(SmtSolver & gs)
+{
+  gs.reset();
+  string path = (STRFY(CVC4_HOME));
+  path += "/build/bin/cvc4";
+  vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
+  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  init_solver(gs);
 }
 
 void test_msat()
@@ -224,6 +203,9 @@ void test_msat()
   test_bad_cmd(gs);
 
   new_msat(gs);
+  test_bool_1(gs);
+
+  new_msat(gs);
   test_uf_1(gs);
 
   new_msat(gs);
@@ -236,6 +218,57 @@ void test_msat()
   test_bv_2(gs);
 }
 
+
+void test_yices2()
+{
+  cout << "testing yices2" << endl;
+  SmtSolver gs;
+
+  new_yices2(gs);
+  test_bad_cmd(gs);
+
+  new_yices2(gs);
+  test_bool_1(gs);
+
+  new_yices2(gs);
+  test_uf_1(gs);
+
+  new_yices2(gs);
+  test_int_1(gs);
+
+  new_yices2(gs);
+  test_bv_1(gs);
+
+  new_yices2(gs);
+  test_bv_2(gs);
+}
+
+
+void test_cvc4()
+{
+  cout << "testing cvc4" << endl;
+  SmtSolver gs;
+
+  new_cvc4(gs);
+  test_bad_cmd(gs);
+
+  new_cvc4(gs);
+  test_bool_1(gs);
+  
+  new_cvc4(gs);
+  test_uf_1(gs);
+
+  new_cvc4(gs);
+  test_int_1(gs);
+
+  new_cvc4(gs);
+  test_bv_1(gs);
+
+  new_cvc4(gs);
+  test_bv_2(gs);
+}
+
+
 void test_btor()
 {
   cout << "testing btor" << endl;
@@ -243,6 +276,9 @@ void test_btor()
 
   new_btor(gs);
   test_bad_cmd(gs);
+
+  new_btor(gs);
+  test_bool_1(gs);
 
   new_btor(gs);
   test_bv_1(gs);
@@ -274,25 +310,30 @@ int main() {
     std::cout << "caught an exception" << std::endl;
   }
 
-// testing with cvc4 binary
-#if BUILD_CVC4
-  test_cvc4();
-#endif
-
-// testing with msat binary
-#if BUILD_MSAT
-  test_msat();
-#endif
-
   // testing with cvc4 binary
-#if BUILD_YICES2
-  test_yices2();
-#endif
+  #if BUILD_CVC4
+  std::cout << "testing cvc4" <<std::endl;
+    test_cvc4();
+  #endif
 
-  // testing with cvc4 binary
-#if BUILD_BTOR
-  test_btor();
-#endif
+  // testing with msat binary
+  #if BUILD_MSAT
+    std::cout << "testing msat" <<std::endl;
+    test_msat();
+  #endif
+
+    // testing with yices2binary
+  #if BUILD_YICES2
+    std::cout << "testing yices2" <<std::endl;
+    test_yices2();
+  #endif
+
+    // testing with btorbinary
+  #if BUILD_BTOR
+    std::cout << "testing btor" <<std::endl;
+    test_btor();
+  #endif
+
 }
 
 #endif // __APPLE__

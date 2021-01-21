@@ -103,7 +103,9 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
-
+  // parse result (sat, unsat, unknown) from solver's output
+  Result str_to_result(std::string result) const;
+  
   // open a connection to the binary via a pipe
   void start_solver();
   // close the connection to the binary
