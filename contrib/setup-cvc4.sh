@@ -13,6 +13,10 @@ if [ ! -d "$DEPS/CVC4" ]; then
     chmod -R 777 CVC4
     cd CVC4
     git checkout -f $CVC4_VERSION
+    echo "try webget directly"
+    webget \
+        "https://www.antlr3.org/download/antlr-3.4-complete.jar" ./
+    echo "before CVC4 get-antlr-3.4"
     ./contrib/get-antlr-3.4
     # git clone https://github.com/uiri/toml.git
     # export PYTHONPATH=$PYTHONPATH:`pwd`/toml
