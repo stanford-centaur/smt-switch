@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function webget {
+  if [ -x "$(command -v wget)" ]; then
+    echo "chose wget"
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    echo "chose curl"
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+
+webget \
+  "https://www.antlr3.org/download/antlr-3.4-complete.jar" \
+  "./antlr-3.4-complete.jar"
