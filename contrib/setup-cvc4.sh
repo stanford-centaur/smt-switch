@@ -14,12 +14,12 @@ if [ ! -d "$DEPS/CVC4" ]; then
     cd CVC4
     git checkout -f $CVC4_VERSION
     ./contrib/get-antlr-3.4
-    git clone https://github.com/uiri/toml.git
-    export PYTHONPATH=$PYTHONPATH:`pwd`/toml
-    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
-    cd build
-    make -j4
-    cd $DIR
+    # git clone https://github.com/uiri/toml.git
+    # export PYTHONPATH=$PYTHONPATH:`pwd`/toml
+    # CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary
+    # cd build
+    # make -j4
+    # cd $DIR
 else
     echo "$DEPS/CVC4 already exists. If you want to rebuild, please remove it manually."
 fi

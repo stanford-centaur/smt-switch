@@ -23,55 +23,55 @@ addons:
 
 jobs:
   include:
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="btor" OPTS=""
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="cvc4" OPTS=""
-      compiler: clang
-    - os: linux
-      dist: bionic
-      env: SOLVER="msat" OPTS="--auto-yes"
-    - os: linux
-      dist: bionic
-      env: SOLVER="yices2" OPTS=""
-      compiler: gcc
-    - os: linux
-      dist: bionic
-      env: SOLVER="yices2" OPTS=""
-      compiler: clang
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='btor' OPTS=""
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="btor" OPTS=""
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="cvc4" OPTS=""
+    #   compiler: clang
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="msat" OPTS="--auto-yes"
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="yices2" OPTS=""
+    #   compiler: gcc
+    # - os: linux
+    #   dist: bionic
+    #   env: SOLVER="yices2" OPTS=""
+    #   compiler: clang
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='btor' OPTS=""
     - os: osx
       osx_image: xcode12
       env: SOLVER='cvc4' OPTS=""
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='msat' OPTS="--auto-yes"
-    - os: osx
-      osx_image: xcode12
-      env: SOLVER='yices2' OPTS=""
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='msat' OPTS="--auto-yes"
+    # - os: osx
+    #   osx_image: xcode12
+    #   env: SOLVER='yices2' OPTS=""
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
   - ./travis-scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
   - bash -c "./travis-scripts/setup-${SOLVER}.sh ${OPTS}"
-  - bash -c "./contrib/setup-skbuild.sh"
-  - bash -c "./configure.sh --debug --${SOLVER} --python"
-  - bash -c "cd build && make -j && make test"
-  # install wheels
-  - sudo python3 -m pip install wheel setuptools virtualenv
-  - python3 contrib/wheels/build_wheel.py bdist_wheel
-  - bash -c "python3 -m virtualenv env && source env/bin/activate && pip install dist/* pytest && pytest tests/"
+  # - bash -c "./contrib/setup-skbuild.sh"
+  # - bash -c "./configure.sh --debug --${SOLVER} --python"
+  # - bash -c "cd build && make -j && make test"
+  # # install wheels
+  # - sudo python3 -m pip install wheel setuptools virtualenv
+  # - python3 contrib/wheels/build_wheel.py bdist_wheel
+  # - bash -c "python3 -m virtualenv env && source env/bin/activate && pip install dist/* pytest && pytest tests/"
