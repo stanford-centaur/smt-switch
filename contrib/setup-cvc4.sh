@@ -14,8 +14,7 @@ if [ ! -d "$DEPS/CVC4" ]; then
     cd CVC4
     git checkout -f $CVC4_VERSION
     echo "try webget directly"
-    webget \
-        "https://www.antlr3.org/download/antlr-3.4-complete.jar" ./
+    curl -L "https://www.antlr3.org/download/antlr-3.4-complete.jar" > ./antlr-3.4-complete.jar
     echo "before CVC4 get-antlr-3.4"
     ./contrib/get-antlr-3.4
     # git clone https://github.com/uiri/toml.git
