@@ -17,6 +17,8 @@ if [ ! -d "$DEPS/CVC4" ]; then
     wget -c -O ./antlr-3.4-complete.jar "https://www.antlr3.org/download/antlr-3.4-complete.jar"
     echo "try curl directly"
     curl -L "https://www.antlr3.org/download/antlr-3.4-complete.jar" > ./antlr-3.4-complete.jar
+    echo "try copied script"
+    $DEPS/../contrib/get-antlr-test
     echo "before CVC4 get-antlr-3.4"
     ./contrib/get-antlr-3.4
     # git clone https://github.com/uiri/toml.git
