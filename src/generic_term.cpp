@@ -25,26 +25,49 @@ namespace smt {
 
 /* GenericTerm */
 
-GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r)
-    : sort(s), op(o), children(c), repr(r), is_sym(false), is_par(false)
-{
-}
-
-GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
+GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r) 
     : sort(s),
       op(o),
       children(c),
       repr(r),
-      is_sym(is_sym),
-      is_par(!is_sym)
+      is_sym(false),
+      is_par(false)
 {
+  ground = compute_ground();
+}
+
+GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
+: sort(s),
+      op(o),
+      children(c),
+      repr(r),
+      is_sym(is_sym),
+      is_par(!is_sym),
+      ground(true)
+{
+  ground = compute_ground();
+}
+
+bool GenericTerm::compute_ground() {
+  if (is_param()) {
+    return false;
+  }
+  for (Term child : get_children()) {
+    shared_ptr<GenericTerm> gc = static_pointer_cast<GenericTerm>(child);
+    if (!gc->is_ground()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 GenericTerm::~GenericTerm() {}
 
+
 Op GenericTerm::get_op() const { return op; }
 
-TermVec GenericTerm::get_children() { return children; }
+
+TermVec GenericTerm::get_children() {return children;}
 
 Sort GenericTerm::get_sort() const { return sort; }
 
@@ -119,9 +142,10 @@ size_t GenericTerm::hash() const { return str_hash(compute_string()); }
 
 // check if op is null because a non-value
 // may have been simplified to a value by the underlying solver
-bool GenericTerm::is_value() const
-{
-  return op == Op() && !is_param() && !is_symbolic_const();
+bool GenericTerm::is_value() const {return op == Op() && !is_param() && !is_symbolic_const();  }
+
+bool GenericTerm::is_ground() const{
+  return ground;
 }
 
 uint64_t GenericTerm::to_int() const { assert(false); }

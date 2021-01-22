@@ -291,6 +291,33 @@ void GenericSolver::close_solver() {
   waitpid(pid, &status, 0);
 }
  
+void GenericSolver::define_fun(std::string name, SortVec args_sorts, Sort res_sort, Term defining_term) const{
+  //for now, we practically only support define-const
+  assert(args_sorts.size() == 0);
+  assert(sort_name_map->find(res_sort) != sort_name_map->end());
+  run_command("(" + DEFINE_FUN_STR + " " + name + " () " + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term) + ")");
+}
+
+std::string GenericSolver::to_smtlib_def(Term term) const {
+  shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  if (gt->get_op().is_null()) {
+    return gt->repr;
+  } else {
+    string result = "(";
+    result += ((term->get_op().prim_op == Apply) ? "" : term->get_op().to_string());
+    if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists) {
+      result += " ((" + (*term_name_map)[gt->get_children()[0]] + " " + (*sort_name_map)[gt->get_children()[0]->get_sort()] + ")) " + (*term_name_map)[gt->get_children()[1]];
+    } 
+    else {
+      for (auto c : gt->get_children()) {
+        result += " " + (*term_name_map)[c];
+      }
+    }
+  result += ")";
+  return result;
+  }
+}
+
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
   // When constructing a sort, the sort constructor
   // must have been already processed
@@ -485,9 +512,35 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
   assert(false);  
 }
 
+std::string GenericSolver::get_name(Term term) const {
+  *term_counter = (*term_counter) + 1;
+  return "t_" + std::to_string((*term_counter));
+  
+}
+
+Term GenericSolver::store_term(Term term) const {
+  shared_ptr<GenericTerm> gterm = static_pointer_cast<GenericTerm>(term);
+  if (term_name_map->find(gterm) == term_name_map->end()) {
+    string name;
+    if (gterm->is_ground()) {
+      name = get_name(gterm);
+      define_fun(name, SortVec{}, gterm->get_sort(), gterm);
+    } else {
+      name = to_smtlib_def(gterm);
+    }
+    (*name_term_map)[name] = gterm;
+    (*term_name_map)[gterm] = name;
+  }
+  string name = (*term_name_map)[gterm];
+  return (*name_term_map)[name];
+}
+
 Term GenericSolver::make_term(bool b) const
 {
-  assert(false);
+  Sort boolsort = make_sort(BOOL);
+  Term term =
+      std::make_shared<GenericTerm>(boolsort, Op(), TermVec{}, b ? "true" : "false");
+  return store_term(term);
 }
 
 Term GenericSolver::make_term(int64_t i, const Sort & sort) const

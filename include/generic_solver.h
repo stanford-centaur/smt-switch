@@ -103,6 +103,8 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+  // store a term in the internal cache
+  Term store_term(Term term) const;
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
 
@@ -110,6 +112,13 @@ class GenericSolver : public AbsSmtSolver
   void start_solver();
   // close the connection to the binary
   void close_solver();
+  // internally defining and storing a function symbol
+  void define_fun(std::string str,
+                  smt::SortVec args_sorts,
+                  smt::Sort res_sort,
+                  smt::Term defining_term) const;
+  // get the name of a term
+  std::string get_name(Term t) const;
 
   // internal function to read solver's response
   std::string read_internal() const;
