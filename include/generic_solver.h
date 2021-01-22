@@ -33,6 +33,7 @@ class GenericSolver : public AbsSmtSolver
                 uint write_buf_size = 256,
                 uint read_buf_size = 256);
   ~GenericSolver();
+  // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
@@ -103,7 +104,10 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
-  // store a term in the internal cache
+  // store a term in the internal maps and return the stored term
+  // The returned term might be a different object than the input term.
+  // For example, if a term with the same content has already been stored,
+  // the old term is returned.
   Term store_term(Term term) const;
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;

@@ -296,9 +296,11 @@ void GenericSolver::define_fun(std::string name,
                                Sort res_sort,
                                Term defining_term) const
 {
-  // for now, we practically only support define-const
+  // we only use functions without parameters
+  // (like define-const)
   assert(args_sorts.size() == 0);
   assert(sort_name_map->find(res_sort) != sort_name_map->end());
+  // send a define-fun to the binary
   run_command("(" + DEFINE_FUN_STR + " " + name + " () "
               + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
               + ")");
@@ -306,16 +308,24 @@ void GenericSolver::define_fun(std::string name,
 
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
+  // cast to generic term
   shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  // generic terms with no operators are represented by their
+  // name.
   if (gt->get_op().is_null())
   {
-    return gt->repr;
+    return gt->to_string();
   }
   else
   {
+    // generic terms with operators are written as s-expressions.
     string result = "(";
+    // The Apply operator is ignored and the
+    // function being applied is used instead.
     result +=
         ((term->get_op().prim_op == Apply) ? "" : term->get_op().to_string());
+    // For quantifiers we separate the bound variables list
+    // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
     {
       result += " ((" + (*term_name_map)[gt->get_children()[0]] + " "
@@ -324,6 +334,10 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     }
     else
     {
+      // in the general case (other than quantifiers
+      // and Apply), we use ordinary
+      // s-expressions notation and write a
+      // space-separated list of arguments.
       for (auto c : gt->get_children())
       {
         result += " " + (*term_name_map)[c];
@@ -530,16 +544,34 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
 
 std::string GenericSolver::get_name(Term term) const
 {
+  // the names of the terms are `t_i` with a running `i`.
+  // These names are used for `define-fun` commands.
   *term_counter = (*term_counter) + 1;
   return "t_" + std::to_string((*term_counter));
 }
 
 Term GenericSolver::store_term(Term term) const
 {
+  // cast the term to a GenericTerm
   shared_ptr<GenericTerm> gterm = static_pointer_cast<GenericTerm>(term);
+  // store the term in the maps in case it is not there already
   if (term_name_map->find(gterm) == term_name_map->end())
   {
     string name;
+    // ground terms are communicated to the binary
+    // using a define-fun command.
+    // In future instances of this term, we will use the name
+    // of the defined function.
+    // For example: if `term` is `0`, and `name` is `t1`,
+    // we send a command:
+    // `(define-fun t1 () Int 0)`
+    // If in the future we see a term `0+0`, it will
+    // be send to the solver as `(+ t1 t1)`.
+    //
+    // However, terms with bound variables cannot be given to
+    // a define-fun command. For them, we store
+    // their actual definition.
+    // In future instances, the entire definition will be used.
     if (gterm->is_ground())
     {
       name = get_name(gterm);
@@ -552,12 +584,14 @@ Term GenericSolver::store_term(Term term) const
     (*name_term_map)[name] = gterm;
     (*term_name_map)[gterm] = name;
   }
+  // return the term from the internal map
   string name = (*term_name_map)[gterm];
   return (*name_term_map)[name];
 }
 
 Term GenericSolver::make_term(bool b) const
 {
+  // create a generic term that represents `b`.
   Sort boolsort = make_sort(BOOL);
   Term term = std::make_shared<GenericTerm>(
       boolsort, Op(), TermVec{}, b ? "true" : "false");

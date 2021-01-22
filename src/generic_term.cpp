@@ -45,13 +45,19 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
 
 bool GenericTerm::compute_ground()
 {
+  // parameters are not ground terms
   if (is_param())
   {
     return false;
   }
+  // if one of the children is not ground, then the term
+  // is not ground.
   for (Term child : get_children())
   {
     shared_ptr<GenericTerm> gc = static_pointer_cast<GenericTerm>(child);
+    // This is not a recursive call -- is_ground is
+    // just a getter. Their `ground` member
+    // was initialized upon their construction.
     if (!gc->is_ground())
     {
       return false;
