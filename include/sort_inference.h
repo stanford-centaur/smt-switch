@@ -16,9 +16,8 @@
 
 #pragma once
 
-#include <unordered_set>
-
 #include "assert.h"
+
 #include "ops.h"
 #include "solver.h"
 #include "sort.h"
@@ -118,14 +117,6 @@ bool check_ite_sorts(const SortVec & sorts);
  *  @return true iff all SortKinds have sort sk
  */
 bool check_sortkind_matches(SortKind sk, const SortVec & sorts);
-
-/** Returns true iff all the sorts have SortKind in sks
- *  @param sks the set of possible SortKinds
- *  @param sorts the vector of Sorts to check
- *  @return true iff all sorts have SortKind in sks
- */
-bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
-                            const SortVec & sorts);
 
 /** Checks if the sorts are well-sorted for an apply operator
  *  @param sorts the vector of sorts
