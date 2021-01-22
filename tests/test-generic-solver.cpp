@@ -20,24 +20,22 @@
 #include <array>
 #include <cstdio>
 #include <fstream>
-#include <cstdio>
-#include <stdexcept>
-#include <string>
-#include <array>
 #include <iostream>
 #include <memory>
-#include <vector>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include "assert.h"
 
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
 // it cannot be compiled outside of the build
-#include "test-utils.h"
-
 #include "cvc4_factory.h"
 #include "generic_solver.h"
 #include "smt.h"
+#include "test-utils.h"
 
 using namespace smt;
 using namespace std;
@@ -89,7 +87,8 @@ void test_bool_1(SmtSolver gs)
   gs->pop(1);
 }
 
-void test_bool_2(SmtSolver gs) {
+void test_bool_2(SmtSolver gs)
+{
   cout << "trying to create a constant boolean term" << endl;
   Term true_term_1 = gs->make_term(true);
   Term false_term_1 = gs->make_term(false);
@@ -107,19 +106,19 @@ void test_bool_2(SmtSolver gs) {
   Term true_term = true_term_1;
   Term false_term = false_term_1;
 
-  Result r; 
+  Result r;
 
   cout << "checking satisfiability with no assertions" << endl;
   gs->push(1);
   r = gs->check_sat();
   assert(r.is_sat());
   gs->pop(1);
-  
+
   cout << "checking satisfiability with assertion that is true" << endl;
   gs->push(1);
   gs->assert_formula(true_term);
   r = gs->check_sat();
-  assert(r.is_sat()); 
+  assert(r.is_sat());
   gs->pop(1);
 
   cout << "checking satisfiability with assertion that is false" << endl;
@@ -129,12 +128,13 @@ void test_bool_2(SmtSolver gs) {
   assert(r.is_unsat());
   gs->pop(1);
 
-  cout << "checking satisfiability with assertions that are false and true" << endl;
+  cout << "checking satisfiability with assertions that are false and true"
+       << endl;
   gs->push(1);
   gs->assert_formula(false_term);
   gs->assert_formula(true_term);
   r = gs->check_sat();
-  assert(r.is_unsat()); 
+  assert(r.is_unsat());
   gs->pop(1);
 }
 
@@ -253,7 +253,7 @@ void test_msat()
 
   new_msat(gs);
   test_bool_2(gs);
-  
+
   new_msat(gs);
   test_uf_1(gs);
 
@@ -280,7 +280,7 @@ void test_yices2()
 
   new_yices2(gs);
   test_bool_2(gs);
-  
+
   new_yices2(gs);
   test_uf_1(gs);
 
