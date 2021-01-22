@@ -566,7 +566,7 @@ Term GenericSolver::store_term(Term term) const
     // we send a command:
     // `(define-fun t1 () Int 0)`
     // If in the future we see a term `0+0`, it will
-    // be send to the solver as `(+ t1 t1)`.
+    // be sent to the solver as `(+ t1 t1)`.
     //
     // However, terms with bound variables cannot be given to
     // a define-fun command. For them, we store
