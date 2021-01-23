@@ -29,13 +29,13 @@ done
 if [ ! -d "$DEPS/CVC4" ]; then
     cd $DEPS
     if [[ "$OSTYPE" == linux* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux-new.tar.bz2
     elif [[ "$OSTYPE" == darwin* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-mac.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-mac-new.tar.bz2
     elif [[ "$OSTYPE" == msys* ]]; then
         echo "Pre-compiled libraries for Windows not yet available"
     elif [[ "$OSTYPE" == cygwin* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux-new.tar.bz2
     else
         echo "Unrecognized OSTYPE=$OSTYPE"
         exit 1
