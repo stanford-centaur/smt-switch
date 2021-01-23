@@ -34,9 +34,6 @@
 // it cannot be compiled outside of the build
 #include "cvc4_factory.h"
 #include "generic_solver.h"
-#include "generic_sort.h"
-#include "generic_term.h"
-#include "gtest/gtest.h"
 #include "smt.h"
 #include "test-utils.h"
 
@@ -87,6 +84,57 @@ void test_bool_1(SmtSolver gs)
   gs->assert_formula(term_1);
   r = gs->check_sat();
   assert(r.is_sat());
+  gs->pop(1);
+}
+
+void test_bool_2(SmtSolver gs)
+{
+  cout << "trying to create a constant boolean term" << endl;
+  Term true_term_1 = gs->make_term(true);
+  Term false_term_1 = gs->make_term(false);
+  cout << "got term: " << true_term_1 << endl;
+  cout << "got term: " << false_term_1 << endl;
+
+  cout << "trying to create a constant boolean term again" << endl;
+  Term true_term_2 = gs->make_term(true);
+  Term false_term_2 = gs->make_term(false);
+  cout << "got term: " << true_term_2 << endl;
+  cout << "got term: " << false_term_2 << endl;
+  assert(true_term_1.get() == true_term_2.get());
+  assert(false_term_1.get() == false_term_2.get());
+
+  Term true_term = true_term_1;
+  Term false_term = false_term_1;
+
+  Result r;
+
+  cout << "checking satisfiability with no assertions" << endl;
+  gs->push(1);
+  r = gs->check_sat();
+  assert(r.is_sat());
+  gs->pop(1);
+
+  cout << "checking satisfiability with assertion that is true" << endl;
+  gs->push(1);
+  gs->assert_formula(true_term);
+  r = gs->check_sat();
+  assert(r.is_sat());
+  gs->pop(1);
+
+  cout << "checking satisfiability with assertion that is false" << endl;
+  gs->push(1);
+  gs->assert_formula(false_term);
+  r = gs->check_sat();
+  assert(r.is_unsat());
+  gs->pop(1);
+
+  cout << "checking satisfiability with assertions that are false and true"
+       << endl;
+  gs->push(1);
+  gs->assert_formula(false_term);
+  gs->assert_formula(true_term);
+  r = gs->check_sat();
+  assert(r.is_unsat());
   gs->pop(1);
 }
 
@@ -204,6 +252,9 @@ void test_msat()
   test_bool_1(gs);
 
   new_msat(gs);
+  test_bool_2(gs);
+
+  new_msat(gs);
   test_uf_1(gs);
 
   new_msat(gs);
@@ -226,6 +277,9 @@ void test_yices2()
 
   new_yices2(gs);
   test_bool_1(gs);
+
+  new_yices2(gs);
+  test_bool_2(gs);
 
   new_yices2(gs);
   test_uf_1(gs);
@@ -252,6 +306,9 @@ void test_cvc4()
   test_bool_1(gs);
 
   new_cvc4(gs);
+  test_bool_2(gs);
+
+  new_cvc4(gs);
   test_uf_1(gs);
 
   new_cvc4(gs);
@@ -274,6 +331,9 @@ void test_btor()
 
   new_btor(gs);
   test_bool_1(gs);
+
+  new_btor(gs);
+  test_bool_2(gs);
 
   new_btor(gs);
   test_bv_1(gs);
