@@ -122,6 +122,7 @@ class GenericSolver : public AbsSmtSolver
 
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
+  
   // parse actual value from a get-value response
   std::string strip_value_from_result(std::string result) const;
 

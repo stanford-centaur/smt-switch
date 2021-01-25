@@ -762,26 +762,39 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 
 Term GenericSolver::get_value(const Term & t) const
 {
+  // we do not support getting array values, function values, and uninterpreted values.
   Sort sort = t->get_sort();
   assert(sort->get_sort_kind() != ARRAY && sort->get_sort_kind() != FUNCTION
          && sort->get_sort_kind() != UNINTERPRETED);
+  
+  // get the name of the term (the way the term is defined in the solver)
   assert(term_name_map->find(t) != term_name_map->end());
   string name = (*term_name_map)[t];
+
+  // ask the binary for the value and parse it
   string result = run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
   string value = strip_value_from_result(result);
+
+  // translate the string representation of the result into a term
   Term resulting_term;
+  // for bit-vectors, we distinguish between the solver's way of representing them.
+  // it can be either binary, hex, or decimal.
   if (sort->get_sort_kind() == BV)
   {
     if (value.substr(0, 2) == "#b")
     {
+      // bianry representation
       resulting_term = make_term(value.substr(2, value.size() - 2), sort, 2);
     }
     else if (value.substr(0, 2) == "#x")
     {
+      // hex representation
       resulting_term = make_term(value.substr(2, value.size() - 2), sort, 16);
     }
     else
     {
+      // decimal representation.
+      // parse strings of the form (_ bv<decimal> <bitwidth>)
       size_t index_of__ = value.find("_ ");
       assert(index_of__ != string::npos);
       int start_of_decimal = index_of__ + 4;
@@ -800,12 +813,17 @@ Term GenericSolver::get_value(const Term & t) const
 
 string GenericSolver::strip_value_from_result(string result) const
 {
+  // trim spaces
   result = trim(result);
+  
+  // value string ends at first ")" or end of string.
   int end_of_value = result.size() - 1;
   while (result.at(end_of_value) == ')' || result.at(end_of_value) == ' ')
   {
     end_of_value--;
   }
+  
+  // value string begins at the first non-space after '('
   int start_of_value = end_of_value;
   while (result.at(start_of_value) != '(')
   {
@@ -816,12 +834,17 @@ string GenericSolver::strip_value_from_result(string result) const
     start_of_value++;
   }
   start_of_value++;
+
   // special case for bit-vectors with smt-lib style
+  // (_ bv<value> <bitwidth>)
+  // in this case we only take <value>
   if (result.find("bv", start_of_value) == start_of_value)
   {
     start_of_value -= 3;
     end_of_value++;
   }
+
+  // crop the relevant substring
   string strip =
       result.substr(start_of_value, end_of_value - start_of_value + 1);
   return strip;
@@ -829,23 +852,43 @@ string GenericSolver::strip_value_from_result(string result) const
 
 void GenericSolver::get_unsat_core(UnorderedTermSet & out)
 {
+  // run get-unsat-assumptions command
   string result = run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
+
+  // parse the result -- get the assumptions
   UnorderedTermSet assumptions = get_assumptions_from_string(result);
+
+  // put the result in out
   out.insert(assumptions.begin(), assumptions.end());
 }
 
 UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
 {
+  // the result from the solver is a 
+  // space-separated list of Boolean literals.
   UnorderedTermSet literals;
+  
+  // trim the result from spaces
   result = trim(result);
+
+  // unwrap parenthesis and trim spaces again
   string strip = result.substr(1, result.size() - 2);
   strip = trim(strip);
+
+  // position in the string
   int index = 0;
+  // if true, current literal is positive.
+  // otherwise, it has the form (not <var>)
   bool positive;
+
+  // iterate the string
   while (index < strip.size())
   {
+    // beginning and end of literal
     int begin;
     int end;
+    
+    // negative literal
     if (strip.substr(index, 5) == "(not ")
     {
       begin = index + 5;
@@ -855,6 +898,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
     }
     else
     {
+      // positive literal -- starts with the variable name
       begin = index;
       // end -- one character after the end of the substring
       end = strip.find(" ", begin + 1);
@@ -866,6 +910,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
       end--;
       positive = true;
     }
+
+    // retrieve the literal from the map
     string str_atom = strip.substr(begin, end - begin + 1);
     assert(name_term_map->find(str_atom) != name_term_map->end());
     Term atom = (*name_term_map)[str_atom];
@@ -878,6 +924,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
     {
       literal = make_term(Not, atom);
     }
+
+    // add the literal to the result
     literals.insert(literal);
     if (positive)
     {
