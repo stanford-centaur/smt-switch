@@ -349,40 +349,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 }
 
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
-  // When constructing a sort, the sort constructor
-  // must have been already processed
-  assert(sort_name_map->find(sort_con) != sort_name_map->end());
-  // The arity of the sort constructor must match
-  // the number of arguments
-  assert(sort_con->get_arity() == sorts.size());
-
-  // All the input sorts must have been processed
-  for (Sort sort : sorts)
-  {
-    assert(sort_name_map->find(sort) != sort_name_map->end());
-  }
-
-  // creating the new sort
-  Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
-
-  // note that there is no need to communicate anything
-  // to the solver yet. When the sort will be used,
-  // we will print the right name to the solver.
-
-  // assigning a name to the new sort
-  string name = sort->get_uninterpreted_name();
-
-  // store in the map if missing, and return the new sort
-  if (name_sort_map->find(name) != name_sort_map->end())
-  {
-    return (*name_sort_map)[name];
-  }
-  else
-  {
-    (*name_sort_map)[name] = sort;
-    (*sort_name_map)[sort] = name;
-    return sort;
-  }
+  assert(false);
 }
 
 Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
@@ -795,12 +762,135 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 
 Term GenericSolver::get_value(const Term & t) const
 {
-  assert(false);
+  Sort sort = t->get_sort();
+  assert(sort->get_sort_kind() != ARRAY && sort->get_sort_kind() != FUNCTION
+         && sort->get_sort_kind() != UNINTERPRETED);
+  assert(term_name_map->find(t) != term_name_map->end());
+  string name = (*term_name_map)[t];
+  string result = run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
+  string value = strip_value_from_result(result);
+  Term resulting_term;
+  if (sort->get_sort_kind() == BV)
+  {
+    if (value.substr(0, 2) == "#b")
+    {
+      resulting_term = make_term(value.substr(2, value.size() - 2), sort, 2);
+    }
+    else if (value.substr(0, 2) == "#x")
+    {
+      resulting_term = make_term(value.substr(2, value.size() - 2), sort, 16);
+    }
+    else
+    {
+      size_t index_of__ = value.find("_ ");
+      assert(index_of__ != string::npos);
+      int start_of_decimal = index_of__ + 4;
+      int end_of_decimal = value.find(' ', start_of_decimal);
+      string decimal =
+          value.substr(start_of_decimal, end_of_decimal - start_of_decimal + 1);
+      resulting_term = make_term(decimal, sort, 10);
+    }
+  }
+  else
+  {
+    resulting_term = make_term(value, t->get_sort());
+  }
+  return resulting_term;
+}
+
+string GenericSolver::strip_value_from_result(string result) const
+{
+  result = trim(result);
+  int end_of_value = result.size() - 1;
+  while (result.at(end_of_value) == ')' || result.at(end_of_value) == ' ')
+  {
+    end_of_value--;
+  }
+  int start_of_value = end_of_value;
+  while (result.at(start_of_value) != '(')
+  {
+    start_of_value--;
+  }
+  while (result.at(start_of_value) != ' ')
+  {
+    start_of_value++;
+  }
+  start_of_value++;
+  // special case for bit-vectors with smt-lib style
+  if (result.find("bv", start_of_value) == start_of_value)
+  {
+    start_of_value -= 3;
+    end_of_value++;
+  }
+  string strip =
+      result.substr(start_of_value, end_of_value - start_of_value + 1);
+  return strip;
 }
 
 void GenericSolver::get_unsat_core(UnorderedTermSet & out)
 {
-  assert(false);
+  string result = run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
+  UnorderedTermSet assumptions = get_assumptions_from_string(result);
+  out.insert(assumptions.begin(), assumptions.end());
+}
+
+UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
+{
+  UnorderedTermSet literals;
+  result = trim(result);
+  string strip = result.substr(1, result.size() - 2);
+  strip = trim(strip);
+  int index = 0;
+  bool positive;
+  while (index < strip.size())
+  {
+    int begin;
+    int end;
+    if (strip.substr(index, 5) == "(not ")
+    {
+      begin = index + 5;
+      end = strip.find(")", begin + 1) - 1;
+      assert(end != string::npos);
+      positive = false;
+    }
+    else
+    {
+      begin = index;
+      // end -- one character after the end of the substring
+      end = strip.find(" ", begin + 1);
+      if (end == string::npos)
+      {
+        end = strip.size();
+      }
+      // end -- the actual end of the substring
+      end--;
+      positive = true;
+    }
+    string str_atom = strip.substr(begin, end - begin + 1);
+    assert(name_term_map->find(str_atom) != name_term_map->end());
+    Term atom = (*name_term_map)[str_atom];
+    Term literal;
+    if (positive)
+    {
+      literal = atom;
+    }
+    else
+    {
+      literal = make_term(Not, atom);
+    }
+    literals.insert(literal);
+    if (positive)
+    {
+      // next beginning is after a space
+      index = end + 2;
+    }
+    else
+    {
+      // next beginning is after a space and a ')'
+      index = end + 3;
+    }
+  }
+  return literals;
 }
 
 UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
@@ -868,7 +958,24 @@ Result GenericSolver::check_sat()
 
 Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  assert(false);
+  string names;
+  for (Term t : assumptions)
+  {
+    if (!t->is_symbolic_const() || t->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (t->get_op() != Not || !((*t->begin())->is_symbolic_const()))
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + t->to_string());
+      }
+    }
+    assert(term_name_map->find(t) != term_name_map->end());
+    names += " " + (*term_name_map)[t];
+  }
+  string result =
+      run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
+  Result r = str_to_result(result);
+  return r;
 }
 
 void GenericSolver::push(uint64_t num)
