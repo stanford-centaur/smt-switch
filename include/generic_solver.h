@@ -106,8 +106,8 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
-  // parse an smt-lib constant array value.
-  // used both for get-value and for make_term
+  // create an smt-lib constant array value.
+  // used for make_term
   std::string cons_arr_string(const Term & val, const Sort & sort) const;
 
   /** store a term in the internal maps and return the stored term
