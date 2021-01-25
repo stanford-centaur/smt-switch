@@ -762,11 +762,12 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 
 Term GenericSolver::get_value(const Term & t) const
 {
-  // we do not support getting array values, function values, and uninterpreted values.
+  // we do not support getting array values, function values, and uninterpreted
+  // values.
   Sort sort = t->get_sort();
   assert(sort->get_sort_kind() != ARRAY && sort->get_sort_kind() != FUNCTION
          && sort->get_sort_kind() != UNINTERPRETED);
-  
+
   // get the name of the term (the way the term is defined in the solver)
   assert(term_name_map->find(t) != term_name_map->end());
   string name = (*term_name_map)[t];
@@ -777,8 +778,8 @@ Term GenericSolver::get_value(const Term & t) const
 
   // translate the string representation of the result into a term
   Term resulting_term;
-  // for bit-vectors, we distinguish between the solver's way of representing them.
-  // it can be either binary, hex, or decimal.
+  // for bit-vectors, we distinguish between the solver's way of representing
+  // them. it can be either binary, hex, or decimal.
   if (sort->get_sort_kind() == BV)
   {
     if (value.substr(0, 2) == "#b")
@@ -815,14 +816,14 @@ string GenericSolver::strip_value_from_result(string result) const
 {
   // trim spaces
   result = trim(result);
-  
+
   // value string ends at first ")" or end of string.
   int end_of_value = result.size() - 1;
   while (result.at(end_of_value) == ')' || result.at(end_of_value) == ' ')
   {
     end_of_value--;
   }
-  
+
   // value string begins at the first non-space after '('
   int start_of_value = end_of_value;
   while (result.at(start_of_value) != '(')
@@ -864,10 +865,10 @@ void GenericSolver::get_unsat_core(UnorderedTermSet & out)
 
 UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
 {
-  // the result from the solver is a 
+  // the result from the solver is a
   // space-separated list of Boolean literals.
   UnorderedTermSet literals;
-  
+
   // trim the result from spaces
   result = trim(result);
 
@@ -887,7 +888,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
     // beginning and end of literal
     int begin;
     int end;
-    
+
     // negative literal
     if (strip.substr(index, 5) == "(not ")
     {
