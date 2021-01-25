@@ -1010,6 +1010,7 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
   string names;
   for (Term t : assumptions)
   {
+    // assumptions can only be Boolean literals
     if (!t->is_symbolic_const() || t->get_sort()->get_sort_kind() != BOOL)
     {
       if (t->get_op() != Not || !((*t->begin())->is_symbolic_const()))
@@ -1018,9 +1019,13 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
             "Expecting boolean indicator literals but got: " + t->to_string());
       }
     }
+
+    // add the name of the literal to the list of assumptions
     assert(term_name_map->find(t) != term_name_map->end());
     names += " " + (*term_name_map)[t];
   }
+
+  // send command to the solver and parse it
   string result =
       run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
   Result r = str_to_result(result);
