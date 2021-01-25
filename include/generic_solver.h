@@ -33,7 +33,10 @@ class GenericSolver : public AbsSmtSolver
                 uint write_buf_size = 256,
                 uint read_buf_size = 256);
   ~GenericSolver();
+
+  // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
+
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, uint64_t size) const override;
@@ -103,13 +106,61 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+  // create an smt-lib constant array value.
+  // used for make_term
+  std::string cons_arr_string(const Term & val, const Sort & sort) const;
+
+  /** store a term in the internal maps and return the stored term
+   * The returned term might be a different object than the input term.
+   * For example, if a term with the same content has already been stored,
+   * the old term is returned.
+   */
+  Term store_term(Term term) const;
+
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
+
+  /** helper function for bv constant
+   * abs_decimal is the string represnentation of the absolute value of the
+   * desired bv value. width is the bit-width returns a bv term of width `width`
+   * whose value is (-1) * abs_decimal.
+   * */
+  Term make_non_negative_bv_const(std::string abs_decimal, uint width) const;
+
+  /** helper function for bv constant
+   * abs_decimal is the absolute value of the desired bit-vector.
+   * width is the bit-width
+   * returns a bv term of width `width` whose value is abs_value.
+   * */
+  Term make_non_negative_bv_const(int64_t abs_value, uint width) const;
+
+  /** helper function for bv constant
+   * abs_decimal is the string represnentation of the absolute value of the
+   * desired bv value. width is the bit-width returns a bv term of width `width`
+   * whose value is abs_decimal.
+   * */
+  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
+
+  /** helper function for bv constant
+   * abs_decimal is the absolute value of the desired bit-vector.
+   * width is the bit-width
+   * returns a bv term of width `width` whose value is (-1) * abs_value.
+   * */
+  Term make_negative_bv_const(int64_t abs_value, uint width) const;
 
   // open a connection to the binary via a pipe
   void start_solver();
   // close the connection to the binary
   void close_solver();
+
+  // internally defining and storing a function symbol
+  void define_fun(std::string str,
+                  smt::SortVec args_sorts,
+                  smt::Sort res_sort,
+                  smt::Term defining_term) const;
+
+  // get the name of a term
+  std::string get_name(Term t) const;
 
   // internal function to read solver's response
   std::string read_internal() const;

@@ -290,7 +290,64 @@ void GenericSolver::close_solver() {
   kill(pid, SIGKILL);
   waitpid(pid, &status, 0);
 }
- 
+
+void GenericSolver::define_fun(std::string name,
+                               SortVec args_sorts,
+                               Sort res_sort,
+                               Term defining_term) const
+{
+  // we only use functions without parameters
+  // (like define-const)
+  assert(args_sorts.size() == 0);
+  assert(sort_name_map->find(res_sort) != sort_name_map->end());
+  // send a define-fun to the binary
+  run_command("(" + DEFINE_FUN_STR + " " + name + " () "
+              + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
+              + ")");
+}
+
+std::string GenericSolver::to_smtlib_def(Term term) const
+{
+  // cast to generic term
+  shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  // generic terms with no operators are represented by their
+  // name.
+  if (gt->get_op().is_null())
+  {
+    return gt->to_string();
+  }
+  else
+  {
+    // generic terms with operators are written as s-expressions.
+    string result = "(";
+    // The Apply operator is ignored and the
+    // function being applied is used instead.
+    result +=
+        ((term->get_op().prim_op == Apply) ? "" : term->get_op().to_string());
+    // For quantifiers we separate the bound variables list
+    // and the formula body.
+    if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
+    {
+      result += " ((" + (*term_name_map)[gt->get_children()[0]] + " "
+                + (*sort_name_map)[gt->get_children()[0]->get_sort()] + ")) "
+                + (*term_name_map)[gt->get_children()[1]];
+    }
+    else
+    {
+      // in the general case (other than quantifiers
+      // and Apply), we use ordinary
+      // s-expressions notation and write a
+      // space-separated list of arguments.
+      for (auto c : gt->get_children())
+      {
+        result += " " + (*term_name_map)[c];
+      }
+    }
+    result += ")";
+    return result;
+  }
+}
+
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
   // When constructing a sort, the sort constructor
   // must have been already processed
@@ -485,26 +542,180 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
   assert(false);  
 }
 
+std::string GenericSolver::get_name(Term term) const
+{
+  // the names of the terms are `t_i` with a running `i`.
+  // These names are used for `define-fun` commands.
+  *term_counter = (*term_counter) + 1;
+  return "t_" + std::to_string((*term_counter));
+}
+
+Term GenericSolver::store_term(Term term) const
+{
+  // cast the term to a GenericTerm
+  shared_ptr<GenericTerm> gterm = static_pointer_cast<GenericTerm>(term);
+  // store the term in the maps in case it is not there already
+  if (term_name_map->find(gterm) == term_name_map->end())
+  {
+    string name;
+    // ground terms are communicated to the binary
+    // using a define-fun command.
+    // In future instances of this term, we will use the name
+    // of the defined function.
+    // For example: if `term` is `0`, and `name` is `t1`,
+    // we send a command:
+    // `(define-fun t1 () Int 0)`
+    // If in the future we see a term `0+0`, it will
+    // be sent to the solver as `(+ t1 t1)`.
+    //
+    // However, terms with bound variables cannot be given to
+    // a define-fun command. For them, we store
+    // their actual definition.
+    // In future instances, the entire definition will be used.
+    if (gterm->is_ground())
+    {
+      name = get_name(gterm);
+      define_fun(name, SortVec{}, gterm->get_sort(), gterm);
+    }
+    else
+    {
+      name = to_smtlib_def(gterm);
+    }
+    (*name_term_map)[name] = gterm;
+    (*term_name_map)[gterm] = name;
+  }
+  // return the term from the internal map
+  string name = (*term_name_map)[gterm];
+  return (*name_term_map)[name];
+}
+
+Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
+                                               uint width) const
+{
+  Sort bvsort = make_sort(BV, width);
+  string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
+  Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
+  return store_term(term);
+}
+
+Term GenericSolver::make_non_negative_bv_const(int64_t i, uint width) const
+{
+  assert(i >= 0);
+  return make_non_negative_bv_const(std::to_string(i), width);
+}
+
+Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
+{
+  Term zero = make_non_negative_bv_const("0", width);
+  Term abs = make_non_negative_bv_const(abs_decimal, width);
+  Term result = make_term(BVSub, zero, abs);
+  return store_term(result);
+}
+
+Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
+{
+  assert(abs_value >= 0);
+  return make_negative_bv_const(std::to_string(abs_value), width);
+}
+
 Term GenericSolver::make_term(bool b) const
 {
-  assert(false);
+  // create a generic term that represents `b`.
+  Sort boolsort = make_sort(BOOL);
+  Term term = std::make_shared<GenericTerm>(
+      boolsort, Op(), TermVec{}, b ? "true" : "false");
+  return store_term(term);
 }
 
 Term GenericSolver::make_term(int64_t i, const Sort & sort) const
 {
-  assert(false);
+  SortKind sk = sort->get_sort_kind();
+  assert(sk == BV || sk == INT || sk == REAL);
+  if (sk == INT || sk == REAL)
+  {
+    string repr = std::to_string(i);
+    Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
+    return store_term(term);
+  }
+  else
+  {
+    // sk == BV
+    if (i < 0)
+    {
+      int64_t abs_value = i * (-1);
+      Term term = make_negative_bv_const(abs_value, sort->get_width());
+      return store_term(term);
+    }
+    else
+    {
+      Term term = make_non_negative_bv_const(i, sort->get_width());
+      return store_term(term);
+    }
+  }
 }
 
 Term GenericSolver::make_term(const string name,
                               const Sort & sort,
                               uint64_t base) const
 {
-  assert(false);
+  SortKind sk = sort->get_sort_kind();
+  assert(sk == BV || sk == INT || sk == REAL);
+  assert(base == 2 || base == 10 | base == 16);
+  string repr;
+  if (sk == INT || sk == REAL)
+  {
+    assert(base == 10);
+    repr = name;
+    Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
+    return store_term(term);
+  }
+  else
+  {
+    // sk == BV
+    if (base == 10)
+    {
+      if (name.find("-") == 0)
+      {
+        string abs_decimal = name.substr(1);
+        return make_negative_bv_const(abs_decimal, sort->get_width());
+      }
+      else
+      {
+        return make_non_negative_bv_const(name, sort->get_width());
+      }
+    }
+    else
+    {
+      // base = 2 or 16
+      if (base == 2)
+      {
+        repr = "#b" + name;
+      }
+      else if (base == 16)
+      {
+        repr = "#x" + name;
+      }
+      Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
+      return store_term(term);
+    }
+  }
+}
+
+string GenericSolver::cons_arr_string(const Term & val, const Sort & sort) const
+{
+  assert(term_name_map->find(val) != term_name_map->end());
+  assert(sort_name_map->find(sort) != sort_name_map->end());
+  return "((as const " + (*sort_name_map)[sort] + ") " + val->to_string()
+         + ") ";
 }
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 {
-  assert(false);
+  assert(sort->get_sort_kind() == ARRAY);
+  assert(sort->get_elemsort() == val->get_sort());
+  Term term = std::make_shared<GenericTerm>(
+      sort, Op(), TermVec{ val }, cons_arr_string(val, sort));
+  return store_term(term);
 }
 
 Term GenericSolver::make_symbol(const string name, const Sort & sort)
@@ -535,19 +746,28 @@ Term GenericSolver::make_symbol(const string name, const Sort & sort)
 
 Term GenericSolver::make_param(const string name, const Sort & sort)
 {
-  assert(false);
+  if (name_term_map->find(name) != name_term_map->end())
+  {
+    throw IncorrectUsageException(
+        string("param name: ") + name
+        + string(" already taken, either by another param or by a symbol"));
+  }
+  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, false);
+  (*name_term_map)[name] = term;
+  (*term_name_map)[term] = name;
+  return (*name_term_map)[name];
 }
 
 Term GenericSolver::make_term(const Op op, const Term & t) const
 {
-  assert(false);
+  return make_term(op, TermVec({ t }));
 }
 
 Term GenericSolver::make_term(const Op op,
                               const Term & t1,
                               const Term & t2) const
 {
-  assert(false);
+  return make_term(op, TermVec({ t1, t2 }));
 }
 
 Term GenericSolver::make_term(const Op op,
@@ -555,12 +775,22 @@ Term GenericSolver::make_term(const Op op,
                               const Term & t2,
                               const Term & t3) const
 {
-  assert(false);
+  return make_term(op, TermVec({ t1, t2, t3 }));
 }
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
-  assert(false);
+  Sort sort = compute_sort(op, this, terms);
+  string repr = "(" + op.to_string();
+  for (int i = 0; i < terms.size(); i++)
+  {
+    assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
+    repr += " " + (*term_name_map)[terms[i]];
+  }
+  repr += ")";
+  Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
+  Term stored_term = store_term(term);
+  return stored_term;
 }
 
 Term GenericSolver::get_value(const Term & t) const
@@ -581,7 +811,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 
 void GenericSolver::reset()
 {
-  assert(false);
+  string result = run_command("(" + RESET_STR + ")");
 }
 
 void GenericSolver::set_opt(const std::string option, const std::string value)
