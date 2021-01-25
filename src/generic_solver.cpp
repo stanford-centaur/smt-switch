@@ -589,14 +589,6 @@ Term GenericSolver::store_term(Term term) const
   return (*name_term_map)[name];
 }
 
-Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
-{
-  Term zero = make_non_negative_bv_const("0", width);
-  Term abs = make_non_negative_bv_const(abs_decimal, width);
-  Term result = make_term(BVSub, zero, abs);
-  return store_term(result);
-}
-
 Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
                                                uint width) const
 {
@@ -606,16 +598,24 @@ Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
   return store_term(term);
 }
 
-Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
-{
-  assert(abs_value >= 0);
-  return make_negative_bv_const(std::to_string(abs_value), width);
-}
-
 Term GenericSolver::make_non_negative_bv_const(int64_t i, uint width) const
 {
   assert(i >= 0);
   return make_non_negative_bv_const(std::to_string(i), width);
+}
+
+Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
+{
+  Term zero = make_non_negative_bv_const("0", width);
+  Term abs = make_non_negative_bv_const(abs_decimal, width);
+  Term result = make_term(BVSub, zero, abs);
+  return store_term(result);
+}
+
+Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
+{
+  assert(abs_value >= 0);
+  return make_negative_bv_const(std::to_string(abs_value), width);
 }
 
 Term GenericSolver::make_term(bool b) const

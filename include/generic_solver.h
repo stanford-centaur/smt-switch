@@ -123,13 +123,6 @@ class GenericSolver : public AbsSmtSolver
   /** helper function for bv constant
    * abs_decimal is the string represnentation of the absolute value of the
    * desired bv value. width is the bit-width returns a bv term of width `width`
-   * whose value is abs_decimal.
-   * */
-  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
-
-  /** helper function for bv constant
-   * abs_decimal is the string represnentation of the absolute value of the
-   * desired bv value. width is the bit-width returns a bv term of width `width`
    * whose value is (-1) * abs_decimal.
    * */
   Term make_non_negative_bv_const(std::string abs_decimal, uint width) const;
@@ -140,6 +133,13 @@ class GenericSolver : public AbsSmtSolver
    * returns a bv term of width `width` whose value is abs_value.
    * */
   Term make_non_negative_bv_const(int64_t abs_value, uint width) const;
+
+  /** helper function for bv constant
+   * abs_decimal is the string represnentation of the absolute value of the
+   * desired bv value. width is the bit-width returns a bv term of width `width`
+   * whose value is abs_decimal.
+   * */
+  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
 
   /** helper function for bv constant
    * abs_decimal is the absolute value of the desired bit-vector.
