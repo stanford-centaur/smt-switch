@@ -106,6 +106,8 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+  // parse solver's from a constant array value
+  std::string cons_arr_string(const Term & val, const Sort & sort) const;
 
   /** store a term in the internal maps and return the stored term
    * The returned term might be a different object than the input term.
@@ -117,6 +119,14 @@ class GenericSolver : public AbsSmtSolver
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
 
+  // helper function for bv constant
+  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
+  // helper function for bv constant
+  Term make_non_negative_bv_const(std::string abs_decimal, uint width) const;
+  // helper function for bv constant
+  Term make_negative_bv_const(int64_t abs_value, uint width) const;
+  // helper function for bv constant
+  Term make_non_negative_bv_const(int64_t i, uint width) const;
   // open a connection to the binary via a pipe
   void start_solver();
   // close the connection to the binary
