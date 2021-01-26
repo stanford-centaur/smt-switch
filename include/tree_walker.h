@@ -58,7 +58,7 @@ protected:
   *  @param term the term to visit
   *  @return a WalkerStepResult to tell the visit method how to proceed
   */
- virtual WalkerStepResult visit_term(std::pair <smt::Term, std::vector<int>> & occurrence);
+ virtual WalkerStepResult visit_term(smt::Term & term, std::vector<int>> & path)
 
  /** Check if key is in cache
   *  @param key

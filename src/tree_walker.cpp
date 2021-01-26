@@ -8,6 +8,9 @@ namespace smt
 
 Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
 {
+  int child_no = -1; //iterates over children, for tracking which child on & path
+  vector<int> tree_path; //path ; TODO need std::..?
+
   if (clear_cache_)
   {
     cache_.clear();
@@ -25,7 +28,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     return out;
   }
 
-  TermVec to_visit({occurrence.first}); //TODO idk how this works
+  TermVec to_visit({occurrence.first});
   // Note: visited is different than cache keys
   //       might want to visit without saving to the cache
   //       and if something is in the cache it wouldn't
@@ -39,9 +42,15 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     t = to_visit.back();
     to_visit.pop_back();
 
+    //TODO increment iterator for children
+    child_no = ++1; //TODO should 0 for first loop and 1 in next etc
+
     if (in_cache(t))
     {
       // cache hit
+      // TODO reset iterator for children
+      tree_path.pop_back(child_no); //add to path
+      //child_no = -1;
       continue;
     }
 
@@ -50,7 +59,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     // add to visited after determining whether we're in the pre-
     // or post-order
     visited.insert(t);
-    res = visit_term(t);
+    res = visit_term(t, tree_path);
 
     if (res == Walker_Abort)
     {
@@ -66,6 +75,8 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
       if (res == Walker_Continue)
       {
         to_visit.push_back(t);
+        tree_path.push_back(child_no); //path back path, going down new level
+        child_no = -1; //reset counter for new set of children to take
         for (auto tt : t)
         {
           to_visit.push_back(tt);
@@ -81,35 +92,39 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
   return out;
 }
 
-WalkerStepResult IdentityWalker::visit_term(pair <Term, vector<int>> & occurrence)
+WalkerStepResult TreeWalker::visit_term(Term & term, vector<int>> & path)
 {
   if (!preorder_)
   {
-    Op op = occurrence.first->get_op();
+    Op op = term->get_op();
     if (!op.is_null())
     {
       TermVec cached_children;
       Term c;
-      for (auto t : term) //TODO how is a loop over the term meaningful and what should it be now?
+      pair <Term, vector<int>> occurrence;
+      for (auto t : term) //TODO how is a loop over the term meaningful and what should it be now? iterates over term's children?
       {
         // TODO: see if we can pass the same term as both arguments
-        c = t; //TODO this needs to be a pair occurrence
-        query_cache(t, c);
-        cached_children.push_back(c); //TODO this needs to be only first part of pair (the term)
+        //c = t; //TODO this needs to be a pair occurrence
+        //TODO make pair for (term=c, path=computed somehow)
+        occurrence.first = t;
+        occurrence.second = path;
+        query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
+        cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
       }
-      save_in_cache(term, solver_->make_term(op, cached_children));
+      save_in_cache(term, make_pair(solver_->make_term(op, cached_children), path));
     }
     else
     {
       // just keep the leaves the same
-      save_in_cache(term, term); //TODO needs to be pair in second argument
+      save_in_cache(term, make_pair(term, path)); //TODO needs to be pair in second argument
     }
   }
 
   return Walker_Continue;
 }
 
-bool IdentityWalker::in_cache(const Term & key) const
+bool TreeWalker::in_cache(const Term & key) const
 {
   if (ext_cache_)
   {
@@ -121,7 +136,7 @@ bool IdentityWalker::in_cache(const Term & key) const
   }
 }
 
-bool IdentityWalker::query_cache(const Term & key, pair <Term, vector<int>> & out) const
+bool TreeWalker::query_cache(const Term & key, pair <Term, vector<int>> & out) const
 {
   if (ext_cache_)
   {
@@ -144,7 +159,7 @@ bool IdentityWalker::query_cache(const Term & key, pair <Term, vector<int>> & ou
   return false;
 }
 
-void IdentityWalker::save_in_cache(const Term & key, const pair <Term, vector<int>> & val)
+void TreeWalker::save_in_cache(const Term & key, const pair <Term, vector<int>> & val)
 {
   if (ext_cache_)
   {
