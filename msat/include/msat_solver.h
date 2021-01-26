@@ -71,6 +71,7 @@ class MsatSolver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
@@ -138,6 +139,48 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
+
+  inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
+  {
+    msat_result mres =
+        msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+
+    if (mres == MSAT_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (mres == MSAT_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
+
+  template <class I>
+  inline void all_boolean_literals(I it, const I & end)
+  {
+    while (it != end)
+    {
+      const Term & a = *it;
+      it++;
+      if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+      {
+        if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+        {
+          continue;
+        }
+        else
+        {
+          throw IncorrectUsageException(
+              "Expecting boolean indicator literals but got: "
+              + a->to_string());
+        }
+      }
+    }
+  }
 };
 
 // Interpolating Solver

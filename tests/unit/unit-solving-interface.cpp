@@ -69,7 +69,10 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
     EXPECT_EQ(s->get_solver_enum(), MSAT);
     r = s->check_sat_assuming(TermVec{ b1, nb2 });
   }
-  ASSERT_TRUE(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming_list(TermList{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,
