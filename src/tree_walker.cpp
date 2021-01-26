@@ -21,11 +21,11 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     }
   }
 
-  Term out = occurrence;
+  pair <Term, vector<int>> out = occurrence;
   if (query_cache(occurrence.first, out))
   {
     // cache hit
-    return out;
+    return out.first;
   }
 
   TermVec to_visit({occurrence.first});
@@ -43,13 +43,13 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     to_visit.pop_back();
 
     //TODO increment iterator for children
-    child_no = ++1; //TODO should 0 for first loop and 1 in next etc
+    ++child_no; //TODO should 0 for first loop and 1 in next etc
 
     if (in_cache(t))
     {
       // cache hit
       // TODO reset iterator for children
-      tree_path.pop_back(child_no); //add to path
+      tree_path.pop_back(); //add to path
       //child_no = -1;
       continue;
     }
@@ -65,9 +65,9 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     {
       // visit_term requested an abort
       // return the mapping if it has been cached already
-      Term out = occurrence;
+      pair <Term, vector<int>> out = occurrence;
       query_cache(occurrence.first, out);
-      return out;
+      return out.first;
     }
 
     if (preorder_)
@@ -89,10 +89,10 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
   // return the cached term if available
   // otherwise just returns the original term
   query_cache(occurrence.first, out);
-  return out;
+  return out.first;
 }
 
-WalkerStepResult TreeWalker::visit_term(Term & term, vector<int>> & path)
+WalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
 {
   if (!preorder_)
   {
@@ -112,12 +112,18 @@ WalkerStepResult TreeWalker::visit_term(Term & term, vector<int>> & path)
         query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
         cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
       }
-      save_in_cache(term, make_pair(solver_->make_term(op, cached_children), path));
+      pair <Term, vector<int>> occ;
+      occ.first = solver_->make_term(op, cached_children);
+      occ.second = path;
+      save_in_cache(term, occ);
     }
     else
     {
       // just keep the leaves the same
-      save_in_cache(term, make_pair(term, path)); //TODO needs to be pair in second argument
+      pair <Term, vector<int>> occ;
+      occ.first = term;
+      occ.second = path;
+      save_in_cache(term, occ); //TODO needs to be pair in second argument
     }
   }
 

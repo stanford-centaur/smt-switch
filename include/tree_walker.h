@@ -39,7 +39,7 @@ class TreeWalker
 public:
  TreeWalker(const smt::SmtSolver & solver,
                 bool clear_cache,
-                smt::UnorderedTermMap * ext_cache = nullptr)
+                smt::UnorderedTermPairMap * ext_cache = nullptr)
      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
 
  /** Visit a term and all its subterms in a post-order traversal
@@ -58,7 +58,7 @@ protected:
   *  @param term the term to visit
   *  @return a WalkerStepResult to tell the visit method how to proceed
   */
- virtual WalkerStepResult visit_term(smt::Term & term, std::vector<int>> & path)
+ virtual WalkerStepResult visit_term(smt::Term & term, std::vector<int> & path);
 
  /** Check if key is in cache
   *  @param key
@@ -71,14 +71,14 @@ protected:
   *  @param out this term is set to the cache result if there's a hit
   *  @return true iff there is a cache hit
   */
- bool query_cache(const Term & key, pair <Term, vector<int>> & out) const;
+ bool query_cache(const Term & key, std::pair <Term, std::vector<int>> & out) const;
 
  /** Populate the cache. Automatically uses ext_cache_ if non-null.
   *  It will overwrite the existing mapping if the key is already in the cache
   *  @param key the key term
   *  @param val the value term
   */
- void save_in_cache(const Term & key, const pair <Term, vector<int>> & val); //TODO why query_cache and this dont need std:: and smt:: apparently bc const
+ void save_in_cache(const Term & key, const std::pair <Term, std::vector<int>> & val); //TODO why query_cache and this dont need std:: and smt:: apparently bc const
 
  const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
  bool clear_cache_; /**< if true, clears the cache between calls to visit */
@@ -87,8 +87,8 @@ protected:
 
 private:
  // derived classes should interact with cache through the methods above only
- smt::UnorderedTermMap cache_;       /**< cache for updating terms */ //TODO would I have to change these too as cache map is mapping to pairs now
- smt::UnorderedTermMap * ext_cache_; /**< external (user-provided) cache. If
+ smt::UnorderedTermPairMap cache_;       /**< cache for updating terms */ //TODO would I have to change these too as cache map is mapping to pairs now
+ smt::UnorderedTermPairMap * ext_cache_; /**< external (user-provided) cache. If
                                         non-null, used instead of cache_ */
 };
 

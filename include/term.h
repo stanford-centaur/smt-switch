@@ -168,6 +168,7 @@ class TermIter
 using TermVec = std::vector<Term>;
 using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
+using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
 inline TermIter end(Term & t) { return t->end(); }
