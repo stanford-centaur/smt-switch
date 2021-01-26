@@ -158,29 +158,6 @@ class MsatSolver : public AbsSmtSolver
       return Result(UNKNOWN);
     }
   }
-
-  template <class I>
-  inline void all_boolean_literals(I it, const I & end)
-  {
-    while (it != end)
-    {
-      const Term & a = *it;
-      it++;
-      if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-      {
-        if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-        {
-          continue;
-        }
-        else
-        {
-          throw IncorrectUsageException(
-              "Expecting boolean indicator literals but got: "
-              + a->to_string());
-        }
-      }
-    }
-  }
 };
 
 // Interpolating Solver

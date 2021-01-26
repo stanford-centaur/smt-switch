@@ -204,7 +204,21 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // expecting (possibly negated) boolean literals
-  all_boolean_literals(assumptions.begin(), assumptions.end());
+  for (const auto & a : assumptions)
+  {
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
+  }
 
   vector<msat_term> m_assumps;
   m_assumps.reserve(assumptions.size());
@@ -222,7 +236,21 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   // expecting (possibly negated) boolean literals
-  all_boolean_literals(assumptions.begin(), assumptions.end());
+  for (const auto & a : assumptions)
+  {
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
+  }
 
   vector<msat_term> m_assumps;
   m_assumps.reserve(assumptions.size());
