@@ -512,7 +512,7 @@ void test_bv_models(SmtSolver gs)
   gs->pop(1);
 }
 
-void test_check_sat_assuming(SmtSolver gs)
+void test_check_sat_assuming_1(SmtSolver gs)
 {
   // Testing check-sat-assuming
   gs->push(1);
@@ -525,6 +525,27 @@ void test_check_sat_assuming(SmtSolver gs)
   Result r;
   r = gs->check_sat_assuming(TermVec{ not_b1, b2, b3 });
   assert(r.is_unsat());
+  gs->pop(1);
+}
+
+void test_check_sat_assuming_2(SmtSolver gs)
+{
+  // Testing check-sat-assuming
+  gs->push(1);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv1 = gs->make_symbol("bv1", bv_sort);
+  Term bv2 = gs->make_symbol("bv2", bv_sort);
+
+  Term b1 = gs->make_term(Equal, bv1, gs->make_term(BVNot, bv2));
+  Term not_b1 = gs->make_term(Not, b1);
+
+  Term b2 = gs->make_term(BVUgt, bv1, bv2);
+
+  Term b3 = gs->make_term(BVUgt, bv2, gs->make_term(3, bv_sort));
+  gs->assert_formula(b1);
+  Result r;
+  r = gs->check_sat_assuming(TermVec{ b2, b3 });
+  assert(r.is_sat());
   gs->pop(1);
 }
 
@@ -660,7 +681,10 @@ void test_msat()
   test_bv_models(gs);
 
   new_msat(gs);
-  test_check_sat_assuming(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_msat(gs);
+  test_check_sat_assuming_2(gs);
 
   new_msat(gs);
   test_unsat_assumptions(gs);
@@ -726,7 +750,10 @@ void test_yices2()
   test_bv_models(gs);
 
   new_yices2(gs);
-  test_check_sat_assuming(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_yices2(gs);
+  test_check_sat_assuming_2(gs);
 
   new_yices2(gs);
   test_unsat_assumptions(gs);
@@ -798,7 +825,10 @@ void test_cvc4()
   test_bv_models(gs);
 
   new_cvc4(gs);
-  test_check_sat_assuming(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_cvc4(gs);
+  test_check_sat_assuming_2(gs);
 
   new_cvc4(gs);
   test_unsat_assumptions(gs);
@@ -846,7 +876,10 @@ void test_btor()
   test_bool(gs);
 
   new_btor(gs);
-  test_check_sat_assuming(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_btor(gs);
+  test_check_sat_assuming_2(gs);
 
   new_btor(gs);
   test_unsat_assumptions(gs);
