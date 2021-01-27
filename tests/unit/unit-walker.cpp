@@ -21,11 +21,18 @@
 #include "gtest/gtest.h"
 #include "identity_walker.h"
 #include "smt.h"
+#include "tree_walker.h"
 
 using namespace smt;
 using namespace std;
 
 namespace smt_tests {
+
+class DummyTreeWalker : TreeWalker {
+  TreeWalkerStepResult visit_term(smt::Term & term, std::vector<int> & path) override{
+    return TreeWalker_Continue;
+  }
+};
 
 class UnitWalkerTests : public ::testing::Test,
                         public ::testing::WithParamInterface<SolverConfiguration>
@@ -113,6 +120,20 @@ TEST_P(UnitWalkerTests, FunSubstitution)
   EXPECT_EQ(fy, iw.visit(fx));
   // visit a second time
   EXPECT_EQ(fy, iw.visit(fx));
+}
+
+TEST_P(UnitWalkerTests, SimpleTree)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+  TreeWalker iw(s, false);
+  pair <Term, vector<int>> p1;
+  p1.first = xp1;
+  p1.second = {0};
+  EXPECT_EQ(xp1, iw.visit(p1));
+  //assert(false);
+  // visit a second time
+  EXPECT_EQ(xp1, iw.visit(p1));
 }
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnitWalker,
