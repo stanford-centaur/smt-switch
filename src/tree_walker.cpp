@@ -6,7 +6,7 @@ using namespace std;
 namespace smt
 {
 
-Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
+pair<Term, vector<int>> TreeWalker::visit(Term & node)
 {
   int child_no = -1; //iterates over children, for tracking which child on & path
   vector<int> tree_path; //path ; TODO need std::..?
@@ -21,14 +21,16 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     }
   }
 
-  pair <Term, vector<int>> out = occurrence;
-  if (query_cache(occurrence.first, out))
+  pair <Term, vector<int>> out;
+  out.first = node;
+  out.second = tree_path;
+  if (query_cache(node, out))
   {
     // cache hit
-    return out.first;
+    return out;
   }
 
-  TermVec to_visit({occurrence.first});
+  TermVec to_visit({node});
   // Note: visited is different than cache keys
   //       might want to visit without saving to the cache
   //       and if something is in the cache it wouldn't
@@ -49,7 +51,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     {
       // cache hit
       // TODO reset iterator for children
-      tree_path.pop_back(); //add to path
+      tree_path.pop_back(); //pop last coordinate in path as move up a layer in tree
       //child_no = -1;
       continue;
     }
@@ -65,9 +67,11 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     {
       // visit_term requested an abort
       // return the mapping if it has been cached already
-      pair <Term, vector<int>> out = occurrence;
-      query_cache(occurrence.first, out);
-      return out.first;
+      pair <Term, vector<int>> out;
+      out.first = node;
+      out.second = tree_path; //TODO why need redo this?
+      query_cache(node, out);
+      return out;
     }
 
     if (preorder_)
@@ -88,8 +92,8 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
   // finished the traversal
   // return the cached term if available
   // otherwise just returns the original term
-  query_cache(occurrence.first, out);
-  return out.first;
+  query_cache(node, out);
+  return out;
 }
 
 TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)

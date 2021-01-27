@@ -49,8 +49,8 @@ public:
   *  @return the term after visiting (returns the value of cache[term]
   *     -- if it has been cached and returns term otherwise)
   */
- smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
- //std::pair<smt::Term, std::vector<int>> visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
+// smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
+ std::pair<smt::Term, std::vector<int>> visit(smt::Term & node); //TODO should be Term & term or just Term?, match w visit_term
 
 protected:
  /** Visit a single term.
