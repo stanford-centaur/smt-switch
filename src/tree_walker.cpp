@@ -36,7 +36,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
   UnorderedTermSet visited; //TODO should be UnorderedTermSet still now that map to pairs not terms?
 
   Term t;
-  WalkerStepResult res;
+  TreeWalkerStepResult res;
   while(to_visit.size())
   {
     t = to_visit.back();
@@ -61,7 +61,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
     visited.insert(t);
     res = visit_term(t, tree_path);
 
-    if (res == Walker_Abort)
+    if (res == TreeWalker_Abort)
     {
       // visit_term requested an abort
       // return the mapping if it has been cached already
@@ -72,7 +72,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
 
     if (preorder_)
     {
-      if (res == Walker_Continue)
+      if (res == TreeWalker_Continue)
       {
         to_visit.push_back(t);
         tree_path.push_back(child_no); //path back path, going down new level
@@ -92,7 +92,7 @@ Term TreeWalker::visit(pair <Term, vector<int>> & occurrence)
   return out.first;
 }
 
-WalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
+TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
 {
   if (!preorder_)
   {
@@ -127,7 +127,7 @@ WalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
     }
   }
 
-  return Walker_Continue;
+  return TreeWalker_Continue;
 }
 
 bool TreeWalker::in_cache(const Term & key) const

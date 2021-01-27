@@ -13,11 +13,11 @@ namespace smt
    * Walker_Skip     : skip this term and all subterms
    * Walker_Abort    : abort visiting
    */
-enum WalkerStepResult
+enum TreeWalkerStepResult
 {
- Walker_Continue=0,
- Walker_Skip,
- Walker_Abort
+ TreeWalker_Continue=0,
+ TreeWalker_Skip,
+ TreeWalker_Abort
 };
 
 /** \class
@@ -50,6 +50,7 @@ public:
   *     -- if it has been cached and returns term otherwise)
   */
  smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
+ //std::pair<smt::Term, std::vector<int>> visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
 
 protected:
  /** Visit a single term.
@@ -58,7 +59,7 @@ protected:
   *  @param term the term to visit
   *  @return a WalkerStepResult to tell the visit method how to proceed
   */
- virtual WalkerStepResult visit_term(smt::Term & term, std::vector<int> & path);
+ virtual TreeWalkerStepResult visit_term(smt::Term & term, std::vector<int> & path);
 
  /** Check if key is in cache
   *  @param key
