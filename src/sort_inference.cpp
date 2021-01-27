@@ -34,8 +34,8 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Not, bool_sorts },
                           { Implies, bool_sorts },
                           { Ite, check_ite_sorts },
-                          { Equal, equal_sorts },
-                          { Distinct, equal_sorts },
+                          { Equal, arith_equal_sorts },
+                          { Distinct, arith_equal_sorts },
                           { Apply, check_apply_sorts },
                           { Plus, arithmetic_sorts },
                           { Minus, arithmetic_sorts },
@@ -268,6 +268,11 @@ bool equal_sorts(const SortVec & sorts)
   assert(sorts.size());
   return (adjacent_find(sorts.begin(), sorts.end(), not_equal_to<Sort>())
           == sorts.end());
+}
+
+bool arith_equal_sorts(const SortVec & sorts)
+{
+  return equal_sorts(sorts) || arithmetic_sorts(sorts);
 }
 
 bool equal_sortkinds(const SortVec & sorts)
