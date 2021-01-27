@@ -72,6 +72,7 @@ class MsatSolver : public AbsSmtSolver
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
   Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;

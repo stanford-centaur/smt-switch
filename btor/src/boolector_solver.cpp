@@ -321,6 +321,12 @@ Result BoolectorSolver::check_sat_assuming_list(const TermList & assumptions)
   return check_sat_assuming(assumptions.begin(), assumptions.end());
 }
 
+Result BoolectorSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
+
 void BoolectorSolver::push(uint64_t num)
 {
   boolector_push(btor, num);

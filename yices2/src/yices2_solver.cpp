@@ -349,6 +349,22 @@ Result Yices2Solver::check_sat_assuming_list(const TermList & assumptions)
   return check_sat_assuming(y_assumps);
 }
 
+Result Yices2Solver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  vector<term_t> y_assumps;
+  y_assumps.reserve(assumptions.size());
+
+  shared_ptr<Yices2Term> ya;
+  for (auto a : assumptions)
+  {
+    ya = static_pointer_cast<Yices2Term>(a);
+    y_assumps.push_back(ya->term);
+  }
+
+  return check_sat_assuming(y_assumps);
+}
+
 void Yices2Solver::push(uint64_t num) { yices_push(ctx); }
 
 void Yices2Solver::pop(uint64_t num) { yices_pop(ctx); }

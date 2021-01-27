@@ -312,6 +312,26 @@ Result CVC4Solver::check_sat_assuming_list(const TermList & assumptions)
   }
 }
 
+Result CVC4Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
+    {
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
+    }
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 void CVC4Solver::push(uint64_t num)
 {
   try

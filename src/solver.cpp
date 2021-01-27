@@ -29,6 +29,13 @@ Result AbsSmtSolver::check_sat_assuming_list(const TermList & assumptions)
       "check_sat_assuming_list not implemented by default");
 }
 
+Result AbsSmtSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  throw NotImplementedException(
+      "check_sat_assuming_set not implemented by default");
+}
+
 Term AbsSmtSolver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
