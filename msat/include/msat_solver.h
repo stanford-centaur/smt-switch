@@ -71,6 +71,8 @@ class MsatSolver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
@@ -138,6 +140,25 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
+
+  inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
+  {
+    msat_result mres =
+        msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+
+    if (mres == MSAT_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (mres == MSAT_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
 };
 
 // Interpolating Solver

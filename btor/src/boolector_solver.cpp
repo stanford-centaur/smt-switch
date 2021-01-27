@@ -313,29 +313,18 @@ Result BoolectorSolver::check_sat()
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  // boolector supports assuming arbitrary one-bit expressions,
-  // not just boolean literals
-  std::shared_ptr<BoolectorTerm> bt;
-  for (auto a : assumptions)
-  {
-    bt = std::static_pointer_cast<BoolectorTerm>(a);
-    assert(boolector_get_width(bt->btor, bt->node) == 1);
-    boolector_assume(btor, bt->node);
-  }
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
 
-  int32_t res = boolector_sat(btor);
-  if (res == BOOLECTOR_SAT)
-  {
-    return Result(SAT);
-  }
-  else if (res == BOOLECTOR_UNSAT)
-  {
-    return Result(UNSAT);
-  }
-  else
-  {
-    return Result(UNKNOWN);
-  }
+Result BoolectorSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
+
+Result BoolectorSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
 }
 
 void BoolectorSolver::push(uint64_t num)

@@ -204,7 +204,7 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // expecting (possibly negated) boolean literals
-  for (auto a : assumptions)
+  for (const auto & a : assumptions)
   {
     if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
     {
@@ -224,27 +224,77 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   m_assumps.reserve(assumptions.size());
 
   shared_ptr<MsatTerm> ma;
-  for (auto a : assumptions)
+  for (const auto & a : assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
     m_assumps.push_back(ma->term);
   }
 
-  msat_result mres =
-      msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+  return check_sat_assuming(m_assumps);
+}
 
-  if (mres == MSAT_SAT)
+Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  // expecting (possibly negated) boolean literals
+  for (const auto & a : assumptions)
   {
-    return Result(SAT);
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
   }
-  else if (mres == MSAT_UNSAT)
+
+  vector<msat_term> m_assumps;
+  m_assumps.reserve(assumptions.size());
+
+  shared_ptr<MsatTerm> ma;
+  for (const auto & a : assumptions)
   {
-    return Result(UNSAT);
+    ma = static_pointer_cast<MsatTerm>(a);
+    m_assumps.push_back(ma->term);
   }
-  else
+
+  return check_sat_assuming(m_assumps);
+}
+
+Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  // expecting (possibly negated) boolean literals
+  for (const auto & a : assumptions)
   {
-    return Result(UNKNOWN);
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
   }
+
+  vector<msat_term> m_assumps;
+  m_assumps.reserve(assumptions.size());
+
+  shared_ptr<MsatTerm> ma;
+  for (const auto & a : assumptions)
+  {
+    ma = static_pointer_cast<MsatTerm>(a);
+    m_assumps.push_back(ma->term);
+  }
+
+  return check_sat_assuming(m_assumps);
 }
 
 void MsatSolver::push(uint64_t num)

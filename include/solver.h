@@ -73,6 +73,10 @@ class AbsSmtSolver
    */
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
 
+  virtual Result check_sat_assuming_list(const TermList & assumptions);
+
+  virtual Result check_sat_assuming_set(const UnorderedTermSet & assumptions);
+
   /* Push contexts
    * SMTLIB: (push <num>)
    * @param num the number of contexts to push

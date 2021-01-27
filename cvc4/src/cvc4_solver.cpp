@@ -284,23 +284,47 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
     {
       cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
-    if (r.isUnsat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_list(const TermList & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(UNSAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(SAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSatUnknown())
-    {
-      return Result(UNKNOWN, r.getUnknownExplanation());
-    }
-    else
-    {
-      throw NotImplementedException("Unimplemented result type from CVC4");
-    }
+    return check_sat_assuming(cvc4assumps);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
