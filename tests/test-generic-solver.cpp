@@ -761,7 +761,6 @@ void test_yices2()
 
 void test_cvc4()
 {
-  cout << "testing cvc4" << endl;
   SmtSolver gs;
 
   new_cvc4(gs);
@@ -770,7 +769,7 @@ void test_cvc4()
   new_cvc4(gs);
   test_bad_term_2(gs);
 
-  new_msat(gs);
+  new_cvc4(gs);
   test_uf_1(gs);
 
   new_cvc4(gs);
