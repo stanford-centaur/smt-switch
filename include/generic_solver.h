@@ -106,6 +106,9 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+  // parse solver's response from get-sat-assumptions
+  UnorderedTermSet get_assumptions_from_string(std::string result) const;
+
   // create an smt-lib constant array value.
   // used for make_term
   std::string cons_arr_string(const Term & val, const Sort & sort) const;
@@ -119,6 +122,9 @@ class GenericSolver : public AbsSmtSolver
 
   // parse result (sat, unsat, unknown) from solver's output
   Result str_to_result(std::string result) const;
+
+  // parse actual value from a get-value response
+  std::string strip_value_from_result(std::string result) const;
 
   /** helper function for bv constant
    * abs_decimal is the string represnentation of the absolute value of the

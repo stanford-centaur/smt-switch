@@ -232,6 +232,7 @@ void test_int_2(SmtSolver gs)
   assert(r.is_sat());
   gs->pop(1);
 }
+
 void test_bad_term_1(SmtSolver gs)
 {
   cout << "trying to create a badly-sorted term and getting and exception"
@@ -377,9 +378,6 @@ void test_bool(SmtSolver gs)
   Term true_term = true_term_1;
   Term false_term = false_term_1;
 
-  // TODO reset doesn't work... I don't know why.
-  // gs->reset();
-
   Result r;
 
   cout << "checking satisfiability with no assertions" << endl;
@@ -387,7 +385,6 @@ void test_bool(SmtSolver gs)
   r = gs->check_sat();
   assert(r.is_sat());
   gs->pop(1);
-
   cout << "checking satisfiability with assertion that is true" << endl;
   gs->push(1);
   gs->assert_formula(true_term);
@@ -412,6 +409,41 @@ void test_bool(SmtSolver gs)
   gs->pop(1);
 }
 
+void test_abv_2(SmtSolver gs)
+{
+  std::cout << "test_abv_2" << std::endl;
+  gs->push(1);
+  Sort bv_sort1 = gs->make_sort(BV, 4);
+  Sort bv_sort2 = gs->make_sort(BV, 5);
+  Sort bv_to_bv = gs->make_sort(ARRAY, bv_sort1, bv_sort2);
+  Sort bv_x_bv_to_array = gs->make_sort(FUNCTION, bv_sort1, bv_sort2, bv_to_bv);
+
+  Term complex1 = gs->make_symbol("complex1", bv_x_bv_to_array);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv_zero = gs->make_term(0, bv_sort);
+  Term bv_one = gs->make_term(1, bv_sort);
+
+  Term arr1 = gs->make_term(
+      Apply,
+      TermVec{ complex1,
+               bv_zero,
+               gs->make_term(
+                   Concat, bv_one, gs->make_term("0", gs->make_sort(BV, 1))) });
+  Term sel1 = gs->make_term(Select, arr1, bv_one);
+  Term dis1 =
+      gs->make_term(Distinct, sel1, gs->make_term("1", gs->make_sort(BV, 5)));
+
+  gs->push(1);
+  Term bv1 = gs->make_symbol("bv", bv_sort);
+  Term for1 = gs->make_term(Equal, bv1, bv_zero);
+  gs->assert_formula(for1);
+  gs->assert_formula(dis1);
+  Result result = gs->check_sat();
+  assert(result.is_sat());
+  Term val = gs->get_value(bv1);
+  gs->pop(1);
+}
+
 void test_quantifiers(SmtSolver gs)
 {
   gs->push(1);
@@ -425,7 +457,6 @@ void test_quantifiers(SmtSolver gs)
   gs->assert_formula(forall1);
   Result result = gs->check_sat();
   assert(result.is_sat());
-
   Term matrix2 = gs->make_term(Gt, par1, par2);
   Term forall2 = gs->make_term(Forall, par1, matrix2);
   Term exists2 = gs->make_term(Exists, par2, forall2);
@@ -434,6 +465,112 @@ void test_quantifiers(SmtSolver gs)
   assert(result.is_unsat());
   gs->pop(1);
 }
+
+void test_constant_arrays(SmtSolver gs)
+{
+  // Testing constant arrays
+  gs->push(1);
+  Sort bvsort = gs->make_sort(BV, 4);
+  Sort arrsort = gs->make_sort(ARRAY, bvsort, bvsort);
+  Term zero = gs->make_term(0, bvsort);
+  Term constarr0 = gs->make_term(zero, arrsort);
+  Term arr = gs->make_symbol("arr", arrsort);
+  Term arreq = gs->make_term(Equal, arr, constarr0);
+  gs->assert_formula(arreq);
+  Result result = gs->check_sat();
+  assert(result.is_sat());
+  gs->pop(1);
+}
+
+void test_int_models(SmtSolver gs)
+{
+  // Testing models
+  gs->push(1);
+  Sort int_sort = gs->make_sort(INT);
+  Term int_zero = gs->make_term(0, int_sort);
+  Term i1 = gs->make_symbol("i", int_sort);
+  Term for1 = gs->make_term(Equal, i1, int_zero);
+  gs->assert_formula(for1);
+  Result result = gs->check_sat();
+  assert(result.is_sat());
+  Term val = gs->get_value(i1);
+  gs->pop(1);
+}
+
+void test_bv_models(SmtSolver gs)
+{
+  // Testing models
+  gs->push(1);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv_zero = gs->make_term(0, bv_sort);
+  Term i1 = gs->make_symbol("i", bv_sort);
+  Term for1 = gs->make_term(Equal, i1, bv_zero);
+  gs->assert_formula(for1);
+  Result result = gs->check_sat();
+  assert(result.is_sat());
+  Term val = gs->get_value(i1);
+  gs->pop(1);
+}
+
+void test_check_sat_assuming_1(SmtSolver gs)
+{
+  // Testing check-sat-assuming
+  gs->push(1);
+  Sort bool_sort = gs->make_sort(BOOL);
+  Term b1 = gs->make_symbol("bool1", bool_sort);
+  Term not_b1 = gs->make_term(Not, b1);
+  Term b2 = gs->make_symbol("bool2", bool_sort);
+  Term b3 = gs->make_symbol("bool3", bool_sort);
+  gs->assert_formula(b1);
+  Result r;
+  r = gs->check_sat_assuming(TermVec{ not_b1, b2, b3 });
+  assert(r.is_unsat());
+  gs->pop(1);
+}
+
+void test_check_sat_assuming_2(SmtSolver gs)
+{
+  // Testing check-sat-assuming
+  gs->push(1);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv1 = gs->make_symbol("bv1", bv_sort);
+  Term bv2 = gs->make_symbol("bv2", bv_sort);
+
+  Term b1 = gs->make_term(Equal, bv1, gs->make_term(BVNot, bv2));
+  Term not_b1 = gs->make_term(Not, b1);
+
+  Term b2 = gs->make_term(BVUgt, bv1, bv2);
+
+  Term b3 = gs->make_term(BVUgt, bv2, gs->make_term(3, bv_sort));
+  gs->assert_formula(b1);
+  Result r;
+  r = gs->check_sat_assuming(TermVec{ b2, b3 });
+  assert(r.is_sat());
+  gs->pop(1);
+}
+
+void test_unsat_assumptions(SmtSolver gs)
+{
+  // Testing unsat-assumptions
+  gs->push(1);
+  Sort bool_sort = gs->make_sort(BOOL);
+  Term b1 = gs->make_symbol("bool11", bool_sort);
+  Term not_b1 = gs->make_term(Not, b1);
+  Term b2 = gs->make_symbol("bool22", bool_sort);
+  Term b3 = gs->make_symbol("bool33", bool_sort);
+  gs->assert_formula(b1);
+  Result r = gs->check_sat_assuming(TermVec{ not_b1, b2, b3 });
+  assert(r.is_unsat());
+  UnorderedTermSet core;
+  gs->get_unsat_core(core);
+  std::cout << "core: " << std::endl;
+  for (Term t : core)
+  {
+    std::cout << t << std::endl;
+  }
+  gs->pop(1);
+}
+
 void init_solver(SmtSolver gs)
 {
   gs->set_opt("produce-models", "true");
@@ -483,8 +620,14 @@ void new_cvc4(SmtSolver & gs)
 
 void test_msat()
 {
-  cout << "testing msat" << endl;
+  cout << "testing mathsat" << endl;
   SmtSolver gs;
+
+  new_msat(gs);
+  test_bad_term_1(gs);
+
+  new_msat(gs);
+  test_bad_term_2(gs);
 
   new_msat(gs);
   test_bad_cmd(gs);
@@ -499,25 +642,19 @@ void test_msat()
   test_bool_2(gs);
 
   new_msat(gs);
+  test_uf_2(gs);
+
+  new_msat(gs);
   test_int_1(gs);
+
+  new_msat(gs);
+  test_int_2(gs);
 
   new_msat(gs);
   test_bv_1(gs);
 
   new_msat(gs);
   test_bv_2(gs);
-
-  new_msat(gs);
-  test_uf_2(gs);
-
-  new_msat(gs);
-  test_int_2(gs);
-
-  new_msat(gs);
-  test_bad_term_1(gs);
-
-  new_msat(gs);
-  test_bad_term_2(gs);
 
   new_msat(gs);
   test_bv_3(gs);
@@ -529,16 +666,43 @@ void test_msat()
   test_abv_1(gs);
 
   new_msat(gs);
+  test_abv_2(gs);
+
+  new_msat(gs);
   test_bool(gs);
+
+  new_msat(gs);
+  test_constant_arrays(gs);
+
+  new_msat(gs);
+  test_int_models(gs);
+
+  new_msat(gs);
+  test_bv_models(gs);
+
+  new_msat(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_msat(gs);
+  test_check_sat_assuming_2(gs);
+
+  new_msat(gs);
+  test_unsat_assumptions(gs);
 }
 
 void test_yices2()
 {
-  cout << "testing yices2" << endl;
+  cout << "testing yices" << endl;
   SmtSolver gs;
 
   new_yices2(gs);
   test_bad_cmd(gs);
+
+  new_yices2(gs);
+  test_bad_term_1(gs);
+
+  new_yices2(gs);
+  test_bad_term_2(gs);
 
   new_yices2(gs);
   test_uf_1(gs);
@@ -550,25 +714,19 @@ void test_yices2()
   test_bool_2(gs);
 
   new_yices2(gs);
+  test_uf_2(gs);
+
+  new_yices2(gs);
   test_int_1(gs);
+
+  new_yices2(gs);
+  test_int_2(gs);
 
   new_yices2(gs);
   test_bv_1(gs);
 
   new_yices2(gs);
   test_bv_2(gs);
-
-  new_yices2(gs);
-  test_uf_2(gs);
-
-  new_yices2(gs);
-  test_int_2(gs);
-
-  new_yices2(gs);
-  test_bad_term_1(gs);
-
-  new_yices2(gs);
-  test_bad_term_2(gs);
 
   new_yices2(gs);
   test_bv_3(gs);
@@ -580,19 +738,51 @@ void test_yices2()
   test_abv_1(gs);
 
   new_yices2(gs);
+  test_abv_2(gs);
+
+  new_yices2(gs);
   test_bool(gs);
+
+  new_yices2(gs);
+  test_int_models(gs);
+
+  new_yices2(gs);
+  test_bv_models(gs);
+
+  new_yices2(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_yices2(gs);
+  test_check_sat_assuming_2(gs);
+
+  new_yices2(gs);
+  test_unsat_assumptions(gs);
 }
 
 void test_cvc4()
 {
-  cout << "testing cvc4" << endl;
   SmtSolver gs;
 
   new_cvc4(gs);
-  test_bad_cmd(gs);
+  test_bad_term_1(gs);
+
+  new_cvc4(gs);
+  test_bad_term_2(gs);
 
   new_cvc4(gs);
   test_uf_1(gs);
+
+  new_cvc4(gs);
+  test_uf_2(gs);
+
+  new_cvc4(gs);
+  test_int_1(gs);
+
+  new_cvc4(gs);
+  test_int_2(gs);
+
+  new_cvc4(gs);
+  test_bad_cmd(gs);
 
   new_cvc4(gs);
   test_bool_1(gs);
@@ -601,25 +791,10 @@ void test_cvc4()
   test_bool_2(gs);
 
   new_cvc4(gs);
-  test_int_1(gs);
-
-  new_cvc4(gs);
   test_bv_1(gs);
 
   new_cvc4(gs);
   test_bv_2(gs);
-
-  new_cvc4(gs);
-  test_uf_2(gs);
-
-  new_cvc4(gs);
-  test_int_2(gs);
-
-  new_cvc4(gs);
-  test_bad_term_1(gs);
-
-  new_cvc4(gs);
-  test_bad_term_2(gs);
 
   new_cvc4(gs);
   test_bv_3(gs);
@@ -629,12 +804,33 @@ void test_cvc4()
 
   new_cvc4(gs);
   test_abv_1(gs);
+
+  new_cvc4(gs);
+  test_abv_2(gs);
 
   new_cvc4(gs);
   test_bool(gs);
 
   new_cvc4(gs);
   test_quantifiers(gs);
+
+  new_cvc4(gs);
+  test_constant_arrays(gs);
+
+  new_cvc4(gs);
+  test_int_models(gs);
+
+  new_cvc4(gs);
+  test_bv_models(gs);
+
+  new_cvc4(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_cvc4(gs);
+  test_check_sat_assuming_2(gs);
+
+  new_cvc4(gs);
+  test_unsat_assumptions(gs);
 }
 
 void test_btor()
@@ -643,6 +839,12 @@ void test_btor()
   SmtSolver gs;
 
   new_btor(gs);
+  test_bad_term_1(gs);
+
+  new_btor(gs);
+  test_bad_term_2(gs);
+
+  new_btor(gs);
   test_bad_cmd(gs);
 
   new_btor(gs);
@@ -667,7 +869,19 @@ void test_btor()
   test_abv_1(gs);
 
   new_btor(gs);
+  test_bv_models(gs);
+
+  new_btor(gs);
   test_bool(gs);
+
+  new_btor(gs);
+  test_check_sat_assuming_1(gs);
+
+  new_btor(gs);
+  test_check_sat_assuming_2(gs);
+
+  new_btor(gs);
+  test_unsat_assumptions(gs);
 }
 
 void test_binary(string path, vector<string> args)
