@@ -578,309 +578,308 @@ void init_solver(SmtSolver gs)
   gs->set_logic("ALL");
 }
 
-void new_btor(SmtSolver & gs)
+void new_btor(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
   string path = (STRFY(BTOR_HOME));
   path += "/build/bin/boolector";
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
 
-void new_msat(SmtSolver & gs)
+void new_msat(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
   string path = (STRFY(MSAT_HOME));
   path += "/bin/mathsat";
   vector<string> args = { "" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
 
-void new_yices2(SmtSolver & gs)
+void new_yices2(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
   string path = (STRFY(YICES2_HOME));
   path += "/build/bin/yices_smt2";
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
 
-void new_cvc4(SmtSolver & gs)
+void new_cvc4(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
   string path = (STRFY(CVC4_HOME));
   path += "/build/bin/cvc4";
   vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
-  gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
 
-void test_msat()
+void test_msat(int buffer_size)
 {
   cout << "testing mathsat" << endl;
   SmtSolver gs;
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bad_term_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bad_term_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bad_cmd(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_uf_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bool_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bool_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_uf_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_int_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_int_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bv_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bv_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bv_3(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bv_4(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_abv_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_abv_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bool(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_constant_arrays(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_int_models(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_bv_models(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_check_sat_assuming_1(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_check_sat_assuming_2(gs);
 
-  new_msat(gs);
+  new_msat(gs, buffer_size);
   test_unsat_assumptions(gs);
 }
 
-void test_yices2()
+void test_yices2(int buffer_size)
 {
   cout << "testing yices" << endl;
   SmtSolver gs;
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bad_cmd(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bad_term_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bad_term_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_uf_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bool_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bool_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_uf_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_int_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_int_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bv_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bv_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bv_3(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bv_4(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_abv_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_abv_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bool(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_int_models(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_bv_models(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_check_sat_assuming_1(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_check_sat_assuming_2(gs);
 
-  new_yices2(gs);
+  new_yices2(gs, buffer_size);
   test_unsat_assumptions(gs);
 }
 
-void test_cvc4()
+void test_cvc4(int buffer_size)
 {
   SmtSolver gs;
-
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bad_term_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bad_term_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_uf_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_uf_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_int_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_int_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bad_cmd(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bool_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bool_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bv_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bv_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bv_3(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bv_4(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_abv_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_abv_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bool(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_quantifiers(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_constant_arrays(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_int_models(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_bv_models(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_check_sat_assuming_1(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_check_sat_assuming_2(gs);
 
-  new_cvc4(gs);
+  new_cvc4(gs, buffer_size);
   test_unsat_assumptions(gs);
 }
 
-void test_btor()
+void test_btor(int buffer_size)
 {
   cout << "testing btor" << endl;
   SmtSolver gs;
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bad_term_1(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bad_term_2(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bad_cmd(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bool_1(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bool_2(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bv_1(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bv_2(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bv_3(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bv_4(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_abv_1(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bv_models(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_bool(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_check_sat_assuming_1(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_check_sat_assuming_2(gs);
 
-  new_btor(gs);
+  new_btor(gs, buffer_size);
   test_unsat_assumptions(gs);
 }
 
@@ -907,29 +906,39 @@ int main() {
     std::cout << "caught an exception" << std::endl;
   }
 
+  // general tests for all supported functions
+  // we test a representative set of buffer sizes,
+  // including smallest and biggest supported,
+  // and a mixture of powers of two and non-powers
+  // of two.
+  vector<int> buffer_sizes = { 2, 10, 64, 100, 256 };
+  for (int buffer_size : buffer_sizes)
+  {
+    std::cout << "buffer size: " << buffer_size << std::endl;
 // testing with cvc4 binary
 #if BUILD_CVC4
-  std::cout << "testing cvc4" << std::endl;
-  test_cvc4();
+    std::cout << "testing cvc4" << std::endl;
+    test_cvc4(buffer_size);
 #endif
 
 // testing with msat binary
 #if BUILD_MSAT
-  std::cout << "testing msat" << std::endl;
-  test_msat();
+    std::cout << "testing msat" << std::endl;
+    test_msat(buffer_size);
 #endif
 
-  // testing with yices2binary
+    // testing with yices2binary
 #if BUILD_YICES2
-  std::cout << "testing yices2" << std::endl;
-  test_yices2();
+    std::cout << "testing yices2" << std::endl;
+    test_yices2(buffer_size);
 #endif
 
-  // testing with btorbinary
+    // testing with btorbinary
 #if BUILD_BTOR
-  std::cout << "testing btor" << std::endl;
-  test_btor();
+    std::cout << "testing btor" << std::endl;
+    test_btor(buffer_size);
 #endif
+  }
 }
 
 #endif  // __APPLE__

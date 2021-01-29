@@ -79,6 +79,17 @@ GenericSolver::GenericSolver(string path,
       name_term_map(new unordered_map<string, Term>()),
       term_name_map(new unordered_map<Term, string>())
 {
+  // Buffer sizes over 1000 caused issues in tests.
+  // Until this is investigated, we support a conservative
+  // limit of 1000.
+  // Similarly for buffers of size 1.
+  if (write_buf_size < 2 || write_buf_size > 256 || read_buf_size < 2
+      || read_buf_size > 256)
+  {
+    string msg(
+        "Generic Solvers require a buffer size of at least 2 and at most 256.");
+    throw IncorrectUsageException(msg);
+  }
   term_counter = new uint;
   //allocate memory for the buffers
   write_buf = new char[write_buf_size];
