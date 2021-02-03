@@ -360,7 +360,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 }
 
 Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
-  assert(false);
+  throw NotImplementedException(
+      "Sort constructor are not supported by generic solvers");
 }
 
 Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
@@ -477,47 +478,47 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
   
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
-  {
-  assert(false);  
-  }
+{
+  throw NotImplementedException("Generic Solvers do not support datatypes");
+}
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s)
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
   
 void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
   {
-  assert(false);  
+    throw NotImplementedException("Generic Solvers do not support datatypes");
 }
 void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
   
 void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
   {
-  assert(false);  
+    throw NotImplementedException("Generic Solvers do not support datatypes");
 }
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
 
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
 
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
-  assert(false);  
+  throw NotImplementedException("Generic Solvers do not support datatypes");
 }
 
 std::string GenericSolver::get_name(Term term) const
@@ -956,7 +957,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
 UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
-  assert(false);  
+  throw NotImplementedException(
+      "Generic solvers do not support get-value for arryas");
 }
 
 void GenericSolver::reset()

@@ -10,6 +10,14 @@
 ** directory for licensing information.\endverbatim
 **
 ** \brief Represents a Generic Solver.
+** The current implementation of the generic solver has the following
+** limitations:
+** 1. Some AbsSmtSolver methods are not implemented.
+**    These functions are defined first, under an appropriate comment below.
+** 2. The buffer size used to communicate with the binary of the solver
+**    is limited to values between 2 and 256.
+** 3. Generic solvers cannot be used in term transfer/translation.
+** 4. This feature is currently linux only -- no support for macOS.
 **
 **/
 
@@ -34,25 +42,13 @@ class GenericSolver : public AbsSmtSolver
                 uint read_buf_size = 256);
   ~GenericSolver();
 
-  // returns a string representation of a term in smtlib
-  std::string to_smtlib_def(Term term) const;
-
-  Sort make_sort(const std::string name, uint64_t arity) const override;
-  Sort make_sort(const SortKind sk) const override;
-  Sort make_sort(const SortKind sk, uint64_t size) const override;
-  Sort make_sort(const SortKind sk, const Sort & sort1) const override;
-  Sort make_sort(const SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2) const override;
-  Sort make_sort(const SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2,
-                 const Sort & sort3) const override;
+  /***************************************************************/
+  /* methods from AbsSmtSolver that are currently not implemented*/
+  /***************************************************************/
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
-
-  Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
-
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
@@ -68,6 +64,23 @@ class GenericSolver : public AbsSmtSolver
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
+
+  /***************************************************************/
+  /* methods from AbsSmtSolver that are implemented              */
+  /***************************************************************/
+  Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const SortKind sk) const override;
+  Sort make_sort(const SortKind sk, uint64_t size) const override;
+  Sort make_sort(const SortKind sk, const Sort & sort1) const override;
+  Sort make_sort(const SortKind sk,
+                 const Sort & sort1,
+                 const Sort & sort2) const override;
+  Sort make_sort(const SortKind sk,
+                 const Sort & sort1,
+                 const Sort & sort2,
+                 const Sort & sort3) const override;
+
+  Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
@@ -85,8 +98,6 @@ class GenericSolver : public AbsSmtSolver
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
   Term get_value(const Term & t) const override;
-  UnorderedTermMap get_array_values(const Term & arr,
-                                    Term & out_const_base) const override;
   void get_unsat_core(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
@@ -106,6 +117,9 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+  // returns a string representation of a term in smtlib
+  std::string to_smtlib_def(Term term) const;
+
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
 
