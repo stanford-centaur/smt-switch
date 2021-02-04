@@ -574,7 +574,7 @@ Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
   Sort bvsort = make_sort(BV, width);
   string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
-  return store_term(term);
+  return term;
 }
 
 Term GenericSolver::make_non_negative_bv_const(int64_t i, uint width) const
@@ -588,7 +588,7 @@ Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
   Term zero = make_non_negative_bv_const("0", width);
   Term abs = make_non_negative_bv_const(abs_decimal, width);
   Term result = make_term(BVSub, zero, abs);
-  return store_term(result);
+  return result;
 }
 
 Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
@@ -608,13 +608,19 @@ Term GenericSolver::make_term(bool b) const
 
 Term GenericSolver::make_term(int64_t i, const Sort & sort) const
 {
+  Term value_term = make_value(i, sort);
+  return store_term(value_term);
+}
+
+Term GenericSolver::make_value(int64_t i, const Sort & sort) const
+{
   SortKind sk = sort->get_sort_kind();
   assert(sk == BV || sk == INT || sk == REAL);
   if (sk == INT || sk == REAL)
   {
     string repr = std::to_string(i);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
-    return store_term(term);
+    return term;
   }
   else
   {
@@ -623,19 +629,27 @@ Term GenericSolver::make_term(int64_t i, const Sort & sort) const
     {
       int64_t abs_value = i * (-1);
       Term term = make_negative_bv_const(abs_value, sort->get_width());
-      return store_term(term);
+      return term;
     }
     else
     {
       Term term = make_non_negative_bv_const(i, sort->get_width());
-      return store_term(term);
+      return term;
     }
   }
 }
 
-Term GenericSolver::make_term(const string name,
+Term GenericSolver::make_term(const string val,
                               const Sort & sort,
                               uint64_t base) const
+{
+  Term value_term = make_value(val, sort, base);
+  return store_term(value_term);
+}
+
+Term GenericSolver::make_value(const string val,
+                               const Sort & sort,
+                               uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
   assert(sk == BV || sk == INT || sk == REAL);
@@ -644,23 +658,23 @@ Term GenericSolver::make_term(const string name,
   if (sk == INT || sk == REAL)
   {
     assert(base == 10);
-    repr = name;
+    repr = val;
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
-    return store_term(term);
+    return term;
   }
   else
   {
     // sk == BV
     if (base == 10)
     {
-      if (name.find("-") == 0)
+      if (val.find("-") == 0)
       {
-        string abs_decimal = name.substr(1);
+        string abs_decimal = val.substr(1);
         return make_negative_bv_const(abs_decimal, sort->get_width());
       }
       else
       {
-        return make_non_negative_bv_const(name, sort->get_width());
+        return make_non_negative_bv_const(val, sort->get_width());
       }
     }
     else
@@ -668,14 +682,14 @@ Term GenericSolver::make_term(const string name,
       // base = 2 or 16
       if (base == 2)
       {
-        repr = "#b" + name;
+        repr = "#b" + val;
       }
       else if (base == 16)
       {
-        repr = "#x" + name;
+        repr = "#x" + val;
       }
       Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
-      return store_term(term);
+      return term;
     }
   }
 }
@@ -797,12 +811,12 @@ Term GenericSolver::get_value(const Term & t) const
     if (value.substr(0, 2) == "#b")
     {
       // bianry representation
-      resulting_term = make_term(value.substr(2, value.size() - 2), sort, 2);
+      resulting_term = make_value(value.substr(2, value.size() - 2), sort, 2);
     }
     else if (value.substr(0, 2) == "#x")
     {
       // hex representation
-      resulting_term = make_term(value.substr(2, value.size() - 2), sort, 16);
+      resulting_term = make_value(value.substr(2, value.size() - 2), sort, 16);
     }
     else
     {
@@ -814,12 +828,12 @@ Term GenericSolver::get_value(const Term & t) const
       int end_of_decimal = value.find(' ', start_of_decimal);
       string decimal =
           value.substr(start_of_decimal, end_of_decimal - start_of_decimal + 1);
-      resulting_term = make_term(decimal, sort, 10);
+      resulting_term = make_value(decimal, sort, 10);
     }
   }
   else
   {
-    resulting_term = make_term(value, t->get_sort());
+    resulting_term = make_value(value, t->get_sort());
   }
   return resulting_term;
 }
