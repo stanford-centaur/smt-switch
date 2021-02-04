@@ -493,7 +493,8 @@ void test_int_models(SmtSolver gs)
   gs->assert_formula(for1);
   Result result = gs->check_sat();
   assert(result.is_sat());
-  Term val = gs->get_value(i1);
+  Term val1 = gs->get_value(i1);
+  Term val2 = gs->get_value(for1);
   gs->pop(1);
 }
 

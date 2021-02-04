@@ -599,11 +599,17 @@ Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
 
 Term GenericSolver::make_term(bool b) const
 {
+  Term value_term = make_value(b);
+  return store_term(value_term);
+}
+
+Term GenericSolver::make_value(bool b) const
+{
   // create a generic term that represents `b`.
   Sort boolsort = make_sort(BOOL);
   Term term = std::make_shared<GenericTerm>(
       boolsort, Op(), TermVec{}, b ? "true" : "false");
-  return store_term(term);
+  return term;
 }
 
 Term GenericSolver::make_term(int64_t i, const Sort & sort) const
@@ -830,6 +836,12 @@ Term GenericSolver::get_value(const Term & t) const
           value.substr(start_of_decimal, end_of_decimal - start_of_decimal + 1);
       resulting_term = make_value(decimal, sort, 10);
     }
+  }
+  else if (sort->get_sort_kind() == BOOL)
+  {
+    Assert(value == "true" || value == "false");
+    bool b = (value == "true");
+    resulting_term = make_value(b);
   }
   else
   {
