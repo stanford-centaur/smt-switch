@@ -117,6 +117,17 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+
+  /** Helper functions for the corresponding make_term
+   * functions with the same arguments.
+   * Also used to parse get_value responses.
+   */
+  Term make_value(bool b) const;
+  Term make_value(int64_t i, const Sort & sort) const;
+  Term make_value(const std::string val,
+                  const Sort & sort,
+                  uint64_t base = 10) const;
+
   // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
 
