@@ -131,6 +131,15 @@ class GenericSolver : public AbsSmtSolver
   // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
 
+  // when an SMT-LIB compliant solver is supposed
+  // to return a result (e.g., get-value),
+  // a result that starts with "(error " indicates
+  // that an error occurred.
+  // This cannot be caught by print-success,
+  // which is not utilized for commands that
+  // expect a result.
+  void check_no_error(std::string str) const;
+
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
 
