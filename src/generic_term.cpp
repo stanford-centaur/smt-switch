@@ -154,7 +154,18 @@ bool GenericTerm::is_ground() const { return ground; }
 
 uint64_t GenericTerm::to_int() const { assert(false); }
 
-std::string GenericTerm::print_value_as(SortKind sk) { assert(false); }
+std::string GenericTerm::print_value_as(SortKind sk)
+{
+  if (is_value())
+  {
+    return to_string();
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "print_value_as is only applicable for values");
+  }
+}
 
 /* GenericTermIter */
 

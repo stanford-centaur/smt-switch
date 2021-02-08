@@ -806,6 +806,10 @@ Term GenericSolver::get_value(const Term & t) const
 
   // ask the binary for the value and parse it
   string result = run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
+
+  // check that there was no error
+  check_no_error(result);
+
   string value = strip_value_from_result(result);
 
   // translate the string representation of the result into a term
@@ -894,11 +898,24 @@ void GenericSolver::get_unsat_core(UnorderedTermSet & out)
   // run get-unsat-assumptions command
   string result = run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
 
+  // check that there was no error
+  check_no_error(result);
+
   // parse the result -- get the assumptions
   UnorderedTermSet assumptions = get_assumptions_from_string(result);
 
   // put the result in out
   out.insert(assumptions.begin(), assumptions.end());
+}
+
+void GenericSolver::check_no_error(string str) const
+{
+  str = trim(str);
+  string err_prefix("(error ");
+  if (str.compare(0, err_prefix.size(), err_prefix) == 0)
+  {
+    throw SmtException("Exception from the solver: " + str);
+  }
 }
 
 UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
