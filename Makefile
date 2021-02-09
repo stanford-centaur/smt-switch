@@ -5,6 +5,7 @@ all: smtlibparser.yy smtlibscanner.ll
 clean:
 	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp
 
+# TODO get rid of old files -- smtlib.y smtlib.l smtlib_lexer.h
 # Previous attempt mixing c/c++ -- didn't work out
 # all: smtlib.l smtlib.y
 # 	bison -d -v --defines=smtlib.h --output=smtlib.cpp smtlib.y
