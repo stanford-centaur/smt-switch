@@ -16,6 +16,12 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
+#include "test-utils.h"
+#include "logging_solver.h"
+#include <string>
+
+
+using namespace std;
 
 #if BUILD_BTOR
 #include "boolector_factory.h"
@@ -23,6 +29,7 @@
 
 #if BUILD_CVC4
 #include "cvc4_factory.h"
+#include "generic_solver.h"
 #endif
 
 #if BUILD_MSAT
@@ -47,6 +54,9 @@ const std::vector<SolverEnum> solver_enums({
 
 #if BUILD_CVC4
       CVC4,
+#ifndef __APPLE__
+      GENERIC_SOLVER,
+#endif
 #endif
 
 #if BUILD_MSAT
@@ -92,6 +102,23 @@ SmtSolver create_solver(SolverConfiguration sc)
       ;
     }
 #endif
+#if BUILD_CVC4
+#ifndef __APPLE__
+      case GENERIC_SOLVER: {
+        std::string path = (STRFY(CVC4_HOME));
+        path += "/build/bin/cvc4";
+        std::vector<std::string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0", "-q" };
+        SmtSolver generic_solver = std::make_shared<GenericSolver>(path, args, 5, 5);
+        if (logging) {
+          return std::make_shared<LoggingSolver>(generic_solver);
+        } else {
+          return std::make_shared<GenericSolver>(path, args, 5, 5);
+
+        }
+        break;
+      }
+#endif
+#endif
     default: {
       throw SmtException("Unhandled solver enum");
     }
@@ -125,6 +152,16 @@ SmtSolver create_interpolating_solver(SolverConfiguration sc) {
 
 std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
 
+std::vector<SolverEnum> available_non_generic_solver_enums() {
+  std::vector<SolverEnum> result;
+  for (SolverEnum se : solver_enums) {
+    if (se != SolverEnum::GENERIC_SOLVER) {
+      result.push_back(se);
+    }
+  }
+  return result;
+}
+
 std::vector<SolverConfiguration> available_solver_configurations()
 {
   std::vector<SolverConfiguration> configs;
@@ -136,6 +173,17 @@ std::vector<SolverConfiguration> available_solver_configurations()
     configs.push_back(scf);
   }
   return configs;
+}
+
+std::vector<SolverConfiguration> available_non_generic_solver_configurations() {
+  std::vector<SolverConfiguration> original = available_solver_configurations();
+  std::vector<SolverConfiguration> result;
+  for (SolverConfiguration sc : original) {
+    if (sc.solver_enum != SolverEnum::GENERIC_SOLVER) {
+      result.push_back(sc);
+    }
+  }
+  return result;
 }
 
 std::vector<SolverEnum> available_interpolator_enums() { 
@@ -200,6 +248,17 @@ std::vector<SolverConfiguration> filter_solver_configurations(
     SolverConfiguration sct(e, true);
     result.push_back(scf);
     result.push_back(sct);
+  }
+  return result;
+}
+
+std::vector<SolverConfiguration> filter_non_generic_solver_configurations(const std::unordered_set<SolverAttribute> attributes) {
+  std::vector<SolverConfiguration> original_result = filter_solver_configurations(attributes);
+  std::vector<SolverConfiguration> result;
+  for (SolverConfiguration sc : original_result) {
+    if (sc.solver_enum != SolverEnum::GENERIC_SOLVER) {
+      result.push_back(sc);
+    }
   }
   return result;
 }

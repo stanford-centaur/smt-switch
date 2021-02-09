@@ -70,9 +70,12 @@ TEST_P(UnitTestsHashTable, HashTable)
   ASSERT_EQ(cp_xp1_2.use_count(), 1);
 }
 
+// similarly to logging solvers, generic solvers
+// increase the usage count and so we ignore
+// them in this test
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
     UnitTestsHashTable,
-    testing::ValuesIn(available_solver_enums()));
+    testing::ValuesIn(available_non_generic_solver_enums()));
 
 }  // namespace smt_tests
