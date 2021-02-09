@@ -66,16 +66,22 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
     // mathsat is the only solver (so far)
     // to have the restriction that assumptions must be
     // (negated) boolean constants
-    EXPECT_EQ(s->get_solver_enum(), MSAT);
+    // Generic solvers are SMT-LIB compliant, and threfore
+    // this restriction is enforced for them as well.
+    EXPECT_TRUE(s->get_solver_enum() == MSAT
+                || s->get_solver_enum() == GENERIC_SOLVER);
     r = s->check_sat_assuming(TermVec{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
   }
-  EXPECT_TRUE(r.is_unsat());
 
-  r = s->check_sat_assuming_list(TermList{ b1, nb2 });
-  EXPECT_TRUE(r.is_unsat());
+  if (s->get_solver_enum() != GENERIC_SOLVER)
+  {
+    r = s->check_sat_assuming_list(TermList{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
 
-  r = s->check_sat_assuming_set(UnorderedTermSet{ b1, nb2 });
-  EXPECT_TRUE(r.is_unsat());
+    r = s->check_sat_assuming_set(UnorderedTermSet{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,

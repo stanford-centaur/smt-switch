@@ -331,27 +331,35 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   ASSERT_EQ(stores, stores_1);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSelfTranslationTests,
-                         SelfTranslationTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+// All tests are instantiated with non-generic solver,
+// as genreic solvers do not support term translation
+// currently.
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSelfTranslationTests,
+    SelfTranslationTests,
+    testing::ValuesIn(filter_non_generic_solver_configurations({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSelfTranslationIntTests,
     SelfTranslationIntTests,
-    testing::ValuesIn(filter_solver_configurations({ FULL_TRANSFER, THEORY_INT })));
+    testing::ValuesIn(filter_non_generic_solver_configurations(
+        { FULL_TRANSFER, THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTranslationTests,
     TranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations({ TERMITER })),
-                     testing::ValuesIn(filter_solver_configurations({ TERMITER }))));
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER }))));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedBoolArrayTranslationTests,
     BoolArrayTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
-                     testing::ValuesIn(filter_solver_configurations(
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
 
 }  // namespace smt_tests
