@@ -2,7 +2,6 @@
 
 #include <string>
 
-// TODO need to change name to generate smtlibparser.h instead of smtlib.h
 #include "smtlibparser.h"
 
 #define YY_DECL yy::parser::symbol_type yylex(SmtLibDriver & drv)
