@@ -31,7 +31,7 @@ using namespace std;
 #include "smtlib_driver.h"
 }
 
-%token SYMBOL
+%token <std::string> SYMBOL
 %token NUMBER
 %token
 LP "("
@@ -68,7 +68,7 @@ s_expr_list:
 atom:
    SYMBOL
    {
-     cout << "Bison got a symbol" << endl;
+     cout << "Bison got a symbol: " << $1 << endl;
    }
    | NUMBER
    {
