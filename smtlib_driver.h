@@ -5,7 +5,7 @@
 #include "smtlibparser.h"
 
 #define YY_DECL yy::parser::symbol_type yylex(SmtLibDriver & drv)
-YY_DELC;
+YY_DECL;
 
 class SmtLibDriver
 {
@@ -20,4 +20,4 @@ class SmtLibDriver
   void scan_end();
 
   yy::location location;
-}
+};

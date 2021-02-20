@@ -22,9 +22,9 @@ using namespace std;
   loc.step ();
 %}
 
-[(]               { return parser::make_LP(loc); }
-[)]               { return parser::make_RP(loc); }
-[a-zA-Z0-9_-]+    { return parser::make_SYMBOL(loc); }
+[(]               { return yy::parser::make_LP(loc); }
+[)]               { return yy::parser::make_RP(loc); }
+[a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(loc); }
 [ \t]             ; //ignore all whitespace
 .                 { cout << "ERROR: no match for " << yytext << endl; }
 
@@ -44,7 +44,7 @@ void SmtLibDriver::scan_begin ()
 }
 
 void
-driver::scan_end ()
+SmtLibDriver::scan_end ()
 {
   fclose (yyin);
 }

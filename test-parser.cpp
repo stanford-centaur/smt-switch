@@ -8,8 +8,13 @@ main (int argc, char *argv[])
   SmtLibDriver drv;
   for (int i = 1; i < argc; ++i)
     if (!drv.parse (argv[i]))
-      std::cout << drv.result << '\n';
+    {
+      std::cout << "success" << std::endl;
+    }
     else
+    {
+      std::cout << "FAILED" << std::endl;
       res = 1;
+    }
   return res;
 }
