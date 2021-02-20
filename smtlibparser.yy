@@ -33,25 +33,48 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token NUMBER
-%token SETLOGIC
+%token SETLOGIC ASSERT
 %token
 LP "("
 RP ")"
 
+%nterm commands
+%nterm command
+%nterm smt2
 %nterm s_expr
 %nterm s_expr_list
 %nterm atom
 
 %%
 
+smt2:
+  commands
+  {
+    cout << "Bison got commands in smt2 file" << endl;
+  }
+;
+
+commands:
+  %empty
+  {}
+  | commands command {}
+;
+
+command:
+  LP SETLOGIC SYMBOL RP
+  {
+    cout << "Bison got a set-logic command with " << $3 << endl;
+  }
+  | LP ASSERT s_expr RP
+  {
+    cout << "Bison got an assert" << endl;
+  }
+;
+
 s_expr:
   atom
   {
     cout << "Bison got an atom" << endl;
-  }
-  | LP SETLOGIC SYMBOL RP
-  {
-    cout << "Bison got a set-logic command with " << $3 << endl;
   }
   | LP s_expr_list RP
   {

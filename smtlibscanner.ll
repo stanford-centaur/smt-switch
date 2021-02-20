@@ -26,6 +26,7 @@ using namespace std;
 [(]               { return yy::parser::make_LP(loc); }
 [)]               { return yy::parser::make_RP(loc); }
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
+assert            { return yy::parser::make_ASSERT(loc); }
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 [ \t]             ; //ignore all whitespace
 .                 { cout << "ERROR: no match for " << yytext << endl; }
