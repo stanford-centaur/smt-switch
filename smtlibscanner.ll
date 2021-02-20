@@ -6,6 +6,7 @@
 using namespace std;
 %}
 
+/* can comment out debug to stop extra output */
 %option noyywrap nounput noinput batch debug
 
 %{
@@ -27,7 +28,7 @@ using namespace std;
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(loc); }
 [ \t]             ; //ignore all whitespace
 .                 { cout << "ERROR: no match for " << yytext << endl; }
-
+<<EOF>>           { return yy::parser::make_YYEOF (loc); }
 %%
 
 void SmtLibDriver::scan_begin ()
