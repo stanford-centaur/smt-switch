@@ -33,6 +33,7 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token NUMBER
+%token SETLOGIC
 %token
 LP "("
 RP ")"
@@ -44,14 +45,18 @@ RP ")"
 %%
 
 s_expr:
-atom
-{
-  cout << "Bison got an atom" << endl;
-}
-| LP s_expr_list RP
-{
-  cout << "Bison got an s_expr list in parentheses" << endl;
-}
+  atom
+  {
+    cout << "Bison got an atom" << endl;
+  }
+  | LP SETLOGIC SYMBOL RP
+  {
+    cout << "Bison got a set-logic command with " << $3 << endl;
+  }
+  | LP s_expr_list RP
+  {
+    cout << "Bison got an s_expr list in parentheses" << endl;
+  }
 ;
 
 s_expr_list:
