@@ -19,5 +19,9 @@ class SmtLibDriver
   void scan_begin();
   void scan_end();
 
-  yy::location location;
+  /* getters and setters  */
+  yy::location & location() { return location_; }
+
+protected:
+  yy::location location_;
 };

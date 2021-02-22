@@ -7,7 +7,7 @@ SmtLibDriver::SmtLibDriver()
 int SmtLibDriver::parse(const std::string & f)
 {
   file = f;
-  location.initialize(&file);
+  location_.initialize(&file);
   scan_begin();
   yy::parser parse(*this);
   // commented from calc++ example

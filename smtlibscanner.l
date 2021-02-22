@@ -18,7 +18,7 @@ using namespace std;
 
 %{
   // A handy shortcut to the location held by the driver.
-  yy::location& loc = drv.location;
+  yy::location& loc = drv.location();
   // Code run each time yylex is called.
   loc.step ();
 %}
@@ -28,9 +28,9 @@ using namespace std;
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
-Bool              { return yy::parser::make_BOOL(loc); }
-Int               { return yy::parser::make_INT(loc); }
-Real              { return yy::parser::make_REAL(loc); }
+Bool              { return yy::parser::make_BOOL(yytext, loc); }
+Int               { return yy::parser::make_INT(yytext, loc); }
+Real              { return yy::parser::make_REAL(yytext, loc); }
 ; // TODO fix symbol to be an identifier
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 [ \t]             ; //ignore all whitespace
