@@ -24,7 +24,9 @@ class SmtLibDriver
   /* getters and setters  */
   yy::location & location() { return location_; }
 
-protected:
+  smt::SmtSolver & solver() { return solver_; }
+
+ protected:
   yy::location location_;
 
   smt::SmtSolver solver_;

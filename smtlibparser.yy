@@ -16,6 +16,8 @@ using namespace std;
 
 %code requires {
   #include <string>
+  #include "smt-switch/smt.h"
+
   class SmtLibDriver;
 }
 
@@ -29,7 +31,6 @@ using namespace std;
 
 %code {
 #include "smtlib_driver.h"
-using namespace smt;
 }
 
 %token <std::string> SYMBOL
@@ -46,7 +47,7 @@ RP ")"
 %nterm s_expr
 %nterm s_expr_list
 %nterm atom
-%nterm <std::string> sort
+%nterm <smt::Sort> sort
 
 %%
 
@@ -114,18 +115,15 @@ atom:
 sort:
    BOOL
    {
-     cout << "Bison got a Bool sort" << endl;
-     $$ = $1;
+     $$ = drv.solver()->make_sort(smt::BOOL);
    }
    | INT
    {
-     cout << "Bison got an Int sort" << endl;
-     $$ = $1;
+     $$ = drv.solver()->make_sort(smt::INT);
    }
    | REAL
    {
-     cout << "Bison got a Real sort" << endl;
-     $$ = $1;
+     $$ = drv.solver()->make_sort(smt::REAL);
    }
 ;
 
