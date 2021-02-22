@@ -33,7 +33,8 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token NUMBER
-%token SETLOGIC ASSERT
+%token SETLOGIC DECLARECONST ASSERT
+%token BOOL INT REAL
 %token
 LP "("
 RP ")"
@@ -44,6 +45,7 @@ RP ")"
 %nterm s_expr
 %nterm s_expr_list
 %nterm atom
+%nterm sort
 
 %%
 
@@ -64,6 +66,10 @@ command:
   LP SETLOGIC SYMBOL RP
   {
     cout << "Bison got a set-logic command with " << $3 << endl;
+  }
+  | LP DECLARECONST SYMBOL sort RP
+  {
+    cout << "Bison got a declaration for " << $3 << endl;
   }
   | LP ASSERT s_expr RP
   {
@@ -101,6 +107,21 @@ atom:
    | NUMBER
    {
      cout << "Bison got a number" << endl;
+   }
+;
+
+sort:
+   BOOL
+   {
+     cout << "Bison got a Bool sort" << endl;
+   }
+   | INT
+   {
+     cout << "Bison got an Int sort" << endl;
+   }
+   | REAL
+   {
+     cout << "Bison got a Real sort" << endl;
    }
 ;
 
