@@ -1,6 +1,6 @@
-all: smtlibparser.yy smtlibscanner.ll
+all: smtlibparser.yy smtlibscanner.l
 	bison -o smtlibparser.cpp --defines=smtlibparser.h smtlibparser.yy
-	flex -o smtlibscanner.cpp smtlibscanner.ll
+	flex -o smtlibscanner.cpp smtlibscanner.l
 	$(CXX) smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp test-parser.cpp -o test-parser -lfl
 
 clean:
