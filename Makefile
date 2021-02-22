@@ -4,7 +4,7 @@ all: smtlibparser.yy smtlibscanner.ll
 	$(CXX) smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp test-parser.cpp -o test-parser -lfl
 
 clean:
-	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp
+	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp location.hh
 
 # TODO get rid of old files -- smtlib.y smtlib.l smtlib_lexer.h
 # Previous attempt mixing c/c++ -- didn't work out
