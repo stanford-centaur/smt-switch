@@ -29,6 +29,7 @@ using namespace std;
 
 %code {
 #include "smtlib_driver.h"
+using namespace smt;
 }
 
 %token <std::string> SYMBOL

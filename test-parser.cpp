@@ -1,11 +1,14 @@
 #include <iostream>
 #include "smtlib_driver.h"
+#include "smt-switch/cvc4_factory.h"
 
-int
-main (int argc, char *argv[])
+using namespace smt;
+
+int main (int argc, char *argv[])
 {
   int res = 0;
-  SmtLibDriver drv;
+  SmtSolver solver = CVC4SolverFactory::create(false);
+  SmtLibDriver drv(solver);
   for (int i = 1; i < argc; ++i)
     if (!drv.parse (argv[i]))
     {

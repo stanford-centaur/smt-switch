@@ -1,7 +1,8 @@
 #include "smtlib_driver.h"
 #include "smtlibparser.h"
 
-SmtLibDriver::SmtLibDriver()
+SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
+  : solver_(solver)
 {}
 
 int SmtLibDriver::parse(const std::string & f)
