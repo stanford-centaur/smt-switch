@@ -71,7 +71,7 @@ command:
   }
   | LP DECLARECONST SYMBOL sort RP
   {
-    cout << "Bison got a declaration for " << $3 << " of sort " << $4 << endl;
+    smt::Term sym = drv.new_symbol($3, $4);
   }
   | LP ASSERT s_expr RP
   {
