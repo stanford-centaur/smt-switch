@@ -39,6 +39,7 @@ using namespace std;
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
 %token SETLOGIC DECLARECONST DECLAREFUN ASSERT CHECKSAT PUSH POP
+%token TRUE FALSE
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
@@ -158,6 +159,14 @@ atom:
    {
      cout << "Bison got a number" << endl;
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
+   }
+   | TRUE
+   {
+     $$ = drv.solver()->make_term(true);
+   }
+   | FALSE
+   {
+     $$ = drv.solver()->make_term(false);
    }
 ;
 

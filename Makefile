@@ -1,7 +1,7 @@
 all: smtlibparser.yy smtlibscanner.l
 	bison -o smtlibparser.cpp --defines=smtlibparser.h smtlibparser.yy
 	flex -o smtlibscanner.cpp smtlibscanner.l
-	$(CXX) -std=c++11 -I./local/include/ -L./local/lib/ smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp test-parser.cpp -o test-parser -lfl -lsmt-switch-cvc4 -lsmt-switch -lgmp
+	$(CXX) -g -std=c++11 -I./local/include/ -L./local/lib/ smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp test-parser.cpp -o test-parser -lfl -lsmt-switch-cvc4 -lsmt-switch -lgmp
 
 clean:
 	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp location.hh

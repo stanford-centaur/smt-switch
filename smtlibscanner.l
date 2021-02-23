@@ -40,6 +40,8 @@ Int               { return yy::parser::make_INT(yytext, loc); }
 Real              { return yy::parser::make_REAL(yytext, loc); }
 
 [0-9]+            { return yy::parser::make_INTEGER(yytext, loc); }
+true              { return yy::parser::make_TRUE(loc); }
+false             { return yy::parser::make_FALSE(loc); }
 
 (and|or|xor|not)  { return yy::parser::make_PRIMOP(yytext, loc); }
 (=>)              { return yy::parser::make_PRIMOP(yytext, loc); }
