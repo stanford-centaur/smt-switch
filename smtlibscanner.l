@@ -32,6 +32,8 @@ declare-const     { return yy::parser::make_DECLARECONST(loc); }
 declare-fun       { return yy::parser::make_DECLAREFUN(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
 check-sat         { return yy::parser::make_CHECKSAT(loc); }
+push              { return yy::parser::make_PUSH(loc); }
+pop               { return yy::parser::make_POP(loc); }
 
 Bool              { return yy::parser::make_BOOL(yytext, loc); }
 Int               { return yy::parser::make_INT(yytext, loc); }
