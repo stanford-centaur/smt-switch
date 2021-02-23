@@ -12,16 +12,19 @@ using namespace std;
 
 %define api.token.constructor
 %define api.value.type variant
-%define parse.assert
+        %define parse.assert
 
 %code requires {
   #include <string>
   #include "smt-switch/smt.h"
 
-  class SmtLibDriver;
+  namespace smt
+  {
+    class SmtLibDriver;
+  }
 }
 
-%param { SmtLibDriver & drv }
+%param { smt::SmtLibDriver & drv }
 
 %locations
 

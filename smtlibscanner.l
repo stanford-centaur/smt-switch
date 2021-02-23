@@ -38,7 +38,9 @@ Real              { return yy::parser::make_REAL(yytext, loc); }
 <<EOF>>           { return yy::parser::make_YYEOF (loc); }
 %%
 
-void SmtLibDriver::scan_begin ()
+; // TODO think about moving these implementations to a different file
+; // for some reason went here in the calc++ example
+void smt::SmtLibDriver::scan_begin ()
 {
   // commented from calc++ example -- could consider adding for debug support
   /* yy_flex_debug = trace_scanning; */
@@ -51,8 +53,7 @@ void SmtLibDriver::scan_begin ()
   }
 }
 
-void
-SmtLibDriver::scan_end ()
+void smt::SmtLibDriver::scan_end ()
 {
   fclose (yyin);
 }

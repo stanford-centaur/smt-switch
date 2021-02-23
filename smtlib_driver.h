@@ -6,8 +6,11 @@
 #include "smt-switch/smt.h"
 #include "smtlibparser.h"
 
-#define YY_DECL yy::parser::symbol_type yylex(SmtLibDriver & drv)
+#define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibDriver & drv)
 YY_DECL;
+
+namespace smt
+{
 
 class SmtLibDriver
 {
@@ -49,3 +52,5 @@ class SmtLibDriver
 
   std::unordered_map<std::string, smt::Term> symbols_;
 };
+
+} // namespace smt

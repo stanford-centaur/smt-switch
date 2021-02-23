@@ -3,8 +3,10 @@
 #include "assert.h"
 #include "smtlibparser.h"
 
-using namespace smt;
 using namespace std;
+
+namespace smt
+{
 
 SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
   : solver_(solver)
@@ -42,3 +44,5 @@ Term SmtLibDriver::new_symbol(const std::string & name, const smt::Sort & sort)
   symbols_[name] = fresh_symbol;
   return fresh_symbol;
 }
+
+} // namespace smt
