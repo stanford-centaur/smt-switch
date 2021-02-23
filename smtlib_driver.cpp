@@ -11,7 +11,13 @@ namespace smt
 
 SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
   : solver_(solver)
-{}
+{
+  // dedicated true/false symbols
+  // done this way because true/false can be used in other places
+  // for example, when setting options
+  symbols_["true"] = solver_->make_term(true);
+  symbols_["false"] = solver_->make_term(false);
+}
 
 int SmtLibDriver::parse(const std::string & f)
 {

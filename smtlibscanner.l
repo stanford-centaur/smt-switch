@@ -28,6 +28,7 @@ using namespace std;
 \(_              { return yy::parser::make_INDPREFIX(loc); }
 
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
+set-option        { return yy::parser::make_SETOPT(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
 declare-fun       { return yy::parser::make_DECLAREFUN(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
@@ -35,13 +36,13 @@ check-sat         { return yy::parser::make_CHECKSAT(loc); }
 push              { return yy::parser::make_PUSH(loc); }
 pop               { return yy::parser::make_POP(loc); }
 
+[:][a-zA-Z0-9_-]+ { return yy::parser::make_OPT(++yytext, loc); }
+
 Bool              { return yy::parser::make_BOOL(yytext, loc); }
 Int               { return yy::parser::make_INT(yytext, loc); }
 Real              { return yy::parser::make_REAL(yytext, loc); }
 
 [0-9]+            { return yy::parser::make_INTEGER(yytext, loc); }
-true              { return yy::parser::make_TRUE(loc); }
-false             { return yy::parser::make_FALSE(loc); }
 
 (and|or|xor|not)  { return yy::parser::make_PRIMOP(yytext, loc); }
 (=>)              { return yy::parser::make_PRIMOP(yytext, loc); }

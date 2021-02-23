@@ -38,8 +38,8 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC DECLARECONST DECLAREFUN ASSERT CHECKSAT PUSH POP
-%token TRUE FALSE
+%token SETLOGIC SETOPT DECLARECONST DECLAREFUN ASSERT CHECKSAT PUSH POP
+%token <std::string> OPT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
@@ -76,6 +76,11 @@ command:
   LP SETLOGIC SYMBOL RP
   {
     cout << "Bison got a set-logic command with " << $3 << endl;
+  }
+  | LP SETOPT OPT SYMBOL RP
+  {
+    cout << "Bison setting option " << $3 << " to " << $4 << endl;
+    drv.solver()->set_opt($3, $4);
   }
   | LP DECLARECONST SYMBOL sort RP
   {
@@ -159,14 +164,6 @@ atom:
    {
      cout << "Bison got a number" << endl;
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
-   }
-   | TRUE
-   {
-     $$ = drv.solver()->make_term(true);
-   }
-   | FALSE
-   {
-     $$ = drv.solver()->make_term(false);
    }
 ;
 
