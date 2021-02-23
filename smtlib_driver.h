@@ -43,7 +43,7 @@ class SmtLibDriver
    *  @param name the name of the symbol
    *  @param sort the sort of the symbol
    */
-  smt::Term new_symbol(const std::string & name, const smt::Sort & sort);
+  void new_symbol(const std::string & name, const smt::Sort & sort);
 
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp

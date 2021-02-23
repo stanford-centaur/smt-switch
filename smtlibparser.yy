@@ -38,7 +38,7 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC DECLARECONST ASSERT CHECKSAT
+%token SETLOGIC DECLARECONST DECLAREFUN ASSERT CHECKSAT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
@@ -53,6 +53,7 @@ INDPREFIX "(_"
 %nterm <smt::TermVec> s_expr_list
 %nterm <smt::Term> atom
 %nterm <smt::Sort> sort
+%nterm <smt::SortVec> sort_list
 %nterm <smt::Op> operator
 
 %%
@@ -77,7 +78,14 @@ command:
   }
   | LP DECLARECONST SYMBOL sort RP
   {
-    smt::Term sym = drv.new_symbol($3, $4);
+    drv.new_symbol($3, $4);
+  }
+  | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
+  {
+    smt::SortVec vec = $5;
+    vec.push_back($7);
+    smt::Sort funsort = drv.solver()->make_sort(smt::FUNCTION, vec);
+    drv.new_symbol($3, funsort);
   }
   | LP ASSERT s_expr RP
   {
@@ -149,6 +157,20 @@ sort:
    | REAL
    {
      $$ = drv.solver()->make_sort(smt::REAL);
+   }
+;
+
+sort_list:
+   sort
+   {
+     smt::SortVec vec({$1});
+     $$ = vec;
+   }
+   | sort sort_list
+   {
+     smt::SortVec vec({$1});
+     vec.insert(vec.end(), $2.begin(), $2.end());
+     $$ = vec;
    }
 ;
 

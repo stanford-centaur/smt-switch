@@ -29,6 +29,7 @@ using namespace std;
 
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
+declare-fun       { return yy::parser::make_DECLAREFUN(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
 check-sat         { return yy::parser::make_CHECKSAT(loc); }
 
@@ -48,7 +49,7 @@ ite               { return yy::parser::make_PRIMOP(yytext, loc); }
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 
 [ \t]             ; //ignore all whitespace
-.                 { cout << "ERROR: no match for " << yytext << endl; }
+.                 { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>           { return yy::parser::make_YYEOF (loc); }
 %%
 
