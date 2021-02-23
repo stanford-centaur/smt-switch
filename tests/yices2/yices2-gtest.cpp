@@ -103,10 +103,10 @@ TEST_F(Yices2SolverTest, TestImpliesOp)
   // Yices has no Implies term type.
 }
 
-TEST_F(Yices2SolverTest, TestIffOp)
+TEST_F(Yices2SolverTest, TestBooleanEqualOp)
 {
   Term t =
-      s->make_term(Iff, s->make_term(Equal, x, y), s->make_term(Equal, x, z));
+      s->make_term(Equal, s->make_term(Equal, x, y), s->make_term(Equal, x, z));
   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
   // Yices has no Iff term type.
 }

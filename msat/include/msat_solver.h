@@ -46,6 +46,8 @@ class MsatSolver : public AbsSmtSolver
   // this is done after constructing because need to call
   // the virtual function -- e.g. simulating dynamic binding
   MsatSolver() : AbsSmtSolver(MSAT), logic(""){};
+  MsatSolver(msat_config c, msat_env e)
+      : AbsSmtSolver(MSAT), cfg(c), env(e), valid_model("false"), logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -69,6 +71,8 @@ class MsatSolver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
@@ -136,6 +140,25 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
+
+  inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
+  {
+    msat_result mres =
+        msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+
+    if (mres == MSAT_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (mres == MSAT_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
 };
 
 // Interpolating Solver
@@ -143,6 +166,12 @@ class MsatInterpolatingSolver : public MsatSolver
 {
  public:
   MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
+  MsatInterpolatingSolver(msat_config c, msat_env e)
+  {
+    cfg = c;
+    env = e;
+    solver_enum = MSAT_INTERPOLATOR;
+  };
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
@@ -165,6 +194,8 @@ class MsatInterpolatingSolver : public MsatSolver
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
+  Result get_sequence_interpolants(const TermVec & formulae,
+                                   TermVec & out_I) const override;
 };
 
 }  // namespace smt

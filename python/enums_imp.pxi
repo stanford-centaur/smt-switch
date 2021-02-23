@@ -111,6 +111,11 @@ cdef SolverEnum CVC4_INTERPOLATOR = SolverEnum()
 CVC4_INTERPOLATOR.se = c_CVC4_INTERPOLATOR
 setattr(solverenums, "CVC4_INTERPOLATOR", CVC4_INTERPOLATOR)
 
+cdef SolverEnum GENERIC_SOLVER = SolverEnum()
+GENERIC_SOLVER.se = c_GENERIC_SOLVER
+setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
+
+
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
     def __cinit__(self):
@@ -237,10 +242,6 @@ setattr(primops, 'Not', Not)
 cdef PrimOp Implies = PrimOp()
 Implies.po = c_Implies
 setattr(primops, 'Implies', Implies)
-
-cdef PrimOp Iff = PrimOp()
-Iff.po = c_Iff
-setattr(primops, 'Iff', Iff)
 
 cdef PrimOp Ite = PrimOp()
 Ite.po = c_Ite

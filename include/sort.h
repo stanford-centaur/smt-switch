@@ -48,7 +48,7 @@ enum SortKind
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array
   */
-  NUM_SORT_CONS
+  NUM_SORT_KINDS
 };
 
 std::string to_string(SortKind);

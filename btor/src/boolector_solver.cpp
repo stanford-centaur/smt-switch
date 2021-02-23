@@ -43,7 +43,6 @@ const std::unordered_map<PrimOp, bin_fun> binary_ops(
       { Or, boolector_or },
       { Xor, boolector_xor },
       { Implies, boolector_implies },
-      { Iff, boolector_iff },
       { Equal, boolector_eq },
       { Distinct, boolector_ne },
       { Concat, boolector_concat },
@@ -314,50 +313,18 @@ Result BoolectorSolver::check_sat()
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  // boolector supports assuming arbitrary one-bit expressions,
-  // not just boolean literals
-  std::shared_ptr<BoolectorTerm> bt;
-  for (auto a : assumptions)
-  {
-    bt = std::static_pointer_cast<BoolectorTerm>(a);
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
 
-    bool is_literal = true;
+Result BoolectorSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
 
-    BoolectorSort s = boolector_get_sort(bt->btor, bt->node);
-    // booleans are bit-vectors in boolector
-    is_literal &= boolector_is_bitvec_sort(bt->btor, s);
-    is_literal &= boolector_get_width(bt->btor, bt->node) == 1;
-
-    bool const_or_negated = a->is_symbolic_const();
-    if (!const_or_negated && bt->negated)
-    {
-      Term c = *(a->begin());
-      const_or_negated = c->is_symbolic_const();
-    }
-    is_literal &= const_or_negated;
-
-    if (!is_literal)
-    {
-      throw IncorrectUsageException(
-          "Assumptions to check_sat_assuming must be boolean literals");
-    }
-
-    boolector_assume(btor, bt->node);
-  }
-
-  int32_t res = boolector_sat(btor);
-  if (res == BOOLECTOR_SAT)
-  {
-    return Result(SAT);
-  }
-  else if (res == BOOLECTOR_UNSAT)
-  {
-    return Result(UNSAT);
-  }
-  else
-  {
-    return Result(UNKNOWN);
-  }
+Result BoolectorSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
 }
 
 void BoolectorSolver::push(uint64_t num)

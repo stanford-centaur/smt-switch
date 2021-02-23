@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <unordered_set>
+#include <functional>
 
 namespace smt {
 
@@ -32,7 +34,6 @@ enum PrimOp
   Xor,
   Not,
   Implies,
-  Iff,
   Ite,
   Equal,
   Distinct,
@@ -137,6 +138,7 @@ struct Op
   uint64_t idx0;
   uint64_t idx1;
 };
+using UnorderedOpSet = std::unordered_set<Op>;
 
 /** Looks up the expected arity of a PrimOp
  *  @return a tuple with the minimum and maximum
@@ -154,13 +156,25 @@ std::ostream& operator<<(std::ostream& output, const Op o);
 // defining hash for old compilers
 namespace std
 {
-  // specialize the hash template
+  // specialize the hash template for PrimOp
   template<>
     struct hash<smt::PrimOp>
     {
       size_t operator()(const smt::PrimOp o) const
       {
         return static_cast<std::size_t>(o);
+      }
+    };
+
+  // specialize the hash template for Op
+  template<>
+    struct hash<smt::Op>
+    {
+      size_t operator()(const smt::Op o) const
+      {
+        // The hash function for op computes the string hash
+        std::hash<std::string> str_hash;
+        return str_hash(o.to_string());
       }
     };
 }

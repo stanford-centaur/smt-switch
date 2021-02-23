@@ -65,7 +65,6 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Or, msat_make_or },
       { Xor, ext_msat_make_xor },
       { Implies, ext_msat_make_implies },
-      { Iff, msat_make_iff },
       { Equal, msat_make_eq },
       { Distinct, ext_msat_make_distinct },
       { Plus, msat_make_plus },
@@ -205,7 +204,7 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // expecting (possibly negated) boolean literals
-  for (auto a : assumptions)
+  for (const auto & a : assumptions)
   {
     if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
     {
@@ -225,27 +224,77 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   m_assumps.reserve(assumptions.size());
 
   shared_ptr<MsatTerm> ma;
-  for (auto a : assumptions)
+  for (const auto & a : assumptions)
   {
     ma = static_pointer_cast<MsatTerm>(a);
     m_assumps.push_back(ma->term);
   }
 
-  msat_result mres =
-      msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+  return check_sat_assuming(m_assumps);
+}
 
-  if (mres == MSAT_SAT)
+Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  // expecting (possibly negated) boolean literals
+  for (const auto & a : assumptions)
   {
-    return Result(SAT);
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
   }
-  else if (mres == MSAT_UNSAT)
+
+  vector<msat_term> m_assumps;
+  m_assumps.reserve(assumptions.size());
+
+  shared_ptr<MsatTerm> ma;
+  for (const auto & a : assumptions)
   {
-    return Result(UNSAT);
+    ma = static_pointer_cast<MsatTerm>(a);
+    m_assumps.push_back(ma->term);
   }
-  else
+
+  return check_sat_assuming(m_assumps);
+}
+
+Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  // expecting (possibly negated) boolean literals
+  for (const auto & a : assumptions)
   {
-    return Result(UNKNOWN);
+    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
+    {
+      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
+      {
+        continue;
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Expecting boolean indicator literals but got: " + a->to_string());
+      }
+    }
   }
+
+  vector<msat_term> m_assumps;
+  m_assumps.reserve(assumptions.size());
+
+  shared_ptr<MsatTerm> ma;
+  for (const auto & a : assumptions)
+  {
+    ma = static_pointer_cast<MsatTerm>(a);
+    m_assumps.push_back(ma->term);
+  }
+
+  return check_sat_assuming(m_assumps);
 }
 
 void MsatSolver::push(uint64_t num)
@@ -1102,7 +1151,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
     }
     else
     {
-      out_I = Term(new MsatTerm(env, itp));
+      out_I = make_shared<MsatTerm>(env, itp);
       return Result(UNSAT);
     }
   }
@@ -1114,6 +1163,59 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
   {
     return Result(UNKNOWN);
   }
+}
+
+Result MsatInterpolatingSolver::get_sequence_interpolants(
+    const TermVec & formulae, TermVec & out_I) const
+{
+  // reset the environment -- each get_sequence_interpolants is it's own
+  // separate call
+  msat_reset_env(env);
+
+  vector<int> itp_groups;
+  for (size_t k = 0; k < formulae.size(); ++k)
+  {
+    int grp = msat_create_itp_group(env);
+    itp_groups.push_back(grp);
+    msat_set_itp_group(env, grp);
+    msat_assert_formula(env,
+                        static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+  }
+
+  msat_result msat_res = msat_solve(env);
+
+  if (msat_res == MSAT_SAT)
+  {
+    return Result(SAT);
+  }
+  else if (msat_res == MSAT_UNKNOWN)
+  {
+    return Result(UNKNOWN, "Interpolation failure.");
+  }
+
+  assert(msat_res == MSAT_UNSAT);
+
+  Result r = Result(UNSAT);
+  for (size_t i = 1; i < itp_groups.size(); ++i)
+  {
+    msat_term mI = msat_get_interpolant(env, itp_groups.data(), i);
+    if (MSAT_ERROR_TERM(mI))
+    {
+      // add a null term -- see solver.h documentation for this function
+      Term nullterm;
+      out_I.push_back(nullterm);
+      r = Result(UNKNOWN,
+                 "Had at least one interpolation failure in "
+                 "get_sequence_interpolants.");
+    }
+    else
+    {
+      out_I.push_back(make_shared<MsatTerm>(env, mI));
+    }
+  }
+
+  assert(out_I.size() == formulae.size() - 1);
+  return r;
 }
 
 // end MsatInterpolatingSolver implementation

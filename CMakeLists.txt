@@ -33,7 +33,11 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"
+  "${PROJECT_SOURCE_DIR}/src/generic_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
 # Should we build python bindings

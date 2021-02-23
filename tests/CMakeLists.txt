@@ -142,6 +142,21 @@ target_link_libraries(test_logging_solver gtest_main)
 target_link_libraries(test_logging_solver test-deps)
 add_test(NAME test_logging_solver_test COMMAND test_logging_solver)
 
+add_executable(test_generic_term "${PROJECT_SOURCE_DIR}/tests/test-generic-term.cpp")
+target_link_libraries(test_generic_term gtest_main)
+target_link_libraries(test_generic_term test-deps)
+add_test(NAME test_generic_term_test COMMAND test_generic_term)
+
+add_executable(test_generic_sort "${PROJECT_SOURCE_DIR}/tests/test-generic-sort.cpp")
+target_link_libraries(test_generic_sort gtest_main)
+target_link_libraries(test_generic_sort test-deps)
+add_test(NAME test_generic_sort_test COMMAND test_generic_sort)
+
+add_executable(test_generic_solver "${PROJECT_SOURCE_DIR}/tests/test-generic-solver.cpp")
+target_link_libraries(test_generic_solver gtest_main)
+target_link_libraries(test_generic_solver test-deps)
+add_test(NAME test_generic_solver_test COMMAND test_generic_solver)
+
 add_executable(test-term-translation "${PROJECT_SOURCE_DIR}/tests/test-term-translation.cpp")
 target_link_libraries(test-term-translation gtest_main)
 target_link_libraries(test-term-translation test-deps)
@@ -171,6 +186,11 @@ add_executable(unit-substitute "${PROJECT_SOURCE_DIR}/tests/unit/unit-substitute
 target_link_libraries(unit-substitute gtest_main)
 target_link_libraries(unit-substitute test-deps)
 add_test(NAME unit-substitute_test COMMAND unit-substitute)
+
+add_executable(unit-term-id "${PROJECT_SOURCE_DIR}/tests/unit/unit-term-id.cpp")
+target_link_libraries(unit-term-id gtest_main)
+target_link_libraries(unit-term-id test-deps)
+add_test(NAME unit-term-id_test COMMAND unit-term-id)
 
 add_executable(unit-reset-assertions "${PROJECT_SOURCE_DIR}/tests/unit/unit-reset-assertions.cpp")
 target_link_libraries(unit-reset-assertions gtest_main)

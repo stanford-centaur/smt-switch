@@ -60,9 +60,28 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducer)
   EXPECT_TRUE(rem[0] != red[0]);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverUnsatCoreReducerTests,
-    UnsatCoreReducerTests,
-    testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE })));
+TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
+{
+  UnsatCoreReducer uscr(r);
+
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term formula = s->make_term(And, a, b);
+  TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
+  TermVec red, rem;
+
+  uscr.linear_reduce_assump_unsatcore(formula, assump, red, &rem);
+  EXPECT_EQ(red.size() , 1);
+  EXPECT_EQ(rem.size() , 1);
+  EXPECT_NE(rem[0] , red[0]);
+}
+
+// The unsat cores reducer module requires the
+// underlying solver to support both unsat cores
+// and term translation.
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
+                         UnsatCoreReducerTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { UNSAT_CORE, FULL_TRANSFER })));
 
 }  // namespace smt_tests

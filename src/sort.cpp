@@ -36,7 +36,7 @@ const std::unordered_map<SortKind, std::string> sortkind2str(
 
 std::string to_string(SortKind sk)
 {
-  if (sk == NUM_SORT_CONS)
+  if (sk == NUM_SORT_KINDS)
   {
     return "null";
   }
@@ -56,7 +56,7 @@ std::ostream & operator<<(std::ostream & output, const Sort s)
 std::string AbsSort::to_string() const
 {
   SortKind sk = get_sort_kind();
-  if (sk == NUM_SORT_CONS)
+  if (sk == NUM_SORT_KINDS)
   {
     return "nullsort";
   }

@@ -29,7 +29,6 @@ const std::unordered_map<PrimOp, ::CVC4::api::Kind> primop2kind(
       { Not, ::CVC4::api::NOT },
       { Implies, ::CVC4::api::IMPLIES },
       { Ite, ::CVC4::api::ITE },
-      { Iff, ::CVC4::api::EQUAL },
       { Equal, ::CVC4::api::EQUAL },
       { Distinct, ::CVC4::api::DISTINCT },
       /* Uninterpreted Functions */
@@ -277,24 +276,6 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
-    // expecting (possibly negated) boolean literals
-    for (auto a : assumptions)
-    {
-      if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-      {
-        if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-        {
-          continue;
-        }
-        else
-        {
-          throw IncorrectUsageException(
-              "Expecting boolean indicator literals but got: "
-              + a->to_string());
-        }
-      }
-    }
-
     std::vector<::CVC4::api::Term> cvc4assumps;
     cvc4assumps.reserve(assumptions.size());
 
@@ -303,23 +284,47 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
     {
       cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
-    if (r.isUnsat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_list(const TermList & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(UNSAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(SAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSatUnknown())
-    {
-      return Result(UNKNOWN, r.getUnknownExplanation());
-    }
-    else
-    {
-      throw NotImplementedException("Unimplemented result type from CVC4");
-    }
+    return check_sat_assuming(cvc4assumps);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
