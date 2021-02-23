@@ -45,6 +45,13 @@ class SmtLibDriver
    */
   smt::Term new_symbol(const std::string & name, const smt::Sort & sort);
 
+  /** Look up a primitive operator by a string
+   *  @param str the string representation of this PrimOp
+   *  @return the associated PrimOp
+   *  throws an exception if there's no match
+   */
+  PrimOp lookup_primop(const std::string & str);
+
  protected:
   yy::location location_;
 

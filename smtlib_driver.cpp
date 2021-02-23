@@ -2,6 +2,7 @@
 
 #include "assert.h"
 #include "smtlibparser.h"
+#include "smtlibparser_maps.h"
 
 using namespace std;
 
@@ -43,6 +44,11 @@ Term SmtLibDriver::new_symbol(const std::string & name, const smt::Sort & sort)
   Term fresh_symbol = solver_->make_symbol(name, sort);
   symbols_[name] = fresh_symbol;
   return fresh_symbol;
+}
+
+PrimOp SmtLibDriver::lookup_primop(const std::string & str)
+{
+  return str2primop.at(str);
 }
 
 } // namespace smt
