@@ -23,9 +23,9 @@ using namespace std;
   loc.step ();
 %}
 
-[(]               { return yy::parser::make_LP(loc); }
-[)]               { return yy::parser::make_RP(loc); }
-[(]_              { return yy::parser::make_INDPREFIX(loc); }
+\(               { return yy::parser::make_LP(loc); }
+\)               { return yy::parser::make_RP(loc); }
+\(_              { return yy::parser::make_INDPREFIX(loc); }
 
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
@@ -38,7 +38,8 @@ Real              { return yy::parser::make_REAL(yytext, loc); }
 
 [0-9]+            { return yy::parser::make_INTEGER(yytext, loc); }
 
-[+=]              { return yy::parser::make_PRIMOP(yytext, loc); }
+[+=*/-]           { return yy::parser::make_PRIMOP(yytext, loc); }
+(<|>)(=?)         { return yy::parser::make_PRIMOP(yytext, loc); }
 
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 

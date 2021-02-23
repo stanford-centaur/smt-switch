@@ -16,7 +16,8 @@ const std::unordered_map<std::string, PrimOp> str2primop(
       { "apply", Apply },
       { "+", Plus },
       { "-", Minus },
-      { "-", Negate },
+      // Need to pick which one based on context
+      // { "-", Negate },
       { "*", Mult },
       { "/", Div },
       { "div", IntDiv },
