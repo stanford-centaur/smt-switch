@@ -9,8 +9,55 @@ using namespace std;
 namespace smt
 {
 
+// TODO remove this if never used
+Command str_to_command(std::string cmd)
+{
+  if (cmd == "set-logic")
+  {
+    return SETLOGIC;
+  }
+  else if (cmd == "set-option")
+  {
+    return SETOPT;
+  }
+  else if (cmd == "declare-const")
+  {
+    return DECLARECONST;
+  }
+  else if (cmd == "define-fun")
+  {
+    return DEFINEFUN;
+  }
+  else if (cmd == "assert")
+  {
+    return ASSERT;
+  }
+  else if (cmd == "check-sat")
+  {
+    return CHECKSAT;
+  }
+  else if (cmd == "check-sat-assuming")
+  {
+    return CHECKSATASSUMING;
+  }
+  else if (cmd == "push")
+  {
+    return PUSH;
+  }
+  else if (cmd == "pop")
+  {
+    return POP;
+  }
+  else
+  {
+    throw SmtException("SmtLibDriver Unknown smt-lib command: " + cmd);
+  }
+}
+
 SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
-  : solver_(solver)
+    : solver_(solver),
+      current_command_(Command::NONE),
+      def_arg_prefix_("__defvar_")
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
@@ -31,6 +78,8 @@ int SmtLibDriver::parse(const std::string & f)
   scan_end();
   return res;
 }
+
+void SmtLibDriver::set_command(Command cmd) { current_command_ = cmd; }
 
 Term SmtLibDriver::lookup_symbol(const string & sym)
 {
@@ -54,6 +103,14 @@ void SmtLibDriver::new_symbol(const std::string & name, const smt::Sort & sort)
 PrimOp SmtLibDriver::lookup_primop(const std::string & str)
 {
   return str2primop.at(str);
+}
+
+void SmtLibDriver::define_fun(const string & name,
+                              const Term & def,
+                              const TermVec & args)
+{
+  defs_[name] = def;
+  def_args_[name] = args;
 }
 
 } // namespace smt

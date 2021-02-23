@@ -38,8 +38,8 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC SETOPT DECLARECONST DECLAREFUN ASSERT
-       CHECKSAT CHECKSATASSUMING PUSH POP
+%token SETLOGIC SETOPT DECLARECONST DECLAREFUN DEFINEFUN
+       ASSERT CHECKSAT CHECKSATASSUMING PUSH POP
 %token <std::string> OPT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
@@ -74,54 +74,153 @@ commands:
 ;
 
 command:
-  LP SETLOGIC SYMBOL RP
+  LP SETLOGIC
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::SETLOGIC);
+     }
+  SYMBOL RP
   {
-    cout << "Bison got a set-logic command with " << $3 << endl;
+    cout << "Bison got a set-logic command with " << $4 << endl;
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP SETOPT OPT SYMBOL RP
+  | LP SETOPT
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::SETOPT);
+     }
+    OPT SYMBOL RP
   {
-    cout << "Bison setting option " << $3 << " to " << $4 << endl;
-    drv.solver()->set_opt($3, $4);
+    cout << "Bison setting option " << $4 << " to " << $5 << endl;
+    drv.solver()->set_opt($4, $5);
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP DECLARECONST SYMBOL sort RP
+  | LP DECLARECONST
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::DECLARECONST);
+     }
+    SYMBOL sort RP
   {
-    drv.new_symbol($3, $4);
+    drv.new_symbol($4, $5);
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
+  | LP DECLAREFUN
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::DECLAREFUN);
+     }
+    SYMBOL LP sort_list RP sort RP
   {
-    smt::SortVec vec = $5;
-    vec.push_back($7);
+    smt::SortVec vec = $6;
+    vec.push_back($8);
     smt::Sort funsort = drv.solver()->make_sort(smt::FUNCTION, vec);
-    drv.new_symbol($3, funsort);
+    drv.new_symbol($4, funsort);
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP ASSERT s_expr RP
+  | LP DEFINEFUN
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::DEFINEFUN);
+     }
+    SYMBOL LP sort_list RP sort RP
   {
-    cout << "Bison got assert for " << $3 << endl;
-    drv.solver()->assert_formula($3);
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
+    throw NotImplementedException("define-fun not yet supported");
   }
-  | LP CHECKSAT RP
+  | LP ASSERT
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::ASSERT);
+     }
+    s_expr RP
+  {
+    cout << "Bison got assert for " << $4 << endl;
+    drv.solver()->assert_formula($4);
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
+  }
+  | LP CHECKSAT
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::CHECKSAT);
+     }
+    RP
   {
     cout << drv.solver()->check_sat() << endl;
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP CHECKSATASSUMING LP s_expr_list RP RP
+  | LP CHECKSATASSUMING
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::CHECKSATASSUMING);
+     }
+    LP s_expr_list RP RP
   {
-    cout << drv.solver()->check_sat_assuming($4) << endl;
+    cout << drv.solver()->check_sat_assuming($5) << endl;
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP PUSH RP
+  | LP PUSH
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::PUSH);
+     }
+    RP
   {
     drv.solver()->push();
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP PUSH INTEGER RP
+  | LP PUSH
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::PUSH);
+     }
+    INTEGER RP
   {
-    drv.solver()->push(std::stoi($3));
+    drv.solver()->push(std::stoi($4));
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP POP RP
+  | LP POP
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::POP);
+     }
+    RP
   {
     drv.solver()->pop();
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
-  | LP POP INTEGER RP
+  | LP POP
+     {
+       // mid-action rule to set current command
+       drv.set_command(smt::POP);
+     }
+    INTEGER RP
   {
-    drv.solver()->pop(std::stoi($3));
+    drv.solver()->pop(std::stoi($4));
+
+    // unset command now that it's done
+    drv.set_command(smt::NONE);
   }
 ;
 

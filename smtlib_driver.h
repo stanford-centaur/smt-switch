@@ -12,6 +12,26 @@ YY_DECL;
 namespace smt
 {
 
+/** Used to keep track of which command is currently being parsed */
+enum Command
+{
+  SETLOGIC = 0,
+  SETOPT,
+  DECLARECONST,
+  DECLAREFUN,
+  DEFINEFUN,
+  ASSERT,
+  CHECKSAT,
+  CHECKSATASSUMING,
+  PUSH,
+  POP,
+  NONE /** this must stay at the end --
+           can also be used for the number of Command enums */
+};
+
+// TODO: remove if never used
+Command str_to_command(std::string cmd);
+
 class SmtLibDriver
 {
  public:
@@ -28,6 +48,8 @@ class SmtLibDriver
   yy::location & location() { return location_; }
 
   smt::SmtSolver & solver() { return solver_; }
+
+  void set_command(Command cmd);
 
   /** Looks up a symbol by name
    *  Returns a null term if there is no known symbol
@@ -52,12 +74,42 @@ class SmtLibDriver
    */
   PrimOp lookup_primop(const std::string & str);
 
+  /** Create a define-fun macro
+   *  @param name the name of the define-fun
+   *  @param the definition
+   *  @param the arguments to the define-fun
+   *  stored in defs_ and def_args_
+   */
+  void define_fun(const std::string & name,
+                  const smt::Term & def,
+                  const smt::TermVec & args = {});
+
+  /** Helper function for define-fun
+   *  Renames the argument variables to avoid polluting global
+   *  symbols
+   *  Stores these in a separate data structure from symbols
+   *  @param
+   */
+  // void declare_sorted_var()
+
  protected:
   yy::location location_;
 
   smt::SmtSolver solver_;
 
+  Command
+      current_command_;  ///< which smt-lib command is currently being processed
+
   std::unordered_map<std::string, smt::Term> symbols_;
+
+  std::unordered_map<std::string, smt::Term>
+      defs_;  ///< keeps track of define-funs
+  std::unordered_map<std::string, smt::TermVec>
+      def_args_;  ///< keeps track of define-fun
+                  ///< arguments
+
+  // useful constants
+  std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
 };
 
 } // namespace smt
