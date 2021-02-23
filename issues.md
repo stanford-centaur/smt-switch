@@ -1,5 +1,9 @@
 # Issues to Consider
 
+## Parser
+* Separate map to associate string with the symbol
+  * What if symbols are introduced at a non-zero context? They aren't forgotten
+
 ## Hashing
 * If we rely on the solver to traverse terms and wrap the resulting terms, we need to rely on the equality operator for the underlying objects
 * If everything is a shared_ptr, this might be counterintuitive, because you can use == but it won't do quite what you think

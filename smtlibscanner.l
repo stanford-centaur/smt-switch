@@ -35,6 +35,10 @@ Bool              { return yy::parser::make_BOOL(yytext, loc); }
 Int               { return yy::parser::make_INT(yytext, loc); }
 Real              { return yy::parser::make_REAL(yytext, loc); }
 
+[0-9]+            { return yy::parser::make_INTEGER(yytext, loc); }
+
+[+]               { return yy::parser::make_PRIMOP(yytext, loc); }
+
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 
 [ \t]             ; //ignore all whitespace
