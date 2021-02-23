@@ -25,21 +25,23 @@ using namespace std;
 
 [(]               { return yy::parser::make_LP(loc); }
 [)]               { return yy::parser::make_RP(loc); }
+[(]_              { return yy::parser::make_INDPREFIX(loc); }
+
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
+
 Bool              { return yy::parser::make_BOOL(yytext, loc); }
 Int               { return yy::parser::make_INT(yytext, loc); }
 Real              { return yy::parser::make_REAL(yytext, loc); }
-; // TODO fix symbol to be an identifier
+
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
+
 [ \t]             ; //ignore all whitespace
 .                 { cout << "ERROR: no match for " << yytext << endl; }
 <<EOF>>           { return yy::parser::make_YYEOF (loc); }
 %%
 
-; // TODO think about moving these implementations to a different file
-; // for some reason went here in the calc++ example
 void smt::SmtLibDriver::scan_begin ()
 {
   // commented from calc++ example -- could consider adding for debug support

@@ -43,6 +43,7 @@ using namespace std;
 %token
 LP "("
 RP ")"
+INDPREFIX "(_"
 
 %nterm commands
 %nterm command
