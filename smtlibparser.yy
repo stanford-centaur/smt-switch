@@ -38,7 +38,8 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC SETOPT DECLARECONST DECLAREFUN ASSERT CHECKSAT PUSH POP
+%token SETLOGIC SETOPT DECLARECONST DECLAREFUN ASSERT
+       CHECKSAT CHECKSATASSUMING PUSH POP
 %token <std::string> OPT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
@@ -101,6 +102,10 @@ command:
   | LP CHECKSAT RP
   {
     cout << drv.solver()->check_sat() << endl;
+  }
+  | LP CHECKSATASSUMING LP s_expr_list RP RP
+  {
+    cout << drv.solver()->check_sat_assuming($4) << endl;
   }
   | LP PUSH RP
   {
