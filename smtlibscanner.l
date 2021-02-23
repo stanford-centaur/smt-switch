@@ -30,6 +30,7 @@ using namespace std;
 set-logic         { return yy::parser::make_SETLOGIC(loc); }
 declare-const     { return yy::parser::make_DECLARECONST(loc); }
 assert            { return yy::parser::make_ASSERT(loc); }
+check-sat         { return yy::parser::make_CHECKSAT(loc); }
 
 Bool              { return yy::parser::make_BOOL(yytext, loc); }
 Int               { return yy::parser::make_INT(yytext, loc); }
@@ -37,7 +38,7 @@ Real              { return yy::parser::make_REAL(yytext, loc); }
 
 [0-9]+            { return yy::parser::make_INTEGER(yytext, loc); }
 
-[+]               { return yy::parser::make_PRIMOP(yytext, loc); }
+[+=]              { return yy::parser::make_PRIMOP(yytext, loc); }
 
 [a-zA-Z0-9_-]+    { return yy::parser::make_SYMBOL(yytext, loc); }
 

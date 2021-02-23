@@ -38,7 +38,7 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC DECLARECONST ASSERT
+%token SETLOGIC DECLARECONST ASSERT CHECKSAT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
@@ -82,6 +82,11 @@ command:
   | LP ASSERT s_expr RP
   {
     cout << "Bison got assert for " << $3 << endl;
+    drv.solver()->assert_formula($3);
+  }
+  | LP CHECKSAT RP
+  {
+    cout << drv.solver()->check_sat() << endl;
   }
 ;
 
