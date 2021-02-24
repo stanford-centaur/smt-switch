@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
   for (int i = 1; i < argc; ++i)
     if (!drv.parse (argv[i]))
     {
-      std::cout << "success" << std::endl;
+      std::cout << "Finished parsing" << std::endl;
     }
     else
     {
