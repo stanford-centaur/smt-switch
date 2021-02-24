@@ -258,13 +258,11 @@ s_expr:
 s_expr_list:
    s_expr
    {
-     cout << "Got a single s-expression list" << endl;
      smt::TermVec vec({$1});
      $$ = vec;
    }
    | s_expr s_expr_list
    {
-     cout << "Bison got an s-expression list" << endl;
      smt::TermVec vec({$1});
      vec.insert(vec.end(), $2.begin(), $2.end());
      $$ = vec;
@@ -274,7 +272,6 @@ s_expr_list:
 atom:
    SYMBOL
    {
-     cout << "Bison got a symbol: " << $1 << endl;
      if (drv.current_command() == smt::DEFINEFUN)
      {
        // could be a temporary argument
@@ -287,7 +284,6 @@ atom:
    }
    | INTEGER
    {
-     cout << "Bison got a number" << endl;
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
    }
 ;
