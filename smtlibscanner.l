@@ -22,8 +22,10 @@ using namespace std;
   // Code run each time yylex is called.
   loc.step ();
 %}
-[ \t\r]+   loc.step ();
-\n+        loc.lines (yyleng); loc.step ();
+[ \t\r]+              loc.step ();
+\n+                   loc.lines (yyleng); loc.step ();
+
+[;].*                 ;/* skip comment */
 
 \(                    { return yy::parser::make_LP(loc); }
 \)                    { return yy::parser::make_RP(loc); }
