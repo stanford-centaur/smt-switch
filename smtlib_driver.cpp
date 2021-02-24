@@ -152,7 +152,7 @@ Term SmtLibDriver::apply_define_fun(const string & defname,
   return solver_->substitute(defs_.at(defname), subs_map);
 }
 
-void SmtLibDriver::register_arg(const string & name, const Sort & sort)
+Term SmtLibDriver::register_arg(const string & name, const Sort & sort)
 {
   assert(current_command_ == DEFINEFUN);
   // find the right id for this argument
@@ -178,6 +178,7 @@ void SmtLibDriver::register_arg(const string & name, const Sort & sort)
 
   tmp_arg_mapping_[name] = tmpvar;
   sort_tmp_arg_mapping_[sort][name] = tmpvar;
+  return tmpvar;
 }
 
 } // namespace smt

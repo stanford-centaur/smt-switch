@@ -56,6 +56,7 @@ INDPREFIX "(_"
 %nterm <smt::Term> atom
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
+%nterm <smt::TermVec> sorted_arg_list
 %nterm <smt::Op> operator
 
 %%
@@ -131,11 +132,12 @@ command:
        // mid-action rule to set current command
        drv.set_command(smt::DEFINEFUN);
      }
-    SYMBOL LP sort_list RP sort RP
+    SYMBOL LP sorted_arg_list RP s_expr RP
   {
+    drv.define_fun($4, $8, $6);
+
     // unset command now that it's done
     drv.set_command(smt::NONE);
-    throw NotImplementedException("define-fun not yet supported");
   }
   | LP ASSERT
      {
@@ -315,6 +317,22 @@ sort_list:
    {
      smt::SortVec vec({$1});
      vec.insert(vec.end(), $2.begin(), $2.end());
+     $$ = vec;
+   }
+;
+
+sorted_arg_list:
+   LP SYMBOL sort RP
+   {
+     smt::Term arg = drv.register_arg($2, $3);
+     smt::TermVec vec({arg});
+     $$ = vec;
+   }
+   | LP SYMBOL sort RP sorted_arg_list
+   {
+     smt::Term arg = drv.register_arg($2, $3);
+     smt::TermVec vec({arg});
+     vec.insert(vec.end(), $5.begin(), $5.end());
      $$ = vec;
    }
 ;

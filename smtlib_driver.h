@@ -108,11 +108,12 @@ class SmtLibDriver
    *  Stores these in a separate data structure from symbols
    *  @param name the name of the argument
    *  @param sort the sort of the argument
+   *  @return the renamed term
    *  Note: creates new renamed variables as needed
    *  These aren't used except in the definition and will always
    *  be substituted for
    */
-  void register_arg(const std::string & name, const smt::Sort & sort);
+  Term register_arg(const std::string & name, const smt::Sort & sort);
 
  protected:
   yy::location location_;
