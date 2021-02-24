@@ -63,9 +63,7 @@ INDPREFIX "(_"
 
 smt2:
   commands
-  {
-    cout << "Bison got commands in smt2 file" << endl;
-  }
+  {}
 ;
 
 commands:
@@ -82,8 +80,6 @@ command:
      }
   SYMBOL RP
   {
-    cout << "Bison got a set-logic command with " << $4 << endl;
-
     // unset command now that it's done
     drv.set_command(smt::NONE);
   }
@@ -94,7 +90,6 @@ command:
      }
     OPT SYMBOL RP
   {
-    cout << "Bison setting option " << $4 << " to " << $5 << endl;
     drv.solver()->set_opt($4, $5);
 
     // unset command now that it's done
@@ -146,7 +141,6 @@ command:
      }
     s_expr RP
   {
-    cout << "Bison got assert for " << $4 << endl;
     drv.solver()->assert_formula($4);
 
     // unset command now that it's done
@@ -229,18 +223,14 @@ command:
 s_expr:
   atom
   {
-    cout << "Bison got an atom" << endl;
     $$ = $1;
   }
   | LP operator s_expr_list RP
   {
-    cout << "Bison got an operator application using " << $2 << " with " << $3.size() << " args" << endl;
     $$ = drv.solver()->make_term($2, $3);
   }
   | LP SYMBOL s_expr_list RP
   {
-    cout << "Bison got a UF application" << endl;
-
     // will return a null term if symbol doesn't exist
     smt::Term uf = drv.lookup_symbol($2);
     if (uf)
