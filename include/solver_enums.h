@@ -26,7 +26,7 @@ enum SolverEnum
   MSAT,
   YICES2,
   Z3,
-
+  
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
