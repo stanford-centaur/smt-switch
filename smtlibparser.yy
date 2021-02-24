@@ -141,7 +141,7 @@ command:
      }
     s_expr RP
   {
-    drv.solver()->assert_formula($4);
+    drv.assert_formula($4);
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -153,7 +153,7 @@ command:
      }
     RP
   {
-    cout << drv.solver()->check_sat() << endl;
+    drv.check_sat();
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -165,7 +165,7 @@ command:
      }
     LP s_expr_list RP RP
   {
-    cout << drv.solver()->check_sat_assuming($5) << endl;
+    drv.check_sat_assuming($5);
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -177,7 +177,7 @@ command:
      }
     RP
   {
-    drv.solver()->push();
+    drv.push();
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -189,7 +189,7 @@ command:
      }
     INTEGER RP
   {
-    drv.solver()->push(std::stoi($4));
+    drv.push(std::stoi($4));
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -201,7 +201,7 @@ command:
      }
     RP
   {
-    drv.solver()->pop();
+    drv.pop();
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -213,7 +213,7 @@ command:
      }
     INTEGER RP
   {
-    drv.solver()->pop(std::stoi($4));
+    drv.pop(std::stoi($4));
 
     // unset command now that it's done
     drv.set_command(smt::NONE);

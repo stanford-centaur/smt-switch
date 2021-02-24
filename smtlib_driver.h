@@ -44,6 +44,17 @@ class SmtLibDriver
   void scan_begin();
   void scan_end();
 
+  /* Override-able functions corresponding to SMT-LIB commands */
+  virtual void assert_formula(const smt::Term & assertion);
+
+  virtual Result check_sat();
+
+  virtual Result check_sat_assuming(const smt::TermVec & assumptions);
+
+  virtual void push(uint64_t num = 1);
+
+  virtual void pop(uint64_t num = 1);
+
   /* getters and setters  */
   yy::location & location() { return location_; }
 
@@ -52,6 +63,8 @@ class SmtLibDriver
   void set_command(Command cmd);
 
   Command current_command() { return current_command_; }
+
+  /* Methods for use in flex/bison generated code */
 
   // TODO: not sure if we ever use the null term feature
   //       maybe should just throw an exception?

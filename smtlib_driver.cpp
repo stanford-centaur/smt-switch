@@ -79,6 +79,29 @@ int SmtLibDriver::parse(const std::string & f)
   return res;
 }
 
+void SmtLibDriver::assert_formula(const Term & assertion)
+{
+  solver_->assert_formula(assertion);
+}
+
+Result SmtLibDriver::check_sat()
+{
+  Result r = solver_->check_sat();
+  cout << r << endl;
+  return r;
+}
+
+Result SmtLibDriver::check_sat_assuming(const TermVec & assumptions)
+{
+  Result r = solver_->check_sat_assuming(assumptions);
+  cout << r << endl;
+  return r;
+}
+
+void SmtLibDriver::push(uint64_t num) { solver_->push(num); }
+
+void SmtLibDriver::pop(uint64_t num) { solver_->pop(num); }
+
 void SmtLibDriver::set_command(Command cmd)
 {
   if (current_command_ == DEFINEFUN)
