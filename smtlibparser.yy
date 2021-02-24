@@ -235,10 +235,21 @@ s_expr:
     cout << "Bison got an operator application using " << $2 << " with " << $3.size() << " args" << endl;
     $$ = drv.solver()->make_term($2, $3);
   }
-  | LP s_expr_list RP
+  | LP SYMBOL s_expr_list RP
   {
     cout << "Bison got a UF application" << endl;
-    $$ = drv.solver()->make_term(smt::Apply, $2);
+
+    if (drv.current_command() == smt::DEFINEFUN)
+    {
+      $$ = drv.apply_define_fun($2, $3);
+    }
+    else
+    {
+      smt::Term uf = drv.lookup_symbol($2);
+      smt::TermVec vec({uf});
+      vec.insert(vec.end(), $3.begin(), $3.end());
+      $$ = drv.solver()->make_term(smt::Apply, vec);
+    }
   }
 ;
 
@@ -262,7 +273,15 @@ atom:
    SYMBOL
    {
      cout << "Bison got a symbol: " << $1 << endl;
-     $$ = drv.lookup_symbol($1);
+     if (drv.current_command() == smt::DEFINEFUN)
+     {
+       // could be a temporary argument
+       $$ = drv.lookup_arg($1);
+     }
+     else
+     {
+       $$ = drv.lookup_symbol($1);
+     }
    }
    | INTEGER
    {

@@ -79,7 +79,16 @@ int SmtLibDriver::parse(const std::string & f)
   return res;
 }
 
-void SmtLibDriver::set_command(Command cmd) { current_command_ = cmd; }
+void SmtLibDriver::set_command(Command cmd)
+{
+  if (current_command_ == DEFINEFUN)
+  {
+    // clear the current argument mapping
+    tmp_arg_mapping_.clear();
+    sort_tmp_arg_mapping_.clear();
+  }
+  current_command_ = cmd;
+}
 
 Term SmtLibDriver::lookup_symbol(const string & sym)
 {
@@ -92,6 +101,17 @@ Term SmtLibDriver::lookup_symbol(const string & sym)
     assert(symbol_term);
   }
   return symbol_term;
+}
+
+Term SmtLibDriver::lookup_arg(const string & name)
+{
+  assert(current_command_ == DEFINEFUN);
+  auto it = tmp_arg_mapping_.find(name);
+  if (it != tmp_arg_mapping_.end())
+  {
+    return it->second;
+  }
+  return lookup_symbol(name);
 }
 
 void SmtLibDriver::new_symbol(const std::string & name, const smt::Sort & sort)
@@ -111,6 +131,53 @@ void SmtLibDriver::define_fun(const string & name,
 {
   defs_[name] = def;
   def_args_[name] = args;
+}
+
+Term SmtLibDriver::apply_define_fun(const string & defname,
+                                    const TermVec & args)
+{
+  UnorderedTermMap subs_map;
+  size_t num_args = args.size();
+  if (num_args != def_args_.at(defname).size())
+  {
+    throw SmtException(defname
+                       + " not applied to correct number of arguments.");
+  }
+
+  for (size_t i = 0; i < args.size(); ++i)
+  {
+    subs_map[def_args_.at(defname)[i]] = args[i];
+  }
+
+  return solver_->substitute(defs_.at(defname), subs_map);
+}
+
+void SmtLibDriver::register_arg(const string & name, const Sort & sort)
+{
+  assert(current_command_ == DEFINEFUN);
+  // find the right id for this argument
+  // can't associate with same variable as another argument for this define-fun
+  size_t id = 0;
+  auto it = sort_tmp_arg_mapping_.find(sort);
+  if (it != sort_tmp_arg_mapping_.end())
+  {
+    id = it->second.size();
+  }
+
+  Term tmpvar;
+  if (id >= tmp_args_[sort].size())
+  {
+    tmpvar = solver_->make_symbol(def_arg_prefix_ + std::to_string(id), sort);
+    tmp_args_[sort].push_back(tmpvar);
+  }
+  else
+  {
+    tmpvar = tmp_args_[sort].at(id);
+  }
+  assert(tmpvar);
+
+  tmp_arg_mapping_[name] = tmpvar;
+  sort_tmp_arg_mapping_[sort][name] = tmpvar;
 }
 
 } // namespace smt

@@ -51,12 +51,21 @@ class SmtLibDriver
 
   void set_command(Command cmd);
 
-  /** Looks up a symbol by name
+  Command current_command() { return current_command_; }
+
+  // TODO: not sure if we ever use the null term feature
+  //       maybe should just throw an exception?
+  /** Look up a symbol by name
    *  Returns a null term if there is no known symbol
    *  with that name
    *  @return term
    */
   smt::Term lookup_symbol(const std::string & sym);
+
+  /** Look up the temporary symbol for a define-fun argument
+   *  @param the name of the argument
+   */
+  smt::Term lookup_arg(const std::string & name);
 
   /** Creates a new symbol
    *  This is a light wrapper around solver_->make_symbol
@@ -84,13 +93,26 @@ class SmtLibDriver
                   const smt::Term & def,
                   const smt::TermVec & args = {});
 
-  /** Helper function for define-fun
-   *  Renames the argument variables to avoid polluting global
-   *  symbols
-   *  Stores these in a separate data structure from symbols
-   *  @param
+  /** Apply a define fun
+   *  @param defname the name of the define-fun
+   *  @param args the arguments to apply it to
+   *         the parameter args from the define-fun
+   *         declaration will be replaced by these arguments
    */
-  // void declare_sorted_var()
+  Term apply_define_fun(const std::string & defname, const smt::TermVec & args);
+
+  /** Helper function for define-fun - similar to new_symbol
+   *  Associates an argument with a temporary symbol for
+   *  define-fun arguments
+   *  Renames the arguments to avoid polluting global symbols
+   *  Stores these in a separate data structure from symbols
+   *  @param name the name of the argument
+   *  @param sort the sort of the argument
+   *  Note: creates new renamed variables as needed
+   *  These aren't used except in the definition and will always
+   *  be substituted for
+   */
+  void register_arg(const std::string & name, const smt::Sort & sort);
 
  protected:
   yy::location location_;
@@ -102,11 +124,20 @@ class SmtLibDriver
 
   std::unordered_map<std::string, smt::Term> symbols_;
 
+  // define-fun data structures
+  // TODO See if we can make this less complicated
   std::unordered_map<std::string, smt::Term>
       defs_;  ///< keeps track of define-funs
   std::unordered_map<std::string, smt::TermVec>
       def_args_;  ///< keeps track of define-fun
                   ///< arguments
+  std::unordered_map<smt::Sort, smt::TermVec>
+      tmp_args_;  ///< temporary variables
+                  ///< organized by sort
+
+  std::unordered_map<std::string, smt::Term> tmp_arg_mapping_;
+  std::unordered_map<smt::Sort, std::unordered_map<std::string, smt::Term>>
+      sort_tmp_arg_mapping_;
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
