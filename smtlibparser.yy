@@ -114,10 +114,19 @@ command:
      }
     SYMBOL LP sort_list RP sort RP
   {
-    smt::SortVec vec = $6;
-    vec.push_back($8);
-    smt::Sort funsort = drv.solver()->make_sort(smt::FUNCTION, vec);
-    drv.new_symbol($4, funsort);
+    smt::Sort symsort;
+    if ($6.size())
+    {
+      smt::SortVec vec = $6;
+      vec.push_back($8);
+      symsort = drv.solver()->make_sort(smt::FUNCTION, vec);
+    }
+    else
+    {
+      symsort = $8;
+    }
+    assert(symsort);
+    drv.new_symbol($4, symsort);
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -303,9 +312,9 @@ sort:
 ;
 
 sort_list:
-   sort
+   %empty
    {
-     smt::SortVec vec({$1});
+     smt::SortVec vec;
      $$ = vec;
    }
    | sort sort_list
@@ -317,10 +326,9 @@ sort_list:
 ;
 
 sorted_arg_list:
-   LP SYMBOL sort RP
+   %empty
    {
-     smt::Term arg = drv.register_arg($2, $3);
-     smt::TermVec vec({arg});
+     smt::TermVec vec;
      $$ = vec;
    }
    | LP SYMBOL sort RP sorted_arg_list
