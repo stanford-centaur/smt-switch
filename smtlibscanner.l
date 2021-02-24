@@ -31,6 +31,7 @@ set-logic             { return yy::parser::make_SETLOGIC(loc); }
 set-option            { return yy::parser::make_SETOPT(loc); }
 declare-const         { return yy::parser::make_DECLARECONST(loc); }
 declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
+define-fun            { return yy::parser::make_DEFINEFUN(loc); }
 assert                { return yy::parser::make_ASSERT(loc); }
 check-sat             { return yy::parser::make_CHECKSAT(loc); }
 check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(loc); }

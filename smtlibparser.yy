@@ -241,16 +241,19 @@ s_expr:
   {
     cout << "Bison got a UF application" << endl;
 
-    if (drv.current_command() == smt::DEFINEFUN)
+    // will return a null term if symbol doesn't exist
+    smt::Term uf = drv.lookup_symbol($2);
+    if (uf)
     {
-      $$ = drv.apply_define_fun($2, $3);
-    }
-    else
-    {
-      smt::Term uf = drv.lookup_symbol($2);
       smt::TermVec vec({uf});
       vec.insert(vec.end(), $3.begin(), $3.end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
+    }
+    else
+    {
+      // assuming this is a defined fun
+      // TODO better error message
+      $$ = drv.apply_define_fun($2, $3);
     }
   }
 ;
@@ -279,7 +282,14 @@ atom:
      }
      else
      {
-       $$ = drv.lookup_symbol($1);
+       smt::Term sym = drv.lookup_symbol($1);
+       if (!sym)
+       {
+         // TODO fix the location (doesn't seem to be getting incremented)
+         //yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
+         throw SmtException(std::string("Unrecognized symbol: ") + $1);
+       }
+       $$ = sym;
      }
    }
    | INTEGER
