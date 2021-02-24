@@ -39,7 +39,7 @@ using namespace std;
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
 %token SETLOGIC SETOPT DECLARECONST DECLAREFUN DEFINEFUN
-       ASSERT CHECKSAT CHECKSATASSUMING PUSH POP
+       ASSERT CHECKSAT CHECKSATASSUMING PUSH POP EXIT
 %token <std::string> OPT
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
@@ -226,6 +226,10 @@ command:
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
+  }
+  | LP EXIT RP
+  {
+    YYACCEPT;
   }
 ;
 
