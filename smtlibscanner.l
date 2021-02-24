@@ -22,6 +22,8 @@ using namespace std;
   // Code run each time yylex is called.
   loc.step ();
 %}
+[ \t\r]+   loc.step ();
+\n+        loc.lines (yyleng); loc.step ();
 
 \(                    { return yy::parser::make_LP(loc); }
 \)                    { return yy::parser::make_RP(loc); }
@@ -55,7 +57,6 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }
 
-[ \t]                 ; //ignore all whitespace
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }
 %%

@@ -285,9 +285,8 @@ atom:
        smt::Term sym = drv.lookup_symbol($1);
        if (!sym)
        {
-         // TODO fix the location (doesn't seem to be getting incremented)
-         //yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
-         throw SmtException(std::string("Unrecognized symbol: ") + $1);
+         yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
+         YYERROR;
        }
        $$ = sym;
      }
