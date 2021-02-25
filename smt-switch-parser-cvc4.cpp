@@ -6,18 +6,18 @@ using namespace smt;
 
 int main (int argc, char *argv[])
 {
+  if (argc != 2)
+  {
+    std::cout << "usage: " << argv[0] << " <smt-lib2 file>" << std::endl;
+    return 1;
+  }
   int res = 0;
   SmtSolver solver = CVC4SolverFactory::create(false);
   SmtLibDriver drv(solver);
-  for (int i = 1; i < argc; ++i)
-    if (!drv.parse (argv[i]))
-    {
-      std::cout << "Finished parsing" << std::endl;
-    }
-    else
-    {
-      std::cout << "FAILED" << std::endl;
-      res = 1;
-    }
+  if (drv.parse (argv[1]))
+  {
+    std::cout << "FAILED" << std::endl;
+    res = 1;
+  }
   return res;
 }
