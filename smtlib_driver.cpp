@@ -176,6 +176,12 @@ Term SmtLibDriver::apply_define_fun(const string & defname,
 {
   UnorderedTermMap subs_map;
   size_t num_args = args.size();
+
+  if (!num_args)
+  {
+    return defs_.at(defname);
+  }
+
   if (num_args != def_args_.at(defname).size())
   {
     throw SmtException(defname

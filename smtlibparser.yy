@@ -137,7 +137,7 @@ command:
     smt::Sort symsort;
     if ($6.size())
     {
-      smt::SortVec vec = $6;
+      smt::SortVec & vec = $6;
       vec.push_back($8);
       symsort = drv.solver()->make_sort(smt::FUNCTION, vec);
     }
@@ -264,6 +264,8 @@ s_expr:
   }
   | LP SYMBOL s_expr_list RP
   {
+    // TODO clean up this bison rule -- need to allow a define-fun
+    //      or a UF. Currently define-fun has no term representation
     // will return a null term if symbol doesn't exist
     smt::Term uf = drv.lookup_symbol($2);
     if (uf)
@@ -282,15 +284,15 @@ s_expr:
 ;
 
 s_expr_list:
-   s_expr
+   %empty
    {
-     smt::TermVec vec({$1});
+     smt::TermVec vec;
      $$ = vec;
    }
-   | s_expr s_expr_list
+   | s_expr_list s_expr
    {
-     smt::TermVec vec({$1});
-     vec.insert(vec.end(), $2.begin(), $2.end());
+     smt::TermVec & vec = $1;
+     vec.push_back($2);
      $$ = vec;
    }
 ;
@@ -341,10 +343,10 @@ sort_list:
      smt::SortVec vec;
      $$ = vec;
    }
-   | sort sort_list
+   | sort_list sort
    {
-     smt::SortVec vec({$1});
-     vec.insert(vec.end(), $2.begin(), $2.end());
+     smt::SortVec & vec = $1;
+     vec.push_back($2);
      $$ = vec;
    }
 ;
@@ -355,11 +357,11 @@ sorted_arg_list:
      smt::TermVec vec;
      $$ = vec;
    }
-   | LP SYMBOL sort RP sorted_arg_list
+   | sorted_arg_list LP SYMBOL sort RP
    {
-     smt::Term arg = drv.register_arg($2, $3);
-     smt::TermVec vec({arg});
-     vec.insert(vec.end(), $5.begin(), $5.end());
+     smt::Term arg = drv.register_arg($3, $4);
+     smt::TermVec & vec = $1;
+     vec.push_back(arg);
      $$ = vec;
    }
 ;
