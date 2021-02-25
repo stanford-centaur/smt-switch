@@ -8,7 +8,7 @@ using namespace std;
 
 %option noyywrap nounput noinput batch
 /* can comment out debug to stop extra output */
-%option debug
+/* %option debug */
 
 %{
   // Code run each time a pattern is matched.
