@@ -26,7 +26,7 @@ using namespace std;
 [ \t\r]+              loc.step ();
 \n+                   loc.lines (yyleng); loc.step ();
 
-[;].*                 ;/* skip comment */
+\;.*                  ;/* skip comment */
 
 \(                    { return yy::parser::make_LP(loc); }
 \)                    { return yy::parser::make_RP(loc); }
@@ -54,7 +54,7 @@ exit                  { return yy::parser::make_EXIT(loc); }
 [0-9]+                { return yy::parser::make_INTEGER(yytext, loc); }
 
 
-[:][a-zA-Z0-9_-]+     { return yy::parser::make_KEYWORD(++yytext, loc); }
+\:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
 Bool                  { return yy::parser::make_BOOL(yytext, loc); }
 Int                   { return yy::parser::make_INT(yytext, loc); }
