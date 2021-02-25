@@ -16,19 +16,18 @@
 
 #pragma once
 
+#include <z3++.h>
+
 #include <string>
 #include <unordered_set>
 #include <vector>
-
-#include <z3++.h>
-
-#include "z3_sort.h"
-#include "z3_term.h"
 
 #include "exceptions.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
+#include "z3_sort.h"
+#include "z3_term.h"
 
 using namespace z3;
 
@@ -39,15 +38,15 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx)
-  {
+  Z3Solver()
+      : AbsSmtSolver(Z3),
+        ctx(),
+        slv(ctx){
 
-  };
+        };
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
-  ~Z3Solver()
-  {
-  };
+  ~Z3Solver(){};
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -77,12 +76,18 @@ class Z3Solver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
@@ -109,6 +114,5 @@ class Z3Solver : public AbsSmtSolver
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
-
 };
 }  // namespace smt
