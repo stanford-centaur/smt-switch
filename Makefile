@@ -1,10 +1,10 @@
 all: smtlibparser.yy smtlibscanner.l
 	bison -o smtlibparser.cpp --defines=smtlibparser.h smtlibparser.yy
 	flex -o smtlibscanner.cpp smtlibscanner.l
-	$(CXX) -g -std=c++11 -I./local/include/ -L./local/lib/ smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp test-parser.cpp -o test-parser -lfl -lsmt-switch-cvc4 -lsmt-switch -lgmp
+	$(CXX) -g -std=c++11 -I./local/include/ -L./local/lib/ smtlibparser.cpp smtlibscanner.cpp smtlib_driver.cpp smt-switch-parser-cvc4.cpp -o smt-switch-parser-cvc4 -lfl -lsmt-switch-cvc4 -lsmt-switch -lgmp
 
 clean:
-	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp location.hh
+	rm -f smtlibparser.h smtlibparser.cpp smtlibscanner.h smtlibscanner.cpp location.hh smt-switch-parser-cvc4
 
 # TODO get rid of old files -- smtlib.y smtlib.l smtlib_lexer.h
 # Previous attempt mixing c/c++ -- didn't work out
