@@ -46,6 +46,13 @@ class SmtLibDriver
   void scan_end();
 
   /* Override-able functions corresponding to SMT-LIB commands */
+
+  virtual void set_logic(const std::string & logic);
+
+  virtual void set_opt(const std::string & key, const std::string & val);
+
+  virtual void set_info(const std::string & key, const std::string & val);
+
   virtual void assert_formula(const smt::Term & assertion);
 
   virtual Result check_sat();

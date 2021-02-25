@@ -79,6 +79,21 @@ int SmtLibDriver::parse(const std::string & f)
   return res;
 }
 
+void SmtLibDriver::set_logic(const string & logic)
+{
+  solver_->set_logic(logic);
+}
+
+void SmtLibDriver::set_opt(const string & key, const string & val)
+{
+  solver_->set_opt(key, val);
+}
+
+void SmtLibDriver::set_info(const string & key, const string & val)
+{
+  // No-Op for set-info by default
+}
+
 void SmtLibDriver::assert_formula(const Term & assertion)
 {
   solver_->assert_formula(assertion);

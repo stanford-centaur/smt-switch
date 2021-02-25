@@ -83,6 +83,8 @@ command:
      }
   SYMBOL RP
   {
+    drv.set_logic($4);
+
     // unset command now that it's done
     drv.set_command(smt::NONE);
   }
@@ -93,7 +95,7 @@ command:
      }
     KEYWORD SYMBOL RP
   {
-    drv.solver()->set_opt($4, $5);
+    drv.set_opt($4, $5);
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
@@ -105,7 +107,7 @@ command:
     }
     KEYWORD stringlit RP
     {
-      cout << "Got set-info with " << $4 << " " << $5 << endl;
+      drv.set_info($4, $5);
 
       // unset command now that it's done
       drv.set_command(smt::NONE);
