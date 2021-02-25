@@ -40,7 +40,7 @@ using namespace std;
 %token <std::string> INTEGER
 %token SETLOGIC SETOPT DECLARECONST DECLAREFUN DEFINEFUN
        ASSERT CHECKSAT CHECKSATASSUMING PUSH POP EXIT
-%token <std::string> OPT
+%token <std::string> KEYWORD
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
@@ -88,7 +88,7 @@ command:
        // mid-action rule to set current command
        drv.set_command(smt::SETOPT);
      }
-    OPT SYMBOL RP
+    KEYWORD SYMBOL RP
   {
     drv.solver()->set_opt($4, $5);
 

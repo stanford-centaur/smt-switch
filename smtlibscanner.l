@@ -44,7 +44,7 @@ push                  { return yy::parser::make_PUSH(loc); }
 pop                   { return yy::parser::make_POP(loc); }
 exit                  { return yy::parser::make_EXIT(loc); }
 
-[:][a-zA-Z0-9_-]+     { return yy::parser::make_OPT(++yytext, loc); }
+[:][a-zA-Z0-9_-]+     { return yy::parser::make_KEYWORD(++yytext, loc); }
 
 Bool                  { return yy::parser::make_BOOL(yytext, loc); }
 Int                   { return yy::parser::make_INT(yytext, loc); }
