@@ -67,7 +67,7 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 [+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
 (<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
 
-\|(\\.|[^"\\])*\|     { return yy::parser::make_SYMBOL(yytext, loc); }
+\|(\\.|[^|])*\|       { return yy::parser::make_SYMBOL(yytext, loc); }
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
