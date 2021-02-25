@@ -17,6 +17,7 @@ enum Command
 {
   SETLOGIC = 0,
   SETOPT,
+  SETINFO,
   DECLARECONST,
   DECLAREFUN,
   DEFINEFUN,

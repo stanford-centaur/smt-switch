@@ -34,6 +34,7 @@ using namespace std;
 
 set-logic             { return yy::parser::make_SETLOGIC(loc); }
 set-option            { return yy::parser::make_SETOPT(loc); }
+set-info              { return yy::parser::make_SETINFO(loc); }
 declare-const         { return yy::parser::make_DECLARECONST(loc); }
 declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
 define-fun            { return yy::parser::make_DEFINEFUN(loc); }
@@ -44,13 +45,20 @@ push                  { return yy::parser::make_PUSH(loc); }
 pop                   { return yy::parser::make_POP(loc); }
 exit                  { return yy::parser::make_EXIT(loc); }
 
+\"(\\.|[^"\\])*\"     { char * noquotes = yytext;
+                        noquotes++;
+                        noquotes[strlen(noquotes)-1] = 0;
+                        return yy::parser::make_QUOTESTRING(noquotes, loc);
+                      }
+
+[0-9]+                { return yy::parser::make_INTEGER(yytext, loc); }
+
+
 [:][a-zA-Z0-9_-]+     { return yy::parser::make_KEYWORD(++yytext, loc); }
 
 Bool                  { return yy::parser::make_BOOL(yytext, loc); }
 Int                   { return yy::parser::make_INT(yytext, loc); }
 Real                  { return yy::parser::make_REAL(yytext, loc); }
-
-[0-9]+                { return yy::parser::make_INTEGER(yytext, loc); }
 
 (and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext, loc); }
 (=>)                  { return yy::parser::make_PRIMOP(yytext, loc); }
@@ -59,6 +67,7 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 [+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
 (<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
 
+\|(\\.|[^"\\])*\|     { return yy::parser::make_SYMBOL(yytext, loc); }
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }

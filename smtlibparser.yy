@@ -38,8 +38,10 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
-%token SETLOGIC SETOPT DECLARECONST DECLAREFUN DEFINEFUN
-       ASSERT CHECKSAT CHECKSATASSUMING PUSH POP EXIT
+%token <std::string> QUOTESTRING
+%token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
+       DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
+       POP EXIT
 %token <std::string> KEYWORD
 %token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
@@ -58,6 +60,7 @@ INDPREFIX "(_"
 %nterm <smt::SortVec> sort_list
 %nterm <smt::TermVec> sorted_arg_list
 %nterm <smt::Op> operator
+%nterm <std::string> stringlit
 
 %%
 
@@ -95,6 +98,18 @@ command:
     // unset command now that it's done
     drv.set_command(smt::NONE);
   }
+  | LP SETINFO
+    {
+       // mid-action rule to set current command
+       drv.set_command(smt::SETINFO);
+    }
+    KEYWORD stringlit RP
+    {
+      cout << "Got set-info with " << $4 << " " << $5 << endl;
+
+      // unset command now that it's done
+      drv.set_command(smt::NONE);
+    }
   | LP DECLARECONST
      {
        // mid-action rule to set current command
@@ -348,6 +363,17 @@ operator:
    PRIMOP
    {
      $$ = drv.lookup_primop($1);
+   }
+;
+
+stringlit:
+   QUOTESTRING
+   {
+     $$ = $1;
+   }
+   | SYMBOL
+   {
+     $$ = $1;
    }
 ;
 
