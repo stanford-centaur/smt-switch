@@ -52,6 +52,7 @@ exit                  { return yy::parser::make_EXIT(loc); }
                       }
 
 [0-9]+                { return yy::parser::make_INTEGER(yytext, loc); }
+[0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
 
 
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }

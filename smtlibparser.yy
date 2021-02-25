@@ -38,6 +38,7 @@ using namespace std;
 
 %token <std::string> SYMBOL
 %token <std::string> INTEGER
+%token <std::string> FLOAT
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
@@ -61,6 +62,8 @@ INDPREFIX "(_"
 %nterm <smt::TermVec> sorted_arg_list
 %nterm <smt::Op> operator
 %nterm <std::string> stringlit
+%nterm <std::string> number
+%nterm <std::string> number_or_string
 
 %%
 
@@ -105,7 +108,7 @@ command:
        // mid-action rule to set current command
        drv.set_command(smt::SETINFO);
     }
-    KEYWORD stringlit RP
+    KEYWORD number_or_string RP
     {
       drv.set_info($4, $5);
 
@@ -378,6 +381,29 @@ stringlit:
      $$ = $1;
    }
 ;
+
+number:
+   INTEGER
+   {
+     $$ = $1;
+   }
+   | FLOAT
+   {
+     $$ = $1;
+   }
+;
+
+number_or_string:
+   number
+   {
+     $$ = $1;
+   }
+   | stringlit
+   {
+     $$ = $1;
+   }
+;
+
 
 %%
 
