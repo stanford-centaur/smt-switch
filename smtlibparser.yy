@@ -39,6 +39,8 @@ using namespace std;
 %token <std::string> SYMBOL
 %token <std::string> NAT
 %token <std::string> FLOAT
+%token <std::string> BITSTR
+%token <std::string> HEXSTR
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
@@ -57,6 +59,7 @@ INDPREFIX "(_"
 %nterm <smt::Term> s_expr
 %nterm <smt::TermVec> s_expr_list
 %nterm <smt::Term> atom
+%nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
 %nterm <smt::TermVec> sorted_arg_list
@@ -319,6 +322,23 @@ atom:
    | NAT
    {
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
+   }
+   | bvconst
+   {
+     $$ = $1;
+   }
+;
+
+bvconst:
+   BITSTR
+   {
+     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, $1.length());
+     $$ = drv.solver()->make_term($1, bvsort, 2);
+   }
+   | HEXSTR
+   {
+     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
+     $$ = drv.solver()->make_term($1, bvsort, 16);
    }
 ;
 

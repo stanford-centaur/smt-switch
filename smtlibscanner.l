@@ -59,6 +59,8 @@ exit                  { return yy::parser::make_EXIT(loc); }
 
 [0-9]+                { return yy::parser::make_NAT(yytext, loc); }
 [0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
+#b[01]+               { yytext=yytext+2; return yy::parser::make_BITSTR(yytext, loc); }
+#x[0-1A-F]+           { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
 
 
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
