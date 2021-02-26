@@ -69,6 +69,7 @@ Bool                  { return yy::parser::make_BOOL(loc); }
 Int                   { return yy::parser::make_INT(loc); }
 Real                  { return yy::parser::make_REAL(loc); }
 BitVec                { return yy::parser::make_BITVEC(loc); }
+Array                 { return yy::parser::make_ARRAY(loc); }
 
 (and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext, loc); }
 (=>)                  { return yy::parser::make_PRIMOP(yytext, loc); }

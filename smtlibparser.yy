@@ -46,7 +46,7 @@ using namespace std;
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
        POP EXIT
-%token BOOL INT REAL BITVEC
+%token BOOL INT REAL BITVEC ARRAY
 %token <std::string> KEYWORD
 %token <std::string> PRIMOP
 %token
@@ -364,6 +364,10 @@ sort:
    | INDPREFIX BITVEC NAT RP
    {
      $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
+   }
+   | LP ARRAY sort sort RP
+   {
+     $$ = drv.solver()->make_sort(smt::ARRAY, $3, $4);
    }
 ;
 
