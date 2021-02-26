@@ -47,6 +47,7 @@ using namespace std;
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
        POP EXIT
 %token BOOL INT REAL BITVEC ARRAY
+%token ASCONST
 %token <std::string> KEYWORD
 %token <std::string> PRIMOP
 %token
@@ -284,6 +285,10 @@ s_expr:
       // TODO better error message
       $$ = drv.apply_define_fun($2, $3);
     }
+  }
+  | LP LP ASCONST sort RP atom RP
+  {
+    $$ = drv.solver()->make_term($6, $4);
   }
 ;
 
