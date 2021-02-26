@@ -16,9 +16,8 @@
 
 #include "z3_factory.h"
 
-#include "z3_solver.h"
-
 #include "logging_solver.h"
+#include "z3_solver.h"
 
 namespace smt {
 
@@ -26,10 +25,10 @@ namespace smt {
 SmtSolver Z3SolverFactory::create(bool logging)
 {
   SmtSolver solver = std::make_shared<Z3Solver>();
-   if (logging)
-   {
-     solver = std::make_shared<LoggingSolver>(solver);
-   }
+  if (logging)
+  {
+    solver = std::make_shared<LoggingSolver>(solver);
+  }
   return solver;
 }
 /* end Z3SolverFactory implementation */
