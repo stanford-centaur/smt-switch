@@ -1,7 +1,7 @@
 %{
 #include <iostream>
 #include "stdio.h"
-#include "smtlib_driver.h"
+#include "smtlib_reader.h"
 #include "smtlibparser.h"
 using namespace std;
 %}
@@ -92,7 +92,7 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }
 %%
 
-void smt::SmtLibDriver::scan_begin ()
+void smt::SmtLibReader::scan_begin ()
 {
   // commented from calc++ example -- could consider adding for debug support
   /* yy_flex_debug = trace_scanning; */
@@ -105,7 +105,7 @@ void smt::SmtLibDriver::scan_begin ()
   }
 }
 
-void smt::SmtLibDriver::scan_end ()
+void smt::SmtLibReader::scan_end ()
 {
   fclose (yyin);
 }

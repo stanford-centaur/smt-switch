@@ -6,11 +6,10 @@
 #include "smt-switch/smt.h"
 #include "smtlibparser.h"
 
-#define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibDriver & drv)
+#define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibReader & drv)
 YY_DECL;
 
-namespace smt
-{
+namespace smt {
 
 /** Used to keep track of which command is currently being parsed */
 enum Command
@@ -33,10 +32,10 @@ enum Command
 // TODO: remove if never used
 Command str_to_command(std::string cmd);
 
-class SmtLibDriver
+class SmtLibReader
 {
  public:
-  SmtLibDriver(smt::SmtSolver & solver);
+  SmtLibReader(smt::SmtSolver & solver);
 
   int parse(const std::string & f);
   // The name of the file being parsed.
@@ -165,4 +164,4 @@ class SmtLibDriver
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
 };
 
-} // namespace smt
+}  // namespace smt

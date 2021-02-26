@@ -20,11 +20,11 @@ using namespace std;
 
   namespace smt
   {
-    class SmtLibDriver;
+    class SmtLibReader;
   }
 }
 
-%param { smt::SmtLibDriver & drv }
+%param { smt::SmtLibReader & drv }
 
 %locations
 
@@ -33,7 +33,7 @@ using namespace std;
 %define parse.lac full
 
 %code {
-#include "smtlib_driver.h"
+#include "smtlib_reader.h"
 }
 
 %token <std::string> SYMBOL

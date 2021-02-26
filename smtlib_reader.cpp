@@ -1,4 +1,4 @@
-#include "smtlib_driver.h"
+#include "smtlib_reader.h"
 
 #include "assert.h"
 #include "smtlibparser.h"
@@ -6,8 +6,7 @@
 
 using namespace std;
 
-namespace smt
-{
+namespace smt {
 
 // TODO remove this if never used
 Command str_to_command(std::string cmd)
@@ -50,11 +49,11 @@ Command str_to_command(std::string cmd)
   }
   else
   {
-    throw SmtException("SmtLibDriver Unknown smt-lib command: " + cmd);
+    throw SmtException("SmtLibReader Unknown smt-lib command: " + cmd);
   }
 }
 
-SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
+SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
       current_command_(Command::NONE),
       def_arg_prefix_("__defvar_")
@@ -66,58 +65,58 @@ SmtLibDriver::SmtLibDriver(smt::SmtSolver & solver)
   symbols_["false"] = solver_->make_term(false);
 }
 
-int SmtLibDriver::parse(const std::string & f)
+int SmtLibReader::parse(const std::string & f)
 {
   file = f;
   location_.initialize(&file);
   scan_begin();
   yy::parser parse(*this);
   // commented from calc++ example
-  //parse.set_debug_level (trace_parsing);
+  // parse.set_debug_level (trace_parsing);
   int res = parse();
   scan_end();
   return res;
 }
 
-void SmtLibDriver::set_logic(const string & logic)
+void SmtLibReader::set_logic(const string & logic)
 {
   solver_->set_logic(logic);
 }
 
-void SmtLibDriver::set_opt(const string & key, const string & val)
+void SmtLibReader::set_opt(const string & key, const string & val)
 {
   solver_->set_opt(key, val);
 }
 
-void SmtLibDriver::set_info(const string & key, const string & val)
+void SmtLibReader::set_info(const string & key, const string & val)
 {
   // No-Op for set-info by default
 }
 
-void SmtLibDriver::assert_formula(const Term & assertion)
+void SmtLibReader::assert_formula(const Term & assertion)
 {
   solver_->assert_formula(assertion);
 }
 
-Result SmtLibDriver::check_sat()
+Result SmtLibReader::check_sat()
 {
   Result r = solver_->check_sat();
   cout << r << endl;
   return r;
 }
 
-Result SmtLibDriver::check_sat_assuming(const TermVec & assumptions)
+Result SmtLibReader::check_sat_assuming(const TermVec & assumptions)
 {
   Result r = solver_->check_sat_assuming(assumptions);
   cout << r << endl;
   return r;
 }
 
-void SmtLibDriver::push(uint64_t num) { solver_->push(num); }
+void SmtLibReader::push(uint64_t num) { solver_->push(num); }
 
-void SmtLibDriver::pop(uint64_t num) { solver_->pop(num); }
+void SmtLibReader::pop(uint64_t num) { solver_->pop(num); }
 
-void SmtLibDriver::set_command(Command cmd)
+void SmtLibReader::set_command(Command cmd)
 {
   if (current_command_ == DEFINEFUN)
   {
@@ -128,7 +127,7 @@ void SmtLibDriver::set_command(Command cmd)
   current_command_ = cmd;
 }
 
-Term SmtLibDriver::lookup_symbol(const string & sym)
+Term SmtLibReader::lookup_symbol(const string & sym)
 {
   Term symbol_term;
   assert(!symbol_term);
@@ -141,7 +140,7 @@ Term SmtLibDriver::lookup_symbol(const string & sym)
   return symbol_term;
 }
 
-Term SmtLibDriver::lookup_arg(const string & name)
+Term SmtLibReader::lookup_arg(const string & name)
 {
   assert(current_command_ == DEFINEFUN);
   auto it = tmp_arg_mapping_.find(name);
@@ -152,18 +151,18 @@ Term SmtLibDriver::lookup_arg(const string & name)
   return lookup_symbol(name);
 }
 
-void SmtLibDriver::new_symbol(const std::string & name, const smt::Sort & sort)
+void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 {
   Term fresh_symbol = solver_->make_symbol(name, sort);
   symbols_[name] = fresh_symbol;
 }
 
-PrimOp SmtLibDriver::lookup_primop(const std::string & str)
+PrimOp SmtLibReader::lookup_primop(const std::string & str)
 {
   return str2primop.at(str);
 }
 
-void SmtLibDriver::define_fun(const string & name,
+void SmtLibReader::define_fun(const string & name,
                               const Term & def,
                               const TermVec & args)
 {
@@ -171,7 +170,7 @@ void SmtLibDriver::define_fun(const string & name,
   def_args_[name] = args;
 }
 
-Term SmtLibDriver::apply_define_fun(const string & defname,
+Term SmtLibReader::apply_define_fun(const string & defname,
                                     const TermVec & args)
 {
   UnorderedTermMap subs_map;
@@ -205,7 +204,7 @@ Term SmtLibDriver::apply_define_fun(const string & defname,
   return solver_->substitute(def, subs_map);
 }
 
-Term SmtLibDriver::register_arg(const string & name, const Sort & sort)
+Term SmtLibReader::register_arg(const string & name, const Sort & sort)
 {
   assert(current_command_ == DEFINEFUN);
   // find the right id for this argument
@@ -234,4 +233,4 @@ Term SmtLibDriver::register_arg(const string & name, const Sort & sort)
   return tmpvar;
 }
 
-} // namespace smt
+}  // namespace smt
