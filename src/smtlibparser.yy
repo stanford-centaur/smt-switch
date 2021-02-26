@@ -16,7 +16,7 @@ using namespace std;
 
 %code requires {
   #include <string>
-  #include "smt-switch/smt.h"
+  #include "smt.h"
 
   namespace smt
   {

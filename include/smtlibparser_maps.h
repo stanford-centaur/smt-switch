@@ -1,6 +1,6 @@
 #include <string>
 
-#include "smt-switch/ops.h"
+#include "ops.h"
 
 namespace smt {
 

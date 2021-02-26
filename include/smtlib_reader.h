@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "smt-switch/smt.h"
+#include "smt.h"
 #include "smtlibparser.h"
 
 #define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibReader & drv)
