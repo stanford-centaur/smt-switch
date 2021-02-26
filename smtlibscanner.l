@@ -63,7 +63,6 @@ exit                  { return yy::parser::make_EXIT(loc); }
 #x[0-1A-F]+           { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
 bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext, loc); }
 
-
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
 Bool                  { return yy::parser::make_BOOL(loc); }
