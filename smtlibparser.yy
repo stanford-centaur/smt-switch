@@ -410,6 +410,14 @@ operator:
    {
      $$ = drv.lookup_primop($1);
    }
+   | INDPREFIX PRIMOP NAT RP
+   {
+     $$ = smt::Op(drv.lookup_primop($2), std::stoi($3));
+   }
+   | INDPREFIX PRIMOP NAT NAT RP
+   {
+     $$ = smt::Op(drv.lookup_primop($2), std::stoi($3), std::stoi($4));
+   }
 ;
 
 stringlit:
