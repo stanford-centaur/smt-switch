@@ -10,6 +10,12 @@ using namespace std;
 /* can comment out debug to stop extra output */
 /* %option debug */
 
+bvarithop bv(neg|add|sub|mul)
+bvbwop bv(not|and|or|xor|nand|nor|xnor|comp)
+bvusop bv[us](div|rem|lt|le|ge|gt)
+bvshop bv(shl|ash|lshr)
+bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
+
 %{
   // Code run each time a pattern is matched.
 # define YY_USER_ACTION  loc.columns (yyleng);
@@ -68,6 +74,11 @@ BitVec                { return yy::parser::make_BITVEC(loc); }
 ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 [+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
 (<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
+bvarithop             { return yy::parser::make_PRIMOP(yytext, loc); }
+bvbwop                { return yy::parser::make_PRIMOP(yytext, loc); }
+bvusop                { return yy::parser::make_PRIMOP(yytext, loc); }
+bvshop                { return yy::parser::make_PRIMOP(yytext, loc); }
+bvmanipop             { return yy::parser::make_PRIMOP(yytext, loc); }
 
 \|(\\.|[^|])*\|       { return yy::parser::make_SYMBOL(yytext, loc); }
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }
