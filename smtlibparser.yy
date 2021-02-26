@@ -41,6 +41,7 @@ using namespace std;
 %token <std::string> FLOAT
 %token <std::string> BITSTR
 %token <std::string> HEXSTR
+%token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
@@ -339,6 +340,11 @@ bvconst:
    {
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
      $$ = drv.solver()->make_term($1, bvsort, 16);
+   }
+   | INDPREFIX BVDEC NAT RP
+   {
+     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, std::stoi($3));
+     $$ = drv.solver()->make_term($2, bvsort, 10);
    }
 ;
 
