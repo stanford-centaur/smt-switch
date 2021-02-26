@@ -37,7 +37,7 @@ using namespace std;
 }
 
 %token <std::string> SYMBOL
-%token <std::string> INTEGER
+%token <std::string> NAT
 %token <std::string> FLOAT
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
@@ -216,7 +216,7 @@ command:
        // mid-action rule to set current command
        drv.set_command(smt::PUSH);
      }
-    INTEGER RP
+    NAT RP
   {
     drv.push(std::stoi($4));
 
@@ -240,7 +240,7 @@ command:
        // mid-action rule to set current command
        drv.set_command(smt::POP);
      }
-    INTEGER RP
+    NAT RP
   {
     drv.pop(std::stoi($4));
 
@@ -316,7 +316,7 @@ atom:
        $$ = sym;
      }
    }
-   | INTEGER
+   | NAT
    {
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
    }
@@ -335,7 +335,7 @@ sort:
    {
      $$ = drv.solver()->make_sort(smt::REAL);
    }
-   | INDPREFIX BITVEC INTEGER RP
+   | INDPREFIX BITVEC NAT RP
    {
      $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
    }
@@ -389,7 +389,7 @@ stringlit:
 ;
 
 number:
-   INTEGER
+   NAT
    {
      $$ = $1;
    }

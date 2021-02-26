@@ -51,7 +51,7 @@ exit                  { return yy::parser::make_EXIT(loc); }
                         return yy::parser::make_QUOTESTRING(noquotes, loc);
                       }
 
-[0-9]+                { return yy::parser::make_INTEGER(yytext, loc); }
+[0-9]+                { return yy::parser::make_NAT(yytext, loc); }
 [0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
 
 
