@@ -177,9 +177,18 @@ Term SmtLibDriver::apply_define_fun(const string & defname,
   UnorderedTermMap subs_map;
   size_t num_args = args.size();
 
+  auto it = defs_.find(defname);
+
+  if (it == defs_.end())
+  {
+    throw SmtException("Unknown function: " + defname);
+  }
+
+  Term def = it->second;
+
   if (!num_args)
   {
-    return defs_.at(defname);
+    def;
   }
 
   if (num_args != def_args_.at(defname).size())
@@ -193,7 +202,7 @@ Term SmtLibDriver::apply_define_fun(const string & defname,
     subs_map[def_args_.at(defname)[i]] = args[i];
   }
 
-  return solver_->substitute(defs_.at(defname), subs_map);
+  return solver_->substitute(def, subs_map);
 }
 
 Term SmtLibDriver::register_arg(const string & name, const Sort & sort)

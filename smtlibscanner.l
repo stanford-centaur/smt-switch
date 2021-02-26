@@ -74,11 +74,11 @@ BitVec                { return yy::parser::make_BITVEC(loc); }
 ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 [+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
 (<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
-bvarithop             { return yy::parser::make_PRIMOP(yytext, loc); }
-bvbwop                { return yy::parser::make_PRIMOP(yytext, loc); }
-bvusop                { return yy::parser::make_PRIMOP(yytext, loc); }
-bvshop                { return yy::parser::make_PRIMOP(yytext, loc); }
-bvmanipop             { return yy::parser::make_PRIMOP(yytext, loc); }
+{bvarithop}           { return yy::parser::make_PRIMOP(yytext, loc); }
+{bvbwop}              { return yy::parser::make_PRIMOP(yytext, loc); }
+{bvusop}              { return yy::parser::make_PRIMOP(yytext, loc); }
+{bvshop}              { return yy::parser::make_PRIMOP(yytext, loc); }
+{bvmanipop}           { return yy::parser::make_PRIMOP(yytext, loc); }
 
 \|(\\.|[^|])*\|       { return yy::parser::make_SYMBOL(yytext, loc); }
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }
