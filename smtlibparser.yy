@@ -43,8 +43,8 @@ using namespace std;
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
        POP EXIT
+%token BOOL INT REAL BITVEC
 %token <std::string> KEYWORD
-%token <std::string> BOOL INT REAL
 %token <std::string> PRIMOP
 %token
 LP "("
@@ -334,6 +334,10 @@ sort:
    | REAL
    {
      $$ = drv.solver()->make_sort(smt::REAL);
+   }
+   | INDPREFIX BITVEC INTEGER RP
+   {
+     $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
    }
 ;
 

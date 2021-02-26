@@ -57,9 +57,10 @@ exit                  { return yy::parser::make_EXIT(loc); }
 
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
-Bool                  { return yy::parser::make_BOOL(yytext, loc); }
-Int                   { return yy::parser::make_INT(yytext, loc); }
-Real                  { return yy::parser::make_REAL(yytext, loc); }
+Bool                  { return yy::parser::make_BOOL(loc); }
+Int                   { return yy::parser::make_INT(loc); }
+Real                  { return yy::parser::make_REAL(loc); }
+BitVec                { return yy::parser::make_BITVEC(loc); }
 
 (and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext, loc); }
 (=>)                  { return yy::parser::make_PRIMOP(yytext, loc); }
