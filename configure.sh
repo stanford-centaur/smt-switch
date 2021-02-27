@@ -24,6 +24,7 @@ Configures the CMAKE build environment.
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
 --python                compile with python bindings (default: off)
+--smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 EOF
   exit 0
 }
@@ -45,6 +46,7 @@ cvc4_home=default
 msat_home=default
 static=default
 python=default
+smtlib_reader=default
 
 build_type=Release
 
@@ -133,6 +135,9 @@ do
         --python)
             python=yes
             ;;
+        --smtlib-reader)
+            smtlib_reader=yes
+            ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -189,6 +194,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
+
+[ $smtlib_reader != default ] \
+    && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"
 
 root_dir=$(pwd)
 
