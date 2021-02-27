@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "smt-switch/cvc4_factory.h"
-#include "smtlib_reader.h"
+#include "smt-switch/smtlib_reader.h"
 
 using namespace smt;
 
