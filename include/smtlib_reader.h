@@ -29,16 +29,16 @@ enum Command
            can also be used for the number of Command enums */
 };
 
-/** Basic context-dependent symbol map
+/** Basic scoped symbol map
  *  Used for arguments and parameters that have limited scope
- *  Does not support shadowing within the same mapping context
+ *  Does not support shadowing within the same mapping scope
  *    e.g. forall x . P(x) -> exists x. Q(x)
  *    is not supported
  */
-class UnorderedContextSymbolMap
+class UnorderedScopedSymbolMap
 {
  public:
-  size_t current_context() { return symbols_.size(); }
+  size_t current_scope() { return symbols_.size(); }
 
   void add_mapping(const std::string & sym, const smt::Term & t)
   {
@@ -50,11 +50,11 @@ class UnorderedContextSymbolMap
     symbols_.back().insert(sym);
   }
 
-  void push() { symbols_.push_back({}); }
+  void push_scope() { symbols_.push_back({}); }
 
-  void pop()
+  void pop_scope()
   {
-    assert(current_context());
+    assert(current_scope());
     for (const auto & sym : symbols_.back())
     {
       symbol_map_.erase(sym);
@@ -111,7 +111,11 @@ class SmtLibReader
 
   Command current_command() { return current_command_; }
 
-  UnorderedContextSymbolMap & arg_param_map() { return arg_param_map_; }
+  void push_scope() { arg_param_map_.push_scope(); }
+
+  void pop_scope() { arg_param_map_.pop_scope(); }
+
+  size_t current_scope() { return arg_param_map_.current_scope(); }
 
   /* Methods for use in flex/bison generated code */
 
@@ -198,7 +202,7 @@ class SmtLibReader
       tmp_args_;  ///< temporary variables
                   ///< organized by sort
 
-  UnorderedContextSymbolMap
+  UnorderedScopedSymbolMap
       arg_param_map_;  ///< map for arguments (to define-funs)
                        ///< and parameters (bound variables)
   // TODO: try to handle this in a different way
