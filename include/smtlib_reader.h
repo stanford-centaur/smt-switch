@@ -69,9 +69,6 @@ class UnorderedScopedSymbolMap
   std::unordered_map<std::string, smt::Term> symbol_map_;
 };
 
-// TODO: remove if never used
-Command str_to_command(std::string cmd);
-
 class SmtLibReader
 {
  public:

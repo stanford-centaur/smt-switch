@@ -8,51 +8,6 @@ using namespace std;
 
 namespace smt {
 
-// TODO remove this if never used
-Command str_to_command(std::string cmd)
-{
-  if (cmd == "set-logic")
-  {
-    return SETLOGIC;
-  }
-  else if (cmd == "set-option")
-  {
-    return SETOPT;
-  }
-  else if (cmd == "declare-const")
-  {
-    return DECLARECONST;
-  }
-  else if (cmd == "define-fun")
-  {
-    return DEFINEFUN;
-  }
-  else if (cmd == "assert")
-  {
-    return ASSERT;
-  }
-  else if (cmd == "check-sat")
-  {
-    return CHECKSAT;
-  }
-  else if (cmd == "check-sat-assuming")
-  {
-    return CHECKSATASSUMING;
-  }
-  else if (cmd == "push")
-  {
-    return PUSH;
-  }
-  else if (cmd == "pop")
-  {
-    return POP;
-  }
-  else
-  {
-    throw SmtException("SmtLibReader Unknown smt-lib command: " + cmd);
-  }
-}
-
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
       current_command_(Command::NONE),
