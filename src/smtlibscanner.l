@@ -84,6 +84,7 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvshop}              { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvmanipop}           { return yy::parser::make_PRIMOP(yytext, loc); }
 (select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
+(forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
 \|(\\.|[^|])*\|       { return yy::parser::make_SYMBOL(yytext, loc); }
 [a-zA-Z0-9_-]+        { return yy::parser::make_SYMBOL(yytext, loc); }

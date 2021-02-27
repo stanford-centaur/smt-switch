@@ -181,6 +181,8 @@ class SmtLibReader
    */
   Term register_arg(const std::string & name, const smt::Sort & sort);
 
+  Term create_param(const std::string & name, const smt::Sort & sort);
+
  protected:
   yy::location location_;
 

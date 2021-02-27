@@ -248,4 +248,12 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   return tmpvar;
 }
 
+Term SmtLibReader::create_param(const string & name, const Sort & sort)
+{
+  assert(current_scope());
+  Term param = solver_->make_param(name, sort);
+  arg_param_map_.add_mapping(name, param);
+  return param;
+}
+
 }  // namespace smt

@@ -50,6 +50,7 @@ using namespace std;
 %token ASCONST
 %token <std::string> KEYWORD
 %token <std::string> PRIMOP
+%token <std::string> QUANTIFIER
 %token
 LP "("
 RP ")"
@@ -65,6 +66,7 @@ INDPREFIX "(_"
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
 %nterm <smt::TermVec> sorted_arg_list
+%nterm <smt::TermVec> sorted_param_list
 %nterm <smt::Op> operator
 %nterm <std::string> stringlit
 %nterm <std::string> number
@@ -296,6 +298,23 @@ s_expr:
   {
     $$ = drv.solver()->make_term($6, $4);
   }
+  | LP QUANTIFIER LP
+    {
+      // mid-rule for incrementing scope
+      drv.push_scope();
+    }
+    sorted_param_list RP s_expr RP
+  {
+    smt::Term quant_term = $7;
+    smt::SmtSolver & solver = drv.solver();
+    smt::PrimOp po = drv.lookup_primop($2);
+    // TODO: update this to bind all parameters at once
+    for (int i = $5.size()-1; i >= 0; --i)
+    {
+      quant_term = drv.solver()->make_term(po, $5[i], quant_term);
+    }
+    $$ = quant_term;
+  }
 ;
 
 s_expr_list:
@@ -407,6 +426,21 @@ sorted_arg_list:
      smt::Term arg = drv.register_arg($3, $4);
      smt::TermVec & vec = $1;
      vec.push_back(arg);
+     $$ = vec;
+   }
+;
+
+sorted_param_list:
+   %empty
+   {
+     smt::TermVec vec;
+     $$ = vec;
+   }
+   | sorted_param_list LP SYMBOL sort RP
+   {
+     smt::Term param = drv.create_param($3, $4);
+     smt::TermVec & vec = $1;
+     vec.push_back(param);
      $$ = vec;
    }
 ;
