@@ -10,7 +10,6 @@ namespace smt {
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
-      current_command_(Command::NONE),
       def_arg_prefix_("__defvar_")
 {
   // dedicated true/false symbols
@@ -70,11 +69,6 @@ Result SmtLibReader::check_sat_assuming(const TermVec & assumptions)
 void SmtLibReader::push(uint64_t num) { solver_->push(num); }
 
 void SmtLibReader::pop(uint64_t num) { solver_->pop(num); }
-
-void SmtLibReader::set_command(Command cmd)
-{
-  current_command_ = cmd;
-}
 
 void SmtLibReader::push_scope()
 {
@@ -172,7 +166,6 @@ Term SmtLibReader::apply_define_fun(const string & defname,
 
 Term SmtLibReader::register_arg(const string & name, const Sort & sort)
 {
-  assert(current_command_ == DEFINEFUN);
   assert(current_scope());
   // find the right id for this argument
   // can't associate with same variable as another argument for this define-fun

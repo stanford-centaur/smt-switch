@@ -86,83 +86,40 @@ commands:
 ;
 
 command:
-  LP SETLOGIC
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::SETLOGIC);
-     }
-  SYMBOL RP
+  LP SETLOGIC SYMBOL RP
   {
-    drv.set_logic($4);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.set_logic($3);
   }
-  | LP SETOPT
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::SETOPT);
-     }
-    KEYWORD SYMBOL RP
+  | LP SETOPT KEYWORD SYMBOL RP
   {
-    drv.set_opt($4, $5);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.set_opt($3, $4);
   }
-  | LP SETINFO
+  | LP SETINFO KEYWORD number_or_string RP
     {
-       // mid-action rule to set current command
-       drv.set_command(smt::SETINFO);
+      drv.set_info($3, $4);
     }
-    KEYWORD number_or_string RP
-    {
-      drv.set_info($4, $5);
-
-      // unset command now that it's done
-      drv.set_command(smt::NONE);
-    }
-  | LP DECLARECONST
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::DECLARECONST);
-     }
-    SYMBOL sort RP
+  | LP DECLARECONST SYMBOL sort RP
   {
-    drv.new_symbol($4, $5);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.new_symbol($3, $4);
   }
-  | LP DECLAREFUN
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::DECLAREFUN);
-     }
-    SYMBOL LP sort_list RP sort RP
+  | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
   {
     smt::Sort symsort;
-    if ($6.size())
+    if ($5.size())
     {
-      smt::SortVec & vec = $6;
-      vec.push_back($8);
+      smt::SortVec & vec = $5;
+      vec.push_back($7);
       symsort = drv.solver()->make_sort(smt::FUNCTION, vec);
     }
     else
     {
-      symsort = $8;
+      symsort = $7;
     }
     assert(symsort);
-    drv.new_symbol($4, symsort);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.new_symbol($3, symsort);
   }
   | LP DEFINEFUN
      {
-       // mid-action rule to set current command
-       drv.set_command(smt::DEFINEFUN);
-
        // new scope for arguments
        drv.push_scope();
      }
@@ -170,95 +127,36 @@ command:
   {
     drv.define_fun($4, $8, $6);
 
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
-
     drv.pop_scope();
     assert(!drv.current_scope());
   }
-  | LP ASSERT
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::ASSERT);
-     }
-    s_expr RP
+  | LP ASSERT s_expr RP
   {
-    drv.assert_formula($4);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.assert_formula($3);
   }
-  | LP CHECKSAT
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::CHECKSAT);
-     }
-    RP
+  | LP CHECKSAT RP
   {
     drv.check_sat();
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
   }
-  | LP CHECKSATASSUMING
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::CHECKSATASSUMING);
-     }
-    LP s_expr_list RP RP
+  | LP CHECKSATASSUMING LP s_expr_list RP RP
   {
-    drv.check_sat_assuming($5);
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.check_sat_assuming($4);
   }
-  | LP PUSH
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::PUSH);
-     }
-    RP
+  | LP PUSH RP
   {
     drv.push();
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
   }
-  | LP PUSH
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::PUSH);
-     }
-    NAT RP
+  | LP PUSH NAT RP
   {
-    drv.push(std::stoi($4));
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.push(std::stoi($3));
   }
-  | LP POP
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::POP);
-     }
-    RP
+  | LP POP RP
   {
     drv.pop();
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
   }
-  | LP POP
-     {
-       // mid-action rule to set current command
-       drv.set_command(smt::POP);
-     }
-    NAT RP
+  | LP POP NAT RP
   {
-    drv.pop(std::stoi($4));
-
-    // unset command now that it's done
-    drv.set_command(smt::NONE);
+    drv.pop(std::stoi($3));
   }
   | LP EXIT RP
   {
@@ -314,6 +212,9 @@ s_expr:
       quant_term = drv.solver()->make_term(po, $5[i], quant_term);
     }
     $$ = quant_term;
+
+    // this scope is done
+    drv.pop_scope();
   }
 ;
 

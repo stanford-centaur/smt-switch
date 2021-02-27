@@ -104,10 +104,6 @@ class SmtLibReader
 
   smt::SmtSolver & solver() { return solver_; }
 
-  void set_command(Command cmd);
-
-  Command current_command() { return current_command_; }
-
   void push_scope();
 
   void pop_scope();
@@ -179,9 +175,6 @@ class SmtLibReader
   yy::location location_;
 
   smt::SmtSolver solver_;
-
-  Command
-      current_command_;  ///< which smt-lib command is currently being processed
 
   std::unordered_map<std::string, smt::Term> symbols_;
 
