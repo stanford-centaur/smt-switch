@@ -128,11 +128,6 @@ class SmtLibReader
    */
   smt::Term lookup_symbol(const std::string & sym);
 
-  /** Look up the temporary symbol for a define-fun argument
-   *  @param the name of the argument
-   */
-  smt::Term lookup_arg(const std::string & name);
-
   /** Creates a new symbol
    *  This is a light wrapper around solver_->make_symbol
    *  s.t. you can look up the symbol by name later

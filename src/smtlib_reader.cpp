@@ -137,6 +137,22 @@ Term SmtLibReader::lookup_symbol(const string & sym)
 {
   Term symbol_term;
   assert(!symbol_term);
+
+  if (current_scope())
+  {
+    // check scoped variables before global symbols
+    // shadowing semantics
+    try
+    {
+      return arg_param_map_.get_symbol(sym);
+    }
+    catch (std::out_of_range & e)
+    {
+      ;
+    }
+  }
+
+  assert(!symbol_term);
   auto it = symbols_.find(sym);
   if (it != symbols_.end())
   {
@@ -144,20 +160,6 @@ Term SmtLibReader::lookup_symbol(const string & sym)
     assert(symbol_term);
   }
   return symbol_term;
-}
-
-/*TODO: collapse this into lookup_symbol */
-Term SmtLibReader::lookup_arg(const string & name)
-{
-  assert(current_command_ == DEFINEFUN);
-  try
-  {
-    return arg_param_map_.get_symbol(name);
-  }
-  catch (std::out_of_range & e)
-  {
-    return lookup_symbol(name);
-  }
 }
 
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)

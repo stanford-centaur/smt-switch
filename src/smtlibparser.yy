@@ -334,21 +334,13 @@ s_expr_list:
 atom:
    SYMBOL
    {
-     if (drv.current_command() == smt::DEFINEFUN)
-     {
-       // could be a temporary argument
-       $$ = drv.lookup_arg($1);
-     }
-     else
-     {
-       smt::Term sym = drv.lookup_symbol($1);
-       if (!sym)
-       {
-         yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
-         YYERROR;
-       }
-       $$ = sym;
-     }
+      smt::Term sym = drv.lookup_symbol($1);
+      if (!sym)
+      {
+        yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
+        YYERROR;
+      }
+      $$ = sym;
    }
    | NAT
    {
