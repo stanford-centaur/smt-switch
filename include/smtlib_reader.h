@@ -29,6 +29,46 @@ enum Command
            can also be used for the number of Command enums */
 };
 
+/** Basic context-dependent symbol map
+ *  Used for arguments and parameters that have limited scope
+ *  Does not support shadowing within the same mapping context
+ *    e.g. forall x . P(x) -> exists x. Q(x)
+ *    is not supported
+ */
+class UnorderedContextSymbolMap
+{
+ public:
+  size_t current_context() { return symbols_.size(); }
+
+  void add_mapping(const std::string & sym, const smt::Term & t)
+  {
+    if (symbol_map_.find(sym) != symbol_map_.end())
+    {
+      throw SmtException("Repeated symbol: " + sym);
+    }
+    symbol_map_[sym] = t;
+    symbols_.back().insert(sym);
+  }
+
+  void push() { symbols_.push_back({}); }
+
+  void pop()
+  {
+    assert(current_context());
+    for (const auto & sym : symbols_.back())
+    {
+      symbol_map_.erase(sym);
+    }
+    symbols_.pop_back();
+  }
+
+  smt::Term get_symbol(const std::string & sym) { return symbol_map_.at(sym); }
+
+ private:
+  std::vector<std::unordered_set<std::string>> symbols_;
+  std::unordered_map<std::string, smt::Term> symbol_map_;
+};
+
 // TODO: remove if never used
 Command str_to_command(std::string cmd);
 
@@ -70,6 +110,8 @@ class SmtLibReader
   void set_command(Command cmd);
 
   Command current_command() { return current_command_; }
+
+  UnorderedContextSymbolMap & arg_param_map() { return arg_param_map_; }
 
   /* Methods for use in flex/bison generated code */
 
@@ -156,7 +198,10 @@ class SmtLibReader
       tmp_args_;  ///< temporary variables
                   ///< organized by sort
 
-  std::unordered_map<std::string, smt::Term> tmp_arg_mapping_;
+  UnorderedContextSymbolMap
+      arg_param_map_;  ///< map for arguments (to define-funs)
+                       ///< and parameters (bound variables)
+  // TODO: try to handle this in a different way
   std::unordered_map<smt::Sort, std::unordered_map<std::string, smt::Term>>
       sort_tmp_arg_mapping_;
 

@@ -160,6 +160,9 @@ command:
      {
        // mid-action rule to set current command
        drv.set_command(smt::DEFINEFUN);
+
+       // push a context for arguments
+       drv.arg_param_map().push();
      }
     SYMBOL LP sorted_arg_list RP s_expr RP
   {
@@ -167,6 +170,10 @@ command:
 
     // unset command now that it's done
     drv.set_command(smt::NONE);
+
+    // pop the local argument context
+    drv.arg_param_map().pop();
+    assert(!drv.arg_param_map().current_context());
   }
   | LP ASSERT
      {

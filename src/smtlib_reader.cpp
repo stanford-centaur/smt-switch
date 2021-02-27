@@ -121,7 +121,6 @@ void SmtLibReader::set_command(Command cmd)
   if (current_command_ == DEFINEFUN)
   {
     // clear the current argument mapping
-    tmp_arg_mapping_.clear();
     sort_tmp_arg_mapping_.clear();
   }
   current_command_ = cmd;
@@ -140,15 +139,18 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   return symbol_term;
 }
 
+/*TODO: collapse this into lookup_symbol */
 Term SmtLibReader::lookup_arg(const string & name)
 {
   assert(current_command_ == DEFINEFUN);
-  auto it = tmp_arg_mapping_.find(name);
-  if (it != tmp_arg_mapping_.end())
+  try
   {
-    return it->second;
+    return arg_param_map_.get_symbol(name);
   }
-  return lookup_symbol(name);
+  catch (std::out_of_range & e)
+  {
+    return lookup_symbol(name);
+  }
 }
 
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
@@ -228,7 +230,7 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   }
   assert(tmpvar);
 
-  tmp_arg_mapping_[name] = tmpvar;
+  arg_param_map_.add_mapping(name, tmpvar);
   sort_tmp_arg_mapping_[sort][name] = tmpvar;
   return tmpvar;
 }
