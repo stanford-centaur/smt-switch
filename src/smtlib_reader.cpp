@@ -118,12 +118,19 @@ void SmtLibReader::pop(uint64_t num) { solver_->pop(num); }
 
 void SmtLibReader::set_command(Command cmd)
 {
-  if (current_command_ == DEFINEFUN)
-  {
-    // clear the current argument mapping
-    sort_tmp_arg_mapping_.clear();
-  }
   current_command_ = cmd;
+}
+
+void SmtLibReader::push_scope()
+{
+  arg_param_map_.push_scope();
+  sort_arg_ids_.push_back(std::unordered_map<smt::Sort, size_t>());
+}
+
+void SmtLibReader::pop_scope()
+{
+  arg_param_map_.pop_scope();
+  sort_arg_ids_.pop_back();
 }
 
 Term SmtLibReader::lookup_symbol(const string & sym)
@@ -209,13 +216,19 @@ Term SmtLibReader::apply_define_fun(const string & defname,
 Term SmtLibReader::register_arg(const string & name, const Sort & sort)
 {
   assert(current_command_ == DEFINEFUN);
+  assert(current_scope());
   // find the right id for this argument
   // can't associate with same variable as another argument for this define-fun
   size_t id = 0;
-  auto it = sort_tmp_arg_mapping_.find(sort);
-  if (it != sort_tmp_arg_mapping_.end())
+  auto current_scope_sort_ids = sort_arg_ids_.back();
+  auto it = current_scope_sort_ids.find(sort);
+  if (it != current_scope_sort_ids.end())
   {
-    id = it->second.size();
+    id = it->second;
+  }
+  else
+  {
+    current_scope_sort_ids[sort] = 0;
   }
 
   Term tmpvar;
@@ -231,7 +244,7 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   assert(tmpvar);
 
   arg_param_map_.add_mapping(name, tmpvar);
-  sort_tmp_arg_mapping_[sort][name] = tmpvar;
+  current_scope_sort_ids[sort]++;
   return tmpvar;
 }
 

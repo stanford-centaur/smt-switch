@@ -111,9 +111,9 @@ class SmtLibReader
 
   Command current_command() { return current_command_; }
 
-  void push_scope() { arg_param_map_.push_scope(); }
+  void push_scope();
 
-  void pop_scope() { arg_param_map_.pop_scope(); }
+  void pop_scope();
 
   size_t current_scope() { return arg_param_map_.current_scope(); }
 
@@ -201,13 +201,17 @@ class SmtLibReader
   std::unordered_map<smt::Sort, smt::TermVec>
       tmp_args_;  ///< temporary variables
                   ///< organized by sort
+  std::vector<std::unordered_map<smt::Sort, size_t>>
+      sort_arg_ids_;  ///< scope-dependent argument ids in use
+                      ///< example: sort_arg_ids_.back()[intsort]
+                      ///< returns the first index into tmp_args
+                      ///< (might be out of bounds, which means a new
+                      ///<  tmp argument is needed)
+                      ///< that is currently unused in this scope
 
   UnorderedScopedSymbolMap
       arg_param_map_;  ///< map for arguments (to define-funs)
                        ///< and parameters (bound variables)
-  // TODO: try to handle this in a different way
-  std::unordered_map<smt::Sort, std::unordered_map<std::string, smt::Term>>
-      sort_tmp_arg_mapping_;
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
