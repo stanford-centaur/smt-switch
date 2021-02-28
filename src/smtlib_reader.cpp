@@ -31,8 +31,9 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
   // for example, when setting options
-  global_symbols_["true"] = solver_->make_term(true);
-  global_symbols_["false"] = solver_->make_term(false);
+  assert(!global_symbols_.current_scope());
+  global_symbols_.add_mapping("true", solver_->make_term(true));
+  global_symbols_.add_mapping("false", solver_->make_term(false));
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -82,9 +83,23 @@ Result SmtLibReader::check_sat_assuming(const TermVec & assumptions)
   return r;
 }
 
-void SmtLibReader::push(uint64_t num) { solver_->push(num); }
+void SmtLibReader::push(uint64_t num)
+{
+  for (size_t i = 0; i < num; ++i)
+  {
+    global_symbols_.push_scope();
+  }
+  solver_->push(num);
+}
 
-void SmtLibReader::pop(uint64_t num) { solver_->pop(num); }
+void SmtLibReader::pop(uint64_t num)
+{
+  for (size_t i = 0; i < num; ++i)
+  {
+    global_symbols_.pop_scope();
+  }
+  solver_->pop(num);
+}
 
 void SmtLibReader::push_scope()
 {
@@ -118,19 +133,42 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   }
 
   assert(!symbol_term);
-  auto it = global_symbols_.find(sym);
-  if (it != global_symbols_.end())
+  try
   {
-    symbol_term = it->second;
-    assert(symbol_term);
+    return global_symbols_.get_symbol(sym);
+  }
+  catch (std::out_of_range & e)
+  {
+    ;
   }
   return symbol_term;
 }
 
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 {
+  try
+  {
+    Term t = global_symbols_.get_symbol(name);
+    throw SmtException("Re-declaring symbol: " + name);
+  }
+  catch (std::out_of_range & e)
+  {
+    auto it = all_symbols_.find(name);
+    if (it != all_symbols_.end())
+    {
+      if (it->second->get_sort() != sort)
+      {
+        throw SmtException("Current Limitation: cannot re-declare symbol "
+                           + name + " with a different sort");
+      }
+      global_symbols_.add_mapping(name, it->second);
+      return;
+    }
+  }
+
   Term fresh_symbol = solver_->make_symbol(name, sort);
-  global_symbols_[name] = fresh_symbol;
+  global_symbols_.add_mapping(name, fresh_symbol);
+  all_symbols_[name] = fresh_symbol;
 }
 
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
@@ -151,7 +189,7 @@ void SmtLibReader::define_fun(const string & name,
   else
   {
     // this is just an alias for another term
-    global_symbols_[name] = def;
+    global_symbols_.add_mapping(name, def);
   }
 }
 

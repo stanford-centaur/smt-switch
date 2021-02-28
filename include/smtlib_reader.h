@@ -54,7 +54,13 @@ enum Command
 class UnorderedScopedSymbolMap
 {
  public:
-  size_t current_scope() { return symbols_.size(); }
+  UnorderedScopedSymbolMap()
+  {
+    // allow some symbols at 0
+    symbols_.push_back({});
+  }
+
+  size_t current_scope() { return symbols_.size() - 1; }
 
   void add_mapping(const std::string & sym, const smt::Term & t)
   {
@@ -111,8 +117,16 @@ class SmtLibReader
 
   virtual Result check_sat_assuming(const smt::TermVec & assumptions);
 
+  /** Pushes num contexts in the solver and the global symbol map
+   *  If overriding, make sure to push scopes in global_symbols_
+   *    or consider calling this version of the function also
+   */
   virtual void push(uint64_t num = 1);
 
+  /** Pops num contexts in the solver and the global symbol map
+   *  If overriding, make sure to pop scopes in global_symbols_
+   *    or consider calling this version of the function also
+   */
   virtual void pop(uint64_t num = 1);
 
   /* getters and setters  */
@@ -120,8 +134,12 @@ class SmtLibReader
 
   smt::SmtSolver & solver() { return solver_; }
 
+  /** Pushes a scope for a new quantifier binding or define-fun arguments
+   */
   void push_scope();
 
+  /** Pushes a scope from quantifier binding or define-fun arguments
+   */
   void pop_scope();
 
   size_t current_scope() { return arg_param_map_.current_scope(); }
@@ -207,8 +225,21 @@ class SmtLibReader
   smt::SmtSolver solver_;
 
   std::unordered_map<std::string, smt::Term>
-      global_symbols_;  ///< symbolic constants
+      all_symbols_;  ///< remembers all symbolic constants
+                     ///< and functions
+                     ///< even after context is popped
+
+  UnorderedScopedSymbolMap
+      global_symbols_;  ///< symbolic constants and functions
                         ///< defined functions with no arguments
+                        ///< scoped by the solver context
+                        ///< e.g. push / pop
+
+  UnorderedScopedSymbolMap
+      arg_param_map_;  ///< map for arguments (to define-funs)
+                       ///< and parameters (bound variables)
+                       ///< scoped by the term structure
+                       ///< e.g. nested quantifiers
 
   // define-fun data structures
   // TODO See if we can make this less complicated
@@ -227,10 +258,6 @@ class SmtLibReader
                       ///< (might be out of bounds, which means a new
                       ///<  tmp argument is needed)
                       ///< that is currently unused in this scope
-
-  UnorderedScopedSymbolMap
-      arg_param_map_;  ///< map for arguments (to define-funs)
-                       ///< and parameters (bound variables)
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
