@@ -142,8 +142,17 @@ void SmtLibReader::define_fun(const string & name,
                               const Term & def,
                               const TermVec & args)
 {
-  defs_[name] = def;
-  def_args_[name] = args;
+  if (args.size())
+  {
+    // this is a function
+    defs_[name] = def;
+    def_args_[name] = args;
+  }
+  else
+  {
+    // this is just an alias for another term
+    symbols_[name] = def;
+  }
 }
 
 Term SmtLibReader::apply_define_fun(const string & defname,
