@@ -1,4 +1,20 @@
 %{
+/*********************                                                        */
+/*! \file smtlibparser.[yy/cpp]
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Bison file and auto-generated parser.
+**
+**
+**/
+
 #include <cstdio>
 #include <iostream>
 using namespace std;
@@ -15,6 +31,21 @@ using namespace std;
         %define parse.assert
 
 %code requires {
+/*********************                                                        */
+/*! \file smtlibparser.[yy/h]
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Bison file and auto-generated parser.
+**
+**
+**/
   #include <string>
   #include "smt.h"
 
