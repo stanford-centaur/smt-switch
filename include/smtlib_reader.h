@@ -192,7 +192,9 @@ class SmtLibReader
 
   smt::SmtSolver solver_;
 
-  std::unordered_map<std::string, smt::Term> symbols_;
+  std::unordered_map<std::string, smt::Term>
+      global_symbols_;  ///< symbolic constants
+                        ///< defined functions with no arguments
 
   // define-fun data structures
   // TODO See if we can make this less complicated

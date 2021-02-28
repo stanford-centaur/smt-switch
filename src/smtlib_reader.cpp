@@ -31,8 +31,8 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
   // for example, when setting options
-  symbols_["true"] = solver_->make_term(true);
-  symbols_["false"] = solver_->make_term(false);
+  global_symbols_["true"] = solver_->make_term(true);
+  global_symbols_["false"] = solver_->make_term(false);
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -118,8 +118,8 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   }
 
   assert(!symbol_term);
-  auto it = symbols_.find(sym);
-  if (it != symbols_.end())
+  auto it = global_symbols_.find(sym);
+  if (it != global_symbols_.end())
   {
     symbol_term = it->second;
     assert(symbol_term);
@@ -130,7 +130,7 @@ Term SmtLibReader::lookup_symbol(const string & sym)
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 {
   Term fresh_symbol = solver_->make_symbol(name, sort);
-  symbols_[name] = fresh_symbol;
+  global_symbols_[name] = fresh_symbol;
 }
 
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
@@ -151,7 +151,7 @@ void SmtLibReader::define_fun(const string & name,
   else
   {
     // this is just an alias for another term
-    symbols_[name] = def;
+    global_symbols_[name] = def;
   }
 }
 
