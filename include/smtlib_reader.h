@@ -185,7 +185,21 @@ class SmtLibReader
    */
   Term register_arg(const std::string & name, const smt::Sort & sort);
 
+  /** Creates a parameter and stores it in the scoped data-structure
+   *  arg_param_map_
+   *  parameters are variables to be bound by a quantifier
+   *  @param name the name of the parameter
+   *  @param sort the sort of the parameter
+   *  @return the parameter
+   */
   Term create_param(const std::string & name, const smt::Sort & sort);
+
+  /** Declare a let binding mapping a symbol to a term
+   *  for the current scope
+   *  @param sym the symbol
+   *  @param term the term
+   */
+  void let_binding(const std::string & sym, const smt::Term & term);
 
  protected:
   yy::location location_;

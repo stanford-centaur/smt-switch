@@ -231,4 +231,10 @@ Term SmtLibReader::create_param(const string & name, const Sort & sort)
   return param;
 }
 
+void SmtLibReader::let_binding(const string & sym, const Term & term)
+{
+  assert(current_scope());
+  arg_param_map_.add_mapping(sym, term);
+}
+
 }  // namespace smt

@@ -78,7 +78,7 @@ using namespace std;
        DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
        POP EXIT
 %token BOOL INT REAL BITVEC ARRAY
-%token ASCONST
+%token ASCONST LET
 %token <std::string> KEYWORD
 %token <std::string> PRIMOP
 %token <std::string> QUANTIFIER
@@ -98,6 +98,7 @@ INDPREFIX "(_"
 %nterm <smt::SortVec> sort_list
 %nterm <smt::TermVec> sorted_arg_list
 %nterm <smt::TermVec> sorted_param_list
+%nterm let_term_bindings
 %nterm <smt::Op> operator
 %nterm <std::string> stringlit
 %nterm <std::string> number
@@ -247,6 +248,15 @@ s_expr:
     // this scope is done
     drv.pop_scope();
   }
+  | LP LET
+    {
+      // mid-rule for incrementing scope
+      drv.push_scope();
+    }
+    LP let_term_bindings RP s_expr RP
+  {
+    $$ = $7;
+  }
 ;
 
 s_expr_list:
@@ -347,6 +357,7 @@ sorted_arg_list:
    }
    | sorted_arg_list LP SYMBOL sort RP
    {
+     assert(drv.current_scope());
      smt::Term arg = drv.register_arg($3, $4);
      smt::TermVec & vec = $1;
      vec.push_back(arg);
@@ -362,12 +373,22 @@ sorted_param_list:
    }
    | sorted_param_list LP SYMBOL sort RP
    {
+     assert(drv.current_scope());
      smt::Term param = drv.create_param($3, $4);
      smt::TermVec & vec = $1;
      vec.push_back(param);
      $$ = vec;
    }
 ;
+
+let_term_bindings:
+   %empty
+   {}
+   | let_term_bindings LP SYMBOL s_expr RP
+   {
+     drv.let_binding($3, $4);
+   }
+
 
 operator:
    PRIMOP
