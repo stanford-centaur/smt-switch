@@ -255,6 +255,7 @@ s_expr:
     }
     LP let_term_bindings RP s_expr RP
   {
+    drv.pop_scope();
     $$ = $7;
   }
 ;
