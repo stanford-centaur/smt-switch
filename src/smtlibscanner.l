@@ -28,7 +28,7 @@ using namespace std;
 bvarithop bv(neg|add|sub|mul)
 bvbwop bv(not|and|or|xor|nand|nor|xnor|comp)
 bvusop bv[us](div|rem|lt|le|ge|gt)
-bvshop bv(shl|ash|lshr)
+bvshop bv(shl|ashr|lshr)
 bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
 
 %{
