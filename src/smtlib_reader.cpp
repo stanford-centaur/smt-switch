@@ -233,7 +233,7 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   // find the right id for this argument
   // can't associate with same variable as another argument for this define-fun
   size_t id = 0;
-  auto current_scope_sort_ids = sort_arg_ids_.back();
+  unordered_map<Sort, size_t> & current_scope_sort_ids = sort_arg_ids_.back();
   auto it = current_scope_sort_ids.find(sort);
   if (it != current_scope_sort_ids.end())
   {
