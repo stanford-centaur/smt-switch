@@ -203,7 +203,17 @@ s_expr:
   }
   | LP operator s_expr_list RP
   {
-    $$ = drv.solver()->make_term($2, $3);
+    // special-case for MINUS
+    // needs to be negate if only one argument
+    // TODO: might be a more elegant way to handle this
+    if ($2 == smt::Minus && $3.size() == 1)
+    {
+      $$ = drv.solver()->make_term(smt::Negate, $3[0]);
+    }
+    else
+    {
+      $$ = drv.solver()->make_term($2, $3);
+    }
   }
   | LP SYMBOL s_expr_list RP
   {
