@@ -67,6 +67,12 @@ if (SMTLIB_READER)
     "${PROJECT_SOURCE_DIR}/src/smtlib_reader.cpp"
     "${BISON_SmtLibParser_OUTPUTS}"
     "${FLEX_SmtLibScanner_OUTPUTS}")
+else()
+  # if not building with SmtLibReader
+  # then exclude the relevant header files from installing
+  set(EXCLUDE_HEADERS_INSTALL
+    PATTERN "smtlib_reader.h" EXCLUDE
+    PATTERN "smtlibparser_maps.h" EXCLUDE)
 endif()
 
 include_directories (${INCLUDE_DIRS})
@@ -166,8 +172,8 @@ install(TARGETS smt-switch DESTINATION lib)
 
 # install public headers
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-        DESTINATION include/smt-switch
-        FILES_MATCHING PATTERN "*.h")
+  DESTINATION include/smt-switch
+  ${EXCLUDE_HEADERS_INSTALL})
 
 if (SMTLIB_READER)
   install(FILES "${CMAKE_BINARY_DIR}/smtlibparser.h"
