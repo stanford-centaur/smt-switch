@@ -97,7 +97,6 @@ INDPREFIX "(_"
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
 %nterm <smt::TermVec> sorted_arg_list
-%nterm <smt::TermVec> function_def
 %nterm <smt::TermVec> sorted_param_list
 %nterm <smt::Op> operator
 %nterm <std::string> stringlit
@@ -155,9 +154,9 @@ command:
        // new scope for arguments
        drv.push_scope();
      }
-    SYMBOL function_def s_expr RP
+    SYMBOL LP sorted_arg_list RP sort s_expr RP
   {
-    drv.define_fun($4, $6, $5);
+    drv.define_fun($4, $9, $6);
 
     drv.pop_scope();
     assert(!drv.current_scope());
@@ -352,17 +351,6 @@ sorted_arg_list:
      smt::TermVec & vec = $1;
      vec.push_back(arg);
      $$ = vec;
-   }
-;
-
-function_def:
-   LP sorted_arg_list RP
-   {
-     $$ = $2;
-   }
-   | LP sorted_arg_list RP sort
-   {
-     $$ = $2;
    }
 ;
 
