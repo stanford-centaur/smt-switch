@@ -52,6 +52,8 @@ class Z3Solver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
@@ -114,5 +116,28 @@ class Z3Solver : public AbsSmtSolver
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
+
+  // helper function
+  inline Result check_sat_assuming(expr_vector & z3assumps)
+  {
+    check_result r = slv.check(z3assumps);
+    ;
+    if (r == unsat)
+    {
+      return Result(UNSAT);
+    }
+    else if (r == sat)
+    {
+      return Result(SAT);
+    }
+    else if (r == unknown)
+    {
+      return Result(UNKNOWN, slv.reason_unknown());
+    }
+    else
+    {
+      throw NotImplementedException("Unimplemented result type from Z3");
+    }
+  }
 };
 }  // namespace smt

@@ -85,14 +85,12 @@ const unordered_map<PrimOp, variadic_fun> variadic_ops({
 
 void Z3Solver::set_opt(const std::string option, const std::string value)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  throw NotImplementedException("Set opt not implemented for Z3 backend.");
 }
 
 void Z3Solver::set_logic(const std::string logic)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  throw NotImplementedException("Set logic not implemented for Z3 backend.");
 }
 
 Term Z3Solver::make_term(bool b) const
@@ -234,52 +232,113 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
 
 void Z3Solver::assert_formula(const Term & t)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  std::shared_ptr<Z3Term> zterm = std::static_pointer_cast<Z3Term>(t);
+  if (zterm->is_function)
+  {
+    throw IncorrectUsageException(
+        "Attempted to assert a function directly to solver");
+  }
+  slv.add(zterm->term);
 }
 
 Result Z3Solver::check_sat()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  check_result r = slv.check();
+  if (r == unsat)
+  {
+    return Result(UNSAT);
+  }
+  else if (r == sat)
+  {
+    return Result(SAT);
+  }
+  else if (r == unknown)
+  {
+    return Result(UNKNOWN, slv.reason_unknown());
+  }
+  else
+  {
+    throw NotImplementedException("Unimplemented result type from Z3");
+  }
 }
 
 Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  z3::expr_vector z3assumps(ctx);
+
+  shared_ptr<Z3Term> za;
+  for (auto a : assumptions)
+  {
+    za = static_pointer_cast<Z3Term>(a);
+    if (za->is_function)
+    {
+      throw IncorrectUsageException(
+          "Functions cannot be used directly as assumptions.");
+    }
+    z3assumps.push_back(za->term);
+  }
+
+  return check_sat_assuming(z3assumps);
 }
 
-void Z3Solver::push(uint64_t num)
+Result Z3Solver::check_sat_assuming_list(const TermList & assumptions)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  z3::expr_vector z3assumps(ctx);
+
+  shared_ptr<Z3Term> za;
+  for (auto a : assumptions)
+  {
+    za = static_pointer_cast<Z3Term>(a);
+    if (za->is_function)
+    {
+      throw IncorrectUsageException(
+          "Functions cannot be used directly as assumptions.");
+    }
+    z3assumps.push_back(za->term);
+  }
+
+  return check_sat_assuming(z3assumps);
 }
 
-void Z3Solver::pop(uint64_t num)
+Result Z3Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  z3::expr_vector z3assumps(ctx);
+
+  shared_ptr<Z3Term> za;
+  for (auto a : assumptions)
+  {
+    za = static_pointer_cast<Z3Term>(a);
+    if (za->is_function)
+    {
+      throw IncorrectUsageException(
+          "Functions cannot be used directly as assumptions.");
+    }
+    z3assumps.push_back(za->term);
+  }
+
+  return check_sat_assuming(z3assumps);
 }
+
+void Z3Solver::push(uint64_t num) { slv.push(); }
+
+void Z3Solver::pop(uint64_t num) { slv.pop(num); }
 
 Term Z3Solver::get_value(const Term & t) const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  throw NotImplementedException("Get value not implemented for Z3 backend.");
 }
 
 UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
                                             Term & out_const_base) const
 {
   throw NotImplementedException(
-      "Z3 does not support getting array values. Please use get_value on a "
-      "particular select of the array.");
+      "Get array values not implemented for Z3 backend.");
 }
 
 void Z3Solver::get_unsat_core(UnorderedTermSet & out)
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+      "Get unsat core not implemented for Z3 backend.");
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
@@ -817,21 +876,19 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
 void Z3Solver::reset()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  throw NotImplementedException("Reset not implemented for Z3 backend.");
 }
 
 void Z3Solver::reset_assertions()
 {
   throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+      "Reset assertions not implemented for Z3 backend.");
 }
 
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  throw NotImplementedException("Substitute not implemented for Z3 backend.");
 }
 
 void Z3Solver::dump_smt2(std::string filename) const
