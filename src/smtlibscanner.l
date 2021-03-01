@@ -69,6 +69,15 @@ exit                  { return yy::parser::make_EXIT(loc); }
 \"(\\.|[^\"\\])*\"    { char * noquotes = yytext;
                         noquotes++;
                         noquotes[strlen(noquotes)-1] = 0;
+                        // increment location for each line
+                        for (const char * c=noquotes; *c; ++c)
+                        {
+                          if(*c == '\n')
+                          {
+                            loc.lines(1);
+                          }
+                        }
+                        loc.step();
                         return yy::parser::make_QUOTESTRING(noquotes, loc);
                       }
 
@@ -102,7 +111,18 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 (select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
-\|(\\.|[^|])*\|       { return yy::parser::make_SYMBOL(yytext, loc); }
+\|(\\.|[^|])*\|       {
+                        // increment location for each line
+                        for (const char * c=yytext; *c; ++c)
+                        {
+                          if(*c == '\n')
+                          {
+                            loc.lines(1);
+                          }
+                        }
+                        loc.step();
+                        return yy::parser::make_SYMBOL(yytext, loc);
+                      }
 [a-zA-Z0-9\?~\._-]+   { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
