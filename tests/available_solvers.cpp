@@ -71,9 +71,9 @@ const std::vector<SolverEnum> solver_enums({
       YICES2,
 #endif
 
-#if BUILD_Z3
-      Z3,
-#endif
+// #if BUILD_Z3
+//       Z3,
+// #endif
 });
 
 SmtSolver create_solver(SolverConfiguration sc)
