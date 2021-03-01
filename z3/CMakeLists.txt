@@ -24,7 +24,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
     ALL
     COMMAND
       mkdir smt-switch-z3 && cd smt-switch-z3 && ar -x "../$<TARGET_FILE_NAME:smt-switch-z3>" && cd ../ &&
-      mkdir z3 && cd z3 && ar -x "${Z3_HOME}/build/lib/libz3.a" && cd ../ &&
+      mkdir z3 && cd z3 && ar -x "${Z3_HOME}/build/libz3.a" && cd ../ &&
       ar -qc "$<TARGET_FILE_NAME:smt-switch-z3>" ./z3/*.o ./smt-switch-z3/*.o &&
       # now clean up
       rm -rf smt-switch-z3 z3

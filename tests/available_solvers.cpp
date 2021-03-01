@@ -40,6 +40,10 @@ using namespace std;
 #include "yices2_factory.h"
 #endif
 
+#if BUILD_Z3
+#include "z3_factory.h"
+#endif
+
 #include <algorithm>
 
 using namespace smt;
@@ -66,10 +70,21 @@ const std::vector<SolverEnum> solver_enums({
 #if BUILD_YICES2
       YICES2,
 #endif
+
+#if BUILD_Z3
+      Z3,
+#endif
 });
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
+#if BUILD_Z3
+  std::cout << "panda BUILD_Z3" << std::endl;
+#endif
+  std::cout << "panda " << sc.solver_enum << std::endl;
+  for (SolverEnum se : solver_enums) {
+    std::cout << "panda ses se: " << se << std::endl;
+  }
   SolverEnum se = sc.solver_enum;
   bool logging = sc.is_logging_solver;
   switch (se)
@@ -98,6 +113,13 @@ SmtSolver create_solver(SolverConfiguration sc)
 #if BUILD_YICES2
     case YICES2: {
       return Yices2SolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_Z3
+    case Z3: {
+      return Z3SolverFactory::create(logging);
       break;
       ;
     }
