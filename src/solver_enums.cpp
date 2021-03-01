@@ -78,9 +78,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
         { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
-        // TODO:
-        // Z3 backend does not currently support all of these.
-        // We should delete whatever is not implemented yet.
         { Z3,
           {
               LOGGING,
