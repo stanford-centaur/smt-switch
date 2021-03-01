@@ -22,7 +22,7 @@ using namespace std;
 %}
 
 %option noyywrap nounput noinput batch
-/* can comment out debug to stop extra output */
+/* can uncomment next line to give debug output during lexing */
 /* %option debug */
 
 bvarithop bv(neg|add|sub|mul)
