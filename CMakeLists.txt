@@ -111,7 +111,6 @@ option (BUILD_Z3
 if (BUILD_Z3)
   set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
   add_subdirectory (z3)
-  # set (EXTRA_LIBS ${EXTRA_LIBS} smt-switch-z3)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
 
   add_definitions(-DBUILD_Z3)

@@ -78,13 +78,6 @@ const std::vector<SolverEnum> solver_enums({
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
-#if BUILD_Z3
-  std::cout << "panda BUILD_Z3" << std::endl;
-#endif
-  std::cout << "panda " << sc.solver_enum << std::endl;
-  for (SolverEnum se : solver_enums) {
-    std::cout << "panda ses se: " << se << std::endl;
-  }
   SolverEnum se = sc.solver_enum;
   bool logging = sc.is_logging_solver;
   switch (se)
