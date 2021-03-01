@@ -83,7 +83,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         // We should delete whatever is not implemented yet.
         { Z3,
           {
-              TERMITER,
               LOGGING,
               THEORY_INT,
               THEORY_REAL,
@@ -92,7 +91,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               CONSTARR,
               FULL_TRANSFER,
               UNSAT_CORE,
-              THEORY_DATATYPE,
               QUANTIFIERS
           } },
 
