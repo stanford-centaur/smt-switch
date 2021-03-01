@@ -66,7 +66,7 @@ push                  { return yy::parser::make_PUSH(loc); }
 pop                   { return yy::parser::make_POP(loc); }
 exit                  { return yy::parser::make_EXIT(loc); }
 
-\"(\\.|[^"\\])*\"     { char * noquotes = yytext;
+\"(\\.|[^\"\\])*\"    { char * noquotes = yytext;
                         noquotes++;
                         noquotes[strlen(noquotes)-1] = 0;
                         return yy::parser::make_QUOTESTRING(noquotes, loc);
