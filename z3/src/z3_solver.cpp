@@ -164,7 +164,7 @@ Term Z3Solver::make_term(int64_t i, const Sort & sort) const
   }
   else if (sk == BV)
   {
-    z_term = ctx.bv_val(sort->get_width(), i);
+    z_term = ctx.bv_val(i, sort->get_width());
   }
   else
   {
