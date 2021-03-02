@@ -83,11 +83,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
               LOGGING,
               THEORY_INT,
               THEORY_REAL,
-              ARRAY_MODELS,
               ARRAY_FUN_BOOLS,
               CONSTARR,
-              FULL_TRANSFER,
-              UNSAT_CORE,
               QUANTIFIERS
           } },
 
