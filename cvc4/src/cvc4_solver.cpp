@@ -957,6 +957,24 @@ void CVC4Solver::reset_assertions()
   }
 }
 
+Term CVC4Solver::substitute(const Term term,
+                            const UnorderedTermMap & substitution_map) const
+{
+  std::vector<::CVC4::api::Term> keys;
+  std::vector<::CVC4::api::Term> values;
+  keys.reserve(substitution_map.size());
+  values.reserve(substitution_map.size());
+
+  for (const auto & elem : substitution_map)
+  {
+    keys.push_back(std::static_pointer_cast<CVC4Term>(elem.first)->term);
+    values.push_back(std::static_pointer_cast<CVC4Term>(elem.second)->term);
+  }
+
+  ::CVC4::api::Term cterm = std::static_pointer_cast<CVC4Term>(term)->term;
+  return std::make_shared<CVC4Term>(cterm.substitute(keys, values));
+}
+
 void CVC4Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException("Not yet implemented dumping smt2");
