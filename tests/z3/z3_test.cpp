@@ -42,7 +42,7 @@ int main()
 
   Term intterm = s->make_term(1, intsort1);
   Term realterm = s->make_term(2, realsort1);
-  Term bvterm = s->make_term(8, bvsort);
+  Term bvterm = s->make_term(16, bvsort);
   cout << intterm << endl;
   cout << realterm << endl;
   cout << bvterm << endl;
