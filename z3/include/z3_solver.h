@@ -1,56 +1,52 @@
 /*********************                                                        */
-/*! \file cvc4_solver.h
+/*! \file z3_solver.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Makai Mann
+**   Lindsey Stuntz
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsSmtSolver
+** \brief Z3 implementation of AbsSmtSolver
 **
 **
 **/
 
 #pragma once
 
-#include <memory>
+#include <z3++.h>
+
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include "cvc4_sort.h"
-#include "cvc4_term.h"
-#include "cvc4_datatype.h"
-
-#include "api/cvc4cpp.h"
-
 #include "exceptions.h"
-#include "ops.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
-#include "term.h"
-#include "datatype.h"
+#include "z3_sort.h"
+#include "z3_term.h"
+
+using namespace z3;
 
 namespace smt {
 /**
-   CVC4 Solver
+   Z3 Solver
  */
-class CVC4Solver : public AbsSmtSolver
+class Z3Solver : public AbsSmtSolver
 {
  public:
-  CVC4Solver() : AbsSmtSolver(CVC4), solver()
-  {
-    solver.setOption("lang", "smt2");
-    solver.setOption("bv-print-consts-as-indexed-symbols", "true");
-  };
-  CVC4Solver(const CVC4Solver &) = delete;
-  CVC4Solver & operator=(const CVC4Solver &) = delete;
-  ~CVC4Solver() { };
+  Z3Solver()
+      : AbsSmtSolver(Z3),
+        ctx(),
+        slv(ctx){
+
+        };
+  Z3Solver(const Z3Solver &) = delete;
+  Z3Solver & operator=(const Z3Solver &) = delete;
+  ~Z3Solver(){};
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -82,12 +78,18 @@ class CVC4Solver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
@@ -108,58 +110,34 @@ class CVC4Solver : public AbsSmtSolver
   void reset() override;
   void reset_assertions() override;
   Term substitute(const Term term,
-                  const UnorderedTermMap & substitution_map) const;
+                  const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
-  // helpers
-  ::CVC4::api::Op make_cvc4_op(Op op) const;
-
-  // getters for solver-specific objects
-  // for interacting with third-party CVC4-specific software
-  ::CVC4::api::Solver & get_cvc4_solver() { return solver; };
-
  protected:
-  ::CVC4::api::Solver solver;
-  // keep track of created symbols
-  std::unordered_map<std::string, Term> symbols;
+  mutable z3::context ctx;
+  mutable z3::solver slv;
 
   // helper function
-  inline Result check_sat_assuming(
-      const std::vector<CVC4::api::Term> & cvc4assumps)
+  inline Result check_sat_assuming(expr_vector & z3assumps)
   {
-    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
-    if (r.isUnsat())
+    check_result r = slv.check(z3assumps);
+    ;
+    if (r == unsat)
     {
       return Result(UNSAT);
     }
-    else if (r.isSat())
+    else if (r == sat)
     {
       return Result(SAT);
     }
-    else if (r.isSatUnknown())
+    else if (r == unknown)
     {
-      return Result(UNKNOWN, r.getUnknownExplanation());
+      return Result(UNKNOWN, slv.reason_unknown());
     }
     else
     {
-      throw NotImplementedException("Unimplemented result type from CVC4");
+      throw NotImplementedException("Unimplemented result type from Z3");
     }
   }
 };
-
-//Interpolating Solver
-class CVC4InterpolatingSolver : public CVC4Solver
-{
-  public:
-    CVC4InterpolatingSolver() {}
-    CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
-    CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
-    ~CVC4InterpolatingSolver() {}
-
-    Result get_interpolant(const Term & A,
-                           const Term & B,
-                           Term & out_I) const override;
-};
-
 }  // namespace smt
-

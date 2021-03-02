@@ -76,10 +76,12 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
   EXPECT_NE(rem[0] , red[0]);
 }
 
-
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverUnsatCoreReducerTests,
-    UnsatCoreReducerTests,
-    testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE })));
+// The unsat cores reducer module requires the
+// underlying solver to support both unsat cores
+// and term translation.
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
+                         UnsatCoreReducerTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { UNSAT_CORE, FULL_TRANSFER })));
 
 }  // namespace smt_tests

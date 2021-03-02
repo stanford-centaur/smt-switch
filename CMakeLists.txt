@@ -143,6 +143,19 @@ if (BUILD_MSAT)
   add_definitions(-DMSAT_HOME=${MSAT_HOME})
 endif()
 
+# should we build z3?
+option (BUILD_Z3
+  "Should we build the libraries for z3" OFF)
+
+if (BUILD_Z3)
+  set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
+  add_subdirectory (z3)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
+
+  add_definitions(-DBUILD_Z3)
+  add_definitions(-DZ3_HOME=${Z3_HOME})
+endif (BUILD_Z3)
+
 # should we build yices2?
 option (BUILD_YICES2
   "Should we build the libraries for yices2" OFF)
