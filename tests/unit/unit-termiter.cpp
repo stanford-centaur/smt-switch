@@ -128,6 +128,6 @@ INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
                          ConstArrUnitTests,
-                         testing::ValuesIn(filter_solver_configurations({ CONSTARR })));
+                         testing::ValuesIn(filter_solver_configurations({ CONSTARR, TERMITER })));
 
 }  // namespace smt_tests
