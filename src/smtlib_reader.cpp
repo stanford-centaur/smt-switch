@@ -210,7 +210,7 @@ Term SmtLibReader::apply_define_fun(const string & defname,
 
   if (!num_args)
   {
-    def;
+    return def;
   }
 
   if (num_args != def_args_.at(defname).size())
