@@ -78,10 +78,7 @@ script:
     fi
   - bash -c "./contrib/setup-skbuild.sh"
   - bash -c "./configure.sh --debug --${SOLVER} --python"
-  - bash -c "cd build && make -j && make test && pip install -e ./python/smt_switch && cd ../ && pytest ./tests/"
-  # Removing wheels test to speed up Travis builds
-  # TODO consider building wheels in a separate configuration
-  # install wheels
-  # - sudo python3 -m pip install wheel setuptools virtualenv
-  # - python3 contrib/wheels/build_wheel.py bdist_wheel
-  # - bash -c "python3 -m virtualenv env && source env/bin/activate && pip install dist/* pytest && pytest tests/"
+  - bash -c "cd build && make -j && make test"
+  - sudo python3 -m pip install wheel setuptools virtualenv
+  - python3 contrib/wheels/build_wheel.py bdist_wheel
+  - bash -c "python3 -m virtualenv env && source env/bin/activate && pip install dist/* pytest && pytest tests/"
