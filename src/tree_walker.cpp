@@ -1,4 +1,7 @@
 #include "tree_walker.h"
+#include <iostream>
+
+#include <string> //feel free to delete later
 
 using namespace smt;
 using namespace std;
@@ -6,8 +9,19 @@ using namespace std;
 namespace smt
 {
 
+//DELETE
+std::string vectorToString(vector<int> v){
+  std::string s;
+  for (int i:v){
+    s += std::to_string(i);
+    s += ", ";
+  }
+  return s;
+}
+
 pair<Term, vector<int>> TreeWalker::visit(Term & node)
 {
+  cout << "starting visit()" << endl;
   int child_no = -1; //iterates over children, for tracking which child on & path
   vector<int> tree_path; //path ; TODO need std::..?
 
@@ -36,6 +50,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
   //       and if something is in the cache it wouldn't
   //       visit it again (e.g. in post-order traversal)
   UnorderedTermSet visited; //TODO should be UnorderedTermSet still now that map to pairs not terms?
+  //TODO add UnorderedPairSet
 
   Term t;
   TreeWalkerStepResult res;
@@ -99,6 +114,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
 TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
 {
   if (!preorder_)
+  cout << "!preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
   {
     Op op = term->get_op();
     if (!op.is_null())
@@ -106,28 +122,30 @@ TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
       TermVec cached_children;
       Term c;
       pair <Term, vector<int>> occurrence;
-      for (auto t : term) //TODO how is a loop over the term meaningful and what should it be now? iterates over term's children?
+      int child_nu = 0;
+      for (auto t : term)
       {
-        // TODO: see if we can pass the same term as both arguments
-        //c = t; //TODO this needs to be a pair occurrence
-        //TODO make pair for (term=c, path=computed somehow)
+        //path.pop_back();
+        //path.push_back(child_nu);
+        //child_nu++;
         occurrence.first = t;
-        occurrence.second = path;
+        occurrence.second = path; //TODO should update path according to which term
         query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
         cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
       }
       pair <Term, vector<int>> occ;
-      occ.first = solver_->make_term(op, cached_children);
+      occ.first = solver_->make_term(op, cached_children); //TODO should be node of visit...
       occ.second = path;
       save_in_cache(term, occ);
     }
     else
     {
       // just keep the leaves the same
+      cout << "preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
       pair <Term, vector<int>> occ;
-      occ.first = term;
+      occ.first = term; //TODO should be node of visit...
       occ.second = path;
-      save_in_cache(term, occ); //TODO needs to be pair in second argument
+      save_in_cache(term, occ);
     }
   }
 

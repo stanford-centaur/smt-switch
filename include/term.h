@@ -168,6 +168,7 @@ class TermIter
 using TermVec = std::vector<Term>;
 using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
+//new type of map for tree walker - TODO put this here or in treewalker.h ??
 using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }

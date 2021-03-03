@@ -122,18 +122,52 @@ TEST_P(UnitWalkerTests, FunSubstitution)
   EXPECT_EQ(fy, iw.visit(fx));
 }
 
+void printVector(vector<int> v){
+  for (int i:v){
+    cout << v[i] << ", " << endl;
+  }
+}
+
+string vectorToString(vector<int> v){
+  string s;
+  for (int i:v){
+    s += to_string(i);
+    s += ", ";
+  }
+  return s;
+}
+
+
+void printMap(UnorderedTermPairMap const &m){
+  for (auto const& pair : m){
+    auto val_pair = pair.second;
+    cout << "{ " << pair.first << ": " << "(" << val_pair.first << ", " << vectorToString(val_pair.second) << ") " << " }\n";
+    //cout << "{ " << pair.first << ": " << pair.second << " }" << endl;
+  }
+}
+
 TEST_P(UnitWalkerTests, SimpleTree)
 {
   Term x = s->make_symbol("x", bvsort);
   Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
-  TreeWalker iw(s, false);
+
+  UnorderedTermPairMap UndMap;
+  TreeWalker iw(s, false, &UndMap);
+
   pair <Term, vector<int>> p1;
-  p1.first = xp1;
-  p1.second = {0};
-  EXPECT_EQ(xp1, iw.visit(p1));
+  p1 = iw.visit(xp1);
+  Term xp11 = p1.first;
+  EXPECT_EQ(xp1, xp11);
+//  EXPECT_EQ(p1.second, {0});
+//  vector<int> expected;
+//  expected.push_back(0);
+//  EXPECT_EQ(expected.size(), p1.second.size());
+//  EXPECT_EQ(expected[0], p1.second[0]);
+//  printVector(p1.second);
   //assert(false);
   // visit a second time
-  EXPECT_EQ(xp1, iw.visit(p1));
+  printMap(UndMap);
+  EXPECT_EQ(xp1, xp11);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnitWalker,
