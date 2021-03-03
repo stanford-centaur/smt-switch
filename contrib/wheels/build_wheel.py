@@ -79,7 +79,7 @@ class CMakeBuild(build_ext):
 
         # to avoid multiple build, only call reconfigure if we couldn't find the makefile
         # for python
-        python_make_dir = os.path.join(build_dir, "python")
+        python_make_dir = os.path.join(build_dir, "python", "smt_switch")
         if not os.path.isfile(os.path.join(python_make_dir, "Makefile")):
             args = ["--" + solver for solver in solvers] + ["--python"]
             config_filename = os.path.join(root_path, "configure.sh")
@@ -89,7 +89,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ['cmake', '--build', '.', "--target", "smt-switch"] + build_args, cwd=build_dir)
         # build the python binding
-        python_build_dir = os.path.join(build_dir, "python")
+        python_build_dir = os.path.join(build_dir, "python", "smt_switch")
         subprocess.check_call(["make"], cwd=python_build_dir)
         # the build folder gets cleaned during the config, need to create it again
         # this is necessary since "build" is a python dist folder
