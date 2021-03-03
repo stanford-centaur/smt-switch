@@ -198,6 +198,7 @@ Term SmtLibReader::apply_define_fun(const string & defname,
 {
   UnorderedTermMap subs_map;
   size_t num_args = args.size();
+  assert(num_args); // apply_define_fun only for defines which take arguments
 
   auto it = defs_.find(defname);
 
@@ -207,11 +208,6 @@ Term SmtLibReader::apply_define_fun(const string & defname,
   }
 
   Term def = it->second;
-
-  if (!num_args)
-  {
-    return def;
-  }
 
   if (num_args != def_args_.at(defname).size())
   {
