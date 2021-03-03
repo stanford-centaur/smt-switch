@@ -78,7 +78,7 @@ script:
     fi
   - bash -c "./contrib/setup-skbuild.sh"
   - bash -c "./configure.sh --debug --${SOLVER} --python"
-  - bash -c "cd build && make -j && make test && pip install -e ./python/smt_switch && cd ../ && pytest ./tests/"
+  - bash -c "cd build && make -j && make test && python3 -m pip install -e ./python/smt_switch && cd ../ && python3 -m pytest ./tests/"
   # Removing wheels test to speed up Travis builds
   # TODO consider building wheels in a separate configuration
   # install wheels
