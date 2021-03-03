@@ -1,5 +1,1 @@
 from .smt_switch import *
-try:
-    from . import pysmt_frontend
-except ImportError:
-    pass
