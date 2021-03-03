@@ -16,21 +16,26 @@ namespace smt {
     Term a = to_s1.transfer_term(t);
     s->assert_formula(a);
     is_sat = s->check_sat().is_sat();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     std::lock_guard<std::mutex> lk(m);
     a_solver_is_done = true;
     cv.notify_all();
   }
 
   bool portfolio_solve(SmtSolver og, std::vector<SmtSolver> solvers, Term t) {
-
+    pthread_t thr;
+    std::vector<pthread_t> pthreads(solvers.size(), thr);
     for (auto s : solvers) {
       std::thread t1(do_solver, s, t);
+      pthreads.push_back(t1.native_handle());
       t1.detach();
     }
 
     std::unique_lock<std::mutex> lk(m);
     cv.wait(lk, []{return a_solver_is_done;});
-
+    for (int i = 0; i < pthreads.size(); ++i) {
+      pthread_cancel(pthreads[i]);
+    }
     return is_sat;
   }
 } // namespace smt
