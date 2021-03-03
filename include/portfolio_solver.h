@@ -1,37 +1,14 @@
-
 #pragma once
 
-#include "smt_defs.h"
-#include <iostream>
-#include "assert.h"
 #include "smt.h"
-#include <array>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include "assert.h"
-#include "msat_factory.h"
-#include "portfolio_solver.h"
-#include "test-utils.h"
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include "available_solvers.h"
 #include <thread>
-#include <cstdlib>
-#include <unistd.h>
 #include <mutex>
 #include <condition_variable>
 
 namespace smt {
   std::mutex m;
   std::condition_variable cv;
-  bool someone_done = false;
+  bool a_solver_is_done = false;
   bool is_sat = false;
 
   bool do_solver(SmtSolver s, Term t) {
@@ -39,7 +16,8 @@ namespace smt {
     Term a = to_s1.transfer_term(t);
     s->assert_formula(a);
     is_sat = s->check_sat().is_sat();
-    someone_done = true;
+    std::lock_guard<std::mutex> lk(m);
+    a_solver_is_done = true;
     cv.notify_all();
   }
 
@@ -50,12 +28,9 @@ namespace smt {
       t1.detach();
     }
 
-    // while !someone_done, wait
-    // once someone is done, signal exit and return
     std::unique_lock<std::mutex> lk(m);
-    cv.wait(lk, []{return someone_done;});
+    cv.wait(lk, []{return a_solver_is_done;});
 
-    // term translate then call solve on everyone. 
     return is_sat;
   }
 } // namespace smt
