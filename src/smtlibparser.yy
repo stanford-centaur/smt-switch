@@ -127,9 +127,9 @@ command:
     drv.set_opt($3, $4);
   }
   | LP SETINFO KEYWORD number_or_string RP
-    {
-      drv.set_info($3, $4);
-    }
+  {
+    drv.set_info($3, $4);
+  }
   | LP DECLARECONST SYMBOL sort RP
   {
     drv.new_symbol($3, $4);
