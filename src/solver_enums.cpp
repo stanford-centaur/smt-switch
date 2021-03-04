@@ -78,6 +78,15 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
         { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
+        { Z3,
+          {
+              LOGGING,
+              THEORY_INT,
+              THEORY_REAL,
+              ARRAY_FUN_BOOLS,
+              CONSTARR,
+              QUANTIFIERS
+          } },
 
     });
 
@@ -113,6 +122,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
+    case Z3: o << "Z3"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     case CVC4_INTERPOLATOR: o << "CVC4_INTERPOLATOR"; break;
     case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
