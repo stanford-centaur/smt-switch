@@ -22,7 +22,7 @@ std::string vectorToString(vector<int> v){
 pair<Term, vector<int>> TreeWalker::visit(Term & node)
 {
   cout << "starting visit()" << endl;
-  int child_no = -1; //iterates over children, for tracking which child on & path
+//  int child_no = -1; //iterates over children, for tracking which child on & path
   vector<int> tree_path; //path ; TODO need std::..?
 
   if (clear_cache_)
@@ -44,64 +44,95 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
     return out;
   }
 
-  TermVec to_visit({node});
+  visit_term(node, tree_path); //tree_path currently empty
+  TermPairVec to_visit;
+  pair<Term, int> p1 (node, -1);
+  to_visit.push_back(p1);
+  int child_no;
+  child_no = 0;
+  for (auto ttt : node){
+    p1.first = ttt;
+    p1.second = child_no;
+    to_visit.push_back(p1);
+    child_no++;
+  }
   // Note: visited is different than cache keys
   //       might want to visit without saving to the cache
   //       and if something is in the cache it wouldn't
   //       visit it again (e.g. in post-order traversal)
-  UnorderedTermSet visited; //TODO should be UnorderedTermSet still now that map to pairs not terms?
+  //UnorderedTermSet visited; //TODO should be UnorderedTermSet still now that map to pairs not terms?
   //TODO add UnorderedPairSet
 
   Term t;
   TreeWalkerStepResult res;
+  pair<Term, int> current_pair;
+  Term current_term;
+  pair<Term, int> pn;
+//  child_no = 0;
   while(to_visit.size())
   {
-    t = to_visit.back();
+    current_pair = to_visit.back();
+    current_term = current_pair.first;
+    child_no = current_pair.second;
     to_visit.pop_back();
 
     //TODO increment iterator for children
-    ++child_no; //TODO should 0 for first loop and 1 in next etc
+ //   ++child_no; //TODO should 0 for first loop and 1 in next etc
 
-    if (in_cache(t))
-    {
-      // cache hit
-      // TODO reset iterator for children
-      tree_path.pop_back(); //pop last coordinate in path as move up a layer in tree
-      //child_no = -1;
-      continue;
-    }
 
     // in preorder if it has not been seen before
-    preorder_ = (visited.find(t) == visited.end());
+  //  preorder_ = (visited.find(t) == visited.end());
     // add to visited after determining whether we're in the pre-
     // or post-order
-    visited.insert(t);
-    res = visit_term(t, tree_path);
+   // visited.insert(t);
+    //res = visit_term(t, tree_path);
 
-    if (res == TreeWalker_Abort)
-    {
+    //if (res == TreeWalker_Abort)
+    //{
       // visit_term requested an abort
       // return the mapping if it has been cached already
-      pair <Term, vector<int>> out;
-      out.first = node;
-      out.second = tree_path; //TODO why need redo this?
-      query_cache(node, out);
-      return out;
-    }
+      //pair <Term, vector<int>> out;
+      //out.first = node;
+      //out.second = tree_path; //TODO why need redo this?
+      //query_cache(node, out);
+      //return out;
+    //}
 
-    if (preorder_)
-    {
-      if (res == TreeWalker_Continue)
-      {
-        to_visit.push_back(t);
-        tree_path.push_back(child_no); //path back path, going down new level
-        child_no = -1; //reset counter for new set of children to take
-        for (auto tt : t)
-        {
-          to_visit.push_back(tt);
-        }
+    if (child_no != -1){
+      tree_path.push_back(child_no);
+      visit_term(current_term, tree_path);
+      pn.first = current_term;
+      pn.second = -1;
+      to_visit.push_back(pn);
+      child_no = 0;
+      for (auto tt : current_term){
+        pn.first = tt;
+        pn.second = child_no;
+        to_visit.push_back(pn);
+        child_no++;
       }
     }
+    else {
+      tree_path.pop_back();
+    }
+    //if (preorder_) //on way down
+    //{
+      //if (res == TreeWalker_Continue)
+      //{
+        //to_visit.push_back(
+       // to_visit.push_back(t);
+       // tree_path.push_back(child_no); //path back path, going down new level
+     //   child_no = -1; //reset counter for new set of children to take
+        //for (auto tt : t)
+        //{
+         // to_visit.push_back(tt);
+       // }
+     // }
+   // }
+   // else {
+  //    tree_path.pop_back();
+//      child_no = tree_path.back();
+   // }
   }
 
   // finished the traversal
