@@ -63,4 +63,8 @@ endif()
 
 find_package(Cython 0.29 REQUIRED)
 
+set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
+set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+configure_file(${SETUP_PY_IN} ${SETUP_PY})
+
 add_subdirectory(smt_switch)

@@ -1,1 +1,13 @@
 from .smt_switch import *
+
+from . import primops
+from . import solverattr
+from . import solverenums
+from . import sortkinds
+
+try:
+    from . import pysmt_frontend
+except ImportError:
+    pass
+
+
