@@ -108,7 +108,7 @@ class CVC4Solver : public AbsSmtSolver
   void reset() override;
   void reset_assertions() override;
   Term substitute(const Term term,
-                  const UnorderedTermMap & substitution_map) const;
+                  const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
   // helpers
