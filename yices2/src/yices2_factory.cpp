@@ -27,9 +27,13 @@ bool initialized = false;
 /* Yices2SolverFactory implementation with logging */
 SmtSolver Yices2SolverFactory::create(bool logging)
 {
-  // Must initialize only once.
+  // Must initialize only once, even if planning to 
+  // create multiple contexts. 
   // Different instances of the solver will have
-  // different contexts.
+  // different contexts. Yices2 must be configured 
+  // with --enable-thread-safety in order for 
+  // multiple threads to manipulate different contexts.
+  // https://github.com/SRI-CSL/yices2#support-for-thread-safety
   if (!initialized)
   {
     yices_init();

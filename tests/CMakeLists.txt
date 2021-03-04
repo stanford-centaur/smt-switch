@@ -50,6 +50,10 @@ if (BUILD_YICES2)
   add_subdirectory(yices2)
 endif()
 
+if (${BUILD_YICES2} AND ${BUILD_BTOR} AND ${BUILD_MSAT} AND ${BUILD_CVC4})
+  add_subdirectory(portfolio)
+endif()
+
 # googletest tests
 
 add_executable(unit-term "${PROJECT_SOURCE_DIR}/tests/unit/unit-term.cpp")
@@ -147,11 +151,6 @@ add_executable(test_generic_sort "${PROJECT_SOURCE_DIR}/tests/test-generic-sort.
 target_link_libraries(test_generic_sort gtest_main)
 target_link_libraries(test_generic_sort test-deps)
 add_test(NAME test_generic_sort_test COMMAND test_generic_sort)
-
-add_executable(test_portfolio_solver "${PROJECT_SOURCE_DIR}/tests/test-portfolio-solver.cpp")
-target_link_libraries(test_portfolio_solver gtest_main)
-target_link_libraries(test_portfolio_solver test-deps)
-add_test(NAME test_portfolio_solver_test COMMAND test_portfolio_solver)
 
 add_executable(test_generic_solver "${PROJECT_SOURCE_DIR}/tests/test-generic-solver.cpp")
 target_link_libraries(test_generic_solver gtest_main)
