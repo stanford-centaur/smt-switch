@@ -66,7 +66,7 @@ jobs:
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
   - ./travis-scripts/travis-setup-osx-python.sh || true
-  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
+  - sudo python3 -m pip install Cython==0.29
   - sudo python3 -m pip install pytest
   # Temporarily download CVC4 instead of building it
   # There's some issue on mac with get-antlr-3.4
