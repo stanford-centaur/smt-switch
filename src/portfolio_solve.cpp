@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file portfolio_solver.h
+/*! \file portfolio_solver.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Amalee Wilson
@@ -13,13 +13,8 @@
 **        of solvers and a term, and returns check_sat from the first solver
 **        that finishes.
 **/
-#pragma once
 
-#include <condition_variable>
-#include <mutex>
-#include <thread>
-
-#include "smt.h"
+#include "portfolio_solve.h"
 
 namespace smt {
 
