@@ -217,8 +217,6 @@ s_expr:
   }
   | LP SYMBOL s_expr_list RP
   {
-    // TODO clean up this bison rule -- need to allow a define-fun
-    //      or a UF. Currently define-fun has no term representation
     // will return a null term if symbol doesn't exist
     smt::Term uf = drv.lookup_symbol($2);
     if (uf)
@@ -230,7 +228,6 @@ s_expr:
     else
     {
       // assuming this is a defined fun
-      // TODO better error message
       $$ = drv.apply_define_fun($2, $3);
     }
   }

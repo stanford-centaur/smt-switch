@@ -146,8 +146,6 @@ class SmtLibReader
 
   /* Methods for use in flex/bison generated code */
 
-  // TODO: not sure if we ever use the null term feature
-  //       maybe should just throw an exception?
   /** Look up a symbol by name
    *  Returns a null term if there is no known symbol
    *  with that name
@@ -242,7 +240,6 @@ class SmtLibReader
                        ///< e.g. nested quantifiers
 
   // define-fun data structures
-  // TODO See if we can make this less complicated
   std::unordered_map<std::string, smt::Term>
       defs_;  ///< keeps track of define-funs
   std::unordered_map<std::string, smt::TermVec>
