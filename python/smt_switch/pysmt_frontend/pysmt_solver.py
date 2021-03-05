@@ -108,9 +108,6 @@ class _SwitchSolver(IncrementalTrackingSolver,
         return self._get_value(val, sort)
 
     def _get_value(self, val, sort):
-        sys.stderr.write(f'self: {self}\n')
-        sys.stderr.write(f'type(val): {type(val)}\n')
-        sys.stderr.write(f'val: {val}\n')
         if sort.is_array_type():
             args = self._get_array_value(val, sort)
             return self.mgr.Array(*args)
