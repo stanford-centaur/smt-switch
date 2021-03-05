@@ -1,6 +1,7 @@
 from collections import ChainMap
 import fractions
 import functools as ft
+import gc
 import itertools as it
 import operator
 import sys
@@ -208,7 +209,7 @@ class _SwitchSolver(IncrementalTrackingSolver,
         self.solver.pop(levels)
 
     def _exit(self):
-        pass
+        del self.solver
 
 
 def _build_logics(logics_params):
@@ -289,6 +290,12 @@ if 'cvc4' in ss.solvers:
             self.solver = self._create_solver()
             self.converter = SwitchConverter(self.environment,  self.solver)
             self.options(self)
+
+        def _exit(self):
+            super()._exit()
+            # ensure prompt collection of the solver object
+            # to avoid heisenbug
+            gc.collect()
 
     SWITCH_SOLVERS['cvc4'] = SwitchCVC4
 
