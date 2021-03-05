@@ -22,7 +22,7 @@ std::string vectorToString(vector<int> v){
 pair<Term, vector<int>> TreeWalker::visit(Term & node)
 {
   cout << "starting visit()" << endl;
-//  int child_no = -1; //iterates over children, for tracking which child on & path
+  int child_no;  //iterates over children, for tracking which child on & path
   vector<int> tree_path; //path ; TODO need std::..?
 
   if (clear_cache_)
@@ -48,7 +48,6 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
   TermPairVec to_visit;
   pair<Term, int> p1 (node, -1);
   to_visit.push_back(p1);
-  int child_no;
   child_no = 0;
   for (auto ttt : node){
     p1.first = ttt;
@@ -56,50 +55,26 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
     to_visit.push_back(p1);
     child_no++;
   }
-  // Note: visited is different than cache keys
-  //       might want to visit without saving to the cache
-  //       and if something is in the cache it wouldn't
-  //       visit it again (e.g. in post-order traversal)
-  //UnorderedTermSet visited; //TODO should be UnorderedTermSet still now that map to pairs not terms?
-  //TODO add UnorderedPairSet
 
   Term t;
   TreeWalkerStepResult res;
   pair<Term, int> current_pair;
   Term current_term;
   pair<Term, int> pn;
-//  child_no = 0;
+  cout << "start of while loop" << endl;
   while(to_visit.size())
   {
     current_pair = to_visit.back();
+    cout << "start of new round of while loop. current pair: " << current_pair.first << " , " << current_pair.second << endl;
     current_term = current_pair.first;
     child_no = current_pair.second;
     to_visit.pop_back();
 
-    //TODO increment iterator for children
- //   ++child_no; //TODO should 0 for first loop and 1 in next etc
-
-
-    // in preorder if it has not been seen before
-  //  preorder_ = (visited.find(t) == visited.end());
-    // add to visited after determining whether we're in the pre-
-    // or post-order
-   // visited.insert(t);
-    //res = visit_term(t, tree_path);
-
-    //if (res == TreeWalker_Abort)
-    //{
-      // visit_term requested an abort
-      // return the mapping if it has been cached already
-      //pair <Term, vector<int>> out;
-      //out.first = node;
-      //out.second = tree_path; //TODO why need redo this?
-      //query_cache(node, out);
-      //return out;
-    //}
-
     if (child_no != -1){
+      //TODO add print line indicating here
+      cout << "child number not flagged, tree path before add: " << vectorToString(tree_path) << endl;
       tree_path.push_back(child_no);
+      cout << "tree path after push back: " << vectorToString(tree_path) << endl;
       visit_term(current_term, tree_path);
       pn.first = current_term;
       pn.second = -1;
@@ -113,27 +88,18 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
       }
     }
     else {
-      tree_path.pop_back();
+      cout << "should pop now, path before pop: " << vectorToString(tree_path) << endl;
+      if (!tree_path.empty()){
+        tree_path.pop_back();
+      }
+      cout << "should have popped, path afterpop: " << vectorToString(tree_path) << endl;
     }
-    //if (preorder_) //on way down
-    //{
-      //if (res == TreeWalker_Continue)
-      //{
-        //to_visit.push_back(
-       // to_visit.push_back(t);
-       // tree_path.push_back(child_no); //path back path, going down new level
-     //   child_no = -1; //reset counter for new set of children to take
-        //for (auto tt : t)
-        //{
-         // to_visit.push_back(tt);
-       // }
-     // }
-   // }
-   // else {
-  //    tree_path.pop_back();
-//      child_no = tree_path.back();
-   // }
+    cout << "end of one loop, current to_visit is: " << endl;
+    //for (auto const &p : to_visit) {
+    //  cout << "{" << to_visit[p].first << " , " << to_visit[p].second << "}" << endl;
+    //}
   }
+  cout << "end of while loop" << endl;
 
   // finished the traversal
   // return the cached term if available
@@ -144,24 +110,21 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
 
 TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
 {
-  if (!preorder_)
-  cout << "!preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
+//  if (preorder_)
+  if (true)
   {
+    cout << "!preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
     Op op = term->get_op();
     if (!op.is_null())
     {
       TermVec cached_children;
       Term c;
       pair <Term, vector<int>> occurrence;
-      int child_nu = 0;
       for (auto t : term)
       {
-        //path.pop_back();
-        //path.push_back(child_nu);
-        //child_nu++;
-        occurrence.first = t;
-        occurrence.second = path; //TODO should update path according to which term
-        query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
+       // occurrence.first = t;
+        //occurrence.second = path; //TODO should update path according to which term
+        //query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
         cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
       }
       pair <Term, vector<int>> occ;
