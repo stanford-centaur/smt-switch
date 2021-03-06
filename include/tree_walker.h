@@ -59,7 +59,7 @@ protected:
   *  @param term the term to visit
   *  @return a WalkerStepResult to tell the visit method how to proceed
   */
- virtual TreeWalkerStepResult visit_term(smt::Term & term, std::vector<int> & path);
+ virtual TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path);
 
  /** Check if key is in cache
   *  @param key

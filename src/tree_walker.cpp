@@ -44,7 +44,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
     return out;
   }
 
-  visit_term(node, tree_path); //tree_path currently empty
+  visit_term(node, node, tree_path); //tree_path currently empty
   TermPairVec to_visit;
   pair<Term, int> p1 (node, -1);
   to_visit.push_back(p1);
@@ -75,7 +75,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
       cout << "child number not flagged, tree path before add: " << vectorToString(tree_path) << endl;
       tree_path.push_back(child_no);
       cout << "tree path after push back: " << vectorToString(tree_path) << endl;
-      visit_term(current_term, tree_path);
+      visit_term(node, current_term, tree_path);
       pn.first = current_term;
       pn.second = -1;
       to_visit.push_back(pn);
@@ -108,7 +108,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
   return out;
 }
 
-TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
+TreeWalkerStepResult TreeWalker::visit_term(Term & formula, Term & term, vector<int> & path)
 {
 //  if (preorder_)
   if (true)
@@ -128,16 +128,18 @@ TreeWalkerStepResult TreeWalker::visit_term(Term & term, vector<int> & path)
         cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
       }
       pair <Term, vector<int>> occ;
-      occ.first = solver_->make_term(op, cached_children); //TODO should be node of visit...
+      Term occ_key;
+      occ.first = formula;
+      occ_key = solver_->make_term(op, cached_children); //TODO should be node of visit...
       occ.second = path;
-      save_in_cache(term, occ);
+      save_in_cache(occ_key, occ);
     }
     else
     {
       // just keep the leaves the same
       cout << "preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
       pair <Term, vector<int>> occ;
-      occ.first = term; //TODO should be node of visit...
+      occ.first = formula; //TODO should be node of visit...
       occ.second = path;
       save_in_cache(term, occ);
     }
