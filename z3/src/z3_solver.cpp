@@ -800,20 +800,11 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       }
       zterms.push_back(zterm->term);
     }
-    if (zterms.size() != 2)
-    {
-      throw IncorrectUsageException(
-          "smt-switch only supports binding one parameter at a time with a "
-          "quantifier");
-    }
     expr quantified_body = zterms.back();
     zterms.pop_back();
     unsigned num_var = zterms.size();  // this will always be one when only
                                        // allowing one parameter
 
-    // below is a slight overcomplication for one parameter quantifiers
-    // but by keeping it, smt-switch can be extended to any number of parameters
-    // by removing the zterm.size() check
     std::vector<Z3_ast> znames;
     znames.reserve(terms.size() - 1);
     std::vector<Z3_sort> zsorts;
