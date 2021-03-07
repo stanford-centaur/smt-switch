@@ -873,7 +873,7 @@ Term CVC4Solver::make_term(Op op,
       // quantifiers handled generically with vector input
       if (op.prim_op == Forall || op.prim_op == Exists)
       {
-        return make_term(op, { t0, t1 });
+        return make_term(op, { t0, t1, t2 });
       }
       else
       {
