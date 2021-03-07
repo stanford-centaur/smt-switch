@@ -730,12 +730,7 @@ Term BoolectorSolver::make_term(Op op,
                                 const Term & t1,
                                 const Term & t2) const
 {
-  if (op.prim_op == Forall || op.prim_op == Exists)
-  {
-    throw IncorrectUsageException(
-        "Expecting exactly one parameter and a body formula for quantifier op");
-  }
-  else if (op.num_idx == 0)
+  if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, t0, t1, t2);
   }
@@ -749,12 +744,7 @@ Term BoolectorSolver::make_term(Op op,
 
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (terms.size() != 2 && (op.prim_op == Forall || op.prim_op == Exists))
-  {
-    throw IncorrectUsageException(
-        "Expecting exactly one parameter and a body formula for quantifier op");
-  }
-  else if (op.num_idx == 0)
+  if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, terms);
   }
@@ -935,6 +925,30 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
           std::static_pointer_cast<BoolectorTerm>(t0);
       result = boolector_apply(btor, &args[0], 2, bt0->node);
     }
+    else if (op == Forall)
+    {
+      std::shared_ptr<BoolectorTerm> bt0 =
+          std::static_pointer_cast<BoolectorTerm>(t0);
+      std::shared_ptr<BoolectorTerm> bt1 =
+          std::static_pointer_cast<BoolectorTerm>(t1);
+      std::shared_ptr<BoolectorTerm> bt2 =
+          std::static_pointer_cast<BoolectorTerm>(t2);
+      std::vector<BoolectorNode *> params({ bt0->node, bt1->node });
+      return std::make_shared<BoolectorTerm>(
+          btor, boolector_forall(btor, &params[0], 2, bt2->node));
+    }
+    else if (op == Exists)
+    {
+      std::shared_ptr<BoolectorTerm> bt0 =
+          std::static_pointer_cast<BoolectorTerm>(t0);
+      std::shared_ptr<BoolectorTerm> bt1 =
+          std::static_pointer_cast<BoolectorTerm>(t1);
+      std::shared_ptr<BoolectorTerm> bt2 =
+          std::static_pointer_cast<BoolectorTerm>(t2);
+      std::vector<BoolectorNode *> params({ bt0->node, bt1->node });
+      return std::make_shared<BoolectorTerm>(
+          btor, boolector_exists(btor, &params[0], 2, bt2->node));
+    }
     else
     {
       result = ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
@@ -986,6 +1000,29 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
       BoolectorNode * result = boolector_apply(btor, &args[0], args.size(), bt0->node);
 
       return std::make_shared<BoolectorTerm> (btor, result);
+    }
+    else if (op == Forall || op == Exists)
+    {
+      std::vector<BoolectorNode *> bparams;
+      bparams.reserve(terms.size() - 1);
+      for (size_t i = 0; i + 1 < terms.size(); ++i)
+      {
+        bparams.push_back(
+            std::static_pointer_cast<BoolectorTerm>(terms[i])->node);
+      }
+      BoolectorNode * bbody =
+          std::static_pointer_cast<BoolectorTerm>(terms.back())->node;
+      BoolectorNode * bres;
+      if (op == Forall)
+      {
+        bres = boolector_forall(btor, bparams.data(), bparams.size(), bbody);
+      }
+      else
+      {
+        assert(op == Exists);
+        bres = boolector_exists(btor, bparams.data(), bparams.size(), bbody);
+      }
+      return std::make_shared<BoolectorTerm>(btor, bres);
     }
     else
     {
