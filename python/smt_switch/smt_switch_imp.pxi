@@ -455,3 +455,52 @@ def get_free_symbols(Term term):
         python_out_set.add(t)
 
     return python_out_set
+
+
+class TermDagVisitor:
+    def __init__(self):
+        pass
+
+    def walk_dag(self, term):
+        '''
+        Walks through all the subterms in the DAG of term
+        '''
+
+        to_visit = [term]
+        visited  = set()
+        cache    = dict()
+
+        while to_visit:
+            t = to_visit.pop()
+
+            if t in visited:
+                new_children = [cache[tt] for tt in t]
+                cache[t] = self.visit_term(t, new_children)
+            else:
+                visited.add(t)
+                for tt in t:
+                    to_visit.append(tt)
+
+        return cache[term]
+
+
+    def visit_term(self, term, new_children):
+        '''
+        Visit a particular term (in postorder).
+        Derived classes should override this method.
+        @param term the smt-switch term to visit
+        @param new_children the previously visited children
+        @return updated/translated term
+        '''
+
+        raise NotImplementedError("visit_term not implemented in base class")
+
+
+# example derived class for TermDagVisitor
+class IdentityVisitor(TermDagVisitor):
+    def __init__(self, solver):
+        self._solver = solver
+
+    def visit_term(self, term, new_children):
+        op = term.get_op()
+        return self._solver.make_term(op, new_children)
