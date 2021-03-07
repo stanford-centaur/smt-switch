@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from cython.operator cimport dereference as dref
 from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
@@ -457,7 +459,7 @@ def get_free_symbols(Term term):
     return python_out_set
 
 
-class TermDagVisitor:
+class TermDagVisitor(ABC):
     def __init__(self):
         pass
 
@@ -484,7 +486,7 @@ class TermDagVisitor:
 
         return cache[term]
 
-
+    @abstractmethod
     def visit_term(self, term, new_children):
         '''
         Visit a particular term (in postorder).
