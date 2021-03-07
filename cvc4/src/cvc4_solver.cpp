@@ -834,10 +834,8 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
     std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      ::CVC4::api::Term bound_vars =
-          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterm0->term);
-      return std::make_shared<CVC4Term>(
-          solver.mkTerm(primop2kind.at(op.prim_op), bound_vars, cterm1->term));
+      // quantifiers handled generically with vector input
+      return make_term(op, { t0, t1 });
     }
     else if (op.num_idx == 0)
     {
@@ -871,11 +869,19 @@ Term CVC4Solver::make_term(Op op,
     std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
     if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op),
-                         cterm0->term,
-                         cterm1->term,
-                         cterm2->term));
+      // quantifiers handled generically with vector input
+      if (op.prim_op == Forall || op.prim_op == Exists)
+      {
+        return make_term(op, { t0, t1 });
+      }
+      else
+      {
+        return std::make_shared<CVC4Term>(
+            solver.mkTerm(primop2kind.at(op.prim_op),
+                          cterm0->term,
+                          cterm1->term,
+                          cterm2->term));
+      }
     }
     else
     {
@@ -886,12 +892,6 @@ Term CVC4Solver::make_term(Op op,
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      throw IncorrectUsageException(
-          "Can only bind one parameter at time with quantifiers in "
-          "smt-switch.");
-    }
     throw InternalSolverException(e.what());
   }
 }
@@ -910,18 +910,20 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      if (cterms.size() != 2)
-      {
-        throw IncorrectUsageException(
-            "smt-switch only supports binding one parameter at a time with a "
-            "quantifier");
-      }
-      ::CVC4::api::Term quantified_body = cterms.back();
+      ::CVC4::api::Kind quant_kind = primop2kind.at(op.prim_op);
+      ::CVC4::api::Term quant_res = cterms.back();
       cterms.pop_back();
-      ::CVC4::api::Term bound_vars =
-          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms);
-      return std::make_shared<CVC4Term>(solver.mkTerm(
-          primop2kind.at(op.prim_op), bound_vars, quantified_body));
+      // bind quantifiers one a time
+      // makes traversal easier since smt-switch has no
+      // BOUND_VAR_LIST equivalent
+      while (cterms.size())
+      {
+        ::CVC4::api::Term bound_var =
+            solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms.back());
+        cterms.pop_back();
+        quant_res = solver.mkTerm(quant_kind, bound_var, quant_res);
+      }
+      return std::make_shared<CVC4Term>(quant_res);
     }
     else if (op.num_idx == 0)
     {
