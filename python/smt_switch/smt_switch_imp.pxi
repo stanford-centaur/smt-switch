@@ -478,6 +478,7 @@ class TermDagVisitor:
                 cache[t] = self.visit_term(t, new_children)
             else:
                 visited.add(t)
+                to_visit.append(t)
                 for tt in t:
                     to_visit.append(tt)
 
@@ -503,4 +504,11 @@ class IdentityVisitor(TermDagVisitor):
 
     def visit_term(self, term, new_children):
         op = term.get_op()
-        return self._solver.make_term(op, new_children)
+        if op:
+            return self._solver.make_term(op, new_children)
+        elif new_children:
+            # constant array case
+            return term
+        else:
+            # symbol / value / parameter case
+            return term
