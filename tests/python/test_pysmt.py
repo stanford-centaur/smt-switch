@@ -1,13 +1,11 @@
 import pytest
+import smt_switch as ss
 
-import pysmt
+pysmt = pytest.importorskip("pysmt")
 from pysmt import shortcuts as sc
 from pysmt import typing as st
 from pysmt import logics as sl
-
-import smt_switch as ss
 import smt_switch.pysmt_frontend as fe
-
 
 @pytest.mark.parametrize('solver_str', fe.SWITCH_SOLVERS.keys())
 @pytest.mark.parametrize(('T', 'logic'), [
