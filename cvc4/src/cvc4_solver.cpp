@@ -683,7 +683,8 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
       throw IncorrectUsageException(
-          "Quantifier ops require one parameter and the formula body.");
+          "Quantifier ops require at least one parameter and the formula "
+          "body.");
     }
     throw InternalSolverException(e.what());
   }
