@@ -45,6 +45,8 @@ class VariadicOpsTests
 TEST_P(VariadicOpsTests, AND)
 {
   size_t num_args = 20;
+  Term term_true = s->make_term(true);
+
   TermVec args;
   args.reserve(num_args);
 
@@ -57,8 +59,6 @@ TEST_P(VariadicOpsTests, AND)
   s->assert_formula(reduce_and);
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
-
-  Term term_true = s->make_term(true);
 
   for (const auto & a : args)
   {
@@ -90,6 +90,6 @@ TEST_P(VariadicOpsTests, BVADD)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
                          VariadicOpsTests,
-                         testing::ValuesIn(available_solver_configurations()));
+                         testing::ValuesIn(available_non_generic_solver_configurations()));
 
 }  // namespace smt_tests
