@@ -57,6 +57,8 @@ TEST_P(VariadicOpsTests, AND)
 
   Term reduce_and = s->make_term(And, args);
   s->assert_formula(reduce_and);
+  // check that we can pass 3 (and doesn't go to a ternary call)
+  Term reduce_and3 = s->make_term(And, {args[0], args[1], args[2]});
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 

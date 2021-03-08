@@ -962,7 +962,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
   {
     return apply_prim_op(op, terms[0]);
   }
-  else if (size == 3)
+  else if (size == 3 && ternary_ops.find(op) != ternary_ops.end())
   {
     return apply_prim_op(op, terms[0], terms[1], terms[2]);
   }
