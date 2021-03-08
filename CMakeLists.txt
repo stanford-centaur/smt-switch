@@ -42,7 +42,8 @@ set(SOURCES
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
 if (SMTLIB_READER)
-  find_package(BISON 3.4.2 REQUIRED)
+  list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
+  find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
 
   if (BISON_FOUND)
