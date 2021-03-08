@@ -1,0 +1,22 @@
+from setuptools import setup, find_packages
+from distutils.core import Extension
+
+PYSMT_REQUIRES = ['pysmt']
+TEST_REQUIRES = ['pytest'] + PYSMT_REQUIRES
+
+# could probably get cmake to populate this but whatever
+PACKAGE_NAME = 'smt_switch'
+
+setup(name=PACKAGE_NAME,
+      version='0.2.2',
+      long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
+      url='http://github.com/makaimann/smt-switch',
+      license='BSD',
+      zip_safe=False,
+      packake_dir={'':  PACKAGE_NAME},
+      package_data={'': [f'{PACKAGE_NAME}.so']},
+      extras_require={
+          'pysmt': PYSMT_REQUIRES,
+          'test': TEST_REQUIRES,
+      },
+)

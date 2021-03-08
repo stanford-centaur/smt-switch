@@ -46,11 +46,25 @@ add_custom_target(gen-smt-solver-declarations
   )
 python_extension_module(smt_switch)
 
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
                "${CMAKE_CURRENT_BINARY_DIR}/__init__.py" COPYONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/primops.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/primops.py" COPYONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/solverattr.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/solverattr.py" COPYONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/solverenums.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/solverenums.py" COPYONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sortkinds.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/sortkinds.py" COPYONLY)
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/pysmt_frontend")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend/__init__.py"
+               "${CMAKE_CURRENT_BINARY_DIR}/pysmt_frontend/__init__.py" COPYONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend/pysmt_solver.py"
+               "${CMAKE_CURRENT_BINARY_DIR}/pysmt_frontend/pysmt_solver.py" COPYONLY)
 
 install(TARGETS smt_switch DESTINATION lib)

@@ -9,7 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-include_directories ("${PROJECT_SOURCE_DIR}/include")
+set(INCLUDE_DIRS
+  "${PROJECT_SOURCE_DIR}/include")
 
 # add to search path for find_package
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
@@ -40,6 +41,44 @@ add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
+
+if (SMTLIB_READER)
+  find_package(BISON 3.4.2 REQUIRED)
+  find_package(FLEX 2.6.4 REQUIRED)
+
+  if (BISON_FOUND)
+    get_filename_component(BISON_PARENT_DIR "${BISON_EXECUTABLE}" DIRECTORY)
+    message("-- Adding bison lib: ${BISON_PARENT_DIR}/../lib")
+    link_directories("${BISON_PARENT_DIR}/../lib/")
+  endif()
+
+  BISON_TARGET(SmtLibParser ${PROJECT_SOURCE_DIR}/src/smtlibparser.yy
+    ${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.cpp
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.h)
+
+  FLEX_TARGET(SmtLibScanner ${PROJECT_SOURCE_DIR}/src/smtlibscanner.l
+    ${CMAKE_CURRENT_BINARY_DIR}/smtlibscanner.cpp)
+
+  ADD_FLEX_BISON_DEPENDENCY(SmtLibScanner SmtLibParser)
+
+  # putting generated header files in build dir
+  set(INCLUDE_DIRS "${INCLUDE_DIRS}" "${CMAKE_BINARY_DIR}")
+
+  set(SOURCES "${SOURCES}"
+    "${PROJECT_SOURCE_DIR}/src/smtlib_reader.cpp"
+    "${BISON_SmtLibParser_OUTPUTS}"
+    "${FLEX_SmtLibScanner_OUTPUTS}")
+else()
+  # if not building with SmtLibReader
+  # then exclude the relevant header files from installing
+  set(EXCLUDE_HEADERS_INSTALL
+    PATTERN "smtlib_reader.h" EXCLUDE
+    PATTERN "smtlibparser_maps.h" EXCLUDE)
+endif()
+
+include_directories (${INCLUDE_DIRS})
+
+add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
@@ -147,8 +186,16 @@ install(TARGETS smt-switch DESTINATION lib)
 
 # install public headers
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-        DESTINATION include/smt-switch
-        FILES_MATCHING PATTERN "*.h")
+  DESTINATION include/smt-switch
+  ${EXCLUDE_HEADERS_INSTALL})
+
+if (SMTLIB_READER)
+  install(FILES "${CMAKE_BINARY_DIR}/smtlibparser.h"
+    DESTINATION include/smt-switch)
+
+  install(FILES "${CMAKE_BINARY_DIR}/location.hh"
+    DESTINATION include/smt-switch)
+endif()
 
 # uninstall target
 # copied from https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake
