@@ -247,4 +247,9 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
+bool is_variadic(PrimOp po)
+{
+  return variadic_ops.find(po) != variadic_ops.end();
+}
+
 }  // namespace smt

@@ -989,7 +989,27 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       }
       throw InternalSolverException(msg);
     }
-    return Term(new MsatTerm(env, res));
+    return make_shared<MsatTerm>(env, res);
+  }
+  else if (is_variadic(op.prim_op))
+  {
+    // assuming they are binary operators extended to n arguments
+    auto msat_fun = msat_binary_ops.at(op.prim_op);
+
+    // get msat_terms
+    vector<msat_term> margs;
+    margs.reserve(size);
+    for (const auto & tt : terms)
+    {
+      margs.push_back(static_pointer_cast<MsatTerm>(tt)->term);
+    }
+
+    msat_term res = msat_fun(env, margs[0], margs[1]);
+    for (size_t i = 2; i < size; ++i)
+    {
+      res = msat_fun(env, res, margs[i]);
+    }
+    return make_shared<MsatTerm>(env, res);
   }
   else
   {

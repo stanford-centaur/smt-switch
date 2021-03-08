@@ -179,3 +179,10 @@ namespace std
     };
 }
 
+namespace smt {
+// ops that can be applied to n arguments
+const std::unordered_set<PrimOp> variadic_ops(
+    { And, Or, Xor, Plus, BVAnd, BVOr, BVAdd });
+
+bool is_variadic(PrimOp po);
+}  // namespace smt
