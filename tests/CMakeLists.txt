@@ -202,3 +202,8 @@ target_link_libraries(test-disjointset gtest_main)
 target_link_libraries(test-disjointset test-deps)
 add_test(NAME test-disjointset_test COMMAND test-disjointset)
 
+add_executable(test-variadic-ops "${PROJECT_SOURCE_DIR}/tests/test-variadic-ops.cpp")
+target_link_libraries(test-variadic-ops gtest_main)
+target_link_libraries(test-variadic-ops test-deps)
+add_test(NAME test-variadic-ops_test COMMAND test-variadic-ops)
+
