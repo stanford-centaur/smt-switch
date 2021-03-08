@@ -108,7 +108,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   {
     if (value == "true")
     {
-      // needs to be incremental
+      // needs to be incremental for getting unsat assumptions
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
   }

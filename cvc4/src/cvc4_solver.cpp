@@ -110,16 +110,7 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
-    if (option == "produce-unsat-assumptions")
-    {
-      // to be consistent with the smt-switch API, we actually use
-      // produce-unsat-assumptions
-      solver.setOption("produce-unsat-assumptions", value);
-    }
-    else
-    {
-      solver.setOption(option, value);
-    }
+    solver.setOption(option, value);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
