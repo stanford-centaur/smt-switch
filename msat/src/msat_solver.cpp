@@ -145,7 +145,7 @@ void MsatSolver::set_opt(const string option, const string value)
                 << std::endl;
     }
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     if (value == "false")
     {
@@ -359,7 +359,7 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void MsatSolver::get_unsat_core(UnorderedTermSet & out)
+void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);

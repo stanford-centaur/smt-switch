@@ -73,7 +73,7 @@ class LoggingSolver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_core(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;
@@ -96,7 +96,7 @@ class LoggingSolver : public AbsSmtSolver
   // stores a mapping from wrapped terms to logging terms
   // that were used in check_sat_assuming
   // this is so they can be recovered with the correct children/op
-  // after a call to get_unsat_core
+  // after a call to get_unsat_assumptions
   std::unique_ptr<UnorderedTermMap> assumption_cache;
 
   // NOTE this is a little ugly, but this needs to be incremented

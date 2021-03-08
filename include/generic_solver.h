@@ -98,7 +98,7 @@ class GenericSolver : public AbsSmtSolver
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
   Term get_value(const Term & t) const override;
-  void get_unsat_core(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table
   void reset() override;

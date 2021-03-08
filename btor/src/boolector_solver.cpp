@@ -104,7 +104,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
       boolector_set_opt(btor, BTOR_OPT_INCREMENTAL, 1);
     }
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     if (value == "true")
     {
@@ -475,7 +475,7 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void BoolectorSolver::get_unsat_core(UnorderedTermSet & out)
+void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor);
   while (*bcore)

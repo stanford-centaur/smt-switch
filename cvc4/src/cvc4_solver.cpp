@@ -110,7 +110,7 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
-    if (option == "produce-unsat-cores")
+    if (option == "produce-unsat-assumptions")
     {
       // to be consistent with the smt-switch API, we actually use
       // produce-unsat-assumptions
@@ -417,7 +417,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   }
 }
 
-void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
+void CVC4Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   Term f;
   try

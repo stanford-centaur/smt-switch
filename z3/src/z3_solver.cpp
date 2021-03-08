@@ -335,7 +335,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
       "Get array values not implemented for Z3 backend.");
 }
 
-void Z3Solver::get_unsat_core(UnorderedTermSet & out)
+void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   throw NotImplementedException(
       "Get unsat core not implemented for Z3 backend.");
