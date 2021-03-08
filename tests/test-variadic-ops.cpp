@@ -36,9 +36,10 @@ class VariadicOpsTests
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     boolsort = s->make_sort(BOOL);
+    bvsort = s->make_sort(BV, 8);
   }
   SmtSolver s;
-  Sort boolsort;
+  Sort boolsort, bvsort;
 };
 
 TEST_P(VariadicOpsTests, AND)
@@ -63,6 +64,28 @@ TEST_P(VariadicOpsTests, AND)
   {
     EXPECT_EQ(s->get_value(a), term_true);
   }
+}
+
+TEST_P(VariadicOpsTests, BVADD)
+{
+  size_t num_args = 20;
+  TermVec args;
+  args.reserve(num_args);
+
+  size_t sum = 0;
+  for (size_t i = 0; i < num_args; ++i)
+  {
+    args.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
+    s->assert_formula(
+        s->make_term(Equal, args.back(), s->make_term(i, bvsort)));
+    sum += i;
+  }
+
+  Term term_sum = s->make_term(BVAdd, args);
+  Result r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
+
+  ASSERT_EQ(s->get_value(term_sum)->to_int(), sum);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
