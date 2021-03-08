@@ -885,7 +885,34 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
     res = yices_application(yterm->term, size - 1, &yargs[0]);
   }
-  // else if() ... check the variadic terms list.
+  else if (is_variadic(op.prim_op))
+  {
+    vector<term_t> yargs;
+    yargs.reserve(size);
+    shared_ptr<Yices2Term> yterm;
+
+    // skip the first term (that's actually a function)
+    for (const auto & tt : terms)
+    {
+      yterm = static_pointer_cast<Yices2Term>(tt);
+      yargs.push_back(yterm->term);
+    }
+
+    if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
+    {
+      res = yices_variadic_ops.at(op.prim_op)(yargs.size(), yargs.data());
+    }
+    else
+    {
+      // assume it's a binary function extended to n args
+      auto yices_fun = yices_binary_ops.at(op.prim_op);
+      res = yices_fun(yargs[0], yargs[1]);
+      for (size_t i = 2; i < size; ++i)
+      {
+        res = yices_fun(res, yargs[i]);
+      }
+    }
+  }
   else
   {
     string msg("Can't apply ");
