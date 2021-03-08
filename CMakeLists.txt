@@ -19,7 +19,7 @@ if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
-add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}"
+set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"
@@ -79,6 +79,10 @@ endif()
 include_directories (${INCLUDE_DIRS})
 
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
+
+set(THREADS_PREFER_PTHREAD_FLAG True)
+find_package(Threads)
+target_link_libraries( smt-switch PRIVATE Threads::Threads)
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
