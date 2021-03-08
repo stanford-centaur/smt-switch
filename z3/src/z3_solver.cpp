@@ -861,8 +861,24 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
+  else if (is_variadic(op.prim_op))
+  {
+    std::vector<Z3_ast> z3args;
+    z3args.reserve(size);
+    for (const auto & tt : terms)
+    {
+      z3args.push_back(std::static_pointer_cast<Z3Term>(tt)->term);
+    }
 
-  // else if() ... check the variadic terms list.
+    // assume this is a binary operator extended to n arguments
+    auto z3_fun = binary_ops.at(op.prim_op);
+    Z3_ast res = z3_fun(ctx, z3args[0], z3args[1]);
+    for (size_t i = 2; i < size; ++i)
+    {
+      res = z3_fun(ctx, res, z3args[i]);
+    }
+    return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  }
   else
   {
     string msg("Can't apply ");
