@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test-unsat-core-reducer.cpp
+/*! \file test-unsat-assumption-reducer.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Ahmed Irfan, Makai Mann
@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Tests for unsat-core-based reducer.
+** \brief Tests for unsat-assumption-based reducer.
 **
 **
 **/

@@ -284,15 +284,15 @@ cdef class SmtSolver:
         term.ct = dref(self.css).get_value(t.ct)
         return term
 
-    def get_unsat_core(self):
-        unsat_core = set()
+    def get_unsat_assumptions(self):
+        unsat_assumptions = set()
         cdef c_UnorderedTermSet cts
-        dref(self.css).get_unsat_core(cts)
+        dref(self.css).get_unsat_assumptions(cts)
         for l in cts:
             term = Term(self)
             term.ct = l
-            unsat_core.add(term)
-        return unsat_core
+            unsat_assumptions.add(term)
+        return unsat_assumptions
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
         cdef Sort s = Sort(self)

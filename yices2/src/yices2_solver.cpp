@@ -119,7 +119,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
       yices_set_config(config, "mode", "push-pop");
     }
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     // nothing to be done
     ;
@@ -394,7 +394,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
       "particular select of the array.");
 }
 
-void Yices2Solver::get_unsat_core(UnorderedTermSet & out)
+void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   term_vector_t ycore;
   yices_init_term_vector(&ycore);

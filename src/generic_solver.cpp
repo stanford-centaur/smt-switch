@@ -893,7 +893,7 @@ string GenericSolver::strip_value_from_result(string result) const
   return strip;
 }
 
-void GenericSolver::get_unsat_core(UnorderedTermSet & out)
+void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   // run get-unsat-assumptions command
   string result = run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
