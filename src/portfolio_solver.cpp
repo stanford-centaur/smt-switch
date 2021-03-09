@@ -37,8 +37,6 @@ void PortfolioSolver::run_solver(SmtSolver s)
   std::lock_guard<std::mutex> lk(m);
   a_solver_is_done = true;
 
-  // The notify_one function is used here because there is only
-  // one thread waiting on cv.
   cv.notify_all();
 }
 
