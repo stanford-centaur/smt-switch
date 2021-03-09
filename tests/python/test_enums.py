@@ -19,7 +19,7 @@ import smt_switch as ss
 
 @pytest.mark.parametrize("create_solver", [f for name, f in ss.solvers.items() if name != 'btor'])
 def test_sortkind(create_solver):
-    solver = ss.create_cvc4_solver(False)
+    solver = create_solver(False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     x = solver.make_symbol("x", bvsort)
     sk = x.get_sort().get_sort_kind()
@@ -30,7 +30,7 @@ def test_sortkind(create_solver):
 
 @pytest.mark.parametrize("create_solver", [f for name, f in ss.solvers.items() if name != 'btor'])
 def test_primop(create_solver):
-    solver = ss.create_cvc4_solver(False)
+    solver = create_solver(False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     x = solver.make_symbol("x", bvsort)
     y = solver.make_symbol("y", bvsort)
