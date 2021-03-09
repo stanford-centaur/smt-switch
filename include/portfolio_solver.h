@@ -35,13 +35,11 @@ class PortfolioSolver
    */
   smt::Result portfolio_solve();
 
-  void reset(std::vector<SmtSolver> slvrs, Term trm);
-
   /** Translate the term t to the solver s, and check_sat.
    *  @param s The solver to translate the term t to.
    *  @param t The term being translated to solver s.
    */
-  void * run_solver(int idx);
+  void run_solver(SmtSolver s);
   // static void * run_solver_helper(void * thread_arg);
 
  private:

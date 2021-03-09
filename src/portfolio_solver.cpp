@@ -19,12 +19,6 @@
 #include <unistd.h>
 namespace smt {
 
-struct thread_data
-{
-  void * context;
-  int idx;
-};
-
 PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
     : solvers(slvrs), portfolio_term(trm)
 {
@@ -33,9 +27,8 @@ PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
  *  @param s The solver to translate the term t to.
  *  @param t The term being translated to solver s.
  */
-void * PortfolioSolver::run_solver(int idx)
+void PortfolioSolver::run_solver(SmtSolver s)
 {
-  SmtSolver s = solvers[idx];
   TermTranslator to_s(s);
   Term a = to_s.transfer_term(portfolio_term, smt::BOOL);
   s->assert_formula(a);
@@ -49,13 +42,6 @@ void * PortfolioSolver::run_solver(int idx)
   cv.notify_all();
 }
 
-static void * run_solver_helper(void * thread_arg)
-{
-  thread_data * ta = (thread_data *)thread_arg;
-  PortfolioSolver * c = (PortfolioSolver *)ta->context;
-  c->run_solver(ta->idx);
-}
-
 /** Launch many solvers and return whether the term is satisfiable when one of
  *  them has finished.
  *  @param solvers The solvers to run.
@@ -63,47 +49,22 @@ static void * run_solver_helper(void * thread_arg)
  */
 smt::Result PortfolioSolver::portfolio_solve()
 {
-  std::vector<int> taskids;
-  pthread_t thr;
-  std::vector<pthread_t> pts(solvers.size(), thr);
-
   // We must maintain a vector of pthreads in order to stop the threads that are
   // still running once one of the solvers finish because pthreads is assumed to
   // be the underlying implementation.
-  std::vector<pthread_t> pthreads;
-
-  int rc;
-  int x = 0;
-  thread_data td;
-  std::vector<thread_data> thread_args(solvers.size(), td);
   for (auto s : solvers)
   {
     // Start a thread, store its handle, and detach the thread because we are
     // not interested in waiting for all of them to finish.
-    taskids.push_back(x);
-    thread_args[x].context = this;
-    thread_args[x].idx = x;
-    rc = pthread_create(
-        &pts[x], NULL, run_solver_helper, (void *)&thread_args[x]);
-    x++;
+    std::thread t1(&PortfolioSolver::run_solver, this, s);
+    t1.detach();
   }
 
   // Wait until a solver is done to cancel the threads that are still running.
   std::unique_lock<std::mutex> lk(m);
   while (!a_solver_is_done) cv.wait(lk);
 
-  for (int i = 0; i < pts.size(); ++i)
-  {
-    pthread_cancel(pts[i]);
-  }
-
   return result;
-}
-
-void PortfolioSolver::reset(std::vector<SmtSolver> slvrs, Term trm)
-{
-  solvers.assign(slvrs.begin(), slvrs.end());
-  portfolio_term = Term(trm);
 }
 
 }  // namespace smt
