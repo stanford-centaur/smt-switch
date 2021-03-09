@@ -206,7 +206,7 @@ cdef class PrimOp:
         return (<int> self.po) != (<int> other.po)
 
     def __hash__(self):
-        return hash((<int> self.po, self.name))
+        return (<int> self.po)
 
     def __str__(self):
         return to_string(self.po).decode()
@@ -482,3 +482,17 @@ setattr(primops, 'Forall', Forall)
 cdef PrimOp Exists = PrimOp()
 Exists.po = c_Exists
 setattr(primops, 'Exists', Exists)
+
+##################################### dictionaries for getting canonical enum objects ###################
+
+int2primop = dict()
+for attr in dir(primops):
+    if not attr.startswith("_"):
+        pypo = getattr(primops, attr)
+        int2primop[(<int> (<PrimOp?> pypo).po)] = pypo
+
+int2sortkind = dict()
+for attr in dir(sortkinds):
+    if not attr.startswith("_"):
+        pysk = getattr(sortkinds, attr)
+        int2sortkind[(<int> (<SortKind?> pysk).sk)] = pysk
