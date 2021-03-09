@@ -113,7 +113,7 @@ class AbsSmtSolver
    *  unsat.
    *  SMTLIB: (get-unsat-assumptions)
    */
-  virtual void get_unsat_core(UnorderedTermSet & out) = 0;
+  virtual void get_unsat_assumptions(UnorderedTermSet & out) = 0;
 
   /* Make an uninterpreted sort
    * SMTLIB: (declare-sort <name> <arity>)

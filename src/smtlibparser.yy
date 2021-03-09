@@ -242,15 +242,11 @@ s_expr:
     }
     sorted_param_list RP s_expr RP
   {
-    smt::Term quant_term = $7;
     smt::SmtSolver & solver = drv.solver();
     smt::PrimOp po = drv.lookup_primop($2);
-    // TODO: update this to bind all parameters at once
-    for (int i = $5.size()-1; i >= 0; --i)
-    {
-      quant_term = drv.solver()->make_term(po, $5[i], quant_term);
-    }
-    $$ = quant_term;
+    // smt-switch takes all the parameters followed by the body
+    $5.push_back($7);
+    $$ = drv.solver()->make_term(po, $5);
 
     // this scope is done
     drv.pop_scope();

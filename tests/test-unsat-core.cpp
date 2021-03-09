@@ -41,7 +41,7 @@ class UnsatCoreTests : public ::testing::Test,
     }
     else
     {
-      s->set_opt("produce-unsat-cores", "true");
+      s->set_opt("produce-unsat-assumptions", "true");
     }
     boolsort = s->make_sort(BOOL);
   }
@@ -62,7 +62,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;
-  s->get_unsat_core(core);
+  s->get_unsat_assumptions(core);
   ASSERT_TRUE(core.size() > 1);
 
   // for solvers using assumptions under the hood,
@@ -71,7 +71,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   ASSERT_TRUE(r.is_sat());
   // unsat core is only available after a call to check-sat-assuming, not
   // check-sat
-  ASSERT_THROW(s->get_unsat_core(core), SmtException);
+  ASSERT_THROW(s->get_unsat_assumptions(core), SmtException);
 }
 
 INSTANTIATE_TEST_SUITE_P(
