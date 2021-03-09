@@ -72,7 +72,7 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
 const unordered_map<PrimOp, tern_fun> ternary_ops({ { Ite, Z3_mk_ite },
                                                     { Store, Z3_mk_store } });
 
-const unordered_map<PrimOp, variadic_fun> variadic_ops({
+const unordered_map<PrimOp, variadic_fun> z3_variadic_ops({
     { And, Z3_mk_and },
     { Or, Z3_mk_or },
     { Plus, Z3_mk_add },
@@ -662,10 +662,10 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
     {
       res = binary_ops.at(op.prim_op)(ctx, zterm0->term, zterm1->term);
     }
-    else if (variadic_ops.find(op.prim_op) != variadic_ops.end())
+    else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
     {
       Z3_ast terms[2] = { zterm0->term, zterm1->term };
-      res = variadic_ops.at(op.prim_op)(ctx, 2, terms);
+      res = z3_variadic_ops.at(op.prim_op)(ctx, 2, terms);
     }
     else
     {
@@ -715,10 +715,10 @@ Term Z3Solver::make_term(Op op,
       res = ternary_ops.at(op.prim_op)(
           ctx, zterm0->term, zterm1->term, zterm2->term);
     }
-    else if (variadic_ops.find(op.prim_op) != variadic_ops.end())
+    else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
     {
       Z3_ast terms[3] = { zterm0->term, zterm1->term, zterm2->term };
-      res = variadic_ops.at(op.prim_op)(ctx, 3, terms);
+      res = z3_variadic_ops.at(op.prim_op)(ctx, 3, terms);
     }
     else
     {
@@ -852,8 +852,32 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
+  else if (is_variadic(op.prim_op))
+  {
+    std::vector<Z3_ast> z3args;
+    z3args.reserve(size);
+    for (const auto & tt : terms)
+    {
+      z3args.push_back(std::static_pointer_cast<Z3Term>(tt)->term);
+    }
 
-  // else if() ... check the variadic terms list.
+    Z3_ast res;
+    if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
+    {
+      res = z3_variadic_ops.at(op.prim_op)(ctx, z3args.size(), z3args.data());
+    }
+    else
+    {
+      // assume this is a binary operator extended to n arguments
+      auto z3_fun = binary_ops.at(op.prim_op);
+      res = z3_fun(ctx, z3args[0], z3args[1]);
+      for (size_t i = 2; i < size; ++i)
+      {
+        res = z3_fun(ctx, res, z3args[i]);
+      }
+    }
+    return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  }
   else
   {
     string msg("Can't apply ");

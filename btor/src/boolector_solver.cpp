@@ -976,63 +976,79 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
   {
     return apply_prim_op(op, terms[0]);
   }
-  else if (size == 3)
+  else if (size == 3 && ternary_ops.find(op) != ternary_ops.end())
   {
     return apply_prim_op(op, terms[0], terms[1], terms[2]);
   }
-  else
+  else if (op == Apply)
   {
-    if (op == Apply)
+    std::vector<BoolectorNode *> args;
+    args.reserve(size - 1);
+    std::shared_ptr<BoolectorTerm> bt;
+    for (size_t i = 1; i < size; ++i)
     {
-      TermVec termargs;
-      termargs.reserve(size - 1);
-      std::vector<BoolectorNode *> args;
-      args.reserve(size - 1);
-      std::shared_ptr<BoolectorTerm> bt;
-      for (size_t i = 1; i < size; ++i)
-      {
-        bt = std::static_pointer_cast<BoolectorTerm>(terms[i]);
-        args.push_back(bt->node);
-        termargs.push_back(terms[i]);
-      }
-      std::shared_ptr<BoolectorTerm> bt0 =
-          std::static_pointer_cast<BoolectorTerm>(terms[0]);
-      BoolectorNode * result =
-          boolector_apply(btor, args.data(), args.size(), bt0->node);
-
-      return std::make_shared<BoolectorTerm> (btor, result);
+      bt = std::static_pointer_cast<BoolectorTerm>(terms[i]);
+      args.push_back(bt->node);
     }
-    else if (op == Forall || op == Exists)
+    std::shared_ptr<BoolectorTerm> bt0 =
+        std::static_pointer_cast<BoolectorTerm>(terms[0]);
+    BoolectorNode * result =
+        boolector_apply(btor, args.data(), args.size(), bt0->node);
+
+    return std::make_shared<BoolectorTerm>(btor, result);
+  }
+  else if (is_variadic(op))
+  {
+    // assuming they are binary operators extended to n arguments
+    auto btor_fun = binary_ops.at(op);
+    // get BoolectorNodes
+    std::vector<BoolectorNode *> bargs;
+    bargs.reserve(size);
+    for (const auto & tt : terms)
     {
-      std::vector<BoolectorNode *> bparams;
-      bparams.reserve(terms.size() - 1);
-      for (size_t i = 0; i + 1 < terms.size(); ++i)
-      {
-        bparams.push_back(
-            std::static_pointer_cast<BoolectorTerm>(terms[i])->node);
-      }
-      BoolectorNode * bbody =
-          std::static_pointer_cast<BoolectorTerm>(terms.back())->node;
-      BoolectorNode * bres;
-      if (op == Forall)
-      {
-        bres = boolector_forall(btor, bparams.data(), bparams.size(), bbody);
-      }
-      else
-      {
-        assert(op == Exists);
-        bres = boolector_exists(btor, bparams.data(), bparams.size(), bbody);
-      }
-      return std::make_shared<BoolectorTerm>(btor, bres);
+      bargs.push_back(std::static_pointer_cast<BoolectorTerm>(tt)->node);
+    }
+
+    BoolectorNode * res = btor_fun(btor, bargs[0], bargs[1]);
+    BoolectorNode * trailing_res = res;
+    for (size_t i = 2; i < size; ++i)
+    {
+      res = btor_fun(btor, res, bargs[i]);
+      boolector_release(btor, trailing_res);
+      trailing_res = res;
+    }
+    return std::make_shared<BoolectorTerm>(btor, res);
+  }
+  else if (op == Forall || op == Exists)
+  {
+    std::vector<BoolectorNode *> bparams;
+    bparams.reserve(terms.size() - 1);
+    for (size_t i = 0; i + 1 < terms.size(); ++i)
+    {
+      bparams.push_back(
+          std::static_pointer_cast<BoolectorTerm>(terms[i])->node);
+    }
+    BoolectorNode * bbody =
+        std::static_pointer_cast<BoolectorTerm>(terms.back())->node;
+    BoolectorNode * bres;
+    if (op == Forall)
+    {
+      bres = boolector_forall(btor, bparams.data(), bparams.size(), bbody);
     }
     else
     {
-      std::string msg(to_string(op));
-      msg += " cannot be applied to ";
-      msg += std::to_string(size);
-      msg += " terms.";
-      throw IncorrectUsageException(msg.c_str());
+      assert(op == Exists);
+      bres = boolector_exists(btor, bparams.data(), bparams.size(), bbody);
     }
+    return std::make_shared<BoolectorTerm>(btor, bres);
+  }
+  else
+  {
+    std::string msg(to_string(op));
+    msg += " cannot be applied to ";
+    msg += std::to_string(size);
+    msg += " terms.";
+    throw IncorrectUsageException(msg.c_str());
   }
 }
 
