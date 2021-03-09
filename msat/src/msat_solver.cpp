@@ -961,8 +961,8 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1]);
   }
-  else if (size == 3 &&
-           msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
+  else if (size == 3
+           && msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
@@ -1004,19 +1004,17 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (is_variadic(op.prim_op))
   {
-    // assuming they are binary operators extended to n arguments
+    // assuming it is a binary operator extended to n arguments
     auto msat_fun = msat_binary_ops.at(op.prim_op);
 
-    // get msat_terms
     vector<msat_term> margs;
-    margs.reserve(size);
+    margs.reserve(terms.size());
     for (const auto & tt : terms)
     {
       margs.push_back(static_pointer_cast<MsatTerm>(tt)->term);
     }
-
     msat_term res = msat_fun(env, margs[0], margs[1]);
-    for (size_t i = 2; i < size; ++i)
+    for (size_t i = 2; i < margs.size(); ++i)
     {
       res = msat_fun(env, res, margs[i]);
     }
@@ -1046,6 +1044,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
         res = msat_make_exists(env, t, res);
       }
     }
+    return make_shared<MsatTerm>(env, res);
   }
   else
   {
