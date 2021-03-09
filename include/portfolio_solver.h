@@ -35,13 +35,6 @@ class PortfolioSolver
    */
   smt::Result portfolio_solve();
 
-  /** Translate the term t to the solver s, and check_sat.
-   *  @param s The solver to translate the term t to.
-   *  @param t The term being translated to solver s.
-   */
-  void run_solver(SmtSolver s);
-  // static void * run_solver_helper(void * thread_arg);
-
  private:
   smt::Result result;
   std::vector<SmtSolver> solvers;
@@ -53,5 +46,11 @@ class PortfolioSolver
   // Used for synchronization.
   std::mutex m;
   std::condition_variable cv;
+
+  /** Translate the term t to the solver s, and check_sat.
+   *  @param s The solver to translate the term t to.
+   *  @param t The term being translated to solver s.
+   */
+  void run_solver(SmtSolver s);
 };
 }  // namespace smt
