@@ -33,7 +33,6 @@ void PortfolioSolver::run_solver(SmtSolver s)
   Term a = to_s.transfer_term(portfolio_term, smt::BOOL);
   s->assert_formula(a);
   result = s->check_sat();
-  sleep(1);
   std::lock_guard<std::mutex> lk(m);
   a_solver_is_done = true;
 
