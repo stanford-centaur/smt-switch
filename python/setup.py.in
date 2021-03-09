@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 PYSMT_REQUIRES = ['pysmt']
-TEST_REQUIRES = ['pytest'] + PYSMT_REQUIRES
+TEST_REQUIRES = ['pytest']
 
 # could probably get cmake to populate this but whatever
 PACKAGE_NAME = 'smt_switch'
