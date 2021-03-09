@@ -17,6 +17,7 @@ from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
 from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
 from smt_switch cimport get_free_symbols as c_get_free_symbols
 
+
 cdef class Op:
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
@@ -31,9 +32,8 @@ cdef class Op:
 
     @property
     def prim_op(self):
-        cdef PrimOp po = PrimOp()
-        po.po = self.op.prim_op
-        return po
+        # look up the canonical object
+        return int2primop[(<int> self.op.prim_op)]
 
     @property
     def num_idx(self):
@@ -138,9 +138,8 @@ cdef class Sort:
         return s
 
     def get_sort_kind(self):
-        cdef SortKind sk = SortKind()
-        sk.sk = dref(self.cs).get_sort_kind()
-        return sk
+        # look up canonical SortKind object
+        return int2sortkind[(<int> dref(self.cs).get_sort_kind())]
 
     def __eq__(self, Sort other):
         return self.cs == other.cs
