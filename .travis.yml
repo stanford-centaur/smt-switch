@@ -67,7 +67,6 @@ script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail
   - ./travis-scripts/travis-setup-osx-python.sh || true
   - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
-  - sudo python3 -m pip install pytest
   # Temporarily download CVC4 instead of building it
   # There's some issue on mac with get-antlr-3.4
   - |
@@ -78,7 +77,7 @@ script:
     fi
   - bash -c "./contrib/setup-skbuild.sh"
   - bash -c "./configure.sh --debug --${SOLVER} --python"
-  - bash -c "cd build && make -j && make test && python3 -m pip install -e ./python/[test] && cd ../ && python3 -m pytest ./tests/"
+  - bash -c "cd build && make -j && make test && python3 -m pip install -e ./python/[test,pysmt] && cd ../ && python3 -m pytest ./tests/"
   # Removing wheels test to speed up Travis builds
   # TODO consider building wheels in a separate configuration
   # install wheels
