@@ -82,8 +82,8 @@ int main()
   solvers.push_back(s4);
   solvers.push_back(s5);
 
-  PortfolioSolver p;
-  smt::Result res = p.portfolio_solve(solvers, test_term);
+  PortfolioSolver p(solvers, test_term);
+  smt::Result res = p.portfolio_solve();
   cout << "portfolio_solve " << res.is_sat() << endl;
 
   assert(res.is_sat());
@@ -107,9 +107,36 @@ int main()
   solvers2.push_back(s2_2);
   solvers2.push_back(s4_2);
   solvers2.push_back(s5_2);
-  PortfolioSolver p2;
-  smt::Result res2 = p2.portfolio_solve(solvers2, test_term);
+  PortfolioSolver p2(solvers2, test_term);
+  smt::Result res2 = p2.portfolio_solve();
   cout << "portfolio_solve2 " << res2.is_sat() << endl;
+
+  assert(res2.is_sat());
+
+  SmtSolver s1_3 = MsatSolverFactory::create(false);
+  SmtSolver s2_3 = MsatSolverFactory::create(false);
+  SmtSolver s3_3 = MsatSolverFactory::create(false);
+  SmtSolver s4_3 = BoolectorSolverFactory::create(false);
+  SmtSolver s5_3 = BoolectorSolverFactory::create(false);
+  SmtSolver s6_3 = Yices2SolverFactory::create(true);
+  SmtSolver s7_3 = CVC4SolverFactory::create(false);
+  SmtSolver s8_3 = CVC4SolverFactory::create(false);
+  SmtSolver s9_3 = Yices2SolverFactory::create(true);
+  vector<SmtSolver> solvers3;
+  solvers3.push_back(s6_3);
+  solvers3.push_back(s8_3);
+  solvers3.push_back(s1_3);
+  solvers3.push_back(s3_3);
+  solvers3.push_back(s9_3);
+  solvers3.push_back(s7_3);
+  solvers3.push_back(s2_3);
+  solvers3.push_back(s4_3);
+  solvers3.push_back(s5_3);
+  p2.reset(solvers3, test_term);
+  smt::Result res3 = p2.portfolio_solve();
+  cout << "portfolio_solve3 " << res3.is_sat() << endl;
+
+  assert(res3.is_sat());
 
   return 0;
 }
