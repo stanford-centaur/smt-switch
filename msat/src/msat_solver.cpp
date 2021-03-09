@@ -904,6 +904,16 @@ Term MsatSolver::make_term(Op op,
       vector<msat_term> v({mterm1->term, mterm2->term});
       res = ext_msat_make_uf(env, mterm0->decl, v);
     }
+    else if (op.prim_op == Forall)
+    {
+      res = msat_make_forall(env, mterm1->term, mterm2->term);
+      res = msat_make_forall(env, mterm0->term, res);
+    }
+    else if (op.prim_op == Exists)
+    {
+      res = msat_make_exists(env, mterm1->term, mterm2->term);
+      res = msat_make_exists(env, mterm0->term, res);
+    }
     else
     {
       string msg("Can't apply ");
@@ -990,6 +1000,31 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       throw InternalSolverException(msg);
     }
     return Term(new MsatTerm(env, res));
+  }
+  else if (op == Forall || op == Exists)
+  {
+    vector<msat_term> mterms;
+    mterms.reserve(terms.size());
+    for (const auto & tt : terms)
+    {
+      mterms.push_back(static_pointer_cast<MsatTerm>(tt)->term);
+    }
+
+    msat_term res = mterms.back();
+    mterms.pop_back();
+    while (mterms.size())
+    {
+      msat_term t = mterms.back();
+      mterms.pop_back();
+      if (op == Forall)
+      {
+        res = msat_make_forall(env, t, res);
+      }
+      else
+      {
+        res = msat_make_exists(env, t, res);
+      }
+    }
   }
   else
   {

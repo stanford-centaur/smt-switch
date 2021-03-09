@@ -101,13 +101,12 @@ enum PrimOp
   Select,
   Store,
   /* Quantifiers */
-  // quantifiers only bind a single parameter to simplify term iteration
-  // e.g. the solvers don't align well on the representation unless only one
-  // parameter is bound
-  Forall,  ///< used to bind *one* parameter in a formula with a universal
-           ///< quantifier
-  Exists,  ///< used to bind *one* parameter in a formula with an existential
-           ///< quanifier
+  // quantifiers can be applied to n arguments where the first n-1
+  // are parameters and the nth is a body which uses the parameters
+  // binds all the parameters from left to right, i.e. so the resulting
+  // term read left to right matches the vector order
+  Forall,
+  Exists,
   /* Datatype Theory */
   Apply_Selector,
   Apply_Tester,
