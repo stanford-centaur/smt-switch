@@ -18,7 +18,7 @@
 #include "boolector_factory.h"
 #include "cvc4_factory.h"
 #include "msat_factory.h"
-#include "portfolio_solve.h"
+#include "portfolio_solver.h"
 #include "yices2_factory.h"
 
 using namespace smt;
@@ -72,8 +72,6 @@ int main()
   SmtSolver s8 = CVC4SolverFactory::create(false);
   SmtSolver s9 = Yices2SolverFactory::create(true);
   vector<SmtSolver> solvers;
-  s1->set_opt("produce-models", "true");
-  s2->set_opt("produce-models", "true");
   solvers.push_back(s6);
   solvers.push_back(s8);
   solvers.push_back(s1);
@@ -84,10 +82,34 @@ int main()
   solvers.push_back(s4);
   solvers.push_back(s5);
 
-  bool is_sat = portfolio_solve(solvers, test_term);
-  cout << "portfolio_solve " << is_sat << endl;
+  PortfolioSolver p;
+  smt::Result res = p.portfolio_solve(solvers, test_term);
+  cout << "portfolio_solve " << res.is_sat() << endl;
 
-  assert(is_sat);
+  assert(res.is_sat());
+
+  SmtSolver s1_2 = MsatSolverFactory::create(false);
+  SmtSolver s2_2 = MsatSolverFactory::create(false);
+  SmtSolver s3_2 = MsatSolverFactory::create(false);
+  SmtSolver s4_2 = BoolectorSolverFactory::create(false);
+  SmtSolver s5_2 = BoolectorSolverFactory::create(false);
+  SmtSolver s6_2 = Yices2SolverFactory::create(true);
+  SmtSolver s7_2 = CVC4SolverFactory::create(false);
+  SmtSolver s8_2 = CVC4SolverFactory::create(false);
+  SmtSolver s9_2 = Yices2SolverFactory::create(true);
+  vector<SmtSolver> solvers2;
+  solvers2.push_back(s6_2);
+  solvers2.push_back(s8_2);
+  solvers2.push_back(s1_2);
+  solvers2.push_back(s3_2);
+  solvers2.push_back(s9_2);
+  solvers2.push_back(s7_2);
+  solvers2.push_back(s2_2);
+  solvers2.push_back(s4_2);
+  solvers2.push_back(s5_2);
+  PortfolioSolver p2;
+  smt::Result res2 = p2.portfolio_solve(solvers2, test_term);
+  cout << "portfolio_solve2 " << res2.is_sat() << endl;
 
   return 0;
 }
