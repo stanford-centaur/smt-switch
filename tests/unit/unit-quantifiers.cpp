@@ -26,6 +26,27 @@ using namespace std;
 
 namespace smt_tests {
 
+// Gets all bound variables, stores them in out_vars and returns the body
+Term recover_quant(const Term & quant_term, TermVec & out_vars)
+{
+  Term body = quant_term;
+  Op op = body->get_op();
+  TermVec children;
+  while (op == Forall || op == Exists)
+  {
+    children.clear();
+    children.insert(children.end(), body->begin(), body->end());
+    body = children.back();
+    op = body->get_op();
+    children.pop_back();
+    for (const auto & cc : children)
+    {
+      out_vars.push_back(cc);
+    }
+  }
+  return body;
+}
+
 class UnitQuantifierTests : public ::testing::Test,
                             public testing::WithParamInterface<SolverConfiguration>
 {
@@ -83,16 +104,14 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   Term fx = s->make_term(Apply, f, x);
   Term bimpfxeq0 = s->make_term(
       Implies, b, s->make_term(Equal, fx, s->make_term(0, bvsort)));
-  ASSERT_THROW(s->make_term(Forall, b, x, bimpfxeq0), IncorrectUsageException);
-  Term forallx = s->make_term(Forall, x, bimpfxeq0);
-  Term forallbx = s->make_term(Forall, b, forallx);
+  Term forallbx = s->make_term(Forall, { b, x, bimpfxeq0 });
   ASSERT_EQ(forallbx->get_sort(), boolsort);
-  TermVec children(forallbx->begin(), forallbx->end());
-  ASSERT_EQ(children[0], b);
-  ASSERT_EQ(children[1], forallx);
-  TermVec children2(children[1]->begin(), children[1]->end());
-  ASSERT_EQ(children2[0], x);
-  ASSERT_EQ(children2[1], bimpfxeq0);
+  TermVec vars;
+  Term body = recover_quant(forallbx, vars);
+  ASSERT_EQ(vars.size(), 2);
+  ASSERT_EQ(vars[0], b);
+  ASSERT_EQ(vars[1], x);
+  ASSERT_EQ(body, bimpfxeq0);
 }
 
 TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)

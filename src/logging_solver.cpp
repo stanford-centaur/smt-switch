@@ -469,10 +469,10 @@ Term LoggingSolver::get_value(const Term & t) const
   return res;
 }
 
-void LoggingSolver::get_unsat_core(UnorderedTermSet & out)
+void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   UnorderedTermSet underlying_core;
-  wrapped_solver->get_unsat_core(underlying_core);
+  wrapped_solver->get_unsat_assumptions(underlying_core);
   for (auto c : underlying_core)
   {
     // assumption: these should be (possible negated) Boolean literals
@@ -593,6 +593,39 @@ Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
     (*assumption_cache)[la->wrapped_term] = la;
   }
   return wrapped_solver->check_sat_assuming(lassumps);
+}
+
+Result LoggingSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  // only needs to remember the latest set of assumptions
+  assumption_cache->clear();
+  TermList lassumps;
+  shared_ptr<LoggingTerm> la;
+  for (auto a : assumptions)
+  {
+    la = static_pointer_cast<LoggingTerm>(a);
+    lassumps.push_back(la->wrapped_term);
+    // store a mapping from the wrapped term to the logging term
+    (*assumption_cache)[la->wrapped_term] = la;
+  }
+  return wrapped_solver->check_sat_assuming_list(lassumps);
+}
+
+Result LoggingSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  // only needs to remember the latest set of assumptions
+  assumption_cache->clear();
+  UnorderedTermSet lassumps;
+  shared_ptr<LoggingTerm> la;
+  for (auto a : assumptions)
+  {
+    la = static_pointer_cast<LoggingTerm>(a);
+    lassumps.insert(la->wrapped_term);
+    // store a mapping from the wrapped term to the logging term
+    (*assumption_cache)[la->wrapped_term] = la;
+  }
+  return wrapped_solver->check_sat_assuming_set(lassumps);
 }
 
 void LoggingSolver::push(uint64_t num) { wrapped_solver->push(num); }

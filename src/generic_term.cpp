@@ -28,6 +28,7 @@ namespace smt {
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r)
     : sort(s), op(o), children(c), repr(r), is_sym(false), is_par(false)
 {
+  ground = compute_ground();
 }
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
@@ -36,8 +37,33 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
       children(c),
       repr(r),
       is_sym(is_sym),
-      is_par(!is_sym)
+      is_par(!is_sym),
+      ground(true)
 {
+  ground = compute_ground();
+}
+
+bool GenericTerm::compute_ground()
+{
+  // parameters are not ground terms
+  if (is_param())
+  {
+    return false;
+  }
+  // if one of the children is not ground, then the term
+  // is not ground.
+  for (Term child : get_children())
+  {
+    shared_ptr<GenericTerm> gc = static_pointer_cast<GenericTerm>(child);
+    // This is not a recursive call -- is_ground is
+    // just a getter. Their `ground` member
+    // was initialized upon their construction.
+    if (!gc->is_ground())
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 GenericTerm::~GenericTerm() {}
@@ -124,9 +150,22 @@ bool GenericTerm::is_value() const
   return op == Op() && !is_param() && !is_symbolic_const();
 }
 
+bool GenericTerm::is_ground() const { return ground; }
+
 uint64_t GenericTerm::to_int() const { assert(false); }
 
-std::string GenericTerm::print_value_as(SortKind sk) { assert(false); }
+std::string GenericTerm::print_value_as(SortKind sk)
+{
+  if (is_value())
+  {
+    return to_string();
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "print_value_as is only applicable for values");
+  }
+}
 
 /* GenericTermIter */
 

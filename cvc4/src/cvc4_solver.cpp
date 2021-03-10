@@ -110,16 +110,7 @@ void CVC4Solver::set_opt(const std::string option, const std::string value)
 {
   try
   {
-    if (option == "produce-unsat-cores")
-    {
-      // to be consistent with the smt-switch API, we actually use
-      // produce-unsat-assumptions
-      solver.setOption("produce-unsat-assumptions", value);
-    }
-    else
-    {
-      solver.setOption(option, value);
-    }
+    solver.setOption(option, value);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -284,23 +275,47 @@ Result CVC4Solver::check_sat_assuming(const TermVec & assumptions)
     {
       cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
-    if (r.isUnsat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_list(const TermList & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(UNSAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSat())
+    return check_sat_assuming(cvc4assumps);
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Result CVC4Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
+{
+  try
+  {
+    std::vector<::CVC4::api::Term> cvc4assumps;
+    cvc4assumps.reserve(assumptions.size());
+
+    std::shared_ptr<CVC4Term> cterm;
+    for (auto a : assumptions)
     {
-      return Result(SAT);
+      cvc4assumps.push_back(std::static_pointer_cast<CVC4Term>(a)->term);
     }
-    else if (r.isSatUnknown())
-    {
-      return Result(UNKNOWN, r.getUnknownExplanation());
-    }
-    else
-    {
-      throw NotImplementedException("Unimplemented result type from CVC4");
-    }
+    return check_sat_assuming(cvc4assumps);
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -393,7 +408,7 @@ UnorderedTermMap CVC4Solver::get_array_values(const Term & arr,
   }
 }
 
-void CVC4Solver::get_unsat_core(UnorderedTermSet & out)
+void CVC4Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   Term f;
   try
@@ -659,7 +674,8 @@ Term CVC4Solver::make_term(Op op, const Term & t) const
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
       throw IncorrectUsageException(
-          "Quantifier ops require one parameter and the formula body.");
+          "Quantifier ops require at least one parameter and the formula "
+          "body.");
     }
     throw InternalSolverException(e.what());
   }
@@ -810,10 +826,8 @@ Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
     std::shared_ptr<CVC4Term> cterm1 = std::static_pointer_cast<CVC4Term>(t1);
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      ::CVC4::api::Term bound_vars =
-          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterm0->term);
-      return std::make_shared<CVC4Term>(
-          solver.mkTerm(primop2kind.at(op.prim_op), bound_vars, cterm1->term));
+      // quantifiers handled generically with vector input
+      return make_term(op, { t0, t1 });
     }
     else if (op.num_idx == 0)
     {
@@ -847,11 +861,19 @@ Term CVC4Solver::make_term(Op op,
     std::shared_ptr<CVC4Term> cterm2 = std::static_pointer_cast<CVC4Term>(t2);
     if (op.num_idx == 0)
     {
-      return std::make_shared<CVC4Term>
-          (solver.mkTerm(primop2kind.at(op.prim_op),
-                         cterm0->term,
-                         cterm1->term,
-                         cterm2->term));
+      // quantifiers handled generically with vector input
+      if (op.prim_op == Forall || op.prim_op == Exists)
+      {
+        return make_term(op, { t0, t1, t2 });
+      }
+      else
+      {
+        return std::make_shared<CVC4Term>(
+            solver.mkTerm(primop2kind.at(op.prim_op),
+                          cterm0->term,
+                          cterm1->term,
+                          cterm2->term));
+      }
     }
     else
     {
@@ -862,12 +884,6 @@ Term CVC4Solver::make_term(Op op,
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      throw IncorrectUsageException(
-          "Can only bind one parameter at time with quantifiers in "
-          "smt-switch.");
-    }
     throw InternalSolverException(e.what());
   }
 }
@@ -886,18 +902,20 @@ Term CVC4Solver::make_term(Op op, const TermVec & terms) const
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      if (cterms.size() != 2)
-      {
-        throw IncorrectUsageException(
-            "smt-switch only supports binding one parameter at a time with a "
-            "quantifier");
-      }
-      ::CVC4::api::Term quantified_body = cterms.back();
+      ::CVC4::api::Kind quant_kind = primop2kind.at(op.prim_op);
+      ::CVC4::api::Term quant_res = cterms.back();
       cterms.pop_back();
-      ::CVC4::api::Term bound_vars =
-          solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms);
-      return std::make_shared<CVC4Term>(solver.mkTerm(
-          primop2kind.at(op.prim_op), bound_vars, quantified_body));
+      // bind quantifiers one a time
+      // makes traversal easier since smt-switch has no
+      // BOUND_VAR_LIST equivalent
+      while (cterms.size())
+      {
+        ::CVC4::api::Term bound_var =
+            solver.mkTerm(CVC4::api::BOUND_VAR_LIST, cterms.back());
+        cterms.pop_back();
+        quant_res = solver.mkTerm(quant_kind, bound_var, quant_res);
+      }
+      return std::make_shared<CVC4Term>(quant_res);
     }
     else if (op.num_idx == 0)
     {
@@ -931,6 +949,24 @@ void CVC4Solver::reset_assertions()
   {
     throw InternalSolverException(e.what());
   }
+}
+
+Term CVC4Solver::substitute(const Term term,
+                            const UnorderedTermMap & substitution_map) const
+{
+  std::vector<::CVC4::api::Term> keys;
+  std::vector<::CVC4::api::Term> values;
+  keys.reserve(substitution_map.size());
+  values.reserve(substitution_map.size());
+
+  for (const auto & elem : substitution_map)
+  {
+    keys.push_back(std::static_pointer_cast<CVC4Term>(elem.first)->term);
+    values.push_back(std::static_pointer_cast<CVC4Term>(elem.second)->term);
+  }
+
+  ::CVC4::api::Term cterm = std::static_pointer_cast<CVC4Term>(term)->term;
+  return std::make_shared<CVC4Term>(cterm.substitute(keys, values));
 }
 
 void CVC4Solver::dump_smt2(std::string filename) const

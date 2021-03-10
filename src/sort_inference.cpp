@@ -34,8 +34,8 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Not, bool_sorts },
                           { Implies, bool_sorts },
                           { Ite, check_ite_sorts },
-                          { Equal, equal_sorts },
-                          { Distinct, equal_sorts },
+                          { Equal, arith_equal_sorts },
+                          { Distinct, arith_equal_sorts },
                           { Apply, check_apply_sorts },
                           { Plus, arithmetic_sorts },
                           { Minus, arithmetic_sorts },
@@ -270,6 +270,11 @@ bool equal_sorts(const SortVec & sorts)
           == sorts.end());
 }
 
+bool arith_equal_sorts(const SortVec & sorts)
+{
+  return equal_sorts(sorts) || arithmetic_sorts(sorts);
+}
+
 bool equal_sortkinds(const SortVec & sorts)
 {
   assert(sorts.size());
@@ -295,6 +300,19 @@ bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
   for (auto sort : sorts)
   {
     if (sk != sort->get_sort_kind())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool check_one_of_sortkinds(const unordered_set<SortKind> & sks,
+                            const SortVec & sorts)
+{
+  for (auto sort : sorts)
+  {
+    if (sks.find(sort->get_sort_kind()) == sks.end())
     {
       return false;
     }
@@ -404,8 +422,7 @@ bool int_sorts(const SortVec & sorts)
 
 bool arithmetic_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(INT, sorts)
-         || check_sortkind_matches(REAL, sorts);
+  return check_one_of_sortkinds({ INT, REAL }, sorts);
 }
 
 bool array_sorts(const SortVec & sorts)

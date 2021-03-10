@@ -105,17 +105,38 @@ You can run all tests for the currently built solvers with `make test` from the 
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
 
 # Python bindings
-First make sure that the `scikit-build` repository has been pulled for the CMake modules - use `./contrib/setup-skbuild.sh`. Then, to compile python bindings, use the `--python` flag of `configure.sh`. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that the bindings only support `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+First make sure that the `scikit-build` repository has been pulled for the CMake modules - use `./contrib/setup-skbuild.sh`. Then, to compile python bindings, use the `--python` flag of `configure.sh`. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that the bindings only support `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+
+## PySMT front end
+Optionally, smt-switch can be used with a [pySMT](https://pysmt.readthedocs.io/en/latest/) front-end .  To install the pySMT front-end install `smt-switch` with the `pysmt` extra (`python3 -m install -e ./python[pysmt]`).  Note, some shells, notable `zsh`, require brackets be escaped or the path to be quoted, i.e., `./python\[pysmt\]` or `"./python[pysmt]"`.
+
+A pySMT solver for each switch back-end can be instantiated directly or using the helper function `Solver`:
+```Python
+from smt_switch import pysmt_frontend
+
+# direct instantiation must pass an enviroment and a logic
+solver = pysmt_frontend.SwitchCVC4(ENV, LOGIC)
+
+# with the helper function will try to use a general logic
+solver = pysmt_frontend.Solver("cvc4")
+
+# with the helper function will use the specified logic
+solver = pysmt_frontend.Solver("cvc4", LOGIC)
+
+# Note a solver can be used as a context manager:
+with pysmt_frontend.Solver("cvc4") as solver: ...
+```
+
+Please refer to the pySMT docs for further information.
+
 
 ## Testing python bindings
-Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). This can be installed using `pip` and is automatically installed if you use the `setup.py` install from the `build` directory. To run all tests, simply run `pytest ./tests` from the top-level directory. Note, running `pytest` alone might unnecessarily run tests in dependencies located in subdirectories. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.
+Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). This can be installed using `pip` or automatically by installing the python bindings with the `test` extra (`python3 -m install -e ./python[test]`). To run all tests, simply run `pytest ./tests` from the top-level directory. Note, running `pytest` alone might unnecessarily run tests in dependencies located in subdirectories. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.  The tests for the pySMT front-end will only be run if it is installed.  Note, multiple extras may be installed by passing them as a comma separated list:`python3 -m install -e ./python[test,pysmt]`.
 
 # Current Limitations and Gotchas
 While we try to guarantee that all solver backends are fully compliant with the abstract interface, and exhibit the exact same behavior given the same API calls, we are not able to do this in every case (yet). Below are some known, current limitations along with recommended usage.
 
 * **Undefined behavior.** Sharing terms between different solver instances will result in undefined behavior. This is because we use a static cast to recover the backend solver implementation from an abstract object. To move terms between solver instances, you can use a `TermTranslator` which will rebuild the term in another solver. A given `TermTranslator` object can only translate terms from **one** solver to **one** new one. If some symbols have already been created in the new solver, you can populate the `TermTranslator`'s cache so that it knows which symbols correspond to each other
-* Quantifiers are technically supported but are syntactically restricted to do one binding at a time. The bound variable is declared with `make_param`, and bound with `solver->make_term(Forall, <param>, <Term using param>)`. This does not limit expressivity because bindings can be nested.
-  * Furthermore, some solvers have limited or restricted quantifier support. For example, MathSAT has very limited quantifier support at this time. Boolector only supports quantifiers over bitvectors, not over UF or arrays. Additionally, quantifier support in Boolector cannot be used in incremental mode.
 * Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
 * Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
 * Z3 is not yet implemented as a backend (but hopefully will be soon!)

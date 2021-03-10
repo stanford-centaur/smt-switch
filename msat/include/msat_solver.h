@@ -41,13 +41,18 @@ namespace smt {
 class MsatSolver : public AbsSmtSolver
 {
  public:
-  // constructor does basically nothing
-  // but in mathsat factory, MUST setup_env
-  // this is done after constructing because need to call
-  // the virtual function -- e.g. simulating dynamic binding
-  MsatSolver() : AbsSmtSolver(MSAT), logic(""){};
+  MsatSolver()
+    : AbsSmtSolver(MSAT),
+      cfg(msat_create_config()),
+      env_uninitialized(true),
+      logic(""){};
   MsatSolver(msat_config c, msat_env e)
-      : AbsSmtSolver(MSAT), cfg(c), env(e), valid_model("false"), logic(""){};
+      : AbsSmtSolver(MSAT),
+        cfg(c),
+        env(e),
+        env_uninitialized(false),
+        valid_model(false),
+        logic(""){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -56,27 +61,25 @@ class MsatSolver : public AbsSmtSolver
     // a program that just creates a msat_env leaks
     //  -- be careful, valgrind won't report leaks on statically compiled
     //  binaries
-    msat_destroy_env(env);
+    if (!env_uninitialized)
+    {
+      msat_destroy_env(env);
+    }
     msat_destroy_config(cfg);
-  }
-  virtual void setup_env()
-  {
-    cfg = msat_create_config();
-    msat_set_option(cfg, "model_generation", "true");
-    env = msat_create_env(cfg);
-    valid_model = false;
   }
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string log) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_core(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -132,12 +135,46 @@ class MsatSolver : public AbsSmtSolver
 
  protected:
   msat_config cfg;
-  msat_env env;
+  // marked mutable because want to stick with const interface for functions
+  // but the environment cannot be created before setting options
+  // it will be lazily created when first used (which might be in a const function)
+  mutable msat_env env;
+  mutable bool env_uninitialized;
   bool valid_model;
   std::string logic;
 
   // helper function for creating labels for assumptions
+
+  // initializes the env (if not already done)
+  virtual void initialize_env() const
+  {
+    if (env_uninitialized)
+    {
+      env = msat_create_env(cfg);
+      env_uninitialized = false;
+    }
+  }
+
   msat_term label(msat_term p) const;
+
+  inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
+  {
+    msat_result mres =
+        msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+
+    if (mres == MSAT_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (mres == MSAT_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
 };
 
 // Interpolating Solver
@@ -154,17 +191,6 @@ class MsatInterpolatingSolver : public MsatSolver
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
-  virtual void setup_env() override
-  {
-    cfg = msat_create_config();
-    msat_set_option(cfg, "theory.bv.eager", "false");
-    msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
-    msat_set_option(cfg, "interpolation", "true");
-    // TODO: decide if we should add this
-    // msat_set_option(cfg, "theory.eq_propagation", "false");
-    env = msat_create_env(cfg);
-    valid_model = false;
-  }
   void set_opt(const std::string option, const std::string value) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
@@ -175,6 +201,21 @@ class MsatInterpolatingSolver : public MsatSolver
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
+
+ protected:
+  virtual void initialize_env() const override
+  {
+    if (env_uninitialized)
+    {
+      msat_set_option(cfg, "theory.bv.eager", "false");
+      msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
+      msat_set_option(cfg, "interpolation", "true");
+      // TODO: decide if we should add this
+      // msat_set_option(cfg, "theory.eq_propagation", "false");
+      env = msat_create_env(cfg);
+      env_uninitialized = false;
+    }
+  }
 };
 
 }  // namespace smt

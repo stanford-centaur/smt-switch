@@ -51,6 +51,7 @@ public:
   */
 // smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
  std::pair<smt::Term, std::vector<int>> visit(smt::Term & node); //TODO should be Term & term or just Term?, match w visit_term
+ using TermPairVec = std::vector<std::pair<Term, int>>;
 
 protected:
  /** Visit a single term.

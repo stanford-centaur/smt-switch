@@ -196,9 +196,14 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
   EXPECT_EQ(realsort, realsort_2);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
-                         UnitSortTests,
-                         testing::ValuesIn(available_solver_configurations()));
+// One of the tests requries parsing values
+// of uninterpreted sorts.
+// This is not supported by the generic solver, and hence
+// it is excluded.
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSortTests,
+    UnitSortTests,
+    testing::ValuesIn(available_non_generic_solver_configurations()));
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
                          UnitSortArithTests,

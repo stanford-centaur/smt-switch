@@ -36,7 +36,6 @@ class UnitSolveTests : public ::testing::Test,
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     s->set_opt("produce-models", "true");
-
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
   }
@@ -66,10 +65,19 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
     // mathsat is the only solver (so far)
     // to have the restriction that assumptions must be
     // (negated) boolean constants
-    EXPECT_EQ(s->get_solver_enum(), MSAT);
+    EXPECT_TRUE(s->get_solver_enum() == MSAT);
     r = s->check_sat_assuming(TermVec{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
   }
-  ASSERT_TRUE(r.is_unsat());
+
+  if (s->get_solver_enum() != GENERIC_SOLVER)
+  {
+    r = s->check_sat_assuming_list(TermList{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
+
+    r = s->check_sat_assuming_set(UnorderedTermSet{ b1, nb2 });
+    EXPECT_TRUE(r.is_unsat());
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,

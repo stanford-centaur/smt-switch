@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <list>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -166,7 +167,7 @@ class TermIter
 
 // useful typedefs for data structures
 using TermVec = std::vector<Term>;
-using TermPairVec = std::vector<std::pair<Term, int>>;
+using TermList = std::list<Term>;
 using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
 //new type of map for tree walker - TODO put this here or in treewalker.h ??

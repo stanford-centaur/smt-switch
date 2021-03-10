@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test_itp.cpp
+/*! \file test-itp.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -25,13 +25,12 @@
 using namespace smt;
 using namespace std;
 
-
 namespace smt_tests {
 
 class ItpTests : public ::testing::Test,
                  public ::testing::WithParamInterface<SolverConfiguration>
 {
-protected:
+ protected:
   void SetUp() override
   {
     itp = create_interpolating_solver(GetParam());
@@ -100,7 +99,8 @@ TEST_P(ItpTests, TEST_SEQITP)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedItpTests,
-                         ItpTests,
-                         testing::ValuesIn(available_interpolator_configurations()));
-}
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedItpTests,
+    ItpTests,
+    testing::ValuesIn(available_interpolator_configurations()));
+}  // namespace smt_tests

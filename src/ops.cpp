@@ -84,7 +84,7 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Rotate_Left, "rotate_left" },
       { Rotate_Right, "rotate_right" },
       { BV_To_Nat, "bv2nat" },
-      { Int_To_BV, "nat2bv" },
+      { Int_To_BV, "int2bv" },
       { Select, "select" },
       { Store, "store" },
       { Forall, "forall" },
@@ -245,6 +245,11 @@ std::ostream & operator<<(std::ostream & output, const Op o)
 {
   output << o.to_string();
   return output;
+}
+
+bool is_variadic(PrimOp po)
+{
+  return variadic_ops.find(po) != variadic_ops.end();
 }
 
 }  // namespace smt

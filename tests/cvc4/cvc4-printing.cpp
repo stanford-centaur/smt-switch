@@ -133,7 +133,7 @@ void test1(SmtSolver s, ostream& os, stringbuf& strbuf) {
   Result r = s->check_sat_assuming(TermVec{ ind1 });
   assert(r.is_unsat());
   UnorderedTermSet usc;
-  s->get_unsat_core(usc);
+  s->get_unsat_assumptions(usc);
   s->pop(1);
   s->check_sat();
   s->get_value(x);

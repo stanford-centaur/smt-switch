@@ -138,13 +138,14 @@ const Term CVC4TermIter::operator*()
     return std::make_shared<CVC4Term>(term.getConstArrayBase());
   }
   // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
-  // smt-switch guarantees that the length is only one by construction
+  // smt-switch CVC4 backend guarantees that the length is only one by
+  // construction
   ::CVC4::api::Term t = term[pos];
   if (t.getKind() == ::CVC4::api::BOUND_VAR_LIST)
   {
     if (t.getNumChildren() != 1)
     {
-      // smt-switch should only allow binding one parameter
+      // smt-switch CVC4 backend should only allow binding one parameter
       // otherwise, we need to flatten arbitrary nestings of quantifiers and
       // BOUND_VAR_LISTs for term iteration
       throw InternalSolverException(

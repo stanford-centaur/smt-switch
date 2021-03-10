@@ -63,12 +63,14 @@ class Yices2Solver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_core(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -119,6 +121,32 @@ class Yices2Solver : public AbsSmtSolver
  protected:
   mutable context_t * ctx;
   mutable ctx_config_t * config;
+
+  // helper function
+  inline Result check_sat_assuming(const std::vector<term_t> & y_assumps)
+  {
+    smt_status_t res = yices_check_context_with_assumptions(
+        ctx, NULL, y_assumps.size(), &y_assumps[0]);
+
+    if (yices_error_code() != 0)
+    {
+      std::string msg(yices_error_string());
+      throw InternalSolverException(msg.c_str());
+    }
+
+    if (res == STATUS_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (res == STATUS_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
 };
 }  // namespace smt
 

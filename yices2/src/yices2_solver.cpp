@@ -119,7 +119,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
       yices_set_config(config, "mode", "push-pop");
     }
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     // nothing to be done
     ;
@@ -331,27 +331,38 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
     y_assumps.push_back(ya->term);
   }
 
-  smt_status_t res = yices_check_context_with_assumptions(
-      ctx, NULL, y_assumps.size(), &y_assumps[0]);
+  return check_sat_assuming(y_assumps);
+}
 
-  if (yices_error_code() != 0)
+Result Yices2Solver::check_sat_assuming_list(const TermList & assumptions)
+{
+  vector<term_t> y_assumps;
+  y_assumps.reserve(assumptions.size());
+
+  shared_ptr<Yices2Term> ya;
+  for (auto a : assumptions)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    ya = static_pointer_cast<Yices2Term>(a);
+    y_assumps.push_back(ya->term);
   }
 
-  if (res == STATUS_SAT)
+  return check_sat_assuming(y_assumps);
+}
+
+Result Yices2Solver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  vector<term_t> y_assumps;
+  y_assumps.reserve(assumptions.size());
+
+  shared_ptr<Yices2Term> ya;
+  for (auto a : assumptions)
   {
-    return Result(SAT);
+    ya = static_pointer_cast<Yices2Term>(a);
+    y_assumps.push_back(ya->term);
   }
-  else if (res == STATUS_UNSAT)
-  {
-    return Result(UNSAT);
-  }
-  else
-  {
-    return Result(UNKNOWN);
-  }
+
+  return check_sat_assuming(y_assumps);
 }
 
 void Yices2Solver::push(uint64_t num) { yices_push(ctx); }
@@ -383,7 +394,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
       "particular select of the array.");
 }
 
-void Yices2Solver::get_unsat_core(UnorderedTermSet & out)
+void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
@@ -874,7 +885,34 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
     res = yices_application(yterm->term, size - 1, &yargs[0]);
   }
-  // else if() ... check the variadic terms list.
+  else if (is_variadic(op.prim_op))
+  {
+    vector<term_t> yargs;
+    yargs.reserve(size);
+    shared_ptr<Yices2Term> yterm;
+
+    // skip the first term (that's actually a function)
+    for (const auto & tt : terms)
+    {
+      yterm = static_pointer_cast<Yices2Term>(tt);
+      yargs.push_back(yterm->term);
+    }
+
+    if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
+    {
+      res = yices_variadic_ops.at(op.prim_op)(yargs.size(), yargs.data());
+    }
+    else
+    {
+      // assume it's a binary function extended to n args
+      auto yices_fun = yices_binary_ops.at(op.prim_op);
+      res = yices_fun(yargs[0], yargs[1]);
+      for (size_t i = 2; i < size; ++i)
+      {
+        res = yices_fun(res, yargs[i]);
+      }
+    }
+  }
   else
   {
     string msg("Can't apply ");

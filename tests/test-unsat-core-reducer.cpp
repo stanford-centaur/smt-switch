@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test-unsat-core-reducer.cpp
+/*! \file test-unsat-assumption-reducer.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Ahmed Irfan, Makai Mann
@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Tests for unsat-core-based reducer.
+** \brief Tests for unsat-assumption-based reducer.
 **
 **
 **/
@@ -76,10 +76,12 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
   EXPECT_NE(rem[0] , red[0]);
 }
 
-
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverUnsatCoreReducerTests,
-    UnsatCoreReducerTests,
-    testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE })));
+// The unsat cores reducer module requires the
+// underlying solver to support both unsat cores
+// and term translation.
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
+                         UnsatCoreReducerTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { UNSAT_CORE, FULL_TRANSFER })));
 
 }  // namespace smt_tests
