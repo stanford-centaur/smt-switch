@@ -1,6 +1,5 @@
 # Smt-Switch
 A generic C++ API for SMT solving. It provides abstract classes which can be implemented by different SMT solvers.
-ADDITION
 
 # Quick Start
 ```
