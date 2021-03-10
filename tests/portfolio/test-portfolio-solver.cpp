@@ -29,18 +29,18 @@ int main()
   cout << "testing portfolio solver" << endl;
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
-  Sort intsort = s->make_sort(BV, 10);
+  Sort bvsort = s->make_sort(BV, 10);
 
   int pg = 300;
 
   vector<Term> nts;
   for (int i = 0; i < pg; ++i)
   {
-    Term x = s->make_symbol("x" + to_string(i), intsort);
+    Term x = s->make_symbol("x" + to_string(i), bvsort);
     nts.push_back(x);
   }
 
-  Term ten24 = s->make_term(256, intsort);
+  Term ten24 = s->make_term(256, bvsort);
   vector<Term> neqs;
   for (int i = 0; i < pg; ++i)
   {
@@ -72,15 +72,15 @@ int main()
   SmtSolver s8 = CVC4SolverFactory::create(false);
   SmtSolver s9 = Yices2SolverFactory::create(true);
   vector<SmtSolver> solvers;
-  solvers.push_back(s6);
-  solvers.push_back(s8);
   solvers.push_back(s1);
-  solvers.push_back(s3);
-  solvers.push_back(s9);
-  solvers.push_back(s7);
   solvers.push_back(s2);
+  solvers.push_back(s3);
   solvers.push_back(s4);
   solvers.push_back(s5);
+  solvers.push_back(s6);
+  solvers.push_back(s7);
+  solvers.push_back(s8);
+  solvers.push_back(s9);
 
   PortfolioSolver p(solvers, test_term);
   smt::Result res = p.portfolio_solve();
@@ -98,15 +98,15 @@ int main()
   SmtSolver s8_2 = CVC4SolverFactory::create(false);
   SmtSolver s9_2 = Yices2SolverFactory::create(true);
   vector<SmtSolver> solvers2;
-  solvers2.push_back(s6_2);
-  solvers2.push_back(s8_2);
   solvers2.push_back(s1_2);
-  solvers2.push_back(s3_2);
-  solvers2.push_back(s9_2);
-  solvers2.push_back(s7_2);
   solvers2.push_back(s2_2);
+  solvers2.push_back(s3_2);
   solvers2.push_back(s4_2);
   solvers2.push_back(s5_2);
+  solvers2.push_back(s6_2);
+  solvers2.push_back(s7_2);
+  solvers2.push_back(s8_2);
+  solvers2.push_back(s9_2);
   PortfolioSolver p2(solvers2, test_term);
   smt::Result res2 = p2.portfolio_solve();
   cout << "portfolio_solve2 " << res2.is_sat() << endl;
