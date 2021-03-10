@@ -67,7 +67,7 @@ class FreshTreeWalker : public TreeWalker {
     Sort boolsort = solver_->make_sort(BOOL);
 
     string var_name = string("b") + to_string(b_iter);
-    Term b = solver_->make_term(var_name, boolsort);
+    Term b = solver_->make_symbol(var_name, boolsort);
     b_iter++;
 
     Op op = term->get_op();
