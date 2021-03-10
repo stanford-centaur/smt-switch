@@ -31,6 +31,8 @@ bvusop bv[us](div|rem|lt|le|ge|gt)
 bvshop bv(shl|ashr|lshr)
 bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
 
+symbol [a-zA-Z0-9!\$\?~\._-]+
+
 %{
   // Code run each time a pattern is matched.
 # define YY_USER_ACTION  loc.columns (yyleng);
@@ -124,7 +126,7 @@ bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
                         loc.step();
                         return yy::parser::make_SYMBOL(yytext, loc);
                       }
-[a-zA-Z0-9\?~\._-]+   { return yy::parser::make_SYMBOL(yytext, loc); }
+{symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }
