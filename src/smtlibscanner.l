@@ -31,7 +31,7 @@ bvusop bv[us](div|rem|lt|le|ge|gt)
 bvshop bv(shl|ashr|lshr)
 bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
 
-symbol [a-zA-Z0-9!\$\?~\._-]+
+symbol [a-zA-Z0-9!@\*\$\?~\._-]+
 
 %{
   // Code run each time a pattern is matched.
