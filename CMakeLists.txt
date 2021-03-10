@@ -19,26 +19,27 @@ if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
-set(SOURCES
-  "${PROJECT_SOURCE_DIR}/src/ops.cpp"
-  "${PROJECT_SOURCE_DIR}/src/result.cpp"
-  "${PROJECT_SOURCE_DIR}/src/sort.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term.cpp"
-  "${PROJECT_SOURCE_DIR}/src/solver.cpp"
-  "${PROJECT_SOURCE_DIR}/src/solver_enums.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
-  "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
-  "${PROJECT_SOURCE_DIR}/src/substitution_walker.cpp"
-  "${PROJECT_SOURCE_DIR}/src/sort_inference.cpp"
-  "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
-  "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
-  "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
-  "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
+set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
+  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_term.cpp"
+  "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
+  "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
+  "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
-  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
+  "${PROJECT_SOURCE_DIR}/src/portfolio_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/result.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver_enums.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/sort_inference.cpp"
+  "${PROJECT_SOURCE_DIR}/src/sort.cpp"
+  "${PROJECT_SOURCE_DIR}/src/substitution_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
 if (SMTLIB_READER)
@@ -79,6 +80,10 @@ endif()
 include_directories (${INCLUDE_DIRS})
 
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
+
+set(THREADS_PREFER_PTHREAD_FLAG True)
+find_package(Threads)
+target_link_libraries( smt-switch PRIVATE Threads::Threads)
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
