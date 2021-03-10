@@ -141,26 +141,33 @@ string Z3Term::to_string()
 uint64_t Z3Term::to_int() const
 {
   std::string val = term.to_string();
+  int base = 10;
 
   // Process bit-vector format.
   if (term.is_bv())
   {
-    if (val.find("#x") == std::string::npos)
+    if (val.substr(0, 2) == "#x")
+    {
+      base = 16;
+    }
+    else if (val.substr(0, 2) == "#b")
+    {
+      base = 2;
+    }
+    else
     {
       std::string msg = val;
-      msg += " is not a constant term, can't convert to int.";
+      msg += " is not a value term, can't convert to int.";
       throw IncorrectUsageException(msg.c_str());
     }
-    // SOMETHING WONKY THIS WAY COMES ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    // !
-    val = val.substr(3, val.length());
+    val = val.substr(2, val.length());
     val = val.substr(0, val.find(" "));
   }
 
   // If not bit-vector, try parsing an int from the term.
   try
   {
-    return std::stoi(val);
+    return std::stoi(val, nullptr, base);
   }
   catch (std::exception const & e)
   {

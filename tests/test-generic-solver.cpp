@@ -563,7 +563,7 @@ void test_unsat_assumptions(SmtSolver gs)
   Result r = gs->check_sat_assuming(TermVec{ not_b1, b2, b3 });
   assert(r.is_unsat());
   UnorderedTermSet core;
-  gs->get_unsat_core(core);
+  gs->get_unsat_assumptions(core);
   std::cout << "core: " << std::endl;
   for (Term t : core)
   {

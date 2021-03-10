@@ -145,7 +145,7 @@ void MsatSolver::set_opt(const string option, const string value)
                 << std::endl;
     }
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     if (value == "false")
     {
@@ -359,7 +359,7 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void MsatSolver::get_unsat_core(UnorderedTermSet & out)
+void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
@@ -904,6 +904,16 @@ Term MsatSolver::make_term(Op op,
       vector<msat_term> v({mterm1->term, mterm2->term});
       res = ext_msat_make_uf(env, mterm0->decl, v);
     }
+    else if (op.prim_op == Forall)
+    {
+      res = msat_make_forall(env, mterm1->term, mterm2->term);
+      res = msat_make_forall(env, mterm0->term, res);
+    }
+    else if (op.prim_op == Exists)
+    {
+      res = msat_make_exists(env, mterm1->term, mterm2->term);
+      res = msat_make_exists(env, mterm0->term, res);
+    }
     else
     {
       string msg("Can't apply ");
@@ -951,7 +961,8 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1]);
   }
-  else if (size == 3)
+  else if (size == 3
+           && msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
@@ -989,7 +1000,51 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       }
       throw InternalSolverException(msg);
     }
-    return Term(new MsatTerm(env, res));
+    return make_shared<MsatTerm>(env, res);
+  }
+  else if (is_variadic(op.prim_op))
+  {
+    // assuming it is a binary operator extended to n arguments
+    auto msat_fun = msat_binary_ops.at(op.prim_op);
+
+    vector<msat_term> margs;
+    margs.reserve(terms.size());
+    for (const auto & tt : terms)
+    {
+      margs.push_back(static_pointer_cast<MsatTerm>(tt)->term);
+    }
+    msat_term res = msat_fun(env, margs[0], margs[1]);
+    for (size_t i = 2; i < margs.size(); ++i)
+    {
+      res = msat_fun(env, res, margs[i]);
+    }
+    return make_shared<MsatTerm>(env, res);
+  }
+  else if (op == Forall || op == Exists)
+  {
+    vector<msat_term> mterms;
+    mterms.reserve(terms.size());
+    for (const auto & tt : terms)
+    {
+      mterms.push_back(static_pointer_cast<MsatTerm>(tt)->term);
+    }
+
+    msat_term res = mterms.back();
+    mterms.pop_back();
+    while (mterms.size())
+    {
+      msat_term t = mterms.back();
+      mterms.pop_back();
+      if (op == Forall)
+      {
+        res = msat_make_forall(env, t, res);
+      }
+      else
+      {
+        res = msat_make_exists(env, t, res);
+      }
+    }
+    return make_shared<MsatTerm>(env, res);
   }
   else
   {
