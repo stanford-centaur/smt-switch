@@ -142,6 +142,7 @@ class MsatSolver : public AbsSmtSolver
   mutable bool env_uninitialized;
   bool valid_model;
   std::string logic;
+  std::unordered_map<size_t, msat_term> assumption_map_;
 
   // helper function for creating labels for assumptions
 

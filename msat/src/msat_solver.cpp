@@ -205,31 +205,23 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   initialize_env();
-  // expecting (possibly negated) boolean literals
-  for (const auto & a : assumptions)
-  {
-    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-    {
-      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-      {
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
 
+  size_t num_assumps = assumptions.size();
   vector<msat_term> m_assumps;
-  m_assumps.reserve(assumptions.size());
+  m_assumps.reserve(num_assumps);
 
-  shared_ptr<MsatTerm> ma;
-  for (const auto & a : assumptions)
+  msat_term ma, lbl;
+  assumption_map_.clear();
+  for (size_t i = 0; i < num_assumps; ++i)
   {
-    ma = static_pointer_cast<MsatTerm>(a);
-    m_assumps.push_back(ma->term);
+    ma = static_pointer_cast<MsatTerm>(assumptions[i])->term;
+    lbl = label(ma);
+    msat_assert_formula(env,
+                        msat_make_or(env,
+                                     msat_make_not(env, lbl),
+                                     ma));
+    m_assumps.push_back(lbl);
+    assumption_map_[msat_term_id(lbl)] = ma;
   }
 
   return check_sat_assuming(m_assumps);
@@ -386,7 +378,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
     {
       throw InternalSolverException("got an error term in the unsat core");
     }
-    out.insert(std::make_shared<MsatTerm>(env, *mcore_iter));
+    out.insert(std::make_shared<MsatTerm>(env, assumption_map_.at(msat_term_id(*mcore_iter))));
     ++mcore_iter;
   }
   msat_free(mcore);
