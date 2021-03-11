@@ -202,7 +202,7 @@ UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
   : reducer_(reducer_solver),
     to_reducer_(reducer_solver)
 {
-  reducer_->set_opt("produce-unsat-cores", "true");
+  reducer_->set_opt("produce-unsat-assumptions", "true");
   reducer_->set_opt("incremental", "true");
 }
 
@@ -264,7 +264,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
     local_assump.clear();
 
     UnorderedTermSet core_set;
-    reducer_->get_unsat_core(core_set);
+    reducer_->get_unsat_assumptions(core_set);
     for (const auto & a : cand_res) {
       Term l = label(a);
       if (core_set.find(l) != core_set.end()) {
@@ -361,7 +361,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
       // of bool_assump[bool_assump_for_query] is because
       // the core could be even smaller
       UnorderedTermSet core_set;
-      reducer_->get_unsat_core(core_set);
+      reducer_->get_unsat_assumptions(core_set);
       { // remove those not in core_set from bool_assump
         TermVec new_bool_assump;
         new_bool_assump.reserve(core_set.size());
