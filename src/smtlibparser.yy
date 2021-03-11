@@ -85,7 +85,7 @@ using namespace std;
 %token
 LP "("
 RP ")"
-INDPREFIX "(_"
+US "_"
 
 %nterm commands
 %nterm command
@@ -103,6 +103,7 @@ INDPREFIX "(_"
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
+%nterm indprefix
 
 %%
 
@@ -314,7 +315,7 @@ bvconst:
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
      $$ = drv.solver()->make_term($1, bvsort, 16);
    }
-   | INDPREFIX BVDEC NAT RP
+   | indprefix BVDEC NAT RP
    {
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, std::stoi($3));
      $$ = drv.solver()->make_term($2, bvsort, 10);
@@ -334,7 +335,7 @@ sort:
    {
      $$ = drv.solver()->make_sort(smt::REAL);
    }
-   | INDPREFIX BITVEC NAT RP
+   | indprefix BITVEC NAT RP
    {
      $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
    }
@@ -408,11 +409,11 @@ operator:
    {
      $$ = drv.lookup_primop($1);
    }
-   | INDPREFIX PRIMOP NAT RP
+   | indprefix PRIMOP NAT RP
    {
      $$ = smt::Op(drv.lookup_primop($2), std::stoi($3));
    }
-   | INDPREFIX PRIMOP NAT NAT RP
+   | indprefix PRIMOP NAT NAT RP
    {
      $$ = smt::Op(drv.lookup_primop($2), std::stoi($3), std::stoi($4));
    }
@@ -453,6 +454,11 @@ number_or_string:
    {
      $$ = $1;
    }
+;
+
+indprefix:
+   LP US
+   {}
 ;
 
 

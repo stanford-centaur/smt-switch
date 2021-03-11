@@ -53,7 +53,7 @@ symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-]+[a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 \(                    { return yy::parser::make_LP(loc); }
 \)                    { return yy::parser::make_RP(loc); }
-\(_                   { return yy::parser::make_INDPREFIX(loc); }
+_                     { return yy::parser::make_US(loc); }
 
 set-logic             { return yy::parser::make_SETLOGIC(loc); }
 set-option            { return yy::parser::make_SETOPT(loc); }
