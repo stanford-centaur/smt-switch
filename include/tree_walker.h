@@ -49,8 +49,8 @@ public:
   *  @return the term after visiting (returns the value of cache[term]
   *     -- if it has been cached and returns term otherwise)
   */
-// smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence); //TODO should be Term & term or just Term?, match w visit_term
- std::pair<smt::Term, std::vector<int>> visit(smt::Term & node); //TODO should be Term & term or just Term?, match w visit_term
+// smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence);
+ std::pair<smt::Term, std::vector<int>> visit(smt::Term & node);
  using TermPairVec = std::vector<std::pair<Term, int>>;
 
 protected:
@@ -80,7 +80,7 @@ protected:
   *  @param key the key term
   *  @param val the value term
   */
- void save_in_cache(const Term & key, const std::pair <Term, std::vector<int>> & val); //TODO why query_cache and this dont need std:: and smt:: apparently bc const
+ void save_in_cache(const Term & key, const std::pair <Term, std::vector<int>> & val);
 
  const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
  bool clear_cache_; /**< if true, clears the cache between calls to visit */
@@ -89,7 +89,7 @@ protected:
 
 private:
  // derived classes should interact with cache through the methods above only
- smt::UnorderedTermPairMap cache_;       /**< cache for updating terms */ //TODO would I have to change these too as cache map is mapping to pairs now
+ smt::UnorderedTermPairMap cache_;       /**< cache for updating terms */
  smt::UnorderedTermPairMap * ext_cache_; /**< external (user-provided) cache. If
                                         non-null, used instead of cache_ */
 };

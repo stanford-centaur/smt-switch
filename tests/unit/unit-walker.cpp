@@ -28,12 +28,11 @@ using namespace std;
 
 namespace smt_tests {
 
-  //TODO is this even being used, why is it here and why just return
-class DummyTreeWalker : TreeWalker {
-  TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path) override{
-    return TreeWalker_Continue;
-  }
-};
+//class DummyTreeWalker : TreeWalker {
+  //TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path) override{
+    //return TreeWalker_Continue;
+  //}
+//};
 
 class UnitWalkerTests : public ::testing::Test,
                         public ::testing::WithParamInterface<SolverConfiguration>
@@ -81,7 +80,7 @@ class FreshTreeWalker : public TreeWalker {
        // occurrence.first = t;
         //occurrence.second = path;
         //query_cache(t, occurrence);
-        cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
+        cached_children.push_back(t);
       }
       pair <Term, vector<int>> occ;
       occ.first = formula;
@@ -214,7 +213,6 @@ TEST_P(UnitWalkerTests, SimpleTree)
   Term xp11 = p1.first;
   EXPECT_EQ(xp1, xp11);
   // visit a second time
-//  printMap(UndMap);
   EXPECT_EQ(xp1, xp11);
 
   map<Term, pair<Term, vector<int>>> expected_map;
@@ -235,14 +233,11 @@ TEST_P(UnitWalkerTests, SimpleTree)
   expected_map[s->make_term(1, bvsort)] = n2;
 
   for (auto const& x : UndMap){
-//    EXPECT_EQ(x.first, expected_map[x.first]);
-    EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
-//    EXPECT_EQ(x.second.second, expected_map[x.first].second); //testing equivalence of 2nd element in pair: the path
+    //testing equivalence of topmost node (first element in pair)
+    EXPECT_EQ(x.second.first, expected_map[x.first].first);
     ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
+    //testing path equivalence
     for (int i = 0; i < x.second.second.size(); i++){
-//      cout << "size: " << x.second.second.size() << endl;
- //     cout <<  x.second.second[i]<< endl;
-   //   cout <<  expected_map[x.first].second[i]<< endl;
       EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
     }
     }
@@ -256,7 +251,7 @@ TEST_P(UnitWalkerTests, PathDecomp)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
-  Term xp1py = s->make_term(BVAdd, xp1, y); //diff than if had done ADD(x, 1, y) ?
+  Term xp1py = s->make_term(BVAdd, xp1, y);
   Term yexp1py = s->make_term(Equal, y, xp1py);
 
   map<Term, pair<Term, vector<int>>> expected_map;
@@ -293,28 +288,22 @@ TEST_P(UnitWalkerTests, PathDecomp)
   expected_map[x] = n4;
   //1: {1,0,1}
   pair <Term, vector<int>> n5;
-  n5.first = yexp1py; //should be type term...
+  n5.first = yexp1py;
   vector<int> n5path = {1, 0, 1};
   n5.second = n5path;
-  expected_map[s->make_term(1, bvsort)] = n5; //does this need to be turned into a term somehow?
+  expected_map[s->make_term(1, bvsort)] = n5;
 
   UnorderedTermPairMap UndMap;
   TreeWalker iw(s, false, &UndMap);
 
   pair <Term, vector<int>> p1;
   p1 = iw.visit(yexp1py);
-//  Term xp11 = p1.first;
-//  EXPECT_EQ(yexp1py, xp11);
-//  cout << s->get_solver_enum() << endl;
-//  SolverConfiguration sc = GetParam();
-//  cout << sc.is_logging_solver << std::endl;
-
-//  printMap(UndMap);
 
   for (auto const& x : UndMap){
-    EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+    EXPECT_EQ(x.second.first, expected_map[x.first].first);
     ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-    for (int i = 0; i < x.second.second.size(); i++){ //testing equivalence of second element in pair (path) by looping through vector of ints
+    //testing equivalence of second element in pair (path) by looping through vector of ints
+    for (int i = 0; i < x.second.second.size(); i++){
       EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
     }
     }
@@ -396,12 +385,9 @@ TEST_P(UnitWalkerTests, PathTests1)
 
   pair <Term, vector<int>> p1;
   p1 = iw.visit(fullform);
-//  Term = p1.first;
-
-//  printMap(UndMap);
 
   for (auto const& x : UndMap){
-    EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+    EXPECT_EQ(x.second.first, expected_map[x.first].first);
     ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
     for (int i = 0; i < x.second.second.size(); i++){
       EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
@@ -430,10 +416,8 @@ TEST_P(UnitWalkerTests, PathTests2)
   n0.second = n0path;
   expected_map[x] = n0;
 
-  //printMap(UndMap);
-
   for (auto const& x : UndMap){
-    EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+    EXPECT_EQ(x.second.first, expected_map[x.first].first);
     ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
     for (int i = 0; i < x.second.second.size(); i++){
       EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
@@ -506,11 +490,8 @@ TEST_P(UnitWalkerTests, PathTests3)
     n6.second = n6path;
     expected_map[y] = n6;
 
-//    printMap(UndMap);
-
-    //SEG FAULT SOMEWHERE IN THIS LOOP....
     for (auto const& x : UndMap){
-      EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+      EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
       for (int i = 0; i < x.second.second.size(); i++){
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
@@ -522,6 +503,7 @@ TEST_P(UnitWalkerTests, PathTests3)
 TEST_P(UnitWalkerTests, PathTests4UF)
 {
   //test with Uninterpreted Functions
+
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver) {
 
@@ -575,12 +557,8 @@ TEST_P(UnitWalkerTests, PathTests4UF)
     n5.second = n5path;
     expected_map[x] = n5;
 
-    //TODO do we want function names searched like this...
-
-    //printMap(UndMap);
-
     for (auto const& x : UndMap){
-      EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+      EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
       for (int i = 0; i < x.second.second.size(); i++){
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
@@ -592,6 +570,7 @@ TEST_P(UnitWalkerTests, PathTests4UF)
 
 TEST_P(UnitWalkerTests, FreshVars){
   //testing repeated values
+
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver) {
   Term x = s->make_symbol("x", bvsort);
@@ -664,12 +643,11 @@ TEST_P(UnitWalkerTests, FreshVars){
 
   pair <Term, vector<int>> p1;
   p1 = ftw.visit(fullform);
-//  Term = p1.first;
 
   printMap(UndMap);
 
  // for (auto const& x : UndMap){
-   // EXPECT_EQ(x.second.first, expected_map[x.first].first); //testing equivalence of first element in pair: the topmost node
+   // EXPECT_EQ(x.second.first, expected_map[x.first].first);
     //ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
   //  for (int i = 0; i < x.second.second.size(); i++){
     //  EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);

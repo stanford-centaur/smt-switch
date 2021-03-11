@@ -21,9 +21,10 @@ std::string vectorToString(vector<int> v){
 
 pair<Term, vector<int>> TreeWalker::visit(Term & node)
 {
-  //cout << "starting visit()" << endl;
-  int child_no;  //iterates over children, for tracking which child on & path
-  vector<int> tree_path; //path ; TODO need std::..?
+  //iterates over children, for tracking which child on & path
+  int child_no;
+  //path for parts of the formula
+  vector<int> tree_path;
 
   if (clear_cache_)
   {
@@ -44,7 +45,8 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
     return out;
   }
 
-  visit_term(node, node, tree_path); //tree_path currently empty
+  //tree_path currently empty, process top node
+  visit_term(node, node, tree_path);
   TermPairVec to_visit;
   pair<Term, int> p1 (node, -1);
   to_visit.push_back(p1);
@@ -61,20 +63,15 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
   pair<Term, int> current_pair;
   Term current_term;
   pair<Term, int> pn;
-  //cout << "start of while loop" << endl;
   while(to_visit.size())
   {
     current_pair = to_visit.back();
-    //cout << "start of new round of while loop. current pair: " << current_pair.first << " , " << current_pair.second << endl;
     current_term = current_pair.first;
     child_no = current_pair.second;
     to_visit.pop_back();
 
     if (child_no != -1){
-      //TODO add print line indicating here
-      //cout << "child number not flagged, tree path before add: " << vectorToString(tree_path) << endl;
       tree_path.push_back(child_no);
-      //cout << "tree path after push back: " << vectorToString(tree_path) << endl;
       visit_term(node, current_term, tree_path);
       pn.first = current_term;
       pn.second = -1;
@@ -88,18 +85,11 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
       }
     }
     else {
-      //cout << "should pop now, path before pop: " << vectorToString(tree_path) << endl;
       if (!tree_path.empty()){
         tree_path.pop_back();
       }
-      //cout << "should have popped, path afterpop: " << vectorToString(tree_path) << endl;
     }
-    //cout << "end of one loop, current to_visit is: " << endl;
-    //for (auto const &p : to_visit) {
-    //  cout << "{" << to_visit[p].first << " , " << to_visit[p].second << "}" << endl;
-    //}
   }
-  //cout << "end of while loop" << endl;
 
   // finished the traversal
   // return the cached term if available
@@ -111,9 +101,6 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
 TreeWalkerStepResult TreeWalker::visit_term(Term & formula, Term & term, vector<int> & path)
 {
   Op op = term->get_op();
-//  if (preorder_)
-    //cout << "!preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
-//    Op op = term->get_op();
   if (!op.is_null())
   {
     TermVec cached_children;
@@ -121,24 +108,21 @@ TreeWalkerStepResult TreeWalker::visit_term(Term & formula, Term & term, vector<
     pair <Term, vector<int>> occurrence;
     for (auto t : term)
     {
-       // occurrence.first = t;
-        //occurrence.second = path; //TODO should update path according to which term
-        //query_cache(t, occurrence); //purpose of this line? //TODO c is a term, not a pair; need to query if have something with c.first = t... amend for pairs...
-      cached_children.push_back(t); //TODO this needs to be only first part of pair (the term)
+      //should we still query_cache here?
+      cached_children.push_back(t);
     }
     pair <Term, vector<int>> occ;
     Term occ_key;
     occ.first = formula;
-    occ_key = solver_->make_term(op, cached_children); //TODO should be node of visit...
+    occ_key = solver_->make_term(op, cached_children);
     occ.second = path;
     save_in_cache(occ_key, occ);
   }
   else
   {
       // just keep the leaves the same
-      //cout << "preorder... visit_term " << term << " with current path: " << vectorToString(path) <<endl;
     pair <Term, vector<int>> occ;
-    occ.first = formula; //TODO should be node of visit...
+    occ.first = formula;
     occ.second = path;
     save_in_cache(term, occ);
   }
