@@ -87,7 +87,7 @@ exit                  { return yy::parser::make_EXIT(loc); }
 [0-9]+                { return yy::parser::make_NAT(yytext, loc); }
 [0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
 #b[01]+               { yytext=yytext+2; return yy::parser::make_BITSTR(yytext, loc); }
-#x[0-9A-F]+           { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
+#x[0-9a-fA-F]+        { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
 bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext, loc); }
 as[ \t\r\n]+const     { return yy::parser::make_ASCONST(loc); }
 let                   { return yy::parser::make_LET(loc); }
