@@ -201,6 +201,23 @@ class SmtLibReader
    */
   Term register_arg(const std::string & name, const smt::Sort & sort);
 
+  /** Create an alias for a sort
+   *  define-sort in SMT-LIB can take arguments, but currently this
+   *  only supports 0-arity defined sorts
+   *  It also is currently not scoped correctly
+   *  TODO fix these limitations
+   *  @param name the name of the defined sort
+   *  @param sort the sort to associate name with
+   */
+  void define_sort(const std::string & name,
+                   const smt::Sort & sort);
+
+  /** Looks up a defined sort by name
+   *  @param name the name to look up
+   *  @return the sort
+   */
+  smt::Sort lookup_sort(const std::string & name);
+
   /** Creates a parameter and stores it in the scoped data-structure
    *  arg_param_map_
    *  parameters are variables to be bound by a quantifier
@@ -226,6 +243,10 @@ class SmtLibReader
       all_symbols_;  ///< remembers all symbolic constants
                      ///< and functions
                      ///< even after context is popped
+
+  std::unordered_map<std::string, smt::Sort>
+    defined_sorts_; ///< mapping from symbol to defined sort
+                    ///< currently only supports 0-arity defines
 
   UnorderedScopedSymbolMap
       global_symbols_;  ///< symbolic constants and functions

@@ -75,8 +75,8 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
-       POP EXIT
+       DEFINEFUN DEFINESORT ASSERT CHECKSAT
+       CHECKSATASSUMING PUSH POP EXIT
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -161,6 +161,11 @@ command:
 
     drv.pop_scope();
     assert(!drv.current_scope());
+  }
+  | LP DEFINESORT SYMBOL LP RP sort RP
+  {
+    // only supports 0-arity define-sorts
+    drv.define_sort($3, $6);
   }
   | LP ASSERT s_expr RP
   {
@@ -336,6 +341,10 @@ sort:
    | LP ARRAY sort sort RP
    {
      $$ = drv.solver()->make_sort(smt::ARRAY, $3, $4);
+   }
+   | SYMBOL
+   {
+     $$ = drv.lookup_sort($1);
    }
 ;
 

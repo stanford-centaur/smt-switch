@@ -61,6 +61,7 @@ set-info              { return yy::parser::make_SETINFO(loc); }
 declare-const         { return yy::parser::make_DECLARECONST(loc); }
 declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
 define-fun            { return yy::parser::make_DEFINEFUN(loc); }
+define-sort           { return yy::parser::make_DEFINESORT(loc); }
 assert                { return yy::parser::make_ASSERT(loc); }
 check-sat             { return yy::parser::make_CHECKSAT(loc); }
 check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(loc); }
