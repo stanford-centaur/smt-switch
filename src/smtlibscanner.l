@@ -31,7 +31,7 @@ bvusop bv[us](div|rem|lt|le|ge|gt)
 bvshop bv(shl|ashr|lshr)
 bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
 
-symbol [a-zA-Z0-9!@\*\$\?~\._-]+
+symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-]+[a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %{
   // Code run each time a pattern is matched.
@@ -115,7 +115,7 @@ bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
 (select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
-\|(\\.|[^|])*\|       {
+\|([^|\\])*\|         {
                         // increment location for each line
                         for (const char * c=yytext; *c; ++c)
                         {
@@ -125,6 +125,9 @@ bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
                           }
                         }
                         loc.step();
+                        // get rid of pipe quotes
+                        yytext++;
+                        yytext[strlen(yytext)-1] = '\0';
                         return yy::parser::make_SYMBOL(yytext, loc);
                       }
 {symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
