@@ -21,6 +21,8 @@
 #include "yices.h"
 #include "yices2_extensions.h"
 
+#include "solver_utils.h"
+
 using namespace std;
 
 namespace smt {
@@ -912,6 +914,12 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
         res = yices_fun(res, yargs[i]);
       }
     }
+  }
+  else if (op == Distinct)
+  {
+    // special case for distinct
+    // need to apply to O(n^2) distinct pairs
+    return make_distinct(this, terms);
   }
   else
   {

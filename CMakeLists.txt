@@ -38,6 +38,7 @@ set(SOURCES
   "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver_utils.cpp"
   "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 

@@ -25,6 +25,7 @@
 
 #include "exceptions.h"
 #include "result.h"
+#include "solver_utils.h"
 
 using namespace std;
 
@@ -1086,6 +1087,12 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       }
     }
     return make_shared<MsatTerm>(env, res);
+  }
+  else if (op.prim_op == Distinct)
+  {
+    // special case for distinct
+    // need to apply to O(n^2) distinct pairs
+    return make_distinct(this, terms);
   }
   else
   {
