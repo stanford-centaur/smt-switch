@@ -414,6 +414,10 @@ stringlit:
    {
      $$ = $1;
    }
+   | stringlit QUOTESTRING
+   {
+     $$ = $1 + $2;
+   }
    | SYMBOL
    {
      $$ = $1;
