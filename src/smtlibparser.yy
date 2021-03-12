@@ -76,7 +76,8 @@ using namespace std;
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN DEFINESORT ASSERT CHECKSAT
-       CHECKSATASSUMING PUSH POP EXIT
+       CHECKSATASSUMING PUSH POP EXIT GETVALUELP
+       GETUNSATASSUMP
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -199,6 +200,26 @@ command:
   | LP EXIT RP
   {
     YYACCEPT;
+  }
+  | LP GETVALUELP s_expr_list RP  RP
+  {
+    cout << "(";
+    for (const auto & t : $3)
+    {
+      cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
+    }
+    cout << ")" << endl;
+  }
+  | LP GETUNSATASSUMP RP
+  {
+    smt::UnorderedTermSet core;
+    drv.solver()->get_unsat_assumptions(core);
+    cout << "(";
+    for (const auto & c : core)
+    {
+      cout << c << endl;
+    }
+    cout << ")" << endl;
   }
 ;
 
