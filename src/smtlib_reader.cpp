@@ -243,7 +243,8 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   Term tmpvar;
   if (id >= tmp_args_[sort].size())
   {
-    tmpvar = solver_->make_symbol(def_arg_prefix_ + std::to_string(id), sort);
+    tmpvar = solver_->make_symbol(def_arg_prefix_ + sort->to_string() +
+                                  std::to_string(id), sort);
     tmp_args_[sort].push_back(tmpvar);
   }
   else
@@ -255,6 +256,25 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   arg_param_map_.add_mapping(name, tmpvar);
   current_scope_sort_ids[sort]++;
   return tmpvar;
+}
+
+void SmtLibReader::define_sort(const string & name, const Sort & sort)
+{
+  if (defined_sorts_.find(name) != defined_sorts_.end())
+  {
+    throw SmtException("Cannot re-define sort with name " + name);
+  }
+  defined_sorts_[name] = sort;
+}
+
+Sort SmtLibReader::lookup_sort(const string & name)
+{
+  auto it = defined_sorts_.find(name);
+  if (it == defined_sorts_.end())
+  {
+    throw SmtException("Unknown defined sort symbol " + name);
+  }
+  return it->second;
 }
 
 Term SmtLibReader::create_param(const string & name, const Sort & sort)

@@ -130,6 +130,13 @@ term_t ext_yices_make_bv_number(const char * val, size_t size, int base)
   return res;
 }
 
+term_t ext_yices_bvcomp(term_t t0, term_t t1)
+{
+  // ite(t0 == t1, #b1, #b0)
+  return yices_ite(
+      yices_eq(t0, t1), yices_bvconst_int64(1, 1), yices_bvconst_int64(1, 0));
+}
+
 }  // namespace smt
 
 #endif
