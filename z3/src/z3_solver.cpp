@@ -89,6 +89,12 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   const char * o = option.c_str();
   const char * v = value.c_str();
 
+  // READ PLEASE
+  // The easiest handling of Z3's set function's param requirements is to have
+  // vectors with the names of different options in the list correspoinding with
+  // which param the z3 api expects, it's worth discussing what options we think
+  // should go in these lists to start and obviously it is very easy to add more
+  // down the line
   vector<string> bool_opts = { "produce-models", "produce-proofs" };
   vector<string> string_opts = {};
   vector<string> int_opts = {};
@@ -127,11 +133,12 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   {
     try
     {
-      int num = stoi(value, nullptr, 10);
+      double num = stoi(value, nullptr, 10);
+      slv.set(o, num);
     }
     catch (z3::exception & err)
     {
-      throw IncorrectUsageException("Expected a boolean value.");
+      throw IncorrectUsageException("Expected an integer value.");
     }
   }
   else
@@ -147,7 +154,6 @@ void Z3Solver::set_logic(const std::string logic)
 {
   const char * l = logic.c_str();
   slv = solver(ctx, l);
-  // throw NotImplementedException("Set logic not implemented for Z3 backend.");
 }
 
 Term Z3Solver::make_term(bool b) const
@@ -388,7 +394,6 @@ void Z3Solver::pop(uint64_t num) { slv.pop(num); }
 
 Term Z3Solver::get_value(const Term & t) const
 {
-  // throw NotImplementedException("Get value not implemented for Z3 backend.");
   shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(t);
   if (zterm->is_function)
   {
@@ -960,14 +965,9 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void Z3Solver::reset() { return slv.reset(); }
+void Z3Solver::reset() { slv.reset(); }
 
-void Z3Solver::reset_assertions()
-{
-  return slv.reset();
-  throw NotImplementedException(
-      "Reset assertions not implemented for Z3 backend.");
-}
+void Z3Solver::reset_assertions() { slv.reset(); }
 
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
