@@ -10,7 +10,7 @@ https://github.com/SRI-CSL/yices2 and place the directory in ./deps.
 Then, build the yices2 library:
 cd deps/yices2
 autoconf
-./configure
+./configure --enable-thread-safety
 make build_dir=build BUILD=build
 
 Now you should be able to build smt-switch with Yices2 as a backend solver by configuring

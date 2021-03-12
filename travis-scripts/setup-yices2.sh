@@ -24,7 +24,7 @@ if [ ! -d "$DEPS/yices2" ]; then
     cd yices2
     git checkout -f $YICES2_VERSION
     autoconf
-    ./configure
+    ./configure --enable-thread-safety
     make build_dir=build BUILD=build -j$NUM_CORES
     cd $DIR
 else
