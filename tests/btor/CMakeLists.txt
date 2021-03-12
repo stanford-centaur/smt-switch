@@ -1,34 +1,27 @@
-set(BTOR_TESTS
-  btor-arrays
-  btor-data-structures
-  btor-exceptions
-  btor-indexed-op-tests
-  btor-tests
-  btor-incremental
-  btor-transfer
-  btor-negation
-  btor-const-arrays
-  btor-substitute
-  btor-simple
-  btor-array-models
-  btor-array-empty-assignment
-  btor-neg-numbers
-)
+macro(switch_add_btor_test name)
+  add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/btor/${name}.cpp")
+  target_link_libraries(${name} gtest_main)
+  target_link_libraries(${name} test-deps)
+  add_test(NAME ${name}_test COMMAND ${name})
+endmacro()
 
-foreach(test ${BTOR_TESTS})
-  add_executable(${test}.out ${test}.cpp)
-  target_include_directories (${test}.out PUBLIC "${PROJECT_SOURCE_DIR}/include")
-  target_link_libraries(${test}.out smt-switch)
-  target_link_libraries(${test}.out smt-switch-btor)
-  target_link_libraries(${test}.out test-deps)
-  add_test(${test} ${test}.out)
-endforeach()
-
+# these tests don't use GoogleTest yet
+# TODO move old tests to Google Test infrastructure
+switch_add_btor_test(btor-arrays)
+switch_add_btor_test(btor-data-structures)
+switch_add_btor_test(btor-exceptions)
+switch_add_btor_test(btor-indexed-op-tests)
+switch_add_btor_test(btor-tests)
+switch_add_btor_test(btor-incremental)
+switch_add_btor_test(btor-transfer)
+switch_add_btor_test(btor-negation)
+switch_add_btor_test(btor-const-arrays)
+switch_add_btor_test(btor-substitute)
+switch_add_btor_test(btor-simple)
+switch_add_btor_test(btor-array-models)
+switch_add_btor_test(btor-array-empty-assignment)
+switch_add_btor_test(btor-neg-numbers)
 
 # Google Test
-# TODO: move old tests to Google Test infrastructure
 
-add_executable(btor-opts "${PROJECT_SOURCE_DIR}/tests/btor/btor-opts.cpp")
-target_link_libraries(btor-opts gtest_main)
-target_link_libraries(btor-opts test-deps)
-add_test(NAME btor-opts_test COMMAND btor-opts)
+switch_add_btor_test(btor-opts)
