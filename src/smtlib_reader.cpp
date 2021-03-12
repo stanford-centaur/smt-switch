@@ -25,8 +25,7 @@ using namespace std;
 namespace smt {
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
-    : solver_(solver),
-      def_arg_prefix_("__defvar_")
+    : solver_(solver), def_arg_prefix_("__defvar_"), param_prefix_("__param_")
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
@@ -287,7 +286,7 @@ Sort SmtLibReader::lookup_sort(const string & name)
 Term SmtLibReader::create_param(const string & name, const Sort & sort)
 {
   assert(current_scope());
-  Term param = solver_->make_param(name, sort);
+  Term param = solver_->make_param(param_prefix_ + name, sort);
   arg_param_map_.add_mapping(name, param);
   return param;
 }

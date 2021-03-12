@@ -279,6 +279,8 @@ class SmtLibReader
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
+  std::string param_prefix_;    ///< the prefix for parameter names (to prevent
+                                ///< clashing with symbols)
 };
 
 }  // namespace smt
