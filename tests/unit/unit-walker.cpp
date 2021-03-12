@@ -28,12 +28,6 @@ using namespace std;
 
 namespace smt_tests {
 
-//class DummyTreeWalker : TreeWalker {
-  //TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path) override{
-    //return TreeWalker_Continue;
-  //}
-//};
-
 class UnitWalkerTests : public ::testing::Test,
                         public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -56,11 +50,6 @@ class FreshTreeWalker : public TreeWalker {
 
   using TreeWalker::TreeWalker;
 
-//  FreshTreeWalker(const smt::SmtSolver & solver,
-  //               bool clear_cache,
-    //             smt::UnorderedTermPairMap * ext_cache = nullptr)
-      //: solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
-
   TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path) override{
 
     Sort boolsort = solver_->make_sort(BOOL);
@@ -77,9 +66,6 @@ class FreshTreeWalker : public TreeWalker {
       pair <Term, vector<int>> occurrence;
       for (auto t : term)
       {
-       // occurrence.first = t;
-        //occurrence.second = path;
-        //query_cache(t, occurrence);
         cached_children.push_back(t);
       }
       pair <Term, vector<int>> occ;

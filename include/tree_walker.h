@@ -52,7 +52,7 @@ public:
 // smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence);
  std::pair<smt::Term, std::vector<int>> visit(smt::Term & node);
  using TermPairVec = std::vector<std::pair<Term, int>>;
- using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
+ //using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
 
 protected:
  /** Visit a single term.
