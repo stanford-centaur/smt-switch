@@ -252,7 +252,7 @@ bool Z3Term::is_value() const
   {
     return false;
   }
-  if (term.is_const())
+  if (!term.is_const() && !term.is_app())
   {
     return term.is_bool() || term.is_arith() || term.is_bv();
   }
