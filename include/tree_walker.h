@@ -21,7 +21,7 @@ enum TreeWalkerStepResult
 };
 
 /** \class
- * IdentityWalker class.
+ * TreeWalker class.
  * To implement your own walker, inherit this class and implement the
  * visit_term method. See substitution_walker.[h/cpp] for an example
  *
@@ -42,23 +42,31 @@ public:
                 smt::UnorderedTermPairMap * ext_cache = nullptr)
      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
 
- /** Visit a term and all its subterms in a post-order traversal
-  *  the member variable preorder_ is true if it's the first time seeing
-  *  a subterm and false if the traversal is in post-order already
+ /** Visit a term and all its subterms in a post-order traversal //TODO STILL POSTORDER?
   *  @param term the term to visit
-  *  @return the term after visiting (returns the value of cache[term]
+  *  @return the occurrence of the term after visiting, given by the pair giving the term & the term's path (returns the value of cache[term]
   *     -- if it has been cached and returns term otherwise)
   */
-// smt::Term visit(std::pair <smt::Term, std::vector<int>> & occurrence);
  std::pair<smt::Term, std::vector<int>> visit(smt::Term & node);
  using TermPairVec = std::vector<std::pair<Term, int>>;
- //using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
+ //using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>; //TODO where thsi should be...
 
 protected:
  /** Visit a single term.
   *  Implement this method in a derived class to change the behavior
   *  of the walker
-  *  @param term the term to visit
+  *  By default, builds up cache from term to term's frist observed
+  *   occurrence the the formula, where an occurrence is represented
+  *   by a pair giving the topmost node (formula in which term appears)
+  *   & the path giving position in the formula of the first occurrence
+  *   of the term.
+  *  The path is represented as a vector of ints that serce as coordinates
+  *   for a given occurrence. For example, an empty vector indicates the
+  *   topmost node and the vector [0,1] indicates the node that is the 1st
+  *  child of the 0th child of the topmost node going down.
+  *  @param formula the term taken to visit in visit, the topmost node of the visited formula
+  *  @param term the term to visit in visit_term
+  *  @param path the path for term, which we are visiting
   *  @return a WalkerStepResult to tell the visit method how to proceed
   */
  virtual TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path);
@@ -85,8 +93,8 @@ protected:
 
  const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
  bool clear_cache_; /**< if true, clears the cache between calls to visit */
- bool preorder_; /**< true when the current term is being visited for the first
-                    time. For use in visit_term */
+// bool preorder_; /**< true when the current term is being visited for the first
+ //                   time. For use in visit_term */
 
 private:
  // derived classes should interact with cache through the methods above only
