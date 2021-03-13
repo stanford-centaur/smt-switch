@@ -1,4 +1,4 @@
-message(FATAL_ERROR "Z3 backend development is still in progress and not yet ready for use")
+message(WARNING "Z3 backend development is still in progress and not yet ready for use")
 add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
   # "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_factory.cpp"
