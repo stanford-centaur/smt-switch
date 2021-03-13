@@ -7,6 +7,9 @@
 
 #include <iostream>
 
+// TEMP for conversions
+#include "gmpxx.h"
+
 using namespace std;
 
 namespace smt {
@@ -247,22 +250,41 @@ Term Z3Solver::make_term(const std::string val,
   expr z_term = expr(ctx);
   SortKind sk = sort->get_sort_kind();
 
-  if (base != 10)
+  if (base != 10 && sk != BV)
   {
-    throw NotImplementedException("Does not support base not equal to 10.");
+    throw NotImplementedException(
+        "Does not support base not equal to 10 for arithmetic.");
   }
 
   if (sk == BV)
   {
-    z_term = ctx.bv_const(val.c_str(), sort->get_width());
+    if (base == 10)
+    {
+      z_term = ctx.bv_val(val.c_str(), sort->get_width());
+    }
+    else if (base == 2)
+    {
+      assert(val.length() == sort->get_width());
+      mpz_class value(val, 2);
+      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
+    }
+    else if (base == 16)
+    {
+      mpz_class value(val, 16);
+      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
+    }
+    else
+    {
+      throw IncorrectUsageException("Unsupported base " + std::to_string(base));
+    }
   }
   else if (sk == REAL)
   {
-    z_term = ctx.real_const(val.c_str());
+    z_term = ctx.real_val(val.c_str());
   }
   else if (sk == INT)
   {
-    z_term = ctx.int_const(val.c_str());
+    z_term = ctx.int_val(val.c_str());
   }
   else
   {
