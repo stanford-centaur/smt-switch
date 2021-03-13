@@ -97,9 +97,9 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   // which param the z3 api expects, it's worth discussing what options we think
   // should go in these lists to start and obviously it is very easy to add more
   // down the line
-  vector<string> bool_opts = { "produce-models", "produce-proofs" };
-  vector<string> string_opts = {};
-  vector<string> int_opts = {};
+  unordered_set<string> bool_opts = { "produce-models", "produce-proofs" };
+  unordered_set<string> string_opts = {};
+  unordered_set<string> int_opts = {};
 
   if (option == "incremental")
   {
@@ -109,8 +109,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
           "Z3 backend is always incremental -- it cannot be disabled.");
     }
   }
-  else if (std::find(bool_opts.begin(), bool_opts.end(), option)
-           != bool_opts.end())
+  else if (bool_opts.find(option) != bool_opts.end())
   {
     if (value == "true")
     {
@@ -125,13 +124,11 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
       throw IncorrectUsageException("Expected a boolean value.");
     }
   }
-  else if (std::find(string_opts.begin(), string_opts.end(), option)
-           != string_opts.end())
+  else if (string_opts.find(option) != string_opts.end())
   {
     slv.set(o, v);
   }
-  else if (std::find(int_opts.begin(), int_opts.end(), option)
-           != int_opts.end())
+  else if (int_opts.find(option) != int_opts.end())
   {
     try
     {
