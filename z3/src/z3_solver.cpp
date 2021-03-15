@@ -884,8 +884,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    std::vector<expr> zterms;
-    zterms.reserve(terms.size());
+    z3::expr_vector zterms(ctx);
     std::shared_ptr<Z3Term> zterm;
     for (auto t : terms)
     {
@@ -902,43 +901,16 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     unsigned num_var = zterms.size();  // this will always be one when only
                                        // allowing one parameter
 
-    std::vector<Z3_ast> znames;
-    znames.reserve(terms.size() - 1);
-    std::vector<Z3_sort> zsorts;
-    zsorts.reserve(terms.size() - 1);
-    for (auto t : zterms)
-    {
-      znames.push_back(t);
-    }
-    for (auto t : znames)
-    {
-      zsorts.push_back(Z3_get_sort(ctx, t));
-    }
-
-    Z3_ast nn[znames.size()];  // = { znames[0] };
-    std::copy(znames.begin(), znames.end(), nn);
-    Z3_sort ss[zsorts.size()];  // = { zsorts[0] };
-    std::copy(zsorts.begin(), zsorts.end(), ss);
-
-    expr t0 = expr(ctx);
-    Z3_symbol sym[znames.size()];
-    for (int i = 0; i < znames.size(); i++)
-    {
-      t0 = to_expr(ctx, nn[i]);
-      const char * c = (t0.to_string()).c_str();
-      sym[i] = ctx.str_symbol(c);
-    }
-
+    z3::expr quant_res(ctx);
     if (op.prim_op == Forall)
     {
-      res = Z3_mk_forall(ctx, 0, 0, NULL, num_var, ss, sym, quantified_body);
+      quant_res = forall(zterms, quantified_body);
     }
     if (op.prim_op == Exists)
     {
-      res = Z3_mk_exists(ctx, 0, 0, NULL, num_var, ss, sym, quantified_body);
+      quant_res = exists(zterms, quantified_body);
     }
-    expr res2 = to_expr(ctx, res);
-    return std::make_shared<Z3Term>(res2, ctx);
+    return std::make_shared<Z3Term>(quant_res, ctx);
   }
 
   if (size == 2)
