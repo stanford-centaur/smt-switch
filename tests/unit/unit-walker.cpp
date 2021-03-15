@@ -38,11 +38,12 @@ class UnitWalkerTests : public ::testing::Test,
 
     bvsort = s->make_sort(BV, 4);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    fun2sort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort });
     arrsort = s->make_sort(ARRAY, bvsort, bvsort);
     boolsort = s->make_sort(BOOL);
   }
   SmtSolver s;
-  Sort bvsort, funsort, arrsort, boolsort;
+  Sort bvsort, funsort, fun2sort, arrsort, boolsort;
 };
 
 /* Custom Tree Walker that builds up a map assigning fresh boolean variables to each occurrence of each term in the formula it visits.
@@ -619,6 +620,22 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
   }
 }
 
+string vectorToString(vector<int> v){
+  string s;
+  for (int i:v){
+    s += to_string(i);
+    s += ", ";
+  }
+  return s;
+}
+
+void printMap(UnorderedTermPairMap const &m){
+  for (auto const& pair : m){
+    auto val_pair = pair.second;
+    cout << pair.first << ": " << "<" << val_pair.first << ", (" << vectorToString(val_pair.second) << ")> }" << endl;
+  }
+}
+
 TEST_P(UnitWalkerTests, PathTestsUF2)
 {
   //test with Uninterpreted Functions
@@ -630,7 +647,7 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
     Term z = s->make_symbol("z", bvsort);
-    Term f = s->make_symbol("f", funsort);
+    Term f = s->make_symbol("f", fun2sort);
     Term g = s->make_symbol("g", funsort);
     Term fyz = s->make_term(Apply, f, y, z);
     Term gx = s->make_term(Apply, g, x);
@@ -702,6 +719,8 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     n7.second = n7path;
     expected_map[x] = n7;
 
+    printMap(UndMap);
+
     for (auto const& x : UndMap){
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
@@ -727,145 +746,11 @@ TEST_P(UnitWalkerTests, FreshVars){
   Term rhs = s->make_term(BVAdd, ypy, lmt);
   Term fullform = s->make_term(Equal, xpx, rhs);
 
-  /*expected_map:
-   * b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to (x+x)={(y+y)+[(x+2)-(x+x)]}
-   * b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>, where b1 corresponds to {(y+y)+[(x+2)-(x+x)]}
-   * b2: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to [(x+2)-(x+x)]
-   * b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3 corresponds to (x+x)
-   * b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where b4 corresponds to x
-   * b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where b5 corresponds to x
-   * b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6 corresponds to (x+2)
-   * b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where b7 corresponds to 2
-   * b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where b8 corresponds to x
-   * b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9 corresponds to (y+y)
-   * b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where b10 corresponds to y
-   * b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where b11 corresponds to y
-   * b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12 corresponds to (x+x)
-   * b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where b13 corresponds to x
-   * b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where b14 corresponds to x
-   */
-//  map<Term, pair<Term, vector<int>>> expected_map;
-  //b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to (x+x)={(y+y)+[(x+2)-(x+x)]}
-//  pair <Term, vector<int>> n0;
-//  n0.first = fullform;
-//  vector<int> n0path = {};
-//  n0.second = n0path;
-//  expected_map[s->make_symbol("b0", boolsort)] = n0;
-  //b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>, where b1 corresponds to {(y+y)+[(x+2)-(x+x)]}
-//  pair <Term, vector<int>> n1;
-//  n1.first = fullform;
-//  vector<int> n1path = {1};
-//  n1.second = n1path;
-//  expected_map[s->make_symbol("b1", boolsort)] = n1;
-  //b2: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to [(x+2)-(x+x)]
-//  pair <Term, vector<int>> n2;
-//  n2.first = fullform;
-//  vector<int> n2path = {1, 1};
-//  n2.second = n2path;
-//  expected_map[s->make_symbol("b2", boolsort)] = n2;
-  //b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3 corresponds to (x+x)
-//  pair <Term, vector<int>> n3;
-//  n3.first = fullform;
-//  vector<int> n3path = {1, 1, 1};
-//  n3.second = n3path;
-//  expected_map[s->make_symbol("b3", boolsort)] = n3;
-  //b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where b4 corresponds to x
-//  pair <Term, vector<int>> n4;
-//  n4.first = fullform;
-//  vector<int> n4path = {1, 1, 1, 1};
-//  n4.second = n4path;
-//  expected_map[s->make_symbol("b4", boolsort)] = n4;
-  //b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where b5 corresponds to x
-//  pair <Term, vector<int>> n5;
-//  n5.first = fullform;
-//  vector<int> n5path = {1, 1, 1, 0};
-//  n5.second = n5path;
- // expected_map[s->make_symbol("b5", boolsort)] = n5;
-  //b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6 corresponds to (x+2)
-//  pair <Term, vector<int>> n6;
-//  n6.first = fullform;
-//  vector<int> n6path = {1, 1, 0};
-//  n6.second = n6path;
-//  expected_map[s->make_symbol("b6", boolsort)] = n6;
-  //b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where b7 corresponds to 2
-//  pair <Term, vector<int>> n7;
-//  n7.first = fullform;
-//  vector<int> n7path = {1, 1, 0, 1};
-//  n7.second = n7path;
-//  expected_map[s->make_symbol("b7", boolsort)] = n7;
-  //b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where b8 corresponds to x
-//  pair <Term, vector<int>> n8;
-//  n8.first = fullform;
-//  vector<int> n8path = {1, 1, 0, 0};
-//  n8.second = n8path;
-//  expected_map[s->make_symbol("b8", boolsort)] = n8;
-  // b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9 corresponds to (y+y)
-//  pair <Term, vector<int>> n9;
-//  n9.first = fullform;
-//  vector<int> n9path = {1, 0};
-//  n9.second = n9path;
-//  expected_map[s->make_symbol("b9", boolsort)] = n9;
-  // b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where b10 corresponds to y
-//  pair <Term, vector<int>> n10;
-//  n10.first = fullform;
-//  vector<int> n10path = {1, 0, 1};
-//  n10.second = n10path;
-//  expected_map[s->make_symbol("b10", boolsort)] = n10;
-  // b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where b11 corresponds to y
-//  pair <Term, vector<int>> n11;
-//  n11.first = fullform;
-//  vector<int> n11path = {1, 0, 0};
-//  n11.second = n11path;
-//  expected_map[s->make_symbol("b11", boolsort)] = n11;
-  // b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12 corresponds to (x+x)
-//  pair <Term, vector<int>> n12;
-//  n12.first = fullform;
-//  vector<int> n12path = {0};
-//  n12.second = n12path;
-//  expected_map[s->make_symbol("b12", boolsort)] = n12;
-  // b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where b13 corresponds to x
-//  pair <Term, vector<int>> n13;
-//  n13.first = fullform;
-//  vector<int> n13path = {0, 1};
-//  n13.second = n13path;
-//  expected_map[s->make_symbol("b13", boolsort)] = n13;
-  // b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where b14 corresponds to x
-//  pair <Term, vector<int>> n14;
-//  n14.first = fullform;
-//  vector<int> n14path = {0, 0};
-//  n14.second = n14path;
-//  expected_map[s->make_symbol("b14", boolsort)] = n14;
-
   UnorderedTermPairMap UndMap;
   IndicatorTreeWalker itw(s, false, &UndMap);
 
   pair <Term, vector<int>> p1;
   p1 = itw.visit(fullform);
-
-  //for (auto const& x : UndMap){
-    //EXPECT_EQ(x.second.first, expected_map[x.first].first);
-    //ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-    //for (int i = 0; i < x.second.second.size(); i++){
-      //EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-    //}
-  //}
-  }
-}
-
-TEST_P(UnitWalkerTests, FreshVarsDup){
-  //testing repeated values with fresh variables
-
-  SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-  //build up (x+x) = {(y+y) + [(x+2)-(x+x)]}
-  Term x = s->make_symbol("x", bvsort);
-  Term y = s->make_symbol("y", bvsort);
-  Term xpx = s->make_term(BVAdd, x, x);
-  Term ypy = s->make_term(BVAdd, y, y);
-  Term xp2 = s->make_term(BVAdd, x, s->make_term(2, bvsort));
-  Term lmt = s->make_term(BVSub, xp2, xpx);
-  Term rhs = s->make_term(BVAdd, ypy, lmt);
-  Term fullform = s->make_term(Equal, xpx, rhs);
 
   /*expected_map:
    * b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to (x+x)={(y+y)+[(x+2)-(x+x)]}
@@ -885,23 +770,126 @@ TEST_P(UnitWalkerTests, FreshVarsDup){
    * b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where b14 corresponds to x
    */
 
-  UnorderedTermPairMap UndMap;
-  IndicatorTreeWalker itw(s, false, &UndMap);
-
-  pair <Term, vector<int>> p1;
-  p1 = itw.visit(fullform);
-
-  vector<vector<int>> expected_paths = { {0, 0}, {0, 1}, {0}, {1, 0, 0}, {1, 0, 1}, {1, 0}, {1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 0}, {1, 1, 1, 0}, {1, 1, 1, 1}, {1, 1, 1}, {1, 1}, {1}, {}};
-  vector<int> expected_path_lengths = {2, 2, 1, 3, 3, 2, 4, 4, 3, 4, 4, 3, 2, 1, 0};
-  int j = 0;
-
-  for (auto const& x : UndMap){
-    EXPECT_EQ(x.second.first, fullform);
-    EXPECT_EQ(x.second.second.size(), expected_path_lengths[j]);
-    for (int i = 0; i < x.second.second.size(); i++){
-      EXPECT_EQ(x.second.second[i], expected_paths[j][i]);
+  vector<int> expected_path;
+  for (auto const& p : UndMap){
+    string s = p.first->to_string();
+    if (s == "b0") {
+      EXPECT_EQ(p.second.first, fullform);
+      EXPECT_EQ(p.second.second.size(), 0);
     }
-    j++;
+    else if (s == "b1"){
+      EXPECT_EQ(p.second.first, fullform);
+      ASSERT_EQ(p.second.second.size(), 1);
+      EXPECT_EQ(p.second.second[0], 1);
+    }
+    else if (s == "b2"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1};
+      ASSERT_EQ(p.second.second.size(), 2);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b3"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 1};
+      ASSERT_EQ(p.second.second.size(), 3);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b4"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 1, 1};
+      ASSERT_EQ(p.second.second.size(), 4);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b5"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 1, 0};
+      ASSERT_EQ(p.second.second.size(), 4);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b6"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 0};
+      ASSERT_EQ(p.second.second.size(), 3);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b7"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 0, 1};
+      ASSERT_EQ(p.second.second.size(), 4);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b8"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 1, 0, 0};
+      ASSERT_EQ(p.second.second.size(), 4);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b9"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 0};
+      ASSERT_EQ(p.second.second.size(), 2);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b10"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 0, 1};
+      ASSERT_EQ(p.second.second.size(), 3);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b11"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {1, 0, 0};
+      ASSERT_EQ(p.second.second.size(), 3);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b12"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {0};
+      ASSERT_EQ(p.second.second.size(), 1);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b13"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {0, 1};
+      ASSERT_EQ(p.second.second.size(), 2);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else if (s == "b14"){
+      EXPECT_EQ(p.second.first, fullform);
+      expected_path = {0, 0};
+      ASSERT_EQ(p.second.second.size(), 2);
+      for(int i = 0; i < p.second.second.size(); i++){
+        EXPECT_EQ(p.second.second[i], expected_path[i]);
+      }
+    }
+    else {
+      //no other keys should exist
+      assert(false);
+    }
   }
   }
 }

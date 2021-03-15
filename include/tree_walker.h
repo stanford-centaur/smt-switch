@@ -5,9 +5,11 @@
 #include "exceptions.h"
 #include "smt.h"
 
-
 namespace smt
 {
+  using TermPairVec = std::vector<std::pair<Term, int>>;
+  using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
+
   /** \enum
    * Walker_Continue : rebuild the current term and continue
    * Walker_Skip     : skip this term and all subterms
@@ -48,8 +50,6 @@ public:
   *     -- if it has been cached and returns term otherwise)
   */
  std::pair<smt::Term, std::vector<int>> visit(smt::Term & node);
- using TermPairVec = std::vector<std::pair<Term, int>>;
- //using UnorderedTermPairMap = std::unordered_map<Term, std::pair<Term, std::vector<int>>>; //TODO where thsi should be...
 
 protected:
  /** Visit a single term.
