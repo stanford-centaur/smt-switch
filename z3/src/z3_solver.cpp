@@ -20,6 +20,16 @@ typedef Z3_ast (*bin_fun)(Z3_context c, Z3_ast t1, Z3_ast t2);
 typedef Z3_ast (*tern_fun)(Z3_context c, Z3_ast t1, Z3_ast t2, Z3_ast t3);
 typedef Z3_ast (*variadic_fun)(Z3_context c, unsigned num, Z3_ast const args[]);
 
+// extension function
+Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
+{
+  Z3_ast eq = Z3_mk_eq(c, t1, t2);
+  Z3_sort bvsort1 = Z3_mk_bv_sort(c, 1);
+  Z3_ast one = Z3_mk_unsigned_int(c, 1, bvsort1);
+  Z3_ast zero = Z3_mk_unsigned_int(c, 0, bvsort1);
+  return Z3_mk_ite(c, eq, one, zero);
+}
+
 const std::unordered_map<PrimOp, un_fun> unary_ops(
     { { Not, Z3_mk_not },
       { Negate, Z3_mk_unary_minus },
@@ -44,6 +54,7 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
     { Equal, Z3_mk_eq },
     { Mod, Z3_mk_mod },
     { Concat, Z3_mk_concat },
+    { BVComp, ext_Z3_mk_bvcomp },
     { BVAnd, Z3_mk_bvand },
     { BVOr, Z3_mk_bvor },
     { BVXor, Z3_mk_bvxor },
