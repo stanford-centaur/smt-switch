@@ -54,7 +54,7 @@ public:
                 smt::UnorderedTermPairMap * ext_cache = nullptr)
      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
 
- /** Visit a term and all its subterms
+ /** Visit a term and all its subterms in a post-order traversal
   *  @param term the term to visit
   *  @return the value of cache[term]
   *    if it has been cached and returns pair of the term itself and the empty path otherwise
