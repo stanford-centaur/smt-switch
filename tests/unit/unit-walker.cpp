@@ -50,9 +50,7 @@ class UnitWalkerTests
 /* Custom Tree Walker that builds up a map assigning fresh boolean variables to
  * each occurrence of each term in the formula it visits. One example of
  * overriding visit_term to customize the behavior of the walker.
- * Class gets used in last 9 tests: SimpleTree, PathDecomp, PathTests1,
- * SimplePathTests1, SimplePathTests2, PathTests3, PathTestsUF1, PathTestsUF2,
- * FreshVars
+ * Class gets used in FreshVars test
  */
 class IndicatorTreeWalker : public TreeWalker
 {
@@ -66,7 +64,8 @@ class IndicatorTreeWalker : public TreeWalker
    * containing the formula the term appears in and the path indicating the
    * term's location in the formula it appears in. For example, the formula
    * x+2=y traversed with this custom version of visit_term will build the
-   * corresponding map containing: b0 -> <x+2=y, []>, corresponding to the term
+   * corresponding map containing:
+   *   b0 -> <x+2=y, []>, corresponding to the term
    * x+2=y b1 -> <x+2=y, [1]>, corresponding to the term y b2 -> <x+2=y, [0]>,
    * corresponding to the term x+2 b3 -> <x+2=y, [0,1]>, corresponding to the
    * term 2 b4 -> <x+2=y, [0,0]>, corresponding to the term x As in this
@@ -175,7 +174,7 @@ TEST_P(UnitWalkerTests, FunSubstitution)
 }
 
 /* helper function to test equivalency of passed_map that TreeWalker builds up
- * against expected_map that should have been built up gets used for all tests
+ * against expected_map that should have been built up. gets used for all tests
  * using TreeWalker */
 void mapEqual(map<Term, pair<Term, vector<int>>> & expected_map,
               UnorderedTermPairMap const & passed_map)
