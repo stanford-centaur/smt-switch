@@ -181,11 +181,18 @@ void MsatSolver::assert_formula(const Term & t)
     msg += t->to_string();
     throw IncorrectUsageException(msg);
   }
+
+  if (!msat_num_backtrack_points(env))
+  {
+    // keep track of base-level assertions
+    base_assertions_.push_back(mterm->term);
+  }
 }
 
 Result MsatSolver::check_sat()
 {
   initialize_env();
+  clear_assumption_clauses();
   msat_result mres = msat_solve(env);
 
   if (mres == MSAT_SAT)
@@ -205,7 +212,7 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   initialize_env();
-
+  clear_assumption_clauses();
   size_t num_assumps = assumptions.size();
   vector<msat_term> m_assumps;
   m_assumps.reserve(num_assumps);
@@ -223,6 +230,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   initialize_env();
+  clear_assumption_clauses();
   // expecting (possibly negated) boolean literals
   for (const auto & a : assumptions)
   {
@@ -256,6 +264,7 @@ Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
 Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
   initialize_env();
+  clear_assumption_clauses();
   // expecting (possibly negated) boolean literals
   for (const auto & a : assumptions)
   {

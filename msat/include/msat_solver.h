@@ -42,17 +42,21 @@ class MsatSolver : public AbsSmtSolver
 {
  public:
   MsatSolver()
-    : AbsSmtSolver(MSAT),
-      cfg(msat_create_config()),
-      env_uninitialized(true),
-      logic(""){};
+      : AbsSmtSolver(MSAT),
+        cfg(msat_create_config()),
+        env_uninitialized(true),
+        logic(""),
+        num_assump_clauses_(0),
+        max_assump_clauses_(10000){};
   MsatSolver(msat_config c, msat_env e)
       : AbsSmtSolver(MSAT),
         cfg(c),
         env(e),
         env_uninitialized(false),
         valid_model(false),
-        logic(""){};
+        logic(""),
+        num_assump_clauses_(0),
+        max_assump_clauses_(10000){};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -142,9 +146,38 @@ class MsatSolver : public AbsSmtSolver
   mutable bool env_uninitialized;
   bool valid_model;
   std::string logic;
-  std::unordered_map<size_t, msat_term> assumption_map_;
 
-  // helper function for creating labels for assumptions
+  // for matching the generic check_sat_assuming interface which allows
+  // arbitrary formulas rather than just (negated) boolean constants
+  std::unordered_map<size_t, msat_term>
+      assumption_map_;  ///< maps msat_term labels to assumptions
+  std::vector<msat_term>
+      base_assertions_;  ///< assertions at context level 0
+                         ///< to be re-added after resetting to clear old
+                         ///< clauses added for assumptions
+  size_t num_assump_clauses_;  ///< counts how many assumption clauses are added
+  size_t max_assump_clauses_;  ///< number of assumption clauses before clearing
+                               ///< them
+
+  // clears assumption clauses
+  // needed to simulate the same check_sat_assuming interface as other solvers
+  // called before a check-sat or check-sat-assuming call
+  void clear_assumption_clauses()
+  {
+    // can only reset at context 0, and only do so if
+    // there's a "magic large number" of assumption clauses
+    if (!msat_num_backtrack_points(env)
+        && num_assump_clauses_ >= max_assump_clauses_)
+    {
+      num_assump_clauses_ = 0;
+      msat_reset_env(env);
+      // re-add actual assertions
+      for (const auto & ba : base_assertions_)
+      {
+        msat_assert_formula(env, ba);
+      }
+    }
+  }
 
   // initializes the env (if not already done)
   virtual void initialize_env() const
@@ -156,6 +189,7 @@ class MsatSolver : public AbsSmtSolver
     }
   }
 
+  // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
 
   inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
