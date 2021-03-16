@@ -160,8 +160,22 @@ class MsatSolver : public AbsSmtSolver
 
   inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
   {
+    msat_term lbl;
+    assumption_map_.clear();
+    std::vector<msat_term> lbls;
+    lbls.reserve(m_assumps.size());
+    for (const auto & ma : m_assumps)
+    {
+      lbl = label(ma);
+      msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
+      assumption_map_[msat_term_id(lbl)] = ma;
+      lbls.push_back(lbl);
+    }
+
+    assert(lbls.size() == m_assumps.size());
+
     msat_result mres =
-        msat_solve_with_assumptions(env, &m_assumps[0], m_assumps.size());
+        msat_solve_with_assumptions(env, lbls.data(), lbls.size());
 
     if (mres == MSAT_SAT)
     {

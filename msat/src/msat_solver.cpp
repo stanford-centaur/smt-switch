@@ -210,18 +210,11 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   vector<msat_term> m_assumps;
   m_assumps.reserve(num_assumps);
 
-  msat_term ma, lbl;
-  assumption_map_.clear();
+  msat_term ma;
   for (size_t i = 0; i < num_assumps; ++i)
   {
     ma = static_pointer_cast<MsatTerm>(assumptions[i])->term;
-    lbl = label(ma);
-    msat_assert_formula(env,
-                        msat_make_or(env,
-                                     msat_make_not(env, lbl),
-                                     ma));
-    m_assumps.push_back(lbl);
-    assumption_map_[msat_term_id(lbl)] = ma;
+    m_assumps.push_back(ma);
   }
 
   return check_sat_assuming(m_assumps);
