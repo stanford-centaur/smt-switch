@@ -250,7 +250,9 @@ Result CVC4Solver::check_sat()
     }
     else if (r.isSatUnknown())
     {
-      return Result(UNKNOWN, r.getUnknownExplanation());
+      std::stringstream ss;
+      ss << r.getUnknownExplanation();
+      return Result(UNKNOWN, ss.str());
     }
     else
     {

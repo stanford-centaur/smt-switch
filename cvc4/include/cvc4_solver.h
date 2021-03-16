@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -138,7 +139,9 @@ class CVC4Solver : public AbsSmtSolver
     }
     else if (r.isSatUnknown())
     {
-      return Result(UNKNOWN, r.getUnknownExplanation());
+      std::stringstream ss;
+      ss << r.getUnknownExplanation();
+      return Result(UNKNOWN, ss.str());
     }
     else
     {
