@@ -17,13 +17,11 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "msat_factory.h"
+#include "msat_solver.h"  // only needed for the static_pointer_cast for testing
 #include "smt.h"
-// after full installation
-// #include "smt-switch/cvc4_factory.h"
-// #include "smt-switch/smt.h"
 
 using namespace smt;
 using namespace std;
@@ -34,6 +32,11 @@ int main()
   s->set_logic("QF_BV");
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
+
+  // test with clearing assumption clauses every
+  // check-sat/check-sat-assuming call
+  // NOTE this is only for testing / advanced usage
+  static_pointer_cast<MsatSolver>(s)->set_max_assump_clauses(0);
 
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort8);

@@ -137,6 +137,11 @@ class MsatSolver : public AbsSmtSolver
   // for interacting with third-party MathSAT-specific software
   msat_env get_msat_env() const { return env; };
 
+  // getters and setters for advanced use / testing
+  size_t max_assump_clauses() const { return max_assump_clauses_; }
+
+  void set_max_assump_clauses(size_t m) { max_assump_clauses_ = m; }
+
  protected:
   msat_config cfg;
   // marked mutable because want to stick with const interface for functions

@@ -1097,6 +1097,7 @@ void MsatSolver::reset_assertions()
 {
   initialize_env();
   msat_reset_env(env);
+  base_assertions_.clear();
 }
 
 Term MsatSolver::substitute(const Term term,
