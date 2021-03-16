@@ -47,7 +47,9 @@ class MsatSolver : public AbsSmtSolver
         env_uninitialized(true),
         logic(""),
         num_assump_clauses_(0),
-        max_assump_clauses_(10000){};
+        max_assump_clauses_(10000)
+    {
+    };
   MsatSolver(msat_config c, msat_env e)
       : AbsSmtSolver(MSAT),
         cfg(c),
@@ -276,4 +278,3 @@ class MsatInterpolatingSolver : public MsatSolver
 };
 
 }  // namespace smt
-
