@@ -1156,6 +1156,14 @@ void MsatSolver::dump_smt2(std::string filename) const
 msat_term MsatSolver::label(msat_term p) const
 {
   initialize_env();
+
+  if (msat_term_is_boolean_constant(env, p) ||
+      (msat_term_is_not(env, p) && msat_term_is_boolean_constant(env, msat_term_get_arg(p, 0))))
+  {
+    // if a (negated) boolean constant, don't need a fresh label
+    return p;
+  }
+
   std::ostringstream buf;
   buf << ".assump_lbl{" << msat_term_id(p) << "}";
   std::string name = buf.str();
