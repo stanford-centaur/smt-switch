@@ -49,10 +49,14 @@ class UnitWalkerTests
 
 /* Custom Tree Walker that builds up a map assigning fresh boolean variables to
  * each occurrence of each term in the formula it visits. One example of
- * overriding visit_term to customize the behavior of the walker. */
+ * overriding visit_term to customize the behavior of the walker.
+ * Class gets used in last 9 tests: SimpleTree, PathDecomp, PathTests1,
+ * SimplePathTests1, SimplePathTests2, PathTests3, PathTestsUF1, PathTestsUF2,
+ * FreshVars
+ */
 class IndicatorTreeWalker : public TreeWalker
 {
-  // iterator with which to name fresh variables: b0, ..., bn
+  // counter with which to name fresh variables: b0, ..., bn
   int b_iter{};
 
   using TreeWalker::TreeWalker;
@@ -170,6 +174,26 @@ TEST_P(UnitWalkerTests, FunSubstitution)
   EXPECT_EQ(fy, iw.visit(fx));
 }
 
+/* helper function to test equivalency of passed_map that TreeWalker builds up
+ * against expected_map that should have been built up gets used for all tests
+ * using TreeWalker */
+void mapEqual(map<Term, pair<Term, vector<int>>> & expected_map,
+              UnorderedTermPairMap const & passed_map)
+{
+  // test equivalence of expected_map and cache populated during the traversal
+  for (auto const & x : passed_map)
+  {
+    // testing equivalence of topmost node (first element in pair)
+    EXPECT_EQ(x.second.first, expected_map[x.first].first);
+    ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
+    // testing path equivalence
+    for (int i = 0; i < x.second.second.size(); i++)
+    {
+      EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
+    }
+  }
+}
+
 TEST_P(UnitWalkerTests, SimpleTree)
 {
   // traversal of simple formula using TreeWalker, test that cache gets built up
@@ -183,8 +207,8 @@ TEST_P(UnitWalkerTests, SimpleTree)
     Term x = s->make_symbol("x", bvsort);
     Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(xp1);
@@ -213,17 +237,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
     expected_map[s->make_term(1, bvsort)] = n2;
 
     // test equivalence of expected_map and cache populated during the traversal
-    for (auto const & x : UndMap)
-    {
-      // testing equivalence of topmost node (first element in pair)
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      // testing path equivalence
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -288,24 +302,15 @@ TEST_P(UnitWalkerTests, PathDecomp)
     n5.second = n5path;
     expected_map[s->make_term(1, bvsort)] = n5;
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(yexp1py);
 
     // check that the cache populated by TreeWalker is equivalent to the
     // expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      // testing equivalence of paths generated with what's expected
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -394,22 +399,14 @@ TEST_P(UnitWalkerTests, PathTests1)
     n8.second = n8path;
     expected_map[lmt] = n8;
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -421,8 +418,8 @@ TEST_P(UnitWalkerTests, SimplePathTests1)
   {
     Term x = s->make_symbol("x", bvsort);
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(x);
@@ -438,15 +435,7 @@ TEST_P(UnitWalkerTests, SimplePathTests1)
     expected_map[x] = n0;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -459,8 +448,8 @@ TEST_P(UnitWalkerTests, SimplePathTests2)
   {
     Term bv2 = s->make_term(2, bvsort);
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(bv2);
@@ -476,15 +465,7 @@ TEST_P(UnitWalkerTests, SimplePathTests2)
     expected_map[bv2] = n0;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -502,8 +483,8 @@ TEST_P(UnitWalkerTests, PathTests3)
     Term lhs = s->make_term(Ite, xe2, x, s->make_term(3, bvsort));
     Term fullform = s->make_term(Equal, lhs, y);
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
@@ -517,7 +498,7 @@ TEST_P(UnitWalkerTests, PathTests3)
      * 3: <(ite (x=2) x 3) = y, [0,2]>
      * y: <(ite (x=2) x 3) = y, [1]>
      */
-    UnorderedTermPairMap expected_map;
+    map<Term, pair<Term, vector<int>>> expected_map;
     // (ite (x=2) x 3)=y-> <(ite (x=2) x 3) = y, []>
     pair<Term, vector<int>> n0;
     n0.first = fullform;
@@ -562,15 +543,7 @@ TEST_P(UnitWalkerTests, PathTests3)
     expected_map[y] = n6;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -589,8 +562,8 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     Term gx = s->make_term(Apply, g, x);
     Term fullform = s->make_term(Equal, fx, gx);
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
@@ -642,15 +615,7 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     expected_map[x] = n5;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -672,8 +637,8 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     Term gx = s->make_term(Apply, g, x);
     Term fullform = s->make_term(Equal, fyz, gx);
 
-    UnorderedTermPairMap UndMap;
-    TreeWalker iw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    TreeWalker iw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
@@ -739,15 +704,7 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     expected_map[x] = n7;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const & x : UndMap)
-    {
-      EXPECT_EQ(x.second.first, expected_map[x.first].first);
-      ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++)
-      {
-        EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
-      }
-    }
+    mapEqual(expected_map, passed_map);
   }
 }
 
@@ -768,8 +725,8 @@ TEST_P(UnitWalkerTests, FreshVars)
     Term rhs = s->make_term(BVAdd, ypy, lmt);
     Term fullform = s->make_term(Equal, xpx, rhs);
 
-    UnorderedTermPairMap UndMap;
-    IndicatorTreeWalker itw(s, false, &UndMap);
+    UnorderedTermPairMap passed_map;
+    IndicatorTreeWalker itw(s, false, &passed_map);
 
     pair<Term, vector<int>> p1;
     p1 = itw.visit(fullform);
@@ -798,7 +755,7 @@ TEST_P(UnitWalkerTests, FreshVars)
     // the expected map expected_path variable to check against expected path
     // for each node
     vector<int> expected_path;
-    for (auto const & p : UndMap)
+    for (auto const & p : passed_map)
     {
       string s = p.first->to_string();
       if (s == "b0")
