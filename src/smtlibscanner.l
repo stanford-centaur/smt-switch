@@ -68,6 +68,8 @@ check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(loc); }
 push                  { return yy::parser::make_PUSH(loc); }
 pop                   { return yy::parser::make_POP(loc); }
 exit                  { return yy::parser::make_EXIT(loc); }
+get-value[ \t\r]*\(   { return yy::parser::make_GETVALUELP(loc); }
+get-unsat-assumptions { return yy::parser::make_GETUNSATASSUMP(loc); }
 
 \"(\\.|[^\"\\])*\"    { char * noquotes = yytext;
                         noquotes++;

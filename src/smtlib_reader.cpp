@@ -32,8 +32,6 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
   // done this way because true/false can be used in other places
   // for example, when setting options
   assert(!global_symbols_.current_scope());
-  global_symbols_.add_mapping("true", solver_->make_term(true));
-  global_symbols_.add_mapping("false", solver_->make_term(false));
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -117,6 +115,15 @@ Term SmtLibReader::lookup_symbol(const string & sym)
 {
   Term symbol_term;
   assert(!symbol_term);
+
+  if (sym == "true")
+  {
+    return solver_->make_term(true);
+  }
+  else if (sym == "false")
+  {
+    return solver_->make_term(false);
+  }
 
   if (current_scope())
   {
