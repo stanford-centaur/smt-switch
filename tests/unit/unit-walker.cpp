@@ -28,8 +28,9 @@ using namespace std;
 
 namespace smt_tests {
 
-class UnitWalkerTests : public ::testing::Test,
-                        public ::testing::WithParamInterface<SolverConfiguration>
+class UnitWalkerTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -46,48 +47,56 @@ class UnitWalkerTests : public ::testing::Test,
   Sort bvsort, funsort, fun2sort, arrsort, boolsort;
 };
 
-/* Custom Tree Walker that builds up a map assigning fresh boolean variables to each occurrence of each term in the formula it visits.
- * One example of overriding visit_term to customize the behavior of the walker. */
-class IndicatorTreeWalker : public TreeWalker {
-  //iterator with which to name fresh variables: b0, ..., bn
-  int b_iter {};
+/* Custom Tree Walker that builds up a map assigning fresh boolean variables to
+ * each occurrence of each term in the formula it visits. One example of
+ * overriding visit_term to customize the behavior of the walker. */
+class IndicatorTreeWalker : public TreeWalker
+{
+  // iterator with which to name fresh variables: b0, ..., bn
+  int b_iter{};
 
   using TreeWalker::TreeWalker;
 
-  /* builds up map assigning fresh boolean variables to each occurrence of each term in the formula, where the occurrences
-   * are represented as a  pair containing the formula the term appears in and the path indicating the term's location in the
-   * formula it appears in.
-   * For example, the formula x+2=y traversed with this custom version of visit_term will build the corresponding map containing:
-   *  b0 -> <x+2=y, []>, corresponding to the term x+2=y
-   *  b1 -> <x+2=y, [1]>, corresponding to the term y
-   *  b2 -> <x+2=y, [0]>, corresponding to the term x+2
-   *  b3 -> <x+2=y, [0,1]>, corresponding to the term 2
-   *  b4 -> <x+2=y, [0,0]>, corresponding to the term x
-   * As in this example, each occurrence of each term in the formula should correspond to a fresh variable mapping to its occurrence in the formula
+  /* builds up map assigning fresh boolean variables to each occurrence of each
+   * term in the formula, where the occurrences are represented as a  pair
+   * containing the formula the term appears in and the path indicating the
+   * term's location in the formula it appears in. For example, the formula
+   * x+2=y traversed with this custom version of visit_term will build the
+   * corresponding map containing: b0 -> <x+2=y, []>, corresponding to the term
+   * x+2=y b1 -> <x+2=y, [1]>, corresponding to the term y b2 -> <x+2=y, [0]>,
+   * corresponding to the term x+2 b3 -> <x+2=y, [0,1]>, corresponding to the
+   * term 2 b4 -> <x+2=y, [0,0]>, corresponding to the term x As in this
+   * example, each occurrence of each term in the formula should correspond to a
+   * fresh variable mapping to its occurrence in the formula
    */
-  TreeWalkerStepResult visit_term(smt::Term & formula, smt::Term & term, std::vector<int> & path) override{
-
+  TreeWalkerStepResult visit_term(smt::Term & formula,
+                                  smt::Term & term,
+                                  std::vector<int> & path) override
+  {
     Sort boolsort = solver_->make_sort(BOOL);
 
-    /* for each node visited, create a fresh boolean variable, bn, to map to an occurrence of a term in the formula (the formula in which
-     * it occurs and the path indicating the term's location in the formula)
+    /* for each node visited, create a fresh boolean variable, bn, to map to an
+     * occurrence of a term in the formula (the formula in which it occurs and
+     * the path indicating the term's location in the formula)
      */
     string var_name = string("b") + to_string(b_iter);
     Term b = solver_->make_symbol(var_name, boolsort);
     b_iter++;
 
-    //occurrence of the term represented by the formula in which it is found and the path indicating its placement in the formula
-    pair <Term, vector<int>> occ;
+    // occurrence of the term represented by the formula in which it is found
+    // and the path indicating its placement in the formula
+    pair<Term, vector<int>> occ;
     occ.first = formula;
     occ.second = path;
 
-    //for each node visited in path traversal, saves in cache mapping from fresh boolean variable to the pair giving the full formula in which it occurs and the path indicating its place in the formula
+    // for each node visited in path traversal, saves in cache mapping from
+    // fresh boolean variable to the pair giving the full formula in which it
+    // occurs and the path indicating its place in the formula
     save_in_cache(b, occ);
 
     return TreeWalker_Continue;
   }
 };
-
 
 TEST_P(UnitWalkerTests, Simple)
 {
@@ -163,10 +172,12 @@ TEST_P(UnitWalkerTests, FunSubstitution)
 
 TEST_P(UnitWalkerTests, SimpleTree)
 {
-  // traversal of simple formula using TreeWalker, test that cache gets built up as expected
+  // traversal of simple formula using TreeWalker, test that cache gets built up
+  // as expected
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
+  if (sc.is_logging_solver)
+  {
     // test only valid for logging solver
 
     Term x = s->make_symbol("x", bvsort);
@@ -175,7 +186,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(xp1);
     Term xp11 = p1.first;
     EXPECT_EQ(xp1, xp11);
@@ -185,29 +196,31 @@ TEST_P(UnitWalkerTests, SimpleTree)
     // x: <x+1, [0]>
     // 1: <x+1, [1]>
     map<Term, pair<Term, vector<int>>> expected_map;
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = xp1;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[xp1] = n0;
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = xp1;
-    vector<int> n1path = {0};
+    vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[x] = n1;
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = xp1;
-    vector<int> n2path = {1};
+    vector<int> n2path = { 1 };
     n2.second = n2path;
     expected_map[s->make_term(1, bvsort)] = n2;
 
     // test equivalence of expected_map and cache populated during the traversal
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       // testing equivalence of topmost node (first element in pair)
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
       // testing path equivalence
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -219,7 +232,8 @@ TEST_P(UnitWalkerTests, PathDecomp)
   // using TreeWalker to traverse slightly more comlicated formula
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
+  if (sc.is_logging_solver)
+  {
     // construct y=(x+1)+y
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
@@ -237,55 +251,58 @@ TEST_P(UnitWalkerTests, PathDecomp)
      */
     map<Term, pair<Term, vector<int>>> expected_map;
     // y=x+1+y -> <y=x+1+y, []>
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = yexp1py;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[yexp1py] = n0;
     // y -> <y=x+1+y, [0]>
-    pair <Term, vector<int>> n3;
+    pair<Term, vector<int>> n3;
     n3.first = yexp1py;
-    vector<int> n3path = {0};
+    vector<int> n3path = { 0 };
     n3.second = n3path;
     expected_map[y] = n3;
     // x+1+y -> <y=x+1+y, [1]>
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = yexp1py;
-    vector<int> n1path = {1};
+    vector<int> n1path = { 1 };
     n1.second = n1path;
     expected_map[xp1py] = n1;
     // x+1 -> <y=x+1+y, [1,0]
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = yexp1py;
-    vector<int> n2path = {1, 0};
+    vector<int> n2path = { 1, 0 };
     n2.second = n2path;
     expected_map[xp1] = n2;
     // y -> <y=x+1+y, [1,1]> (gets overwritten)
     // x -> <y=x+1+y, [1,0,0]>
-    pair <Term, vector<int>> n4;
+    pair<Term, vector<int>> n4;
     n4.first = yexp1py;
-    vector<int> n4path = {1, 0, 0};
+    vector<int> n4path = { 1, 0, 0 };
     n4.second = n4path;
     expected_map[x] = n4;
     // 1 -> <y=x+1+y, [1,0,1]>
-    pair <Term, vector<int>> n5;
+    pair<Term, vector<int>> n5;
     n5.first = yexp1py;
-    vector<int> n5path = {1, 0, 1};
+    vector<int> n5path = { 1, 0, 1 };
     n5.second = n5path;
     expected_map[s->make_term(1, bvsort)] = n5;
 
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(yexp1py);
 
-    // check that the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    // check that the cache populated by TreeWalker is equivalent to the
+    // expected map
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
       // testing equivalence of paths generated with what's expected
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -297,7 +314,8 @@ TEST_P(UnitWalkerTests, PathTests1)
   // testing traversal using TreeWalker for formula with repeated values
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
+  if (sc.is_logging_solver)
+  {
     // test only valid for logging solver
     // construct (x+x)={(y+y)+[(x+2)-(x+x)]}
     Term x = s->make_symbol("x", bvsort);
@@ -322,71 +340,73 @@ TEST_P(UnitWalkerTests, PathTests1)
      */
     map<Term, pair<Term, vector<int>>> expected_map;
     // (x+x)={(y+y)+[(x+2)-(x+x)]} -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, []>
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = fullform;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // x+x -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [0]>
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = {0};
+    vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[xpx] = n1;
     // x -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [0,0]>
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = {0, 0};
+    vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[x] = n2;
     // (y+y)+[(x+2)-(x+x)] -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1]>
-    pair <Term, vector<int>> n3;
+    pair<Term, vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = {1};
+    vector<int> n3path = { 1 };
     n3.second = n3path;
     expected_map[rhs] = n3;
     // y+y -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,0]>
-    pair <Term, vector<int>> n4;
+    pair<Term, vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = {1, 0};
+    vector<int> n4path = { 1, 0 };
     n4.second = n4path;
     expected_map[ypy] = n4;
     // y -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,0,0]>
-    pair <Term, vector<int>> n5;
+    pair<Term, vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = {1, 0, 0};
+    vector<int> n5path = { 1, 0, 0 };
     n5.second = n5path;
     expected_map[y] = n5;
     // x+2 -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1,0]>
-    pair <Term, vector<int>> n6;
+    pair<Term, vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = {1, 1, 0};
+    vector<int> n6path = { 1, 1, 0 };
     n6.second = n6path;
     expected_map[xp2] = n6;
     // 2 -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1,0,1]>
-    pair <Term, vector<int>> n7;
+    pair<Term, vector<int>> n7;
     n7.first = fullform;
-    vector<int> n7path = {1, 1, 0, 1};
+    vector<int> n7path = { 1, 1, 0, 1 };
     n7.second = n7path;
     expected_map[s->make_term(2, bvsort)] = n7;
     // (x+2)-(x+x) -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1]>
-    pair <Term, vector<int>> n8;
+    pair<Term, vector<int>> n8;
     n8.first = fullform;
-    vector<int> n8path = {1, 1};
+    vector<int> n8path = { 1, 1 };
     n8.second = n8path;
     expected_map[lmt] = n8;
 
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -397,31 +417,33 @@ TEST_P(UnitWalkerTests, SimplePathTests1)
 {
   // test traversal using TreeWalker of a single node
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-
+  if (sc.is_logging_solver)
+  {
     Term x = s->make_symbol("x", bvsort);
 
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(x);
 
     /* expected_map:
      * x: <x, []>
      */
     map<Term, pair<Term, vector<int>>> expected_map;
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = x;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[x] = n0;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -433,31 +455,33 @@ TEST_P(UnitWalkerTests, SimplePathTests2)
   // test traversal using TreeWalker of a single node
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-
+  if (sc.is_logging_solver)
+  {
     Term bv2 = s->make_term(2, bvsort);
 
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(bv2);
 
     /* expected_map:
      * 2: <2, []>
      */
     map<Term, pair<Term, vector<int>>> expected_map;
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = bv2;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[bv2] = n0;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -469,8 +493,8 @@ TEST_P(UnitWalkerTests, PathTests3)
   // test traversal using TreeWalker of formula containing ITE
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-
+  if (sc.is_logging_solver)
+  {
     // construct full formula: (ite (x=2) x 3) = y
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
@@ -481,7 +505,7 @@ TEST_P(UnitWalkerTests, PathTests3)
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -495,53 +519,55 @@ TEST_P(UnitWalkerTests, PathTests3)
      */
     UnorderedTermPairMap expected_map;
     // (ite (x=2) x 3)=y-> <(ite (x=2) x 3) = y, []>
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = fullform;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // (ite (x=2) x 3)-> <(ite (x=2) x 3) = y, [0]>
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = {0};
+    vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[lhs] = n1;
     // x=2-> <(ite (x=2) x 3) = y, [0,0]>
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = {0, 0};
+    vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[xe2] = n2;
     // x-> <(ite (x=2) x 3) = y, [0,0,0]>
-    pair <Term, vector<int>> n3;
+    pair<Term, vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = {0, 0, 0};
+    vector<int> n3path = { 0, 0, 0 };
     n3.second = n3path;
     expected_map[x] = n3;
     // 2-> <(ite (x=2) x 3) = y, [0,0,1]>
-    pair <Term, vector<int>> n4;
+    pair<Term, vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = {0, 0, 1};
+    vector<int> n4path = { 0, 0, 1 };
     n4.second = n4path;
     expected_map[s->make_term(2, bvsort)] = n4;
     // 3-> <(ite (x=2) x 3) = y, [0,2]>
-    pair <Term, vector<int>> n5;
+    pair<Term, vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = {0, 2};
+    vector<int> n5path = { 0, 2 };
     n5.second = n5path;
     expected_map[s->make_term(3, bvsort)] = n5;
     // y-> <(ite (x=2) x 3) = y, [1]>
-    pair <Term, vector<int>> n6;
+    pair<Term, vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = {1};
+    vector<int> n6path = { 1 };
     n6.second = n6path;
     expected_map[y] = n6;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -553,8 +579,8 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
   // test traversal using TreeWalker of formula with Uninterpreted Functions
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-
+  if (sc.is_logging_solver)
+  {
     // construct f(x) = g(x)
     Term x = s->make_symbol("x", bvsort);
     Term f = s->make_symbol("f", funsort);
@@ -566,7 +592,7 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -578,48 +604,50 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
      * x: <f(x)=g(x), [0,1]>
      */
     map<Term, pair<Term, vector<int>>> expected_map;
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     // f(x)=g(x)-> <f(x)=g(x), []>
     n0.first = fullform;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // f(x)-> <f(x)=g(x), [0]>
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = {0};
+    vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[fx] = n1;
     // g(x)-> <f(x)=g(x), [1]>
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = {1};
+    vector<int> n2path = { 1 };
     n2.second = n2path;
     expected_map[gx] = n2;
     // f-> <f(x)=g(x), [0,0]>
-    pair <Term, vector<int>> n3;
+    pair<Term, vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = {0, 0};
+    vector<int> n3path = { 0, 0 };
     n3.second = n3path;
     expected_map[f] = n3;
     // g-> <f(x)=g(x), [1,0]>
-    pair <Term, vector<int>> n4;
+    pair<Term, vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = {1, 0};
+    vector<int> n4path = { 1, 0 };
     n4.second = n4path;
     expected_map[g] = n4;
     // x-> <f(x)=g(x), [0,1]>
-    pair <Term, vector<int>> n5;
+    pair<Term, vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = {0, 1};
+    vector<int> n5path = { 0, 1 };
     n5.second = n5path;
     expected_map[x] = n5;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
@@ -628,11 +656,12 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
 
 TEST_P(UnitWalkerTests, PathTestsUF2)
 {
-  // test traversal using TreeWalker of formula with Uninterpreted Functions that can more than one argument
+  // test traversal using TreeWalker of formula with Uninterpreted Functions
+  // that can more than one argument
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
-
+  if (sc.is_logging_solver)
+  {
     // construct f(y,z) = g(x)
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
@@ -646,7 +675,7 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     UnorderedTermPairMap UndMap;
     TreeWalker iw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -661,70 +690,74 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
      */
     map<Term, pair<Term, vector<int>>> expected_map;
     // f(y,z) = g(x) -> <f(y,z) = g(x), []>
-    pair <Term, vector<int>> n0;
+    pair<Term, vector<int>> n0;
     n0.first = fullform;
     vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // f(y,z) -> <f(y,z) = g(x), [0]>
-    pair <Term, vector<int>> n1;
+    pair<Term, vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = {0};
+    vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[fyz] = n1;
     // f -> <f(y,z) = g(x), [0,0]>
-    pair <Term, vector<int>> n2;
+    pair<Term, vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = {0, 0};
+    vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[f] = n2;
     // y -> <f(y,z) = g(x), [0,1]>
-    pair <Term, vector<int>> n3;
+    pair<Term, vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = {0, 1};
+    vector<int> n3path = { 0, 1 };
     n3.second = n3path;
     expected_map[y] = n3;
     // z -> <f(y,z) = g(x), [0,2]>
-    pair <Term, vector<int>> n4;
+    pair<Term, vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = {0, 2};
+    vector<int> n4path = { 0, 2 };
     n4.second = n4path;
     expected_map[z] = n4;
     // g(x) -> <f(y,z) = g(x), [1]>
-    pair <Term, vector<int>> n5;
+    pair<Term, vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = {1};
+    vector<int> n5path = { 1 };
     n5.second = n5path;
     expected_map[gx] = n5;
     // g -> <f(y,z) = g(x), [1,0]>
-    pair <Term, vector<int>> n6;
+    pair<Term, vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = {1, 0};
+    vector<int> n6path = { 1, 0 };
     n6.second = n6path;
     expected_map[g] = n6;
     // x -> <f(y,z) = g(x), [1,1]>
-    pair <Term, vector<int>> n7;
+    pair<Term, vector<int>> n7;
     n7.first = fullform;
-    vector<int> n7path = {1, 1};
+    vector<int> n7path = { 1, 1 };
     n7.second = n7path;
     expected_map[x] = n7;
 
     // check the cache populated by TreeWalker is equivalent to the expected map
-    for (auto const& x : UndMap){
+    for (auto const & x : UndMap)
+    {
       EXPECT_EQ(x.second.first, expected_map[x.first].first);
       ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
-      for (int i = 0; i < x.second.second.size(); i++){
+      for (int i = 0; i < x.second.second.size(); i++)
+      {
         EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
       }
     }
   }
 }
 
-TEST_P(UnitWalkerTests, FreshVars){
+TEST_P(UnitWalkerTests, FreshVars)
+{
   // test traversal using IndicatorTreeWalker of formula with repeated values
 
   SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver) {
+  if (sc.is_logging_solver)
+  {
     // construct full formula, (x+x) = {(y+y) + [(x+2)-(x+x)]}
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
@@ -738,146 +771,179 @@ TEST_P(UnitWalkerTests, FreshVars){
     UnorderedTermPairMap UndMap;
     IndicatorTreeWalker itw(s, false, &UndMap);
 
-    pair <Term, vector<int>> p1;
+    pair<Term, vector<int>> p1;
     p1 = itw.visit(fullform);
 
     /* expected map:
-     * b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to (x+x)={(y+y)+[(x+2)-(x+x)]}
-     * b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>, where b1 corresponds to {(y+y)+[(x+2)-(x+x)]}
-     * b2: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to [(x+2)-(x+x)]
-     * b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3 corresponds to (x+x)
-     * b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where b4 corresponds to x
-     * b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where b5 corresponds to x
-     * b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6 corresponds to (x+2)
-     * b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where b7 corresponds to 2
-     * b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where b8 corresponds to x
-     * b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9 corresponds to (y+y)
-     * b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where b10 corresponds to y
-     * b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where b11 corresponds to y
-     * b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12 corresponds to (x+x)
-     * b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where b13 corresponds to x
-     * b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where b14 corresponds to x
+     * b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to
+     * (x+x)={(y+y)+[(x+2)-(x+x)]} b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>,
+     * where b1 corresponds to {(y+y)+[(x+2)-(x+x)]} b2:
+     * <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to
+     * [(x+2)-(x+x)] b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3
+     * corresponds to (x+x) b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where
+     * b4 corresponds to x b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where
+     * b5 corresponds to x b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6
+     * corresponds to (x+2) b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where
+     * b7 corresponds to 2 b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where
+     * b8 corresponds to x b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9
+     * corresponds to (y+y) b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where
+     * b10 corresponds to y b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where
+     * b11 corresponds to y b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12
+     * corresponds to (x+x) b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where
+     * b13 corresponds to x b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where
+     * b14 corresponds to x
      */
 
-    // manually check equivalency of cache populated by IndicatorTreeWalker with the expected map
-    // expected_path variable to check against expected path for each node
+    // manually check equivalency of cache populated by IndicatorTreeWalker with
+    // the expected map expected_path variable to check against expected path
+    // for each node
     vector<int> expected_path;
-    for (auto const& p : UndMap){
+    for (auto const & p : UndMap)
+    {
       string s = p.first->to_string();
-      if (s == "b0") {
+      if (s == "b0")
+      {
         EXPECT_EQ(p.second.first, fullform);
         EXPECT_EQ(p.second.second.size(), 0);
       }
-      else if (s == "b1"){
+      else if (s == "b1")
+      {
         EXPECT_EQ(p.second.first, fullform);
         ASSERT_EQ(p.second.second.size(), 1);
         EXPECT_EQ(p.second.second[0], 1);
       }
-      else if (s == "b2"){
+      else if (s == "b2")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1};
+        expected_path = { 1, 1 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b3"){
+      else if (s == "b3")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 1};
+        expected_path = { 1, 1, 1 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b4"){
+      else if (s == "b4")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 1, 1};
+        expected_path = { 1, 1, 1, 1 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b5"){
+      else if (s == "b5")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 1, 0};
+        expected_path = { 1, 1, 1, 0 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b6"){
+      else if (s == "b6")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 0};
+        expected_path = { 1, 1, 0 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b7"){
+      else if (s == "b7")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 0, 1};
+        expected_path = { 1, 1, 0, 1 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b8"){
+      else if (s == "b8")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 1, 0, 0};
+        expected_path = { 1, 1, 0, 0 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b9"){
+      else if (s == "b9")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 0};
+        expected_path = { 1, 0 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b10"){
+      else if (s == "b10")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 0, 1};
+        expected_path = { 1, 0, 1 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b11"){
+      else if (s == "b11")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {1, 0, 0};
+        expected_path = { 1, 0, 0 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b12"){
+      else if (s == "b12")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {0};
+        expected_path = { 0 };
         ASSERT_EQ(p.second.second.size(), 1);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b13"){
+      else if (s == "b13")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {0, 1};
+        expected_path = { 0, 1 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b14"){
+      else if (s == "b14")
+      {
         EXPECT_EQ(p.second.first, fullform);
-        expected_path = {0, 0};
+        expected_path = { 0, 0 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for(int i = 0; i < p.second.second.size(); i++){
+        for (int i = 0; i < p.second.second.size(); i++)
+        {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else {
+      else
+      {
         // no other keys should exist
         assert(false);
       }
@@ -885,8 +951,9 @@ TEST_P(UnitWalkerTests, FreshVars){
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(ParametrizedUnitWalker,
-                         UnitWalkerTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParametrizedUnitWalker,
+    UnitWalkerTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests
