@@ -87,6 +87,12 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
   Result r = s->check_sat_assuming({ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
 
+  r = s->check_sat_assuming({x_lt_y});
+  ASSERT_TRUE(r.is_sat());
+
+  r = s->check_sat_assuming({x_lt_y, x_ge_y});
+  ASSERT_TRUE(r.is_unsat());
+
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
   ASSERT_TRUE(core.size() > 1);
