@@ -224,7 +224,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
     m_assumps.push_back(ma);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
@@ -258,7 +258,7 @@ Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
     m_assumps.push_back(ma->term);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
@@ -292,7 +292,7 @@ Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
     m_assumps.push_back(ma->term);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 void MsatSolver::push(uint64_t num)

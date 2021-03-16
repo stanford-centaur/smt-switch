@@ -201,7 +201,7 @@ class MsatSolver : public AbsSmtSolver
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
 
-  inline Result check_sat_assuming(std::vector<msat_term> & m_assumps)
+  inline Result check_sat_assuming_msatvec(std::vector<msat_term> & m_assumps)
   {
     msat_term lbl;
     assumption_map_.clear();
