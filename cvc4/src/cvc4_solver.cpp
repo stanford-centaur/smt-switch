@@ -149,7 +149,11 @@ Term CVC4Solver::make_term(int64_t i, const Sort & sort) const
     SortKind sk = sort->get_sort_kind();
     ::CVC4::api::Term c;
 
-    if ((sk == INT) || (sk == REAL))
+    if (sk == INT)
+    {
+      c = solver.mkInteger(i);
+    }
+    else if (sk == REAL)
     {
       c = solver.mkReal(i);
     }
@@ -192,7 +196,14 @@ Term CVC4Solver::make_term(std::string val,
       {
         throw IncorrectUsageException("Can't use non-decimal base for reals and ints");
       }
-      c = solver.mkReal(val);
+      if (sk == INT)
+      {
+        c = solver.mkInteger(val);
+      }
+      else
+      {
+        c = solver.mkReal(val);
+      }
     }
     else if (sk == BV)
     {
