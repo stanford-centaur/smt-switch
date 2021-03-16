@@ -51,7 +51,7 @@ fi
 
 if [ -f $DEPS/CVC4/build/src/libcvc4.a ] ; then \
     echo "It appears CVC4 was setup successfully into $DEPS/CVC4."
-    echo "You may now install it with make ./configure.sh --msat && cd build && make"
+    echo "You may now install it with make ./configure.sh --cvc4 && cd build && make"
 else
     echo "Downloading CVC4 failed."
     exit 1
