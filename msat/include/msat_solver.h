@@ -58,7 +58,9 @@ class MsatSolver : public AbsSmtSolver
         valid_model(false),
         logic(""),
         num_assump_clauses_(0),
-        max_assump_clauses_(10000){};
+        max_assump_clauses_(10000)
+    {
+    };
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
