@@ -50,7 +50,7 @@ class UnitWalkerTests
 /* Custom Tree Walker that builds up a map assigning fresh boolean variables to
  * each occurrence of each term in the formula it visits. One example of
  * overriding visit_term to customize the behavior of the walker.
- * Class gets used in FreshVars test
+ * Class gets used in FreshVars test.
  */
 class IndicatorTreeWalker : public TreeWalker
 {
@@ -65,12 +65,13 @@ class IndicatorTreeWalker : public TreeWalker
    * term's location in the formula it appears in. For example, the formula
    * x+2=y traversed with this custom version of visit_term will build the
    * corresponding map containing:
-   *   b0 -> <x+2=y, []>, corresponding to the term
-   * x+2=y b1 -> <x+2=y, [1]>, corresponding to the term y b2 -> <x+2=y, [0]>,
-   * corresponding to the term x+2 b3 -> <x+2=y, [0,1]>, corresponding to the
-   * term 2 b4 -> <x+2=y, [0,0]>, corresponding to the term x As in this
-   * example, each occurrence of each term in the formula should correspond to a
-   * fresh variable mapping to its occurrence in the formula
+   *   b0 -> <x+2=y, []>, corresponding to the term x+2=y
+   *   b1 -> <x+2=y, [1]>, corresponding to the term y
+   *   b2 -> <x+2=y, [0]>, corresponding to the term x+2
+   *   b3 -> <x+2=y, [0,1]>, corresponding to the term 2
+   *   b4 -> <x+2=y, [0,0]>, corresponding to the term x
+   * As in this example, each occurrence of each term in the formula should
+   * correspond to a fresh variable mapping to its occurrence in the formula
    */
   TreeWalkerStepResult visit_term(smt::Term & formula,
                                   smt::Term & term,
