@@ -1169,6 +1169,8 @@ msat_term MsatSolver::label(msat_term p) const
   std::string name = buf.str();
   msat_decl d =
       msat_declare_function(env, name.c_str(), msat_get_bool_type(env));
+  // if it already existed, mathsat gives the same symbol
+  // in this case, those semantics are perfect -- we don't need a cache
   return msat_make_constant(env, d);
 }
 

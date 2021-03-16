@@ -167,6 +167,8 @@ class MsatSolver : public AbsSmtSolver
     for (const auto & ma : m_assumps)
     {
       lbl = label(ma);
+      // check that label is cached correctly
+      assert(msat_term_id(lbl) == msat_term_id(label(ma)));
       msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
       assumption_map_[msat_term_id(lbl)] = ma;
       lbls.push_back(lbl);
