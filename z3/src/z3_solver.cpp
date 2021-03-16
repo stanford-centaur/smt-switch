@@ -928,7 +928,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1]);
   }
-  else if (size == 3)
+  else if (size == 3 && ternary_ops.find(op.prim_op) != ternary_ops.end())
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
