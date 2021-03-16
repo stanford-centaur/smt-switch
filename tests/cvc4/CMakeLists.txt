@@ -1,35 +1,24 @@
-set(CVC4_TESTS
-  cvc4-arrays
-  cvc4-data-structures
-  cvc4-indexed-op-tests
-  cvc4-int-arithmetic
-  cvc4_test
-  cvc4-tests
-  cvc4-incremental
-  cvc4-interpolants
-  cvc4-interpolants-api
-  # cvc4-transfer # need to be able to get operator for rebuilding
-  cvc4-neg-numbers
-  cvc4-printing
-)
+macro(switch_add_cvc4_test name)
+  add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/cvc4/${name}.cpp")
+  target_link_libraries(${name} gtest_main)
+  target_link_libraries(${name} test-deps)
+  add_test(NAME ${name}_test COMMAND ${name})
+endmacro()
 
-foreach(test ${CVC4_TESTS})
-  add_executable(${test}.out ${test}.cpp)
-  if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-    # make sure to use the repacked cvc4 static lib if built statically
-    # CVC4 was a special-case for bundling libcvc4.a into libsmt-switch-cvc4.a
-    # see cvc4/CMakeLists.txt from the top-level directory
-    add_dependencies(${test}.out repack-cvc4-static-lib)
-  endif()
-  target_link_libraries(${test}.out smt-switch smt-switch-cvc4)
-  target_link_libraries(${test}.out test-deps)
-  add_test(${test} ${test}.out)
-endforeach()
+# these tests don't use GoogleTest yet
+# TODO move old tests to Google Test infrastructure
+switch_add_cvc4_test(cvc4-arrays)
+switch_add_cvc4_test(cvc4-data-structures)
+switch_add_cvc4_test(cvc4-indexed-op-tests)
+switch_add_cvc4_test(cvc4-int-arithmetic)
+switch_add_cvc4_test(cvc4_test)
+switch_add_cvc4_test(cvc4-tests)
+switch_add_cvc4_test(cvc4-incremental)
+switch_add_cvc4_test(cvc4-interpolants)
+switch_add_cvc4_test(cvc4-interpolants-api)
+switch_add_cvc4_test(cvc4-transfer)
+switch_add_cvc4_test(cvc4-neg-numbers)
+switch_add_cvc4_test(cvc4-printing)
 
 # Google Test
-# TODO: move old tests to Google Test infrastructure
-
-add_executable(cvc4-term-iter "${PROJECT_SOURCE_DIR}/tests/cvc4/cvc4-term-iter.cpp")
-target_link_libraries(cvc4-term-iter gtest_main)
-target_link_libraries(cvc4-term-iter test-deps)
-add_test(NAME cvc4-term-iter_test COMMAND cvc4-term-iter)
+switch_add_cvc4_test(cvc4-term-iter)

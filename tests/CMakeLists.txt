@@ -50,6 +50,10 @@ if (BUILD_YICES2)
   add_subdirectory(yices2)
 endif()
 
+if (${BUILD_YICES2} AND ${BUILD_BTOR} AND ${BUILD_MSAT} AND ${BUILD_CVC4})
+  add_subdirectory(portfolio)
+endif()
+
 if (BUILD_Z3)
   add_subdirectory(z3)
 endif()

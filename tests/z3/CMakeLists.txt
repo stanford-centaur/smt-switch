@@ -1,13 +1,11 @@
-set(Z3_TESTS
-  z3_test
-  z3_full
-)
+macro(switch_add_z3_test name)
+  add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/z3/${name}.cpp")
+  target_link_libraries(${name} gtest_main)
+  target_link_libraries(${name} test-deps)
+  add_test(NAME ${name}_test COMMAND ${name})
+endmacro()
 
-foreach(test ${Z3_TESTS})
-  add_executable(${test}.out ${test}.cpp)
-  target_include_directories (${test}.out PUBLIC "${PROJECT_SOURCE_DIR}/include")
-  target_link_libraries(${test}.out smt-switch)
-  target_link_libraries(${test}.out smt-switch-z3)
-  target_link_libraries(${test}.out smt-switch-z3 test-deps)
-  add_test(${test} ${test}.out)
-endforeach()
+# these tests don't use GoogleTest yet
+# TODO move old tests to Google Test infrastructure
+switch_add_z3_test(z3_test)
+switch_add_z3_test(z3_full)

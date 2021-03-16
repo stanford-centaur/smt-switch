@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <z3++.h>
 
+#include "solver_utils.h"
+
 #include <iostream>
 
 using namespace std;
@@ -877,6 +879,12 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       }
     }
     return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  }
+  else if (op == Distinct)
+  {
+    // special case for distinct
+    // need to apply to O(n^2) distinct pairs
+    return make_distinct(this, terms);
   }
   else
   {

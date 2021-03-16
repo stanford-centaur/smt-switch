@@ -25,6 +25,7 @@
 
 #include "exceptions.h"
 #include "result.h"
+#include "solver_utils.h"
 
 using namespace std;
 
@@ -729,7 +730,18 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   {
     throw InternalSolverException("Got error type in MathSAT backend.");
   }
+
   decl = msat_declare_function(env, name.c_str(), msort->type);
+
+  if (MSAT_ERROR_DECL(decl) && name.empty())
+  {
+    decl = msat_declare_function(env, "||", msort->type);
+  }
+  else if (MSAT_ERROR_DECL(decl))
+  {
+    throw SmtException("Got msat error decl when creating " +
+                       name + " of sort " + sort->to_string());
+  }
 
   if (sort->get_sort_kind() == FUNCTION)
   {
@@ -1075,6 +1087,12 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       }
     }
     return make_shared<MsatTerm>(env, res);
+  }
+  else if (op.prim_op == Distinct)
+  {
+    // special case for distinct
+    // need to apply to O(n^2) distinct pairs
+    return make_distinct(this, terms);
   }
   else
   {

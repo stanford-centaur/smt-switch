@@ -31,6 +31,8 @@ bvusop bv[us](div|rem|lt|le|ge|gt)
 bvshop bv(shl|ashr|lshr)
 bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
 
+symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-]+[a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
+
 %{
   // Code run each time a pattern is matched.
 # define YY_USER_ACTION  loc.columns (yyleng);
@@ -51,7 +53,7 @@ bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_righ
 
 \(                    { return yy::parser::make_LP(loc); }
 \)                    { return yy::parser::make_RP(loc); }
-\(_                   { return yy::parser::make_INDPREFIX(loc); }
+_                     { return yy::parser::make_US(loc); }
 
 set-logic             { return yy::parser::make_SETLOGIC(loc); }
 set-option            { return yy::parser::make_SETOPT(loc); }
@@ -59,6 +61,7 @@ set-info              { return yy::parser::make_SETINFO(loc); }
 declare-const         { return yy::parser::make_DECLARECONST(loc); }
 declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
 define-fun            { return yy::parser::make_DEFINEFUN(loc); }
+define-sort           { return yy::parser::make_DEFINESORT(loc); }
 assert                { return yy::parser::make_ASSERT(loc); }
 check-sat             { return yy::parser::make_CHECKSAT(loc); }
 check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(loc); }
@@ -84,7 +87,7 @@ exit                  { return yy::parser::make_EXIT(loc); }
 [0-9]+                { return yy::parser::make_NAT(yytext, loc); }
 [0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
 #b[01]+               { yytext=yytext+2; return yy::parser::make_BITSTR(yytext, loc); }
-#x[0-9A-F]+           { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
+#x[0-9a-fA-F]+        { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
 bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext, loc); }
 as[ \t\r\n]+const     { return yy::parser::make_ASCONST(loc); }
 let                   { return yy::parser::make_LET(loc); }
@@ -106,12 +109,13 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvarithop}           { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvbwop}              { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvusop}              { return yy::parser::make_PRIMOP(yytext, loc); }
+bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvshop}              { return yy::parser::make_PRIMOP(yytext, loc); }
 {bvmanipop}           { return yy::parser::make_PRIMOP(yytext, loc); }
 (select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
-\|(\\.|[^|])*\|       {
+\|([^|\\])*\|         {
                         // increment location for each line
                         for (const char * c=yytext; *c; ++c)
                         {
@@ -121,9 +125,12 @@ ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
                           }
                         }
                         loc.step();
+                        // get rid of pipe quotes
+                        yytext++;
+                        yytext[strlen(yytext)-1] = '\0';
                         return yy::parser::make_SYMBOL(yytext, loc);
                       }
-[a-zA-Z0-9\?~\._-]+   { return yy::parser::make_SYMBOL(yytext, loc); }
+{symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }

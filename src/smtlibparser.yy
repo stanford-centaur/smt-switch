@@ -75,8 +75,8 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DEFINEFUN ASSERT CHECKSAT CHECKSATASSUMING PUSH
-       POP EXIT
+       DEFINEFUN DEFINESORT ASSERT CHECKSAT
+       CHECKSATASSUMING PUSH POP EXIT
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -85,7 +85,7 @@ using namespace std;
 %token
 LP "("
 RP ")"
-INDPREFIX "(_"
+US "_"
 
 %nterm commands
 %nterm command
@@ -103,6 +103,7 @@ INDPREFIX "(_"
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
+%nterm indprefix
 
 %%
 
@@ -161,6 +162,11 @@ command:
 
     drv.pop_scope();
     assert(!drv.current_scope());
+  }
+  | LP DEFINESORT SYMBOL LP RP sort RP
+  {
+    // only supports 0-arity define-sorts
+    drv.define_sort($3, $6);
   }
   | LP ASSERT s_expr RP
   {
@@ -309,7 +315,7 @@ bvconst:
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
      $$ = drv.solver()->make_term($1, bvsort, 16);
    }
-   | INDPREFIX BVDEC NAT RP
+   | indprefix BVDEC NAT RP
    {
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, std::stoi($3));
      $$ = drv.solver()->make_term($2, bvsort, 10);
@@ -329,13 +335,17 @@ sort:
    {
      $$ = drv.solver()->make_sort(smt::REAL);
    }
-   | INDPREFIX BITVEC NAT RP
+   | indprefix BITVEC NAT RP
    {
      $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
    }
    | LP ARRAY sort sort RP
    {
      $$ = drv.solver()->make_sort(smt::ARRAY, $3, $4);
+   }
+   | SYMBOL
+   {
+     $$ = drv.lookup_sort($1);
    }
 ;
 
@@ -399,11 +409,11 @@ operator:
    {
      $$ = drv.lookup_primop($1);
    }
-   | INDPREFIX PRIMOP NAT RP
+   | indprefix PRIMOP NAT RP
    {
      $$ = smt::Op(drv.lookup_primop($2), std::stoi($3));
    }
-   | INDPREFIX PRIMOP NAT NAT RP
+   | indprefix PRIMOP NAT NAT RP
    {
      $$ = smt::Op(drv.lookup_primop($2), std::stoi($3), std::stoi($4));
    }
@@ -413,6 +423,10 @@ stringlit:
    QUOTESTRING
    {
      $$ = $1;
+   }
+   | stringlit QUOTESTRING
+   {
+     $$ = $1 + $2;
    }
    | SYMBOL
    {
@@ -440,6 +454,11 @@ number_or_string:
    {
      $$ = $1;
    }
+;
+
+indprefix:
+   LP US
+   {}
 ;
 
 

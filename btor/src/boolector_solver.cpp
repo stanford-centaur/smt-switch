@@ -15,6 +15,7 @@
 **/
 
 #include "boolector_solver.h"
+#include "solver_utils.h"
 
 extern "C" {
 #include "btornode.h"
@@ -1041,6 +1042,12 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
       bres = boolector_exists(btor, bparams.data(), bparams.size(), bbody);
     }
     return std::make_shared<BoolectorTerm>(btor, bres);
+  }
+  else if (op == Distinct)
+  {
+    // special case for distinct
+    // need to apply to O(n^2) distinct pairs
+    return make_distinct(this, terms);
   }
   else
   {
