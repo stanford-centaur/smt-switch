@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Boolector implementation of AbsTerm
+** \brief Bitwuzla implementation of AbsTerm
 **
 **
 **/
