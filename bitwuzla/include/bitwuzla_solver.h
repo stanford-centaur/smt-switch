@@ -51,6 +51,8 @@ class BzlaSolver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
@@ -132,5 +134,33 @@ class BzlaSolver : public AbsSmtSolver
   /* ///< reset_assertions yet */
   /* ///< set this flag with set_opt("base-context-1", "true") */
   /* size_t context_level = 0;  ///< tracks the current solving context level */
+
+  // helper functions
+  template <class I>
+  inline Result check_sat_assuming_internal(I it, const I & end)
+  {
+    std::shared_ptr<BitwuzlaTerm> bt;
+    while (it != end)
+    {
+      bt = std::static_pointer_cast<BitwuzlaTerm>(*it);
+      bitwuzla_assume(bzla, bt->term);
+      ++it;
+    }
+
+    BitwuzlaResult res = bitwuzla_check_sat(bzla);
+    if (res == BITWUZLA_SAT)
+    {
+      return Result(SAT);
+    }
+    else if (res == BITWUZLA_UNSAT)
+    {
+      return Result(UNSAT);
+    }
+    else
+    {
+      return Result(UNKNOWN);
+    }
+  }
 };
+
 }  // namespace smt

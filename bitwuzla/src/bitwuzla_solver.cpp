@@ -135,28 +135,20 @@ Result BzlaSolver::check_sat()
   }
 }
 
-Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
+Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  Sort boolsort = make_sort(BOOL);
-  bool is_lit;
-  for (auto a : assumptions)
-  {
-    is_lit = a->is_symbolic_const();
-    if (!is_lit)
-    {
-      // could be negated
-      // Bitwuzla always returns BVNot instead of Not
-      is_lit = (a->get_op() == BVNot) && ((*(a->begin()))->is_symbolic_const());
-    }
-    is_lit &= (a->get_sort() == boolsort);
-    if (!is_lit)
-    {
-      throw IncorrectUsageException(
-          "Expecting literal assumptions to check_sat_assuming");
-    }
-    bitwuzla_assume(bzla, static_pointer_cast<BzlaTerm>(a)->term);
-  }
-  return check_sat();
+  return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
+}
+
+Result BoolectorSolver::check_sat_assuming_list(const TermList & assumptions)
+{
+  return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
+}
+
+Result BoolectorSolver::check_sat_assuming_set(
+    const UnorderedTermSet & assumptions)
+{
+  return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
 }
 
 void BzlaSolver::push(uint64_t num) { bitwuzla_push(bzla, num); }
