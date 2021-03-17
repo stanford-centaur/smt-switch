@@ -19,7 +19,7 @@ Configures the CMAKE build environment.
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
---bitwuzla-home=STR     custom Bitwuzla location  (default: deps/cbitwuzla)
+--bitwuzla-home=STR     custom Bitwuzla location  (default: deps/bitwuzla)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)

@@ -123,7 +123,7 @@ endif (BUILD_BTOR)
 
 if (BUILD_BITWUZLA)
   if (NOT DEFINED BITWUZLA_HOME)
-    set(BITWUZLA_HOME "${PROJECT_SOURCE_DIR}/deps/cbitwuzla")
+    set(BITWUZLA_HOME "${PROJECT_SOURCE_DIR}/deps/bitwuzla")
   endif()
   add_subdirectory (bitwuzla)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)

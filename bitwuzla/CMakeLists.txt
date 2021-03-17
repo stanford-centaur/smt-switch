@@ -13,7 +13,7 @@ target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_D
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/bitwuzla/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/src/api/c")
 
-target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libcbitwuzla.a")
+target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libbitwuzla.a")
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/cadical/build/libcadical.a")
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/btor2tools/build/libbtor2parser.a")
 target_link_libraries(smt-switch-bitwuzla smt-switch)
@@ -27,7 +27,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
     ALL
     COMMAND
       mkdir smt-switch-bitwuzla && cd smt-switch-bitwuzla && ar -x "../$<TARGET_FILE_NAME:smt-switch-bitwuzla>" && cd ../ &&
-      mkdir bitwuzla && cd bitwuzla && ar -x "${BITWUZLA_HOME}/build/lib/libcbitwuzla.a" &&
+      mkdir bitwuzla && cd bitwuzla && ar -x "${BITWUZLA_HOME}/build/lib/libbitwuzla.a" &&
       ar -x "${BITWUZLA_HOME}/deps/cadical/build/libcadical.a" &&
       ar -x "${BITWUZLA_HOME}/deps/btor2tools/build/libbtor2parser.a" && cd ../ &&
       ar -qc "$<TARGET_FILE_NAME:smt-switch-bitwuzla>" ./bitwuzla/*.o ./smt-switch-bitwuzla/*.o &&
