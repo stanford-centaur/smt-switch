@@ -23,10 +23,10 @@ enum SolverEnum
 {
   BTOR = 0,  // boolector
   BZLA,      // bitwuzla
-  CVC4,
-  MSAT,  // mathsat
-  YICES2,
-  Z3,
+  CVC4,      // cvc4
+  MSAT,      // mathsat
+  YICES2,    // yices2
+  Z3,        // z3
 
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
