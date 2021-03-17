@@ -28,7 +28,6 @@ const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
       { Or, BITWUZLA_KIND_OR },
       { Xor, BITWUZLA_KIND_XOR },
       { Not, BITWUZLA_KIND_NOT },
-      // needs to be translated
       { Implies, BITWUZLA_KIND_IMPLIES },
       { Ite, BITWUZLA_KIND_ITE },
       { Equal, BITWUZLA_KIND_EQUAL },
@@ -311,7 +310,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
+    std::string msg("Can't create sort from sort kind ");
     msg += to_string(sk);
     msg += " with a vector of sorts";
     throw IncorrectUsageException(msg);
@@ -611,9 +610,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
-  // TODO: will it clean up memory automatically on delete?
-  bitwuzla_delete(bzla);
-  bzla = bitwuzla_new();
+  bitwuzla_reset(bzla);
 }
 
 void BzlaSolver::reset_assertions()

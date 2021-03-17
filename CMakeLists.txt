@@ -121,6 +121,9 @@ if (BUILD_BTOR)
   add_definitions(-DBTOR_HOME=${BTOR_HOME})
 endif (BUILD_BTOR)
 
+# should we build bitwuzla?
+option (BUILD_BITWUZLA
+  "Should we build the libraries for bitwuzla" OFF)
 if (BUILD_BITWUZLA)
   if (NOT DEFINED BITWUZLA_HOME)
     set(BITWUZLA_HOME "${PROJECT_SOURCE_DIR}/deps/bitwuzla")

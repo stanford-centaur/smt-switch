@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Boolector implementation of AbsTerm
+** \brief Bitwuzla implementation of AbsTerm
 **
 **
 **/
@@ -149,7 +149,7 @@ BzlaTerm::~BzlaTerm() {}
 
 std::size_t BzlaTerm::hash() const { return bitwuzla_term_hash(term); }
 
-// TODO verify that hash is unique
+// hash is unique in bitwuzla
 std::size_t BzlaTerm::get_id() const { return bitwuzla_term_hash(term); }
 
 bool BzlaTerm::compare(const Term & absterm) const
