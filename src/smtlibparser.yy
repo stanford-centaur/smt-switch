@@ -205,11 +205,12 @@ command:
   | LP GETVALUELP s_expr_list RP  RP
   {
     cout << "(";
-    for (const auto & t : $3)
+    for (const auto & t : *$3)
     {
       cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
     }
     cout << ")" << endl;
+    delete $3;
   }
   | LP GETUNSATASSUMP RP
   {
