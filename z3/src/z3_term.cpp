@@ -238,12 +238,10 @@ bool Z3Term::is_symbolic_const() const
     return false;
   }
   return is_symbol();
-  // return (!is_function && term.is_const());
 }
 
 bool Z3Term::is_value() const
 {
-  // return (!is_function && term.is_const());
   if (is_function)
   {
     return false;
