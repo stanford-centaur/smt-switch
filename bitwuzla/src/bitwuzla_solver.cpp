@@ -30,7 +30,6 @@ const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
       { Not, BITWUZLA_KIND_NOT },
       // needs to be translated
       { Implies, BITWUZLA_KIND_IMPLIES },
-      { Iff, BITWUZLA_KIND_IFF },
       { Ite, BITWUZLA_KIND_ITE },
       { Equal, BITWUZLA_KIND_EQUAL },
       { Distinct, BITWUZLA_KIND_DISTINCT },
