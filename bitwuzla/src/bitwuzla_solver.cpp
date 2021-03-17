@@ -134,17 +134,17 @@ Result BzlaSolver::check_sat()
   }
 }
 
-Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
+Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
 {
   return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
 }
 
-Result BoolectorSolver::check_sat_assuming_list(const TermList & assumptions)
+Result BzlaSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
 }
 
-Result BoolectorSolver::check_sat_assuming_set(
+Result BzlaSolver::check_sat_assuming_set(
     const UnorderedTermSet & assumptions)
 {
   return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
