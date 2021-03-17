@@ -911,7 +911,29 @@ void Z3Solver::reset_assertions()
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
 {
-  throw NotImplementedException("Substitute not implemented for Z3 backend.");
+  // z3 expression vectors that represent the
+  // substitution map, i.e.:
+  // substitutionmap[z3sources[i]] = z3destinations[i]
+  z3::expr_vector z3sources(ctx);
+  z3::expr_vector z3destinations(ctx);
+
+  // z3 counterpart of `term`
+  shared_ptr<Z3Term> z3term = static_pointer_cast<Z3Term>(term);
+  expr z3expr = to_expr(ctx, z3term->term);
+  // populate the z3 expr_vectors according to the substitution map
+  for (auto p : substitution_map)
+  {
+    Term from_term = p.first;
+    Term to_term = p.second;
+    shared_ptr<Z3Term> z3_from_term = static_pointer_cast<Z3Term>(from_term);
+    shared_ptr<Z3Term> z3_to_term = static_pointer_cast<Z3Term>(to_term);
+    z3sources.push_back(z3_from_term->term);
+    z3destinations.push_back(z3_to_term->term);
+  }
+
+  // perform the substitution and return the result
+  expr result = z3expr.substitute(z3sources, z3destinations);
+  return std::make_shared<Z3Term>(result, ctx);
 }
 
 void Z3Solver::dump_smt2(std::string filename) const
