@@ -33,16 +33,10 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             UNSAT_CORE,
             QUANTIFIERS,
-            GET_OP,
             BOOL_BV1_ALIASING } },
 
         { BZLA,
-          { TERMITER,
-            CONSTARR,
-            UNSAT_CORE,
-            QUANTIFIERS,
-            GET_OP,
-            BOOL_BV1_ALIASING } },
+          { TERMITER, CONSTARR, UNSAT_CORE, QUANTIFIERS, BOOL_BV1_ALIASING } },
 
         { CVC4,
           { TERMITER,
@@ -54,19 +48,15 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
-            QUANTIFIERS,
-            GET_OP } },
+            QUANTIFIERS } },
 
         { GENERIC_SOLVER,
-          {
-              TERMITER,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_FUN_BOOLS,
-              UNSAT_CORE,
-              QUANTIFIERS
-          } },
-
+          { TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,
@@ -76,8 +66,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
-            QUANTIFIERS,
-            GET_OP } },
+            QUANTIFIERS } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
@@ -85,14 +74,12 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       look into this more and re-enable it
         { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
         { Z3,
-          {
-              LOGGING,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_FUN_BOOLS,
-              CONSTARR,
-              QUANTIFIERS
-          } },
+          { LOGGING,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            CONSTARR,
+            QUANTIFIERS } },
 
     });
 

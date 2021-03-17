@@ -63,8 +63,6 @@ enum SolverAttribute
   THEORY_DATATYPE,
   // supports quantifiers
   QUANTIFIERS,
-  // supports getting the operator of a term
-  GET_OP,
   // aliases booleans and bit-vectors of size one
   BOOL_BV1_ALIASING
 
