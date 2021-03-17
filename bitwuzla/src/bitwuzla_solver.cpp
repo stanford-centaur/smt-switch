@@ -540,16 +540,6 @@ Term BzlaSolver::make_term(Op op,
 
   if (!op.num_idx)
   {
-    // extra checks so that interface matches expected behavior
-    // in smt-switch, only allowed to bind one quantifier at a time
-    // this makes traversing the term later easier
-    if (op == Forall || op == Exists)
-    {
-      throw IncorrectUsageException(
-          "Only allowed to bind one variable at a time with a quantifier in "
-          "smt-switch");
-    }
-
     return make_shared<BzlaTerm>(bitwuzla_mk_term3(
         bzla, bkind, bterm0->term, bterm1->term, bterm2->term));
   }
@@ -591,16 +581,6 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
   if (!op.num_idx)
   {
-    // extra checks so that interface matches expected behavior
-    // in smt-switch, only allowed to bind one quantifier at a time
-    // this makes traversing the term later easier
-    if ((op == Forall || op == Exists) && bitwuzla_terms.size() != 1)
-    {
-      throw IncorrectUsageException(
-          "Only allowed to bind exactly one variable at a time with a "
-          "quantifier in smt-switch");
-    }
-
     return make_shared<BzlaTerm>(bitwuzla_mk_term(
         bzla, bkind, bitwuzla_terms.size(), &bitwuzla_terms[0]));
   }
