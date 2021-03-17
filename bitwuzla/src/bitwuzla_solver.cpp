@@ -611,8 +611,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
-  bitwuzla_delete(bzla);
-  bzla = bitwuzla_new();
+  bitwuzla_reset(bzla);
 }
 
 void BzlaSolver::reset_assertions()
