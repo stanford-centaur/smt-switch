@@ -13,9 +13,12 @@ target_include_directories (smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/z3
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/include")
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api")
 target_include_directories (smt-switch-z3 PUBLIC "${Z3_HOME}/src/api/c++")
+target_include_directories (smt-switch-z3 PUBLIC "${GMP_INCLUDE_DIR}")
 target_link_libraries(smt-switch-z3 "${Z3_HOME}/build/libz3.a")
 target_link_libraries(smt-switch-z3 smt-switch)
 target_link_libraries(smt-switch-z3 pthread)
+target_link_libraries(smt-switch-z3 ${GMP_LIBRARIES})
+target_link_libraries(smt-switch-z3 ${GMPXX_LIBRARIES})
 
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)

@@ -99,7 +99,7 @@ if (BUILD_PYTHON_BINDINGS)
   find_package(Python3 COMPONENTS Interpreter Development)
 endif()
 
-if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2)
+if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
   find_package(GMP REQUIRED)
 endif()
 

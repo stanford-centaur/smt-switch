@@ -13,7 +13,11 @@ if [ ! -d "$DEPS/z3" ]; then
     chmod -R 777 z3
     cd z3
     git checkout -f $Z3_VERSION
-    ./configure --staticlib
+    # a static binary linked to z3 often segfaults due to
+    # a pthread related issue
+    # compiling with --single-threaded helps, but isn't a real solution
+    # see https://github.com/Z3Prover/z3/issues/4554
+    ./configure --staticlib --single-threaded
     cd build
     make -j$(nproc)
     cd $DIR
