@@ -526,6 +526,14 @@ Term BzlaSolver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
+
+  if (is_variadic(op.prim_op))
+  {
+    // rely on vector application for variadic applications
+    // binary operators applied to multiple terms with "reduce" semantics
+    return make_term(op, {t0, t1, t2});
+  }
+
   shared_ptr<BzlaTerm> bterm0 = static_pointer_cast<BzlaTerm>(t0);
   shared_ptr<BzlaTerm> bterm1 = static_pointer_cast<BzlaTerm>(t1);
   shared_ptr<BzlaTerm> bterm2 = static_pointer_cast<BzlaTerm>(t2);
