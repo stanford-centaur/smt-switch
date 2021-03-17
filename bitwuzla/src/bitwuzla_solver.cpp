@@ -234,7 +234,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   {
     vector<BitwuzlaSort *> domain_sorts({ bsort1->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
-        bzla, domain_sorts.size(), &domain_sorts[0], bsort2->sort));
+        bzla, domain_sorts.size(), domain.data(), bsort2->sort));
   }
   else
   {
