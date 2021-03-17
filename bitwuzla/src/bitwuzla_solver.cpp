@@ -310,7 +310,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
+    std::string msg("Can't create sort from sort kind ");
     msg += to_string(sk);
     msg += " with a vector of sorts";
     throw IncorrectUsageException(msg);
