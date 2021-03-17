@@ -94,7 +94,7 @@ void BzlaSolver::set_opt(const string option, const string value)
   {
     bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_MODELS, (value == "true"));
   }
-  else if (option == "produce-unsat-cores")
+  else if (option == "produce-unsat-assumptions")
   {
     bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_UNSAT_CORES, (value == "true"));
   }
