@@ -29,13 +29,13 @@ done
 if [ ! -d "$DEPS/CVC4" ]; then
     cd $DEPS
     if [[ "$OSTYPE" == linux* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux-smtswitch.tar.bz2
     elif [[ "$OSTYPE" == darwin* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-mac.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-mac-smtswitch.tar.bz2
     elif [[ "$OSTYPE" == msys* ]]; then
         echo "Pre-compiled libraries for Windows not yet available"
     elif [[ "$OSTYPE" == cygwin* ]]; then
-        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux.tar.bz2
+        curl -o CVC4.tar.bz2 -L http://web.stanford.edu/~makaim/files/CVC4-linux-smtswitch.tar.bz2
     else
         echo "Unrecognized OSTYPE=$OSTYPE"
         exit 1
@@ -51,7 +51,7 @@ fi
 
 if [ -f $DEPS/CVC4/build/src/libcvc4.a ] ; then \
     echo "It appears CVC4 was setup successfully into $DEPS/CVC4."
-    echo "You may now install it with make ./configure.sh --msat && cd build && make"
+    echo "You may now install it with make ./configure.sh --cvc4 && cd build && make"
 else
     echo "Downloading CVC4 failed."
     exit 1

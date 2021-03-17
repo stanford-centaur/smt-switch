@@ -67,10 +67,10 @@ int main()
   SmtSolver s3 = MsatSolverFactory::create(false);
   SmtSolver s4 = BoolectorSolverFactory::create(false);
   SmtSolver s5 = BoolectorSolverFactory::create(false);
-  SmtSolver s6 = Yices2SolverFactory::create(true);
+  SmtSolver s6 = Yices2SolverFactory::create(false);
   SmtSolver s7 = CVC4SolverFactory::create(false);
   SmtSolver s8 = CVC4SolverFactory::create(false);
-  SmtSolver s9 = Yices2SolverFactory::create(true);
+  SmtSolver s9 = Yices2SolverFactory::create(false);
   vector<SmtSolver> solvers;
   solvers.push_back(s1);
   solvers.push_back(s2);
@@ -93,10 +93,10 @@ int main()
   SmtSolver s3_2 = MsatSolverFactory::create(false);
   SmtSolver s4_2 = BoolectorSolverFactory::create(false);
   SmtSolver s5_2 = BoolectorSolverFactory::create(false);
-  SmtSolver s6_2 = Yices2SolverFactory::create(true);
+  SmtSolver s6_2 = Yices2SolverFactory::create(false);
   SmtSolver s7_2 = CVC4SolverFactory::create(false);
   SmtSolver s8_2 = CVC4SolverFactory::create(false);
-  SmtSolver s9_2 = Yices2SolverFactory::create(true);
+  SmtSolver s9_2 = Yices2SolverFactory::create(false);
   vector<SmtSolver> solvers2;
   solvers2.push_back(s1_2);
   solvers2.push_back(s2_2);

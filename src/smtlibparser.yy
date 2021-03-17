@@ -76,7 +76,8 @@ using namespace std;
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN DEFINESORT ASSERT CHECKSAT
-       CHECKSATASSUMING PUSH POP EXIT
+       CHECKSATASSUMING PUSH POP EXIT GETVALUELP
+       GETUNSATASSUMP
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -91,7 +92,7 @@ US "_"
 %nterm command
 %nterm smt2
 %nterm <smt::Term> s_expr
-%nterm <smt::TermVec> s_expr_list
+%nterm <smt::TermVec *> s_expr_list
 %nterm <smt::Term> atom
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
@@ -178,7 +179,8 @@ command:
   }
   | LP CHECKSATASSUMING LP s_expr_list RP RP
   {
-    drv.check_sat_assuming($4);
+    drv.check_sat_assuming(*$4);
+    delete $4;
   }
   | LP PUSH RP
   {
@@ -200,6 +202,27 @@ command:
   {
     YYACCEPT;
   }
+  | LP GETVALUELP s_expr_list RP  RP
+  {
+    cout << "(";
+    for (const auto & t : *$3)
+    {
+      cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
+    }
+    cout << ")" << endl;
+    delete $3;
+  }
+  | LP GETUNSATASSUMP RP
+  {
+    smt::UnorderedTermSet core;
+    drv.solver()->get_unsat_assumptions(core);
+    cout << "(";
+    for (const auto & c : core)
+    {
+      cout << c << endl;
+    }
+    cout << ")" << endl;
+  }
 ;
 
 s_expr:
@@ -212,14 +235,15 @@ s_expr:
     // special-case for MINUS
     // needs to be negate if only one argument
     // TODO: might be a more elegant way to handle this
-    if ($2 == smt::Minus && $3.size() == 1)
+    if ($2 == smt::Minus && $3->size() == 1)
     {
-      $$ = drv.solver()->make_term(smt::Negate, $3[0]);
+      $$ = drv.solver()->make_term(smt::Negate, $3->at(0));
     }
     else
     {
-      $$ = drv.solver()->make_term($2, $3);
+      $$ = drv.solver()->make_term($2, *$3);
     }
+    delete $3;
   }
   | LP SYMBOL s_expr_list RP
   {
@@ -228,14 +252,15 @@ s_expr:
     if (uf)
     {
       smt::TermVec vec({uf});
-      vec.insert(vec.end(), $3.begin(), $3.end());
+      vec.insert(vec.end(), $3->begin(), $3->end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
     }
     else
     {
       // assuming this is a defined fun
-      $$ = drv.apply_define_fun($2, $3);
+      $$ = drv.apply_define_fun($2, *$3);
     }
+    delete $3;
   }
   | LP LP ASCONST sort RP atom RP
   {
@@ -272,14 +297,12 @@ s_expr:
 s_expr_list:
    %empty
    {
-     smt::TermVec vec;
-     $$ = vec;
+     $$ = new smt::TermVec();
    }
    | s_expr_list s_expr
    {
-     smt::TermVec & vec = $1;
-     vec.push_back($2);
-     $$ = vec;
+     $1->push_back($2);
+     $$ = $1;
    }
 ;
 

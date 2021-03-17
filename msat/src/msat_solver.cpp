@@ -182,11 +182,18 @@ void MsatSolver::assert_formula(const Term & t)
     msg += t->to_string();
     throw IncorrectUsageException(msg);
   }
+
+  if (!msat_num_backtrack_points(env))
+  {
+    // keep track of base-level assertions
+    base_assertions_.push_back(mterm->term);
+  }
 }
 
 Result MsatSolver::check_sat()
 {
   initialize_env();
+  clear_assumption_clauses();
   msat_result mres = msat_solve(env);
 
   if (mres == MSAT_SAT)
@@ -206,39 +213,25 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   initialize_env();
-  // expecting (possibly negated) boolean literals
-  for (const auto & a : assumptions)
-  {
-    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-    {
-      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-      {
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
-
+  clear_assumption_clauses();
+  size_t num_assumps = assumptions.size();
   vector<msat_term> m_assumps;
-  m_assumps.reserve(assumptions.size());
+  m_assumps.reserve(num_assumps);
 
-  shared_ptr<MsatTerm> ma;
-  for (const auto & a : assumptions)
+  msat_term ma;
+  for (size_t i = 0; i < num_assumps; ++i)
   {
-    ma = static_pointer_cast<MsatTerm>(a);
-    m_assumps.push_back(ma->term);
+    ma = static_pointer_cast<MsatTerm>(assumptions[i])->term;
+    m_assumps.push_back(ma);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   initialize_env();
+  clear_assumption_clauses();
   // expecting (possibly negated) boolean literals
   for (const auto & a : assumptions)
   {
@@ -266,12 +259,13 @@ Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
     m_assumps.push_back(ma->term);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
   initialize_env();
+  clear_assumption_clauses();
   // expecting (possibly negated) boolean literals
   for (const auto & a : assumptions)
   {
@@ -299,7 +293,7 @@ Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
     m_assumps.push_back(ma->term);
   }
 
-  return check_sat_assuming(m_assumps);
+  return check_sat_assuming_msatvec(m_assumps);
 }
 
 void MsatSolver::push(uint64_t num)
@@ -387,7 +381,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
     {
       throw InternalSolverException("got an error term in the unsat core");
     }
-    out.insert(std::make_shared<MsatTerm>(env, *mcore_iter));
+    out.insert(std::make_shared<MsatTerm>(env, assumption_map_.at(msat_term_id(*mcore_iter))));
     ++mcore_iter;
   }
   msat_free(mcore);
@@ -1121,6 +1115,7 @@ void MsatSolver::reset_assertions()
 {
   initialize_env();
   msat_reset_env(env);
+  base_assertions_.clear();
 }
 
 Term MsatSolver::substitute(const Term term,
@@ -1189,11 +1184,21 @@ void MsatSolver::dump_smt2(std::string filename) const
 msat_term MsatSolver::label(msat_term p) const
 {
   initialize_env();
+
+  if (msat_term_is_boolean_constant(env, p) ||
+      (msat_term_is_not(env, p) && msat_term_is_boolean_constant(env, msat_term_get_arg(p, 0))))
+  {
+    // if a (negated) boolean constant, don't need a fresh label
+    return p;
+  }
+
   std::ostringstream buf;
   buf << ".assump_lbl{" << msat_term_id(p) << "}";
   std::string name = buf.str();
   msat_decl d =
       msat_declare_function(env, name.c_str(), msat_get_bool_type(env));
+  // if it already existed, mathsat gives the same symbol
+  // in this case, those semantics are perfect -- we don't need a cache
   return msat_make_constant(env, d);
 }
 
