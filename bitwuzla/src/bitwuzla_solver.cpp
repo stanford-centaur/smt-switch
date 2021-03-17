@@ -611,7 +611,6 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
-  // TODO: will it clean up memory automatically on delete?
   bitwuzla_delete(bzla);
   bzla = bitwuzla_new();
 }
