@@ -7,6 +7,11 @@
 
 #include <iostream>
 
+// TEMP for conversions, e.g. creating bit-vectors from base 2 or base 16
+// TODO look deeper into Z3 API to see if there's dedicated support
+//      Note: there is one for base 2 but not an obvious one for base 16
+#include "gmpxx.h"
+
 using namespace std;
 
 namespace smt {
@@ -16,6 +21,16 @@ typedef Z3_ast (*un_fun)(Z3_context c, Z3_ast a);
 typedef Z3_ast (*bin_fun)(Z3_context c, Z3_ast t1, Z3_ast t2);
 typedef Z3_ast (*tern_fun)(Z3_context c, Z3_ast t1, Z3_ast t2, Z3_ast t3);
 typedef Z3_ast (*variadic_fun)(Z3_context c, unsigned num, Z3_ast const args[]);
+
+// extension function
+Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
+{
+  Z3_ast eq = Z3_mk_eq(c, t1, t2);
+  Z3_sort bvsort1 = Z3_mk_bv_sort(c, 1);
+  Z3_ast one = Z3_mk_unsigned_int(c, 1, bvsort1);
+  Z3_ast zero = Z3_mk_unsigned_int(c, 0, bvsort1);
+  return Z3_mk_ite(c, eq, one, zero);
+}
 
 const std::unordered_map<PrimOp, un_fun> unary_ops(
     { { Not, Z3_mk_not },
@@ -31,6 +46,7 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
     { Xor, Z3_mk_xor },
     { Implies, Z3_mk_implies },
     { Pow, Z3_mk_power },
+    { IntDiv, Z3_mk_div },
     { Div, Z3_mk_div },
     { Lt, Z3_mk_lt },
     { To_Int, Z3_mk_fpa_round_to_integral },
@@ -40,6 +56,7 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
     { Equal, Z3_mk_eq },
     { Mod, Z3_mk_mod },
     { Concat, Z3_mk_concat },
+    { BVComp, ext_Z3_mk_bvcomp },
     { BVAnd, Z3_mk_bvand },
     { BVOr, Z3_mk_bvor },
     { BVXor, Z3_mk_bvxor },
@@ -87,12 +104,71 @@ const unordered_map<PrimOp, variadic_fun> z3_variadic_ops({
 
 void Z3Solver::set_opt(const std::string option, const std::string value)
 {
-  throw NotImplementedException("Set opt not implemented for Z3 backend.");
+  const char * o = option.c_str();
+  const char * v = value.c_str();
+
+  // READ PLEASE
+  // The easiest handling of Z3's set function's param requirements is to have
+  // vectors with the names of different options in the list correspoinding with
+  // which param the z3 api expects, it's worth discussing what options we think
+  // should go in these lists to start and obviously it is very easy to add more
+  // down the line
+  unordered_set<string> bool_opts = { "produce-models", "produce-proofs" };
+  unordered_set<string> string_opts = {};
+  unordered_set<string> int_opts = {};
+
+  if (option == "incremental")
+  {
+    if (value == "false")
+    {
+      throw IncorrectUsageException(
+          "Z3 backend is always incremental -- it cannot be disabled.");
+    }
+  }
+  else if (bool_opts.find(option) != bool_opts.end())
+  {
+    if (value == "true")
+    {
+      slv.set(o, true);
+    }
+    else if (value == "false")
+    {
+      slv.set(o, false);
+    }
+    else
+    {
+      throw IncorrectUsageException("Expected a boolean value.");
+    }
+  }
+  else if (string_opts.find(option) != string_opts.end())
+  {
+    slv.set(o, v);
+  }
+  else if (int_opts.find(option) != int_opts.end())
+  {
+    try
+    {
+      double num = stoi(value, nullptr, 10);
+      slv.set(o, num);
+    }
+    catch (z3::exception & err)
+    {
+      throw IncorrectUsageException("Expected an integer value.");
+    }
+  }
+  else
+  {
+    std::string msg("Option - ");
+    msg += option;
+    msg += " - not implemented for Z3 backend.";
+    throw NotImplementedException(msg.c_str());
+  }
 }
 
 void Z3Solver::set_logic(const std::string logic)
 {
-  throw NotImplementedException("Set logic not implemented for Z3 backend.");
+  const char * l = logic.c_str();
+  slv = solver(ctx, l);
 }
 
 Term Z3Solver::make_term(bool b) const
@@ -187,22 +263,41 @@ Term Z3Solver::make_term(const std::string val,
   expr z_term = expr(ctx);
   SortKind sk = sort->get_sort_kind();
 
-  if (base != 10)
+  if (base != 10 && sk != BV)
   {
-    throw NotImplementedException("Does not support base not equal to 10.");
+    throw NotImplementedException(
+        "Does not support base not equal to 10 for arithmetic.");
   }
 
   if (sk == BV)
   {
-    z_term = ctx.bv_const(val.c_str(), sort->get_width());
+    if (base == 10)
+    {
+      z_term = ctx.bv_val(val.c_str(), sort->get_width());
+    }
+    else if (base == 2)
+    {
+      assert(val.length() == sort->get_width());
+      mpz_class value(val, 2);
+      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
+    }
+    else if (base == 16)
+    {
+      mpz_class value(val, 16);
+      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
+    }
+    else
+    {
+      throw IncorrectUsageException("Unsupported base " + std::to_string(base));
+    }
   }
   else if (sk == REAL)
   {
-    z_term = ctx.real_const(val.c_str());
+    z_term = ctx.real_val(val.c_str());
   }
   else if (sk == INT)
   {
-    z_term = ctx.int_const(val.c_str());
+    z_term = ctx.int_val(val.c_str());
   }
   else
   {
@@ -321,13 +416,26 @@ Result Z3Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
   return check_sat_assuming(z3assumps);
 }
 
-void Z3Solver::push(uint64_t num) { slv.push(); }
+void Z3Solver::push(uint64_t num)
+{
+  for (int i = 0; i < num; i++)
+  {
+    slv.push();
+  }
+}
 
 void Z3Solver::pop(uint64_t num) { slv.pop(num); }
 
 Term Z3Solver::get_value(const Term & t) const
 {
-  throw NotImplementedException("Get value not implemented for Z3 backend.");
+  shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(t);
+  if (zterm->is_function)
+  {
+    throw IncorrectUsageException("Cannot evaluate a function.");
+  }
+  z3::model model = slv.get_model();
+  expr eval = model.eval(zterm->term, true);
+  return std::make_shared<Z3Term>(eval, ctx);
 }
 
 UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
@@ -789,8 +897,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    std::vector<expr> zterms;
-    zterms.reserve(terms.size());
+    z3::expr_vector zterms(ctx);
     std::shared_ptr<Z3Term> zterm;
     for (auto t : terms)
     {
@@ -807,50 +914,23 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     unsigned num_var = zterms.size();  // this will always be one when only
                                        // allowing one parameter
 
-    std::vector<Z3_ast> znames;
-    znames.reserve(terms.size() - 1);
-    std::vector<Z3_sort> zsorts;
-    zsorts.reserve(terms.size() - 1);
-    for (auto t : zterms)
-    {
-      znames.push_back(t);
-    }
-    for (auto t : znames)
-    {
-      zsorts.push_back(Z3_get_sort(ctx, t));
-    }
-
-    Z3_ast nn[znames.size()];  // = { znames[0] };
-    std::copy(znames.begin(), znames.end(), nn);
-    Z3_sort ss[zsorts.size()];  // = { zsorts[0] };
-    std::copy(zsorts.begin(), zsorts.end(), ss);
-
-    expr t0 = expr(ctx);
-    Z3_symbol sym[znames.size()];
-    for (int i = 0; i < znames.size(); i++)
-    {
-      t0 = to_expr(ctx, nn[i]);
-      const char * c = (t0.to_string()).c_str();
-      sym[i] = ctx.str_symbol(c);
-    }
-
+    z3::expr quant_res(ctx);
     if (op.prim_op == Forall)
     {
-      res = Z3_mk_forall(ctx, 0, 0, NULL, num_var, ss, sym, quantified_body);
+      quant_res = forall(zterms, quantified_body);
     }
     if (op.prim_op == Exists)
     {
-      res = Z3_mk_exists(ctx, 0, 0, NULL, num_var, ss, sym, quantified_body);
+      quant_res = exists(zterms, quantified_body);
     }
-    expr res2 = to_expr(ctx, res);
-    return std::make_shared<Z3Term>(res2, ctx);
+    return std::make_shared<Z3Term>(quant_res, ctx);
   }
 
   if (size == 2)
   {
     return make_term(op, terms[0], terms[1]);
   }
-  else if (size == 3)
+  else if (size == 3 && ternary_ops.find(op.prim_op) != ternary_ops.end())
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
@@ -897,21 +977,36 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void Z3Solver::reset()
-{
-  throw NotImplementedException("Reset not implemented for Z3 backend.");
-}
+void Z3Solver::reset() { slv.reset(); }
 
-void Z3Solver::reset_assertions()
-{
-  throw NotImplementedException(
-      "Reset assertions not implemented for Z3 backend.");
-}
+void Z3Solver::reset_assertions() { slv.reset(); }
 
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
 {
-  throw NotImplementedException("Substitute not implemented for Z3 backend.");
+  // z3 expression vectors that represent the
+  // substitution map, i.e.:
+  // substitutionmap[z3sources[i]] = z3destinations[i]
+  z3::expr_vector z3sources(ctx);
+  z3::expr_vector z3destinations(ctx);
+
+  // z3 counterpart of `term`
+  shared_ptr<Z3Term> z3term = static_pointer_cast<Z3Term>(term);
+  expr z3expr = to_expr(ctx, z3term->term);
+  // populate the z3 expr_vectors according to the substitution map
+  for (auto p : substitution_map)
+  {
+    Term from_term = p.first;
+    Term to_term = p.second;
+    shared_ptr<Z3Term> z3_from_term = static_pointer_cast<Z3Term>(from_term);
+    shared_ptr<Z3Term> z3_to_term = static_pointer_cast<Z3Term>(to_term);
+    z3sources.push_back(z3_from_term->term);
+    z3destinations.push_back(z3_to_term->term);
+  }
+
+  // perform the substitution and return the result
+  expr result = z3expr.substitute(z3sources, z3destinations);
+  return std::make_shared<Z3Term>(result, ctx);
 }
 
 void Z3Solver::dump_smt2(std::string filename) const

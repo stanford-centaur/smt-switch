@@ -49,7 +49,36 @@ class UnitSubstituteTests
   Term x, y, xpy, a, b;
 };
 
-TEST_P(UnitSubstituteTests, SimpleSubstitution)
+class UnitSubstituteIterTests : public UnitSubstituteTests
+{
+};
+
+TEST_P(UnitSubstituteTests, CheckSubstitution1)
+{
+  UnorderedTermMap subs_map({ { x, a }, { y, b } });
+  Term apb = s->substitute(xpy, subs_map);
+  Term apb_expect = s->make_term(BVAdd, a, b);
+  EXPECT_EQ(apb, apb_expect);
+}
+
+TEST_P(UnitSubstituteTests, CheckSubstitution2)
+{
+  UnorderedTermMap subs_map({ { x, a } });
+  Term apy = s->substitute(xpy, subs_map);
+  Term apy_expect = s->make_term(BVAdd, a, y);
+  EXPECT_EQ(apy, apy_expect);
+}
+
+TEST_P(UnitSubstituteTests, CheckSubstitution3)
+{
+  Term apb = s->make_term(BVAdd, a, b);
+  UnorderedTermMap subs_map({ { x, xpy }, { y, apb } });
+  Term result = s->substitute(xpy, subs_map);
+  Term expect = s->make_term(BVAdd, xpy, apb);
+  EXPECT_EQ(result, expect);
+}
+
+TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
 {
   UnorderedTermMap subs_map({ { x, a }, { y, b } });
   Term apb = s->substitute(xpy, subs_map);
@@ -101,9 +130,13 @@ TEST_P(UnitSubstituteTests, BadSubstitution)
                IncorrectUsageException);
 }
 
+INSTANTIATE_TEST_SUITE_P(ParametrizedUnitSubstitute,
+                         UnitSubstituteTests,
+                         testing::ValuesIn(available_solver_configurations()));
+
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitSubstitute,
-    UnitSubstituteTests,
+    UnitSubstituteIterTests,
     testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

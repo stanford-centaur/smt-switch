@@ -287,7 +287,27 @@ Sort SmtLibReader::lookup_sort(const string & name)
 Term SmtLibReader::create_param(const string & name, const Sort & sort)
 {
   assert(current_scope());
-  Term param = solver_->make_param(name, sort);
+  Term param;
+  // some solvers don't allow re-using parameter names
+  // need to find a fresh one
+  size_t id = 0;
+  while (!param)
+  {
+    try
+    {
+      param = solver_->make_param(name + "__param_" + std::to_string(id), sort);
+    }
+    catch (SmtException & e)
+    {
+      id++;
+      if (id > 100000)
+      {
+        throw SmtException(
+            "Could not find a fresh parameter after 100,000 tries");
+      }
+    }
+  }
+  assert(param);
   arg_param_map_.add_mapping(name, param);
   return param;
 }

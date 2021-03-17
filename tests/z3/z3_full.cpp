@@ -41,7 +41,9 @@ int main()
   r = s->check_sat();
   cout << r << endl;
 
-  
+  Sort bvsort = s->make_sort(BV, 7);
+  cout << "bv val " << s->make_term("0000010", bvsort, 2) << endl;
+  cout << "bv val " << s->make_term("0F", bvsort, 16) << endl;
 
   return 0;
 }

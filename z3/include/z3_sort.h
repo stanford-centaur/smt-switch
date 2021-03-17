@@ -31,7 +31,8 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(sort z3sort, context & c) : type(z3sort), is_function(false), z_func(c)
+  Z3Sort(z3::sort z3sort, context & c)
+      : type(z3sort), is_function(false), z_func(c)
   {
     ctx = &c;
   };
@@ -55,7 +56,7 @@ class Z3Sort : public AbsSort
   SortKind get_sort_kind() const override;
 
  protected:
-  sort type;
+  z3::sort type;
   func_decl z_func;
   bool is_function;
   context * ctx;

@@ -68,7 +68,7 @@ int main()
   cout << concat << endl;
 
   Sort bvsort2 = s->make_sort(BV, 8);
-  Term bvterm2 = s->make_term("x", bvsort2);
+  Term bvterm2 = s->make_symbol("x", bvsort2);
   Term aext = s->make_term(Op(Extract, 3, 0), bvterm2);
   cout << aext << endl;
 
