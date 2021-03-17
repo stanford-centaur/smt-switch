@@ -20,6 +20,8 @@ extern "C" {
 #include "memstream.h"
 }
 
+#include <sstream>
+
 #include "bitwuzla_term.h"
 
 using namespace std;
@@ -239,7 +241,9 @@ uint64_t BzlaTerm::to_int() const
     msg += " in a uint64_t";
     throw IncorrectUsageException(msg.c_str());
   }
-  string bits = to_string_formatted("btor");
+  string bits = to_string_formatted("smt2");
+  assert(bits.substr(0, 2) == "#b");
+  bits = bits.substr(2, bits.length());
   string::size_type sz = 0;
   return std::stoull(bits, &sz, 2);
 }
