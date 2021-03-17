@@ -46,7 +46,7 @@ const std::unordered_map<BitwuzlaKind, PrimOp> bkind2primop(
       { BITWUZLA_KIND_NOT, Not },
       // needs to be translated
       { BITWUZLA_KIND_IMPLIES, Implies },
-      { BITWUZLA_KIND_IFF, Iff },
+      { BITWUZLA_KIND_IFF, Equal },
       { BITWUZLA_KIND_ITE, Ite },
       { BITWUZLA_KIND_EQUAL, Equal },
       { BITWUZLA_KIND_DISTINCT, Distinct },
@@ -146,6 +146,9 @@ BzlaTerm::BzlaTerm(BitwuzlaTerm * t) : term(t) {}
 BzlaTerm::~BzlaTerm() {}
 
 std::size_t BzlaTerm::hash() const { return bitwuzla_term_hash(term); }
+
+// TODO verify that hash is unique
+std::size_t BzlaTerm::get_id() const { return bitwuzla_term_hash(term); }
 
 bool BzlaTerm::compare(const Term & absterm) const
 {
