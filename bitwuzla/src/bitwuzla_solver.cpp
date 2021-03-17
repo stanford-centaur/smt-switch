@@ -235,7 +235,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   {
     vector<BitwuzlaSort *> domain_sorts({ bsort1->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
-        bzla, domain_sorts.size(), &domain_sorts[0], bsort2->sort));
+        bzla, domain_sorts.size(), domain_sorts.data(), bsort2->sort));
   }
   else
   {
@@ -259,7 +259,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   {
     vector<BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
-        bzla, domain_sorts.size(), &domain_sorts[0], bsort3->sort));
+        bzla, domain_sorts.size(), domain_sorts.data(), bsort3->sort));
   }
   else
   {
@@ -295,7 +295,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     return std::make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
-        bzla, arity, &bzla_sorts[0], bzla_return_sort->sort));
+        bzla, arity, bzla_sorts.data(), bzla_return_sort->sort));
   }
   else if (sorts.size() == 1)
   {
@@ -565,9 +565,9 @@ Term BzlaSolver::make_term(Op op,
     return make_shared<BzlaTerm>(bitwuzla_mk_term_indexed(bzla,
                                                           bkind,
                                                           bitwuzla_terms.size(),
-                                                          &bitwuzla_terms[0],
+                                                          bitwuzla_terms.data(),
                                                           indices.size(),
-                                                          &indices[0]));
+                                                          indices.data()));
   }
 }
 
@@ -590,7 +590,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   if (!op.num_idx)
   {
     return make_shared<BzlaTerm>(bitwuzla_mk_term(
-        bzla, bkind, bitwuzla_terms.size(), &bitwuzla_terms[0]));
+        bzla, bkind, bitwuzla_terms.size(), bitwuzla_terms.data()));
   }
   else
   {
@@ -603,9 +603,9 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     return make_shared<BzlaTerm>(bitwuzla_mk_term_indexed(bzla,
                                                           bkind,
                                                           bitwuzla_terms.size(),
-                                                          &bitwuzla_terms[0],
+                                                          bitwuzla_terms.data(),
                                                           indices.size(),
-                                                          &indices[0]));
+                                                          indices.data()));
   }
 }
 
