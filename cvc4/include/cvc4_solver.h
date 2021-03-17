@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -56,12 +57,14 @@ class CVC4Solver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
+  Result check_sat_assuming_list(const TermList & assumptions) override;
+  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_core(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) override;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -105,6 +108,8 @@ class CVC4Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   void reset() override;
   void reset_assertions() override;
+  Term substitute(const Term term,
+                  const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
   // helpers
@@ -112,12 +117,37 @@ class CVC4Solver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party CVC4-specific software
-  const ::CVC4::api::Solver & get_cvc4_solver() const { return solver; };
+  ::CVC4::api::Solver & get_cvc4_solver() { return solver; };
 
  protected:
   ::CVC4::api::Solver solver;
   // keep track of created symbols
   std::unordered_map<std::string, Term> symbols;
+
+  // helper function
+  inline Result check_sat_assuming(
+      const std::vector<CVC4::api::Term> & cvc4assumps)
+  {
+    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
+    if (r.isUnsat())
+    {
+      return Result(UNSAT);
+    }
+    else if (r.isSat())
+    {
+      return Result(SAT);
+    }
+    else if (r.isSatUnknown())
+    {
+      std::stringstream ss;
+      ss << r.getUnknownExplanation();
+      return Result(UNKNOWN, ss.str());
+    }
+    else
+    {
+      throw NotImplementedException("Unimplemented result type from CVC4");
+    }
+  }
 };
 
 //Interpolating Solver

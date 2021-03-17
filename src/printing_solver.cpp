@@ -17,24 +17,7 @@
 
 #include "printing_solver.h"
 #include "utils.h"
-
-/* string macros for the SMT-LIB commands */
-#define SET_OPTION_STR "set-option"
-#define SET_LOGIC_STR "set-logic"
-#define DECLARE_FUN_STR "declare-fun"
-#define DECLARE_SORT_STR "declare-sort"
-#define ASSERT_STR "assert"
-#define CHECK_SAT_STR "check-sat"
-#define CHECK_SAT_ASSUMING_STR "check-sat-assuming"
-#define GET_VALUE_STR "get-value"
-#define GET_UNSAT_ASSUMPTIONS_STR "get-unsat-assumptions"
-#define PUSH_STR "push"
-#define POP_STR "pop"
-#define RESET_ASSERTIONS_STR "reset-assertions"
-#define RESET_STR "reset"
-#define INTERPOLATION_GROUP_STR "interpolation-group"
-#define MSAT_GET_INTERPOLANT_STR "get-interpolant"
-#define CVC4_GET_INTERPOLANT_STR "get-interpol"
+#include "smtlib_utils.h"
 
 using namespace std;
 
@@ -208,10 +191,10 @@ Term PrintingSolver::get_value(const Term & t) const
   return wrapped_solver->get_value(t);
 }
 
-void PrintingSolver::get_unsat_core(UnorderedTermSet & out)
+void PrintingSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
-  wrapped_solver->get_unsat_core(out);
+  wrapped_solver->get_unsat_assumptions(out);
 }
 
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,

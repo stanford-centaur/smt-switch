@@ -29,7 +29,7 @@ using namespace std;
 namespace smt {
 
 // boolean ops
-const unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies, Iff });
+const unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies });
 
 const unordered_set<PrimOp> bv_ops({
     Concat,      Extract,     BVNot,  BVNeg,       BVAnd,        BVOr,

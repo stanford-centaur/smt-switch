@@ -2,6 +2,11 @@ import sys
 from types import ModuleType
 
 FILENAME="enums_imp.pxi"
+_PACKAGE_ROOT=__name__.split('.')[0]
+
+def _add_module(m):
+    sys.modules['.'.join((_PACKAGE_ROOT, m.__name__))] = m
+
 
 ################################################ SortKind #################################################
 cdef class SortKind:
@@ -30,7 +35,7 @@ cdef class SortKind:
 # create a sortkinds submodule
 sortkinds = ModuleType('sortkinds')
 # fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
-sys.modules['%s.%s'%(__name__, sortkinds.__name__)] = sortkinds
+_add_module(sortkinds)
 sortkinds.__file__ = FILENAME
 
 cdef SortKind ARRAY = SortKind()
@@ -84,7 +89,7 @@ cdef class SolverEnum:
 # create a solverenums submodule
 solverenums = ModuleType('solverenums')
 # fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
-sys.modules['%s.%s'%(__name__, solverenums.__name__)] = solverenums
+_add_module(solverenums)
 solverenums.__file__ = FILENAME
 
 cdef SolverEnum BTOR = SolverEnum()
@@ -110,6 +115,11 @@ setattr(solverenums, "MSAT_INTERPOLATOR", MSAT_INTERPOLATOR)
 cdef SolverEnum CVC4_INTERPOLATOR = SolverEnum()
 CVC4_INTERPOLATOR.se = c_CVC4_INTERPOLATOR
 setattr(solverenums, "CVC4_INTERPOLATOR", CVC4_INTERPOLATOR)
+
+cdef SolverEnum GENERIC_SOLVER = SolverEnum()
+GENERIC_SOLVER.se = c_GENERIC_SOLVER
+setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
+
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
@@ -138,7 +148,7 @@ cdef class SolverAttribute:
 # create a solverattr submodule
 solverattr = ModuleType('solverattr')
 # fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
-sys.modules['%s.%s'%(__name__, solverattr.__name__)] = solverattr
+_add_module(solverattr)
 solverattr.__file__ = FILENAME
 
 cdef SolverAttribute TERMITER = SolverAttribute()
@@ -197,7 +207,7 @@ cdef class PrimOp:
         return (<int> self.po) != (<int> other.po)
 
     def __hash__(self):
-        return hash((<int> self.po, self.name))
+        return (<int> self.po)
 
     def __str__(self):
         return to_string(self.po).decode()
@@ -211,7 +221,7 @@ cdef class PrimOp:
 # create a primops submodule
 primops = ModuleType('primops')
 # fake a submodule for dotted imports, e.g. from smt_switch.prim_ops import And
-sys.modules['%s.%s'%(__name__, primops.__name__)] = primops
+_add_module(primops)
 primops.__file__ = FILENAME + ".so"
 
 cdef PrimOp And = PrimOp()
@@ -233,10 +243,6 @@ setattr(primops, 'Not', Not)
 cdef PrimOp Implies = PrimOp()
 Implies.po = c_Implies
 setattr(primops, 'Implies', Implies)
-
-cdef PrimOp Iff = PrimOp()
-Iff.po = c_Iff
-setattr(primops, 'Iff', Iff)
 
 cdef PrimOp Ite = PrimOp()
 Ite.po = c_Ite
@@ -477,3 +483,17 @@ setattr(primops, 'Forall', Forall)
 cdef PrimOp Exists = PrimOp()
 Exists.po = c_Exists
 setattr(primops, 'Exists', Exists)
+
+##################################### dictionaries for getting canonical enum objects ###################
+
+int2primop = dict()
+for attr in dir(primops):
+    if not attr.startswith("_"):
+        pypo = getattr(primops, attr)
+        int2primop[(<int> (<PrimOp?> pypo).po)] = pypo
+
+int2sortkind = dict()
+for attr in dir(sortkinds):
+    if not attr.startswith("_"):
+        pysk = getattr(sortkinds, attr)
+        int2sortkind[(<int> (<SortKind?> pysk).sk)] = pysk

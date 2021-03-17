@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <unordered_set>
+#include <functional>
 
 namespace smt {
 
@@ -32,7 +34,6 @@ enum PrimOp
   Xor,
   Not,
   Implies,
-  Iff,
   Ite,
   Equal,
   Distinct,
@@ -100,13 +101,12 @@ enum PrimOp
   Select,
   Store,
   /* Quantifiers */
-  // quantifiers only bind a single parameter to simplify term iteration
-  // e.g. the solvers don't align well on the representation unless only one
-  // parameter is bound
-  Forall,  ///< used to bind *one* parameter in a formula with a universal
-           ///< quantifier
-  Exists,  ///< used to bind *one* parameter in a formula with an existential
-           ///< quanifier
+  // quantifiers can be applied to n arguments where the first n-1
+  // are parameters and the nth is a body which uses the parameters
+  // binds all the parameters from left to right, i.e. so the resulting
+  // term read left to right matches the vector order
+  Forall,
+  Exists,
   /* Datatype Theory */
   Apply_Selector,
   Apply_Tester,
@@ -137,6 +137,7 @@ struct Op
   uint64_t idx0;
   uint64_t idx1;
 };
+using UnorderedOpSet = std::unordered_set<Op>;
 
 /** Looks up the expected arity of a PrimOp
  *  @return a tuple with the minimum and maximum
@@ -154,7 +155,7 @@ std::ostream& operator<<(std::ostream& output, const Op o);
 // defining hash for old compilers
 namespace std
 {
-  // specialize the hash template
+  // specialize the hash template for PrimOp
   template<>
     struct hash<smt::PrimOp>
     {
@@ -163,5 +164,24 @@ namespace std
         return static_cast<std::size_t>(o);
       }
     };
+
+  // specialize the hash template for Op
+  template<>
+    struct hash<smt::Op>
+    {
+      size_t operator()(const smt::Op o) const
+      {
+        // The hash function for op computes the string hash
+        std::hash<std::string> str_hash;
+        return str_hash(o.to_string());
+      }
+    };
 }
 
+namespace smt {
+// ops that can be applied to n arguments
+const std::unordered_set<PrimOp> variadic_ops(
+    { And, Or, Xor, Plus, BVAnd, BVOr, BVAdd });
+
+bool is_variadic(PrimOp po);
+}  // namespace smt

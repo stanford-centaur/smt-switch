@@ -32,13 +32,22 @@ class UnsatCoreTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    s = create_solver(GetParam());
+    SolverConfiguration sc = GetParam();
+    s = create_solver(sc);
     s->set_opt("incremental", "true");
-    s->set_opt("produce-unsat-cores", "true");
+    if (sc.solver_enum == GENERIC_SOLVER)
+    {
+      s->set_opt("produce-unsat-assumptions", "true");
+    }
+    else
+    {
+      s->set_opt("produce-unsat-assumptions", "true");
+    }
     boolsort = s->make_sort(BOOL);
+    bvsort = s->make_sort(BV, 8);
   }
   SmtSolver s;
-  Sort boolsort;
+  Sort boolsort, bvsort;
 };
 
 // FIXME there's some issue with the Yices2 context object which
@@ -54,15 +63,39 @@ TEST_P(UnsatCoreTests, UnsatCore)
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;
-  s->get_unsat_core(core);
+  s->get_unsat_assumptions(core);
   ASSERT_TRUE(core.size() > 1);
 
   // for solvers using assumptions under the hood,
   // make sure they are re-added correctly
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
-  ASSERT_THROW(s->get_unsat_core(core), SmtException);
-  s->pop();
+  // unsat core is only available after a call to check-sat-assuming, not
+  // check-sat
+  ASSERT_THROW(s->get_unsat_assumptions(core), SmtException);
+}
+
+TEST_P(UnsatCoreTests, UnsatCoreNonLit)
+{
+  // test that everything works in a fresh context
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+
+  Term x_lt_y = s->make_term(BVUlt, x, y);
+  Term x_ge_y = s->make_term(BVUge, x, y);
+
+  Result r = s->check_sat_assuming({ x_lt_y, x_ge_y });
+  ASSERT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming({x_lt_y});
+  ASSERT_TRUE(r.is_sat());
+
+  r = s->check_sat_assuming({x_lt_y, x_ge_y});
+  ASSERT_TRUE(r.is_unsat());
+
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  ASSERT_TRUE(core.size() > 1);
 }
 
 INSTANTIATE_TEST_SUITE_P(

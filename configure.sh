@@ -11,21 +11,24 @@ Usage: $0 [<option> ...]
 Configures the CMAKE build environment.
 
 -h, --help              display this message and exit
---prefix=STR            install directory         (default: /usr/local/)
---btor                  build boolector           (default: off)
+--prefix=STR            install directory       (default: /usr/local/)
+--btor                  build boolector         (default: off)
 --bitwuzla              build bitwuzla            (default: off)
---cvc4                  build cvc4                (default: off)
---msat                  build MathSAT             (default: off)
---yices2                build yices2              (default: off)
---btor-home=STR         custom BTOR location      (default: deps/boolector)
+--cvc4                  build cvc4              (default: off)
+--msat                  build MathSAT           (default: off)
+--yices2                build yices2            (default: off)
+--z3                    build z3                (default: off)
+--btor-home=STR         custom BTOR location    (default: deps/boolector)
 --bitwuzla-home=STR     custom Bitwuzla location  (default: deps/cbitwuzla)
---cvc4-home=STR         custom CVC4 location      (default: deps/CVC4)
---msat-home=STR         custom MathSAT location   (default: deps/mathsat)
---yices2-home=STR       custom YICES2 location    (default: deps/yices2)
---build-dir=STR         custom build directory    (default: build)
---debug                 build with debug symbols  (default: off)
---static                create static libaries    (default: off)
---python                build python bindings     (default: off)
+--cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
+--msat-home=STR         custom MathSAT location (default: deps/mathsat)
+--yices2-home=STR       custom YICES2 location  (default: deps/yices2)
+--z3-home=STR           custom Z3 location      (default: deps/z3)
+--build-dir=STR         custom build directory  (default: build)
+--debug                 build debug with debug symbols (default: off)
+--static                create static libaries (default: off)
+--python                compile with python bindings (default: off)
+--smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 EOF
   exit 0
 }
@@ -42,13 +45,16 @@ build_bitwuzla=default
 build_cvc4=default
 build_msat=default
 build_yices2=default
+build_z3=default
 btor_home=default
 bitwuzla_home=default
 cvc4_home=default
 msat_home=default
 yices2_home=default
+z3_home=default
 static=default
 python=default
+smtlib_reader=default
 
 build_type=Release
 
@@ -81,6 +87,9 @@ do
         --msat)
             build_msat=ON
             ;;
+		--z3)
+	   		build_z3=ON
+	    	;;
         --btor-home) die "missing argument to $1 (see -h)" ;;
         --btor-home=*)
             btor_home=${1##*=}
@@ -121,6 +130,16 @@ do
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
             esac
             ;;
+		--z3-home) die "missing argument to $1 (see -h)" ;;
+        --z3-home=*)
+            z3_home=${1##*=}
+            # Check if z3_home is an absolute path and if not, make it
+            # absolute.
+            case $z3_home in
+                /*) ;;                                      # absolute path
+                *) z3_home=$(pwd)/$z3_home ;; # make absolute path
+	   		esac
+	    	;;
         --yices2-home) die "missing argument to $1 (see -h)" ;;
         --yices2-home=*)
             yices2_home=${1##*=}
@@ -149,6 +168,9 @@ do
             ;;
         --python)
             python=yes
+            ;;
+        --smtlib-reader)
+            smtlib_reader=yes
             ;;
         *) die "unexpected argument: $1";;
     esac
@@ -193,6 +215,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
+[ $build_z3 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
+
 [ $build_yices2 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
 
@@ -208,6 +233,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
 
+[ $z3_home != default ] \
+    && cmake_opts="$cmake_opts -DZ3_HOME=$z3_home"
+
 [ $yices2_home != default ] \
     && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
 
@@ -216,6 +244,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
+
+[ $smtlib_reader != default ] \
+    && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"
 
 root_dir=$(pwd)
 

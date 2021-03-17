@@ -58,7 +58,15 @@ namespace smt {
 class TermTranslator
 {
  public:
-  TermTranslator(const SmtSolver & s) : solver(s) {}
+  TermTranslator(const SmtSolver & s) : solver(s)
+  {
+    // Generic solvers don't support
+    // term transfer
+    if (s->get_solver_enum() == SolverEnum::GENERIC_SOLVER)
+    {
+      throw SmtException("Generic Solvers do not support term transfer");
+    }
+  }
   /** Transfers a sort from the other solver to this solver
    *  @param the sort transfer
    *  @return a sort belonging to this solver

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test_itp.cpp
+/*! \file test-itp.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -25,13 +25,12 @@
 using namespace smt;
 using namespace std;
 
-
 namespace smt_tests {
 
 class ItpTests : public ::testing::Test,
                  public ::testing::WithParamInterface<SolverConfiguration>
 {
-protected:
+ protected:
   void SetUp() override
   {
     itp = create_interpolating_solver(GetParam());
@@ -66,7 +65,42 @@ TEST_P(ItpTests, Test_ITP)
   std::cout << "the interpolant is: " << I << endl;
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedItpTests,
-                         ItpTests,
-                         testing::ValuesIn(available_interpolator_configurations()));
+TEST_P(ItpTests, TEST_SEQITP)
+{
+  // NOTE: there's a default implementation of
+  //       get_sequence_interpolants that should work for
+  //       any interpolating solver
+  //       but it should be much more performant if
+  //       specialized with a dedicated function from the
+  //       underlying solver
+  //       e.g. using interpolation groups in mathsat
+
+  // A1 : x < y /\ y < w
+  Term A1 = itp->make_term(Lt, x, y);
+  A1 = itp->make_term(And, A1, itp->make_term(Lt, y, w));
+
+  // A2 : z > w /\ z < x
+  Term A2 = itp->make_term(Gt, z, w);
+  A2 = itp->make_term(And, A2, itp->make_term(Lt, z, x));
+
+  // A3 : y > z /\ y < w
+  Term A3 = itp->make_term(Gt, y, z);
+  A3 = itp->make_term(And, A3, itp->make_term(Lt, y, w));
+
+  TermVec formulae({ A1, A2, A3 });
+  TermVec interpolants;
+
+  Result r = itp->get_sequence_interpolants(formulae, interpolants);
+  ASSERT_TRUE(r.is_unsat());
+
+  for (auto I : interpolants)
+  {
+    std::cout << "got seq-itp: " << I << std::endl;
+  }
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedItpTests,
+    ItpTests,
+    testing::ValuesIn(available_interpolator_configurations()));
+}  // namespace smt_tests

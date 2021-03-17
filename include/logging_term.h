@@ -25,16 +25,18 @@ namespace smt {
 class LoggingTerm : public AbsTerm
 {
  public:
-  LoggingTerm(Term t, Sort s, Op o, TermVec c);
+  LoggingTerm(Term t, Sort s, Op o, TermVec c, size_t id);
   // this one is for making symbols
   // if passed with true, sets is_sym true
   // otherwise sets is_param true
   // only symbols and parameters have names
-  LoggingTerm(Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym);
+  LoggingTerm(
+      Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym, size_t id);
   virtual ~LoggingTerm();
 
   // implemented
 
+  std::size_t get_id() const override;
   /** Returns true iff the underlying term AND sort are equivalent
    *  @param t the term to compare with (assumed to be LoggingTerm)
    *  @return true iff the underlying term and sort match t
@@ -63,6 +65,7 @@ class LoggingTerm : public AbsTerm
   std::string repr;
   bool is_sym;
   bool is_par;
+  size_t id_;  ///< unique id for this term
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;

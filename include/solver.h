@@ -73,6 +73,10 @@ class AbsSmtSolver
    */
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
 
+  virtual Result check_sat_assuming_list(const TermList & assumptions);
+
+  virtual Result check_sat_assuming_set(const UnorderedTermSet & assumptions);
+
   /* Push contexts
    * SMTLIB: (push <num>)
    * @param num the number of contexts to push
@@ -109,7 +113,7 @@ class AbsSmtSolver
    *  unsat.
    *  SMTLIB: (get-unsat-assumptions)
    */
-  virtual void get_unsat_core(UnorderedTermSet & out) = 0;
+  virtual void get_unsat_assumptions(UnorderedTermSet & out) = 0;
 
   /* Make an uninterpreted sort
    * SMTLIB: (declare-sort <name> <arity>)
@@ -376,6 +380,22 @@ class AbsSmtSolver
   {
     throw NotImplementedException("Interpolants are not supported by this solver.");
   }
+
+  /** Compute a sequence interpolants given formulae
+   *  such that there is an interpolant between each adjacent formula in
+   *  the vector formulae
+   * @param formulae the formula terms to get sequence interpolants for
+   * @param out_I the vector to store sequence interpolants in
+   *              NOTE out_I can have null terms in it -- see below
+   * @return unsat    iff the interpolants were computed,
+   *         sat      iff the query was satisfiable,
+   *         unknown  iff any step of the interpolation failed
+   *                  in this case, out_I is still populated but any
+   *                  failed steps have null terms
+   *
+   */
+  virtual Result get_sequence_interpolants(const TermVec & formulae,
+                                           TermVec & out_I) const;
 
   SolverEnum get_solver_enum() { return solver_enum; };
 

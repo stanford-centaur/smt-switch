@@ -77,17 +77,32 @@ void disjunctive_partition(const smt::Term & term,
                            smt::TermVec & out,
                            bool include_bvor = false);
 
+void get_matching_terms(const smt::Term & term,
+                        smt::UnorderedTermSet & out,
+                        bool (*matching_fun)(const smt::Term & term));
+
 void get_free_symbolic_consts(const smt::Term & term,
                               smt::UnorderedTermSet & out);
 
 void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
 
+void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
+
+/** returns true iff l is a literal
+ *  e.g. either a boolean symbolic constant or its negation
+ *  NOTE will return false for nested negations, i.e. (not (not (not l)))
+ *  @param l the term to check
+ *  @param boolsort a boolean sort from the corresponding solver
+ *         this way sort aliasing solvers are still supported
+ *  @return true iff l is a literal
+ */
+bool is_lit(const Term & l, const Sort & boolsort);
 
 // -----------------------------------------------------------------------------
 
 /** \class
  * UnsatcoreReducer class.
- * Implents an interative unsatcore reducer procedure. 
+ * Implements an interative unsatcore reducer procedure. 
  *
  * reducer_solver is the solver that will be used for unsatcore extraction in
  * the procedure. It is different from the ext_solver (external solver used to
@@ -106,28 +121,52 @@ public:
    *  @param output vector for the reduced assumptions
    *  @param output vector for the removed assumptions
    *  @param iter is the number of iterations done in the method. Default is 0,
-   *    and it means that the result in out_red will be minimal.
+   *         and it means that the result in out_red will be minimal.
    *  @param rand_seed if strickly positive then assump will be shuffled.
+   *  returns false if the formula conjoined with the assump is satisfiable,
+   *          otherwise returns true
    */
-  void reduce_assump_unsatcore(const smt::Term &formula,
+  bool reduce_assump_unsatcore(const smt::Term &formula,
                                const smt::TermVec &assump,
                                smt::TermVec &out_red,
                                smt::TermVec *out_rem = NULL,
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
+  
+
+  /** The additional method to reduce the assump (vector of assumptions). The method
+   *  assumes that the conjunction of the formula and assump is unsatisfiable.
+   *  This will iterate through the assump and requires at most size(assump) query
+   *  Note: this function assumes that there are no duplicate assumptions from the
+   *  second input vector.
+   *  @param input formula
+   *  @param input vector of assumptions
+   *  @param output vector for the reduced assumptions
+   *  @param output vector for the removed assumptions
+   *  @param iter is the number of iterations done in the method. Default is 0,
+   *         and it means that the result in out_red will be minimal.
+   *  returns false if the formula conjoined with the assump is satisfiable,
+   *          otherwise returns true
+   */
+  bool linear_reduce_assump_unsatcore(
+                               const smt::Term &formula,
+                               const smt::TermVec &assump,
+                               smt::TermVec &out_red,
+                               smt::TermVec *out_rem = NULL,
+                               unsigned iter = 0);
 
   /** This clears the term translation cache. Note, term translator is used to
    *  translate the terms of the external solver to the
-   *  unsat-core-reducer-solver. A use-case of this method is to call it before
-   *  calling the reduce_assump_unsat from one call to another call when the
-   *  external solver in the first call is different from the second call.
+   *  unsat-assumption-reducer-solver. A use-case of this method is to call it
+   * before calling the reduce_assump_unsat from one call to another call when
+   * the external solver in the first call is different from the second call.
    */
   void clear_term_translation_cache() { to_reducer_.get_cache().clear(); };
 
  private:
   /** returns a label that will be used to precondition the assumption term 't'
    *  @param Input term t
-   *  @return a boolean label for the term t
+   *  return a boolean label for the term t
    */
   smt::Term label(const Term & t);
 

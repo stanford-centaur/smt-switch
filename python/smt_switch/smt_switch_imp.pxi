@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from cython.operator cimport dereference as dref
 from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
@@ -17,6 +19,7 @@ from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
 from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
 from smt_switch cimport get_free_symbols as c_get_free_symbols
 
+
 cdef class Op:
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
@@ -31,9 +34,8 @@ cdef class Op:
 
     @property
     def prim_op(self):
-        cdef PrimOp po = PrimOp()
-        po.po = self.op.prim_op
-        return po
+        # look up the canonical object
+        return int2primop[(<int> self.op.prim_op)]
 
     @property
     def num_idx(self):
@@ -138,9 +140,8 @@ cdef class Sort:
         return s
 
     def get_sort_kind(self):
-        cdef SortKind sk = SortKind()
-        sk.sk = dref(self.cs).get_sort_kind()
-        return sk
+        # look up canonical SortKind object
+        return int2sortkind[(<int> dref(self.cs).get_sort_kind())]
 
     def __eq__(self, Sort other):
         return self.cs == other.cs
@@ -283,15 +284,15 @@ cdef class SmtSolver:
         term.ct = dref(self.css).get_value(t.ct)
         return term
 
-    def get_unsat_core(self):
-        unsat_core = set()
+    def get_unsat_assumptions(self):
+        unsat_assumptions = set()
         cdef c_UnorderedTermSet cts
-        dref(self.css).get_unsat_core(cts)
+        dref(self.css).get_unsat_assumptions(cts)
         for l in cts:
             term = Term(self)
             term.ct = l
-            unsat_core.add(term)
-        return unsat_core
+            unsat_assumptions.add(term)
+        return unsat_assumptions
 
     def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
         cdef Sort s = Sort(self)
@@ -455,3 +456,60 @@ def get_free_symbols(Term term):
         python_out_set.add(t)
 
     return python_out_set
+
+
+class TermDagVisitor(ABC):
+    def __init__(self):
+        pass
+
+    def walk_dag(self, term):
+        '''
+        Walks through all the subterms in the DAG of term
+        '''
+
+        to_visit = [term]
+        visited  = set()
+        cache    = dict()
+
+        while to_visit:
+            t = to_visit.pop()
+
+            if t in visited:
+                new_children = [cache[tt] for tt in t]
+                cache[t] = self.visit_term(t, new_children)
+            else:
+                visited.add(t)
+                to_visit.append(t)
+                for tt in t:
+                    to_visit.append(tt)
+
+        return cache[term]
+
+    @abstractmethod
+    def visit_term(self, term, new_children):
+        '''
+        Visit a particular term (in postorder).
+        Derived classes should override this method.
+        @param term the smt-switch term to visit
+        @param new_children the previously visited children
+        @return updated/translated term
+        '''
+
+        raise NotImplementedError("visit_term not implemented in base class")
+
+
+# example derived class for TermDagVisitor
+class IdentityVisitor(TermDagVisitor):
+    def __init__(self, solver):
+        self._solver = solver
+
+    def visit_term(self, term, new_children):
+        op = term.get_op()
+        if op:
+            return self._solver.make_term(op, new_children)
+        elif new_children:
+            # constant array case
+            return term
+        else:
+            # symbol / value / parameter case
+            return term

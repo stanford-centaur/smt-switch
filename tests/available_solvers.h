@@ -49,8 +49,15 @@ smt::SmtSolver create_interpolating_solver(SolverConfiguration sc);
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
 
+// collect all the available solvers non generic
+std::vector<smt::SolverEnum> available_non_generic_solver_enums();
+
 // collect all the available solvers
 std::vector<SolverConfiguration> available_solver_configurations();
+
+// collect all the available solvers without generics
+std::vector<SolverConfiguration> available_non_generic_solver_configurations();
+
 
 // collect all the available interpolating solvers
 std::vector<smt::SolverEnum> available_interpolator_enums();
@@ -70,6 +77,8 @@ std::vector<smt::SolverEnum> filter_solver_enums(
 std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
-std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
+std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
+    const std::unordered_set<smt::SolverAttribute> attributes);
 
+std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
 }  // namespace smt_tests
