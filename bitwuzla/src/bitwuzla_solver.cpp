@@ -168,7 +168,7 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
       "Bitwuzla backend doesn't support get_array_values yet");
 }
 
-void BzlaSolver::get_unsat_core(UnorderedTermSet & out)
+void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   size_t size;
   BitwuzlaTerm ** bcore = bitwuzla_get_unsat_assumptions(bzla, &size);
