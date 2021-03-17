@@ -47,6 +47,17 @@ class UnitUtilTests : public ::testing::Test,
   TermVec symbols;
 };
 
+class UnitUtilIntTests : public UnitUtilTests
+{
+protected:
+  void SetUp() override
+  {
+    UnitUtilTests::SetUp();
+    intsort  = s->make_sort(INT);
+  }
+  Sort intsort;
+};
+
 TEST_P(UnitUtilTests, ConjunctivePartition)
 {
   Term conjunction = symbols[0];
@@ -102,15 +113,14 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
   }
 }
 
-TEST_P(UnitUtilTests, Oracles)
+TEST_P(UnitUtilIntTests, Oracles)
 {
   SolverConfiguration c = GetParam();
   // We only test get_ops and get_free_symbolic_consts
   // on logging solvers different from BTOR.
-  // We exclude BTOR because we test integers.
   // We only include logging solvers because otherwise
   // the operators and symbols might change due to internal rewrites.
-  if (c.is_logging_solver && c.solver_enum != BTOR) {
+  if (c.is_logging_solver) {
     Sort int_sort = s->make_sort(INT);
     Sort bv_sort = s->make_sort(BV, 4);
     Term int1 = s->make_symbol("int1", int_sort);
@@ -150,5 +160,9 @@ TEST_P(UnitUtilTests, Oracles)
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilIntTests,
+                         UnitUtilIntTests,
+                         testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
 
 }  // namespace smt_tests
