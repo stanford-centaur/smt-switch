@@ -1,0 +1,1 @@
+./contrib/setup-z3.sh
