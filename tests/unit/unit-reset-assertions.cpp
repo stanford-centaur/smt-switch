@@ -58,6 +58,13 @@ class UnitResetAssertionsTests
 
 TEST_P(UnitResetAssertionsTests, ResetAssertions)
 {
+  // TEMPORARY bail out if get Bitwuzla
+  // not yet supported
+  if (s->get_solver_enum() == BZLA)
+  {
+    return;
+  }
+
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term xpy = s->make_term(BVAdd, x, y);

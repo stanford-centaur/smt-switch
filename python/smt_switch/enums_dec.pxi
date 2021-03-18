@@ -40,7 +40,6 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef cppclass c_SolverAttribute "smt::SolverAttribute":
         pass
 
-    cdef c_SolverAttribute c_LOGGING "smt::LOGGING"
     cdef c_SolverAttribute c_TERMITER "smt::TERMITER"
     cdef c_SolverAttribute c_THEORY_INT "smt::THEORY_INT"
     cdef c_SolverAttribute c_THEORY_REAL "smt::THEORY_REAL"

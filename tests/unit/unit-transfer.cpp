@@ -88,6 +88,7 @@ TEST_P(UnitQuantifierTransferTests, MonotonicUF)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTransferUnit,
     UnitTransferTests,
-    testing::ValuesIn(filter_solver_configurations({ FULL_TRANSFER })));
+    testing::ValuesIn(
+        filter_non_generic_solver_configurations({ FULL_TRANSFER })));
 
 }  // namespace smt_tests

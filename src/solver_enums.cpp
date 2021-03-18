@@ -29,42 +29,37 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     solver_attributes({
         { BTOR,
           { TERMITER,
-            LOGGING,
             ARRAY_MODELS,
             CONSTARR,
             UNSAT_CORE,
             QUANTIFIERS,
             BOOL_BV1_ALIASING } },
 
+        { BZLA,
+          { TERMITER, CONSTARR, UNSAT_CORE, QUANTIFIERS, BOOL_BV1_ALIASING } },
+
         { CVC4,
-          {
-              TERMITER,
-              LOGGING,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_MODELS,
-              ARRAY_FUN_BOOLS,
-              CONSTARR,
-              FULL_TRANSFER,
-              UNSAT_CORE,
-              THEORY_DATATYPE,
-              QUANTIFIERS
-          } },
+          { TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_MODELS,
+            ARRAY_FUN_BOOLS,
+            CONSTARR,
+            FULL_TRANSFER,
+            UNSAT_CORE,
+            THEORY_DATATYPE,
+            QUANTIFIERS } },
 
         { GENERIC_SOLVER,
-          {
-              TERMITER,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_FUN_BOOLS,
-              UNSAT_CORE,
-              QUANTIFIERS
-          } },
-
+          { TERMITER,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            UNSAT_CORE,
+            QUANTIFIERS } },
 
         { MSAT,
           { TERMITER,
-            LOGGING,
             THEORY_INT,
             THEORY_REAL,
             ARRAY_MODELS,
@@ -79,14 +74,12 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         //       look into this more and re-enable it
         { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
         { Z3,
-          {
-              LOGGING,
-              THEORY_INT,
-              THEORY_REAL,
-              ARRAY_FUN_BOOLS,
-              CONSTARR,
-              QUANTIFIERS
-          } },
+          { LOGGING,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            CONSTARR,
+            QUANTIFIERS } },
 
     });
 
@@ -119,6 +112,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
   switch (e)
   {
     case BTOR: o << "BTOR"; break;
+    case BZLA: o << "BZLA"; break;
     case CVC4: o << "CVC4"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
@@ -146,7 +140,6 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
 {
   switch (a)
   {
-    case LOGGING: o << "LOGGING"; break;
     case TERMITER: o << "TERMITER"; break;
     case THEORY_INT: o << "THEORY_INT"; break;
     case THEORY_REAL: o << "THEORY_REAL"; break;

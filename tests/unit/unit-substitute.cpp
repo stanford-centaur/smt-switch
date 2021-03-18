@@ -17,8 +17,9 @@
 #include <utility>
 #include <vector>
 
-#include "available_solvers.h"
 #include "gtest/gtest.h"
+
+#include "available_solvers.h"
 #include "substitution_walker.h"
 #include "utils.h"
 
@@ -36,7 +37,6 @@ class UnitSubstituteTests
   {
     s = create_solver(GetParam());
     bvsort = s->make_sort(BV, 4);
-
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     xpy = s->make_term(BVAdd, x, y);
@@ -91,6 +91,18 @@ TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
   {
     EXPECT_TRUE(free_syms.find(v) != free_syms.end());
   }
+}
+
+TEST_P(UnitSubstituteTests, SubstituteTerms)
+{
+  UnorderedTermMap subs_map({ { x, a }, { y, b } });
+  Term apb = s->substitute(xpy, subs_map);
+  TermVec subs = s->substitute_terms({ x, y, xpy }, subs_map);
+
+  ASSERT_EQ(subs.size(), 3);
+  EXPECT_EQ(subs[0], a);
+  EXPECT_EQ(subs[1], b);
+  EXPECT_EQ(subs[2], apb);
 }
 
 TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)

@@ -151,10 +151,6 @@ solverattr = ModuleType('solverattr')
 _add_module(solverattr)
 solverattr.__file__ = FILENAME
 
-cdef SolverAttribute LOGGING = SolverAttribute()
-LOGGING.sa = c_LOGGING
-setattr(solverattr, "LOGGING", LOGGING)
-
 cdef SolverAttribute TERMITER = SolverAttribute()
 TERMITER.sa = c_TERMITER
 setattr(solverattr, "TERMITER", TERMITER)

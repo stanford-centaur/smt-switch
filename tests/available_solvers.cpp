@@ -27,6 +27,10 @@ using namespace std;
 #include "boolector_factory.h"
 #endif
 
+#if BUILD_BITWUZLA
+#include "bitwuzla_factory.h"
+#endif
+
 #if BUILD_CVC4
 #include "cvc4_factory.h"
 #include "generic_solver.h"
@@ -54,6 +58,10 @@ namespace smt_tests {
 const std::vector<SolverEnum> solver_enums({
 #if BUILD_BTOR
   BTOR,
+#endif
+
+#if BUILD_BITWUZLA
+      BZLA,
 #endif
 
 #if BUILD_CVC4
@@ -85,6 +93,13 @@ SmtSolver create_solver(SolverConfiguration sc)
 #if BUILD_BTOR
     case BTOR: {
       return BoolectorSolverFactory::create(logging);
+      break;
+      ;
+    }
+#endif
+#if BUILD_BITWUZLA
+    case BZLA: {
+      return BitwuzlaSolverFactory::create(logging);
       break;
       ;
     }
@@ -205,15 +220,16 @@ std::vector<SolverEnum> available_interpolator_enums() {
   std::vector<SolverEnum> result;
 #if BUILD_MSAT
   result.push_back(MSAT_INTERPOLATOR);
-#endif  
+#endif
 #if BUILD_CVC4
   result.push_back(CVC4_INTERPOLATOR);
-#endif  
+#endif
 
   return result;
 }
 
-std::vector<SolverConfiguration> available_interpolator_configurations() { 
+std::vector<SolverConfiguration> available_interpolator_configurations()
+{
   std::vector<SolverConfiguration> result;
   for (SolverEnum e : available_interpolator_enums()) {
     SolverConfiguration sc(e, false);
@@ -264,6 +280,28 @@ std::vector<SolverConfiguration> filter_solver_configurations(
     result.push_back(scf);
     result.push_back(sct);
   }
+
+  // there are some features that logging solvers support even if the base
+  // solver does not
+  if (attributes.find(TERMITER) != attributes.end()
+      || attributes.find(FULL_TRANSFER) != attributes.end())
+  {
+    std::unordered_set<SolverAttribute> reduced_attributes = attributes;
+    reduced_attributes.erase(TERMITER);
+    reduced_attributes.erase(FULL_TRANSFER);
+    // get filtered enums for the rest of the attributes
+    std::vector<SolverEnum> reduced_filtered_enums =
+        filter_solver_enums(reduced_attributes);
+    std::unordered_set<SolverEnum> filtered_enums_set(filtered_enums.begin(),
+                                                      filtered_enums.end());
+    for (auto se : reduced_filtered_enums)
+    {
+      if (filtered_enums_set.find(se) == filtered_enums_set.end())
+      {
+        result.push_back(SolverConfiguration(se, true));
+      }
+    }
+  }
   return result;
 }
 
@@ -276,6 +314,12 @@ std::vector<SolverConfiguration> filter_non_generic_solver_configurations(const 
     }
   }
   return result;
+}
+
+std::ostream & operator<<(std::ostream & o, SolverConfiguration sc)
+{
+  o << sc.solver_enum << "(logging=" << sc.is_logging_solver << ")";
+  return o;
 }
 
 }  // namespace smt_tests

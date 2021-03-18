@@ -138,8 +138,10 @@ TEST_P(UnitSortTests, UninterpretedSort)
 
 TEST_P(UnitSortTests, UninterpSortEquality)
 {
-  if (solver_has_attribute(s->get_solver_enum(), LOGGING))
+  if (GetParam().is_logging_solver)
   {
+    // need some additional fixes for is_value in LoggingSolver to handle
+    // uninterpreted sorts
     return;
   }
 

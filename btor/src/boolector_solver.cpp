@@ -38,7 +38,7 @@ const std::unordered_map<PrimOp, un_fun> unary_ops({ { Not, boolector_not },
                                                      { BVNeg,
                                                        boolector_neg } });
 
-// Indexed Operators are implemented in boolector_solver.h in apply
+// Indexed Operators are implemented inline for make_term
 const std::unordered_map<PrimOp, bin_fun> binary_ops(
     { { And, boolector_and },
       { Or, boolector_or },
@@ -420,7 +420,7 @@ Term BoolectorSolver::get_value(const Term & t) const
   {
     std::string msg("Can't get value for term with sort constructor = ");
     msg += to_string(sk);
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
   return result;
 }
@@ -503,7 +503,7 @@ Sort BoolectorSolver::make_sort(SortKind sk) const
   {
     std::string msg("Boolector does not support sort ");
     msg += to_string(sk);
-    throw NotImplementedException(msg.c_str());
+    throw NotImplementedException(msg);
   }
 }
 
@@ -516,10 +516,10 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
+    std::string msg("Can't create sort from sort kind ");
     msg += to_string(sk);
     msg += " with int argument.";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 
@@ -545,10 +545,10 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
+    std::string msg("Can't create sort from sort kind ");
     msg += to_string(sk);
     msg += " with two sort arguments.";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 
@@ -609,7 +609,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     std::string msg("Can't create sort from sort constructor ");
     msg += to_string(sk);
     msg += " with a vector of sorts";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 
@@ -706,7 +706,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     {
       std::string msg = "Could not find Boolector implementation of ";
       msg += to_string(op.prim_op);
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException(msg);
     }
     return std::make_shared<BoolectorTerm> (btor, btor_res);
   }
@@ -845,7 +845,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t) const
   {
     std::string msg(to_string(op));
     msg += " unsupported or can't be applied to a single term.";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 
@@ -899,7 +899,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1) const
   {
     std::string msg(to_string(op));
     msg += " unsupported or can't be applied to two terms.";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 
@@ -961,7 +961,7 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
   {
     std::string msg(to_string(op));
     msg += " unsupported or can't be applied to three terms.";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException(msg);
   }
 }
 

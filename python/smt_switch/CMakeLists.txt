@@ -15,6 +15,12 @@ if (BUILD_BTOR)
   set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
 endif()
 
+if (BUILD_BITWUZLA)
+  include_directories("${PROJECT_SOURCE_DIR}/bitwuzla/include")
+  target_link_libraries(smt_switch smt-switch-bitwuzla)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --bitwuzla)
+endif()
+
 if (BUILD_CVC4)
   include_directories("${PROJECT_SOURCE_DIR}/cvc4/include")
   target_link_libraries(smt_switch smt-switch-cvc4)

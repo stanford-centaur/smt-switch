@@ -57,7 +57,8 @@ TEST_P(UnitTests, TermIter)
   TermIter it2;
   it2 = it;
 
-  ASSERT_TRUE(it == it2);
+  EXPECT_EQ(it, it);
+  EXPECT_EQ(it, it2);
 }
 
 TEST_P(ConstArrUnitTests, ConstArr)
@@ -126,8 +127,9 @@ INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
                          UnitTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-INSTANTIATE_TEST_SUITE_P(ParametrizedConstArrUnit,
-                         ConstArrUnitTests,
-                         testing::ValuesIn(filter_solver_configurations({ CONSTARR, TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParametrizedConstArrUnit,
+    ConstArrUnitTests,
+    testing::ValuesIn(filter_solver_configurations({ CONSTARR, TERMITER })));
 
 }  // namespace smt_tests

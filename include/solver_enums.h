@@ -21,11 +21,12 @@
 namespace smt {
 enum SolverEnum
 {
-  BTOR = 0,
-  CVC4,
-  MSAT,
-  YICES2,
-  Z3,
+  BTOR = 0,  // boolector
+  BZLA,      // bitwuzla
+  CVC4,      // cvc4
+  MSAT,      // mathsat
+  YICES2,    // yices2
+  Z3,        // z3
 
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
@@ -40,7 +41,6 @@ enum SolverEnum
 
 enum SolverAttribute
 {
-  // this enum is wrapped by a LoggingSolver
   LOGGING = 0,
   // supports traversing terms with iteration
   TERMITER,

@@ -78,6 +78,18 @@ Term AbsSmtSolver::substitute(const Term term,
   return cache.at(term);
 }
 
+TermVec AbsSmtSolver::substitute_terms(
+    const TermVec & terms, const UnorderedTermMap & substitution_map) const
+{
+  TermVec res;
+  res.reserve(terms.size());
+  for (auto t : terms)
+  {
+    res.push_back(substitute(t, substitution_map));
+  }
+  return res;
+}
+
 Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
                                                TermVec & out_I) const
 {
