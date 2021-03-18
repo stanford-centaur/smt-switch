@@ -1,1 +1,1 @@
-./contrib/setup-z3.sh
+../contrib/setup-z3.sh
