@@ -321,8 +321,10 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
     throw IncorrectUsageException(
         "Cannot create constant array with function element");
   }
+  z3::sort arrtype = zsort->type;
+  assert(arrtype.is_array());
 
-  Z3_ast c_array = Z3_mk_const_array(ctx, zsort->type, zterm->term);
+  Z3_ast c_array = Z3_mk_const_array(ctx, arrtype.array_domain(), zterm->term);
   expr final = to_expr(ctx, c_array);
   return std::make_shared<Z3Term>(final, ctx);
 }
