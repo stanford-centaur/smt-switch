@@ -733,22 +733,25 @@ TEST_P(UnitWalkerTests, FreshVars)
 
     /* expected map:
      * b0: <(x+x)={(y+y)+[(x+2)-(x+x)]} , []>, where b0 corresponds to
-     * (x+x)={(y+y)+[(x+2)-(x+x)]} b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>,
-     * where b1 corresponds to {(y+y)+[(x+2)-(x+x)]} b2:
-     * <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to
-     * [(x+2)-(x+x)] b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3
-     * corresponds to (x+x) b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where
-     * b4 corresponds to x b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where
-     * b5 corresponds to x b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6
-     * corresponds to (x+2) b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where
-     * b7 corresponds to 2 b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where
-     * b8 corresponds to x b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9
-     * corresponds to (y+y) b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where
-     * b10 corresponds to y b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where
-     * b11 corresponds to y b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12
-     * corresponds to (x+x) b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where
-     * b13 corresponds to x b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where
-     * b14 corresponds to x
+     * (x+x)={(y+y)+[(x+2)-(x+x)]}
+     * b1: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1]>, where b1 corresponds to
+     * {(y+y)+[(x+2)-(x+x)]}
+     * b2: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1]>, where b2 corresponds to
+     * [(x+2)-(x+x)]
+     * b3: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1]>, where b3 corresponds to
+     * (x+x)
+     * b4: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,1]>, where b4 corresponds to x
+     * b5: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,1,0]>, where b5 corresponds to x
+     * b6: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0]>, where b6 corresponds to
+     * (x+2)
+     * b7: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,1]>, where b7 corresponds to 2
+     * b8: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,1,0,0]>, where b8 corresponds to x
+     * b9: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0]>, where b9 corresponds to (y+y)
+     * b10: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,1]>, where b10 corresponds to y
+     * b11: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [1,0,0]>, where b11 corresponds to y
+     * b12: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0]>, where b12 corresponds to (x+x)
+     * b13: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,1]>, where b13 corresponds to x
+     * b14: <(x+x)={(y+y)+[(x+2)-(x+x)]} , [0,0]>, where b14 corresponds to x
      */
 
     // manually check equivalency of cache populated by IndicatorTreeWalker with

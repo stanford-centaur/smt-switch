@@ -1,3 +1,21 @@
+/*********************                                                        */
+/*! \file tree_walker.h
+** \verbatim
+** Top contributors (to current version):
+**   Allison Guman
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Tree walker class that can be inherited and modified for
+**        term traversal and manipulation. Traverses the tree structure
+**        representation of the formula enabling specifications of
+**        individual nodes (term occurrences) within the full term.
+**
+**/
+
 #pragma once
 
 #include <utility>
@@ -14,7 +32,7 @@ namespace smt {
 using TermPairVec = std::vector<std::pair<Term, int>>;
 /* used to map from terms to their occurrences, represented as a pair of the
  * formula it is found in and the path indicating the terms placement in the
- * formula it is find in. A term's path is built up as list of indices where
+ * formula it is found in. A term's path is built up as list of indices where
  * each index is a child number telling which path to follow from the topmost
  * node to the term's place in the formula represented as a tree. For example,
  * in the formula x+1=2, each term and its respective path is: x+1=2: []; x+1:
@@ -93,7 +111,7 @@ class TreeWalker
    * traversed in visit)
    *  @param path the path for the particular term in formula, which we are
    * visiting
-   *  @return a WalkerStepResult to tell the visit method how to proceed
+   *  @return a TreeWalkerStepResult to tell the visit method how to proceed
    */
   virtual TreeWalkerStepResult visit_term(smt::Term & formula,
                                           smt::Term & term,
