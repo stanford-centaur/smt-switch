@@ -25,4 +25,5 @@ first time they are run. Importantly, notice that the files differ by only two
 lines, demonstrating that changing the solver is straightforward.
 
 To explore the API, you can change either of those files and run `make` again.
-To remove the built binaries, run `make clean`.
+To remove the built binaries, run `make clean`. To clean up all the build and
+install files for `smt-switch` in this directory, run `make clean-all`.

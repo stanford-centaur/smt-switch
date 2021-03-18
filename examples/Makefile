@@ -11,3 +11,6 @@ btor_qf_ufbv: btor_qf_ufbv.cpp
 
 clean:
 	rm -rf cvc4_qf_ufbv.out btor_qf_ufbv.out
+
+clean-all: clean
+	rm -rf ./example-build ./example-install
