@@ -5,9 +5,10 @@ using namespace smt;
 using namespace std;
 int main()
 {
- // Boolector alias booleans and bit-vectors of width 1
- // if you want to maintain the term DAG as created
- // change the parameter to true
+ // Boolector aliases booleans and bitvectors of size one
+ // and also performs on-the-fly rewriting
+ // if you'd like to maintain the term structure, you can
+ // enable logging by passing true
  SmtSolver s = BoolectorSolverFactory::create(false);
 
  s->set_logic("QF_UFBV");
@@ -41,9 +42,9 @@ int main()
  s->pop(1);
 
  Term xy = s->make_term(BVAnd, x, y);
- Term a1 = s->make_term(BVUge, xy, x);
- Term a2 = s->make_term(BVUge, xy, y);
- Term a3 = s->make_term(BVUge, x0, y0);
+ Term a1 = s->make_term(BVUge, x0, y0);
+ Term a2 = s->make_term(BVUge, xy, x);
+ Term a3 = s->make_term(BVUge, xy, y);
  cout <<
    s->check_sat_assuming({a1, a2, a3})
    << endl;

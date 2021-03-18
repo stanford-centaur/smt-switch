@@ -41,9 +41,9 @@ int main()
  s->pop(1);
 
  Term xy = s->make_term(BVAnd, x, y);
- Term a1 = s->make_term(BVUge, xy, x);
- Term a2 = s->make_term(BVUge, xy, y);
- Term a3 = s->make_term(BVUge, x0, y0);
+ Term a1 = s->make_term(BVUge, x0, y0);
+ Term a2 = s->make_term(BVUge, xy, x);
+ Term a3 = s->make_term(BVUge, xy, y);
  cout <<
    s->check_sat_assuming({a1, a2, a3})
    << endl;
