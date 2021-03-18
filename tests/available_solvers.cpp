@@ -80,7 +80,7 @@ const std::vector<SolverEnum> solver_enums({
 #endif
 
 #if BUILD_Z3
-//      Z3,
+      Z3,
 #endif
 });
 
