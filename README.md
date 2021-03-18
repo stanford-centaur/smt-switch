@@ -13,6 +13,8 @@ $ make test
 ```
 More details are in the Solvers section of this README. 
 
+For an example of how to link and use `smt-switch`, please see the [examples directory](./examples).
+
 # Architecture Overview
 
 There are three abstract classes:
