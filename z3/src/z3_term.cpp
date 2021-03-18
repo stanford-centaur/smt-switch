@@ -246,9 +246,17 @@ bool Z3Term::is_value() const
   {
     return false;
   }
-  if (!term.is_const() && !term.is_app())
+
+  if (term.is_true() || term.is_false() || term.is_numeral())
   {
-    return term.is_bool() || term.is_arith() || term.is_bv();
+    return true;
+  }
+  else if (term.is_app())
+  {
+    func_decl decl = term.decl();
+    Z3_decl_kind kind = decl.decl_kind();
+    // constant arrays are considered values
+    return (kind == Z3_OP_CONST_ARRAY);
   }
   return false;
 }
