@@ -212,16 +212,15 @@ Sort Z3Term::get_sort() const
     return std::make_shared<Z3Sort>(term.get_sort(), *ctx);
   }
 
-  context c;
-  z3::sort_vector domain(c);
+  z3::sort_vector domain(*ctx);
   for (int i = 0; i < z_func.arity(); i++)
   {
     domain.push_back(z_func.domain(i));
   }
 
-  z3::func_decl func = c.function(z_func.name(), domain, z_func.range());
+  z3::func_decl func = ctx->function(z_func.name(), domain, z_func.range());
 
-  return std::make_shared<Z3Sort>(func, c);
+  return std::make_shared<Z3Sort>(func, *ctx);
 }
 
 bool Z3Term::is_symbol() const
