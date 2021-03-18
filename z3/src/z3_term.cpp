@@ -225,10 +225,10 @@ Sort Z3Term::get_sort() const
 
 bool Z3Term::is_symbol() const
 {
-  return is_function || (term.is_const() || term.is_var());
+  return is_function || (term.is_const() && !is_value()) || is_parameter;
 }
 
-bool Z3Term::is_param() const { return term.is_var(); }
+bool Z3Term::is_param() const { return is_parameter; }
 
 bool Z3Term::is_symbolic_const() const
 {

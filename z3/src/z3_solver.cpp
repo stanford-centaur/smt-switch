@@ -646,7 +646,8 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort)
   }
 
   expr z_term = ctx.constant(z_name, zsort->type);
-  return std::make_shared<Z3Term>(z_term, ctx);
+  // mark as a parameter by passing true
+  return std::make_shared<Z3Term>(z_term, ctx, true);
 }
 
 Term Z3Solver::make_term(Op op, const Term & t) const
