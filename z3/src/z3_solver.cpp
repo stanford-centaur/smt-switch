@@ -777,6 +777,21 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
       Z3_ast terms[2] = { zterm0->term, zterm1->term };
       res = z3_variadic_ops.at(op.prim_op)(ctx, 2, terms);
     }
+    else if (op == Forall || op == Exists)
+    {
+      z3::expr_vector zparams(ctx);
+      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
+      z3::expr zbody = static_pointer_cast<Z3Term>(t1)->term;
+      if (op == Forall)
+      {
+        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+      }
+      else
+      {
+        assert(op == Exists);
+        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+      }
+    }
     else
     {
       string msg("Can't apply ");
@@ -829,6 +844,22 @@ Term Z3Solver::make_term(Op op,
     {
       Z3_ast terms[3] = { zterm0->term, zterm1->term, zterm2->term };
       res = z3_variadic_ops.at(op.prim_op)(ctx, 3, terms);
+    }
+    else if (op == Forall || op == Exists)
+    {
+      z3::expr_vector zparams(ctx);
+      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
+      zparams.push_back(static_pointer_cast<Z3Term>(t1)->term);
+      z3::expr zbody = static_pointer_cast<Z3Term>(t2)->term;
+      if (op == Forall)
+      {
+        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+      }
+      else
+      {
+        assert(op == Exists);
+        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+      }
     }
     else
     {
