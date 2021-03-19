@@ -212,24 +212,23 @@ Sort Z3Term::get_sort() const
     return std::make_shared<Z3Sort>(term.get_sort(), *ctx);
   }
 
-  context c;
-  z3::sort_vector domain(c);
+  z3::sort_vector domain(*ctx);
   for (int i = 0; i < z_func.arity(); i++)
   {
     domain.push_back(z_func.domain(i));
   }
 
-  z3::func_decl func = c.function(z_func.name(), domain, z_func.range());
+  z3::func_decl func = ctx->function(z_func.name(), domain, z_func.range());
 
-  return std::make_shared<Z3Sort>(func, c);
+  return std::make_shared<Z3Sort>(func, *ctx);
 }
 
 bool Z3Term::is_symbol() const
 {
-  return is_function || (term.is_const() || term.is_var());
+  return is_function || (term.is_const() && !is_value()) || is_parameter;
 }
 
-bool Z3Term::is_param() const { return term.is_var(); }
+bool Z3Term::is_param() const { return is_parameter; }
 
 bool Z3Term::is_symbolic_const() const
 {
@@ -246,9 +245,17 @@ bool Z3Term::is_value() const
   {
     return false;
   }
-  if (!term.is_const() && !term.is_app())
+
+  if (term.is_true() || term.is_false() || term.is_numeral())
   {
-    return term.is_bool() || term.is_arith() || term.is_bv();
+    return true;
+  }
+  else if (term.is_app())
+  {
+    func_decl decl = term.decl();
+    Z3_decl_kind kind = decl.decl_kind();
+    // constant arrays are considered values
+    return (kind == Z3_OP_CONST_ARRAY);
   }
   return false;
 }

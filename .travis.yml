@@ -50,6 +50,14 @@ jobs:
       dist: bionic
       env: SOLVER="yices2" OPTS=""
       compiler: clang
+    - os: linux
+      dist: bionic
+      env: SOLVER="z3" OPTS=""
+      compiler: gcc
+    - os: linux
+      dist: bionic
+      env: SOLVER="z3" OPTS=""
+      compiler: clang
     - os: osx
       osx_image: xcode12
       env: SOLVER='btor' OPTS=""
@@ -62,6 +70,9 @@ jobs:
     - os: osx
       osx_image: xcode12
       env: SOLVER='yices2' OPTS=""
+    - os: osx
+      osx_image: xcode12
+      env: SOLVER='z3' OPTS=""
 
 script:
   # brew sometimes fails on something after the python installation -- but we don't want the build to fail

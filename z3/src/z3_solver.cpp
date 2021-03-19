@@ -321,8 +321,10 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
     throw IncorrectUsageException(
         "Cannot create constant array with function element");
   }
+  z3::sort arrtype = zsort->type;
+  assert(arrtype.is_array());
 
-  Z3_ast c_array = Z3_mk_const_array(ctx, zsort->type, zterm->term);
+  Z3_ast c_array = Z3_mk_const_array(ctx, arrtype.array_domain(), zterm->term);
   expr final = to_expr(ctx, c_array);
   return std::make_shared<Z3Term>(final, ctx);
 }
@@ -646,7 +648,8 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort)
   }
 
   expr z_term = ctx.constant(z_name, zsort->type);
-  return std::make_shared<Z3Term>(z_term, ctx);
+  // mark as a parameter by passing true
+  return std::make_shared<Z3Term>(z_term, ctx, true);
 }
 
 Term Z3Solver::make_term(Op op, const Term & t) const
@@ -777,6 +780,21 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
       Z3_ast terms[2] = { zterm0->term, zterm1->term };
       res = z3_variadic_ops.at(op.prim_op)(ctx, 2, terms);
     }
+    else if (op == Forall || op == Exists)
+    {
+      z3::expr_vector zparams(ctx);
+      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
+      z3::expr zbody = static_pointer_cast<Z3Term>(t1)->term;
+      if (op == Forall)
+      {
+        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+      }
+      else
+      {
+        assert(op == Exists);
+        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+      }
+    }
     else
     {
       string msg("Can't apply ");
@@ -829,6 +847,22 @@ Term Z3Solver::make_term(Op op,
     {
       Z3_ast terms[3] = { zterm0->term, zterm1->term, zterm2->term };
       res = z3_variadic_ops.at(op.prim_op)(ctx, 3, terms);
+    }
+    else if (op == Forall || op == Exists)
+    {
+      z3::expr_vector zparams(ctx);
+      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
+      zparams.push_back(static_pointer_cast<Z3Term>(t1)->term);
+      z3::expr zbody = static_pointer_cast<Z3Term>(t2)->term;
+      if (op == Forall)
+      {
+        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+      }
+      else
+      {
+        assert(op == Exists);
+        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+      }
     }
     else
     {
