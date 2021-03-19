@@ -888,7 +888,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
     res = yices_application(yterm->term, size - 1, &yargs[0]);
   }
-  else if (is_variadic(op.prim_op))
+  else if (is_variadic(op.prim_op) || op == Distinct)
   {
     vector<term_t> yargs;
     yargs.reserve(size);
@@ -915,12 +915,6 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
         res = yices_fun(res, yargs[i]);
       }
     }
-  }
-  else if (op == Distinct)
-  {
-    // special case for distinct
-    // need to apply to O(n^2) distinct pairs
-    return make_distinct(this, terms);
   }
   else
   {
