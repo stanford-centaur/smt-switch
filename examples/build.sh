@@ -40,4 +40,4 @@ make
 
 # install python bindings with pip
 # this line might need to be adjusted depending on your current python environment
-pip install -e $DIR/example-build/python
+python3 -m pip install -e $DIR/example-build/python
