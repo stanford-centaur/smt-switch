@@ -30,9 +30,9 @@ cd $DIR/..
 # also use a build directory in the examples directory
 ./configure.sh --btor --cvc4 --prefix=./examples/example-install --build-dir=$DIR/example-build $1
 cd $DIR/example-build
-make -j
+make
 make test
-make -j install
+make install
 
 cd $DIR
 # now make the examples
