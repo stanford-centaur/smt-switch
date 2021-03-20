@@ -97,7 +97,8 @@ option (USE_PYTHON2
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  find_package(Python3 COMPONENTS Interpreter Development)
+  find_package(PythonInterp 3 REQUIRED)
+  # find_package(Python3 COMPONENTS Interpreter Development)
 endif()
 
 if (BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
