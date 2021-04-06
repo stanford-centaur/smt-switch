@@ -77,7 +77,7 @@ using namespace std;
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN DEFINESORT ASSERT CHECKSAT
        CHECKSATASSUMING PUSH POP EXIT GETVALUELP
-       GETUNSATASSUMP
+       GETUNSATASSUMP ECHO
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -222,6 +222,10 @@ command:
       cout << c << endl;
     }
     cout << ")" << endl;
+  }
+  | LP ECHO stringlit RP
+  {
+    cout << $3 << endl;
   }
 ;
 
