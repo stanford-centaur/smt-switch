@@ -1,0 +1,46 @@
+on: [push, pull_request]
+name: CI
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        name:
+          [
+            btor,
+            cvc4,
+            msat,
+            yices2,
+            z3
+          ]
+
+        include:
+          - name: msat
+            setup_opts: --auto-yes
+
+    name: ${{ matrix.os }}:${{ matrix.name }} 
+    runs-on: ${{ matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            cxxtext \
+            libgmp-dev \
+            openjdk-8-jdk \
+
+      - name: Install Packages (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            cmake
+            gmp
+
+      - name: Setup Underlying Solver
+        run: ./travis-scripts/setup-${{ matrix.name }}.sh
