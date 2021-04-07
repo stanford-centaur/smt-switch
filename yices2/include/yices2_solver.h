@@ -40,7 +40,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : AbsSmtSolver(YICES2)
+  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0)
   {
     // Had to move yices_init to the Factory
     // yices_init();
@@ -121,6 +121,10 @@ class Yices2Solver : public AbsSmtSolver
  protected:
   mutable context_t * ctx;
   mutable ctx_config_t * config;
+
+  // workaround for: https://github.com/makaimann/smt-switch/issues/218
+  size_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
+                              ///< status
 
   // helper function
   inline Result check_sat_assuming(const std::vector<term_t> & y_assumps)
