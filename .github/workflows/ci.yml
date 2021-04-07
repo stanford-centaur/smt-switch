@@ -5,6 +5,7 @@ jobs:
   build:
     strategy:
       matrix:
+        max-parallel: 6
         os: [ubuntu-latest, macos-latest]
         name:
           [
