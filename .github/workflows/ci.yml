@@ -32,7 +32,7 @@ jobs:
           sudo apt-get install -y \
             cmake \
             libgmp-dev \
-            openjdk-8-jdk \
+            openjdk-8-jdk
 
       - name: Install Packages (macOS)
         if: runner.os == 'macOS'
@@ -41,4 +41,4 @@ jobs:
             gmp
 
       - name: Setup Underlying Solver
-        run: ./travis-scripts/setup-${{ matrix.name }}.sh
+        run: ./travis-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
