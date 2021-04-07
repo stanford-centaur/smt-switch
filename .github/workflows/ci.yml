@@ -4,8 +4,8 @@ name: CI
 jobs:
   build:
     strategy:
+      max-parallel: 6
       matrix:
-        max-parallel: 6
         os: [ubuntu-latest, macos-latest]
         name:
           [
