@@ -42,18 +42,29 @@ jobs:
             gmp \
             gperf
 
+      - name: Python Dependencies
+        run: |
+          python3 -m pip install Cython pytest toml
+          ./contrib/setup-skbuild.sh
+
       - name: Setup Underlying Solver
         run: ./travis-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
-        run: ./configure.sh --${{ matrix.name }} --debug
+        run: ./configure.sh --${{ matrix.name }} --debug --python
 
       - name: Build
         run: |
           cd build
           make -j
 
-      - name: Test
+      - name: Test C++
         run: |
           cd build
           make test
+
+      - name: Install Python Bindings
+        run: python3 -m pip install -e ./build/python[test,pysmt]
+
+      - name: Test Python Bindings
+        run: pytest ./tests
