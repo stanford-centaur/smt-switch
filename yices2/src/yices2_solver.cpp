@@ -367,9 +367,32 @@ Result Yices2Solver::check_sat_assuming_set(
   return check_sat_assuming(y_assumps);
 }
 
-void Yices2Solver::push(uint64_t num) { yices_push(ctx); }
+void Yices2Solver::push(uint64_t num)
+{
+  if (yices_context_status(ctx) == STATUS_UNSAT)
+  {
+    pushes_after_unsat += num;
+    return;
+  }
 
-void Yices2Solver::pop(uint64_t num) { yices_pop(ctx); }
+  for (size_t i = 0; i < num; ++i)
+  {
+    yices_push(ctx);
+  }
+}
+
+void Yices2Solver::pop(uint64_t num)
+{
+  for (size_t i = 0; i < num; ++i)
+  {
+    if (pushes_after_unsat)
+    {
+      pushes_after_unsat--;
+      continue;
+    }
+    yices_pop(ctx);
+  }
+}
 
 Term Yices2Solver::get_value(const Term & t) const
 {
