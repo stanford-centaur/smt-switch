@@ -38,6 +38,7 @@ jobs:
       - name: Install Packages (macOS)
         if: runner.os == 'macOS'
         run: |
+          brew update
           brew install \
             gmp \
             gperf
