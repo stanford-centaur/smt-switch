@@ -12,6 +12,7 @@ target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/co
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/bitwuzla/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/src/api/c")
+target_include_directories (smt-switch-bitwuzla PUBLIC ${GMP_INCLUDE_DIR})
 
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libbitwuzla.a")
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/cadical/build/libcadical.a")
@@ -19,6 +20,7 @@ target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/btor2tools/buil
 target_link_libraries(smt-switch-bitwuzla smt-switch)
 target_link_libraries(smt-switch-bitwuzla pthread)
 target_link_libraries(smt-switch-bitwuzla m)
+target_link_libraries(smt-switch-bitwuzla ${GMP_LIBRARIES})
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the bitwuzla source
