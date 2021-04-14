@@ -86,7 +86,9 @@ Once you've configured the build system, simply enter the build directory (`./bu
 ### BSD compatible
 
 * Boolector
+* Bitwuzla
 * CVC4
+* Z3
 
 ### Non-BSD compatible
 
@@ -138,6 +140,7 @@ Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). Th
 While we try to guarantee that all solver backends are fully compliant with the abstract interface, and exhibit the exact same behavior given the same API calls, we are not able to do this in every case (yet). Below are some known, current limitations along with recommended usage.
 
 * **Undefined behavior.** Sharing terms between different solver instances will result in undefined behavior. This is because we use a static cast to recover the backend solver implementation from an abstract object. To move terms between solver instances, you can use a `TermTranslator` which will rebuild the term in another solver. A given `TermTranslator` object can only translate terms from **one** solver to **one** new one. If some symbols have already been created in the new solver, you can populate the `TermTranslator`'s cache so that it knows which symbols correspond to each other
+* Bitwuzla and Boolector might share symbols, so not recommended to use both together
 * Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
 * Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
 * Z3 is not yet implemented as a backend (but hopefully will be soon!)
