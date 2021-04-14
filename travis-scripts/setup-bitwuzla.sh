@@ -1,0 +1,1 @@
+./contrib/setup-bitwuzla.sh
