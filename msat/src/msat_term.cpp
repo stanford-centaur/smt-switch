@@ -407,6 +407,10 @@ Op MsatTerm::get_op() const
   {
     return Op();
   }
+  else if (msat_term_is_floor(env, term))
+  {
+    return Op(To_Int);
+  }
   else if (msat_term_is_int_from_ubv(env, term))
   {
     return Op(BV_To_Nat);
