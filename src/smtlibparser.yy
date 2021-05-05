@@ -97,8 +97,8 @@ US "_"
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
-%nterm <smt::TermVec> sorted_arg_list
-%nterm <smt::TermVec> sorted_param_list
+%nterm <smt::TermVec *> sorted_arg_list
+%nterm <smt::TermVec *> sorted_param_list
 %nterm let_term_bindings
 %nterm <smt::Op> operator
 %nterm <std::string> stringlit
@@ -159,10 +159,11 @@ command:
      }
     SYMBOL LP sorted_arg_list RP sort s_expr RP
   {
-    drv.define_fun($4, $9, $6);
+    drv.define_fun($4, $9, *$6);
 
     drv.pop_scope();
     assert(!drv.current_scope());
+    delete $6;
   }
   | LP DEFINESORT SYMBOL LP RP sort RP
   {
@@ -280,11 +281,12 @@ s_expr:
     smt::SmtSolver & solver = drv.solver();
     smt::PrimOp po = drv.lookup_primop($2);
     // smt-switch takes all the parameters followed by the body
-    $5.push_back($7);
-    $$ = drv.solver()->make_term(po, $5);
+    $5->push_back($7);
+    $$ = drv.solver()->make_term(po, *$5);
 
     // this scope is done
     drv.pop_scope();
+    delete $5;
   }
   | LP LET
     {
@@ -393,32 +395,28 @@ sort_list:
 sorted_arg_list:
    %empty
    {
-     smt::TermVec vec;
-     $$ = vec;
+     $$ = new smt::TermVec();
    }
    | sorted_arg_list LP SYMBOL sort RP
    {
      assert(drv.current_scope());
      smt::Term arg = drv.register_arg($3, $4);
-     smt::TermVec & vec = $1;
-     vec.push_back(arg);
-     $$ = vec;
+     $1->push_back(arg);
+     $$ = $1;
    }
 ;
 
 sorted_param_list:
    %empty
    {
-     smt::TermVec vec;
-     $$ = vec;
+     $$ = new smt::TermVec();
    }
    | sorted_param_list LP SYMBOL sort RP
    {
      assert(drv.current_scope());
      smt::Term param = drv.create_param($3, $4);
-     smt::TermVec & vec = $1;
-     vec.push_back(param);
-     $$ = vec;
+     $1->push_back(param);
+     $$ = $1;
    }
 ;
 
