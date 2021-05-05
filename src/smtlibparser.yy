@@ -22,13 +22,11 @@ using namespace std;
 
 %skeleton "lalr1.cc"
 %require "3.7"
-%defines
 
 %define api.token.raw
 
 %define api.token.constructor
 %define api.value.type variant
-        %define parse.assert
 
 %code requires {
 /*********************                                                        */
@@ -56,12 +54,6 @@ using namespace std;
 }
 
 %param { smt::SmtLibReader & drv }
-
-%locations
-
-%define parse.trace
-%define parse.error detailed
-%define parse.lac full
 
 %code {
 #include "smtlib_reader.h"
