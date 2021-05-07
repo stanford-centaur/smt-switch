@@ -131,8 +131,6 @@ class SmtLibReader
   virtual void pop(uint64_t num = 1);
 
   /* getters and setters  */
-  yy::location & location() { return location_; }
-
   smt::SmtSolver & solver() { return solver_; }
 
   /** Pushes a scope for a new quantifier binding or define-fun arguments
@@ -236,7 +234,6 @@ class SmtLibReader
   void let_binding(const std::string & sym, const smt::Term & term);
 
  protected:
-  yy::location location_;
 
   smt::SmtSolver solver_;
 
