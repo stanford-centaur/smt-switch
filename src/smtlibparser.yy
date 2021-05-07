@@ -310,6 +310,7 @@ atom:
       smt::Term sym = drv.lookup_symbol($1);
       if (!sym)
       {
+        // Note: using @1 will force locations to be enabled
         yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
         YYERROR;
       }
