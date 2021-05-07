@@ -49,7 +49,7 @@ jobs:
           ./contrib/setup-skbuild.sh
 
       - name: Setup Underlying Solver
-        run: ./.github/ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
+        run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
         run: ./configure.sh --${{ matrix.name }} --debug --python
