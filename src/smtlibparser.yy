@@ -22,13 +22,11 @@ using namespace std;
 
 %skeleton "lalr1.cc"
 %require "3.7"
-%defines
 
 %define api.token.raw
 
 %define api.token.constructor
 %define api.value.type variant
-        %define parse.assert
 
 %code requires {
 /*********************                                                        */
@@ -56,12 +54,6 @@ using namespace std;
 }
 
 %param { smt::SmtLibReader & drv }
-
-%locations
-
-%define parse.trace
-%define parse.error detailed
-%define parse.lac full
 
 %code {
 #include "smtlib_reader.h"
@@ -318,6 +310,7 @@ atom:
       smt::Term sym = drv.lookup_symbol($1);
       if (!sym)
       {
+        // Note: using @1 will force locations to be enabled
         yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
         YYERROR;
       }

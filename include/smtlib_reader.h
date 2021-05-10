@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "assert.h"
 #include <string>
 #include <unordered_map>
 
