@@ -321,9 +321,8 @@ atom:
       smt::Term sym = drv.lookup_symbol(symstr);
       if (!sym)
       {
-        // Note: using @1 will force locations to be enabled
-        yy::parser::error(@1, std::string("Unrecognized symbol: ") + symstr);
-        YYERROR;
+        std::cout << "Error for sym " << symstr << std::endl;
+        assert(false);
       }
       $$ = sym;
    }
@@ -497,7 +496,8 @@ indprefix:
 
 %%
 
-void yy::parser::error (const location_type& l, const std::string& m)
+void yy::parser::error (const std::string& m)
 {
-  cerr << l << ": " << m << endl;
+  cerr << m << endl;
 }
+

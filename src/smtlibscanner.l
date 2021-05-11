@@ -33,110 +33,81 @@ bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_righ
 
 symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-]+[a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
-%{
-  // Code run each time a pattern is matched.
-# define YY_USER_ACTION  loc.columns (yyleng);
-%}
-
 %%
 
-%{
-  // A handy shortcut to the location held by the driver.
-  yy::location& loc = drv.location();
-  // Code run each time yylex is called.
-  loc.step ();
-%}
-[ \t\r]+              loc.step ();
-\n+                   loc.lines (yyleng); loc.step ();
+[ \t\r]+              ;
+\n+                   ;
 
 \;.*                  ;/* skip comment */
 
-\(                    { return yy::parser::make_LP(loc); }
-\)                    { return yy::parser::make_RP(loc); }
-_                     { return yy::parser::make_US(loc); }
+\(                    { return yy::parser::make_LP(); }
+\)                    { return yy::parser::make_RP(); }
+_                     { return yy::parser::make_US(); }
 
-set-logic             { return yy::parser::make_SETLOGIC(loc); }
-set-option            { return yy::parser::make_SETOPT(loc); }
-set-info              { return yy::parser::make_SETINFO(loc); }
-declare-const         { return yy::parser::make_DECLARECONST(loc); }
-declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
-define-fun            { return yy::parser::make_DEFINEFUN(loc); }
-define-sort           { return yy::parser::make_DEFINESORT(loc); }
-assert                { return yy::parser::make_ASSERT(loc); }
-check-sat             { return yy::parser::make_CHECKSAT(loc); }
-check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(loc); }
-push                  { return yy::parser::make_PUSH(loc); }
-pop                   { return yy::parser::make_POP(loc); }
-exit                  { return yy::parser::make_EXIT(loc); }
-get-value[ \t\r]*\(   { return yy::parser::make_GETVALUELP(loc); }
-get-unsat-assumptions { return yy::parser::make_GETUNSATASSUMP(loc); }
-echo                  { return yy::parser::make_ECHO(loc); }
+set-logic             { return yy::parser::make_SETLOGIC(); }
+set-option            { return yy::parser::make_SETOPT(); }
+set-info              { return yy::parser::make_SETINFO(); }
+declare-const         { return yy::parser::make_DECLARECONST(); }
+declare-fun           { return yy::parser::make_DECLAREFUN(); }
+define-fun            { return yy::parser::make_DEFINEFUN(); }
+define-sort           { return yy::parser::make_DEFINESORT(); }
+assert                { return yy::parser::make_ASSERT(); }
+check-sat             { return yy::parser::make_CHECKSAT(); }
+check-sat-assuming    { return yy::parser::make_CHECKSATASSUMING(); }
+push                  { return yy::parser::make_PUSH(); }
+pop                   { return yy::parser::make_POP(); }
+exit                  { return yy::parser::make_EXIT(); }
+get-value[ \t\r]*\(   { return yy::parser::make_GETVALUELP(); }
+get-unsat-assumptions { return yy::parser::make_GETUNSATASSUMP(); }
+echo                  { return yy::parser::make_ECHO(); }
 
 \"(\\.|[^\"\\])*\"    { char * noquotes = yytext;
                         noquotes++;
                         noquotes[strlen(noquotes)-1] = 0;
-                        // increment location for each line
-                        for (const char * c=noquotes; *c; ++c)
-                        {
-                          if(*c == '\n')
-                          {
-                            loc.lines(1);
-                          }
-                        }
-                        loc.step();
-                        return yy::parser::make_QUOTESTRING(noquotes, loc);
+                        return yy::parser::make_QUOTESTRING(noquotes);
                       }
 
-[0-9]+                { return yy::parser::make_NAT(yytext, loc); }
-[0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext, loc); }
-#b[01]+               { yytext=yytext+2; return yy::parser::make_BITSTR(yytext, loc); }
-#x[0-9a-fA-F]+        { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext, loc); }
-bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext, loc); }
-as[ \t\r\n]+const     { return yy::parser::make_ASCONST(loc); }
-let                   { return yy::parser::make_LET(loc); }
+[0-9]+                { return yy::parser::make_NAT(yytext); }
+[0-9]+\.[0-9]+        { return yy::parser::make_FLOAT(yytext); }
+#b[01]+               { yytext=yytext+2; return yy::parser::make_BITSTR(yytext); }
+#x[0-9a-fA-F]+        { yytext=yytext+2; return yy::parser::make_HEXSTR(yytext); }
+bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext); }
+as[ \t\r\n]+const     { return yy::parser::make_ASCONST(); }
+let                   { return yy::parser::make_LET(); }
 
-\:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
+\:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext); }
 
-Bool                  { return yy::parser::make_BOOL(loc); }
-Int                   { return yy::parser::make_INT(loc); }
-Real                  { return yy::parser::make_REAL(loc); }
-BitVec                { return yy::parser::make_BITVEC(loc); }
-Array                 { return yy::parser::make_ARRAY(loc); }
+Bool                  { return yy::parser::make_BOOL(); }
+Int                   { return yy::parser::make_INT(); }
+Real                  { return yy::parser::make_REAL(); }
+BitVec                { return yy::parser::make_BITVEC(); }
+Array                 { return yy::parser::make_ARRAY(); }
 
-(and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext, loc); }
-(=>)                  { return yy::parser::make_PRIMOP(yytext, loc); }
-(=|distinct)          { return yy::parser::make_PRIMOP(yytext, loc); }
-ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
-[+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
-(<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvarithop}           { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvbwop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvusop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvshop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvmanipop}           { return yy::parser::make_PRIMOP(yytext, loc); }
-(select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
-(forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
+(and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext); }
+(=>)                  { return yy::parser::make_PRIMOP(yytext); }
+(=|distinct)          { return yy::parser::make_PRIMOP(yytext); }
+ite                   { return yy::parser::make_PRIMOP(yytext); }
+[+*/-]                { return yy::parser::make_PRIMOP(yytext); }
+(<|>)(=?)             { return yy::parser::make_PRIMOP(yytext); }
+{bvarithop}           { return yy::parser::make_PRIMOP(yytext); }
+{bvbwop}              { return yy::parser::make_PRIMOP(yytext); }
+{bvusop}              { return yy::parser::make_PRIMOP(yytext); }
+bvsmod                { return yy::parser::make_PRIMOP(yytext); }
+{bvshop}              { return yy::parser::make_PRIMOP(yytext); }
+{bvmanipop}           { return yy::parser::make_PRIMOP(yytext); }
+(select|store)        { return yy::parser::make_PRIMOP(yytext); }
+(forall|exists)       { return yy::parser::make_QUANTIFIER(yytext); }
 
 \|([^|\\])*\|         {
-                        // increment location for each line
-                        for (const char * c=yytext; *c; ++c)
-                        {
-                          if(*c == '\n')
-                          {
-                            loc.lines(1);
-                          }
-                        }
-                        loc.step();
                         // get rid of pipe quotes
                         yytext++;
                         yytext[strlen(yytext)-1] = '\0';
-                        return yy::parser::make_SYMBOL(yytext, loc);
+                        return yy::parser::make_SYMBOL(yytext);
                       }
-{symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
+{symbol}              { return yy::parser::make_SYMBOL(yytext); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
-<<EOF>>               { return yy::parser::make_YYEOF (loc); }
+<<EOF>>               { return yy::parser::make_YYEOF (); }
 %%
 
 void smt::SmtLibReader::scan_begin ()
