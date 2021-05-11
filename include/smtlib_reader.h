@@ -240,6 +240,9 @@ class SmtLibReader
 
   smt::SmtSolver solver_;
 
+  std::unordered_map<std::string, smt::PrimOp>
+      primops_;  ///< available primops with current logic
+
   std::unordered_map<std::string, smt::Term>
       all_symbols_;  ///< remembers all symbolic constants
                      ///< and functions

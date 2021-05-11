@@ -24,6 +24,14 @@ using namespace std;
 
 namespace smt {
 
+const unordered_map<string, SortKind> logic_map({ { "LIA", INT },
+                                                  { "NIA", INT },
+                                                  { "LRA", REAL },
+                                                  { "NRA", REAL },
+                                                  { "UF", FUNCTION },
+                                                  { "BV", BV },
+                                                  { "A", ARRAY } });
+
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
       def_arg_prefix_("__defvar_")
@@ -32,6 +40,15 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
   // done this way because true/false can be used in other places
   // for example, when setting options
   assert(!global_symbols_.current_scope());
+
+  // logic always includes core theory (stored in BOOL)
+  // and DATATYPE is also part of the core, rather than
+  // its own theory
+  primops_ = str2primop.at(BOOL);
+  for (const auto & elem : str2primop.at(DATATYPE))
+  {
+    primops_[elem.first] = elem.second;
+  }
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -50,6 +67,43 @@ int SmtLibReader::parse(const std::string & f)
 void SmtLibReader::set_logic(const string & logic)
 {
   solver_->set_logic(logic);
+
+  // process logic to get available operator symbols
+  string processed_logic = logic;
+  if (processed_logic.substr(0, 3) == "QF_")
+  {
+    // parser doesn't distinguish -- let solver complain
+    // if using quantifiers in quantifier-free logic
+    processed_logic = processed_logic.substr(3, processed_logic.length() - 3);
+  }
+
+  unordered_set<SortKind> sortkinds;
+  size_t logic_size;
+  while (logic_size = processed_logic.size())
+  {
+    // all existing theories have abbreviations of length 3 or shorter
+    for (size_t len = 1; len <= 3; len++)
+    {
+      string sub = processed_logic.substr(0, len);
+      if (logic_map.find(sub) != logic_map.end())
+      {
+        // add operators for this theory
+        for (const auto & elem : str2primop.at(logic_map.at(sub)))
+        {
+          primops_.insert(elem);
+        }
+
+        processed_logic =
+            processed_logic.substr(len, processed_logic.length() - len);
+        break;
+      }
+    }
+
+    if (processed_logic.size() == logic_size)
+    {
+      throw SmtException("Failed to interpret logic: " + logic);
+    }
+  }
 }
 
 void SmtLibReader::set_opt(const string & key, const string & val)
@@ -180,7 +234,17 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
 {
-  return str2primop.at(str);
+  auto it = primops_.find(str);
+  if (it != primops_.end())
+  {
+    return it->second;
+  }
+  else
+  {
+    // returning null because not in set of operators
+    // (at least for the logic that was set)
+    return NUM_OPS_AND_NULL;
+  }
 }
 
 void SmtLibReader::define_fun(const string & name,
