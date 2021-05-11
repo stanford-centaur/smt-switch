@@ -68,7 +68,7 @@ using namespace std;
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DEFINEFUN DEFINESORT ASSERT CHECKSAT
-       CHECKSATASSUMING PUSH POP EXIT GETVALUELP
+       CHECKSATASSUMING PUSH POP EXIT GETVALUE
        GETUNSATASSUMP ECHO
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
@@ -195,15 +195,15 @@ command:
   {
     YYACCEPT;
   }
-  | LP GETVALUELP s_expr_list RP  RP
+  | LP GETVALUE LP s_expr_list RP  RP
   {
     cout << "(";
-    for (const auto & t : *$3)
+    for (const auto & t : *$4)
     {
       cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
     }
     cout << ")" << endl;
-    delete $3;
+    delete $4;
   }
   | LP GETUNSATASSUMP RP
   {
