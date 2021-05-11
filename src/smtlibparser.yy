@@ -131,15 +131,16 @@ command:
   | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
   {
     smt::Sort symsort;
-    if ($5.size())
+    auto vec = $5;
+    auto sort = $7;
+    if (vec.size())
     {
-      smt::SortVec & vec = $5;
-      vec.push_back($7);
+      vec.push_back(sort);
       symsort = drv.solver()->make_sort(smt::FUNCTION, vec);
     }
     else
     {
-      symsort = $7;
+      symsort = sort;
     }
     assert(symsort);
     drv.new_symbol($3, symsort);
@@ -151,11 +152,12 @@ command:
      }
     SYMBOL LP sorted_arg_list RP sort s_expr RP
   {
-    drv.define_fun($4, $9, *$6);
+    auto arglist = $6;
+    drv.define_fun($4, $9, *arglist);
 
     drv.pop_scope();
     assert(!drv.current_scope());
-    delete $6;
+    delete arglist;
   }
   | LP DEFINESORT SYMBOL LP RP sort RP
   {
@@ -172,8 +174,9 @@ command:
   }
   | LP CHECKSATASSUMING LP s_expr_list RP RP
   {
-    drv.check_sat_assuming(*$4);
-    delete $4;
+    auto exprlist = $4;
+    drv.check_sat_assuming(*exprlist);
+    delete exprlist;
   }
   | LP PUSH RP
   {
@@ -197,13 +200,14 @@ command:
   }
   | LP GETVALUELP s_expr_list RP  RP
   {
+    auto exprlist = $3;
     cout << "(";
-    for (const auto & t : *$3)
+    for (const auto & t : *exprlist)
     {
       cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
     }
     cout << ")" << endl;
-    delete $3;
+    delete exprlist;
   }
   | LP GETUNSATASSUMP RP
   {
@@ -232,32 +236,36 @@ s_expr:
     // special-case for MINUS
     // needs to be negate if only one argument
     // TODO: might be a more elegant way to handle this
-    if ($2 == smt::Minus && $3->size() == 1)
+    auto op = $2;
+    auto exprlist = $3;
+    if (op == smt::Minus && exprlist->size() == 1)
     {
-      $$ = drv.solver()->make_term(smt::Negate, $3->at(0));
+      $$ = drv.solver()->make_term(smt::Negate, exprlist->at(0));
     }
     else
     {
-      $$ = drv.solver()->make_term($2, *$3);
+      $$ = drv.solver()->make_term(op, *exprlist);
     }
-    delete $3;
+    delete exprlist;
   }
   | LP SYMBOL s_expr_list RP
   {
     // will return a null term if symbol doesn't exist
-    smt::Term uf = drv.lookup_symbol($2);
+    auto ufname = $2;
+    smt::Term uf = drv.lookup_symbol(ufname);
+    auto exprlist = $3;
     if (uf)
     {
       smt::TermVec vec({uf});
-      vec.insert(vec.end(), $3->begin(), $3->end());
+      vec.insert(vec.end(), exprlist->begin(), exprlist->end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
     }
     else
     {
       // assuming this is a defined fun
-      $$ = drv.apply_define_fun($2, *$3);
+      $$ = drv.apply_define_fun(ufname, *exprlist);
     }
-    delete $3;
+    delete exprlist;
   }
   | LP LP ASCONST sort RP atom RP
   {
@@ -273,12 +281,13 @@ s_expr:
     smt::SmtSolver & solver = drv.solver();
     smt::PrimOp po = drv.lookup_primop($2);
     // smt-switch takes all the parameters followed by the body
-    $5->push_back($7);
-    $$ = drv.solver()->make_term(po, *$5);
+    auto paramlist = $5;
+    paramlist->push_back($7);
+    $$ = drv.solver()->make_term(po, *paramlist);
 
     // this scope is done
     drv.pop_scope();
-    delete $5;
+    delete paramlist;
   }
   | LP LET
     {
@@ -299,19 +308,21 @@ s_expr_list:
    }
    | s_expr_list s_expr
    {
-     $1->push_back($2);
-     $$ = $1;
+     auto exprlist = $1;
+     exprlist->push_back($2);
+     $$ = exprlist;
    }
 ;
 
 atom:
    SYMBOL
    {
-      smt::Term sym = drv.lookup_symbol($1);
+      auto symstr = $1;
+      smt::Term sym = drv.lookup_symbol(symstr);
       if (!sym)
       {
         // Note: using @1 will force locations to be enabled
-        yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
+        yy::parser::error(@1, std::string("Unrecognized symbol: ") + symstr);
         YYERROR;
       }
       $$ = sym;
@@ -329,13 +340,15 @@ atom:
 bvconst:
    BITSTR
    {
-     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, $1.length());
-     $$ = drv.solver()->make_term($1, bvsort, 2);
+     auto bitstr = $1;
+     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, bitstr.length());
+     $$ = drv.solver()->make_term(bitstr, bvsort, 2);
    }
    | HEXSTR
    {
-     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
-     $$ = drv.solver()->make_term($1, bvsort, 16);
+     auto hexstr = $1;
+     smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*(hexstr.length()));
+     $$ = drv.solver()->make_term(hexstr, bvsort, 16);
    }
    | indprefix BVDEC NAT RP
    {
@@ -379,7 +392,7 @@ sort_list:
    }
    | sort_list sort
    {
-     smt::SortVec & vec = $1;
+     auto vec = $1;
      vec.push_back($2);
      $$ = vec;
    }
@@ -393,9 +406,10 @@ sorted_arg_list:
    | sorted_arg_list LP SYMBOL sort RP
    {
      assert(drv.current_scope());
+     auto arglist = $1;
      smt::Term arg = drv.register_arg($3, $4);
-     $1->push_back(arg);
-     $$ = $1;
+     arglist->push_back(arg);
+     $$ = arglist;
    }
 ;
 
@@ -408,8 +422,9 @@ sorted_param_list:
    {
      assert(drv.current_scope());
      smt::Term param = drv.create_param($3, $4);
-     $1->push_back(param);
-     $$ = $1;
+     auto paramlist = $1;
+     paramlist->push_back(param);
+     $$ = paramlist;
    }
 ;
 
