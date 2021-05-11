@@ -25,12 +25,6 @@ using namespace std;
 /* can uncomment next line to give debug output during lexing */
 /* %option debug */
 
-bvarithop bv(neg|add|sub|mul)
-bvbwop bv(not|and|or|xor|nand|nor|xnor|comp)
-bvusop bv[us](div|rem|lt|le|ge|gt)
-bvshop bv(shl|ashr|lshr)
-bvmanipop (concat|extract|zero_extend|sign_extend|repeat|rotate_left|rotate_right)
-
 symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %{
@@ -103,19 +97,6 @@ Real                  { return yy::parser::make_REAL(loc); }
 BitVec                { return yy::parser::make_BITVEC(loc); }
 Array                 { return yy::parser::make_ARRAY(loc); }
 
-(and|or|xor|not)      { return yy::parser::make_PRIMOP(yytext, loc); }
-(=>)                  { return yy::parser::make_PRIMOP(yytext, loc); }
-(=|distinct)          { return yy::parser::make_PRIMOP(yytext, loc); }
-ite                   { return yy::parser::make_PRIMOP(yytext, loc); }
-[+*/-]                { return yy::parser::make_PRIMOP(yytext, loc); }
-(<|>)(=?)             { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvarithop}           { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvbwop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvusop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-bvsmod                { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvshop}              { return yy::parser::make_PRIMOP(yytext, loc); }
-{bvmanipop}           { return yy::parser::make_PRIMOP(yytext, loc); }
-(select|store)        { return yy::parser::make_PRIMOP(yytext, loc); }
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
 \|([^|\\])*\|         {

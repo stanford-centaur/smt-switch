@@ -73,7 +73,6 @@ using namespace std;
 %token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
-%token <std::string> PRIMOP
 %token <std::string> QUANTIFIER
 %token
 LP "("
@@ -92,7 +91,7 @@ US "_"
 %nterm <smt::TermVec *> sorted_arg_list
 %nterm <smt::TermVec *> sorted_param_list
 %nterm let_term_bindings
-%nterm <smt::Op> operator
+%nterm <smt::Op> indexed_op
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
@@ -227,26 +226,33 @@ s_expr:
   {
     $$ = $1;
   }
-  | LP operator s_expr_list RP
+  | LP indexed_op s_expr_list RP
   {
-    // special-case for MINUS
-    // needs to be negate if only one argument
-    // TODO: might be a more elegant way to handle this
-    if ($2 == smt::Minus && $3->size() == 1)
-    {
-      $$ = drv.solver()->make_term(smt::Negate, $3->at(0));
-    }
-    else
-    {
-      $$ = drv.solver()->make_term($2, *$3);
-    }
+    $$ = drv.solver()->make_term($2, *$3);
     delete $3;
   }
   | LP SYMBOL s_expr_list RP
   {
-    // will return a null term if symbol doesn't exist
-    smt::Term uf = drv.lookup_symbol($2);
-    if (uf)
+    smt::PrimOp po;
+    smt::Term uf;
+
+    // check if it's a known operator in the given logic
+    if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
+    {
+       // this is an operator
+       // special-case for MINUS
+       // needs to be negate if only one argument
+       // TODO: might be a more elegant way to handle this
+       if (po == smt::Minus && $3->size() == 1)
+       {
+         $$ = drv.solver()->make_term(smt::Negate, $3->at(0));
+       }
+       else
+       {
+         $$ = drv.solver()->make_term(po, *$3);
+       }
+    }
+    else if (uf = drv.lookup_symbol($2))
     {
       smt::TermVec vec({uf});
       vec.insert(vec.end(), $3->begin(), $3->end());
@@ -255,6 +261,7 @@ s_expr:
     else
     {
       // assuming this is a defined fun
+      // will throw exception if not a defined function symbol
       $$ = drv.apply_define_fun($2, *$3);
     }
     delete $3;
@@ -422,18 +429,24 @@ let_term_bindings:
    }
 
 
-operator:
-   PRIMOP
+indexed_op:
+   indprefix SYMBOL NAT RP
    {
-     $$ = drv.lookup_primop($1);
+     smt::PrimOp po = drv.lookup_primop($2);
+     if (po == smt::NUM_OPS_AND_NULL)
+     {
+       yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+     }
+     $$ = smt::Op(po, std::stoi($3));
    }
-   | indprefix PRIMOP NAT RP
+   | indprefix SYMBOL NAT NAT RP
    {
-     $$ = smt::Op(drv.lookup_primop($2), std::stoi($3));
-   }
-   | indprefix PRIMOP NAT NAT RP
-   {
-     $$ = smt::Op(drv.lookup_primop($2), std::stoi($3), std::stoi($4));
+     smt::PrimOp po = drv.lookup_primop($2);
+     if (po == smt::NUM_OPS_AND_NULL)
+     {
+       yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+     }
+     $$ = smt::Op(po, std::stoi($3), std::stoi($4));
    }
 ;
 
