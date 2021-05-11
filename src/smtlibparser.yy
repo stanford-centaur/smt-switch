@@ -24,7 +24,7 @@ using namespace std;
 %require "3.7"
 
 %define api.token.raw
-
+%define api.value.automove
 %define api.token.constructor
 %define api.value.type variant
 
