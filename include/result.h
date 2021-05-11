@@ -40,6 +40,7 @@ struct Result
   bool is_unsat() const { return result == UNSAT; };
   bool is_unknown() const { return result == UNKNOWN; };
   bool is_null() const { return result == NUM_RESULTS; };
+  bool operator==(const Result & r) const { return result == r.result; }
   std::string get_explanation() const;
   std::string to_string() const;
   ResultType result;
