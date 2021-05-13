@@ -15,9 +15,8 @@ const std::unordered_map<SortKind,
           { "ite", Ite },
           { "=", Equal },
           { "distinct", Distinct },
-          // forall / exists parsed explicitly
-          // { "forall", Forall },
-          // { "exists", Exists },
+          { "forall", Forall },
+          { "exists", Exists },
          }
       },
       { FUNCTION,
