@@ -13,7 +13,7 @@ setup(name=PACKAGE_NAME,
       url='http://github.com/makaimann/smt-switch',
       license='BSD',
       zip_safe=False,
-      packake_dir={'':  PACKAGE_NAME},
+      package_dir={'':  PACKAGE_NAME},
       package_data={'': [f'{PACKAGE_NAME}.so']},
       extras_require={
           'pysmt': PYSMT_REQUIRES,
