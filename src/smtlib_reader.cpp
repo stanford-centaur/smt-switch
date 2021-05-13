@@ -183,48 +183,35 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   {
     // check scoped variables before global symbols
     // shadowing semantics
-    try
+    symbol_term = arg_param_map_.get_symbol(sym);
+    if (symbol_term)
     {
-      return arg_param_map_.get_symbol(sym);
-    }
-    catch (std::out_of_range & e)
-    {
-      ;
+      return symbol_term;
     }
   }
 
   assert(!symbol_term);
-  try
-  {
-    return global_symbols_.get_symbol(sym);
-  }
-  catch (std::out_of_range & e)
-  {
-    ;
-  }
+  symbol_term = global_symbols_.get_symbol(sym);
   return symbol_term;
 }
 
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 {
-  try
+  if (global_symbols_.get_symbol(name))
   {
-    Term t = global_symbols_.get_symbol(name);
     throw SmtException("Re-declaring symbol: " + name);
   }
-  catch (std::out_of_range & e)
+
+  auto it = all_symbols_.find(name);
+  if (it != all_symbols_.end())
   {
-    auto it = all_symbols_.find(name);
-    if (it != all_symbols_.end())
+    if (it->second->get_sort() != sort)
     {
-      if (it->second->get_sort() != sort)
-      {
-        throw SmtException("Current Limitation: cannot re-declare symbol "
-                           + name + " with a different sort");
-      }
-      global_symbols_.add_mapping(name, it->second);
-      return;
+      throw SmtException("Current Limitation: cannot re-declare symbol " + name
+                         + " with a different sort");
     }
+    global_symbols_.add_mapping(name, it->second);
+    return;
   }
 
   Term fresh_symbol = solver_->make_symbol(name, sort);

@@ -85,7 +85,20 @@ class UnorderedScopedSymbolMap
     symbols_.pop_back();
   }
 
-  smt::Term get_symbol(const std::string & sym) { return symbol_map_.at(sym); }
+  /** Looks up symbol in the symbol map
+   *  @param sym the symbol to look up
+   *  @return the associated term or null pointer if not in map
+   */
+  smt::Term get_symbol(const std::string & sym)
+  {
+    Term res;
+    auto it = symbol_map_.find(sym);
+    if (it != symbol_map_.end())
+    {
+      res = it->second;
+    }
+    return res;
+  }
 
  private:
   std::vector<std::unordered_set<std::string>> symbols_;
