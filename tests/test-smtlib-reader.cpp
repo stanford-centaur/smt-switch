@@ -14,8 +14,6 @@
 **
 **/
 
-#ifdef SMTLIB_READER
-
 #define STRHELPER(A) #A
 #define STRFY(A) STRHELPER(A)
 
@@ -111,5 +109,3 @@ INSTANTIATE_TEST_SUITE_P(
                                        qf_uflia_tests.end())));
 
 }  // namespace smt_tests
-
-#endif
