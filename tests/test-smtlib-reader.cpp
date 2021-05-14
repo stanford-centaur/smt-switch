@@ -17,11 +17,11 @@
 #define STRHELPER(A) #A
 #define STRFY(A) STRHELPER(A)
 
+#include <gtest/gtest.h>
 #include <utility>
 #include <vector>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "smt.h"
 #include "smtlib_reader.h"
 #include "smtlib_reader_test_inputs.h"
