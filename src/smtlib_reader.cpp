@@ -25,13 +25,17 @@ using namespace std;
 namespace smt {
 
 // maps logic string to vector of theories included in the logic
-const unordered_map<string, vector<string>> logic_map({ { "LIA", { "IA" } },
-                                                        { "NIA", { "IA" } },
-                                                        { "LRA", { "RA" } },
-                                                        { "NRA", { "RA" } },
-                                                        { "UF", { "UF" } },
-                                                        { "BV", { "BV" } },
-                                                        { "A", { "A" } } });
+const unordered_map<string, vector<string>> logic_map(
+    { { "LIA", { "IA" } },
+      { "NIA", { "IA" } },
+      { "LRA", { "RA" } },
+      { "NRA", { "RA" } },
+      { "LIRA", { "IA", "RA", "IRA" } },
+      { "NIRA", { "IA", "RA", "IRA" } },
+      { "UF", { "UF" } },
+      { "BV", { "BV" } },
+      { "A", { "A" } },
+      { "AX", { "A" } } });
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
@@ -75,8 +79,8 @@ void SmtLibReader::set_logic(const string & logic)
   size_t logic_size;
   while (logic_size = processed_logic.size())
   {
-    // all existing theories have abbreviations of length 3 or shorter
-    for (size_t len = 1; len <= 3; len++)
+    // all existing theories have abbreviations of length 4 or shorter
+    for (size_t len = 1; len <= 4; len++)
     {
       string sub = processed_logic.substr(0, len);
       if (logic_map.find(sub) != logic_map.end())

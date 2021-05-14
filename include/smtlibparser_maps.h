@@ -39,7 +39,6 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
                      { "div", IntDiv },
                      { "mod", Mod },
                      { "abs", Abs },
-                     { "to_real", To_Real },
                      { "int2bv", Int_To_BV } } },
                  // Reals
                  { "RA",
@@ -55,6 +54,10 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
                        { "*", Mult },
                        { "pow", Pow },
                        { "/", Div },
+                   } },
+                 { "IRA",
+                   {
+                       { "to_real", To_Real },
                        { "to_int", To_Int },
                        { "is_int", Is_Int },
                    } },
