@@ -37,11 +37,12 @@ const unordered_map<string, vector<string>> logic_map(
       { "A", { "A" } },
       { "AX", { "A" } } });
 
-SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
+SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
+      strict_(strict),
       def_arg_prefix_("__defvar_"),
       // logic always includes core theory
-      primops_(str2primop.at("Core"))
+      primops_(strict_theory2opmap.at("Core"))
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
@@ -75,7 +76,7 @@ void SmtLibReader::set_logic(const string & logic)
     processed_logic = processed_logic.substr(3, processed_logic.length() - 3);
   }
 
-  unordered_set<SortKind> sortkinds;
+  unordered_set<string> theories;
   size_t logic_size;
   while (logic_size = processed_logic.size())
   {
@@ -88,7 +89,8 @@ void SmtLibReader::set_logic(const string & logic)
         // add operators for this theory
         for (const auto & theory : logic_map.at(sub))
         {
-          for (const auto & elem : str2primop.at(theory))
+          theories.insert(theory);
+          for (const auto & elem : strict_theory2opmap.at(theory))
           {
             primops_.insert(elem);
           }
@@ -103,6 +105,31 @@ void SmtLibReader::set_logic(const string & logic)
     if (processed_logic.size() == logic_size)
     {
       throw SmtException("Failed to interpret logic: " + logic);
+    }
+  }
+
+  if (!strict_)
+  {
+    // add non-strict operators
+    bool bv_theory = theories.find("BV") != theories.end();
+    bool int_theory = theories.find("IA") != theories.end();
+    vector<string> theory_combs;
+
+    if (int_theory)
+    {
+      theory_combs.push_back("IA");
+    }
+    if (int_theory && bv_theory)
+    {
+      theory_combs.push_back("BVIA");
+    }
+
+    for (const auto & comb : theory_combs)
+    {
+      for (const auto & elem : nonstrict_theory2opmap.at(comb))
+      {
+        primops_.insert(elem);
+      }
     }
   }
 }
