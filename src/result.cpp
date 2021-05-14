@@ -61,4 +61,9 @@ std::ostream & operator<<(std::ostream & output, const Result r)
   return output;
 }
 
+bool operator==(const Result & r1, const Result & r2)
+{
+  return r1.result == r2.result;
+}
+
 }  // namespace smt
