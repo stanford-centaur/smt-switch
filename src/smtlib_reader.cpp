@@ -26,16 +26,18 @@ namespace smt {
 
 // maps logic string to vector of theories included in the logic
 const unordered_map<string, vector<string>> logic_map(
-    { { "LIA", { "IA" } },
-      { "NIA", { "IA" } },
-      { "LRA", { "RA" } },
-      { "NRA", { "RA" } },
-      { "LIRA", { "IA", "RA", "IRA" } },
-      { "NIRA", { "IA", "RA", "IRA" } },
-      { "UF", { "UF" } },
+    { { "A", { "A" } },
+      { "AX", { "A" } },
       { "BV", { "BV" } },
-      { "A", { "A" } },
-      { "AX", { "A" } } });
+      { "IDL", { "IA" } },
+      { "LIA", { "IA" } },
+      { "LIRA", { "IA", "RA", "IRA" } },
+      { "LRA", { "RA" } },
+      { "NIA", { "IA" } },
+      { "NIRA", { "IA", "RA", "IRA" } },
+      { "NRA", { "RA" } },
+      { "RDL", { "RA" } },
+      { "UF", { "UF" } } });
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
