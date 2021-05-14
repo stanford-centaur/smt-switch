@@ -42,13 +42,7 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
   assert(!global_symbols_.current_scope());
 
   // logic always includes core theory (stored in BOOL)
-  // and DATATYPE is also part of the core, rather than
-  // its own theory
   primops_ = str2primop.at(BOOL);
-  for (const auto & elem : str2primop.at(DATATYPE))
-  {
-    primops_[elem.first] = elem.second;
-  }
 }
 
 int SmtLibReader::parse(const std::string & f)
