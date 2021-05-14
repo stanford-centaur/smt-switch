@@ -4,8 +4,10 @@
 
 namespace smt {
 
-const std::unordered_map<SortKind, std::unordered_map<std::string, PrimOp>>
-    str2primop({ { BOOL,
+// maps theories to operators
+// based on strings used in SMT-LIB logics
+const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
+    str2primop({ { "Core",
                    {
                        { "and", And },
                        { "or", Or },
@@ -18,10 +20,12 @@ const std::unordered_map<SortKind, std::unordered_map<std::string, PrimOp>>
                        { "forall", Forall },
                        { "exists", Exists },
                    } },
-                 { FUNCTION,
+                 // Uninterpreted Functions
+                 { "UF",
                    // empty map, don't want to reserve the symbol "apply"
                    {} },
-                 { INT,
+                 // Integers
+                 { "IA",
                    { { "+", Plus },
                      { "-", Minus },
                      // Need to pick which one based on context
@@ -37,7 +41,8 @@ const std::unordered_map<SortKind, std::unordered_map<std::string, PrimOp>>
                      { "abs", Abs },
                      { "to_real", To_Real },
                      { "int2bv", Int_To_BV } } },
-                 { REAL,
+                 // Reals
+                 { "RA",
                    {
                        { "+", Plus },
                        { "-", Minus },
@@ -53,7 +58,8 @@ const std::unordered_map<SortKind, std::unordered_map<std::string, PrimOp>>
                        { "to_int", To_Int },
                        { "is_int", Is_Int },
                    } },
-                 { BV,
+                 // FixedSizeBitVectors
+                 { "BV",
                    {
                        { "concat", Concat },
                        { "extract", Extract },
@@ -92,7 +98,8 @@ const std::unordered_map<SortKind, std::unordered_map<std::string, PrimOp>>
                        { "rotate_right", Rotate_Right },
                        { "bv2nat", BV_To_Nat },
                    } },
-                 { ARRAY,
+                 // ArraysEx
+                 { "A",
                    {
                        { "select", Select },
                        { "store", Store },

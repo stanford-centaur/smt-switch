@@ -24,25 +24,25 @@ using namespace std;
 
 namespace smt {
 
-const unordered_map<string, SortKind> logic_map({ { "LIA", INT },
-                                                  { "NIA", INT },
-                                                  { "LRA", REAL },
-                                                  { "NRA", REAL },
-                                                  { "UF", FUNCTION },
-                                                  { "BV", BV },
-                                                  { "A", ARRAY } });
+// maps logic string to vector of theories included in the logic
+const unordered_map<string, vector<string>> logic_map({ { "LIA", { "IA" } },
+                                                        { "NIA", { "IA" } },
+                                                        { "LRA", { "RA" } },
+                                                        { "NRA", { "RA" } },
+                                                        { "UF", { "UF" } },
+                                                        { "BV", { "BV" } },
+                                                        { "A", { "A" } } });
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
     : solver_(solver),
-      def_arg_prefix_("__defvar_")
+      def_arg_prefix_("__defvar_"),
+      // logic always includes core theory
+      primops_(str2primop.at("Core"))
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
   // for example, when setting options
   assert(!global_symbols_.current_scope());
-
-  // logic always includes core theory (stored in BOOL)
-  primops_ = str2primop.at(BOOL);
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -82,9 +82,12 @@ void SmtLibReader::set_logic(const string & logic)
       if (logic_map.find(sub) != logic_map.end())
       {
         // add operators for this theory
-        for (const auto & elem : str2primop.at(logic_map.at(sub)))
+        for (const auto & theory : logic_map.at(sub))
         {
-          primops_.insert(elem);
+          for (const auto & elem : str2primop.at(theory))
+          {
+            primops_.insert(elem);
+          }
         }
 
         processed_logic =
