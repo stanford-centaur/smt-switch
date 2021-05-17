@@ -38,6 +38,7 @@ class SortingNetworkTests
   {
     solver = create_solver(GetParam());
     solver->set_opt("produce-models", "true");
+    solver->set_opt("incremental", "true");
     boolsort = solver->make_sort(BOOL);
     for (size_t i = 0; i < NUM_VARS; ++i)
     {
