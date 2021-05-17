@@ -32,7 +32,7 @@ namespace smt {
  *             and let Nt be the number of elements of x that
  *             are set to true in a given model.
  *            Then the output of a sorting network is a list
- *             of boolean terms, y := [y0, ..., y1] such that
+ *             of boolean terms, y := [y0, ..., yk] such that
  *             yi is true iff Nt >= i
  *            Thus, ignoring the edge cases, Nt = n iff
  *             yn is true and y{n+1} is false
