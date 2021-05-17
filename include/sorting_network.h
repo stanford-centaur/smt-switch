@@ -39,9 +39,9 @@ namespace smt {
  *
  *         Example:
  *            if the input is [x0, x1, x2, x3]
- *            then the sorting network output for any assignment with 3 of
- *            them set to true and 1 to false would be
- *            [true, true, true, false]
+ *            then the model values for each element in the sorting network
+ *            output under any model that 3 of them to true and 1 to false
+ *            would be [true, true, true, false]
  */
 class SortingNetwork
 {
