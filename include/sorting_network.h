@@ -1,0 +1,76 @@
+/*********************                                                        */
+/*! \file sorting_network.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Implements a symbolic sorting network for boolean-sorted variables.
+**
+**/
+
+#pragma once
+
+#include <assert.h>
+
+#include <utility>
+
+#include "exceptions.h"
+#include "smt.h"
+
+namespace smt {
+
+/** \class SortingNetwork
+ *         Implements a symbolic sorting network for boolean-sorted variables.
+ *         All methods are const so it can be re-used for terms from the same
+ *         solver.
+ *         Does not return the actual terms, but is used to determine how many
+ *         variables are assigned to true symbolically.
+ *         Example:
+ *            if input is [x0, x1, x2, x3]
+ *            then the sorting network output for any assignment with 3 of
+ *            them set to true and 1 to false would be
+ *            [true, true, true, false]
+ */
+class SortingNetwork
+{
+ public:
+  SortingNetwork(const SmtSolver & solver) : solver_(solver) {}
+
+  /** Takes a vector of boolean terms
+   *  and returns the sorting network output
+   *  @param unsorted a vector of boolean terms
+   *  @return the (symbolic) sorting network output
+   */
+  TermVec sorting_network(const TermVec & unsorted) const;
+
+  /** Sorts vectors recursively
+   *  Used as helper function for sorting_network
+   *  @param unsorted a vector of boolean terms
+   *  @param symbolically sorted output
+   */
+  TermVec sorting_network_rec(const TermVec & unsorted) const;
+
+  /** Return symbolic sorting for two terms
+   *  @param t1 the first term
+   *  @param t2 the second term
+   *  @return a length two vector with the symbolic sorting result
+   */
+  TermVec sort_two(const Term & t1, const Term & t2) const;
+
+  /** Merges two symbolically sorted vectors
+   *  @param sorted1
+   *  @param sorted2
+   *  @return the combined vector
+   */
+  TermVec merge(const TermVec & sorted1, const TermVec & sorted2) const;
+
+ protected:
+  const SmtSolver & solver_;
+};
+
+}  // namespace smt
