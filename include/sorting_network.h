@@ -15,11 +15,6 @@
 
 #pragma once
 
-#include <assert.h>
-
-#include <utility>
-
-#include "exceptions.h"
 #include "smt.h"
 
 namespace smt {

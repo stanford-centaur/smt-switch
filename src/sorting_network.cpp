@@ -15,6 +15,10 @@
 
 #include "sorting_network.h"
 
+#include <assert.h>
+
+#include "exceptions.h"
+
 namespace smt {
 
 // implementation based on SortingNetwork in the predecessor, CoSA:
@@ -25,6 +29,22 @@ TermVec SortingNetwork::sorting_network(const TermVec & unsorted) const
   if (unsorted.empty())
   {
     return {};
+  }
+
+  // check that all the terms in unsorted are boolean sorted
+  // for sort aliasing solvers, best to compare to the object
+  // rather than rely on the SortKind
+  Sort boolsort = solver_->make_sort(BOOL);
+  Sort sort;
+  for (const auto & tt : unsorted)
+  {
+    sort = tt->get_sort();
+    if (tt->get_sort() != boolsort)
+    {
+      throw IncorrectUsageException("Expected all boolean sorts but got "
+                                    + tt->to_string() + ":"
+                                    + sort->to_string());
+    }
   }
 
   return sorting_network_rec(unsorted);
