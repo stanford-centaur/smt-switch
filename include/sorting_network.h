@@ -37,10 +37,16 @@ namespace smt {
  *            Thus, ignoring the edge cases, Nt = n iff
  *             yn is true and y{n+1} is false
  *
- *         Example:
+ *         Example 1:
+ *            if the input is [x0, x1]
+ *            the output is [Or(x0, x1), And(x0, x1)]
+ *            so that the first term evaluates to true iff one or more
+ *            of the inputs evaluates to true, and the second evaluates
+ *            to true iff both evaluate to true
+ *         Example 2:
  *            if the input is [x0, x1, x2, x3]
  *            then the model values for each element in the sorting network
- *            output under any model that 3 of them to true and 1 to false
+ *            output for any model that sets 3 of them to true and 1 to false
  *            would be [true, true, true, false]
  */
 class SortingNetwork
