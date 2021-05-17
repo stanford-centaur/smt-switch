@@ -25,8 +25,20 @@ namespace smt {
  *         solver.
  *         Does not return the actual terms, but is used to determine how many
  *         variables are assigned to true symbolically.
+ *         Definition:
+ *            A sorting network takes a list of boolean terms
+ *             and returns a list of the same length.
+ *            Let the input be x := [x0, ..., xk]
+ *             and let Nt be the number of elements of x that
+ *             are set to true in a given model.
+ *            Then the output of a sorting network is a list
+ *             of boolean terms, y := [y0, ..., y1] such that
+ *             yi is true iff Nt >= i
+ *            Thus, ignoring the edge cases, Nt = n iff
+ *             yn is true and y{n+1} is false
+ *
  *         Example:
- *            if input is [x0, x1, x2, x3]
+ *            if the input is [x0, x1, x2, x3]
  *            then the sorting network output for any assignment with 3 of
  *            them set to true and 1 to false would be
  *            [true, true, true, false]
