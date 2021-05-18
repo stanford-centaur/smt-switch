@@ -46,7 +46,7 @@ namespace smt {
  *            if the input is [x0, x1, x2, x3]
  *            then the model values for each element in the sorting network
  *            output for any model that sets 3 of them to true and 1 to false
- *            would be [true, true, true, false]
+ *            would be [true, true, true, false]. Note that these are the model values, not the terms that will be returned from the function.
  */
 class SortingNetwork
 {
