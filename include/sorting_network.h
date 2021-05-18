@@ -20,7 +20,7 @@
 namespace smt {
 
 /** \class SortingNetwork
- *         Implements a symbolic sorting network for boolean-sorted variables.
+ *         Implements a symbolic sorting network for boolean-sorted terms.
  *         All methods are const so it can be re-used for terms from the same
  *          solver.
  *         Returns a vector of new terms, which can be used to determine how
