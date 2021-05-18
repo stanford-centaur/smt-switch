@@ -26,17 +26,6 @@ using namespace std;
 
 namespace smt_tests {
 
-TEST(SortKind, ToString)
-{
-  EXPECT_EQ(to_string(ARRAY), "ARRAY");
-  EXPECT_EQ(to_string(BOOL), "BOOL");
-  EXPECT_EQ(to_string(BV), "BV");
-  EXPECT_EQ(to_string(INT), "INT");
-  EXPECT_EQ(to_string(REAL), "REAL");
-  EXPECT_EQ(to_string(FUNCTION), "FUNCTION");
-  EXPECT_EQ(to_string(UNINTERPRETED), "UNINTERPRETED");
-}
-
 class UnitSortTests : public ::testing::Test,
                       public ::testing::WithParamInterface<SolverConfiguration>
 {
