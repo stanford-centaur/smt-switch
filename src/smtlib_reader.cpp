@@ -25,7 +25,7 @@ using namespace std;
 namespace smt {
 
 // maps logic string to vector of theories included in the logic
-const unordered_map<string, vector<string>> logic_map(
+const unordered_map<string, vector<string>> logic_theory_map(
     { { "A", { "A" } },
       { "AX", { "A" } },
       { "BV", { "BV" } },
@@ -86,10 +86,10 @@ void SmtLibReader::set_logic(const string & logic)
     for (size_t len = 1; len <= 4; len++)
     {
       string sub = processed_logic.substr(0, len);
-      if (logic_map.find(sub) != logic_map.end())
+      if (logic_theory_map.find(sub) != logic_theory_map.end())
       {
         // add operators for this theory
-        for (const auto & theory : logic_map.at(sub))
+        for (const auto & theory : logic_theory_map.at(sub))
         {
           theories.insert(theory);
           for (const auto & elem : strict_theory2opmap.at(theory))
