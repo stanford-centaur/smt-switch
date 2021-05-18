@@ -1,0 +1,8 @@
+(set-logic QF_UFBV)
+(define-sort Int () (_ BitVec 32))
+(declare-const x Int)
+(declare-const y Int)
+(assert (= ((_ extract 31 31) x) #b1))
+(assert (= ((_ extract 31 31) y) #b0))
+(assert (bvult x y))
+(check-sat)
