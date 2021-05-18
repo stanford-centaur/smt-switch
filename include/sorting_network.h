@@ -67,6 +67,7 @@ class SortingNetwork
   TermVec sorting_network(const TermVec & unsorted) const;
 
   /** Return symbolic sorting for two terms
+   *  Used as helper in sorting_network_rec and merge
    *  @param t1 the first term
    *  @param t2 the second term
    *  @return a length two vector with the symbolic sorting result
@@ -74,6 +75,7 @@ class SortingNetwork
   TermVec sort_two(const Term & t1, const Term & t2) const;
 
   /** Merges two symbolically sorted vectors
+   *  Used as helper in sorting_network_rec
    *  @param sorted1
    *  @param sorted2
    *  @return the combined vector
