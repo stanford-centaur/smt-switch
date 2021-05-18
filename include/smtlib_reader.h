@@ -188,9 +188,18 @@ class SmtLibReader
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
    *  @return the associated PrimOp
-   *  throws an exception if there's no match
+   *  Returns NUM_OPS_AND_NULL if there's no match
    */
   PrimOp lookup_primop(const std::string & str);
+
+  /** Look up a sort by string
+   *  The available sorts are based on the logic
+   *  @param str the string to look up
+   *  @return a sort
+   *  Returns NUM_SORT_KINDS (a null element) if there's
+   *  no match
+   */
+  smt::SortKind lookup_sortkind(const std::string & str);
 
   /** Create a define-fun macro
    *  @param name the name of the define-fun
@@ -264,8 +273,13 @@ class SmtLibReader
 
   bool strict_;
 
+  std::string logic_;
+
   std::unordered_map<std::string, smt::PrimOp>
-      primops_;  ///< available primops with current logic
+      primops_;  ///< available primops with set logic
+
+  std::unordered_map<std::string, smt::SortKind>
+      sortkinds_;  ///< available sortkinds with set logic
 
   std::unordered_map<std::string, smt::Term>
       all_symbols_;  ///< remembers all symbolic constants

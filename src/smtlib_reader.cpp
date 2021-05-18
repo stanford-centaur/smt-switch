@@ -39,9 +39,25 @@ const unordered_map<string, vector<string>> logic_theory_map(
       { "RDL", { "RA" } },
       { "UF", { "UF" } } });
 
+// maps logic string to vector of associated SortKinds for that logic
+const unordered_map<string, vector<SortKind>> logic_sortkind_map(
+    { { "A", { ARRAY } },
+      { "AX", { ARRAY } },
+      { "BV", { BV } },
+      { "IDL", { INT } },
+      { "LIA", { INT } },
+      { "LIRA", { INT, REAL } },
+      { "LRA", { REAL } },
+      { "NIA", { INT } },
+      { "NIRA", { INT, REAL } },
+      { "NRA", { REAL } },
+      { "RDL", { REAL } },
+      { "UF", { FUNCTION } } });
+
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),
+      logic_("UNSET"),
       def_arg_prefix_("__defvar_"),
       // logic always includes core theory
       primops_(strict_theory2opmap.at("Core"))
@@ -68,6 +84,7 @@ int SmtLibReader::parse(const std::string & f)
 void SmtLibReader::set_logic(const string & logic)
 {
   solver_->set_logic(logic);
+  logic_ = logic;
 
   // process logic to get available operator symbols
   string processed_logic = logic;
@@ -100,6 +117,13 @@ void SmtLibReader::set_logic(const string & logic)
 
         processed_logic =
             processed_logic.substr(len, processed_logic.length() - len);
+
+        // should also be in logic_sortkind_map
+        assert(logic_sortkind_map.find(sub) != logic_sortkind_map.end());
+        for (const SortKind sk : logic_sortkind_map.at(sub))
+        {
+          sortkinds_[smt::to_string(sk)] = sk;
+        }
         break;
       }
     }
@@ -264,6 +288,17 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str)
   }
 }
 
+SortKind SmtLibReader::lookup_sortkind(const std::string & str)
+{
+  SortKind sk = NUM_SORT_KINDS;
+  auto it = sortkinds_.find(str);
+  if (it != sortkinds_.end())
+  {
+    sk = it->second;
+  }
+  return sk;
+}
+
 void SmtLibReader::define_fun(const string & name,
                               const Term & def,
                               const TermVec & args)
@@ -348,7 +383,12 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
 
 void SmtLibReader::define_sort(const string & name, const Sort & sort)
 {
-  if (defined_sorts_.find(name) != defined_sorts_.end())
+  if (sortkinds_.find(name) != sortkinds_.end())
+  {
+    throw IncorrectUsageException("Cannot define sort " + name + " in logic "
+                                  + logic_);
+  }
+  else if (defined_sorts_.find(name) != defined_sorts_.end())
   {
     throw SmtException("Cannot re-define sort with name " + name);
   }
