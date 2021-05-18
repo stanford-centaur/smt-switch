@@ -31,12 +31,14 @@ namespace smt_tests {
 
 class SortingNetworkTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+      public ::testing::WithParamInterface<tuple<SolverConfiguration, size_t>>
 {
  protected:
   void SetUp() override
   {
-    solver = create_solver(GetParam());
+    auto params = GetParam();
+    solver = create_solver(get<0>(params));
+    NUM_VARS = get<1>(params);
     solver->set_opt("produce-models", "true");
     solver->set_opt("incremental", "true");
     boolsort = solver->make_sort(BOOL);
@@ -48,7 +50,7 @@ class SortingNetworkTests
   SmtSolver solver;
   Sort boolsort;
   TermVec boolvec;
-  size_t NUM_VARS = 8;
+  size_t NUM_VARS;
 };
 
 TEST_P(SortingNetworkTests, TestSortingNetwork)
@@ -98,6 +100,8 @@ TEST_P(SortingNetworkTests, TestSortingNetwork)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverSortingNetworkTests,
     SortingNetworkTests,
-    testing::ValuesIn(available_non_generic_solver_configurations()));
+    testing::Combine(
+        testing::ValuesIn(available_non_generic_solver_configurations()),
+        testing::Values(3, 6, 8)));
 
 }  // namespace smt_tests

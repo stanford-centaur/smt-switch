@@ -123,6 +123,13 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
   if (sorted1_is_even && sorted2_is_even)
   {
+    assert(len_res_even == len_res_odd);
+    // if both inputs were even, they have same number of elements
+    // need to interleave and compare all inner elements
+    // the first odd result and last even result have already
+    // been compared via the base case of merge (two length 1
+    // lists)
+
     Term first_res_odd = res_odd[0];
     res.push_back(first_res_odd);
     for (size_t i = 0; i < len_res_odd - 1; ++i)
@@ -138,6 +145,12 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
   }
   else if (sorted1_is_even && !sorted2_is_even)
   {
+    assert(len_res_even + 1 == len_res_odd);
+    // if first element was even and second was odd,
+    //   then there's one extra element in the merged
+    //   odd list
+    // the first odd element has already been fully
+    //   processed down to the base case of merge
     Term first_res_odd = res_odd[0];
     res.push_back(first_res_odd);
     for (size_t i = 0; i < len_res_even; ++i)
@@ -150,6 +163,14 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
   }
   else if (!sorted1_is_even && !sorted2_is_even)
   {
+    assert(len_res_even + 2 == len_res_odd);
+    // if both inputs were odd, then there are
+    // two more elements in the odd merged list
+    // the first and last elements have already
+    // been fully processed down to the base
+    // case of merge
+    // the rest need to be merged with the even
+    // merged list
     Term first_res_odd = res_odd[0];
     Term last_res_odd = res_odd.back();
 
