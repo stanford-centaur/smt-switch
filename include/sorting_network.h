@@ -22,9 +22,9 @@ namespace smt {
 /** \class SortingNetwork
  *         Implements a symbolic sorting network for boolean-sorted variables.
  *         All methods are const so it can be re-used for terms from the same
- *         solver.
- *         Does not return the actual terms, but is used to determine how many
- *         variables are assigned to true symbolically.
+ *          solver.
+ *         Returns a vector of new terms, which can be used to determine how
+ *          many variables are assigned to true symbolically.
  *         Definition:
  *            A sorting network takes a list of boolean terms
  *             and returns a list of the same length.
