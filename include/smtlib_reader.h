@@ -85,7 +85,20 @@ class UnorderedScopedSymbolMap
     symbols_.pop_back();
   }
 
-  smt::Term get_symbol(const std::string & sym) { return symbol_map_.at(sym); }
+  /** Looks up symbol in the symbol map
+   *  @param sym the symbol to look up
+   *  @return the associated term or null pointer if not in map
+   */
+  smt::Term get_symbol(const std::string & sym)
+  {
+    Term res;
+    auto it = symbol_map_.find(sym);
+    if (it != symbol_map_.end())
+    {
+      res = it->second;
+    }
+    return res;
+  }
 
  private:
   std::vector<std::unordered_set<std::string>> symbols_;
@@ -95,7 +108,14 @@ class UnorderedScopedSymbolMap
 class SmtLibReader
 {
  public:
-  SmtLibReader(smt::SmtSolver & solver);
+  /**
+   *  Constructs an SmtLibReader which will exercise
+   *  the given solver
+   *  @param solver the solver to use
+   *  @param strict if set to true strictly interprets SMT-LIB semantics
+   *         otherwise allows non-standard operators
+   */
+  SmtLibReader(smt::SmtSolver & solver, bool strict = false);
 
   int parse(const std::string & f);
   // The name of the file being parsed.
@@ -134,6 +154,8 @@ class SmtLibReader
   yy::location & location() { return location_; }
 
   smt::SmtSolver & solver() { return solver_; }
+
+  bool is_strict() const { return strict_; }
 
   /** Pushes a scope for a new quantifier binding or define-fun arguments
    */
@@ -239,6 +261,11 @@ class SmtLibReader
   yy::location location_;
 
   smt::SmtSolver solver_;
+
+  bool strict_;
+
+  std::unordered_map<std::string, smt::PrimOp>
+      primops_;  ///< available primops with current logic
 
   std::unordered_map<std::string, smt::Term>
       all_symbols_;  ///< remembers all symbolic constants

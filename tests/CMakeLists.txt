@@ -82,4 +82,8 @@ switch_add_test(test-unsat-core)
 switch_add_test(test-unsat-core-reducer)
 switch_add_test(test-variadic-ops)
 
+if (SMTLIB_READER)
+  switch_add_test(test-smtlib-reader)
+endif()
+
 add_subdirectory(unit)

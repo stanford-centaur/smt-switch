@@ -19,6 +19,8 @@ if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
+add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
+
 set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
