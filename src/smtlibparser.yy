@@ -70,7 +70,6 @@ using namespace std;
        DEFINEFUN DEFINESORT ASSERT CHECKSAT
        CHECKSATASSUMING PUSH POP EXIT GETVALUE
        GETUNSATASSUMP ECHO
-%token BOOL INT REAL BITVEC ARRAY
 %token ASCONST LET
 %token <std::string> KEYWORD
 %token <std::string> QUANTIFIER
@@ -352,29 +351,46 @@ bvconst:
 ;
 
 sort:
-   BOOL
+   SYMBOL
    {
-     $$ = drv.solver()->make_sort(smt::BOOL);
+     smt::Sort res;
+     // check built-in sort kinds first
+     smt::SortKind sk = drv.lookup_sortkind($1);
+     if (sk == smt::NUM_SORT_KINDS)
+     {
+       // got the dedicated null enum
+       // check defined sorts
+       res = drv.lookup_sort($1);
+     }
+     else
+     {
+       res = drv.solver()->make_sort(sk);
+     }
+     $$ = res;
    }
-   | INT
+   | indprefix SYMBOL NAT RP
    {
-     $$ = drv.solver()->make_sort(smt::INT);
+     // this one is intended for bit-vectors
+     smt::SortKind sk = drv.lookup_sortkind($2);
+     if (sk == smt::NUM_SORT_KINDS)
+     {
+       // got dedicated null enum
+       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
+       YYERROR;
+     }
+     $$ = drv.solver()->make_sort(sk, std::stoi($3));
    }
-   | REAL
+   | LP SYMBOL sort sort RP
    {
-     $$ = drv.solver()->make_sort(smt::REAL);
-   }
-   | indprefix BITVEC NAT RP
-   {
-     $$ = drv.solver()->make_sort(smt::BV, std::stoi($3));
-   }
-   | LP ARRAY sort sort RP
-   {
-     $$ = drv.solver()->make_sort(smt::ARRAY, $3, $4);
-   }
-   | SYMBOL
-   {
-     $$ = drv.lookup_sort($1);
+     // this one is intended for arrays
+     smt::SortKind sk = drv.lookup_sortkind($2);
+     if (sk == smt::NUM_SORT_KINDS)
+     {
+       // got dedicated null enum
+       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
+       YYERROR;
+     }
+     $$ = drv.solver()->make_sort(sk, $3, $4);
    }
 ;
 
