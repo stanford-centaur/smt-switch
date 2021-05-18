@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Implements a symbolic sorting network for boolean-sorted variables.
+** \brief Implements a symbolic sorting network for boolean-sorted terms.
 **
 **/
 
