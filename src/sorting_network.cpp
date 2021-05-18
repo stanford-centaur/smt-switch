@@ -50,29 +50,6 @@ TermVec SortingNetwork::sorting_network(const TermVec & unsorted) const
   return sorting_network_rec(unsorted);
 }
 
-TermVec SortingNetwork::sorting_network_rec(const TermVec & unsorted) const
-{
-  size_t len = unsorted.size();
-  if (len == 1)
-  {
-    return unsorted;
-  }
-  else if (len == 2)
-  {
-    return sort_two(unsorted[0], unsorted[1]);
-  }
-
-  size_t pivot = len / 2;
-  auto begin = unsorted.begin();
-  TermVec left_vec(begin, begin + pivot);
-  TermVec right_vec(begin + pivot, unsorted.end());
-
-  TermVec left_res = sorting_network_rec(left_vec);
-  TermVec right_res = sorting_network_rec(right_vec);
-
-  return merge(left_res, right_res);
-}
-
 TermVec SortingNetwork::sort_two(const Term & t1, const Term & t2) const
 {
   return { solver_->make_term(Or, t1, t2), solver_->make_term(And, t1, t2) };
@@ -194,6 +171,31 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
   assert(res.size() == len1 + len2);
   return res;
+}
+
+// protected methods
+
+TermVec SortingNetwork::sorting_network_rec(const TermVec & unsorted) const
+{
+  size_t len = unsorted.size();
+  if (len == 1)
+  {
+    return unsorted;
+  }
+  else if (len == 2)
+  {
+    return sort_two(unsorted[0], unsorted[1]);
+  }
+
+  size_t pivot = len / 2;
+  auto begin = unsorted.begin();
+  TermVec left_vec(begin, begin + pivot);
+  TermVec right_vec(begin + pivot, unsorted.end());
+
+  TermVec left_res = sorting_network_rec(left_vec);
+  TermVec right_res = sorting_network_rec(right_vec);
+
+  return merge(left_res, right_res);
 }
 
 }  // namespace smt

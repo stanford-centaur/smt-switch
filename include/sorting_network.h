@@ -33,8 +33,12 @@ namespace smt {
  *             of boolean terms, y := [y0, ..., yk] such that
  *             any model assigns yi to true iff i or more
  *             elements of x were set to true in that model.
- *            Thus, ignoring the edge cases, Nt = n iff
+ *            Let Nt be the number of elements of x set to
+ *             true in a given model.
+ *            Ignoring the edge cases, in a given model, Nt = n iff
  *             yn is true and y{n+1} is false
+ *            The edge case is at Nt = k, since there is no y{k+1}
+ *             In this case, yk is true iff Nt = k
  *
  *         Example 1:
  *            if the input is [x0, x1]
@@ -44,9 +48,11 @@ namespace smt {
  *            to true iff both evaluate to true
  *         Example 2:
  *            if the input is [x0, x1, x2, x3]
- *            then the model values for each element in the sorting network
- *            output for any model that sets 3 of them to true and 1 to false
- *            would be [true, true, true, false]. Note that these are the model values, not the terms that will be returned from the function.
+ *             then the model values for each element in the sorting network
+ *             output for any model that sets 3 of them to true and 1 to false
+ *             would be [true, true, true, false].
+ *            Note that these are the model values, not the terms that will
+ *             be returned from the function.
  */
 class SortingNetwork
 {
@@ -59,13 +65,6 @@ class SortingNetwork
    *  @return the (symbolic) sorting network output
    */
   TermVec sorting_network(const TermVec & unsorted) const;
-
-  /** Sorts vectors recursively
-   *  Used as helper function for sorting_network
-   *  @param unsorted a vector of boolean terms
-   *  @param symbolically sorted output
-   */
-  TermVec sorting_network_rec(const TermVec & unsorted) const;
 
   /** Return symbolic sorting for two terms
    *  @param t1 the first term
@@ -83,6 +82,14 @@ class SortingNetwork
 
  protected:
   const SmtSolver & solver_;
+
+  /** Sorts vectors recursively
+   *  Used as helper function for sorting_network
+   *  @param unsorted a vector of boolean terms
+   *  @param symbolically sorted output
+   */
+  TermVec sorting_network_rec(const TermVec & unsorted) const;
+
 };
 
 }  // namespace smt
