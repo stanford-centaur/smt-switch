@@ -24,9 +24,27 @@ using namespace std;
 
 namespace smt {
 
-SmtLibReader::SmtLibReader(smt::SmtSolver & solver)
+// maps logic string to vector of theories included in the logic
+const unordered_map<string, vector<string>> logic_map(
+    { { "A", { "A" } },
+      { "AX", { "A" } },
+      { "BV", { "BV" } },
+      { "IDL", { "IA" } },
+      { "LIA", { "IA" } },
+      { "LIRA", { "IA", "RA", "IRA" } },
+      { "LRA", { "RA" } },
+      { "NIA", { "IA" } },
+      { "NIRA", { "IA", "RA", "IRA" } },
+      { "NRA", { "RA" } },
+      { "RDL", { "RA" } },
+      { "UF", { "UF" } } });
+
+SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
-      def_arg_prefix_("__defvar_")
+      strict_(strict),
+      def_arg_prefix_("__defvar_"),
+      // logic always includes core theory
+      primops_(strict_theory2opmap.at("Core"))
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
@@ -50,6 +68,72 @@ int SmtLibReader::parse(const std::string & f)
 void SmtLibReader::set_logic(const string & logic)
 {
   solver_->set_logic(logic);
+
+  // process logic to get available operator symbols
+  string processed_logic = logic;
+  if (processed_logic.substr(0, 3) == "QF_")
+  {
+    // parser doesn't distinguish -- let solver complain
+    // if using quantifiers in quantifier-free logic
+    processed_logic = processed_logic.substr(3, processed_logic.length() - 3);
+  }
+
+  unordered_set<string> theories;
+  size_t logic_size;
+  while (logic_size = processed_logic.size())
+  {
+    // all existing theories have abbreviations of length 4 or shorter
+    for (size_t len = 1; len <= 4; len++)
+    {
+      string sub = processed_logic.substr(0, len);
+      if (logic_map.find(sub) != logic_map.end())
+      {
+        // add operators for this theory
+        for (const auto & theory : logic_map.at(sub))
+        {
+          theories.insert(theory);
+          for (const auto & elem : strict_theory2opmap.at(theory))
+          {
+            primops_.insert(elem);
+          }
+        }
+
+        processed_logic =
+            processed_logic.substr(len, processed_logic.length() - len);
+        break;
+      }
+    }
+
+    if (processed_logic.size() == logic_size)
+    {
+      throw SmtException("Failed to interpret logic: " + logic);
+    }
+  }
+
+  if (!strict_)
+  {
+    // add non-strict operators
+    bool bv_theory = theories.find("BV") != theories.end();
+    bool int_theory = theories.find("IA") != theories.end();
+    vector<string> theory_combs;
+
+    if (int_theory)
+    {
+      theory_combs.push_back("IA");
+    }
+    if (int_theory && bv_theory)
+    {
+      theory_combs.push_back("BVIA");
+    }
+
+    for (const auto & comb : theory_combs)
+    {
+      for (const auto & elem : nonstrict_theory2opmap.at(comb))
+      {
+        primops_.insert(elem);
+      }
+    }
+  }
 }
 
 void SmtLibReader::set_opt(const string & key, const string & val)
@@ -129,48 +213,35 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   {
     // check scoped variables before global symbols
     // shadowing semantics
-    try
+    symbol_term = arg_param_map_.get_symbol(sym);
+    if (symbol_term)
     {
-      return arg_param_map_.get_symbol(sym);
-    }
-    catch (std::out_of_range & e)
-    {
-      ;
+      return symbol_term;
     }
   }
 
   assert(!symbol_term);
-  try
-  {
-    return global_symbols_.get_symbol(sym);
-  }
-  catch (std::out_of_range & e)
-  {
-    ;
-  }
+  symbol_term = global_symbols_.get_symbol(sym);
   return symbol_term;
 }
 
 void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 {
-  try
+  if (global_symbols_.get_symbol(name))
   {
-    Term t = global_symbols_.get_symbol(name);
     throw SmtException("Re-declaring symbol: " + name);
   }
-  catch (std::out_of_range & e)
+
+  auto it = all_symbols_.find(name);
+  if (it != all_symbols_.end())
   {
-    auto it = all_symbols_.find(name);
-    if (it != all_symbols_.end())
+    if (it->second->get_sort() != sort)
     {
-      if (it->second->get_sort() != sort)
-      {
-        throw SmtException("Current Limitation: cannot re-declare symbol "
-                           + name + " with a different sort");
-      }
-      global_symbols_.add_mapping(name, it->second);
-      return;
+      throw SmtException("Current Limitation: cannot re-declare symbol " + name
+                         + " with a different sort");
     }
+    global_symbols_.add_mapping(name, it->second);
+    return;
   }
 
   Term fresh_symbol = solver_->make_symbol(name, sort);
@@ -180,7 +251,17 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
 {
-  return str2primop.at(str);
+  auto it = primops_.find(str);
+  if (it != primops_.end())
+  {
+    return it->second;
+  }
+  else
+  {
+    // returning null because not in set of operators
+    // (at least for the logic that was set)
+    return NUM_OPS_AND_NULL;
+  }
 }
 
 void SmtLibReader::define_fun(const string & name,
