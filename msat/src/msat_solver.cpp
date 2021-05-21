@@ -134,11 +134,6 @@ void MsatSolver::set_opt(const string option, const string value)
   // passing the logic and options to the solver up front (on creation)
   // might make more sense for the API
 
-  if (!env_uninitialized)
-  {
-    throw IncorrectUsageException("Must set options before using solver.");
-  }
-
   if (option == "incremental" || option == "produce-unsat-assumptions")
   {
     if (value == "false")
@@ -148,6 +143,11 @@ void MsatSolver::set_opt(const string option, const string value)
            << " is always enabled in MathSAT backend -- cannot be disabled" << endl;
     }
     return;
+  }
+
+  if (!env_uninitialized)
+  {
+    throw IncorrectUsageException("Must set options before using solver.");
   }
 
   string msat_option = option;
