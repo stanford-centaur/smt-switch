@@ -113,6 +113,10 @@ class Z3Solver : public AbsSmtSolver
                   const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
+  // getters for solver-specific objects (EXPERTS ONLY)
+  z3::context * get_z3_context() { return &ctx; }
+  z3::solver get_z3_solver() { return slv; }
+
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
