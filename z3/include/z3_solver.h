@@ -115,7 +115,7 @@ class Z3Solver : public AbsSmtSolver
 
   // getters for solver-specific objects (EXPERTS ONLY)
   z3::context * get_z3_context() { return &ctx; }
-  z3::solver get_z3_solver() { return slv; }
+  z3::solver * get_z3_solver() { return &slv; }
 
  protected:
   mutable z3::context ctx;
