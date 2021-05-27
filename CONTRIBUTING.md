@@ -5,7 +5,7 @@ external contributions are subject to the following terms:
 * Pull requests must be squashed into a single commit before being submitted and
   must be signed using `git commit -s`
 * By submitting a signed contribution, you agree to all the terms of the
-  3-clause BSD license (see [./LICENSE])
+  3-clause BSD license (see [LICENSE](./LICENSE))
 * But submitting a signed contribution, you agree that the [Developer
   Certificate of Origin](https://developercertificate.org/) (reproduced below)
   applies to your contribution.
