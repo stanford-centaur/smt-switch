@@ -1,0 +1,23 @@
+Thanks to:
+
+* Keyi Zhang of Stanford University for adding the Python wheels distribution
+  and PyPi upload infrastructure.
+
+* Hongce Zhang of Princeton University for the addition of an unsat core
+  reduction function.
+
+* Bart van Helvert of JetBrains for an improvement to the handling of the
+  distinct operator in the Yices2 backend.
+
+* Andrew V. Jones of VECTOR Informatik for a clarification in the README
+  regarding BSD compliant underlying solvers.
+
+* Kristopher Brown of Stanford University for adding Datatypes support to the
+  CVC4 backend.
+
+* Allison Guman of Columbia University for adding a TreeWalker.
+
+* Thomas Kiley for a code quality improvement.
+
+* Caleb Donovick of Stanford University for adding a PySMT translation module
+  and improvements to the Python bindings setup.py infrastructure.
