@@ -161,3 +161,10 @@ A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of Te
 * Yices2
   * Use a `LoggingSolver` if you need term iteration
   * Yices2 has a different term representation under the hood which cannot easily be converted back to SMT-LIB. Thus, term traversal is currently only supported through a `LoggingSolver`.
+
+## Contributions
+
+We welcome external contributions, please see
+[CONTRIBUTING.md](./CONTRIBUTING.md) for more details. If you are interested in
+becoming a long-term contributor to smt-switch, please contact one of the
+primary authors in [AUTHORS](./AUTHORS)
