@@ -19,6 +19,9 @@ from smt_switch cimport c_SortingNetwork
 
 from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
 from smt_switch cimport get_free_symbols as c_get_free_symbols
+from smt_switch cimport op_partition as c_op_partition
+from smt_switch cimport conjunctive_partition as c_conjunctive_partition
+
 
 
 cdef class Op:
@@ -479,6 +482,41 @@ def get_free_symbols(Term term):
 
     return python_out_set
 
+def op_partition(PrimOp po, Term term):
+    '''
+    Returns a list of nested terms partition by operator po
+
+    Example
+      op_partition(Plus, solver.make_term(Plus, a, solver.make_term(Plus, b, c)))
+      returns: [a, b, c]
+    '''
+
+    cdef c_TermVec out
+    c_op_partition(po.po, term.ct, out)
+
+    python_out_list = []
+    for s in out:
+        t = Term(term._solver)
+        t.ct = s
+        python_out_list.append(t)
+
+    return python_out_list
+
+def conjunctive_partition(Term term, bint include_bvand=False):
+    '''
+    Calls op_partition for And. Also has an option to include BVAnd.
+    '''
+
+    cdef c_TermVec out
+    c_conjunctive_partition(term.ct, out, include_bvand)
+
+    python_out_list = []
+    for s in out:
+        t = Term(term._solver)
+        t.ct = s
+        python_out_list.append(t)
+
+    return python_out_list
 
 class TermDagVisitor(ABC):
     def __init__(self):
