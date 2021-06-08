@@ -15,6 +15,7 @@ from smt_switch cimport c_TermVec
 from smt_switch cimport c_UnorderedTermMap
 from smt_switch cimport c_TermIter
 from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
+from smt_switch cimport c_SortingNetwork
 
 from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
 from smt_switch cimport get_free_symbols as c_get_free_symbols
@@ -127,8 +128,8 @@ cdef class Sort:
     def get_domain_sorts(self):
         sorts = []
 
-        cdef Sort s = Sort(self._solver)
         for cs in dref(self.cs).get_domain_sorts():
+            s = Sort(self._solver)
             s.cs = cs
             sorts.append(s)
 
@@ -420,6 +421,27 @@ cdef class SmtSolver:
         else:
             I.ct = cI
             return I
+
+
+cdef class SortingNetwork:
+    def __cinit__(self, SmtSolver solver):
+        self.csn = new c_SortingNetwork(solver.css)
+        self._solver = solver
+
+    def __dealloc__(self):
+        del self.csn
+
+    def sorting_network(self, list unsorted):
+        cdef c_TermVec ctv
+        for u in unsorted:
+            ctv.push_back((<Term?> u).ct)
+
+        res = []
+        for r in dref(self.csn).sorting_network(ctv):
+            t = Term(self._solver)
+            t.ct = r
+            res.append(t)
+        return res
 
 
 # Utils

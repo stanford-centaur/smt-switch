@@ -66,6 +66,16 @@ class SortingNetwork
    */
   TermVec sorting_network(const TermVec & unsorted) const;
 
+ protected:
+  const SmtSolver & solver_;
+
+  /** Sorts vectors recursively
+   *  Used as helper function for sorting_network
+   *  @param unsorted a vector of boolean terms
+   *  @param symbolically sorted output
+   */
+  TermVec sorting_network_rec(const TermVec & unsorted) const;
+
   /** Return symbolic sorting for two terms
    *  Used as helper in sorting_network_rec and merge
    *  @param t1 the first term
@@ -81,16 +91,6 @@ class SortingNetwork
    *  @return the combined vector
    */
   TermVec merge(const TermVec & sorted1, const TermVec & sorted2) const;
-
- protected:
-  const SmtSolver & solver_;
-
-  /** Sorts vectors recursively
-   *  Used as helper function for sorting_network
-   *  @param unsorted a vector of boolean terms
-   *  @param symbolically sorted output
-   */
-  TermVec sorting_network_rec(const TermVec & unsorted) const;
 
 };
 
