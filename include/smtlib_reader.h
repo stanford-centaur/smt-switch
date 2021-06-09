@@ -273,7 +273,9 @@ class SmtLibReader
 
   bool strict_;
 
-  std::string logic_;
+  std::string logic_;  ///< holds the logic string
+                       ///< starts as a special UNSET
+                       ///< value before set
 
   std::unordered_map<std::string, smt::PrimOp>
       primops_;  ///< available primops with set logic

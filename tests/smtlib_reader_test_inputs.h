@@ -34,4 +34,5 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_uflia_tests({
 });
 
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_ufbv_tests(
-    { { "test-define-sort.smt2", { smt::Result(smt::UNSAT) } } });
+    { { "test-define-sort.smt2", { smt::Result(smt::UNSAT) } },
+      { "test-define-sort-edge-case.smt2", { smt::Result(smt::UNSAT) } } });
