@@ -60,8 +60,7 @@ using namespace std;
 #include "smtlib_reader.h"
 }
 
-%token <std::string> SIMPLESYMBOL
-%token <std::string> PIPESYMBOL
+%token <std::string> SYMBOL
 %token <std::string> NAT
 %token <std::string> FLOAT
 %token <std::string> BITSTR
@@ -82,10 +81,9 @@ RP ")"
 US "_"
 COL ":"
 
-%nterm smt2
 %nterm commands
 %nterm command
-%nterm <std::string> symbol
+%nterm smt2
 %nterm <smt::Term> term_s_expr
 %nterm <smt::TermVec *> term_s_expr_list
 %nterm <smt::Term> atom
@@ -122,11 +120,11 @@ commands:
 ;
 
 command:
-  LP SETLOGIC symbol RP
+  LP SETLOGIC SYMBOL RP
   {
     drv.set_logic($3);
   }
-  | LP SETOPT KEYWORD symbol RP
+  | LP SETOPT KEYWORD SYMBOL RP
   {
     drv.set_opt($3, $4);
   }
@@ -134,11 +132,11 @@ command:
   {
     drv.set_info($3, $4);
   }
-  | LP DECLARECONST symbol sort RP
+  | LP DECLARECONST SYMBOL sort RP
   {
     drv.new_symbol($3, $4);
   }
-  | LP DECLAREFUN symbol LP sort_list RP sort RP
+  | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
   {
     smt::Sort symsort;
     if ($5.size())
@@ -159,7 +157,7 @@ command:
        // new scope for arguments
        drv.push_scope();
      }
-    symbol LP sorted_arg_list RP sort term_s_expr RP
+    SYMBOL LP sorted_arg_list RP sort term_s_expr RP
   {
     drv.define_fun($4, $9, *$6);
 
@@ -167,7 +165,7 @@ command:
     assert(!drv.current_scope());
     delete $6;
   }
-  | LP DEFINESORT symbol LP RP sort RP
+  | LP DEFINESORT SYMBOL LP RP sort RP
   {
     // only supports 0-arity define-sorts
     drv.define_sort($3, $6);
@@ -232,17 +230,6 @@ command:
   }
 ;
 
-symbol:
-  SIMPLESYMBOL
-  {
-    $$ = $1;
-  }
-  | PIPESYMBOL
-  {
-    $$ = $1;
-  }
-;
-
 term_s_expr:
   atom
   {
@@ -253,7 +240,7 @@ term_s_expr:
     $$ = drv.solver()->make_term($2, *$3);
     delete $3;
   }
-  | LP symbol term_s_expr_list RP
+  | LP SYMBOL term_s_expr_list RP
   {
     smt::PrimOp po;
     smt::Term uf;
@@ -334,7 +321,7 @@ term_s_expr_list:
 ;
 
 atom:
-   symbol
+   SYMBOL
    {
       smt::Term sym = drv.lookup_symbol($1);
       if (!sym)
@@ -394,7 +381,7 @@ sort:
    {
      $$ = drv.solver()->make_sort(smt::ARRAY, $3, $4);
    }
-   | symbol
+   | SYMBOL
    {
      $$ = drv.lookup_sort($1);
    }
@@ -419,7 +406,7 @@ sorted_arg_list:
    {
      $$ = new smt::TermVec();
    }
-   | sorted_arg_list LP symbol sort RP
+   | sorted_arg_list LP SYMBOL sort RP
    {
      assert(drv.current_scope());
      smt::Term arg = drv.register_arg($3, $4);
@@ -433,7 +420,7 @@ sorted_param_list:
    {
      $$ = new smt::TermVec();
    }
-   | sorted_param_list LP symbol sort RP
+   | sorted_param_list LP SYMBOL sort RP
    {
      assert(drv.current_scope());
      smt::Term param = drv.create_param($3, $4);
@@ -445,14 +432,14 @@ sorted_param_list:
 let_term_bindings:
    %empty
    {}
-   | let_term_bindings LP symbol term_s_expr RP
+   | let_term_bindings LP SYMBOL term_s_expr RP
    {
      drv.let_binding($3, $4);
    }
 
 
 indexed_op:
-   indprefix symbol NAT RP
+   indprefix SYMBOL NAT RP
    {
      smt::PrimOp po = drv.lookup_primop($2);
      if (po == smt::NUM_OPS_AND_NULL)
@@ -461,7 +448,7 @@ indexed_op:
      }
      $$ = smt::Op(po, std::stoi($3));
    }
-   | indprefix symbol NAT NAT RP
+   | indprefix SYMBOL NAT NAT RP
    {
      smt::PrimOp po = drv.lookup_primop($2);
      if (po == smt::NUM_OPS_AND_NULL)
@@ -481,7 +468,7 @@ stringlit:
    {
      $$ = $1 + $2;
    }
-   | symbol
+   | SYMBOL
    {
      $$ = $1;
    }
@@ -534,7 +521,7 @@ s_expr:
    {
      $$ = $1;
    }
-   | symbol
+   | SYMBOL
    {
      $$ = $1;
    }
@@ -561,7 +548,7 @@ attribute_value:
    {
      $$ = $1;
    }
-   | symbol
+   | SYMBOL
    {
      $$ = $1;
    }
