@@ -124,6 +124,7 @@ Array                 { return yy::parser::make_ARRAY(loc); }
 
 void smt::SmtLibReader::scan_begin ()
 {
+  YY_FLUSH_BUFFER;
   // commented from calc++ example -- could consider adding for debug support
   /* yy_flex_debug = trace_scanning; */
   if (file.empty () || file == "-")
