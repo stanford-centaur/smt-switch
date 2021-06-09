@@ -45,6 +45,7 @@ using namespace std;
 **
 **/
   #include <string>
+  #include <utility>
   #include "smt.h"
 
   namespace smt
@@ -79,6 +80,7 @@ using namespace std;
 LP "("
 RP ")"
 US "_"
+COL ":"
 
 %nterm smt2
 %nterm commands
@@ -102,6 +104,8 @@ US "_"
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
 %nterm <std::string> s_expr_list
+%nterm <std::string> attribute_value
+%nterm <std::pair<std::string, std::string>> attribute
 
 
 %%
@@ -549,6 +553,32 @@ s_expr_list:
    {
      $1 += $2;
      $$ = $1;
+   }
+;
+
+attribute_value:
+   spec_constant
+   {
+     $$ = $1;
+   }
+   | symbol
+   {
+     $$ = $1;
+   }
+   | s_expr
+   {
+     $$ = $1;
+   }
+;
+
+attribute:
+   KEYWORD
+   {
+     $$ = std::make_pair<std::string, std::string>($1, "");
+   }
+   | KEYWORD attribute_value
+   {
+     $$ = std::make_pair<std::string, std::string>($1, $2);
    }
 ;
 
