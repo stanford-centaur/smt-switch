@@ -25,7 +25,7 @@ using namespace std;
 /* can uncomment next line to give debug output during lexing */
 /* %option debug */
 
-symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
+simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %{
   // Code run each time a pattern is matched.
@@ -89,7 +89,7 @@ bv[0-9]+              { yytext=yytext+2; return yy::parser::make_BVDEC(yytext, l
 as[ \t\r\n]+const     { return yy::parser::make_ASCONST(loc); }
 let                   { return yy::parser::make_LET(loc); }
 
-\:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
+\:{simplesymbol}      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
 Bool                  { return yy::parser::make_BOOL(loc); }
 Int                   { return yy::parser::make_INT(loc); }
@@ -114,7 +114,7 @@ Array                 { return yy::parser::make_ARRAY(loc); }
                         yytext[strlen(yytext)-1] = '\0';
                         return yy::parser::make_SYMBOL(yytext, loc);
                       }
-{symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
+{simplesymbol}        { return yy::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }
