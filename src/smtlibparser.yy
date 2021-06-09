@@ -97,6 +97,11 @@ US "_"
 %nterm <std::string> number_or_string
 %nterm indprefix
 
+%nterm <std::string> spec_constant
+%nterm <std::string> s_expr
+%nterm <std::string> s_expr_list
+
+
 %%
 
 smt2:
@@ -492,6 +497,47 @@ indprefix:
    {}
 ;
 
+spec_constant:
+   number_or_string
+   {
+     $$ = $1;
+   }
+   | BITSTR
+   {
+     $$ = $1;
+   }
+   | HEXSTR
+   {
+     $$ = $1;
+   }
+;
+
+s_expr:
+   spec_constant
+   {
+     $$ = $1;
+   }
+   | SYMBOL
+   {
+     $$ = $1;
+   }
+   | LP s_expr_list RP
+   {
+     $$ = "(" + $2 + ")";
+   }
+;
+
+s_expr_list:
+   %empty
+   {
+     $$ = "";
+   }
+   | s_expr_list s_expr
+   {
+     $1 += $2;
+     $$ = $1;
+   }
+;
 
 %%
 
