@@ -25,7 +25,7 @@ using namespace std;
 /* can uncomment next line to give debug output during lexing */
 /* %option debug */
 
-symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
+simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %{
   // Code run each time a pattern is matched.
@@ -112,9 +112,9 @@ Array                 { return yy::parser::make_ARRAY(loc); }
                         // get rid of pipe quotes
                         yytext++;
                         yytext[strlen(yytext)-1] = '\0';
-                        return yy::parser::make_SYMBOL(yytext, loc);
+                        return yy::parser::make_PIPESYMBOL(yytext, loc);
                       }
-{symbol}              { return yy::parser::make_SYMBOL(yytext, loc); }
+{simplesymbol}        { return yy::parser::make_SIMPLESYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return yy::parser::make_YYEOF (loc); }
