@@ -102,7 +102,6 @@ COL ":"
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
 %nterm <std::string> s_expr_list
-%nterm <std::string> attribute_value
 %nterm <std::pair<std::string, std::string>> attribute
 
 
@@ -124,13 +123,15 @@ command:
   {
     drv.set_logic($3);
   }
-  | LP SETOPT KEYWORD SYMBOL RP
+  | LP SETOPT attribute RP
   {
-    drv.set_opt($3, $4);
+    auto attr = $3;
+    drv.set_opt(attr.first, attr.second);
   }
-  | LP SETINFO KEYWORD number_or_string RP
+  | LP SETINFO attribute RP
   {
-    drv.set_info($3, $4);
+    auto attr = $3;
+    drv.set_info(attr.first, attr.second);
   }
   | LP DECLARECONST SYMBOL sort RP
   {
@@ -464,10 +465,6 @@ stringlit:
    {
      $$ = $1;
    }
-   | stringlit QUOTESTRING
-   {
-     $$ = $1 + $2;
-   }
    | SYMBOL
    {
      $$ = $1;
@@ -521,10 +518,6 @@ s_expr:
    {
      $$ = $1;
    }
-   | SYMBOL
-   {
-     $$ = $1;
-   }
    | LP s_expr_list RP
    {
      $$ = "(" + $2 + ")";
@@ -543,29 +536,14 @@ s_expr_list:
    }
 ;
 
-attribute_value:
-   spec_constant
-   {
-     $$ = $1;
-   }
-   | SYMBOL
-   {
-     $$ = $1;
-   }
-   | s_expr
-   {
-     $$ = $1;
-   }
-;
-
 attribute:
    KEYWORD
    {
-     $$ = std::make_pair<std::string, std::string>($1, "");
+     $$ = {$1, ""};
    }
-   | KEYWORD attribute_value
+   | KEYWORD s_expr
    {
-     $$ = std::make_pair<std::string, std::string>($1, $2);
+     $$ = {$1, $2};
    }
 ;
 
