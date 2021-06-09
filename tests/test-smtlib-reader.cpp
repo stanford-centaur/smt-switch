@@ -81,6 +81,10 @@ class IntReaderTests : public ReaderTests
 {
 };
 
+class BVReaderTests : public ReaderTests
+{
+};
+
 TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
 {
   // SMT_SWITCH_DIR is a macro defined at build time
@@ -100,6 +104,25 @@ TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
   }
 }
 
+TEST_P(BVReaderTests, QF_BV_Smt2Files)
+{
+  // SMT_SWITCH_DIR is a macro defined at build time
+  // and should point to the top-level Smt-Switch directory
+  string test = STRFY(SMT_SWITCH_DIR);
+  auto testpair = get<1>(GetParam());
+  test += "/tests/smt2/qf_ufbv/" + testpair.first;
+  reader->parse(test);
+  auto results = reader->get_results();
+  auto expected_results = testpair.second;
+  ASSERT_EQ(results.size(), expected_results.size());
+
+  size_t size = results.size();
+  for (size_t i = 0; i < size; i++)
+  {
+    EXPECT_EQ(results[i], expected_results[i]);
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverIntReaderTests,
     IntReaderTests,
@@ -107,5 +130,12 @@ INSTANTIATE_TEST_SUITE_P(
                          { THEORY_INT })),
                      testing::ValuesIn(qf_uflia_tests.begin(),
                                        qf_uflia_tests.end())));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverBVReaderTests,
+    BVReaderTests,
+    testing::Combine(
+        testing::ValuesIn(available_non_generic_solver_configurations()),
+        testing::ValuesIn(qf_ufbv_tests.begin(), qf_ufbv_tests.end())));
 
 }  // namespace smt_tests

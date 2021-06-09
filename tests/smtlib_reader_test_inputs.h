@@ -32,3 +32,7 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_uflia_tests({
         smt::Result(smt::UNSAT),
         smt::Result(smt::SAT) } },
 });
+
+const std::unordered_map<std::string, std::vector<smt::Result>> qf_ufbv_tests(
+    { { "test-attr.smt2",
+        { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } } });
