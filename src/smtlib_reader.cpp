@@ -183,6 +183,13 @@ void SmtLibReader::pop(uint64_t num)
   solver_->pop(num);
 }
 
+void SmtLibReader::term_attribute(const Term & term,
+                                  const string & keyword,
+                                  const string & value)
+{
+  cout << "Warning: ignoring attribute :" << keyword << " " << value << endl;
+}
+
 void SmtLibReader::push_scope()
 {
   arg_param_map_.push_scope();

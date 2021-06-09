@@ -150,6 +150,17 @@ class SmtLibReader
    */
   virtual void pop(uint64_t num = 1);
 
+  /** Mark a term with an attribute
+   *  This currently is unimplemented and just prints a warning.
+   *  It can be overridden in a derived class to do something
+   *  useful with the attribute
+   *  @param sym the symbol
+   *  @param term the term
+   */
+  virtual void term_attribute(const smt::Term & term,
+                              const std::string & keyword,
+                              const std::string & value);
+
   /* getters and setters  */
   yy::location & location() { return location_; }
 
