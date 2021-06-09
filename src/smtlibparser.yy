@@ -82,8 +82,8 @@ US "_"
 %nterm commands
 %nterm command
 %nterm smt2
-%nterm <smt::Term> s_expr
-%nterm <smt::TermVec *> s_expr_list
+%nterm <smt::Term> term_s_expr
+%nterm <smt::TermVec *> term_s_expr_list
 %nterm <smt::Term> atom
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
@@ -148,7 +148,7 @@ command:
        // new scope for arguments
        drv.push_scope();
      }
-    SYMBOL LP sorted_arg_list RP sort s_expr RP
+    SYMBOL LP sorted_arg_list RP sort term_s_expr RP
   {
     drv.define_fun($4, $9, *$6);
 
@@ -161,7 +161,7 @@ command:
     // only supports 0-arity define-sorts
     drv.define_sort($3, $6);
   }
-  | LP ASSERT s_expr RP
+  | LP ASSERT term_s_expr RP
   {
     drv.assert_formula($3);
   }
@@ -169,7 +169,7 @@ command:
   {
     drv.check_sat();
   }
-  | LP CHECKSATASSUMING LP s_expr_list RP RP
+  | LP CHECKSATASSUMING LP term_s_expr_list RP RP
   {
     drv.check_sat_assuming(*$4);
     delete $4;
@@ -194,7 +194,7 @@ command:
   {
     YYACCEPT;
   }
-  | LP GETVALUE LP s_expr_list RP  RP
+  | LP GETVALUE LP term_s_expr_list RP  RP
   {
     cout << "(";
     for (const auto & t : *$4)
@@ -221,17 +221,17 @@ command:
   }
 ;
 
-s_expr:
+term_s_expr:
   atom
   {
     $$ = $1;
   }
-  | LP indexed_op s_expr_list RP
+  | LP indexed_op term_s_expr_list RP
   {
     $$ = drv.solver()->make_term($2, *$3);
     delete $3;
   }
-  | LP SYMBOL s_expr_list RP
+  | LP SYMBOL term_s_expr_list RP
   {
     smt::PrimOp po;
     smt::Term uf;
@@ -275,7 +275,7 @@ s_expr:
       // mid-rule for incrementing scope
       drv.push_scope();
     }
-    sorted_param_list RP s_expr RP
+    sorted_param_list RP term_s_expr RP
   {
     smt::SmtSolver & solver = drv.solver();
     smt::PrimOp po = drv.lookup_primop($2);
@@ -292,19 +292,19 @@ s_expr:
       // mid-rule for incrementing scope
       drv.push_scope();
     }
-    LP let_term_bindings RP s_expr RP
+    LP let_term_bindings RP term_s_expr RP
   {
     drv.pop_scope();
     $$ = $7;
   }
 ;
 
-s_expr_list:
+term_s_expr_list:
    %empty
    {
      $$ = new smt::TermVec();
    }
-   | s_expr_list s_expr
+   | term_s_expr_list term_s_expr
    {
      $1->push_back($2);
      $$ = $1;
@@ -423,7 +423,7 @@ sorted_param_list:
 let_term_bindings:
    %empty
    {}
-   | let_term_bindings LP SYMBOL s_expr RP
+   | let_term_bindings LP SYMBOL term_s_expr RP
    {
      drv.let_binding($3, $4);
    }
