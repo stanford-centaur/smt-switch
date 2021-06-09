@@ -79,7 +79,7 @@ using namespace std;
 LP "("
 RP ")"
 US "_"
-COL ":"
+EP "!"
 
 %nterm commands
 %nterm command
@@ -307,14 +307,15 @@ term_s_expr:
     drv.pop_scope();
     $$ = $7;
   }
-  | LP "!" term_s_expr attribute RP
+  | LP EP term_s_expr attribute RP
   {
     // the default implementation does nothing
-    // but print a warning
+    // but print a warning to standard error
     // can implement the function in derived class
     // to use the attribute
     auto attr = $4;
     drv.term_attribute($3, attr.first, attr.second);
+    $$ = $3;
   }
 ;
 

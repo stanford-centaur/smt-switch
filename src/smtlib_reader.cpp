@@ -187,7 +187,7 @@ void SmtLibReader::term_attribute(const Term & term,
                                   const string & keyword,
                                   const string & value)
 {
-  cout << "Warning: ignoring attribute :" << keyword << " " << value << endl;
+  cerr << "Warning: ignoring attribute :" << keyword << " " << value << endl;
 }
 
 void SmtLibReader::push_scope()
