@@ -58,6 +58,7 @@ SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),
       logic_("UNSET"),
+      allow_ufs_(false),
       def_arg_prefix_("__defvar_"),
       // logic always includes core theory
       primops_(strict_theory2opmap.at("Core")),
@@ -122,9 +123,20 @@ void SmtLibReader::set_logic(const string & logic)
 
         // should also be in logic_sortkind_map
         assert(logic_sortkind_map.find(sub) != logic_sortkind_map.end());
-        for (const SortKind sk : logic_sortkind_map.at(sub))
+
+        if (sub == "UF")
         {
-          sortkinds_[smt::to_string(sk)] = sk;
+          // special-case for UF, still want to allow sorts
+          // named FUNCTION, so don't add to sortkinds_
+          // instead, just set the allow_ufs_ flag
+          allow_ufs_ = true;
+        }
+        else
+        {
+          for (const SortKind sk : logic_sortkind_map.at(sub))
+          {
+            sortkinds_[smt::to_string(sk)] = sk;
+          }
         }
         break;
       }
@@ -268,6 +280,12 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
     }
     global_symbols_.add_mapping(name, it->second);
     return;
+  }
+
+  if (strict_ && !allow_ufs_ && sort->get_sort_kind() == FUNCTION)
+  {
+    throw IncorrectUsageException("Tried to declare UF, but current logic "
+                                  + logic_ + " does not support UFs");
   }
 
   Term fresh_symbol = solver_->make_symbol(name, sort);

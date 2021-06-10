@@ -277,6 +277,9 @@ class SmtLibReader
                        ///< starts as a special UNSET
                        ///< value before set
 
+  bool allow_ufs_;  ///< set to true if declaring functions
+                    ///< is supported in the set logic
+
   std::unordered_map<std::string, smt::PrimOp>
       primops_;  ///< available primops with set logic
 
