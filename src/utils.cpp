@@ -16,7 +16,8 @@
 
 #include <algorithm>
 #include <random>
-
+#include <map>
+#include <string>
 #include "utils.h"
 #include "ops.h"
 
@@ -194,6 +195,104 @@ bool is_lit(const Term & l, const Sort & boolsort)
 
   return false;
 }
+
+
+
+std::string cnf_to_dimacs(Term cnf){
+   TermVec vecs({cnf});
+   TermVec vecs2;
+   //to separate the clauses
+   while(!vecs.empty()){
+      Term t=vecs.back();
+      vecs.pop_back();
+      smt::Op op=t->get_op();
+      if(op.prim_op==smt::And){
+        for(auto u:t){
+          vecs.push_back(u);
+        }
+      }
+      else{
+        vecs2.push_back(t);
+      }
+   }
+   //To store the literals from each clause
+   std::vector<std::vector<Term>>literals;
+
+   
+
+   for(auto u:vecs2){
+    std::vector<Term>add;
+    std::vector<Term>le({u});
+    while(!le.empty()){
+      Term t=le.back();
+      le.pop_back();
+      smt::Op op=t->get_op();
+      if(op.prim_op==smt::Or){
+        for(auto u:t){
+          le.push_back(u);
+        }
+      }
+      else{
+        add.push_back(t);
+      }
+    }
+    literals.push_back(add);
+   }
+   
+   std::map<std::string, int>ma;
+   int ptr=0;
+
+  
+   //Mapping the symbols to natural numbers
+   for(auto u:literals){
+    for(auto uu:u){
+      if(uu->is_symbolic_const()){
+        if(ma.find(uu->to_string())==ma.end()){
+          ptr++;
+          ma[uu->to_string()]=ptr;
+          
+        }
+      }
+      else{
+        Term t=(*(uu->begin()));
+        if(ma.find(t->to_string())==ma.end()){
+          ptr++;
+          ma[t->to_string()]=ptr;
+          
+        }
+      }
+    }
+   }
+   //printing the output in DIMACS format
+   std::string ret="p cnf ";
+   ret+=std::to_string(ptr);
+   ret+=" ";
+   
+   int sz=literals.size();
+   
+   ret+=std::to_string(sz);
+   ret+="\n";
+   
+  for(auto u:literals){
+    for(auto uu:u){
+      if(uu->is_symbolic_const()){
+        
+        ret+=std::to_string(ma[uu->to_string()]);
+        ret+=" ";
+      }
+      else{
+        Term t=(*(uu->begin()));
+        ret+=std::to_string((-(ma[t->to_string()])));
+        ret+=" ";
+      }
+    }
+    ret+=std::to_string(0);
+    ret+="\n";
+  }
+  return ret;
+}
+
+
 
 // ----------------------------------------------------------------------------
 

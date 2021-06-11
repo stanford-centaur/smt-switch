@@ -156,6 +156,31 @@ TEST_P(UnitUtilIntTests, Oracles)
   }
 }
 
+TEST_P(UnitUtilTests, cnf_to_dimacs)
+{
+  if (s->get_solver_enum() == BTOR || s->get_solver_enum() == BZLA)
+  {
+    // Boolector and Bitwuzla rewrite Ors as Not And
+    // it's equivalent, but cnf will be converted into a non-cnf form and this function uses the specific structure of cnf
+    return;
+  }
+  boolsort = s->make_sort(BOOL);
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term c = s->make_symbol("c", boolsort);
+  Term d = s->make_symbol("d", boolsort);
+  Term clause1 = s->make_term(Or, a, s->make_term(Or, b, s->make_term(Not, c)));
+  Term clause2 = s->make_term(Or, b, s->make_term(Or, s->make_term(Not, c), d));
+  Term clause3 = s->make_term(Or, d, s->make_term(Or, s->make_term(Not, c), a));
+  Term cnf=s->make_term(And, clause1, s->make_term(And, clause2, clause3));
+//The terms in the output string is not in accordance with the order of the input because of how to function is operating on the terms
+//, a dry run will show how the mapping of symbol to integer happens
+ string ret=cnf_to_dimacs(cnf);
+ string ans="p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
+
+ ASSERT_TRUE(ret==ans)<<ret<<endl<<endl<<ans<<endl<<cnf;
+}
+
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,

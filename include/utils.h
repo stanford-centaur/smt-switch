@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include "assert.h"
-
+#include <string>
 #include "smt.h"
 
 #ifndef NDEBUG
@@ -97,6 +97,11 @@ void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
  *  @return true iff l is a literal
  */
 bool is_lit(const Term & l, const Sort & boolsort);
+
+
+std::string cnf_to_dimacs(Term cnf);
+
+//Returns a string in DIMACs format for a given cnf formula
 
 // -----------------------------------------------------------------------------
 
