@@ -244,12 +244,16 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       Term t=le.back();
       le.pop_back();
       smt::Op op=t->get_op();
-      if(op.prim_op==smt::Or){
-        for(auto u:t){
+      
+      if(op.prim_op ==smt::Or){
+
+        for(auto u :t){
+
           le.push_back(u);
         }
       }
       else{
+
         add.push_back(t);
       }
     }
@@ -269,9 +273,11 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
        }
        else if (uu->is_symbolic_const())
        {  // A positive literal
+
          if (ma.find(uu->to_string()) == ma.end())
          {  // Checking if symbol is absent in the mapping done till now
            ptr++;
+
            ma[uu->to_string()] = ptr;
          }
        }
@@ -281,6 +287,7 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
          if (ma.find(t->to_string()) == ma.end())
          {
            ptr++;
+
            ma[t->to_string()] = ptr;
          }
        }
