@@ -16,7 +16,7 @@
 
 #include <utility>
 #include <vector>
-
+#include <sstream>
 #include "utils.h"
 
 #include "available_solvers.h"
@@ -84,6 +84,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
 
 TEST_P(UnitUtilTests, DisjunctivePartition)
 {
+
   if (s->get_solver_enum() == BTOR || s->get_solver_enum() == BZLA)
   {
     // Boolector and Bitwuzla rewrite Ors as Not And
@@ -158,9 +159,9 @@ TEST_P(UnitUtilIntTests, Oracles)
 
 TEST_P(UnitUtilTests, cnf_to_dimacs)
 {
-  if (s->get_solver_enum() == BTOR || s->get_solver_enum() == BZLA)
+  if (s->get_solver_enum() == BZLA || s->get_solver_enum() == BTOR)
   {
-    // Boolector and Bitwuzla rewrite Ors as Not And
+    // Bitwuzla rewrite Ors as Not And
     // it's equivalent, but cnf will be converted into a non-cnf form and this function uses the specific structure of cnf
     return;
   }
@@ -175,10 +176,45 @@ TEST_P(UnitUtilTests, cnf_to_dimacs)
   Term cnf=s->make_term(And, clause1, s->make_term(And, clause2, clause3));
 //The terms in the output string is not in accordance with the order of the input because of how to function is operating on the terms
 //, a dry run will show how the mapping of symbol to integer happens
- string ret=cnf_to_dimacs(cnf);
- string ans="p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
 
- ASSERT_TRUE(ret==ans)<<ret<<endl<<endl<<ans<<endl<<cnf;
+  //Test 1
+
+  ostringstream y;
+ cnf_to_dimacs(cnf, y);
+ string ret=y.str();
+ string ans="p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
+ ASSERT_TRUE(ret==ans)<<ret<<" "<<ans<<endl<<cnf<<endl;
+
+
+ // Test 2
+  Term clause4=a;
+ Term clause5=s->make_term(Not, b);
+ Term clause6=s->make_term(Or, a, b);
+ Term cnf2=s->make_term(And, clause4, s->make_term(And, clause5, clause6));
+ ostringstream y2;
+ cnf_to_dimacs(cnf2, y2);
+ string ret2=y2.str();
+ string ans2="p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
+ASSERT_TRUE(ret2==ans2);
+
+
+
+//Testing an empty cnf
+Term cnf3=s->make_term(true);
+ostringstream y3;
+cnf_to_dimacs(cnf3, y3);
+string ret3=y3.str();
+string ans3="p cnf 0 0\n";
+ASSERT_TRUE(ret3==ans3)<<ret3<<endl<<ans3<<endl;
+
+//Testing empty clause
+Term clause7=s->make_term(false);
+Term cnf4=s->make_term(And, clause5, s->make_term(And, clause7, clause1));
+ostringstream y4;
+cnf_to_dimacs(cnf4, y4);
+string ret4=y4.str();
+string ans4="p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
+ASSERT_TRUE(ret4==ans4)<<ret4<<endl<<cnf4<<endl;
 }
 
 

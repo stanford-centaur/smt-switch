@@ -17,6 +17,7 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include "assert.h"
 #include <string>
 #include "smt.h"
@@ -99,7 +100,7 @@ void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
 bool is_lit(const Term & l, const Sort & boolsort);
 
 
-std::string cnf_to_dimacs(Term cnf);
+void cnf_to_dimacs(Term cnf, std::ostringstream& y);
 
 //Returns a string in DIMACs format for a given cnf formula
 

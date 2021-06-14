@@ -15,6 +15,7 @@
 **/
 
 #include <algorithm>
+#include <sstream>
 #include <random>
 #include <map>
 #include <string>
@@ -198,10 +199,16 @@ bool is_lit(const Term & l, const Sort & boolsort)
 
 
 
-std::string cnf_to_dimacs(Term cnf){
+void cnf_to_dimacs(Term cnf, std::ostringstream& y){
+  if(cnf->is_value() && cnf->to_string()=="true"){//empty cnf formula
+    y<<"p cnf 0 0\n";
+    return;
+  }
    TermVec vecs({cnf});
    TermVec vecs2;
-   //to separate the clauses
+   //This while loop separate the clauses, vecs2 will contain all clauses because every smt::and op will be eliminated. 
+   //This happens because until smt::and op is not detected that term is added back to vecs, 
+   //and as no term with smt::or as the primOp is touched all clauses shall be separated and be intact
    while(!vecs.empty()){
       Term t=vecs.back();
       vecs.pop_back();
@@ -215,15 +222,13 @@ std::string cnf_to_dimacs(Term cnf){
         vecs2.push_back(t);
       }
    }
-   //To store the literals from each clause
+   //Storing literals from each clause, each vector in literals will contain the literals from a clause
    std::vector<std::vector<Term>>literals;
-
-   
 
    for(auto u:vecs2){
     std::vector<Term>add;
     std::vector<Term>le({u});
-    while(!le.empty()){
+    while(!le.empty()){//This while loop functions in the same way as above and eliminates smt::or by separating the literals
       Term t=le.back();
       le.pop_back();
       smt::Op op=t->get_op();
@@ -239,21 +244,24 @@ std::string cnf_to_dimacs(Term cnf){
     literals.push_back(add);
    }
    
-   std::map<std::string, int>ma;
-   int ptr=0;
+   std::map<std::string, int>ma;//This map will create a mapping from symbols to distinct contiguous integer values.
+   int ptr=0;//pointer to store the next integer used in mapping
 
   
-   //Mapping the symbols to natural numbers
+   
    for(auto u:literals){
-    for(auto uu:u){
-      if(uu->is_symbolic_const()){
-        if(ma.find(uu->to_string())==ma.end()){
+    for(auto uu:u){//Using literals from all the clauses to create the mapping
+      if(uu->is_value()){//For an empty clause, which will just contain the term "false"
+
+      }
+      else if(uu->is_symbolic_const()){//A positive literal
+        if(ma.find(uu->to_string())==ma.end()){//Checking if symbol is absent in the mapping done till now
           ptr++;
           ma[uu->to_string()]=ptr;
           
         }
       }
-      else{
+      else{//A negative literal
         Term t=(*(uu->begin()));
         if(ma.find(t->to_string())==ma.end()){
           ptr++;
@@ -264,32 +272,33 @@ std::string cnf_to_dimacs(Term cnf){
     }
    }
    //printing the output in DIMACS format
-   std::string ret="p cnf ";
-   ret+=std::to_string(ptr);
-   ret+=" ";
+   y<<"p cnf ";
+   y<<ptr;//number of distinct symbols
+   y<<" ";
    
    int sz=literals.size();
    
-   ret+=std::to_string(sz);
-   ret+="\n";
+   y<<sz;//number of clauses
+   y<<"\n";
    
   for(auto u:literals){
     for(auto uu:u){
-      if(uu->is_symbolic_const()){
-        
-        ret+=std::to_string(ma[uu->to_string()]);
-        ret+=" ";
+      if(uu->is_value()){//For an empty clause
+
+      }
+      else if(uu->is_symbolic_const()){
+        y<<(ma[uu->to_string()]);//Positive number for a positive literal
+        y<<" ";
       }
       else{
         Term t=(*(uu->begin()));
-        ret+=std::to_string((-(ma[t->to_string()])));
-        ret+=" ";
+        y<<((-(ma[t->to_string()])));//Negative number for a negative literal
+        y<<" ";
       }
     }
-    ret+=std::to_string(0);
-    ret+="\n";
+    y<<0;//Symbolizing end of line
+    y<<"\n";
   }
-  return ret;
 }
 
 
