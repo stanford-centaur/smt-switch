@@ -310,8 +310,8 @@ term_s_expr:
   | LP EP term_s_expr attribute RP
   {
     // the default implementation does nothing
-    // but print a warning to standard error
-    // can implement the function in derived class
+    // but print a warning to standard error.
+    // it is possible to implement the function in derived class
     // to use the attribute
     auto attr = $4;
     drv.term_attribute($3, attr.first, attr.second);
