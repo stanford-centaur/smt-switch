@@ -25,7 +25,7 @@ using namespace std;
 namespace smt {
 
 // maps logic string to vector of theories included in the logic
-const unordered_map<string, vector<string>> logic_map(
+const unordered_map<string, vector<string>> logic_theory_map(
     { { "A", { "A" } },
       { "AX", { "A" } },
       { "BV", { "BV" } },
@@ -39,12 +39,31 @@ const unordered_map<string, vector<string>> logic_map(
       { "RDL", { "RA" } },
       { "UF", { "UF" } } });
 
+// maps logic string to vector of associated SortKinds for that logic
+const unordered_map<string, vector<SortKind>> logic_sortkind_map(
+    { { "A", { ARRAY } },
+      { "AX", { ARRAY } },
+      { "BV", { BV } },
+      { "IDL", { INT } },
+      { "LIA", { INT } },
+      { "LIRA", { INT, REAL } },
+      { "LRA", { REAL } },
+      { "NIA", { INT } },
+      { "NIRA", { INT, REAL } },
+      { "NRA", { REAL } },
+      { "RDL", { REAL } },
+      { "UF", { FUNCTION } } });
+
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),
+      logic_("UNSET"),
+      allow_ufs_(false),
       def_arg_prefix_("__defvar_"),
       // logic always includes core theory
-      primops_(strict_theory2opmap.at("Core"))
+      primops_(strict_theory2opmap.at("Core")),
+      // always have sort Bool available
+      sortkinds_({ { "Bool", BOOL } })
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
@@ -68,6 +87,7 @@ int SmtLibReader::parse(const std::string & f)
 void SmtLibReader::set_logic(const string & logic)
 {
   solver_->set_logic(logic);
+  logic_ = logic;
 
   // process logic to get available operator symbols
   string processed_logic = logic;
@@ -86,10 +106,10 @@ void SmtLibReader::set_logic(const string & logic)
     for (size_t len = 1; len <= 4; len++)
     {
       string sub = processed_logic.substr(0, len);
-      if (logic_map.find(sub) != logic_map.end())
+      if (logic_theory_map.find(sub) != logic_theory_map.end())
       {
         // add operators for this theory
-        for (const auto & theory : logic_map.at(sub))
+        for (const auto & theory : logic_theory_map.at(sub))
         {
           theories.insert(theory);
           for (const auto & elem : strict_theory2opmap.at(theory))
@@ -100,6 +120,24 @@ void SmtLibReader::set_logic(const string & logic)
 
         processed_logic =
             processed_logic.substr(len, processed_logic.length() - len);
+
+        // should also be in logic_sortkind_map
+        assert(logic_sortkind_map.find(sub) != logic_sortkind_map.end());
+
+        if (sub == "UF")
+        {
+          // special-case for UF, still want to allow sorts
+          // named FUNCTION, so don't add to sortkinds_
+          // instead, just set the allow_ufs_ flag
+          allow_ufs_ = true;
+        }
+        else
+        {
+          for (const SortKind sk : logic_sortkind_map.at(sub))
+          {
+            sortkinds_[smt::to_string(sk)] = sk;
+          }
+        }
         break;
       }
     }
@@ -251,6 +289,12 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
     return;
   }
 
+  if (strict_ && !allow_ufs_ && sort->get_sort_kind() == FUNCTION)
+  {
+    throw IncorrectUsageException("Tried to declare UF, but current logic "
+                                  + logic_ + " does not support UFs");
+  }
+
   Term fresh_symbol = solver_->make_symbol(name, sort);
   global_symbols_.add_mapping(name, fresh_symbol);
   all_symbols_[name] = fresh_symbol;
@@ -269,6 +313,17 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str)
     // (at least for the logic that was set)
     return NUM_OPS_AND_NULL;
   }
+}
+
+SortKind SmtLibReader::lookup_sortkind(const std::string & str)
+{
+  SortKind sk = NUM_SORT_KINDS;
+  auto it = sortkinds_.find(str);
+  if (it != sortkinds_.end())
+  {
+    sk = it->second;
+  }
+  return sk;
 }
 
 void SmtLibReader::define_fun(const string & name,
@@ -355,7 +410,12 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
 
 void SmtLibReader::define_sort(const string & name, const Sort & sort)
 {
-  if (defined_sorts_.find(name) != defined_sorts_.end())
+  if (sortkinds_.find(name) != sortkinds_.end())
+  {
+    throw IncorrectUsageException("Cannot define sort " + name + " in logic "
+                                  + logic_);
+  }
+  else if (defined_sorts_.find(name) != defined_sorts_.end())
   {
     throw SmtException("Cannot re-define sort with name " + name);
   }

@@ -81,7 +81,7 @@ class IntReaderTests : public ReaderTests
 {
 };
 
-class BVReaderTests : public ReaderTests
+class BitVecReaderTests : public ReaderTests
 {
 };
 
@@ -104,7 +104,7 @@ TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
   }
 }
 
-TEST_P(BVReaderTests, QF_BV_Smt2Files)
+TEST_P(BitVecReaderTests, QF_UFBV_Smt2Files)
 {
   // SMT_SWITCH_DIR is a macro defined at build time
   // and should point to the top-level Smt-Switch directory
@@ -132,8 +132,8 @@ INSTANTIATE_TEST_SUITE_P(
                                        qf_uflia_tests.end())));
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverBVReaderTests,
-    BVReaderTests,
+    ParameterizedSolverBitVecReaderTests,
+    BitVecReaderTests,
     testing::Combine(
         testing::ValuesIn(available_non_generic_solver_configurations()),
         testing::ValuesIn(qf_ufbv_tests.begin(), qf_ufbv_tests.end())));
