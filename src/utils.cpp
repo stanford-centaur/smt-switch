@@ -241,19 +241,19 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
     while (!le.empty())
     {  // This while loop functions in the same way as above and eliminates
        // smt::or by separating the literals
-      Term t=le.back();
+      Term t = le.back();
       le.pop_back();
-      smt::Op op=t->get_op();
-      
-      if(op.prim_op ==smt::Or){
+      smt::Op op = t->get_op();
 
-        for(auto u :t){
-
+      if(op.prim_op == smt::Or)
+      {
+        for(auto u : t)
+        {
           le.push_back(u);
         }
       }
-      else{
-
+      else
+      {
         add.push_back(t);
       }
     }
@@ -265,7 +265,8 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
             // contiguous integer values.
    int ptr = 0;  // pointer to store the next integer used in mapping
 
-   for(auto u:literals){
+   for(auto u : literals)
+   {
      for (auto uu : u)
      {  // Using literals from all the clauses to create the mapping
        if (uu->is_value())
@@ -273,11 +274,9 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
        }
        else if (uu->is_symbolic_const())
        {  // A positive literal
-
          if (ma.find(uu->to_string()) == ma.end())
          {  // Checking if symbol is absent in the mapping done till now
            ptr++;
-
            ma[uu->to_string()] = ptr;
          }
        }
@@ -287,7 +286,6 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
          if (ma.find(t->to_string()) == ma.end())
          {
            ptr++;
-
            ma[t->to_string()] = ptr;
          }
        }
@@ -298,7 +296,7 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
    y << ptr;  // number of distinct symbols
    y << " ";
 
-   int sz=literals.size();
+   int sz = literals.size();
 
    y << sz;  // number of clauses
    y << "\n";

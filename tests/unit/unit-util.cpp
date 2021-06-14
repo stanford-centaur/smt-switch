@@ -158,11 +158,8 @@ TEST_P(UnitUtilIntTests, Oracles)
 
 TEST_P(UnitUtilTests, cnf_to_dimacs)
 {
-  if (s->get_solver_enum() == BZLA || s->get_solver_enum() == BTOR)
+  if (s->get_solver_enum() != CVC4)
   {
-    // Bitwuzla rewrite Ors as Not And
-    // it's equivalent, but cnf will be converted into a non-cnf form and this
-    // function uses the specific structure of cnf
     return;
   }
   boolsort = s->make_sort(BOOL);
@@ -183,7 +180,9 @@ TEST_P(UnitUtilTests, cnf_to_dimacs)
   cnf_to_dimacs(cnf, y);
   string ret = y.str();
   string ans = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
-  ASSERT_TRUE(ret == ans) << ret << " " << ans << endl << cnf << endl;
+  ASSERT_TRUE(ret == ans) << ret << " " << ans << endl
+                          << cnf << endl
+                          << s->get_solver_enum() << endl;
 
   // Test 2
   Term clause4 = a;
