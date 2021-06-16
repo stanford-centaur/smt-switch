@@ -177,7 +177,7 @@ TEST_P(UnitUtilTests, cnf_to_dimacs)
   // Test 1
 
   ostringstream y;
-  cnf_to_dimacs(cnf, y);
+  cnf_to_dimacs(cnf, y);//cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v a)) 
   string ret = y.str();
   string ans = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
   ASSERT_TRUE(ret == ans) << ret << " " << ans << endl
@@ -190,15 +190,15 @@ TEST_P(UnitUtilTests, cnf_to_dimacs)
   Term clause6 = s->make_term(Or, a, b);
   Term cnf2 = s->make_term(And, clause4, s->make_term(And, clause5, clause6));
   ostringstream y2;
-  cnf_to_dimacs(cnf2, y2);
+  cnf_to_dimacs(cnf2, y2);//cnf2 = ((a) /\ (~b) /\ (a v b))
   string ret2 = y2.str();
   string ans2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
   ASSERT_TRUE(ret2 == ans2);
 
   // Testing an empty cnf
-  Term cnf3 = s->make_term(true);
+  Term cnf3 = s->make_term(true); 
   ostringstream y3;
-  cnf_to_dimacs(cnf3, y3);
+  cnf_to_dimacs(cnf3, y3); //cnf3 = True
   string ret3 = y3.str();
   string ans3 = "p cnf 0 0\n";
   ASSERT_TRUE(ret3 == ans3) << ret3 << endl << ans3 << endl;
@@ -207,7 +207,7 @@ TEST_P(UnitUtilTests, cnf_to_dimacs)
   Term clause7 = s->make_term(false);
   Term cnf4 = s->make_term(And, clause5, s->make_term(And, clause7, clause1));
   ostringstream y4;
-  cnf_to_dimacs(cnf4, y4);
+  cnf_to_dimacs(cnf4, y4); //cnf4 = ((~b) /\ (False) /\ (a v b v ~c)) 
   string ret4 = y4.str();
   string ans4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
   ASSERT_TRUE(ret4 == ans4) << ret4 << endl << cnf4 << endl;

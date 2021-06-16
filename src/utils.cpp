@@ -201,92 +201,99 @@ bool is_lit(const Term & l, const Sort & boolsort)
 
 void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 {
+  Sort sort = cnf->get_sort();
+  assert(sort->get_sort_kind() == BOOL);
   if (cnf->is_value() && cnf->to_string() == "true")
   {  // empty cnf formula
     y << "p cnf 0 0\n";
     return;
   }
-  TermVec vecs({ cnf });
-  TermVec vecs2;
-  // This while loop separate the clauses, vecs2 will contain all clauses
+  TermVec before_and_elimination({ cnf });
+  TermVec after_and_elimination;
+  // This while loop separate the clauses, after_and_elimination will contain all clauses
   // because every smt::and op will be eliminated. This happens because until
-  // smt::and op is not detected that term is added back to vecs, and as no term
+  // smt::and op is not detected that term is added back to before_and_elimination, and as no term
   // with smt::or as the primOp is touched all clauses shall be separated and be
   // intact
-  while (!vecs.empty())
+  while (!before_and_elimination.empty())
   {
-    Term t = vecs.back();
-    vecs.pop_back();
+    Term t = before_and_elimination.back();
+    before_and_elimination.pop_back();
     smt::Op op = t->get_op();
+    std::string ops = op.to_string();
+    assert(ops=="null" || ops=="or" || ops=="and" || ops=="not");
     if (op.prim_op == smt::And)
     {
       for (auto u : t)
       {
-        vecs.push_back(u);
+        before_and_elimination.push_back(u);
       }
     }
     else
     {
-      vecs2.push_back(t);
+      after_and_elimination.push_back(t);
     }
   }
-  // Storing literals from each clause, each vector in literals will contain the
+  // Storing literals from each clause, each vector in clauses will contain the
   // literals from a clause
-  std::vector<std::vector<Term>> literals;
+  std::vector<std::vector<Term>> clauses;
 
-  for (auto u : vecs2)
+  for (auto u : after_and_elimination)
   {
-    std::vector<Term>add;
-    std::vector<Term>le({u});
-    while (!le.empty())
+    std::vector<Term>after_or_elimination;
+    std::vector<Term>before_or_elimination({ u });
+    while (!before_or_elimination.empty())
     {  // This while loop functions in the same way as above and eliminates
        // smt::or by separating the literals
-      Term t = le.back();
-      le.pop_back();
+      Term t = before_or_elimination.back();
+      before_or_elimination.pop_back();
       smt::Op op = t->get_op();
+      std::string ops = op.to_string();
+      assert(ops=="null" || ops=="or" || ops=="not");
 
       if(op.prim_op == smt::Or)
       {
         for(auto u : t)
         {
-          le.push_back(u);
+          before_or_elimination.push_back(u);
         }
       }
       else
       {
-        add.push_back(t);
+        assert(ops=="null" || ops=="not"); 
+        after_or_elimination.push_back(t);
       }
     }
-    literals.push_back(add);
+    clauses.push_back(after_or_elimination);
    }
 
-   std::map<std::string, int>
+   std::map<Term, int>
        ma;  // This map will create a mapping from symbols to distinct
             // contiguous integer values.
    int ptr = 0;  // pointer to store the next integer used in mapping
 
-   for(auto u : literals)
+   for(auto u : clauses)
    {
      for (auto uu : u)
      {  // Using literals from all the clauses to create the mapping
-       if (uu->is_value())
+       if (uu->is_value() && uu->to_string() == "false")
        {  // For an empty clause, which will just contain the term "false"
        }
        else if (uu->is_symbolic_const())
        {  // A positive literal
-         if (ma.find(uu->to_string()) == ma.end())
+         if (ma.find(uu) == ma.end())
          {  // Checking if symbol is absent in the mapping done till now
            ptr++;
-           ma[uu->to_string()] = ptr;
+           ma[uu] = ptr;
          }
        }
        else
        {  // A negative literal
          Term t = (*(uu->begin()));
-         if (ma.find(t->to_string()) == ma.end())
+         if (ma.find(t) == ma.end())
          {
            ptr++;
-           ma[t->to_string()] = ptr;
+           ma[t] = ptr;
          }
        }
      }
@@ -296,28 +303,28 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
    y << ptr;  // number of distinct symbols
    y << " ";
 
-   int sz = literals.size();
+   int sz = clauses.size();
 
    y << sz;  // number of clauses
    y << "\n";
 
-   for (auto u : literals)
+   for (auto u : clauses)
    {
      for (auto uu : u)
      {
-       if (uu->is_value())
+       if (uu->is_value() && uu->to_string() == "false")
        {  // For an empty clause
        }
        else if (uu->is_symbolic_const())
        {
-         y << (ma[uu->to_string()]);  // Positive number for a positive literal
+         y << (ma[uu]);  // Positive number for a positive literal
          y << " ";
        }
        else
        {
          Term t = (*(uu->begin()));
          y << ((
-             -(ma[t->to_string()])));  // Negative number for a negative literal
+             -(ma[t])));  // Negative number for a negative literal
          y << " ";
        }
      }
