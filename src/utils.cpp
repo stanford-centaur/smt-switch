@@ -210,18 +210,17 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
   }
   TermVec before_and_elimination({ cnf });
   TermVec after_and_elimination;
-  // This while loop separate the clauses, after_and_elimination will contain all clauses
-  // because every smt::and op will be eliminated. This happens because until
-  // smt::and op is not detected that term is added back to before_and_elimination, and as no term
-  // with smt::or as the primOp is touched all clauses shall be separated and be
-  // intact
+  // This while loop separate the clauses, after_and_elimination will contain
+  // all clauses because every smt::and op will be eliminated. This happens
+  // because until smt::and op is not detected that term is added back to
+  // before_and_elimination, and as no term with smt::or as the primOp is
+  // touched all clauses shall be separated and be intact
   while (!before_and_elimination.empty())
   {
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
     smt::Op op = t->get_op();
-    std::string ops = op.to_string();
-    assert(ops=="null" || ops=="or" || ops=="and" || ops=="not");
+    assert(op.is_null() || op == smt::Or || op == smt::And || op == smt::Not);
     if (op.prim_op == smt::And)
     {
       for (auto u : t)
@@ -240,16 +239,15 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 
   for (auto u : after_and_elimination)
   {
-    std::vector<Term>after_or_elimination;
-    std::vector<Term>before_or_elimination({ u });
+    std::vector<Term> after_or_elimination;
+    std::vector<Term> before_or_elimination({ u });
     while (!before_or_elimination.empty())
     {  // This while loop functions in the same way as above and eliminates
        // smt::or by separating the literals
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
       smt::Op op = t->get_op();
-      std::string ops = op.to_string();
-      assert(ops=="null" || ops=="or" || ops=="not");
+      assert(op.is_null() || op == smt::Or || op == smt::Not);
 
       if(op.prim_op == smt::Or)
       {
@@ -260,19 +258,20 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       }
       else
       {
-        assert(ops=="null" || ops=="not"); 
+        assert(op.is_null() || op == smt::Not);
         after_or_elimination.push_back(t);
       }
     }
     clauses.push_back(after_or_elimination);
    }
 
-   std::map<Term, int>
-       ma;  // This map will create a mapping from symbols to distinct
-            // contiguous integer values.
+   std::map<Term, int> ma;  // This map will create a mapping from symbols to
+                            // distinct contiguous integer values.
    int ptr = 0;  // pointer to store the next integer used in mapping
 
-   for(auto u : clauses)
+   // iterating within each clause and mapping every distinct symbol to a
+   // natural number
+   for (auto u : clauses)
    {
      for (auto uu : u)
      {  // Using literals from all the clauses to create the mapping
@@ -308,6 +307,9 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
    y << sz;  // number of clauses
    y << "\n";
 
+   // iterating within each clause and assigning the literal their mapped
+   // value(for a positive literal) or it's negative value(for a negative
+   // literal)
    for (auto u : clauses)
    {
      for (auto uu : u)
@@ -323,8 +325,7 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
        else
        {
          Term t = (*(uu->begin()));
-         y << ((
-             -(ma[t])));  // Negative number for a negative literal
+         y << ((-(ma[t])));  // Negative number for a negative literal
          y << " ";
        }
      }

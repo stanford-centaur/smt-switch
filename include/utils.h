@@ -100,11 +100,9 @@ void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
  */
 bool is_lit(const Term & l, const Sort & boolsort);
 
-//Returns a string in DIMACs format for a given cnf formula
+// Returns a string in DIMACs format for a given cnf formula
 
 void cnf_to_dimacs(Term cnf, std::ostringstream & y);
-
-
 
 // -----------------------------------------------------------------------------
 
