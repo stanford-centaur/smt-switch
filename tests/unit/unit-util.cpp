@@ -47,6 +47,28 @@ class UnitUtilTests : public ::testing::Test,
   TermVec symbols;
 };
 
+class UnitUtilDimacsTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    SolverConfiguration se = GetParam();
+    SolverConfiguration sc(se.solver_enum, true);
+    s = create_solver(sc);
+
+    boolsort = s->make_sort(BOOL);
+    for (size_t i = 0; i < 30; ++i)
+    {
+      symbols.push_back(s->make_symbol("x" + std::to_string(i), boolsort));
+    }
+  }
+  SmtSolver s;
+  Sort boolsort;
+  TermVec symbols;
+};
+
 class UnitUtilIntTests : public UnitUtilTests
 {
 protected:
@@ -156,12 +178,8 @@ TEST_P(UnitUtilIntTests, Oracles)
   }
 }
 
-TEST_P(UnitUtilTests, cnf_to_dimacs)
+TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
 {
-  if (s->get_solver_enum() != CVC4)
-  {
-    return;
-  }
   boolsort = s->make_sort(BOOL);
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
@@ -222,5 +240,10 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilIntTests,
                          UnitUtilIntTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitUtilDimacsTests,
+    UnitUtilDimacsTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
 
 }  // namespace smt_tests
