@@ -55,18 +55,15 @@ class UnitUtilDimacsTests
   void SetUp() override
   {
     SolverConfiguration se = GetParam();
+    // using only logging solvers for this test because we don't want the
+    // original formula to change, otherwise it might no longer be in cnf
     SolverConfiguration sc(se.solver_enum, true);
     s = create_solver(sc);
 
     boolsort = s->make_sort(BOOL);
-    for (size_t i = 0; i < 30; ++i)
-    {
-      symbols.push_back(s->make_symbol("x" + std::to_string(i), boolsort));
-    }
   }
   SmtSolver s;
   Sort boolsort;
-  TermVec symbols;
 };
 
 class UnitUtilIntTests : public UnitUtilTests
@@ -180,7 +177,6 @@ TEST_P(UnitUtilIntTests, Oracles)
 
 TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
 {
-  boolsort = s->make_sort(BOOL);
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
   Term c = s->make_symbol("c", boolsort);
@@ -241,9 +237,8 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilIntTests,
                          UnitUtilIntTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedUnitUtilDimacsTests,
-    UnitUtilDimacsTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
+                         UnitUtilDimacsTests,
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests
