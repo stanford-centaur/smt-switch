@@ -47,17 +47,17 @@ class UnitUtilTests : public ::testing::Test,
   TermVec symbols;
 };
 
-class UnitUtilDimacsTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class UnitUtilDimacsTests : public ::testing::Test,
+                            public ::testing::WithParamInterface<SolverEnum>
 {
  protected:
   void SetUp() override
   {
-    SolverConfiguration se = GetParam();
+    SolverEnum se = GetParam();
+    SolverConfiguration sc(se, true);
     // using only logging solvers for this test because we don't want the
     // original formula to change, otherwise it might no longer be in cnf
-    SolverConfiguration sc(se.solver_enum, true);
+
     s = create_solver(sc);
 
     boolsort = s->make_sort(BOOL);
@@ -239,6 +239,6 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilIntTests,
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
                          UnitUtilDimacsTests,
-                         testing::ValuesIn(available_solver_configurations()));
+                         testing::ValuesIn(available_solver_enums()));
 
 }  // namespace smt_tests
