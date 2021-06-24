@@ -527,9 +527,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     cout <<  rawText << endl;
     //run_command(rawText);
     //Sort dtSort = make_shared<GenericSort>(DATATYPE);
-    Sort dtSort = make_generic_sort(DATATYPE);
-    cout << REAL << endl;
-    cout << "dtsort to string says:" << endl;
+    Sort dtSort = make_sort(DATATYPE);
     cout << dtSort->to_string() << endl;
     cout << "Finished run command!" << endl;
     (*name_sort_map)[dtName] = dtSort;

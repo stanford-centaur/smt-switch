@@ -70,5 +70,20 @@ int main()
   assert(us1 != us3);
   assert(us1->get_uninterpreted_name() == "sort1");
   assert(us1->get_arity() == 0);
+
+  GenericSort d1(DATATYPE);
+  GenericSort d2(DATATYPE);
+  std::cout << "testing basic properties of datatype sorts" << std::endl;
+  assert(d1.hash() == d2.hash());
+  assert(d1.to_string() == d2.to_string());
+   cout << "d1 to string" + d1.to_string() << endl;
+  assert(d2.to_string() == d1.to_string());
+  assert((d1.get_sort_kind()) == (d2.get_sort_kind()));
+  assert(d1.get_sort_kind() == DATATYPE);
+
+  Sort dt1 = make_generic_sort(DATATYPE);
+  Sort dt2 = make_generic_sort(DATATYPE);
+  assert(dt1 == dt2);
+  
   return 0;
 }
