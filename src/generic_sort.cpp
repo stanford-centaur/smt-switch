@@ -43,7 +43,6 @@ Sort make_generic_sort(SortKind sk)
   return make_shared<GenericSort>(sk);
 }
 
-
 Sort make_generic_sort(SortKind sk, uint64_t width)
 {
   if (sk != BV)
@@ -122,7 +121,7 @@ Sort make_generic_sort(SortKind sk, SortVec sorts)
 
 // implementations
 
-  GenericSort::GenericSort(SortKind sk) : sk(sk) {}
+GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 GenericSort::~GenericSort() {}
 
@@ -172,10 +171,14 @@ string GenericSort::compute_string() const {
       }
     } else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS) {
       return get_uninterpreted_name();
-    } else if(get_sort_kind() == SortKind::DATATYPE) {
+    }
+    else if (get_sort_kind() == SortKind::DATATYPE)
+    {
       // Placeholder response to avoid segfaulting
       return smt::to_smtlib(SortKind::BOOL);
-    } else {
+    }
+    else
+    {
       cout << "right before the assert false" << endl;
       assert(false);
     }
