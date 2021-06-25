@@ -76,7 +76,7 @@ int main()
   std::cout << "testing basic properties of datatype sorts" << std::endl;
   assert(d1.hash() == d2.hash());
   assert(d1.to_string() == d2.to_string());
-   cout << "d1 to string" + d1.to_string() << endl;
+   cout << d1.to_string() << endl;
   assert(d2.to_string() == d1.to_string());
   assert((d1.get_sort_kind()) == (d2.get_sort_kind()));
   assert(d1.get_sort_kind() == DATATYPE);

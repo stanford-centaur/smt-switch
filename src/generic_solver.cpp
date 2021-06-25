@@ -192,11 +192,7 @@ void GenericSolver::write_internal(string str) const
     strcpy(write_buf, str.substr(written_chars, substr_size).c_str());
     write(outpipefd[1], write_buf, substr_size);
     written_chars += substr_size;
-    cout << "writebutf" << endl;
-    cout <<  write_buf << endl;
   }
-  //cout << "outpipe" << endl;
-  //cout <<  outpipefd[1] << endl;
 }
 
 bool GenericSolver::is_done(int just_read, std::string result) const
@@ -249,19 +245,12 @@ string GenericSolver::read_internal() const
   while (!done)
   {
     // read command, and how many chars were read.
-    //cout <<"readbuf" << endl;
-    //cout <<read_buf << endl;
     int just_read = read(inpipefd[0], read_buf, read_buf_size);
-    //cout << "readbuf" << endl;
-    //cout << read_buf << endl;
     // store the content and trim it
     string read_buf_str(read_buf);
     read_buf_str = read_buf_str.substr(0, read_buf_size);
-    //cout << read_buf_str << endl;
     result = result.append(read_buf_str);
     done = is_done(just_read, result);
-    cout << "RESULT" << endl;
-    cout << result << endl;
     // clear buffer
     for (int i = 0; i < read_buf_size; i++)
     {
@@ -279,7 +268,6 @@ string GenericSolver::read_internal() const
   {
     result.replace(result.find("  "), 2, " ");
   }
-  cout << "Made it to end of read" << endl;
   return result;
 }
 
@@ -291,16 +279,13 @@ string GenericSolver::run_command(string cmd, bool verify_success_flag) const
   write_internal(cmd);
   // reading the result
   string result = read_internal();
-  cout << "Result : \n" + result <<endl;
+  //cout << "Result : \n" + result <<endl;
   result = trim(result);
-  cout << "Made it here in run command" << endl;
-  //cout << "Result : \n" + result << endl;
   // verify success if needed
   if (verify_success_flag)
   {
     verify_success(result);
   }
-  cout << "made it past verify success" << endl;
   return result;
 }
 
@@ -500,57 +485,36 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  //throw NotImplementedException("Generic Solvers do not support
-  //datatypes");
   std::string dtName = (*datatypedecl_name_map)[d];
   if (name_sort_map->find(dtName) == name_sort_map->end()) {
-    //std::string dtName = (*datatypedecl_name_map)[d];
-    //Sort dtSort = make_generic_sort(DATATYPE);
-    std::string rawText = "(declare-datatypes ((";
-    //rawText += " ";
-    rawText += dtName;
-    rawText += " 0)) (\n";
-    rawText += "(";
+    std::string toSolver = "(" + DECLARE_DATATYPE_STR + " ((";
+    toSolver += dtName;
+    toSolver += " 0)) (\n";
+    toSolver += "(";
+    // build string for each constructor
     for (unsigned long i = 0; i < (*dtdecl_dtconsdecl_map)[d].size(); ++i ) {
       DatatypeConstructorDecl currCons = ((*dtdecl_dtconsdecl_map)[d])[i];
-      rawText += " (" + (*datatypeconsdecl_name_map)[currCons];
+      toSolver += " (" + (*datatypeconsdecl_name_map)[currCons];
+      // adjust string for each selector
       for (unsigned long f = 0; f < (*dtconsdecl_selector_map)[currCons].size(); ++f) {
-        rawText += " ( " + (*dtconsdecl_selector_map)[currCons][f].name;
-	rawText += " " + ((*dtconsdecl_selector_map)[currCons][f].sort)->to_string() + " )";
+        toSolver += " ( " + (*dtconsdecl_selector_map)[currCons][f].name;
+	toSolver += " " + ((*dtconsdecl_selector_map)[currCons][f].sort)->to_string() + " )";
        }
-      rawText += ")";
+      toSolver += ")";
     }
-    rawText += ")\n))";
-    //cout << "This is the rawText:" << endl;
-    //cout << rawText << endl;
-    cout << "This is what's sent to the solver: \n";
-    cout <<  rawText << endl;
-    //run_command(rawText);
-    //Sort dtSort = make_shared<GenericSort>(DATATYPE);
+    toSolver += ")\n))";
+    // add the sort to the maps
     Sort dtSort = make_generic_sort(DATATYPE);
-    cout << REAL << endl;
-    cout << "dtsort to string says:" << endl;
-    cout << dtSort->to_string() << endl;
-    cout << "Finished run command!" << endl;
     (*name_sort_map)[dtName] = dtSort;
-    cout << "DId one assignment" + dtName << endl;
-    *dtSort;
-    cout << "cant dereference" << endl;
-    //cout << dtSort << endl;
     (*sort_name_map)[dtSort] = dtName;
-    //Sort dtSort = make_sort(DATATYPE);
-    cout << "Finsihed map assignment" << endl;
-    run_command(rawText);
-    //Sort dtSort = make_sort(INT);
+    run_command(toSolver);
   return dtSort;
-    
   }
   else {
-  throw NotImplementedException("Generic Solvers do not support        ");
-  
+    throw IncorrectUsageException(string("sort name: ") + dtName + string(" already taken"));
   }
 }
-  
+
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
 {
   DatatypeDecl newDT = make_shared<AbsDatatypeDecl>();
@@ -567,10 +531,6 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
   //shared_ptr<DatatypeConstructorDecl> newDTC =
   //make_shared<DatatypeConstructorDecl>();
   DatatypeConstructorDecl newDTC = make_shared<AbsDatatypeConstructorDecl>();
-  
-  //DatatypeConstructorDecl newDTC = make_shared<AbsDatatypeConstructorDecl>();
-  // DLETE
-  cout << "current map entry\n" + (*datatypeconsdecl_name_map)[newDTC] << endl;
   (*name_datatypeconsdecl_map)[s] = newDTC;
   (*datatypeconsdecl_name_map)[newDTC] = s;
   return newDTC;
@@ -580,19 +540,7 @@ void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructor
   {
     //throw NotImplementedException("Generic Solvers do not support datatypes");
     //dtdecl_dtconsdecl_map;
-    cout << "Every construcotr attached: before map assign,ent" << endl;
-        for (unsigned long i = 0; i < (*dtdecl_dtconsdecl_map)[dt].size(); ++i) {
-            cout << "\nConstructor #" + std::to_string(i) << endl;
-            cout << (*datatypeconsdecl_name_map)[(((*dtdecl_dtconsdecl_map)[dt])[i])] << endl;
-          }
-    
     (*dtdecl_dtconsdecl_map)[dt].push_back(con);
- 
-    cout << "Every construcotr attached: after map assignment" << endl;
-    for (unsigned long i = 0; i < (*dtdecl_dtconsdecl_map)[dt].size(); ++i) {
-      cout << "\nConstructor #" + std::to_string(i) << endl;
-      cout << (*datatypeconsdecl_name_map)[(((*dtdecl_dtconsdecl_map)[dt])[i])] << endl;
-    }
 }
 void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
 {
@@ -606,12 +554,12 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
   
 void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
   {
-    //throw NotImplementedException("Generic Solvers do not support
-    //datatypes");
+    // NOTE: This function is awaiting perfectly completed
+    // functionality from make_sort
     shared_ptr<selectorComponents> newSelector = make_shared<selectorComponents>();
-    (*newSelector).name = name;
-    (*newSelector).sort = make_sort(DATATYPE);
-    (*dtconsdecl_selector_map)[dt].push_back(*newSelector);
+    //(*newSelector).name = name;
+    //(*newSelector).sort = make_sort(DATATYPE);
+    //(*dtconsdecl_selector_map)[dt].push_back(*newSelector);
 }
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const

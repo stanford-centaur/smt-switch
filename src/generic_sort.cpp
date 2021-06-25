@@ -35,12 +35,14 @@ Sort make_uninterpreted_generic_sort(Sort sort_cons,
 
 Sort make_generic_sort(SortKind sk)
 {
+  // Tweaked to accept datatypes temporarily
   if (sk != BOOL && sk != INT && sk != REAL && sk != DATATYPE)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
   return make_shared<GenericSort>(sk);
 }
+
 
 Sort make_generic_sort(SortKind sk, uint64_t width)
 {
@@ -120,7 +122,7 @@ Sort make_generic_sort(SortKind sk, SortVec sorts)
 
 // implementations
 
-GenericSort::GenericSort(SortKind sk) : sk(sk) {}
+  GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 GenericSort::~GenericSort() {}
 
@@ -170,7 +172,11 @@ string GenericSort::compute_string() const {
       }
     } else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS) {
       return get_uninterpreted_name();
+    } else if(get_sort_kind() == SortKind::DATATYPE) {
+      // Placeholder response to avoid segfaulting
+      return smt::to_smtlib(SortKind::BOOL);
     } else {
+      cout << "right before the assert false" << endl;
       assert(false);
     }
 }
