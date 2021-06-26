@@ -338,110 +338,133 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 
 
 
-Term term_gen(SmtSolver s, Sort boolsort, int& pt){
-  return (s->make_symbol("x"+std::to_string(pt++), boolsort));
+Term term_gen(SmtSolver s, Sort boolsort, int& pt)
+{
+  return (s->make_symbol("x" + std::to_string(pt++), boolsort));
 }
 
 
   
 
-Term to_cnf(Term formula, SmtSolver s, Sort boolsort){
+Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
+{
   srand(time(NULL));
   std::map<Term, Term>ma;//map ma contains the mapping of each term to it's new symbol in tseytin's transformation
   
   //returning symbolic constants directly
-  if(formula->is_symbolic_const()){
+  if(formula->is_symbolic_const())
+  {
     return formula;
   }
   //This vector is going to be broken down into it's symbolic constants, as we need to know which symbols have already been used so that we don't create symbols with the same name
   
 
 
-  static int pt=1;// a pointer which will decide the next symbols name
+  static int pt = 1;// a pointer which will decide the next symbols name
   
-  TermVec vec={formula};//vec stores the formulas which yet need to be given a symbolic name
+  TermVec vec = { formula };//vec stores the formulas which yet need to be given a symbolic name
   //reduced stores (c) <-> (a op b). (c) as the first term of the pair and (a op b) as the second term in the pair
   std::vector<std::pair<Term, Term>>reduced;
-  bool fir=0;//If fir is true it mean's we have named the parent formula i.e the formula given to us
+  bool fir = 0;//If fir is true it mean's we have named the parent formula i.e the formula given to us
   Term parent;//parent will contain the symbolic name of the parent formula
-  while(!vec.empty()){
-    Term u=vec.back();
+  while(!vec.empty())
+  {
+    Term u = vec.back();
     vec.pop_back();
-    smt::Op op=u->get_op();
-    if(op==smt::And || op==smt::Or || op==smt::Xor || op==smt::Implies){
+    smt::Op op = u->get_op();
+    if(op == smt::And || op == smt::Or || op == smt::Xor || op == smt::Implies){
 
       Term mid;//The symbolic name of "u" will be stored in mid
-      if(ma.find(u)!=ma.end()){//if the subformula is already named we assign it it's name given
-        mid=ma[u];
+      if(ma.find(u) != ma.end())
+      {//if the subformula is already named we assign it it's name given
+        mid = ma[u];
       }
-      else{//procedure to create a new symbolic name
-        mid=term_gen(s, boolsort, pt);
-        ma[u]=mid;
+      else
+      {//procedure to create a new symbolic name
+        mid = term_gen(s, boolsort, pt);
+        ma[u] = mid;
       }
       //naming the parent formula 
-      if(fir==0){
-        fir=1;//signalling that parent formula has been named
-        parent=mid;
+      if(fir == 0)
+      {
+        fir = 1;//signalling that parent formula has been named
+        parent = mid;
       }
 
-      auto it=u->begin();
-      Term le=(*it);
+      auto it = u->begin();
+      Term le = (*it);
       it++;
-      Term ri=(*it);
-      Term le_new=le;//The symbolic name of the left child
-      Term ri_new=ri;//The symbolic name of the right child
-      if(!(le->is_symbolic_const())){
-        if(ma.find(le)!=ma.end()){
-          le_new=ma[le];
+      Term ri = (*it);
+      Term le_new = le;//The symbolic name of the left child
+      Term ri_new = ri;//The symbolic name of the right child
+      if(!(le->is_symbolic_const()))
+      {
+        if(ma.find(le) != ma.end())
+        {
+          le_new = ma[le];
         }
-        else{
-          le_new=term_gen(s, boolsort, pt);
-          ma[le]=le_new;
+        else
+        {
+          le_new = term_gen(s, boolsort, pt);
+          ma[le] = le_new;
         }
       }
-      if(!(ri->is_symbolic_const())){
-        if(ma.find(ri)!=ma.end()){
-          ri_new=ma[ri];
+      if(!(ri->is_symbolic_const()))
+      {
+        if(ma.find(ri) != ma.end())
+        {
+          ri_new = ma[ri];
         }
-        else{
-          ri_new=term_gen(s, boolsort, pt);
-          ma[ri]=ri_new;
+        else
+        {
+          ri_new = term_gen(s, boolsort, pt);
+          ma[ri] = ri_new;
         }
       }
       //pushing a pair of c, (a op b) where c is mid, a is le_new and b is ri_new, the new symbolic expressions(or their original symbols if they were originally symbolic constants)
       reduced.push_back({mid, s->make_term(op, le_new, ri_new)});
-      if(!(le->is_symbolic_const())){
+      if(!(le->is_symbolic_const()))
+      {
         vec.push_back(le);//adding back to vec, to break down further
       }
-      if(!(ri->is_symbolic_const())){
+      if(!(ri->is_symbolic_const()))
+      {
         vec.push_back(ri);//adding back to vec, to break down further
       }
     }
-    else if(op==smt::Not){ //Works in the same way as the if statement above
-      Term t=(*u->begin());
+    else if(op == smt::Not)
+    { //Works in the same way as the if statement above
+      Term t = (*u->begin());
       Term mid;
-      if(ma.find(u)!=ma.end()){
-        mid=ma[u];
+      if(ma.find(u) != ma.end())
+      {
+        mid = ma[u];
       }
-      else{
-        mid=term_gen(s, boolsort, pt);
-        ma[u]=mid;
+      else
+      {
+        mid = term_gen(s, boolsort, pt);
+        ma[u] = mid;
       }
-      if(fir==0){
-        fir=1;
-        parent=mid;
+      if(fir == 0)
+      {
+        fir = 1;
+        parent = mid;
       }
-      if(t->is_symbolic_const()){
+      if(t->is_symbolic_const())
+      {
         reduced.push_back({mid, s->make_term(Not, t)});
       }
-      else{
+      else
+      {
         Term le;
-        if(ma.find(t)!=ma.end()){
-          le=ma[t];
+        if(ma.find(t) != ma.end())
+        {
+          le = ma[t];
         }
-        else{
-          le=term_gen(s, boolsort, pt);
-          ma[t]=le;
+        else
+        {
+          le = term_gen(s, boolsort, pt);
+          ma[t] = le;
         }
         reduced.push_back({mid, s->make_term(Not, le)});
         vec.push_back(t);
@@ -452,60 +475,67 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort){
   TermVec clauses;
   
 
-  for(auto u:reduced){
-    Term fi=u.first;
-    Term se=u.second;
-    smt::Op op=se->get_op();
+  for(auto u:reduced)
+  {
+    Term fi = u.first;
+    Term se = u.second;
+    smt::Op op = se->get_op();
 
-    if(op==smt::And){//((~a) v (~b) v (c)) and ((a) v (~c)) and ((b) v (~c))
-      auto it=(se->begin());
-      Term le=(*it);
+    if(op == smt::And)
+    {//((~a) v (~b) v (c)) and ((a) v (~c)) and ((b) v (~c))
+      auto it = (se->begin());
+      Term le = (*it);
       it++;
-      Term ri=(*it);
+      Term ri = (*it);
       clauses.push_back(s->make_term(Or, s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)), fi));
       clauses.push_back(s->make_term(Or, le, s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, ri, s->make_term(Not, fi)));
     }
-    else if(op==smt::Or){//((a) v (b) v (~c)) and ((~a) v c) and ((~b) v c)
-      auto it=(se->begin());
-      Term le=(*it);
+    else if(op == smt::Or)
+    {//((a) v (b) v (~c)) and ((~a) v c) and ((~b) v c)
+      auto it = (se->begin());
+      Term le = (*it);
       it++;
-      Term ri=(*it);
+      Term ri = (*it);
       clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, s->make_term(Not, le), fi));
       clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
     }
-    else if(op==smt::Xor){//((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and ((c) v (a) v (~b))
-      auto it=(se->begin());
-      Term le=(*it);
+    else if(op == smt::Xor)
+    {//((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and ((c) v (a) v (~b))
+      auto it = (se->begin());
+      Term le = (*it);
       it++;
-      Term ri=(*it);
+      Term ri = (*it);
       clauses.push_back(s->make_term(Or, s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)), s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, s->make_term(Or, fi, ri), s->make_term(Not, le)));
       clauses.push_back(s->make_term(Or, s->make_term(Or, fi, le), s->make_term(Not, ri)));
     }
-    else if(op==smt::Implies){//((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
-      auto it=(se->begin());
-      Term le=(*it);
+    else if(op == smt::Implies)
+    {//((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
+      auto it = (se->begin());
+      Term le = (*it);
       it++;
-      Term ri=(*it);
+      Term ri = (*it);
       clauses.push_back(s->make_term(Or, s->make_term(Or, s->make_term(Not, le), ri), s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, le, fi));
       clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
     }
-    else{//((~a) v (~c)) and ((a) v (c))
-      Term le=(*(se->begin()));
+    else
+    {//((~a) v (~c)) and ((a) v (c))
+      Term le = (*(se->begin()));
       clauses.push_back(s->make_term(Or, s->make_term(Not, le), s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, le, fi));  
     }
   }
   //taking the and of all clauses generated to create the cnf
-  for(int i=1; i<clauses.size(); i++){
-    clauses[0]=s->make_term(And, clauses[0], clauses[i]);
+  for(int i = 1; i < clauses.size(); i++)
+  {
+    clauses[0] = s->make_term(And, clauses[0], clauses[i]);
   }
   //taking and of the cnf with the symbolic term of the entire formula 
-  clauses[0]=s->make_term(And, parent, clauses[0]);
+  clauses[0] = s->make_term(And, parent, clauses[0]);
   
   return clauses[0];
 }
