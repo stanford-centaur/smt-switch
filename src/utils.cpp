@@ -356,7 +356,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
   {
     return formula;
   }
-  //This vector is going to be broken down into it's symbolic constants, as we need to know which symbols have already been used so that we don't create symbols with the same name
+  
   
 
 
