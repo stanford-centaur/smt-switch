@@ -24,15 +24,15 @@
 namespace smt {
 
 const std::unordered_map<SortKind, std::string> sortkind2str(
-    { { ARRAY, "ARRAY" },
-      { BOOL, "BOOL" },
-      { BV, "BV" },
-      { INT, "INT" },
-      { REAL, "REAL" },
-      { FUNCTION, "FUNCTION" },
-      { UNINTERPRETED, "UNINTERPRETED" },
-      { UNINTERPRETED_CONS, "UNINTERPRETED_CONS" },
-      { DATATYPE, "DATATYPE" } });
+    { { ARRAY, "Array" },
+      { BOOL, "Bool" },
+      { BV, "BitVec" },
+      { INT, "Int" },
+      { REAL, "Real" },
+      { FUNCTION, "Function" },
+      { UNINTERPRETED, "Uninterpreted" },
+      { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
+      { DATATYPE, "Datatype" } });
 
 std::string to_string(SortKind sk)
 {

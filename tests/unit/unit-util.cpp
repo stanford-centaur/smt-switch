@@ -229,6 +229,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
 }
 
 
+
 TEST_P(UnitUtilDimacsTests, tseitin)
 {
   Term p=s->make_symbol("p", boolsort);

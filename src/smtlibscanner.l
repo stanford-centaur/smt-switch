@@ -91,12 +91,6 @@ let                   { return yy::parser::make_LET(loc); }
 
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
-Bool                  { return yy::parser::make_BOOL(loc); }
-Int                   { return yy::parser::make_INT(loc); }
-Real                  { return yy::parser::make_REAL(loc); }
-BitVec                { return yy::parser::make_BITVEC(loc); }
-Array                 { return yy::parser::make_ARRAY(loc); }
-
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
 \|([^|\\])*\|         {

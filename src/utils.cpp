@@ -337,6 +337,7 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 
 
 
+
 Term term_gen(SmtSolver s, Sort boolsort, int& pt){
   return (s->make_symbol("x"+std::to_string(pt++), boolsort));
 }
@@ -508,6 +509,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort){
   
   return clauses[0];
 }
+
 
 
 
