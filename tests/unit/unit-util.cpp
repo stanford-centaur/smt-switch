@@ -243,19 +243,19 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   }
   //a=((p or q) and r) implies (not t)
   Term a = s->make_term(Implies, s->make_term(And, s->make_term(Or, p, q), r), s->make_term(Not, t));
-  Term cnf1 = to_cnf(a, s, boolsort);
+  Term cnf1 = to_cnf(a, s);
   s->assert_formula(cnf1);
   Result r1 = s->check_sat();
   ASSERT_TRUE(r1.is_sat());
   //b=(not (p xor q))
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
-  Term cnf2 = to_cnf(b, s, boolsort);
+  Term cnf2 = to_cnf(b, s);
   s->assert_formula(cnf2);
   Result r2 = s->check_sat();
   ASSERT_TRUE(r2.is_sat());
   //c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
-  Term cnf3 = to_cnf(c, s, boolsort);
+  Term cnf3 = to_cnf(c, s);
   s->assert_formula(cnf3);
   Result r3 = s->check_sat();
   ASSERT_FALSE(r3.is_sat());

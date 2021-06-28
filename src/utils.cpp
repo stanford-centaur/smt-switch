@@ -332,35 +332,28 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
      y << 0;  // Symbolizing end of line
      y << "\n";
   }
-}
+} 
 
-
-
-
-
-Term term_gen(SmtSolver s, Sort boolsort, int& pt)
+Term to_cnf(Term formula, SmtSolver s)
 {
-  return (s->make_symbol("x" + std::to_string(pt++), boolsort));
-}
-
-
   
-
-Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
-{
-  srand(time(NULL));
   std::map<Term, Term>ma;//map ma contains the mapping of each term to it's new symbol in tseytin's transformation
   
+  Sort boolsort = formula->get_sort();
+  assert(boolsort->get_sort_kind() == BOOL);
+
   //returning symbolic constants directly
   if(formula->is_symbolic_const())
   {
     return formula;
   }
-  
-  
-
 
   static int pt = 1;// a pointer which will decide the next symbols name
+
+  auto term_gen = [&]
+  {
+    return (s->make_symbol("cnf__tseitin__fresh__var__" + std::to_string(pt++), boolsort));
+  };
   
   TermVec vec = { formula };//vec stores the formulas which yet need to be given a symbolic name
   //reduced stores (c) <-> (a op b). (c) as the first term of the pair and (a op b) as the second term in the pair
@@ -381,7 +374,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
       }
       else
       {//procedure to create a new symbolic name
-        mid = term_gen(s, boolsort, pt);
+        mid = term_gen();
         ma[u] = mid;
       }
       //naming the parent formula 
@@ -405,7 +398,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
         }
         else
         {
-          le_new = term_gen(s, boolsort, pt);
+          le_new = term_gen();
           ma[le] = le_new;
         }
       }
@@ -417,12 +410,13 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
         }
         else
         {
-          ri_new = term_gen(s, boolsort, pt);
+          ri_new = term_gen();
           ma[ri] = ri_new;
         }
       }
       //pushing a pair of c, (a op b) where c is mid, a is le_new and b is ri_new, the new symbolic expressions(or their original symbols if they were originally symbolic constants)
       reduced.push_back({mid, s->make_term(op, le_new, ri_new)});
+
       if(!(le->is_symbolic_const()))
       {
         vec.push_back(le);//adding back to vec, to break down further
@@ -442,7 +436,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
       }
       else
       {
-        mid = term_gen(s, boolsort, pt);
+        mid = term_gen();
         ma[u] = mid;
       }
       if(fir == 0)
@@ -463,7 +457,7 @@ Term to_cnf(Term formula, SmtSolver s, Sort boolsort)
         }
         else
         {
-          le = term_gen(s, boolsort, pt);
+          le = term_gen();
           ma[t] = le;
         }
         reduced.push_back({mid, s->make_term(Not, le)});
