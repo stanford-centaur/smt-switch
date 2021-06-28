@@ -106,7 +106,6 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y);
 // Converts any boolean formula to cnf, formula is the formula to be converted to a cnf
 Term to_cnf(Term formula, SmtSolver s);
 
-
 // -----------------------------------------------------------------------------
 
 /** \class
