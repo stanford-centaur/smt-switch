@@ -20,7 +20,6 @@
 
 // generic solvers are not supported on macos
 #ifndef __APPLE__
-//#ifdef "generic_datatype.h"
 
 #include "generic_solver.h"
 
@@ -37,12 +36,10 @@
 #include <algorithm>
 
 #include "assert.h"
-//#include "generic_datatype.h"
 #include "smtlib_utils.h"
 #include "sort.h"
 #include "sort_inference.h"
 #include "utils.h"
-//#ifdef "generic_datatype.h"
 
 using namespace std;
 
