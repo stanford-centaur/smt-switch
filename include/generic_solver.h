@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+//#include "generic_datatype.h"
 #include "generic_sort.h"
 #include "generic_term.h"
 #include "solver.h"

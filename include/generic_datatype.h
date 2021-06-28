@@ -1,0 +1,37 @@
+
+#pragma once
+
+#include "datatype.h"
+#include "smt_defs.h"
+#include "exceptions.h"
+#include "sort.h"
+#include <functional>
+
+//using namespace smt;
+namespace smt {
+  
+class GenericDatatypeDecl : public AbsDatatypeDecl
+{
+ public:
+  GenericDatatypeDecl(){};
+  virtual ~GenericDatatypeDecl(){};
+
+ protected:
+  friend class GenericSolver;
+};
+
+class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl {
+ public:
+  GenericDatatypeConstructorDecl(){};
+  virtual ~GenericDatatypeConstructorDecl(){};
+ protected:
+  friend class GenericSolver;
+};
+
+class GenericDatatype : public AbsDatatype {
+ public:
+  GenericDatatype(){};
+  virtual ~GenericDatatype(){};
+ protected:
+  friend class GenericSolver;
+};

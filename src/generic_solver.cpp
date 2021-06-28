@@ -20,6 +20,7 @@
 
 // generic solvers are not supported on macos
 #ifndef __APPLE__
+//#ifdef "generic_datatype.h"
 
 #include "generic_solver.h"
 
@@ -36,10 +37,12 @@
 #include <algorithm>
 
 #include "assert.h"
+//#include "generic_datatype.h"
 #include "smtlib_utils.h"
 #include "sort.h"
 #include "sort_inference.h"
 #include "utils.h"
+//#ifdef "generic_datatype.h"
 
 using namespace std;
 
@@ -499,16 +502,20 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // build string for each constructor
     for (unsigned long i = 0; i < (*dtdecl_dtconsdecl_map)[d].size(); ++i)
     {
-      DatatypeConstructorDecl curr_dt_cons_decl = ((*dtdecl_dtconsdecl_map)[d])[i];
+      DatatypeConstructorDecl curr_dt_cons_decl =
+          ((*dtdecl_dtconsdecl_map)[d])[i];
       to_solver += " (" + (*datatypeconsdecl_name_map)[curr_dt_cons_decl];
       // adjust string for each selector
-      for (unsigned long f = 0; f < (*dtconsdecl_selector_map)[curr_dt_cons_decl].size();
+      for (unsigned long f = 0;
+           f < (*dtconsdecl_selector_map)[curr_dt_cons_decl].size();
            ++f)
       {
-        to_solver += " ( " + (*dtconsdecl_selector_map)[curr_dt_cons_decl][f].name;
         to_solver +=
-            " " + ((*dtconsdecl_selector_map)[curr_dt_cons_decl][f].sort)->to_string()
-            + " )";
+            " ( " + (*dtconsdecl_selector_map)[curr_dt_cons_decl][f].name;
+        to_solver += " "
+                     + ((*dtconsdecl_selector_map)[curr_dt_cons_decl][f].sort)
+                           ->to_string()
+                     + " )";
       }
       to_solver += ")";
     }
@@ -542,7 +549,8 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
   // datatypes");
   // shared_ptr<DatatypeConstructorDecl> newDTC =
   // make_shared<DatatypeConstructorDecl>();
-  DatatypeConstructorDecl new_dt_cons_decl = make_shared<AbsDatatypeConstructorDecl>();
+  DatatypeConstructorDecl new_dt_cons_decl =
+      make_shared<AbsDatatypeConstructorDecl>();
   (*name_datatypeconsdecl_map)[s] = new_dt_cons_decl;
   (*datatypeconsdecl_name_map)[new_dt_cons_decl] = s;
   return new_dt_cons_decl;
