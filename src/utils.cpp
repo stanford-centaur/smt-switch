@@ -341,6 +341,8 @@ Term to_cnf(Term formula, SmtSolver s)
   
   Sort boolsort = formula->get_sort();
   assert(boolsort->get_sort_kind() == BOOL);
+  //vec stores the formulas which yet need to be given a symbolic name
+  TermVec vec = { formula };
 
   //returning symbolic constants directly
   if(formula->is_symbolic_const())
@@ -354,127 +356,67 @@ Term to_cnf(Term formula, SmtSolver s)
   {
     return (s->make_symbol("cnf__tseitin__fresh__var__" + std::to_string(pt++), boolsort));
   };
+
+  auto give_symbolic_name=[&](Term t, bool push)
+  {//takes input as the term to be processed and a boolean variable push to specify if we need to push it back into our vector "vec"
+    if(t->is_symbolic_const())
+    {//symbolic constants are not given new symbolic names
+      return t;
+    }
+    else
+    {
+      if(ma.find(t) != ma.end())
+      {// term has already been visited before, so just return it's name mapped earlier and don't push it back in the vector
+        return ma[t];
+      }
+      else
+        {//term is being visited the first time, so give it a new symbolic name and push it back in the vector if the boolean variable says so 
+        ma[t] = term_gen();
+        if(push)
+        {
+          vec.push_back(t);
+        }
+        return ma[t];
+      }
+    }
+  };
   
-  TermVec vec = { formula };//vec stores the formulas which yet need to be given a symbolic name
   //reduced stores (c) <-> (a op b). (c) as the first term of the pair and (a op b) as the second term in the pair
   std::vector<std::pair<Term, Term>>reduced;
-  bool fir = 0;//If fir is true it mean's we have named the parent formula i.e the formula given to us
-  Term parent;//parent will contain the symbolic name of the parent formula
+  
   while(!vec.empty())
   {
     Term u = vec.back();
     vec.pop_back();
     smt::Op op = u->get_op();
-    if(op == smt::And || op == smt::Or || op == smt::Xor || op == smt::Implies){
-
-      Term mid;//The symbolic name of "u" will be stored in mid
-      if(ma.find(u) != ma.end())
-      {//if the subformula is already named we assign it it's name given
-        mid = ma[u];
-      }
-      else
-      {//procedure to create a new symbolic name
-        mid = term_gen();
-        ma[u] = mid;
-      }
-      //naming the parent formula 
-      if(fir == 0)
-      {
-        fir = 1;//signalling that parent formula has been named
-        parent = mid;
-      }
-
+    if(op == smt::And || op == smt::Or || op == smt::Xor || op == smt::Implies)
+    {
+      Term mid=give_symbolic_name(u, false);//The symbolic name of "u" will be stored in mid
       auto it = u->begin();
-      Term le = (*it);
+      Term le = (*it);//the left child
       it++;
-      Term ri = (*it);
-      Term le_new = le;//The symbolic name of the left child
-      Term ri_new = ri;//The symbolic name of the right child
-      if(!(le->is_symbolic_const()))
-      {
-        if(ma.find(le) != ma.end())
-        {
-          le_new = ma[le];
-        }
-        else
-        {
-          le_new = term_gen();
-          ma[le] = le_new;
-        }
-      }
-      if(!(ri->is_symbolic_const()))
-      {
-        if(ma.find(ri) != ma.end())
-        {
-          ri_new = ma[ri];
-        }
-        else
-        {
-          ri_new = term_gen();
-          ma[ri] = ri_new;
-        }
-      }
+      Term ri = (*it);//the right child
+      Term le_new=give_symbolic_name(le, true);//The symbolic name of the left child
+      Term ri_new=give_symbolic_name(ri, true);//The symbolic name of the right child
       //pushing a pair of c, (a op b) where c is mid, a is le_new and b is ri_new, the new symbolic expressions(or their original symbols if they were originally symbolic constants)
       reduced.push_back({mid, s->make_term(op, le_new, ri_new)});
-
-      if(!(le->is_symbolic_const()))
-      {
-        vec.push_back(le);//adding back to vec, to break down further
-      }
-      if(!(ri->is_symbolic_const()))
-      {
-        vec.push_back(ri);//adding back to vec, to break down further
-      }
     }
     else if(op == smt::Not)
     { //Works in the same way as the if statement above
       Term t = (*u->begin());
-      Term mid;
-      if(ma.find(u) != ma.end())
-      {
-        mid = ma[u];
-      }
-      else
-      {
-        mid = term_gen();
-        ma[u] = mid;
-      }
-      if(fir == 0)
-      {
-        fir = 1;
-        parent = mid;
-      }
-      if(t->is_symbolic_const())
-      {
-        reduced.push_back({mid, s->make_term(Not, t)});
-      }
-      else
-      {
-        Term le;
-        if(ma.find(t) != ma.end())
-        {
-          le = ma[t];
-        }
-        else
-        {
-          le = term_gen();
-          ma[t] = le;
-        }
-        reduced.push_back({mid, s->make_term(Not, le)});
-        vec.push_back(t);
-      }
+      Term mid=give_symbolic_name(u, false);
+      Term child=give_symbolic_name(t, true);
+      reduced.push_back({mid, s->make_term(Not, child)});
     }
   }
 
   TermVec clauses;
   
-
   for(auto u:reduced)
   {
     Term fi = u.first;
     Term se = u.second;
     smt::Op op = se->get_op();
-
     if(op == smt::And)
     {//((~a) v (~b) v (c)) and ((a) v (~c)) and ((b) v (~c))
       auto it = (se->begin());
@@ -529,8 +471,7 @@ Term to_cnf(Term formula, SmtSolver s)
     clauses[0] = s->make_term(And, clauses[0], clauses[i]);
   }
   //taking and of the cnf with the symbolic term of the entire formula 
-  clauses[0] = s->make_term(And, parent, clauses[0]);
-  
+  clauses[0] = s->make_term(And, ma[formula], clauses[0]);
   return clauses[0];
 }
 
