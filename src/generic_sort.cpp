@@ -119,6 +119,11 @@ Sort make_generic_sort(SortKind sk, SortVec sorts)
   }
 }
 
+Sort make_generic_sort(DatatypeDecl & dt, std::string & name)
+{
+  return make_shared<GenericDatatypeSort>(dt, name);
+}
+
 // implementations
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
@@ -332,5 +337,28 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
   return param_sorts;
 }
 
+GenericDatatypeSort::GenericDatatypeSort(DatatypeDecl & dt, std::string & name)
+    : GenericSort(DATATYPE), dt_decl(dt), sort_name(name)
+{
+}
+
+GenericDatatypeSort::~GenericDatatypeSort() {}
+
+std::string GenericDatatypeSort::get_sort_name() { return sort_name; }
+
+DatatypeDecl GenericDatatypeSort::get_datatype_decl() { return dt_decl; }
+
+string GenericDatatypeSort::compute_string() const { return sort_name; }
+
+bool GenericDatatypeSort::compare(const Sort & s) const
+{
+  // in need of additional casting debugging
+  /*
+  const GenericDatatypeSort gdsort = (GenericDatatypeSort) s;
+  std::string other_sort_name = gdsort->sort_name;
+  return sort_name.compare(other_sort_name);
+  */
+  return true;
+}
 
 }  // namespace smt

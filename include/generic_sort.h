@@ -31,7 +31,7 @@ Sort make_generic_sort(SortKind sk, Sort sort1);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
-
+Sort make_generic_sort(DatatypeDecl dt, std::string & name);
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -185,6 +185,21 @@ class UninterpretedGenericSort : public GenericSort
   std::string name;
   uint64_t arity;
   SortVec param_sorts;  
+};
+
+class GenericDatatypeSort : public GenericSort
+{
+ public:
+  GenericDatatypeSort(DatatypeDecl & dt, std::string & name);
+  ~GenericDatatypeSort();
+  std::string get_sort_name();
+  DatatypeDecl get_datatype_decl();
+  bool compare(const Sort & s) const override;
+  std::string compute_string() const;
+
+ protected:
+  std::string sort_name;
+  DatatypeDecl dt_decl;
 };
 
 }  // namespace smt
