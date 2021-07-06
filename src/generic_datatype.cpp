@@ -8,37 +8,40 @@
 using namespace std;
 
 namespace smt {
-  GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
-const std::string & name)
+GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
+    const std::string & name)
     : cons_name(name)
 {
 }
 
-  void GenericDatatypeConstructorDecl::add_new_selector(const shared_ptr<selectorComponents> & newSelector)
+void GenericDatatypeConstructorDecl::add_new_selector(
+    const shared_ptr<selectorComponents> & newSelector)
 {
-    selector_vector.push_back(*newSelector);
+  selector_vector.push_back(*newSelector);
 }
 
-  std::vector<selectorComponents> GenericDatatypeConstructorDecl::get_selector_vector()
-  {
-    return selector_vector;
-  }
-  
-  std::string GenericDatatypeConstructorDecl::get_name() const
-  {
-    return cons_name;
-  }
+std::vector<selectorComponents>
+GenericDatatypeConstructorDecl::get_selector_vector()
+{
+  return selector_vector;
+}
 
-  int GenericDatatypeConstructorDecl::get_selector_count() const
-  {
-    return selector_vector.size();
-  }
-  bool GenericDatatypeConstructorDecl::compare(const AbsDatatypeConstructorDecl & d) const
-    {
-    // Why won't type casting like this work?
-      // GenericDatatypeConstructorDecl gdtc = (GenericDatatypeConstructorDecl) d;
-      return cons_name == d.get_name();
-      }
+std::string GenericDatatypeConstructorDecl::get_name() const
+{
+  return cons_name;
+}
+
+int GenericDatatypeConstructorDecl::get_selector_count() const
+{
+  return selector_vector.size();
+}
+bool GenericDatatypeConstructorDecl::compare(
+    const AbsDatatypeConstructorDecl & d) const
+{
+  // Why won't type casting like this work?
+  // GenericDatatypeConstructorDecl gdtc = (GenericDatatypeConstructorDecl) d;
+  return cons_name == d.get_name();
+}
 
 GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration,
                                  const std::string & s)
@@ -52,20 +55,22 @@ void GenericDatatype::add_constructor(
   cons_decl_vector.push_back(dt_cons_decl);
 }
 
-  void GenericDatatype::add_selector(const GenericDatatypeConstructorDecl & dt_cons_decl, const std::shared_ptr<selectorComponents> & newSelector)
-    {
-    for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
-      {
-        if (cons_decl_vector[i].get_name() == dt_cons_decl.get_name())
-          {
-            cons_decl_vector[i].get_selector_vector().push_back(*newSelector);
-               }
-          }
-       }
-  std::vector<GenericDatatypeConstructorDecl> GenericDatatype::get_cons_vector()
+void GenericDatatype::add_selector(
+    const GenericDatatypeConstructorDecl & dt_cons_decl,
+    const std::shared_ptr<selectorComponents> & newSelector)
+{
+  for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
-    return cons_decl_vector;
+    if (cons_decl_vector[i].get_name() == dt_cons_decl.get_name())
+    {
+      cons_decl_vector[i].get_selector_vector().push_back(*newSelector);
+    }
   }
+}
+std::vector<GenericDatatypeConstructorDecl> GenericDatatype::get_cons_vector()
+{
+  return cons_decl_vector;
+}
 
 std::string GenericDatatype::get_name() const { return name; }
 
@@ -87,10 +92,9 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   return num_selectors;
 }
 
-   bool GenericDatatype::compare(const AbsDatatype & d) const
-  {
-    return name == d.get_name();
-    }
-  
-  
+bool GenericDatatype::compare(const AbsDatatype & d) const
+{
+  return name == d.get_name();
+}
+
 }  // namespace smt

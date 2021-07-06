@@ -35,9 +35,8 @@ class AbsDatatypeConstructorDecl {
  public:
   AbsDatatypeConstructorDecl(){};
   virtual ~AbsDatatypeConstructorDecl(){};
-  virtual std::string get_name() const=0;
-  virtual bool compare(const AbsDatatypeConstructorDecl & d) const=0;
-
+  virtual std::string get_name() const = 0;
+  virtual bool compare(const AbsDatatypeConstructorDecl & d) const = 0;
 };
 
 
@@ -49,13 +48,13 @@ class AbsDatatype {
   virtual std::string get_name() const=0;
   virtual int get_num_selectors(std::string cons) const=0;
   virtual int get_num_constructors() const=0;
-  virtual bool compare(const AbsDatatype & d) const=0;
-
+  virtual bool compare(const AbsDatatype & d) const = 0;
 };
-bool operator==(const AbsDatatype& d1, const AbsDatatype& d2);
-bool operator!=(const AbsDatatype& d1, const AbsDatatype& d2);
+bool operator==(const AbsDatatype & d1, const AbsDatatype & d2);
+bool operator!=(const AbsDatatype & d1, const AbsDatatype & d2);
 
-bool operator==(const AbsDatatypeConstructorDecl& d1, const AbsDatatypeConstructorDecl& d2);
-bool operator!=(const AbsDatatypeConstructorDecl& d1, const AbsDatatypeConstructorDecl& d2);
-
+bool operator==(const AbsDatatypeConstructorDecl & d1,
+                const AbsDatatypeConstructorDecl & d2);
+bool operator!=(const AbsDatatypeConstructorDecl & d1,
+                const AbsDatatypeConstructorDecl & d2);
 }

@@ -565,7 +565,8 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
       make_shared<selectorComponents>();
   (*newSelector).name = name;
   (*newSelector).sort = s;
-  shared_ptr<GenericDatatypeConstructorDecl> gdtc = static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+  shared_ptr<GenericDatatypeConstructorDecl> gdtc =
+      static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   gdtc->add_new_selector(newSelector);
 }
   

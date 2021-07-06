@@ -259,9 +259,9 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<std::unordered_map<DatatypeDecl, std::string>>
       datatypedecl_name_map;
   // Map between names and Generic datatypes
-  std::unique_ptr<std::unordered_map<std::string, std::shared_ptr<GenericDatatype>>>
-    name_datatype_map;
-
+  std::unique_ptr<
+      std::unordered_map<std::string, std::shared_ptr<GenericDatatype>>>
+      name_datatype_map;
 };
 
 }  // namespace smt

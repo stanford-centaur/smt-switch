@@ -8,7 +8,7 @@
 
 // using namespace smt;
 namespace smt {
-  
+
 struct selectorComponents
 {
   std::string name;
