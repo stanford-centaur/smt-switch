@@ -241,7 +241,6 @@ class GenericSolver : public AbsSmtSolver
   // buffer sizes
   uint write_buf_size;
   uint read_buf_size;
-  // std::unique_ptr<DatatypeMemoryManager> solver_dt_memory;
 
   // maps between sort name and actual sort and vice verse
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;
@@ -259,40 +258,10 @@ class GenericSolver : public AbsSmtSolver
       name_datatypedecl_map;
   std::unique_ptr<std::unordered_map<DatatypeDecl, std::string>>
       datatypedecl_name_map;
-  std::unique_ptr<
-      std::unordered_map<DatatypeDecl, std::shared_ptr<GenericDatatype>>>
-      datatypedecl_datatype_map;
+  // Map between names and Generic datatypes
+  std::unique_ptr<std::unordered_map<std::string, std::shared_ptr<GenericDatatype>>>
+    name_datatype_map;
 
-  // maps between datatype constructor declaration and name, and vice
-  // versa
-
-  // std::unique_ptr<std::unordered_map<std::string, DatatypeConstructorDecl>>
-  //  name_datatypeconsdecl_map;
-  // std::unique_ptr<std::unordered_map<DatatypeConstructorDecl, std::string>>
-  //  datatypeconsdecl_name_map;
-
-  // map linking each datatype declaration with a vector of constructors
-  // std::unique_ptr<std::unordered_map<DatatypeDecl,
-  // std::vector<DatatypeConstructorDecl>>>dtdecl_dtconsdecl_map;
-
-  // A struct keeeping track of what each selector needs: a name and
-  // sort
-  // These are usually defined at the beginning of the file, I left it
-  // here for clarity of usage
-  /*
-  struct selectorComponents
-  {
-    std::string name;
-    Sort sort;
-  };
-  */
-
-  // a map linking each datatype constructor declaration with a vector
-  // holding its associated selectors, in the form of the previously
-  // defined struct.
-  //   std::unique_ptr<std::unordered_map<DatatypeConstructorDecl,std::vector<selectorComponents>>>dtconsdecl_selector_map;
-  // used to hash terms via their internal string representation
-  std::hash<std::string> str_hash;
 };
 
 }  // namespace smt
