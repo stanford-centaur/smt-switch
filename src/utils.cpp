@@ -388,8 +388,11 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
   unsigned cur_iter = 0;
   bool first_iter = true;
-  while (cur_iter <= iter) {
-    cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
+  // iter == 0 interpreted as allowing unlimited iterations
+  // iter != 0 restricts to iter iterations
+  while (!iter || cur_iter < iter)
+  {
+    cur_iter += 1;
     r = reducer_->check_sat_assuming(bool_assump);
 
     if (first_iter && r.is_sat()) {
@@ -424,6 +427,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
     first_iter = false;
   }
+  assert(!iter || cur_iter <= iter);
 
   reducer_->pop();
 

@@ -35,12 +35,14 @@ class UnsatCoreReducerTests
   void SetUp() override
   {
     s = create_solver(GetParam());
+    s->set_opt("incremental", "true");
     boolsort = s->make_sort(BOOL);
+    bvsort32 = s->make_sort(BV, 32);
 
     r = create_solver(GetParam());
   }
   SmtSolver s;
-  Sort boolsort;
+  Sort boolsort, bvsort32;
   SmtSolver r;
 };
 
@@ -58,6 +60,39 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducer)
   EXPECT_TRUE(red.size() == 1);
   EXPECT_TRUE(rem.size() == 1);
   EXPECT_TRUE(rem[0] != red[0]);
+}
+
+TEST_P(UnsatCoreReducerTests, UnsatCoreReducerSingle)
+{
+  UnsatCoreReducer uscr(r);
+
+  Term a = s->make_symbol("a", bvsort32);
+  Term b = s->make_symbol("b", bvsort32);
+
+  Op ext = Op(Extract, 15, 0);
+  Term a0 = s->make_term(ext, a);
+  Term b0 = s->make_term(ext, b);
+
+  Term ab = s->make_term(BVAnd, a, b);
+  Term t1 = s->make_term(BVUge, a0, b0);
+  Term t2 = s->make_term(BVUge, ab, a);
+  Term t3 = s->make_term(BVUge, ab, b);
+
+  Term formula = s->make_term(Distinct, a, b);
+  TermVec assumps({ t1, t2, t3 });
+  TermVec red, rem;
+
+  uscr.reduce_assump_unsatcore(formula, assumps, red, &rem, 1);
+
+  s->assert_formula(formula);
+  Result rbefore = s->check_sat();
+  EXPECT_TRUE(rbefore.is_sat());
+  for (const auto & tt : assumps)
+  {
+    s->assert_formula(tt);
+  }
+  Result rafter = s->check_sat();
+  EXPECT_TRUE(rafter.is_unsat());
 }
 
 TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
