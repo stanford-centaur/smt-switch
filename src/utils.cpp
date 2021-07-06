@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+#include "identity_walker.h"
 #include "ops.h"
 
 namespace smt {
@@ -332,91 +333,154 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
      y << 0;  // Symbolizing end of line
      y << "\n";
   }
-} 
+}
+
+class traversal : public IdentityWalker
+{
+ public:
+  std::vector<std::pair<Term, Term>> reduced;
+  static int pt;  // the static variable to always produce distinct symbols
+  traversal(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  WalkerStepResult visit_term(Term & term)
+  {
+    Sort boolsort = term->get_sort();
+
+    auto give_symbolic_name2 = [&](Term t) {  // producing a new symbol
+      return solver_->make_symbol("x" + std::to_string(pt++), boolsort);
+    };
+    if (!preorder_)  // using post order traversal as I need the new names of
+                     // the children to generate the new term
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        if (op == smt::And || op == smt::Or || op == smt::Xor
+            || op == smt::Implies || op == smt::Equal)
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          Term le_name;  // The symbolic name of the left child
+          query_cache(le, le_name);
+          it++;
+          Term ri = (*it);
+          Term ri_name;  // The symbolic name of the left child
+          query_cache(ri, ri_name);
+          Term term_name;
+          bool present = query_cache(
+              term, term_name);  // if the term is not present in the cache we
+                                 // need to generate a new symbol for it
+          if (!present)
+          {
+            term_name = give_symbolic_name2(term);
+            save_in_cache(term, term_name);
+          }
+          reduced.push_back(
+              { term_name, solver_->make_term(op, le_name, ri_name) });
+        }
+        else
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          Term le_name;
+          query_cache(le, le_name);
+          Term term_name;
+          bool present = query_cache(term, term_name);
+          if (!present)
+          {
+            term_name = give_symbolic_name2(term);
+            save_in_cache(term, term_name);
+          }
+          reduced.push_back({ term_name, solver_->make_term(op, le_name) });
+        }
+      }
+      else
+      {  // mapping a symbolic constant to itself
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+};
+int traversal::pt = 1;
+
+class binarise : public IdentityWalker
+{
+ public:
+  binarise(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  WalkerStepResult visit_term(Term & term)
+  {
+    if (!preorder_)
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        if (op == smt::And || op == smt::Or || op == smt::Xor
+            || op == smt::Implies || op == smt::Equal)
+        {
+          auto it = term->begin();
+          Term term_name;
+          query_cache((*it), term_name);
+          Term ne = term_name;
+          it++;
+          while (it != term->end())
+          {  // Binarising the term
+            Term term_name;
+            query_cache((*it), term_name);
+            ne = solver_->make_term(op, ne, term_name);
+            it++;
+          }
+          save_in_cache(term, ne);
+        }
+        else
+        {
+          save_in_cache(term, term);
+        }
+      }
+      else
+      {
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+  Term acc_cache(Term term)
+  {
+    Term ne;
+    query_cache(term, ne);
+    return ne;
+  }
+};
 
 Term to_cnf(Term formula, SmtSolver s)
 {
-  
-  std::map<Term, Term>ma;//map ma contains the mapping of each term to it's new symbol in tseytin's transformation
-  
   Sort boolsort = formula->get_sort();
-  assert(boolsort->get_sort_kind() == BOOL);
-  //vec stores the formulas which yet need to be given a symbolic name
-  TermVec vec = { formula };
-
-  //returning symbolic constants directly
-  if(formula->is_symbolic_const())
+  assert(formula->get_sort() == boolsort);
+  if (formula->is_symbolic_const())
   {
     return formula;
   }
+  binarise bin(s);
+  bin.visit(formula);  // binarising the formula
+  Term formula2 = bin.acc_cache(formula);
+  traversal obj(s);
+  obj.visit(
+      formula2);  // traversing the binarised formula to create of pairs of
+                  // (c<->(a op b)) which will be used in the transformation
 
-  static int pt = 1;// a pointer which will decide the next symbols name
-
-  auto term_gen = [&]
-  {
-    return (s->make_symbol("cnf__tseitin__fresh__var__" + std::to_string(pt++), boolsort));
-  };
-
-  auto give_symbolic_name=[&](Term t, bool push)
-  {//takes input as the term to be processed and a boolean variable push to specify if we need to push it back into our vector "vec"
-    if(t->is_symbolic_const())
-    {//symbolic constants are not given new symbolic names
-      return t;
-    }
-    else
-    {
-      if(ma.find(t) != ma.end())
-      {// term has already been visited before, so just return it's name mapped earlier and don't push it back in the vector
-        return ma[t];
-      }
-      else
-        {//term is being visited the first time, so give it a new symbolic name and push it back in the vector if the boolean variable says so 
-        ma[t] = term_gen();
-        if(push)
-        {
-          vec.push_back(t);
-        }
-        return ma[t];
-      }
-    }
-  };
-  
-  //reduced stores (c) <-> (a op b). (c) as the first term of the pair and (a op b) as the second term in the pair
-  std::vector<std::pair<Term, Term>>reduced;
-  
-  while(!vec.empty())
-  {
-    Term u = vec.back();
-    vec.pop_back();
-    smt::Op op = u->get_op();
-    if(op == smt::And || op == smt::Or || op == smt::Xor || op == smt::Implies)
-    {
-      Term mid=give_symbolic_name(u, false);//The symbolic name of "u" will be stored in mid
-      auto it = u->begin();
-      Term le = (*it);//the left child
-      it++;
-      Term ri = (*it);//the right child
-      Term le_new=give_symbolic_name(le, true);//The symbolic name of the left child
-      Term ri_new=give_symbolic_name(ri, true);//The symbolic name of the right child
-      //pushing a pair of c, (a op b) where c is mid, a is le_new and b is ri_new, the new symbolic expressions(or their original symbols if they were originally symbolic constants)
-      reduced.push_back({mid, s->make_term(op, le_new, ri_new)});
-    }
-    else if(op == smt::Not)
-    { //Works in the same way as the if statement above
-      Term t = (*u->begin());
-      Term mid=give_symbolic_name(u, false);
-      Term child=give_symbolic_name(t, true);
-      reduced.push_back({mid, s->make_term(Not, child)});
-    }
-  }
+  Term parent = obj.reduced.back().first;
 
   TermVec clauses;
-  
-  for(auto u:reduced)
+
+  // the vector of pairs reduced contains pairs in the form of (c)<->(a op b),
+  // where c is the first term of the pair and (a op b) is the second
+  for (auto u : obj.reduced)
   {
     Term fi = u.first;
     Term se = u.second;
     smt::Op op = se->get_op();
+
     if(op == smt::And)
     {//((~a) v (~b) v (c)) and ((a) v (~c)) and ((b) v (~c))
       auto it = (se->begin());
@@ -458,6 +522,27 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(s->make_term(Or, le, fi));
       clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
     }
+    else if (op == smt::Equal)
+    {  //((~a) v (~b) v (c)) and ((a) v (b) v (c)) and ((~c) v (~b) v (a)) and
+       //((c) v (~a) v (b))
+      auto it = (se->begin());
+      Term le = (*it);
+      it++;
+      Term ri = (*it);
+      clauses.push_back(s->make_term(
+          Or,
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),
+          fi));
+      clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), fi));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, le, s->make_term(Not, ri)),
+                       s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, s->make_term(Not, le), ri),
+                       s->make_term(Not, fi)));
+    }
     else
     {//((~a) v (~c)) and ((a) v (c))
       Term le = (*(se->begin()));
@@ -466,18 +551,11 @@ Term to_cnf(Term formula, SmtSolver s)
     }
   }
   //taking the and of all clauses generated to create the cnf
-  for(int i = 1; i < clauses.size(); i++)
-  {
-    clauses[0] = s->make_term(And, clauses[0], clauses[i]);
-  }
-  //taking and of the cnf with the symbolic term of the entire formula 
-  clauses[0] = s->make_term(And, ma[formula], clauses[0]);
-  return clauses[0];
+  Term ret = s->make_term(And, clauses);
+  ret = s->make_term(And, parent, ret);
+
+  return ret;
 }
-
-
-
-
 
 // ----------------------------------------------------------------------------
 
