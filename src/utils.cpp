@@ -346,7 +346,7 @@ class traversal : public IdentityWalker
     Sort boolsort = term->get_sort();
 
     auto give_symbolic_name2 = [&](Term t) {  // producing a new symbol
-      return solver_->make_symbol("x" + std::to_string(pt++), boolsort);
+      return solver_->make_symbol("cnf__tseitin__fresh__var__" + std::to_string(pt++), boolsort);
     };
     if (!preorder_)  // using post order traversal as I need the new names of
                      // the children to generate the new term
