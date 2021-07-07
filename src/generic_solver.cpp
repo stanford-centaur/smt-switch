@@ -493,17 +493,17 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // build string for each constructor
     for (unsigned long i = 0; i < curr_dt->get_cons_vector().size(); ++i)
     {
-      GenericDatatypeConstructorDecl curr_dt_cons_decl =
+      DatatypeConstructorDecl curr_dt_cons_decl =
           curr_dt->get_cons_vector()[i];
-      to_solver += " (" + curr_dt_cons_decl.get_name();
+      to_solver += " (" + static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_name();
       // adjust string for each selector
       for (unsigned long f = 0;
-           f < curr_dt_cons_decl.get_selector_vector().size();
+           f < static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector().size();
            ++f)
       {
-        to_solver += " ( " + curr_dt_cons_decl.get_selector_vector()[f].name;
+        to_solver += " ( " + static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector()[f].name;
         to_solver +=
-            " " + (curr_dt_cons_decl.get_selector_vector()[f].sort)->to_string()
+	  " " + (static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector()[f].sort)->to_string()
             + " )";
       }
 
@@ -518,7 +518,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // errors (undefined reference when I call the new
     // make_generic_sort).
     assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
-    Sort dt_sort = make_shared<GenericDatatypeSort>(testdt, dt_decl_name);
+    Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt, dt_decl_name);
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
     run_command(to_solver);
@@ -552,11 +552,11 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
 
 void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
   {
-    shared_ptr<GenericDatatypeConstructorDecl> gdtc =
+    DatatypeConstructorDecl gdtc =
         static_pointer_cast<GenericDatatypeConstructorDecl>(con);
     string name = (*datatypedecl_name_map)[dt];
     auto gdt = (*name_datatype_map)[name];
-    gdt->add_constructor(*gdtc);
+    gdt->add_constructor(gdtc);
 }
 
 void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const

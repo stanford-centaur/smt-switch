@@ -3,6 +3,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_library(LIBRT rt)
 
 add_library(smt-switch-cvc4 "${SMT_SWITCH_LIB_TYPE}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_datatype.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc4_sort.cpp"

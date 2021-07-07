@@ -31,7 +31,7 @@ Sort make_generic_sort(SortKind sk, Sort sort1);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
-Sort make_generic_sort(DatatypeDecl dt, std::string & name);
+Sort make_generic_sort(Datatype dt, std::string & name);
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -41,7 +41,8 @@ std::string to_smtlib(SortKind);
 class GenericSort : public AbsSort
 {
  public:
-  GenericSort(SortKind sk); 
+  GenericSort(SortKind sk);
+  GenericSort(SortKind sk, std::string name_var);
   virtual ~GenericSort();
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
@@ -110,11 +111,13 @@ class GenericSort : public AbsSort
   // A string representation of a sort
   std::string to_string() const override;
 
+  std::string get_base_name() const;
+
  protected:
   // internal function to compute
   // the string representation of a sort
   std::string compute_string() const;
-
+  std::string base_name;
   // The underlying SortKind of the GenericSort
   SortKind sk;
 
@@ -190,16 +193,16 @@ class UninterpretedGenericSort : public GenericSort
 class GenericDatatypeSort : public GenericSort
 {
  public:
-  GenericDatatypeSort(DatatypeDecl & dt, std::string & name);
+  GenericDatatypeSort(const Datatype & dt, std::string & name);
   ~GenericDatatypeSort();
   std::string get_sort_name();
-  DatatypeDecl get_datatype_decl();
+  Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
   std::string compute_string() const;
 
  protected:
   std::string sort_name;
-  DatatypeDecl dt_decl;
+  Datatype  gdt;
 };
 
 }  // namespace smt

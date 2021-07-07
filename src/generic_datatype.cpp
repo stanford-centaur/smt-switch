@@ -36,11 +36,11 @@ int GenericDatatypeConstructorDecl::get_selector_count() const
   return selector_vector.size();
 }
 bool GenericDatatypeConstructorDecl::compare(
-    const AbsDatatypeConstructorDecl & d) const
+    const DatatypeConstructorDecl & d) const
 {
   // Why won't type casting like this work?
   // GenericDatatypeConstructorDecl gdtc = (GenericDatatypeConstructorDecl) d;
-  return cons_name == d.get_name();
+  return cons_name == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
 
 GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration,
@@ -50,24 +50,24 @@ GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration,
 }
 
 void GenericDatatype::add_constructor(
-    const GenericDatatypeConstructorDecl & dt_cons_decl)
+    const DatatypeConstructorDecl & dt_cons_decl)
 {
   cons_decl_vector.push_back(dt_cons_decl);
 }
 
 void GenericDatatype::add_selector(
-    const GenericDatatypeConstructorDecl & dt_cons_decl,
+    const DatatypeConstructorDecl & dt_cons_decl,
     const std::shared_ptr<selectorComponents> & newSelector)
 {
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
-    if (cons_decl_vector[i].get_name() == dt_cons_decl.get_name())
+    if (cons_decl_vector[i] == dt_cons_decl)
     {
-      cons_decl_vector[i].get_selector_vector().push_back(*newSelector);
+      static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->get_selector_vector().push_back(*newSelector);
     }
   }
 }
-std::vector<GenericDatatypeConstructorDecl> GenericDatatype::get_cons_vector()
+std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()
 {
   return cons_decl_vector;
 }
@@ -84,17 +84,18 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   int num_selectors = 0;
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
-    if (cons_decl_vector[i].get_name() == cons)
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->get_name() == cons)
     {
-      num_selectors = cons_decl_vector[i].get_selector_count();
+      num_selectors = static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->get_selector_count();
     }
   }
   return num_selectors;
 }
-
-bool GenericDatatype::compare(const AbsDatatype & d) const
+  /*
+bool GenericDatatype::compare(const Datatype & d) const
 {
-  return name == d.get_name();
+  return name == d->get_name();
 }
+  */
 
 }  // namespace smt

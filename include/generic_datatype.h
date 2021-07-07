@@ -15,6 +15,8 @@ struct selectorComponents
   Sort sort;
 };
 
+
+ 
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
@@ -33,9 +35,9 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   void add_new_selector(
       const std::shared_ptr<selectorComponents> & newSelector);
   std::vector<selectorComponents> get_selector_vector();
-  std::string get_name() const override;
+  std::string get_name() const;
   int get_selector_count() const;
-  bool compare(const AbsDatatypeConstructorDecl & d) const override;
+  bool compare(const DatatypeConstructorDecl & d) const override;
 
  protected:
   std::vector<selectorComponents> selector_vector;
@@ -48,20 +50,20 @@ class GenericDatatype : public AbsDatatype
  public:
   GenericDatatype(const DatatypeDecl & dt_declaration, const std::string & s);
   virtual ~GenericDatatype(){};
-  void add_constructor(const GenericDatatypeConstructorDecl & dt_cons_decl);
-  void add_selector(const GenericDatatypeConstructorDecl & dt_cons_decl,
+  void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
+  void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                     const std::shared_ptr<selectorComponents> & newSelector);
-  std::vector<GenericDatatypeConstructorDecl> get_cons_vector();
+  std::vector<DatatypeConstructorDecl> get_cons_vector();
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
-  bool compare(const AbsDatatype & d) const override;
+  //bool compare(const Datatype & d) const override;
   std::hash<std::string> str_hash;
 
  protected:
   DatatypeDecl dt_decl;
   std::string name;
-  std::vector<GenericDatatypeConstructorDecl> cons_decl_vector;
+  std::vector<DatatypeConstructorDecl> cons_decl_vector;
 
   friend class GenericSolver;
 };
