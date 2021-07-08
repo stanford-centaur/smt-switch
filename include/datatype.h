@@ -35,7 +35,6 @@ class AbsDatatypeConstructorDecl {
  public:
   AbsDatatypeConstructorDecl(){};
   virtual ~AbsDatatypeConstructorDecl(){};
-  // virtual std::string get_name() const = 0;
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 

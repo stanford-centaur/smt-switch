@@ -19,9 +19,12 @@
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "generic_datatype.h"
 #include <functional>
+
 namespace smt {
 
+  class GenericDatatye;
 /* Helper functions for creating generic sorts */
 Sort make_uninterpreted_generic_sort(std::string name, uint64_t arity);
 Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec& sorts);
@@ -31,7 +34,7 @@ Sort make_generic_sort(SortKind sk, Sort sort1);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
-Sort make_generic_sort(Datatype dt, std::string & name);
+Sort make_generic_sort(Datatype dt);
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -42,6 +45,7 @@ class GenericSort : public AbsSort
 {
  public:
   GenericSort(SortKind sk);
+  // This second constructor is only for datatype sorts
   GenericSort(SortKind sk, std::string name_var);
   virtual ~GenericSort();
   SortKind get_sort_kind() const override;
@@ -193,7 +197,7 @@ class UninterpretedGenericSort : public GenericSort
 class GenericDatatypeSort : public GenericSort
 {
  public:
-  GenericDatatypeSort(const Datatype & dt, std::string & name);
+  GenericDatatypeSort(const Datatype & dt);
   ~GenericDatatypeSort();
   std::string get_sort_name();
   Datatype get_datatype() const override;

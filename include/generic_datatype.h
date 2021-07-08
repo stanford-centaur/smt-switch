@@ -1,9 +1,10 @@
+#pragma once
 #include <unordered_map>
 #include <vector>
 
 #include "datatype.h"
 #include "exceptions.h"
-#include "generic_sort.h"
+#include "sort.h"
 #include "smt_defs.h"
 
 // using namespace smt;
@@ -20,11 +21,13 @@ struct selectorComponents
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  GenericDatatypeDecl(){};
+  GenericDatatypeDecl(const std::string name);
   virtual ~GenericDatatypeDecl(){};
+  std::string get_name();
 
  protected:
   friend class GenericSolver;
+  std::string dt_name;
 };
 
 class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
@@ -48,7 +51,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class GenericDatatype : public AbsDatatype
 {
  public:
-  GenericDatatype(const DatatypeDecl & dt_declaration, const std::string & s);
+  GenericDatatype(const DatatypeDecl & dt_declaration);
   virtual ~GenericDatatype(){};
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
   void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
