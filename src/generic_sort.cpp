@@ -182,8 +182,7 @@ string GenericSort::compute_string() const {
     }
     else if (get_sort_kind() == SortKind::DATATYPE)
     {
-      // Placeholder response to avoid segfaulting
-      return smt::to_smtlib(SortKind::BOOL);
+      return base_name;
     }
     else
     {
@@ -250,11 +249,7 @@ bool GenericSort::compare(const Sort & s) const
     }
     case DATATYPE:
     {
-      //throw NotImplementedException("GenericSort::compare");
       assert(sk == DATATYPE);
-      //shared_ptr<GenericDatatypeSort> this_type_cast =
-      //reinterpret_cast<GenericDatatypeSort>(*this);
-      //shared_ptr<GenericDatatypeSort> this_type_cast = static_pointer_cast<GenericDatatypeSort>(*this);
       shared_ptr<GenericDatatypeSort> other_type_cast = static_pointer_cast<GenericDatatypeSort>(s);
       return base_name == other_type_cast->compute_string();
     }
@@ -363,22 +358,14 @@ std::string GenericDatatypeSort::get_sort_name() { return sort_name; }
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 
 string GenericDatatypeSort::compute_string() const {
-  //return static_pointer_cast<GenericDatatype>(gdt)->get_name();
   return sort_name;
 }
 
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
-  // in need of additional casting debugging
-  /*
-  const GenericDatatypeSort gdsort = (GenericDatatypeSort) s;
-  std::string other_sort_name = gdsort->sort_name;
-  return sort_name.compare(other_sort_name);
-  */
-  //return true;
   assert(s->get_sort_kind() == DATATYPE);
   shared_ptr<GenericDatatypeSort> other_sort = static_pointer_cast<GenericDatatypeSort>(s);
-  return sort_name == other_sort->compute_string();
+  return sort_name == other_sort->to_string();
 }
 
 }  // namespace smt

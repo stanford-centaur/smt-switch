@@ -83,8 +83,7 @@ void GenericDatatype::add_selector(
   {
     if (cons_decl_vector[i] == dt_cons_decl)
     {
-      //static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->add_new_selector(*newSelector);
-      
+      static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->add_new_selector(newSelector);
     }
   }
 }
@@ -93,7 +92,7 @@ std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()
   return cons_decl_vector;
 }
 
-  std::string GenericDatatype::get_name() const { //return name;
+  std::string GenericDatatype::get_name() const {
     return static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
 }
 
@@ -114,6 +113,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   }
   return num_selectors;
 }
+  // Still deciding if I should implement a datatype comparison function
   /*
 bool GenericDatatype::compare(const Datatype & d) const
 {

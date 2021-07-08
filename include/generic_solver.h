@@ -27,7 +27,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-//#include "generic_datatype.h"
 #include "generic_sort.h"
 #include "generic_term.h"
 #include "solver.h"
@@ -253,12 +252,7 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
 
-  // maps between datatype declaration and name and vice versa
-  //std::unique_ptr<std::unordered_map<std::string, DatatypeDecl>>
-  //    name_datatypedecl_map;
-      //std::unique_ptr<std::unordered_map<DatatypeDecl, std::string>>
-  //    datatypedecl_name_map;
-  // Map between names and Generic datatypes
+  // Map between names and Generic datatypes and vice versa
   std::unique_ptr<std::unordered_map<std::string, std::shared_ptr<GenericDatatype>>> name_datatype_map;
   std::unique_ptr<std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>> datatype_name_map;
 };
