@@ -368,4 +368,8 @@ bool GenericDatatypeSort::compare(const Sort & s) const
   return sort_name == other_sort->to_string();
 }
 
+  std::string GenericDatatypeSort::to_string() const
+  {
+    return this->compute_string();
+  }
 }  // namespace smt

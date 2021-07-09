@@ -26,19 +26,19 @@ GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
 }
 
 void GenericDatatypeConstructorDecl::add_new_selector(
-    const shared_ptr<selectorComponents> & newSelector)
+    const SelectorComponents & newSelector)
 {
   // This seems like an opportunity for a new comparison function for
   // the struct.
   for (unsigned int i = 0; i < selector_vector.size(); ++i) {
-    if (selector_vector[i].name == (*newSelector).name) {
+    if (selector_vector[i].name == (newSelector).name) {
       throw "Can't add selector. It already exists in vector!";
     }
   }
-  selector_vector.push_back(*newSelector);
+  selector_vector.push_back(newSelector);
 }
 
-std::vector<selectorComponents>
+std::vector<SelectorComponents>
 GenericDatatypeConstructorDecl::get_selector_vector()
 {
   return selector_vector;
@@ -77,7 +77,7 @@ void GenericDatatype::add_constructor(
 
 void GenericDatatype::add_selector(
     const DatatypeConstructorDecl & dt_cons_decl,
-    const std::shared_ptr<selectorComponents> & newSelector)
+    const SelectorComponents & newSelector)
 {
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {

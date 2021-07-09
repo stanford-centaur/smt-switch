@@ -558,21 +558,21 @@ void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructor
 
 void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
 {
-  shared_ptr<selectorComponents> newSelector =
-      make_shared<selectorComponents>();
+  shared_ptr<SelectorComponents> newSelector =
+      make_shared<SelectorComponents>();
   (*newSelector).name = name;
   (*newSelector).sort = s;
   shared_ptr<GenericDatatypeConstructorDecl> gdtc =
       static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
-  gdtc->add_new_selector(newSelector);
+  gdtc->add_new_selector(*newSelector);
 }
   
 void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
   {
     // NOTE: This function is awaiting perfectly completed
     // functionality from make_sort
-    shared_ptr<selectorComponents> newSelector =
-        make_shared<selectorComponents>();
+    shared_ptr<SelectorComponents> newSelector =
+        make_shared<SelectorComponents>();
     //(*newSelector).name = name;
     //(*newSelector).sort = make_sort(DATATYPE);
     //(*dtconsdecl_selector_map)[dt].push_back(*newSelector);

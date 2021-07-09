@@ -203,6 +203,7 @@ class GenericDatatypeSort : public GenericSort
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
   std::string compute_string() const;
+  std::string to_string() const override;
 
  protected:
   std::string sort_name;

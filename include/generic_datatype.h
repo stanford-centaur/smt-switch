@@ -10,7 +10,7 @@
 // using namespace smt;
 namespace smt {
 
-struct selectorComponents
+struct SelectorComponents
 {
   std::string name;
   Sort sort;
@@ -36,14 +36,14 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   GenericDatatypeConstructorDecl(const std::string & name);
   virtual ~GenericDatatypeConstructorDecl(){};
   void add_new_selector(
-      const std::shared_ptr<selectorComponents> & newSelector);
-  std::vector<selectorComponents> get_selector_vector();
+      const SelectorComponents & newSelector);
+  std::vector<SelectorComponents> get_selector_vector();
   std::string get_name() const;
   int get_selector_count() const;
   bool compare(const DatatypeConstructorDecl & d) const override;
 
  protected:
-  std::vector<selectorComponents> selector_vector;
+  std::vector<SelectorComponents> selector_vector;
   std::string cons_name;
   friend class GenericSolver;
 };
@@ -55,7 +55,7 @@ class GenericDatatype : public AbsDatatype
   virtual ~GenericDatatype(){};
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
   void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
-                    const std::shared_ptr<selectorComponents> & newSelector);
+                    const SelectorComponents & newSelector);
   std::vector<DatatypeConstructorDecl> get_cons_vector();
   std::string get_name() const override;
   int get_num_constructors() const override;
