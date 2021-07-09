@@ -4,8 +4,8 @@
 
 #include "datatype.h"
 #include "exceptions.h"
-#include "sort.h"
 #include "smt_defs.h"
+#include "sort.h"
 
 // using namespace smt;
 namespace smt {
@@ -16,8 +16,6 @@ struct SelectorComponents
   Sort sort;
 };
 
-
- 
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
@@ -35,8 +33,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  public:
   GenericDatatypeConstructorDecl(const std::string & name);
   virtual ~GenericDatatypeConstructorDecl(){};
-  void add_new_selector(
-      const SelectorComponents & newSelector);
+  void add_new_selector(const SelectorComponents & newSelector);
   std::vector<SelectorComponents> get_selector_vector();
   std::string get_name() const;
   int get_selector_count() const;
@@ -60,7 +57,7 @@ class GenericDatatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
-  //bool compare(const Datatype & d) const override;
+  // bool compare(const Datatype & d) const override;
   std::hash<std::string> str_hash;
 
  protected:

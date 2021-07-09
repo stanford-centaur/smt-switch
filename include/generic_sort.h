@@ -16,15 +16,16 @@
 
 #pragma once
 
+#include <functional>
+
 #include "exceptions.h"
+#include "generic_datatype.h"
 #include "smt_defs.h"
 #include "sort.h"
-#include "generic_datatype.h"
-#include <functional>
 
 namespace smt {
 
-  class GenericDatatye;
+class GenericDatatye;
 /* Helper functions for creating generic sorts */
 Sort make_uninterpreted_generic_sort(std::string name, uint64_t arity);
 Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec& sorts);
@@ -207,7 +208,7 @@ class GenericDatatypeSort : public GenericSort
 
  protected:
   std::string sort_name;
-  Datatype  gdt;
+  Datatype gdt;
 };
 
 }  // namespace smt

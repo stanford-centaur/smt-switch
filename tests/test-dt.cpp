@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "generic_datatype.h"
 #include "gtest/gtest.h"
 #include "smt.h"
-#include "generic_datatype.h"
 
 using namespace smt;
 using namespace std;
@@ -57,15 +57,17 @@ TEST_P(DTTests, DatatypeDecl)
     DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
     auto dt_decltest = make_shared<GenericDatatypeDecl>("secondtestdt");
-    std::shared_ptr<GenericDatatype> gdt = make_shared<GenericDatatype>(dt_decltest);
+    std::shared_ptr<GenericDatatype> gdt =
+        make_shared<GenericDatatype>(dt_decltest);
     assert(gdt->get_num_constructors() == 0);
-    
-    shared_ptr<GenericDatatypeConstructorDecl> cons2test = shared_ptr<GenericDatatypeConstructorDecl>(new GenericDatatypeConstructorDecl("constest"));
+
+    shared_ptr<GenericDatatypeConstructorDecl> cons2test =
+        shared_ptr<GenericDatatypeConstructorDecl>(
+            new GenericDatatypeConstructorDecl("constest"));
     gdt->add_constructor(cons2test);
     assert(gdt->get_num_constructors() == 1);
     assert(gdt->get_num_selectors("constest") == 0);
     assert(gdt->get_name() == "secondtestdt");
-    
 
     DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
     DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
@@ -82,16 +84,17 @@ TEST_P(DTTests, DatatypeDecl)
     Sort listsort = s->make_sort(consListSpec);
 
     DatatypeDecl counterdecl = s->make_datatype_decl("counter");
-    DatatypeConstructorDecl countercons = s->make_datatype_constructor_decl("countercons");
-    s->add_constructor(counterdecl,countercons);
+    DatatypeConstructorDecl countercons =
+        s->make_datatype_constructor_decl("countercons");
+    s->add_constructor(counterdecl, countercons);
     Sort countersort = s->make_sort(counterdecl);
     assert(countersort->get_sort_kind() == DATATYPE);
     assert(listsort->get_sort_kind() == DATATYPE);
     assert(countersort != listsort);
-    
-    
+
     Datatype listdt = listsort->get_datatype();
-    //shared_ptr<GenericDatatype> gdt = static_pointer_cast<GenericDatatype>(listdt);
+    // shared_ptr<GenericDatatype> gdt =
+    // static_pointer_cast<GenericDatatype>(listdt);
     if (s->get_solver_enum() != GENERIC_SOLVER)
     {
       Term five = s->make_term(5, intsort);

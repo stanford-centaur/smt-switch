@@ -35,6 +35,7 @@ namespace smt {
     public :
     CVC4DatatypeConstructorDecl(CVC4::api::DatatypeConstructorDecl t) : datatypeconstructordecl(t) {};
     bool compare(const DatatypeConstructorDecl &) const override;
+
    protected:
     CVC4::api::DatatypeConstructorDecl datatypeconstructordecl;
 

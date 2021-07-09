@@ -14,10 +14,12 @@
 **/
 
 #include "generic_sort.h"
-#include <unordered_map>
-#include "generic_datatype.h"
+
 #include <functional>
+#include <unordered_map>
+
 #include "assert.h"
+#include "generic_datatype.h"
 #include "utils.h"
 using namespace std;
 
@@ -129,7 +131,7 @@ Sort make_generic_sort(Datatype & dt)
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
-  GenericSort::GenericSort(SortKind sk, std::string name_var) : sk(sk) {}
+GenericSort::GenericSort(SortKind sk, std::string name_var) : sk(sk) {}
 
 GenericSort::~GenericSort() {}
 
@@ -194,11 +196,8 @@ string GenericSort::compute_string() const {
 
 SortKind GenericSort::get_sort_kind() const { return sk; }
 
-  std::string GenericSort::get_base_name() const
-  {
-    return base_name;
-  }
-  
+std::string GenericSort::get_base_name() const { return base_name; }
+
 bool GenericSort::compare(const Sort & s) const
 {
   SortKind other_sk = s->get_sort_kind();
@@ -250,7 +249,8 @@ bool GenericSort::compare(const Sort & s) const
     case DATATYPE:
     {
       assert(sk == DATATYPE);
-      shared_ptr<GenericDatatypeSort> other_type_cast = static_pointer_cast<GenericDatatypeSort>(s);
+      shared_ptr<GenericDatatypeSort> other_type_cast =
+          static_pointer_cast<GenericDatatypeSort>(s);
       return base_name == other_type_cast->compute_string();
     }
     case NUM_SORT_KINDS:
@@ -347,7 +347,9 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 }
 
 GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
-  : GenericSort(DATATYPE), gdt(dt), sort_name(static_pointer_cast<GenericDatatype>(dt)->get_name())
+    : GenericSort(DATATYPE),
+      gdt(dt),
+      sort_name(static_pointer_cast<GenericDatatype>(dt)->get_name())
 {
 }
 
@@ -357,19 +359,18 @@ std::string GenericDatatypeSort::get_sort_name() { return sort_name; }
 
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 
-string GenericDatatypeSort::compute_string() const {
-  return sort_name;
-}
+string GenericDatatypeSort::compute_string() const { return sort_name; }
 
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
   assert(s->get_sort_kind() == DATATYPE);
-  shared_ptr<GenericDatatypeSort> other_sort = static_pointer_cast<GenericDatatypeSort>(s);
+  shared_ptr<GenericDatatypeSort> other_sort =
+      static_pointer_cast<GenericDatatypeSort>(s);
   return sort_name == other_sort->to_string();
 }
 
-  std::string GenericDatatypeSort::to_string() const
-  {
-    return this->compute_string();
-  }
+std::string GenericDatatypeSort::to_string() const
+{
+  return this->compute_string();
+}
 }  // namespace smt

@@ -481,7 +481,8 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  shared_ptr<GenericDatatypeDecl> gdt_decl = static_pointer_cast<GenericDatatypeDecl>(d);
+  shared_ptr<GenericDatatypeDecl> gdt_decl =
+      static_pointer_cast<GenericDatatypeDecl>(d);
   string dt_decl_name = gdt_decl->get_name();
   assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
   shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
@@ -494,18 +495,31 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // build string for each constructor
     for (unsigned long i = 0; i < curr_dt->get_cons_vector().size(); ++i)
     {
-      DatatypeConstructorDecl curr_dt_cons_decl =
-          curr_dt->get_cons_vector()[i];
-      to_solver += " (" + static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_name();
+      DatatypeConstructorDecl curr_dt_cons_decl = curr_dt->get_cons_vector()[i];
+      to_solver += " ("
+                   + static_pointer_cast<GenericDatatypeConstructorDecl>(
+                         curr_dt_cons_decl)
+                         ->get_name();
       // adjust string for each selector
       for (unsigned long f = 0;
-           f < static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector().size();
+           f < static_pointer_cast<GenericDatatypeConstructorDecl>(
+                   curr_dt_cons_decl)
+                   ->get_selector_vector()
+                   .size();
            ++f)
       {
-        to_solver += " ( " + static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector()[f].name;
-        to_solver +=
-	  " " + (static_pointer_cast<GenericDatatypeConstructorDecl>(curr_dt_cons_decl)->get_selector_vector()[f].sort)->to_string()
-            + " )";
+        to_solver += " ( "
+                     + static_pointer_cast<GenericDatatypeConstructorDecl>(
+                           curr_dt_cons_decl)
+                           ->get_selector_vector()[f]
+                           .name;
+        to_solver += " "
+                     + (static_pointer_cast<GenericDatatypeConstructorDecl>(
+                            curr_dt_cons_decl)
+                            ->get_selector_vector()[f]
+                            .sort)
+                           ->to_string()
+                     + " )";
       }
 
       to_solver += ")";
@@ -550,7 +564,8 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
 
 void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
   {
-    shared_ptr<GenericDatatypeDecl> gdt_decl = static_pointer_cast<GenericDatatypeDecl>(dt);
+    shared_ptr<GenericDatatypeDecl> gdt_decl =
+        static_pointer_cast<GenericDatatypeDecl>(dt);
     string name = gdt_decl->get_name();
     auto gdt = (*name_datatype_map)[name];
     gdt->add_constructor(con);

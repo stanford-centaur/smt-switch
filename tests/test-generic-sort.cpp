@@ -72,17 +72,25 @@ int main()
   assert(us1->get_arity() == 0);
   cout << "pre datatype" << endl;
   DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>("testSort1");
-  shared_ptr<GenericDatatype> new_dt = shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
-  shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl = shared_ptr<GenericDatatypeConstructorDecl>(new GenericDatatypeConstructorDecl("Cons"));
+  shared_ptr<GenericDatatype> new_dt =
+      shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
+  shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
+      shared_ptr<GenericDatatypeConstructorDecl>(
+          new GenericDatatypeConstructorDecl("Cons"));
   new_dt->add_constructor(new_dt_cons_decl);
-  shared_ptr<GenericDatatypeSort> dt_sort = make_shared<GenericDatatypeSort>(new_dt);
-  
+  shared_ptr<GenericDatatypeSort> dt_sort =
+      make_shared<GenericDatatypeSort>(new_dt);
+
   DatatypeDecl new2_dt_decl = make_shared<GenericDatatypeDecl>("testSort2");
-  shared_ptr<GenericDatatype> new2_dt = shared_ptr<GenericDatatype>(new GenericDatatype(new2_dt_decl));
-  shared_ptr<GenericDatatypeConstructorDecl> new2_dt_cons_decl = shared_ptr<GenericDatatypeConstructorDecl>(new GenericDatatypeConstructorDecl("test2"));
+  shared_ptr<GenericDatatype> new2_dt =
+      shared_ptr<GenericDatatype>(new GenericDatatype(new2_dt_decl));
+  shared_ptr<GenericDatatypeConstructorDecl> new2_dt_cons_decl =
+      shared_ptr<GenericDatatypeConstructorDecl>(
+          new GenericDatatypeConstructorDecl("test2"));
   new2_dt->add_constructor(new2_dt_cons_decl);
 
-  shared_ptr<GenericDatatypeSort> dt_sort2 = make_shared<GenericDatatypeSort>(new2_dt);
+  shared_ptr<GenericDatatypeSort> dt_sort2 =
+      make_shared<GenericDatatypeSort>(new2_dt);
   assert(dt_sort != dt_sort2);
   auto copy = dt_sort;
   assert(dt_sort == copy);
@@ -92,7 +100,7 @@ int main()
   assert((dt_sort->get_sort_kind()) == (dt_sort2->get_sort_kind()));
   assert(dt_sort->get_sort_kind() == DATATYPE);
   assert(dt_sort2->get_sort_kind() == DATATYPE);
-  
+
   /*
   GenericSort d1(DATATYPE);
   GenericSort d2(DATATYPE);
