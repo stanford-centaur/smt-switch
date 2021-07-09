@@ -335,7 +335,8 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
   }
 }
 
-//mapping each subformula with a new name and returning a vector of pair of terms. Each pair consists of the parent term and it's children(for each subformula)
+//mapping each subformula with a new name and returning a vector of pair of terms. 
+//Each pair consists of the parent term and it's children(for each subformula)
 class traversal : public IdentityWalker
 {
  public:
@@ -356,26 +357,26 @@ class traversal : public IdentityWalker
       if (!op.is_null())
       {
           std::vector<Term>vec;//a vector of all children
-          for(auto u:term){
+          for(auto u:term)
+          {
             Term term_name;
             query_cache(u, term_name);//finding the new name of each child from the cache
             vec.push_back(term_name);
           }
           Term term_name;
           bool present=query_cache(term, term_name);//true if we found the name of the term in the cached
-          if(!present){//making a new symbol
+          if(!present)
+          {//making a new symbol
             term_name = give_symbolic_name(term);
             save_in_cache(term, term_name);
           }
-          reduced.push_back({term_name, solver_->make_term(op, vec)});
-        
+          reduced.push_back({term_name, solver_->make_term(op, vec)}); 
       }
       else
       {  // mapping a symbolic constant to itself
         save_in_cache(term, term);
       }
     }
-
     return Walker_Continue;
   }
 };
@@ -448,7 +449,6 @@ Term to_cnf(Term formula, SmtSolver s)
                   // (c<->(a op b)) which will be used in the transformation
 
   Term parent = obj.reduced.back().first;
-
   TermVec clauses;
 
   // the vector of pairs reduced contains pairs in the form of (c)<->op(a,  b),
@@ -464,20 +464,21 @@ Term to_cnf(Term formula, SmtSolver s)
       std::vector<Term>vec;
       std::vector<Term>vec2;
       vec.push_back(s->make_term(Not, fi));
-      for(auto u:se){
+      for(auto u:se)
+      {
         vec.push_back(u);
         vec2.push_back(s->make_term(Or, fi, s->make_term(Not, u)));
       }
       clauses.push_back(s->make_term(Or, vec));
-      clauses.push_back(s->make_term(And, vec2));
-      
+      clauses.push_back(s->make_term(And, vec2));  
     }
     else if(op == smt::And)
     {//(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c or x1), (~c or x2), (~c or x3), (~c or x4))
       std::vector<Term>vec;
       std::vector<Term>vec2;
       vec.push_back(fi);
-      for(auto u:se){
+      for(auto u:se)
+      {
         vec.push_back(s->make_term(Not, u));
         vec2.push_back(s->make_term(Or, u, s->make_term(Not, fi)));
       }
