@@ -57,10 +57,12 @@ TEST_P(DTTests, DatatypeDecl)
     DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
     auto dt_decltest = make_shared<GenericDatatypeDecl>("secondtestdt");
+    
     std::shared_ptr<GenericDatatype> gdt =
         make_shared<GenericDatatype>(dt_decltest);
     assert(gdt->get_num_constructors() == 0);
-
+    
+    
     shared_ptr<GenericDatatypeConstructorDecl> cons2test =
         shared_ptr<GenericDatatypeConstructorDecl>(
             new GenericDatatypeConstructorDecl("constest"));
@@ -68,49 +70,56 @@ TEST_P(DTTests, DatatypeDecl)
     assert(gdt->get_num_constructors() == 1);
     assert(gdt->get_num_selectors("constest") == 0);
     assert(gdt->get_name() == "secondtestdt");
+    
 
     DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
     DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+    
+    shared_ptr<GenericDatatypeConstructorDecl> consdeclgen = static_pointer_cast<GenericDatatypeConstructorDecl>(consdecl);
     DatatypeConstructorDecl cons_copy = consdecl;
     ASSERT_EQ(cons_copy, consdecl);
+    
     s->add_selector(consdecl, "head", s->make_sort(INT));
-    if (s->get_solver_enum() != GENERIC_SOLVER)
-    {
-      s->add_selector_self(consdecl, "tail");
-    }
+    //if (s->get_solver_enum() != GENERIC_SOLVER)
+    // {
+    //s->add_selector_self(consdecl, "tail");
+      //}
     s->add_constructor(consListSpec, nildecl);
-
     s->add_constructor(consListSpec, consdecl);
     Sort listsort = s->make_sort(consListSpec);
-
+    
     DatatypeDecl counterdecl = s->make_datatype_decl("counter");
     DatatypeConstructorDecl countercons =
         s->make_datatype_constructor_decl("countercons");
     s->add_constructor(counterdecl, countercons);
     Sort countersort = s->make_sort(counterdecl);
+
+    
+    s->add_selector_self(consdecl, "tail");
+
     assert(countersort->get_sort_kind() == DATATYPE);
     assert(listsort->get_sort_kind() == DATATYPE);
     assert(countersort != listsort);
-
+    
     Datatype listdt = listsort->get_datatype();
-    // shared_ptr<GenericDatatype> gdt =
-    // static_pointer_cast<GenericDatatype>(listdt);
     if (s->get_solver_enum() != GENERIC_SOLVER)
     {
+      
       Term five = s->make_term(5, intsort);
-      Datatype listdt = listsort->get_datatype();
+      //Datatype listdt = listsort->get_datatype();
       // Make datatype terms
       Term cons = s->get_constructor(listsort, "cons");
       Term nil = s->get_constructor(listsort, "nil");
       Term head = s->get_selector(listsort, "cons", "head");
+      /*
       Term tail = s->get_selector(listsort, "cons", "tail");
+      
       Term isNil = s->get_tester(listsort, "nil");
-
       // Datatype ops
       Term nilterm = s->make_term(Apply_Constructor, nil);
       Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
       Term five_again = s->make_term(Apply_Selector, head, list5);
-
+      
       // Expected booleans
       s->assert_formula(s->make_term(Equal, five, five_again));
       s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
@@ -132,7 +141,9 @@ TEST_P(DTTests, DatatypeDecl)
       EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
       EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
                    InternalSolverException);
-      EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
+      EXPECT_THROW(listdt->get_num_selectors("kons"),
+      InternalSolverException);
+      */
     }
 }
 

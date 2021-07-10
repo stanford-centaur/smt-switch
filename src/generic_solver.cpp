@@ -532,8 +532,6 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
-    cout << "SOlver texr" << endl;
-    cout << to_solver << endl;
     run_command(to_solver);
     return dt_sort;
   }
@@ -588,9 +586,14 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
     // functionality from make_sort
     shared_ptr<SelectorComponents> newSelector =
         make_shared<SelectorComponents>();
-    //(*newSelector).name = name;
-    //(*newSelector).sort = make_sort(DATATYPE);
-    //(*dtconsdecl_selector_map)[dt].push_back(*newSelector);
+    shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+    string dt_decl_name = gdt_cons->get_dt_name();
+    
+    (*newSelector).name = name;
+    (*newSelector).sort = (*name_sort_map)[dt_decl_name];
+    assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
+    shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+    gdt_cons->add_new_selector(*newSelector);
 }
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const

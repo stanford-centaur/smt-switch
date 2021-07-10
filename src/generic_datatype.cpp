@@ -19,7 +19,9 @@ std::string GenericDatatypeDecl::get_name() { return dt_name; }
 
 GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
-    : cons_name(name)
+  : cons_name(name),
+    // Should I turn this into a constant?
+    dt_name("NOT IMPLEMENTED YET")
 {
 }
 
@@ -62,6 +64,16 @@ bool GenericDatatypeConstructorDecl::compare(
          == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
 
+  std::string GenericDatatypeConstructorDecl::get_dt_name() const
+  {
+    return dt_name;
+  }
+
+  void GenericDatatypeConstructorDecl::change_dt_name(const std::string new_name)
+  {
+    dt_name = new_name;
+  }
+  
 GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
     : dt_decl(dt_declaration)
 {
@@ -75,6 +87,8 @@ void GenericDatatype::add_constructor(
   {
     throw "Can't add constructor. It already has been added!";
   }
+  shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
+  gdt_cons->change_dt_name(get_name());
   cons_decl_vector.push_back(dt_cons_decl);
 }
 
