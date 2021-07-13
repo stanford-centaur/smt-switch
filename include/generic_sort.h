@@ -207,7 +207,6 @@ class GenericDatatypeSort : public GenericSort
   std::string to_string() const override;
 
  protected:
-  std::string sort_name;
   Datatype gdt;
 };
 

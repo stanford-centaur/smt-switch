@@ -47,10 +47,7 @@ class AbsDatatype {
   virtual std::string get_name() const=0;
   virtual int get_num_selectors(std::string cons) const=0;
   virtual int get_num_constructors() const=0;
-  // virtual bool compare(const Datatype & d) const = 0;
 };
-// bool operator==(const Datatype & d1, const Datatype & d2);
-// bool operator!=(const Datatype & d1, const Datatype & d2);
 
 bool operator==(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);

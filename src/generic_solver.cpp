@@ -582,8 +582,6 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
   
 void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
   {
-    // NOTE: This function is awaiting perfectly completed
-    // functionality from make_sort
     shared_ptr<SelectorComponents> newSelector =
         make_shared<SelectorComponents>();
     shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
@@ -610,6 +608,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
+  
 }
 
 std::string GenericSolver::get_name(Term term) const

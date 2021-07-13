@@ -38,7 +38,6 @@ Sort make_uninterpreted_generic_sort(Sort sort_cons,
 
 Sort make_generic_sort(SortKind sk)
 {
-  // Tweaked to accept datatypes temporarily
   if (sk != BOOL && sk != INT && sk != REAL)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
@@ -188,7 +187,6 @@ string GenericSort::compute_string() const {
     }
     else
     {
-      cout << "right before the assert false" << endl;
       assert(false);
     }
 }
@@ -348,25 +346,26 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 
 GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
     : GenericSort(DATATYPE),
-      gdt(dt),
-      sort_name(static_pointer_cast<GenericDatatype>(dt)->get_name())
+      gdt(dt)
+      //GenericSort::base_name((static_pointer_cast<GenericDatatype>(dt))->get_name())
 {
+  GenericSort::base_name = (static_pointer_cast<GenericDatatype>(dt))->get_name();
 }
 
 GenericDatatypeSort::~GenericDatatypeSort() {}
 
-std::string GenericDatatypeSort::get_sort_name() { return sort_name; }
+  std::string GenericDatatypeSort::get_sort_name() { return GenericSort::base_name; }
 
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 
-string GenericDatatypeSort::compute_string() const { return sort_name; }
+  string GenericDatatypeSort::compute_string() const { return GenericSort::base_name; }
 
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
   assert(s->get_sort_kind() == DATATYPE);
   shared_ptr<GenericDatatypeSort> other_sort =
       static_pointer_cast<GenericDatatypeSort>(s);
-  return sort_name == other_sort->to_string();
+  return compute_string() == other_sort->to_string();
 }
 
 std::string GenericDatatypeSort::to_string() const

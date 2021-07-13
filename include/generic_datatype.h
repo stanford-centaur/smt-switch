@@ -39,12 +39,12 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   int get_selector_count() const;
   bool compare(const DatatypeConstructorDecl & d) const override;
   std::string get_dt_name() const;
-  void change_dt_name(const std::string new_name);
+  void update_stored_dt(const DatatypeDecl & datatype_decl);
 
  protected:
   std::vector<SelectorComponents> selector_vector;
   std::string cons_name;
-  std::string dt_name;
+  DatatypeDecl dt_decl;
   friend class GenericSolver;
 };
 

@@ -47,11 +47,6 @@ TEST_P(DTTests, DatatypeDecl)
     if (sc.is_logging_solver) {
       return;
     }
-    /* Original location of five declaration
-    if (s->get_solver_enum() != GENERIC_SOLVER) {
-      Term five = s->make_term(5, intsort);
-    }
-    */
 
     // Make datatype sort
     DatatypeDecl consListSpec = s->make_datatype_decl("list");
@@ -80,10 +75,6 @@ TEST_P(DTTests, DatatypeDecl)
     ASSERT_EQ(cons_copy, consdecl);
     
     s->add_selector(consdecl, "head", s->make_sort(INT));
-    //if (s->get_solver_enum() != GENERIC_SOLVER)
-    // {
-    //s->add_selector_self(consdecl, "tail");
-      //}
     s->add_constructor(consListSpec, nildecl);
     s->add_constructor(consListSpec, consdecl);
     Sort listsort = s->make_sort(consListSpec);
@@ -102,15 +93,18 @@ TEST_P(DTTests, DatatypeDecl)
     assert(countersort != listsort);
     
     Datatype listdt = listsort->get_datatype();
-    if (s->get_solver_enum() != GENERIC_SOLVER)
-    {
-      
       Term five = s->make_term(5, intsort);
       //Datatype listdt = listsort->get_datatype();
       // Make datatype terms
-      Term cons = s->get_constructor(listsort, "cons");
+      /* Term cons = s->get_constructor(listsort, "cons");
+      assert("cons" ==  cons->to_string());
       Term nil = s->get_constructor(listsort, "nil");
+      */
+      if (s->get_solver_enum() != GENERIC_SOLVER)
+	{
       Term head = s->get_selector(listsort, "cons", "head");
+      // This part must be commented out for the code to compile and
+      // pass the tests.
       /*
       Term tail = s->get_selector(listsort, "cons", "tail");
       

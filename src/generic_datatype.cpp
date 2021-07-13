@@ -19,22 +19,18 @@ std::string GenericDatatypeDecl::get_name() { return dt_name; }
 
 GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
-  : cons_name(name),
-    // Should I turn this into a constant?
-    dt_name("NOT IMPLEMENTED YET")
+  : cons_name(name)
 {
 }
 
 void GenericDatatypeConstructorDecl::add_new_selector(
     const SelectorComponents & newSelector)
 {
-  // This seems like an opportunity for a new comparison function for
-  // the struct.
   for (unsigned int i = 0; i < selector_vector.size(); ++i)
   {
     if (selector_vector[i].name == (newSelector).name)
     {
-      throw "Can't add selector. It already exists in vector!";
+      throw "Can't add selector. It already exists in this datatype!";
     }
   }
   selector_vector.push_back(newSelector);
@@ -58,22 +54,21 @@ int GenericDatatypeConstructorDecl::get_selector_count() const
 bool GenericDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
-  // Why won't type casting like this work?
-  // GenericDatatypeConstructorDecl gdtc = (GenericDatatypeConstructorDecl) d;
   return cons_name
          == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
 
   std::string GenericDatatypeConstructorDecl::get_dt_name() const
   {
-    return dt_name;
+    return static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
   }
 
-  void GenericDatatypeConstructorDecl::change_dt_name(const std::string new_name)
+  void GenericDatatypeConstructorDecl::update_stored_dt(const DatatypeDecl & datatype_decl)
   {
-    dt_name = new_name;
+    dt_decl = datatype_decl;
+    
   }
-  
+
 GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
     : dt_decl(dt_declaration)
 {
@@ -88,7 +83,7 @@ void GenericDatatype::add_constructor(
     throw "Can't add constructor. It already has been added!";
   }
   shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
-  gdt_cons->change_dt_name(get_name());
+  gdt_cons->update_stored_dt(dt_decl);
   cons_decl_vector.push_back(dt_cons_decl);
 }
 
