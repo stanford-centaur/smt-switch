@@ -38,7 +38,7 @@ Sort make_uninterpreted_generic_sort(Sort sort_cons,
 
 Sort make_generic_sort(SortKind sk)
 {
-  if (sk != BOOL && sk != INT && sk != REAL && sk != PLACEHOLDER)
+  if (sk != BOOL && sk != INT && sk != REAL)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
