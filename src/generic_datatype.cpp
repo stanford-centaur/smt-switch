@@ -130,12 +130,18 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   }
   return num_selectors;
 }
-// Still deciding if I should implement a datatype comparison function
-/*
-bool GenericDatatype::compare(const Datatype & d) const
-{
-return name == d->get_name();
-}
-*/
 
+  void GenericDatatype::change_sort_of_selector(const Sort new_sort)
+  {
+    for (unsigned int i = 0; i < cons_decl_vector.size(); ++i) {
+      std::shared_ptr<GenericDatatypeConstructorDecl> cons_cast = static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i]);
+      for (unsigned int f = 0; f < get_num_selectors(cons_cast->get_name()); ++f) {
+	if (cons_cast->selector_vector[f].sort->get_sort_kind() == PLACEHOLDER) {
+	  cons_cast->selector_vector[f].sort = new_sort;
+	}
+      }
+    
+    }
+  }
+  
 }  // namespace smt

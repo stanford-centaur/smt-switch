@@ -38,7 +38,7 @@ Sort make_uninterpreted_generic_sort(Sort sort_cons,
 
 Sort make_generic_sort(SortKind sk)
 {
-  if (sk != BOOL && sk != INT && sk != REAL)
+  if (sk != BOOL && sk != INT && sk != REAL && sk != PLACEHOLDER)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
@@ -132,6 +132,9 @@ GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 GenericSort::GenericSort(SortKind sk, std::string name_var) : sk(sk) {}
 
+  // Only used to make placeholders
+GenericSort::GenericSort(std::string name) : sk(PLACEHOLDER), base_name(name) {}
+
 GenericSort::~GenericSort() {}
 
 size_t GenericSort::hash() const { 
@@ -181,7 +184,7 @@ string GenericSort::compute_string() const {
     } else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS) {
       return get_uninterpreted_name();
     }
-    else if (get_sort_kind() == SortKind::DATATYPE)
+    else if (get_sort_kind() == SortKind::DATATYPE || get_sort_kind() == SortKind::PLACEHOLDER)
     {
       return base_name;
     }

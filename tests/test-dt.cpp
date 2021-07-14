@@ -77,6 +77,8 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_selector(consdecl, "head", s->make_sort(INT));
     s->add_constructor(consListSpec, nildecl);
     s->add_constructor(consListSpec, consdecl);
+    
+    s->add_selector_self(consdecl, "tail");
     Sort listsort = s->make_sort(consListSpec);
     
     DatatypeDecl counterdecl = s->make_datatype_decl("counter");
@@ -85,27 +87,22 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_constructor(counterdecl, countercons);
     Sort countersort = s->make_sort(counterdecl);
 
-    
-    s->add_selector_self(consdecl, "tail");
 
     assert(countersort->get_sort_kind() == DATATYPE);
     assert(listsort->get_sort_kind() == DATATYPE);
     assert(countersort != listsort);
     
     Datatype listdt = listsort->get_datatype();
-      Term five = s->make_term(5, intsort);
-      //Datatype listdt = listsort->get_datatype();
+    if (s->get_solver_enum() != GENERIC_SOLVER)
+      {
+    Term five = s->make_term(5, intsort);
       // Make datatype terms
-      /* Term cons = s->get_constructor(listsort, "cons");
-      assert("cons" ==  cons->to_string());
+       Term cons = s->get_constructor(listsort, "cons");
+       assert("cons" ==  cons->to_string());
       Term nil = s->get_constructor(listsort, "nil");
-      */
-      if (s->get_solver_enum() != GENERIC_SOLVER)
-	{
+
       Term head = s->get_selector(listsort, "cons", "head");
-      // This part must be commented out for the code to compile and
-      // pass the tests.
-      /*
+      
       Term tail = s->get_selector(listsort, "cons", "tail");
       
       Term isNil = s->get_tester(listsort, "nil");
@@ -137,7 +134,7 @@ TEST_P(DTTests, DatatypeDecl)
                    InternalSolverException);
       EXPECT_THROW(listdt->get_num_selectors("kons"),
       InternalSolverException);
-      */
+      
     }
 }
 

@@ -46,6 +46,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string cons_name;
   DatatypeDecl dt_decl;
   friend class GenericSolver;
+  friend class GenericDatatype;
 };
 
 class GenericDatatype : public AbsDatatype
@@ -60,7 +61,7 @@ class GenericDatatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
-  // bool compare(const Datatype & d) const override;
+  void change_sort_of_selector(const Sort new_sort);
   std::hash<std::string> str_hash;
 
  protected:
