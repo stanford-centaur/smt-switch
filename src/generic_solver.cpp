@@ -488,6 +488,8 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
+    // Exact functionality of make_genericsort, without the linking
+    // errors (undefined reference when I call a new make_generic_sort).
     Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     curr_dt->change_sort_of_selector(dt_sort);
     
@@ -528,13 +530,9 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
       to_solver += ")";
     }
     to_solver += ")\n))";
-    // Exact functionality of make_genericsort, without the linking
-    // errors (undefined reference when I call the new
-    // make_generic_sort).
     assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
-    cout << to_solver << endl;
     run_command(to_solver);
     
     return dt_sort;
@@ -579,6 +577,7 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
       make_shared<SelectorComponents>();
   newSelector->name = name;
   newSelector->sort = s;
+  newSelector->finalized = true;
   shared_ptr<GenericDatatypeConstructorDecl> gdtc =
       static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   gdtc->add_new_selector(*newSelector);
@@ -593,7 +592,8 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
     
     newSelector->name = name;
     newSelector->sort = make_shared<GenericSort>(name);
-    //assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
+    newSelector->finalized = false;
+    assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
     shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
     gdt_cons->add_new_selector(*newSelector);
 }

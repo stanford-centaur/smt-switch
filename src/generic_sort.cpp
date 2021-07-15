@@ -128,12 +128,12 @@ Sort make_generic_sort(Datatype & dt)
 
 // implementations
 
-GenericSort::GenericSort(SortKind sk) : sk(sk) {}
+  GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
-GenericSort::GenericSort(SortKind sk, std::string name_var) : sk(sk) {}
+  GenericSort::GenericSort(SortKind sk, std::string sort_name) : sk(sk) {}
 
   // Only used to make placeholders
-GenericSort::GenericSort(std::string name) : sk(PLACEHOLDER), base_name(name) {}
+  GenericSort::GenericSort(std::string name) : sk(DATATYPE), base_name(name) {}
 
 GenericSort::~GenericSort() {}
 
@@ -184,7 +184,7 @@ string GenericSort::compute_string() const {
     } else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS) {
       return get_uninterpreted_name();
     }
-    else if (get_sort_kind() == SortKind::DATATYPE || get_sort_kind() == SortKind::PLACEHOLDER)
+    else if (get_sort_kind() == SortKind::DATATYPE)
     {
       return base_name;
     }

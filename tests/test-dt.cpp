@@ -94,13 +94,15 @@ TEST_P(DTTests, DatatypeDecl)
     
     Datatype listdt = listsort->get_datatype();
     if (s->get_solver_enum() != GENERIC_SOLVER)
-      {
+     {
     Term five = s->make_term(5, intsort);
       // Make datatype terms
-       Term cons = s->get_constructor(listsort, "cons");
-       assert("cons" ==  cons->to_string());
-      Term nil = s->get_constructor(listsort, "nil");
-
+    //Term cons = s->get_constructor(listsort, "cons");
+    // assert("cons" ==  cons->to_string());
+    Term nil = s->get_constructor(listsort, "nil");
+    // if (s->get_solver_enum() != GENERIC_SOLVER)
+    //	{
+	  Term cons = s->get_constructor(listsort, "cons");
       Term head = s->get_selector(listsort, "cons", "head");
       
       Term tail = s->get_selector(listsort, "cons", "tail");

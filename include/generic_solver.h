@@ -48,6 +48,7 @@ class GenericSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
+  // Mutually recursive datatypes are currently not supported.
   Sort make_sort(const DatatypeDecl & d) const override;
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(

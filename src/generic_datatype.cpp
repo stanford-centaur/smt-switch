@@ -136,8 +136,10 @@ int GenericDatatype::get_num_selectors(std::string cons) const
     for (unsigned int i = 0; i < cons_decl_vector.size(); ++i) {
       std::shared_ptr<GenericDatatypeConstructorDecl> cons_cast = static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i]);
       for (unsigned int f = 0; f < get_num_selectors(cons_cast->get_name()); ++f) {
-	if (cons_cast->selector_vector[f].sort->get_sort_kind() == PLACEHOLDER) {
+	
+	if (cons_cast->selector_vector[f].finalized == false) {
 	  cons_cast->selector_vector[f].sort = new_sort;
+	  cons_cast->selector_vector[f].finalized = true;
 	}
       }
     

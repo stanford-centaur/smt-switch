@@ -5,7 +5,7 @@
 #include "datatype.h"
 #include "exceptions.h"
 #include "smt_defs.h"
-#include "sort.h"
+#include "generic_sort.h"
 
 // using namespace smt;
 namespace smt {
@@ -14,6 +14,7 @@ struct SelectorComponents
 {
   std::string name;
   Sort sort;
+  bool finalized;
 };
 
 class GenericDatatypeDecl : public AbsDatatypeDecl
@@ -66,7 +67,6 @@ class GenericDatatype : public AbsDatatype
 
  protected:
   DatatypeDecl dt_decl;
-  std::string name;
   std::vector<DatatypeConstructorDecl> cons_decl_vector;
 
   friend class GenericSolver;
