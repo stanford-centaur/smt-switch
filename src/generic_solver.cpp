@@ -494,7 +494,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
-    
+
     std::string to_solver = "(" + DECLARE_DATATYPE_STR + " ((";
     to_solver += dt_decl_name;
     to_solver += " 0)) (\n";
@@ -536,7 +536,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
     run_command(to_solver);
-    
+
     return dt_sort;
   }
   else
@@ -589,11 +589,13 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
   {
     shared_ptr<SelectorComponents> newSelector =
         make_shared<SelectorComponents>();
-    shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+    shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
+        static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
     string dt_decl_name = gdt_cons->get_dt_name();
-    
+
     newSelector->name = name;
-    // Sets the sort to be a placeholder value until the self sort is constructed.
+    // Sets the sort to be a placeholder value until the self sort is
+    // constructed.
     newSelector->sort = make_shared<GenericSort>(name);
     // This indicates that the sort in this selector will eventually
     // be replaced
@@ -617,8 +619,6 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
-  
-  
 }
 
 std::string GenericSolver::get_name(Term term) const

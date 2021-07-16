@@ -19,7 +19,7 @@ std::string GenericDatatypeDecl::get_name() { return dt_name; }
 
 GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
-  : cons_name(name)
+    : cons_name(name)
 {
 }
 
@@ -58,16 +58,16 @@ bool GenericDatatypeConstructorDecl::compare(
          == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
 
-  std::string GenericDatatypeConstructorDecl::get_dt_name() const
-  {
-    return static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
-  }
+std::string GenericDatatypeConstructorDecl::get_dt_name() const
+{
+  return static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
+}
 
-  void GenericDatatypeConstructorDecl::update_stored_dt(const DatatypeDecl & datatype_decl)
-  {
-    dt_decl = datatype_decl;
-    
-  }
+void GenericDatatypeConstructorDecl::update_stored_dt(
+    const DatatypeDecl & datatype_decl)
+{
+  dt_decl = datatype_decl;
+}
 
 GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
     : dt_decl(dt_declaration)
@@ -82,7 +82,8 @@ void GenericDatatype::add_constructor(
   {
     throw "Can't add constructor. It already has been added!";
   }
-  shared_ptr<GenericDatatypeConstructorDecl> gdt_cons = static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
+  shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
+      static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
   gdt_cons->update_stored_dt(dt_decl);
   cons_decl_vector.push_back(dt_cons_decl);
 }
@@ -131,16 +132,21 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   return num_selectors;
 }
 
-  void GenericDatatype::change_sort_of_selector(const Sort new_sort)
+void GenericDatatype::change_sort_of_selector(const Sort new_sort)
+{
+  for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
-    for (unsigned int i = 0; i < cons_decl_vector.size(); ++i) {
-      std::shared_ptr<GenericDatatypeConstructorDecl> cons_cast = static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i]);
-      for (unsigned int f = 0; f < get_num_selectors(cons_cast->get_name()); ++f) {
-        if (cons_cast->selector_vector[f].finalized == false) {
-          cons_cast->selector_vector[f].sort = new_sort;
-          cons_cast->selector_vector[f].finalized = true;
-        }
+    std::shared_ptr<GenericDatatypeConstructorDecl> cons_cast =
+        static_pointer_cast<GenericDatatypeConstructorDecl>(
+            cons_decl_vector[i]);
+    for (unsigned int f = 0; f < get_num_selectors(cons_cast->get_name()); ++f)
+    {
+      if (cons_cast->selector_vector[f].finalized == false)
+      {
+        cons_cast->selector_vector[f].sort = new_sort;
+        cons_cast->selector_vector[f].finalized = true;
       }
     }
   }
+}
 }  // namespace smt

@@ -4,8 +4,8 @@
 
 #include "datatype.h"
 #include "exceptions.h"
-#include "smt_defs.h"
 #include "generic_sort.h"
+#include "smt_defs.h"
 
 // using namespace smt;
 namespace smt {

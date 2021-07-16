@@ -128,13 +128,13 @@ Sort make_generic_sort(Datatype & dt)
 
 // implementations
 
-  GenericSort::GenericSort(SortKind sk) : sk(sk) {}
+GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
-  GenericSort::GenericSort(SortKind sk, std::string sort_name) : sk(sk) {}
+GenericSort::GenericSort(SortKind sk, std::string sort_name) : sk(sk) {}
 
-  // Only used to make placeholder sorts for datatypes when the
-  // sort is the datatype itself but the sort hasn't been constructed.
-  GenericSort::GenericSort(std::string name) : sk(DATATYPE), base_name(name) {}
+// Only used to make placeholder sorts for datatypes when the
+// sort is the datatype itself but the sort hasn't been constructed.
+GenericSort::GenericSort(std::string name) : sk(DATATYPE), base_name(name) {}
 
 GenericSort::~GenericSort() {}
 
@@ -349,19 +349,25 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 }
 
 GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
-    : GenericSort(DATATYPE),
-      gdt(dt)
+    : GenericSort(DATATYPE), gdt(dt)
 {
-  GenericSort::base_name = (static_pointer_cast<GenericDatatype>(dt))->get_name();
+  GenericSort::base_name =
+      (static_pointer_cast<GenericDatatype>(dt))->get_name();
 }
 
 GenericDatatypeSort::~GenericDatatypeSort() {}
 
-  std::string GenericDatatypeSort::get_sort_name() { return GenericSort::base_name; }
+std::string GenericDatatypeSort::get_sort_name()
+{
+  return GenericSort::base_name;
+}
 
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 
-  string GenericDatatypeSort::compute_string() const { return GenericSort::base_name; }
+string GenericDatatypeSort::compute_string() const
+{
+  return GenericSort::base_name;
+}
 
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
