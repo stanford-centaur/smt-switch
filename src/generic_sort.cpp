@@ -132,7 +132,8 @@ Sort make_generic_sort(Datatype & dt)
 
   GenericSort::GenericSort(SortKind sk, std::string sort_name) : sk(sk) {}
 
-  // Only used to make placeholders
+  // Only used to make placeholder sorts for datatypes when the
+  // sort is the datatype itself but the sort hasn't been constructed.
   GenericSort::GenericSort(std::string name) : sk(DATATYPE), base_name(name) {}
 
 GenericSort::~GenericSort() {}
@@ -350,7 +351,6 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
     : GenericSort(DATATYPE),
       gdt(dt)
-      //GenericSort::base_name((static_pointer_cast<GenericDatatype>(dt))->get_name())
 {
   GenericSort::base_name = (static_pointer_cast<GenericDatatype>(dt))->get_name();
 }

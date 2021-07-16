@@ -491,6 +491,8 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // Exact functionality of make_genericsort, without the linking
     // errors (undefined reference when I call a new make_generic_sort).
     Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
+    // Replaces the sort of any selectors with a false finalized field
+    // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
     
     std::string to_solver = "(" + DECLARE_DATATYPE_STR + " ((";
@@ -591,7 +593,10 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
     string dt_decl_name = gdt_cons->get_dt_name();
     
     newSelector->name = name;
+    // Sets the sort to be a placeholder value until the self sort is constructed.
     newSelector->sort = make_shared<GenericSort>(name);
+    // This indicates that the sort in this selector will eventually
+    // be replaced
     newSelector->finalized = false;
     assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
     shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
@@ -612,6 +617,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
+  
   
 }
 
@@ -853,6 +859,7 @@ Term GenericSolver::make_param(const string name, const Sort & sort)
 
 Term GenericSolver::make_term(const Op op, const Term & t) const
 {
+  cout << "make term fn called" << endl;
   return make_term(op, TermVec({ t }));
 }
 
@@ -873,8 +880,12 @@ Term GenericSolver::make_term(const Op op,
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
+  cout << "this new fn called" << endl;
   Sort sort = compute_sort(op, this, terms);
+  cout << "computer sort" << endl;
   string repr = "(" + op.to_string();
+  cout << repr << endl;
+  cout << "tedt" << endl;
   for (int i = 0; i < terms.size(); i++)
   {
     assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
