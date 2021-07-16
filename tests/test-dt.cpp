@@ -93,25 +93,27 @@ TEST_P(DTTests, DatatypeDecl)
     assert(countersort != listsort);
     
     Datatype listdt = listsort->get_datatype();
+    
     if (s->get_solver_enum() != GENERIC_SOLVER)
-     {
+    {
     Term five = s->make_term(5, intsort);
       // Make datatype terms
-    //Term cons = s->get_constructor(listsort, "cons");
-    // assert("cons" ==  cons->to_string());
+    Term cons = s->get_constructor(listsort, "cons");
+     assert("cons" ==  cons->to_string());
     Term nil = s->get_constructor(listsort, "nil");
-    // if (s->get_solver_enum() != GENERIC_SOLVER)
-    //	{
-	  Term cons = s->get_constructor(listsort, "cons");
       Term head = s->get_selector(listsort, "cons", "head");
       
       Term tail = s->get_selector(listsort, "cons", "tail");
       
+      
       Term isNil = s->get_tester(listsort, "nil");
+      
       // Datatype ops
+      
       Term nilterm = s->make_term(Apply_Constructor, nil);
       Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
       Term five_again = s->make_term(Apply_Selector, head, list5);
+      
       
       // Expected booleans
       s->assert_formula(s->make_term(Equal, five, five_again));
@@ -127,7 +129,6 @@ TEST_P(DTTests, DatatypeDecl)
       ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
 
       ASSERT_TRUE(res.is_sat());
-
       // Expected exceptions
       EXPECT_THROW(s->get_constructor(listsort, "kons"),
                    InternalSolverException);
@@ -138,6 +139,7 @@ TEST_P(DTTests, DatatypeDecl)
       InternalSolverException);
       
     }
+    
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
