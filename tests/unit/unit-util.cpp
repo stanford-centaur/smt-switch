@@ -237,8 +237,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term q = s->make_symbol("q", boolsort);
   Term r = s->make_symbol("r", boolsort);
   Term t = s->make_symbol("t", boolsort);
-  if (s->get_solver_enum() != BTOR )
-  {
+  if(s->get_solver_enum()==YICES2){
     return;
   }
   //a=((p or q) and r) implies (not t)
@@ -275,7 +274,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "cnf_formula_new_7) (or cnf_formula_new_8 (not cnf_formula_new_7) (not "
       "p)) (and (or cnf_formula_new_7 (not cnf_formula_new_8)) (or p (not "
       "cnf_formula_new_8)))))";
-  ASSERT_TRUE(ans3 == st3);
+  ASSERT_TRUE(ans3 == st3)<<ans3<<endl<<endl<<s->get_solver_enum();
 }
 
 
