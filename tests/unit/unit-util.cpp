@@ -237,7 +237,10 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term q = s->make_symbol("q", boolsort);
   Term r = s->make_symbol("r", boolsort);
   Term t = s->make_symbol("t", boolsort);
-
+  if (s->get_solver_enum() != BTOR )
+  {
+    return;
+  }
   //a=((p or q) and r) implies (not t)
   Term a = s->make_term(Implies, s->make_term(And, s->make_term(Or, p, q), r), s->make_term(Not, t));
   Term cnf1 = to_cnf(a, s);
