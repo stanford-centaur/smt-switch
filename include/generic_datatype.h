@@ -9,7 +9,7 @@
 
 namespace smt {
 
-  // Struct used to hold everything needed to work with datatype selectors
+// Struct used to hold everything needed to work with datatype selectors
 struct SelectorComponents
 {
   // Name of the selector and its associated sort
@@ -65,8 +65,8 @@ class GenericDatatype : public AbsDatatype
   virtual ~GenericDatatype(){};
   // Stores a constructor object (dt_cons_decl) in the datatype object.
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
-  // Stores a new selector (newSelector) in the constructor object (dt_cons_decl) if the
-  // constructor is associated with the datatype
+  // Stores a new selector (newSelector) in the constructor object
+  // (dt_cons_decl) if the constructor is associated with the datatype
   void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                     const SelectorComponents & newSelector);
   std::vector<DatatypeConstructorDecl> get_cons_vector();

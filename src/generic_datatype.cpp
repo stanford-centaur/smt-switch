@@ -56,7 +56,8 @@ bool GenericDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
   // COmpares based off constructor's name
-  return cons_name == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
+  return cons_name
+         == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
@@ -101,9 +102,11 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
     if (cons_decl_vector[i] == dt_cons_decl)
     {
       // Adds the selector to the correct constructor
-      static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])->add_new_selector(newSelector);
+      static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])
+          ->add_new_selector(newSelector);
     }
-    else {
+    else
+    {
       throw "Can't add selector. The constructor is not a member of the datatype!";
     }
   }
@@ -128,7 +131,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   // Used to keep track of the number of selectors in the constructor
   int num_selectors = 0;
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
-    // Searches for a matching constructor
+  // Searches for a matching constructor
   {
     if (static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])
             ->get_name()
@@ -144,11 +147,11 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   return num_selectors;
 }
 
-  /*
+/*
 This function goes through every selector in the datatype and if
 finalized is set to false, it replaces the previously stored sort
 with new_sort
-   */
+ */
 void GenericDatatype::change_sort_of_selector(const Sort new_sort)
 {
   // For every constructor
