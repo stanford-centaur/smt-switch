@@ -237,7 +237,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term q = s->make_symbol("q", boolsort);
   Term r = s->make_symbol("r", boolsort);
   Term t = s->make_symbol("t", boolsort);
-  if(s->get_solver_enum()==YICES2){
+  if(s->get_solver_enum()==YICES2 || s->get_solver_enum()==Z3){
     return;
   }
   //a=((p or q) and r) implies (not t)
@@ -253,7 +253,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "cnf_formula_new_3))) (or (or (not cnf_formula_new_3) cnf_formula_new_1) "
       "(not cnf_formula_new_4)) (or cnf_formula_new_3 cnf_formula_new_4) (or "
       "(not cnf_formula_new_1) cnf_formula_new_4)))";
-  ASSERT_TRUE(ans1 == st1);
+  ASSERT_TRUE(ans1 == st1)<<s->get_solver_enum();
   //b=(not (p xor q))
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
   Term cnf2 = to_cnf(b, s);
