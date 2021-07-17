@@ -335,20 +335,36 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
   }
 }
 
-//mapping each subformula with a new name and returning a vector of pair of terms. 
-//Each pair consists of the parent term and it's children(for each subformula)
-class traversal : public IdentityWalker
+// mapping each subformula with a new name and returning a vector of pair of
+// terms. Each pair consists of the parent term and it's children(for each
+// subformula)
+class TseitinTraversal : public IdentityWalker
 {
  public:
-  std::vector<std::pair<Term, Term>> reduced;
-  static int pt;  // the static variable to always produce distinct symbols
-  traversal(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  std::vector<std::pair<Term, Term>>
+      reduced;  // stores a pair of (lhs, rhs) in x1(lhs)<->(formula(rhs))
+
+  TseitinTraversal(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
   WalkerStepResult visit_term(Term & term)
   {
     Sort boolsort = term->get_sort();
+    assert(term->get_sort() == boolsort);
 
     auto give_symbolic_name = [&](Term t) {  // producing a new symbol
-      return solver_->make_symbol("cnf__tseitin__new__term" + std::to_string(pt++), boolsort);
+      int pt = 1;
+      while (true)
+      {
+        try
+        {
+          return solver_->make_symbol("cnf_formula_new_" + std::to_string(pt),
+                                      boolsort);
+        }
+        catch (IncorrectUsageException & e)
+        {
+          pt++;
+        }
+      }
+
     };
     if (!preorder_)  // using post order traversal as I need the new names of
                      // the children to generate the new term
@@ -356,38 +372,39 @@ class traversal : public IdentityWalker
       smt::Op op = term->get_op();
       if (!op.is_null())
       {
-          std::vector<Term>vec;//a vector of all children
-          for(auto u:term)
-          {
-            Term term_name;
-            query_cache(u, term_name);//finding the new name of each child from the cache
-            vec.push_back(term_name);
-          }
+        std::vector<Term> vec;  // a vector of all children
+        for (auto u : term)
+        {
           Term term_name;
-          bool present=query_cache(term, term_name);//true if we found the name of the term in the cached
-          if(!present)
-          {//making a new symbol
-            term_name = give_symbolic_name(term);
-            save_in_cache(term, term_name);
-          }
-          reduced.push_back({term_name, solver_->make_term(op, vec)}); 
+          bool present = query_cache(
+              u,
+              term_name);  // finding the new name of each child from the cache
+          assert(present == true);
+          vec.push_back(term_name);
+        }
+        Term term_name;
+        query_cache(term, term_name);
+
+        term_name = give_symbolic_name(term);  // making a new symbol
+        save_in_cache(term, term_name);
+
+        reduced.push_back({ term_name, solver_->make_term(op, vec) });
       }
       else
       {  // mapping a symbolic constant to itself
         save_in_cache(term, term);
       }
     }
+
     return Walker_Continue;
   }
 };
-int traversal::pt = 1;
 
-
-//binarising xor with multiple children
-class xor_binarise : public IdentityWalker
+// binarising xor with multiple children
+class XorBinarize : public IdentityWalker
 {
  public:
-  xor_binarise(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  XorBinarize(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
   WalkerStepResult visit_term(Term & term)
   {
     if (!preorder_)
@@ -399,7 +416,8 @@ class xor_binarise : public IdentityWalker
         {
           auto it = term->begin();
           Term term_name;
-          query_cache((*it), term_name);//finding the mapped term from the cache
+          query_cache((*it),
+                      term_name);  // finding the mapped term from the cache
           Term ne = term_name;
           it++;
           while (it != term->end())
@@ -409,7 +427,7 @@ class xor_binarise : public IdentityWalker
             ne = solver_->make_term(op, ne, term_name);
             it++;
           }
-          save_in_cache(term, ne);//storing the new binarised term in cache
+          save_in_cache(term, ne);  // storing the new binarised term in cache
         }
         else
         {
@@ -440,44 +458,47 @@ Term to_cnf(Term formula, SmtSolver s)
   {
     return formula;
   }
-  xor_binarise bin(s);
+  XorBinarize bin(s);
   bin.visit(formula);  // binarising the formula
   Term formula2 = bin.acc_cache(formula);
-  traversal obj(s);
+  TseitinTraversal obj(s);
   obj.visit(
       formula2);  // traversing the binarised formula to create of pairs of
                   // (c<->(a op b)) which will be used in the transformation
 
   Term parent = obj.reduced.back().first;
+
   TermVec clauses;
 
-  // the vector of pairs reduced contains pairs in the form of (c)<->op(a,  b),
-  // where c is the first term of the pair and op(a, b) is the second
+  // the vector of pairs reduced contains pairs in the form of (c)<->(a op b),
+  // where c is the first term of the pair and (a op b) is the second
   for (auto u : obj.reduced)
   {
     Term fi = u.first;
     Term se = u.second;
     smt::Op op = se->get_op();
 
-    if(op == smt::Or)
-    {//(c<->Or(x1, x2, x3, x4....)) = (Or(~c, x1, x2, x3, x4) And (And((c or ~x1), (c or ~x2), (c or ~x3), (c or ~x4))
-      std::vector<Term>vec;
-      std::vector<Term>vec2;
+    if (op == smt::Or)
+    {  //(c<->Or(x1, x2, x3, x4....)) = (Or(~c, x1, x2, x3, x4) And (And((c or
+       //~x1), (c or ~x2), (c or ~x3), (c or ~x4))
+      std::vector<Term> vec;
+      std::vector<Term> vec2;
       vec.push_back(s->make_term(Not, fi));
-      for(auto u:se)
+      for (auto u : se)
       {
         vec.push_back(u);
         vec2.push_back(s->make_term(Or, fi, s->make_term(Not, u)));
       }
       clauses.push_back(s->make_term(Or, vec));
-      clauses.push_back(s->make_term(And, vec2));  
+      clauses.push_back(s->make_term(And, vec2));
     }
-    else if(op == smt::And)
-    {//(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c or x1), (~c or x2), (~c or x3), (~c or x4))
-      std::vector<Term>vec;
-      std::vector<Term>vec2;
+    else if (op == smt::And)
+    {  //(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c
+       // or x1), (~c or x2), (~c or x3), (~c or x4))
+      std::vector<Term> vec;
+      std::vector<Term> vec2;
       vec.push_back(fi);
-      for(auto u:se)
+      for (auto u : se)
       {
         vec.push_back(s->make_term(Not, u));
         vec2.push_back(s->make_term(Or, u, s->make_term(Not, fi)));
@@ -485,24 +506,34 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(s->make_term(Or, vec));
       clauses.push_back(s->make_term(And, vec2));
     }
-    else if(op == smt::Xor)
-    {//((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and ((c) v (a) v (~b))
+    else if (op == smt::Xor)
+    {  //((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and
+       //((c) v (a) v (~b))
       auto it = (se->begin());
       Term le = (*it);
       it++;
       Term ri = (*it);
-      clauses.push_back(s->make_term(Or, s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)), s->make_term(Not, fi)));
-      clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), s->make_term(Not, fi)));
-      clauses.push_back(s->make_term(Or, s->make_term(Or, fi, ri), s->make_term(Not, le)));
-      clauses.push_back(s->make_term(Or, s->make_term(Or, fi, le), s->make_term(Not, ri)));
+      clauses.push_back(s->make_term(
+          Or,
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),
+          s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, le, ri), s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, fi, ri), s->make_term(Not, le)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, fi, le), s->make_term(Not, ri)));
     }
-    else if(op == smt::Implies)
-    {//((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
+    else if (op == smt::Implies)
+    {  //((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
       auto it = (se->begin());
       Term le = (*it);
       it++;
       Term ri = (*it);
-      clauses.push_back(s->make_term(Or, s->make_term(Or, s->make_term(Not, le), ri), s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, s->make_term(Not, le), ri),
+                       s->make_term(Not, fi)));
       clauses.push_back(s->make_term(Or, le, fi));
       clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
     }
@@ -513,19 +544,29 @@ Term to_cnf(Term formula, SmtSolver s)
       Term le = (*it);
       it++;
       Term ri = (*it);
-      clauses.push_back(s->make_term(Or,s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),fi));
+      clauses.push_back(s->make_term(
+          Or,
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),
+          fi));
       clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), fi));
-      clauses.push_back(s->make_term(Or,s->make_term(Or, le, s->make_term(Not, ri)),s->make_term(Not, fi)));
-      clauses.push_back(s->make_term(Or,s->make_term(Or, s->make_term(Not, le), ri),s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, le, s->make_term(Not, ri)),
+                       s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, s->make_term(Not, le), ri),
+                       s->make_term(Not, fi)));
     }
     else
-    {//((~a) v (~c)) and ((a) v (c))
+    {  //((~a) v (~c)) and ((a) v (c))
       Term le = (*(se->begin()));
-      clauses.push_back(s->make_term(Or, s->make_term(Not, le), s->make_term(Not, fi)));
-      clauses.push_back(s->make_term(Or, le, fi));  
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, fi)));
+      clauses.push_back(s->make_term(Or, le, fi));
     }
   }
-  //taking the and of all clauses generated to create the cnf
+  // taking the and of all clauses generated to create the cnf
   Term ret = s->make_term(And, clauses);
   ret = s->make_term(And, parent, ret);
 
