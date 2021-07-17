@@ -48,7 +48,7 @@ class AbsDatatype {
   virtual int get_num_selectors(std::string cons) const=0;
   virtual int get_num_constructors() const=0;
 };
-
+// Overloaded equivalence operators for two datatype constructor declarations
 bool operator==(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);
 bool operator!=(const DatatypeConstructorDecl & d1,

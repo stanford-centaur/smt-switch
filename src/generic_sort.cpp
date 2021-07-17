@@ -371,6 +371,7 @@ string GenericDatatypeSort::compute_string() const
 
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
+  // Compares the strings of two datatype sorts
   assert(s->get_sort_kind() == DATATYPE);
   shared_ptr<GenericDatatypeSort> other_sort =
       static_pointer_cast<GenericDatatypeSort>(s);
