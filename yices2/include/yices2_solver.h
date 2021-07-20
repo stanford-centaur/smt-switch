@@ -126,6 +126,13 @@ class Yices2Solver : public AbsSmtSolver
   size_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
                               ///< status
 
+  std::unordered_set<std::string> symbols;
+  ///< Keep track of declared symbols to avoid re-declaration
+  ///< Note: Yices2 has a global symbol table, but we want it
+  ///< associated with each solver instance. This is why we
+  ///< can't rely on yices_get_term_by_name to see if name
+  ///< has already been used.
+
   // helper function
   inline Result check_sat_assuming(const std::vector<term_t> & y_assumps)
   {
