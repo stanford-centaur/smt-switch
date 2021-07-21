@@ -70,7 +70,8 @@ int main()
   assert(us1 != us3);
   assert(us1->get_uninterpreted_name() == "sort1");
   assert(us1->get_arity() == 0);
-  cout << "pre datatype" << endl;
+
+  // Creates a new datatype with one constructor  
   DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>("testSort1");
   shared_ptr<GenericDatatype> new_dt =
       shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
@@ -81,6 +82,7 @@ int main()
   shared_ptr<GenericDatatypeSort> dt_sort =
       make_shared<GenericDatatypeSort>(new_dt);
 
+  // Creates a different datatype with one constructor
   DatatypeDecl new2_dt_decl = make_shared<GenericDatatypeDecl>("testSort2");
   shared_ptr<GenericDatatype> new2_dt =
       shared_ptr<GenericDatatype>(new GenericDatatype(new2_dt_decl));
@@ -88,15 +90,16 @@ int main()
       shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl("test2"));
   new2_dt->add_constructor(new2_dt_cons_decl);
-
   shared_ptr<GenericDatatypeSort> dt_sort2 =
       make_shared<GenericDatatypeSort>(new2_dt);
+  // Asserts that the sorts are distinct from one another and that the
+  // copy operator works with said sorts
   assert(dt_sort != dt_sort2);
   auto copy = dt_sort;
   assert(dt_sort == copy);
-  cout << dt_sort->compute_string() << endl;
-  cout << dt_sort2->compute_string() << endl;
+  // Compares string names of the sorts
   assert(dt_sort->to_string() != dt_sort2->to_string());
+  // Checks for valid sortKinds
   assert((dt_sort->get_sort_kind()) == (dt_sort2->get_sort_kind()));
   assert(dt_sort->get_sort_kind() == DATATYPE);
   assert(dt_sort2->get_sort_kind() == DATATYPE);

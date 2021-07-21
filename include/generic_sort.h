@@ -46,9 +46,7 @@ class GenericSort : public AbsSort
 {
  public:
   GenericSort(SortKind sk);
-  // This constructor is only for datatype sorts.
-  GenericSort(SortKind sk, std::string sort_name);
-  // Only for placeholder sorts used for inductive datatypes. name
+  // Only for placeholder sorts used for datatypes. name
   // should be the name of the datatype.
   GenericSort(std::string name);
   virtual ~GenericSort();
@@ -119,13 +117,11 @@ class GenericSort : public AbsSort
   // A string representation of a sort
   std::string to_string() const override;
 
-  std::string get_base_name() const;
 
  protected:
   // internal function to compute
   // the string representation of a sort
-  std::string compute_string() const;
-  std::string base_name;
+  virtual std::string compute_string() const;
   // The underlying SortKind of the GenericSort
   SortKind sk;
 
@@ -203,11 +199,9 @@ class GenericDatatypeSort : public GenericSort
  public:
   GenericDatatypeSort(const Datatype & dt);
   ~GenericDatatypeSort();
-  // Returns the name of the datatype
-  std::string get_sort_name();
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
-  std::string compute_string() const;
+  std::string compute_string() const override;
   std::string to_string() const override;
 
  protected:

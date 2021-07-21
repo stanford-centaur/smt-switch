@@ -96,6 +96,8 @@ void GenericDatatype::add_constructor(
 void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                                    const SelectorComponents & newSelector)
 {
+  // boolean used to keep track of if a successful match was found.
+  bool success = false;
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
     // If the constructor is associated with the datatype
@@ -104,11 +106,12 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
       // Adds the selector to the correct constructor
       static_pointer_cast<GenericDatatypeConstructorDecl>(cons_decl_vector[i])
           ->add_new_selector(newSelector);
+      success = true;
+      break;
     }
-    else
-    {
-      throw "Can't add selector. The constructor is not a member of the datatype!";
-    }
+  }
+  if (!success) {
+    throw InternalSolverException("Can't add selector. The constructor is not a member of the datatype!");
   }
 }
 std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()

@@ -99,7 +99,7 @@ GenericSolver::GenericSolver(string path,
   write_buf = new char[write_buf_size];
   read_buf = new char[read_buf_size];
 
-  //make sure allocation was successful
+  // sure allocation was successful
   assert(write_buf != NULL);
   assert(read_buf != NULL);
   //initialize write_buf
@@ -314,6 +314,10 @@ void GenericSolver::define_fun(std::string name,
   // (like define-const)
   assert(args_sorts.size() == 0);
   assert(sort_name_map->find(res_sort) != sort_name_map->end());
+  cout << "command sent:" << endl;
+  cout << "(" + DEFINE_FUN_STR + " " + name + " () "
+    + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
+    + ")" << endl;
   // send a define-fun to the binary
   run_command("(" + DEFINE_FUN_STR + " " + name + " () "
               + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
@@ -489,7 +493,9 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
     // Exact functionality of make_genericsort, without the linking
-    // errors (undefined reference when I call a new make_generic_sort).
+    // errors (undefined reference when I call a new
+    // make_generic_sort).
+    //Sort dt_sort = make_generic_sort(curr_dt);
     Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
@@ -608,17 +614,20 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
+  
 }
 
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
+  
 }
 
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
+  
 }
 
 std::string GenericSolver::get_name(Term term) const
@@ -654,6 +663,9 @@ Term GenericSolver::store_term(Term term) const
     if (gterm->is_ground())
     {
       name = get_name(gterm);
+      cout << "print ground name" << endl;
+      cout << name << endl;
+      cout << gterm->get_sort()->to_string() << endl;
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
     }
     else
@@ -859,7 +871,6 @@ Term GenericSolver::make_param(const string name, const Sort & sort)
 
 Term GenericSolver::make_term(const Op op, const Term & t) const
 {
-  cout << "make term fn called" << endl;
   return make_term(op, TermVec({ t }));
 }
 
@@ -880,18 +891,18 @@ Term GenericSolver::make_term(const Op op,
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
-  cout << "this new fn called" << endl;
+  cout << "pre compute sort" << endl;
   Sort sort = compute_sort(op, this, terms);
-  cout << "computer sort" << endl;
+  cout << "post compute sort" << endl;
   string repr = "(" + op.to_string();
-  cout << repr << endl;
-  cout << "tedt" << endl;
   for (int i = 0; i < terms.size(); i++)
   {
     assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
     repr += " " + (*term_name_map)[terms[i]];
   }
   repr += ")";
+  cout << "repr" << endl;
+  cout << repr << endl;
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
   Term stored_term = store_term(term);
   return stored_term;

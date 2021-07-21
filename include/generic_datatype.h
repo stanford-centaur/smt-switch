@@ -38,7 +38,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   GenericDatatypeConstructorDecl(const std::string & name);
   virtual ~GenericDatatypeConstructorDecl(){};
   // Stores a new selector in the constructor object. newSelector: the
-  // selectorComponents to be added.
+  // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
   std::vector<SelectorComponents> get_selector_vector();
   std::string get_name() const;
@@ -46,14 +46,14 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   int get_selector_count() const;
   bool compare(const DatatypeConstructorDecl & d) const override;
   std::string get_dt_name() const;
-  // Setter for the dt_decl member. Only to be used when a constructor
-  // is added to a datatype. datatype_decl: The DatatypeDecl of the datatype.
-  void update_stored_dt(const DatatypeDecl & datatype_decl);
 
  protected:
   std::vector<SelectorComponents> selector_vector;
   std::string cons_name;
   DatatypeDecl dt_decl;
+  // Setter for the dt_decl member. Only to be used when a constructor
+  // is added to a datatype. datatype_decl: The DatatypeDecl of the datatype.
+  void update_stored_dt(const DatatypeDecl & datatype_decl);
   friend class GenericSolver;
   friend class GenericDatatype;
 };
@@ -75,6 +75,11 @@ class GenericDatatype : public AbsDatatype
   int get_num_selectors(std::string cons) const override;
   // Updates the sort of any selector whose finalized field is
   // false. The not-finalized selectors have their sorts set to new_sort.
+  // This function is used only as part of the process of adding a
+  // 'self-selector'. After a self selector is added to a datatype, it
+  // holds a placeholder sort. This function is
+  // called when the datatype's sort is created to replace the
+  // self-selector's placeholder sort with the actual datatype sort.
   void change_sort_of_selector(const Sort new_sort);
   std::hash<std::string> str_hash;
 
