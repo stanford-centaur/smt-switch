@@ -96,7 +96,10 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Select, check_select_sorts },
                           { Store, check_store_sorts },
                           { Forall, check_quantifier_sorts },
-                          { Exists, check_quantifier_sorts }
+			    { Exists, check_quantifier_sorts },
+			      {Apply_Constructor, check_constructor_sorts },
+				{Apply_Selector, check_selector_sorts },
+				  {Apply_Tester, check_tester_sorts }
 
     });
 
@@ -174,7 +177,10 @@ const std::unordered_map<
                          { Select, select_sort },
                          { Store, store_sort },
                          { Forall, bool_sort },
-                         { Exists, bool_sort }
+			   { Exists, bool_sort },
+			     {Apply_Constructor, bool_sort },
+			       {Apply_Tester, bool_sort },
+				 {Apply_Selector, bool_sort },
       });
 
 // main function implementations
@@ -227,6 +233,7 @@ Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
   {
     sorts.push_back(t->get_sort());
   }
+  cout << "made sort vec" << endl;
   return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
 }
 
@@ -368,6 +375,35 @@ bool check_select_sorts(const SortVec & sorts)
   return true;
 }
 
+  bool check_selector_sorts(const SortVec & sorts)
+  {
+    assert(sorts.size());
+    if (sorts.size() != 1)
+      {
+	return false;
+      }
+
+    Sort dt_sort = sorts[0];
+    if (dt_sort->get_sort_kind() != DATATYPE)
+      {
+	return false;
+      }
+    return true;
+    
+  }
+  // TO DO!!! DO THIS LATER
+  bool check_constructor_sorts(const SortVec & sorts)
+  {
+    return true;
+  }
+
+  // TO DO!!! DO THIS LATER
+  bool check_tester_sorts(const SortVec & sorts)
+  {
+    return true;
+  }
+  
+  
 bool check_store_sorts(const SortVec & sorts)
 {
   assert(sorts.size());

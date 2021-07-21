@@ -156,6 +156,11 @@ bool check_select_sorts(const SortVec & sorts);
  *  @param returns true iff the first sort is an array sort
  *         and the next two match the index and element sort
  */
+
+ bool check_selector_sorts(const SortVec & sorts);
+ bool check_constructor_sorts(const SortVec & sorts);
+ bool check_tester_sorts(const SortVec & sorts);
+ 
 bool check_store_sorts(const SortVec & sorts);
 
 bool bool_sorts(const SortVec & sorts);
