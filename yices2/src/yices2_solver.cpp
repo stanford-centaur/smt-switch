@@ -644,6 +644,12 @@ Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
 {
+  if (symbols.find(name) != symbols.end())
+  {
+    throw IncorrectUsageException("symbol " + name + " has already been used.");
+  }
+  symbols.insert(name);
+
   shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
   term_t y_term = yices_new_uninterpreted_term(ysort->type);
   yices_set_term_name(y_term, name.c_str());
