@@ -125,6 +125,9 @@ TEST_P(UnitSortTests, UninterpretedSort)
   // Expecting an uninterpreted constructor sort
   EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
   EXPECT_EQ(sort_cons->get_arity(), 4);
+
+  Sort param_sort =
+      s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort });
 }
 
 TEST_P(UnitSortTests, UninterpSortEquality)
