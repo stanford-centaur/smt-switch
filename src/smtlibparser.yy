@@ -67,7 +67,7 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DEFINEFUN DEFINESORT ASSERT CHECKSAT
+       DECLARESORT DEFINEFUN DEFINESORT ASSERT CHECKSAT
        CHECKSATASSUMING PUSH POP EXIT GETVALUE
        GETUNSATASSUMP ECHO
 %token ASCONST LET
@@ -141,6 +141,10 @@ command:
     }
     assert(symsort);
     drv.new_symbol($3, symsort);
+  }
+  | LP DECLARESORT SYMBOL NAT RP
+  {
+    drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
   | LP DEFINEFUN
      {
@@ -360,6 +364,11 @@ sort:
      {
        // got the dedicated null enum
        // check defined sorts
+       res = drv.lookup_sort($1);
+     }
+     else if (sk == smt::UNINTERPRETED)
+     {
+       // uninterpreted sorts also stored with defined sorts
        res = drv.lookup_sort($1);
      }
      else
