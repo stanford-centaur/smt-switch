@@ -116,6 +116,8 @@ TEST_P(UnitSortTests, UninterpretedSort)
     // if not supported, that's fine.
     std::cout << "got exception when declaring nonzero arity sort: " << e.what()
               << std::endl;
+    // but CVC4 expected to support it
+    ASSERT_NE(s->get_solver_enum(), smt::CVC4);
     return;
   }
 
