@@ -356,7 +356,7 @@ class TseitinTraversal : public IdentityWalker
       {
         try
         {
-          return solver_->make_symbol("cnf_formula_new_" + std::to_string(pt),
+          return solver_->make_symbol("tseitin_to_cnf_" + std::to_string(pt),
                                       boolsort);
         }
         catch (IncorrectUsageException & e)
@@ -450,14 +450,390 @@ class XorBinarize : public IdentityWalker
   }
 };
 
+// Given a boolean formula, removes terms "true" and "false" to give a formula
+// without adding new symbols
+class EliminateBooleanConstants : public IdentityWalker
+{
+ public:
+  EliminateBooleanConstants(SmtSolver solver_)
+      : IdentityWalker{ solver_, false }
+  {
+  }
+  WalkerStepResult visit_term(Term & term)
+  {
+    auto is_true = [&](Term t) {  // If the term is "true"
+      return ((t->to_string()) == "true");
+    };
+    auto is_false = [&](Term t) {  // If the term is "false"
+      return ((t->to_string()) == "false");
+    };
+    if (!preorder_)
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        Term tr = solver_->make_term(true);   // Term "true"
+        Term fa = solver_->make_term(false);  // Term "false"
+        if (op == smt::Not)
+        {
+          Term t = (*term->begin());
+          Term term_name;
+          query_cache(t,
+                      term_name);  // Querying the mapped formula of the child
+                                   // as we are doing a preorder traversal
+
+          if (is_true(term_name))
+          {  // not(false)=true
+            save_in_cache(term, fa);
+          }
+          else if (is_false(term_name))
+          {  // not(true)=false
+            save_in_cache(term, tr);
+          }
+          else
+          {  // mapping not of the queried term_name.
+            save_in_cache(term, solver_->make_term(Not, term_name));
+          }
+        }
+        else if (op == smt::Equal)
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          it++;
+          Term ri = (*it);
+          // term=(le_name<->ri_name)
+          Term le_name;
+          Term ri_name;
+          query_cache(le, le_name);
+          query_cache(ri, ri_name);
+          if ((is_true(le_name) && is_true(ri_name))
+              || (is_false(le_name) && is_false(ri_name)))
+          {  //(true==true)=true, (false==false)=true
+            save_in_cache(term, tr);
+          }
+          else if ((is_true(le_name) && is_false(ri_name))
+                   || (is_false(le_name) && is_true(ri_name)))
+          {  //(true==false)=false, (false==true)=false
+            save_in_cache(term, fa);
+          }
+          else if (is_true(le_name))
+          {  //(true==ri_name)=ri_name
+            save_in_cache(term, ri_name);
+          }
+          else if (is_true(ri_name))
+          {  //(le_name==true)=le_name
+            save_in_cache(term, le_name);
+          }
+          else if (is_false(le_name))
+          {  //(false==ri_name)=not(ri_name)
+            save_in_cache(term, solver_->make_term(Not, ri_name));
+          }
+          else if (is_false(ri_name))
+          {  //(le_name==false)=not(le_name)
+            save_in_cache(term, solver_->make_term(Not, le_name));
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term, solver_->make_term(Equal, le_name, ri_name));
+          }
+        }
+        else if (op == smt::Implies)
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          it++;
+          Term ri = (*it);
+          Term le_name;
+          Term ri_name;
+          query_cache(le, le_name);
+          query_cache(ri, ri_name);
+          if (is_false(le_name) || is_true(ri_name))
+          {  //(false->?)=true, (?->true)=true
+            save_in_cache(term, tr);
+          }
+          else if (is_true(le_name))
+          {  //(true->ri_name)=ri_name
+            save_in_cache(term, ri_name);
+          }
+          else if (is_false(ri_name))
+          {
+            if (is_true(le_name))
+            {  //(true->false)=false
+              save_in_cache(term, fa);
+            }
+            else if (is_false(le_name))
+            {  //(false->false)=true
+              save_in_cache(term, tr);
+            }
+            else
+            {  //(le_name->false)=not(le_name)
+              save_in_cache(term, solver_->make_term(Not, le_name));
+            }
+          }
+          else
+          {  // saving as it is, as neither lhs or rhs is either "true" or
+             // "false"
+            save_in_cache(term, solver_->make_term(Implies, le_name, ri_name));
+          }
+        }
+        else if (op == smt::And)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          bool false_present = 0;  // false_present=1, if any child is "false"
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term term_name;
+            query_cache((*it), term_name);
+            if (is_true(term_name))
+            {
+              it++;
+            }
+            else if (is_false(term_name))
+            {
+              it++;
+              false_present = 1;
+            }
+            else
+            {
+              it++;
+              vec.push_back(term_name);
+            }
+          }
+          if (false_present)
+          {  // if any child is false, the entire expression is false
+            save_in_cache(term, fa);
+          }
+          else if (vec.empty())
+          {  // if all children are true, the expression is true
+            save_in_cache(term, tr);
+          }
+          else if (vec.size() == 1)
+          {  // if just one child is neither true nor false, that child is
+             // equivalent to the entire formula
+            save_in_cache(term, vec[0]);
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term, solver_->make_term(And, vec));
+          }
+        }
+        else if (op == smt::Or)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          bool true_present = 0;  // true_present=1, if any child is "true"
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term term_name;
+            query_cache((*it), term_name);
+            if (is_true(term_name))
+            {
+              true_present = 1;
+              it++;
+            }
+            else if (is_false(term_name))
+            {
+              it++;
+            }
+            else
+            {
+              it++;
+              vec.push_back(term_name);
+            }
+          }
+          if (true_present)
+          {  // any child is "true", implies the entire expression is true
+            save_in_cache(term, tr);
+          }
+          else if (vec.empty())
+          {  // If all children are "false", the expression is "false"
+            save_in_cache(term, fa);
+          }
+          else if (vec.size() == 1)
+          {  // if just one child is neither true nor false, that child is
+             // equivalent to the entire formula
+            save_in_cache(term, vec[0]);
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term, solver_->make_term(Or, vec));
+          }
+        }
+        else if (op == smt::Xor)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          int true_present =
+              0;  // keeping track of number of "true" in the xor expression
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term term_name;
+            query_cache((*it), term_name);
+            if (is_true(term_name))
+            {
+              it++;
+              true_present++;
+            }
+            else if (is_false(term_name))
+            {
+              it++;
+            }
+            else
+            {
+              it++;
+              vec.push_back(term_name);
+            }
+          }
+          if (vec.empty())
+          {  // all terms are either "true" or "false"
+            if (true_present % 2 == 0)
+            {  // even number of "true" implies the expression is false
+              save_in_cache(term, fa);
+            }
+            else
+            {  // odd number of "true" implies the expression is false
+              save_in_cache(term, tr);
+            }
+          }
+          else if (vec.size() == 1)
+          {
+            if (true_present % 2 == 0)
+            {  // same logic as above, keeping track of the parity of "true"
+               // terms
+              save_in_cache(term, vec[0]);
+            }
+            else
+            {
+              save_in_cache(term, solver_->make_term(Not, vec[0]));
+            }
+          }
+          else
+          {
+            if (true_present % 2 == 0)
+            {
+              save_in_cache(term, solver_->make_term(Xor, vec));
+            }
+            else
+            {
+              vec[0] = solver_->make_term(
+                  Not, vec[0]);  //(Not(x1^x2^x3^x4))=((Not x1)^x2^x3^x4)
+              save_in_cache(term, solver_->make_term(Xor, vec));
+            }
+          }
+        }
+      }
+      else
+      {
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+  Term acc_cache(Term term)
+  {
+    Term ne;
+    query_cache(term, ne);
+    return ne;
+  }
+};
+
+// returns true if the formula is in cnf form else false
+bool is_cnf(Term formula)
+{
+  // similar as cnf_to_dimacs
+  // first remove the ands in the outermost layer, then remove the ors from the
+  // next level. The remaining terms should be literals
+  TermVec before_and_elimination({ formula });
+  TermVec after_and_elimination;
+  while (!before_and_elimination.empty())
+  {
+    Term t = before_and_elimination.back();
+    before_and_elimination.pop_back();
+    smt::Op op = t->get_op();
+    if (op.prim_op == smt::And)
+    {
+      for (auto u : t)
+      {
+        before_and_elimination.push_back(u);
+      }
+    }
+    else
+    {
+      after_and_elimination.push_back(t);
+    }
+  }
+  std::vector<std::vector<Term>> clauses;
+  for (auto u : after_and_elimination)
+  {
+    std::vector<Term> after_or_elimination;
+    std::vector<Term> before_or_elimination({ u });
+    while (!before_or_elimination.empty())
+    {
+      Term t = before_or_elimination.back();
+      before_or_elimination.pop_back();
+      smt::Op op = t->get_op();
+      if (op.prim_op == smt::Or)
+      {
+        for (auto u : t)
+        {
+          before_or_elimination.push_back(u);
+        }
+      }
+      else
+      {
+        after_or_elimination.push_back(t);
+      }
+    }
+    clauses.push_back(after_or_elimination);
+  }
+  bool check = 1;
+  for (auto u : clauses)
+  {
+    for (auto literal : u)
+    {
+      if (literal->is_symbolic_const())
+      {
+        continue;
+      }
+      smt::Op op = literal->get_op();
+      if (op == smt::Not && (*(literal->begin()))->is_symbolic_const())
+      {
+        continue;
+      }
+
+      check = 0;  // if the term is not a literal
+    }
+  }
+  return check;
+}
+
 Term to_cnf(Term formula, SmtSolver s)
 {
   Sort boolsort = formula->get_sort();
   assert(formula->get_sort() == boolsort);
+  EliminateBooleanConstants elim(s);
+  elim.visit(formula);  // removing "true" and "false" present in formula
+  formula = elim.acc_cache(formula);
+
   if (formula->is_symbolic_const())
   {
     return formula;
   }
+  if (formula->to_string() == "false" || formula->to_string() == "true")
+  {
+    return formula;
+  }
+
+  if (is_cnf(formula))  // if the expression is already in cnf just return it
+  {
+    return formula;
+  }
+
   XorBinarize bin(s);
   bin.visit(formula);  // binarising the formula
   Term formula2 = bin.acc_cache(formula);
@@ -472,6 +848,7 @@ Term to_cnf(Term formula, SmtSolver s)
 
   // the vector of pairs reduced contains pairs in the form of (c)<->(a op b),
   // where c is the first term of the pair and (a op b) is the second
+
   for (auto u : obj.reduced)
   {
     Term fi = u.first;
