@@ -76,10 +76,20 @@ int SmtLibReader::parse(const std::string & f)
   file = f;
   location_.initialize(&file);
   scan_begin();
-  yy::parser parse(*this);
-  // commented from calc++ example
-  // parse.set_debug_level (trace_parsing);
-  int res = parse();
+  int res;
+  try
+  {
+    yy::parser parse(*this);
+    // commented from calc++ example
+    // parse.set_debug_level (trace_parsing);
+    res = parse();
+  }
+  catch (const SmtException & e)
+  {
+    // need to end scan even if threw an exception
+    scan_end();
+    throw e;
+  }
   scan_end();
   return res;
 }

@@ -116,6 +116,8 @@ let                   { return yy::parser::make_LET(loc); }
 
 void smt::SmtLibReader::scan_begin ()
 {
+  // flush the buffer to make sure scanner state is fresh
+  YY_FLUSH_BUFFER;
   // commented from calc++ example -- could consider adding for debug support
   /* yy_flex_debug = trace_scanning; */
   if (file.empty () || file == "-")
