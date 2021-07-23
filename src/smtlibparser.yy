@@ -67,7 +67,7 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DEFINEFUN DEFINESORT ASSERT CHECKSAT
+       DECLARESORT DEFINEFUN DEFINESORT ASSERT CHECKSAT
        CHECKSATASSUMING PUSH POP EXIT GETVALUE
        GETUNSATASSUMP ECHO
 %token ASCONST LET
@@ -141,6 +141,10 @@ command:
     }
     assert(symsort);
     drv.new_symbol($3, symsort);
+  }
+  | LP DECLARESORT SYMBOL NAT RP
+  {
+    drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
   | LP DEFINEFUN
      {
@@ -362,6 +366,11 @@ sort:
        // check defined sorts
        res = drv.lookup_sort($1);
      }
+     else if (sk == smt::UNINTERPRETED)
+     {
+       // uninterpreted sorts also stored with defined sorts
+       res = drv.lookup_sort($1);
+     }
      else
      {
        res = drv.solver()->make_sort(sk);
@@ -380,17 +389,20 @@ sort:
      }
      $$ = drv.solver()->make_sort(sk, std::stoi($3));
    }
-   | LP SYMBOL sort sort RP
+   | LP SYMBOL sort_list RP
    {
-     // this one is intended for arrays
      smt::SortKind sk = drv.lookup_sortkind($2);
-     if (sk == smt::NUM_SORT_KINDS)
+     if (sk == smt::ARRAY)
      {
-       // got dedicated null enum
-       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
-       YYERROR;
+     // this one is intended for arrays
+       $$ = drv.solver()->make_sort(sk, $3[0], $3[1]);
      }
-     $$ = drv.solver()->make_sort(sk, $3, $4);
+     else
+     {
+       // defined or declared sort
+       smt::Sort sort_con = drv.lookup_sort($2);
+       $$ = drv.solver()->make_sort(sort_con, $3);
+     }
    }
 ;
 

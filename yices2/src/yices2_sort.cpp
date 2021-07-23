@@ -109,8 +109,12 @@ Sort Yices2Sort::get_codomain_sort() const
 
 string Yices2Sort::get_uninterpreted_name() const
 {
-  throw NotImplementedException(
-      "get_uninterpreted_name not implemented for Yices2Sort");
+  const char * res = yices_get_type_name(type);
+  if (res == NULL)
+  {
+    throw InternalSolverException("Failed to get name of uninterpreted sort");
+  }
+  return res;
 }
 
 size_t Yices2Sort::get_arity() const
