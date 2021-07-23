@@ -505,7 +505,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
                    + static_pointer_cast<GenericDatatypeConstructorDecl>(
                          curr_dt_cons_decl)
                          ->get_name();
-      // adjust string for each selector
+      // Adjust string for each selector
       for (unsigned long f = 0;
            f < static_pointer_cast<GenericDatatypeConstructorDecl>(
                    curr_dt_cons_decl)
