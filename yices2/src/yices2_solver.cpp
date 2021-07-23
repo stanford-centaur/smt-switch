@@ -450,6 +450,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
   if (!arity)
   {
     y_sort = yices_new_uninterpreted_type();
+    yices_set_type_name(y_sort, name.c_str());
   }
   else
   {
