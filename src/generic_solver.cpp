@@ -606,20 +606,17 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
-  
 }
 
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
-  
 }
 
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
   throw NotImplementedException("Generic Solvers do not support datatypes");
-  
 }
 
 std::string GenericSolver::get_name(Term term) const

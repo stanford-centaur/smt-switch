@@ -117,7 +117,6 @@ class GenericSort : public AbsSort
   // A string representation of a sort
   std::string to_string() const override;
 
-
  protected:
   // internal function to compute
   // the string representation of a sort

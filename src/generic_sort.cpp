@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <unordered_map>
+
 #include "assert.h"
 #include "generic_datatype.h"
 #include "utils.h"
@@ -195,7 +196,6 @@ string GenericSort::compute_string() const {
 
 SortKind GenericSort::get_sort_kind() const { return sk; }
 
-
 bool GenericSort::compare(const Sort & s) const
 {
   SortKind other_sk = s->get_sort_kind();
@@ -249,7 +249,8 @@ bool GenericSort::compare(const Sort & s) const
       assert(sk == DATATYPE);
       shared_ptr<GenericDatatypeSort> other_type_cast =
           static_pointer_cast<GenericDatatypeSort>(s);
-      return static_pointer_cast<GenericDatatype>(get_datatype())->get_name() == other_type_cast->compute_string();
+      return static_pointer_cast<GenericDatatype>(get_datatype())->get_name()
+             == other_type_cast->compute_string();
     }
     case NUM_SORT_KINDS:
     {
@@ -353,7 +354,7 @@ GenericDatatypeSort::~GenericDatatypeSort() {}
 
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 
-  std::string GenericDatatypeSort::compute_string() const
+std::string GenericDatatypeSort::compute_string() const
 {
   return static_pointer_cast<GenericDatatype>(gdt)->get_name();
 }

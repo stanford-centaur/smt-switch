@@ -110,8 +110,10 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
       break;
     }
   }
-  if (!success) {
-    throw InternalSolverException("Can't add selector. The constructor is not a member of the datatype!");
+  if (!success)
+  {
+    throw InternalSolverException(
+        "Can't add selector. The constructor is not a member of the datatype!");
   }
 }
 std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()
