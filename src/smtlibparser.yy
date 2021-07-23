@@ -389,17 +389,20 @@ sort:
      }
      $$ = drv.solver()->make_sort(sk, std::stoi($3));
    }
-   | LP SYMBOL sort sort RP
+   | LP SYMBOL sort_list RP
    {
-     // this one is intended for arrays
      smt::SortKind sk = drv.lookup_sortkind($2);
-     if (sk == smt::NUM_SORT_KINDS)
+     if (sk == smt::ARRAY)
      {
-       // got dedicated null enum
-       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
-       YYERROR;
+     // this one is intended for arrays
+       $$ = drv.solver()->make_sort(sk, $3[0], $3[1]);
      }
-     $$ = drv.solver()->make_sort(sk, $3, $4);
+     else
+     {
+       // defined or declared sort
+       smt::Sort sort_con = drv.lookup_sort($2);
+       $$ = drv.solver()->make_sort(sort_con, $3);
+     }
    }
 ;
 
