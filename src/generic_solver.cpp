@@ -314,10 +314,6 @@ void GenericSolver::define_fun(std::string name,
   // (like define-const)
   assert(args_sorts.size() == 0);
   assert(sort_name_map->find(res_sort) != sort_name_map->end());
-  cout << "command sent:" << endl;
-  cout << "(" + DEFINE_FUN_STR + " " + name + " () "
-    + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
-    + ")" << endl;
   // send a define-fun to the binary
   run_command("(" + DEFINE_FUN_STR + " " + name + " () "
               + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
@@ -495,8 +491,8 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // Exact functionality of make_genericsort, without the linking
     // errors (undefined reference when I call a new
     // make_generic_sort).
-    //Sort dt_sort = make_generic_sort(curr_dt);
-    Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
+    Sort dt_sort = make_generic_sort(curr_dt);
+    //Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
@@ -663,9 +659,6 @@ Term GenericSolver::store_term(Term term) const
     if (gterm->is_ground())
     {
       name = get_name(gterm);
-      cout << "print ground name" << endl;
-      cout << name << endl;
-      cout << gterm->get_sort()->to_string() << endl;
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
     }
     else
@@ -891,9 +884,7 @@ Term GenericSolver::make_term(const Op op,
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
-  cout << "pre compute sort" << endl;
   Sort sort = compute_sort(op, this, terms);
-  cout << "post compute sort" << endl;
   string repr = "(" + op.to_string();
   for (int i = 0; i < terms.size(); i++)
   {
@@ -901,8 +892,6 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
     repr += " " + (*term_name_map)[terms[i]];
   }
   repr += ")";
-  cout << "repr" << endl;
-  cout << repr << endl;
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
   Term stored_term = store_term(term);
   return stored_term;
