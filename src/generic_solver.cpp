@@ -613,7 +613,10 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Generic Solvers do not support datatypes");
+  Term new_term = std::make_shared<GenericTerm>(s, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = new_term;
+  (*term_name_map)[new_term] = name;
+  return (*name_term_map)[name];
   
 }
 
