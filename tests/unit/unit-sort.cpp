@@ -106,23 +106,35 @@ TEST_P(UnitSortTests, UninterpretedSort)
   EXPECT_EQ(uninterp_sort->get_arity(), 0);
 
   // Now try non-zero arity (not supported by very many solvers)
+  size_t num_params = 4;
   Sort sort_cons;
   try
   {
-    sort_cons = s->make_sort("sort-con", 4);
+    sort_cons = s->make_sort("sort-con", num_params);
   }
   catch (SmtException & e)
   {
     // if not supported, that's fine.
     std::cout << "got exception when declaring nonzero arity sort: " << e.what()
               << std::endl;
+    // but CVC4 expected to support it
+    ASSERT_NE(s->get_solver_enum(), smt::CVC4);
     return;
   }
 
   ASSERT_TRUE(sort_cons);
   // Expecting an uninterpreted constructor sort
   EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
-  EXPECT_EQ(sort_cons->get_arity(), 4);
+  EXPECT_EQ(sort_cons->get_arity(), num_params);
+
+  EXPECT_THROW(s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort }),
+               IncorrectUsageException);
+
+  Sort param_sort =
+      s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort });
+  SortVec param_sorts = param_sort->get_uninterpreted_param_sorts();
+  EXPECT_EQ(param_sorts.size(), num_params);
+  EXPECT_EQ(param_sorts[0], bvsort);
 }
 
 TEST_P(UnitSortTests, UninterpSortEquality)

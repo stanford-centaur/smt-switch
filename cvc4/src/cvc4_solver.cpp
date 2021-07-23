@@ -442,12 +442,6 @@ Sort CVC4Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
-    // TODO: enable this once getUninterpretedSortParamSorts is fixed in CVC4
-    if (arity)
-    {
-      throw NotImplementedException(
-          "CVC4 backend does not currently support sort constructors");
-    }
     return std::make_shared<CVC4Sort> (solver.declareSort(name, arity));
   }
   catch (::CVC4::api::CVC4ApiException & e)
@@ -609,14 +603,18 @@ Sort CVC4Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort CVC4Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  // TODO: enable this once getUninterpretedSortParamSorts is fixed in CVC4
-  throw NotImplementedException(
-      "CVC4 backend does not currently support sort constructors");
-
   ::CVC4::api::Sort csort_con =
       std::static_pointer_cast<CVC4Sort>(sort_con)->sort;
 
-  size_t arity = sorts.size();
+  size_t numsorts = sorts.size();
+  size_t arity = csort_con.getSortConstructorArity();
+  if (numsorts != arity)
+  {
+    throw IncorrectUsageException("Expected " + std::to_string(arity)
+                                  + " sort arguments to " + csort_con.toString()
+                                  + " but got " + std::to_string(numsorts));
+  }
+
   std::vector<::CVC4::api::Sort> csorts;
   csorts.reserve(sorts.size());
   ::CVC4::api::Sort csort;
@@ -626,7 +624,14 @@ Sort CVC4Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
     csorts.push_back(csort);
   }
 
-  return std::make_shared<CVC4Sort>(csort_con.instantiate(csorts));
+  try
+  {
+    return std::make_shared<CVC4Sort>(csort_con.instantiate(csorts));
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)

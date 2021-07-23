@@ -29,16 +29,10 @@ Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
 
 Sort make_uninterpreted_logging_sort(Sort s,
                                      string name,
-                                     uint64_t arity,
                                      const SortVec & sorts)
 {
-  if (sorts.size() != arity)
-  {
-    throw IncorrectUsageException(
-        "Number of uninterpreted param sorts must match sort constructor "
-        "arity");
-  }
-  return std::make_shared<UninterpretedLoggingSort>(s, name, arity, sorts);
+  // sort has zero arity after being constructed
+  return std::make_shared<UninterpretedLoggingSort>(s, name, 0, sorts);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s)
