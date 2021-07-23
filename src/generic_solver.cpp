@@ -488,11 +488,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
-    // Exact functionality of make_genericsort, without the linking
-    // errors (undefined reference when I call a new
-    // make_generic_sort).
     Sort dt_sort = make_generic_sort(curr_dt);
-    //Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
