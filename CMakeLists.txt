@@ -112,7 +112,7 @@ if (BUILD_PYTHON_BINDINGS)
   find_package(PythonInterp 3.5 REQUIRED)
 endif()
 
-if (BUILD_BITWUZLA OR BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
+if (BUILD_BITWUZLA OR BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3 OR BUILD_IPASIR)
   find_package(GMP REQUIRED)
 endif()
 
@@ -206,6 +206,21 @@ if (BUILD_YICES2)
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_HOME=${YICES2_HOME})
 endif (BUILD_YICES2)
+
+# should we build ipasir?
+option (BUILD_IPASIR
+  "Should we build the libraries for ipasir" OFF)
+
+if (BUILD_IPASIR)
+  if (NOT DEFINED IPASIR_HOME)
+    set(IPASIR_HOME "${PROJECT_SOURCE_DIR}/deps/ipasir")
+  endif()
+  add_subdirectory (ipasir)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-ipasir)
+
+  add_definitions(-DBUILD_IPASIR)
+  add_definitions(-DIPASIR_HOME=${IPASIR_HOME})
+endif (BUILD_IPASIR)
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)

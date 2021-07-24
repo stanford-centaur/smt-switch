@@ -18,12 +18,14 @@ Configures the CMAKE build environment.
 --msat                  build MathSAT           (default: off)
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
+--ipasir                build ipasir               (default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
 --bitwuzla-home=STR     custom Bitwuzla location  (default: deps/bitwuzla)
 --cvc4-home=STR         custom CVC4 location    (default: deps/CVC4)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)
 --z3-home=STR           custom Z3 location      (default: deps/z3)
+--ipasir-home=STR       custom IPASIR location      (default: deps/ipasir)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
@@ -46,12 +48,14 @@ build_cvc4=default
 build_msat=default
 build_yices2=default
 build_z3=default
+build_ipasir=default
 btor_home=default
 bitwuzla_home=default
 cvc4_home=default
 msat_home=default
 yices2_home=default
 z3_home=default
+ipasir_home=default
 static=default
 python=default
 smtlib_reader=default
@@ -90,6 +94,9 @@ do
 		--z3)
 	   		build_z3=ON
 	    	;;
+        --ipasir)
+            build_ipasir=ON
+            ;;
         --btor-home) die "missing argument to $1 (see -h)" ;;
         --btor-home=*)
             btor_home=${1##*=}
@@ -150,6 +157,16 @@ do
                 *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
             esac
             ;;
+        --ipasir-home) die "missing argument to $1 (see -h)" ;;
+        --ipasir-home=*)
+            ipasir_home=${1##*=}
+            # Check if ipasir_home is an absolute path and if not, make it
+            # absolute.
+            case $ipasir_home in
+                /*) ;;                                      # absolute path
+                *) ipasir_home=$(pwd)/$ipasir_home ;; # make absolute path
+            esac
+            ;;
         --build-dir) die "missing argument to $1 (see -h)" ;;
         --build-dir=*)
             build_dir=${1##*=}
@@ -198,6 +215,10 @@ if [ $yices2_home != default -a $build_yices2 = default ]; then
     build_yices2=ON
 fi
 
+if [ $ipasir_home != default -a $build_ipasir = default ]; then
+    build_ipasir=ON
+fi
+
 cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $install_prefix != default ] \
@@ -221,6 +242,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 [ $build_yices2 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
 
+[ $build_ipasir != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_IPASIR=$build_ipasir"
+
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
 
@@ -238,6 +262,9 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $yices2_home != default ] \
     && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
+
+[ $ipasir_home != default ] \
+    && cmake_opts="$cmake_opts -DIPASIR_HOME=$ipasir_home"
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"

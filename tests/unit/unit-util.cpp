@@ -229,6 +229,55 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
 }
 
 
+
+TEST_P(UnitUtilDimacsTests, tseitin)
+{
+  s->set_opt("incremental", "true");
+  Term p = s->make_symbol("p", boolsort);
+  Term q = s->make_symbol("q", boolsort);
+  Term r = s->make_symbol("r", boolsort);
+  Term t = s->make_symbol("t", boolsort);
+  if(s->get_solver_enum()==YICES2 || s->get_solver_enum()==Z3){
+    return;
+  }
+  //a=((p or q) and r) implies (not t)
+  Term a = s->make_term(Implies, s->make_term(And, s->make_term(Or, p, q), r), s->make_term(Not, t));
+  Term cnf1 = to_cnf(a, s);
+  string st1 = cnf1->to_string();
+  string ans1 =
+      "(and cnf_formula_new_4 (and (or (not t) (not cnf_formula_new_1)) (or t "
+      "cnf_formula_new_1) (or (not cnf_formula_new_2) p q) (and (or "
+      "cnf_formula_new_2 (not p)) (or cnf_formula_new_2 (not q))) (or "
+      "cnf_formula_new_3 (not cnf_formula_new_2) (not r)) (and (or "
+      "cnf_formula_new_2 (not cnf_formula_new_3)) (or r (not "
+      "cnf_formula_new_3))) (or (or (not cnf_formula_new_3) cnf_formula_new_1) "
+      "(not cnf_formula_new_4)) (or cnf_formula_new_3 cnf_formula_new_4) (or "
+      "(not cnf_formula_new_1) cnf_formula_new_4)))";
+  ASSERT_TRUE(ans1 == st1)<<s->get_solver_enum();
+  //b=(not (p xor q))
+  Term b = s->make_term(Not, s->make_term(Xor, p, q));
+  Term cnf2 = to_cnf(b, s);
+  string st2 = cnf2->to_string();
+  string ans2 =
+      "(and cnf_formula_new_6 (and (or (or (not p) (not q)) (not "
+      "cnf_formula_new_5)) (or (or p q) (not cnf_formula_new_5)) (or (or "
+      "cnf_formula_new_5 q) (not p)) (or (or cnf_formula_new_5 p) (not q)) (or "
+      "(not cnf_formula_new_5) (not cnf_formula_new_6)) (or cnf_formula_new_5 "
+      "cnf_formula_new_6)))";
+  ASSERT_TRUE(ans2 == st2);
+  //c=((not p) and p)
+  Term c = s->make_term(And, s->make_term(Not, p), p);
+  Term cnf3 = to_cnf(c, s);
+  string st3 = cnf3->to_string();
+  string ans3 =
+      "(and cnf_formula_new_8 (and (or (not p) (not cnf_formula_new_7)) (or p "
+      "cnf_formula_new_7) (or cnf_formula_new_8 (not cnf_formula_new_7) (not "
+      "p)) (and (or cnf_formula_new_7 (not cnf_formula_new_8)) (or p (not "
+      "cnf_formula_new_8)))))";
+  ASSERT_TRUE(ans3 == st3)<<ans3<<endl<<endl<<s->get_solver_enum();
+}
+
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,
                          testing::ValuesIn(filter_solver_configurations({ TERMITER })));
