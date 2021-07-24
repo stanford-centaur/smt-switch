@@ -66,6 +66,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             UNSAT_CORE,
+            THEORY_DATATYPE,
             QUANTIFIERS } },
 
         { MSAT,
