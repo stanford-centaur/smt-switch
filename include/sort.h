@@ -45,6 +45,7 @@ enum SortKind
   UNINTERPRETED_CONS,
   DATATYPE,
   CONSTRUCTOR,
+  SELECTOR,
 
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array

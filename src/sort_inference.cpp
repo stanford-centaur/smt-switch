@@ -572,4 +572,15 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return arraysort;
 }
 
+  Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+  {
+    return sorts[0];
+  }
+  Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+  {
+    return sorts[0];
+      
+  }
+  
+  
 }  // namespace smt

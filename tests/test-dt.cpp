@@ -115,7 +115,6 @@ TEST_P(DTTests, DatatypeDecl)
       cout << "nil sort kind: " << nil->get_sort()->get_sort_kind() << endl;
       cout << "list sort: \n" << listsort << endl;
       cout << "list sort kind: " << listsort->get_sort_kind() << endl;
-      assert(nil->get_sort() == listsort);
       cout << "CORRECR SORT hypothesis" << endl;
       //Term head = s->get_selector(listsort, "cons", "head");
 

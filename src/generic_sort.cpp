@@ -124,7 +124,11 @@ Sort make_generic_sort(Datatype & dt)
 {
   return make_shared<GenericDatatypeSort>(dt);
 }
-
+  Sort make_generic_sort(SortKind sk, std::string cons_name)
+  {
+    return make_shared<DatatypeComponentSort>(sk, cons_name);
+  }
+  
 // implementations
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
@@ -186,6 +190,11 @@ string GenericSort::compute_string() const {
     {
       return static_pointer_cast<GenericDatatype>(get_datatype())->get_name();
     }
+    else if (get_sort_kind() == SortKind::CONSTRUCTOR || get_sort_kind() == SortKind::SELECTOR)
+      {
+	cout << "in comptue" << endl;
+	return get_uninterpreted_name();
+      }
     else
     {
       assert(false);
@@ -372,4 +381,28 @@ std::string GenericDatatypeSort::to_string() const
   return this->compute_string();
 }
 
+  DatatypeComponentSort::DatatypeComponentSort(SortKind sk, std::string name) :
+    GenericSort(sk),
+    name(name)
+  {
+    if (sk != CONSTRUCTOR && sk != SELECTOR) {
+      throw "Wrong sortkind input";
+    }
+  }
+  std::string DatatypeComponentSort::compute_string() const
+  {
+    return name;
+  }
+
+  std::string DatatypeComponentSort::to_string() const
+  {
+    return compute_string();
+  }
+
+  std::string DatatypeComponentSort::get_uninterpreted_name() const
+  {
+    return name;
+  }
+
+  
 }  // namespace smt

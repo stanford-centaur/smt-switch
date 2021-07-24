@@ -613,7 +613,18 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  Term new_term = std::make_shared<GenericTerm>(s, Op(), TermVec{}, name, true);
+  shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(s->get_datatype());
+  bool found = false;
+  for (int i = 0; i < dt->get_num_constructors(); ++i) {
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(dt->get_cons_vector()[i])->get_name() == name) {
+      found = true;
+    }
+  }
+  if (!found) {
+    throw "Constructor not in datatype";
+  }
+  Sort cons_sort = make_generic_sort(CONSTRUCTOR, name);
+  Term new_term = std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
   return (*name_term_map)[name];
@@ -623,7 +634,12 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Generic Solvers do not support datatypes");
+  Sort cons_sort = make_generic_sort(SELECTOR, name);
+  Term new_term = std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = new_term;
+  (*term_name_map)[new_term] = name;
+  return (*name_term_map)[name];
+  
   
 }
 
