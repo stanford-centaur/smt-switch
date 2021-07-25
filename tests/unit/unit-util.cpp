@@ -228,8 +228,6 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   ASSERT_TRUE(ret4 == ans4) << ret4 << endl << cnf4 << endl;
 }
 
-
-
 TEST_P(UnitUtilDimacsTests, tseitin)
 {
   s->set_opt("incremental", "true");
@@ -242,7 +240,18 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term a = s->make_term(Implies,
                         s->make_term(And, s->make_term(Or, p, q), r),
                         s->make_term(Not, t));
+
   Term cnf1 = to_cnf(a, s);
+
+  s->push();
+  s->assert_formula(a);
+  Result r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf1);
+  Result r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
   string st = cnf1->to_string();
   string ans =
       "(and tseitin_to_cnf_4 (and (or (not t) (not tseitin_to_cnf_1)) (or t "
@@ -257,6 +266,17 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
   Term cnf2 = to_cnf(b, s);
+
+  s->push();
+  s->assert_formula(b);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf2);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf2->to_string();
   ans =
       "(and tseitin_to_cnf_6 (and (or (or (not p) (not q)) (not "
@@ -268,6 +288,17 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   Term c = s->make_term(And, s->make_term(Not, p), p);
   Term cnf3 = to_cnf(c, s);
+
+  s->push();
+  s->assert_formula(c);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf3);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf3->to_string();
   ans = "(and (not p) p)";
   ASSERT_TRUE(st == ans);
@@ -277,18 +308,51 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term d3 = s->make_term(And, d1, d2);
 
   Term cnf4 = to_cnf(d3, s);
+
+  s->push();
+  s->assert_formula(d3);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf4);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf4->to_string();
   ans = "(and (or p q) (or r t))";
   ASSERT_TRUE(st == ans);
 
   Term e = s->make_term(false);
   Term cnf5 = to_cnf(e, s);
+
+  s->push();
+  s->assert_formula(e);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf5);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf5->to_string();
   ans = "false";
   ASSERT_TRUE(st == ans);
 
   Term f = s->make_term(true);
   Term cnf6 = to_cnf(f, s);
+
+  s->push();
+  s->assert_formula(f);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf6);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf6->to_string();
   ans = "true";
   ASSERT_TRUE(st == ans);
@@ -300,6 +364,17 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   vec.push_back(t);
   Term g = s->make_term(Or, vec);
   Term cnf7 = to_cnf(g, s);
+
+  s->push();
+  s->assert_formula(g);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf7);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf7->to_string();
   ans = "(or p q r t)";
   ASSERT_TRUE(st == ans);
@@ -311,7 +386,17 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       Equal, s->make_term(Implies, tr, fa), s->make_term(Or, p, q));
 
   Term cnf8 = to_cnf(h, s);
-  cout << cnf8 << endl << endl;
+
+  s->push();
+  s->assert_formula(h);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf8);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
   st = cnf8->to_string();
   ans =
       "(and tseitin_to_cnf_8 (and (or (not tseitin_to_cnf_7) p q) (and (or "
