@@ -264,6 +264,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "tseitin_to_cnf_1) tseitin_to_cnf_4)))";
   ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl;
 
+  //b=Not(p xor q)
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
   Term cnf2 = to_cnf(b, s);
 
@@ -286,6 +287,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "tseitin_to_cnf_6)))";
   ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl << endl;
 
+  //c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
   Term cnf3 = to_cnf(c, s);
 
@@ -305,6 +307,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   Term d1 = s->make_term(Or, p, q);
   Term d2 = s->make_term(Or, r, t);
+
+  //d3=((p or q) and (r or t))
   Term d3 = s->make_term(And, d1, d2);
 
   Term cnf4 = to_cnf(d3, s);
@@ -322,7 +326,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   st = cnf4->to_string();
   ans = "(and (or p q) (or r t))";
   ASSERT_TRUE(st == ans);
-
+  //e=false
   Term e = s->make_term(false);
   Term cnf5 = to_cnf(e, s);
 
@@ -340,6 +344,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ans = "false";
   ASSERT_TRUE(st == ans);
 
+  //f=true
   Term f = s->make_term(true);
   Term cnf6 = to_cnf(f, s);
 
@@ -362,6 +367,9 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   vec.push_back(q);
   vec.push_back(r);
   vec.push_back(t);
+
+  //g=OR(p, q, r, t)
+
   Term g = s->make_term(Or, vec);
   Term cnf7 = to_cnf(g, s);
 
