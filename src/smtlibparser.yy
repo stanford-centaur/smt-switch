@@ -45,6 +45,7 @@ using namespace std;
 **
 **/
   #include <string>
+  #include <utility>
   #include "smt.h"
 
   namespace smt
@@ -67,8 +68,8 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DECLARESORT DEFINEFUN DEFINESORT ASSERT CHECKSAT
-       CHECKSATASSUMING PUSH POP EXIT GETVALUE
+       DECLARESORT DECLAREDATATYPES DEFINEFUN DEFINESORT ASSERT
+       CHECKSAT CHECKSATASSUMING PUSH POP EXIT GETVALUE
        GETUNSATASSUMP ECHO
 %token ASCONST LET
 %token <std::string> KEYWORD
@@ -87,6 +88,8 @@ US "_"
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
+%nterm <std::pair<std::string, std::size_t>> sort_dec
+%nterm <std::vector<std::pair<std::string, std::size_t>>> sort_decs
 %nterm <smt::TermVec *> sorted_arg_list
 %nterm <smt::TermVec *> sorted_param_list
 %nterm let_term_bindings
@@ -95,6 +98,7 @@ US "_"
 %nterm <std::string> number
 %nterm <std::string> number_or_string
 %nterm indprefix
+%nterm <std::vector<std::string>> cons_list
 
 %%
 
@@ -145,6 +149,11 @@ command:
   | LP DECLARESORT SYMBOL NAT RP
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
+  }
+  | LP DECLAREDATATYPES sort_decs LP LP cons_list RP RP RP
+  {
+    // TODO: update this
+    yy::parser::error(@2, "Datatype support still in progress");
   }
   | LP DEFINEFUN
      {
@@ -420,6 +429,29 @@ sort_list:
    }
 ;
 
+sort_dec:
+   LP SYMBOL NAT RP
+   {
+     $$ = std::pair<std::string, std::size_t>($2, std::stoi($3));
+   }
+;
+
+sort_decs:
+   LP sort_dec RP
+   {
+     // not expecting large vectors
+     // don't worry about copies (i.e., don't need to make it a pointer)
+     std::vector<std::pair<std::string, std::size_t>> vec({$2});
+     $$ = vec;
+   }
+   | LP sort_decs sort_dec RP
+   {
+     $2.push_back($3);
+     $$ = $2;
+   }
+;
+
+
 sorted_arg_list:
    %empty
    {
@@ -519,6 +551,21 @@ indprefix:
    LP US
    {}
 ;
+
+cons_list:
+   LP SYMBOL RP
+   {
+     // not expecing large vectors
+     // don't worry about copies (i.e., don't need a pointer)
+     std::vector<std::string> vec({$2});
+   }
+   | cons_list LP SYMBOL RP
+   {
+     $1.push_back($3);
+     $$ = $1;
+   }
+;
+
 
 
 %%
