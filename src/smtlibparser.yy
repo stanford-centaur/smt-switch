@@ -150,10 +150,28 @@ command:
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
-  | LP DECLAREDATATYPES sort_decs LP LP cons_list RP RP RP
+  | LP DECLAREDATATYPES LP sort_decs RP LP LP cons_list RP RP RP
   {
-    // TODO: update this
-    yy::parser::error(@2, "Datatype support still in progress");
+    if ($4.size() > 1)
+    {
+      // generalize this
+      yy::parser::error(@4, "Only support a single datatype declaration at a time currently");
+      YYERROR;
+    }
+    // TODO need to support parameters
+    smt::SmtSolver & solver = drv.solver();
+    std::string sortname = $4[0].first;
+    smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
+    for (const auto & c : $8)
+    {
+      std::cout << "Declaring constructor " << c << std::endl;
+      smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c);
+      solver->add_constructor(dtspec, condecl);
+    }
+
+    // create the sort and record the mapping
+    smt::Sort dtsort = solver->make_sort(dtspec);
+    drv.define_sort(sortname, dtsort);
   }
   | LP DEFINEFUN
      {
@@ -437,17 +455,17 @@ sort_dec:
 ;
 
 sort_decs:
-   LP sort_dec RP
+   sort_dec
    {
      // not expecting large vectors
      // don't worry about copies (i.e., don't need to make it a pointer)
-     std::vector<std::pair<std::string, std::size_t>> vec({$2});
+     std::vector<std::pair<std::string, std::size_t>> vec({$1});
      $$ = vec;
    }
-   | LP sort_decs sort_dec RP
+   | sort_decs sort_dec
    {
-     $2.push_back($3);
-     $$ = $2;
+     $1.push_back($2);
+     $$ = $1;
    }
 ;
 
@@ -558,6 +576,7 @@ cons_list:
      // not expecing large vectors
      // don't worry about copies (i.e., don't need a pointer)
      std::vector<std::string> vec({$2});
+     $$ = vec;
    }
    | cons_list LP SYMBOL RP
    {
