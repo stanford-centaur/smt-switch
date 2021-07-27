@@ -164,7 +164,6 @@ command:
     smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
     for (const auto & c : $8)
     {
-      std::cout << "Declaring constructor " << c << std::endl;
       smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c);
       solver->add_constructor(dtspec, condecl);
     }
