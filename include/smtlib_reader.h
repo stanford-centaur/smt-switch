@@ -192,6 +192,18 @@ class SmtLibReader
    */
   PrimOp lookup_primop(const std::string & str);
 
+  /** Get primitive operator and term to apply based on custom
+   *  indexed operator. Intended for datatype testers but can
+   *  be extended if necessary.
+   *  @param s0 first symbol in indexed operator
+   *  @param s1 second symbol in indexed operator
+   *  @return the primitive operator to use and the term to apply
+   *  Example: called for (_ is cons)
+   *    lookup_apply_op_term("is", "cons") -> APPLY_TESTER PrimOp, Is_Cons Term
+   */
+  std::pair<PrimOp, Term> lookup_apply_op_term(const std::string & s0,
+                                               const std::string & s1);
+
   /** Look up a sort by string
    *  The available sorts are based on the logic
    *  @param str the string to look up

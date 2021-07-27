@@ -93,7 +93,8 @@ US "_"
 %nterm <smt::TermVec *> sorted_arg_list
 %nterm <smt::TermVec *> sorted_param_list
 %nterm let_term_bindings
-%nterm <smt::Op> indexed_op
+/* The Term will be null if it's just a regular indexed op */
+%nterm <std::pair<smt::Op, smt::Term>> indexed_op
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
@@ -171,6 +172,16 @@ command:
     // create the sort and record the mapping
     smt::Sort dtsort = solver->make_sort(dtspec);
     drv.define_sort(sortname, dtsort);
+
+    // using define-fun to record names of constructor
+    // used later to get term back
+    // Note: even though we have get_constructor,
+    // it needs to know which sort the constructor is affiliated with
+    // plus this fits into parser infrastructure better
+    for (const auto & c : $8)
+    {
+      drv.define_fun(c, solver->get_constructor(dtsort, c));
+    }
   }
   | LP DEFINEFUN
      {
@@ -257,7 +268,20 @@ s_expr:
   }
   | LP indexed_op s_expr_list RP
   {
-    $$ = drv.solver()->make_term($2, *$3);
+    std::pair<smt::Op, smt::Term> & opterm = $2;
+    if (opterm.second)
+    {
+      // non-null term means this is an
+      // APPLY* indexed operator
+      // example: datatype tester like (_ is cons)
+      smt::TermVec vec({opterm.second});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(opterm.first, vec);
+    }
+    else
+    {
+      $$ = drv.solver()->make_term(opterm.first, *$3);
+    }
     delete $3;
   }
   | LP SYMBOL s_expr_list RP
@@ -514,7 +538,7 @@ indexed_op:
      {
        yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
-     $$ = smt::Op(po, std::stoi($3));
+     $$ = {smt::Op(po, std::stoi($3)), nullptr};
    }
    | indprefix SYMBOL NAT NAT RP
    {
@@ -523,7 +547,11 @@ indexed_op:
      {
        yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
-     $$ = smt::Op(po, std::stoi($3), std::stoi($4));
+     $$ = {smt::Op(po, std::stoi($3), std::stoi($4)), nullptr};
+   }
+   | indprefix SYMBOL SYMBOL RP
+   {
+     $$ = drv.lookup_apply_op_term($2, $3);
    }
 ;
 

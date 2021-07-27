@@ -320,6 +320,29 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str)
   }
 }
 
+pair<PrimOp, Term> SmtLibReader::lookup_apply_op_term(const string & s0,
+                                                      const string & s1)
+{
+  if (s0 != "is")
+  {
+    throw SmtException("Unsupported indexed operator starting with " + s0);
+  }
+  else if (strict_ && primops_.find("DT") == primops_.end())
+  {
+    throw SmtException("Datatypes not enabled but got tester for " + s1);
+  }
+
+  PrimOp po = Apply_Tester;
+  // there should be an affiliated constructor
+  Term constructor = lookup_symbol(s1);
+  // get datatype sort from the constructor
+  Sort dtsort = constructor->get_sort()->get_codomain_sort();
+  Term tester = solver_->get_tester(dtsort, s1);
+
+  assert(tester);
+  return { po, tester };
+}
+
 SortKind SmtLibReader::lookup_sortkind(const std::string & str)
 {
   SortKind sk = NUM_SORT_KINDS;
