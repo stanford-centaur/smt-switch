@@ -156,9 +156,9 @@ SortKind CVC4Sort::get_sort_kind() const
     return DATATYPE;
   }
   else if (sort.isConstructor())
-    {
-      return CONSTRUCTOR;
-    }
+  {
+    return CONSTRUCTOR;
+  }
   else
   {
     throw NotImplementedException("Unknown kind in CVC4 translation.");

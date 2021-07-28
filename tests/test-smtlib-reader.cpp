@@ -18,6 +18,7 @@
 #define STRFY(A) STRHELPER(A)
 
 #include <gtest/gtest.h>
+
 #include <utility>
 #include <vector>
 
