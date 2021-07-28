@@ -96,10 +96,10 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Select, check_select_sorts },
                           { Store, check_store_sorts },
                           { Forall, check_quantifier_sorts },
-			    { Exists, check_quantifier_sorts },
-			      {Apply_Constructor, check_constructor_sorts },
-				{Apply_Selector, check_selector_sorts },
-				  {Apply_Tester, check_tester_sorts }
+                          { Exists, check_quantifier_sorts },
+                          { Apply_Constructor, check_constructor_sorts },
+                          { Apply_Selector, check_selector_sorts },
+                          { Apply_Tester, check_tester_sorts }
 
     });
 
@@ -109,79 +109,80 @@ const std::unordered_map<
     PrimOp,
     std::function<
         Sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)>>
-    sort_comp_dispatch({ { And, bool_sort },
-                         { Or, bool_sort },
-                         { Xor, bool_sort },
-                         { Not, bool_sort },
-                         { Implies, bool_sort },
-                         { Ite, ite_sort },
-                         { Equal, bool_sort },
-                         { Distinct, bool_sort },
-                         { Apply, apply_sort },
-                         { Plus, same_sort },
-                         { Minus, same_sort },
-                         { Negate, same_sort },
-                         { Mult, same_sort },
-                         { Div, same_sort },
-                         { Lt, bool_sort },
-                         { Le, bool_sort },
-                         { Gt, bool_sort },
-                         { Ge, bool_sort },
-                         { Mod, int_sort },
-                         // technically Abs/Pow only defined for integers in
-                         // SMT-LIB but not sure if that's true for all solvers
-                         // might also be good to be forward looking
-                         { Abs, same_sort },
-                         { Pow, same_sort },
-                         { IntDiv, int_sort },
-                         { To_Real, real_sort },
-                         { To_Int, int_sort },
-                         { Is_Int, bool_sort },
-                         { Concat, concat_sort },
-                         { Extract, extract_sort },
-                         { BVNot, same_sort },
-                         { BVNeg, same_sort },
-                         { BVAnd, same_sort },
-                         { BVOr, same_sort },
-                         { BVXor, same_sort },
-                         { BVNand, same_sort },
-                         { BVNor, same_sort },
-                         { BVXnor, same_sort },
-                         { BVAdd, same_sort },
-                         { BVSub, same_sort },
-                         { BVMul, same_sort },
-                         { BVUdiv, same_sort },
-                         { BVSdiv, same_sort },
-                         { BVUrem, same_sort },
-                         { BVSrem, same_sort },
-                         { BVSmod, same_sort },
-                         { BVShl, same_sort },
-                         { BVAshr, same_sort },
-                         { BVLshr, same_sort },
-                         { BVComp, single_bit_sort },
-                         { BVUlt, bool_sort },
-                         { BVUle, bool_sort },
-                         { BVUgt, bool_sort },
-                         { BVUge, bool_sort },
-                         { BVSlt, bool_sort },
-                         { BVSle, bool_sort },
-                         { BVSgt, bool_sort },
-                         { BVSge, bool_sort },
-                         { Zero_Extend, extend_sort },
-                         { Sign_Extend, extend_sort },
-                         { Repeat, repeat_sort },
-                         { Rotate_Left, same_sort },
-                         { Rotate_Right, same_sort },
-                         { BV_To_Nat, int_sort },
-                         { Int_To_BV, int_to_bv_sort },
-                         { Select, select_sort },
-                         { Store, store_sort },
-                         { Forall, bool_sort },
-			   { Exists, bool_sort },
-			     {Apply_Constructor, constructor_sort },
-			       {Apply_Tester, bool_sort },
-				 {Apply_Selector, selector_sort },
-      });
+    sort_comp_dispatch({
+        { And, bool_sort },
+        { Or, bool_sort },
+        { Xor, bool_sort },
+        { Not, bool_sort },
+        { Implies, bool_sort },
+        { Ite, ite_sort },
+        { Equal, bool_sort },
+        { Distinct, bool_sort },
+        { Apply, apply_sort },
+        { Plus, same_sort },
+        { Minus, same_sort },
+        { Negate, same_sort },
+        { Mult, same_sort },
+        { Div, same_sort },
+        { Lt, bool_sort },
+        { Le, bool_sort },
+        { Gt, bool_sort },
+        { Ge, bool_sort },
+        { Mod, int_sort },
+        // technically Abs/Pow only defined for integers in
+        // SMT-LIB but not sure if that's true for all solvers
+        // might also be good to be forward looking
+        { Abs, same_sort },
+        { Pow, same_sort },
+        { IntDiv, int_sort },
+        { To_Real, real_sort },
+        { To_Int, int_sort },
+        { Is_Int, bool_sort },
+        { Concat, concat_sort },
+        { Extract, extract_sort },
+        { BVNot, same_sort },
+        { BVNeg, same_sort },
+        { BVAnd, same_sort },
+        { BVOr, same_sort },
+        { BVXor, same_sort },
+        { BVNand, same_sort },
+        { BVNor, same_sort },
+        { BVXnor, same_sort },
+        { BVAdd, same_sort },
+        { BVSub, same_sort },
+        { BVMul, same_sort },
+        { BVUdiv, same_sort },
+        { BVSdiv, same_sort },
+        { BVUrem, same_sort },
+        { BVSrem, same_sort },
+        { BVSmod, same_sort },
+        { BVShl, same_sort },
+        { BVAshr, same_sort },
+        { BVLshr, same_sort },
+        { BVComp, single_bit_sort },
+        { BVUlt, bool_sort },
+        { BVUle, bool_sort },
+        { BVUgt, bool_sort },
+        { BVUge, bool_sort },
+        { BVSlt, bool_sort },
+        { BVSle, bool_sort },
+        { BVSgt, bool_sort },
+        { BVSge, bool_sort },
+        { Zero_Extend, extend_sort },
+        { Sign_Extend, extend_sort },
+        { Repeat, repeat_sort },
+        { Rotate_Left, same_sort },
+        { Rotate_Right, same_sort },
+        { BV_To_Nat, int_sort },
+        { Int_To_BV, int_to_bv_sort },
+        { Select, select_sort },
+        { Store, store_sort },
+        { Forall, bool_sort },
+        { Exists, bool_sort },
+        { Apply_Constructor, constructor_sort },
+        { Apply_Tester, bool_sort },
+        { Apply_Selector, selector_sort },
+    });
 
 // main function implementations
 bool check_sortedness(Op op, const TermVec & terms)
@@ -374,35 +375,27 @@ bool check_select_sorts(const SortVec & sorts)
   return true;
 }
 
-  bool check_selector_sorts(const SortVec & sorts)
+bool check_selector_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 1)
   {
-    assert(sorts.size());
-    if (sorts.size() != 1)
-      {
-	return false;
-      }
-
-    Sort dt_sort = sorts[0];
-    if (dt_sort->get_sort_kind() != DATATYPE)
-      {
-	return false;
-      }
-    return true;
-    
-  }
-  // TO DO!!! DO THIS LATER
-  bool check_constructor_sorts(const SortVec & sorts)
-  {
-    return true;
+    return false;
   }
 
-  // TO DO!!! DO THIS LATER
-  bool check_tester_sorts(const SortVec & sorts)
+  Sort dt_sort = sorts[0];
+  if (dt_sort->get_sort_kind() != DATATYPE)
   {
-    return true;
+    return false;
   }
-  
-  
+  return true;
+}
+// TO DO!!! DO THIS LATER
+bool check_constructor_sorts(const SortVec & sorts) { return true; }
+
+// TO DO!!! DO THIS LATER
+bool check_tester_sorts(const SortVec & sorts) { return true; }
+
 bool check_store_sorts(const SortVec & sorts)
 {
   assert(sorts.size());
@@ -571,23 +564,21 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return arraysort;
 }
 
-  Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-  {
-    Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
-    //shared_ptr<GenericDatatype> dt =
-    //static_pointer_cast<GenericDatatype>(parent_sort->get_datatype());
-    return static_pointer_cast<DatatypeComponentSort>(sorts[0])->get_selector_sort();
-    
-  }
-  Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-  {
-    return (sorts[0])->get_domain_sorts()[0];
-  }
-  Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-  {
-    return solver->make_sort(BOOL);
-  }
-
-
+Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
+  // shared_ptr<GenericDatatype> dt =
+  // static_pointer_cast<GenericDatatype>(parent_sort->get_datatype());
+  return static_pointer_cast<DatatypeComponentSort>(sorts[0])
+      ->get_selector_sort();
+}
+Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  return (sorts[0])->get_domain_sorts()[0];
+}
+Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  return solver->make_sort(BOOL);
+}
 
 }  // namespace smt

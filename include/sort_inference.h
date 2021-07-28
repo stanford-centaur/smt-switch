@@ -19,9 +19,9 @@
 #include <unordered_set>
 
 #include "assert.h"
+#include "generic_sort.h"
 #include "ops.h"
 #include "solver.h"
-#include "generic_sort.h"
 #include "term.h"
 
 namespace smt {
@@ -157,10 +157,10 @@ bool check_select_sorts(const SortVec & sorts);
  *         and the next two match the index and element sort
  */
 
- bool check_selector_sorts(const SortVec & sorts);
- bool check_constructor_sorts(const SortVec & sorts);
- bool check_tester_sorts(const SortVec & sorts);
- 
+bool check_selector_sorts(const SortVec & sorts);
+bool check_constructor_sorts(const SortVec & sorts);
+bool check_tester_sorts(const SortVec & sorts);
+
 bool check_store_sorts(const SortVec & sorts);
 
 bool bool_sorts(const SortVec & sorts);
@@ -208,9 +208,11 @@ Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort select_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
- Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
- Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-   Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+Sort constructor_sort(Op op,
+                      const AbsSmtSolver * solver,
+                      const SortVec & sorts);
 
 }  // namespace smt
 

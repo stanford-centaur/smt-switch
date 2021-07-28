@@ -334,11 +334,16 @@ std::string GenericSolver::to_smtlib_def(Term term) const
   {
     // generic terms with operators are written as s-expressions.
     string result;
-    if (gt->get_op() == Apply_Constructor) {
-      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>((gt->get_sort())->get_datatype());
-      result = dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]) ? "(" : "";
+    if (gt->get_op() == Apply_Constructor)
+    {
+      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
+          (gt->get_sort())->get_datatype());
+      result = dt->get_num_selectors((*term_name_map)[gt->get_children()[0]])
+                   ? "("
+                   : "";
     }
-    else if (gt->get_op() == Apply_Tester) {
+    else if (gt->get_op() == Apply_Tester)
+    {
       result = "((_ is ";
       result += (*term_name_map)[gt->get_children()[0]];
       result += ") ";
@@ -346,13 +351,18 @@ std::string GenericSolver::to_smtlib_def(Term term) const
       result += ")";
       return result;
     }
-    else {
+    else
+    {
       result = "(";
     }
     // The Apply operator is ignored and the
     // function being applied is used instead.
-    result +=
-      ((term->get_op().prim_op == Apply || term->get_op().prim_op == Apply_Constructor || term->get_op().prim_op == Apply_Selector || term->get_op().prim_op == Apply_Tester) ? "" : term->get_op().to_string());
+    result += ((term->get_op().prim_op == Apply
+                || term->get_op().prim_op == Apply_Constructor
+                || term->get_op().prim_op == Apply_Selector
+                || term->get_op().prim_op == Apply_Tester)
+                   ? ""
+                   : term->get_op().to_string());
     // For quantifiers we separate the bound variables list
     // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
@@ -372,11 +382,16 @@ std::string GenericSolver::to_smtlib_def(Term term) const
         result += " " + (*term_name_map)[c];
       }
     }
-    if (gt->get_op() == Apply_Constructor) {
-      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>((gt->get_sort())->get_datatype());
-      result += dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]) ? ")" : "";
+    if (gt->get_op() == Apply_Constructor)
+    {
+      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
+          (gt->get_sort())->get_datatype());
+      result += dt->get_num_selectors((*term_name_map)[gt->get_children()[0]])
+                    ? ")"
+                    : "";
     }
-    else {
+    else
+    {
       result += ")";
     }
     return result;
@@ -512,7 +527,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // Exact functionality of make_genericsort, without the linking
     // errors (undefined reference when I call a new
     // make_generic_sort).
-    //Sort dt_sort = make_generic_sort(curr_dt);
+    // Sort dt_sort = make_generic_sort(curr_dt);
     Sort dt_sort = make_shared<GenericDatatypeSort>(curr_dt);
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
@@ -630,74 +645,95 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(s->get_datatype());
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
-  for (int i = 0; i < dt->get_num_constructors(); ++i) {
-    if (static_pointer_cast<GenericDatatypeConstructorDecl>(dt->get_cons_vector()[i])->get_name() == name) {
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i])
+            ->get_name()
+        == name)
+    {
       found = true;
     }
   }
-  if (!found) {
+  if (!found)
+  {
     throw InternalSolverException("Constructor not in datatype");
   }
   Sort cons_sort = make_generic_sort(CONSTRUCTOR, name, s);
-  Term new_term = std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
   return (*name_term_map)[name];
-  
 }
 
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
-  shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(s->get_datatype());
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
-  for (int i = 0; i < dt->get_num_constructors(); ++i) {
-    if (static_pointer_cast<GenericDatatypeConstructorDecl>(dt->get_cons_vector()[i])->get_name() == name) {
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i])
+            ->get_name()
+        == name)
+    {
       found = true;
     }
   }
-  if (!found) {
+  if (!found)
+  {
     throw InternalSolverException("Constructor not in datatype");
   }
-  
+
   Sort cons_sort = make_generic_sort(TESTER, name, s);
-  Term new_term = std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
   return (*name_term_map)[name];
-  
-  
 }
 
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
-  shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(s->get_datatype());
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
   Sort cons_sort = make_generic_sort(SELECTOR, name, s);
-  for (int i = 0; i < dt->get_num_constructors(); ++i) {
-    shared_ptr<GenericDatatypeConstructorDecl> curr_con = static_pointer_cast<GenericDatatypeConstructorDecl>(dt->get_cons_vector()[i]);
-    if (curr_con->get_name() == con) {
-    for (int f = 0; f < curr_con->get_selector_count(); ++f) {
-      if (((curr_con->get_selector_vector())[f]).name == name) {
-	found = true;
-	static_pointer_cast<DatatypeComponentSort>(cons_sort)->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    shared_ptr<GenericDatatypeConstructorDecl> curr_con =
+        static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i]);
+    if (curr_con->get_name() == con)
+    {
+      for (int f = 0; f < curr_con->get_selector_count(); ++f)
+      {
+        if (((curr_con->get_selector_vector())[f]).name == name)
+        {
+          found = true;
+          static_pointer_cast<DatatypeComponentSort>(cons_sort)
+              ->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
+        }
       }
     }
-    }
   }
-  if (!found) {
+  if (!found)
+  {
     throw InternalSolverException("Selector not in datatype");
   }
-  
-  //Sort cons_sort = make_generic_sort(SELECTOR, name, s);
-  Term new_term = std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+
+  // Sort cons_sort = make_generic_sort(SELECTOR, name, s);
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
   return (*name_term_map)[name];
-  
-  
 }
 
 std::string GenericSolver::get_name(Term term) const
