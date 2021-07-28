@@ -91,7 +91,7 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Exists, "exists" },
       { Apply_Selector, "apply_selector" },
       { Apply_Tester, "apply_tester" },
-      { Apply_Constructor, "apply_constructor" } });
+      { Apply_Constructor, "apply_selector" } });
 
 // a map from PrimOp to <minimum arity, maximum arity>
 // TODO: support INT_MAX arity for those that allow it in SMT-LIB

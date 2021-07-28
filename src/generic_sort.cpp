@@ -124,9 +124,9 @@ Sort make_generic_sort(Datatype & dt)
 {
   return make_shared<GenericDatatypeSort>(dt);
 }
-  Sort make_generic_sort(SortKind sk, std::string cons_name)
+  Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
   {
-    return make_shared<DatatypeComponentSort>(sk, cons_name);
+    return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
   }
   
 // implementations
@@ -190,7 +190,7 @@ string GenericSort::compute_string() const {
     {
       return static_pointer_cast<GenericDatatype>(get_datatype())->get_name();
     }
-    else if (get_sort_kind() == SortKind::CONSTRUCTOR || get_sort_kind() == SortKind::SELECTOR)
+    else if (get_sort_kind() == SortKind::CONSTRUCTOR || get_sort_kind() == SortKind::SELECTOR || get_sort_kind() == SortKind::TESTER)
       {
 	cout << "in comptue" << endl;
 	return get_uninterpreted_name();
@@ -381,11 +381,12 @@ std::string GenericDatatypeSort::to_string() const
   return this->compute_string();
 }
 
-  DatatypeComponentSort::DatatypeComponentSort(SortKind sk, std::string name) :
+  DatatypeComponentSort::DatatypeComponentSort(SortKind sk, std::string name, Sort dt) :
     GenericSort(sk),
-    name(name)
+    name(name),
+    dt_sort(dt)
   {
-    if (sk != CONSTRUCTOR && sk != SELECTOR) {
+    if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER) {
       throw "Wrong sortkind input";
     }
   }
@@ -404,5 +405,32 @@ std::string GenericDatatypeSort::to_string() const
     return name;
   }
 
+  SortVec DatatypeComponentSort::get_domain_sorts() const
+  {
+    std::vector<Sort> domain_sorts;
+    domain_sorts.push_back(dt_sort);
+    return domain_sorts;
+  }
+
+  Sort DatatypeComponentSort::get_selector_sort() const
+  {
+    return selector_sort;
+  }
+
+  void DatatypeComponentSort::set_selector_sort(Sort new_selector_sort)
+  {
+    selector_sort = new_selector_sort;
+  }
+
+  int DatatypeComponentSort::get_num_selectors() const
+  {
+    shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(dt_sort->get_datatype());
+    return dt->get_num_selectors(name);
+  }
+
+  Datatype DatatypeComponentSort::get_datatype() const
+  {
+    return dt_sort->get_datatype();
+  }
   
 }  // namespace smt

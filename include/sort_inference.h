@@ -21,7 +21,7 @@
 #include "assert.h"
 #include "ops.h"
 #include "solver.h"
-#include "sort.h"
+#include "generic_sort.h"
 #include "term.h"
 
 namespace smt {
@@ -208,6 +208,9 @@ Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort select_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+ Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+ Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+   Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 }  // namespace smt
 

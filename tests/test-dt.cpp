@@ -104,37 +104,34 @@ TEST_P(DTTests, DatatypeDecl)
 
     Datatype listdt = listsort->get_datatype();
 
-    //if (s->get_solver_enum() != GENERIC_SOLVER)
-    //  {
       Term five = s->make_term(5, intsort);
       // Make datatype terms
       Term cons = s->get_constructor(listsort, "cons");
       assert("cons" == cons->to_string());
       Term nil = s->get_constructor(listsort, "nil");
-      cout << "nil sort\n" << nil->get_sort() << endl;
-      cout << "nil sort kind: " << nil->get_sort()->get_sort_kind() << endl;
-      cout << "list sort: \n" << listsort << endl;
-      cout << "list sort kind: " << listsort->get_sort_kind() << endl;
-      cout << "CORRECR SORT hypothesis" << endl;
-      //Term head = s->get_selector(listsort, "cons", "head");
 
-      //Term tail = s->get_selector(listsort, "cons", "tail");
+      Term head = s->get_selector(listsort, "cons", "head");
+
+      Term tail = s->get_selector(listsort, "cons", "tail");
 
       Term isNil = s->get_tester(listsort, "nil");
-
+      
       // Datatype ops
-
       Term nilterm = s->make_term(Apply_Constructor, nil);
-      if (s->get_solver_enum() != GENERIC_SOLVER)
-      {
       Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
-      //Term five_again = s->make_term(Apply_Selector, head, list5);
-      /*
+      Term five_again = s->make_term(Apply_Selector, head, list5);
+      
       // Expected booleans
+       
+      
       s->assert_formula(s->make_term(Equal, five, five_again));
+      
       s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
+      
       s->assert_formula(
-          s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
+          s->make_term(Not, s->make_term(Apply_Tester, isNil,
+      list5)));
+      
 
       Result res = s->check_sat();
 
@@ -145,6 +142,7 @@ TEST_P(DTTests, DatatypeDecl)
 
       ASSERT_TRUE(res.is_sat());
       // Expected exceptions
+      
       EXPECT_THROW(s->get_constructor(listsort, "kons"),
                    InternalSolverException);
       EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
@@ -152,8 +150,10 @@ TEST_P(DTTests, DatatypeDecl)
                    InternalSolverException);
       EXPECT_THROW(listdt->get_num_selectors("kons"),
       InternalSolverException);
-      */
-    }
+      
+      
+      
+      // }
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,

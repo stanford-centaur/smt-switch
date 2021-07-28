@@ -133,6 +133,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
 {
   // Used to keep track of the number of selectors in the constructor
   int num_selectors = 0;
+  bool found = false;
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   // Searches for a matching constructor
   {
@@ -140,13 +141,16 @@ int GenericDatatype::get_num_selectors(std::string cons) const
             ->get_name()
         == cons)
     {
+      found = true;
       // Calls the constructor's get_selector_count() function
       num_selectors = static_pointer_cast<GenericDatatypeConstructorDecl>(
                           cons_decl_vector[i])
                           ->get_selector_count();
     }
   }
-  // Returns 0 if the constructor was not found
+  if (!found) {
+    throw InternalSolverException("Constructor not found");
+  }
   return num_selectors;
 }
 

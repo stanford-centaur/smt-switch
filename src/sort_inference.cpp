@@ -178,9 +178,9 @@ const std::unordered_map<
                          { Store, store_sort },
                          { Forall, bool_sort },
 			   { Exists, bool_sort },
-			     {Apply_Constructor, bool_sort },
+			     {Apply_Constructor, constructor_sort },
 			       {Apply_Tester, bool_sort },
-				 {Apply_Selector, bool_sort },
+				 {Apply_Selector, selector_sort },
       });
 
 // main function implementations
@@ -233,7 +233,6 @@ Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
   {
     sorts.push_back(t->get_sort());
   }
-  cout << "made sort vec" << endl;
   return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
 }
 
@@ -574,13 +573,21 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 
   Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   {
-    return sorts[0];
+    Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
+    //shared_ptr<GenericDatatype> dt =
+    //static_pointer_cast<GenericDatatype>(parent_sort->get_datatype());
+    return static_pointer_cast<DatatypeComponentSort>(sorts[0])->get_selector_sort();
+    
   }
   Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   {
-    return sorts[0];
-      
+    return (sorts[0])->get_domain_sorts()[0];
   }
-  
-  
+  Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+  {
+    return solver->make_sort(BOOL);
+  }
+
+
+
 }  // namespace smt
