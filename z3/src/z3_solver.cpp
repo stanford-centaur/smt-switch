@@ -609,6 +609,12 @@ Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 {
+  if (symbols.find(name) != symbols.end())
+  {
+    throw IncorrectUsageException("symbol " + name + " has already been used.");
+  }
+  symbols.insert(name);
+
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
   const char * c = name.c_str();
   z3::symbol z_name = ctx.str_symbol(c);

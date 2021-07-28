@@ -54,6 +54,7 @@ set-option            { return yy::parser::make_SETOPT(loc); }
 set-info              { return yy::parser::make_SETINFO(loc); }
 declare-const         { return yy::parser::make_DECLARECONST(loc); }
 declare-fun           { return yy::parser::make_DECLAREFUN(loc); }
+declare-sort          { return yy::parser::make_DECLARESORT(loc); }
 define-fun            { return yy::parser::make_DEFINEFUN(loc); }
 define-sort           { return yy::parser::make_DEFINESORT(loc); }
 assert                { return yy::parser::make_ASSERT(loc); }
@@ -91,12 +92,6 @@ let                   { return yy::parser::make_LET(loc); }
 
 \:[a-zA-Z0-9_-]+      { return yy::parser::make_KEYWORD(++yytext, loc); }
 
-Bool                  { return yy::parser::make_BOOL(loc); }
-Int                   { return yy::parser::make_INT(loc); }
-Real                  { return yy::parser::make_REAL(loc); }
-BitVec                { return yy::parser::make_BITVEC(loc); }
-Array                 { return yy::parser::make_ARRAY(loc); }
-
 (forall|exists)       { return yy::parser::make_QUANTIFIER(yytext, loc); }
 
 \|([^|\\])*\|         {
@@ -122,6 +117,8 @@ Array                 { return yy::parser::make_ARRAY(loc); }
 
 void smt::SmtLibReader::scan_begin ()
 {
+  // flush the buffer to make sure scanner state is fresh
+  YY_FLUSH_BUFFER;
   // commented from calc++ example -- could consider adding for debug support
   /* yy_flex_debug = trace_scanning; */
   if (file.empty () || file == "-")

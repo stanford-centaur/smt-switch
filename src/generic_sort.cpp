@@ -120,14 +120,15 @@ Sort make_generic_sort(SortKind sk, SortVec sorts)
   }
 }
 
-Sort make_generic_sort(Datatype & dt)
+Sort make_generic_sort(Datatype dt)
 {
   return make_shared<GenericDatatypeSort>(dt);
 }
-Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
-{
-  return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
-}
+  Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
+  {
+    return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
+  }
+  
 
 // implementations
 

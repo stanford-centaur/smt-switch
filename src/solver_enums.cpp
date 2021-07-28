@@ -56,7 +56,9 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT,
+            PARAM_UNINTERP_SORT } },
 
         { GENERIC_SOLVER,
           { TERMITER,
@@ -75,20 +77,27 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
+        { YICES2,
+          { LOGGING,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            UNINTERP_SORT } },
         { Z3,
           { LOGGING,
             THEORY_INT,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             CONSTARR,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT } },
 
     });
 

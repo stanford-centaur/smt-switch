@@ -28,7 +28,6 @@ namespace smt {
 Sort make_uninterpreted_logging_sort(Sort s, std::string name, uint64_t arity);
 Sort make_uninterpreted_logging_sort(Sort s,
                                      std::string name,
-                                     uint64_t arity,
                                      const SortVec & sorts);
 Sort make_logging_sort(SortKind sk, Sort s);
 Sort make_logging_sort(SortKind sk, Sort s, uint64_t width);

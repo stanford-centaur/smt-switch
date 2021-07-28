@@ -14,10 +14,14 @@
 **
 **/
 
-#include <algorithm>
-#include <random>
-
 #include "utils.h"
+
+#include <algorithm>
+#include <map>
+#include <random>
+#include <sstream>
+#include <string>
+
 #include "ops.h"
 
 namespace smt {
@@ -195,6 +199,141 @@ bool is_lit(const Term & l, const Sort & boolsort)
   return false;
 }
 
+void cnf_to_dimacs(Term cnf, std::ostringstream & y)
+{
+  Sort sort = cnf->get_sort();
+  assert(sort->get_sort_kind() == BOOL);
+  if (cnf->is_value() && cnf->to_string() == "true")
+  {  // empty cnf formula
+    y << "p cnf 0 0\n";
+    return;
+  }
+  TermVec before_and_elimination({ cnf });
+  TermVec after_and_elimination;
+  // This while loop separate the clauses, after_and_elimination will contain
+  // all clauses because every smt::and op will be eliminated. This happens
+  // because until smt::and op is not detected that term is added back to
+  // before_and_elimination, and as no term with smt::or as the primOp is
+  // touched all clauses shall be separated and be intact
+  while (!before_and_elimination.empty())
+  {
+    Term t = before_and_elimination.back();
+    before_and_elimination.pop_back();
+    smt::Op op = t->get_op();
+    assert(op.is_null() || op == smt::Or || op == smt::And || op == smt::Not);
+    if (op.prim_op == smt::And)
+    {
+      for (auto u : t)
+      {
+        before_and_elimination.push_back(u);
+      }
+    }
+    else
+    {
+      after_and_elimination.push_back(t);
+    }
+  }
+  // Storing literals from each clause, each vector in clauses will contain the
+  // literals from a clause
+  std::vector<std::vector<Term>> clauses;
+
+  for (auto u : after_and_elimination)
+  {
+    std::vector<Term> after_or_elimination;
+    std::vector<Term> before_or_elimination({ u });
+    while (!before_or_elimination.empty())
+    {  // This while loop functions in the same way as above and eliminates
+       // smt::or by separating the literals
+      Term t = before_or_elimination.back();
+      before_or_elimination.pop_back();
+      smt::Op op = t->get_op();
+      assert(op.is_null() || op == smt::Or || op == smt::Not);
+
+      if(op.prim_op == smt::Or)
+      {
+        for(auto u : t)
+        {
+          before_or_elimination.push_back(u);
+        }
+      }
+      else
+      {
+        assert(op.is_null() || op == smt::Not);
+        after_or_elimination.push_back(t);
+      }
+    }
+    clauses.push_back(after_or_elimination);
+   }
+
+   std::map<Term, int> ma;  // This map will create a mapping from symbols to
+                            // distinct contiguous integer values.
+   int ptr = 0;  // pointer to store the next integer used in mapping
+
+   // iterating within each clause and mapping every distinct symbol to a
+   // natural number
+   for (auto u : clauses)
+   {
+     for (auto uu : u)
+     {  // Using literals from all the clauses to create the mapping
+       if (uu->is_value() && uu->to_string() == "false")
+       {  // For an empty clause, which will just contain the term "false"
+       }
+       else if (uu->is_symbolic_const())
+       {  // A positive literal
+         if (ma.find(uu) == ma.end())
+         {  // Checking if symbol is absent in the mapping done till now
+           ptr++;
+           ma[uu] = ptr;
+         }
+       }
+       else
+       {  // A negative literal
+         Term t = (*(uu->begin()));
+         if (ma.find(t) == ma.end())
+         {
+           ptr++;
+           ma[t] = ptr;
+         }
+       }
+     }
+   }
+   //printing the output in DIMACS format
+   y << "p cnf ";
+   y << ptr;  // number of distinct symbols
+   y << " ";
+
+   int sz = clauses.size();
+
+   y << sz;  // number of clauses
+   y << "\n";
+
+   // iterating within each clause and assigning the literal their mapped
+   // value(for a positive literal) or it's negative value(for a negative
+   // literal)
+   for (auto u : clauses)
+   {
+     for (auto uu : u)
+     {
+       if (uu->is_value() && uu->to_string() == "false")
+       {  // For an empty clause
+       }
+       else if (uu->is_symbolic_const())
+       {
+         y << (ma[uu]);  // Positive number for a positive literal
+         y << " ";
+       }
+       else
+       {
+         Term t = (*(uu->begin()));
+         y << ((-(ma[t])));  // Negative number for a negative literal
+         y << " ";
+       }
+     }
+     y << 0;  // Symbolizing end of line
+     y << "\n";
+  }
+}
+
 // ----------------------------------------------------------------------------
 
 UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
@@ -249,8 +388,11 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
   unsigned cur_iter = 0;
   bool first_iter = true;
-  while (cur_iter <= iter) {
-    cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
+  // iter == 0 interpreted as allowing unlimited iterations
+  // iter != 0 restricts to iter iterations
+  while (!iter || cur_iter < iter)
+  {
+    cur_iter += 1;
     r = reducer_->check_sat_assuming(bool_assump);
 
     if (first_iter && r.is_sat()) {
@@ -285,6 +427,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
     first_iter = false;
   }
+  assert(!iter || cur_iter <= iter);
 
   reducer_->pop();
 

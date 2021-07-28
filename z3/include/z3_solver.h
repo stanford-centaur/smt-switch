@@ -120,6 +120,9 @@ class Z3Solver : public AbsSmtSolver
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
+  std::unordered_set<std::string> symbols;
+  ///< keep track of declared symbols to avoid
+  ///< re-declaring
 
   // helper function
   inline Result check_sat_assuming(expr_vector & z3assumps)
