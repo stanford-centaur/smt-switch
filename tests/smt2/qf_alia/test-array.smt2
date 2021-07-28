@@ -1,0 +1,12 @@
+(set-logic QF_ALIA)
+(declare-const x Int)
+(declare-const y Int)
+(declare-const arr (Array Int Int))
+(declare-const all0 (Array Int Int))
+(assert (= y (select arr x)))
+(assert (= all0
+           ((as const (Array Int Int)) 0)
+           ))
+(assert (= y (select all0 x)))
+(assert (distinct y 0))
+(check-sat)

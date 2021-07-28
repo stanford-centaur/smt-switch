@@ -63,6 +63,10 @@ enum SolverAttribute
   THEORY_DATATYPE,
   // supports quantifiers
   QUANTIFIERS,
+  // supports zero arity uninterpreted sorts
+  UNINTERP_SORT,
+  // supports non-zero arity uninterpreted sorts
+  PARAM_UNINTERP_SORT,
   // aliases booleans and bit-vectors of size one
   BOOL_BV1_ALIASING
 

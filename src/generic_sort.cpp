@@ -120,7 +120,10 @@ Sort make_generic_sort(SortKind sk, SortVec sorts)
   }
 }
 
-Sort make_generic_sort(Datatype & dt)
+
+
+
+Sort make_generic_sort(Datatype dt)
 {
   return make_shared<GenericDatatypeSort>(dt);
 }
@@ -384,6 +387,7 @@ std::string GenericDatatypeSort::to_string() const
   return this->compute_string();
 }
 
+
 DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
                                              std::string name,
                                              Sort dt)
@@ -431,5 +435,6 @@ Datatype DatatypeComponentSort::get_datatype() const
 {
   return dt_sort->get_datatype();
 }
+
 
 }  // namespace smt

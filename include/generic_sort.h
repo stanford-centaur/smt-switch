@@ -36,7 +36,9 @@ Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
 Sort make_generic_sort(Datatype dt);
+
 Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt);
+
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -208,6 +210,7 @@ class GenericDatatypeSort : public GenericSort
  protected:
   Datatype gdt;
 };
+
 
 class DatatypeComponentSort : public GenericSort
 {

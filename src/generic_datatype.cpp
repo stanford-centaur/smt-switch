@@ -55,7 +55,7 @@ int GenericDatatypeConstructorDecl::get_selector_count() const
 bool GenericDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
-  // COmpares based off constructor's name
+  // Compares based off constructor's name
   return cons_name
          == static_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
 }
@@ -79,7 +79,7 @@ GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
 void GenericDatatype::add_constructor(
     const DatatypeConstructorDecl & dt_cons_decl)
 {
-  // checks if dt_cons_decl is already associated with the datatype
+  // Checks if dt_cons_decl is already associated with the datatype
   if (std::find(cons_decl_vector.begin(), cons_decl_vector.end(), dt_cons_decl)
       != cons_decl_vector.end())
   {
@@ -96,7 +96,9 @@ void GenericDatatype::add_constructor(
 void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                                    const SelectorComponents & newSelector)
 {
-  // boolean used to keep track of if a successful match was found.
+
+  // Boolean used to keep track of if a successful match was found.
+
   bool success = false;
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   {
@@ -136,6 +138,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   // Used to keep track of the number of selectors in the constructor
   int num_selectors = 0;
   bool found = false;
+
   for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
   // Searches for a matching constructor
   {
@@ -143,6 +146,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
             ->get_name()
         == cons)
     {
+
       found = true;
       // Calls the constructor's get_selector_count() function
       num_selectors = static_pointer_cast<GenericDatatypeConstructorDecl>(

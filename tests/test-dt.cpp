@@ -104,6 +104,7 @@ TEST_P(DTTests, DatatypeDecl)
 
     Datatype listdt = listsort->get_datatype();
 
+
     Term five = s->make_term(5, intsort);
     // Make datatype terms
     Term cons = s->get_constructor(listsort, "cons");
@@ -147,6 +148,7 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
 
     // }
+
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
