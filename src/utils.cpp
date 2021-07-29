@@ -755,6 +755,11 @@ bool is_cnf(Term formula)
   // similar as cnf_to_dimacs
   // first remove the ands in the outermost layer, then remove the ors from the
   // next level. The remaining terms should be literals
+  if (formula->is_symbolic_const())
+  {
+    return true;
+  }
+
   TermVec before_and_elimination({ formula });
   TermVec after_and_elimination;
   while (!before_and_elimination.empty())
