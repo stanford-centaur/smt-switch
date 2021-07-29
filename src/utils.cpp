@@ -375,17 +375,15 @@ class TseitinTraversal : public IdentityWalker
         std::vector<Term> vec;  // a vector of all children
         for (auto u : term)
         {
-          Term term_name;
-          bool present = query_cache(
-              u,
-              term_name);  // finding the new name of each child from the cache
+          Term cached_term;
+          bool present = query_cache(u,
+                                     cached_term);  // finding the new name of
+                                                    // each child from the cache
           assert(present == true);
-          vec.push_back(term_name);
+          vec.push_back(cached_term);
         }
-        Term term_name;
-        query_cache(term, term_name);
 
-        term_name = give_symbolic_name(term);  // making a new symbol
+        Term term_name = give_symbolic_name(term);  // making a new symbol
         save_in_cache(term, term_name);
 
         reduced.push_back({ term_name, solver_->make_term(op, vec) });
@@ -415,16 +413,16 @@ class XorBinarize : public IdentityWalker
         if (op == smt::Xor)
         {
           auto it = term->begin();
-          Term term_name;
+          Term cached_term;
           query_cache((*it),
-                      term_name);  // finding the mapped term from the cache
-          Term ne = term_name;
+                      cached_term);  // finding the mapped term from the cache
+          Term ne = cached_term;
           it++;
           while (it != term->end())
           {  // Binarising the term
-            Term term_name;
-            query_cache((*it), term_name);
-            ne = solver_->make_term(op, ne, term_name);
+            Term cached_term;
+            query_cache((*it), cached_term);
+            ne = solver_->make_term(op, ne, cached_term);
             it++;
           }
           save_in_cache(term, ne);  // storing the new binarised term in cache
@@ -452,6 +450,11 @@ class XorBinarize : public IdentityWalker
 
 // Given a boolean formula, removes terms "true" and "false" to give a formula
 // without adding new symbols
+
+// The way true and false are eliminated is by doing a preorder traversal. When
+// I am on a certain node, The children are already reducecd. Reduced means that
+// they are a term without true or false, or just true, or just false.
+// Inductively this reduction is being maintained till the root node.
 class EliminateBooleanConstants : public IdentityWalker
 {
  public:
@@ -461,11 +464,13 @@ class EliminateBooleanConstants : public IdentityWalker
   }
   WalkerStepResult visit_term(Term & term)
   {
+    Term tru = solver_->make_term(true);
+    Term fal = solver_->make_term(false);
     auto is_true = [&](Term t) {  // If the term is "true"
-      return ((t->to_string()) == "true");
+      return (t == tru);
     };
     auto is_false = [&](Term t) {  // If the term is "false"
-      return ((t->to_string()) == "false");
+      return (t == fal);
     };
     if (!preorder_)
     {
@@ -477,22 +482,22 @@ class EliminateBooleanConstants : public IdentityWalker
         if (op == smt::Not)
         {
           Term t = (*term->begin());
-          Term term_name;
+          Term cached_term;
           query_cache(t,
-                      term_name);  // Querying the mapped formula of the child
-                                   // as we are doing a preorder traversal
+                      cached_term);  // Querying the mapped formula of the child
+                                     // as we are doing a preorder traversal
 
-          if (is_true(term_name))
+          if (is_true(cached_term))
           {  // not(false)=true
             save_in_cache(term, fa);
           }
-          else if (is_false(term_name))
+          else if (is_false(cached_term))
           {  // not(true)=false
             save_in_cache(term, tr);
           }
           else
           {  // mapping not of the queried term_name.
-            save_in_cache(term, solver_->make_term(Not, term_name));
+            save_in_cache(term, solver_->make_term(Not, cached_term));
           }
         }
         else if (op == smt::Equal)
@@ -502,39 +507,40 @@ class EliminateBooleanConstants : public IdentityWalker
           it++;
           Term ri = (*it);
           // term=(le_name<->ri_name)
-          Term le_name;
-          Term ri_name;
-          query_cache(le, le_name);
-          query_cache(ri, ri_name);
-          if ((is_true(le_name) && is_true(ri_name))
-              || (is_false(le_name) && is_false(ri_name)))
+          Term le_cached;
+          Term ri_cached;
+          query_cache(le, le_cached);
+          query_cache(ri, ri_cached);
+          if ((is_true(le_cached) && is_true(ri_cached))
+              || (is_false(le_cached) && is_false(ri_cached)))
           {  //(true==true)=true, (false==false)=true
             save_in_cache(term, tr);
           }
-          else if ((is_true(le_name) && is_false(ri_name))
-                   || (is_false(le_name) && is_true(ri_name)))
+          else if ((is_true(le_cached) && is_false(ri_cached))
+                   || (is_false(le_cached) && is_true(ri_cached)))
           {  //(true==false)=false, (false==true)=false
             save_in_cache(term, fa);
           }
-          else if (is_true(le_name))
+          else if (is_true(le_cached))
           {  //(true==ri_name)=ri_name
-            save_in_cache(term, ri_name);
+            save_in_cache(term, ri_cached);
           }
-          else if (is_true(ri_name))
+          else if (is_true(ri_cached))
           {  //(le_name==true)=le_name
-            save_in_cache(term, le_name);
+            save_in_cache(term, le_cached);
           }
-          else if (is_false(le_name))
+          else if (is_false(le_cached))
           {  //(false==ri_name)=not(ri_name)
-            save_in_cache(term, solver_->make_term(Not, ri_name));
+            save_in_cache(term, solver_->make_term(Not, ri_cached));
           }
-          else if (is_false(ri_name))
+          else if (is_false(ri_cached))
           {  //(le_name==false)=not(le_name)
-            save_in_cache(term, solver_->make_term(Not, le_name));
+            save_in_cache(term, solver_->make_term(Not, le_cached));
           }
           else
           {  // saving as it is
-            save_in_cache(term, solver_->make_term(Equal, le_name, ri_name));
+            save_in_cache(term,
+                          solver_->make_term(Equal, le_cached, ri_cached));
           }
         }
         else if (op == smt::Implies)
@@ -543,37 +549,38 @@ class EliminateBooleanConstants : public IdentityWalker
           Term le = (*it);
           it++;
           Term ri = (*it);
-          Term le_name;
-          Term ri_name;
-          query_cache(le, le_name);
-          query_cache(ri, ri_name);
-          if (is_false(le_name) || is_true(ri_name))
+          Term le_cached;
+          Term ri_cached;
+          query_cache(le, le_cached);
+          query_cache(ri, ri_cached);
+          if (is_false(le_cached) || is_true(ri_cached))
           {  //(false->?)=true, (?->true)=true
             save_in_cache(term, tr);
           }
-          else if (is_true(le_name))
+          else if (is_true(le_cached))
           {  //(true->ri_name)=ri_name
-            save_in_cache(term, ri_name);
+            save_in_cache(term, ri_cached);
           }
-          else if (is_false(ri_name))
+          else if (is_false(ri_cached))
           {
-            if (is_true(le_name))
+            if (is_true(le_cached))
             {  //(true->false)=false
               save_in_cache(term, fa);
             }
-            else if (is_false(le_name))
+            else if (is_false(le_cached))
             {  //(false->false)=true
               save_in_cache(term, tr);
             }
             else
             {  //(le_name->false)=not(le_name)
-              save_in_cache(term, solver_->make_term(Not, le_name));
+              save_in_cache(term, solver_->make_term(Not, le_cached));
             }
           }
           else
           {  // saving as it is, as neither lhs or rhs is either "true" or
              // "false"
-            save_in_cache(term, solver_->make_term(Implies, le_name, ri_name));
+            save_in_cache(term,
+                          solver_->make_term(Implies, le_cached, ri_cached));
           }
         }
         else if (op == smt::And)
@@ -584,13 +591,13 @@ class EliminateBooleanConstants : public IdentityWalker
           auto it = term->begin();
           while (it != term->end())
           {  // iterating over all children
-            Term term_name;
-            query_cache((*it), term_name);
-            if (is_true(term_name))
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
             {
               it++;
             }
-            else if (is_false(term_name))
+            else if (is_false(cached_term))
             {
               it++;
               false_present = 1;
@@ -598,7 +605,7 @@ class EliminateBooleanConstants : public IdentityWalker
             else
             {
               it++;
-              vec.push_back(term_name);
+              vec.push_back(cached_term);
             }
           }
           if (false_present)
@@ -627,21 +634,21 @@ class EliminateBooleanConstants : public IdentityWalker
           auto it = term->begin();
           while (it != term->end())
           {  // iterating over all children
-            Term term_name;
-            query_cache((*it), term_name);
-            if (is_true(term_name))
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
             {
               true_present = 1;
               it++;
             }
-            else if (is_false(term_name))
+            else if (is_false(cached_term))
             {
               it++;
             }
             else
             {
               it++;
-              vec.push_back(term_name);
+              vec.push_back(cached_term);
             }
           }
           if (true_present)
@@ -671,21 +678,21 @@ class EliminateBooleanConstants : public IdentityWalker
           auto it = term->begin();
           while (it != term->end())
           {  // iterating over all children
-            Term term_name;
-            query_cache((*it), term_name);
-            if (is_true(term_name))
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
             {
               it++;
               true_present++;
             }
-            else if (is_false(term_name))
+            else if (is_false(cached_term))
             {
               it++;
             }
             else
             {
               it++;
-              vec.push_back(term_name);
+              vec.push_back(cached_term);
             }
           }
           if (vec.empty())

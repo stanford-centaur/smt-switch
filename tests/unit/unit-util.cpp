@@ -264,7 +264,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "tseitin_to_cnf_1) tseitin_to_cnf_4)))";
   ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl;
 
-  //b=Not(p xor q)
+  // b=Not(p xor q)
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
   Term cnf2 = to_cnf(b, s);
 
@@ -287,7 +287,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "tseitin_to_cnf_6)))";
   ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl << endl;
 
-  //c=((not p) and p)
+  // c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
   Term cnf3 = to_cnf(c, s);
 
@@ -308,7 +308,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term d1 = s->make_term(Or, p, q);
   Term d2 = s->make_term(Or, r, t);
 
-  //d3=((p or q) and (r or t))
+  // d3=((p or q) and (r or t))
   Term d3 = s->make_term(And, d1, d2);
 
   Term cnf4 = to_cnf(d3, s);
@@ -326,7 +326,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   st = cnf4->to_string();
   ans = "(and (or p q) (or r t))";
   ASSERT_TRUE(st == ans);
-  //e=false
+  // e=false
   Term e = s->make_term(false);
   Term cnf5 = to_cnf(e, s);
 
@@ -344,7 +344,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ans = "false";
   ASSERT_TRUE(st == ans);
 
-  //f=true
+  // f=true
   Term f = s->make_term(true);
   Term cnf6 = to_cnf(f, s);
 
@@ -368,7 +368,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   vec.push_back(r);
   vec.push_back(t);
 
-  //g=OR(p, q, r, t)
+  // g=OR(p, q, r, t)
 
   Term g = s->make_term(Or, vec);
   Term cnf7 = to_cnf(g, s);
@@ -389,6 +389,48 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   Term fa = s->make_term(false);
   Term tr = s->make_term(true);
+
+  // cheking function is_cnf
+
+  std::vector<Term> vecs;
+  vecs.push_back(p);
+  vecs.push_back(q);
+  vecs.push_back(r);
+  vecs.push_back(t);
+  Term ne = s->make_term(Or, vecs);
+  bool check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(Xor, vecs);
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+  ne = s->make_term(And, vecs);
+  check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(And, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(Implies, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+  ne = s->make_term(And, s->make_term(Equal, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+
+  // checking elimination of true and false
+  Term tru = s->make_term(true);
+  Term fal = s->make_term(false);
+
+  // formula=and(true, p)
+  Term formula = s->make_term(And, tru, p);
+  Term as = to_cnf(formula, s);
+  ASSERT_TRUE(as == p);
+
+  // formula=and(or(p, true), or(q, false))
+  formula =
+      s->make_term(And, s->make_term(Or, p, tru), s->make_term(Or, q, fal));
+  as = to_cnf(formula, s);
+  ASSERT_TRUE(as == q);
+
   // h=((true->false)<->Or(p, q))
   Term h = s->make_term(
       Equal, s->make_term(Implies, tr, fa), s->make_term(Or, p, q));
