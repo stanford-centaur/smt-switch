@@ -339,10 +339,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     {
       shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
           (gt->get_sort())->get_datatype());
-      nullary_constructor = dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
-      result = nullary_constructor
-                   ? "("
-                   : "";
+      nullary_constructor =
+          dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
+      result = nullary_constructor ? "(" : "";
     }
     else if (gt->get_op() == Apply_Tester)
     {
@@ -386,9 +385,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     }
     if (gt->get_op() == Apply_Constructor)
     {
-      result += nullary_constructor
-                    ? ")"
-                    : "";
+      result += nullary_constructor ? ")" : "";
     }
     else
     {
