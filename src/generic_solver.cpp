@@ -324,6 +324,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
   shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  bool nullary_constructor;
   // generic terms with no operators are represented by their
   // name.
   if (gt->get_op().is_null())
@@ -338,7 +339,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     {
       shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
           (gt->get_sort())->get_datatype());
-      result = dt->get_num_selectors((*term_name_map)[gt->get_children()[0]])
+      nullary_constructor = dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
+      result = nullary_constructor
                    ? "("
                    : "";
     }
@@ -384,9 +386,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     }
     if (gt->get_op() == Apply_Constructor)
     {
-      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
-          (gt->get_sort())->get_datatype());
-      result += dt->get_num_selectors((*term_name_map)[gt->get_children()[0]])
+      result += nullary_constructor
                     ? ")"
                     : "";
     }
@@ -723,8 +723,6 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
   {
     throw InternalSolverException("Selector not in datatype");
   }
-
-  // Sort cons_sort = make_generic_sort(SELECTOR, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;

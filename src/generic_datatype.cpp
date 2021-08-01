@@ -148,6 +148,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
       num_selectors = static_pointer_cast<GenericDatatypeConstructorDecl>(
                           cons_decl_vector[i])
                           ->get_selector_count();
+      break;
     }
   }
   if (!found)

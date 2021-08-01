@@ -91,6 +91,7 @@ class SortingNetwork
    *  @return the combined vector
    */
   TermVec merge(const TermVec & sorted1, const TermVec & sorted2) const;
+
 };
 
 }  // namespace smt

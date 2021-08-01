@@ -156,6 +156,14 @@ SortKind CVC4Sort::get_sort_kind() const
   {
     return CONSTRUCTOR;
   }
+  else if (sort.isSelector())
+    {
+      return SELECTOR;
+    }
+  else if (sort.isTester())
+    {
+      return TESTER;
+    }
   else
   {
     throw NotImplementedException("Unknown kind in CVC4 translation.");

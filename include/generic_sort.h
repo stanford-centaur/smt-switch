@@ -209,6 +209,10 @@ class GenericDatatypeSort : public GenericSort
   Datatype gdt;
 };
 
+/* This class defines a sort class that can represent constructors,
+   selectors, and testers. Sorts of this variety are primarily used to
+   build generic terms representing constructors, selectors, and testers.
+ */
 class DatatypeComponentSort : public GenericSort
 {
  public:

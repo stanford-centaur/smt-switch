@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <unordered_map>
+
 #include "assert.h"
 #include "generic_datatype.h"
 #include "utils.h"
@@ -195,7 +196,6 @@ string GenericSort::compute_string() const {
              || get_sort_kind() == SortKind::SELECTOR
              || get_sort_kind() == SortKind::TESTER)
     {
-      cout << "in comptue" << endl;
       return get_uninterpreted_name();
     }
     else
@@ -203,7 +203,6 @@ string GenericSort::compute_string() const {
       assert(false);
     }
 }
-
 
 SortKind GenericSort::get_sort_kind() const { return sk; }
 
@@ -392,7 +391,7 @@ DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
 {
   if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER)
   {
-    throw "Wrong sortkind input";
+    throw IncorrectUsageException("Wrong sortkind input");
   }
 }
 std::string DatatypeComponentSort::compute_string() const { return name; }

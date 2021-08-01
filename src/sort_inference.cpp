@@ -384,11 +384,7 @@ bool check_selector_sorts(const SortVec & sorts)
   }
 
   Sort dt_sort = sorts[0];
-  if (dt_sort->get_sort_kind() != DATATYPE)
-  {
-    return false;
-  }
-  return true;
+  return dt_sort->get_sort_kind() == DATATYPE;
 }
 // TO DO!!! DO THIS LATER
 bool check_constructor_sorts(const SortVec & sorts) { return true; }
@@ -567,8 +563,6 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
-  // shared_ptr<GenericDatatype> dt =
-  // static_pointer_cast<GenericDatatype>(parent_sort->get_datatype());
   return static_pointer_cast<DatatypeComponentSort>(sorts[0])
       ->get_selector_sort();
 }
