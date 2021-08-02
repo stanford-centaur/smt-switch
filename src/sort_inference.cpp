@@ -387,10 +387,33 @@ bool check_selector_sorts(const SortVec & sorts)
   return dt_sort->get_sort_kind() == DATATYPE;
 }
 // TO DO!!! DO THIS LATER
-bool check_constructor_sorts(const SortVec & sorts) { return true; }
+bool check_constructor_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 1)
+    {
+      return false;
+      
+    }
+  Sort dt_sort = sorts[0];
+  return dt_sort->get_sort_kind() == DATATYPE;
+  
+}
 
 // TO DO!!! DO THIS LATER
-bool check_tester_sorts(const SortVec & sorts) { return true; }
+bool check_tester_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 1)
+    {
+      return false;
+
+        
+    }
+  Sort dt_sort = sorts[0];
+  return dt_sort->get_sort_kind() == BOOL;
+  
+}
 
 bool check_store_sorts(const SortVec & sorts)
 {
