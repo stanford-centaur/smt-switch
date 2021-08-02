@@ -205,7 +205,6 @@ string GenericSort::compute_string() const {
 
 SortKind GenericSort::get_sort_kind() const { return sk; }
 
-
 bool GenericSort::compare(const Sort & s) const
 {
   SortKind other_sk = s->get_sort_kind();
