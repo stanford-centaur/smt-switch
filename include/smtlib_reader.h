@@ -23,7 +23,7 @@
 #include "smt.h"
 #include "smtlibparser.h"
 
-#define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibReader & drv)
+#define YY_DECL smtlib::parser::symbol_type yylex(smt::SmtLibReader & drv)
 YY_DECL;
 
 namespace smt {
@@ -163,7 +163,7 @@ class SmtLibReader
                               const std::string & value);
 
   /* getters and setters  */
-  yy::location & location() { return location_; }
+  smtlib::location & location() { return location_; }
 
   smt::SmtSolver & solver() { return solver_; }
 
@@ -279,7 +279,7 @@ class SmtLibReader
   void let_binding(const std::string & sym, const smt::Term & term);
 
  protected:
-  yy::location location_;
+  smtlib::location location_;
 
   smt::SmtSolver solver_;
 
