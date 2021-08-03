@@ -28,6 +28,8 @@ using namespace std;
 %define api.token.constructor
 %define api.value.type variant
 
+%define api.prefix {smtlib}
+
 %code requires {
 /*********************                                                        */
 /*! \file smtlibparser.[yy/h]
@@ -321,7 +323,7 @@ atom:
       if (!sym)
       {
         // Note: using @1 will force locations to be enabled
-        yy::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
+        smtlib::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
         YYERROR;
       }
       $$ = sym;
@@ -384,7 +386,7 @@ sort:
      if (sk == smt::NUM_SORT_KINDS)
      {
        // got dedicated null enum
-       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
+       smtlib::parser::error(@2, std::string("Unrecognized sort: ") + $2);
        YYERROR;
      }
      $$ = drv.solver()->make_sort(sk, std::stoi($3));
@@ -463,7 +465,7 @@ indexed_op:
      smt::PrimOp po = drv.lookup_primop($2);
      if (po == smt::NUM_OPS_AND_NULL)
      {
-       yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+       smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
      $$ = smt::Op(po, std::stoi($3));
    }
@@ -472,7 +474,7 @@ indexed_op:
      smt::PrimOp po = drv.lookup_primop($2);
      if (po == smt::NUM_OPS_AND_NULL)
      {
-       yy::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+       smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
      $$ = smt::Op(po, std::stoi($3), std::stoi($4));
    }
@@ -523,7 +525,7 @@ indprefix:
 
 %%
 
-void yy::parser::error (const location_type& l, const std::string& m)
+void smtlib::parser::error (const location_type& l, const std::string& m)
 {
   cerr << l << ": " << m << endl;
 }
