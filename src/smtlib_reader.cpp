@@ -79,7 +79,7 @@ int SmtLibReader::parse(const std::string & f)
   int res;
   try
   {
-    yy::parser parse(*this);
+    smtlib::parser parse(*this);
     // commented from calc++ example
     // parse.set_debug_level (trace_parsing);
     res = parse();
