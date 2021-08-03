@@ -35,7 +35,7 @@ class AbsDatatypeConstructorDecl {
  public:
   AbsDatatypeConstructorDecl(){};
   virtual ~AbsDatatypeConstructorDecl(){};
-
+  virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 
 
@@ -47,11 +47,10 @@ class AbsDatatype {
   virtual std::string get_name() const=0;
   virtual int get_num_selectors(std::string cons) const=0;
   virtual int get_num_constructors() const=0;
-
 };
-
-
-
+// Overloaded equivalence operators for two datatype constructor declarations
+bool operator==(const DatatypeConstructorDecl & d1,
+                const DatatypeConstructorDecl & d2);
+bool operator!=(const DatatypeConstructorDecl & d1,
+                const DatatypeConstructorDecl & d2);
 }
-
-

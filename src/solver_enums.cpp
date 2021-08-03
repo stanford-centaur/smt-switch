@@ -41,7 +41,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             UNSAT_CORE,
             // TEMP only temporarily disabled until bitwuzla
             //      quantifier refactoring is done
-            //      see https://github.com/bitwuzla/bitwuzla/commit/605f31557ec6c635e3c617d2b0ab257309e994c4
+            //      see
+            //      https://github.com/bitwuzla/bitwuzla/commit/605f31557ec6c635e3c617d2b0ab257309e994c4
             // QUANTIFIERS,
             BOOL_BV1_ALIASING } },
 
@@ -55,7 +56,9 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT,
+            PARAM_UNINTERP_SORT } },
 
         { GENERIC_SOLVER,
           { TERMITER,
@@ -63,6 +66,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             UNSAT_CORE,
+            THEORY_DATATYPE,
             QUANTIFIERS } },
 
         { MSAT,
@@ -73,20 +77,27 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT } },
 
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
-        { YICES2, { LOGGING, THEORY_INT, THEORY_REAL, ARRAY_FUN_BOOLS } },
+        { YICES2,
+          { LOGGING,
+            THEORY_INT,
+            THEORY_REAL,
+            ARRAY_FUN_BOOLS,
+            UNINTERP_SORT } },
         { Z3,
           { LOGGING,
             THEORY_INT,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             CONSTARR,
-            QUANTIFIERS } },
+            QUANTIFIERS,
+            UNINTERP_SORT } },
 
     });
 

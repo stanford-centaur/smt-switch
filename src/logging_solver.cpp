@@ -128,7 +128,6 @@ Sort LoggingSolver::make_sort(const Sort & sort_con,
   Sort ressort = wrapped_solver->make_sort(sub_sort_con, sub_sorts);
   return make_uninterpreted_logging_sort(ressort,
                                          sort_con->get_uninterpreted_name(),
-                                         0,  // has zero arity after applied
                                          sorts);
 }
 

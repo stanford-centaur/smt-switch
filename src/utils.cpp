@@ -14,10 +14,15 @@
 **
 **/
 
-#include <algorithm>
-#include <random>
-
 #include "utils.h"
+
+#include <algorithm>
+#include <map>
+#include <random>
+#include <sstream>
+#include <string>
+
+#include "identity_walker.h"
 #include "ops.h"
 
 namespace smt {
@@ -195,6 +200,768 @@ bool is_lit(const Term & l, const Sort & boolsort)
   return false;
 }
 
+void cnf_to_dimacs(Term cnf, std::ostringstream & y)
+{
+  Sort sort = cnf->get_sort();
+  assert(sort->get_sort_kind() == BOOL);
+  if (cnf->is_value() && cnf->to_string() == "true")
+  {  // empty cnf formula
+    y << "p cnf 0 0\n";
+    return;
+  }
+  TermVec before_and_elimination({ cnf });
+  TermVec after_and_elimination;
+  // This while loop separate the clauses, after_and_elimination will contain
+  // all clauses because every smt::and op will be eliminated. This happens
+  // because until smt::and op is not detected that term is added back to
+  // before_and_elimination, and as no term with smt::or as the primOp is
+  // touched all clauses shall be separated and be intact
+  while (!before_and_elimination.empty())
+  {
+    Term t = before_and_elimination.back();
+    before_and_elimination.pop_back();
+    smt::Op op = t->get_op();
+    assert(op.is_null() || op == smt::Or || op == smt::And || op == smt::Not);
+    if (op.prim_op == smt::And)
+    {
+      for (auto u : t)
+      {
+        before_and_elimination.push_back(u);
+      }
+    }
+    else
+    {
+      after_and_elimination.push_back(t);
+    }
+  }
+  // Storing literals from each clause, each vector in clauses will contain the
+  // literals from a clause
+  std::vector<std::vector<Term>> clauses;
+
+  for (auto u : after_and_elimination)
+  {
+    std::vector<Term> after_or_elimination;
+    std::vector<Term> before_or_elimination({ u });
+    while (!before_or_elimination.empty())
+    {  // This while loop functions in the same way as above and eliminates
+       // smt::or by separating the literals
+      Term t = before_or_elimination.back();
+      before_or_elimination.pop_back();
+      smt::Op op = t->get_op();
+      assert(op.is_null() || op == smt::Or || op == smt::Not);
+
+      if(op.prim_op == smt::Or)
+      {
+        for(auto u : t)
+        {
+          before_or_elimination.push_back(u);
+        }
+      }
+      else
+      {
+        assert(op.is_null() || op == smt::Not);
+        after_or_elimination.push_back(t);
+      }
+    }
+    clauses.push_back(after_or_elimination);
+   }
+
+   std::map<Term, int> ma;  // This map will create a mapping from symbols to
+                            // distinct contiguous integer values.
+   int ptr = 0;  // pointer to store the next integer used in mapping
+
+   // iterating within each clause and mapping every distinct symbol to a
+   // natural number
+   for (auto u : clauses)
+   {
+     for (auto uu : u)
+     {  // Using literals from all the clauses to create the mapping
+       if (uu->is_value() && uu->to_string() == "false")
+       {  // For an empty clause, which will just contain the term "false"
+       }
+       else if (uu->is_symbolic_const())
+       {  // A positive literal
+         if (ma.find(uu) == ma.end())
+         {  // Checking if symbol is absent in the mapping done till now
+           ptr++;
+           ma[uu] = ptr;
+         }
+       }
+       else
+       {  // A negative literal
+         Term t = (*(uu->begin()));
+         if (ma.find(t) == ma.end())
+         {
+           ptr++;
+           ma[t] = ptr;
+         }
+       }
+     }
+   }
+   //printing the output in DIMACS format
+   y << "p cnf ";
+   y << ptr;  // number of distinct symbols
+   y << " ";
+
+   int sz = clauses.size();
+
+   y << sz;  // number of clauses
+   y << "\n";
+
+   // iterating within each clause and assigning the literal their mapped
+   // value(for a positive literal) or it's negative value(for a negative
+   // literal)
+   for (auto u : clauses)
+   {
+     for (auto uu : u)
+     {
+       if (uu->is_value() && uu->to_string() == "false")
+       {  // For an empty clause
+       }
+       else if (uu->is_symbolic_const())
+       {
+         y << (ma[uu]);  // Positive number for a positive literal
+         y << " ";
+       }
+       else
+       {
+         Term t = (*(uu->begin()));
+         y << ((-(ma[t])));  // Negative number for a negative literal
+         y << " ";
+       }
+     }
+     y << 0;  // Symbolizing end of line
+     y << "\n";
+  }
+}
+
+// mapping each subformula with a new name and returning a vector of pair of
+// terms. Each pair consists of the parent term and it's children(for each
+// subformula)
+class TseitinTraversal : public IdentityWalker
+{
+ public:
+  std::vector<std::pair<Term, Term>>
+      reduced;  // stores a pair of (lhs, rhs) in x1(lhs)<->(formula(rhs))
+
+  TseitinTraversal(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  WalkerStepResult visit_term(Term & term)
+  {
+    Sort boolsort = term->get_sort();
+    assert(term->get_sort() == boolsort);
+
+    auto give_symbolic_name = [&](Term t) {  // producing a new symbol
+      int pt = 1;
+      while (true)
+      {
+        try
+        {
+          return solver_->make_symbol("tseitin_to_cnf_" + std::to_string(pt),
+                                      boolsort);
+        }
+        catch (IncorrectUsageException & e)
+        {
+          pt++;
+        }
+      }
+
+    };
+    if (!preorder_)  // using post order traversal as I need the new names of
+                     // the children to generate the new term
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        std::vector<Term> vec;  // a vector of all children
+        for (auto u : term)
+        {
+          Term cached_term;
+          bool present = query_cache(u,
+                                     cached_term);  // finding the new name of
+                                                    // each child from the cache
+          assert(present == true);
+          vec.push_back(cached_term);
+        }
+
+        Term term_name = give_symbolic_name(term);  // making a new symbol
+        save_in_cache(term, term_name);
+
+        reduced.push_back({ term_name, solver_->make_term(op, vec) });
+      }
+      else
+      {  // mapping a symbolic constant to itself
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+};
+
+// binarising xor with multiple children
+class XorBinarize : public IdentityWalker
+{
+ public:
+  XorBinarize(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  WalkerStepResult visit_term(Term & term)
+  {
+    if (!preorder_)
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        if (op == smt::Xor)
+        {
+          auto it = term->begin();
+          Term cached_term;
+          query_cache((*it),
+                      cached_term);  // finding the mapped term from the cache
+          Term ne = cached_term;
+          it++;
+          while (it != term->end())
+          {  // Binarising the term
+            Term cached_term;
+            query_cache((*it), cached_term);
+            ne = solver_->make_term(op, ne, cached_term);
+            it++;
+          }
+          save_in_cache(term, ne);  // storing the new binarised term in cache
+        }
+        else
+        {
+          save_in_cache(term, term);
+        }
+      }
+      else
+      {
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+  Term acc_cache(Term term)
+  {
+    Term ne;
+    query_cache(term, ne);
+    return ne;
+  }
+};
+
+// Given a boolean formula, removes terms "true" and "false" to give a formula
+// without adding new symbols
+
+// The way true and false are eliminated is by doing a preorder traversal. When
+// I am on a certain node, The children are already reducecd. Reduced means that
+// they are a term without true or false, or just true, or just false.
+// Inductively this reduction is being maintained till the root node.
+class EliminateBooleanConstants : public IdentityWalker
+{
+ public:
+  EliminateBooleanConstants(SmtSolver solver_)
+      : IdentityWalker{ solver_, false }
+  {
+  }
+  WalkerStepResult visit_term(Term & term)
+  {
+    Term tru = solver_->make_term(true);
+    Term fal = solver_->make_term(false);
+    auto is_true = [&](Term t) {  // If the term is "true"
+      return (t == tru);
+    };
+    auto is_false = [&](Term t) {  // If the term is "false"
+      return (t == fal);
+    };
+    if (!preorder_)
+    {
+      smt::Op op = term->get_op();
+      if (!op.is_null())
+      {
+        Term tr = solver_->make_term(true);   // Term "true"
+        Term fa = solver_->make_term(false);  // Term "false"
+        if (op == smt::Not)
+        {
+          Term t = (*term->begin());
+          Term cached_term;
+          query_cache(t,
+                      cached_term);  // Querying the mapped formula of the child
+                                     // as we are doing a preorder traversal
+
+          if (is_true(cached_term))
+          {  // not(false)=true
+            save_in_cache(term, fa);
+          }
+          else if (is_false(cached_term))
+          {  // not(true)=false
+            save_in_cache(term, tr);
+          }
+          else
+          {  // mapping not of the queried term_name.
+            save_in_cache(term, solver_->make_term(Not, cached_term));
+          }
+        }
+        else if (op == smt::Equal)
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          it++;
+          Term ri = (*it);
+          // term=(le_name<->ri_name)
+          Term le_cached;
+          Term ri_cached;
+          query_cache(le, le_cached);
+          query_cache(ri, ri_cached);
+          if ((is_true(le_cached) && is_true(ri_cached))
+              || (is_false(le_cached) && is_false(ri_cached)))
+          {  //(true==true)=true, (false==false)=true
+            save_in_cache(term, tr);
+          }
+          else if ((is_true(le_cached) && is_false(ri_cached))
+                   || (is_false(le_cached) && is_true(ri_cached)))
+          {  //(true==false)=false, (false==true)=false
+            save_in_cache(term, fa);
+          }
+          else if (is_true(le_cached))
+          {  //(true==ri_name)=ri_name
+            save_in_cache(term, ri_cached);
+          }
+          else if (is_true(ri_cached))
+          {  //(le_name==true)=le_name
+            save_in_cache(term, le_cached);
+          }
+          else if (is_false(le_cached))
+          {  //(false==ri_name)=not(ri_name)
+            save_in_cache(term, solver_->make_term(Not, ri_cached));
+          }
+          else if (is_false(ri_cached))
+          {  //(le_name==false)=not(le_name)
+            save_in_cache(term, solver_->make_term(Not, le_cached));
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term,
+                          solver_->make_term(Equal, le_cached, ri_cached));
+          }
+        }
+        else if (op == smt::Implies)
+        {
+          auto it = term->begin();
+          Term le = (*it);
+          it++;
+          Term ri = (*it);
+          Term le_cached;
+          Term ri_cached;
+          query_cache(le, le_cached);
+          query_cache(ri, ri_cached);
+          if (is_false(le_cached) || is_true(ri_cached))
+          {  //(false->?)=true, (?->true)=true
+            save_in_cache(term, tr);
+          }
+          else if (is_true(le_cached))
+          {  //(true->ri_name)=ri_name
+            save_in_cache(term, ri_cached);
+          }
+          else if (is_false(ri_cached))
+          {
+            if (is_true(le_cached))
+            {  //(true->false)=false
+              save_in_cache(term, fa);
+            }
+            else if (is_false(le_cached))
+            {  //(false->false)=true
+              save_in_cache(term, tr);
+            }
+            else
+            {  //(le_name->false)=not(le_name)
+              save_in_cache(term, solver_->make_term(Not, le_cached));
+            }
+          }
+          else
+          {  // saving as it is, as neither lhs or rhs is either "true" or
+             // "false"
+            save_in_cache(term,
+                          solver_->make_term(Implies, le_cached, ri_cached));
+          }
+        }
+        else if (op == smt::And)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          bool false_present = 0;  // false_present=1, if any child is "false"
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
+            {
+              it++;
+            }
+            else if (is_false(cached_term))
+            {
+              it++;
+              false_present = 1;
+            }
+            else
+            {
+              it++;
+              vec.push_back(cached_term);
+            }
+          }
+          if (false_present)
+          {  // if any child is false, the entire expression is false
+            save_in_cache(term, fa);
+          }
+          else if (vec.empty())
+          {  // if all children are true, the expression is true
+            save_in_cache(term, tr);
+          }
+          else if (vec.size() == 1)
+          {  // if just one child is neither true nor false, that child is
+             // equivalent to the entire formula
+            save_in_cache(term, vec[0]);
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term, solver_->make_term(And, vec));
+          }
+        }
+        else if (op == smt::Or)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          bool true_present = 0;  // true_present=1, if any child is "true"
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
+            {
+              true_present = 1;
+              it++;
+            }
+            else if (is_false(cached_term))
+            {
+              it++;
+            }
+            else
+            {
+              it++;
+              vec.push_back(cached_term);
+            }
+          }
+          if (true_present)
+          {  // any child is "true", implies the entire expression is true
+            save_in_cache(term, tr);
+          }
+          else if (vec.empty())
+          {  // If all children are "false", the expression is "false"
+            save_in_cache(term, fa);
+          }
+          else if (vec.size() == 1)
+          {  // if just one child is neither true nor false, that child is
+             // equivalent to the entire formula
+            save_in_cache(term, vec[0]);
+          }
+          else
+          {  // saving as it is
+            save_in_cache(term, solver_->make_term(Or, vec));
+          }
+        }
+        else if (op == smt::Xor)
+        {
+          std::vector<Term> vec;  // contains all children which are neither
+                                  // "true" nor "false"
+          int true_present =
+              0;  // keeping track of number of "true" in the xor expression
+          auto it = term->begin();
+          while (it != term->end())
+          {  // iterating over all children
+            Term cached_term;
+            query_cache((*it), cached_term);
+            if (is_true(cached_term))
+            {
+              it++;
+              true_present++;
+            }
+            else if (is_false(cached_term))
+            {
+              it++;
+            }
+            else
+            {
+              it++;
+              vec.push_back(cached_term);
+            }
+          }
+          if (vec.empty())
+          {  // all terms are either "true" or "false"
+            if (true_present % 2 == 0)
+            {  // even number of "true" implies the expression is false
+              save_in_cache(term, fa);
+            }
+            else
+            {  // odd number of "true" implies the expression is false
+              save_in_cache(term, tr);
+            }
+          }
+          else if (vec.size() == 1)
+          {
+            if (true_present % 2 == 0)
+            {  // same logic as above, keeping track of the parity of "true"
+               // terms
+              save_in_cache(term, vec[0]);
+            }
+            else
+            {
+              save_in_cache(term, solver_->make_term(Not, vec[0]));
+            }
+          }
+          else
+          {
+            if (true_present % 2 == 0)
+            {
+              save_in_cache(term, solver_->make_term(Xor, vec));
+            }
+            else
+            {
+              vec[0] = solver_->make_term(
+                  Not, vec[0]);  //(Not(x1^x2^x3^x4))=((Not x1)^x2^x3^x4)
+              save_in_cache(term, solver_->make_term(Xor, vec));
+            }
+          }
+        }
+      }
+      else
+      {
+        save_in_cache(term, term);
+      }
+    }
+
+    return Walker_Continue;
+  }
+  Term acc_cache(Term term)
+  {
+    Term ne;
+    query_cache(term, ne);
+    return ne;
+  }
+};
+
+// returns true if the formula is in cnf form else false
+bool is_cnf(Term formula)
+{
+  // similar as cnf_to_dimacs
+  // first remove the ands in the outermost layer, then remove the ors from the
+  // next level. The remaining terms should be literals
+  if (formula->is_symbolic_const())
+  {
+    return true;
+  }
+
+  TermVec before_and_elimination({ formula });
+  TermVec after_and_elimination;
+  while (!before_and_elimination.empty())
+  {
+    Term t = before_and_elimination.back();
+    before_and_elimination.pop_back();
+    smt::Op op = t->get_op();
+    if (op.prim_op == smt::And)
+    {
+      for (auto u : t)
+      {
+        before_and_elimination.push_back(u);
+      }
+    }
+    else
+    {
+      after_and_elimination.push_back(t);
+    }
+  }
+  std::vector<std::vector<Term>> clauses;
+  for (auto u : after_and_elimination)
+  {
+    std::vector<Term> after_or_elimination;
+    std::vector<Term> before_or_elimination({ u });
+    while (!before_or_elimination.empty())
+    {
+      Term t = before_or_elimination.back();
+      before_or_elimination.pop_back();
+      smt::Op op = t->get_op();
+      if (op.prim_op == smt::Or)
+      {
+        for (auto u : t)
+        {
+          before_or_elimination.push_back(u);
+        }
+      }
+      else
+      {
+        after_or_elimination.push_back(t);
+      }
+    }
+    clauses.push_back(after_or_elimination);
+  }
+  bool check = 1;
+  for (auto u : clauses)
+  {
+    for (auto literal : u)
+    {
+      if (literal->is_symbolic_const())
+      {
+        continue;
+      }
+      smt::Op op = literal->get_op();
+      if (op == smt::Not && (*(literal->begin()))->is_symbolic_const())
+      {
+        continue;
+      }
+
+      check = 0;  // if the term is not a literal
+    }
+  }
+  return check;
+}
+
+Term to_cnf(Term formula, SmtSolver s)
+{
+  Sort boolsort = formula->get_sort();
+  assert(formula->get_sort() == boolsort);
+  EliminateBooleanConstants elim(s);
+  elim.visit(formula);  // removing "true" and "false" present in formula
+  formula = elim.acc_cache(formula);
+
+  if (formula->is_symbolic_const())
+  {
+    return formula;
+  }
+  if (formula->to_string() == "false" || formula->to_string() == "true")
+  {
+    return formula;
+  }
+
+  if (is_cnf(formula))  // if the expression is already in cnf just return it
+  {
+    return formula;
+  }
+
+  XorBinarize bin(s);
+  bin.visit(formula);  // binarising the formula
+  Term formula2 = bin.acc_cache(formula);
+  TseitinTraversal obj(s);
+  obj.visit(
+      formula2);  // traversing the binarised formula to create of pairs of
+                  // (c<->(a op b)) which will be used in the transformation
+
+  Term parent = obj.reduced.back().first;
+
+  TermVec clauses;
+
+  // the vector of pairs reduced contains pairs in the form of (c)<->(a op b),
+  // where c is the first term of the pair and (a op b) is the second
+
+  for (auto u : obj.reduced)
+  {
+    Term fi = u.first;
+    Term se = u.second;
+    smt::Op op = se->get_op();
+
+    if (op == smt::Or)
+    {  //(c<->Or(x1, x2, x3, x4....)) = (Or(~c, x1, x2, x3, x4) And (And((c or
+       //~x1), (c or ~x2), (c or ~x3), (c or ~x4))
+      std::vector<Term> vec;
+      std::vector<Term> vec2;
+      vec.push_back(s->make_term(Not, fi));
+      for (auto u : se)
+      {
+        vec.push_back(u);
+        vec2.push_back(s->make_term(Or, fi, s->make_term(Not, u)));
+      }
+      clauses.push_back(s->make_term(Or, vec));
+      clauses.push_back(s->make_term(And, vec2));
+    }
+    else if (op == smt::And)
+    {  //(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c
+       // or x1), (~c or x2), (~c or x3), (~c or x4))
+      std::vector<Term> vec;
+      std::vector<Term> vec2;
+      vec.push_back(fi);
+      for (auto u : se)
+      {
+        vec.push_back(s->make_term(Not, u));
+        vec2.push_back(s->make_term(Or, u, s->make_term(Not, fi)));
+      }
+      clauses.push_back(s->make_term(Or, vec));
+      clauses.push_back(s->make_term(And, vec2));
+    }
+    else if (op == smt::Xor)
+    {  //((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and
+       //((c) v (a) v (~b))
+      auto it = (se->begin());
+      Term le = (*it);
+      it++;
+      Term ri = (*it);
+      clauses.push_back(s->make_term(
+          Or,
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),
+          s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, le, ri), s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, fi, ri), s->make_term(Not, le)));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Or, fi, le), s->make_term(Not, ri)));
+    }
+    else if (op == smt::Implies)
+    {  //((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
+      auto it = (se->begin());
+      Term le = (*it);
+      it++;
+      Term ri = (*it);
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, s->make_term(Not, le), ri),
+                       s->make_term(Not, fi)));
+      clauses.push_back(s->make_term(Or, le, fi));
+      clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
+    }
+    else if (op == smt::Equal)
+    {  //((~a) v (~b) v (c)) and ((a) v (b) v (c)) and ((~c) v (~b) v (a)) and
+       //((c) v (~a) v (b))
+      auto it = (se->begin());
+      Term le = (*it);
+      it++;
+      Term ri = (*it);
+      clauses.push_back(s->make_term(
+          Or,
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, ri)),
+          fi));
+      clauses.push_back(s->make_term(Or, s->make_term(Or, le, ri), fi));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, le, s->make_term(Not, ri)),
+                       s->make_term(Not, fi)));
+      clauses.push_back(
+          s->make_term(Or,
+                       s->make_term(Or, s->make_term(Not, le), ri),
+                       s->make_term(Not, fi)));
+    }
+    else
+    {  //((~a) v (~c)) and ((a) v (c))
+      Term le = (*(se->begin()));
+      clauses.push_back(
+          s->make_term(Or, s->make_term(Not, le), s->make_term(Not, fi)));
+      clauses.push_back(s->make_term(Or, le, fi));
+    }
+  }
+  // taking the and of all clauses generated to create the cnf
+  Term ret = s->make_term(And, clauses);
+  ret = s->make_term(And, parent, ret);
+
+  return ret;
+}
+
 // ----------------------------------------------------------------------------
 
 UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
@@ -249,8 +1016,11 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
   unsigned cur_iter = 0;
   bool first_iter = true;
-  while (cur_iter <= iter) {
-    cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
+  // iter == 0 interpreted as allowing unlimited iterations
+  // iter != 0 restricts to iter iterations
+  while (!iter || cur_iter < iter)
+  {
+    cur_iter += 1;
     r = reducer_->check_sat_assuming(bool_assump);
 
     if (first_iter && r.is_sat()) {
@@ -285,6 +1055,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
     first_iter = false;
   }
+  assert(!iter || cur_iter <= iter);
 
   reducer_->pop();
 

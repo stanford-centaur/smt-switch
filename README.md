@@ -143,7 +143,7 @@ While we try to guarantee that all solver backends are fully compliant with the 
 * Bitwuzla and Boolector might share symbols, so it is recommended to avoid using both together
 * Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
 * Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
-* Z3 is not yet implemented as a backend (but hopefully will be soon!)
+* The Z3 backend has not implemented term iteration (getting children) yet, but that should be added soon.
 * Datatypes are currently only supported in CVC4
 
 ## Recommended usage

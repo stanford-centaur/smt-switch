@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "generic_datatype.h"
 #include "gtest/gtest.h"
 #include "smt.h"
 
@@ -46,51 +47,92 @@ TEST_P(DTTests, DatatypeDecl)
     if (sc.is_logging_solver) {
       return;
     }
-    Term five = s->make_term(5, intsort);
 
     // Make datatype sort
     DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
+    auto dt_decltest = make_shared<GenericDatatypeDecl>("secondtestdt");
+
+    std::shared_ptr<GenericDatatype> gdt =
+        make_shared<GenericDatatype>(dt_decltest);
+    assert(gdt->get_num_constructors() == 0);
+
+    shared_ptr<GenericDatatypeConstructorDecl> cons2test =
+        shared_ptr<GenericDatatypeConstructorDecl>(
+            new GenericDatatypeConstructorDecl("constest"));
+    gdt->add_constructor(cons2test);
+    assert(gdt->get_num_constructors() == 1);
+    assert(gdt->get_num_selectors("constest") == 0);
+    assert(gdt->get_name() == "secondtestdt");
+
     DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
     DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+
+    shared_ptr<GenericDatatypeConstructorDecl> consdeclgen =
+        static_pointer_cast<GenericDatatypeConstructorDecl>(consdecl);
+    DatatypeConstructorDecl cons_copy = consdecl;
+    ASSERT_EQ(cons_copy, consdecl);
+
     s->add_selector(consdecl, "head", s->make_sort(INT));
-    s->add_selector_self(consdecl, "tail");
     s->add_constructor(consListSpec, nildecl);
     s->add_constructor(consListSpec, consdecl);
+
+    s->add_selector_self(consdecl, "tail");
     Sort listsort = s->make_sort(consListSpec);
+
+    DatatypeDecl counterdecl = s->make_datatype_decl("counter");
+    DatatypeConstructorDecl countercons =
+        s->make_datatype_constructor_decl("countercons");
+    s->add_constructor(counterdecl, countercons);
+    Sort countersort = s->make_sort(counterdecl);
+
+    assert(countersort->get_sort_kind() == DATATYPE);
+    assert(listsort->get_sort_kind() == DATATYPE);
+    assert(countersort != listsort);
+
     Datatype listdt = listsort->get_datatype();
-    // Make datatype terms
-    Term cons = s->get_constructor(listsort,"cons");
-    Term nil = s->get_constructor(listsort,"nil");
-    Term head = s->get_selector(listsort, "cons", "head");
-    Term tail = s->get_selector(listsort, "cons", "tail");
-    Term isNil = s->get_tester(listsort, "nil");
 
-    // Datatype ops
-    Term nilterm = s->make_term(Apply_Constructor,nil);
-    Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
-    Term five_again = s->make_term(Apply_Selector, head, list5);
+    if (s->get_solver_enum() != GENERIC_SOLVER)
+    {
+      Term five = s->make_term(5, intsort);
+      // Make datatype terms
+      Term cons = s->get_constructor(listsort, "cons");
+      assert("cons" == cons->to_string());
+      Term nil = s->get_constructor(listsort, "nil");
+      Term head = s->get_selector(listsort, "cons", "head");
 
-    // Expected booleans
-    s->assert_formula(s->make_term(Equal, five, five_again));
-    s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
-    s->assert_formula(s->make_term(
-      Not, s->make_term(Apply_Tester, isNil, list5)));
+      Term tail = s->get_selector(listsort, "cons", "tail");
 
-    Result res=s->check_sat();
+      Term isNil = s->get_tester(listsort, "nil");
 
-    ASSERT_TRUE(listdt->get_name()=="list");
-    ASSERT_TRUE(listdt->get_num_constructors()==2);
-    ASSERT_TRUE(listdt->get_num_selectors("cons")==2);
-    ASSERT_TRUE(listdt->get_num_selectors("nil")==0);
+      // Datatype ops
 
-    ASSERT_TRUE(res.is_sat());
+      Term nilterm = s->make_term(Apply_Constructor, nil);
+      Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
+      Term five_again = s->make_term(Apply_Selector, head, list5);
 
-    // Expected exceptions
-    EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
-    EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
-    EXPECT_THROW(s->get_selector(listsort, "nil", "head"), InternalSolverException);
-    EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
+      // Expected booleans
+      s->assert_formula(s->make_term(Equal, five, five_again));
+      s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
+      s->assert_formula(
+          s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
+
+      Result res = s->check_sat();
+
+      ASSERT_TRUE(listdt->get_name() == "list");
+      ASSERT_TRUE(listdt->get_num_constructors() == 2);
+      ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
+      ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
+
+      ASSERT_TRUE(res.is_sat());
+      // Expected exceptions
+      EXPECT_THROW(s->get_constructor(listsort, "kons"),
+                   InternalSolverException);
+      EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
+      EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
+                   InternalSolverException);
+      EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
