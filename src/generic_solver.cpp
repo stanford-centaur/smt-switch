@@ -1084,8 +1084,15 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
 
     // retrieve the literal from the map
     string str_atom = strip.substr(begin, end - begin + 1);
-    assert(name_term_map->find(str_atom) != name_term_map->end());
-    Term atom = (*name_term_map)[str_atom];
+    auto it = name_term_map->find(str_atom);
+    if (it == name_term_map->end())
+    {
+      // solvers don't always print with the pipes
+      // need to add those back in
+      it = name_term_map->find("|" + str_atom + "|");
+      assert(it != name_term_map->end());
+    }
+    Term atom = it->second;
     Term literal;
     if (positive)
     {
