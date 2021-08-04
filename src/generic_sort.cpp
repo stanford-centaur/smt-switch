@@ -407,9 +407,39 @@ std::string DatatypeComponentSort::get_uninterpreted_name() const
 SortVec DatatypeComponentSort::get_domain_sorts() const
 {
   std::vector<Sort> domain_sorts;
+  if (sk == CONSTRUCTOR) {
+    shared_ptr<GenericDatatypeSort> cast_dt_sort = static_pointer_cast<GenericDatatypeSort>(dt_sort);
+    shared_ptr<GenericDatatype> gdt = static_pointer_cast<GenericDatatype>(cast_dt_sort->get_datatype());
+    for (int i =0; i < gdt->get_num_constructors(); ++i) {
+      shared_ptr<GenericDatatypeConstructorDecl> curr_con = static_pointer_cast<GenericDatatypeConstructorDecl>(gdt->get_cons_vector()[i]);
+      if (curr_con->get_name() == name) {
+	for (int f = 0; f < curr_con->get_selector_count(); ++f) {
+	  domain_sorts.push_back(curr_con->get_selector_vector()[f].sort);
+	}
+      }
+    }
+  }
+  else {
   domain_sorts.push_back(dt_sort);
   return domain_sorts;
+  }
 }
+
+  Sort DatatypeComponentSort::get_codomain_sort() const
+  {
+    if (sk == CONSTRUCTOR) {
+      return dt_sort;
+    }
+    else if (sk == TESTER) {
+      return make_generic_sort(BOOL);
+    }
+    else if (sk == SELECTOR) {
+      return selector_sort;
+    }
+    else {
+      throw IncorrectUsageException("Invalid sortkind");
+    }
+  }
 
 Sort DatatypeComponentSort::get_selector_sort() const { return selector_sort; }
 

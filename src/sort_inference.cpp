@@ -586,7 +586,7 @@ Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 }
 Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return (sorts[0])->get_domain_sorts()[0];
+  return (sorts[0])->get_codomain_sort();
 }
 Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
