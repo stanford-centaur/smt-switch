@@ -95,6 +95,8 @@ class LoggingSolver : public AbsSmtSolver
   SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;
 
+  std::unordered_map<std::string, Term> symbol_table;
+
   // stores a mapping from wrapped terms to logging terms
   // that were used in check_sat_assuming
   // this is so they can be recovered with the correct children/op
