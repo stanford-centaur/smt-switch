@@ -128,6 +128,9 @@ class SmtLibReader
 
   virtual void set_logic(const std::string & logic);
 
+  /** Adds all known logics */
+  virtual void set_logic_all();
+
   virtual void set_opt(const std::string & key, const std::string & val);
 
   virtual void set_info(const std::string & key, const std::string & val);
