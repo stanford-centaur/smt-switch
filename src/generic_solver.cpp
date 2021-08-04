@@ -817,8 +817,11 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 
 Term GenericSolver::make_symbol(const string name, const Sort & sort)
 {
+  // always put pipes around name in case there
+  // are special symbols / spaces
+  string piped_name = "|" + name + "|";
   // make sure that the symbol name is not aready taken.
-  if (name_term_map->find(name) != name_term_map->end())
+  if (name_term_map->find(piped_name) != name_term_map->end())
   {
     throw IncorrectUsageException(
         string("symbol name: ") + name
@@ -826,24 +829,28 @@ Term GenericSolver::make_symbol(const string name, const Sort & sort)
   }
 
   // create the sumbol and store it in the maps
-  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, true);
-  (*name_term_map)[name] = term;
-  (*term_name_map)[term] = name;
+  Term term =
+      std::make_shared<GenericTerm>(sort, Op(), TermVec{}, piped_name, true);
+  (*name_term_map)[piped_name] = term;
+  (*term_name_map)[term] = piped_name;
 
   // communicate the creation of the symbol to the binary of the solver.
   // When the sort is not a fucntion, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
-  run_command("(" + DECLARE_FUN_STR + " " + name
+  run_command("(" + DECLARE_FUN_STR + " " + piped_name
               + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
               + (*sort_name_map)[sort] + ")");
 
   // return the created symbol as a term
-  return (*name_term_map)[name];
+  return (*name_term_map)[piped_name];
 }
 
 Term GenericSolver::get_symbol(const string & name)
 {
-  auto it = name_term_map->find(name);
+  // GenericSolver always puts pipes around symbol names
+  // in case there are special symbols / spaces
+  string piped_name = "|" + name + "|";
+  auto it = name_term_map->find(piped_name);
   if (it == name_term_map->end())
   {
     throw IncorrectUsageException("Symbol named " + name + " does not exist.");
