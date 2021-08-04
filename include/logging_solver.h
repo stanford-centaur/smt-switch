@@ -62,6 +62,7 @@ class LoggingSolver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   Term make_term(const Op op, const Term & t) const override;
   Term make_term(const Op op, const Term & t0, const Term & t1) const override;
@@ -93,6 +94,7 @@ class LoggingSolver : public AbsSmtSolver
  protected:
   SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;
+
   // stores a mapping from wrapped terms to logging terms
   // that were used in check_sat_assuming
   // this is so they can be recovered with the correct children/op

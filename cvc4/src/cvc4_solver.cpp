@@ -658,6 +658,16 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
   }
 }
 
+Term CVC4Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term CVC4Solver::make_param(const std::string name, const Sort & sort)
 {
   try

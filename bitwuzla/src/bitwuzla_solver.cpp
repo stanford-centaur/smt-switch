@@ -459,6 +459,16 @@ Term BzlaSolver::make_symbol(const string name, const Sort & sort)
   return sym;
 }
 
+Term BzlaSolver::get_symbol(const string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term BzlaSolver::make_param(const std::string name, const Sort & sort)
 {
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);

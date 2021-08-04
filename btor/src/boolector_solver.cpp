@@ -654,6 +654,16 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   return term;
 }
 
+Term BoolectorSolver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
 {
   std::shared_ptr<BoolectorSortBase> bs =

@@ -841,6 +841,16 @@ Term GenericSolver::make_symbol(const string name, const Sort & sort)
   return (*name_term_map)[name];
 }
 
+Term GenericSolver::get_symbol(const string & name)
+{
+  auto it = name_term_map->find(name);
+  if (it == name_term_map->end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term GenericSolver::make_param(const string name, const Sort & sort)
 {
   if (name_term_map->find(name) != name_term_map->end())

@@ -668,6 +668,16 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
+Term Yices2Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term Yices2Solver::make_param(const std::string name, const Sort & sort)
 {
   throw NotImplementedException("make_param not supported by Yices2 yet.");

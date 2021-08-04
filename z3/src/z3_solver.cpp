@@ -645,6 +645,16 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
+Term Z3Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
+}
+
 Term Z3Solver::make_param(const std::string name, const Sort & sort)
 {
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);

@@ -279,6 +279,14 @@ Term LoggingSolver::make_symbol(const string name, const Sort & sort)
   return res;
 }
 
+Term LoggingSolver::get_symbol(const string & name)
+{
+  Term res = wrapped_solver->get_symbol(name);
+  bool success = hashtable->lookup(res);
+  assert(success);
+  return res;
+}
+
 Term LoggingSolver::make_param(const string name, const Sort & sort)
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);

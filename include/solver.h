@@ -229,6 +229,15 @@ class AbsSmtSolver
    */
   virtual Term make_symbol(const std::string name, const Sort & sort) = 0;
 
+  /** Look up a symbol by name.
+   *  If no symbol of that name has been declared, throws
+   * IncorrectUsageException
+   *
+   *  @param name the name of the symbol to look up
+   *  @return the Term representation of the corresponding symbol
+   */
+  virtual Term get_symbol(const std::string & name) = 0;
+
   /* Make a parameter term to be bound by a quantifier
    * @param name the name of the parameter
    * @param sort the sort of this parameter
