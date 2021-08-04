@@ -121,8 +121,8 @@ class CVC4Solver : public AbsSmtSolver
 
  protected:
   ::CVC4::api::Solver solver;
-  // keep track of created symbols
-  std::unordered_map<std::string, Term> symbols;
+
+  std::unordered_map<std::string, Term> symbol_table;
 
   // helper function
   inline Result check_sat_assuming(

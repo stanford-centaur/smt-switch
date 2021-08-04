@@ -645,22 +645,27 @@ Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
 {
-  if (symbols.find(name) != symbols.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
-  symbols.insert(name);
 
   shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
   term_t y_term = yices_new_uninterpreted_term(ysort->type);
   yices_set_term_name(y_term, name.c_str());
 
+  Term sym;
   if (ysort->get_sort_kind() == FUNCTION)
   {
-    return std::make_shared<Yices2Term> (y_term, true);
+    sym = std::make_shared<Yices2Term>(y_term, true);
   }
-
-  return std::make_shared<Yices2Term> (y_term);
+  else
+  {
+    sym = std::make_shared<Yices2Term>(y_term);
+  }
+  assert(sym);
+  symbol_table[name] = sym;
+  return sym;
 }
 
 Term Yices2Solver::make_param(const std::string name, const Sort & sort)

@@ -609,16 +609,16 @@ Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 {
-  if (symbols.find(name) != symbols.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
-  symbols.insert(name);
 
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
   const char * c = name.c_str();
   z3::symbol z_name = ctx.str_symbol(c);
 
+  Term sym;
   if (zsort->get_sort_kind() == FUNCTION)
   {
     // nb this is creating a func_decl
@@ -631,15 +631,18 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
     }
 
     func_decl z_func = ctx.function(c, domain, sort_func.range());
-    return std::make_shared<Z3Term>(z_func, ctx);
+    sym = std::make_shared<Z3Term>(z_func, ctx);
   }
   else
   {
     // nb this is creating an expr
     expr z_term = ctx.constant(z_name, zsort->type);
 
-    return std::make_shared<Z3Term>(z_term, ctx);
+    sym = std::make_shared<Z3Term>(z_term, ctx);
   }
+  assert(sym);
+  symbol_table[name] = sym;
+  return sym;
 }
 
 Term Z3Solver::make_param(const std::string name, const Sort & sort)

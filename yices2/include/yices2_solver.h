@@ -51,6 +51,9 @@ class Yices2Solver : public AbsSmtSolver
   Yices2Solver & operator=(const Yices2Solver &) = delete;
   ~Yices2Solver()
   {
+    // need to destruct all stored terms in symbol_table
+    symbol_table.clear();
+
     yices_free_config(config);
     yices_free_context(ctx);
 
@@ -126,7 +129,7 @@ class Yices2Solver : public AbsSmtSolver
   size_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
                               ///< status
 
-  std::unordered_set<std::string> symbols;
+  std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration
   ///< Note: Yices2 has a global symbol table, but we want it
   ///< associated with each solver instance. This is why we

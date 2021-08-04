@@ -120,7 +120,7 @@ class Z3Solver : public AbsSmtSolver
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
-  std::unordered_set<std::string> symbols;
+  std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
   ///< re-declaring
 

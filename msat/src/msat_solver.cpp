@@ -713,9 +713,9 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   if (!MSAT_ERROR_DECL(decl))
   {
     // symbol already exists
-    string msg("Symbol ");
+    string msg("Symbol name ");
     msg += name;
-    msg += " already exists.";
+    msg += " has already used.";
     throw IncorrectUsageException(msg);
   }
 

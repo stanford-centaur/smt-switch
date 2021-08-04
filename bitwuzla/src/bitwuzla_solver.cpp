@@ -448,9 +448,15 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
 
 Term BzlaSolver::make_symbol(const string name, const Sort & sort)
 {
+  if (symbol_table.find(name) != symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol name " + name + " already used.");
+  }
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  return make_shared<BzlaTerm>(
-      bitwuzla_mk_const(bzla, bsort->sort, name.c_str()));
+  Term sym =
+      make_shared<BzlaTerm>(bitwuzla_mk_const(bzla, bsort->sort, name.c_str()));
+  symbol_table[name] = sym;
+  return sym;
 }
 
 Term BzlaSolver::make_param(const std::string name, const Sort & sort)

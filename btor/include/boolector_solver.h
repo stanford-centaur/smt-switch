@@ -50,6 +50,8 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver()
   {
+    // need to destruct all stored terms in the symbol_table
+    symbol_table.clear();
     boolector_delete(btor);
   };
   void set_opt(const std::string option, const std::string value) override;
@@ -124,8 +126,8 @@ class BoolectorSolver : public AbsSmtSolver
 
  protected:
   Btor * btor;
-  // store the names of created symbols
-  std::unordered_set<std::string> symbol_names;
+
+  std::unordered_map<std::string, Term> symbol_table;
 
   bool base_context_1 = false;
   ///< if set to true, do all solving at context 1 in the solver

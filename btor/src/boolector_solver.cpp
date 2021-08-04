@@ -625,7 +625,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // avoids memory leak when boolector aborts
-  if (symbol_names.find(name) != symbol_names.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
@@ -650,7 +650,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 
   // note: giving the symbol a null Op
   Term term = std::make_shared<BoolectorTerm> (btor, n);
-  symbol_names.insert(name);
+  symbol_table[name] = term;
   return term;
 }
 
