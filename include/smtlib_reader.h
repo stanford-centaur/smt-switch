@@ -186,7 +186,7 @@ class SmtLibReader
    *  @param name the name of the symbol
    *  @param sort the sort of the symbol
    */
-  void new_symbol(const std::string & name, const smt::Sort & sort);
+  virtual void new_symbol(const std::string & name, const smt::Sort & sort);
 
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
