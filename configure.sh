@@ -29,6 +29,8 @@ Configures the CMAKE build environment.
 --static                create static libaries (default: off)
 --python                compile with python bindings (default: off)
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
+--bison-dir=STR         custom bison installation directory
+--flex-dir=STR          custom flex installation directory
 EOF
   exit 0
 }
@@ -55,6 +57,8 @@ z3_home=default
 static=default
 python=default
 smtlib_reader=default
+bison_dir=default
+flex_dir=default
 
 build_type=Release
 
@@ -87,19 +91,19 @@ do
         --msat)
             build_msat=ON
             ;;
-		--z3)
-	   		build_z3=ON
-	    	;;
-        --btor-home) die "missing argument to $1 (see -h)" ;;
-        --btor-home=*)
-            btor_home=${1##*=}
-            # Check if btor_home is an absolute path and if not, make it
-            # absolute.
-            case $btor_home in
-                /*) ;;                                      # absolute path
-                *) btor_home=$(pwd)/$btor_home ;; # make absolute path
-            esac
+        --z3)
+            build_z3=ON
             ;;
+            --btor-home) die "missing argument to $1 (see -h)" ;;
+            --btor-home=*)
+                btor_home=${1##*=}
+                # Check if btor_home is an absolute path and if not, make it
+                # absolute.
+                case $btor_home in
+                    /*) ;;                                      # absolute path
+                    *) btor_home=$(pwd)/$btor_home ;; # make absolute path
+                esac
+                ;;
         --bitwuzla-home) die "missing argument to $1 (see -h)" ;;
         --bitwuzla-home=*)
             bitwuzla_home=${1##*=}
@@ -130,16 +134,16 @@ do
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
             esac
             ;;
-		--z3-home) die "missing argument to $1 (see -h)" ;;
-        --z3-home=*)
-            z3_home=${1##*=}
-            # Check if z3_home is an absolute path and if not, make it
-            # absolute.
-            case $z3_home in
-                /*) ;;                                      # absolute path
-                *) z3_home=$(pwd)/$z3_home ;; # make absolute path
-	   		esac
-	    	;;
+        --z3-home) die "missing argument to $1 (see -h)" ;;
+            --z3-home=*)
+                z3_home=${1##*=}
+                # Check if z3_home is an absolute path and if not, make it
+                # absolute.
+                case $z3_home in
+                    /*) ;;                                      # absolute path
+                    *) z3_home=$(pwd)/$z3_home ;; # make absolute path
+            esac
+            ;;
         --yices2-home) die "missing argument to $1 (see -h)" ;;
         --yices2-home=*)
             yices2_home=${1##*=}
@@ -171,6 +175,24 @@ do
             ;;
         --smtlib-reader)
             smtlib_reader=yes
+            ;;
+        --bison-dir=*)
+            bison_dir=${1##*=}
+            # Check if bison_dir is an absolute path and if not, make it
+            # absolute.
+            case $bison_dir in
+                /*) ;;                            # absolute path
+                *) bison_dir=$(pwd)/$bison_dir ;; # make absolute path
+            esac
+            ;;
+        --flex-dir=*)
+            flex_dir=${1##*=}
+            # Check if flex_dir is an absolute path and if not, make it
+            # absolute.
+            case $flex_dir in
+                /*) ;;                            # absolute path
+                *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
+            esac
             ;;
         *) die "unexpected argument: $1";;
     esac
@@ -247,6 +269,12 @@ cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
 
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"
+
+[ $bison_dir != default ] \
+    && cmake_opts="$cmake_opts -DBISON_DIR=$bison_dir"
+
+[ $flex_dir != default ] \
+    && cmake_opts="$cmake_opts -DFLEX_DIR=$flex_dir"
 
 root_dir=$(pwd)
 
