@@ -51,7 +51,24 @@ set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
 if (SMTLIB_READER)
-  list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
+  if (BISON_DIR)
+    list(APPEND CMAKE_PREFIX_PATH "${BISON_DIR}")
+  else()
+    # default location if using contrib/setup-bison.sh
+    # will also search global paths
+    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
+  endif()
+
+  if (FLEX_DIR)
+    message("ADDING FLEX_DIR=${FLEX_DIR}")
+    list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
+  else()
+    # default location if using contrib/setup-flex.sh
+    # will also search global paths
+    message("Setting default flex dir")
+    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/flex/flex-install")
+  endif()
+
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
 
