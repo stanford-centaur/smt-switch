@@ -338,6 +338,30 @@ class AbsSmtSolver
    */
   virtual Term get_selector(const Sort & s, std::string con, std::string name) const = 0;
 
+  /** Declare uninterpreted sorts as datatype sorts
+   *  Each uninterpreted sort must correspond to a DatatypeDecl
+   *    i.e. they must have the exact same name
+   *  This allows defining mutually recursive datatype sorts, by
+   *    - First creating uninterpreted sorts as a "forward reference"
+   *    - Using these to define Datatypes (with the same names)
+   *        using the above methods
+   *    - Then turning the uninterpreted sorts into datatype sorts.
+   *
+   *  @param decls the datatype decls
+   *  @param uninterp_sorts vector of uninterpreted sorts
+   *  @return datatype sorts corresponding to the uninterpreted sort inputs
+   *
+   *  Note, there has to be a one-to-one and onto mapping between decls
+   *  and uninterpreted sorts according to their names.
+   *
+   */
+  virtual SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls,
+      const UnorderedSortSet & uninterp_sorts) const;
+
+  /** Convenience function that calls make_datatype_sorts with a single sort. */
+  Sort make_datatype_sort(const DatatypeDecl & decl,
+                          const Sort & uninterp_sort) const;
 
   // Methods implemented at the abstract level
   // Note: These can be overloaded in the specific solver implementation for
