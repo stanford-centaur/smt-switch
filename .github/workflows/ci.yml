@@ -48,11 +48,15 @@ jobs:
           python3 -m pip install Cython pytest toml
           ./contrib/setup-skbuild.sh
 
+      - name: Install Flex (macOS)
+        if: runner.os == 'macOS'
+        run: ./contrib/setup-flex.sh
+
       - name: Setup Underlying Solver
         run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
-        run: ./configure.sh --${{ matrix.name }} --debug --python
+        run: ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader
 
       - name: Build
         run: |
