@@ -26,7 +26,7 @@ using namespace std;
 /* can uncomment next line to give debug output during lexing */
 /* %option debug */
 
-symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
+simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %{
   // Code run each time a pattern is matched.
@@ -49,6 +49,8 @@ symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 \(                    { return smtlib::parser::make_LP(loc); }
 \)                    { return smtlib::parser::make_RP(loc); }
 _                     { return smtlib::parser::make_US(loc); }
+!                     { return smtlib::parser::make_EP(loc); }
+
 
 set-logic             { return smtlib::parser::make_SETLOGIC(loc); }
 set-option            { return smtlib::parser::make_SETOPT(loc); }
@@ -91,7 +93,7 @@ bv[0-9]+              { yytext=yytext+2; return smtlib::parser::make_BVDEC(yytex
 as[ \t\r\n]+const     { return smtlib::parser::make_ASCONST(loc); }
 let                   { return smtlib::parser::make_LET(loc); }
 
-\:[a-zA-Z0-9_-]+      { return smtlib::parser::make_KEYWORD(++yytext, loc); }
+\:{simplesymbol}      { return smtlib::parser::make_KEYWORD(++yytext, loc); }
 
 (forall|exists)       { return smtlib::parser::make_QUANTIFIER(yytext, loc); }
 
@@ -110,7 +112,7 @@ let                   { return smtlib::parser::make_LET(loc); }
                         yytext[strlen(yytext)-1] = '\0';
                         return smtlib::parser::make_SYMBOL(yytext, loc);
                       }
-{symbol}              { return smtlib::parser::make_SYMBOL(yytext, loc); }
+{simplesymbol}        { return smtlib::parser::make_SYMBOL(yytext, loc); }
 
 .                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
 <<EOF>>               { return smtlib::parser::make_SMTLIBEOF (loc); }
