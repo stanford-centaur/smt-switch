@@ -60,12 +60,10 @@ if (SMTLIB_READER)
   endif()
 
   if (FLEX_DIR)
-    message("ADDING FLEX_DIR=${FLEX_DIR}")
     list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
   else()
     # default location if using contrib/setup-flex.sh
     # will also search global paths
-    message("Setting default flex dir")
     list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/flex/flex-install")
   endif()
 
