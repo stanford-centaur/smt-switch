@@ -113,7 +113,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   // which param the z3 api expects, it's worth discussing what options we think
   // should go in these lists to start and obviously it is very easy to add more
   // down the line
-  unordered_set<string> bool_opts = { "produce-models", "produce-proofs" };
+  unordered_set<string> bool_opts = { "produce-proofs" };
   unordered_set<string> string_opts = {};
   unordered_set<string> int_opts = {};
 
@@ -123,6 +123,22 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     {
       throw IncorrectUsageException(
           "Z3 backend is always incremental -- it cannot be disabled.");
+    }
+  }
+  else if (option == "produce-models")
+  {
+    if (value == "true")
+    {
+      slv.set("model", true);
+    }
+    else if (value == "false")
+    {
+      slv.set("model", false);
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "produce-models takes values true or false");
     }
   }
   else if (bool_opts.find(option) != bool_opts.end())
