@@ -104,6 +104,7 @@ EP "!"
 %nterm <std::string> s_expr
 %nterm <std::string> s_expr_list
 %nterm <std::pair<std::string, std::string>> attribute
+%nterm <std::vector<std::pair<std::string, std::string>>> attributes
 
 
 %%
@@ -312,14 +313,15 @@ term_s_expr:
     drv.pop_scope();
     $$ = $7;
   }
-  | LP EP term_s_expr attribute RP
+  | LP EP term_s_expr attributes RP
   {
     // the default implementation does nothing
     // but print a warning to standard error.
     // it is possible to implement the function in derived class
     // to use the attribute
-    auto attr = $4;
-    drv.term_attribute($3, attr.first, attr.second);
+    for (const auto attr : $4) {
+      drv.term_attribute($3, attr.first, attr.second);
+    }
     $$ = $3;
   }
 ;
@@ -584,6 +586,18 @@ attribute:
    | KEYWORD s_expr
    {
      $$ = {$1, $2};
+   }
+;
+
+attributes:
+   %empty
+   {
+     $$ = {};
+   }
+   | attributes attribute
+   {
+     $1.push_back($2);
+     $$ = $1;
    }
 ;
 
