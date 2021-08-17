@@ -75,6 +75,8 @@ TEST_P(UnitSymbolTests, GetSymbol)
 
   EXPECT_EQ(funky_sym, s->get_symbol(funky_name));
   EXPECT_EQ(funky_sym_fun, s->get_symbol(funky_name_fun));
+
+  EXPECT_THROW(s->get_symbol("nonexistent_symbol"), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitSymbol,
