@@ -276,7 +276,19 @@ Term LoggingSolver::make_symbol(const string name, const Sort & sort)
     next_term_id++;
   }
 
+  symbol_table[name] = res;
+
   return res;
+}
+
+Term LoggingSolver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
 }
 
 Term LoggingSolver::make_param(const string name, const Sort & sort)

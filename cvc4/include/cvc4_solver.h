@@ -97,6 +97,7 @@ class CVC4Solver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
@@ -121,8 +122,8 @@ class CVC4Solver : public AbsSmtSolver
 
  protected:
   ::CVC4::api::Solver solver;
-  // keep track of created symbols
-  std::unordered_map<std::string, Term> symbols;
+
+  std::unordered_map<std::string, Term> symbol_table;
 
   // helper function
   inline Result check_sat_assuming(

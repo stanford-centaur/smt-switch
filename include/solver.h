@@ -229,6 +229,25 @@ class AbsSmtSolver
    */
   virtual Term make_symbol(const std::string name, const Sort & sort) = 0;
 
+  /** Look up a symbol by name.
+   *  If no symbol of that name has been declared, throws
+   *  IncorrectUsageException
+   *
+   *  Allows a user to look up a symbol by name. This can be very useful for term
+   *  translation, since we can look up symbols instead of keeping track of the
+   *  mapping via externally populated caches (in the case where the target
+   *  solver has already been used).
+   *
+   *  Note, solver backend deals with the implementation. The main motivation for
+   *  this is that each backend solver has to own the symbol table. If the symbol
+   *  table were stored in AbsSmtSolver then it would get destructed after the
+   *  backend solver which has bad refcounting implications for many solvers.
+   *
+   *  @param name the name of the symbol to look up
+   *  @return the Term representation of the corresponding symbol
+   */
+  virtual Term get_symbol(const std::string & name) = 0;
+
   /* Make a parameter term to be bound by a quantifier
    * @param name the name of the parameter
    * @param sort the sort of this parameter

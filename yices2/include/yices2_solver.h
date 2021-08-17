@@ -51,6 +51,9 @@ class Yices2Solver : public AbsSmtSolver
   Yices2Solver & operator=(const Yices2Solver &) = delete;
   ~Yices2Solver()
   {
+    // need to destruct all stored terms in symbol_table
+    symbol_table.clear();
+
     yices_free_config(config);
     yices_free_context(ctx);
 
@@ -103,6 +106,7 @@ class Yices2Solver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
@@ -126,7 +130,7 @@ class Yices2Solver : public AbsSmtSolver
   size_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
                               ///< status
 
-  std::unordered_set<std::string> symbols;
+  std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration
   ///< Note: Yices2 has a global symbol table, but we want it
   ///< associated with each solver instance. This is why we

@@ -45,7 +45,12 @@ class BzlaSolver : public AbsSmtSolver
   };
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
-  ~BzlaSolver() { bitwuzla_delete(bzla); };
+  ~BzlaSolver()
+  {
+    // need to destruct all stored terms in symbol_table
+    symbol_table.clear();
+    bitwuzla_delete(bzla);
+  };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -97,6 +102,7 @@ class BzlaSolver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
@@ -122,6 +128,8 @@ class BzlaSolver : public AbsSmtSolver
 
  protected:
   Bitwuzla * bzla;
+
+  std::unordered_map<std::string, Term> symbol_table;
 
   // helper functions
   template <class I>

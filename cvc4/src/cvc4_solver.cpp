@@ -638,9 +638,10 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers
-  if (symbols.find(name) != symbols.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("symbol " + name + " has already been used.");
+    throw IncorrectUsageException("Symbol name " + name
+                                  + " has already been used.");
   }
 
   try
@@ -648,13 +649,23 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
     std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::CVC4Term> (t);
-    symbols[name] = res;
+    symbol_table[name] = res;
     return res;
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
+}
+
+Term CVC4Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
 }
 
 Term CVC4Solver::make_param(const std::string name, const Sort & sort)

@@ -56,6 +56,29 @@ TEST_P(UnitSymbolTests, RedeclareException)
   EXPECT_THROW(s->make_symbol("a", arrsort), IncorrectUsageException);
 }
 
+TEST_P(UnitSymbolTests, GetSymbol)
+{
+  Term b = s->make_symbol("b", boolsort);
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term a = s->make_symbol("a", arrsort);
+
+  EXPECT_EQ(b, s->get_symbol("b"));
+  EXPECT_EQ(x, s->get_symbol("x"));
+  EXPECT_EQ(f, s->get_symbol("f"));
+  EXPECT_EQ(a, s->get_symbol("a"));
+
+  string funky_name = "strange @ name!";
+  string funky_name_fun = "strange Fun _ name$";
+  Term funky_sym = s->make_symbol(funky_name, boolsort);
+  Term funky_sym_fun = s->make_symbol(funky_name_fun, funsort);
+
+  EXPECT_EQ(funky_sym, s->get_symbol(funky_name));
+  EXPECT_EQ(funky_sym_fun, s->get_symbol(funky_name_fun));
+
+  EXPECT_THROW(s->get_symbol("nonexistent_symbol"), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitSymbol,
                          UnitSymbolTests,
                          testing::ValuesIn(available_solver_configurations()));
