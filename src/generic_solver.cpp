@@ -500,7 +500,6 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   string name;
   Sort sort;
-  cout << "in solver sortkind is" << sk << "instead of " << SortKind::PARAM << endl;
   if (sk == SortKind::PARAM) {
     name = sorts[0]->to_string();
     sort = make_generic_param_sort(name);
@@ -512,7 +511,6 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   // compute the name
   name = sort->to_string();
   }
-  cout << "in solver next sortkind is" << sort->get_sort_kind() << "instead of " << SortKind::PARAM<< endl;
   
 
   // note that nothing needs to be communicated to the solver,
@@ -534,7 +532,6 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  cout << "start of make sort" << endl;
   shared_ptr<GenericDatatypeDecl> gdt_decl =
       static_pointer_cast<GenericDatatypeDecl>(d);
   string dt_decl_name = gdt_decl->get_name();
@@ -550,9 +547,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     std::string to_solver = "(" + DECLARE_DATATYPE_STR + " ((";
     to_solver += dt_decl_name;
     to_solver += " ";
-    cout << "pre param count" << endl;
     to_solver += std::to_string(gdt_decl->get_param_count());
-    cout << "post param count" << endl;
     to_solver += ")) (\n";
     to_solver += "(";
     if (gdt_decl->get_param_count()) {
@@ -618,7 +613,6 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
-    cout << "TO solver:\n" << endl;
     cout << to_solver << endl;
     run_command(to_solver);
 
@@ -633,10 +627,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
 {
-  cout << "in make datatype decl" << endl;
   shared_ptr<GenericDatatypeDecl> new_dt_decl = make_shared<GenericDatatypeDecl>(s);
-  cout << "HELLO" << endl;
-  cout << "in generic solver paramcount is " << new_dt_decl->param_count << endl;
   shared_ptr<GenericDatatype> new_dt =
       shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
   (*name_datatype_map)[s] = new_dt;
@@ -647,7 +638,6 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s)
 {
-  cout << "in make construcotr" << end;
   shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
       shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl(s));
@@ -671,13 +661,9 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
     static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   
   newSelector->name = name;
-  cout << "sort kind is "<< s->get_sort_kind() << endl;
-  cout << SortKind::PARAM << end;
   if (s->get_sort_kind() == SortKind::PARAM) {
     newSelector->sort = s;
     gdtc->contains_param = true;
-    cout << "it is true" << gdtc->contains_param << endl;
-    //(static_pointer_cast<GenericDatatypeDecl>(dt))->register_param_sort(static_pointer_cast<ParamSort>(s)->to_string());
   }
   else {
   newSelector->sort = s;

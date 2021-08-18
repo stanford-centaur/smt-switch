@@ -139,7 +139,6 @@ TEST_P(DTTests, DatatypeDecl)
     ASSERT_TRUE(listdt->get_num_constructors() == 2);
     ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
     ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
-    cout << "first wave of asserts" << endl;
     ASSERT_TRUE(res.is_sat());
     // Expected exceptions
 
@@ -147,9 +146,7 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
     EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
                  InternalSolverException);
-    cout << "almost end" << endl;
     EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
-    cout << "all done " << endl;
 }
 
   TEST_P(DTTests, param_datatypes)
@@ -180,7 +177,6 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_constructor(par_list, par_nil);
     s->add_constructor(par_list, par_cons);
     s->add_selector_self(par_cons, "cdr");
-    //s->add_constructor(par_list, par_cons);
     Sort par_sort = s->make_sort(par_list);
     
       

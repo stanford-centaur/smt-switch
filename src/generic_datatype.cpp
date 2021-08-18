@@ -13,7 +13,6 @@ namespace smt {
 
   GenericDatatypeDecl::GenericDatatypeDecl(const std::string name) : dt_name(name), param_count(0)
 {
-  cout << "made decl!" << endl;
 }
 
 
@@ -31,7 +30,6 @@ std::string GenericDatatypeDecl::get_name() const { return dt_name; }
 
   void GenericDatatypeDecl::register_param_sort(std::string param_name)
   {
-    cout << "param sorts size" << param_count << endl;
     for (unsigned int i = 0; i < param_count; ++i)
       {
 	// Checks if the selector has already been added
@@ -42,7 +40,6 @@ std::string GenericDatatypeDecl::get_name() const { return dt_name; }
       }
     Sort new_param = make_generic_param_sort(param_name);
     param_sorts.push_back(new_param);
-    cout << "REGISTERED param sort" << endl;
     param_count += 1;
     
   }
@@ -121,7 +118,6 @@ void GenericDatatype::add_constructor(
       static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
 
   if (gdt_cons->contains_param == true) {
-    cout << "in contains param" << endl;
     for (int i=0; i < gdt_cons->get_selector_count(); ++i) {
       if (gdt_cons->get_selector_vector()[i].sort->get_sort_kind() == SortKind::PARAM) {
 	static_pointer_cast<GenericDatatypeDecl>(dt_decl)->register_param_sort(static_pointer_cast<ParamSort>(gdt_cons->get_selector_vector()[i].sort)->to_string());
