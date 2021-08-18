@@ -448,10 +448,8 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   {
     return selector_sort;
   }
-  else
-  {
-    throw IncorrectUsageException("Invalid sortkind");
-  }
+
+  assert (sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
 }
 
 Sort DatatypeComponentSort::get_selector_sort() const { return selector_sort; }

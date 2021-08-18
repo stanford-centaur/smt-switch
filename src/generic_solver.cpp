@@ -324,7 +324,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
   shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
-  bool nullary_constructor;
+  bool nullary_constructor = false;
   // generic terms with no operators are represented by their
   // name.
   if (gt->get_op().is_null())
@@ -383,14 +383,10 @@ std::string GenericSolver::to_smtlib_def(Term term) const
         result += " " + (*term_name_map)[c];
       }
     }
-    if (gt->get_op() == Apply_Constructor)
-    {
-      result += nullary_constructor ? ")" : "";
-    }
-    else
-    {
-      result += ")";
-    }
+    if (gt->get_op() != Apply_Constructor || nullary_constructor)
+      {
+	result += ")";
+      }
     return result;
   }
 }
@@ -649,6 +645,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
         == name)
     {
       found = true;
+      break;
     }
   }
   if (!found)
@@ -677,6 +674,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
         == name)
     {
       found = true;
+      break;
     }
   }
   if (!found)
@@ -712,6 +710,7 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
           found = true;
           static_pointer_cast<DatatypeComponentSort>(cons_sort)
               ->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
+          break;
         }
       }
     }
