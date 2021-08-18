@@ -130,13 +130,16 @@ TEST_P(DTTests, DatatypeDecl)
     s->assert_formula(
         s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
 
+
+
+
     Result res = s->check_sat();
 
     ASSERT_TRUE(listdt->get_name() == "list");
     ASSERT_TRUE(listdt->get_num_constructors() == 2);
     ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
     ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
-
+    cout << "first wave of asserts" << endl;
     ASSERT_TRUE(res.is_sat());
     // Expected exceptions
 
@@ -144,8 +147,45 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
     EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
                  InternalSolverException);
+    cout << "almost end" << endl;
     EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
+    cout << "all done " << endl;
 }
+
+  TEST_P(DTTests, param_datatypes)
+  {
+    // in future, we should have a better parameterization
+    // I can help with that, but for now this would work
+    SolverConfiguration sc = GetParam();
+    if (sc.solver_enum != GENERIC_SOLVER)
+      {
+	return;
+      }
+    if (sc.is_logging_solver) {
+      return;
+      
+    }
+
+    DatatypeDecl pair_decl = s->make_datatype_decl("Pair");
+    DatatypeConstructorDecl pair_cons = s->make_datatype_constructor_decl("pair");
+    s->add_selector(pair_cons, "first", s->make_sort(PARAM, make_generic_param_sort("X")));
+    s->add_selector(pair_cons, "second", s->make_sort(PARAM, make_generic_param_sort("Y")));
+    s->add_constructor(pair_decl, pair_cons);
+    Sort pairSort = s->make_sort(pair_decl);
+
+    DatatypeDecl par_list = s->make_datatype_decl("List");
+    DatatypeConstructorDecl par_nil = s->make_datatype_constructor_decl("nil");
+    DatatypeConstructorDecl par_cons = s->make_datatype_constructor_decl("cons");
+    s->add_selector(par_cons, "car", s->make_sort(PARAM, make_generic_param_sort("T")));
+    s->add_constructor(par_list, par_nil);
+    s->add_constructor(par_list, par_cons);
+    s->add_selector_self(par_cons, "cdr");
+    //s->add_constructor(par_list, par_cons);
+    Sort par_sort = s->make_sort(par_list);
+    
+      
+	 
+	 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
                          DTTests,

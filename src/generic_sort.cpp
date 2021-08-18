@@ -25,6 +25,18 @@ using namespace std;
 
 namespace smt {
 
+  std::unordered_map<int, std::string> param_map(
+						 {
+						   {0, "T"},
+						     {1, "F"},
+						       {2, "G"}
+						 });
+  std::string get_param_name(int param_num)
+  {
+    return param_map[param_num];
+  }
+  
+  
 Sort make_uninterpreted_generic_sort(string name, uint64_t arity)
 {
   return make_shared<UninterpretedGenericSort>(name, arity);
@@ -130,6 +142,11 @@ Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
   return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
 }
 
+  Sort make_generic_param_sort(std::string param_name)
+  {
+    return make_shared<ParamSort>(param_name);
+  }
+
 // implementations
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
@@ -195,6 +212,9 @@ string GenericSort::compute_string() const {
              || get_sort_kind() == SortKind::SELECTOR
              || get_sort_kind() == SortKind::TESTER)
     {
+      return get_uninterpreted_name();
+    }
+    else if (get_sort_kind() == SortKind::PARAM) {
       return get_uninterpreted_name();
     }
     else
@@ -473,4 +493,16 @@ Datatype DatatypeComponentSort::get_datatype() const
   return dt_sort->get_datatype();
 }
 
+  ParamSort::ParamSort(std::string param_name) : name(param_name), GenericSort(SortKind::PARAM)
+  {
+  }
+
+  std::string ParamSort::compute_string() const
+  {
+    return name;
+  }
+  std::string ParamSort::get_uninterpreted_name() const
+  {
+    return name;
+  }
 }  // namespace smt
