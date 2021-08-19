@@ -452,8 +452,6 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   assert (sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
 }
 
-Sort DatatypeComponentSort::get_selector_sort() const { return selector_sort; }
-
 void DatatypeComponentSort::set_selector_sort(Sort new_selector_sort)
 {
   selector_sort = new_selector_sort;
