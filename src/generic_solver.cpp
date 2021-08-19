@@ -384,9 +384,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
       }
     }
     if (gt->get_op() != Apply_Constructor || nullary_constructor)
-      {
-	result += ")";
-      }
+    {
+      result += ")";
+    }
     return result;
   }
 }
