@@ -89,6 +89,9 @@ class CVC4Solver : public AbsSmtSolver
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
   Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls,
+      const UnorderedSortSet & uninterp_sorts) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;

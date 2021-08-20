@@ -847,6 +847,41 @@ Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name)
   }
 };
 
+SortVec CVC4Solver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls,
+    const UnorderedSortSet & uninterp_sorts) const
+{
+  try
+  {
+    SortVec dt_sorts;
+    dt_sorts.reserve(uninterp_sorts.size());
+
+    std::vector<CVC4::api::DatatypeDecl> cvc4_decls;
+    cvc4_decls.reserve(decls.size());
+    for (const auto & d : decls)
+    {
+      cvc4_decls.push_back(
+          std::static_pointer_cast<CVC4DatatypeDecl>(d)->datatypedecl);
+    }
+
+    std::set<CVC4::api::Sort> cvc4_sorts;
+    for (const auto & s : uninterp_sorts)
+    {
+      cvc4_sorts.insert(std::static_pointer_cast<CVC4Sort>(s)->sort);
+    }
+
+    for (const auto & csort : solver.mkDatatypeSorts(cvc4_decls, cvc4_sorts))
+    {
+      dt_sorts.push_back(std::make_shared<CVC4Sort>(csort));
+    }
+    return dt_sorts;
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try
