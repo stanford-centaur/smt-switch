@@ -50,9 +50,9 @@ class GenericSolver : public AbsSmtSolver
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   // Mutually recursive datatypes are currently not supported.
   Sort make_sort(const DatatypeDecl & d) const override;
-  Sort make_sort(const std::vector<DatatypeDecl> & dt_vector) const;
+
   DatatypeDecl make_datatype_decl(const std::string & s) override;
-  DatatypeDecl make_datatype_decl(const std::string & s, int num_param);
+
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
   void add_constructor(DatatypeDecl & dt,
@@ -62,6 +62,7 @@ class GenericSolver : public AbsSmtSolver
                     const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt,
                          const std::string & name) const override;
+  Sort get_unresolved_sort(DatatypeDecl dt_decl);
 
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;

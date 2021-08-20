@@ -505,6 +505,12 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
     sort = make_generic_param_sort(name);
     
   }
+  else if (sk == SortKind::UNRESOLVED && sorts.size() == 1) {
+    cout << "in make sort" << endl;
+    shared_ptr<UnresolvedSort> dt_sort = static_pointer_cast<UnresolvedSort>(sorts[0]);
+    name = dt_sort->to_string();
+    sort = make_generic_unresolved_sort(dt_sort->get_datatype_decl());
+  }
   else {
   // create the sort
   sort = make_generic_sort(sk, sorts);
@@ -691,6 +697,19 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
     shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
     gdt_cons->add_new_selector(*newSelector);
 }
+
+  Sort GenericSolver::get_unresolved_sort(DatatypeDecl dt_decl)
+  {
+    shared_ptr<GenericDatatypeDecl> gdt_decl =
+      static_pointer_cast<GenericDatatypeDecl>(dt_decl);
+    string dt_decl_name = gdt_decl->get_name();
+    assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
+    shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+    Sort dt_sort = make_generic_datatype_sort(curr_dt);
+    (*name_sort_map)[dt_decl_name] = dt_sort;
+    (*sort_name_map)[dt_sort] = dt_decl_name;
+    return dt_sort;
+  }
 
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const

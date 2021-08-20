@@ -178,9 +178,22 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_constructor(par_list, par_cons);
     s->add_selector_self(par_cons, "cdr");
     Sort par_sort = s->make_sort(par_list);
-    
-      
-	 
+
+
+    DatatypeDecl tree = s->make_datatype_decl("Tree");
+    DatatypeDecl tree_list = s->make_datatype_decl("TreeList");
+    DatatypeConstructorDecl empty_cons = s->make_datatype_constructor_decl("empty");
+    s->add_constructor(tree_list, empty_cons);
+    DatatypeConstructorDecl node_cons = s->make_datatype_constructor_decl("node");
+    Sort tree_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree));
+    Sort tree_list_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+    s->add_selector(node_cons, "value", s->make_sort(PARAM, make_generic_param_sort("X")));
+    s->add_selector(node_cons, "children", tree_list_sort);
+    DatatypeConstructorDecl insert_cons = s->make_datatype_constructor_decl("insert");
+    s->add_selector(insert_cons, "head", tree_sort);
+    s->add_selector(insert_cons, "tail", tree_list_sort);
+
+
 	 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,

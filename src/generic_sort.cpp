@@ -25,18 +25,6 @@ using namespace std;
 
 namespace smt {
 
-  std::unordered_map<int, std::string> param_map(
-						 {
-						   {0, "T"},
-						     {1, "F"},
-						       {2, "G"}
-						 });
-  std::string get_param_name(int param_num)
-  {
-    return param_map[param_num];
-  }
-  
-  
 Sort make_uninterpreted_generic_sort(string name, uint64_t arity)
 {
   return make_shared<UninterpretedGenericSort>(name, arity);
@@ -145,6 +133,14 @@ Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
   Sort make_generic_param_sort(std::string param_name)
   {
     return make_shared<ParamSort>(param_name);
+  }
+  Sort make_generic_datatype_sort(Datatype dt)
+  {
+    return make_shared<GenericDatatypeSort>(dt);
+  }
+  Sort make_generic_unresolved_sort(DatatypeDecl dt)
+  {
+    return make_shared<UnresolvedSort>(dt);
   }
 
 // implementations
@@ -505,4 +501,26 @@ Datatype DatatypeComponentSort::get_datatype() const
   {
     return name;
   }
+
+  UnresolvedSort::UnresolvedSort(DatatypeDecl dt_decl) : datatype_decl(dt_decl),  GenericSort(SortKind::UNRESOLVED)
+  {
+  }
+
+  std::string UnresolvedSort::compute_string() const
+  {
+    return static_pointer_cast<GenericDatatypeDecl>(datatype_decl)->get_name();
+    
+  }
+
+  std::string UnresolvedSort::to_string() const
+  {
+    return compute_string();
+  }
+
+  DatatypeDecl UnresolvedSort::get_datatype_decl()
+  {
+    return datatype_decl;
+  }
+  
+  
 }  // namespace smt
