@@ -228,6 +228,234 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   ASSERT_TRUE(ret4 == ans4) << ret4 << endl << cnf4 << endl;
 }
 
+TEST_P(UnitUtilDimacsTests, tseitin)
+{
+  s->set_opt("incremental", "true");
+  Term p = s->make_symbol("p", boolsort);
+  Term q = s->make_symbol("q", boolsort);
+  Term r = s->make_symbol("r", boolsort);
+  Term t = s->make_symbol("t", boolsort);
+  
+  //a=((p or q) and r) implies (not t)
+  Term a = s->make_term(Implies,
+                        s->make_term(And, s->make_term(Or, p, q), r),
+                        s->make_term(Not, t));
+
+  Term cnf1 = to_cnf(a, s);
+
+  s->push();
+  s->assert_formula(a);
+  Result r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf1);
+  Result r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+  string st = cnf1->to_string();
+  string ans =
+      "(and tseitin_to_cnf_4 (and (or (not t) (not tseitin_to_cnf_1)) (or t "
+      "tseitin_to_cnf_1) (or (not tseitin_to_cnf_2) p q) (and (or "
+      "tseitin_to_cnf_2 (not p)) (or tseitin_to_cnf_2 (not q))) (or "
+      "tseitin_to_cnf_3 (not tseitin_to_cnf_2) (not r)) (and (or "
+      "tseitin_to_cnf_2 (not tseitin_to_cnf_3)) (or r (not tseitin_to_cnf_3))) "
+      "(or (or (not tseitin_to_cnf_3) tseitin_to_cnf_1) (not "
+      "tseitin_to_cnf_4)) (or tseitin_to_cnf_3 tseitin_to_cnf_4) (or (not "
+      "tseitin_to_cnf_1) tseitin_to_cnf_4)))";
+  ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl;
+
+  // b=Not(p xor q)
+  Term b = s->make_term(Not, s->make_term(Xor, p, q));
+  Term cnf2 = to_cnf(b, s);
+
+  s->push();
+  s->assert_formula(b);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf2);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf2->to_string();
+  ans =
+      "(and tseitin_to_cnf_6 (and (or (or (not p) (not q)) (not "
+      "tseitin_to_cnf_5)) (or (or p q) (not tseitin_to_cnf_5)) (or (or "
+      "tseitin_to_cnf_5 q) (not p)) (or (or tseitin_to_cnf_5 p) (not q)) (or "
+      "(not tseitin_to_cnf_5) (not tseitin_to_cnf_6)) (or tseitin_to_cnf_5 "
+      "tseitin_to_cnf_6)))";
+  ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl << endl;
+
+  // c=((not p) and p)
+  Term c = s->make_term(And, s->make_term(Not, p), p);
+  Term cnf3 = to_cnf(c, s);
+
+  s->push();
+  s->assert_formula(c);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf3);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf3->to_string();
+  ans = "(and (not p) p)";
+  ASSERT_TRUE(st == ans);
+
+  Term d1 = s->make_term(Or, p, q);
+  Term d2 = s->make_term(Or, r, t);
+
+  // d3=((p or q) and (r or t))
+  Term d3 = s->make_term(And, d1, d2);
+
+  Term cnf4 = to_cnf(d3, s);
+
+  s->push();
+  s->assert_formula(d3);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf4);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf4->to_string();
+  ans = "(and (or p q) (or r t))";
+  ASSERT_TRUE(st == ans);
+  // e=false
+  Term e = s->make_term(false);
+  Term cnf5 = to_cnf(e, s);
+
+  s->push();
+  s->assert_formula(e);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf5);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf5->to_string();
+  ans = "false";
+  ASSERT_TRUE(st == ans);
+
+  // f=true
+  Term f = s->make_term(true);
+  Term cnf6 = to_cnf(f, s);
+
+  s->push();
+  s->assert_formula(f);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf6);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf6->to_string();
+  ans = "true";
+  ASSERT_TRUE(st == ans);
+
+  std::vector<Term> vec;
+  vec.push_back(p);
+  vec.push_back(q);
+  vec.push_back(r);
+  vec.push_back(t);
+
+  // g=OR(p, q, r, t)
+
+  Term g = s->make_term(Or, vec);
+  Term cnf7 = to_cnf(g, s);
+
+  s->push();
+  s->assert_formula(g);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf7);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf7->to_string();
+  ans = "(or p q r t)";
+  ASSERT_TRUE(st == ans);
+
+  Term fa = s->make_term(false);
+  Term tr = s->make_term(true);
+
+  // cheking function is_cnf
+
+  std::vector<Term> vecs;
+  vecs.push_back(p);
+  vecs.push_back(q);
+  vecs.push_back(r);
+  vecs.push_back(t);
+  Term ne = s->make_term(Or, vecs);
+  bool check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(Xor, vecs);
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+  ne = s->make_term(And, vecs);
+  check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(And, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_TRUE(check);
+  ne = s->make_term(Implies, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+  ne = s->make_term(And, s->make_term(Equal, p, q), s->make_term(Or, r, t));
+  check = is_cnf(ne);
+  ASSERT_FALSE(check);
+
+  // checking elimination of true and false
+  Term tru = s->make_term(true);
+  Term fal = s->make_term(false);
+
+  // formula=and(true, p)
+  Term formula = s->make_term(And, tru, p);
+  Term as = to_cnf(formula, s);
+  ASSERT_TRUE(as == p);
+
+  // formula=and(or(p, true), or(q, false))
+  formula =
+      s->make_term(And, s->make_term(Or, p, tru), s->make_term(Or, q, fal));
+  as = to_cnf(formula, s);
+  ASSERT_TRUE(as == q);
+
+  // h=((true->false)<->Or(p, q))
+  Term h = s->make_term(
+      Equal, s->make_term(Implies, tr, fa), s->make_term(Or, p, q));
+
+  Term cnf8 = to_cnf(h, s);
+
+  s->push();
+  s->assert_formula(h);
+  r1 = s->check_sat();
+  s->pop(1);
+  s->push();
+  s->assert_formula(cnf8);
+  r2 = s->check_sat();
+  s->pop(1);
+  ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
+
+  st = cnf8->to_string();
+  ans =
+      "(and tseitin_to_cnf_8 (and (or (not tseitin_to_cnf_7) p q) (and (or "
+      "tseitin_to_cnf_7 (not p)) (or tseitin_to_cnf_7 (not q))) (or (not "
+      "tseitin_to_cnf_7) (not tseitin_to_cnf_8)) (or tseitin_to_cnf_7 "
+      "tseitin_to_cnf_8)))";
+  ASSERT_TRUE(st == ans);
+}
+
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
                          UnitUtilTests,

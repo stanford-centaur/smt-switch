@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BITWUZLA_VERSION=93606b8826f837b98f08e0ec667cd697a8eb95f3
+BITWUZLA_VERSION=a73ab6418135b6b0bbf12ba0f911dc8afb16aeb5
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -23,7 +23,7 @@ if [ ! -d "$DEPS/bitwuzla" ]; then
     git checkout -f $BITWUZLA_VERSION
     CFLAGS="" ./contrib/setup-btor2tools.sh
     ./contrib/setup-cadical.sh
-    ./configure.sh --only-cadical -fPIC
+    ./configure.sh --only-cadical --no-symfpu -fPIC
     cd build
     make -j$NUM_CORES
     cd $DIR

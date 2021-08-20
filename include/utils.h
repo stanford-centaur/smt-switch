@@ -103,6 +103,12 @@ bool is_lit(const Term & l, const Sort & boolsort);
 // Returns a string in DIMACs format for a given cnf formula
 void cnf_to_dimacs(Term cnf, std::ostringstream & y);
 
+// Converts any boolean formula to cnf, formula is the formula to be converted to a cnf
+Term to_cnf(Term formula, SmtSolver s);
+
+// Returns true if the formula is in cnf form, else false
+bool is_cnf(Term formula);
+
 // -----------------------------------------------------------------------------
 
 /** \class

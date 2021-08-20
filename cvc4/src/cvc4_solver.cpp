@@ -638,9 +638,10 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available
   // to make CVC4 behave the same as other solvers
-  if (symbols.find(name) != symbols.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("symbol " + name + " has already been used.");
+    throw IncorrectUsageException("Symbol name " + name
+                                  + " has already been used.");
   }
 
   try
@@ -648,13 +649,23 @@ Term CVC4Solver::make_symbol(const std::string name, const Sort & sort)
     std::shared_ptr<CVC4Sort> csort = std::static_pointer_cast<CVC4Sort>(sort);
     ::CVC4::api::Term t = solver.mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::CVC4Term> (t);
-    symbols[name] = res;
+    symbol_table[name] = res;
     return res;
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
+}
+
+Term CVC4Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
 }
 
 Term CVC4Solver::make_param(const std::string name, const Sort & sort)
@@ -835,6 +846,41 @@ Term CVC4Solver::get_selector(const Sort & s, std::string con, std::string name)
     throw InternalSolverException(e.what());
   }
 };
+
+SortVec CVC4Solver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls,
+    const UnorderedSortSet & uninterp_sorts) const
+{
+  try
+  {
+    SortVec dt_sorts;
+    dt_sorts.reserve(uninterp_sorts.size());
+
+    std::vector<CVC4::api::DatatypeDecl> cvc4_decls;
+    cvc4_decls.reserve(decls.size());
+    for (const auto & d : decls)
+    {
+      cvc4_decls.push_back(
+          std::static_pointer_cast<CVC4DatatypeDecl>(d)->datatypedecl);
+    }
+
+    std::set<CVC4::api::Sort> cvc4_sorts;
+    for (const auto & s : uninterp_sorts)
+    {
+      cvc4_sorts.insert(std::static_pointer_cast<CVC4Sort>(s)->sort);
+    }
+
+    for (const auto & csort : solver.mkDatatypeSorts(cvc4_decls, cvc4_sorts))
+    {
+      dt_sorts.push_back(std::make_shared<CVC4Sort>(csort));
+    }
+    return dt_sorts;
+  }
+  catch (::CVC4::api::CVC4ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {

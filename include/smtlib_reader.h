@@ -23,7 +23,7 @@
 #include "smt.h"
 #include "smtlibparser.h"
 
-#define YY_DECL yy::parser::symbol_type yylex(smt::SmtLibReader & drv)
+#define YY_DECL smtlib::parser::symbol_type yylex(smt::SmtLibReader & drv)
 YY_DECL;
 
 namespace smt {
@@ -128,6 +128,9 @@ class SmtLibReader
 
   virtual void set_logic(const std::string & logic);
 
+  /** Adds all known logics */
+  virtual void set_logic_all();
+
   virtual void set_opt(const std::string & key, const std::string & val);
 
   virtual void set_info(const std::string & key, const std::string & val);
@@ -150,8 +153,20 @@ class SmtLibReader
    */
   virtual void pop(uint64_t num = 1);
 
+  /** Mark a term with an attribute
+   *  This currently is ignores the attribute and prints a warning.
+   *  It can be overridden in a derived class to do something
+   *  useful with the attribute.
+   *  @param term the term marked with an attribute
+   *  @param keyword the attribute keyword
+   *  @param value the attribute value
+   */
+  virtual void term_attribute(const smt::Term & term,
+                              const std::string & keyword,
+                              const std::string & value);
+
   /* getters and setters  */
-  yy::location & location() { return location_; }
+  smtlib::location & location() { return location_; }
 
   smt::SmtSolver & solver() { return solver_; }
 
@@ -183,7 +198,7 @@ class SmtLibReader
    *  @param name the name of the symbol
    *  @param sort the sort of the symbol
    */
-  void new_symbol(const std::string & name, const smt::Sort & sort);
+  virtual void new_symbol(const std::string & name, const smt::Sort & sort);
 
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
@@ -267,7 +282,7 @@ class SmtLibReader
   void let_binding(const std::string & sym, const smt::Term & term);
 
  protected:
-  yy::location location_;
+  smtlib::location location_;
 
   smt::SmtSolver solver_;
 

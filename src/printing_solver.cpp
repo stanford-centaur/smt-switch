@@ -34,6 +34,11 @@ PrintingSolver::PrintingSolver(SmtSolver s, std::ostream* os, PrintingStyleEnum 
 
 PrintingSolver::~PrintingSolver() {}
 
+Term PrintingSolver::get_symbol(const string & name)
+{
+  return wrapped_solver->get_symbol(name);
+}
+
 Sort PrintingSolver::make_sort(const string name, uint64_t arity) const
 {
   (*out_stream) << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")" << endl;

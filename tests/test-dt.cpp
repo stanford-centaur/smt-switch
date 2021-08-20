@@ -41,6 +41,43 @@ class DTTests : public ::testing::Test,
   Sort intsort;
 };
 
+TEST_P(DTTests, DeclareSimpleList)
+{
+  SolverConfiguration sc = GetParam();
+  if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    return;
+  }
+
+  DatatypeDecl listSpec = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listSpec, nildecl);
+  s->add_constructor(listSpec, consdecl);
+  Sort listsort = s->make_sort(listSpec);
+}
+
+TEST_P(DTTests, DeclareSimpleListWithForwardRef)
+{
+  SolverConfiguration sc = GetParam();
+  if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    return;
+  }
+
+  DatatypeDecl listSpec = s->make_datatype_decl("list");
+  Sort forward_ref_listsort = s->make_sort("list", 0);
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector(consdecl, "tail", forward_ref_listsort);
+  s->add_constructor(listSpec, nildecl);
+  s->add_constructor(listSpec, consdecl);
+  Sort listsort = s->make_datatype_sort(listSpec, forward_ref_listsort);
+}
+
 TEST_P(DTTests, DatatypeDecl)
 {
     SolverConfiguration sc = GetParam();

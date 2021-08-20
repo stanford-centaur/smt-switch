@@ -56,6 +56,32 @@ const unordered_map<PrimOp, PrimOp> bv_to_bool_ops({ { BVAnd, And },
                                                      { BVNot, Not },
                                                      { BVComp, Equal } });
 
+// helper function used for debugging asserts
+bool uses_uninterp_sort(const smt::Sort & sort)
+{
+  bool res = false;
+  SortKind sk = sort->get_sort_kind();
+  if (sk == UNINTERPRETED)
+  {
+    res = true;
+  }
+  else if (sk == FUNCTION)
+  {
+    for (auto s : sort->get_domain_sorts())
+    {
+      res |= uses_uninterp_sort(s);
+    }
+    res |= uses_uninterp_sort(sort->get_codomain_sort());
+  }
+  else if (sk == ARRAY)
+  {
+    res |= uses_uninterp_sort(sort->get_indexsort());
+    res |= uses_uninterp_sort(sort->get_elemsort());
+  }
+
+  return res;
+}
+
 Sort TermTranslator::transfer_sort(const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();
@@ -123,6 +149,7 @@ Term TermTranslator::transfer_term(const Term & term)
   // assume it's already been processed
   // not just visited
   UnorderedTermSet visited;
+  TermVec children;
   TermVec cached_children;
   Term t;
   Sort s;
@@ -144,9 +171,14 @@ Term TermTranslator::transfer_term(const Term & term)
       visited.insert(t);
       // need to visit it again
       to_visit.push_back(t);
-      for (auto c : t)
+
+      // insert in reverse order
+      // helps symbols be declared in same order
+      children.clear();
+      children.insert(children.end(), t->begin(), t->end());
+      for (auto it = children.rbegin(); it != children.rend(); it++)
       {
-        to_visit.push_back(c);
+        to_visit.push_back(*it);
       }
     }
     else
@@ -154,7 +186,27 @@ Term TermTranslator::transfer_term(const Term & term)
       if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
-        cache[t] = solver->make_symbol(t->to_string(), s);
+        string name = t->to_string();
+        try
+        {
+          Term sym = solver->get_symbol(name);
+          cache[t] = sym;
+          // the sort should already match the expected sort
+          // or be castable to the same sort
+          assert(
+              s == sym->get_sort() ||
+              // can't properly transfer uninterpreted sort, so ignore that case
+              // (no way to look up uninterpreted sort by name, so transfer_sort
+              //  would make a new sort with the same name)
+              // relying on short-circuit semantics so cast_term line not
+              // executed
+              uses_uninterp_sort(sym->get_sort())
+              || s == cast_term(sym, s)->get_sort());
+        }
+        catch (IncorrectUsageException & e)
+        {
+          cache[t] = solver->make_symbol(name, s);
+        }
       }
       else if (t->is_param())
       {

@@ -70,6 +70,7 @@ class PrintingSolver : public AbsSmtSolver
    * For example, creating terms is not printed, but the
    * created terms will appear in other commands (e.g., assert). 
    * */
+  Term get_symbol(const std::string & name) override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, uint64_t size) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
