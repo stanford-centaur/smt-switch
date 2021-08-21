@@ -167,9 +167,6 @@ TEST_P(DTTests, DatatypeDecl)
     s->assert_formula(
         s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
 
-
-
-
     Result res = s->check_sat();
 
     ASSERT_TRUE(listdt->get_name() == "list");
@@ -186,67 +183,73 @@ TEST_P(DTTests, DatatypeDecl)
     EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
 }
 
-  TEST_P(DTTests, param_datatypes)
+TEST_P(DTTests, param_datatypes)
+{
+  // in future, we should have a better parameterization
+  // I can help with that, but for now this would work
+  SolverConfiguration sc = GetParam();
+  if (sc.solver_enum != GENERIC_SOLVER)
   {
-    // in future, we should have a better parameterization
-    // I can help with that, but for now this would work
-    SolverConfiguration sc = GetParam();
-    if (sc.solver_enum != GENERIC_SOLVER)
-      {
-	return;
-      }
-    if (sc.is_logging_solver) {
-      return;
-      
-    }
+    return;
+  }
+  if (sc.is_logging_solver)
+  {
+    return;
+  }
 
-    DatatypeDecl pair_decl = s->make_datatype_decl("Pair");
-    DatatypeConstructorDecl pair_cons = s->make_datatype_constructor_decl("pair");
-    s->add_selector(pair_cons, "first", s->make_sort(PARAM, make_generic_param_sort("X")));
-    s->add_selector(pair_cons, "second", s->make_sort(PARAM, make_generic_param_sort("Y")));
-    s->add_constructor(pair_decl, pair_cons);
-    Sort pairSort = s->make_sort(pair_decl);
+  DatatypeDecl pair_decl = s->make_datatype_decl("Pair");
+  DatatypeConstructorDecl pair_cons = s->make_datatype_constructor_decl("pair");
+  s->add_selector(
+      pair_cons, "first", s->make_sort(PARAM, make_generic_param_sort("X")));
+  s->add_selector(
+      pair_cons, "second", s->make_sort(PARAM, make_generic_param_sort("Y")));
+  s->add_constructor(pair_decl, pair_cons);
+  Sort pairSort = s->make_sort(pair_decl);
 
-    DatatypeDecl par_list = s->make_datatype_decl("List");
-    DatatypeConstructorDecl par_nil = s->make_datatype_constructor_decl("nil");
-    DatatypeConstructorDecl par_cons = s->make_datatype_constructor_decl("cons");
-    s->add_selector(par_cons, "car", s->make_sort(PARAM, make_generic_param_sort("T")));
-    s->add_constructor(par_list, par_nil);
-    s->add_constructor(par_list, par_cons);
-    s->add_selector_self(par_cons, "cdr");
-    Sort par_sort = s->make_sort(par_list);
+  DatatypeDecl par_list = s->make_datatype_decl("List");
+  DatatypeConstructorDecl par_nil = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl par_cons = s->make_datatype_constructor_decl("cons");
+  s->add_selector(
+      par_cons, "car", s->make_sort(PARAM, make_generic_param_sort("T")));
+  s->add_constructor(par_list, par_nil);
+  s->add_constructor(par_list, par_cons);
+  s->add_selector_self(par_cons, "cdr");
+  Sort par_sort = s->make_sort(par_list);
 
-    std::unordered_set<Sort> unresTypes;
-    DatatypeDecl tree = s->make_datatype_decl("Tree");
-    DatatypeDecl tree_list = s->make_datatype_decl("TreeList");
-    DatatypeConstructorDecl empty_cons = s->make_datatype_constructor_decl("empty");
-    s->add_constructor(tree_list, empty_cons);
-    DatatypeConstructorDecl node_cons = s->make_datatype_constructor_decl("node");
-    Sort tree_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree));
-    Sort tree_list_sort_X = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
-    Sort tree_list_sort_Y = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
-    static_pointer_cast<UnresolvedSort>(tree_sort)->insert_param("Y");
-    static_pointer_cast<UnresolvedSort>(tree_list_sort_X)->insert_param("X");
-    static_pointer_cast<UnresolvedSort>(tree_list_sort_Y)->insert_param("Y");
+  std::unordered_set<Sort> unresTypes;
+  DatatypeDecl tree = s->make_datatype_decl("Tree");
+  DatatypeDecl tree_list = s->make_datatype_decl("TreeList");
+  DatatypeConstructorDecl empty_cons =
+      s->make_datatype_constructor_decl("empty");
+  s->add_constructor(tree_list, empty_cons);
+  DatatypeConstructorDecl node_cons = s->make_datatype_constructor_decl("node");
+  Sort tree_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree));
+  Sort tree_list_sort_X =
+      s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+  Sort tree_list_sort_Y =
+      s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+  static_pointer_cast<UnresolvedSort>(tree_sort)->insert_param("Y");
+  static_pointer_cast<UnresolvedSort>(tree_list_sort_X)->insert_param("X");
+  static_pointer_cast<UnresolvedSort>(tree_list_sort_Y)->insert_param("Y");
 
-    unresTypes.insert(tree_sort);
-    unresTypes.insert(tree_list_sort_Y);
-    s->add_selector(node_cons, "value", s->make_sort(PARAM, make_generic_param_sort("X")));
-    s->add_constructor(tree, node_cons);
-    s->add_selector(node_cons, "children", tree_list_sort_X);
-    DatatypeConstructorDecl insert_cons = s->make_datatype_constructor_decl("insert");
+  unresTypes.insert(tree_sort);
+  unresTypes.insert(tree_list_sort_Y);
+  s->add_selector(
+      node_cons, "value", s->make_sort(PARAM, make_generic_param_sort("X")));
+  s->add_constructor(tree, node_cons);
+  s->add_selector(node_cons, "children", tree_list_sort_X);
+  DatatypeConstructorDecl insert_cons =
+      s->make_datatype_constructor_decl("insert");
 
-    s->add_constructor(tree_list, insert_cons);
-    s->add_selector(insert_cons, "head", tree_sort);
-    s->add_selector(insert_cons, "tail", tree_list_sort_Y);
-    std::vector<DatatypeDecl> dtdecls;
-    dtdecls.push_back(tree);
-    dtdecls.push_back(tree_list);
-    std::vector<Sort> dtsorts;
-    dtsorts = s->make_datatype_sorts(dtdecls, unresTypes);
-
-
-	 }
+  s->add_constructor(tree_list, insert_cons);
+  s->add_selector(insert_cons, "head", tree_sort);
+  s->add_selector(insert_cons, "tail", tree_list_sort_Y);
+  std::vector<DatatypeDecl> dtdecls;
+  dtdecls.push_back(tree);
+  dtdecls.push_back(tree_list);
+  std::vector<Sort> dtsorts;
+  dtsorts = s->make_datatype_sorts(dtdecls, unresTypes);
+}
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
                          DTTests,

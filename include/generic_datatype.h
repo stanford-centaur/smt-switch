@@ -20,7 +20,6 @@ struct SelectorComponents
   bool finalized;
 };
 
- 
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
@@ -36,7 +35,6 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
   std::string dt_name;
   int param_count;
   std::vector<Sort> param_sorts;
-  
 };
 
 class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl

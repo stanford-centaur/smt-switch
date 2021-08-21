@@ -70,9 +70,8 @@ class GenericSolver : public AbsSmtSolver
                     std::string con,
                     std::string name) const override;
   SortVec make_datatype_sorts(
-			      const std::vector<DatatypeDecl> & decls,
-			            const UnorderedSortSet & uninterp_sorts
-			      ) const override;
+      const std::vector<DatatypeDecl> & decls,
+      const UnorderedSortSet & uninterp_sorts) const override;
 
   /***************************************************************/
   /* methods from AbsSmtSolver that are implemented              */
