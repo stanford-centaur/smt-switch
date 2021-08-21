@@ -502,7 +502,7 @@ Datatype DatatypeComponentSort::get_datatype() const
     return name;
   }
 
-  UnresolvedSort::UnresolvedSort(DatatypeDecl dt_decl) : datatype_decl(dt_decl),  GenericSort(SortKind::UNRESOLVED)
+  UnresolvedSort::UnresolvedSort(DatatypeDecl dt_decl) : datatype_decl(dt_decl), GenericSort(SortKind::UNRESOLVED)
   {
   }
 
@@ -521,6 +521,15 @@ Datatype DatatypeComponentSort::get_datatype() const
   {
     return datatype_decl;
   }
-  
+
+  std::vector<std::string> UnresolvedSort::get_params()
+  {
+    return params_vector;
+  }
+
+  void UnresolvedSort::insert_param(std::string new_param)
+  {
+    params_vector.push_back(new_param);
+  }
   
 }  // namespace smt

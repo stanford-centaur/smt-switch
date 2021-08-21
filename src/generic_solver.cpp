@@ -510,6 +510,7 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
     shared_ptr<UnresolvedSort> dt_sort = static_pointer_cast<UnresolvedSort>(sorts[0]);
     name = dt_sort->to_string();
     sort = make_generic_unresolved_sort(dt_sort->get_datatype_decl());
+    return sort;
   }
   else {
   // create the sort
@@ -671,6 +672,17 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string
     newSelector->sort = s;
     gdtc->contains_param = true;
   }
+  else if (s->get_sort_kind() == UNRESOLVED) {
+    auto gdt_decl = static_pointer_cast<GenericDatatypeDecl>(static_pointer_cast<GenericDatatypeConstructorDecl>(dt)->dt_decl);
+    auto dt_sort = static_pointer_cast<UnresolvedSort>(s);
+    for (int i =0; i < dt_sort->get_params().size(); i++) {
+      gdt_decl->register_param_sort(dt_sort->get_params()[i]);
+    }
+    newSelector->sort = s;
+    newSelector->finalized = true;
+    
+    
+  }
   else {
   newSelector->sort = s;
   }
@@ -803,6 +815,81 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
   return (*name_term_map)[name];
 }
 
+  SortVec GenericSolver::make_datatype_sorts(const std::vector<DatatypeDecl> & decls, const UnorderedSortSet & uninterp_sorts) const
+  {
+    assert(decls.size());
+    assert(uninterp_sorts.size());
+    std::vector<Sort> rec_sorts;
+    std::string to_solver = "(" + DECLARE_DATATYPE_STR + " (";
+    for (auto decl : decls) {
+      to_solver += " (" + static_pointer_cast<GenericDatatypeDecl>(decl)->get_name() + " " + std::to_string(static_pointer_cast<GenericDatatypeDecl>(decl)->get_param_count()) + ")";
+    }
+    to_solver += ") (";
+    shared_ptr<GenericDatatypeDecl> curr_decl;
+    shared_ptr<GenericDatatype> curr_dt;
+    for (auto decl : decls) {
+      curr_decl = static_pointer_cast<GenericDatatypeDecl>(decl);
+      curr_dt = (*name_datatype_map)[curr_decl->get_name()];
+      to_solver += "\n; " + curr_decl->get_name() + "\n";
+      if (curr_decl->get_param_count()) {
+	to_solver += "(par (";
+	for (int g = 0; g < curr_decl->get_param_count(); ++g) {
+	  to_solver += curr_decl->get_param_sorts()[g]->to_string();
+	  to_solver += " ";
+	}
+	to_solver += ")";
+      }
+      to_solver += " ( ";
+      for (auto cons : curr_dt->get_cons_vector()) {
+	to_solver += " ("
+	  + static_pointer_cast<GenericDatatypeConstructorDecl>(cons)->get_name();
+	for (auto selector : static_pointer_cast<GenericDatatypeConstructorDecl>(cons)->get_selector_vector()) {
+	  to_solver += " ( " + selector.name + " ";
+	  if (selector.sort->get_sort_kind() == UNRESOLVED)
+	    {
+	      if (static_pointer_cast<UnresolvedSort>(selector.sort)->get_params().size() > 0) {
+		to_solver += "(" + static_pointer_cast<UnresolvedSort>(selector.sort)->to_string();
+		for (auto param : static_pointer_cast<UnresolvedSort>(selector.sort)->get_params()) {
+		  to_solver += " " + param;
+		}
+		to_solver += ")";
+	      }
+	      else {
+	      to_solver += static_pointer_cast<UnresolvedSort>(selector.sort)->to_string();
+	      }
+	      
+	      
+	      
+	    }
+	  else {
+	    to_solver += selector.sort->to_string();
+	  }
+	  to_solver += ")";
+	}
+	to_solver += ")";
+      }
+      to_solver += "))";
+      
+	
+    }
+    to_solver += " ))";
+    cout << to_solver << end;
+    run_command(to_solver);
+    for (auto decl : decls) {
+      
+      
+      Sort rec_sort = make_generic_datatype_sort((*name_datatype_map)[static_pointer_cast<GenericDatatypeDecl>(decl)->get_name()]);
+      assert(name_sort_map->find(static_pointer_cast<GenericDatatypeDecl>(decl)->get_name()) == name_sort_map->end());
+      (*name_sort_map)[static_pointer_cast<GenericDatatypeDecl>(decl)->get_name()] = rec_sort;
+      (*sort_name_map)[rec_sort] = static_pointer_cast<GenericDatatypeDecl>(decl)->get_name();
+      rec_sorts.push_back(rec_sort);
+    }
+
+
+
+    return rec_sorts;
+  }
+  
 std::string GenericSolver::get_name(Term term) const
 {
   // the names of the terms are `t_i` with a running `i`.

@@ -258,8 +258,11 @@ class DatatypeComponentSort : public GenericSort
    std::string compute_string() const override;
    std::string to_string() const override;
    DatatypeDecl get_datatype_decl();
+   std::vector<std::string> get_params();
+   void insert_param(std::string new_param);
  protected:
    DatatypeDecl datatype_decl;
+   std::vector<std::string> params_vector;
    
  };
  

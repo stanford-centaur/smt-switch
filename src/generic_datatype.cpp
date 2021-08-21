@@ -35,7 +35,9 @@ std::string GenericDatatypeDecl::get_name() const { return dt_name; }
 	// Checks if the selector has already been added
 	if (param_sorts[i]->to_string() == param_name)
 	  {
-	    throw "Can't add selector. It already exists in this datatype!";
+	    //throw "Can't add selector. It already exists in this
+	    //datatype!";
+	    return;
 	  }
       }
     Sort new_param = make_generic_param_sort(param_name);

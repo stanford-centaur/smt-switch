@@ -69,6 +69,10 @@ class GenericSolver : public AbsSmtSolver
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
+  SortVec make_datatype_sorts(
+			      const std::vector<DatatypeDecl> & decls,
+			            const UnorderedSortSet & uninterp_sorts
+			      ) const override;
 
   /***************************************************************/
   /* methods from AbsSmtSolver that are implemented              */

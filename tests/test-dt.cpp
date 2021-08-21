@@ -216,19 +216,34 @@ TEST_P(DTTests, DatatypeDecl)
     s->add_selector_self(par_cons, "cdr");
     Sort par_sort = s->make_sort(par_list);
 
-
+    std::unordered_set<Sort> unresTypes;
     DatatypeDecl tree = s->make_datatype_decl("Tree");
     DatatypeDecl tree_list = s->make_datatype_decl("TreeList");
     DatatypeConstructorDecl empty_cons = s->make_datatype_constructor_decl("empty");
     s->add_constructor(tree_list, empty_cons);
     DatatypeConstructorDecl node_cons = s->make_datatype_constructor_decl("node");
     Sort tree_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree));
-    Sort tree_list_sort = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+    Sort tree_list_sort_X = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+    Sort tree_list_sort_Y = s->make_sort(UNRESOLVED, make_generic_unresolved_sort(tree_list));
+    static_pointer_cast<UnresolvedSort>(tree_sort)->insert_param("Y");
+    static_pointer_cast<UnresolvedSort>(tree_list_sort_X)->insert_param("X");
+    static_pointer_cast<UnresolvedSort>(tree_list_sort_Y)->insert_param("Y");
+
+    unresTypes.insert(tree_sort);
+    unresTypes.insert(tree_list_sort_Y);
     s->add_selector(node_cons, "value", s->make_sort(PARAM, make_generic_param_sort("X")));
-    s->add_selector(node_cons, "children", tree_list_sort);
+    s->add_constructor(tree, node_cons);
+    s->add_selector(node_cons, "children", tree_list_sort_X);
     DatatypeConstructorDecl insert_cons = s->make_datatype_constructor_decl("insert");
+
+    s->add_constructor(tree_list, insert_cons);
     s->add_selector(insert_cons, "head", tree_sort);
-    s->add_selector(insert_cons, "tail", tree_list_sort);
+    s->add_selector(insert_cons, "tail", tree_list_sort_Y);
+    std::vector<DatatypeDecl> dtdecls;
+    dtdecls.push_back(tree);
+    dtdecls.push_back(tree_list);
+    std::vector<Sort> dtsorts;
+    dtsorts = s->make_datatype_sorts(dtdecls, unresTypes);
 
 
 	 }
