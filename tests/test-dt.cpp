@@ -68,7 +68,7 @@ TEST_P(DTTests, DeclareSimpleListWithForwardRef)
   }
 
   DatatypeDecl listSpec = s->make_datatype_decl("list");
-  Sort forward_ref_listsort = s->make_sort("list", 0);
+  Sort forward_ref_listsort = s->make_datatype_sort_forward_ref(listSpec);
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
   s->add_selector(consdecl, "head", s->make_sort(INT));

@@ -92,6 +92,7 @@ class CVC4Solver : public AbsSmtSolver
   SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls,
       const UnorderedSortSet & uninterp_sorts) const override;
+  Sort make_datatype_sort_forward_ref(const DatatypeDecl & decl) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
