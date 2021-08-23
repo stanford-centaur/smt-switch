@@ -86,11 +86,6 @@ US "_"
 %nterm <smt::TermVec *> s_expr_list
 %nterm <smt::Term> atom
 %nterm <smt::Term> bvconst
-/* same as sort but if sort is null
-   stores a string.
-   originally introduced for self-referential datatypes
-*/
-%nterm <std::pair<smt::Sort, std::string>> sort_or_str
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
 %nterm <std::pair<std::string, std::size_t>> sort_dec
@@ -409,43 +404,28 @@ bvconst:
    }
 ;
 
-sort_or_str:
+sort:
    SYMBOL
    {
      smt::Sort res;
      // check built-in sort kinds first
      smt::SortKind sk = drv.lookup_sortkind($1);
-     try
+     if (sk == smt::NUM_SORT_KINDS)
      {
-        if (sk == smt::NUM_SORT_KINDS)
-        {
-          // got the dedicated null enum
-          // check defined sorts
-          res = drv.lookup_sort($1);
-        }
-        else if (sk == smt::UNINTERPRETED)
-        {
-          // uninterpreted sorts also stored with defined sorts
-          res = drv.lookup_sort($1);
-        }
-        else
-        {
-          res = drv.solver()->make_sort(sk);
-        }
+       // got the dedicated null enum
+       // check defined sorts
+       res = drv.lookup_sort($1);
      }
-     catch (SmtException & e)
+     else if (sk == smt::UNINTERPRETED)
      {
-       ;
+       // uninterpreted sorts also stored with defined sorts
+       res = drv.lookup_sort($1);
      }
-
-     std::string repr;
-     if (!res)
+     else
      {
-       // only carry along string representation
-       // if sort is null
-       repr = $1;
+       res = drv.solver()->make_sort(sk);
      }
-     $$ = {res, repr};
+     $$ = res;
    }
    | indprefix SYMBOL NAT RP
    {
@@ -453,54 +433,26 @@ sort_or_str:
      smt::SortKind sk = drv.lookup_sortkind($2);
      if (sk == smt::NUM_SORT_KINDS)
      {
-       $$ = {nullptr, "(_ " + $2 + $3 + ")"};
+       // got dedicated null enum
+       yy::parser::error(@2, std::string("Unrecognized sort: ") + $2);
+       YYERROR;
      }
-     else
-     {
-       $$ = {drv.solver()->make_sort(sk, std::stoi($3)), ""};
-     }
+     $$ = drv.solver()->make_sort(sk, std::stoi($3));
    }
    | LP SYMBOL sort_list RP
    {
      smt::SortKind sk = drv.lookup_sortkind($2);
      if (sk == smt::ARRAY)
      {
-       // this one is intended for arrays
-       $$ = {drv.solver()->make_sort(sk, $3[0], $3[1]), ""};
+     // this one is intended for arrays
+       $$ = drv.solver()->make_sort(sk, $3[0], $3[1]);
      }
      else
      {
-       try
-       {
-         // defined or declared sort
-         smt::Sort sort_con = drv.lookup_sort($2);
-         $$ = {drv.solver()->make_sort(sort_con, $3), ""};
-       }
-       catch(SmtException & e)
-       {
-         std::string repr = "(";
-         for (const auto & s : $3)
-         {
-           repr += s->to_string();
-           repr += " ";
-         }
-         repr += ")";
-
-         $$ = {nullptr, repr};
-       }
+       // defined or declared sort
+       smt::Sort sort_con = drv.lookup_sort($2);
+       $$ = drv.solver()->make_sort(sort_con, $3);
      }
-   }
-;
-
-sort:
-   sort_or_str
-   {
-     if (!$1.first)
-     {
-       yy::parser::error(@1, "Unknown sort: " + $1.second);
-       YYERROR;
-     }
-     $$ = $1.first;
    }
 ;
 
