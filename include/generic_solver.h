@@ -112,6 +112,7 @@ class GenericSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   void reset_assertions() override;
 
  protected:
@@ -242,6 +243,10 @@ class GenericSolver : public AbsSmtSolver
   // buffer sizes
   uint write_buf_size;
   uint read_buf_size;
+
+  // tracks the context level of the solver
+  // (e.g., number of pushes - number of pops)
+  uint64_t context_level_;
 
   // maps between sort name and actual sort and vice versa
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;

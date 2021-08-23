@@ -40,7 +40,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0)
+  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0), context_level(0)
   {
     // Had to move yices_init to the Factory
     // yices_init();
@@ -70,6 +70,7 @@ class Yices2Solver : public AbsSmtSolver
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -127,8 +128,10 @@ class Yices2Solver : public AbsSmtSolver
   mutable ctx_config_t * config;
 
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
-  size_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
-                              ///< status
+  uint64_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
+                                ///< status
+
+  uint64_t context_level;  ///< incremental solving context
 
   std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration
