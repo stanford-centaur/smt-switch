@@ -627,6 +627,7 @@ cons_list:
    | cons_list LP SYMBOL RP
    {
      $1.push_back($3);
+     $$ = $1;
    }
 ;
 
