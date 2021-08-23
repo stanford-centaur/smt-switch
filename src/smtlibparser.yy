@@ -168,7 +168,7 @@ command:
     if ($4.size() > 1)
     {
       // generalize this
-      yy::parser::error(@4, "Only support a single datatype declaration at a time currently");
+      smtlib::parser::error(@4, "Only support a single datatype declaration at a time currently");
       YYERROR;
     }
     // TODO need to support parameters
