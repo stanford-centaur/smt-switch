@@ -496,14 +496,16 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   return tmpvar;
 }
 
-void SmtLibReader::define_sort(const string & name, const Sort & sort)
+void SmtLibReader::define_sort(const string & name,
+                               const Sort & sort,
+                               bool redefine)
 {
   if (sortkinds_.find(name) != sortkinds_.end())
   {
     throw IncorrectUsageException("Cannot define sort " + name + " in logic "
                                   + logic_);
   }
-  else if (defined_sorts_.find(name) != defined_sorts_.end())
+  else if (!redefine && defined_sorts_.find(name) != defined_sorts_.end())
   {
     throw SmtException("Cannot re-define sort with name " + name);
   }

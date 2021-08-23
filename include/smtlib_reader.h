@@ -267,9 +267,14 @@ class SmtLibReader
    *  TODO fix these limitations
    *  @param name the name of the defined sort
    *  @param sort the sort to associate name with
+   *  @param redefine allow overwriting a previous definition
+   *         (originally added for mutually recursive datatypes
+   *          that have an initial, unresolved sort as a forward
+   *          reference and are later updated with the actual sort.)
    */
   void define_sort(const std::string & name,
-                   const smt::Sort & sort);
+                   const smt::Sort & sort,
+                   bool redefine = false);
 
   /** Looks up a defined sort by name
    *  @param name the name to look up

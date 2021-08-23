@@ -102,6 +102,7 @@ EP "!"
 %nterm <std::string> number
 %nterm <std::string> number_or_string
 %nterm indprefix
+%nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypedecls
 %nterm <std::vector<std::string>> cons_list
 
 %nterm <std::string> spec_constant
@@ -163,34 +164,30 @@ command:
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
-  | LP DECLAREDATATYPES LP sort_decs RP LP LP cons_list RP RP RP
+  | LP DECLAREDATATYPES datatypedecls LP LP cons_list RP RP RP
   {
-    if ($4.size() > 1)
-    {
-      // generalize this
-      smtlib::parser::error(@4, "Only support a single datatype declaration at a time currently");
-      YYERROR;
-    }
-    // TODO need to support parameters
+    // TODO add parameter support
     smt::SmtSolver & solver = drv.solver();
-    std::string sortname = $4[0].first;
-    smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
-    for (const auto & c : $8)
+    smt::DatatypeDecl dtspec = $3[0].first;
+    smt::Sort fwd_ref = $3[0].second;
+    assert(dtspec);
+    std::string sortname = fwd_ref->get_uninterpreted_name();
+    for (const auto & c : $6)
     {
       smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c);
       solver->add_constructor(dtspec, condecl);
     }
 
-    // create the sort and record the mapping
-    smt::Sort dtsort = solver->make_sort(dtspec);
-    drv.define_sort(sortname, dtsort);
+    // resolve the finished datatype sort and record the mapping
+    smt::Sort dtsort = solver->make_datatype_sort(dtspec, drv.lookup_sort(sortname));
+    drv.define_sort(sortname, dtsort, true); // boolean flag allows redefining
 
     // using define-fun to record names of constructor
     // used later to get term back
     // Note: even though we have get_constructor,
     // it needs to know which sort the constructor is affiliated with
     // plus this fits into parser infrastructure better
-    for (const auto & c : $8)
+    for (const auto & c : $6)
     {
       drv.define_fun(c, solver->get_constructor(dtsort, c));
     }
@@ -614,6 +611,27 @@ number_or_string:
 indprefix:
    LP US
    {}
+;
+
+datatypedecls:
+   LP sort_decs RP
+   {
+      if ($2.size() > 1)
+      {
+        // TODO generalize this to handle multiple
+        smtlib::parser::error(@2, "Only support a single datatype declaration at a time currently");
+        YYERROR;
+      }
+
+      smt::SmtSolver & solver = drv.solver();
+      std::string sortname = $2[0].first;
+      smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
+      smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
+      drv.define_sort(sortname, dtfwdref);
+      assert(dtspec);
+      smt::DatatypeDecl testdecl = dtspec;
+      $$ = {{dtspec, dtfwdref}};
+   }
 ;
 
 cons_list:
