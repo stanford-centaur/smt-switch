@@ -81,7 +81,7 @@ int SmtLibReader::parse(const std::string & f)
   int res;
   try
   {
-    yy::parser parse(*this);
+    smtlib::parser parse(*this);
     // commented from calc++ example
     // parse.set_debug_level (trace_parsing);
     res = parse();
@@ -98,6 +98,12 @@ int SmtLibReader::parse(const std::string & f)
 
 void SmtLibReader::set_logic(const string & logic)
 {
+  if (logic == "ALL")
+  {
+    set_logic_all();
+    return;
+  }
+
   solver_->set_logic(logic);
   logic_ = logic;
 
@@ -186,6 +192,53 @@ void SmtLibReader::set_logic(const string & logic)
   }
 }
 
+void SmtLibReader::set_logic_all()
+{
+  try
+  {
+    solver_->set_logic("ALL");
+  }
+  catch (SmtException & e)
+  {
+    ;
+  }
+
+  logic_ = "ALL";
+
+  // enable UFs manually
+  allow_ufs_ = true;
+
+  // add all strict operators
+  for (const auto & tmap : strict_theory2opmap)
+  {
+    for (const auto & elem : tmap.second)
+    {
+      primops_.insert(elem);
+    }
+  }
+
+  // add sorts
+  for (const auto & elem : logic_sortkind_map)
+  {
+    for (const SortKind & sk : elem.second)
+    {
+      sortkinds_[smt::to_string(sk)] = sk;
+    }
+  }
+
+  if (!strict_)
+  {
+    // add non-strict operators
+    for (const auto & tmap : nonstrict_theory2opmap)
+    {
+      for (const auto & elem : tmap.second)
+      {
+        primops_.insert(elem);
+      }
+    }
+  }
+}
+
 void SmtLibReader::set_opt(const string & key, const string & val)
 {
   solver_->set_opt(key, val);
@@ -231,6 +284,13 @@ void SmtLibReader::pop(uint64_t num)
     global_symbols_.pop_scope();
   }
   solver_->pop(num);
+}
+
+void SmtLibReader::term_attribute(const Term & term,
+                                  const string & keyword,
+                                  const string & value)
+{
+  cerr << "Warning: ignoring attribute :" << keyword << " " << value << endl;
 }
 
 void SmtLibReader::push_scope()

@@ -36,6 +36,24 @@ Result AbsSmtSolver::check_sat_assuming_set(
       "check_sat_assuming_set not implemented by default");
 }
 
+SortVec AbsSmtSolver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls,
+    const UnorderedSortSet & uninterp_sorts) const
+{
+  throw NotImplementedException(
+      "make_datatype_sorts for mutually recursive datatypes not yet implementd "
+      "by "
+      + to_string(solver_enum));
+}
+
+Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl,
+                                      const Sort & uninterp_sort) const
+{
+  SortVec datatype_sorts = make_datatype_sorts({ decl }, { uninterp_sort });
+  assert(datatype_sorts.size() == 1);
+  return datatype_sorts[0];
+}
+
 Term AbsSmtSolver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {

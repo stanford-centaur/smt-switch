@@ -713,9 +713,9 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   if (!MSAT_ERROR_DECL(decl))
   {
     // symbol already exists
-    string msg("Symbol ");
+    string msg("Symbol name ");
     msg += name;
-    msg += " already exists.";
+    msg += " has already used.";
     throw IncorrectUsageException(msg);
   }
 
@@ -750,6 +750,27 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     }
     return std::make_shared<MsatTerm> (env, res);
   }
+}
+
+Term MsatSolver::get_symbol(const std::string & name)
+{
+  msat_decl decl = msat_find_decl(env, name.c_str());
+  if (MSAT_ERROR_DECL(decl))
+  {
+    // symbol already exists
+    string msg("Symbol named ");
+    msg += name;
+    msg += " does not exist.";
+    throw IncorrectUsageException(msg);
+  }
+
+  msat_term res = msat_make_constant(env, decl);
+  if (MSAT_ERROR_TERM(res))
+  {
+    // assume it is a function
+    return std::make_shared<MsatTerm>(env, decl);
+  }
+  return std::make_shared<MsatTerm>(env, res);
 }
 
 Term MsatSolver::make_param(const std::string name, const Sort & sort)

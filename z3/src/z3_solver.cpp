@@ -113,7 +113,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   // which param the z3 api expects, it's worth discussing what options we think
   // should go in these lists to start and obviously it is very easy to add more
   // down the line
-  unordered_set<string> bool_opts = { "produce-models", "produce-proofs" };
+  unordered_set<string> bool_opts = { "produce-proofs" };
   unordered_set<string> string_opts = {};
   unordered_set<string> int_opts = {};
 
@@ -123,6 +123,22 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     {
       throw IncorrectUsageException(
           "Z3 backend is always incremental -- it cannot be disabled.");
+    }
+  }
+  else if (option == "produce-models")
+  {
+    if (value == "true")
+    {
+      slv.set("model", true);
+    }
+    else if (value == "false")
+    {
+      slv.set("model", false);
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "produce-models takes values true or false");
     }
   }
   else if (bool_opts.find(option) != bool_opts.end())
@@ -609,16 +625,16 @@ Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 {
-  if (symbols.find(name) != symbols.end())
+  if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
-  symbols.insert(name);
 
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
   const char * c = name.c_str();
   z3::symbol z_name = ctx.str_symbol(c);
 
+  Term sym;
   if (zsort->get_sort_kind() == FUNCTION)
   {
     // nb this is creating a func_decl
@@ -631,15 +647,28 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
     }
 
     func_decl z_func = ctx.function(c, domain, sort_func.range());
-    return std::make_shared<Z3Term>(z_func, ctx);
+    sym = std::make_shared<Z3Term>(z_func, ctx);
   }
   else
   {
     // nb this is creating an expr
     expr z_term = ctx.constant(z_name, zsort->type);
 
-    return std::make_shared<Z3Term>(z_term, ctx);
+    sym = std::make_shared<Z3Term>(z_term, ctx);
   }
+  assert(sym);
+  symbol_table[name] = sym;
+  return sym;
+}
+
+Term Z3Solver::get_symbol(const std::string & name)
+{
+  auto it = symbol_table.find(name);
+  if (it == symbol_table.end())
+  {
+    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+  }
+  return it->second;
 }
 
 Term Z3Solver::make_param(const std::string name, const Sort & sort)

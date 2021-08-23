@@ -178,9 +178,6 @@ TEST_P(TranslationTests, And)
   TermTranslator to_s2(s2);
 
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(a)] = a;
-  cache[to_s2.transfer_term(b)] = b;
 
   Term a_and_b_2 = to_s2.transfer_term(a_and_b);
   Term a_and_b_1 = to_s1.transfer_term(a_and_b_2);
@@ -193,9 +190,6 @@ TEST_P(TranslationTests, Equal)
   TermTranslator to_s2(s2);
 
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(a)] = a;
-  cache[to_s2.transfer_term(b)] = b;
 
   Term a_equal_b_2 = to_s2.transfer_term(a_equal_b);
   // need to specify expected sortkind
@@ -218,10 +212,6 @@ TEST_P(TranslationTests, Ite)
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(a)] = a;
-  cache[to_s2.transfer_term(x)] = x;
-  cache[to_s2.transfer_term(y)] = y;
 
   Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
   Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
@@ -239,9 +229,6 @@ TEST_P(TranslationTests, Concat)
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(x)] = x;
-  cache[to_s2.transfer_term(y)] = y;
 
   Term concat_term_2 = to_s2.transfer_term(concat_term);
   Term concat_term_1 = to_s1.transfer_term(concat_term_2);
@@ -258,8 +245,6 @@ TEST_P(TranslationTests, Extract)
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(a)] = a;
 
   Term ext_bv_a_2 = to_s2.transfer_term(ext_bv_a);
   // expect it to be a BV
@@ -302,11 +287,6 @@ TEST_P(TranslationTests, UninterpretedSort)
   Term fv_2 = to_s2.transfer_term(fv);
   EXPECT_EQ(fv_2->get_op(), Apply);
 
-  // populate cache with symbols for back translation
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(v)] = v;
-  cache[to_s2.transfer_term(f)] = f;
-
   Term fv_1 = to_s1.transfer_term(fv_2);
   EXPECT_EQ(fv, fv_1);
 }
@@ -321,10 +301,6 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
-  UnorderedTermMap & cache = to_s1.get_cache();
-  cache[to_s2.transfer_term(arr)] = arr;
-  cache[to_s2.transfer_term(x)] = x;
-  cache[to_s2.transfer_term(y)] = y;
 
   Term stores_2 = to_s2.transfer_term(stores);
   Term stores_1 = to_s1.transfer_term(stores_2);

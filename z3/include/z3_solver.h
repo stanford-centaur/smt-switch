@@ -98,6 +98,7 @@ class Z3Solver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const Term & t) const override;
@@ -120,7 +121,7 @@ class Z3Solver : public AbsSmtSolver
  protected:
   mutable z3::context ctx;
   mutable z3::solver slv;
-  std::unordered_set<std::string> symbols;
+  std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
   ///< re-declaring
 

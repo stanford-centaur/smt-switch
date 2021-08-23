@@ -90,6 +90,7 @@ class GenericSolver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   Term make_term(const Op op, const Term & t) const override;
   Term make_term(const Op op, const Term & t0, const Term & t1) const override;
@@ -242,14 +243,14 @@ class GenericSolver : public AbsSmtSolver
   uint write_buf_size;
   uint read_buf_size;
 
-  // maps between sort name and actual sort and vice verse
+  // maps between sort name and actual sort and vice versa
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;
   std::unique_ptr<std::unordered_map<Sort, std::string>> sort_name_map;
 
   // internal counter for naming terms
   uint * term_counter;
 
-  // maps between sort name and actual sort and vice verse
+  // maps between Term name and actual Term and vice versa
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
 
