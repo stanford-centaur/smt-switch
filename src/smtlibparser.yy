@@ -103,7 +103,9 @@ EP "!"
 %nterm <std::string> number_or_string
 %nterm indprefix
 %nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypedecls
-%nterm <std::vector<std::string>> cons_list
+%nterm <std::vector<std::pair<std::string,
+        std::vector<std::pair<std::string, smt::Sort>>>>> cons_list
+%nterm <std::vector<std::pair<std::string, smt::Sort>>> sel_list
 
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
@@ -174,8 +176,12 @@ command:
     std::string sortname = fwd_ref->get_uninterpreted_name();
     for (const auto & c : $6)
     {
-      smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c);
+      smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c.first);
       solver->add_constructor(dtspec, condecl);
+      for (const auto & sel : c.second)
+      {
+        solver->add_selector(condecl, sel.first, sel.second);
+      }
     }
 
     // resolve the finished datatype sort and record the mapping
@@ -189,7 +195,7 @@ command:
     // plus this fits into parser infrastructure better
     for (const auto & c : $6)
     {
-      drv.define_fun(c, solver->get_constructor(dtsort, c));
+      drv.define_fun(c.first, solver->get_constructor(dtsort, c.first));
     }
   }
   | LP DEFINEFUN
@@ -635,16 +641,32 @@ datatypedecls:
 ;
 
 cons_list:
-   LP SYMBOL RP
+   LP SYMBOL sel_list RP
    {
      // not expecing large vectors
      // don't worry about copies (i.e., don't need a pointer)
-     std::vector<std::string> vec({$2});
+     std::vector<std::pair<std::string,
+                 std::vector<std::pair<std::string, smt::Sort>>>> vec({{$2, $3}});
      $$ = vec;
    }
-   | cons_list LP SYMBOL RP
+   | cons_list LP SYMBOL sel_list RP
    {
-     $1.push_back($3);
+     $1.push_back({$3, $4});
+     $$ = $1;
+   }
+;
+
+sel_list:
+   %empty
+   {
+     // not expecing large vectors
+     // don't worry about copies (i.e., don't need a pointer)
+     std::vector<std::pair<std::string, smt::Sort>> vec;
+     $$ = vec;
+   }
+   | sel_list LP SYMBOL sort RP
+   {
+     $1.push_back({$3, $4});
      $$ = $1;
    }
 ;
