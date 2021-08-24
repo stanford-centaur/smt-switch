@@ -32,8 +32,8 @@ const std::unordered_map<SortKind, std::string> sortkind2str(
       { FUNCTION, "Function" },
       { UNINTERPRETED, "Uninterpreted" },
       { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
-	{ DATATYPE, "Datatype" },
-	  {PARAM, "Parameterized"}});
+      { DATATYPE, "Datatype" },
+      { PARAM, "Parameterized" } });
 
 std::string to_string(SortKind sk)
 {
