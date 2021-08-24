@@ -36,6 +36,7 @@ Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
 Sort make_generic_sort(Datatype dt);
+Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt);
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -205,6 +206,30 @@ class GenericDatatypeSort : public GenericSort
 
  protected:
   Datatype gdt;
+};
+
+/* This class defines a sort class that can represent constructors,
+   selectors, and testers. Sorts of this variety are primarily used to
+   build generic terms representing constructors, selectors, and testers.
+ */
+class DatatypeComponentSort : public GenericSort
+{
+ public:
+  DatatypeComponentSort(SortKind sk, std::string name, Sort dt);
+  ~DatatypeComponentSort(){};
+  std::string compute_string() const override;
+  std::string to_string() const override;
+  std::string get_uninterpreted_name() const override;
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+  void set_selector_sort(Sort new_selector_sort);
+  int get_num_selectors() const;
+  Datatype get_datatype() const override;
+
+ protected:
+  std::string name;
+  Sort dt_sort;
+  Sort selector_sort;
 };
 
 }  // namespace smt

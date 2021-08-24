@@ -121,6 +121,18 @@ TEST_P(DTTests, DatatypeDecl)
     DatatypeConstructorDecl countercons =
         s->make_datatype_constructor_decl("countercons");
     s->add_constructor(counterdecl, countercons);
+
+    DatatypeConstructorDecl nonAddCons =
+        s->make_datatype_constructor_decl("nonAddCons");
+    shared_ptr<SelectorComponents> newSelector =
+        make_shared<SelectorComponents>();
+    newSelector->name = "nonaddselector";
+    newSelector->sort = s->make_sort(INT);
+    shared_ptr<GenericDatatype> nonAddDT =
+        make_shared<GenericDatatype>(consListSpec);
+    EXPECT_THROW(nonAddDT->add_selector(nonAddCons, *newSelector),
+                 InternalSolverException);
+
     Sort countersort = s->make_sort(counterdecl);
 
     assert(countersort->get_sort_kind() == DATATYPE);
@@ -129,47 +141,47 @@ TEST_P(DTTests, DatatypeDecl)
 
     Datatype listdt = listsort->get_datatype();
 
-    if (s->get_solver_enum() != GENERIC_SOLVER)
-    {
-      Term five = s->make_term(5, intsort);
-      // Make datatype terms
-      Term cons = s->get_constructor(listsort, "cons");
-      assert("cons" == cons->to_string());
-      Term nil = s->get_constructor(listsort, "nil");
-      Term head = s->get_selector(listsort, "cons", "head");
+    Term five = s->make_term(5, intsort);
+    // Make datatype terms
+    Term cons = s->get_constructor(listsort, "cons");
+    assert("cons" == cons->to_string());
+    Term nil = s->get_constructor(listsort, "nil");
 
-      Term tail = s->get_selector(listsort, "cons", "tail");
+    Term head = s->get_selector(listsort, "cons", "head");
 
-      Term isNil = s->get_tester(listsort, "nil");
+    Term tail = s->get_selector(listsort, "cons", "tail");
 
-      // Datatype ops
+    Term isNil = s->get_tester(listsort, "nil");
 
-      Term nilterm = s->make_term(Apply_Constructor, nil);
-      Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
-      Term five_again = s->make_term(Apply_Selector, head, list5);
+    // Datatype ops
+    Term nilterm = s->make_term(Apply_Constructor, nil);
+    Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
+    Term five_again = s->make_term(Apply_Selector, head, list5);
 
-      // Expected booleans
-      s->assert_formula(s->make_term(Equal, five, five_again));
-      s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
-      s->assert_formula(
-          s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
+    // Expected booleans
 
-      Result res = s->check_sat();
+    s->assert_formula(s->make_term(Equal, five, five_again));
 
-      ASSERT_TRUE(listdt->get_name() == "list");
-      ASSERT_TRUE(listdt->get_num_constructors() == 2);
-      ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
-      ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
+    s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
 
-      ASSERT_TRUE(res.is_sat());
-      // Expected exceptions
-      EXPECT_THROW(s->get_constructor(listsort, "kons"),
-                   InternalSolverException);
-      EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
-      EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
-                   InternalSolverException);
-      EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
-    }
+    s->assert_formula(
+        s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
+
+    Result res = s->check_sat();
+
+    ASSERT_TRUE(listdt->get_name() == "list");
+    ASSERT_TRUE(listdt->get_num_constructors() == 2);
+    ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
+    ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
+
+    ASSERT_TRUE(res.is_sat());
+    // Expected exceptions
+
+    EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
+    EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
+    EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
+                 InternalSolverException);
+    EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDTTests,
