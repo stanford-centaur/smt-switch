@@ -76,9 +76,9 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DECLARESORT DECLAREDATATYPES DEFINEFUN DEFINESORT ASSERT
-       CHECKSAT CHECKSATASSUMING PUSH POP EXIT GETVALUE
-       GETUNSATASSUMP ECHO
+       DECLARESORT DECLAREDATATYPE DECLAREDATATYPES DEFINEFUN
+       DEFINESORT ASSERT CHECKSAT CHECKSATASSUMING PUSH POP
+       EXIT GETVALUE GETUNSATASSUMP ECHO
 %token ASCONST LET
 %token <std::string> KEYWORD
 %token <std::string> QUANTIFIER
@@ -108,6 +108,7 @@ EP "!"
 %nterm <std::string> number
 %nterm <std::string> number_or_string
 %nterm indprefix
+%nterm <std::pair<smt::DatatypeDecl, smt::Sort>> datatypesym
 %nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypesorts
 %nterm <smt::ConstructorDecVec> cons_list
 %nterm <smt::SelectorDecVec> sel_list
@@ -171,13 +172,21 @@ command:
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
+  | LP DECLAREDATATYPE datatypesym LP cons_list RP RP
+  {
+    smt::SmtSolver & solver = drv.solver();
+    smt::DatatypeDecl dtspec = $3.first;
+    smt::Sort fwd_ref = $3.second;
+    assert(dtspec); assert(fwd_ref);
+    drv.declare_datatype(dtspec, fwd_ref, $5);
+  }
   | LP DECLAREDATATYPES datatypesorts LP LP cons_list RP RP RP
   {
     // TODO add parameter support
     smt::SmtSolver & solver = drv.solver();
     smt::DatatypeDecl dtspec = $3[0].first;
     smt::Sort fwd_ref = $3[0].second;
-    assert(dtspec);
+    assert(dtspec); assert(fwd_ref);
     drv.declare_datatype(dtspec, fwd_ref, $6);
   }
   | LP DEFINEFUN
@@ -616,6 +625,18 @@ indprefix:
    {}
 ;
 
+datatypesym:
+   SYMBOL
+   {
+      smt::SmtSolver & solver = drv.solver();
+      smt::DatatypeDecl dtspec = solver->make_datatype_decl($1);
+      smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
+      drv.define_sort($1, dtfwdref);
+      assert(dtspec);
+      $$ = {dtspec, dtfwdref};
+   }
+;
+
 datatypesorts:
    LP sort_decs RP
    {
@@ -632,7 +653,6 @@ datatypesorts:
       smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
       drv.define_sort(sortname, dtfwdref);
       assert(dtspec);
-      smt::DatatypeDecl testdecl = dtspec;
       $$ = {{dtspec, dtfwdref}};
    }
 ;
