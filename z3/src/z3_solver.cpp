@@ -440,9 +440,16 @@ void Z3Solver::push(uint64_t num)
   {
     slv.push();
   }
+  context_level += num;
 }
 
-void Z3Solver::pop(uint64_t num) { slv.pop(num); }
+void Z3Solver::pop(uint64_t num)
+{
+  slv.pop(num);
+  context_level -= num;
+}
+
+uint64_t Z3Solver::get_context_level() const { return context_level; }
 
 Term Z3Solver::get_value(const Term & t) const
 {

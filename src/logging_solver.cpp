@@ -643,6 +643,11 @@ void LoggingSolver::push(uint64_t num) { wrapped_solver->push(num); }
 
 void LoggingSolver::pop(uint64_t num) { wrapped_solver->pop(num); }
 
+uint64_t LoggingSolver::get_context_level() const
+{
+  return wrapped_solver->get_context_level();
+}
+
 void LoggingSolver::reset_assertions() { wrapped_solver->reset_assertions(); }
 
 }  // namespace smt

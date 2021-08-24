@@ -44,7 +44,7 @@ namespace smt {
 class CVC4Solver : public AbsSmtSolver
 {
  public:
-  CVC4Solver() : AbsSmtSolver(CVC4), solver()
+  CVC4Solver() : AbsSmtSolver(CVC4), solver(), context_level(0)
   {
     solver.setOption("lang", "smt2");
     solver.setOption("bv-print-consts-as-indexed-symbols", "true");
@@ -61,6 +61,7 @@ class CVC4Solver : public AbsSmtSolver
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -127,6 +128,8 @@ class CVC4Solver : public AbsSmtSolver
   ::CVC4::api::Solver solver;
 
   std::unordered_map<std::string, Term> symbol_table;
+
+  uint64_t context_level;
 
   // helper function
   inline Result check_sat_assuming(

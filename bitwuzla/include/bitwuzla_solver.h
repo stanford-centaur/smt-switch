@@ -35,7 +35,7 @@ namespace smt {
 class BzlaSolver : public AbsSmtSolver
 {
  public:
-  BzlaSolver() : AbsSmtSolver(BZLA), bzla(bitwuzla_new())
+  BzlaSolver() : AbsSmtSolver(BZLA), bzla(bitwuzla_new()), context_level(0)
   {
     // set termination function -- throw an exception
     auto throw_exception = [](const char * msg) -> void {
@@ -60,6 +60,7 @@ class BzlaSolver : public AbsSmtSolver
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -130,6 +131,8 @@ class BzlaSolver : public AbsSmtSolver
   Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
+
+  uint64_t context_level;
 
   // helper functions
   template <class I>

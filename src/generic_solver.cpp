@@ -74,6 +74,7 @@ GenericSolver::GenericSolver(string path,
       cmd_line_args(cmd_line_args),
       write_buf_size(write_buf_size),
       read_buf_size(read_buf_size),
+      context_level_(0),
       name_sort_map(new unordered_map<string, Sort>()),
       sort_name_map(new unordered_map<Sort, string>()),
       name_term_map(new unordered_map<string, Term>()),
@@ -1318,12 +1319,16 @@ void GenericSolver::push(uint64_t num)
   {
     string result =
         run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+    context_level_ += num;
   }
 
 void GenericSolver::pop(uint64_t num)
 {
   string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  context_level_ -= num;
 }
+
+uint64_t GenericSolver::get_context_level() const { return context_level_; }
 
 void GenericSolver::reset_assertions()
   {
