@@ -102,7 +102,7 @@ EP "!"
 %nterm <std::string> number
 %nterm <std::string> number_or_string
 %nterm indprefix
-%nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypedecls
+%nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypesorts
 %nterm <std::vector<std::pair<std::string,
         std::vector<std::pair<std::string, smt::Sort>>>>> cons_list
 %nterm <std::vector<std::pair<std::string, smt::Sort>>> sel_list
@@ -166,7 +166,7 @@ command:
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
   }
-  | LP DECLAREDATATYPES datatypedecls LP LP cons_list RP RP RP
+  | LP DECLAREDATATYPES datatypesorts LP LP cons_list RP RP RP
   {
     // TODO add parameter support
     smt::SmtSolver & solver = drv.solver();
@@ -638,7 +638,7 @@ indprefix:
    {}
 ;
 
-datatypedecls:
+datatypesorts:
    LP sort_decs RP
    {
       if ($2.size() > 1)
