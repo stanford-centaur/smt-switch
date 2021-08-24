@@ -365,6 +365,44 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
   all_symbols_[name] = fresh_symbol;
 }
 
+Term SmtLibReader::lookup_constructor(const string & sym) const
+{
+  auto it = constructors_.find(sym);
+  if (it == constructors_.end())
+  {
+    throw SmtException("No constructor named: " + sym);
+  }
+  return it->second;
+}
+
+void SmtLibReader::define_constructor(const string & sym, const Term & cons)
+{
+  if (constructors_.find(sym) == constructors_.end())
+  {
+    throw SmtException("Constructor named " + sym + " already defined");
+  }
+  constructors_[sym] = cons;
+}
+
+Term SmtLibReader::lookup_selector(const string & sym) const
+{
+  auto it = selectors_.find(sym);
+  if (it == selectors_.end())
+  {
+    throw SmtException("No selector named: " + sym);
+  }
+  return it->second;
+}
+
+void SmtLibReader::define_selector(const string & sym, const Term & sel)
+{
+  if (selectors_.find(sym) == selectors_.end())
+  {
+    throw SmtException("Selector named " + sym + " already defined");
+  }
+  selectors_[sym] = sel;
+}
+
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
 {
   auto it = primops_.find(str);

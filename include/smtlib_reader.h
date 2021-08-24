@@ -200,6 +200,14 @@ class SmtLibReader
    */
   virtual void new_symbol(const std::string & name, const smt::Sort & sort);
 
+  smt::Term lookup_constructor(const std::string & sym) const;
+
+  void define_constructor(const std::string & sym, const smt::Term & cons);
+
+  smt::Term lookup_selector(const std::string & sym) const;
+
+  void define_selector(const std::string & sym, const smt::Term & sel);
+
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
    *  @return the associated PrimOp
@@ -355,6 +363,11 @@ class SmtLibReader
                       ///< (might be out of bounds, which means a new
                       ///<  tmp argument is needed)
                       ///< that is currently unused in this scope
+
+  std::unordered_map<std::string, smt::Term>
+      constructors_;  ///< datatype constructors
+  std::unordered_map<std::string, smt::Term>
+      selectors_;  ///< datatype selectors
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
