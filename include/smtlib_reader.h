@@ -200,10 +200,20 @@ class SmtLibReader
    */
   virtual void new_symbol(const std::string & name, const smt::Sort & sort);
 
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
   smt::Term lookup_constructor(const std::string & sym) const;
 
   void define_constructor(const std::string & sym, const smt::Term & cons);
 
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
   smt::Term lookup_selector(const std::string & sym) const;
 
   void define_selector(const std::string & sym, const smt::Term & sel);

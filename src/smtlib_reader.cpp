@@ -367,17 +367,18 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
 
 Term SmtLibReader::lookup_constructor(const string & sym) const
 {
+  Term res;
   auto it = constructors_.find(sym);
-  if (it == constructors_.end())
+  if (it != constructors_.end())
   {
-    throw SmtException("No constructor named: " + sym);
+    res = it->second;
   }
-  return it->second;
+  return res;
 }
 
 void SmtLibReader::define_constructor(const string & sym, const Term & cons)
 {
-  if (constructors_.find(sym) == constructors_.end())
+  if (constructors_.find(sym) != constructors_.end())
   {
     throw SmtException("Constructor named " + sym + " already defined");
   }
@@ -386,17 +387,18 @@ void SmtLibReader::define_constructor(const string & sym, const Term & cons)
 
 Term SmtLibReader::lookup_selector(const string & sym) const
 {
+  Term res;
   auto it = selectors_.find(sym);
-  if (it == selectors_.end())
+  if (it != selectors_.end())
   {
-    throw SmtException("No selector named: " + sym);
+    res = it->second;
   }
-  return it->second;
+  return res;
 }
 
 void SmtLibReader::define_selector(const string & sym, const Term & sel)
 {
-  if (selectors_.find(sym) == selectors_.end())
+  if (selectors_.find(sym) != selectors_.end())
   {
     throw SmtException("Selector named " + sym + " already defined");
   }
@@ -432,7 +434,8 @@ pair<PrimOp, Term> SmtLibReader::lookup_apply_op_term(const string & s0,
 
   PrimOp po = Apply_Tester;
   // there should be an affiliated constructor
-  Term constructor = lookup_symbol(s1);
+  Term constructor = lookup_constructor(s1);
+  assert(constructor);
   // get datatype sort from the constructor
   Sort dtsort = constructor->get_sort()->get_codomain_sort();
   Term tester = solver_->get_tester(dtsort, s1);

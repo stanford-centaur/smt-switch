@@ -195,7 +195,11 @@ command:
     // plus this fits into parser infrastructure better
     for (const auto & c : $6)
     {
-      drv.define_fun(c.first, solver->get_constructor(dtsort, c.first));
+      drv.define_constructor(c.first, solver->get_constructor(dtsort, c.first));
+      for (const auto & sel : c.second)
+      {
+        drv.define_selector(sel.first, solver->get_selector(dtsort, c.first, sel.first));
+      }
     }
   }
   | LP DEFINEFUN
@@ -302,7 +306,7 @@ term_s_expr:
   | LP SYMBOL term_s_expr_list RP
   {
     smt::PrimOp po;
-    smt::Term uf;
+    smt::Term apply_term; // UF, or datatype constructor/selector
 
     // check if it's a known operator in the given logic
     if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
@@ -320,11 +324,26 @@ term_s_expr:
          $$ = drv.solver()->make_term(po, *$3);
        }
     }
-    else if (uf = drv.lookup_symbol($2))
+    else if (apply_term = drv.lookup_symbol($2))
     {
-      smt::TermVec vec({uf});
+      // UF
+      smt::TermVec vec({apply_term});
       vec.insert(vec.end(), $3->begin(), $3->end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
+    }
+    else if (apply_term = drv.lookup_selector($2))
+    {
+      // Datatype Selector
+      smt::TermVec vec({apply_term});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(smt::Apply_Selector, vec);
+    }
+    else if (apply_term = drv.lookup_constructor($2))
+    {
+      // Datatype Constructor
+      smt::TermVec vec({apply_term});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(smt::Apply_Constructor, vec);
     }
     else
     {
