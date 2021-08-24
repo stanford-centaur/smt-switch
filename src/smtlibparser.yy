@@ -110,6 +110,7 @@ EP "!"
 %nterm indprefix
 %nterm <std::pair<smt::DatatypeDecl, smt::Sort>> datatypesym
 %nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypesorts
+%nterm <std::vector<smt::ConstructorDecVec>> datatypedecs
 %nterm <smt::ConstructorDecVec> cons_list
 %nterm <smt::SelectorDecVec> sel_list
 
@@ -180,14 +181,26 @@ command:
     assert(dtspec); assert(fwd_ref);
     drv.declare_datatype(dtspec, fwd_ref, $5);
   }
-  | LP DECLAREDATATYPES datatypesorts LP LP cons_list RP RP RP
+  | LP DECLAREDATATYPES datatypesorts LP LP datatypedecs RP RP RP
   {
-    // TODO add parameter support
+    size_t num_sorts = $3.size();
+    size_t num_decs  = $6.size();
+    if (num_sorts != num_decs)
+    {
+      smtlib::parser::error(@1, std::string("Declare datatypes needs "
+      "same number of sort and datatype declarations but got " +
+      std::to_string(num_sorts) + " and " + std::to_string(num_decs)));
+      YYERROR;
+    }
+
     smt::SmtSolver & solver = drv.solver();
-    smt::DatatypeDecl dtspec = $3[0].first;
-    smt::Sort fwd_ref = $3[0].second;
-    assert(dtspec); assert(fwd_ref);
-    drv.declare_datatype(dtspec, fwd_ref, $6);
+    for (size_t i = 0; i < num_sorts; i++)
+    {
+      smt::DatatypeDecl dtspec = $3[i].first;
+      smt::Sort fwd_ref = $3[i].second;
+      assert(dtspec); assert(fwd_ref);
+      drv.declare_datatype(dtspec, fwd_ref, $6[i]);
+    }
   }
   | LP DEFINEFUN
      {
@@ -640,21 +653,39 @@ datatypesym:
 datatypesorts:
    LP sort_decs RP
    {
-      if ($2.size() > 1)
-      {
-        // TODO generalize this to handle multiple
-        smtlib::parser::error(@2, "Only support a single datatype declaration at a time currently");
-        YYERROR;
-      }
-
+      std::vector<std::pair<smt::DatatypeDecl, smt::Sort>> vec;
       smt::SmtSolver & solver = drv.solver();
-      std::string sortname = $2[0].first;
-      smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
-      smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
-      drv.define_sort(sortname, dtfwdref);
-      assert(dtspec);
-      $$ = {{dtspec, dtfwdref}};
+      for (auto sd : $2)
+      {
+        std::string sortname = sd.first;
+        if (sd.second > 0)
+        {
+          // TODO handle parametric datatypes
+          smtlib::parser::error(@1,
+                    "Parametric datatypes not yet supported in smt-switch");
+          YYERROR;
+        }
+        smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
+        smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
+        drv.define_sort(sortname, dtfwdref);
+        assert(dtspec); assert(dtfwdref);
+        vec.push_back({dtspec, dtfwdref});
+      }
+      $$ = vec;
    }
+;
+
+datatypedecs:
+  cons_list
+  {
+    std::vector<smt::ConstructorDecVec> vec({$1});
+    $$ = vec;
+  }
+  | datatypedecs cons_list
+  {
+    $1.push_back($2);
+    $$ = $1;
+  }
 ;
 
 cons_list:
