@@ -53,6 +53,12 @@ using namespace std;
   namespace smt
   {
     class SmtLibReader;
+
+    // used as semantic values for datatypes declarations in parser
+    using SelectorDecVec = std::vector<std::pair<std::string, smt::Sort>>;
+    using ConstructorDecVec = std::vector<std::pair<std::string,
+                                                    SelectorDecVec>>;
+
   }
 }
 
@@ -103,9 +109,8 @@ EP "!"
 %nterm <std::string> number_or_string
 %nterm indprefix
 %nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypesorts
-%nterm <std::vector<std::pair<std::string,
-        std::vector<std::pair<std::string, smt::Sort>>>>> cons_list
-%nterm <std::vector<std::pair<std::string, smt::Sort>>> sel_list
+%nterm <smt::ConstructorDecVec> cons_list
+%nterm <smt::SelectorDecVec> sel_list
 
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
@@ -664,8 +669,7 @@ cons_list:
    {
      // not expecing large vectors
      // don't worry about copies (i.e., don't need a pointer)
-     std::vector<std::pair<std::string,
-                 std::vector<std::pair<std::string, smt::Sort>>>> vec({{$2, $3}});
+     smt::ConstructorDecVec vec({{$2, $3}});
      $$ = vec;
    }
    | cons_list LP SYMBOL sel_list RP
@@ -680,7 +684,7 @@ sel_list:
    {
      // not expecing large vectors
      // don't worry about copies (i.e., don't need a pointer)
-     std::vector<std::pair<std::string, smt::Sort>> vec;
+     smt::SelectorDecVec vec;
      $$ = vec;
    }
    | sel_list LP SYMBOL sort RP
