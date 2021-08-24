@@ -89,6 +89,12 @@ class AbsSmtSolver
    */
   virtual void pop(uint64_t num = 1) = 0;
 
+  /** Returns the current context level of the solver
+   *  based on the number of pushes/pops
+   *  @return context level
+   */
+  virtual uint64_t get_context_level() const = 0;
+
   /* Get the value of a term after check_sat returns a satisfiable result
    * SMTLIB: (get-value (<t>))
    * @param t the term to get the value of

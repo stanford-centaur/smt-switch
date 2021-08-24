@@ -314,6 +314,11 @@ void MsatSolver::pop(uint64_t num)
   }
 }
 
+uint64_t MsatSolver::get_context_level() const
+{
+  return msat_num_backtrack_points(env);
+}
+
 Term MsatSolver::get_value(const Term & t) const
 {
   initialize_env();

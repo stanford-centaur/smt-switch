@@ -74,6 +74,7 @@ GenericSolver::GenericSolver(string path,
       cmd_line_args(cmd_line_args),
       write_buf_size(write_buf_size),
       read_buf_size(read_buf_size),
+      context_level_(0),
       name_sort_map(new unordered_map<string, Sort>()),
       sort_name_map(new unordered_map<Sort, string>()),
       name_term_map(new unordered_map<string, Term>()),
@@ -326,7 +327,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
   shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
-  bool nullary_constructor;
+  bool nullary_constructor = false;
   // generic terms with no operators are represented by their
   // name.
   if (gt->get_op().is_null())
@@ -385,11 +386,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
         result += " " + (*term_name_map)[c];
       }
     }
-    if (gt->get_op() == Apply_Constructor)
-    {
-      result += nullary_constructor ? ")" : "";
-    }
-    else
+    if (gt->get_op() != Apply_Constructor || nullary_constructor)
     {
       result += ")";
     }
@@ -740,6 +737,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
         == name)
     {
       found = true;
+      break;
     }
   }
   if (!found)
@@ -768,6 +766,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
         == name)
     {
       found = true;
+      break;
     }
   }
   if (!found)
@@ -803,6 +802,7 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
           found = true;
           static_pointer_cast<DatatypeComponentSort>(cons_sort)
               ->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
+          break;
         }
       }
     }
@@ -1509,12 +1509,16 @@ void GenericSolver::push(uint64_t num)
   {
     string result =
         run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+    context_level_ += num;
   }
 
 void GenericSolver::pop(uint64_t num)
 {
   string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  context_level_ -= num;
 }
+
+uint64_t GenericSolver::get_context_level() const { return context_level_; }
 
 void GenericSolver::reset_assertions()
   {

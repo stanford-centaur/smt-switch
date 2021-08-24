@@ -6,6 +6,7 @@ macro(switch_add_unit_test name)
 endmacro()
 
 switch_add_unit_test(unit-arrays)
+switch_add_unit_test(unit-incremental)
 switch_add_unit_test(unit-op)
 switch_add_unit_test(unit-printing)
 switch_add_unit_test(unit-quantifiers)

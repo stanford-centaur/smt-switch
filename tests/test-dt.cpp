@@ -173,6 +173,7 @@ TEST_P(DTTests, DatatypeDecl)
     ASSERT_TRUE(listdt->get_num_constructors() == 2);
     ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
     ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
+
     ASSERT_TRUE(res.is_sat());
     // Expected exceptions
 

@@ -61,6 +61,7 @@ class PrintingSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   void reset_assertions() override;
   Result get_interpolant(const Term & A,
                          const Term & B,

@@ -149,9 +149,19 @@ Result BzlaSolver::check_sat_assuming_set(
   return check_sat_assuming_internal(assumptions.begin(), assumptions.end());
 }
 
-void BzlaSolver::push(uint64_t num) { bitwuzla_push(bzla, num); }
+void BzlaSolver::push(uint64_t num)
+{
+  bitwuzla_push(bzla, num);
+  context_level += num;
+}
 
-void BzlaSolver::pop(uint64_t num) { bitwuzla_pop(bzla, num); }
+void BzlaSolver::pop(uint64_t num)
+{
+  bitwuzla_pop(bzla, num);
+  context_level -= num;
+}
+
+uint64_t BzlaSolver::get_context_level() const { return context_level; }
 
 Term BzlaSolver::get_value(const Term & t) const
 {
