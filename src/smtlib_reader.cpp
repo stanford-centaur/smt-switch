@@ -365,46 +365,6 @@ void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
   all_symbols_[name] = fresh_symbol;
 }
 
-Term SmtLibReader::lookup_constructor(const string & sym) const
-{
-  Term res;
-  auto it = constructors_.find(sym);
-  if (it != constructors_.end())
-  {
-    res = it->second;
-  }
-  return res;
-}
-
-void SmtLibReader::define_constructor(const string & sym, const Term & cons)
-{
-  if (constructors_.find(sym) != constructors_.end())
-  {
-    throw SmtException("Constructor named " + sym + " already defined");
-  }
-  constructors_[sym] = cons;
-}
-
-Term SmtLibReader::lookup_selector(const string & sym) const
-{
-  Term res;
-  auto it = selectors_.find(sym);
-  if (it != selectors_.end())
-  {
-    res = it->second;
-  }
-  return res;
-}
-
-void SmtLibReader::define_selector(const string & sym, const Term & sel)
-{
-  if (selectors_.find(sym) != selectors_.end())
-  {
-    throw SmtException("Selector named " + sym + " already defined");
-  }
-  selectors_[sym] = sel;
-}
-
 PrimOp SmtLibReader::lookup_primop(const std::string & str)
 {
   auto it = primops_.find(str);
@@ -595,6 +555,84 @@ void SmtLibReader::let_binding(const string & sym, const Term & term)
 {
   assert(current_scope());
   arg_param_map_.add_mapping(sym, term);
+}
+
+void SmtLibReader::declare_datatype(DatatypeDecl & dtspec,
+                                    const Sort & fwdref,
+                                    const ConstructorDecVec & cons)
+{
+  std::string sortname = fwdref->get_uninterpreted_name();
+  for (const auto & c : cons)
+  {
+    DatatypeConstructorDecl condecl =
+        solver_->make_datatype_constructor_decl(c.first);
+    solver_->add_constructor(dtspec, condecl);
+    for (const auto & sel : c.second)
+    {
+      solver_->add_selector(condecl, sel.first, sel.second);
+    }
+  }
+
+  // resolve the finished datatype sort and record the mapping
+  Sort dtsort = solver_->make_datatype_sort(dtspec, fwdref);
+  define_sort(sortname, dtsort, true);  // boolean flag allows redefining
+
+  // using define-fun to record names of constructor
+  // used later to get term back
+  // Note: even though we have get_constructor,
+  // it needs to know which sort the constructor is affiliated with
+  // plus this fits into parser infrastructure better
+  for (const auto & c : cons)
+  {
+    define_constructor(c.first, solver_->get_constructor(dtsort, c.first));
+    for (const auto & sel : c.second)
+    {
+      define_selector(sel.first,
+                      solver_->get_selector(dtsort, c.first, sel.first));
+    }
+  }
+}
+
+Term SmtLibReader::lookup_constructor(const string & sym) const
+{
+  Term res;
+  auto it = constructors_.find(sym);
+  if (it != constructors_.end())
+  {
+    res = it->second;
+  }
+  return res;
+}
+
+Term SmtLibReader::lookup_selector(const string & sym) const
+{
+  Term res;
+  auto it = selectors_.find(sym);
+  if (it != selectors_.end())
+  {
+    res = it->second;
+  }
+  return res;
+}
+
+// protected methods
+
+void SmtLibReader::define_constructor(const string & sym, const Term & cons)
+{
+  if (constructors_.find(sym) != constructors_.end())
+  {
+    throw SmtException("Constructor named " + sym + " already defined");
+  }
+  constructors_[sym] = cons;
+}
+
+void SmtLibReader::define_selector(const string & sym, const Term & sel)
+{
+  if (selectors_.find(sym) != selectors_.end())
+  {
+    throw SmtException("Selector named " + sym + " already defined");
+  }
+  selectors_[sym] = sel;
 }
 
 }  // namespace smt

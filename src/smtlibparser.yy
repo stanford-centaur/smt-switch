@@ -178,34 +178,7 @@ command:
     smt::DatatypeDecl dtspec = $3[0].first;
     smt::Sort fwd_ref = $3[0].second;
     assert(dtspec);
-    std::string sortname = fwd_ref->get_uninterpreted_name();
-    for (const auto & c : $6)
-    {
-      smt::DatatypeConstructorDecl condecl = solver->make_datatype_constructor_decl(c.first);
-      solver->add_constructor(dtspec, condecl);
-      for (const auto & sel : c.second)
-      {
-        solver->add_selector(condecl, sel.first, sel.second);
-      }
-    }
-
-    // resolve the finished datatype sort and record the mapping
-    smt::Sort dtsort = solver->make_datatype_sort(dtspec, drv.lookup_sort(sortname));
-    drv.define_sort(sortname, dtsort, true); // boolean flag allows redefining
-
-    // using define-fun to record names of constructor
-    // used later to get term back
-    // Note: even though we have get_constructor,
-    // it needs to know which sort the constructor is affiliated with
-    // plus this fits into parser infrastructure better
-    for (const auto & c : $6)
-    {
-      drv.define_constructor(c.first, solver->get_constructor(dtsort, c.first));
-      for (const auto & sel : c.second)
-      {
-        drv.define_selector(sel.first, solver->get_selector(dtsort, c.first, sel.first));
-      }
-    }
+    drv.declare_datatype(dtspec, fwd_ref, $6);
   }
   | LP DEFINEFUN
      {

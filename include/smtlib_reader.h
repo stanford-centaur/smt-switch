@@ -200,24 +200,6 @@ class SmtLibReader
    */
   virtual void new_symbol(const std::string & name, const smt::Sort & sort);
 
-  /** Lookup a constructor by name
-   *
-   *  @param sym the name to look up
-   *  @return constructor term or a null pointer if it doesn't exist
-   */
-  smt::Term lookup_constructor(const std::string & sym) const;
-
-  void define_constructor(const std::string & sym, const smt::Term & cons);
-
-  /** Lookup a constructor by name
-   *
-   *  @param sym the name to look up
-   *  @return constructor term or a null pointer if it doesn't exist
-   */
-  smt::Term lookup_selector(const std::string & sym) const;
-
-  void define_selector(const std::string & sym, const smt::Term & sel);
-
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
    *  @return the associated PrimOp
@@ -316,7 +298,30 @@ class SmtLibReader
    */
   void let_binding(const std::string & sym, const smt::Term & term);
 
+  void declare_datatype(DatatypeDecl & dtspec,
+                        const Sort & fwdref,
+                        const ConstructorDecVec & cons);
+
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
+  smt::Term lookup_constructor(const std::string & sym) const;
+
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
+  smt::Term lookup_selector(const std::string & sym) const;
+
  protected:
+  void define_constructor(const std::string & sym, const smt::Term & cons);
+
+  void define_selector(const std::string & sym, const smt::Term & sel);
+
+  // members
   smtlib::location location_;
 
   smt::SmtSolver solver_;
