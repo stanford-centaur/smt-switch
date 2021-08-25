@@ -181,10 +181,10 @@ command:
     assert(dtspec); assert(fwd_ref);
     drv.declare_datatype(dtspec, fwd_ref, $5);
   }
-  | LP DECLAREDATATYPES datatypesorts LP LP datatypedecs RP RP RP
+  | LP DECLAREDATATYPES datatypesorts LP datatypedecs RP RP
   {
     size_t num_sorts = $3.size();
-    size_t num_decs  = $6.size();
+    size_t num_decs  = $5.size();
     if (num_sorts != num_decs)
     {
       smtlib::parser::error(@1, std::string("Declare datatypes needs "
@@ -199,7 +199,7 @@ command:
       smt::DatatypeDecl dtspec = $3[i].first;
       smt::Sort fwd_ref = $3[i].second;
       assert(dtspec); assert(fwd_ref);
-      drv.declare_datatype(dtspec, fwd_ref, $6[i]);
+      drv.declare_datatype(dtspec, fwd_ref, $5[i]);
     }
   }
   | LP DEFINEFUN
@@ -413,7 +413,7 @@ atom:
    SYMBOL
    {
       smt::Term sym = drv.lookup_symbol($1);
-      if (!sym)
+      if (!sym && !(sym = drv.lookup_constructor($1)))
       {
         // Note: using @1 will force locations to be enabled
         smtlib::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
@@ -676,14 +676,14 @@ datatypesorts:
 ;
 
 datatypedecs:
-  cons_list
+  LP cons_list RP
   {
-    std::vector<smt::ConstructorDecVec> vec({$1});
+    std::vector<smt::ConstructorDecVec> vec({$2});
     $$ = vec;
   }
-  | datatypedecs cons_list
+  | datatypedecs LP cons_list RP
   {
-    $1.push_back($2);
+    $1.push_back($3);
     $$ = $1;
   }
 ;

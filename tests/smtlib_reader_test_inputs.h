@@ -53,4 +53,6 @@ const std::unordered_map<std::string, std::vector<smt::Result>>
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_dt_tests(
     { { "test-color.smt2", { smt::Result(smt::UNSAT) } },
       { "test-color-2.smt2", { smt::Result(smt::UNSAT) } },
-      { "test-list.smt2", { smt::Result(smt::UNSAT) } } });
+      { "test-list.smt2", { smt::Result(smt::UNSAT) } },
+      { "test-mutual.smt2",
+        { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } } });
