@@ -330,21 +330,21 @@ term_s_expr:
          $$ = drv.solver()->make_term(po, *$3);
        }
     }
-    else if (apply_term = drv.lookup_symbol($2))
+    else if ((apply_term = drv.lookup_symbol($2)))
     {
       // UF
       smt::TermVec vec({apply_term});
       vec.insert(vec.end(), $3->begin(), $3->end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
     }
-    else if (apply_term = drv.lookup_selector($2))
+    else if ((apply_term = drv.lookup_selector($2)))
     {
       // Datatype Selector
       smt::TermVec vec({apply_term});
       vec.insert(vec.end(), $3->begin(), $3->end());
       $$ = drv.solver()->make_term(smt::Apply_Selector, vec);
     }
-    else if (apply_term = drv.lookup_constructor($2))
+    else if ((apply_term = drv.lookup_constructor($2)))
     {
       // Datatype Constructor
       smt::TermVec vec({apply_term});
