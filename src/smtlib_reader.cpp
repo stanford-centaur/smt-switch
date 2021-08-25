@@ -557,38 +557,59 @@ void SmtLibReader::let_binding(const string & sym, const Term & term)
   arg_param_map_.add_mapping(sym, term);
 }
 
-void SmtLibReader::declare_datatype(DatatypeDecl & dtspec,
-                                    const Sort & fwdref,
-                                    const ConstructorDecVec & cons)
+void SmtLibReader::declare_datatypes(
+    vector<DatatypeDecl> & dtspecs,
+    const vector<Sort> & fwdrefs,
+    const vector<ConstructorDecVec> & cons_list)
 {
-  std::string sortname = fwdref->get_uninterpreted_name();
-  for (const auto & c : cons)
+  assert(dtspecs.size() == fwdrefs.size());
+  assert(fwdrefs.size() == cons_list.size());
+
+  size_t num_dt = dtspecs.size();
+  for (size_t i = 0; i < num_dt; ++i)
   {
-    DatatypeConstructorDecl condecl =
-        solver_->make_datatype_constructor_decl(c.first);
-    solver_->add_constructor(dtspec, condecl);
-    for (const auto & sel : c.second)
+    DatatypeDecl & dtspec = dtspecs[i];
+    const Sort & fwdref = fwdrefs[i];
+    const ConstructorDecVec & cons = cons_list[i];
+    string sortname = fwdref->get_uninterpreted_name();
+    for (const auto & c : cons)
     {
-      solver_->add_selector(condecl, sel.first, sel.second);
+      DatatypeConstructorDecl condecl =
+          solver_->make_datatype_constructor_decl(c.first);
+      solver_->add_constructor(dtspec, condecl);
+      for (const auto & sel : c.second)
+      {
+        solver_->add_selector(condecl, sel.first, sel.second);
+      }
     }
   }
 
   // resolve the finished datatype sort and record the mapping
-  Sort dtsort = solver_->make_datatype_sort(dtspec, fwdref);
-  define_sort(sortname, dtsort, true);  // boolean flag allows redefining
-
-  // using define-fun to record names of constructor
-  // used later to get term back
-  // Note: even though we have get_constructor,
-  // it needs to know which sort the constructor is affiliated with
-  // plus this fits into parser infrastructure better
-  for (const auto & c : cons)
+  UnorderedSortSet uninterp_sorts;
+  uninterp_sorts.insert(fwdrefs.begin(), fwdrefs.end());
+  SortVec dtsorts = solver_->make_datatype_sorts(dtspecs, uninterp_sorts);
+  for (const auto & dtsort : dtsorts)
   {
-    define_constructor(c.first, solver_->get_constructor(dtsort, c.first));
-    for (const auto & sel : c.second)
+    define_sort(
+        dtsort->to_string(), dtsort, true);  // boolean flag allows redefining
+  }
+
+  for (size_t i = 0; i < num_dt; ++i)
+  {
+    Sort dtsort = dtsorts[i];
+    // using define-fun to record names of constructor
+    // used later to get term back
+    // Note: even though we have get_constructor,
+    // it needs to know which sort the constructor is affiliated with
+    // plus this fits into parser infrastructure better
+    for (const auto & c : cons_list[i])
     {
-      define_selector(sel.first,
-                      solver_->get_selector(dtsort, c.first, sel.first));
+      define_constructor(c.first, solver_->get_constructor(dtsort, c.first));
+      for (const auto & sel : c.second)
+      {
+        define_selector(sel.first,
+                        solver_->get_selector(dtsort, c.first, sel.first));
+      }
     }
   }
 }

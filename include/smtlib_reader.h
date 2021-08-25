@@ -298,9 +298,9 @@ class SmtLibReader
    */
   void let_binding(const std::string & sym, const smt::Term & term);
 
-  void declare_datatype(DatatypeDecl & dtspec,
-                        const Sort & fwdref,
-                        const ConstructorDecVec & cons);
+  void declare_datatypes(std::vector<DatatypeDecl> & dtspecs,
+                         const std::vector<Sort> & fwdrefs,
+                         const std::vector<ConstructorDecVec> & cons_list);
 
   /** Lookup a constructor by name
    *

@@ -179,7 +179,8 @@ command:
     smt::DatatypeDecl dtspec = $3.first;
     smt::Sort fwd_ref = $3.second;
     assert(dtspec); assert(fwd_ref);
-    drv.declare_datatype(dtspec, fwd_ref, $5);
+    vector<smt::DatatypeDecl> dtvec({dtspec});
+    drv.declare_datatypes(dtvec, {fwd_ref}, {$5});
   }
   | LP DECLAREDATATYPES datatypesorts LP datatypedecs RP RP
   {
@@ -188,19 +189,24 @@ command:
     if (num_sorts != num_decs)
     {
       smtlib::parser::error(@1, std::string("Declare datatypes needs "
-      "same number of sort and datatype declarations but got " +
+      "the same number of sort and datatype declarations but got " +
       std::to_string(num_sorts) + " and " + std::to_string(num_decs)));
       YYERROR;
     }
 
     smt::SmtSolver & solver = drv.solver();
+    std::vector<smt::DatatypeDecl> dtspecs; dtspecs.reserve($5.size());
+    std::vector<smt::Sort> fwdrefs; fwdrefs.reserve($5.size());
     for (size_t i = 0; i < num_sorts; i++)
     {
-      smt::DatatypeDecl dtspec = $3[i].first;
-      smt::Sort fwd_ref = $3[i].second;
-      assert(dtspec); assert(fwd_ref);
-      drv.declare_datatype(dtspec, fwd_ref, $5[i]);
+      const smt::DatatypeDecl & dtspec = $3[i].first;
+      const smt::Sort & fwdref = $3[i].second;
+      assert(dtspec); assert(fwdref);
+      dtspecs.push_back(dtspec);
+      fwdrefs.push_back(fwdref);
     }
+
+    drv.declare_datatypes(dtspecs, fwdrefs, $5);
   }
   | LP DEFINEFUN
      {
