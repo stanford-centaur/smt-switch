@@ -413,7 +413,13 @@ atom:
    SYMBOL
    {
       smt::Term sym = drv.lookup_symbol($1);
-      if (!sym && !(sym = drv.lookup_constructor($1)))
+      if (!sym && (sym = drv.lookup_constructor($1)))
+      {
+        // apply the constructor (even though there's no arguments, still need to apply)
+        sym = drv.solver()->make_term(smt::Apply_Constructor, sym);
+      }
+
+      if (!sym)
       {
         // Note: using @1 will force locations to be enabled
         smtlib::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
