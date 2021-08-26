@@ -74,6 +74,7 @@ GenericSolver::GenericSolver(string path,
       cmd_line_args(cmd_line_args),
       write_buf_size(write_buf_size),
       read_buf_size(read_buf_size),
+      context_level_(0),
       name_sort_map(new unordered_map<string, Sort>()),
       sort_name_map(new unordered_map<Sort, string>()),
       name_term_map(new unordered_map<string, Term>()),
@@ -324,6 +325,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
   shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  bool nullary_constructor = false;
   // generic terms with no operators are represented by their
   // name.
   if (gt->get_op().is_null())
@@ -333,11 +335,36 @@ std::string GenericSolver::to_smtlib_def(Term term) const
   else
   {
     // generic terms with operators are written as s-expressions.
-    string result = "(";
+    string result;
+    if (gt->get_op() == Apply_Constructor)
+    {
+      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
+          (gt->get_sort())->get_datatype());
+      nullary_constructor =
+          dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
+      result = nullary_constructor ? "(" : "";
+    }
+    else if (gt->get_op() == Apply_Tester)
+    {
+      result = "((_ is ";
+      result += (*term_name_map)[gt->get_children()[0]];
+      result += ") ";
+      result += (*term_name_map)[gt->get_children()[1]];
+      result += ")";
+      return result;
+    }
+    else
+    {
+      result = "(";
+    }
     // The Apply operator is ignored and the
     // function being applied is used instead.
-    result +=
-        ((term->get_op().prim_op == Apply) ? "" : term->get_op().to_string());
+    result += ((term->get_op().prim_op == Apply
+                || term->get_op().prim_op == Apply_Constructor
+                || term->get_op().prim_op == Apply_Selector
+                || term->get_op().prim_op == Apply_Tester)
+                   ? ""
+                   : term->get_op().to_string());
     // For quantifiers we separate the bound variables list
     // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
@@ -357,7 +384,10 @@ std::string GenericSolver::to_smtlib_def(Term term) const
         result += " " + (*term_name_map)[c];
       }
     }
-    result += ")";
+    if (gt->get_op() != Apply_Constructor || nullary_constructor)
+    {
+      result += ")";
+    }
     return result;
   }
 }
@@ -605,18 +635,96 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::s
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Generic Solvers do not support datatypes");
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  bool found = false;
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i])
+            ->get_name()
+        == name)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+  {
+    throw InternalSolverException("Constructor not in datatype");
+  }
+  Sort cons_sort = make_generic_sort(CONSTRUCTOR, name, s);
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = new_term;
+  (*term_name_map)[new_term] = name;
+  return (*name_term_map)[name];
 }
 
   
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Generic Solvers do not support datatypes");
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  bool found = false;
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i])
+            ->get_name()
+        == name)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+  {
+    throw InternalSolverException("Constructor not in datatype");
+  }
+
+  Sort cons_sort = make_generic_sort(TESTER, name, s);
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = new_term;
+  (*term_name_map)[new_term] = name;
+  return (*name_term_map)[name];
 }
 
 Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
 {
-  throw NotImplementedException("Generic Solvers do not support datatypes");
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  bool found = false;
+  Sort cons_sort = make_generic_sort(SELECTOR, name, s);
+  for (int i = 0; i < dt->get_num_constructors(); ++i)
+  {
+    shared_ptr<GenericDatatypeConstructorDecl> curr_con =
+        static_pointer_cast<GenericDatatypeConstructorDecl>(
+            dt->get_cons_vector()[i]);
+    if (curr_con->get_name() == con)
+    {
+      for (int f = 0; f < curr_con->get_selector_count(); ++f)
+      {
+        if (((curr_con->get_selector_vector())[f]).name == name)
+        {
+          found = true;
+          static_pointer_cast<DatatypeComponentSort>(cons_sort)
+              ->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
+          break;
+        }
+      }
+    }
+  }
+  if (!found)
+  {
+    throw InternalSolverException("Selector not in datatype");
+  }
+  Term new_term =
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+  (*name_term_map)[name] = new_term;
+  (*term_name_map)[new_term] = name;
+  return (*name_term_map)[name];
 }
 
 std::string GenericSolver::get_name(Term term) const
@@ -1211,12 +1319,16 @@ void GenericSolver::push(uint64_t num)
   {
     string result =
         run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+    context_level_ += num;
   }
 
 void GenericSolver::pop(uint64_t num)
 {
   string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  context_level_ -= num;
 }
+
+uint64_t GenericSolver::get_context_level() const { return context_level_; }
 
 void GenericSolver::reset_assertions()
   {

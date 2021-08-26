@@ -379,6 +379,8 @@ void Yices2Solver::push(uint64_t num)
   {
     yices_push(ctx);
   }
+
+  context_level += num;
 }
 
 void Yices2Solver::pop(uint64_t num)
@@ -392,7 +394,11 @@ void Yices2Solver::pop(uint64_t num)
     }
     yices_pop(ctx);
   }
+
+  context_level -= num;
 }
+
+uint64_t Yices2Solver::get_context_level() const { return context_level; }
 
 Term Yices2Solver::get_value(const Term & t) const
 {

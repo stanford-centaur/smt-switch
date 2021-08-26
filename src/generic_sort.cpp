@@ -125,6 +125,10 @@ Sort make_generic_sort(Datatype dt)
 {
   return make_shared<GenericDatatypeSort>(dt);
 }
+Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
+{
+  return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
+}
 
 // implementations
 
@@ -187,12 +191,17 @@ string GenericSort::compute_string() const {
     {
       return static_pointer_cast<GenericDatatype>(get_datatype())->get_name();
     }
+    else if (get_sort_kind() == SortKind::CONSTRUCTOR
+             || get_sort_kind() == SortKind::SELECTOR
+             || get_sort_kind() == SortKind::TESTER)
+    {
+      return get_uninterpreted_name();
+    }
     else
     {
       assert(false);
     }
 }
-
 
 SortKind GenericSort::get_sort_kind() const { return sk; }
 
@@ -371,6 +380,93 @@ bool GenericDatatypeSort::compare(const Sort & s) const
 std::string GenericDatatypeSort::to_string() const
 {
   return this->compute_string();
+}
+
+DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
+                                             std::string name,
+                                             Sort dt)
+    : GenericSort(sk), name(name), dt_sort(dt)
+{
+  if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER)
+  {
+    throw IncorrectUsageException("Wrong sortkind input");
+  }
+}
+std::string DatatypeComponentSort::compute_string() const { return name; }
+
+std::string DatatypeComponentSort::to_string() const
+{
+  return compute_string();
+}
+
+std::string DatatypeComponentSort::get_uninterpreted_name() const
+{
+  return name;
+}
+
+SortVec DatatypeComponentSort::get_domain_sorts() const
+{
+  std::vector<Sort> domain_sorts;
+  if (sk == CONSTRUCTOR)
+  {
+    shared_ptr<GenericDatatypeSort> cast_dt_sort =
+        static_pointer_cast<GenericDatatypeSort>(dt_sort);
+    shared_ptr<GenericDatatype> gdt =
+        static_pointer_cast<GenericDatatype>(cast_dt_sort->get_datatype());
+    for (int i = 0; i < gdt->get_num_constructors(); ++i)
+    {
+      shared_ptr<GenericDatatypeConstructorDecl> curr_con =
+          static_pointer_cast<GenericDatatypeConstructorDecl>(
+              gdt->get_cons_vector()[i]);
+      if (curr_con->get_name() == name)
+      {
+        for (int f = 0; f < curr_con->get_selector_count(); ++f)
+        {
+          domain_sorts.push_back(curr_con->get_selector_vector()[f].sort);
+        }
+      }
+    }
+  }
+  else
+  {
+    domain_sorts.push_back(dt_sort);
+    return domain_sorts;
+  }
+}
+
+Sort DatatypeComponentSort::get_codomain_sort() const
+{
+  if (sk == CONSTRUCTOR)
+  {
+    return dt_sort;
+  }
+  else if (sk == TESTER)
+  {
+    return make_generic_sort(BOOL);
+  }
+  else if (sk == SELECTOR)
+  {
+    return selector_sort;
+  }
+
+  assert(sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
+}
+
+void DatatypeComponentSort::set_selector_sort(Sort new_selector_sort)
+{
+  selector_sort = new_selector_sort;
+}
+
+int DatatypeComponentSort::get_num_selectors() const
+{
+  shared_ptr<GenericDatatype> dt =
+      static_pointer_cast<GenericDatatype>(dt_sort->get_datatype());
+  return dt->get_num_selectors(name);
+}
+
+Datatype DatatypeComponentSort::get_datatype() const
+{
+  return dt_sort->get_datatype();
 }
 
 }  // namespace smt

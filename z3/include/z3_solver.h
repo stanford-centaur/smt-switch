@@ -38,12 +38,7 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver()
-      : AbsSmtSolver(Z3),
-        ctx(),
-        slv(ctx){
-
-        };
+  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx), context_level(0){};
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
   ~Z3Solver(){};
@@ -56,6 +51,7 @@ class Z3Solver : public AbsSmtSolver
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
+  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -124,6 +120,8 @@ class Z3Solver : public AbsSmtSolver
   std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
   ///< re-declaring
+
+  uint64_t context_level;  ///< context level for incremental solving
 
   // helper function
   inline Result check_sat_assuming(expr_vector & z3assumps)

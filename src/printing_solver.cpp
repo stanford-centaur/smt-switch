@@ -261,6 +261,11 @@ void PrintingSolver::pop(uint64_t num) {
   wrapped_solver->pop(num); 
 }
 
+uint64_t PrintingSolver::get_context_level() const
+{
+  return wrapped_solver->get_context_level();
+}
+
 void PrintingSolver::reset_assertions() { 
   (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << endl;
   wrapped_solver->reset_assertions(); 

@@ -71,7 +71,7 @@ int main()
   assert(us1->get_uninterpreted_name() == "sort1");
   assert(us1->get_arity() == 0);
 
-  // Creates a new datatype with one constructor  
+  // Creates a new datatype with one constructor
   DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>("testSort1");
   shared_ptr<GenericDatatype> new_dt =
       shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));

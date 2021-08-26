@@ -341,6 +341,7 @@ void CVC4Solver::push(uint64_t num)
   try
   {
     solver.push(num);
+    context_level += num;
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -353,12 +354,15 @@ void CVC4Solver::pop(uint64_t num)
   try
   {
     solver.pop(num);
+    context_level -= num;
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
 }
+
+uint64_t CVC4Solver::get_context_level() const { return context_level; }
 
 Term CVC4Solver::get_value(const Term & t) const
 {

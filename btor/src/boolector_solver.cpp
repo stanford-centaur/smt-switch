@@ -340,6 +340,8 @@ void BoolectorSolver::pop(uint64_t num)
   context_level -= num;
 }
 
+uint64_t BoolectorSolver::get_context_level() const { return context_level; }
+
 Term BoolectorSolver::get_value(const Term & t) const
 {
   Term result;
