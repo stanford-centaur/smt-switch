@@ -703,7 +703,7 @@ datatypedecs:
 cons_list:
    LP SYMBOL sel_list RP
    {
-     // not expecing large vectors
+     // not expecting large vectors
      // don't worry about copies (i.e., don't need a pointer)
      smt::ConstructorDecVec vec({{$2, $3}});
      $$ = vec;
@@ -718,7 +718,7 @@ cons_list:
 sel_list:
    %empty
    {
-     // not expecing large vectors
+     // not expecting large vectors
      // don't worry about copies (i.e., don't need a pointer)
      smt::SelectorDecVec vec;
      $$ = vec;
