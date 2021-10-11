@@ -97,7 +97,6 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
 
 TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 {
-
   if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)
   {
     // Z3 backend cannot traverse quantifier structure yet

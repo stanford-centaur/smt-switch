@@ -20,22 +20,21 @@ Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
   return *this;
 }
 
-void Z3TermIter::operator++()
-{
-  pos++;
-}
+void Z3TermIter::operator++() { pos++; }
 
 const Term Z3TermIter::operator*()
 {
   assert(!null_term);
-  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
+  bool is_function_app = term.is_app()
+                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
+                         && !term.is_const();
   if (!pos && is_function_app)
   {
     return std::make_shared<Z3Term>(term.decl(), term.ctx());
   }
   else
   {
-    uint32_t actual_idx = is_function_app ? pos-1 : pos;
+    uint32_t actual_idx = is_function_app ? pos - 1 : pos;
     expr z_child = term.arg(actual_idx);
     return std::make_shared<Z3Term>(z_child, z_child.ctx());
   }
@@ -58,10 +57,7 @@ bool Z3TermIter::operator==(const Z3TermIter & it)
   }
 }
 
-bool Z3TermIter::operator!=(const Z3TermIter & it)
-{
-  return !(*this == it);
-}
+bool Z3TermIter::operator!=(const Z3TermIter & it) { return !(*this == it); }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
@@ -199,7 +195,8 @@ Op Z3Term::get_op() const
       case Z3_OP_ITE: return Op(Ite);
       case Z3_OP_STORE:
         return Op(Store);
-      case Z3_OP_CONST_ARRAY: return Op();
+      case Z3_OP_CONST_ARRAY:
+        return Op();
         // variadic
       case Z3_OP_AND: return Op(And);
       case Z3_OP_OR: return Op(Or);
@@ -209,31 +206,24 @@ Op Z3Term::get_op() const
       case Z3_OP_DISTINCT:
         return Op(Distinct);
         // indexed
-      case Z3_OP_EXTRACT:
-        {
-          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 2);
-          return Op(Extract,
-                    Z3_get_decl_int_parameter(term.ctx(), decl, 0),
-                    Z3_get_decl_int_parameter(term.ctx(), decl, 1));
-        }
-      case Z3_OP_ZERO_EXT:
-        {
-          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
-          return Op(Zero_Extend,
-                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
-        }
-      case Z3_OP_SIGN_EXT:
-        {
-          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
-          return Op(Sign_Extend,
-                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
-        }
-      case Z3_OP_REPEAT:
-        {
-          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
-          return Op(Repeat,
-                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
-        }
+      case Z3_OP_EXTRACT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 2);
+        return Op(Extract,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0),
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 1));
+      }
+      case Z3_OP_ZERO_EXT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Zero_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
+      case Z3_OP_SIGN_EXT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Sign_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
+      case Z3_OP_REPEAT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
       case Z3_OP_INT2BV: {
         size_t out_width = range.bv_size();
         return Op(Int_To_BV, out_width);
@@ -372,9 +362,10 @@ TermIter Z3Term::begin()
   {
     // there is a way to get the quantifier body
     // but it's not clear how to get the parameters from a quantified expr
-    throw NotImplementedException(string("Z3 backend does not currently ") +
-                                  "support getting parameters from quantified " +
-                                  "expression. Use logging if required.");
+    throw NotImplementedException(
+        string("Z3 backend does not currently ")
+        + "support getting parameters from quantified "
+        + "expression. Use logging if required.");
   }
   return TermIter(new Z3TermIter(term, 0));
 }
@@ -382,13 +373,15 @@ TermIter Z3Term::begin()
 TermIter Z3Term::end()
 {
   if (is_function)
-    {
-      // this is the actual function (not an application of a function)
-      // no iteration to do
-      return TermIter(new Z3TermIter(term, 0, true));
-    }
+  {
+    // this is the actual function (not an application of a function)
+    // no iteration to do
+    return TermIter(new Z3TermIter(term, 0, true));
+  }
 
-  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
+  bool is_function_app = term.is_app()
+                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
+                         && !term.is_const();
   uint32_t num_args = term.num_args();
   if (is_function_app)
   {

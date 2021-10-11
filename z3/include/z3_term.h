@@ -31,8 +31,12 @@ class Z3Solver;
 class Z3TermIter : public TermIterBase
 {
  public:
-  Z3TermIter(expr t, uint32_t p, bool nt=false) : term(t), pos(p), null_term(nt) {};
-  Z3TermIter(const Z3TermIter &it) : term(it.term), pos(it.pos), null_term(it.null_term) { }
+  Z3TermIter(expr t, uint32_t p, bool nt = false)
+      : term(t), pos(p), null_term(nt){};
+  Z3TermIter(const Z3TermIter & it)
+      : term(it.term), pos(it.pos), null_term(it.null_term)
+  {
+  }
   ~Z3TermIter(){};
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
@@ -47,7 +51,7 @@ class Z3TermIter : public TermIterBase
  private:
   expr term;
   uint32_t pos;
-  bool null_term; ///< set to true if the term is null (no iteration)
+  bool null_term;  ///< set to true if the term is null (no iteration)
 };
 
 class Z3Term : public AbsTerm
