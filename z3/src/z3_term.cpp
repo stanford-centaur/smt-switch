@@ -176,6 +176,7 @@ Op Z3Term::get_op() const
       case Z3_OP_ITE: return Op(Ite);
       case Z3_OP_STORE:
         return Op(Store);
+      case Z3_OP_CONST_ARRAY: return Op();
         // variadic
       case Z3_OP_AND: return Op(And);
       case Z3_OP_OR: return Op(Or);
