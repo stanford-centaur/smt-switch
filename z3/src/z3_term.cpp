@@ -35,8 +35,6 @@ const Term Z3TermIter::operator*()
   {
     uint32_t actual_idx = is_function_app ? pos-1 : pos;
     expr z_child = term.arg(actual_idx);
-    // TODO: handle UFs and quantifier bindings, need to pass true for a parameter
-    //       also need to handle constant arrays
     return std::make_shared<Z3Term>(z_child, z_child.ctx());
   }
 }
@@ -106,7 +104,16 @@ bool Z3Term::compare(const Term & absterm) const
 
 Op Z3Term::get_op() const
 {
-  if (is_function || !term.is_app())
+  if (is_function)
+  {
+    return Op();
+  }
+  else if (term.is_quantifier())
+  {
+    assert(term.is_forall() || term.is_exists());
+    return term.is_forall() ? Op(Forall) : Op(Exists);
+  }
+  else if (!term.is_app())
   {
     return Op();
   }
@@ -317,12 +324,19 @@ uint64_t Z3Term::to_int() const
 
 TermIter Z3Term::begin()
 {
+  if (term.is_quantifier())
+  {
+    // there is a way to get the quantifier body
+    // but it's not clear how to get the parameters from a quantified expr
+    throw NotImplementedException(string("Z3 backend does not currently ") +
+                                  "support getting parameters from quantified " +
+                                  "expression. Use logging if required.");
+  }
   return TermIter(new Z3TermIter(term, 0));
 }
 
 TermIter Z3Term::end()
 {
-  // TODO handle constant arrays, UFs, and quantifier bindings
   bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED);
   uint32_t num_args = term.num_args();
   if (is_function_app)
