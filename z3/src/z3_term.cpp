@@ -311,7 +311,7 @@ string Z3Term::to_string()
 {
   if (is_function)
   {
-    return z_func.to_string();
+    return z_func.name().str();
   }
   else
   {
