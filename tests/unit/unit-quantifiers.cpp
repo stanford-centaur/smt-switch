@@ -97,6 +97,12 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
 
 TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 {
+
+  if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)
+  {
+    // Z3 backend cannot traverse quantifier structure yet
+    return;
+  }
   Term b = s->make_param("b", boolsort);
   Term x = s->make_param("x", bvsort);
   Term f = s->make_symbol("f", funsort);
