@@ -16,6 +16,7 @@ Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 {
   term = it.term;
   pos = it.pos;
+  null_term = it.null_term;
   return *this;
 }
 
@@ -26,6 +27,7 @@ void Z3TermIter::operator++()
 
 const Term Z3TermIter::operator*()
 {
+  assert(!null_term);
   bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
   if (!pos && is_function_app)
   {
@@ -41,23 +43,37 @@ const Term Z3TermIter::operator*()
 
 TermIterBase * Z3TermIter::clone() const
 {
-  return new Z3TermIter(term, pos);
+  return new Z3TermIter(term, pos, null_term);
 }
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
 {
-  return term.id() == it.term.id() && pos == it.pos;
+  if (!null_term && !it.null_term)
+  {
+    return term.id() == it.term.id() && pos == it.pos;
+  }
+  else
+  {
+    return null_term && it.null_term;
+  }
 }
 
 bool Z3TermIter::operator!=(const Z3TermIter & it)
 {
-  return term.id() != it.term.id() || pos != it.pos;
+  return !(*this == it);
 }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
   const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
-  return term.id() == zti.term.id() && pos == zti.pos;
+  if (!null_term && !zti.null_term)
+  {
+    return term.id() == zti.term.id() && pos == zti.pos;
+  }
+  else
+  {
+    return null_term && zti.null_term;
+  }
 }
 
 // end Z3TermIter implementation
@@ -345,6 +361,13 @@ uint64_t Z3Term::to_int() const
 
 TermIter Z3Term::begin()
 {
+  if (is_function)
+  {
+    // no iteration for a function symbol
+    // cannot query term (it's null)
+    return TermIter(new Z3TermIter(term, 0, true));
+  }
+
   if (term.is_quantifier())
   {
     // there is a way to get the quantifier body
@@ -358,6 +381,13 @@ TermIter Z3Term::begin()
 
 TermIter Z3Term::end()
 {
+  if (is_function)
+    {
+      // this is the actual function (not an application of a function)
+      // no iteration to do
+      return TermIter(new Z3TermIter(term, 0, true));
+    }
+
   bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
   uint32_t num_args = term.num_args();
   if (is_function_app)
@@ -365,6 +395,7 @@ TermIter Z3Term::end()
     // smt-switch treats the function as an argument
     num_args++;
   }
+
   return TermIter(new Z3TermIter(term, num_args));
 }
 
