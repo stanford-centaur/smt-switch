@@ -193,10 +193,31 @@ Op Z3Term::get_op() const
       case Z3_OP_DISTINCT:
         return Op(Distinct);
         // indexed
-      case Z3_OP_EXTRACT: return Op(Extract);
-      case Z3_OP_ZERO_EXT: return Op(Zero_Extend);
-      case Z3_OP_SIGN_EXT: return Op(Sign_Extend);
-      case Z3_OP_REPEAT: return Op(Repeat);
+      case Z3_OP_EXTRACT:
+        {
+          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 2);
+          return Op(Extract,
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 0),
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 1));
+        }
+      case Z3_OP_ZERO_EXT:
+        {
+          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+          return Op(Zero_Extend,
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        }
+      case Z3_OP_SIGN_EXT:
+        {
+          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+          return Op(Sign_Extend,
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        }
+      case Z3_OP_REPEAT:
+        {
+          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+          return Op(Repeat,
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        }
       case Z3_OP_INT2BV: {
         size_t out_width = range.bv_size();
         return Op(Int_To_BV, out_width);
