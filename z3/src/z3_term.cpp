@@ -26,10 +26,19 @@ void Z3TermIter::operator++()
 
 const Term Z3TermIter::operator*()
 {
-  expr z_child = term.arg(pos);
-  // TODO: handle UFs and quantifier bindings, need to pass true for a parameter
-  //       also need to handle constant arrays
-  return std::make_shared<Z3Term>(z_child, z_child.ctx());
+  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED);
+  if (!pos && is_function_app)
+  {
+    return std::make_shared<Z3Term>(term.decl(), term.ctx());
+  }
+  else
+  {
+    uint32_t actual_idx = is_function_app ? pos-1 : pos;
+    expr z_child = term.arg(actual_idx);
+    // TODO: handle UFs and quantifier bindings, need to pass true for a parameter
+    //       also need to handle constant arrays
+    return std::make_shared<Z3Term>(z_child, z_child.ctx());
+  }
 }
 
 TermIterBase * Z3TermIter::clone() const
@@ -186,7 +195,7 @@ Op Z3Term::get_op() const
       }
       case Z3_OP_BV2INT:
         return Op(BV_To_Nat);
-        // Op(Apply) not handled...
+      case Z3_OP_UNINTERPRETED: return Op(Apply);
 
       default: {
         std::string msg("Option - ");
@@ -313,7 +322,14 @@ TermIter Z3Term::begin()
 TermIter Z3Term::end()
 {
   // TODO handle constant arrays, UFs, and quantifier bindings
-  return TermIter(new Z3TermIter(term, term.num_args()));
+  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED);
+  uint32_t num_args = term.num_args();
+  if (is_function_app)
+  {
+    // smt-switch treats the function as an argument
+    num_args++;
+  }
+  return TermIter(new Z3TermIter(term, num_args));
 }
 
 std::string Z3Term::print_value_as(SortKind sk)
