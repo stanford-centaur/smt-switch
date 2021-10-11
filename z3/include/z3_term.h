@@ -32,7 +32,7 @@ class Z3TermIter : public TermIterBase
 {
  public:
   Z3TermIter(expr t, uint32_t p) : term(t), pos(p){};
-  //	Z3TermIter(const Z3TermIter &it);
+  Z3TermIter(const Z3TermIter &it) : term(it.term), pos(it.pos) { }
   ~Z3TermIter(){};
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;

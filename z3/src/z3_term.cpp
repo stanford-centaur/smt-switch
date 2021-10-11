@@ -12,52 +12,45 @@ namespace smt {
 
 // Z3TermIter implementation
 
-// Z3TermIter::Z3TermIter(const Z3TermIter & it)
-// {
-//   throw NotImplementedException(
-//       "Term iteration not implemented for Z3 backend.");
-// }
-
 Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  term = it.term;
+  pos = it.pos;
+  return *this;
 }
 
 void Z3TermIter::operator++()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  pos++;
 }
 
 const Term Z3TermIter::operator*()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  expr z_child = term.arg(pos);
+  // TODO: handle UFs and quantifier bindings, need to pass true for a parameter
+  //       also need to handle constant arrays
+  return std::make_shared<Z3Term>(z_child, z_child.ctx());
 }
 
 TermIterBase * Z3TermIter::clone() const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  return new Z3TermIter(term, pos);
 }
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  return term == it.term && pos == it.pos;
 }
 
 bool Z3TermIter::operator!=(const Z3TermIter & it)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  return term != it.term || pos != it.pos;
 }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
+  return term == zti.term && pos == zti.pos;
 }
 
 // end Z3TermIter implementation
@@ -314,12 +307,13 @@ uint64_t Z3Term::to_int() const
 
 TermIter Z3Term::begin()
 {
-  throw NotImplementedException("begin not implemented for Z3 backend.");
+  return TermIter(new Z3TermIter(term, 0));
 }
 
 TermIter Z3Term::end()
 {
-  throw NotImplementedException("end not implemented for Z3 backend.");
+  // TODO handle constant arrays, UFs, and quantifier bindings
+  return TermIter(new Z3TermIter(term, term.num_args()));
 }
 
 std::string Z3Term::print_value_as(SortKind sk)
