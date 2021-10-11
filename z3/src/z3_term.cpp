@@ -26,7 +26,7 @@ void Z3TermIter::operator++()
 
 const Term Z3TermIter::operator*()
 {
-  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED);
+  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
   if (!pos && is_function_app)
   {
     return std::make_shared<Z3Term>(term.decl(), term.ctx());
@@ -104,7 +104,7 @@ bool Z3Term::compare(const Term & absterm) const
 
 Op Z3Term::get_op() const
 {
-  if (is_function)
+  if (is_function || term.is_const())
   {
     return Op();
   }
@@ -358,7 +358,7 @@ TermIter Z3Term::begin()
 
 TermIter Z3Term::end()
 {
-  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED);
+  bool is_function_app = term.is_app() && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED) && !term.is_const();
   uint32_t num_args = term.num_args();
   if (is_function_app)
   {
