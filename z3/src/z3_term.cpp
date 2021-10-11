@@ -39,18 +39,18 @@ TermIterBase * Z3TermIter::clone() const
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
 {
-  return term == it.term && pos == it.pos;
+  return term.id() == it.term.id() && pos == it.pos;
 }
 
 bool Z3TermIter::operator!=(const Z3TermIter & it)
 {
-  return term != it.term || pos != it.pos;
+  return term.id() != it.term.id() || pos != it.pos;
 }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
   const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
-  return term == zti.term && pos == zti.pos;
+  return term.id() == zti.term.id() && pos == zti.pos;
 }
 
 // end Z3TermIter implementation
