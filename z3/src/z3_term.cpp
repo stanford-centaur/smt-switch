@@ -12,52 +12,64 @@ namespace smt {
 
 // Z3TermIter implementation
 
-// Z3TermIter::Z3TermIter(const Z3TermIter & it)
-// {
-//   throw NotImplementedException(
-//       "Term iteration not implemented for Z3 backend.");
-// }
-
 Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  term = it.term;
+  pos = it.pos;
+  null_term = it.null_term;
+  return *this;
 }
 
-void Z3TermIter::operator++()
-{
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
-}
+void Z3TermIter::operator++() { pos++; }
 
 const Term Z3TermIter::operator*()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  assert(!null_term);
+  bool is_function_app = term.is_app()
+                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
+                         && !term.is_const();
+  if (!pos && is_function_app)
+  {
+    return std::make_shared<Z3Term>(term.decl(), term.ctx());
+  }
+  else
+  {
+    uint32_t actual_idx = is_function_app ? pos - 1 : pos;
+    expr z_child = term.arg(actual_idx);
+    return std::make_shared<Z3Term>(z_child, z_child.ctx());
+  }
 }
 
 TermIterBase * Z3TermIter::clone() const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  return new Z3TermIter(term, pos, null_term);
 }
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  if (!null_term && !it.null_term)
+  {
+    return term.id() == it.term.id() && pos == it.pos;
+  }
+  else
+  {
+    return null_term && it.null_term;
+  }
 }
 
-bool Z3TermIter::operator!=(const Z3TermIter & it)
-{
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
-}
+bool Z3TermIter::operator!=(const Z3TermIter & it) { return !(*this == it); }
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Z3 backend.");
+  const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
+  if (!null_term && !zti.null_term)
+  {
+    return term.id() == zti.term.id() && pos == zti.pos;
+  }
+  else
+  {
+    return null_term && zti.null_term;
+  }
 }
 
 // end Z3TermIter implementation
@@ -104,7 +116,16 @@ bool Z3Term::compare(const Term & absterm) const
 
 Op Z3Term::get_op() const
 {
-  if (is_function || !term.is_app())
+  if (is_function || term.is_const())
+  {
+    return Op();
+  }
+  else if (term.is_quantifier())
+  {
+    assert(term.is_forall() || term.is_exists());
+    return term.is_forall() ? Op(Forall) : Op(Exists);
+  }
+  else if (!term.is_app())
   {
     return Op();
   }
@@ -174,6 +195,8 @@ Op Z3Term::get_op() const
       case Z3_OP_ITE: return Op(Ite);
       case Z3_OP_STORE:
         return Op(Store);
+      case Z3_OP_CONST_ARRAY:
+        return Op();
         // variadic
       case Z3_OP_AND: return Op(And);
       case Z3_OP_OR: return Op(Or);
@@ -183,17 +206,31 @@ Op Z3Term::get_op() const
       case Z3_OP_DISTINCT:
         return Op(Distinct);
         // indexed
-      case Z3_OP_EXTRACT: return Op(Extract);
-      case Z3_OP_ZERO_EXT: return Op(Zero_Extend);
-      case Z3_OP_SIGN_EXT: return Op(Sign_Extend);
-      case Z3_OP_REPEAT: return Op(Repeat);
+      case Z3_OP_EXTRACT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 2);
+        return Op(Extract,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0),
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 1));
+      }
+      case Z3_OP_ZERO_EXT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Zero_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
+      case Z3_OP_SIGN_EXT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Sign_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
+      case Z3_OP_REPEAT: {
+        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+        return Op(Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      }
       case Z3_OP_INT2BV: {
         size_t out_width = range.bv_size();
         return Op(Int_To_BV, out_width);
       }
       case Z3_OP_BV2INT:
         return Op(BV_To_Nat);
-        // Op(Apply) not handled...
+      case Z3_OP_UNINTERPRETED: return Op(Apply);
 
       default: {
         std::string msg("Option - ");
@@ -264,7 +301,7 @@ string Z3Term::to_string()
 {
   if (is_function)
   {
-    return z_func.to_string();
+    return z_func.name().str();
   }
   else
   {
@@ -314,12 +351,45 @@ uint64_t Z3Term::to_int() const
 
 TermIter Z3Term::begin()
 {
-  throw NotImplementedException("begin not implemented for Z3 backend.");
+  if (is_function)
+  {
+    // no iteration for a function symbol
+    // cannot query term (it's null)
+    return TermIter(new Z3TermIter(term, 0, true));
+  }
+
+  if (term.is_quantifier())
+  {
+    // there is a way to get the quantifier body
+    // but it's not clear how to get the parameters from a quantified expr
+    throw NotImplementedException(
+        string("Z3 backend does not currently ")
+        + "support getting parameters from quantified "
+        + "expression. Use logging if required.");
+  }
+  return TermIter(new Z3TermIter(term, 0));
 }
 
 TermIter Z3Term::end()
 {
-  throw NotImplementedException("end not implemented for Z3 backend.");
+  if (is_function)
+  {
+    // this is the actual function (not an application of a function)
+    // no iteration to do
+    return TermIter(new Z3TermIter(term, 0, true));
+  }
+
+  bool is_function_app = term.is_app()
+                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
+                         && !term.is_const();
+  uint32_t num_args = term.num_args();
+  if (is_function_app)
+  {
+    // smt-switch treats the function as an argument
+    num_args++;
+  }
+
+  return TermIter(new Z3TermIter(term, num_args));
 }
 
 std::string Z3Term::print_value_as(SortKind sk)
