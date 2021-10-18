@@ -125,7 +125,8 @@ if (BUILD_PYTHON_BINDINGS)
   # i.e. when the following issue is resolved:
   # https://github.com/scikit-build/scikit-build/issues/506
   find_package(PythonInterp 3.5 REQUIRED)
-  if (PYTHON_INTERP_FOUND)
+  if (PYTHONINTERP_FOUND)
+    message(STATUS "Looking for PythonLibs version >= ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
     find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
   endif()
 endif()
