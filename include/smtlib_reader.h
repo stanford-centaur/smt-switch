@@ -207,6 +207,18 @@ class SmtLibReader
    */
   PrimOp lookup_primop(const std::string & str);
 
+  /** Get primitive operator and term to apply based on custom
+   *  indexed operator. Intended for datatype testers but can
+   *  be extended if necessary.
+   *  @param s0 first symbol in indexed operator
+   *  @param s1 second symbol in indexed operator
+   *  @return the primitive operator to use and the term to apply
+   *  Example: called for (_ is cons)
+   *    lookup_apply_op_term("is", "cons") -> APPLY_TESTER PrimOp, Is_Cons Term
+   */
+  std::pair<PrimOp, Term> lookup_apply_op_term(const std::string & s0,
+                                               const std::string & s1);
+
   /** Look up a sort by string
    *  The available sorts are based on the logic
    *  @param str the string to look up
@@ -255,9 +267,14 @@ class SmtLibReader
    *  TODO fix these limitations
    *  @param name the name of the defined sort
    *  @param sort the sort to associate name with
+   *  @param redefine allow overwriting a previous definition
+   *         (originally added for mutually recursive datatypes
+   *          that have an initial, unresolved sort as a forward
+   *          reference and are later updated with the actual sort.)
    */
   void define_sort(const std::string & name,
-                   const smt::Sort & sort);
+                   const smt::Sort & sort,
+                   bool redefine = false);
 
   /** Looks up a defined sort by name
    *  @param name the name to look up
@@ -281,7 +298,30 @@ class SmtLibReader
    */
   void let_binding(const std::string & sym, const smt::Term & term);
 
+  void declare_datatypes(std::vector<DatatypeDecl> & dtspecs,
+                         const std::vector<Sort> & fwdrefs,
+                         const std::vector<ConstructorDecVec> & cons_list);
+
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
+  smt::Term lookup_constructor(const std::string & sym) const;
+
+  /** Lookup a constructor by name
+   *
+   *  @param sym the name to look up
+   *  @return constructor term or a null pointer if it doesn't exist
+   */
+  smt::Term lookup_selector(const std::string & sym) const;
+
  protected:
+  void define_constructor(const std::string & sym, const smt::Term & cons);
+
+  void define_selector(const std::string & sym, const smt::Term & sel);
+
+  // members
   smtlib::location location_;
 
   smt::SmtSolver solver_;
@@ -338,6 +378,11 @@ class SmtLibReader
                       ///< (might be out of bounds, which means a new
                       ///<  tmp argument is needed)
                       ///< that is currently unused in this scope
+
+  std::unordered_map<std::string, smt::Term>
+      constructors_;  ///< datatype constructors
+  std::unordered_map<std::string, smt::Term>
+      selectors_;  ///< datatype selectors
 
   // useful constants
   std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments

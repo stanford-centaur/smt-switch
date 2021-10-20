@@ -48,7 +48,28 @@ Sort CVC4Sort::get_elemsort() const
 
 SortVec CVC4Sort::get_domain_sorts() const
 {
-  std::vector<::CVC4::api::Sort> cvc4_sorts = sort.getFunctionDomainSorts();
+  std::vector<::CVC4::api::Sort> cvc4_sorts;
+  if (sort.isFunction())
+  {
+    cvc4_sorts = sort.getFunctionDomainSorts();
+  }
+  else if (sort.isConstructor())
+  {
+    cvc4_sorts = sort.getConstructorDomainSorts();
+  }
+  else if (sort.isSelector())
+  {
+    cvc4_sorts.push_back(sort.getSelectorDomainSort());
+  }
+  else if (sort.isTester())
+  {
+    cvc4_sorts.push_back(sort.getTesterDomainSort());
+  }
+  else
+  {
+    throw IncorrectUsageException("Cannot get domain sorts for "
+                                  + sort.toString());
+  }
   SortVec domain_sorts;
   domain_sorts.reserve(cvc4_sorts.size());
   Sort s;
@@ -62,7 +83,28 @@ SortVec CVC4Sort::get_domain_sorts() const
 
 Sort CVC4Sort::get_codomain_sort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
+  ::CVC4::api::Sort res_sort;
+  if (sort.isFunction())
+  {
+    res_sort = sort.getFunctionCodomainSort();
+  }
+  else if (sort.isConstructor())
+  {
+    res_sort = sort.getConstructorCodomainSort();
+  }
+  else if (sort.isSelector())
+  {
+    res_sort = sort.getSelectorCodomainSort();
+  }
+  else if (sort.isTester())
+  {
+    res_sort = sort.getTesterCodomainSort();
+  }
+  else
+  {
+    throw IncorrectUsageException("Cannot get codomain for " + sort.toString());
+  }
+  return std::make_shared<CVC4Sort>(res_sort);
 }
 
 std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }

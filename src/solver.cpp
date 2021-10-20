@@ -54,6 +54,15 @@ Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl,
   return datatype_sorts[0];
 }
 
+Sort AbsSmtSolver::make_datatype_sort_forward_ref(
+    const DatatypeDecl & decl) const
+{
+  throw NotImplementedException(
+      "make_datatype_sort_forward_ref for mutually "
+      "recursive datatypes not yet implementd by "
+      + to_string(solver_enum));
+}
+
 Term AbsSmtSolver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {

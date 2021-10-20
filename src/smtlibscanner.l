@@ -58,6 +58,8 @@ set-info              { return smtlib::parser::make_SETINFO(loc); }
 declare-const         { return smtlib::parser::make_DECLARECONST(loc); }
 declare-fun           { return smtlib::parser::make_DECLAREFUN(loc); }
 declare-sort          { return smtlib::parser::make_DECLARESORT(loc); }
+declare-datatype      { return smtlib::parser::make_DECLAREDATATYPE(loc); }
+declare-datatypes     { return smtlib::parser::make_DECLAREDATATYPES(loc); }
 define-fun            { return smtlib::parser::make_DEFINEFUN(loc); }
 define-sort           { return smtlib::parser::make_DEFINESORT(loc); }
 assert                { return smtlib::parser::make_ASSERT(loc); }

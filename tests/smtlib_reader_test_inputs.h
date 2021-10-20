@@ -49,3 +49,10 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_uf_tests(
 const std::unordered_map<std::string, std::vector<smt::Result>>
     qf_uf_param_sorts_tests({ { "test-uninterp-sort-nonzero-arity.smt2",
                                 { smt::Result(smt::UNSAT) } } });
+
+const std::unordered_map<std::string, std::vector<smt::Result>> qf_dt_tests(
+    { { "test-color.smt2", { smt::Result(smt::UNSAT) } },
+      { "test-color-2.smt2", { smt::Result(smt::UNSAT) } },
+      { "test-list.smt2", { smt::Result(smt::UNSAT) } },
+      { "test-mutual.smt2",
+        { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } } });

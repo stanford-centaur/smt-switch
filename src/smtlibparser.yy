@@ -53,6 +53,12 @@ using namespace std;
   namespace smt
   {
     class SmtLibReader;
+
+    // used as semantic values for datatypes declarations in parser
+    using SelectorDecVec = std::vector<std::pair<std::string, smt::Sort>>;
+    using ConstructorDecVec = std::vector<std::pair<std::string,
+                                                    SelectorDecVec>>;
+
   }
 }
 
@@ -70,9 +76,9 @@ using namespace std;
 %token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
-       DECLARESORT DEFINEFUN DEFINESORT ASSERT CHECKSAT
-       CHECKSATASSUMING PUSH POP EXIT GETVALUE
-       GETUNSATASSUMP ECHO
+       DECLARESORT DECLAREDATATYPE DECLAREDATATYPES DEFINEFUN
+       DEFINESORT ASSERT CHECKSAT CHECKSATASSUMING PUSH POP
+       EXIT GETVALUE GETUNSATASSUMP ECHO
 %token ASCONST LET
 %token <std::string> KEYWORD
 %token <std::string> QUANTIFIER
@@ -91,14 +97,22 @@ EP "!"
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
+%nterm <std::pair<std::string, std::size_t>> sort_dec
+%nterm <std::vector<std::pair<std::string, std::size_t>>> sort_decs
 %nterm <smt::TermVec *> sorted_arg_list
 %nterm <smt::TermVec *> sorted_param_list
 %nterm let_term_bindings
-%nterm <smt::Op> indexed_op
+/* The Term will be null if it's just a regular indexed op */
+%nterm <std::pair<smt::Op, smt::Term>> indexed_op
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
 %nterm indprefix
+%nterm <std::pair<smt::DatatypeDecl, smt::Sort>> datatypesym
+%nterm <std::vector<std::pair<smt::DatatypeDecl, smt::Sort>>> datatypesorts
+%nterm <std::vector<smt::ConstructorDecVec>> datatypedecs
+%nterm <smt::ConstructorDecVec> cons_list
+%nterm <smt::SelectorDecVec> sel_list
 
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
@@ -158,6 +172,41 @@ command:
   | LP DECLARESORT SYMBOL NAT RP
   {
     drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
+  }
+  | LP DECLAREDATATYPE datatypesym LP cons_list RP RP
+  {
+    smt::SmtSolver & solver = drv.solver();
+    smt::DatatypeDecl dtspec = $3.first;
+    smt::Sort fwd_ref = $3.second;
+    assert(dtspec); assert(fwd_ref);
+    vector<smt::DatatypeDecl> dtvec({dtspec});
+    drv.declare_datatypes(dtvec, {fwd_ref}, {$5});
+  }
+  | LP DECLAREDATATYPES datatypesorts LP datatypedecs RP RP
+  {
+    size_t num_sorts = $3.size();
+    size_t num_decs  = $5.size();
+    if (num_sorts != num_decs)
+    {
+      smtlib::parser::error(@1, std::string("Declare datatypes needs "
+      "the same number of sort and datatype declarations but got " +
+      std::to_string(num_sorts) + " and " + std::to_string(num_decs)));
+      YYERROR;
+    }
+
+    smt::SmtSolver & solver = drv.solver();
+    std::vector<smt::DatatypeDecl> dtspecs; dtspecs.reserve($5.size());
+    std::vector<smt::Sort> fwdrefs; fwdrefs.reserve($5.size());
+    for (size_t i = 0; i < num_sorts; i++)
+    {
+      const smt::DatatypeDecl & dtspec = $3[i].first;
+      const smt::Sort & fwdref = $3[i].second;
+      assert(dtspec); assert(fwdref);
+      dtspecs.push_back(dtspec);
+      fwdrefs.push_back(fwdref);
+    }
+
+    drv.declare_datatypes(dtspecs, fwdrefs, $5);
   }
   | LP DEFINEFUN
      {
@@ -244,13 +293,26 @@ term_s_expr:
   }
   | LP indexed_op term_s_expr_list RP
   {
-    $$ = drv.solver()->make_term($2, *$3);
+    std::pair<smt::Op, smt::Term> & opterm = $2;
+    if (opterm.second)
+    {
+      // non-null term means this is an
+      // APPLY* indexed operator
+      // example: datatype tester like (_ is cons)
+      smt::TermVec vec({opterm.second});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(opterm.first, vec);
+    }
+    else
+    {
+      $$ = drv.solver()->make_term(opterm.first, *$3);
+    }
     delete $3;
   }
   | LP SYMBOL term_s_expr_list RP
   {
     smt::PrimOp po;
-    smt::Term uf;
+    smt::Term apply_term; // UF, or datatype constructor/selector
 
     // check if it's a known operator in the given logic
     if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
@@ -268,11 +330,26 @@ term_s_expr:
          $$ = drv.solver()->make_term(po, *$3);
        }
     }
-    else if (uf = drv.lookup_symbol($2))
+    else if ((apply_term = drv.lookup_symbol($2)))
     {
-      smt::TermVec vec({uf});
+      // UF
+      smt::TermVec vec({apply_term});
       vec.insert(vec.end(), $3->begin(), $3->end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
+    }
+    else if ((apply_term = drv.lookup_selector($2)))
+    {
+      // Datatype Selector
+      smt::TermVec vec({apply_term});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(smt::Apply_Selector, vec);
+    }
+    else if ((apply_term = drv.lookup_constructor($2)))
+    {
+      // Datatype Constructor
+      smt::TermVec vec({apply_term});
+      vec.insert(vec.end(), $3->begin(), $3->end());
+      $$ = drv.solver()->make_term(smt::Apply_Constructor, vec);
     }
     else
     {
@@ -342,6 +419,12 @@ atom:
    SYMBOL
    {
       smt::Term sym = drv.lookup_symbol($1);
+      if (!sym && (sym = drv.lookup_constructor($1)))
+      {
+        // apply the constructor (even though there's no arguments, still need to apply)
+        sym = drv.solver()->make_term(smt::Apply_Constructor, sym);
+      }
+
       if (!sym)
       {
         // Note: using @1 will force locations to be enabled
@@ -444,6 +527,29 @@ sort_list:
    }
 ;
 
+sort_dec:
+   LP SYMBOL NAT RP
+   {
+     $$ = std::pair<std::string, std::size_t>($2, std::stoi($3));
+   }
+;
+
+sort_decs:
+   sort_dec
+   {
+     // not expecting large vectors
+     // don't worry about copies (i.e., don't need to make it a pointer)
+     std::vector<std::pair<std::string, std::size_t>> vec({$1});
+     $$ = vec;
+   }
+   | sort_decs sort_dec
+   {
+     $1.push_back($2);
+     $$ = $1;
+   }
+;
+
+
 sorted_arg_list:
    %empty
    {
@@ -489,7 +595,7 @@ indexed_op:
      {
        smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
-     $$ = smt::Op(po, std::stoi($3));
+     $$ = {smt::Op(po, std::stoi($3)), nullptr};
    }
    | indprefix SYMBOL NAT NAT RP
    {
@@ -498,7 +604,11 @@ indexed_op:
      {
        smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
      }
-     $$ = smt::Op(po, std::stoi($3), std::stoi($4));
+     $$ = {smt::Op(po, std::stoi($3), std::stoi($4)), nullptr};
+   }
+   | indprefix SYMBOL SYMBOL RP
+   {
+     $$ = drv.lookup_apply_op_term($2, $3);
    }
 ;
 
@@ -538,6 +648,86 @@ number_or_string:
 indprefix:
    LP US
    {}
+;
+
+datatypesym:
+   SYMBOL
+   {
+      smt::SmtSolver & solver = drv.solver();
+      smt::DatatypeDecl dtspec = solver->make_datatype_decl($1);
+      smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
+      drv.define_sort($1, dtfwdref);
+      assert(dtspec);
+      $$ = {dtspec, dtfwdref};
+   }
+;
+
+datatypesorts:
+   LP sort_decs RP
+   {
+      std::vector<std::pair<smt::DatatypeDecl, smt::Sort>> vec;
+      smt::SmtSolver & solver = drv.solver();
+      for (auto sd : $2)
+      {
+        std::string sortname = sd.first;
+        if (sd.second > 0)
+        {
+          // TODO handle parametric datatypes
+          smtlib::parser::error(@1,
+                    "Parametric datatypes not yet supported in smt-switch");
+          YYERROR;
+        }
+        smt::DatatypeDecl dtspec = solver->make_datatype_decl(sortname);
+        smt::Sort dtfwdref = solver->make_datatype_sort_forward_ref(dtspec);
+        drv.define_sort(sortname, dtfwdref);
+        assert(dtspec); assert(dtfwdref);
+        vec.push_back({dtspec, dtfwdref});
+      }
+      $$ = vec;
+   }
+;
+
+datatypedecs:
+  LP cons_list RP
+  {
+    std::vector<smt::ConstructorDecVec> vec({$2});
+    $$ = vec;
+  }
+  | datatypedecs LP cons_list RP
+  {
+    $1.push_back($3);
+    $$ = $1;
+  }
+;
+
+cons_list:
+   LP SYMBOL sel_list RP
+   {
+     // not expecting large vectors
+     // don't worry about copies (i.e., don't need a pointer)
+     smt::ConstructorDecVec vec({{$2, $3}});
+     $$ = vec;
+   }
+   | cons_list LP SYMBOL sel_list RP
+   {
+     $1.push_back({$3, $4});
+     $$ = $1;
+   }
+;
+
+sel_list:
+   %empty
+   {
+     // not expecting large vectors
+     // don't worry about copies (i.e., don't need a pointer)
+     smt::SelectorDecVec vec;
+     $$ = vec;
+   }
+   | sel_list LP SYMBOL sort RP
+   {
+     $1.push_back({$3, $4});
+     $$ = $1;
+   }
 ;
 
 spec_constant:

@@ -29,6 +29,7 @@ const unordered_map<string, vector<string>> logic_theory_map(
     { { "A", { "A" } },
       { "AX", { "A" } },
       { "BV", { "BV" } },
+      { "DT", { "DT" } },
       { "IDL", { "IA" } },
       { "LIA", { "IA" } },
       { "LIRA", { "IA", "RA", "IRA" } },
@@ -44,6 +45,7 @@ const unordered_map<string, vector<SortKind>> logic_sortkind_map(
     { { "A", { ARRAY } },
       { "AX", { ARRAY } },
       { "BV", { BV } },
+      { "DT", {} },
       { "IDL", { INT } },
       { "LIA", { INT } },
       { "LIRA", { INT, REAL } },
@@ -378,6 +380,30 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str)
   }
 }
 
+pair<PrimOp, Term> SmtLibReader::lookup_apply_op_term(const string & s0,
+                                                      const string & s1)
+{
+  if (s0 != "is")
+  {
+    throw SmtException("Unsupported indexed operator starting with " + s0);
+  }
+  else if (strict_ && primops_.find("DT") == primops_.end())
+  {
+    throw SmtException("Datatypes not enabled but got tester for " + s1);
+  }
+
+  PrimOp po = Apply_Tester;
+  // there should be an affiliated constructor
+  Term constructor = lookup_constructor(s1);
+  assert(constructor);
+  // get datatype sort from the constructor
+  Sort dtsort = constructor->get_sort()->get_codomain_sort();
+  Term tester = solver_->get_tester(dtsort, s1);
+
+  assert(tester);
+  return { po, tester };
+}
+
 SortKind SmtLibReader::lookup_sortkind(const std::string & str)
 {
   SortKind sk = NUM_SORT_KINDS;
@@ -471,14 +497,16 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   return tmpvar;
 }
 
-void SmtLibReader::define_sort(const string & name, const Sort & sort)
+void SmtLibReader::define_sort(const string & name,
+                               const Sort & sort,
+                               bool redefine)
 {
   if (sortkinds_.find(name) != sortkinds_.end())
   {
     throw IncorrectUsageException("Cannot define sort " + name + " in logic "
                                   + logic_);
   }
-  else if (defined_sorts_.find(name) != defined_sorts_.end())
+  else if (!redefine && defined_sorts_.find(name) != defined_sorts_.end())
   {
     throw SmtException("Cannot re-define sort with name " + name);
   }
@@ -527,6 +555,105 @@ void SmtLibReader::let_binding(const string & sym, const Term & term)
 {
   assert(current_scope());
   arg_param_map_.add_mapping(sym, term);
+}
+
+void SmtLibReader::declare_datatypes(
+    vector<DatatypeDecl> & dtspecs,
+    const vector<Sort> & fwdrefs,
+    const vector<ConstructorDecVec> & cons_list)
+{
+  assert(dtspecs.size() == fwdrefs.size());
+  assert(fwdrefs.size() == cons_list.size());
+
+  size_t num_dt = dtspecs.size();
+  for (size_t i = 0; i < num_dt; ++i)
+  {
+    DatatypeDecl & dtspec = dtspecs[i];
+    const Sort & fwdref = fwdrefs[i];
+    const ConstructorDecVec & cons = cons_list[i];
+    string sortname = fwdref->get_uninterpreted_name();
+    for (const auto & c : cons)
+    {
+      DatatypeConstructorDecl condecl =
+          solver_->make_datatype_constructor_decl(c.first);
+      solver_->add_constructor(dtspec, condecl);
+      for (const auto & sel : c.second)
+      {
+        solver_->add_selector(condecl, sel.first, sel.second);
+      }
+    }
+  }
+
+  // resolve the finished datatype sort and record the mapping
+  UnorderedSortSet uninterp_sorts;
+  uninterp_sorts.insert(fwdrefs.begin(), fwdrefs.end());
+  SortVec dtsorts = solver_->make_datatype_sorts(dtspecs, uninterp_sorts);
+  for (const auto & dtsort : dtsorts)
+  {
+    define_sort(
+        dtsort->to_string(), dtsort, true);  // boolean flag allows redefining
+  }
+
+  for (size_t i = 0; i < num_dt; ++i)
+  {
+    Sort dtsort = dtsorts[i];
+    // using define-fun to record names of constructor
+    // used later to get term back
+    // Note: even though we have get_constructor,
+    // it needs to know which sort the constructor is affiliated with
+    // plus this fits into parser infrastructure better
+    for (const auto & c : cons_list[i])
+    {
+      define_constructor(c.first, solver_->get_constructor(dtsort, c.first));
+      for (const auto & sel : c.second)
+      {
+        define_selector(sel.first,
+                        solver_->get_selector(dtsort, c.first, sel.first));
+      }
+    }
+  }
+}
+
+Term SmtLibReader::lookup_constructor(const string & sym) const
+{
+  Term res;
+  auto it = constructors_.find(sym);
+  if (it != constructors_.end())
+  {
+    res = it->second;
+  }
+  return res;
+}
+
+Term SmtLibReader::lookup_selector(const string & sym) const
+{
+  Term res;
+  auto it = selectors_.find(sym);
+  if (it != selectors_.end())
+  {
+    res = it->second;
+  }
+  return res;
+}
+
+// protected methods
+
+void SmtLibReader::define_constructor(const string & sym, const Term & cons)
+{
+  if (constructors_.find(sym) != constructors_.end())
+  {
+    throw SmtException("Constructor named " + sym + " already defined");
+  }
+  constructors_[sym] = cons;
+}
+
+void SmtLibReader::define_selector(const string & sym, const Term & sel)
+{
+  if (selectors_.find(sym) != selectors_.end())
+  {
+    throw SmtException("Selector named " + sym + " already defined");
+  }
+  selectors_[sym] = sel;
 }
 
 }  // namespace smt

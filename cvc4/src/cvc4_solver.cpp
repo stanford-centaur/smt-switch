@@ -886,6 +886,22 @@ SortVec CVC4Solver::make_datatype_sorts(
   }
 }
 
+Sort CVC4Solver::make_datatype_sort_forward_ref(const DatatypeDecl & decl) const
+{
+  ::CVC4::api::DatatypeDecl cdecl =
+      std::static_pointer_cast<CVC4DatatypeDecl>(decl)->datatypedecl;
+  if (cdecl.isParametric())
+  {
+    throw NotImplementedException(
+        "Parametric datatypes not implemented in smt-switch backend for CVC4 "
+        "yet.");
+  }
+
+  // since not supporting parametric datatypes yet, the arity of the unresolved
+  // sort is always 0
+  return make_sort(cdecl.getName(), 0);
+}
+
 Term CVC4Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   try

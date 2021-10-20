@@ -388,6 +388,17 @@ class AbsSmtSolver
   Sort make_datatype_sort(const DatatypeDecl & decl,
                           const Sort & uninterp_sort) const;
 
+  /** Used to create a forward reference for an incomplete datatype.
+   *  This allows for mutually recursive datatypes
+   *
+   *  @param dtdecl - the DatatypeDecl to create sort for
+   *  @return an unresolved datatype sort
+   *
+   *  After the datatype is completely defined,
+   *  you must update this sort using make_datatype_sort[s]
+   */
+  virtual Sort make_datatype_sort_forward_ref(const DatatypeDecl & decl) const;
+
   // Methods implemented at the abstract level
   // Note: These can be overloaded in the specific solver implementation for
   //       performance improvements
