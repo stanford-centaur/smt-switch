@@ -63,7 +63,7 @@ const std::unordered_map<PrimOp, ::cvc5::api::Kind> primop2kind(
       { BVNor, ::cvc5::api::BITVECTOR_NOR },
       { BVXnor, ::cvc5::api::BITVECTOR_XNOR },
       { BVComp, ::cvc5::api::BITVECTOR_COMP },
-      { BVAdd, ::cvc5::api::BITVECTOR_PLUS },
+      { BVAdd, ::cvc5::api::BITVECTOR_ADD },
       { BVSub, ::cvc5::api::BITVECTOR_SUB },
       { BVMul, ::cvc5::api::BITVECTOR_MULT },
       { BVUdiv, ::cvc5::api::BITVECTOR_UDIV },

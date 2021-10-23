@@ -22,7 +22,7 @@
 namespace smt {
 
 // struct for hashing
-cvc5::api::SortHashFunction sorthash;
+std::hash<cvc5::api::Sort> sorthash;
 
 std::string Cvc5Sort::to_string() const
 {

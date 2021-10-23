@@ -16,7 +16,7 @@
 
 #include "assert.h"
 
-#include "api/cvc5cpp.h"
+#include "api/cpp/cvc5.h"
 
 #include "exceptions.h"
 
@@ -75,7 +75,7 @@ const std::unordered_map<::cvc5::api::Kind, PrimOp> kind2primop(
       { ::cvc5::api::BITVECTOR_NOR, BVNor },
       { ::cvc5::api::BITVECTOR_XNOR, BVXnor },
       { ::cvc5::api::BITVECTOR_COMP, BVComp },
-      { ::cvc5::api::BITVECTOR_PLUS, BVAdd },
+      { ::cvc5::api::BITVECTOR_ADD, BVAdd },
       { ::cvc5::api::BITVECTOR_SUB, BVSub },
       { ::cvc5::api::BITVECTOR_MULT, BVMul },
       { ::cvc5::api::BITVECTOR_UDIV, BVUdiv },
@@ -118,7 +118,7 @@ const std::unordered_map<::cvc5::api::Kind, PrimOp> kind2primop(
       { ::cvc5::api::APPLY_SELECTOR, Apply_Selector } });
 
 // struct for hashing
-cvc5::api::TermHashFunction termhash;
+std::hash<cvc5::api::Term> termhash;
 
 /* Cvc5TermIter implementation */
 Cvc5TermIter & Cvc5TermIter::operator=(const Cvc5TermIter & it)
