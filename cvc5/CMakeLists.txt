@@ -22,12 +22,20 @@ if (LIBRT)
   target_link_libraries(smt-switch-cvc5 ${LIBRT})
 endif()
 
+if("${SMT_SWITCH_LIB_TYPE}" EQUAL "SHARED")
+  set(POLYFILES "libpoly.so libpoly.dylib")
+  set(POLYXXFILES "libpolyxx.so libpolyxx.dylib")
+else()
+  set(POLYFILES "libpoly.a")
+  set(POLYXXFILES "libpolyxx.a")
+endif()
+
 find_library(POLYLIB REQUIRED
-             NAMES libpoly.a libpoly.so libpoly.dylib
+             NAMES "${POLYFILES}"
              PATHS "${CVC5_HOME}/build/deps/lib")
 
 find_library(POLYLIBXX REQUIRED
-             NAMES libpolyxx.a libpolyxx.so libpolyxx.dylib
+             NAMES "${POLYXXFILES}"
              PATHS "${CVC5_HOME}/build/deps/lib")
 
 find_library(CADICAL REQUIRED
