@@ -29,7 +29,7 @@
 // it cannot be compiled outside of the build
 #include "test-utils.h"
 #include "gtest/gtest.h"
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "generic_sort.h"
 #include "smt.h"
 

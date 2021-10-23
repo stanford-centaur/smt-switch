@@ -22,7 +22,7 @@
 #include "smt.h"
 #include "yices2_factory.h"
 // after full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/cvc5_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
