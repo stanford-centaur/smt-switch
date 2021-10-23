@@ -12,18 +12,18 @@ add_library(smt-switch-cvc5 "${SMT_SWITCH_LIB_TYPE}"
 target_include_directories (smt-switch-cvc5 PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/cvc5/include")
-target_include_directories (smt-switch-cvc5 PUBLIC "${cvc5_HOME}/src")
-target_include_directories (smt-switch-cvc5 PUBLIC "${cvc5_HOME}/src/include")
+target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/src")
+target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/src/include")
 # TEMP only until the internal kinds are no longer part of public API
-target_include_directories (smt-switch-cvc5 PUBLIC "${cvc5_HOME}/build/src")
+target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/src")
 target_include_directories (smt-switch-cvc5 PUBLIC ${GMP_INCLUDE_DIR})
 
 if (LIBRT)
   target_link_libraries(smt-switch-cvc5 ${LIBRT})
 endif()
 
-target_link_libraries(smt-switch-cvc5 "${cvc5_HOME}/build/src/libcvc5.a")
-target_link_libraries(smt-switch-cvc5 "${cvc5_HOME}/build/src/parser/libcvc5parser.a")
+target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/libcvc5.a")
+target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/parser/libcvc5parser.a")
 target_link_libraries(smt-switch-cvc5 smt-switch)
 target_link_libraries(smt-switch-cvc5 ${GMP_LIBRARIES})
 
@@ -39,7 +39,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
       ar -x "../$<TARGET_FILE_NAME:smt-switch-cvc5>" && cd ../
       && rm "$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
       # copy the cvc5 static library to libsmt-switch-cvc5.a
-      cp "${cvc5_HOME}/build/src/libcvc5.a" "$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
+      cp "${CVC5_HOME}/build/src/libcvc5.a" "$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
       # add the smt-switch-cvc5 object files to the static library
       bash -c "ar -rs $<TARGET_FILE_NAME:smt-switch-cvc5> ./ssc/*.o"
       &&
