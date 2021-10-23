@@ -21,22 +21,6 @@
 
 #include "api/cpp/cvc5.h"
 
-// define hash for old compilers
-namespace std
-{
-
-// specialize hash struct
-template<>
-struct hash<::cvc5::api::Kind>
-{
-  size_t operator()(const ::cvc5::api::Kind k) const
-  {
-    return static_cast<std::size_t>(k);
-  }
-};
-
-}
-
 namespace smt {
   //forward declaration
   class Cvc5Solver;

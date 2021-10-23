@@ -80,7 +80,7 @@ size_t Cvc5Sort::get_arity() const
       return sort.getSortConstructorArity();
     }
   }
-  catch (::cvc5::api::cvc5ApiException & e)
+  catch (::cvc5::api::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -108,7 +108,7 @@ Datatype Cvc5Sort::get_datatype() const
   {
     return std::make_shared<Cvc5Datatype>(sort.getDatatype());
   }
-  catch (::cvc5::api::cvc5ApiException & e)
+  catch (::cvc5::api::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }

@@ -44,7 +44,7 @@ namespace smt {
 class Cvc5Solver : public AbsSmtSolver
 {
  public:
-  Cvc5Solver() : AbsSmtSolver(cvc5), solver(), context_level(0)
+  Cvc5Solver() : AbsSmtSolver(CVC5), solver(), context_level(0)
   {
     solver.setOption("lang", "smt2");
     solver.setOption("bv-print-consts-as-indexed-symbols", "true");

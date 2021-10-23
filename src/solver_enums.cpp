@@ -46,7 +46,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             // QUANTIFIERS,
             BOOL_BV1_ALIASING } },
 
-        { CVC4,
+        { CVC5,
           { TERMITER,
             THEORY_INT,
             THEORY_REAL,
@@ -103,7 +103,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
     });
 
 const unordered_set<SolverEnum> interpolator_solver_enums(
-    { MSAT_INTERPOLATOR, CVC4_INTERPOLATOR });
+    { MSAT_INTERPOLATOR, CVC5_INTERPOLATOR });
 
 bool is_interpolator_solver_enum(SolverEnum se)
 {
@@ -132,12 +132,12 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
   {
     case BTOR: o << "BTOR"; break;
     case BZLA: o << "BZLA"; break;
-    case CVC4: o << "CVC4"; break;
+    case CVC5: o << "CVC5"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
     case Z3: o << "Z3"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
-    case CVC4_INTERPOLATOR: o << "CVC4_INTERPOLATOR"; break;
+    case CVC5_INTERPOLATOR: o << "CVC5_INTERPOLATOR"; break;
     case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
     default:
       // should print the integer representation
