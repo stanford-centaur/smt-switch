@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4-printinh.cpp
+/*! \file cvc5-printinh.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Yoni Zohar
@@ -29,7 +29,7 @@
 // it cannot be compiled outside of the build
 #include "test-utils.h"
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "printing_solver.h"
 #include "smt.h"
 
@@ -54,16 +54,16 @@ std::string exec(const char* cmd) {
 }
 
 void dump_and_run(stringbuf& strbuf, string expected_result) {
-  string filename = "cvc4-printing.cpp-sample.smt2";
+  string filename = "cvc5-printing.cpp-sample.smt2";
   std::ofstream out(filename.c_str());
   out << strbuf.str() << endl;
   out.close();
-  // CVC4_HOME is a macro defined when built with CVC4
-  // that points to the top-level CVC4 directory
+  // CVC5_HOME is a macro defined when built with cvc5
+  // that points to the top-level cvc5 directory
   // STRFY is defined in test-utils.h and converts
   // a macro to its string representation
-  string command(STRFY(CVC4_HOME));
-  command += "/build/bin/cvc4 --produce-interpols=default ";
+  string command(STRFY(CVC5_HOME));
+  command += "/build/bin/cvc5 --produce-interpols=default ";
   command += filename;
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
@@ -143,16 +143,16 @@ void test1(SmtSolver s, ostream& os, stringbuf& strbuf) {
 int main()
 {
   stringbuf strbuf1;
-  SmtSolver cvc4_1 = CVC4SolverFactory::create(false);
+  SmtSolver cvc5_1 = Cvc5SolverFactory::create(false);
   ostream os1(&strbuf1);
-  SmtSolver s1 = create_printing_solver(cvc4_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
+  SmtSolver s1 = create_printing_solver(cvc5_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
   s1->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test1(s1, os1, strbuf1);
 
   stringbuf strbuf2;
-  SmtSolver cvc4_2 = CVC4SolverFactory::create_interpolating_solver();
+  SmtSolver cvc5_2 = Cvc5SolverFactory::create_interpolating_solver();
   ostream os2(&strbuf2);
-  SmtSolver s2 = create_printing_solver(cvc4_2, &os2, PrintingStyleEnum::CVC4_STYLE);
+  SmtSolver s2 = create_printing_solver(cvc5_2, &os2, PrintingStyleEnum::CVC5_STYLE);
   s2->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test2(s2, os2, strbuf2);
 

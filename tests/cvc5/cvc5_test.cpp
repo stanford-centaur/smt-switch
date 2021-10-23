@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_test.cpp
+/*! \file cvc5_test.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -16,10 +16,10 @@
 
 #include <iostream>
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "smt.h"
 // after full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/cvc5_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace std;
@@ -27,7 +27,7 @@ using namespace smt;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create(false);
+  SmtSolver s = Cvc5SolverFactory::create(false);
   Term x = s->make_symbol("x", s->make_sort(BV, 8));
   Term y = s->make_symbol("y", s->make_sort(BV, 8));
   cout << x->to_string() << endl;

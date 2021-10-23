@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4-int-arithmetic.cpp
+/*! \file cvc5-int-arithmetic.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -19,10 +19,10 @@
 #include <vector>
 #include "assert.h"
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "smt.h"
 // after full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/cvc5_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
@@ -30,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create(false);
+  SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   s->set_logic("QF_NIA");
   Sort intsort = s->make_sort(INT);

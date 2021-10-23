@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4-transfer.cpp
+/*! \file cvc5-transfer.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -19,10 +19,10 @@
 #include <vector>
 #include "assert.h"
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "smt.h"
 // after a full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/cvc5_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
@@ -30,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create(false);
+  SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort8);
@@ -44,7 +44,7 @@ int main()
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
   s->assert_formula(constraint);
 
-  SmtSolver s2 = CVC4SolverFactory::create(false);
+  SmtSolver s2 = Cvc5SolverFactory::create(false);
   s2->set_opt("produce-models", "true");
   s2->set_opt("incremental", "true");
 

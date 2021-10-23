@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4-term-iter.cpp
+/*! \file cvc5-term-iter.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -21,29 +21,29 @@
 
 #include "gtest/gtest.h"
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-#include "cvc4_term.h"
+#include "cvc5_term.h"
 #include "smt.h"
 
 using namespace smt;
 using namespace std;
 
-TEST(CVC4TermIterTest, Copy)
+TEST(Cvc5TermIterTest, Copy)
 {
-  ::CVC4::api::Solver solver;
-  ::CVC4::api::Sort bvsort4 = solver.mkBitVectorSort(4);
-  ::CVC4::api::Sort funsort = solver.mkFunctionSort(bvsort4, bvsort4);
+  ::cvc5::api::Solver solver;
+  ::cvc5::api::Sort bvsort4 = solver.mkBitVectorSort(4);
+  ::cvc5::api::Sort funsort = solver.mkFunctionSort(bvsort4, bvsort4);
 
-  ::CVC4::api::Term x = solver.mkConst(bvsort4, "x");
-  ::CVC4::api::Term v = solver.mkConst(bvsort4, "v");
-  ::CVC4::api::Term f = solver.mkConst(funsort, "f");
+  ::cvc5::api::Term x = solver.mkConst(bvsort4, "x");
+  ::cvc5::api::Term v = solver.mkConst(bvsort4, "v");
+  ::cvc5::api::Term f = solver.mkConst(funsort, "f");
 
-  ::CVC4::api::Term fx = solver.mkTerm(CVC4::api::APPLY_UF, f, x);
-  ::CVC4::api::Term fv = solver.mkTerm(CVC4::api::APPLY_UF, f, v);
+  ::cvc5::api::Term fx = solver.mkTerm(cvc5::api::APPLY_UF, f, x);
+  ::cvc5::api::Term fv = solver.mkTerm(cvc5::api::APPLY_UF, f, v);
 
-  CVC4TermIter it1(fx, 0);
-  CVC4TermIter it2(fx, 0);
+  Cvc5TermIter it1(fx, 0);
+  Cvc5TermIter it2(fx, 0);
 
   // NOTE: can't use _EQ and _NE macros because
   // it takes a const argument
@@ -52,10 +52,10 @@ TEST(CVC4TermIterTest, Copy)
   ++it2;
   EXPECT_TRUE(it1 != it2);
 
-  CVC4TermIter it3(fv, 0);
+  Cvc5TermIter it3(fv, 0);
   EXPECT_TRUE(it1 != it3);
 
-  CVC4TermIter it4(it3);
+  Cvc5TermIter it4(it3);
   EXPECT_TRUE(it3 == it4);
   EXPECT_TRUE(it1 != it4);
 }

@@ -286,7 +286,7 @@ Result PrintingSolver::get_interpolant(const Term & A,
     (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
     (*out_stream) << "; when running mathsat, use `-interpolation=true` flag" << endl;
   } else {
-    assert(style == PrintingStyleEnum::CVC4_STYLE);
+    assert(style == PrintingStyleEnum::CVC5_STYLE);
     (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << endl;
     (*out_stream) << "(" << CVC4_GET_INTERPOLANT_STR << " I (not " << B << "))" << endl;
   }

@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*! \file cvc4-interpolants.cpp
+/*! \file cvc5-interpolants.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Yoni Zohar
@@ -19,10 +19,10 @@
 #include <vector>
 #include "assert.h"
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "smt.h"
 // after a full installation
-// #include "smt-switch/cvc4_factory.h"
+// #include "smt-switch/cvc5_factory.h"
 // #include "smt-switch/smt.h"
 
 using namespace smt;
@@ -30,7 +30,7 @@ using namespace std;
 
 int main()
 {
-  SmtSolver s = CVC4SolverFactory::create_interpolating_solver();
+  SmtSolver s = Cvc5SolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_symbol("x", intsort);

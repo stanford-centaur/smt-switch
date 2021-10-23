@@ -31,8 +31,8 @@ using namespace std;
 #include "bitwuzla_factory.h"
 #endif
 
-#if BUILD_CVC4
-#include "cvc4_factory.h"
+#if BUILD_CVC5
+#include "cvc5_factory.h"
 #include "generic_solver.h"
 #endif
 
@@ -64,8 +64,8 @@ const std::vector<SolverEnum> solver_enums({
       BZLA,
 #endif
 
-#if BUILD_CVC4
-      CVC4,
+#if BUILD_CVC5
+      CVC5,
 #ifndef __APPLE__
       GENERIC_SOLVER,
 #endif
@@ -104,9 +104,9 @@ SmtSolver create_solver(SolverConfiguration sc)
       ;
     }
 #endif
-#if BUILD_CVC4
-    case CVC4: {
-      return CVC4SolverFactory::create(logging);
+#if BUILD_CVC5
+    case CVC5: {
+      return Cvc5SolverFactory::create(logging);
       break;
       ;
     }
@@ -132,11 +132,11 @@ SmtSolver create_solver(SolverConfiguration sc)
       ;
     }
 #endif
-#if BUILD_CVC4
+#if BUILD_CVC5
 #ifndef __APPLE__
       case GENERIC_SOLVER: {
-        std::string path = (STRFY(CVC4_HOME));
-        path += "/build/bin/cvc4";
+        std::string path = (STRFY(CVC5_HOME));
+        path += "/build/bin/cvc5";
         std::vector<std::string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0", "-q" };
         SmtSolver generic_solver = std::make_shared<GenericSolver>(path, args, 5, 5);
         if (logging) {
@@ -167,10 +167,10 @@ SmtSolver create_interpolating_solver(SolverConfiguration sc) {
       ;
     }
 #endif
-#if BUILD_CVC4
-    case CVC4_INTERPOLATOR:
+#if BUILD_CVC5
+    case CVC5_INTERPOLATOR:
     {
-      return CVC4SolverFactory::create_interpolating_solver();
+      return Cvc5SolverFactory::create_interpolating_solver();
       break;
       ;
     }
@@ -221,8 +221,8 @@ std::vector<SolverEnum> available_interpolator_enums() {
 #if BUILD_MSAT
   result.push_back(MSAT_INTERPOLATOR);
 #endif
-#if BUILD_CVC4
-  result.push_back(CVC4_INTERPOLATOR);
+#if BUILD_CVC5
+  result.push_back(CVC5_INTERPOLATOR);
 #endif
 
   return result;

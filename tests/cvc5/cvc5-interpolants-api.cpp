@@ -1,16 +1,16 @@
 #include <iostream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include <iostream>
 #include <memory>
 #include <vector>
 #include "assert.h"
 
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "smt.h"
 
 using namespace std;
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {
