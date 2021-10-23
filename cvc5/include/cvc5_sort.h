@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_sort.h
+/*! \file cvc5_sort.h
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsSort
+** \brief cvc5 implementation of AbsSort
 **
 **
 **/
@@ -32,7 +32,7 @@ namespace smt
   class Cvc5Sort : public AbsSort
   {
   public:
-    Cvc5Sort(::CVC4::api::Sort s) : sort(s) {};
+    Cvc5Sort(::cvc5::api::Sort s) : sort(s) {};
     ~Cvc5Sort() = default;
     std::string to_string() const override;
     std::size_t hash() const override;
@@ -49,11 +49,11 @@ namespace smt
     SortKind get_sort_kind() const override;
 
     // getters for solver-specific objects
-    // for interacting with third-party CVC4-specific software
-    ::CVC4::api::Sort get_cvc4_sort() const { return sort; };
+    // for interacting with third-party cvc5-specific software
+    ::cvc5::api::Sort get_cvc5_sort() const { return sort; };
 
    protected:
-    ::CVC4::api::Sort sort;
+    ::cvc5::api::Sort sort;
 
     friend class Cvc5Solver;
 

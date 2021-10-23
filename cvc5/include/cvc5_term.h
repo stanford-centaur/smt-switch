@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_term.h
+/*! \file cvc5_term.h
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsTerm
+** \brief cvc5 implementation of AbsTerm
 **
 **
 **/
@@ -27,9 +27,9 @@ namespace std
 
 // specialize hash struct
 template<>
-struct hash<::CVC4::api::Kind>
+struct hash<::cvc5::api::Kind>
 {
-  size_t operator()(const ::CVC4::api::Kind k) const
+  size_t operator()(const ::cvc5::api::Kind k) const
   {
     return static_cast<std::size_t>(k);
   }
@@ -44,7 +44,7 @@ namespace smt {
   class Cvc5TermIter : public TermIterBase
   {
   public:
-   Cvc5TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
+   Cvc5TermIter(::cvc5::api::Term term, uint32_t p = 0) : term(term), pos(p){};
    Cvc5TermIter(const Cvc5TermIter & it) { term = it.term; pos = it.pos; };
    ~Cvc5TermIter(){};
    Cvc5TermIter & operator=(const Cvc5TermIter & it);
@@ -58,14 +58,14 @@ namespace smt {
     bool equal(const TermIterBase & other) const override;
 
   private:
-   ::CVC4::api::Term term;
+   ::cvc5::api::Term term;
    uint32_t pos;
   };
 
   class Cvc5Term : public AbsTerm
   {
   public:
-    Cvc5Term(CVC4::api::Term t) : term(t) {};
+    Cvc5Term(cvc5::api::Term t) : term(t) {};
     ~Cvc5Term() {};
     std::size_t hash() const override;
     std::size_t get_id() const override;
@@ -85,14 +85,14 @@ namespace smt {
     std::string print_value_as(SortKind sk) override;
 
     // getters for solver-specific objects
-    // for interacting with third-party CVC4-specific software
-    ::CVC4::api::Term get_cvc4_term() const { return term; };
+    // for interacting with third-party cvc5-specific software
+    ::cvc5::api::Term get_cvc5_term() const { return term; };
 
    protected:
-    CVC4::api::Term term;
+    cvc5::api::Term term;
 
   friend class Cvc5Solver;
-  friend class CVC4InterpolatingSolver;
+  friend class cvc5InterpolatingSolver;
   };
 
 

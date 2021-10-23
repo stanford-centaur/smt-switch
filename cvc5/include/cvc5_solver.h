@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_solver.h
+/*! \file cvc5_solver.h
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsSmtSolver
+** \brief cvc5 implementation of AbsSmtSolver
 **
 **
 **/
@@ -23,9 +23,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "cvc4_sort.h"
-#include "cvc4_term.h"
-#include "cvc4_datatype.h"
+#include "cvc5_sort.h"
+#include "cvc5_term.h"
+#include "cvc5_datatype.h"
 
 #include "api/cpp/cvc5.h"
 
@@ -39,12 +39,12 @@
 
 namespace smt {
 /**
-   CVC4 Solver
+   cvc5 Solver
  */
 class Cvc5Solver : public AbsSmtSolver
 {
  public:
-  Cvc5Solver() : AbsSmtSolver(CVC4), solver(), context_level(0)
+  Cvc5Solver() : AbsSmtSolver(cvc5), solver(), context_level(0)
   {
     solver.setOption("lang", "smt2");
     solver.setOption("bv-print-consts-as-indexed-symbols", "true");
@@ -118,14 +118,14 @@ class Cvc5Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
   // helpers
-  ::CVC4::api::Op make_cvc4_op(Op op) const;
+  ::cvc5::api::Op make_cvc5_op(Op op) const;
 
   // getters for solver-specific objects
-  // for interacting with third-party CVC4-specific software
-  ::CVC4::api::Solver & get_cvc4_solver() { return solver; };
+  // for interacting with third-party cvc5-specific software
+  ::cvc5::api::Solver & get_cvc5_solver() { return solver; };
 
  protected:
-  ::CVC4::api::Solver solver;
+  ::cvc5::api::Solver solver;
 
   std::unordered_map<std::string, Term> symbol_table;
 
@@ -133,9 +133,9 @@ class Cvc5Solver : public AbsSmtSolver
 
   // helper function
   inline Result check_sat_assuming(
-      const std::vector<CVC4::api::Term> & cvc4assumps)
+      const std::vector<cvc5::api::Term> & cvc5assumps)
   {
-    ::CVC4::api::Result r = solver.checkSatAssuming(cvc4assumps);
+    ::cvc5::api::Result r = solver.checkSatAssuming(cvc5assumps);
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -152,19 +152,19 @@ class Cvc5Solver : public AbsSmtSolver
     }
     else
     {
-      throw NotImplementedException("Unimplemented result type from CVC4");
+      throw NotImplementedException("Unimplemented result type from cvc5");
     }
   }
 };
 
 //Interpolating Solver
-class CVC4InterpolatingSolver : public Cvc5Solver
+class cvc5InterpolatingSolver : public Cvc5Solver
 {
   public:
-    CVC4InterpolatingSolver() {}
-    CVC4InterpolatingSolver(const CVC4InterpolatingSolver &) = delete;
-    CVC4InterpolatingSolver & operator=(const CVC4InterpolatingSolver &) = delete;
-    ~CVC4InterpolatingSolver() {}
+    cvc5InterpolatingSolver() {}
+    cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
+    cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
+    ~cvc5InterpolatingSolver() {}
 
     Result get_interpolant(const Term & A,
                            const Term & B,

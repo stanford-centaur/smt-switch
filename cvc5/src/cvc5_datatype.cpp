@@ -1,4 +1,4 @@
-#include "cvc4_datatype.h"
+#include "cvc5_datatype.h"
 namespace smt {
 
 bool Cvc5DatatypeConstructorDecl::compare(

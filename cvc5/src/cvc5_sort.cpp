@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_sort.cpp
+/*! \file cvc5_sort.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,20 +9,20 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsSort
+** \brief cvc5 implementation of AbsSort
 **
 **
 **/
 
 #include "exceptions.h"
 
-#include "cvc4_sort.h"
-#include "cvc4_datatype.h"
+#include "cvc5_sort.h"
+#include "cvc5_datatype.h"
 
 namespace smt {
 
 // struct for hashing
-CVC4::api::SortHashFunction sorthash;
+cvc5::api::SortHashFunction sorthash;
 
 std::string Cvc5Sort::to_string() const
 {
@@ -48,11 +48,11 @@ Sort Cvc5Sort::get_elemsort() const
 
 SortVec Cvc5Sort::get_domain_sorts() const
 {
-  std::vector<::CVC4::api::Sort> cvc4_sorts = sort.getFunctionDomainSorts();
+  std::vector<::cvc5::api::Sort> cvc5_sorts = sort.getFunctionDomainSorts();
   SortVec domain_sorts;
-  domain_sorts.reserve(cvc4_sorts.size());
+  domain_sorts.reserve(cvc5_sorts.size());
   Sort s;
-  for (auto cs : cvc4_sorts)
+  for (auto cs : cvc5_sorts)
   {
     s.reset(new Cvc5Sort(cs));
     domain_sorts.push_back(s);
@@ -80,7 +80,7 @@ size_t Cvc5Sort::get_arity() const
       return sort.getSortConstructorArity();
     }
   }
-  catch (::CVC4::api::CVC4ApiException & e)
+  catch (::cvc5::api::cvc5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -108,7 +108,7 @@ Datatype Cvc5Sort::get_datatype() const
   {
     return std::make_shared<Cvc5Datatype>(sort.getDatatype());
   }
-  catch (::CVC4::api::CVC4ApiException & e)
+  catch (::cvc5::api::cvc5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -166,7 +166,7 @@ SortKind Cvc5Sort::get_sort_kind() const
   }
   else
   {
-    throw NotImplementedException("Unknown kind in CVC4 translation.");
+    throw NotImplementedException("Unknown kind in cvc5 translation.");
   }
 }
 
