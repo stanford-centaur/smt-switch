@@ -1,0 +1,1 @@
+../contrib/setup-cvc5.sh
