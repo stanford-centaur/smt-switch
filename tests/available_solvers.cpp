@@ -168,8 +168,7 @@ SmtSolver create_interpolating_solver(SolverConfiguration sc) {
     }
 #endif
 #if BUILD_CVC5
-    case CVC5_INTERPOLATOR:
-    {
+    case CVC5_INTERPOLATOR: {
       return Cvc5SolverFactory::create_interpolating_solver();
       break;
       ;

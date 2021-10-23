@@ -19,23 +19,23 @@
 #include "smt_defs.h"
 
 namespace smt {
-  class Cvc5SolverFactory
-  {
-  public:
-    /** Create a cvc5 SmtSolver
-     *  @param logging if true creates a LoggingSolver wrapper
-     *         around the solver that keeps a shadow DAG at
-     *         the smt-switch level.
-     *         For cvc5 this should never be necessary because
-     *         the cvc5 API does not alias any sorts or
-     *         perform on-the-fly rewriting.
-     *  @return a cvc5 SmtSolver
-     */
-    static SmtSolver create(bool logging);
+class Cvc5SolverFactory
+{
+ public:
+  /** Create a cvc5 SmtSolver
+   *  @param logging if true creates a LoggingSolver wrapper
+   *         around the solver that keeps a shadow DAG at
+   *         the smt-switch level.
+   *         For cvc5 this should never be necessary because
+   *         the cvc5 API does not alias any sorts or
+   *         perform on-the-fly rewriting.
+   *  @return a cvc5 SmtSolver
+   */
+  static SmtSolver create(bool logging);
 
-    /** Create an interpolating cvc5 SmtSolver
-     *  @return an interpolating cvc5 SmtSolver
-     */
-    static SmtSolver create_interpolating_solver();
-  };
+  /** Create an interpolating cvc5 SmtSolver
+   *  @return an interpolating cvc5 SmtSolver
+   */
+  static SmtSolver create_interpolating_solver();
+};
 }  // namespace smt

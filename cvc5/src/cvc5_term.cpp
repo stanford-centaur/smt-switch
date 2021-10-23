@@ -14,14 +14,12 @@
 **
 **/
 
-#include "assert.h"
+#include "cvc5_term.h"
 
 #include "api/cpp/cvc5.h"
-
-#include "exceptions.h"
-
+#include "assert.h"
 #include "cvc5_sort.h"
-#include "cvc5_term.h"
+#include "exceptions.h"
 
 namespace smt {
 
@@ -181,17 +179,13 @@ bool Cvc5TermIter::equal(const TermIterBase & other) const
 
 /* Cvc5Term implementation */
 
-std::size_t Cvc5Term::hash() const
-{
-  return termhash(term);
-}
+std::size_t Cvc5Term::hash() const { return termhash(term); }
 
 std::size_t Cvc5Term::get_id() const { return term.getId(); }
 
 bool Cvc5Term::compare(const Term & absterm) const
 {
-  std::shared_ptr<Cvc5Term> other =
-    std::static_pointer_cast<Cvc5Term>(absterm);
+  std::shared_ptr<Cvc5Term> other = std::static_pointer_cast<Cvc5Term>(absterm);
   return term == other->term;
 }
 
@@ -251,7 +245,7 @@ Op Cvc5Term::get_op() const
 
 Sort Cvc5Term::get_sort() const
 {
-  return std::make_shared<Cvc5Sort> (term.getSort());
+  return std::make_shared<Cvc5Sort>(term.getSort());
 }
 
 bool Cvc5Term::is_symbol() const
@@ -277,12 +271,12 @@ bool Cvc5Term::is_value() const
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
   ::cvc5::api::Kind k = term.getKind();
-  return ((k == ::cvc5::api::CONST_BOOLEAN)
-          || (k == ::cvc5::api::CONST_BITVECTOR)
-          || (k == ::cvc5::api::CONST_RATIONAL)
-          || (k == ::cvc5::api::CONST_FLOATINGPOINT)
-          || (k == ::cvc5::api::CONST_ROUNDINGMODE)
-          || (k == ::cvc5::api::CONST_STRING) || (k == ::cvc5::api::CONST_ARRAY));
+  return (
+      (k == ::cvc5::api::CONST_BOOLEAN) || (k == ::cvc5::api::CONST_BITVECTOR)
+      || (k == ::cvc5::api::CONST_RATIONAL)
+      || (k == ::cvc5::api::CONST_FLOATINGPOINT)
+      || (k == ::cvc5::api::CONST_ROUNDINGMODE)
+      || (k == ::cvc5::api::CONST_STRING) || (k == ::cvc5::api::CONST_ARRAY));
 }
 
 std::string Cvc5Term::to_string() { return term.toString(); }
@@ -345,4 +339,4 @@ std::string Cvc5Term::print_value_as(SortKind sk)
 
 /* end Cvc5Term implementation */
 
-}
+}  // namespace smt

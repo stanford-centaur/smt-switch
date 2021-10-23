@@ -23,19 +23,17 @@
 #include <unordered_set>
 #include <vector>
 
+#include "api/cpp/cvc5.h"
+#include "cvc5_datatype.h"
 #include "cvc5_sort.h"
 #include "cvc5_term.h"
-#include "cvc5_datatype.h"
-
-#include "api/cpp/cvc5.h"
-
+#include "datatype.h"
 #include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
 #include "term.h"
-#include "datatype.h"
 
 namespace smt {
 /**
@@ -51,7 +49,7 @@ class Cvc5Solver : public AbsSmtSolver
   };
   Cvc5Solver(const Cvc5Solver &) = delete;
   Cvc5Solver & operator=(const Cvc5Solver &) = delete;
-  ~Cvc5Solver() { };
+  ~Cvc5Solver(){};
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -84,12 +82,18 @@ class Cvc5Solver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
   SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls,
       const UnorderedSortSet & uninterp_sorts) const override;
@@ -157,19 +161,18 @@ class Cvc5Solver : public AbsSmtSolver
   }
 };
 
-//Interpolating Solver
+// Interpolating Solver
 class cvc5InterpolatingSolver : public Cvc5Solver
 {
-  public:
-    cvc5InterpolatingSolver() {}
-    cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
-    cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
-    ~cvc5InterpolatingSolver() {}
+ public:
+  cvc5InterpolatingSolver() {}
+  cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
+  cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
+  ~cvc5InterpolatingSolver() {}
 
-    Result get_interpolant(const Term & A,
-                           const Term & B,
-                           Term & out_I) const override;
+  Result get_interpolant(const Term & A,
+                         const Term & B,
+                         Term & out_I) const override;
 };
 
 }  // namespace smt
-

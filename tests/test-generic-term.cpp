@@ -29,8 +29,8 @@
 // specifically defined macros
 // it cannot be compiled outside of the build
 #include "cvc5_factory.h"
-#include "generic_term.h"
 #include "generic_sort.h"
+#include "generic_term.h"
 #include "gtest/gtest.h"
 #include "smt.h"
 #include "test-utils.h"

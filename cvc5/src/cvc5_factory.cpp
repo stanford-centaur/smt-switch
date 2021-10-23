@@ -15,12 +15,11 @@
 **/
 
 #include "cvc5_factory.h"
-#include "cvc5_solver.h"
 
+#include "cvc5_solver.h"
 #include "logging_solver.h"
 
-namespace smt
-{
+namespace smt {
 
 /* Cvc5SolverFactory implementation */
 SmtSolver Cvc5SolverFactory::create(bool logging)
@@ -33,7 +32,8 @@ SmtSolver Cvc5SolverFactory::create(bool logging)
   return solver;
 }
 
-SmtSolver Cvc5SolverFactory::create_interpolating_solver() {
+SmtSolver Cvc5SolverFactory::create_interpolating_solver()
+{
   SmtSolver solver = std::make_shared<cvc5InterpolatingSolver>();
   /*
    * In cvc5, turning on interpolation requiers choosing
@@ -53,4 +53,4 @@ SmtSolver Cvc5SolverFactory::create_interpolating_solver() {
 }
 /* end Cvc5SolverFactory implementation */
 
-} // namespace smt
+}  // namespace smt

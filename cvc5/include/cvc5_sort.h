@@ -18,46 +18,42 @@
 
 #include <unordered_map>
 
-#include "sort.h"
-
 #include "api/cpp/cvc5.h"
 #include "api/cpp/cvc5_kind.h"
+#include "sort.h"
 
-namespace smt
+namespace smt {
+
+// forward declaration
+class Cvc5Solver;
+
+class Cvc5Sort : public AbsSort
 {
+ public:
+  Cvc5Sort(::cvc5::api::Sort s) : sort(s){};
+  ~Cvc5Sort() = default;
+  std::string to_string() const override;
+  std::size_t hash() const override;
+  uint64_t get_width() const override;
+  Sort get_indexsort() const override;
+  Sort get_elemsort() const override;
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+  std::string get_uninterpreted_name() const override;
+  size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
+  Datatype get_datatype() const override;
+  bool compare(const Sort &) const override;
+  SortKind get_sort_kind() const override;
 
-  // forward declaration
-  class Cvc5Solver;
+  // getters for solver-specific objects
+  // for interacting with third-party cvc5-specific software
+  ::cvc5::api::Sort get_cvc5_sort() const { return sort; };
 
-  class Cvc5Sort : public AbsSort
-  {
-  public:
-    Cvc5Sort(::cvc5::api::Sort s) : sort(s) {};
-    ~Cvc5Sort() = default;
-    std::string to_string() const override;
-    std::size_t hash() const override;
-    uint64_t get_width() const override;
-    Sort get_indexsort() const override;
-    Sort get_elemsort() const override;
-    SortVec get_domain_sorts() const override;
-    Sort get_codomain_sort() const override;
-    std::string get_uninterpreted_name() const override;
-    size_t get_arity() const override;
-    SortVec get_uninterpreted_param_sorts() const override;
-    Datatype get_datatype() const override;
-    bool compare(const Sort &) const override;
-    SortKind get_sort_kind() const override;
+ protected:
+  ::cvc5::api::Sort sort;
 
-    // getters for solver-specific objects
-    // for interacting with third-party cvc5-specific software
-    ::cvc5::api::Sort get_cvc5_sort() const { return sort; };
+  friend class Cvc5Solver;
+};
 
-   protected:
-    ::cvc5::api::Sort sort;
-
-    friend class Cvc5Solver;
-
-  };
-
-}
-
+}  // namespace smt

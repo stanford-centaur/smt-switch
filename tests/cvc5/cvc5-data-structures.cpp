@@ -16,8 +16,8 @@
 
 #include <iostream>
 #include <string>
-#include "assert.h"
 
+#include "assert.h"
 #include "cvc5_factory.h"
 #include "smt.h"
 // after full installation
@@ -93,8 +93,8 @@ int main()
   cout << "Assignments:" << std::endl;
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    cout << "\t " << v[i]->to_string() << " = "
-         << s->get_value(v[i])->to_int() << endl;
+    cout << "\t " << v[i]->to_string() << " = " << s->get_value(v[i])->to_int()
+         << endl;
     cout << "\t " << utm.at(v[i])->to_string() << " = "
          << s->get_value(utm.at(v[i]))->to_int() << endl;
   }

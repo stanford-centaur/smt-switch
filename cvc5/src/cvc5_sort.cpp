@@ -14,36 +14,30 @@
 **
 **/
 
-#include "exceptions.h"
-
 #include "cvc5_sort.h"
+
 #include "cvc5_datatype.h"
+#include "exceptions.h"
 
 namespace smt {
 
 // struct for hashing
 std::hash<cvc5::api::Sort> sorthash;
 
-std::string Cvc5Sort::to_string() const
-{
-  return sort.toString();
-}
+std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
-std::size_t Cvc5Sort::hash() const
-{
-  return sorthash(sort);
-}
+std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
 
 uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
 
 Sort Cvc5Sort::get_indexsort() const
 {
-  return std::make_shared<Cvc5Sort> (sort.getArrayIndexSort());
+  return std::make_shared<Cvc5Sort>(sort.getArrayIndexSort());
 }
 
 Sort Cvc5Sort::get_elemsort() const
 {
-  return std::make_shared<Cvc5Sort> (sort.getArrayElementSort());
+  return std::make_shared<Cvc5Sort>(sort.getArrayElementSort());
 }
 
 SortVec Cvc5Sort::get_domain_sorts() const
@@ -62,7 +56,7 @@ SortVec Cvc5Sort::get_domain_sorts() const
 
 Sort Cvc5Sort::get_codomain_sort() const
 {
-  return std::make_shared<Cvc5Sort> (sort.getFunctionCodomainSort());
+  return std::make_shared<Cvc5Sort>(sort.getFunctionCodomainSort());
 }
 
 std::string Cvc5Sort::get_uninterpreted_name() const { return sort.toString(); }
@@ -170,4 +164,4 @@ SortKind Cvc5Sort::get_sort_kind() const
   }
 }
 
-}
+}  // namespace smt

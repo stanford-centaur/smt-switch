@@ -17,8 +17,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "cvc5_factory.h"
 #include "smt.h"
 // after a full installation
@@ -85,8 +85,6 @@ int main()
   r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
   got_interpolant = (r.is_unsat());
   assert(!got_interpolant);
-
-
 
   return 0;
 }

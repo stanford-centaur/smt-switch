@@ -1,11 +1,9 @@
 #include <iostream>
-
-#include "api/cpp/cvc5.h"
-#include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "api/cpp/cvc5.h"
+#include "assert.h"
 #include "cvc5_factory.h"
 #include "smt.h"
 
@@ -42,9 +40,9 @@ int main()
 
   if (I.getKind() != CONSTANT)
   {
-    cout << "ERROR The interpolant should have kind CONSTANT but has kind: " << kindToString(I.getKind()) << endl;
+    cout << "ERROR The interpolant should have kind CONSTANT but has kind: "
+         << kindToString(I.getKind()) << endl;
   }
 
   return 0;
 }
-

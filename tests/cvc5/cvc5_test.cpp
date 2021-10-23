@@ -53,6 +53,5 @@ int main()
     cout << "\t" << c << endl;
   }
 
-
   return 0;
 }
