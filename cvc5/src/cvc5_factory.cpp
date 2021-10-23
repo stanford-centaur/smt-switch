@@ -22,10 +22,10 @@
 namespace smt
 {
 
-/* CVC4SolverFactory implementation */
-SmtSolver CVC4SolverFactory::create(bool logging)
+/* Cvc5SolverFactory implementation */
+SmtSolver Cvc5SolverFactory::create(bool logging)
 {
-  SmtSolver solver = std::make_shared<CVC4Solver>();
+  SmtSolver solver = std::make_shared<Cvc5Solver>();
   if (logging)
   {
     solver = std::make_shared<LoggingSolver>(solver);
@@ -33,7 +33,7 @@ SmtSolver CVC4SolverFactory::create(bool logging)
   return solver;
 }
 
-SmtSolver CVC4SolverFactory::create_interpolating_solver() {
+SmtSolver Cvc5SolverFactory::create_interpolating_solver() {
   SmtSolver solver = std::make_shared<CVC4InterpolatingSolver>();
   /*
    * In CVC4, turning on interpolation requiers choosing
@@ -51,6 +51,6 @@ SmtSolver CVC4SolverFactory::create_interpolating_solver() {
   solver->set_opt("incremental", "false");
   return solver;
 }
-/* end CVC4SolverFactory implementation */
+/* end Cvc5SolverFactory implementation */
 
 } // namespace smt

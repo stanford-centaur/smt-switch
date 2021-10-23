@@ -27,7 +27,7 @@
 #include "cvc4_term.h"
 #include "cvc4_datatype.h"
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 #include "exceptions.h"
 #include "ops.h"
@@ -41,17 +41,17 @@ namespace smt {
 /**
    CVC4 Solver
  */
-class CVC4Solver : public AbsSmtSolver
+class Cvc5Solver : public AbsSmtSolver
 {
  public:
-  CVC4Solver() : AbsSmtSolver(CVC4), solver(), context_level(0)
+  Cvc5Solver() : AbsSmtSolver(CVC4), solver(), context_level(0)
   {
     solver.setOption("lang", "smt2");
     solver.setOption("bv-print-consts-as-indexed-symbols", "true");
   };
-  CVC4Solver(const CVC4Solver &) = delete;
-  CVC4Solver & operator=(const CVC4Solver &) = delete;
-  ~CVC4Solver() { };
+  Cvc5Solver(const Cvc5Solver &) = delete;
+  Cvc5Solver & operator=(const Cvc5Solver &) = delete;
+  ~Cvc5Solver() { };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -158,7 +158,7 @@ class CVC4Solver : public AbsSmtSolver
 };
 
 //Interpolating Solver
-class CVC4InterpolatingSolver : public CVC4Solver
+class CVC4InterpolatingSolver : public Cvc5Solver
 {
   public:
     CVC4InterpolatingSolver() {}

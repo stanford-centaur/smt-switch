@@ -24,29 +24,29 @@ namespace smt {
 // struct for hashing
 CVC4::api::SortHashFunction sorthash;
 
-std::string CVC4Sort::to_string() const
+std::string Cvc5Sort::to_string() const
 {
   return sort.toString();
 }
 
-std::size_t CVC4Sort::hash() const
+std::size_t Cvc5Sort::hash() const
 {
   return sorthash(sort);
 }
 
-uint64_t CVC4Sort::get_width() const { return sort.getBVSize(); }
+uint64_t Cvc5Sort::get_width() const { return sort.getBVSize(); }
 
-Sort CVC4Sort::get_indexsort() const
+Sort Cvc5Sort::get_indexsort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getArrayIndexSort());
+  return std::make_shared<Cvc5Sort> (sort.getArrayIndexSort());
 }
 
-Sort CVC4Sort::get_elemsort() const
+Sort Cvc5Sort::get_elemsort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getArrayElementSort());
+  return std::make_shared<Cvc5Sort> (sort.getArrayElementSort());
 }
 
-SortVec CVC4Sort::get_domain_sorts() const
+SortVec Cvc5Sort::get_domain_sorts() const
 {
   std::vector<::CVC4::api::Sort> cvc4_sorts = sort.getFunctionDomainSorts();
   SortVec domain_sorts;
@@ -54,20 +54,20 @@ SortVec CVC4Sort::get_domain_sorts() const
   Sort s;
   for (auto cs : cvc4_sorts)
   {
-    s.reset(new CVC4Sort(cs));
+    s.reset(new Cvc5Sort(cs));
     domain_sorts.push_back(s);
   }
   return domain_sorts;
 }
 
-Sort CVC4Sort::get_codomain_sort() const
+Sort Cvc5Sort::get_codomain_sort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
+  return std::make_shared<Cvc5Sort> (sort.getFunctionCodomainSort());
 }
 
-std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
+std::string Cvc5Sort::get_uninterpreted_name() const { return sort.toString(); }
 
-size_t CVC4Sort::get_arity() const
+size_t Cvc5Sort::get_arity() const
 {
   try
   {
@@ -86,27 +86,27 @@ size_t CVC4Sort::get_arity() const
   }
 }
 
-SortVec CVC4Sort::get_uninterpreted_param_sorts() const
+SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
   SortVec param_sorts;
   for (auto cs : sort.getUninterpretedSortParamSorts())
   {
-    param_sorts.push_back(std::make_shared<CVC4Sort>(cs));
+    param_sorts.push_back(std::make_shared<Cvc5Sort>(cs));
   }
   return param_sorts;
 }
 
-bool CVC4Sort::compare(const Sort & s) const
+bool Cvc5Sort::compare(const Sort & s) const
 {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
   return sort == cs->sort;
 }
 
-Datatype CVC4Sort::get_datatype() const
+Datatype Cvc5Sort::get_datatype() const
 {
   try
   {
-    return std::make_shared<CVC4Datatype>(sort.getDatatype());
+    return std::make_shared<Cvc5Datatype>(sort.getDatatype());
   }
   catch (::CVC4::api::CVC4ApiException & e)
   {
@@ -114,7 +114,7 @@ Datatype CVC4Sort::get_datatype() const
   }
 };
 
-SortKind CVC4Sort::get_sort_kind() const
+SortKind Cvc5Sort::get_sort_kind() const
 {
   if (sort.isBoolean())
   {

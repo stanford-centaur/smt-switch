@@ -19,7 +19,7 @@
 #include "term.h"
 #include "utils.h"
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 // define hash for old compilers
 namespace std
@@ -39,20 +39,20 @@ struct hash<::CVC4::api::Kind>
 
 namespace smt {
   //forward declaration
-  class CVC4Solver;
+  class Cvc5Solver;
 
-  class CVC4TermIter : public TermIterBase
+  class Cvc5TermIter : public TermIterBase
   {
   public:
-   CVC4TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
-   CVC4TermIter(const CVC4TermIter & it) { term = it.term; pos = it.pos; };
-   ~CVC4TermIter(){};
-   CVC4TermIter & operator=(const CVC4TermIter & it);
+   Cvc5TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
+   Cvc5TermIter(const Cvc5TermIter & it) { term = it.term; pos = it.pos; };
+   ~Cvc5TermIter(){};
+   Cvc5TermIter & operator=(const Cvc5TermIter & it);
    void operator++() override;
    const Term operator*() override;
    TermIterBase * clone() const override;
-   bool operator==(const CVC4TermIter & it);
-   bool operator!=(const CVC4TermIter & it);
+   bool operator==(const Cvc5TermIter & it);
+   bool operator!=(const Cvc5TermIter & it);
 
   protected:
     bool equal(const TermIterBase & other) const override;
@@ -62,11 +62,11 @@ namespace smt {
    uint32_t pos;
   };
 
-  class CVC4Term : public AbsTerm
+  class Cvc5Term : public AbsTerm
   {
   public:
-    CVC4Term(CVC4::api::Term t) : term(t) {};
-    ~CVC4Term() {};
+    Cvc5Term(CVC4::api::Term t) : term(t) {};
+    ~Cvc5Term() {};
     std::size_t hash() const override;
     std::size_t get_id() const override;
     bool compare(const Term & absterm) const override;
@@ -91,7 +91,7 @@ namespace smt {
    protected:
     CVC4::api::Term term;
 
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
   friend class CVC4InterpolatingSolver;
   };
 

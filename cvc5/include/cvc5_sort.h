@@ -20,20 +20,20 @@
 
 #include "sort.h"
 
-#include "api/cvc4cpp.h"
-#include "api/cvc4cppkind.h"
+#include "api/cpp/cvc5.h"
+#include "api/cpp/cvc5_kind.h"
 
 namespace smt
 {
 
   // forward declaration
-  class CVC4Solver;
+  class Cvc5Solver;
 
-  class CVC4Sort : public AbsSort
+  class Cvc5Sort : public AbsSort
   {
   public:
-    CVC4Sort(::CVC4::api::Sort s) : sort(s) {};
-    ~CVC4Sort() = default;
+    Cvc5Sort(::CVC4::api::Sort s) : sort(s) {};
+    ~Cvc5Sort() = default;
     std::string to_string() const override;
     std::size_t hash() const override;
     uint64_t get_width() const override;
@@ -55,7 +55,7 @@ namespace smt
    protected:
     ::CVC4::api::Sort sort;
 
-    friend class CVC4Solver;
+    friend class Cvc5Solver;
 
   };
 

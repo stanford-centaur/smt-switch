@@ -120,22 +120,22 @@ const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
 // struct for hashing
 CVC4::api::TermHashFunction termhash;
 
-/* CVC4TermIter implementation */
-CVC4TermIter & CVC4TermIter::operator=(const CVC4TermIter & it)
+/* Cvc5TermIter implementation */
+Cvc5TermIter & Cvc5TermIter::operator=(const Cvc5TermIter & it)
 {
   term = it.term;
   pos = it.pos;
   return *this;
 }
 
-void CVC4TermIter::operator++() { pos++; }
+void Cvc5TermIter::operator++() { pos++; }
 
-const Term CVC4TermIter::operator*()
+const Term Cvc5TermIter::operator*()
 {
   if (pos == term.getNumChildren()
       && term.getKind() == ::CVC4::api::Kind::CONST_ARRAY)
   {
-    return std::make_shared<CVC4Term>(term.getConstArrayBase());
+    return std::make_shared<Cvc5Term>(term.getConstArrayBase());
   }
   // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
   // smt-switch CVC4 backend guarantees that the length is only one by
@@ -151,51 +151,51 @@ const Term CVC4TermIter::operator*()
       throw InternalSolverException(
           "Expected exactly one bound variable in CVC4 BOUND_VAR_LIST");
     }
-    return std::make_shared<CVC4Term>(t[0]);
+    return std::make_shared<Cvc5Term>(t[0]);
   }
-  return std::make_shared<CVC4Term>(t);
+  return std::make_shared<Cvc5Term>(t);
 }
 
-TermIterBase * CVC4TermIter::clone() const
+TermIterBase * Cvc5TermIter::clone() const
 {
-  return new CVC4TermIter(term, pos);
+  return new Cvc5TermIter(term, pos);
 }
 
-bool CVC4TermIter::operator==(const CVC4TermIter & it)
+bool Cvc5TermIter::operator==(const Cvc5TermIter & it)
 {
   return term == it.term && pos == it.pos;
 }
 
-bool CVC4TermIter::operator!=(const CVC4TermIter & it)
+bool Cvc5TermIter::operator!=(const Cvc5TermIter & it)
 {
   return term != it.term || pos != it.pos;
 }
 
-bool CVC4TermIter::equal(const TermIterBase & other) const
+bool Cvc5TermIter::equal(const TermIterBase & other) const
 {
-  const CVC4TermIter & cti = static_cast<const CVC4TermIter &>(other);
+  const Cvc5TermIter & cti = static_cast<const Cvc5TermIter &>(other);
   return term == cti.term && pos == cti.pos;
 }
 
-/* end CVC4TermIter implementation */
+/* end Cvc5TermIter implementation */
 
-/* CVC4Term implementation */
+/* Cvc5Term implementation */
 
-std::size_t CVC4Term::hash() const
+std::size_t Cvc5Term::hash() const
 {
   return termhash(term);
 }
 
-std::size_t CVC4Term::get_id() const { return term.getId(); }
+std::size_t Cvc5Term::get_id() const { return term.getId(); }
 
-bool CVC4Term::compare(const Term & absterm) const
+bool Cvc5Term::compare(const Term & absterm) const
 {
-  std::shared_ptr<CVC4Term> other =
-    std::static_pointer_cast<CVC4Term>(absterm);
+  std::shared_ptr<Cvc5Term> other =
+    std::static_pointer_cast<Cvc5Term>(absterm);
   return term == other->term;
 }
 
-Op CVC4Term::get_op() const
+Op Cvc5Term::get_op() const
 {
   if (!term.hasOp())
   {
@@ -249,30 +249,30 @@ Op CVC4Term::get_op() const
   }
 }
 
-Sort CVC4Term::get_sort() const
+Sort Cvc5Term::get_sort() const
 {
-  return std::make_shared<CVC4Sort> (term.getSort());
+  return std::make_shared<Cvc5Sort> (term.getSort());
 }
 
-bool CVC4Term::is_symbol() const
+bool Cvc5Term::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols
   ::CVC4::api::Kind k = term.getKind();
   return (k == ::CVC4::api::CONSTANT || k == ::CVC4::api::VARIABLE);
 }
 
-bool CVC4Term::is_param() const
+bool Cvc5Term::is_param() const
 {
   return (term.getKind() == ::CVC4::api::VARIABLE);
 }
 
-bool CVC4Term::is_symbolic_const() const
+bool Cvc5Term::is_symbolic_const() const
 {
   return (term.getKind() == ::CVC4::api::CONSTANT
           && !term.getSort().isFunction());
 }
 
-bool CVC4Term::is_value() const
+bool Cvc5Term::is_value() const
 {
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
@@ -285,9 +285,9 @@ bool CVC4Term::is_value() const
           || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::CONST_ARRAY));
 }
 
-std::string CVC4Term::to_string() { return term.toString(); }
+std::string Cvc5Term::to_string() { return term.toString(); }
 
-uint64_t CVC4Term::to_int() const
+uint64_t Cvc5Term::to_int() const
 {
   std::string val = term.toString();
   ::CVC4::api::Sort sort = term.getSort();
@@ -320,9 +320,9 @@ uint64_t CVC4Term::to_int() const
 
 /** Iterators for traversing the children
  */
-TermIter CVC4Term::begin() { return TermIter(new CVC4TermIter(term, 0)); }
+TermIter Cvc5Term::begin() { return TermIter(new Cvc5TermIter(term, 0)); }
 
-TermIter CVC4Term::end()
+TermIter Cvc5Term::end()
 {
   uint32_t num_children = term.getNumChildren();
   if (term.getKind() == ::CVC4::api::Kind::CONST_ARRAY)
@@ -330,10 +330,10 @@ TermIter CVC4Term::end()
     // base of constant array is the child
     num_children++;
   }
-  return TermIter(new CVC4TermIter(term, num_children));
+  return TermIter(new Cvc5TermIter(term, num_children));
 }
 
-std::string CVC4Term::print_value_as(SortKind sk)
+std::string Cvc5Term::print_value_as(SortKind sk)
 {
   if (!is_value())
   {
@@ -343,6 +343,6 @@ std::string CVC4Term::print_value_as(SortKind sk)
   return term.toString();
 }
 
-/* end CVC4Term implementation */
+/* end Cvc5Term implementation */
 
 }

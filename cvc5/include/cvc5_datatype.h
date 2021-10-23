@@ -17,36 +17,36 @@
 
 #include "datatype.h"
 #include "exceptions.h"
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 namespace smt {
 
-  class CVC4DatatypeDecl : public AbsDatatypeDecl {
+  class Cvc5DatatypeDecl : public AbsDatatypeDecl {
     public :
-    CVC4DatatypeDecl(CVC4::api::DatatypeDecl t) : datatypedecl(t) {};
+    Cvc5DatatypeDecl(CVC4::api::DatatypeDecl t) : datatypedecl(t) {};
    protected:
     CVC4::api::DatatypeDecl datatypedecl;
 
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
 
   };
 
-  class CVC4DatatypeConstructorDecl : public AbsDatatypeConstructorDecl {
+  class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl {
     public :
-    CVC4DatatypeConstructorDecl(CVC4::api::DatatypeConstructorDecl t) : datatypeconstructordecl(t) {};
+    Cvc5DatatypeConstructorDecl(CVC4::api::DatatypeConstructorDecl t) : datatypeconstructordecl(t) {};
     bool compare(const DatatypeConstructorDecl &) const override;
 
    protected:
     CVC4::api::DatatypeConstructorDecl datatypeconstructordecl;
 
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
 
   };
 
 
-  class CVC4Datatype : public AbsDatatype {
+  class Cvc5Datatype : public AbsDatatype {
     public :
-    CVC4Datatype(CVC4::api::Datatype t) : datatype(t) {};
+    Cvc5Datatype(CVC4::api::Datatype t) : datatype(t) {};
     std::string get_name() const override {
       return datatype.getName();
     }
@@ -65,7 +65,7 @@ namespace smt {
    protected:
     CVC4::api::Datatype datatype;
 
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
 
   };
 
