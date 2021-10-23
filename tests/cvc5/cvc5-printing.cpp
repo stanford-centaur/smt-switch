@@ -53,7 +53,10 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-void dump_and_run(stringbuf& strbuf, string expected_result) {
+void dump_and_run(stringbuf & strbuf,
+                  string expected_result,
+                  string extra_opts = "")
+{
   string filename = "cvc5-printing.cpp-sample.smt2";
   std::ofstream out(filename.c_str());
   out << strbuf.str() << endl;
@@ -63,7 +66,7 @@ void dump_and_run(stringbuf& strbuf, string expected_result) {
   // STRFY is defined in test-utils.h and converts
   // a macro to its string representation
   string command(STRFY(CVC5_HOME));
-  command += "/build/bin/cvc5 --produce-interpols=default ";
+  command += "/build/bin/cvc5 " + extra_opts + " ";
   command += filename;
   std::cout << "Running command: " << command << std::endl;
   string result = exec(command.c_str());
@@ -71,7 +74,6 @@ void dump_and_run(stringbuf& strbuf, string expected_result) {
   assert(result == expected_result);
   remove(filename.c_str());
 }
-
 
 void test2(SmtSolver s, ostream& os, stringbuf& strbuf) {
 
@@ -98,7 +100,9 @@ void test2(SmtSolver s, ostream& os, stringbuf& strbuf) {
   Term B = s->make_term(Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
-  dump_and_run(strbuf, "(define-fun I () Bool (<= x z))\n");
+  dump_and_run(strbuf,
+               "(define-fun I () Bool (<= x z))\n",
+               "--produce-interpols=default");
 }
 
 void test1(SmtSolver s, ostream& os, stringbuf& strbuf) {
