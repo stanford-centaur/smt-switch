@@ -34,7 +34,7 @@ std::size_t Cvc5Sort::hash() const
   return sorthash(sort);
 }
 
-uint64_t Cvc5Sort::get_width() const { return sort.getBVSize(); }
+uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
 
 Sort Cvc5Sort::get_indexsort() const
 {
