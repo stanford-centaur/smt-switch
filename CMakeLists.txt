@@ -233,7 +233,7 @@ endif()
 # Add tests subdirectory
 # The CMakeLists.txt file there sets up googletest
 # and builds all the parametrized tests
-# add_subdirectory(tests)
+add_subdirectory(tests)
 
 # install smt-switch
 install(TARGETS smt-switch DESTINATION lib)
