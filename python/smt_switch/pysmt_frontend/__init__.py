@@ -17,8 +17,8 @@ except ImportError:
     pass
 
 try:
-    from .pysmt_solver import SwitchCVC4
-    __ALL__.append('SwitchCVC4')
+    from .pysmt_solver import SwitchCvc5
+    __ALL__.append('SwitchCvc5')
 except ImportError:
     pass
 

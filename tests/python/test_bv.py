@@ -35,7 +35,7 @@ def test_bvadd(create_solver):
 
     xv = solver.get_value(x)
     yv = solver.get_value(y)
-    assert int(xv) + int(yv) == 6
+    assert (int(xv) + int(yv))%(2**8) == 6
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

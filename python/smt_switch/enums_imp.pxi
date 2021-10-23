@@ -96,9 +96,9 @@ cdef SolverEnum BTOR = SolverEnum()
 BTOR.se = c_BTOR
 setattr(solverenums, 'BTOR', BTOR)
 
-cdef SolverEnum CVC4 = SolverEnum()
-CVC4.se = c_CVC4
-setattr(solverenums, 'CVC4', CVC4)
+cdef SolverEnum CVC5 = SolverEnum()
+CVC5.se = c_CVC5
+setattr(solverenums, 'CVC5', CVC5)
 
 cdef SolverEnum MSAT = SolverEnum()
 MSAT.se = c_MSAT
@@ -112,9 +112,9 @@ cdef SolverEnum MSAT_INTERPOLATOR = SolverEnum()
 MSAT_INTERPOLATOR.se = c_MSAT_INTERPOLATOR
 setattr(solverenums, "MSAT_INTERPOLATOR", MSAT_INTERPOLATOR)
 
-cdef SolverEnum CVC4_INTERPOLATOR = SolverEnum()
-CVC4_INTERPOLATOR.se = c_CVC4_INTERPOLATOR
-setattr(solverenums, "CVC4_INTERPOLATOR", CVC4_INTERPOLATOR)
+cdef SolverEnum CVC5_INTERPOLATOR = SolverEnum()
+CVC5_INTERPOLATOR.se = c_CVC5_INTERPOLATOR
+setattr(solverenums, "CVC5_INTERPOLATOR", CVC5_INTERPOLATOR)
 
 cdef SolverEnum GENERIC_SOLVER = SolverEnum()
 GENERIC_SOLVER.se = c_GENERIC_SOLVER
