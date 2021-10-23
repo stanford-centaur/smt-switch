@@ -131,7 +131,7 @@ if (BUILD_PYTHON_BINDINGS)
   endif()
 endif()
 
-if (BUILD_BITWUZLA OR BUILD_CVC4 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
+if (BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
   find_package(GMP REQUIRED)
 endif()
 
@@ -168,20 +168,20 @@ if (BUILD_BITWUZLA)
 endif (BUILD_BITWUZLA)
 
 
-# should we build cvc4?
-option (BUILD_CVC4
-  "Should we build the libraries for cvc4" OFF)
+# should we build cvc5?
+option (BUILD_CVC5
+  "Should we build the libraries for cvc5" OFF)
 
-if (BUILD_CVC4)
-  if (NOT DEFINED CVC4_HOME)
-    set(CVC4_HOME "${PROJECT_SOURCE_DIR}/deps/CVC4")
+if (BUILD_CVC5)
+  if (NOT DEFINED CVC5_HOME)
+    set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5")
   endif()
-  add_subdirectory (cvc4)
-  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc4)
+  add_subdirectory (cvc5)
+  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
 
-  add_definitions(-DBUILD_CVC4)
-  add_definitions(-DCVC4_HOME=${CVC4_HOME})
-endif (BUILD_CVC4)
+  add_definitions(-DBUILD_CVC5)
+  add_definitions(-DCVC5_HOME=${CVC5_HOME})
+endif (BUILD_CVC5)
 
 # should we build msat?
 option (BUILD_MSAT
