@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Factory for creating a CVC4 SmtSolver
+** \brief Factory for creating a cvc5 SmtSolver
 **
 **
 **/
@@ -19,22 +19,22 @@
 #include "smt_defs.h"
 
 namespace smt {
-  class CVC4SolverFactory
+  class Cvc5SolverFactory
   {
   public:
-    /** Create a CVC4 SmtSolver
+    /** Create a cvc5 SmtSolver
      *  @param logging if true creates a LoggingSolver wrapper
      *         around the solver that keeps a shadow DAG at
      *         the smt-switch level.
-     *         For CVC4 this should never be necessary because
-     *         the CVC4 API does not alias any sorts or
+     *         For cvc5 this should never be necessary because
+     *         the cvc5 API does not alias any sorts or
      *         perform on-the-fly rewriting.
-     *  @return a CVC4 SmtSolver
+     *  @return a cvc5 SmtSolver
      */
     static SmtSolver create(bool logging);
 
-    /** Create an interpolating CVC4 SmtSolver
-     *  @return an interpolating CVC4 SmtSolver
+    /** Create an interpolating cvc5 SmtSolver
+     *  @return an interpolating cvc5 SmtSolver
      */
     static SmtSolver create_interpolating_solver();
   };
