@@ -8,11 +8,11 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         name:
           [
-            btor,
+            # btor,
             cvc5,
-            msat,
-            yices2,
-            z3
+            # msat,
+            # yices2,
+            # z3
           ]
 
         include:
