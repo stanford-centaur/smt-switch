@@ -1,1 +1,1 @@
-../contrib/setup-cvc5.sh
+./download-cvc5.sh
