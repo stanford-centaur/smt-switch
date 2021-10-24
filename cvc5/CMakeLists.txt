@@ -42,13 +42,13 @@ find_library(CADICAL REQUIRED
              NAMES libcadical.a libcadical.so libcadical.dylib
              PATHS "${CVC5_HOME}/build/deps/lib")
 
-target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/libcvc5.a")
-target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/parser/libcvc5parser.a")
-target_link_libraries(smt-switch-cvc5 "${POLYLIBXX}")
-target_link_libraries(smt-switch-cvc5 "${POLYLIB}")
-target_link_libraries(smt-switch-cvc5 "${CADICAL}")
-target_link_libraries(smt-switch-cvc5 smt-switch)
-target_link_libraries(smt-switch-cvc5 ${GMP_LIBRARIES})
+target_link_libraries(smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/src/libcvc5.a")
+target_link_libraries(smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/src/parser/libcvc5parser.a")
+target_link_libraries(smt-switch-cvc5 PUBLIC "${POLYLIBXX}")
+target_link_libraries(smt-switch-cvc5 PUBLIC "${POLYLIB}")
+target_link_libraries(smt-switch-cvc5 PUBLIC "${CADICAL}")
+target_link_libraries(smt-switch-cvc5 PUBLIC smt-switch)
+target_link_libraries(smt-switch-cvc5 PUBLIC ${GMP_LIBRARIES})
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the cvc5 source
