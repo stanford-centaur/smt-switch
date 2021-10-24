@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_sort.cpp
+/*! \file cvc5_sort.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,65 +9,59 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsSort
+** \brief cvc5 implementation of AbsSort
 **
 **
 **/
 
-#include "exceptions.h"
+#include "cvc5_sort.h"
 
-#include "cvc4_sort.h"
-#include "cvc4_datatype.h"
+#include "cvc5_datatype.h"
+#include "exceptions.h"
 
 namespace smt {
 
 // struct for hashing
-CVC4::api::SortHashFunction sorthash;
+std::hash<cvc5::api::Sort> sorthash;
 
-std::string CVC4Sort::to_string() const
+std::string Cvc5Sort::to_string() const { return sort.toString(); }
+
+std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
+
+uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
+
+Sort Cvc5Sort::get_indexsort() const
 {
-  return sort.toString();
+  return std::make_shared<Cvc5Sort>(sort.getArrayIndexSort());
 }
 
-std::size_t CVC4Sort::hash() const
+Sort Cvc5Sort::get_elemsort() const
 {
-  return sorthash(sort);
+  return std::make_shared<Cvc5Sort>(sort.getArrayElementSort());
 }
 
-uint64_t CVC4Sort::get_width() const { return sort.getBVSize(); }
-
-Sort CVC4Sort::get_indexsort() const
+SortVec Cvc5Sort::get_domain_sorts() const
 {
-  return std::make_shared<CVC4Sort> (sort.getArrayIndexSort());
-}
-
-Sort CVC4Sort::get_elemsort() const
-{
-  return std::make_shared<CVC4Sort> (sort.getArrayElementSort());
-}
-
-SortVec CVC4Sort::get_domain_sorts() const
-{
-  std::vector<::CVC4::api::Sort> cvc4_sorts = sort.getFunctionDomainSorts();
+  std::vector<::cvc5::api::Sort> cvc5_sorts = sort.getFunctionDomainSorts();
   SortVec domain_sorts;
-  domain_sorts.reserve(cvc4_sorts.size());
+  domain_sorts.reserve(cvc5_sorts.size());
   Sort s;
-  for (auto cs : cvc4_sorts)
+  for (auto cs : cvc5_sorts)
   {
-    s.reset(new CVC4Sort(cs));
+    s.reset(new Cvc5Sort(cs));
     domain_sorts.push_back(s);
   }
   return domain_sorts;
 }
 
-Sort CVC4Sort::get_codomain_sort() const
+Sort Cvc5Sort::get_codomain_sort() const
 {
-  return std::make_shared<CVC4Sort> (sort.getFunctionCodomainSort());
+  return std::make_shared<Cvc5Sort>(sort.getFunctionCodomainSort());
 }
 
-std::string CVC4Sort::get_uninterpreted_name() const { return sort.toString(); }
+std::string Cvc5Sort::get_uninterpreted_name() const { return sort.toString(); }
 
-size_t CVC4Sort::get_arity() const
+size_t Cvc5Sort::get_arity() const
 {
   try
   {
@@ -80,41 +74,41 @@ size_t CVC4Sort::get_arity() const
       return sort.getSortConstructorArity();
     }
   }
-  catch (::CVC4::api::CVC4ApiException & e)
+  catch (::cvc5::api::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
 }
 
-SortVec CVC4Sort::get_uninterpreted_param_sorts() const
+SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
   SortVec param_sorts;
   for (auto cs : sort.getUninterpretedSortParamSorts())
   {
-    param_sorts.push_back(std::make_shared<CVC4Sort>(cs));
+    param_sorts.push_back(std::make_shared<Cvc5Sort>(cs));
   }
   return param_sorts;
 }
 
-bool CVC4Sort::compare(const Sort & s) const
+bool Cvc5Sort::compare(const Sort & s) const
 {
-  std::shared_ptr<CVC4Sort> cs = std::static_pointer_cast<CVC4Sort>(s);
+  std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
   return sort == cs->sort;
 }
 
-Datatype CVC4Sort::get_datatype() const
+Datatype Cvc5Sort::get_datatype() const
 {
   try
   {
-    return std::make_shared<CVC4Datatype>(sort.getDatatype());
+    return std::make_shared<Cvc5Datatype>(sort.getDatatype());
   }
-  catch (::CVC4::api::CVC4ApiException & e)
+  catch (::cvc5::api::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
 };
 
-SortKind CVC4Sort::get_sort_kind() const
+SortKind Cvc5Sort::get_sort_kind() const
 {
   if (sort.isBoolean())
   {
@@ -166,8 +160,8 @@ SortKind CVC4Sort::get_sort_kind() const
   }
   else
   {
-    throw NotImplementedException("Unknown kind in CVC4 translation.");
+    throw NotImplementedException("Unknown kind in cvc5 translation.");
   }
 }
 
-}
+}  // namespace smt

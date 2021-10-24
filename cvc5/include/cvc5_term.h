@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_term.h
+/*! \file cvc5_term.h
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,92 +9,77 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsTerm
+** \brief cvc5 implementation of AbsTerm
 **
 **
 **/
 
 #pragma once
 
+#include "api/cpp/cvc5.h"
 #include "term.h"
 #include "utils.h"
 
-#include "api/cvc4cpp.h"
+namespace smt {
+// forward declaration
+class Cvc5Solver;
 
-// define hash for old compilers
-namespace std
+class Cvc5TermIter : public TermIterBase
 {
-
-// specialize hash struct
-template<>
-struct hash<::CVC4::api::Kind>
-{
-  size_t operator()(const ::CVC4::api::Kind k) const
+ public:
+  Cvc5TermIter(::cvc5::api::Term term, uint32_t p = 0) : term(term), pos(p){};
+  Cvc5TermIter(const Cvc5TermIter & it)
   {
-    return static_cast<std::size_t>(k);
-  }
+    term = it.term;
+    pos = it.pos;
+  };
+  ~Cvc5TermIter(){};
+  Cvc5TermIter & operator=(const Cvc5TermIter & it);
+  void operator++() override;
+  const Term operator*() override;
+  TermIterBase * clone() const override;
+  bool operator==(const Cvc5TermIter & it);
+  bool operator!=(const Cvc5TermIter & it);
+
+ protected:
+  bool equal(const TermIterBase & other) const override;
+
+ private:
+  ::cvc5::api::Term term;
+  uint32_t pos;
 };
 
-}
+class Cvc5Term : public AbsTerm
+{
+ public:
+  Cvc5Term(cvc5::api::Term t) : term(t){};
+  ~Cvc5Term(){};
+  std::size_t hash() const override;
+  std::size_t get_id() const override;
+  bool compare(const Term & absterm) const override;
+  Op get_op() const override;
+  Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
+  bool is_symbolic_const() const override;
+  bool is_value() const override;
+  virtual std::string to_string() override;
+  uint64_t to_int() const override;
+  /** Iterators for traversing the children
+   */
+  TermIter begin() override;
+  TermIter end() override;
+  std::string print_value_as(SortKind sk) override;
 
-namespace smt {
-  //forward declaration
-  class CVC4Solver;
+  // getters for solver-specific objects
+  // for interacting with third-party cvc5-specific software
+  ::cvc5::api::Term get_cvc5_term() const { return term; };
 
-  class CVC4TermIter : public TermIterBase
-  {
-  public:
-   CVC4TermIter(::CVC4::api::Term term, uint32_t p = 0) : term(term), pos(p){};
-   CVC4TermIter(const CVC4TermIter & it) { term = it.term; pos = it.pos; };
-   ~CVC4TermIter(){};
-   CVC4TermIter & operator=(const CVC4TermIter & it);
-   void operator++() override;
-   const Term operator*() override;
-   TermIterBase * clone() const override;
-   bool operator==(const CVC4TermIter & it);
-   bool operator!=(const CVC4TermIter & it);
+ protected:
+  cvc5::api::Term term;
 
-  protected:
-    bool equal(const TermIterBase & other) const override;
+  friend class Cvc5Solver;
+  friend class cvc5InterpolatingSolver;
+};
 
-  private:
-   ::CVC4::api::Term term;
-   uint32_t pos;
-  };
-
-  class CVC4Term : public AbsTerm
-  {
-  public:
-    CVC4Term(CVC4::api::Term t) : term(t) {};
-    ~CVC4Term() {};
-    std::size_t hash() const override;
-    std::size_t get_id() const override;
-    bool compare(const Term & absterm) const override;
-    Op get_op() const override;
-    Sort get_sort() const override;
-    bool is_symbol() const override;
-    bool is_param() const override;
-    bool is_symbolic_const() const override;
-    bool is_value() const override;
-    virtual std::string to_string() override;
-    uint64_t to_int() const override;
-    /** Iterators for traversing the children
-     */
-    TermIter begin() override;
-    TermIter end() override;
-    std::string print_value_as(SortKind sk) override;
-
-    // getters for solver-specific objects
-    // for interacting with third-party CVC4-specific software
-    ::CVC4::api::Term get_cvc4_term() const { return term; };
-
-   protected:
-    CVC4::api::Term term;
-
-  friend class CVC4Solver;
-  friend class CVC4InterpolatingSolver;
-  };
-
-
-
-}
+}  // namespace smt

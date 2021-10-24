@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_term.cpp
+/*! \file cvc5_term.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -9,193 +9,187 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief CVC4 implementation of AbsTerm
+** \brief cvc5 implementation of AbsTerm
 **
 **
 **/
 
+#include "cvc5_term.h"
+
+#include "api/cpp/cvc5.h"
 #include "assert.h"
-
-#include "api/cvc4cpp.h"
-
+#include "cvc5_sort.h"
 #include "exceptions.h"
-
-#include "cvc4_sort.h"
-#include "cvc4_term.h"
 
 namespace smt {
 
-// the kinds CVC4 needs to build an OpTerm for an indexed op
-const std::unordered_map<::CVC4::api::Kind, size_t> kind2numindices(
-    { { ::CVC4::api::BITVECTOR_EXTRACT, 2 },
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, 1 },
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, 1 },
-      { ::CVC4::api::BITVECTOR_REPEAT, 1 },
-      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, 1 },
-      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, 1 },
-      { ::CVC4::api::INT_TO_BITVECTOR, 1 } });
+// the kinds cvc5 needs to build an OpTerm for an indexed op
+const std::unordered_map<::cvc5::api::Kind, size_t> kind2numindices(
+    { { ::cvc5::api::BITVECTOR_EXTRACT, 2 },
+      { ::cvc5::api::BITVECTOR_ZERO_EXTEND, 1 },
+      { ::cvc5::api::BITVECTOR_SIGN_EXTEND, 1 },
+      { ::cvc5::api::BITVECTOR_REPEAT, 1 },
+      { ::cvc5::api::BITVECTOR_ROTATE_LEFT, 1 },
+      { ::cvc5::api::BITVECTOR_ROTATE_RIGHT, 1 },
+      { ::cvc5::api::INT_TO_BITVECTOR, 1 } });
 
-const std::unordered_map<::CVC4::api::Kind, PrimOp> kind2primop(
-    { { ::CVC4::api::AND, And },
-      { ::CVC4::api::OR, Or },
-      { ::CVC4::api::XOR, Xor },
-      { ::CVC4::api::NOT, Not },
-      { ::CVC4::api::IMPLIES, Implies },
-      { ::CVC4::api::ITE, Ite },
-      { ::CVC4::api::EQUAL, Equal },
-      { ::CVC4::api::DISTINCT, Distinct },
+const std::unordered_map<::cvc5::api::Kind, PrimOp> kind2primop(
+    { { ::cvc5::api::AND, And },
+      { ::cvc5::api::OR, Or },
+      { ::cvc5::api::XOR, Xor },
+      { ::cvc5::api::NOT, Not },
+      { ::cvc5::api::IMPLIES, Implies },
+      { ::cvc5::api::ITE, Ite },
+      { ::cvc5::api::EQUAL, Equal },
+      { ::cvc5::api::DISTINCT, Distinct },
       /* Uninterpreted Functions */
-      { ::CVC4::api::APPLY_UF, Apply },
+      { ::cvc5::api::APPLY_UF, Apply },
       /* Arithmetic Theories */
-      { ::CVC4::api::PLUS, Plus },
-      { ::CVC4::api::MINUS, Minus },
-      { ::CVC4::api::UMINUS, Negate },
-      { ::CVC4::api::MULT, Mult },
-      { ::CVC4::api::DIVISION, Div },
-      { ::CVC4::api::LT, Lt },
-      { ::CVC4::api::LEQ, Le },
-      { ::CVC4::api::GT, Gt },
-      { ::CVC4::api::GEQ, Ge },
-      { ::CVC4::api::INTS_MODULUS, Mod },
-      { ::CVC4::api::ABS, Abs },
-      { ::CVC4::api::POW, Pow },
-      { ::CVC4::api::TO_REAL, To_Real },
-      { ::CVC4::api::TO_INTEGER, To_Int },
-      { ::CVC4::api::IS_INTEGER, Is_Int },
+      { ::cvc5::api::PLUS, Plus },
+      { ::cvc5::api::MINUS, Minus },
+      { ::cvc5::api::UMINUS, Negate },
+      { ::cvc5::api::MULT, Mult },
+      { ::cvc5::api::DIVISION, Div },
+      { ::cvc5::api::LT, Lt },
+      { ::cvc5::api::LEQ, Le },
+      { ::cvc5::api::GT, Gt },
+      { ::cvc5::api::GEQ, Ge },
+      { ::cvc5::api::INTS_MODULUS, Mod },
+      { ::cvc5::api::ABS, Abs },
+      { ::cvc5::api::POW, Pow },
+      { ::cvc5::api::TO_REAL, To_Real },
+      { ::cvc5::api::TO_INTEGER, To_Int },
+      { ::cvc5::api::IS_INTEGER, Is_Int },
       /* Fixed Size BitVector Theory */
-      { ::CVC4::api::BITVECTOR_CONCAT, Concat },
+      { ::cvc5::api::BITVECTOR_CONCAT, Concat },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_EXTRACT, Extract },
-      { ::CVC4::api::BITVECTOR_NOT, BVNot },
-      { ::CVC4::api::BITVECTOR_NEG, BVNeg },
-      { ::CVC4::api::BITVECTOR_AND, BVAnd },
-      { ::CVC4::api::BITVECTOR_OR, BVOr },
-      { ::CVC4::api::BITVECTOR_XOR, BVXor },
-      { ::CVC4::api::BITVECTOR_NAND, BVNand },
-      { ::CVC4::api::BITVECTOR_NOR, BVNor },
-      { ::CVC4::api::BITVECTOR_XNOR, BVXnor },
-      { ::CVC4::api::BITVECTOR_COMP, BVComp },
-      { ::CVC4::api::BITVECTOR_PLUS, BVAdd },
-      { ::CVC4::api::BITVECTOR_SUB, BVSub },
-      { ::CVC4::api::BITVECTOR_MULT, BVMul },
-      { ::CVC4::api::BITVECTOR_UDIV, BVUdiv },
-      { ::CVC4::api::BITVECTOR_SDIV, BVSdiv },
-      { ::CVC4::api::BITVECTOR_UREM, BVUrem },
-      { ::CVC4::api::BITVECTOR_SREM, BVSrem },
-      { ::CVC4::api::BITVECTOR_SMOD, BVSmod },
-      { ::CVC4::api::BITVECTOR_SHL, BVShl },
-      { ::CVC4::api::BITVECTOR_ASHR, BVAshr },
-      { ::CVC4::api::BITVECTOR_LSHR, BVLshr },
-      { ::CVC4::api::BITVECTOR_ULT, BVUlt },
-      { ::CVC4::api::BITVECTOR_ULE, BVUle },
-      { ::CVC4::api::BITVECTOR_UGT, BVUgt },
-      { ::CVC4::api::BITVECTOR_UGE, BVUge },
-      { ::CVC4::api::BITVECTOR_SLT, BVSlt },
-      { ::CVC4::api::BITVECTOR_SLE, BVSle },
-      { ::CVC4::api::BITVECTOR_SGT, BVSgt },
-      { ::CVC4::api::BITVECTOR_SGE, BVSge },
+      { ::cvc5::api::BITVECTOR_EXTRACT, Extract },
+      { ::cvc5::api::BITVECTOR_NOT, BVNot },
+      { ::cvc5::api::BITVECTOR_NEG, BVNeg },
+      { ::cvc5::api::BITVECTOR_AND, BVAnd },
+      { ::cvc5::api::BITVECTOR_OR, BVOr },
+      { ::cvc5::api::BITVECTOR_XOR, BVXor },
+      { ::cvc5::api::BITVECTOR_NAND, BVNand },
+      { ::cvc5::api::BITVECTOR_NOR, BVNor },
+      { ::cvc5::api::BITVECTOR_XNOR, BVXnor },
+      { ::cvc5::api::BITVECTOR_COMP, BVComp },
+      { ::cvc5::api::BITVECTOR_ADD, BVAdd },
+      { ::cvc5::api::BITVECTOR_SUB, BVSub },
+      { ::cvc5::api::BITVECTOR_MULT, BVMul },
+      { ::cvc5::api::BITVECTOR_UDIV, BVUdiv },
+      { ::cvc5::api::BITVECTOR_SDIV, BVSdiv },
+      { ::cvc5::api::BITVECTOR_UREM, BVUrem },
+      { ::cvc5::api::BITVECTOR_SREM, BVSrem },
+      { ::cvc5::api::BITVECTOR_SMOD, BVSmod },
+      { ::cvc5::api::BITVECTOR_SHL, BVShl },
+      { ::cvc5::api::BITVECTOR_ASHR, BVAshr },
+      { ::cvc5::api::BITVECTOR_LSHR, BVLshr },
+      { ::cvc5::api::BITVECTOR_ULT, BVUlt },
+      { ::cvc5::api::BITVECTOR_ULE, BVUle },
+      { ::cvc5::api::BITVECTOR_UGT, BVUgt },
+      { ::cvc5::api::BITVECTOR_UGE, BVUge },
+      { ::cvc5::api::BITVECTOR_SLT, BVSlt },
+      { ::cvc5::api::BITVECTOR_SLE, BVSle },
+      { ::cvc5::api::BITVECTOR_SGT, BVSgt },
+      { ::cvc5::api::BITVECTOR_SGE, BVSge },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ZERO_EXTEND, Zero_Extend },
+      { ::cvc5::api::BITVECTOR_ZERO_EXTEND, Zero_Extend },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_SIGN_EXTEND, Sign_Extend },
+      { ::cvc5::api::BITVECTOR_SIGN_EXTEND, Sign_Extend },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_REPEAT, Repeat },
+      { ::cvc5::api::BITVECTOR_REPEAT, Repeat },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_LEFT, Rotate_Left },
+      { ::cvc5::api::BITVECTOR_ROTATE_LEFT, Rotate_Left },
       // Indexed Op
-      { ::CVC4::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
+      { ::cvc5::api::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       // Conversion
-      { ::CVC4::api::BITVECTOR_TO_NAT, BV_To_Nat },
+      { ::cvc5::api::BITVECTOR_TO_NAT, BV_To_Nat },
       // Indexed Op
-      { ::CVC4::api::INT_TO_BITVECTOR, Int_To_BV },
-      { ::CVC4::api::SELECT, Select },
-      { ::CVC4::api::STORE, Store },
-      { ::CVC4::api::FORALL, Forall },
-      { ::CVC4::api::EXISTS, Exists },
+      { ::cvc5::api::INT_TO_BITVECTOR, Int_To_BV },
+      { ::cvc5::api::SELECT, Select },
+      { ::cvc5::api::STORE, Store },
+      { ::cvc5::api::FORALL, Forall },
+      { ::cvc5::api::EXISTS, Exists },
       // Datatype
-      { ::CVC4::api::APPLY_CONSTRUCTOR, Apply_Constructor },
-      { ::CVC4::api::APPLY_TESTER, Apply_Tester },
-      { ::CVC4::api::APPLY_SELECTOR, Apply_Selector } });
+      { ::cvc5::api::APPLY_CONSTRUCTOR, Apply_Constructor },
+      { ::cvc5::api::APPLY_TESTER, Apply_Tester },
+      { ::cvc5::api::APPLY_SELECTOR, Apply_Selector } });
 
 // struct for hashing
-CVC4::api::TermHashFunction termhash;
+std::hash<cvc5::api::Term> termhash;
 
-/* CVC4TermIter implementation */
-CVC4TermIter & CVC4TermIter::operator=(const CVC4TermIter & it)
+/* Cvc5TermIter implementation */
+Cvc5TermIter & Cvc5TermIter::operator=(const Cvc5TermIter & it)
 {
   term = it.term;
   pos = it.pos;
   return *this;
 }
 
-void CVC4TermIter::operator++() { pos++; }
+void Cvc5TermIter::operator++() { pos++; }
 
-const Term CVC4TermIter::operator*()
+const Term Cvc5TermIter::operator*()
 {
   if (pos == term.getNumChildren()
-      && term.getKind() == ::CVC4::api::Kind::CONST_ARRAY)
+      && term.getKind() == ::cvc5::api::Kind::CONST_ARRAY)
   {
-    return std::make_shared<CVC4Term>(term.getConstArrayBase());
+    return std::make_shared<Cvc5Term>(term.getConstArrayBase());
   }
   // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
-  // smt-switch CVC4 backend guarantees that the length is only one by
+  // smt-switch cvc5 backend guarantees that the length is only one by
   // construction
-  ::CVC4::api::Term t = term[pos];
-  if (t.getKind() == ::CVC4::api::BOUND_VAR_LIST)
+  ::cvc5::api::Term t = term[pos];
+  if (t.getKind() == ::cvc5::api::BOUND_VAR_LIST)
   {
     if (t.getNumChildren() != 1)
     {
-      // smt-switch CVC4 backend should only allow binding one parameter
+      // smt-switch cvc5 backend should only allow binding one parameter
       // otherwise, we need to flatten arbitrary nestings of quantifiers and
       // BOUND_VAR_LISTs for term iteration
       throw InternalSolverException(
-          "Expected exactly one bound variable in CVC4 BOUND_VAR_LIST");
+          "Expected exactly one bound variable in cvc5 BOUND_VAR_LIST");
     }
-    return std::make_shared<CVC4Term>(t[0]);
+    return std::make_shared<Cvc5Term>(t[0]);
   }
-  return std::make_shared<CVC4Term>(t);
+  return std::make_shared<Cvc5Term>(t);
 }
 
-TermIterBase * CVC4TermIter::clone() const
+TermIterBase * Cvc5TermIter::clone() const
 {
-  return new CVC4TermIter(term, pos);
+  return new Cvc5TermIter(term, pos);
 }
 
-bool CVC4TermIter::operator==(const CVC4TermIter & it)
+bool Cvc5TermIter::operator==(const Cvc5TermIter & it)
 {
   return term == it.term && pos == it.pos;
 }
 
-bool CVC4TermIter::operator!=(const CVC4TermIter & it)
+bool Cvc5TermIter::operator!=(const Cvc5TermIter & it)
 {
   return term != it.term || pos != it.pos;
 }
 
-bool CVC4TermIter::equal(const TermIterBase & other) const
+bool Cvc5TermIter::equal(const TermIterBase & other) const
 {
-  const CVC4TermIter & cti = static_cast<const CVC4TermIter &>(other);
+  const Cvc5TermIter & cti = static_cast<const Cvc5TermIter &>(other);
   return term == cti.term && pos == cti.pos;
 }
 
-/* end CVC4TermIter implementation */
+/* end Cvc5TermIter implementation */
 
-/* CVC4Term implementation */
+/* Cvc5Term implementation */
 
-std::size_t CVC4Term::hash() const
+std::size_t Cvc5Term::hash() const { return termhash(term); }
+
+std::size_t Cvc5Term::get_id() const { return term.getId(); }
+
+bool Cvc5Term::compare(const Term & absterm) const
 {
-  return termhash(term);
-}
-
-std::size_t CVC4Term::get_id() const { return term.getId(); }
-
-bool CVC4Term::compare(const Term & absterm) const
-{
-  std::shared_ptr<CVC4Term> other =
-    std::static_pointer_cast<CVC4Term>(absterm);
+  std::shared_ptr<Cvc5Term> other = std::static_pointer_cast<Cvc5Term>(absterm);
   return term == other->term;
 }
 
-Op CVC4Term::get_op() const
+Op Cvc5Term::get_op() const
 {
   if (!term.hasOp())
   {
@@ -203,43 +197,43 @@ Op CVC4Term::get_op() const
     return Op();
   }
 
-  CVC4::api::Op cvc4_op = term.getOp();
-  CVC4::api::Kind cvc4_kind = cvc4_op.getKind();
+  cvc5::api::Op cvc5_op = term.getOp();
+  cvc5::api::Kind cvc5_kind = cvc5_op.getKind();
 
   // special cases
-  if (cvc4_kind == CVC4::api::Kind::CONST_ARRAY)
+  if (cvc5_kind == cvc5::api::Kind::CONST_ARRAY)
   {
     // constant array is a value in smt-switch
     return Op();
   }
 
   // implementation checking
-  if (kind2primop.find(cvc4_kind) == kind2primop.end())
+  if (kind2primop.find(cvc5_kind) == kind2primop.end())
   {
-    throw NotImplementedException("get_op not implemented for CVC4 Kind "
-                                  + CVC4::api::kindToString(cvc4_kind));
+    throw NotImplementedException("get_op not implemented for cvc5 Kind "
+                                  + cvc5::api::kindToString(cvc5_kind));
   }
-  PrimOp po = kind2primop.at(cvc4_kind);
+  PrimOp po = kind2primop.at(cvc5_kind);
 
   // create an smt-switch Op and return it
-  if (cvc4_op.isIndexed())
+  if (cvc5_op.isIndexed())
   {
-    if (kind2numindices.find(cvc4_kind) == kind2numindices.end())
+    if (kind2numindices.find(cvc5_kind) == kind2numindices.end())
     {
-      throw NotImplementedException("get_op not implemented for CVC4 Kind "
-                                    + CVC4::api::kindToString(cvc4_kind));
+      throw NotImplementedException("get_op not implemented for cvc5 Kind "
+                                    + cvc5::api::kindToString(cvc5_kind));
     }
-    size_t num_indices = kind2numindices.at(cvc4_kind);
+    size_t num_indices = kind2numindices.at(cvc5_kind);
     if (num_indices == 1)
     {
-      uint32_t idx0 = cvc4_op.getIndices<uint32_t>();
+      uint32_t idx0 = cvc5_op.getIndices<uint32_t>();
       return Op(po, idx0);
     }
     else
     {
       assert(num_indices == 2);
       std::pair<uint32_t, uint32_t> indices =
-          cvc4_op.getIndices<std::pair<uint32_t, uint32_t>>();
+          cvc5_op.getIndices<std::pair<uint32_t, uint32_t>>();
       return Op(po, indices.first, indices.second);
     }
   }
@@ -249,48 +243,48 @@ Op CVC4Term::get_op() const
   }
 }
 
-Sort CVC4Term::get_sort() const
+Sort Cvc5Term::get_sort() const
 {
-  return std::make_shared<CVC4Sort> (term.getSort());
+  return std::make_shared<Cvc5Sort>(term.getSort());
 }
 
-bool CVC4Term::is_symbol() const
+bool Cvc5Term::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols
-  ::CVC4::api::Kind k = term.getKind();
-  return (k == ::CVC4::api::CONSTANT || k == ::CVC4::api::VARIABLE);
+  ::cvc5::api::Kind k = term.getKind();
+  return (k == ::cvc5::api::CONSTANT || k == ::cvc5::api::VARIABLE);
 }
 
-bool CVC4Term::is_param() const
+bool Cvc5Term::is_param() const
 {
-  return (term.getKind() == ::CVC4::api::VARIABLE);
+  return (term.getKind() == ::cvc5::api::VARIABLE);
 }
 
-bool CVC4Term::is_symbolic_const() const
+bool Cvc5Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::CVC4::api::CONSTANT
+  return (term.getKind() == ::cvc5::api::CONSTANT
           && !term.getSort().isFunction());
 }
 
-bool CVC4Term::is_value() const
+bool Cvc5Term::is_value() const
 {
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
-  ::CVC4::api::Kind k = term.getKind();
-  return ((k == ::CVC4::api::CONST_BOOLEAN)
-          || (k == ::CVC4::api::CONST_BITVECTOR)
-          || (k == ::CVC4::api::CONST_RATIONAL)
-          || (k == ::CVC4::api::CONST_FLOATINGPOINT)
-          || (k == ::CVC4::api::CONST_ROUNDINGMODE)
-          || (k == ::CVC4::api::CONST_STRING) || (k == ::CVC4::api::CONST_ARRAY));
+  ::cvc5::api::Kind k = term.getKind();
+  return (
+      (k == ::cvc5::api::CONST_BOOLEAN) || (k == ::cvc5::api::CONST_BITVECTOR)
+      || (k == ::cvc5::api::CONST_RATIONAL)
+      || (k == ::cvc5::api::CONST_FLOATINGPOINT)
+      || (k == ::cvc5::api::CONST_ROUNDINGMODE)
+      || (k == ::cvc5::api::CONST_STRING) || (k == ::cvc5::api::CONST_ARRAY));
 }
 
-std::string CVC4Term::to_string() { return term.toString(); }
+std::string Cvc5Term::to_string() { return term.toString(); }
 
-uint64_t CVC4Term::to_int() const
+uint64_t Cvc5Term::to_int() const
 {
   std::string val = term.toString();
-  ::CVC4::api::Sort sort = term.getSort();
+  ::cvc5::api::Sort sort = term.getSort();
 
   // process smt-lib bit-vector format
   if (sort.isBitVector())
@@ -320,20 +314,20 @@ uint64_t CVC4Term::to_int() const
 
 /** Iterators for traversing the children
  */
-TermIter CVC4Term::begin() { return TermIter(new CVC4TermIter(term, 0)); }
+TermIter Cvc5Term::begin() { return TermIter(new Cvc5TermIter(term, 0)); }
 
-TermIter CVC4Term::end()
+TermIter Cvc5Term::end()
 {
   uint32_t num_children = term.getNumChildren();
-  if (term.getKind() == ::CVC4::api::Kind::CONST_ARRAY)
+  if (term.getKind() == ::cvc5::api::Kind::CONST_ARRAY)
   {
     // base of constant array is the child
     num_children++;
   }
-  return TermIter(new CVC4TermIter(term, num_children));
+  return TermIter(new Cvc5TermIter(term, num_children));
 }
 
-std::string CVC4Term::print_value_as(SortKind sk)
+std::string Cvc5Term::print_value_as(SortKind sk)
 {
   if (!is_value())
   {
@@ -343,6 +337,6 @@ std::string CVC4Term::print_value_as(SortKind sk)
   return term.toString();
 }
 
-/* end CVC4Term implementation */
+/* end Cvc5Term implementation */
 
-}
+}  // namespace smt

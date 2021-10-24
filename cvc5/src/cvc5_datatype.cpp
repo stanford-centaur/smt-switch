@@ -1,11 +1,11 @@
-#include "cvc4_datatype.h"
+#include "cvc5_datatype.h"
 namespace smt {
 
-bool CVC4DatatypeConstructorDecl::compare(
+bool Cvc5DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
-  std::shared_ptr<CVC4DatatypeConstructorDecl> cd =
-      std::static_pointer_cast<CVC4DatatypeConstructorDecl>(d);
+  std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
+      std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
   return datatypeconstructordecl.toString()
          == cd->datatypeconstructordecl.toString();
 }
