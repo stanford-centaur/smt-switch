@@ -7,13 +7,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         name: [cvc5]
-          # [
-          #   btor,
-          #   cvc5
-            # msat,
-            # yices2,
-            # z3
-          # ]
 
         include:
           - name: msat
