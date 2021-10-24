@@ -9,7 +9,7 @@ jobs:
         name:
           [
             # btor,
-            cvc5,
+            cvc5
             # msat,
             # yices2,
             # z3
