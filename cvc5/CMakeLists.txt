@@ -19,7 +19,7 @@ target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/src")
 target_include_directories (smt-switch-cvc5 PUBLIC ${GMP_INCLUDE_DIR})
 
 if (LIBRT)
-  target_link_libraries(smt-switch-cvc5 ${LIBRT})
+  target_link_libraries(smt-switch-cvc5 PUBLIC ${LIBRT})
 endif()
 
 if("${SMT_SWITCH_LIB_TYPE}" STREQUAL "SHARED")
