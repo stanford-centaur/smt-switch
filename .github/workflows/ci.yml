@@ -6,14 +6,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        name:
-          [
-            btor,
-            cvc5
+        name: [cvc5]
+          # [
+          #   btor,
+          #   cvc5
             # msat,
             # yices2,
             # z3
-          ]
+          # ]
 
         include:
           - name: msat
