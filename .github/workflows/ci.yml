@@ -55,6 +55,11 @@ jobs:
           cd build
           make -j
 
+      - name: Test Int
+        run: |
+          cd build
+          ./tests/test-int
+
       - name: Test C++
         run: |
           cd build
