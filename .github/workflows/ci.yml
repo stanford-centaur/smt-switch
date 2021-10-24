@@ -6,7 +6,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        name: [cvc5]
+        name:
+          [
+            btor,
+            cvc5
+          ]
 
         include:
           - name: msat
