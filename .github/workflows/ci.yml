@@ -6,7 +6,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        name: [cvc5]
+        name:
+          [
+            btor,
+            cvc5,
+            msat,
+            yices2,
+            z3
+          ]
+
+        include:
+          - name: msat
+            setup_opts: --auto-yes
 
     name: ${{ matrix.os }}:${{ matrix.name }} 
     runs-on: ${{ matrix.os}}
