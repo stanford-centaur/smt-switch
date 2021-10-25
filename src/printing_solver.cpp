@@ -288,7 +288,7 @@ Result PrintingSolver::get_interpolant(const Term & A,
   } else {
     assert(style == PrintingStyleEnum::CVC5_STYLE);
     (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << endl;
-    (*out_stream) << "(" << CVC4_GET_INTERPOLANT_STR << " I (not " << B << "))" << endl;
+    (*out_stream) << "(" << CVC5_GET_INTERPOLANT_STR << " I (not " << B << "))" << endl;
   }
   return wrapped_solver->get_interpolant(A, B, out_I);
 }

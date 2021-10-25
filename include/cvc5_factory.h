@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_factory.h
+/*! \file cvc5_factory.h
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
