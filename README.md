@@ -36,14 +36,14 @@ Please see this [extended abstract](https://arxiv.org/abs/2007.01374) for more d
 # Creating a Smt-Switch Solver
 To create a Smt-Switch solver through the API, first include the relevant factory header and then use the static `create` method. It takes a single boolean parameter which configures term logging. If passed `false`, the created `SmtSolver` relies on the underlying solver for term traversal and querying a term for the `Sort` or `Op`. If passed `true`, it instantiates a `LoggingSolver` wrapper which keeps track of the `Op`, `Sort` and children of terms as they are created. A `LoggingSolver` wraps all the terms and sorts created through the API. Thus, a `LoggingSolver` always returns a `LoggingTerm`. However, this is invisible to the user and all the objects can be used in the expected way. The logging feature is useful for solvers that alias sorts (for example don't distinguish between booleans and bitvectors of size one) or perform on-the-fly rewriting. The `LoggingSolver` wrapper ensures that the built term has the expected `Op`, `Sort` and children. In other words, the created term is exactly what was built through the API -- it cannot be rewritten or alias the sort. This drastically simplifies transferring between solvers and can be more intuitive than on-the-fly rewriting. Note: the rewriting still happens in the underlying solver, but this is hidden at the Smt-Switch level. Some solvers, such as `Yices2`, rely on the `LoggingSolver` for term traversal. E.g. creating a `Yices2` `SmtSolver` without term logging would not allow term traversal.
 
-Here is an example that creates a solver interface to CVC4:
+Here is an example that creates a solver interface to cvc5:
 ```
-#include "smt-switch/cvc4_factory.h"
+#include "smt-switch/cvc5_factory.h"
 
 int main()
 {
-  // create a CVC4Solver without logging
-  smt::SmtSolver s = smt::CVC4SolverFactory::create(false);
+  // create a Cvc5Solver without logging
+  smt::SmtSolver s = smt::Cvc5SolverFactory::create(false);
   return 0;
 }
 
@@ -59,13 +59,13 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * curl \[optional : setup scripts in `contrib`\]
 * Solver libraries
   * Boolector (has setup script in `contrib`)
-  * CVC4 (has setup script in `contrib`)
+  * cvc5 (has setup script in `contrib`)
   * MathSAT (must be obtained independently; user responsible for meeting license conditions)
   * Yices2 (must be obtained independently; user responsible for meeting license conditions)
 * pthread [optional: Boolector]
-* gmp [optional: CVC4, MathSAT, Yices2]
+* gmp [optional: cvc5, MathSAT, Yices2]
 * autoconf [optional: Yices2 setup script]
-* Java [optional: CVC4 ANTLR]
+* Java [optional: cvc5 ANTLR]
 * Python [optional: Python bindings]
 * Cython >= 0.29 [optional: Python bindings]
 * [Scikit-Build CMake Modules](https://github.com/scikit-build/scikit-build/tree/master/skbuild) [optional: Python bindings]
@@ -87,7 +87,7 @@ Once you've configured the build system, simply enter the build directory (`./bu
 
 * Boolector
 * Bitwuzla
-* CVC4
+* cvc5
 * Z3
 
 ### Non-BSD compatible
@@ -96,13 +96,13 @@ Once you've configured the build system, simply enter the build directory (`./bu
 * Yices2
 
 ## Custom Solver Location
-If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of CVC4 like so:
-`./configure.sh --prefix=<your desired install location> --cvc4-home ./custom-cvc4`
+If you'd like to try your own version of a solver, you can use the `configure.sh` script to point to your custom location with `--<solver>-home`. You will need to build static libraries (.a) and have them be accessible in the standard location for that solver. For example, you would point to a custom location of cvc5 like so:
+`./configure.sh --prefix=<your desired install location> --cvc5-home ./custom-cvc5`
 
-where `./custom-cvc4/build/src/libcvc4.a` and `./custom-cvc4/build/src/parser/libcvc4parser.a` already exist. `build` is the default build directory for `CVC4`, and thus that's where `cmake` is configured to look.
+where `./custom-cvc5/build/src/libcvc5.a` and `./custom-cvc5/build/src/parser/libcvc5parser.a` already exist. `build` is the default build directory for `cvc5`, and thus that's where `cmake` is configured to look.
 
 # Building Tests
-You can run all tests for the currently built solvers with `make test` from the build directory. To run a single test, run the binary `./tests/<test name>`. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc4_factory.h"` -> `#include "smt-switch/cvc4_factory.h"`.
+You can run all tests for the currently built solvers with `make test` from the build directory. To run a single test, run the binary `./tests/<test name>`. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc5_factory.h"` -> `#include "smt-switch/cvc5_factory.h"`.
 
 ## Debug
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
@@ -118,16 +118,16 @@ A pySMT solver for each switch back-end can be instantiated directly or using th
 from smt_switch import pysmt_frontend
 
 # direct instantiation must pass an enviroment and a logic
-solver = pysmt_frontend.SwitchCVC4(ENV, LOGIC)
+solver = pysmt_frontend.SwitchCvc5(ENV, LOGIC)
 
 # with the helper function will try to use a general logic
-solver = pysmt_frontend.Solver("cvc4")
+solver = pysmt_frontend.Solver("cvc5")
 
 # with the helper function will use the specified logic
-solver = pysmt_frontend.Solver("cvc4", LOGIC)
+solver = pysmt_frontend.Solver("cvc5", LOGIC)
 
 # Note a solver can be used as a context manager:
-with pysmt_frontend.Solver("cvc4") as solver: ...
+with pysmt_frontend.Solver("cvc5") as solver: ...
 ```
 
 Please refer to the pySMT docs for further information.
@@ -144,7 +144,7 @@ While we try to guarantee that all solver backends are fully compliant with the 
 * Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
 * Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
 * The Z3 backend has not implemented term iteration (getting children) yet, but that should be added soon.
-* Datatypes are currently only supported in CVC4
+* Datatypes are currently only supported in cvc5
 
 ## Recommended usage
 
@@ -154,8 +154,8 @@ A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of Te
 
 * Boolector
   * Use a `LoggingSolver` when you want to avoid issues with sort aliasing between booleans and bit-vectors of size one and/or if you'd like to ensure that a term's children are exactly what were used to create it. Boolector performs very smart on-the-fly rewriting. Additionally, use a `LoggingSolver` if you will need to use the `substitute` method on formulas that contain uninterpreted functions.
-* CVC4
-  * CVC4 does not alias sorts or perform on-the-fly rewriting. Thus, there should never be any reason to use a `LoggingSolver`.
+* cvc5
+  * cvc5 does not alias sorts or perform on-the-fly rewriting. Thus, there should never be any reason to use a `LoggingSolver`.
 * MathSAT
   * Use a `LoggingSolver` only if you want to guarantee that a term's Op and children are exactly what you used to create it. Without a `LoggingSolver`, MathSAT will perform _very_ light rewriting.
 * Yices2

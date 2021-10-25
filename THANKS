@@ -13,7 +13,7 @@ Thanks to:
   regarding BSD compliant underlying solvers.
 
 * Kristopher Brown of Stanford University for adding Datatypes support to the
-  CVC4 backend.
+  cvc5 backend.
 
 * Allison Guman of Columbia University for adding a TreeWalker.
 

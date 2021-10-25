@@ -23,7 +23,7 @@ fi
 
 if [ -f $DEPS/cvc5/build/src/libcvc5.a ] && [ -f $DEPS/cvc5/build/src/parser/libcvc5parser.a ]; then
     echo "It appears cvc5 was setup successfully into $DEPS/cvc5."
-    echo "You may now install it with make ./configure.sh --cvc4 && cd build && make"
+    echo "You may now install it with make ./configure.sh --cvc5 && cd build && make"
 else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."

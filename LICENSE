@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 smt-switch can optionally be linked with third-party software which has its own
 copyright and licensing terms.
 
-smt-switch can be linked with the Boolector and CVC4 SMT solvers. Both of these
+smt-switch can be linked with the Boolector and cvc5 SMT solvers. Both of these
 libraries are compatible with the BSD license above. Linking against these
 libraries does not affect the license terms of smt-switch.
 

@@ -165,7 +165,7 @@ msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1)
 
 msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
 {
-  // From CVC4 rewrite rules
+  // From cvc5 rewrite rules
   // (bvsmod s t) abbreviates
   //     (let ((?msb_s ((_ extract |m-1| |m-1|) s))
   //           (?msb_t ((_ extract |m-1| |m-1|) t)))
