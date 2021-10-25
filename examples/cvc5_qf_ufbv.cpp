@@ -1,14 +1,14 @@
 #include <iostream>
-#include "smt-switch/cvc4_factory.h"
+#include "smt-switch/cvc5_factory.h"
 #include "smt-switch/smt.h"
 using namespace smt;
 using namespace std;
 int main()
 {
-  // CVC4 does not alias sorts or do on-the-fly rewriting
+  // cvc5 does not alias sorts or do on-the-fly rewriting
   // Thus there shouldn't be a reason to enable logging
   // so the parameter to create is false
- SmtSolver s = CVC4SolverFactory::create(false);
+ SmtSolver s = Cvc5SolverFactory::create(false);
 
  s->set_logic("QF_UFBV");
  s->set_opt("incremental", "true");

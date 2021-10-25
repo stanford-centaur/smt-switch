@@ -25,10 +25,10 @@ fi
 # go to main repo directory
 cd $DIR/..
 
-# configure and build smt-switch with boolector and cvc4 backends
+# configure and build smt-switch with boolector and cvc5 backends
 # set it up to be installed in a directory called example-install in the examples directory
 # also use a build directory in the examples directory
-./configure.sh --btor --cvc4 --prefix=./examples/example-install --build-dir=$DIR/example-build $1
+./configure.sh --btor --cvc5 --prefix=./examples/example-install --build-dir=$DIR/example-build $1
 cd $DIR/example-build
 make
 make test
