@@ -23,7 +23,7 @@ enum SolverEnum
 {
   BTOR = 0,  // boolector
   BZLA,      // bitwuzla
-  CVC4,      // cvc4
+  CVC5,      // cvc5
   MSAT,      // mathsat
   YICES2,    // yices2
   Z3,        // z3
@@ -32,7 +32,7 @@ enum SolverEnum
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
   MSAT_INTERPOLATOR,
-  CVC4_INTERPOLATOR,
+  CVC5_INTERPOLATOR,
   GENERIC_SOLVER
 
   // TODO: when adding a new enum, also add to python interface in enums_dec.pxi

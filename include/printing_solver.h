@@ -31,7 +31,7 @@ namespace smt {
 enum PrintingStyleEnum
 {
   DEFAULT_STYLE = 0,
-  CVC4_STYLE,
+  CVC5_STYLE,
   MSAT_STYLE,
 };
 

@@ -16,7 +16,7 @@
 
 #include "assert.h"
 #include "boolector_factory.h"
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "msat_factory.h"
 #include "portfolio_solver.h"
 #include "yices2_factory.h"
@@ -68,8 +68,8 @@ int main()
   SmtSolver s4 = BoolectorSolverFactory::create(false);
   SmtSolver s5 = BoolectorSolverFactory::create(false);
   SmtSolver s6 = Yices2SolverFactory::create(false);
-  SmtSolver s7 = CVC4SolverFactory::create(false);
-  SmtSolver s8 = CVC4SolverFactory::create(false);
+  SmtSolver s7 = Cvc5SolverFactory::create(false);
+  SmtSolver s8 = Cvc5SolverFactory::create(false);
   SmtSolver s9 = Yices2SolverFactory::create(false);
   vector<SmtSolver> solvers;
   solvers.push_back(s1);
@@ -94,8 +94,8 @@ int main()
   SmtSolver s4_2 = BoolectorSolverFactory::create(false);
   SmtSolver s5_2 = BoolectorSolverFactory::create(false);
   SmtSolver s6_2 = Yices2SolverFactory::create(false);
-  SmtSolver s7_2 = CVC4SolverFactory::create(false);
-  SmtSolver s8_2 = CVC4SolverFactory::create(false);
+  SmtSolver s7_2 = Cvc5SolverFactory::create(false);
+  SmtSolver s8_2 = Cvc5SolverFactory::create(false);
   SmtSolver s9_2 = Yices2SolverFactory::create(false);
   vector<SmtSolver> solvers2;
   solvers2.push_back(s1_2);

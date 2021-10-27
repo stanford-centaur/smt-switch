@@ -25,16 +25,16 @@ solvers["bitwuzla"] = create_bitwuzla_solver
 '''
 
 
-CREATE_CVC4='''
-def create_cvc4_solver(logging):
+CREATE_CVC5='''
+def create_cvc5_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_cvc4_solver(logging)
+    solver.css = cpp_create_cvc5_solver(logging)
     return solver
-solvers["cvc4"] = create_cvc4_solver
+solvers["cvc5"] = create_cvc5_solver
 
-def create_cvc4_interpolator():
+def create_cvc5_interpolator():
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_cvc4_interpolator()
+    solver.css = cpp_create_cvc5_interpolator()
     return solver
 '''
 
@@ -73,10 +73,10 @@ cdef extern from "bitwuzla_factory.h":
 '''
 
 
-DECLARE_CVC4='''
-cdef extern from "cvc4_factory.h":
-    c_SmtSolver cpp_create_cvc4_solver "smt::CVC4SolverFactory::create" (bint logging) except +
-    c_SmtSolver cpp_create_cvc4_interpolator "smt::CVC4SolverFactory::create_interpolating_solver" () except +
+DECLARE_CVC5='''
+cdef extern from "cvc5_factory.h":
+    c_SmtSolver cpp_create_cvc5_solver "smt::Cvc5SolverFactory::create" (bint logging) except +
+    c_SmtSolver cpp_create_cvc5_interpolator "smt::Cvc5SolverFactory::create_interpolating_solver" () except +
 '''
 
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     parser.add_argument('--dest-dir', help='Where to put the generated files', required=True)
     parser.add_argument('--btor', action='store_true', help='Build with Boolector')
     parser.add_argument('--bitwuzla', action='store_true', help='Build with Bitwuzla')
-    parser.add_argument('--cvc4', action='store_true', help='Build with CVC4')
+    parser.add_argument('--cvc5', action='store_true', help='Build with CVC5')
     parser.add_argument('--msat', action='store_true', help='Build with MathSAT')
     parser.add_argument('--yices2', action='store_true', help='Build with Yices2')
 
@@ -118,11 +118,11 @@ if __name__ == "__main__":
         pxi += "\n" + CREATE_BITWUZLA
         imports.append('cpp_create_bitwuzla_solver')
 
-    if args.cvc4:
-        pxd += "\n" + DECLARE_CVC4
-        pxi += "\n" + CREATE_CVC4
-        imports.append('cpp_create_cvc4_solver')
-        imports.append('cpp_create_cvc4_interpolator')
+    if args.cvc5:
+        pxd += "\n" + DECLARE_CVC5
+        pxi += "\n" + CREATE_CVC5
+        imports.append('cpp_create_cvc5_solver')
+        imports.append('cpp_create_cvc5_interpolator')
 
     if args.msat:
         pxd += "\n" + DECLARE_MSAT

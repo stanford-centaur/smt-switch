@@ -32,7 +32,7 @@
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
 // it cannot be compiled outside of the build
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "generic_solver.h"
 #include "smt.h"
 #include "test-utils.h"
@@ -609,11 +609,11 @@ void new_yices2(SmtSolver & gs, int buffer_size)
   init_solver(gs);
 }
 
-void new_cvc4(SmtSolver & gs, int buffer_size)
+void new_cvc5(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(CVC4_HOME));
-  path += "/build/bin/cvc4";
+  string path = (STRFY(CVC5_HOME));
+  path += "/build/bin/cvc5";
   vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
   gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
@@ -760,76 +760,76 @@ void test_yices2(int buffer_size)
   test_unsat_assumptions(gs);
 }
 
-void test_cvc4(int buffer_size)
+void test_cvc5(int buffer_size)
 {
   SmtSolver gs;
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bad_term_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bad_term_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_uf_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_uf_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_int_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_int_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bad_cmd(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bool_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bool_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bv_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bv_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bv_3(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bv_4(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_abv_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_abv_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bool(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_quantifiers(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_constant_arrays(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_int_models(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_bv_models(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_check_sat_assuming_1(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_check_sat_assuming_2(gs);
 
-  new_cvc4(gs, buffer_size);
+  new_cvc5(gs, buffer_size);
   test_unsat_assumptions(gs);
 }
 
@@ -916,10 +916,10 @@ int main() {
   for (int buffer_size : buffer_sizes)
   {
     std::cout << "buffer size: " << buffer_size << std::endl;
-// testing with cvc4 binary
-#if BUILD_CVC4
-    std::cout << "testing cvc4" << std::endl;
-    test_cvc4(buffer_size);
+// testing with cvc5 binary
+#if BUILD_CVC5
+    std::cout << "testing cvc5" << std::endl;
+    test_cvc5(buffer_size);
 #endif
 
 // testing with msat binary

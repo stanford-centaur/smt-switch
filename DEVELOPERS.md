@@ -45,4 +45,4 @@ You will need to implement a solver-specific version of each of those classes. T
 
 All your solver header and source files should be put in `<solver name>/include` and `<solver name>/src`, respectively.
 
-Finally, you would make a `create` method which can instantiate a pointer to your new solver. For example, see `include/cvc4_factory.h`.
+Finally, you would make a `create` method which can instantiate a pointer to your new solver. For example, see `include/cvc5_factory.h`.

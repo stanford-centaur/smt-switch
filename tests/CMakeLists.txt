@@ -38,8 +38,8 @@ if (BUILD_BTOR)
   add_subdirectory(btor)
 endif()
 
-if (BUILD_CVC4)
-  add_subdirectory(cvc4)
+if (BUILD_CVC5)
+  add_subdirectory(cvc5)
 endif()
 
 if (BUILD_MSAT)
@@ -50,7 +50,7 @@ if (BUILD_YICES2)
   add_subdirectory(yices2)
 endif()
 
-if (${BUILD_YICES2} AND ${BUILD_BTOR} AND ${BUILD_MSAT} AND ${BUILD_CVC4})
+if (${BUILD_YICES2} AND ${BUILD_BTOR} AND ${BUILD_MSAT} AND ${BUILD_CVC5})
   add_subdirectory(portfolio)
 endif()
 

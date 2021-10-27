@@ -27,11 +27,11 @@
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
 // it cannot be compiled outside of the build
-#include "test-utils.h"
-#include "gtest/gtest.h"
-#include "cvc4_factory.h"
+#include "cvc5_factory.h"
 #include "generic_sort.h"
+#include "gtest/gtest.h"
 #include "smt.h"
+#include "test-utils.h"
 
 using namespace smt;
 using namespace std;

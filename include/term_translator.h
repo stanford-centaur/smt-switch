@@ -28,9 +28,9 @@ namespace smt {
 /** Class for translating terms from *one* other solver to *one* new solver
  *  will fail if you try to convert terms from more than one solver
  *  e.g.
- *  SmtSolver s1 = CVC4SolverFactory::create(false);
+ *  SmtSolver s1 = Cvc5SolverFactory::create(false);
  *  SmtSolver s2 = MsatSolverFactory::create(false);
- *  SmtSolver s3 = CVC4SolverFactory::create(false);
+ *  SmtSolver s3 = Cvc5SolverFactory::create(false);
  *
  *  Term x = s1->make_symbol("x", s1->make_sort(INT));
  *  Term y = s2->make_symbol("y", s2->make_sort(INT));
@@ -43,8 +43,8 @@ namespace smt {
  *  // and then transferring y from s2 will trigger a comparison between x
  *  // and y. But these are terms from two different solvers and the static
  *  // pointer cast will be an incorrect cast.
- *  // if s2 were also a CVC4Solver, it depends on how the underlying solver
- *  // handles terms from different instances. In the case of CVC4, it will
+ *  // if s2 were also a Cvc5Solver, it depends on how the underlying solver
+ *  // handles terms from different instances. In the case of cvc5, it will
  *  // throw an exception
  *
  *  This class has no reference to the other solver because it's not needed

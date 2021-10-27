@@ -28,11 +28,11 @@ cdef extern from "solver_enums.h" namespace "smt":
             pass
 
     cdef c_SolverEnum c_BTOR "smt::BTOR"
-    cdef c_SolverEnum c_CVC4 "smt::CVC4"
+    cdef c_SolverEnum c_CVC5 "smt::CVC5"
     cdef c_SolverEnum c_MSAT "smt::MSAT"
     cdef c_SolverEnum c_YICES2 "smt::YICES2"
     cdef c_SolverEnum c_MSAT_INTERPOLATOR "smt::MSAT_INTERPOLATOR"
-    cdef c_SolverEnum c_CVC4_INTERPOLATOR "smt::CVC4_INTERPOLATOR"
+    cdef c_SolverEnum c_CVC5_INTERPOLATOR "smt::CVC5_INTERPOLATOR"
     cdef c_SolverEnum c_GENERIC_SOLVER "smt::GENERIC_SOLVER"
 
     string to_string(c_SolverEnum se) except +

@@ -21,7 +21,7 @@ target_link_libraries(smt-switch-msat ${GMPXX_LIBRARIES})
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the mathsat source
   # we need to unpack and repack the libraries
-  # newer versions of mathsat (5.6.4+) have the same issue as cvc4 where
+  # newer versions of mathsat (5.6.4+) have the same issue as cvc5 where
   # unpacking and repacking with ar seemed to lose info (missing symbols)
   # the work around is to just copy libmathsat.a and add to it
   add_custom_command(

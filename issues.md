@@ -11,7 +11,7 @@
 * in Boolector, assignments are returned as strings. 
   * We can then turn these back into bit-vectors, but there's no way to recover the value once it's a node again
   * Additionally, for arrays, there's no boolector structure for this. We'll need to have a representation for this
-  * CVC4 has it's stores on a constant array structure, but maybe we should have a common representation for all solvers
+  * cvc5 has it's stores on a constant array structure, but maybe we should have a common representation for all solvers
   * a map with a default value would be most convenient
   
 ## Sorts

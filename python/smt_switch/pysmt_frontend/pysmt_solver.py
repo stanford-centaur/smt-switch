@@ -218,7 +218,7 @@ if 'msat' in ss.solvers:
 
     SWITCH_SOLVERS['msat'] = SwitchMsat
 
-if 'cvc4' in ss.solvers:
+if 'cvc5' in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
         arrays=[True, False],
@@ -231,9 +231,9 @@ if 'cvc4' in ss.solvers:
         linear=[True],
     )
 
-    class SwitchCVC4(_SwitchSolver):
+    class SwitchCvc5(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = ft.partial(ss.create_cvc4_solver, False)
+        _create_solver = ft.partial(ss.create_cvc5_solver, False)
 
         def _exit(self):
             super()._exit()
@@ -241,7 +241,7 @@ if 'cvc4' in ss.solvers:
             # to avoid heisenbug
             gc.collect()
 
-    SWITCH_SOLVERS['cvc4'] = SwitchCVC4
+    SWITCH_SOLVERS['cvc5'] = SwitchCvc5
 
 
 def check_args(cmp, n):
