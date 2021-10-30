@@ -1,7 +1,5 @@
 #!/bin/bash
 
-CVC5_VERSION=f493ea93e925e3ad9bfe0036e1d876d5600d5b30
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -9,11 +7,10 @@ mkdir -p $DEPS
 
 if [ ! -d "$DEPS/cvc5" ]; then
     cd $DEPS
-    git clone https://github.com/cvc5/cvc5.git
-    git checkout -f ${CVC5_VERSION}
+    git clone -b cvc5-0.0.3 https://github.com/cvc5/cvc5.git
     chmod -R 777 cvc5
     cd cvc5
-    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --no-static-binary --auto-download
+    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --auto-download
     cd build
     make -j4
     cd $DIR
