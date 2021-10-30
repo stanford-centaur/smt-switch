@@ -50,7 +50,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
     COMMAND
       mkdir ssc-working && cd ssc-working &&
       # create new static library that combines them all
-      libtool -static -o "$<TARGET_FILE_NAME:smt-switch-cvc5>" "${CVC5_HOME}/build/src/libcvc5.a" "${POLYLIBXX}" "${POLYLIB}" "${CADICAL}" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
+      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-cvc5>" "${CVC5_HOME}/build/src/libcvc5.a" "${POLYLIBXX}" "${POLYLIB}" "${CADICAL}" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
       # replace the original one
       mv "$<TARGET_FILE_NAME:smt-switch-cvc5>" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
       # now clean up the temporary directory
