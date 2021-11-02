@@ -37,17 +37,17 @@ jobs:
       run: |
           sudo pip3 install setuptools
           sudo pip3 install twine
-    - name: Uploading to PyPi
-      shell: bash
-      run: |
-          echo [distutils]                                  > ~/.pypirc
-          echo index-servers =                             >> ~/.pypirc
-          echo "  pypi"                                    >> ~/.pypirc
-          echo                                             >> ~/.pypirc
-          echo [pypi]                                      >> ~/.pypirc
-          echo repository=https://upload.pypi.org/legacy/  >> ~/.pypirc
-          echo username=makaim                             >> ~/.pypirc
-          echo password=$PYPI_PASSWORD                     >> ~/.pypirc
-          twine upload --config-file ~/.pypirc --skip-existing wheelhouse/*
-      env:
-          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    # - name: Uploading to PyPi
+    #   shell: bash
+    #   run: |
+    #       echo [distutils]                                  > ~/.pypirc
+    #       echo index-servers =                             >> ~/.pypirc
+    #       echo "  pypi"                                    >> ~/.pypirc
+    #       echo                                             >> ~/.pypirc
+    #       echo [pypi]                                      >> ~/.pypirc
+    #       echo repository=https://upload.pypi.org/legacy/  >> ~/.pypirc
+    #       echo username=makaim                             >> ~/.pypirc
+    #       echo password=$PYPI_PASSWORD                     >> ~/.pypirc
+    #       twine upload --config-file ~/.pypirc --skip-existing wheelhouse/*
+    #   env:
+    #       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}

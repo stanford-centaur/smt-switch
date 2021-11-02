@@ -17,3 +17,5 @@ pip install toml setuptools pexpect Cython==0.29
 python contrib/wheels/build_wheel.py bdist_wheel
 auditwheel show dist/*
 auditwheel repair dist/*
+pip install ./dist/wheelhouse/*
+python3 -c "import smt_switch; print(dir(smt_switch))"
