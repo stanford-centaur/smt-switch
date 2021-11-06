@@ -89,14 +89,18 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ['cmake', '--build', '.', "--target", "smt-switch"] + build_args, cwd=build_dir)
         # build the python binding
-        python_build_dir = os.path.join(build_dir, "python")
+        python_build_dir = os.path.join(os.path.join(build_dir, "python"), "smt_switch")
         subprocess.check_call(["make"], cwd=python_build_dir)
         # the build folder gets cleaned during the config, need to create it again
         # this is necessary since "build" is a python dist folder
         if not os.path.isdir(extdir):
             os.mkdir(extdir)
         # copy the library over. we need to consider other users that's not on linux
-        for lib_filename in glob.glob(os.path.join(python_build_dir, "smt_switch.*")):
+        lib_files = filter(lambda s: os.path.splitext(s)[1] != '.cxx',
+                           glob.glob(os.path.join(python_build_dir, "smt_switch.*")))
+        assert lib_files, 'Expecting library files but found none'
+        for lib_filename in lib_files:
+            print(f'Copying library: {lib_filename}')
             if os.path.splitext(lib_filename)[1] == ".cxx":
                 continue
             dst_filename = os.path.join(extdir, os.path.basename(lib_filename))
