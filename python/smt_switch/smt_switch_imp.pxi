@@ -206,7 +206,7 @@ cdef class Term:
                     # notation from z3 for signed bv
                     # we're choosing to always interpret
                     # the bitvector as unsigned
-                    # people can convert if needed
+                    # users can convert if needed
                     val = val[:-1]
 
                 if val[:2] == '#b':
