@@ -191,14 +191,28 @@ cdef class Term:
         return dref(self.ct).is_value()
 
     def __int__(self):
+        '''
+        Interpret a term as an integer.
+
+        Note: bit-vectors are always treated as unsigned integers.
+        '''
         val = dref(self.ct).to_string().decode()
         s = self.get_sort()
         sk = s.get_sort_kind()
 
         try:
             if sk == BV:
+                if val[-1] == 's':
+                    # notation from z3 for signed bv
+                    # we're choosing to always interpret
+                    # the bitvector as unsigned
+                    # users can convert if needed
+                    val = val[:-1]
+
                 if val[:2] == '#b':
                     return int(val[2:], 2)
+                elif val[:2] == '#x':
+                    return int(val[2:], 16)
                 elif val[:5] == '(_ bv':
                     val = val[5:]
                     val = val[:val.find(" ")]

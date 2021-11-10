@@ -60,6 +60,14 @@ def create_yices2_solver(logging):
 solvers["yices2"] = create_yices2_solver
 '''
 
+CREATE_Z3='''
+def create_z3_solver(logging):
+    cdef SmtSolver solver = SmtSolver()
+    solver.css = cpp_create_z3_solver(logging)
+    return solver
+solvers["z3"] = create_z3_solver
+'''
+
 
 DECLARE_BTOR='''
 cdef extern from "boolector_factory.h":
@@ -91,6 +99,11 @@ cdef extern from "yices2_factory.h":
     c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (bint logging) except +
 '''
 
+DECLARE_Z3='''
+cdef extern from "z3_factory.h":
+    c_SmtSolver cpp_create_z3_solver "smt::Z3SolverFactory::create" (bint logging) except +
+'''
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate smt_switch python binding implementations.")
@@ -100,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('--cvc5', action='store_true', help='Build with CVC5')
     parser.add_argument('--msat', action='store_true', help='Build with MathSAT')
     parser.add_argument('--yices2', action='store_true', help='Build with Yices2')
+    parser.add_argument('--z3', action='store_true', help='Build with Z3')
 
     args = parser.parse_args()
     dest_dir = args.dest_dir
@@ -134,6 +148,11 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_YICES2
         pxi += "\n" + CREATE_YICES2
         imports.append('cpp_create_yices2_solver')
+
+    if args.z3:
+        pxd += "\n" + DECLARE_Z3
+        pxi += "\n" + CREATE_Z3
+        imports.append('cpp_create_z3_solver')
 
     if imports:
         CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)
