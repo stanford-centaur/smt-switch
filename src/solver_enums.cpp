@@ -39,13 +39,13 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { TERMITER,
             CONSTARR,
             UNSAT_CORE,
-            TIMELIMIT,
             // TEMP only temporarily disabled until bitwuzla
             //      quantifier refactoring is done
             //      see
             //      https://github.com/bitwuzla/bitwuzla/commit/605f31557ec6c635e3c617d2b0ab257309e994c4
             // QUANTIFIERS,
-            BOOL_BV1_ALIASING } },
+            BOOL_BV1_ALIASING,
+            TIMELIMIT } },
 
         { CVC5,
           { TERMITER,
@@ -99,7 +99,8 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_FUN_BOOLS,
             CONSTARR,
             QUANTIFIERS,
-            UNINTERP_SORT } },
+            UNINTERP_SORT,
+            TIMELIMIT} },
 
     });
 
