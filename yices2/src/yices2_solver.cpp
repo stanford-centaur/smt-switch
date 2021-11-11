@@ -17,6 +17,8 @@
 #include "yices2_solver.h"
 
 #include <inttypes.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "yices.h"
 #include "yices2_extensions.h"
@@ -26,6 +28,19 @@
 using namespace std;
 
 namespace smt {
+
+// global variables for signal handling
+// (used to support time limit)
+context_t * running_ctx = nullptr;
+bool yices2_terminated = false;
+
+
+void yices2_timelimit_handler(int signum)
+{
+  assert(running_ctx != nullptr);
+  yices_stop_search(running_ctx);
+  yices2_terminated = true;
+}
 
 /* Yices2 Op mappings */
 typedef term_t (*yices_un_fun)(term_t);
@@ -120,6 +135,10 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     {
       yices_set_config(config, "mode", "push-pop");
     }
+  }
+  else if (option == "time-limit")
+  {
+    time_limit = stoi(value);
   }
   else if (option == "produce-unsat-assumptions")
   {
@@ -299,7 +318,9 @@ void Yices2Solver::assert_formula(const Term & t)
 
 Result Yices2Solver::check_sat()
 {
+  timelimit_start();
   smt_status_t res = yices_check_context(ctx, NULL);
+  bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
   {
@@ -314,6 +335,10 @@ Result Yices2Solver::check_sat()
   else if (res == STATUS_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else if (tl_triggered)
+  {
+    return Result(UNKNOWN, "Time limit reached.");
   }
   else
   {
@@ -1032,6 +1057,32 @@ void Yices2Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException(
       "Dumping smt2 not supported by Yices2 backend.");
+}
+
+// helpers
+void Yices2Solver::timelimit_start()
+{
+  if (time_limit)
+  {
+    signal(SIGALRM, yices2_timelimit_handler);
+    assert(running_ctx == nullptr);
+    assert(!yices2_terminated);
+    running_ctx = ctx;
+    alarm(time_limit);
+  }
+}
+
+bool Yices2Solver::timelimit_end()
+{
+  bool res = false;
+  if (time_limit)
+  {
+    res |= yices2_terminated;
+    yices2_terminated = false;
+    running_ctx = nullptr;
+    alarm(0);
+  }
+  return res;
 }
 
 /* end Yices2Solver implementation */
