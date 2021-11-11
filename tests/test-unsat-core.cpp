@@ -35,14 +35,7 @@ class UnsatCoreTests : public ::testing::Test,
     SolverConfiguration sc = GetParam();
     s = create_solver(sc);
     s->set_opt("incremental", "true");
-    if (sc.solver_enum == GENERIC_SOLVER)
-    {
-      s->set_opt("produce-unsat-assumptions", "true");
-    }
-    else
-    {
-      s->set_opt("produce-unsat-assumptions", "true");
-    }
+    s->set_opt("produce-unsat-assumptions", "true");
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 8);
   }
@@ -96,6 +89,24 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
   ASSERT_TRUE(core.size() > 1);
+}
+
+TEST_P(UnsatCoreTests, NoAssumptionsNeeded)
+{
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  // make unsat without assumptions
+  s->assert_formula(a);
+  Term nota = s->make_term(Not, a);
+  s->assert_formula(nota);
+
+  Result r = s->check_sat_assuming({ b });
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  // a and not(a) were not in assumptions
+  // so shouldn't show up in unsat assumptions
+  ASSERT_TRUE(core.find(a) == core.end());
+  ASSERT_TRUE(core.find(nota) == core.end());
 }
 
 INSTANTIATE_TEST_SUITE_P(
