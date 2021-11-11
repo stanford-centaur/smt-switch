@@ -21,6 +21,17 @@
 using namespace std;
 
 namespace smt {
+Bitwuzla * running_bzla = nullptr;  ///< used for calling terminate
+                                    ///< if a time limit is reached
+
+void bzla_timelimit_handler(int signum)
+{
+  assert(running_bzla != nullptr);
+  void * state = bitwuzla_get_termination_callback_state(running_bzla);
+  bool * statebool = reinterpret_cast<bool *>(state);
+  *statebool = true;
+  bitwuzla_terminate(running_bzla);
+}
 
 const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
     { /* Core Theory */
@@ -97,6 +108,10 @@ void BzlaSolver::set_opt(const string option, const string value)
   {
     bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_UNSAT_CORES, (value == "true"));
   }
+  else if (option == "time-limit")
+  {
+    time_limit = stoi(value);
+  }
   else
   {
     throw SmtException("Bitwuzla backend does not support option: " + option);
@@ -117,7 +132,9 @@ void BzlaSolver::assert_formula(const Term & t)
 
 Result BzlaSolver::check_sat()
 {
+  timelimit_start();
   BitwuzlaResult r = bitwuzla_check_sat(bzla);
+  bool tl_triggered = timelimit_end();
   if (r == BITWUZLA_SAT)
   {
     return Result(SAT);
@@ -129,6 +146,10 @@ Result BzlaSolver::check_sat()
   else
   {
     assert(r == BITWUZLA_UNKNOWN);
+    if (tl_triggered)
+    {
+      return Result(UNKNOWN, "Time limit reached.");
+    }
     return Result(UNKNOWN);
   }
 }
@@ -715,6 +736,31 @@ void BzlaSolver::dump_smt2(std::string filename) const
   FILE * file = fopen(filename.c_str(), "w");
   bitwuzla_dump_formula(bzla, "smt2", file);
   fclose(file);
+}
+
+// helpers
+void BzlaSolver::timelimit_start()
+{
+  if (time_limit)
+  {
+    signal(SIGALRM, bzla_timelimit_handler);
+    alarm(time_limit);
+    assert(running_bzla == nullptr);
+    running_bzla = bzla;
+  }
+}
+
+bool BzlaSolver::timelimit_end()
+{
+  bool res = false;
+  if (time_limit)
+  {
+    res |= terminate_bzla;
+    terminate_bzla = false;
+    running_bzla = nullptr;
+    alarm(0);
+  }
+  return res;
 }
 
 }  // namespace smt

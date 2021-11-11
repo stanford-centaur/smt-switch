@@ -39,6 +39,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { TERMITER,
             CONSTARR,
             UNSAT_CORE,
+            TIMELIMIT,
             // TEMP only temporarily disabled until bitwuzla
             //      quantifier refactoring is done
             //      see

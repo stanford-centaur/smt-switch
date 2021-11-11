@@ -68,7 +68,9 @@ enum SolverAttribute
   // supports non-zero arity uninterpreted sorts
   PARAM_UNINTERP_SORT,
   // aliases booleans and bit-vectors of size one
-  BOOL_BV1_ALIASING
+  BOOL_BV1_ALIASING,
+  // supports setting a time limit
+  TIMELIMIT
 
   // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
   // and enums_imp.pxi
