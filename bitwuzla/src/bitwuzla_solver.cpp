@@ -744,9 +744,10 @@ void BzlaSolver::timelimit_start()
   if (time_limit)
   {
     signal(SIGALRM, bzla_timelimit_handler);
-    alarm(time_limit);
     assert(running_bzla == nullptr);
+    assert(!terminate_bzla);
     running_bzla = bzla;
+    alarm(time_limit);
   }
 }
 

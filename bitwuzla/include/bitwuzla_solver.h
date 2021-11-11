@@ -171,9 +171,9 @@ class BzlaSolver : public AbsSmtSolver
       ++it;
     }
 
-    alarm(time_limit);
+    timelimit_start();
     BitwuzlaResult res = bitwuzla_check_sat(bzla);
-    alarm(0);
+    bool tl_triggered = timelimit_end();
     if (res == BITWUZLA_SAT)
     {
       return Result(SAT);
@@ -181,6 +181,10 @@ class BzlaSolver : public AbsSmtSolver
     else if (res == BITWUZLA_UNSAT)
     {
       return Result(UNSAT);
+    }
+    else if (tl_triggered)
+    {
+      return Result(UNKNOWN, "Time limit reached.");
     }
     else
     {
