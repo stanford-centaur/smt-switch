@@ -101,7 +101,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             QUANTIFIERS,
             UNINTERP_SORT,
-            TIMELIMIT} },
+            TIMELIMIT } },
 
     });
 

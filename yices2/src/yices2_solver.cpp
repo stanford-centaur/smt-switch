@@ -20,10 +20,9 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include "solver_utils.h"
 #include "yices.h"
 #include "yices2_extensions.h"
-
-#include "solver_utils.h"
 
 using namespace std;
 
@@ -33,7 +32,6 @@ namespace smt {
 // (used to support time limit)
 context_t * running_ctx = nullptr;
 bool yices2_terminated = false;
-
 
 void yices2_timelimit_handler(int signum)
 {

@@ -41,8 +41,11 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0),
-                   context_level(0), time_limit(0)
+  Yices2Solver()
+      : AbsSmtSolver(YICES2),
+        pushes_after_unsat(0),
+        context_level(0),
+        time_limit(0)
   {
     // Had to move yices_init to the Factory
     // yices_init();
@@ -124,8 +127,6 @@ class Yices2Solver : public AbsSmtSolver
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
-
-
 
  protected:
   mutable context_t * ctx;
