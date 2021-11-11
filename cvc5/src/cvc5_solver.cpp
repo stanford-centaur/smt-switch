@@ -107,9 +107,18 @@ const std::unordered_map<PrimOp, ::cvc5::api::Kind> primop2kind(
 
 void Cvc5Solver::set_opt(const std::string option, const std::string value)
 {
+  std::string cvc5option = option;
+  std::string cvc5value = value;
+  if (option == "time-limit")
+  {
+    cvc5option = "tlimit-per";
+    // convert to milliseconds
+    cvc5value = std::to_string(stoi(value) * 1000);
+  }
+
   try
   {
-    solver.setOption(option, value);
+    solver.setOption(cvc5option, cvc5value);
   }
   catch (::cvc5::api::CVC5ApiException & e)
   {
