@@ -16,7 +16,7 @@ target_include_directories (smt-switch-bitwuzla PUBLIC ${GMP_INCLUDE_DIR})
 
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libbitwuzla.a")
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/cadical/build/libcadical.a")
-target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/btor2tools/build/libbtor2parser.a")
+target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/deps/btor2tools/build/lib/libbtor2parser.a")
 target_link_libraries(smt-switch-bitwuzla smt-switch)
 target_link_libraries(smt-switch-bitwuzla pthread)
 target_link_libraries(smt-switch-bitwuzla m)

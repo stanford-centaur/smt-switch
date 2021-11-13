@@ -31,7 +31,7 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(std::vector<BitwuzlaTerm *> terms, size_t idx)
+  BzlaTermIter(std::vector<const BitwuzlaTerm *> terms, size_t idx)
       : terms(terms), idx(idx)
   {
   }
@@ -52,14 +52,14 @@ class BzlaTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  std::vector<BitwuzlaTerm *> terms;  // terms to iterate over (e.g. children)
+  std::vector<const BitwuzlaTerm *> terms;  // terms to iterate over (e.g. children)
   size_t idx;             // current idx of iteration
 };
 
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(BitwuzlaTerm * n);
+  BzlaTerm(const BitwuzlaTerm * n);
   ~BzlaTerm();
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -85,7 +85,7 @@ class BzlaTerm : public AbsTerm
 
  protected:
   // the actual API level node that is used
-  BitwuzlaTerm * term;
+  const BitwuzlaTerm * term;
 
   // helpers
   /** Calls boolector's to_string with either btor or smt2 format*/

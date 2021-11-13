@@ -242,7 +242,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   }
   else if (sk == FUNCTION)
   {
-    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort });
+    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), domain_sorts.data(), bsort2->sort));
   }
@@ -266,7 +266,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
 
   if (sk == FUNCTION)
   {
-    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
+    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), domain_sorts.data(), bsort3->sort));
   }
@@ -294,7 +294,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     // arity is one less, because last sort is return sort
     uint32_t arity = sorts.size() - 1;
-    std::vector<BitwuzlaSort *> bzla_sorts;
+    std::vector<const BitwuzlaSort *> bzla_sorts;
     bzla_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
     {
@@ -579,7 +579,7 @@ Term BzlaSolver::make_term(Op op,
   else
   {
     assert(op.num_idx > 0 && op.num_idx <= 1);
-    vector<BitwuzlaTerm *> bitwuzla_terms(
+    vector<const BitwuzlaTerm *> bitwuzla_terms(
         { bterm0->term, bterm1->term, bterm2->term });
     vector<uint32_t> indices({ (uint32_t)op.idx0 });
     if (op.num_idx == 2)
@@ -598,7 +598,7 @@ Term BzlaSolver::make_term(Op op,
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
-  vector<BitwuzlaTerm *> bitwuzla_terms;
+  vector<const BitwuzlaTerm *> bitwuzla_terms;
   for (auto t : terms)
   {
     bitwuzla_terms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
@@ -645,70 +645,72 @@ void BzlaSolver::reset_assertions()
       "Bitwuzla does not currently support reset_assertions");
 }
 
-Term BzlaSolver::substitute(const Term term,
-                            const UnorderedTermMap & substitution_map) const
-{
-  shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
-  size_t smap_size = substitution_map.size();
-  vector<BitwuzlaTerm *> map_keys;
-  map_keys.reserve(smap_size);
-  vector<BitwuzlaTerm *> map_vals;
-  map_keys.reserve(smap_size);
-  for (auto elem : substitution_map)
-  {
-    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-    {
-      throw SmtException(
-          "Bitwuzla backend doesn't support substitution with non symbol keys");
-    }
-    map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
-    map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
-  }
-  return make_shared<BzlaTerm>(bitwuzla_substitute_term(
-      bzla, bterm->term, map_keys.size(), map_keys.data(), map_vals.data()));
-}
+// TODO: enable again
 
-TermVec BzlaSolver::substitute_terms(
-    const TermVec & terms, const UnorderedTermMap & substitution_map) const
-{
-  size_t terms_size = terms.size();
-  vector<BitwuzlaTerm *> bterms;
-  bterms.reserve(terms_size);
-  size_t smap_size = substitution_map.size();
-  vector<BitwuzlaTerm *> map_keys;
-  map_keys.reserve(smap_size);
-  vector<BitwuzlaTerm *> map_vals;
-  map_keys.reserve(smap_size);
-  for (auto t : terms)
-  {
-    bterms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
-  }
-  for (auto elem : substitution_map)
-  {
-    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-    {
-      throw SmtException(
-          "Bitwuzla backend doesn't support substitution with non symbol keys");
-    }
-    map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
-    map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
-  }
+// Term BzlaSolver::substitute(const Term term,
+//                             const UnorderedTermMap & substitution_map) const
+// {
+//   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
+//   size_t smap_size = substitution_map.size();
+//   vector<const BitwuzlaTerm *> map_keys;
+//   map_keys.reserve(smap_size);
+//   vector<const BitwuzlaTerm *> map_vals;
+//   map_keys.reserve(smap_size);
+//   for (auto elem : substitution_map)
+//   {
+//     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
+//     {
+//       throw SmtException(
+//           "Bitwuzla backend doesn't support substitution with non symbol keys");
+//     }
+//     map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
+//     map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
+//   }
+//   return make_shared<BzlaTerm>(bitwuzla_substitute_term(
+//       bzla, bterm->term, map_keys.size(), map_keys.data(), map_vals.data()));
+// }
 
-  // bterms array is updated in place
-  bitwuzla_substitute_terms(bzla,
-                            terms_size,
-                            bterms.data(),
-                            smap_size,
-                            map_keys.data(),
-                            map_vals.data());
-  TermVec res;
-  res.reserve(terms_size);
-  for (auto t : bterms)
-  {
-    res.push_back(make_shared<BzlaTerm>(t));
-  }
-  return res;
-}
+// TermVec BzlaSolver::substitute_terms(
+//     const TermVec & terms, const UnorderedTermMap & substitution_map) const
+// {
+//   size_t terms_size = terms.size();
+//   vector<const BitwuzlaTerm *> bterms;
+//   bterms.reserve(terms_size);
+//   size_t smap_size = substitution_map.size();
+//   vector<const BitwuzlaTerm *> map_keys;
+//   map_keys.reserve(smap_size);
+//   vector<const BitwuzlaTerm *> map_vals;
+//   map_keys.reserve(smap_size);
+//   for (auto t : terms)
+//   {
+//     bterms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
+//   }
+//   for (auto elem : substitution_map)
+//   {
+//     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
+//     {
+//       throw SmtException(
+//           "Bitwuzla backend doesn't support substitution with non symbol keys");
+//     }
+//     map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
+//     map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
+//   }
+
+//   // bterms array is updated in place
+//   bitwuzla_substitute_terms(bzla,
+//                             terms_size,
+//                             bterms.data(),
+//                             smap_size,
+//                             map_keys.data(),
+//                             map_vals.data());
+//   TermVec res;
+//   res.reserve(terms_size);
+//   for (auto t : bterms)
+//   {
+//     res.push_back(make_shared<BzlaTerm>(t));
+//   }
+//   return res;
+// }
 
 void BzlaSolver::dump_smt2(std::string filename) const
 {
