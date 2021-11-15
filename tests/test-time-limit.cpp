@@ -46,10 +46,13 @@ class TimeLimitTests : public ::testing::Test,
 
 TEST_P(TimeLimitTests, TestTimeLimit)
 {
+  s->set_opt("incremental", "true");
   s->set_opt("time-limit", std::to_string(time_limit));
 
   // create a difficult pigeonhole problem
   size_t width = bvsort->get_width();
+
+  s->assert_formula(s->make_symbol("b", s->make_sort(BOOL)));
 
   size_t num_vars = (size_t)pow(2, width) + 1;
   TermVec vars;
@@ -58,6 +61,8 @@ TEST_P(TimeLimitTests, TestTimeLimit)
   {
     vars.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
   }
+
+  s->push();
   for (size_t i = 0; i < num_vars - 1; ++i)
   {
     for (size_t j = i + 1; j < num_vars; ++j)
@@ -72,6 +77,9 @@ TEST_P(TimeLimitTests, TestTimeLimit)
       std::chrono::duration_cast<std::chrono::seconds>(stop - start);
   ASSERT_TRUE(r.is_unknown());
   ASSERT_TRUE((duration.count() - time_limit) < 1);
+  s->pop();
+  r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
 }
 
 INSTANTIATE_TEST_SUITE_P(
