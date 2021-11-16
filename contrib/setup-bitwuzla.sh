@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BITWUZLA_VERSION=a73ab6418135b6b0bbf12ba0f911dc8afb16aeb5
+BITWUZLA_VERSION=6e46391816b4baf8c9fc0b8c0c1d2fbe63b6f30e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
