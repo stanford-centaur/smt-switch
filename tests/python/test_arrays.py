@@ -18,6 +18,7 @@ import pytest
 import smt_switch as ss
 from smt_switch.primops import Distinct, Equal, Select, Store
 
+from available_solvers import int_support_solvers
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_array_read_over_write(create_solver):
@@ -43,7 +44,7 @@ def test_array_read_over_write(create_solver):
     assert r.is_unsat()
 
 
-@pytest.mark.parametrize("create_solver", [f for n, f in ss.solvers.items() if n != 'btor'])
+@pytest.mark.parametrize("create_solver", [f for n, f in int_support_solvers.items()])
 def test_array_lia_extensionality(create_solver):
     solver = create_solver(False)
     solver.set_logic('QF_ALIA')
