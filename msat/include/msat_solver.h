@@ -169,9 +169,12 @@ class MsatSolver : public AbsSmtSolver
   size_t max_assump_clauses_;  ///< number of assumption clauses before clearing
                                ///< them
   bool last_query_assuming;    ///< set to true if last query was
-                             ///< check-sat-assuming used to respect
-                             ///< get_unsat_assumptions interface (will complain
-                             ///< if not called after check-sat-assuming)
+                               ///< check-sat-assuming (as opposed to
+                               ///< just check-sat).
+                               ///< This boolean is used to respect the
+                               ///< get_unsat_assumptions interface (will
+                               ///< complain if not called after
+                               ///< check-sat-assuming).
 
   // clears assumption clauses
   // needed to simulate the same check_sat_assuming interface as other solvers
