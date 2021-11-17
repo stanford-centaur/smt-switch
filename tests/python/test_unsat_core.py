@@ -17,7 +17,6 @@
 import pytest
 import smt_switch as ss
 
-# z3 backend doesn't support unsat assumptions yet
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_unsat_assumptions_simple(create_solver):
     solver = create_solver(False)
