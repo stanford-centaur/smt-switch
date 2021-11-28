@@ -66,6 +66,8 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * gmp [optional: cvc5, MathSAT, Yices2]
 * autoconf [optional: Yices2 setup script]
 * Java [optional: cvc5 ANTLR]
+* Flex >= 2.6.4 [optional: SMT-LIB parser]
+* Bison >= 3.7 [optional: SMT-LIB parser]
 * Python [optional: Python bindings]
 * Cython >= 0.29 [optional: Python bindings]
 * [Scikit-Build CMake Modules](https://github.com/scikit-build/scikit-build/tree/master/skbuild) [optional: Python bindings]
