@@ -141,6 +141,11 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
           "produce-models takes values true or false");
     }
   }
+  else if (option == "time-limit")
+  {
+    unsigned milliseconds = stoi(value)*1000;
+    slv.set("timeout", milliseconds);
+  }
   else if (option == "produce-unsat-assumptions")
   {
     if (value == "true")

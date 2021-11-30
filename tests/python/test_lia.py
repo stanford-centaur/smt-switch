@@ -17,7 +17,9 @@
 import pytest
 import smt_switch as ss
 
-@pytest.mark.parametrize("create_solver", [f for name, f in ss.solvers.items() if name != 'btor'])
+from available_solvers import int_support_solvers
+
+@pytest.mark.parametrize("create_solver", [f for name, f in int_support_solvers.items()])
 def test_simple(create_solver):
     solver = create_solver(False)
     solver.set_opt('produce-models', 'true')

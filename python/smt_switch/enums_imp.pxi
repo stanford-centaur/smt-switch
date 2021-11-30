@@ -195,6 +195,10 @@ cdef SolverAttribute BOOL_BV1_ALIASING = SolverAttribute()
 BOOL_BV1_ALIASING.sa = c_BOOL_BV1_ALIASING
 setattr(solverattr, "BOOL_BV1_ALIASING", BOOL_BV1_ALIASING)
 
+cdef SolverAttribute TIMELIMIT = SolverAttribute()
+TIMELIMIT.sa = c_TIMELIMIT
+setattr(solverattr, "TIMELIMIT", TIMELIMIT)
+
 ################################################ PrimOps #################################################
 cdef class PrimOp:
     def __cinit__(self):
