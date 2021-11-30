@@ -9,6 +9,7 @@ import glob
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from skbuild.cmaker import CMaker
 from distutils.version import LooseVersion
 
 
@@ -82,6 +83,13 @@ class CMakeBuild(build_ext):
         python_make_dir = os.path.join(build_dir, "python")
         if not os.path.isfile(os.path.join(python_make_dir, "Makefile")):
             args = ["--" + solver for solver in solvers] + ["--python"]
+            args.append('-DPYTHON_VERSION_STRING:STRING=' + \
+                        sys.version.split(' ')[0])
+            python_version = CMaker.get_python_version()
+            args.append('-DPYTHON_INCLUDE_DIR:PATH=' + \
+                        CMaker.get_python_include_dir(python_version))
+            args.append('-DPYTHON_LIBRARY:FILEPATH=' + \
+                        CMaker.get_python_library(python_version))
             config_filename = os.path.join(root_path, "configure.sh")
             subprocess.check_call([config_filename] + args)
 

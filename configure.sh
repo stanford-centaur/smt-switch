@@ -31,6 +31,9 @@ Configures the CMAKE build environment.
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
+
+CMake Options (Advanced)
+  -DVAR=VALUE              manually add CMake options
 EOF
   exit 0
 }
@@ -194,6 +197,7 @@ do
                 *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
             esac
             ;;
+        -D*) cmake_opts="${cmake_opts} $1" ;;
         *) die "unexpected argument: $1";;
     esac
     shift
