@@ -65,6 +65,8 @@ flex_dir=default
 
 build_type=Release
 
+cmake_opts=""
+
 while [ $# -gt 0 ]
 do
     case $1 in
@@ -224,7 +226,7 @@ if [ $yices2_home != default -a $build_yices2 = default ]; then
     build_yices2=ON
 fi
 
-cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
+cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $install_prefix != default ] \
     && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
