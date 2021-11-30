@@ -38,7 +38,12 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx), context_level(0){};
+  Z3Solver()
+      : AbsSmtSolver(Z3),
+        ctx(),
+        slv(ctx),
+        context_level(0),
+        last_query_assuming(false){};
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
   ~Z3Solver(){};
@@ -123,11 +128,14 @@ class Z3Solver : public AbsSmtSolver
 
   uint64_t context_level;  ///< context level for incremental solving
 
+  bool last_query_assuming;  ///< used to determine if last query was
+                             ///< check_sat_assuming (vs just check_sat)
+
   // helper function
   inline Result check_sat_assuming(expr_vector & z3assumps)
   {
+    last_query_assuming = true;
     check_result r = slv.check(z3assumps);
-    ;
     if (r == unsat)
     {
       return Result(UNSAT);
