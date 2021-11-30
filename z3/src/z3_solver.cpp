@@ -141,6 +141,22 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
           "produce-models takes values true or false");
     }
   }
+  else if (option == "produce-unsat-assumptions")
+  {
+    if (value == "true")
+    {
+      slv.set("unsat_core", true);
+    }
+    else if (value == "false")
+    {
+      slv.set("unsat_core", false);
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "produce-unsat-assumptions takes values true or false");
+    }
+  }
   else if (bool_opts.find(option) != bool_opts.end())
   {
     if (value == "true")
@@ -358,6 +374,7 @@ void Z3Solver::assert_formula(const Term & t)
 
 Result Z3Solver::check_sat()
 {
+  last_query_assuming = false;
   check_result r = slv.check();
   if (r == unsat)
   {
@@ -472,8 +489,18 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
 
 void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
-  throw NotImplementedException(
-      "Get unsat core not implemented for Z3 backend.");
+  // in smt-switch, should throw exception if last query
+  // was check_sat instead of check_sat_assuming
+  if (!last_query_assuming)
+  {
+    throw SmtException(
+        "Can only call get_unsat_assumptions after check_sat_assuming");
+  }
+  expr_vector core = slv.unsat_core();
+  for (const auto & c : core)
+  {
+    out.insert(std::make_shared<Z3Term>(c, ctx));
+  }
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
