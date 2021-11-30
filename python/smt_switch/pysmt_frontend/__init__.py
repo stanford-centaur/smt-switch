@@ -1,9 +1,12 @@
 import typing as tp
 
-from pysmt import logics
-from pysmt.solvers.solver import Solver as SolverT
-from pysmt.exceptions import NoSolverAvailableError, NoLogicAvailableError
-from pysmt.environment import get_env
+try:
+    from pysmt import logics
+    from pysmt.solvers.solver import Solver as SolverT
+    from pysmt.exceptions import NoSolverAvailableError, NoLogicAvailableError
+    from pysmt.environment import get_env
+except:
+    raise ImportError('Skipping pysmt_frontend since pysmt is not available')
 
 from .pysmt_solver import SWITCH_SOLVERS
 
