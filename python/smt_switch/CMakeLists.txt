@@ -57,6 +57,7 @@ add_custom_target(gen-smt-solver-declarations
     "Generate smt_solvers.{pxd,pxi}"
   )
 python_extension_module(smt_switch)
+add_dependencies(smt_switch gen-smt-solver-declarations)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
                "${CMAKE_CURRENT_BINARY_DIR}/__init__.py" COPYONLY)
