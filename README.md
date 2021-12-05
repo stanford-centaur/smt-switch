@@ -114,10 +114,11 @@ It is highly recommended to use a Python [virtual environment](https://docs.pyth
 
 First, install the required Python modules:
 ```
-pip install scikit-build Cython pytest
+python3 -m pip install scikit-build Cython pytest
 ```
+If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster.
 
-Then, to compile python bindings, use the `--python` flag of `configure.sh`. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that the bindings only support `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+Then, to compile python bindings, use the `--python` flag of `configure.sh`. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
 
 After installing the bindings, you can test them from the top-level of the repository with:
 ```
