@@ -74,10 +74,6 @@ class CMakeBuild(build_ext):
             opts = ["--auto-yes"] if solver == "msat" else []
             subprocess.check_call([filename] + opts)
 
-        # get cmake files from scikit-build
-        skbuild_script = os.path.join(root_path, "contrib", "setup-skbuild.sh")
-        subprocess.check_call([skbuild_script])
-
         # to avoid multiple build, only call reconfigure if we couldn't find the makefile
         # for python
         python_make_dir = os.path.join(build_dir, "python")
