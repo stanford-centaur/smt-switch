@@ -8,7 +8,7 @@ TEST_REQUIRES = ['pytest']
 PACKAGE_NAME = 'smt_switch'
 
 setup(name=PACKAGE_NAME,
-      version='0.2.2',
+      version='0.3.0',
       long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
       url='http://github.com/makaimann/smt-switch',
       license='BSD',
