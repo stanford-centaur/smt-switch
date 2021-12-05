@@ -70,7 +70,7 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * Bison >= 3.7 [optional: SMT-LIB parser]
 * Python [optional: Python bindings]
 * Cython >= 0.29 [optional: Python bindings]
-* [Scikit-Build CMake Modules](https://github.com/scikit-build/scikit-build/tree/master/skbuild) [optional: Python bindings]
+* [scikit-build](https://github.com/scikit-build/scikit-build/tree/master/skbuild) [optional: Python bindings]
 
 # Operating Systems
 
@@ -110,7 +110,20 @@ You can run all tests for the currently built solvers with `make test` from the 
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
 
 # Python bindings
-First make sure that the `scikit-build` repository has been pulled for the CMake modules - use `./contrib/setup-skbuild.sh`. Then, to compile python bindings, use the `--python` flag of `configure.sh`. The python bindings require [Cython](https://cython.org). You can install Cython with `pip`. Note that the bindings only support `python3`, so be sure to install the `python3` version: `python3 -m pip install Cython`. If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+It is highly recommended to use a Python [virtual environment](https://docs.python.org/3/library/venv.html) or [Conda environment](https://docs.conda.io/en/latest/) when building Python bindings. Note: only Python3 is supported.
+
+First, install the required Python modules:
+```
+python3 -m pip install scikit-build Cython pytest
+```
+If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster.
+
+Then, to compile python bindings, use the `--python` flag of `configure.sh`. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
+
+After installing the bindings, you can test them from the top-level of the repository with:
+```
+pytest ./tests/
+```
 
 ## PySMT front end
 Optionally, smt-switch can be used with a [pySMT](https://pysmt.readthedocs.io/en/latest/) front-end .  To install the pySMT front-end install `smt-switch` with the `pysmt` extra (`python3 -m install -e ./python[pysmt]`).  Note, some shells, notable `zsh`, require brackets be escaped or the path to be quoted, i.e., `./python\[pysmt\]` or `"./python[pysmt]"`.
