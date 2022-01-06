@@ -7,6 +7,14 @@ mkdir -p $DEPS
 
 CVC5_VERSION=77d0bec48a745e3c4acd65085f9c59bdfceed6c0
 
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
 if [ ! -d "$DEPS/cvc5" ]; then
     cd $DEPS
     git clone https://github.com/cvc5/cvc5.git
@@ -15,7 +23,7 @@ if [ ! -d "$DEPS/cvc5" ]; then
     git checkout -f ${CVC5_VERSION}
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --auto-download
     cd build
-    make -j4
+    make -j$NUM_CORES
     cd $DIR
 else
     echo "$DEPS/cvc5 already exists. If you want to rebuild, please remove it manually."
