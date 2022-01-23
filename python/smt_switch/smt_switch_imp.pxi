@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Sequence
 
 from cython.operator cimport dereference as dref
 from libcpp.string cimport string
