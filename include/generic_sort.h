@@ -26,6 +26,7 @@
 namespace smt {
 
 class GenericDatatye;
+
 /* Helper functions for creating generic sorts */
 Sort make_uninterpreted_generic_sort(std::string name, uint64_t arity);
 Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec& sorts);
@@ -37,6 +38,9 @@ Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
 Sort make_generic_sort(SortKind sk, SortVec sorts);
 Sort make_generic_sort(Datatype dt);
 Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt);
+Sort make_generic_param_sort(std::string param_name);
+Sort make_generic_datatype_sort(Datatype dt);
+Sort make_generic_unresolved_sort(DatatypeDecl dt);
 /* smtlib representation of sort kinds */
 std::string to_smtlib(SortKind);
 
@@ -230,6 +234,34 @@ class DatatypeComponentSort : public GenericSort
   std::string name;
   Sort dt_sort;
   Sort selector_sort;
+};
+
+class ParamSort : public GenericSort
+{
+ public:
+  ParamSort(std::string param_name);
+  ~ParamSort(){};
+  std::string get_uninterpreted_name() const override;
+  std::string compute_string() const override;
+
+ protected:
+  std::string name;
+};
+
+class UnresolvedSort : public GenericSort
+{
+ public:
+  UnresolvedSort(DatatypeDecl dt_decl);
+  ~UnresolvedSort(){};
+  std::string compute_string() const override;
+  std::string to_string() const override;
+  DatatypeDecl get_datatype_decl();
+  std::vector<std::string> get_params();
+  void insert_param(std::string new_param);
+
+ protected:
+  DatatypeDecl datatype_decl;
+  std::vector<std::string> params_vector;
 };
 
 }  // namespace smt

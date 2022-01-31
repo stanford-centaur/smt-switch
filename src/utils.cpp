@@ -250,9 +250,9 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       smt::Op op = t->get_op();
       assert(op.is_null() || op == smt::Or || op == smt::Not);
 
-      if(op.prim_op == smt::Or)
+      if (op.prim_op == smt::Or)
       {
-        for(auto u : t)
+        for (auto u : t)
         {
           before_or_elimination.push_back(u);
         }
@@ -264,74 +264,74 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       }
     }
     clauses.push_back(after_or_elimination);
-   }
+  }
 
-   std::map<Term, int> ma;  // This map will create a mapping from symbols to
-                            // distinct contiguous integer values.
-   int ptr = 0;  // pointer to store the next integer used in mapping
+  std::map<Term, int> ma;  // This map will create a mapping from symbols to
+                           // distinct contiguous integer values.
+  int ptr = 0;             // pointer to store the next integer used in mapping
 
-   // iterating within each clause and mapping every distinct symbol to a
-   // natural number
-   for (auto u : clauses)
-   {
-     for (auto uu : u)
-     {  // Using literals from all the clauses to create the mapping
-       if (uu->is_value() && uu->to_string() == "false")
-       {  // For an empty clause, which will just contain the term "false"
-       }
-       else if (uu->is_symbolic_const())
-       {  // A positive literal
-         if (ma.find(uu) == ma.end())
-         {  // Checking if symbol is absent in the mapping done till now
-           ptr++;
-           ma[uu] = ptr;
-         }
-       }
-       else
-       {  // A negative literal
-         Term t = (*(uu->begin()));
-         if (ma.find(t) == ma.end())
-         {
-           ptr++;
-           ma[t] = ptr;
-         }
-       }
-     }
-   }
-   //printing the output in DIMACS format
-   y << "p cnf ";
-   y << ptr;  // number of distinct symbols
-   y << " ";
+  // iterating within each clause and mapping every distinct symbol to a
+  // natural number
+  for (auto u : clauses)
+  {
+    for (auto uu : u)
+    {  // Using literals from all the clauses to create the mapping
+      if (uu->is_value() && uu->to_string() == "false")
+      {  // For an empty clause, which will just contain the term "false"
+      }
+      else if (uu->is_symbolic_const())
+      {  // A positive literal
+        if (ma.find(uu) == ma.end())
+        {  // Checking if symbol is absent in the mapping done till now
+          ptr++;
+          ma[uu] = ptr;
+        }
+      }
+      else
+      {  // A negative literal
+        Term t = (*(uu->begin()));
+        if (ma.find(t) == ma.end())
+        {
+          ptr++;
+          ma[t] = ptr;
+        }
+      }
+    }
+  }
+  // printing the output in DIMACS format
+  y << "p cnf ";
+  y << ptr;  // number of distinct symbols
+  y << " ";
 
-   int sz = clauses.size();
+  int sz = clauses.size();
 
-   y << sz;  // number of clauses
-   y << "\n";
+  y << sz;  // number of clauses
+  y << "\n";
 
-   // iterating within each clause and assigning the literal their mapped
-   // value(for a positive literal) or it's negative value(for a negative
-   // literal)
-   for (auto u : clauses)
-   {
-     for (auto uu : u)
-     {
-       if (uu->is_value() && uu->to_string() == "false")
-       {  // For an empty clause
-       }
-       else if (uu->is_symbolic_const())
-       {
-         y << (ma[uu]);  // Positive number for a positive literal
-         y << " ";
-       }
-       else
-       {
-         Term t = (*(uu->begin()));
-         y << ((-(ma[t])));  // Negative number for a negative literal
-         y << " ";
-       }
-     }
-     y << 0;  // Symbolizing end of line
-     y << "\n";
+  // iterating within each clause and assigning the literal their mapped
+  // value(for a positive literal) or it's negative value(for a negative
+  // literal)
+  for (auto u : clauses)
+  {
+    for (auto uu : u)
+    {
+      if (uu->is_value() && uu->to_string() == "false")
+      {  // For an empty clause
+      }
+      else if (uu->is_symbolic_const())
+      {
+        y << (ma[uu]);  // Positive number for a positive literal
+        y << " ";
+      }
+      else
+      {
+        Term t = (*(uu->begin()));
+        y << ((-(ma[t])));  // Negative number for a negative literal
+        y << " ";
+      }
+    }
+    y << 0;  // Symbolizing end of line
+    y << "\n";
   }
 }
 

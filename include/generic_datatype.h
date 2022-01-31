@@ -25,11 +25,16 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
  public:
   GenericDatatypeDecl(const std::string name);
   virtual ~GenericDatatypeDecl(){};
-  std::string get_name();
+  std::string get_name() const;
+  int get_param_count() const;
+  std::vector<Sort> get_param_sorts();
+  void register_param_sort(std::string param_name);
 
  protected:
   friend class GenericSolver;
   std::string dt_name;
+  int param_count;
+  std::vector<Sort> param_sorts;
 };
 
 class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
@@ -46,10 +51,13 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   int get_selector_count() const;
   bool compare(const DatatypeConstructorDecl & d) const override;
   std::string get_dt_name() const;
+  void add_selector_param(const std::string & name, int param_num);
 
  protected:
   std::vector<SelectorComponents> selector_vector;
   std::string cons_name;
+  bool contains_param;
+
   DatatypeDecl dt_decl;
   // Setter for the dt_decl member. Only to be used when a constructor
   // is added to a datatype. datatype_decl: The DatatypeDecl of the datatype.
@@ -85,6 +93,7 @@ class GenericDatatype : public AbsDatatype
 
  protected:
   DatatypeDecl dt_decl;
+
   std::vector<DatatypeConstructorDecl> cons_decl_vector;
 
   friend class GenericSolver;

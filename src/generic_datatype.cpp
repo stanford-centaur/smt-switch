@@ -11,15 +11,37 @@ using namespace std;
 
 namespace smt {
 
-GenericDatatypeDecl::GenericDatatypeDecl(const std::string name) : dt_name(name)
+GenericDatatypeDecl::GenericDatatypeDecl(const std::string name)
+    : dt_name(name), param_count(0)
 {
 }
 
-std::string GenericDatatypeDecl::get_name() { return dt_name; }
+std::string GenericDatatypeDecl::get_name() const { return dt_name; }
+
+int GenericDatatypeDecl::get_param_count() const { return param_count; }
+
+std::vector<Sort> GenericDatatypeDecl::get_param_sorts() { return param_sorts; }
+
+void GenericDatatypeDecl::register_param_sort(std::string param_name)
+{
+  for (unsigned int i = 0; i < param_count; ++i)
+  {
+    // Checks if the selector has already been added
+    if (param_sorts[i]->to_string() == param_name)
+    {
+      // throw "Can't add selector. It already exists in this
+      // datatype!";
+      return;
+    }
+  }
+  Sort new_param = make_generic_param_sort(param_name);
+  param_sorts.push_back(new_param);
+  param_count += 1;
+}
 
 GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
-    : cons_name(name)
+    : cons_name(name), contains_param(false)
 {
 }
 
@@ -87,6 +109,21 @@ void GenericDatatype::add_constructor(
   }
   shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
       static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
+
+  if (gdt_cons->contains_param == true)
+  {
+    for (int i = 0; i < gdt_cons->get_selector_count(); ++i)
+    {
+      if (gdt_cons->get_selector_vector()[i].sort->get_sort_kind()
+          == SortKind::PARAM)
+      {
+        static_pointer_cast<GenericDatatypeDecl>(dt_decl)->register_param_sort(
+            static_pointer_cast<ParamSort>(
+                gdt_cons->get_selector_vector()[i].sort)
+                ->to_string());
+      }
+    }
+  }
   // Links the constructor to the datatype_decl of the datatype
   gdt_cons->update_stored_dt(dt_decl);
   // Links the datatype to the new constructor

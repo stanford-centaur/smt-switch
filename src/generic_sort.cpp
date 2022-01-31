@@ -130,6 +130,19 @@ Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
   return make_shared<DatatypeComponentSort>(sk, cons_name, dt);
 }
 
+Sort make_generic_param_sort(std::string param_name)
+{
+  return make_shared<ParamSort>(param_name);
+}
+Sort make_generic_datatype_sort(Datatype dt)
+{
+  return make_shared<GenericDatatypeSort>(dt);
+}
+Sort make_generic_unresolved_sort(DatatypeDecl dt)
+{
+  return make_shared<UnresolvedSort>(dt);
+}
+
 // implementations
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
@@ -194,6 +207,10 @@ string GenericSort::compute_string() const {
     else if (get_sort_kind() == SortKind::CONSTRUCTOR
              || get_sort_kind() == SortKind::SELECTOR
              || get_sort_kind() == SortKind::TESTER)
+    {
+      return get_uninterpreted_name();
+    }
+    else if (get_sort_kind() == SortKind::PARAM)
     {
       return get_uninterpreted_name();
     }
@@ -448,7 +465,6 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   {
     return selector_sort;
   }
-
   assert(sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
 }
 
@@ -467,6 +483,35 @@ int DatatypeComponentSort::get_num_selectors() const
 Datatype DatatypeComponentSort::get_datatype() const
 {
   return dt_sort->get_datatype();
+}
+
+ParamSort::ParamSort(std::string param_name)
+    : name(param_name), GenericSort(SortKind::PARAM)
+{
+}
+
+std::string ParamSort::compute_string() const { return name; }
+std::string ParamSort::get_uninterpreted_name() const { return name; }
+
+UnresolvedSort::UnresolvedSort(DatatypeDecl dt_decl)
+    : datatype_decl(dt_decl), GenericSort(SortKind::UNRESOLVED)
+{
+}
+
+std::string UnresolvedSort::compute_string() const
+{
+  return static_pointer_cast<GenericDatatypeDecl>(datatype_decl)->get_name();
+}
+
+std::string UnresolvedSort::to_string() const { return compute_string(); }
+
+DatatypeDecl UnresolvedSort::get_datatype_decl() { return datatype_decl; }
+
+std::vector<std::string> UnresolvedSort::get_params() { return params_vector; }
+
+void UnresolvedSort::insert_param(std::string new_param)
+{
+  params_vector.push_back(new_param);
 }
 
 }  // namespace smt

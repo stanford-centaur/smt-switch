@@ -50,7 +50,9 @@ class GenericSolver : public AbsSmtSolver
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   // Mutually recursive datatypes are currently not supported.
   Sort make_sort(const DatatypeDecl & d) const override;
+
   DatatypeDecl make_datatype_decl(const std::string & s) override;
+
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
   void add_constructor(DatatypeDecl & dt,
@@ -60,11 +62,16 @@ class GenericSolver : public AbsSmtSolver
                     const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt,
                          const std::string & name) const override;
+  Sort get_unresolved_sort(DatatypeDecl dt_decl);
+
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls,
+      const UnorderedSortSet & uninterp_sorts) const override;
 
   /***************************************************************/
   /* methods from AbsSmtSolver that are implemented              */
@@ -266,6 +273,7 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<
       std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>>
       datatype_name_map;
+  std::unique_ptr<std::unordered_map<int, std::string>> par_map;
 };
 
 }  // namespace smt
