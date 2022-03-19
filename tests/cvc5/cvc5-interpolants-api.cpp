@@ -15,7 +15,6 @@ int main()
   Solver s;
   Sort boolsort = s.getBooleanSort();
   s.setOption("produce-interpols", "conjecture");
-  s.setOption("sygus-active-gen", "enum");
   s.setOption("incremental", "false");
   Term b1 = s.mkConst(boolsort, "b1");
   Term b2 = s.mkConst(boolsort, "b2");
@@ -28,10 +27,9 @@ int main()
   }
 
   s.assertFormula(s.mkTerm(AND, b1, b2));
-  Term I;
-  bool success = s.getInterpolant(b2, I);
+  Term I = s.getInterpolant(b2);
 
-  if (success)
+  if (!I.isNull())
   {
     cout << "got an interpolant: " << I << endl;
   }

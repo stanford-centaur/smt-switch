@@ -1108,9 +1108,8 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   std::shared_ptr<Cvc5Term> cB =
       std::static_pointer_cast<Cvc5Term>(make_term(Not, B));
   solver.assertFormula(cA->term);
-  cvc5::api::Term I;
-  bool success = solver.getInterpolant(cB->term, I);
-  if (success)
+  cvc5::api::Term I = solver.getInterpolant(cB->term);
+  if (!I.isNull())
   {
     out_I = Term(new Cvc5Term(I));
     return UNSAT;
