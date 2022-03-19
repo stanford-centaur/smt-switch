@@ -33,9 +33,9 @@ const std::unordered_map<PrimOp, ::cvc5::api::Kind> primop2kind(
       /* Uninterpreted Functions */
       { Apply, ::cvc5::api::APPLY_UF },
       /* Arithmetic Theories */
-      { Plus, ::cvc5::api::PLUS },
-      { Minus, ::cvc5::api::MINUS },
-      { Negate, ::cvc5::api::UMINUS },
+      { Plus, ::cvc5::api::ADD },
+      { Minus, ::cvc5::api::SUB },
+      { Negate, ::cvc5::api::NEG },
       { Mult, ::cvc5::api::MULT },
       { Div, ::cvc5::api::DIVISION },
       { IntDiv, ::cvc5::api::INTS_DIVISION },
@@ -997,11 +997,11 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       cterms.pop_back();
       // bind quantifiers one a time
       // makes traversal easier since smt-switch has no
-      // BOUND_VAR_LIST equivalent
+      // VARIABLE_LIST equivalent
       while (cterms.size())
       {
         ::cvc5::api::Term bound_var =
-            solver.mkTerm(cvc5::api::BOUND_VAR_LIST, cterms.back());
+            solver.mkTerm(cvc5::api::VARIABLE_LIST, cterms.back());
         cterms.pop_back();
         quant_res = solver.mkTerm(quant_kind, bound_var, quant_res);
       }

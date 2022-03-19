@@ -7,7 +7,7 @@ mkdir -p $DEPS
 
 if [ ! -d "$DEPS/cvc5" ]; then
     cd $DEPS
-    git clone -b cvc5-0.0.3 https://github.com/cvc5/cvc5.git
+    git clone https://github.com/cvc5/cvc5.git
     chmod -R 777 cvc5
     cd cvc5
     CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --auto-download

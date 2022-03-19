@@ -45,9 +45,9 @@ const std::unordered_map<::cvc5::api::Kind, PrimOp> kind2primop(
       /* Uninterpreted Functions */
       { ::cvc5::api::APPLY_UF, Apply },
       /* Arithmetic Theories */
-      { ::cvc5::api::PLUS, Plus },
-      { ::cvc5::api::MINUS, Minus },
-      { ::cvc5::api::UMINUS, Negate },
+      { ::cvc5::api::ADD, Plus },
+      { ::cvc5::api::SUB, Minus },
+      { ::cvc5::api::NEG, Negate },
       { ::cvc5::api::MULT, Mult },
       { ::cvc5::api::DIVISION, Div },
       { ::cvc5::api::LT, Lt },
@@ -135,19 +135,19 @@ const Term Cvc5TermIter::operator*()
   {
     return std::make_shared<Cvc5Term>(term.getConstArrayBase());
   }
-  // special-case for BOUND_VAR_LIST -- parameters bound by a quantifier
+  // special-case for VARIABLE_LIST -- parameters bound by a quantifier
   // smt-switch cvc5 backend guarantees that the length is only one by
   // construction
   ::cvc5::api::Term t = term[pos];
-  if (t.getKind() == ::cvc5::api::BOUND_VAR_LIST)
+  if (t.getKind() == ::cvc5::api::VARIABLE_LIST)
   {
     if (t.getNumChildren() != 1)
     {
       // smt-switch cvc5 backend should only allow binding one parameter
       // otherwise, we need to flatten arbitrary nestings of quantifiers and
-      // BOUND_VAR_LISTs for term iteration
+      // VARIABLE_LISTs for term iteration
       throw InternalSolverException(
-          "Expected exactly one bound variable in cvc5 BOUND_VAR_LIST");
+          "Expected exactly one bound variable in cvc5 VARIABLE_LIST");
     }
     return std::make_shared<Cvc5Term>(t[0]);
   }
