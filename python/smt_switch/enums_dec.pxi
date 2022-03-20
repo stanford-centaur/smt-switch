@@ -51,6 +51,7 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef c_SolverAttribute c_THEORY_DATATYPE "smt::THEORY_DATATYPE"
     cdef c_SolverAttribute c_QUANTIFIERS "smt::QUANTIFIERS"
     cdef c_SolverAttribute c_BOOL_BV1_ALIASING "smt::BOOL_BV1_ALIASING"
+    cdef c_SolverAttribute c_TIMELIMIT "smt::TIMELIMIT"
 
     string to_string(c_SolverAttribute sa) except +
 

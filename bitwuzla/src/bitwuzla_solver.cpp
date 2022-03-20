@@ -21,6 +21,17 @@
 using namespace std;
 
 namespace smt {
+Bitwuzla * running_bzla = nullptr;  ///< used for calling terminate
+                                    ///< if a time limit is reached
+
+void bzla_timelimit_handler(int signum)
+{
+  assert(running_bzla != nullptr);
+  void * state = bitwuzla_get_termination_callback_state(running_bzla);
+  bool * statebool = reinterpret_cast<bool *>(state);
+  *statebool = true;
+  bitwuzla_terminate(running_bzla);
+}
 
 const std::unordered_map<PrimOp, BitwuzlaKind> op2bkind(
     { /* Core Theory */
@@ -97,6 +108,10 @@ void BzlaSolver::set_opt(const string option, const string value)
   {
     bitwuzla_set_option(bzla, BITWUZLA_OPT_PRODUCE_UNSAT_CORES, (value == "true"));
   }
+  else if (option == "time-limit")
+  {
+    time_limit = stoi(value);
+  }
   else
   {
     throw SmtException("Bitwuzla backend does not support option: " + option);
@@ -117,7 +132,9 @@ void BzlaSolver::assert_formula(const Term & t)
 
 Result BzlaSolver::check_sat()
 {
+  timelimit_start();
   BitwuzlaResult r = bitwuzla_check_sat(bzla);
+  bool tl_triggered = timelimit_end();
   if (r == BITWUZLA_SAT)
   {
     return Result(SAT);
@@ -129,6 +146,10 @@ Result BzlaSolver::check_sat()
   else
   {
     assert(r == BITWUZLA_UNKNOWN);
+    if (tl_triggered)
+    {
+      return Result(UNKNOWN, "Time limit reached.");
+    }
     return Result(UNKNOWN);
   }
 }
@@ -179,7 +200,7 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   size_t size;
-  BitwuzlaTerm ** bcore = bitwuzla_get_unsat_assumptions(bzla, &size);
+  const BitwuzlaTerm ** bcore = bitwuzla_get_unsat_assumptions(bzla, &size);
   for (size_t i = 0; i < size; ++i)
   {
     assert(*bcore);
@@ -242,7 +263,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   }
   else if (sk == FUNCTION)
   {
-    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort });
+    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), domain_sorts.data(), bsort2->sort));
   }
@@ -266,7 +287,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
 
   if (sk == FUNCTION)
   {
-    vector<BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
+    vector<const BitwuzlaSort *> domain_sorts({ bsort1->sort, bsort2->sort });
     return make_shared<BzlaSort>(bitwuzla_mk_fun_sort(
         bzla, domain_sorts.size(), domain_sorts.data(), bsort3->sort));
   }
@@ -294,7 +315,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     // arity is one less, because last sort is return sort
     uint32_t arity = sorts.size() - 1;
-    std::vector<BitwuzlaSort *> bzla_sorts;
+    std::vector<const BitwuzlaSort *> bzla_sorts;
     bzla_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
     {
@@ -579,7 +600,7 @@ Term BzlaSolver::make_term(Op op,
   else
   {
     assert(op.num_idx > 0 && op.num_idx <= 1);
-    vector<BitwuzlaTerm *> bitwuzla_terms(
+    vector<const BitwuzlaTerm *> bitwuzla_terms(
         { bterm0->term, bterm1->term, bterm2->term });
     vector<uint32_t> indices({ (uint32_t)op.idx0 });
     if (op.num_idx == 2)
@@ -598,7 +619,7 @@ Term BzlaSolver::make_term(Op op,
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
-  vector<BitwuzlaTerm *> bitwuzla_terms;
+  vector<const BitwuzlaTerm *> bitwuzla_terms;
   for (auto t : terms)
   {
     bitwuzla_terms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
@@ -650,9 +671,9 @@ Term BzlaSolver::substitute(const Term term,
 {
   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
   size_t smap_size = substitution_map.size();
-  vector<BitwuzlaTerm *> map_keys;
+  vector<const BitwuzlaTerm *> map_keys;
   map_keys.reserve(smap_size);
-  vector<BitwuzlaTerm *> map_vals;
+  vector<const BitwuzlaTerm *> map_vals;
   map_keys.reserve(smap_size);
   for (auto elem : substitution_map)
   {
@@ -672,12 +693,12 @@ TermVec BzlaSolver::substitute_terms(
     const TermVec & terms, const UnorderedTermMap & substitution_map) const
 {
   size_t terms_size = terms.size();
-  vector<BitwuzlaTerm *> bterms;
+  vector<const BitwuzlaTerm *> bterms;
   bterms.reserve(terms_size);
   size_t smap_size = substitution_map.size();
-  vector<BitwuzlaTerm *> map_keys;
+  vector<const BitwuzlaTerm *> map_keys;
   map_keys.reserve(smap_size);
-  vector<BitwuzlaTerm *> map_vals;
+  vector<const BitwuzlaTerm *> map_vals;
   map_keys.reserve(smap_size);
   for (auto t : terms)
   {
@@ -715,6 +736,32 @@ void BzlaSolver::dump_smt2(std::string filename) const
   FILE * file = fopen(filename.c_str(), "w");
   bitwuzla_dump_formula(bzla, "smt2", file);
   fclose(file);
+}
+
+// helpers
+void BzlaSolver::timelimit_start()
+{
+  if (time_limit)
+  {
+    signal(SIGALRM, bzla_timelimit_handler);
+    assert(running_bzla == nullptr);
+    assert(!terminate_bzla);
+    running_bzla = bzla;
+    alarm(time_limit);
+  }
+}
+
+bool BzlaSolver::timelimit_end()
+{
+  bool res = false;
+  if (time_limit)
+  {
+    res |= terminate_bzla;
+    terminate_bzla = false;
+    running_bzla = nullptr;
+    alarm(0);
+  }
+  return res;
 }
 
 }  // namespace smt

@@ -31,6 +31,9 @@ Configures the CMAKE build environment.
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
+
+CMake Options (Advanced)
+  -DVAR=VALUE              manually add CMake options
 EOF
   exit 0
 }
@@ -61,6 +64,8 @@ bison_dir=default
 flex_dir=default
 
 build_type=Release
+
+cmake_opts=""
 
 while [ $# -gt 0 ]
 do
@@ -194,6 +199,7 @@ do
                 *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
             esac
             ;;
+        -D*) cmake_opts="${cmake_opts} $1" ;;
         *) die "unexpected argument: $1";;
     esac
     shift
@@ -220,7 +226,7 @@ if [ $yices2_home != default -a $build_yices2 = default ]; then
     build_yices2=ON
 fi
 
-cmake_opts="-DCMAKE_BUILD_TYPE=$build_type"
+cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $install_prefix != default ] \
     && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"

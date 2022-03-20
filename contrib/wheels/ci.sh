@@ -13,7 +13,7 @@ SWITCH_DIR=$DIR/../../
 cd $SWITCH_DIR
 mkdir -p build
 yum install -y gmp-static libedit-devel
-pip install toml setuptools pexpect Cython==0.29
+pip install toml setuptools pexpect Cython==0.29 scikit-build
 python contrib/wheels/build_wheel.py bdist_wheel
 auditwheel show dist/*
 auditwheel repair dist/*

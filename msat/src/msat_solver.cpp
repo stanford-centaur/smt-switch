@@ -193,6 +193,7 @@ void MsatSolver::assert_formula(const Term & t)
 Result MsatSolver::check_sat()
 {
   initialize_env();
+  last_query_assuming = false;
   clear_assumption_clauses();
   msat_result mres = msat_solve(env);
 
@@ -213,6 +214,7 @@ Result MsatSolver::check_sat()
 Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 {
   initialize_env();
+  last_query_assuming = true;
   clear_assumption_clauses();
   size_t num_assumps = assumptions.size();
   vector<msat_term> m_assumps;
@@ -372,12 +374,12 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
   initialize_env();
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(env, &core_size);
-  if (!mcore || !core_size)
+  if (!last_query_assuming)
   {
-    throw InternalSolverException(
-        "Got an empty unsat core. Ensure your last call was unsat and had "
-        "assumptions in check_sat_assuming that are required to get an unsat "
-        "result");
+    throw SmtException(
+        "Called get_unsat_assumptions after check-sat, or "
+        "check-sat-assuming with no assumptions. Should be "
+        "used after a non-trivial call to check-sat-assuming.");
   }
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)

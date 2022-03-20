@@ -1,9 +1,58 @@
-# Check that scikit-build cmake files are present
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/deps/scikit-build/skbuild/resources/cmake/")
-  message(FATAL_ERROR "Missing scikit-build cmake files -- try running ./contrib/setup-skbuild.sh")
+# Note: using same pattern used in cvc5 for scikit-build / python module checking
+# Check if given Python module is installed and raises a FATAL_ERROR error
+# if the module cannot be found.
+function(check_python_module module)
+  execute_process(
+    COMMAND
+    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    RESULT_VARIABLE
+      RET_MODULE_TEST
+    ERROR_QUIET
+  )
+  set(module_name ${ARGN})
+  if(NOT module_name)
+    set(module_name ${module})
+  endif()
+
+  if(RET_MODULE_TEST)
+    message(FATAL_ERROR
+        "Could not find module ${module_name} for Python "
+        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "Make sure to install ${module_name} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "Note: You need to have pip installed for this Python version.")
+  endif()
+endfunction()
+
+
+# Check that scikit-build is installed
+# Provides CMake files for Python bindings
+# and used to find correct Python includes
+# and libraries
+check_python_module("skbuild" "scikit-build")
+
+# Find cmake modules distributed with scikit-build
+# They are distributed under <scikit-build directory>/resources/cmake
+execute_process(
+  COMMAND
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
+      import os; import skbuild; \
+      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
+        'resources', 'cmake'); print(cmake_module_path, end='')"
+  OUTPUT_VARIABLE
+    SKBUILD_CMAKE_MODULE_PATH
+  RESULT_VARIABLE
+    RET_SKBUILD_CMAKE_MODULE_PATH
+)
+
+if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
+  message(FATAL_ERROR "Expected CMake module path from
+                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/deps/scikit-build/skbuild/resources/cmake/)
+# Add scikit-build cmake files to cmake module path
+# Required for Cython target below
+list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 include(FindPythonExtensions)
 

@@ -39,6 +39,12 @@ if (BUILD_YICES2)
   set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
 endif()
 
+if (BUILD_Z3)
+  include_directories("${PROJECT_SOURCE_DIR}/z3/include")
+  target_link_libraries(smt_switch smt-switch-z3)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
+endif()
+
 add_custom_target(gen-smt-solver-declarations
   ALL
   COMMAND
@@ -51,6 +57,7 @@ add_custom_target(gen-smt-solver-declarations
     "Generate smt_solvers.{pxd,pxi}"
   )
 python_extension_module(smt_switch)
+add_dependencies(smt_switch gen-smt-solver-declarations)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
                "${CMAKE_CURRENT_BINARY_DIR}/__init__.py" COPYONLY)
