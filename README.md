@@ -3,7 +3,7 @@ A generic C++ API for SMT solving. It provides abstract classes which can be imp
 
 # Quick Start
 ```
-$ git clone git@github.com:makaimann/smt-switch.git
+$ git clone git@github.com:stanford-centaur/smt-switch.git
 $ cd smt-switch 
 $ ./contrib/setup-<solver>.sh
 $ ./configure.sh --<solver>
@@ -58,11 +58,11 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * git
 * curl \[optional : setup scripts in `contrib`\]
 * Solver libraries
-  * Boolector (has setup script in `contrib`)
+  * Bitwuzla (has setup script in `contrib`)
   * cvc5 (has setup script in `contrib`)
   * MathSAT (must be obtained independently; user responsible for meeting license conditions)
   * Yices2 (must be obtained independently; user responsible for meeting license conditions)
-* pthread [optional: Boolector]
+* pthread [optional: Bitwuzla]
 * gmp [optional: cvc5, MathSAT, Yices2]
 * autoconf [optional: Yices2 setup script]
 * Java [optional: cvc5 ANTLR]
@@ -87,7 +87,7 @@ Once you've configured the build system, simply enter the build directory (`./bu
 
 ### BSD compatible
 
-* Boolector
+* Bitwuzla
 * Bitwuzla
 * cvc5
 * Z3
@@ -155,9 +155,8 @@ Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). Th
 While we try to guarantee that all solver backends are fully compliant with the abstract interface, and exhibit the exact same behavior given the same API calls, we are not able to do this in every case (yet). Below are some known, current limitations along with recommended usage.
 
 * **Undefined behavior.** Sharing terms between different solver instances will result in undefined behavior. This is because we use a static cast to recover the backend solver implementation from an abstract object. To move terms between solver instances, you can use a `TermTranslator` which will rebuild the term in another solver. A given `TermTranslator` object can only translate terms from **one** solver to **one** new one. If some symbols have already been created in the new solver, you can populate the `TermTranslator`'s cache so that it knows which symbols correspond to each other
-* Bitwuzla and Boolector might share symbols, so it is recommended to avoid using both together
-* Boolector's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
-* Boolector does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
+* Bitwuzla's `substitute` implementation does not work for formulas containing uninterpreted functions. To get around this, you can use a LoggingSolver. See below.
+* Bitwuzla does not support `reset_assertions` yet. You can however simulate this by setting the option "base-context-1" to "true". Under the hood, this will do all solving starting at context 1 instead of 0. This will allow you to call `reset_assertions` just like for any other solver.
 * The Z3 backend has not implemented term iteration (getting children) yet, but that should be added soon.
 * Datatypes are currently only supported in cvc5
 
@@ -167,8 +166,8 @@ While we try to guarantee that all solver backends are fully compliant with the 
 
 A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of Term DAGs at the smt-switch level. This guarantees that if you create a term and query it for its sort, op, and children, it will give you back the exact same objects you built it with. Without the `LoggingSolver` wrapper, this is not guaranteed for all solvers. This is because some solvers perform on-the-fly rewriting and/or alias sorts (e.g. treat `BOOL` and `BV` of size one equivalently). Below, we give some recommendations for when to use a `LoggingSolver` for different backends. To use a `LoggingSolver`, pass `true` to the `create` function when instantiating a solver.
 
-* Boolector
-  * Use a `LoggingSolver` when you want to avoid issues with sort aliasing between booleans and bit-vectors of size one and/or if you'd like to ensure that a term's children are exactly what were used to create it. Boolector performs very smart on-the-fly rewriting. Additionally, use a `LoggingSolver` if you will need to use the `substitute` method on formulas that contain uninterpreted functions.
+* Bitwuzla
+  * Use a `LoggingSolver` when you want to avoid issues with sort aliasing between booleans and bit-vectors of size one and/or if you'd like to ensure that a term's children are exactly what were used to create it. Bitwuzla performs very smart on-the-fly rewriting. Additionally, use a `LoggingSolver` if you will need to use the `substitute` method on formulas that contain uninterpreted functions.
 * cvc5
   * cvc5 does not alias sorts or perform on-the-fly rewriting. Thus, there should never be any reason to use a `LoggingSolver`.
 * MathSAT
