@@ -5,7 +5,7 @@ DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
-CVC5_VERSION=3c37d6aeb7028923ea1827a75de54bd6947b955b
+CVC5_VERSION=77d0bec48a745e3c4acd65085f9c59bdfceed6c0
 
 if [ ! -d "$DEPS/cvc5" ]; then
     cd $DEPS
