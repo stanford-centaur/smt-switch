@@ -31,7 +31,7 @@ else
     echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $DEPS/bitwuzla/build/lib/libbitwuzla.a ] && [ -f $DEPS/bitwuzla/deps/cadical/build/libcadical.a ] && [ -f $DEPS/bitwuzla/deps/btor2tools/build/btor2parser.o ] ; then \
+if [ -f $DEPS/bitwuzla/build/lib/libbitwuzla.a ] && [ -f $DEPS/bitwuzla/deps/cadical/build/libcadical.a ] && [ -f $DEPS/bitwuzla/deps/btor2tools/build/lib/libbtor2parser.a ] ; then \
     echo "It appears bitwuzla was setup successfully into $DEPS/bitwuzla."
     echo "You may now install it with make ./configure.sh --bitwuzla && cd build && make"
 else

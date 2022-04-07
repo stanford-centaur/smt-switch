@@ -45,7 +45,7 @@ jobs:
 
       - name: Python Dependencies
         run: |
-          python3 -m pip install Cython pytest scikit-build
+          python3 -m pip install Cython pytest scikit-build toml
 
       - name: Install Bison
         run: ./contrib/setup-bison.sh
