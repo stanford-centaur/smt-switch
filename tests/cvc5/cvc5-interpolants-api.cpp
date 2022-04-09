@@ -26,7 +26,7 @@ int main()
     throw std::exception();
   }
 
-  s.assertFormula(s.mkTerm(AND, {b1, b2}));
+  s.assertFormula(s.mkTerm(AND, { b1, b2 }));
   Term I = s.getInterpolant(b2);
 
   if (!I.isNull())

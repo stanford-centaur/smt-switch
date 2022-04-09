@@ -616,8 +616,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  ::cvc5::Sort csort_con =
-      std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
+  ::cvc5::Sort csort_con = std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
 
   size_t numsorts = sorts.size();
   size_t arity = csort_con.getUninterpretedSortConstructorArity();
@@ -697,7 +696,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
 
 Term Cvc5Solver::make_term(Op op, const Term & t) const
 {
-  return make_term(op, TermVec({t}));
+  return make_term(op, TermVec({ t }));
 }
 
 Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
@@ -873,7 +872,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
 
 Term Cvc5Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  return make_term(op, TermVec({t0, t1}));
+  return make_term(op, TermVec({ t0, t1 }));
 }
 
 Term Cvc5Solver::make_term(Op op,
@@ -881,7 +880,7 @@ Term Cvc5Solver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
-  return make_term(op, TermVec({t0, t1, t2}));
+  return make_term(op, TermVec({ t0, t1, t2 }));
 }
 
 Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
@@ -907,9 +906,9 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       while (cterms.size())
       {
         ::cvc5::Term bound_var =
-          solver.mkTerm(cvc5::VARIABLE_LIST, {cterms.back()});
+            solver.mkTerm(cvc5::VARIABLE_LIST, { cterms.back() });
         cterms.pop_back();
-        quant_res = solver.mkTerm(quant_kind, {bound_var, quant_res});
+        quant_res = solver.mkTerm(quant_kind, { bound_var, quant_res });
       }
       return std::make_shared<Cvc5Term>(quant_res);
     }
@@ -986,21 +985,27 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   {
     if (op.idx0 > std::numeric_limits<uint32_t>::max())
     {
-      throw SmtException("Op index (" + std::to_string(op.idx0) + ") is too large for cvc5 backend.");
+      throw SmtException("Op index (" + std::to_string(op.idx0)
+                         + ") is too large for cvc5 backend.");
     }
-    return solver.mkOp(primop2kind.at(op.prim_op), {static_cast<uint32_t>(op.idx0)});
+    return solver.mkOp(primop2kind.at(op.prim_op),
+                       { static_cast<uint32_t>(op.idx0) });
   }
   else if (op.num_idx == 2)
   {
     if (op.idx0 > std::numeric_limits<uint32_t>::max())
     {
-      throw SmtException("Op index 0 (" + std::to_string(op.idx0) + ") is too large for cvc5 backend.");
+      throw SmtException("Op index 0 (" + std::to_string(op.idx0)
+                         + ") is too large for cvc5 backend.");
     }
     if (op.idx1 > std::numeric_limits<uint32_t>::max())
     {
-      throw SmtException("Op index 1 (" + std::to_string(op.idx1) + ") is too large for cvc5 backend.");
+      throw SmtException("Op index 1 (" + std::to_string(op.idx1)
+                         + ") is too large for cvc5 backend.");
     }
-    return solver.mkOp(primop2kind.at(op.prim_op), {static_cast<uint32_t>(op.idx0), static_cast<uint32_t>(op.idx1)});
+    return solver.mkOp(
+        primop2kind.at(op.prim_op),
+        { static_cast<uint32_t>(op.idx0), static_cast<uint32_t>(op.idx1) });
   }
   else
   {

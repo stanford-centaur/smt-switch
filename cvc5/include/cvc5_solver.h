@@ -135,8 +135,7 @@ class Cvc5Solver : public AbsSmtSolver
   uint64_t context_level;
 
   // helper function
-  inline Result check_sat_assuming(
-      const std::vector<cvc5::Term> & cvc5assumps)
+  inline Result check_sat_assuming(const std::vector<cvc5::Term> & cvc5assumps)
   {
     ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
     if (r.isUnsat())

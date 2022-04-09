@@ -232,7 +232,9 @@ Op Cvc5Term::get_op() const
     else
     {
       assert(num_indices == 2);
-      std::pair<uint32_t, uint32_t> indices = {std::stoul(cvc5_op[0].toString()), std::stoul(cvc5_op[1].toString())};
+      std::pair<uint32_t, uint32_t> indices = {
+        std::stoul(cvc5_op[0].toString()), std::stoul(cvc5_op[1].toString())
+      };
       return Op(po, indices.first, indices.second);
     }
   }
@@ -254,15 +256,11 @@ bool Cvc5Term::is_symbol() const
   return (k == ::cvc5::CONSTANT || k == ::cvc5::VARIABLE);
 }
 
-bool Cvc5Term::is_param() const
-{
-  return (term.getKind() == ::cvc5::VARIABLE);
-}
+bool Cvc5Term::is_param() const { return (term.getKind() == ::cvc5::VARIABLE); }
 
 bool Cvc5Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::cvc5::CONSTANT
-          && !term.getSort().isFunction());
+  return (term.getKind() == ::cvc5::CONSTANT && !term.getSort().isFunction());
 }
 
 bool Cvc5Term::is_value() const
@@ -270,12 +268,10 @@ bool Cvc5Term::is_value() const
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
   ::cvc5::Kind k = term.getKind();
-  return (
-      (k == ::cvc5::CONST_BOOLEAN) || (k == ::cvc5::CONST_BITVECTOR)
-      || (k == ::cvc5::CONST_RATIONAL)
-      || (k == ::cvc5::CONST_FLOATINGPOINT)
-      || (k == ::cvc5::CONST_ROUNDINGMODE)
-      || (k == ::cvc5::CONST_STRING) || (k == ::cvc5::CONST_ARRAY));
+  return ((k == ::cvc5::CONST_BOOLEAN) || (k == ::cvc5::CONST_BITVECTOR)
+          || (k == ::cvc5::CONST_RATIONAL) || (k == ::cvc5::CONST_FLOATINGPOINT)
+          || (k == ::cvc5::CONST_ROUNDINGMODE) || (k == ::cvc5::CONST_STRING)
+          || (k == ::cvc5::CONST_ARRAY));
 }
 
 std::string Cvc5Term::to_string() { return term.toString(); }

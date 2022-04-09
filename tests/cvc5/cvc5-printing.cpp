@@ -104,9 +104,8 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
   Term B = s->make_term(Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
-  dump_and_run(strbuf,
-               "(define-fun I () Bool (<= x z))\n",
-               "--produce-interpolants");
+  dump_and_run(
+      strbuf, "(define-fun I () Bool (<= x z))\n", "--produce-interpolants");
 }
 
 void test1(SmtSolver s, ostream & os, stringbuf & strbuf)
