@@ -14,7 +14,7 @@ int main()
 {
   Solver s;
   Sort boolsort = s.getBooleanSort();
-  s.setOption("produce-interpols", "conjecture");
+  s.setOption("produce-interpolants", "true");
   s.setOption("incremental", "false");
   Term b1 = s.mkConst(boolsort, "b1");
   Term b2 = s.mkConst(boolsort, "b2");

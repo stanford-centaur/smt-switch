@@ -106,7 +106,7 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
   Result r = s->get_interpolant(A, B, I);
   dump_and_run(strbuf,
                "(define-fun I () Bool (<= x z))\n",
-               "--produce-interpols=default");
+               "--produce-interpolants");
 }
 
 void test1(SmtSolver s, ostream & os, stringbuf & strbuf)
