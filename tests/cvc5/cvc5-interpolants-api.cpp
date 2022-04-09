@@ -8,7 +8,7 @@
 #include "smt.h"
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -26,7 +26,7 @@ int main()
     throw std::exception();
   }
 
-  s.assertFormula(s.mkTerm(AND, b1, b2));
+  s.assertFormula(s.mkTerm(AND, {b1, b2}));
   Term I = s.getInterpolant(b2);
 
   if (!I.isNull())
