@@ -844,14 +844,12 @@ Term Cvc5Solver::get_selector(const Sort & s,
 };
 
 SortVec Cvc5Solver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls,
-    // TODO: remove this argument
-    const UnorderedSortSet & uninterp_sorts) const
+    const std::vector<DatatypeDecl> & decls) const
 {
   try
   {
     SortVec dt_sorts;
-    dt_sorts.reserve(uninterp_sorts.size());
+    dt_sorts.reserve(decls.size());
 
     std::vector<cvc5::DatatypeDecl> cvc5_decls;
     cvc5_decls.reserve(decls.size());

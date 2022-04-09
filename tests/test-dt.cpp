@@ -68,14 +68,13 @@ TEST_P(DTTests, DeclareSimpleListWithForwardRef)
   }
 
   DatatypeDecl listSpec = s->make_datatype_decl("list");
-  Sort forward_ref_listsort = s->make_sort("list", 0);
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
   s->add_selector(consdecl, "head", s->make_sort(INT));
-  s->add_selector(consdecl, "tail", forward_ref_listsort);
   s->add_constructor(listSpec, nildecl);
   s->add_constructor(listSpec, consdecl);
-  Sort listsort = s->make_datatype_sort(listSpec, forward_ref_listsort);
+  Sort listsort = s->make_datatype_sort(listSpec);
+  s->add_selector(consdecl, "tail", listsort);
 }
 
 TEST_P(DTTests, DatatypeDecl)
@@ -179,8 +178,6 @@ TEST_P(DTTests, DatatypeDecl)
 
     EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
     EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
-    EXPECT_THROW(s->get_selector(listsort, "nil", "head"),
-                 InternalSolverException);
     EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
 }
 

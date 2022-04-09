@@ -95,8 +95,7 @@ class Cvc5Solver : public AbsSmtSolver
                     std::string con,
                     std::string name) const override;
   SortVec make_datatype_sorts(
-      const std::vector<DatatypeDecl> & decls,
-      const UnorderedSortSet & uninterp_sorts) const override;
+      const std::vector<DatatypeDecl> & decls) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
