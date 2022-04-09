@@ -34,5 +34,5 @@ const std::string RESET_ASSERTIONS_STR = "reset-assertions";
 const std::string RESET_STR = "reset";
 const std::string INTERPOLATION_GROUP_STR = "interpolation-group";
 const std::string MSAT_GET_INTERPOLANT_STR = "get-interpolant";
-const std::string CVC5_GET_INTERPOLANT_STR = "get-interpol";
+const std::string CVC5_GET_INTERPOLANT_STR = "get-interpolant";
 const std::string DECLARE_DATATYPE_STR = "declare-datatypes";
