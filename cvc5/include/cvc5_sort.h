@@ -30,7 +30,7 @@ class Cvc5Solver;
 class Cvc5Sort : public AbsSort
 {
  public:
-  Cvc5Sort(::cvc5::api::Sort s) : sort(s){};
+  Cvc5Sort(::cvc5::Sort s) : sort(s){};
   ~Cvc5Sort() = default;
   std::string to_string() const override;
   std::size_t hash() const override;
@@ -48,10 +48,10 @@ class Cvc5Sort : public AbsSort
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::api::Sort get_cvc5_sort() const { return sort; };
+  ::cvc5::Sort get_cvc5_sort() const { return sort; };
 
  protected:
-  ::cvc5::api::Sort sort;
+  ::cvc5::Sort sort;
 
   friend class Cvc5Solver;
 };

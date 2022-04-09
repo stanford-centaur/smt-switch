@@ -27,7 +27,7 @@ class Cvc5Solver;
 class Cvc5TermIter : public TermIterBase
 {
  public:
-  Cvc5TermIter(::cvc5::api::Term term, uint32_t p = 0) : term(term), pos(p){};
+  Cvc5TermIter(::cvc5::Term term, uint32_t p = 0) : term(term), pos(p){};
   Cvc5TermIter(const Cvc5TermIter & it)
   {
     term = it.term;
@@ -45,14 +45,14 @@ class Cvc5TermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  ::cvc5::api::Term term;
+  ::cvc5::Term term;
   uint32_t pos;
 };
 
 class Cvc5Term : public AbsTerm
 {
  public:
-  Cvc5Term(cvc5::api::Term t) : term(t){};
+  Cvc5Term(cvc5::Term t) : term(t){};
   ~Cvc5Term(){};
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -73,10 +73,10 @@ class Cvc5Term : public AbsTerm
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::api::Term get_cvc5_term() const { return term; };
+  ::cvc5::Term get_cvc5_term() const { return term; };
 
  protected:
-  cvc5::api::Term term;
+  cvc5::Term term;
 
   friend class Cvc5Solver;
   friend class cvc5InterpolatingSolver;
