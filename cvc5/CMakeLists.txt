@@ -43,23 +43,18 @@ target_link_libraries(smt-switch-cvc5 smt-switch)
 target_link_libraries(smt-switch-cvc5 ${GMP_LIBRARIES})
 
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the cvc5 source
-  # we need to unpack and repack the libraries
-  # cvc5 was trickier because unpacking and repacking with ar seemed to lose info
-  # the work around is to just copy libcvc5.a and add to it
+  # we want the static library to include the cvc5 source and dependencies (except GMP)
+  # use libtool to combine
   add_custom_command(
     OUTPUT static-smt-switch-cvc5.stamp
     COMMAND
-      mkdir ssc && cd ssc &&
-      ar -x "../$<TARGET_FILE_NAME:smt-switch-cvc5>" && cd ../
-      && rm "$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # copy the cvc5 static library to libsmt-switch-cvc5.a
-      cp "${CVC5_HOME}/build/src/libcvc5.a" "$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # add the smt-switch-cvc5 object files to the static library
-      bash -c "ar -rs $<TARGET_FILE_NAME:smt-switch-cvc5> ./ssc/*.o"
-      &&
+      mkdir ssc-working && cd ssc-working &&
+      # create new static library that combines them all
+      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-cvc5>" "${CVC5_HOME}/build/src/libcvc5.a" "${POLYLIBXX}" "${POLYLIB}" "${CADICAL}" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
+      # replace the original one
+      mv "$<TARGET_FILE_NAME:smt-switch-cvc5>" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
       # now clean up the temporary directory
-      rm -rf ssc
+      cd ../ && rm -rf ssc-working
     COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-cvc5.stamp
     DEPENDS
       smt-switch-cvc5

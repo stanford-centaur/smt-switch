@@ -29,16 +29,16 @@ using namespace std;
 
 TEST(Cvc5TermIterTest, Copy)
 {
-  ::cvc5::api::Solver solver;
-  ::cvc5::api::Sort bvsort4 = solver.mkBitVectorSort(4);
-  ::cvc5::api::Sort funsort = solver.mkFunctionSort(bvsort4, bvsort4);
+  ::cvc5::Solver solver;
+  ::cvc5::Sort bvsort4 = solver.mkBitVectorSort(4);
+  ::cvc5::Sort funsort = solver.mkFunctionSort({ bvsort4 }, bvsort4);
 
-  ::cvc5::api::Term x = solver.mkConst(bvsort4, "x");
-  ::cvc5::api::Term v = solver.mkConst(bvsort4, "v");
-  ::cvc5::api::Term f = solver.mkConst(funsort, "f");
+  ::cvc5::Term x = solver.mkConst(bvsort4, "x");
+  ::cvc5::Term v = solver.mkConst(bvsort4, "v");
+  ::cvc5::Term f = solver.mkConst(funsort, "f");
 
-  ::cvc5::api::Term fx = solver.mkTerm(cvc5::api::APPLY_UF, f, x);
-  ::cvc5::api::Term fv = solver.mkTerm(cvc5::api::APPLY_UF, f, v);
+  ::cvc5::Term fx = solver.mkTerm(cvc5::APPLY_UF, { f, x });
+  ::cvc5::Term fv = solver.mkTerm(cvc5::APPLY_UF, { f, v });
 
   Cvc5TermIter it1(fx, 0);
   Cvc5TermIter it2(fx, 0);

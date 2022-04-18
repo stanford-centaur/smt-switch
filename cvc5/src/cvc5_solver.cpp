@@ -21,87 +21,87 @@
 namespace smt {
 
 /* cvc5 Op mappings */
-const std::unordered_map<PrimOp, ::cvc5::api::Kind> primop2kind(
-    { { And, ::cvc5::api::AND },
-      { Or, ::cvc5::api::OR },
-      { Xor, ::cvc5::api::XOR },
-      { Not, ::cvc5::api::NOT },
-      { Implies, ::cvc5::api::IMPLIES },
-      { Ite, ::cvc5::api::ITE },
-      { Equal, ::cvc5::api::EQUAL },
-      { Distinct, ::cvc5::api::DISTINCT },
+const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
+    { { And, ::cvc5::AND },
+      { Or, ::cvc5::OR },
+      { Xor, ::cvc5::XOR },
+      { Not, ::cvc5::NOT },
+      { Implies, ::cvc5::IMPLIES },
+      { Ite, ::cvc5::ITE },
+      { Equal, ::cvc5::EQUAL },
+      { Distinct, ::cvc5::DISTINCT },
       /* Uninterpreted Functions */
-      { Apply, ::cvc5::api::APPLY_UF },
+      { Apply, ::cvc5::APPLY_UF },
       /* Arithmetic Theories */
-      { Plus, ::cvc5::api::PLUS },
-      { Minus, ::cvc5::api::MINUS },
-      { Negate, ::cvc5::api::UMINUS },
-      { Mult, ::cvc5::api::MULT },
-      { Div, ::cvc5::api::DIVISION },
-      { IntDiv, ::cvc5::api::INTS_DIVISION },
-      { Lt, ::cvc5::api::LT },
-      { Le, ::cvc5::api::LEQ },
-      { Gt, ::cvc5::api::GT },
-      { Ge, ::cvc5::api::GEQ },
-      { Mod, ::cvc5::api::INTS_MODULUS },
-      { Abs, ::cvc5::api::ABS },
-      { Pow, ::cvc5::api::POW },
-      { To_Real, ::cvc5::api::TO_REAL },
-      { To_Int, ::cvc5::api::TO_INTEGER },
-      { Is_Int, ::cvc5::api::IS_INTEGER },
+      { Plus, ::cvc5::ADD },
+      { Minus, ::cvc5::SUB },
+      { Negate, ::cvc5::NEG },
+      { Mult, ::cvc5::MULT },
+      { Div, ::cvc5::DIVISION },
+      { IntDiv, ::cvc5::INTS_DIVISION },
+      { Lt, ::cvc5::LT },
+      { Le, ::cvc5::LEQ },
+      { Gt, ::cvc5::GT },
+      { Ge, ::cvc5::GEQ },
+      { Mod, ::cvc5::INTS_MODULUS },
+      { Abs, ::cvc5::ABS },
+      { Pow, ::cvc5::POW },
+      { To_Real, ::cvc5::TO_REAL },
+      { To_Int, ::cvc5::TO_INTEGER },
+      { Is_Int, ::cvc5::IS_INTEGER },
       /* Fixed Size BitVector Theory */
-      { Concat, ::cvc5::api::BITVECTOR_CONCAT },
+      { Concat, ::cvc5::BITVECTOR_CONCAT },
       // Indexed Op
-      { Extract, ::cvc5::api::BITVECTOR_EXTRACT },
-      { BVNot, ::cvc5::api::BITVECTOR_NOT },
-      { BVNeg, ::cvc5::api::BITVECTOR_NEG },
-      { BVAnd, ::cvc5::api::BITVECTOR_AND },
-      { BVOr, ::cvc5::api::BITVECTOR_OR },
-      { BVXor, ::cvc5::api::BITVECTOR_XOR },
-      { BVNand, ::cvc5::api::BITVECTOR_NAND },
-      { BVNor, ::cvc5::api::BITVECTOR_NOR },
-      { BVXnor, ::cvc5::api::BITVECTOR_XNOR },
-      { BVComp, ::cvc5::api::BITVECTOR_COMP },
-      { BVAdd, ::cvc5::api::BITVECTOR_ADD },
-      { BVSub, ::cvc5::api::BITVECTOR_SUB },
-      { BVMul, ::cvc5::api::BITVECTOR_MULT },
-      { BVUdiv, ::cvc5::api::BITVECTOR_UDIV },
-      { BVSdiv, ::cvc5::api::BITVECTOR_SDIV },
-      { BVUrem, ::cvc5::api::BITVECTOR_UREM },
-      { BVSrem, ::cvc5::api::BITVECTOR_SREM },
-      { BVSmod, ::cvc5::api::BITVECTOR_SMOD },
-      { BVShl, ::cvc5::api::BITVECTOR_SHL },
-      { BVAshr, ::cvc5::api::BITVECTOR_ASHR },
-      { BVLshr, ::cvc5::api::BITVECTOR_LSHR },
-      { BVUlt, ::cvc5::api::BITVECTOR_ULT },
-      { BVUle, ::cvc5::api::BITVECTOR_ULE },
-      { BVUgt, ::cvc5::api::BITVECTOR_UGT },
-      { BVUge, ::cvc5::api::BITVECTOR_UGE },
-      { BVSlt, ::cvc5::api::BITVECTOR_SLT },
-      { BVSle, ::cvc5::api::BITVECTOR_SLE },
-      { BVSgt, ::cvc5::api::BITVECTOR_SGT },
-      { BVSge, ::cvc5::api::BITVECTOR_SGE },
+      { Extract, ::cvc5::BITVECTOR_EXTRACT },
+      { BVNot, ::cvc5::BITVECTOR_NOT },
+      { BVNeg, ::cvc5::BITVECTOR_NEG },
+      { BVAnd, ::cvc5::BITVECTOR_AND },
+      { BVOr, ::cvc5::BITVECTOR_OR },
+      { BVXor, ::cvc5::BITVECTOR_XOR },
+      { BVNand, ::cvc5::BITVECTOR_NAND },
+      { BVNor, ::cvc5::BITVECTOR_NOR },
+      { BVXnor, ::cvc5::BITVECTOR_XNOR },
+      { BVComp, ::cvc5::BITVECTOR_COMP },
+      { BVAdd, ::cvc5::BITVECTOR_ADD },
+      { BVSub, ::cvc5::BITVECTOR_SUB },
+      { BVMul, ::cvc5::BITVECTOR_MULT },
+      { BVUdiv, ::cvc5::BITVECTOR_UDIV },
+      { BVSdiv, ::cvc5::BITVECTOR_SDIV },
+      { BVUrem, ::cvc5::BITVECTOR_UREM },
+      { BVSrem, ::cvc5::BITVECTOR_SREM },
+      { BVSmod, ::cvc5::BITVECTOR_SMOD },
+      { BVShl, ::cvc5::BITVECTOR_SHL },
+      { BVAshr, ::cvc5::BITVECTOR_ASHR },
+      { BVLshr, ::cvc5::BITVECTOR_LSHR },
+      { BVUlt, ::cvc5::BITVECTOR_ULT },
+      { BVUle, ::cvc5::BITVECTOR_ULE },
+      { BVUgt, ::cvc5::BITVECTOR_UGT },
+      { BVUge, ::cvc5::BITVECTOR_UGE },
+      { BVSlt, ::cvc5::BITVECTOR_SLT },
+      { BVSle, ::cvc5::BITVECTOR_SLE },
+      { BVSgt, ::cvc5::BITVECTOR_SGT },
+      { BVSge, ::cvc5::BITVECTOR_SGE },
       // Indexed Op
-      { Zero_Extend, ::cvc5::api::BITVECTOR_ZERO_EXTEND },
+      { Zero_Extend, ::cvc5::BITVECTOR_ZERO_EXTEND },
       // Indexed Op
-      { Sign_Extend, ::cvc5::api::BITVECTOR_SIGN_EXTEND },
+      { Sign_Extend, ::cvc5::BITVECTOR_SIGN_EXTEND },
       // Indexed Op
-      { Repeat, ::cvc5::api::BITVECTOR_REPEAT },
+      { Repeat, ::cvc5::BITVECTOR_REPEAT },
       // Indexed Op
-      { Rotate_Left, ::cvc5::api::BITVECTOR_ROTATE_LEFT },
+      { Rotate_Left, ::cvc5::BITVECTOR_ROTATE_LEFT },
       // Indexed Op
-      { Rotate_Right, ::cvc5::api::BITVECTOR_ROTATE_RIGHT },
+      { Rotate_Right, ::cvc5::BITVECTOR_ROTATE_RIGHT },
       // Conversion
-      { BV_To_Nat, ::cvc5::api::BITVECTOR_TO_NAT },
+      { BV_To_Nat, ::cvc5::BITVECTOR_TO_NAT },
       // Indexed Op
-      { Int_To_BV, ::cvc5::api::INT_TO_BITVECTOR },
-      { Select, ::cvc5::api::SELECT },
-      { Store, ::cvc5::api::STORE },
-      { Forall, ::cvc5::api::FORALL },
-      { Exists, ::cvc5::api::EXISTS },
-      { Apply_Selector, ::cvc5::api::APPLY_SELECTOR },
-      { Apply_Tester, ::cvc5::api::APPLY_TESTER },
-      { Apply_Constructor, ::cvc5::api::APPLY_CONSTRUCTOR } });
+      { Int_To_BV, ::cvc5::INT_TO_BITVECTOR },
+      { Select, ::cvc5::SELECT },
+      { Store, ::cvc5::STORE },
+      { Forall, ::cvc5::FORALL },
+      { Exists, ::cvc5::EXISTS },
+      { Apply_Selector, ::cvc5::APPLY_SELECTOR },
+      { Apply_Tester, ::cvc5::APPLY_TESTER },
+      { Apply_Constructor, ::cvc5::APPLY_CONSTRUCTOR } });
 
 /* Cvc5Solver implementation */
 
@@ -120,7 +120,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
   {
     solver.setOption(cvc5option, cvc5value);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -132,7 +132,7 @@ void Cvc5Solver::set_logic(const std::string logic)
   {
     solver.setLogic(logic);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -144,7 +144,7 @@ Term Cvc5Solver::make_term(bool b) const
   {
     return std::make_shared<Cvc5Term>(solver.mkBoolean(b));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -155,7 +155,7 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
   try
   {
     SortKind sk = sort->get_sort_kind();
-    ::cvc5::api::Term c;
+    ::cvc5::Term c;
 
     if (sk == INT)
     {
@@ -181,7 +181,7 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
 
     return std::make_shared<Cvc5Term>(c);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     // pretty safe to assume that an error is due to incorrect usage
     throw IncorrectUsageException(e.what());
@@ -195,7 +195,7 @@ Term Cvc5Solver::make_term(std::string val,
   try
   {
     SortKind sk = sort->get_sort_kind();
-    ::cvc5::api::Term c;
+    ::cvc5::Term c;
 
     if ((sk == INT) || (sk == REAL))
     {
@@ -227,7 +227,7 @@ Term Cvc5Solver::make_term(std::string val,
 
     return std::make_shared<Cvc5Term>(c);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     // pretty safe to assume that an error is due to incorrect usage
     throw IncorrectUsageException(e.what());
@@ -238,7 +238,7 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 {
   std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(val);
   std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-  ::cvc5::api::Term const_arr = solver.mkConstArray(csort->sort, cterm->term);
+  ::cvc5::Term const_arr = solver.mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
 }
 
@@ -249,7 +249,7 @@ void Cvc5Solver::assert_formula(const Term & t)
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
     solver.assertFormula(cterm->term);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -259,7 +259,7 @@ Result Cvc5Solver::check_sat()
 {
   try
   {
-    ::cvc5::api::Result r = solver.checkSat();
+    ::cvc5::Result r = solver.checkSat();
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -268,7 +268,7 @@ Result Cvc5Solver::check_sat()
     {
       return Result(SAT);
     }
-    else if (r.isSatUnknown())
+    else if (r.isUnknown())
     {
       std::stringstream ss;
       ss << r.getUnknownExplanation();
@@ -279,7 +279,7 @@ Result Cvc5Solver::check_sat()
       throw NotImplementedException("Unimplemented result type from cvc5");
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -289,7 +289,7 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
 {
   try
   {
-    std::vector<::cvc5::api::Term> cvc5assumps;
+    std::vector<::cvc5::Term> cvc5assumps;
     cvc5assumps.reserve(assumptions.size());
 
     std::shared_ptr<Cvc5Term> cterm;
@@ -299,7 +299,7 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
     }
     return check_sat_assuming(cvc5assumps);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -309,7 +309,7 @@ Result Cvc5Solver::check_sat_assuming_list(const TermList & assumptions)
 {
   try
   {
-    std::vector<::cvc5::api::Term> cvc5assumps;
+    std::vector<::cvc5::Term> cvc5assumps;
     cvc5assumps.reserve(assumptions.size());
 
     std::shared_ptr<Cvc5Term> cterm;
@@ -319,7 +319,7 @@ Result Cvc5Solver::check_sat_assuming_list(const TermList & assumptions)
     }
     return check_sat_assuming(cvc5assumps);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -329,7 +329,7 @@ Result Cvc5Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
   try
   {
-    std::vector<::cvc5::api::Term> cvc5assumps;
+    std::vector<::cvc5::Term> cvc5assumps;
     cvc5assumps.reserve(assumptions.size());
 
     std::shared_ptr<Cvc5Term> cterm;
@@ -339,7 +339,7 @@ Result Cvc5Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
     }
     return check_sat_assuming(cvc5assumps);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -352,7 +352,7 @@ void Cvc5Solver::push(uint64_t num)
     solver.push(num);
     context_level += num;
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -365,7 +365,7 @@ void Cvc5Solver::pop(uint64_t num)
     solver.pop(num);
     context_level -= num;
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -380,7 +380,7 @@ Term Cvc5Solver::get_value(const Term & t) const
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
     return std::make_shared<Cvc5Term>(solver.getValue(cterm->term));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -393,7 +393,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
   {
     UnorderedTermMap assignments;
     out_const_base = nullptr;
-    cvc5::api::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
+    cvc5::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
     // get the array value
     // cvc5 returns a sequence of stores
     carr = solver.getValue(carr);
@@ -402,7 +402,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
     TermVec values;
     Term idx;
     Term val;
-    while (carr.hasOp() && carr.getKind() == cvc5::api::STORE)
+    while (carr.hasOp() && carr.getKind() == cvc5::STORE)
     {
       idx = Term(new Cvc5Term(carr[1]));
       val = Term(new Cvc5Term(carr[2]));
@@ -411,7 +411,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
       carr = carr[0];
     }
 
-    if (carr.getKind() == cvc5::api::CONST_ARRAY)
+    if (carr.getKind() == cvc5::CONST_ARRAY)
     {
       out_const_base = Term(new Cvc5Term(carr.getConstArrayBase()));
     }
@@ -428,7 +428,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
 
     return assignments;
   }
-  catch (cvc5::api::CVC5ApiException & e)
+  catch (cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -457,7 +457,7 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
   {
     return std::make_shared<Cvc5Sort>(solver.declareSort(name, arity));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -487,7 +487,7 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -509,7 +509,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -544,7 +544,7 @@ Sort Cvc5Solver::make_sort(SortKind sk,
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -575,9 +575,9 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       // arity is one less, because last sort is return sort
       uint32_t arity = sorts.size() - 1;
 
-      std::vector<::cvc5::api::Sort> csorts;
+      std::vector<::cvc5::Sort> csorts;
       csorts.reserve(arity);
-      ::cvc5::api::Sort csort;
+      ::cvc5::Sort csort;
       for (uint32_t i = 0; i < arity; i++)
       {
         csort = std::static_pointer_cast<Cvc5Sort>(sorts[i])->sort;
@@ -585,7 +585,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       }
 
       csort = std::static_pointer_cast<Cvc5Sort>(sorts.back())->sort;
-      ::cvc5::api::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
+      ::cvc5::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
     else if (sorts.size() == 1)
@@ -608,7 +608,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       throw IncorrectUsageException(msg.c_str());
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -616,11 +616,10 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  ::cvc5::api::Sort csort_con =
-      std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
+  ::cvc5::Sort csort_con = std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
 
   size_t numsorts = sorts.size();
-  size_t arity = csort_con.getSortConstructorArity();
+  size_t arity = csort_con.getUninterpretedSortConstructorArity();
   if (numsorts != arity)
   {
     throw IncorrectUsageException("Expected " + std::to_string(arity)
@@ -628,9 +627,9 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
                                   + " but got " + std::to_string(numsorts));
   }
 
-  std::vector<::cvc5::api::Sort> csorts;
+  std::vector<::cvc5::Sort> csorts;
   csorts.reserve(sorts.size());
-  ::cvc5::api::Sort csort;
+  ::cvc5::Sort csort;
   for (uint32_t i = 0; i < arity; i++)
   {
     csort = std::static_pointer_cast<Cvc5Sort>(sorts[i])->sort;
@@ -641,7 +640,7 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   {
     return std::make_shared<Cvc5Sort>(csort_con.instantiate(csorts));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -660,12 +659,12 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::api::Term t = solver.mkConst(csort->sort, name);
+    ::cvc5::Term t = solver.mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::Cvc5Term>(t);
     symbol_table[name] = res;
     return res;
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -686,10 +685,10 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::api::Term t = solver.mkVar(csort->sort, name);
+    ::cvc5::Term t = solver.mkVar(csort->sort, name);
     return std::make_shared<::smt::Cvc5Term>(t);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -697,30 +696,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
 
 Term Cvc5Solver::make_term(Op op, const Term & t) const
 {
-  try
-  {
-    std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
-    if (op.num_idx == 0)
-    {
-      return std::make_shared<Cvc5Term>(
-          solver.mkTerm(primop2kind.at(op.prim_op), cterm->term));
-    }
-    else
-    {
-      ::cvc5::api::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(solver.mkTerm(cvc5_op, cterm->term));
-    }
-  }
-  catch (::cvc5::api::CVC5ApiException & e)
-  {
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      throw IncorrectUsageException(
-          "Quantifier ops require at least one parameter and the formula "
-          "body.");
-    }
-    throw InternalSolverException(e.what());
-  }
+  return make_term(op, TermVec({ t }));
 }
 
 Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
@@ -732,7 +708,7 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
 
     return std::make_shared<Cvc5Sort>(solver.mkDatatypeSort(cd->datatypedecl));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -744,7 +720,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s)
   {
     return std::make_shared<Cvc5DatatypeDecl>(solver.mkDatatypeDecl(s));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -758,7 +734,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
     return std::make_shared<Cvc5DatatypeConstructorDecl>(
         solver.mkDatatypeConstructorDecl(s));
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -775,7 +751,7 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
         std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(con);
     cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -792,7 +768,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
     cdt->datatypeconstructordecl.addSelector(name, cs->sort);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -807,7 +783,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
         std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
     cdt->datatypeconstructordecl.addSelectorSelf(name);
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -818,19 +794,10 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    cvc5::api::Datatype dt = cs->sort.getDatatype();
-    for (int i = 0; i != dt.getNumConstructors(); i++)
-    {
-      cvc5::api::DatatypeConstructor ct = dt[i];
-      if (ct.getName() == name)
-      {
-        return std::make_shared<Cvc5Term>(ct.getConstructorTerm());
-      }
-    }
-    throw InternalSolverException(name + " not found in "
-                                  + cs->sort.toString());
+    cvc5::Datatype dt = cs->sort.getDatatype();
+    return std::make_shared<Cvc5Term>(dt.getConstructor(name).getTerm());
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -841,10 +808,10 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    cvc5::api::Datatype dt = cs->sort.getDatatype();
+    cvc5::Datatype dt = cs->sort.getDatatype();
     for (int i = 0; i != dt.getNumConstructors(); i++)
     {
-      cvc5::api::DatatypeConstructor ct = dt[i];
+      cvc5::DatatypeConstructor ct = dt[i];
       if (ct.getName() == name)
       {
         return std::make_shared<Cvc5Term>(ct.getTesterTerm());
@@ -853,7 +820,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
     throw InternalSolverException(name + " not found in "
                                   + cs->sort.toString());
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -866,34 +833,24 @@ Term Cvc5Solver::get_selector(const Sort & s,
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    cvc5::api::Datatype dt = cs->sort.getDatatype();
-    for (int i = 0; i != dt.getNumConstructors(); i++)
-    {
-      cvc5::api::DatatypeConstructor ct = dt[i];
-      if (ct.getName() == con)
-      {
-        return std::make_shared<Cvc5Term>(ct.getSelectorTerm(name));
-      }
-    }
-    throw InternalSolverException(con + "." + name + " not found in "
-                                  + cs->sort.toString());
+    cvc5::Datatype dt = cs->sort.getDatatype();
+    return std::make_shared<Cvc5Term>(dt.getSelector(name).getTerm());
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
 };
 
 SortVec Cvc5Solver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls,
-    const UnorderedSortSet & uninterp_sorts) const
+    const std::vector<DatatypeDecl> & decls) const
 {
   try
   {
     SortVec dt_sorts;
-    dt_sorts.reserve(uninterp_sorts.size());
+    dt_sorts.reserve(decls.size());
 
-    std::vector<cvc5::api::DatatypeDecl> cvc5_decls;
+    std::vector<cvc5::DatatypeDecl> cvc5_decls;
     cvc5_decls.reserve(decls.size());
     for (const auto & d : decls)
     {
@@ -901,19 +858,13 @@ SortVec Cvc5Solver::make_datatype_sorts(
           std::static_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
     }
 
-    std::set<cvc5::api::Sort> cvc5_sorts;
-    for (const auto & s : uninterp_sorts)
-    {
-      cvc5_sorts.insert(std::static_pointer_cast<Cvc5Sort>(s)->sort);
-    }
-
-    for (const auto & csort : solver.mkDatatypeSorts(cvc5_decls, cvc5_sorts))
+    for (const auto & csort : solver.mkDatatypeSorts(cvc5_decls))
     {
       dt_sorts.push_back(std::make_shared<Cvc5Sort>(csort));
     }
     return dt_sorts;
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -921,31 +872,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
 
 Term Cvc5Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  try
-  {
-    std::shared_ptr<Cvc5Term> cterm0 = std::static_pointer_cast<Cvc5Term>(t0);
-    std::shared_ptr<Cvc5Term> cterm1 = std::static_pointer_cast<Cvc5Term>(t1);
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      // quantifiers handled generically with vector input
-      return make_term(op, { t0, t1 });
-    }
-    else if (op.num_idx == 0)
-    {
-      return std::make_shared<Cvc5Term>(solver.mkTerm(
-          primop2kind.at(op.prim_op), cterm0->term, cterm1->term));
-    }
-    else
-    {
-      ::cvc5::api::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(
-          solver.mkTerm(cvc5_op, cterm0->term, cterm1->term));
-    }
-  }
-  catch (::cvc5::api::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  return make_term(op, TermVec({ t0, t1 }));
 }
 
 Term Cvc5Solver::make_term(Op op,
@@ -953,45 +880,14 @@ Term Cvc5Solver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
-  try
-  {
-    std::shared_ptr<Cvc5Term> cterm0 = std::static_pointer_cast<Cvc5Term>(t0);
-    std::shared_ptr<Cvc5Term> cterm1 = std::static_pointer_cast<Cvc5Term>(t1);
-    std::shared_ptr<Cvc5Term> cterm2 = std::static_pointer_cast<Cvc5Term>(t2);
-    if (op.num_idx == 0)
-    {
-      // quantifiers handled generically with vector input
-      if (op.prim_op == Forall || op.prim_op == Exists)
-      {
-        return make_term(op, { t0, t1, t2 });
-      }
-      else
-      {
-        return std::make_shared<Cvc5Term>(
-            solver.mkTerm(primop2kind.at(op.prim_op),
-                          cterm0->term,
-                          cterm1->term,
-                          cterm2->term));
-      }
-    }
-    else
-    {
-      ::cvc5::api::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(
-          solver.mkTerm(cvc5_op, cterm0->term, cterm1->term, cterm2->term));
-    }
-  }
-  catch (::cvc5::api::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  return make_term(op, TermVec({ t0, t1, t2 }));
 }
 
 Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
 {
   try
   {
-    std::vector<::cvc5::api::Term> cterms;
+    std::vector<::cvc5::Term> cterms;
     cterms.reserve(terms.size());
     std::shared_ptr<Cvc5Term> cterm;
     for (auto t : terms)
@@ -1001,18 +897,18 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      ::cvc5::api::Kind quant_kind = primop2kind.at(op.prim_op);
-      ::cvc5::api::Term quant_res = cterms.back();
+      ::cvc5::Kind quant_kind = primop2kind.at(op.prim_op);
+      ::cvc5::Term quant_res = cterms.back();
       cterms.pop_back();
       // bind quantifiers one a time
       // makes traversal easier since smt-switch has no
-      // BOUND_VAR_LIST equivalent
+      // VARIABLE_LIST equivalent
       while (cterms.size())
       {
-        ::cvc5::api::Term bound_var =
-            solver.mkTerm(cvc5::api::BOUND_VAR_LIST, cterms.back());
+        ::cvc5::Term bound_var =
+            solver.mkTerm(cvc5::VARIABLE_LIST, { cterms.back() });
         cterms.pop_back();
-        quant_res = solver.mkTerm(quant_kind, bound_var, quant_res);
+        quant_res = solver.mkTerm(quant_kind, { bound_var, quant_res });
       }
       return std::make_shared<Cvc5Term>(quant_res);
     }
@@ -1023,11 +919,11 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     }
     else
     {
-      ::cvc5::api::Op cvc5_op = make_cvc5_op(op);
+      ::cvc5::Op cvc5_op = make_cvc5_op(op);
       return std::make_shared<Cvc5Term>(solver.mkTerm(cvc5_op, cterms));
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -1044,7 +940,7 @@ void Cvc5Solver::reset_assertions()
   {
     solver.resetAssertions();
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -1053,8 +949,8 @@ void Cvc5Solver::reset_assertions()
 Term Cvc5Solver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
 {
-  std::vector<::cvc5::api::Term> keys;
-  std::vector<::cvc5::api::Term> values;
+  std::vector<::cvc5::Term> keys;
+  std::vector<::cvc5::Term> values;
   keys.reserve(substitution_map.size());
   values.reserve(substitution_map.size());
 
@@ -1064,7 +960,7 @@ Term Cvc5Solver::substitute(const Term term,
     values.push_back(std::static_pointer_cast<Cvc5Term>(elem.second)->term);
   }
 
-  ::cvc5::api::Term cterm = std::static_pointer_cast<Cvc5Term>(term)->term;
+  ::cvc5::Term cterm = std::static_pointer_cast<Cvc5Term>(term)->term;
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
 }
 
@@ -1077,7 +973,7 @@ void Cvc5Solver::dump_smt2(std::string filename) const
    Helper function for creating a cvc5 Op from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::cvc5::api::Op Cvc5Solver::make_cvc5_op(Op op) const
+::cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
 {
   if (op.num_idx < 0 || primop2kind.find(op.prim_op) == primop2kind.end())
   {
@@ -1087,11 +983,29 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   }
   if (op.num_idx == 1)
   {
-    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0);
+    if (op.idx0 > std::numeric_limits<uint32_t>::max())
+    {
+      throw SmtException("Op index (" + std::to_string(op.idx0)
+                         + ") is too large for cvc5 backend.");
+    }
+    return solver.mkOp(primop2kind.at(op.prim_op),
+                       { static_cast<uint32_t>(op.idx0) });
   }
   else if (op.num_idx == 2)
   {
-    return solver.mkOp(primop2kind.at(op.prim_op), op.idx0, op.idx1);
+    if (op.idx0 > std::numeric_limits<uint32_t>::max())
+    {
+      throw SmtException("Op index 0 (" + std::to_string(op.idx0)
+                         + ") is too large for cvc5 backend.");
+    }
+    if (op.idx1 > std::numeric_limits<uint32_t>::max())
+    {
+      throw SmtException("Op index 1 (" + std::to_string(op.idx1)
+                         + ") is too large for cvc5 backend.");
+    }
+    return solver.mkOp(
+        primop2kind.at(op.prim_op),
+        { static_cast<uint32_t>(op.idx0), static_cast<uint32_t>(op.idx1) });
   }
   else
   {
@@ -1117,9 +1031,8 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   std::shared_ptr<Cvc5Term> cB =
       std::static_pointer_cast<Cvc5Term>(make_term(Not, B));
   solver.assertFormula(cA->term);
-  cvc5::api::Term I;
-  bool success = solver.getInterpolant(cB->term, I);
-  if (success)
+  cvc5::Term I = solver.getInterpolant(cB->term);
+  if (!I.isNull())
   {
     out_I = Term(new Cvc5Term(I));
     return UNSAT;

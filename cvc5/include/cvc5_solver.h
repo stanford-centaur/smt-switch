@@ -95,8 +95,7 @@ class Cvc5Solver : public AbsSmtSolver
                     std::string con,
                     std::string name) const override;
   SortVec make_datatype_sorts(
-      const std::vector<DatatypeDecl> & decls,
-      const UnorderedSortSet & uninterp_sorts) const override;
+      const std::vector<DatatypeDecl> & decls) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
@@ -122,24 +121,23 @@ class Cvc5Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
   // helpers
-  ::cvc5::api::Op make_cvc5_op(Op op) const;
+  ::cvc5::Op make_cvc5_op(Op op) const;
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::api::Solver & get_cvc5_solver() { return solver; };
+  ::cvc5::Solver & get_cvc5_solver() { return solver; };
 
  protected:
-  ::cvc5::api::Solver solver;
+  ::cvc5::Solver solver;
 
   std::unordered_map<std::string, Term> symbol_table;
 
   uint64_t context_level;
 
   // helper function
-  inline Result check_sat_assuming(
-      const std::vector<cvc5::api::Term> & cvc5assumps)
+  inline Result check_sat_assuming(const std::vector<cvc5::Term> & cvc5assumps)
   {
-    ::cvc5::api::Result r = solver.checkSatAssuming(cvc5assumps);
+    ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -148,7 +146,7 @@ class Cvc5Solver : public AbsSmtSolver
     {
       return Result(SAT);
     }
-    else if (r.isSatUnknown())
+    else if (r.isUnknown())
     {
       std::stringstream ss;
       ss << r.getUnknownExplanation();

@@ -37,8 +37,7 @@ Result AbsSmtSolver::check_sat_assuming_set(
 }
 
 SortVec AbsSmtSolver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls,
-    const UnorderedSortSet & uninterp_sorts) const
+    const std::vector<DatatypeDecl> & decls) const
 {
   throw NotImplementedException(
       "make_datatype_sorts for mutually recursive datatypes not yet implementd "
@@ -46,10 +45,9 @@ SortVec AbsSmtSolver::make_datatype_sorts(
       + to_string(solver_enum));
 }
 
-Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl,
-                                      const Sort & uninterp_sort) const
+Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
 {
-  SortVec datatype_sorts = make_datatype_sorts({ decl }, { uninterp_sort });
+  SortVec datatype_sorts = make_datatype_sorts({ decl });
   assert(datatype_sorts.size() == 1);
   return datatype_sorts[0];
 }

@@ -24,10 +24,10 @@ namespace smt {
 class Cvc5DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  Cvc5DatatypeDecl(cvc5::api::DatatypeDecl t) : datatypedecl(t){};
+  Cvc5DatatypeDecl(cvc5::DatatypeDecl t) : datatypedecl(t){};
 
  protected:
-  cvc5::api::DatatypeDecl datatypedecl;
+  cvc5::DatatypeDecl datatypedecl;
 
   friend class Cvc5Solver;
 };
@@ -35,12 +35,12 @@ class Cvc5DatatypeDecl : public AbsDatatypeDecl
 class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  Cvc5DatatypeConstructorDecl(cvc5::api::DatatypeConstructorDecl t)
+  Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t)
       : datatypeconstructordecl(t){};
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
-  cvc5::api::DatatypeConstructorDecl datatypeconstructordecl;
+  cvc5::DatatypeConstructorDecl datatypeconstructordecl;
 
   friend class Cvc5Solver;
 };
@@ -48,7 +48,7 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class Cvc5Datatype : public AbsDatatype
 {
  public:
-  Cvc5Datatype(cvc5::api::Datatype t) : datatype(t){};
+  Cvc5Datatype(cvc5::Datatype t) : datatype(t){};
   std::string get_name() const override { return datatype.getName(); }
   int get_num_constructors() const override
   {
@@ -58,7 +58,7 @@ class Cvc5Datatype : public AbsDatatype
   {
     for (int i = 0; i != datatype.getNumConstructors(); i++)
     {
-      cvc5::api::DatatypeConstructor ct = datatype[i];
+      cvc5::DatatypeConstructor ct = datatype[i];
       if (ct.getName() == cons)
       {
         return ct.getNumSelectors();
@@ -69,7 +69,7 @@ class Cvc5Datatype : public AbsDatatype
   }
 
  protected:
-  cvc5::api::Datatype datatype;
+  cvc5::Datatype datatype;
 
   friend class Cvc5Solver;
 };

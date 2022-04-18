@@ -22,7 +22,7 @@
 namespace smt {
 
 // struct for hashing
-std::hash<cvc5::api::Sort> sorthash;
+std::hash<cvc5::Sort> sorthash;
 
 std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
@@ -42,7 +42,7 @@ Sort Cvc5Sort::get_elemsort() const
 
 SortVec Cvc5Sort::get_domain_sorts() const
 {
-  std::vector<::cvc5::api::Sort> cvc5_sorts = sort.getFunctionDomainSorts();
+  std::vector<::cvc5::Sort> cvc5_sorts = sort.getFunctionDomainSorts();
   SortVec domain_sorts;
   domain_sorts.reserve(cvc5_sorts.size());
   Sort s;
@@ -71,10 +71,10 @@ size_t Cvc5Sort::get_arity() const
     }
     else
     {
-      return sort.getSortConstructorArity();
+      return sort.getUninterpretedSortConstructorArity();
     }
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -83,7 +83,7 @@ size_t Cvc5Sort::get_arity() const
 SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
   SortVec param_sorts;
-  for (auto cs : sort.getUninterpretedSortParamSorts())
+  for (auto cs : sort.getInstantiatedParameters())
   {
     param_sorts.push_back(std::make_shared<Cvc5Sort>(cs));
   }
@@ -102,7 +102,7 @@ Datatype Cvc5Sort::get_datatype() const
   {
     return std::make_shared<Cvc5Datatype>(sort.getDatatype());
   }
-  catch (::cvc5::api::CVC5ApiException & e)
+  catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
@@ -138,7 +138,7 @@ SortKind Cvc5Sort::get_sort_kind() const
   {
     return UNINTERPRETED;
   }
-  else if (sort.isSortConstructor())
+  else if (sort.isUninterpretedSortConstructor())
   {
     return UNINTERPRETED_CONS;
   }
@@ -146,15 +146,15 @@ SortKind Cvc5Sort::get_sort_kind() const
   {
     return DATATYPE;
   }
-  else if (sort.isConstructor())
+  else if (sort.isDatatypeConstructor())
   {
     return CONSTRUCTOR;
   }
-  else if (sort.isSelector())
+  else if (sort.isDatatypeSelector())
   {
     return SELECTOR;
   }
-  else if (sort.isTester())
+  else if (sort.isDatatypeTester())
   {
     return TESTER;
   }

@@ -8,14 +8,13 @@
 #include "smt.h"
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
   Solver s;
   Sort boolsort = s.getBooleanSort();
-  s.setOption("produce-interpols", "conjecture");
-  s.setOption("sygus-active-gen", "enum");
+  s.setOption("produce-interpolants", "true");
   s.setOption("incremental", "false");
   Term b1 = s.mkConst(boolsort, "b1");
   Term b2 = s.mkConst(boolsort, "b2");
@@ -27,11 +26,10 @@ int main()
     throw std::exception();
   }
 
-  s.assertFormula(s.mkTerm(AND, b1, b2));
-  Term I;
-  bool success = s.getInterpolant(b2, I);
+  s.assertFormula(s.mkTerm(AND, { b1, b2 }));
+  Term I = s.getInterpolant(b2);
 
-  if (success)
+  if (!I.isNull())
   {
     cout << "got an interpolant: " << I << endl;
   }

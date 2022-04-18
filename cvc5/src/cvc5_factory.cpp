@@ -36,18 +36,9 @@ SmtSolver Cvc5SolverFactory::create_interpolating_solver()
 {
   SmtSolver solver = std::make_shared<cvc5InterpolatingSolver>();
   /*
-   * In cvc5, turning on interpolation requiers choosing
-   * an interpolation mode.
-   * Here we set the default one.
-   * However, it is recommended to use
-   * s->set_opt("produce-interpols", "shared");
-   * or
-   * s->set_opt("produce-interpols", "conclustion");
-   *
-   * In addition, it is recommended to turn on another option:
-   * s->set_opt("sygus-active-gen", "enum");
+   * Enable interpolant generation.
    * */
-  solver->set_opt("produce-interpols", "default");
+  solver->set_opt("produce-interpolants", "true");
   solver->set_opt("incremental", "false");
   return solver;
 }
