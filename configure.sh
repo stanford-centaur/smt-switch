@@ -28,6 +28,7 @@ Configures the CMAKE build environment.
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
 --python                compile with python bindings (default: off)
+--use-python2           use python2.7 with python bindings (default: off)
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
@@ -59,6 +60,7 @@ yices2_home=default
 z3_home=default
 static=default
 python=default
+python2=default
 smtlib_reader=default
 bison_dir=default
 flex_dir=default
@@ -178,6 +180,10 @@ do
         --python)
             python=yes
             ;;
+        --python2)
+            python=yes
+            python2=yes
+            ;;
         --smtlib-reader)
             smtlib_reader=yes
             ;;
@@ -272,6 +278,9 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
+
+[ $python2 != default ] \
+    && cmake_opts="$cmake_opts -DUSE_PYTHON2=ON"
 
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"

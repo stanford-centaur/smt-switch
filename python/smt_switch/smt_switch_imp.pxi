@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
+import six
 
 from cython.operator cimport dereference as dref
 from libcpp.string cimport string
@@ -532,7 +533,8 @@ def conjunctive_partition(Term term, bint include_bvand=False):
 
     return python_out_list
 
-class TermDagVisitor(ABC):
+@six.add_metaclass(ABCMeta)
+class TermDagVisitor(object):
     def __init__(self):
         pass
 
