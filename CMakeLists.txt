@@ -118,6 +118,8 @@ option (USE_PYTHON2
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
   if (USE_PYTHON2)
+    message(WARNING "Python 2 has been officially deprecated. This option is not
+                     maintained or tested and will likely be removed eventually.")
     find_package(PythonInterp 2.7 REQUIRED)
   else()
     # We currently use FindPythonInterp even though it is deprecated since 3.12
