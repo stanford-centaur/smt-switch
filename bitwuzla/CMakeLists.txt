@@ -31,7 +31,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
       mkdir smt-switch-bitwuzla && cd smt-switch-bitwuzla && ar -x "../$<TARGET_FILE_NAME:smt-switch-bitwuzla>" && cd ../ &&
       mkdir bitwuzla && cd bitwuzla && ar -x "${BITWUZLA_HOME}/build/lib/libbitwuzla.a" &&
       ar -x "${BITWUZLA_HOME}/deps/cadical/build/libcadical.a" &&
-      ar -x "${BITWUZLA_HOME}/deps/btor2tools/build/libbtor2parser.a" && cd ../ &&
+      ar -x "${BITWUZLA_HOME}/deps/btor2tools/build/lib/libbtor2parser.a" && cd ../ &&
       ar -qc "$<TARGET_FILE_NAME:smt-switch-bitwuzla>" ./bitwuzla/*.o ./smt-switch-bitwuzla/*.o &&
       # now clean up
       rm -rf smt-switch-bitwuzla bitwuzla
