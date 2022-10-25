@@ -30,6 +30,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { BTOR,
           { TERMITER,
             ARRAY_MODELS,
+            THEORY_BV,
             CONSTARR,
             UNSAT_CORE,
             QUANTIFIERS,
@@ -38,6 +39,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { BZLA,
           { TERMITER,
             CONSTARR,
+            THEORY_BV,
             UNSAT_CORE,
             // TEMP only temporarily disabled until bitwuzla
             //      quantifier refactoring is done
@@ -50,6 +52,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { CVC5,
           { TERMITER,
             THEORY_INT,
+            THEORY_BV,
             THEORY_REAL,
             ARRAY_MODELS,
             ARRAY_FUN_BOOLS,
@@ -64,6 +67,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { GENERIC_SOLVER,
           { TERMITER,
             THEORY_INT,
+            THEORY_BV,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             UNSAT_CORE,
@@ -73,6 +77,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { MSAT,
           { TERMITER,
             THEORY_INT,
+            THEORY_BV,
             THEORY_REAL,
             ARRAY_MODELS,
             CONSTARR,
@@ -88,6 +93,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { YICES2,
           { LOGGING,
             THEORY_INT,
+            THEORY_BV,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             UNINTERP_SORT,
@@ -96,6 +102,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
           { TERMITER,
             LOGGING,
             THEORY_INT,
+            THEORY_BV,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             CONSTARR,
@@ -165,6 +172,7 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
   {
     case TERMITER: o << "TERMITER"; break;
     case THEORY_INT: o << "THEORY_INT"; break;
+    case THEORY_BV: o << "THEORY_BV"; break;
     case THEORY_REAL: o << "THEORY_REAL"; break;
     case ARRAY_MODELS: o << "ARRAY_MODELS"; break;
     case CONSTARR: o << "CONSTARR"; break;
