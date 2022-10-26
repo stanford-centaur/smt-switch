@@ -6,14 +6,14 @@ TEST_REQUIRES = ['pytest']
 
 # could probably get cmake to populate this but whatever
 PACKAGE_NAME = 'smt_switch'
-
+packages=[PACKAGE_NAME],
 setup(name=PACKAGE_NAME,
       version='0.3.0',
       long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
       url='http://github.com/makaimann/smt-switch',
       license='BSD',
       zip_safe=False,
-      package_data={'': [f'{PACKAGE_NAME}.so']},
+      package_data={PACKAGE_NAME: [f’{PACKAGE_NAME}.so’]},
       extras_require={
           'pysmt': PYSMT_REQUIRES,
           'test': TEST_REQUIRES,
