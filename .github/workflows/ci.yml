@@ -43,7 +43,13 @@ jobs:
             gmp \
             gperf
 
-      - name: Python Dependencies
+       # install previous version of setuptools as temporary fix
+       # see also recommendations here: https://github.com/pypa/setuptools/issues/3227
+       - name: Python Dependencies (macOS)
+         if: runner.os == 'macOS'
+         run: python3 -m pip install 'setuptools<61'
+
+       - name: Python Dependencies (all)
         run: |
           python3 -m pip install Cython pytest scikit-build toml
 
