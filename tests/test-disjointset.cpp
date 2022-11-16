@@ -60,11 +60,11 @@ TEST_P(DisjointSetTests, TestDisjointSet)
   Term t;
   DisjointSet ds(disjoint_set_rank);
 
-  // ds.add(z, y);
-  // t = ds.find(y);
-  // EXPECT_TRUE(t == y);
-  // t = ds.find(z);
-  // EXPECT_TRUE(t == y);
+  ds.add(z, y);
+  t = ds.find(y);
+  EXPECT_TRUE(t == y);
+  t = ds.find(z);
+  EXPECT_TRUE(t == y);
 
   // ds.add(x, y);
   // t = ds.find(y);
