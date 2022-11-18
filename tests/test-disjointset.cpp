@@ -57,22 +57,21 @@ static bool disjoint_set_rank(const Term & t1, const Term & t2)
 
 TEST_P(DisjointSetTests, TestDisjointSet)
 {
-  Term t;
+  Term t1, t2, t3, t4;
   DisjointSet ds(disjoint_set_rank);
 
   ds.add(z, y);
-  t = ds.find(y);
-  EXPECT_TRUE(t == y);
-  t = ds.find(z);
-  EXPECT_TRUE(t == y);
+  t1 = ds.find(y);
+  t2 = ds.find(z);
+  EXPECT_TRUE(t1 == t2);
 
   ds.add(x, y);
-  t = ds.find(y);
-  EXPECT_TRUE(t == y);
+  t3 = ds.find(x);
+  EXPECT_TRUE(t1 == t3);
 
   ds.add(w, z);
-  t = ds.find(w);
-  EXPECT_TRUE(t == y);
+  t4 = ds.find(w);
+  EXPECT_TRUE(t1 == t4);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDisjointSetTests,
