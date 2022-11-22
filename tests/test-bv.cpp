@@ -42,15 +42,19 @@ class BVTests : public ::testing::Test,
 // based on issue #308
 TEST_P(BVTests, to_int)
 {
+  std::cout << "panda 1" << std::endl;
   Sort sort1 = s->make_sort(BV, 1);
   Sort sort2 = s->make_sort(BV, 2);
   Term x1 = s->make_symbol("x1", sort1);
   Term x2 = s->make_symbol("x2", sort2);
+  std::cout << "panda 2" << std::endl;
   s->check_sat();
   uint64_t i1 = s->get_value(x1)->to_int();
+  std::cout << "panda 3" << std::endl;
   uint64_t i2 = s->get_value(x2)->to_int();
   ASSERT_TRUE(0 <= i1 && i1 <= 1);
   ASSERT_TRUE(0 <= i2 && i2 <= 3);
+  std::cout << "panda 4" << std::endl;
 
 }
 

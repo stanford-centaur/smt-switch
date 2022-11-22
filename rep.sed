@@ -1,0 +1,1 @@
+s/\(class.*: \)/GGTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(\1);\n class \1 :/g

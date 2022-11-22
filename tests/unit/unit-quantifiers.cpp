@@ -132,11 +132,6 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
   ASSERT_TRUE(r.is_sat());
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedQuantifierTests,
-    UnitQuantifierTests,
-    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS })));
-
 INSTANTIATE_TEST_SUITE_P(ParameterizedQuantifierIterTests,
                          UnitQuantifierIterTests,
                          testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS,
