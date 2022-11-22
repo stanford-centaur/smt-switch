@@ -91,6 +91,6 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedTransferUnit,
     UnitTransferTests,
     testing::ValuesIn(
-        filter_non_generic_solver_configurations({ FULL_TRANSFER })));
+        filter_non_generic_solver_configurations({ FULL_TRANSFER, QUANTIFIERS })));
 
 }  // namespace smt_tests
