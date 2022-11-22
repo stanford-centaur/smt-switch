@@ -1,1 +1,1 @@
-s/\(class.*: \)/GGTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(\1);\n class \1 :/g
+s/class \(.*\) : public /GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(\1);\nclass \1 : public /g
