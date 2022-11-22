@@ -24,6 +24,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTestsHashTable);
 class UnitTestsHashTable : public testing::Test,
                            public testing::WithParamInterface<SolverEnum>
 {

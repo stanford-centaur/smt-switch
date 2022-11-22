@@ -52,6 +52,7 @@ class UnitWalkerTests
  * overriding visit_term to customize the behavior of the walker.
  * Class gets used in FreshVars test.
  */
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IndicatorTreeWalker);
 class IndicatorTreeWalker : public TreeWalker
 {
   // counter with which to name fresh variables: b0, ..., bn

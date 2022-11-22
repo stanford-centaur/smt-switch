@@ -24,6 +24,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortInferenceTests);
 class UnitSortInferenceTests : public ::testing::Test,
                                public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -52,6 +53,7 @@ class UnitSortInferenceTests : public ::testing::Test,
   Term b1, b2, p, q, w, arr, f;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitArithmeticSortInferenceTests);
 class UnitArithmeticSortInferenceTests : public UnitSortInferenceTests
 {
  protected:

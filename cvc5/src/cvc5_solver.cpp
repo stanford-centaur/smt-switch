@@ -13,9 +13,8 @@
 **
 **
 **/
-
+#include <limits>
 #include "cvc5_solver.h"
-
 #include "utils.h"
 
 namespace smt {
