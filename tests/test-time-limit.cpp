@@ -29,6 +29,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TimeLimitTests);
 class TimeLimitTests : public ::testing::Test,
                        public ::testing::WithParamInterface<SolverConfiguration>
 {

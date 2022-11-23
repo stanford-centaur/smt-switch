@@ -26,6 +26,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortTests);
 class UnitSortTests : public ::testing::Test,
                       public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -45,6 +46,7 @@ class UnitSortTests : public ::testing::Test,
   Sort boolsort, bvsort, funsort, arrsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortArithTests);
 class UnitSortArithTests : public UnitSortTests
 {
  protected:
