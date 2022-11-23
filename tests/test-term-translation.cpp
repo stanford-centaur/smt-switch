@@ -29,6 +29,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationTests);
 class SelfTranslationTests : public ::testing::Test,
                              public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -48,6 +49,7 @@ class SelfTranslationTests : public ::testing::Test,
   Term x, y, z;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationIntTests);
 class SelfTranslationIntTests : public ::testing::Test,
                                 public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -94,6 +96,7 @@ class TranslationTests
   Term a, b, x, y, z;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BoolArrayTranslationTests);
 class BoolArrayTranslationTests : public TranslationTests
 {
  protected:
