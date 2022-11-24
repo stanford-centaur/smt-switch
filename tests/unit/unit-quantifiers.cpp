@@ -47,6 +47,7 @@ Term recover_quant(const Term & quant_term, TermVec & out_vars)
   return body;
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierTests);
 class UnitQuantifierTests : public ::testing::Test,
                             public testing::WithParamInterface<SolverConfiguration>
 {
@@ -63,6 +64,7 @@ class UnitQuantifierTests : public ::testing::Test,
   Sort boolsort, bvsort, funsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierIterTests);
 class UnitQuantifierIterTests : public ::testing::Test,
                                 public testing::WithParamInterface<SolverConfiguration>
 {
@@ -131,11 +133,6 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 }
-
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedQuantifierTests,
-    UnitQuantifierTests,
-    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS })));
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedQuantifierIterTests,
                          UnitQuantifierIterTests,

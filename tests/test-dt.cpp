@@ -27,6 +27,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DTTests);
 class DTTests : public ::testing::Test,
                  public ::testing::WithParamInterface<SolverConfiguration>
 {

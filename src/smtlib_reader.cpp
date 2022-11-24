@@ -116,7 +116,7 @@ void SmtLibReader::set_logic(const string & logic)
 
   unordered_set<string> theories;
   size_t logic_size;
-  while (logic_size = processed_logic.size())
+  while ((logic_size = processed_logic.size()))
   {
     // all existing theories have abbreviations of length 4 or shorter
     for (size_t len = 1; len <= 4; len++)

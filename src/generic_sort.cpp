@@ -430,8 +430,8 @@ SortVec DatatypeComponentSort::get_domain_sorts() const
   else
   {
     domain_sorts.push_back(dt_sort);
-    return domain_sorts;
   }
+  return domain_sorts;
 }
 
 Sort DatatypeComponentSort::get_codomain_sort() const
@@ -450,6 +450,8 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   }
 
   assert(sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
+
+  return nullptr;
 }
 
 void DatatypeComponentSort::set_selector_sort(Sort new_selector_sort)

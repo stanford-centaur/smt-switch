@@ -44,6 +44,8 @@ enum SolverAttribute
   LOGGING = 0,
   // supports traversing terms with iteration
   TERMITER,
+  // supports bit-vector theory
+  THEORY_BV,
   // supports integer theory
   THEORY_INT,
   // supports real theory
