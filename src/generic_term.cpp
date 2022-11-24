@@ -152,7 +152,13 @@ bool GenericTerm::is_value() const
 
 bool GenericTerm::is_ground() const { return ground; }
 
-uint64_t GenericTerm::to_int() const { assert(false); }
+uint64_t GenericTerm::to_int() const { 
+  Assert(repr.at(0) == '#');
+  Assert(repr.at(1)  == 'b');
+  std::string bit_string = repr.substr(2, repr.size() - 1);
+  uint64_t result = std::stoi(bit_string, 0, 2);
+  return result;
+}
 
 std::string GenericTerm::print_value_as(SortKind sk)
 {
