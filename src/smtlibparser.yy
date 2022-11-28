@@ -268,7 +268,7 @@ term_s_expr:
          $$ = drv.solver()->make_term(po, *$3);
        }
     }
-    else if (uf = drv.lookup_symbol($2))
+    else if ((uf = drv.lookup_symbol($2)))
     {
       smt::TermVec vec({uf});
       vec.insert(vec.end(), $3->begin(), $3->end());

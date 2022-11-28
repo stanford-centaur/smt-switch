@@ -45,7 +45,9 @@ jobs:
 
       - name: Python Dependencies
         run: |
-          python3 -m pip install Cython pytest scikit-build toml
+          python3 -m pip install --user Cython==0.29.*
+          python3 -m pip install --user pytest scikit-build toml
+          echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
       - name: Install Bison
         run: ./contrib/setup-bison.sh
@@ -71,7 +73,7 @@ jobs:
           make test
 
       - name: Install Python Bindings
-        run: python3 -m pip install -e ./build/python[test,pysmt]
+        run: python3 -m pip install --user -e ./build/python[test,pysmt]
 
       - name: Test Python Bindings
         run: pytest ./tests

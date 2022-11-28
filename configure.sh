@@ -27,6 +27,7 @@ Configures the CMAKE build environment.
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
+--without-tests         build without the smt-switch test suite (default: off)
 --python                compile with python bindings (default: off)
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
@@ -58,6 +59,7 @@ msat_home=default
 yices2_home=default
 z3_home=default
 static=default
+build_tests=default
 python=default
 smtlib_reader=default
 bison_dir=default
@@ -175,6 +177,9 @@ do
         --static)
             static=yes
             ;;
+        --without-tests)
+            build_tests=no
+            ;;
         --python)
             python=yes
             ;;
@@ -269,6 +274,9 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $static != default ] \
     && cmake_opts="$cmake_opts -DSMT_SWITCH_LIB_TYPE=STATIC"
+
+[ $build_tests != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_TESTS=$build_tests"
 
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"

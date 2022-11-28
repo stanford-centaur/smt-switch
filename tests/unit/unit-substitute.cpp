@@ -49,6 +49,7 @@ class UnitSubstituteTests
   Term x, y, xpy, a, b;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSubstituteIterTests);
 class UnitSubstituteIterTests : public UnitSubstituteTests
 {
 };

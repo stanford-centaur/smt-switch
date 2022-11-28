@@ -28,6 +28,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilTests);
 class UnitUtilTests : public ::testing::Test,
                       public ::testing::WithParamInterface<SolverConfiguration>
 {
@@ -47,6 +48,7 @@ class UnitUtilTests : public ::testing::Test,
   TermVec symbols;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilDimacsTests);
 class UnitUtilDimacsTests : public ::testing::Test,
                             public ::testing::WithParamInterface<SolverEnum>
 {
@@ -66,6 +68,7 @@ class UnitUtilDimacsTests : public ::testing::Test,
   Sort boolsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilIntTests);
 class UnitUtilIntTests : public UnitUtilTests
 {
 protected:
