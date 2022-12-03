@@ -352,7 +352,7 @@ class SwitchConverter(Converter, DagWalker):
             val = formula.constant_value()
             res = self.make_term(f'{val.numerator}/{val.denominator}', sort)
         else:
-            res = self.make_term(repr(formula.constant_value()), sort)
+            res = self.make_term(str(formula.constant_value()), sort)
         return res
 
     walk_bool_constant = _walk_constant
