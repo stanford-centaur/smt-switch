@@ -33,10 +33,11 @@ check_python_module("skbuild" "scikit-build")
 
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
+# Prevent printout when importing skbuild by temporarily redirecting stdout
 execute_process(
   COMMAND
     ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
-      import os; import skbuild; \
+    import os; import sys; temp = sys.stdout; sys.stdout = open(os.devnull,\"w\"); import skbuild; sys.stdout = temp; \
       cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
         'resources', 'cmake'); print(cmake_module_path, end='')"
   OUTPUT_VARIABLE
