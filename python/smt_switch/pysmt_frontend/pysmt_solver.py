@@ -199,6 +199,22 @@ if 'btor' in  ss.solvers:
     SWITCH_SOLVERS['btor'] = SwitchBtor
 
 
+if 'bitwuzla' in  ss.solvers:
+    logics_params = dict(
+        quantifier_free=[True],
+        arrays=[True, False],
+        bit_vectors=[True],
+        uninterpreted=[True, False],
+        floating_point=[True, False],
+    )
+
+    class SwitchBitwuzla(_SwitchSolver):
+        LOGICS = _build_logics(logics_params)
+        _create_solver = ft.partial(ss.create_bitwuzla_solver, False)
+
+    SWITCH_SOLVERS['bitwuzla'] = SwitchBitwuzla
+
+
 if 'msat' in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
