@@ -210,6 +210,28 @@ class AbsSmtSolver
    */
   virtual Term make_term(int64_t i, const Sort & sort) const = 0;
 
+  /* Make a string value term
+   * @param s is the value
+   * @param useEscSequences is the useEscSequences in String constructor
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */
+  virtual Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const{
+        throw NotImplementedException("Strings not supported for this solver.");
+
+  }
+
+  /* Make a string value term
+   * @param s is the value
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */  
+  virtual Term make_term(const std::wstring& s, const Sort & sort) const{
+        throw NotImplementedException("Strings not supported for this solver.");
+
+  }
+
+
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
    * @param sort the sort to create

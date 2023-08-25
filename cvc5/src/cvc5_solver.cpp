@@ -94,6 +94,10 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       { BV_To_Nat, ::cvc5::BITVECTOR_TO_NAT },
       // Indexed Op
       { Int_To_BV, ::cvc5::INT_TO_BITVECTOR },
+      { StrLt, ::cvc5::STRING_LT },
+      { StrLeq, ::cvc5::STRING_LEQ },
+      { StrLen, ::cvc5::STRING_LENGTH }, 
+      { StrConcat, ::cvc5::STRING_CONCAT },
       { Select, ::cvc5::SELECT },
       { Store, ::cvc5::STORE },
       { Forall, ::cvc5::FORALL },
@@ -163,7 +167,7 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
     else if (sk == REAL)
     {
       c = solver.mkReal(i);
-    }
+    }   
     else if (sk == BV)
     {
       // cvc5 uses unsigned integers for mkBitVector
@@ -183,6 +187,60 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
   catch (::cvc5::CVC5ApiException & e)
   {
     // pretty safe to assume that an error is due to incorrect usage
+    throw IncorrectUsageException(e.what());
+  }
+}
+
+Term Cvc5Solver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
+{
+  try
+  {
+    SortKind sk = sort->get_sort_kind();
+    ::cvc5::Term c;
+
+    if (sk == STRING)
+    {
+      c = solver.mkString(s, useEscSequences);
+    }    
+    else
+    {
+      std::string msg = "Can't create constant with string and useEscSequences";
+      msg += useEscSequences;
+      msg += " for sort ";
+      msg += sort->to_string();
+      throw IncorrectUsageException(msg.c_str());
+    }
+
+    return std::make_shared<Cvc5Term>(c);
+  }
+  catch (::cvc5::CVC5ApiException & e)
+  {
+    throw IncorrectUsageException(e.what());
+  }
+}
+
+Term Cvc5Solver::make_term(const std::wstring& s, const Sort & sort) const
+{
+  try
+  {
+    SortKind sk = sort->get_sort_kind();
+    ::cvc5::Term c;
+
+    if (sk == STRING)
+    {
+      c = solver.mkString(s);
+    }    
+    else
+    {
+      std::string msg = "Can't create constant with wstring for sort ";
+      msg += sort->to_string();
+      throw IncorrectUsageException(msg.c_str());
+    }
+
+    return std::make_shared<Cvc5Term>(c);
+  }
+  catch (::cvc5::CVC5ApiException & e)
+  {
     throw IncorrectUsageException(e.what());
   }
 }
@@ -478,6 +536,10 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
     {
       return std::make_shared<Cvc5Sort>(solver.getRealSort());
     }
+    else if (sk == STRING)
+    {
+      return std::make_shared<Cvc5Sort>(solver.getStringSort());
+    }    
     else
     {
       std::string msg("Can't create sort with sort constructor ");

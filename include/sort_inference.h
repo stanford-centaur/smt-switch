@@ -173,6 +173,8 @@ bool real_sorts(const SortVec & sorts);
 
 bool int_sorts(const SortVec & sorts);
 
+bool string_sorts(const SortVec & sorts);
+
 bool arithmetic_sorts(const SortVec & sorts);
 
 bool array_sorts(const SortVec & sorts);
@@ -190,6 +192,8 @@ Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+
+Sort string_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
 Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 

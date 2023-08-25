@@ -96,6 +96,12 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
               { "repeat", Repeat },
               { "rotate_left", Rotate_Left },
               { "rotate_right", Rotate_Right } } },
+          // Strings
+          { "STRING",
+            { { "str.<", StrLt },
+              { "str.<=", StrLeq},
+              { "str.len", StrLen}, 
+              { "str.++", StrConcat} } },
           // ArraysEx
           { "A",
             {

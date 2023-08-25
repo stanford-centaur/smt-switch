@@ -85,7 +85,7 @@ bool uses_uninterp_sort(const smt::Sort & sort)
 Sort TermTranslator::transfer_sort(const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();
-  if ((sk == INT) || (sk == REAL) || (sk == BOOL))
+  if ((sk == INT) || (sk == REAL) || (sk == BOOL) || (sk == STRING))
   {
     return solver->make_sort(sk);
   }
@@ -328,8 +328,10 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
     Sort sort = solver->make_sort(INT);
     return cast_term(transferred_term, sort);
   }
-  else
-  {
+  else if (transferred_sk == STRING){
+    Sort sort = solver->make_sort(STRING);
+    return cast_term(transferred_term, sort);
+  }else{
     string msg("Cannot cast ");
     msg += transferred_term->to_string() + " to " + smt::to_string(sk);
     throw IncorrectUsageException(msg);
@@ -346,14 +348,24 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const {
   }
   ind_of_up_start += 2;
   op = "/";
-  int ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
-  assert(ind_of_up_end != std::string::npos);
-  ind_of_up_end -= 1;
+  std::string new_up;
+  int ind_of_up_end;
+  if (smtlib.substr(ind_of_up_start, 2) == "(-")
+  {
+    //std::cout<<"1 "<<std::endl;    
+    ind_of_up_end = smtlib.find_first_of(')', ind_of_up_start);
+    new_up = "- "+smtlib.substr(ind_of_up_start+3, ind_of_up_end-ind_of_up_start-3);
+  } else {
+    //std::cout<<"2 "<<std::endl;    
+    ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
+    assert(ind_of_up_end != std::string::npos);
+    ind_of_up_end -= 1;
+    new_up = smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start +1);
+  }
   int ind_of_down_start = ind_of_up_end + 2;
   int ind_of_down_end = smtlib.find_first_of(')', ind_of_down_start);
   assert(ind_of_down_end != std::string::npos);
   ind_of_down_end -= 1;
-  std::string new_up = smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start +1);
   std::string new_down = smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start +1);
   std::string new_string = new_up + " " + op + " " + new_down;
   return new_string;
@@ -418,6 +430,11 @@ Term TermTranslator::value_from_smt2(const std::string val,
     else
     {
       std::string mval = infixize_rational(val);
+      if (mval.substr(0,2) == "- "){
+        std::string posval = mval.substr(2, mval.length() - 2);      
+        Term posterm = solver->make_term(posval, sort);
+        return solver->make_term(Negate, posterm);
+      }
       return solver->make_term(mval, sort);
     }
   }
@@ -434,10 +451,12 @@ Term TermTranslator::value_from_smt2(const std::string val,
       return solver->make_term(val == "true");
     }
   }
-  else
+  else if (sk == STRING){
+    return solver->make_term(val, false, sort);
+  }
   {
     throw NotImplementedException(
-        "Only taking bool, bv, int and real value terms currently.");
+        "Only taking bool, bv, int, real, str value terms currently.");
   }
 }
 

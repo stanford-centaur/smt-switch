@@ -29,6 +29,7 @@ const std::unordered_map<SortKind, std::string> sortkind2str(
       { BV, "BitVec" },
       { INT, "Int" },
       { REAL, "Real" },
+      { STRING, "String" },
       { FUNCTION, "Function" },
       { UNINTERPRETED, "Uninterpreted" },
       { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },

@@ -52,7 +52,8 @@ const unordered_map<string, vector<SortKind>> logic_sortkind_map(
       { "NIRA", { INT, REAL } },
       { "NRA", { REAL } },
       { "RDL", { REAL } },
-      { "UF", { FUNCTION } } });
+      { "UF", { FUNCTION } },
+      { "S", { STRING } } });
 
 SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
     : solver_(solver),

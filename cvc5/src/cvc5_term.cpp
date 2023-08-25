@@ -50,6 +50,7 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       { ::cvc5::NEG, Negate },
       { ::cvc5::MULT, Mult },
       { ::cvc5::DIVISION, Div },
+      { ::cvc5::INTS_DIVISION, IntDiv },
       { ::cvc5::LT, Lt },
       { ::cvc5::LEQ, Le },
       { ::cvc5::GT, Gt },
@@ -104,6 +105,11 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       { ::cvc5::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       // Conversion
       { ::cvc5::BITVECTOR_TO_NAT, BV_To_Nat },
+      // String Op
+      { ::cvc5::STRING_LT, StrLt },
+      { ::cvc5::STRING_LEQ, StrLeq },
+      { ::cvc5::STRING_LENGTH, StrLen },
+      { ::cvc5::STRING_CONCAT, StrConcat },
       // Indexed Op
       { ::cvc5::INT_TO_BITVECTOR, Int_To_BV },
       { ::cvc5::SELECT, Select },

@@ -126,6 +126,10 @@ SortKind Cvc5Sort::get_sort_kind() const
   {
     return REAL;
   }
+  else if (sort.isString())
+  {
+    return STRING;
+  }
   else if (sort.isArray())
   {
     return ARRAY;

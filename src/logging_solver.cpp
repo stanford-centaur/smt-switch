@@ -205,6 +205,46 @@ Term LoggingSolver::make_term(int64_t i, const Sort & sort) const
   return res;
 }
 
+
+Term LoggingSolver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
+{
+  shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
+  Term wrapped_res = wrapped_solver->make_term(s, useEscSequences, lsort->wrapped_sort);
+  Term res = std::make_shared<LoggingTerm>(
+      wrapped_res, sort, Op(), TermVec{}, next_term_id);
+
+  // check hash table
+  // lookup modifies term in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+    next_term_id++;
+  }
+
+  return res;
+}
+Term LoggingSolver::make_term(const std::wstring& s, const Sort & sort) const{
+  shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
+  Term wrapped_res = wrapped_solver->make_term(s, lsort->wrapped_sort);
+  Term res = std::make_shared<LoggingTerm>(
+      wrapped_res, sort, Op(), TermVec{}, next_term_id);
+
+  // check hash table
+  // lookup modifies term in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+    next_term_id++;
+  }
+
+  return res;
+}
+
+
 Term LoggingSolver::make_term(const string name,
                               const Sort & sort,
                               uint64_t base) const
