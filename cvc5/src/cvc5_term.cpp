@@ -25,95 +25,95 @@ namespace smt {
 
 // the kinds cvc5 needs to build an OpTerm for an indexed op
 const std::unordered_map<::cvc5::Kind, size_t> kind2numindices(
-    { { ::cvc5::BITVECTOR_EXTRACT, 2 },
-      { ::cvc5::BITVECTOR_ZERO_EXTEND, 1 },
-      { ::cvc5::BITVECTOR_SIGN_EXTEND, 1 },
-      { ::cvc5::BITVECTOR_REPEAT, 1 },
-      { ::cvc5::BITVECTOR_ROTATE_LEFT, 1 },
-      { ::cvc5::BITVECTOR_ROTATE_RIGHT, 1 },
-      { ::cvc5::INT_TO_BITVECTOR, 1 } });
+    { { ::cvc5::Kind::BITVECTOR_EXTRACT, 2 },
+      { ::cvc5::Kind::BITVECTOR_ZERO_EXTEND, 1 },
+      { ::cvc5::Kind::BITVECTOR_SIGN_EXTEND, 1 },
+      { ::cvc5::Kind::BITVECTOR_REPEAT, 1 },
+      { ::cvc5::Kind::BITVECTOR_ROTATE_LEFT, 1 },
+      { ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, 1 },
+      { ::cvc5::Kind::INT_TO_BITVECTOR, 1 } });
 
 const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
-    { { ::cvc5::AND, And },
-      { ::cvc5::OR, Or },
-      { ::cvc5::XOR, Xor },
-      { ::cvc5::NOT, Not },
-      { ::cvc5::IMPLIES, Implies },
-      { ::cvc5::ITE, Ite },
-      { ::cvc5::EQUAL, Equal },
-      { ::cvc5::DISTINCT, Distinct },
+    { { ::cvc5::Kind::AND, And },
+      { ::cvc5::Kind::OR, Or },
+      { ::cvc5::Kind::XOR, Xor },
+      { ::cvc5::Kind::NOT, Not },
+      { ::cvc5::Kind::IMPLIES, Implies },
+      { ::cvc5::Kind::ITE, Ite },
+      { ::cvc5::Kind::EQUAL, Equal },
+      { ::cvc5::Kind::DISTINCT, Distinct },
       /* Uninterpreted Functions */
-      { ::cvc5::APPLY_UF, Apply },
+      { ::cvc5::Kind::APPLY_UF, Apply },
       /* Arithmetic Theories */
-      { ::cvc5::ADD, Plus },
-      { ::cvc5::SUB, Minus },
-      { ::cvc5::NEG, Negate },
-      { ::cvc5::MULT, Mult },
-      { ::cvc5::DIVISION, Div },
-      { ::cvc5::LT, Lt },
-      { ::cvc5::LEQ, Le },
-      { ::cvc5::GT, Gt },
-      { ::cvc5::GEQ, Ge },
-      { ::cvc5::INTS_MODULUS, Mod },
-      { ::cvc5::ABS, Abs },
-      { ::cvc5::POW, Pow },
-      { ::cvc5::TO_REAL, To_Real },
-      { ::cvc5::TO_INTEGER, To_Int },
-      { ::cvc5::IS_INTEGER, Is_Int },
+      { ::cvc5::Kind::ADD, Plus },
+      { ::cvc5::Kind::SUB, Minus },
+      { ::cvc5::Kind::NEG, Negate },
+      { ::cvc5::Kind::MULT, Mult },
+      { ::cvc5::Kind::DIVISION, Div },
+      { ::cvc5::Kind::LT, Lt },
+      { ::cvc5::Kind::LEQ, Le },
+      { ::cvc5::Kind::GT, Gt },
+      { ::cvc5::Kind::GEQ, Ge },
+      { ::cvc5::Kind::INTS_MODULUS, Mod },
+      { ::cvc5::Kind::ABS, Abs },
+      { ::cvc5::Kind::POW, Pow },
+      { ::cvc5::Kind::TO_REAL, To_Real },
+      { ::cvc5::Kind::TO_INTEGER, To_Int },
+      { ::cvc5::Kind::IS_INTEGER, Is_Int },
       /* Fixed Size BitVector Theory */
-      { ::cvc5::BITVECTOR_CONCAT, Concat },
+      { ::cvc5::Kind::BITVECTOR_CONCAT, Concat },
       // Indexed Op
-      { ::cvc5::BITVECTOR_EXTRACT, Extract },
-      { ::cvc5::BITVECTOR_NOT, BVNot },
-      { ::cvc5::BITVECTOR_NEG, BVNeg },
-      { ::cvc5::BITVECTOR_AND, BVAnd },
-      { ::cvc5::BITVECTOR_OR, BVOr },
-      { ::cvc5::BITVECTOR_XOR, BVXor },
-      { ::cvc5::BITVECTOR_NAND, BVNand },
-      { ::cvc5::BITVECTOR_NOR, BVNor },
-      { ::cvc5::BITVECTOR_XNOR, BVXnor },
-      { ::cvc5::BITVECTOR_COMP, BVComp },
-      { ::cvc5::BITVECTOR_ADD, BVAdd },
-      { ::cvc5::BITVECTOR_SUB, BVSub },
-      { ::cvc5::BITVECTOR_MULT, BVMul },
-      { ::cvc5::BITVECTOR_UDIV, BVUdiv },
-      { ::cvc5::BITVECTOR_SDIV, BVSdiv },
-      { ::cvc5::BITVECTOR_UREM, BVUrem },
-      { ::cvc5::BITVECTOR_SREM, BVSrem },
-      { ::cvc5::BITVECTOR_SMOD, BVSmod },
-      { ::cvc5::BITVECTOR_SHL, BVShl },
-      { ::cvc5::BITVECTOR_ASHR, BVAshr },
-      { ::cvc5::BITVECTOR_LSHR, BVLshr },
-      { ::cvc5::BITVECTOR_ULT, BVUlt },
-      { ::cvc5::BITVECTOR_ULE, BVUle },
-      { ::cvc5::BITVECTOR_UGT, BVUgt },
-      { ::cvc5::BITVECTOR_UGE, BVUge },
-      { ::cvc5::BITVECTOR_SLT, BVSlt },
-      { ::cvc5::BITVECTOR_SLE, BVSle },
-      { ::cvc5::BITVECTOR_SGT, BVSgt },
-      { ::cvc5::BITVECTOR_SGE, BVSge },
+      { ::cvc5::Kind::BITVECTOR_EXTRACT, Extract },
+      { ::cvc5::Kind::BITVECTOR_NOT, BVNot },
+      { ::cvc5::Kind::BITVECTOR_NEG, BVNeg },
+      { ::cvc5::Kind::BITVECTOR_AND, BVAnd },
+      { ::cvc5::Kind::BITVECTOR_OR, BVOr },
+      { ::cvc5::Kind::BITVECTOR_XOR, BVXor },
+      { ::cvc5::Kind::BITVECTOR_NAND, BVNand },
+      { ::cvc5::Kind::BITVECTOR_NOR, BVNor },
+      { ::cvc5::Kind::BITVECTOR_XNOR, BVXnor },
+      { ::cvc5::Kind::BITVECTOR_COMP, BVComp },
+      { ::cvc5::Kind::BITVECTOR_ADD, BVAdd },
+      { ::cvc5::Kind::BITVECTOR_SUB, BVSub },
+      { ::cvc5::Kind::BITVECTOR_MULT, BVMul },
+      { ::cvc5::Kind::BITVECTOR_UDIV, BVUdiv },
+      { ::cvc5::Kind::BITVECTOR_SDIV, BVSdiv },
+      { ::cvc5::Kind::BITVECTOR_UREM, BVUrem },
+      { ::cvc5::Kind::BITVECTOR_SREM, BVSrem },
+      { ::cvc5::Kind::BITVECTOR_SMOD, BVSmod },
+      { ::cvc5::Kind::BITVECTOR_SHL, BVShl },
+      { ::cvc5::Kind::BITVECTOR_ASHR, BVAshr },
+      { ::cvc5::Kind::BITVECTOR_LSHR, BVLshr },
+      { ::cvc5::Kind::BITVECTOR_ULT, BVUlt },
+      { ::cvc5::Kind::BITVECTOR_ULE, BVUle },
+      { ::cvc5::Kind::BITVECTOR_UGT, BVUgt },
+      { ::cvc5::Kind::BITVECTOR_UGE, BVUge },
+      { ::cvc5::Kind::BITVECTOR_SLT, BVSlt },
+      { ::cvc5::Kind::BITVECTOR_SLE, BVSle },
+      { ::cvc5::Kind::BITVECTOR_SGT, BVSgt },
+      { ::cvc5::Kind::BITVECTOR_SGE, BVSge },
       // Indexed Op
-      { ::cvc5::BITVECTOR_ZERO_EXTEND, Zero_Extend },
+      { ::cvc5::Kind::BITVECTOR_ZERO_EXTEND, Zero_Extend },
       // Indexed Op
-      { ::cvc5::BITVECTOR_SIGN_EXTEND, Sign_Extend },
+      { ::cvc5::Kind::BITVECTOR_SIGN_EXTEND, Sign_Extend },
       // Indexed Op
-      { ::cvc5::BITVECTOR_REPEAT, Repeat },
+      { ::cvc5::Kind::BITVECTOR_REPEAT, Repeat },
       // Indexed Op
-      { ::cvc5::BITVECTOR_ROTATE_LEFT, Rotate_Left },
+      { ::cvc5::Kind::BITVECTOR_ROTATE_LEFT, Rotate_Left },
       // Indexed Op
-      { ::cvc5::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
+      { ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       // Conversion
-      { ::cvc5::BITVECTOR_TO_NAT, BV_To_Nat },
+      { ::cvc5::Kind::BITVECTOR_TO_NAT, BV_To_Nat },
       // Indexed Op
-      { ::cvc5::INT_TO_BITVECTOR, Int_To_BV },
-      { ::cvc5::SELECT, Select },
-      { ::cvc5::STORE, Store },
-      { ::cvc5::FORALL, Forall },
-      { ::cvc5::EXISTS, Exists },
+      { ::cvc5::Kind::INT_TO_BITVECTOR, Int_To_BV },
+      { ::cvc5::Kind::SELECT, Select },
+      { ::cvc5::Kind::STORE, Store },
+      { ::cvc5::Kind::FORALL, Forall },
+      { ::cvc5::Kind::EXISTS, Exists },
       // Datatype
-      { ::cvc5::APPLY_CONSTRUCTOR, Apply_Constructor },
-      { ::cvc5::APPLY_TESTER, Apply_Tester },
-      { ::cvc5::APPLY_SELECTOR, Apply_Selector } });
+      { ::cvc5::Kind::APPLY_CONSTRUCTOR, Apply_Constructor },
+      { ::cvc5::Kind::APPLY_TESTER, Apply_Tester },
+      { ::cvc5::Kind::APPLY_SELECTOR, Apply_Selector } });
 
 // struct for hashing
 std::hash<cvc5::Term> termhash;
@@ -139,7 +139,7 @@ const Term Cvc5TermIter::operator*()
   // smt-switch cvc5 backend guarantees that the length is only one by
   // construction
   ::cvc5::Term t = term[pos];
-  if (t.getKind() == ::cvc5::VARIABLE_LIST)
+  if (t.getKind() == ::cvc5::Kind::VARIABLE_LIST)
   {
     if (t.getNumChildren() != 1)
     {
@@ -253,14 +253,14 @@ bool Cvc5Term::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols
   ::cvc5::Kind k = term.getKind();
-  return (k == ::cvc5::CONSTANT || k == ::cvc5::VARIABLE);
+  return (k == ::cvc5::Kind::CONSTANT || k == ::cvc5::Kind::VARIABLE);
 }
 
-bool Cvc5Term::is_param() const { return (term.getKind() == ::cvc5::VARIABLE); }
+bool Cvc5Term::is_param() const { return (term.getKind() == ::cvc5::Kind::VARIABLE); }
 
 bool Cvc5Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::cvc5::CONSTANT && !term.getSort().isFunction());
+  return (term.getKind() == ::cvc5::Kind::CONSTANT && !term.getSort().isFunction());
 }
 
 bool Cvc5Term::is_value() const
@@ -268,10 +268,10 @@ bool Cvc5Term::is_value() const
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
   ::cvc5::Kind k = term.getKind();
-  return ((k == ::cvc5::CONST_BOOLEAN) || (k == ::cvc5::CONST_BITVECTOR)
-          || (k == ::cvc5::CONST_RATIONAL) || (k == ::cvc5::CONST_FLOATINGPOINT)
-          || (k == ::cvc5::CONST_ROUNDINGMODE) || (k == ::cvc5::CONST_STRING)
-          || (k == ::cvc5::CONST_ARRAY));
+  return ((k == ::cvc5::Kind::CONST_BOOLEAN) || (k == ::cvc5::Kind::CONST_BITVECTOR)
+          || (k == ::cvc5::Kind::CONST_RATIONAL) || (k == ::cvc5::Kind::CONST_FLOATINGPOINT)
+          || (k == ::cvc5::Kind::CONST_ROUNDINGMODE) || (k == ::cvc5::Kind::CONST_STRING)
+          || (k == ::cvc5::Kind::CONST_ARRAY));
 }
 
 std::string Cvc5Term::to_string() { return term.toString(); }

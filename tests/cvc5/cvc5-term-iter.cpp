@@ -37,8 +37,8 @@ TEST(Cvc5TermIterTest, Copy)
   ::cvc5::Term v = solver.mkConst(bvsort4, "v");
   ::cvc5::Term f = solver.mkConst(funsort, "f");
 
-  ::cvc5::Term fx = solver.mkTerm(cvc5::APPLY_UF, { f, x });
-  ::cvc5::Term fv = solver.mkTerm(cvc5::APPLY_UF, { f, v });
+  ::cvc5::Term fx = solver.mkTerm(cvc5::Kind::APPLY_UF, { f, x });
+  ::cvc5::Term fv = solver.mkTerm(cvc5::Kind::APPLY_UF, { f, v });
 
   Cvc5TermIter it1(fx, 0);
   Cvc5TermIter it2(fx, 0);
