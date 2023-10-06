@@ -268,9 +268,15 @@ bool Cvc5Term::is_value() const
   // checking all possible const types for future-proofing
   // not all these sorts are even supported at this time
   ::cvc5::Kind k = term.getKind();
-  return ((k == ::cvc5::Kind::CONST_BOOLEAN) || (k == ::cvc5::Kind::CONST_BITVECTOR)
-          || (k == ::cvc5::Kind::CONST_RATIONAL) || (k == ::cvc5::Kind::CONST_FLOATINGPOINT)
-          || (k == ::cvc5::Kind::CONST_ROUNDINGMODE) || (k == ::cvc5::Kind::CONST_STRING)
+  return ((k == ::cvc5::Kind::CONST_BOOLEAN)
+          || (k == ::cvc5::Kind::CONST_BITVECTOR)
+          || (k == ::cvc5::Kind::CONST_RATIONAL)
+          || (k == ::cvc5::Kind::CONST_INTEGER)
+          || (k == ::cvc5::Kind::CONST_FINITE_FIELD)
+          || (k == ::cvc5::Kind::CONST_FLOATINGPOINT)
+          || (k == ::cvc5::Kind::CONST_ROUNDINGMODE)
+          || (k == ::cvc5::Kind::CONST_STRING)
+          || (k == ::cvc5::Kind::CONST_SEQUENCE)
           || (k == ::cvc5::Kind::CONST_ARRAY));
 }
 
