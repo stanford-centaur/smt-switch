@@ -145,7 +145,7 @@ void test1(SmtSolver s, ostream & os, stringbuf & strbuf)
   s->pop(1);
   s->check_sat();
   s->get_value(x);
-  dump_and_run(strbuf, "unsat\n()\nsat\n((x (_ bv0 32)))\n");
+  dump_and_run(strbuf, "unsat\n(ind1)\nsat\n((x (_ bv0 32)))\n");
 }
 
 int main()

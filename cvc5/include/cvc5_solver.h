@@ -24,7 +24,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include "cvc5/cvc5.h"
 #include "cvc5_datatype.h"
 #include "cvc5_sort.h"
 #include "cvc5_term.h"

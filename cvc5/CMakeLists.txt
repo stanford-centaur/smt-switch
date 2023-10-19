@@ -13,9 +13,9 @@ target_include_directories (smt-switch-cvc5 PUBLIC "${PROJECT_SOURCE_DIR}/includ
 target_include_directories (smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/cvc5/include")
 target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/src")
-target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/src/include")
+target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/include")
 # TEMP only until the internal kinds are no longer part of public API
-target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/src")
+target_include_directories (smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/include")
 target_include_directories (smt-switch-cvc5 PUBLIC ${GMP_INCLUDE_DIR})
 
 if (LIBRT)
