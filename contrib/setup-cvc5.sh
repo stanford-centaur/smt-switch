@@ -26,12 +26,7 @@ if [ ! -d "$DEPS/cvc5" ]; then
     make -j$NUM_CORES
     cd $DIR
 else
-#    echo "$DEPS/cvc5 already exists. If you want to rebuild, please remove it manually."
-    cd $DEPS
-    cd cvc5
-    cd build
-    make -j$NUM_CORES
-    cd $DIR
+    echo "$DEPS/cvc5 already exists. If you want to rebuild, please remove it manually."
 fi
 
 if [ -f $DEPS/cvc5/build/src/libcvc5.a ] && [ -f $DEPS/cvc5/build/src/parser/libcvc5parser.a ]; then

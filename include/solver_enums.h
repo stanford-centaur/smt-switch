@@ -50,6 +50,8 @@ enum SolverAttribute
   THEORY_INT,
   // supports real theory
   THEORY_REAL,
+  // supports STR theory
+  THEORY_STR,
   // supports array models
   ARRAY_MODELS,
   // supports constant arrays

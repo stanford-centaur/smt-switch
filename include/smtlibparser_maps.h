@@ -97,7 +97,7 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
               { "rotate_left", Rotate_Left },
               { "rotate_right", Rotate_Right } } },
           // Strings
-          { "STRING",
+          { "S",
             { { "str.<", StrLt },
               { "str.<=", StrLeq},
               { "str.len", StrLen}, 

@@ -163,6 +163,8 @@ string GenericSort::compute_string() const {
       return smt::to_smtlib(SortKind::INT);
     } else if (get_sort_kind() == SortKind::REAL) {
       return smt::to_smtlib(SortKind::REAL);
+    } else if (get_sort_kind() == SortKind::STRING) {
+      return smt::to_smtlib(SortKind::STRING);  
     } else if (get_sort_kind() == SortKind::FUNCTION) {
       string name = "(";
       vector<Sort> domain_sorts = get_domain_sorts();

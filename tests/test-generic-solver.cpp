@@ -158,6 +158,26 @@ void test_int_1(SmtSolver gs)
   }
 }
 
+void test_str_1(SmtSolver gs)
+{
+  Sort str_sort = gs->make_sort(STRING);
+  cout << "created sort of sort kind " << to_string(STRING)
+       << ". The sort is: " << str_sort << endl;
+
+  Sort str_sort1 = gs->make_sort(STRING);
+  assert(str_sort == str_sort1);
+
+  cout << "trying to create a sort in a wrong way" << endl;
+  try
+  {
+    Sort err_sort = gs->make_sort(ARRAY);
+  }
+  catch (IncorrectUsageException e)
+  {
+    cout << "caught the exception" << endl;
+  }
+}
+
 void test_bv_1(SmtSolver gs)
 {
   Sort bv_sort = gs->make_sort(BV, 4);
@@ -228,6 +248,33 @@ void test_int_2(SmtSolver gs)
   gs->push(1);
   Term int_one_equal_one = gs->make_term(Equal, TermVec({ int_one, int_one }));
   gs->assert_formula(int_one_equal_one);
+  r = gs->check_sat();
+  assert(r.is_sat());
+  gs->pop(1);
+}
+
+void test_str_2(SmtSolver gs)
+{
+  Sort str_sort = gs->make_sort(STRING);
+  Term str_A = gs->make_term("A", str_sort);
+  Term str_B = gs->make_term("B", str_sort);
+  cout << "making some constants" << endl;
+
+  Term str_A_equal_B =
+      gs->make_term(Equal, TermVec({ str_A, str_B }));
+
+  cout << "checking some simple assertions" << endl;
+
+  gs->push(1);
+  gs->assert_formula(str_A_equal_B);
+  Result r;
+  r = gs->check_sat();
+  assert(r.is_unsat());
+  gs->pop(1);
+
+  gs->push(1);
+  Term str_A_equal_A = gs->make_term(Equal, TermVec({ str_A, str_A }));
+  gs->assert_formula(str_A_equal_A);
   r = gs->check_sat();
   assert(r.is_sat());
   gs->pop(1);
@@ -489,6 +536,22 @@ void test_int_models(SmtSolver gs)
   Sort int_sort = gs->make_sort(INT);
   Term int_zero = gs->make_term(0, int_sort);
   Term i1 = gs->make_symbol("i", int_sort);
+  Term for1 = gs->make_term(Equal, i1, int_zero);
+  gs->assert_formula(for1);
+  Result result = gs->check_sat();
+  assert(result.is_sat());
+  Term val1 = gs->get_value(i1);
+  Term val2 = gs->get_value(for1);
+  gs->pop(1);
+}
+
+void test_str_models(SmtSolver gs)
+{
+  // Testing models
+  gs->push(1);
+  Sort str_sort = gs->make_sort(STRING);
+  Term str_A = gs->make_term("A", str_sort);
+  Term i1 = gs->make_symbol("i", str_sort);
   Term for1 = gs->make_term(Equal, i1, int_zero);
   gs->assert_formula(for1);
   Result result = gs->check_sat();

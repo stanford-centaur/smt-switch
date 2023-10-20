@@ -34,7 +34,7 @@ namespace smt {
    have no Op or children
  */
 const unordered_set<SortKind> supported_sortkinds_for_get_value(
-    { BOOL, BV, INT, REAL, ARRAY });
+    { BOOL, BV, INT, STRING, REAL, ARRAY });
 
 /* LoggingSolver */
 

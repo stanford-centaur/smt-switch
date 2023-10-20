@@ -57,4 +57,23 @@ int main() {
   assert(x.is_symbol());
   assert(!x.is_param());
   assert(x.is_symbolic_const());
+
+  cout << "Testing a string constant" << endl;
+  Sort str_sort = make_generic_sort(STRING);
+  GenericTerm A(str_sort, Op(), {}, "A");
+  GenericTerm A_prime(str_sort, Op(), {}, "A");
+  assert(A.get_id() == A_prime.get_id());
+  assert(A.hash() == A_prime.hash());
+  assert(!A.is_symbol());
+  assert(!A.is_param());
+  assert(!A.is_symbolic_const());
+  
+  cout << "Testing a string variable" << endl;
+  GenericTerm y(str_sort, Op(), {}, "y", true);
+  GenericTerm y_prime(str_sort, Op(), {}, "y", true);
+  assert(y.get_id() == y_prime.get_id());
+  assert(y.hash() == y_prime.hash());
+  assert(y.is_symbol());
+  assert(!y.is_param());
+  assert(y.is_symbolic_const());
 }

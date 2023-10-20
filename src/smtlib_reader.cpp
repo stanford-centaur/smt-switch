@@ -37,7 +37,8 @@ const unordered_map<string, vector<string>> logic_theory_map(
       { "NIRA", { "IA", "RA", "IRA" } },
       { "NRA", { "RA" } },
       { "RDL", { "RA" } },
-      { "UF", { "UF" } } });
+      { "UF", { "UF" } },
+      { "S", { "S" } } });
 
 // maps logic string to vector of associated SortKinds for that logic
 const unordered_map<string, vector<SortKind>> logic_sortkind_map(

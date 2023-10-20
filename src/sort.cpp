@@ -73,6 +73,10 @@ std::string AbsSort::to_string() const
   {
     return "Real";
   }
+    else if (sk == STRING)
+  {
+    return "String";
+  }
   else if (sk == BV)
   {
     std::string res("(_ BitVec ");
