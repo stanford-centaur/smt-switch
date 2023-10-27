@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "api/cpp/cvc5.h"
+#include "cvc5/cvc5.h"
 #include "term.h"
 #include "utils.h"
 

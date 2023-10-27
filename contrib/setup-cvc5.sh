@@ -5,7 +5,7 @@ DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
-CVC5_VERSION=77d0bec48a745e3c4acd65085f9c59bdfceed6c0
+CVC5_VERSION=cvc5-1.0.8
 
 if [ "$(uname)" == "Darwin" ]; then
     NUM_CORES=$(sysctl -n hw.logicalcpu)
