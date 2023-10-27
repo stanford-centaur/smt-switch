@@ -853,32 +853,22 @@ Term GenericSolver::make_value(int64_t i, const Sort & sort) const
 
 Term GenericSolver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
 {
-  Term value_term = make_value(s, useEscSequences, sort);
-  return store_term(value_term);
+  throw NotImplementedException("make_term not supported for strings with useEscSequences for this solver.");
 }
+
 Term GenericSolver::make_term(const std::wstring& s, const Sort & sort) const
 {
-  Term value_term = make_value(s, sort);
-  return store_term(value_term);
+  throw NotImplementedException("make_term not supported for strings with wstring for this solver.");
 }
 
 Term GenericSolver::make_value(const std::string& s, bool useEscSequences, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
-  assert(sk == STRING);
-  string repr;
-  repr = std::to_string(s);
-  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr); //figure out how to handle useEscSequences
-  return term;
+  throw NotImplementedException("make_value not supported for strings with useEscSequences for this solver.");
 }
+
 Term GenericSolver::make_value(const std::wstring& s, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
-  assert(sk == STRING);
-  string repr;
-  repr = std::to_string(s);
-  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
-  return term;
+  throw NotImplementedException("make_value not supported for strings with wstring for this solver.");
 }
 
 Term GenericSolver::make_term(const string val,

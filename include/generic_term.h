@@ -47,6 +47,7 @@ class GenericTerm : public AbsTerm
   Sort get_sort() const override;
   std::size_t get_id() const override;
   std::string to_string() override;
+  std::wstring getStringValue() override;
   std::size_t hash() const override;
   bool is_value() const override;
   uint64_t to_int() const override;

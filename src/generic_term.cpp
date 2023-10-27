@@ -141,6 +141,11 @@ string GenericTerm::to_string()
   return repr;
 }
 
+wstring GenericTerm::getStringValue()
+{
+  throw NotImplementedException("GetStringValue not supported for this solver.");
+}
+
 size_t GenericTerm::hash() const { return str_hash(compute_string()); }
 
 // check if op is null because a non-value

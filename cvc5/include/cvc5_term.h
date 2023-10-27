@@ -64,6 +64,7 @@ class Cvc5Term : public AbsTerm
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
+  virtual std::wstring getStringValue() override;
   uint64_t to_int() const override;
   /** Iterators for traversing the children
    */

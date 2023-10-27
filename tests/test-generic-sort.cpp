@@ -47,14 +47,6 @@ int main()
   assert((s1.get_sort_kind()) == (s2.get_sort_kind()));
   assert(s1.get_sort_kind() == INT);
 
-  GenericSort strs1(STRING);
-  GenericSort strs2(STRING);
-  assert(strs1.hash() == strs2.hash());
-  assert(strs1.to_string() == strs2.to_string());
-  assert(strs2.to_string() == strs1.to_string());
-  assert((strs1.get_sort_kind()) == (strs2.get_sort_kind()));
-  assert(strs1.get_sort_kind() == STRING);
-
   Sort int1 = make_generic_sort(INT);
   Sort int2 = make_generic_sort(INT);
   assert(int1 == int2);
@@ -62,9 +54,6 @@ int main()
   Sort bv5 = make_generic_sort(BV, 5);
   assert(bv4 != bv5);
   assert(bv4 != int1);
-  Sort str1 = make_generic_sort(STRING);
-  Sort str2 = make_generic_sort(STRING);
-  assert(str1 == str2);
   Sort inttobv4 = make_generic_sort(FUNCTION, int1, bv4);
   Sort inttobv4_second = make_generic_sort(FUNCTION, int2, bv4);
   assert(inttobv4 == inttobv4_second);

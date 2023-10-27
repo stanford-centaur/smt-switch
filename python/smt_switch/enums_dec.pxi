@@ -43,7 +43,6 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef c_SolverAttribute c_TERMITER "smt::TERMITER"
     cdef c_SolverAttribute c_THEORY_INT "smt::THEORY_INT"
     cdef c_SolverAttribute c_THEORY_REAL "smt::THEORY_REAL"
-    cdef c_SolverAttribute c_THEORY_STR "smt::THEORY_STR"
     cdef c_SolverAttribute c_ARRAY_MODELS "smt::ARRAY_MODELS"
     cdef c_SolverAttribute c_CONSTARR "smt::CONSTARR"
     cdef c_SolverAttribute c_FULL_TRANSFER "smt::FULL_TRANSFER"

@@ -50,7 +50,6 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       { ::cvc5::NEG, Negate },
       { ::cvc5::MULT, Mult },
       { ::cvc5::DIVISION, Div },
-      { ::cvc5::INTS_DIVISION, IntDiv },
       { ::cvc5::LT, Lt },
       { ::cvc5::LEQ, Le },
       { ::cvc5::GT, Gt },
@@ -281,6 +280,8 @@ bool Cvc5Term::is_value() const
 }
 
 std::string Cvc5Term::to_string() { return term.toString(); }
+
+std::wstring Cvc5Term::getStringValue() { return term.getStringValue(); }
 
 uint64_t Cvc5Term::to_int() const
 {

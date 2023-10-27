@@ -163,10 +163,6 @@ cdef SolverAttribute THEORY_REAL = SolverAttribute()
 THEORY_REAL.sa = c_THEORY_REAL
 setattr(solverattr, "THEORY_REAL", THEORY_REAL)
 
-cdef SolverAttribute THEORY_STR = SolverAttribute()
-THEORY_STR.sa = c_THEORY_STR
-setattr(solverattr, "THEORY_STR", THEORY_STR)
-
 cdef SolverAttribute ARRAY_MODELS = SolverAttribute()
 ARRAY_MODELS.sa = c_ARRAY_MODELS
 setattr(solverattr, "ARRAY_MODELS", ARRAY_MODELS)

@@ -210,12 +210,15 @@ class AbsSmtSolver
    */
   virtual Term make_term(int64_t i, const Sort & sort) const = 0;
 
-  /* Make a string value term
+  /* Make a string value term from an `std::string` which may contain SMT-LIB compatible
+   * escape sequences like `\u1000` or `\u{20}` to encode unicode characters.
    * @param s is the value
-   * @param useEscSequences is the useEscSequences in String constructor
+   * @param useEscSequences determines whether escape sequence in `s` should
+   * be converted to the corresponding unicode character
    * @param sort the sort to create
    * @return a value term with Sort sort and value s
    */
+
   virtual Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const{
         throw NotImplementedException("Strings not supported for this solver.");
 

@@ -38,7 +38,7 @@ Sort make_uninterpreted_generic_sort(Sort sort_cons,
 
 Sort make_generic_sort(SortKind sk)
 {
-  if (sk != BOOL && sk != INT && sk != REAL && sk!= STRING)
+  if (sk != BOOL && sk != INT && sk != REAL)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
@@ -163,8 +163,6 @@ string GenericSort::compute_string() const {
       return smt::to_smtlib(SortKind::INT);
     } else if (get_sort_kind() == SortKind::REAL) {
       return smt::to_smtlib(SortKind::REAL);
-    } else if (get_sort_kind() == SortKind::STRING) {
-      return smt::to_smtlib(SortKind::STRING);  
     } else if (get_sort_kind() == SortKind::FUNCTION) {
       string name = "(";
       vector<Sort> domain_sorts = get_domain_sorts();
@@ -219,8 +217,7 @@ bool GenericSort::compare(const Sort & s) const
   {
     case BOOL:
     case INT:
-    case REAL: 
-    case STRING: { return true;
+    case REAL: { return true;
     }
     case BV: { return get_width() == s->get_width();
     }
@@ -282,8 +279,7 @@ const std::unordered_map<SortKind, std::string> sortkind2smtlib(
     { { ARRAY, "Array" },
       { BOOL, "Bool" },
       { INT, "Int" },
-      { REAL, "Real" },
-      { STRING, "String" }});
+      { REAL, "Real" }});
 
 std::string to_smtlib(SortKind sk)
 {

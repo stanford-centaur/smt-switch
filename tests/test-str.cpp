@@ -17,9 +17,13 @@
 #include <utility>
 #include <vector>
 
+// use this line for printing wstrings
+//#include <locale>
+
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
+
 
 using namespace smt;
 using namespace std;
@@ -49,8 +53,6 @@ TEST_P(StrTests, EqualVars)
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
-  cout << x1 << " = " << strx1 << endl;
-  cout << x2 << " = " << strx2 << endl; 
   ASSERT_EQ(strx1, strx2);
 }
 
@@ -62,10 +64,44 @@ TEST_P(StrTests, EqualStrConsts)
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
-  cout << x1 << " = " << strx1 << endl;
-  cout << x2 << " = " << strx2 << endl; 
   ASSERT_EQ(strx1, strx2);
 }
+
+
+TEST_P(StrTests, UseEscSequences)
+{
+  // use these two lines for printing wstrings
+  //std::locale::global(std::locale(""));
+  //std::wcout.imbue(std::locale());
+
+  Sort str_sort = s->make_sort(STRING);
+
+  Term x1 = s->make_term("\\u{0021}", true, str_sort);
+  Term x2 = s->make_term("\\u2200", true, str_sort);
+  Term x3 = s->make_term("\\u2102", false, str_sort);
+  Term x4 = s->make_term("\\u{10}", false, str_sort);
+
+  s->check_sat();
+
+  std:wstring wchar_u = L"u";
+  std::wstring wstrx1 = s->get_value(x1)->getStringValue();
+  std::wstring wstrx2 = s->get_value(x2)->getStringValue();
+  std::wstring wstrx3 = s->get_value(x3)->getStringValue();
+  std::wstring wstrx4 = s->get_value(x4)->getStringValue();
+
+
+  // an example of printing wstrx1
+  //std::cout << x1 << " = "; 
+  //std::wcout << wstrx1 << std::endl;
+
+  assert(wstrx1.find(wchar_u) == std::wstring::npos);
+  assert(wstrx2.find(wchar_u) == std::wstring::npos);
+  assert(wstrx3.find(wchar_u) != std::wstring::npos);
+  assert(wstrx4.find(wchar_u) != std::wstring::npos);
+}
+
+
+
 
 TEST_P(StrTests, EqualVarStrVals)
 {
@@ -78,8 +114,6 @@ TEST_P(StrTests, EqualVarStrVals)
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
-  cout << x1 << " = " << strx1 << endl;
-  cout << x2 << " = " << strx2 << endl; 
   ASSERT_EQ(strx1, strx2);
 }
 
@@ -91,8 +125,6 @@ TEST_P(StrTests, EqualWStrConsts)
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
-  cout << x1 << " = " << strx1 << endl;
-  cout << x2 << " = " << strx2 << endl; 
   ASSERT_EQ(strx1, strx2);
 }
 
@@ -107,8 +139,6 @@ TEST_P(StrTests, EqualVarWStrVals)
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
-  cout << x1 << " = " << strx1 << endl;
-  cout << x2 << " = " << strx2 << endl; 
   ASSERT_EQ(strx1, strx2);
 }
 
