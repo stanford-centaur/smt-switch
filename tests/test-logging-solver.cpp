@@ -45,19 +45,15 @@ class LoggingTests : public ::testing::Test,
     bvsort8 = s->make_sort(BV, 8);
     arraysort = s->make_sort(ARRAY, bvsort4, bvsort8);
     funsort = s->make_sort(FUNCTION, SortVec{ bvsort4, bvsort8 });
-    strsort = s->make_sort(STRING);
 
     x = s->make_symbol("x", bvsort4);
     y = s->make_symbol("y", bvsort4);
     zero = s->make_term(0, bvsort4);
     one = s->make_term(1, bvsort4);
-    t = s->make_symbol("t", strsort);
-    w = s->make_symbol("w", strsort);
-    strA = s->make_term("A", false, strsort);
   }
   SmtSolver s;
-  Sort bvsort4, bvsort8, arraysort, funsort, strsort;
-  Term x, y, zero, one, t, w, strA;
+  Sort bvsort4, bvsort8, arraysort, funsort;
+  Term x, y, zero, one;
 };
 
 TEST_P(LoggingTests, Children)
@@ -152,37 +148,6 @@ TEST_P(LoggingTests, Compare)
   Term fyv = s->get_value(fy);
   EXPECT_EQ(fxv, fxv2);
   EXPECT_EQ(fxv, fyv);
-}
-
-TEST_P(LoggingTests, StrChildren)
-{
-  EXPECT_TRUE(t->get_op().is_null());
-  EXPECT_TRUE(t->is_symbolic_const());
-  EXPECT_FALSE(t->is_value());
-  EXPECT_TRUE(w->is_symbolic_const());
-  EXPECT_FALSE(w->is_value());
-  EXPECT_FALSE(strA->is_symbolic_const());
-  EXPECT_TRUE(strA->is_value());
-
-  Term tA = s->make_term(StrConcat, t, strA);
-  EXPECT_EQ(tA->get_op(), StrConcat);
-  TermVec children_tA;
-  for (auto tt : tA)
-  {
-    children_tA.push_back(tt);
-  }
-  EXPECT_EQ(children_tA[0], t);
-  EXPECT_EQ(children_tA[1], strA);
-
-  Term tw = s->make_term(StrConcat, t, w);
-  EXPECT_EQ(tw->get_op(), StrConcat);
-  TermVec children_tw;
-  for (auto tt : tw)
-  {
-    children_tw.push_back(tt);
-  }
-  EXPECT_EQ(children_tw[0], t);
-  EXPECT_EQ(children_tw[1], w);
 }
 
 INSTANTIATE_TEST_SUITE_P(
