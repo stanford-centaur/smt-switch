@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include "cvc5/cvc5.h"
 #include "assert.h"
 #include "cvc5_factory.h"
 #include "smt.h"
@@ -19,14 +19,14 @@ int main()
   Term b1 = s.mkConst(boolsort, "b1");
   Term b2 = s.mkConst(boolsort, "b2");
 
-  cout << (b2.getKind() == CONSTANT) << std::endl;
+  cout << (b2.getKind() == Kind::CONSTANT) << std::endl;
 
-  if (b2.getKind() != CONSTANT)
+  if (b2.getKind() != Kind::CONSTANT)
   {
     throw std::exception();
   }
 
-  s.assertFormula(s.mkTerm(AND, { b1, b2 }));
+  s.assertFormula(s.mkTerm(Kind::AND, { b1, b2 }));
   Term I = s.getInterpolant(b2);
 
   if (!I.isNull())
@@ -36,7 +36,7 @@ int main()
 
   cout << (I == b2) << endl;
 
-  if (I.getKind() != CONSTANT)
+  if (I.getKind() != Kind::CONSTANT)
   {
     cout << "ERROR The interpolant should have kind CONSTANT but has kind: "
          << kindToString(I.getKind()) << endl;

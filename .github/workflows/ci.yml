@@ -46,7 +46,7 @@ jobs:
       - name: Python Dependencies
         run: |
           python3 -m pip install --user Cython==0.29.*
-          python3 -m pip install --user pytest scikit-build toml
+          python3 -m pip install --user pytest scikit-build toml pyparsing
           echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
       - name: Install Bison

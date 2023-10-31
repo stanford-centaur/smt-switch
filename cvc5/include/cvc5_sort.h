@@ -18,8 +18,8 @@
 
 #include <unordered_map>
 
-#include "api/cpp/cvc5.h"
-#include "api/cpp/cvc5_kind.h"
+#include "cvc5/cvc5.h"
+#include "cvc5/cvc5_kind.h"
 #include "sort.h"
 
 namespace smt {
