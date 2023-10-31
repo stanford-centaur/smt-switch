@@ -851,26 +851,6 @@ Term GenericSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term GenericSolver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
-{
-  throw NotImplementedException("make_term not supported for strings with useEscSequences for this solver.");
-}
-
-Term GenericSolver::make_term(const std::wstring& s, const Sort & sort) const
-{
-  throw NotImplementedException("make_term not supported for strings with wstring for this solver.");
-}
-
-Term GenericSolver::make_value(const std::string& s, bool useEscSequences, const Sort & sort) const
-{
-  throw NotImplementedException("make_value not supported for strings with useEscSequences for this solver.");
-}
-
-Term GenericSolver::make_value(const std::wstring& s, const Sort & sort) const
-{
-  throw NotImplementedException("make_value not supported for strings with wstring for this solver.");
-}
-
 Term GenericSolver::make_term(const string val,
                               const Sort & sort,
                               uint64_t base) const

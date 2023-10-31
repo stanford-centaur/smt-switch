@@ -127,11 +127,6 @@ class GenericSolver : public AbsSmtSolver
    */
   Term make_value(bool b) const;
   Term make_value(int64_t i, const Sort & sort) const;
-  Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const override;
-  Term make_term(const std::wstring& s, const Sort & sort) const override;
-  Term make_value(const std::string& s, bool useEscSequences, const Sort & sort) const;
-  Term make_value(const std::wstring& s, const Sort & sort) const;
-
   Term make_value(const std::string val,
                   const Sort & sort,
                   uint64_t base = 10) const;
