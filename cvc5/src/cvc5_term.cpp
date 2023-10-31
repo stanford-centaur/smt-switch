@@ -281,7 +281,7 @@ bool Cvc5Term::is_value() const
 
 std::string Cvc5Term::to_string() { return term.toString(); }
 
-std::wstring Cvc5Term::getStringValue() { return term.getStringValue(); }
+std::wstring Cvc5Term::getStringValue() const { return term.getStringValue(); }
 
 uint64_t Cvc5Term::to_int() const
 {

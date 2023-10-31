@@ -164,7 +164,7 @@ string LoggingTerm::to_string()
   }
 }
 
-wstring LoggingTerm::getStringValue()
+wstring LoggingTerm::getStringValue() const
 {
   return wrapped_term->getStringValue();
 }
