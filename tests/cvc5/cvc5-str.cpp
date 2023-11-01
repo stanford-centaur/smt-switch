@@ -8,10 +8,9 @@
 ** in the top-level source directory) and their institutional affiliations.
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
-**
+** 
 ** \brief
-**
-**
+** Tests for strings in the cvc5 backend.
 **/
 
 #include <iostream>
@@ -29,7 +28,6 @@ int main()
 {
   SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_opt("produce-models", "true");
-  //s->set_opt("strings-exp", "true");
   s->set_logic("S");
   Sort strsort = s->make_sort(STRING);
   Sort intsort = s->make_sort(INT);

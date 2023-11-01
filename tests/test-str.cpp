@@ -9,16 +9,12 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief Tests for constants in theory of strings.
-**
-**
+** \brief 
+** Tests for theory of strings.
 **/
 
 #include <utility>
 #include <vector>
-
-// use this line for printing wstrings
-//#include <locale>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -107,10 +103,6 @@ TEST_P(StrTests, EqualStrConsts)
 
 TEST_P(StrTests, UseEscSequences)
 {
-  // use these two lines for printing wstrings
-  //std::locale::global(std::locale(""));
-  //std::wcout.imbue(std::locale());
-
   Sort str_sort = s->make_sort(STRING);
 
   Term x1 = s->make_term("\\u{0021}", true, str_sort);
@@ -125,11 +117,6 @@ TEST_P(StrTests, UseEscSequences)
   std::wstring wstrx2 = s->get_value(x2)->getStringValue();
   std::wstring wstrx3 = s->get_value(x3)->getStringValue();
   std::wstring wstrx4 = s->get_value(x4)->getStringValue();
-
-
-  // an example of printing wstrx1
-  //std::cout << x1 << " = "; 
-  //std::wcout << wstrx1 << std::endl;
 
   assert(wstrx1.find(wchar_u) == std::wstring::npos);
   assert(wstrx2.find(wchar_u) == std::wstring::npos);

@@ -205,7 +205,6 @@ Term LoggingSolver::make_term(int64_t i, const Sort & sort) const
   return res;
 }
 
-
 Term LoggingSolver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
 {
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
@@ -225,6 +224,7 @@ Term LoggingSolver::make_term(const std::string& s, bool useEscSequences, const 
 
   return res;
 }
+
 Term LoggingSolver::make_term(const std::wstring& s, const Sort & sort) const{
   shared_ptr<LoggingSort> lsort = static_pointer_cast<LoggingSort>(sort);
   Term wrapped_res = wrapped_solver->make_term(s, lsort->wrapped_sort);
@@ -243,7 +243,6 @@ Term LoggingSolver::make_term(const std::wstring& s, const Sort & sort) const{
 
   return res;
 }
-
 
 Term LoggingSolver::make_term(const string name,
                               const Sort & sort,

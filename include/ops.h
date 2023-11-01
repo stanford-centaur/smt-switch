@@ -98,7 +98,7 @@ enum PrimOp
   // BitVector Conversion
   BV_To_Nat,
   Int_To_BV,
-  //Strings
+  // Strings
   StrLt,
   StrLeq,
   StrLen,
