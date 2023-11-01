@@ -53,5 +53,22 @@ int main()
     cout << "\t" << c << endl;
   }
 
+  Term str_a = s->make_term("a", false, s->make_sort(STRING));
+  cout << str_a << endl;
+  Term wstr_b = s->make_term(L"b", s->make_sort(STRING));
+  cout << wstr_b << endl;
+  Term t = s->make_symbol("t", s->make_sort(STRING));
+  Term w = s->make_symbol("w", s->make_sort(STRING));
+  cout << t->to_string() << endl;
+  cout << w->to_string() << endl;
+  Term tw = s->make_term(StrConcat, t, w);
+  cout << tw->to_string() << endl;
+  cout << tw << endl;
+  cout << "Children of " << tw << endl;
+  for (auto c : tw)
+  {
+    cout << "\t" << c << endl;
+  }  
+
   return 0;
 }

@@ -104,6 +104,11 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       { ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       // Conversion
       { ::cvc5::Kind::BITVECTOR_TO_NAT, BV_To_Nat },
+      // String Op
+      { ::cvc5::Kind::STRING_LT, StrLt },
+      { ::cvc5::Kind::STRING_LEQ, StrLeq },
+      { ::cvc5::Kind::STRING_LENGTH, StrLen },
+      { ::cvc5::Kind::STRING_CONCAT, StrConcat },
       // Indexed Op
       { ::cvc5::Kind::INT_TO_BITVECTOR, Int_To_BV },
       { ::cvc5::Kind::SELECT, Select },
@@ -281,6 +286,8 @@ bool Cvc5Term::is_value() const
 }
 
 std::string Cvc5Term::to_string() { return term.toString(); }
+
+std::wstring Cvc5Term::getStringValue() const { return term.getStringValue(); }
 
 uint64_t Cvc5Term::to_int() const
 {

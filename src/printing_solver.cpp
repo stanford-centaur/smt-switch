@@ -130,6 +130,15 @@ Term PrintingSolver::make_term(int64_t i, const Sort & sort) const
   return wrapped_solver->make_term(i, sort);
 }
 
+Term PrintingSolver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
+{
+  return wrapped_solver->make_term(s, useEscSequences, sort);
+}
+Term PrintingSolver::make_term(const std::wstring& s, const Sort & sort) const
+{
+  return wrapped_solver->make_term(s, sort);
+}
+
 Term PrintingSolver::make_term(const string name,
                               const Sort & sort,
                               uint64_t base) const

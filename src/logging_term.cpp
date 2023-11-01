@@ -164,6 +164,11 @@ string LoggingTerm::to_string()
   }
 }
 
+wstring LoggingTerm::getStringValue() const
+{
+  return wrapped_term->getStringValue();
+}
+
 bool LoggingTerm::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols

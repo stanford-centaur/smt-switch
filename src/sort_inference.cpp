@@ -93,6 +93,10 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { Rotate_Right, bv_sorts },
                           { BV_To_Nat, bv_sorts },
                           { Int_To_BV, int_sorts },
+                          { StrLt, string_sorts },
+                          { StrLeq, string_sorts },
+                          { StrConcat, string_sorts },
+                          { StrLen, string_sorts },
                           { Select, check_select_sorts },
                           { Store, check_store_sorts },
                           { Forall, check_quantifier_sorts },
@@ -175,6 +179,10 @@ const std::unordered_map<
         { Rotate_Right, same_sort },
         { BV_To_Nat, int_sort },
         { Int_To_BV, int_to_bv_sort },
+        { StrLt, bool_sort },
+        { StrLeq, bool_sort },
+        { StrConcat, string_sort },
+        { StrLen, int_sort },        
         { Select, select_sort },
         { Store, store_sort },
         { Forall, bool_sort },
@@ -462,6 +470,11 @@ bool int_sorts(const SortVec & sorts)
   return check_sortkind_matches(INT, sorts);
 };
 
+bool string_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(STRING, sorts);
+};
+
 bool arithmetic_sorts(const SortVec & sorts)
 {
   return check_one_of_sortkinds({ INT, REAL }, sorts);
@@ -505,6 +518,12 @@ Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   return solver->make_sort(INT);
 }
+
+Sort string_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  return solver->make_sort(STRING);
+}
+
 
 Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {

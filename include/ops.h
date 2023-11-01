@@ -98,6 +98,11 @@ enum PrimOp
   // BitVector Conversion
   BV_To_Nat,
   Int_To_BV,
+  // Strings
+  StrLt,
+  StrLeq,
+  StrLen,
+  StrConcat,
   /* Array Theory */
   Select,
   Store,

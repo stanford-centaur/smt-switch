@@ -350,6 +350,10 @@ atom:
       }
       $$ = sym;
    }
+   | FLOAT
+   {
+     $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::REAL));
+   }
    | NAT
    {
      $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
@@ -357,6 +361,10 @@ atom:
    | bvconst
    {
      $$ = $1;
+   }
+   | QUOTESTRING
+   {
+     $$ = drv.solver()->make_term($1, false, drv.solver()->make_sort(smt::STRING));
    }
 ;
 

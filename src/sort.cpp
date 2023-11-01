@@ -29,6 +29,7 @@ const std::unordered_map<SortKind, std::string> sortkind2str(
       { BV, "BitVec" },
       { INT, "Int" },
       { REAL, "Real" },
+      { STRING, "String" },
       { FUNCTION, "Function" },
       { UNINTERPRETED, "Uninterpreted" },
       { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
@@ -71,6 +72,10 @@ std::string AbsSort::to_string() const
   else if (sk == REAL)
   {
     return "Real";
+  }
+    else if (sk == STRING)
+  {
+    return "String";
   }
   else if (sk == BV)
   {

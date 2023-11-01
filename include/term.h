@@ -27,6 +27,7 @@
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "exceptions.h"
 
 namespace smt {
 
@@ -51,6 +52,10 @@ class AbsTerm
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
   virtual std::string to_string() = 0;
+  /* returns the string term as a native string value */
+  virtual std::wstring getStringValue() const{
+    throw NotImplementedException("Strings not supported for this solver.");
+  }
   /* returns true iff this term is a symbol */
   virtual bool is_symbol() const = 0;
   /* returns true iff this term is a parameter (to be bound by a quantifier) */

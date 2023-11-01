@@ -52,6 +52,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
         { CVC5,
           { TERMITER,
             THEORY_INT,
+            THEORY_STR,
             THEORY_BV,
             THEORY_REAL,
             ARRAY_MODELS,
@@ -173,6 +174,7 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
     case TERMITER: o << "TERMITER"; break;
     case THEORY_INT: o << "THEORY_INT"; break;
     case THEORY_REAL: o << "THEORY_REAL"; break;
+    case THEORY_STR: o << "THEORY_STR"; break;
     case ARRAY_MODELS: o << "ARRAY_MODELS"; break;
     case CONSTARR: o << "CONSTARR"; break;
     case FULL_TRANSFER: o << "FULL_TRANSFER"; break;
