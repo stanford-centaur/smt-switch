@@ -97,6 +97,7 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { StrReplaceAll, "str.replace_all"},
       { StrPrefixof, "str.prefixof"},
       { StrSuffixof, "str.suffixof"},
+      { StrIsDigit, "str.is_digit"},
       { Select, "select" },
       { Store, "store" },
       { Forall, "forall" },
