@@ -97,6 +97,15 @@ const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
                           { StrLeq, string_sorts },
                           { StrConcat, string_sorts },
                           { StrLen, string_sorts },
+                          { StrSubstr, check_substr_sorts },
+                          { StrAt, check_charat_sorts },
+                          { StrContains, string_sorts },
+                          { StrIndexof, check_indexof_sorts },
+                          { StrReplace, string_sorts },
+                          { StrReplaceAll, string_sorts },
+                          { StrPrefixof, string_sorts },
+                          { StrSuffixof, string_sorts },
+                          { StrIsDigit, string_sorts },
                           { Select, check_select_sorts },
                           { Store, check_store_sorts },
                           { Forall, check_quantifier_sorts },
@@ -182,7 +191,16 @@ const std::unordered_map<
         { StrLt, bool_sort },
         { StrLeq, bool_sort },
         { StrConcat, string_sort },
-        { StrLen, int_sort },        
+        { StrLen, int_sort },
+        { StrSubstr, string_sort },
+        { StrAt, string_sort },
+        { StrContains, bool_sort },
+        { StrIndexof, int_sort },
+        { StrReplace, string_sort },
+        { StrReplaceAll, string_sort },
+        { StrPrefixof, bool_sort },
+        { StrSuffixof, bool_sort },
+        { StrIsDigit, bool_sort },
         { Select, select_sort },
         { Store, store_sort },
         { Forall, bool_sort },
@@ -437,6 +455,80 @@ bool check_store_sorts(const SortVec & sorts)
     return false;
   }
   else if (sorts[2] != arrsort->get_elemsort())
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool check_substr_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 3)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+  else if (sorts[2]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool check_charat_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 2)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+  
+  return true;
+}
+
+bool check_indexof_sorts(const SortVec & sorts)
+{
+  assert(sorts.size());
+  if (sorts.size() != 3)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+  else if (sorts[2]->get_sort_kind() != INT)
   {
     return false;
   }
