@@ -38,8 +38,8 @@ class GenericSolver : public AbsSmtSolver
  public:
   GenericSolver(std::string path,
                 std::vector<std::string> cmd_line_args,
-                uint write_buf_size = 256,
-                uint read_buf_size = 256);
+                unsigned int write_buf_size = 256,
+                unsigned int read_buf_size = 256);
   ~GenericSolver();
 
   /***************************************************************/
@@ -168,28 +168,28 @@ class GenericSolver : public AbsSmtSolver
    * desired bv value. width is the bit-width returns a bv term of width `width`
    * whose value is (-1) * abs_decimal.
    * */
-  Term make_non_negative_bv_const(std::string abs_decimal, uint width) const;
+  Term make_non_negative_bv_const(std::string abs_decimal, unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the absolute value of the desired bit-vector.
    * width is the bit-width
    * returns a bv term of width `width` whose value is abs_value.
    * */
-  Term make_non_negative_bv_const(int64_t abs_value, uint width) const;
+  Term make_non_negative_bv_const(int64_t abs_value, unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the string represnentation of the absolute value of the
    * desired bv value. width is the bit-width returns a bv term of width `width`
    * whose value is abs_decimal.
    * */
-  Term make_negative_bv_const(std::string abs_decimal, uint width) const;
+  Term make_negative_bv_const(std::string abs_decimal, unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the absolute value of the desired bit-vector.
    * width is the bit-width
    * returns a bv term of width `width` whose value is (-1) * abs_value.
    * */
-  Term make_negative_bv_const(int64_t abs_value, uint width) const;
+  Term make_negative_bv_const(int64_t abs_value, unsigned int width) const;
 
   // open a connection to the binary via a pipe
   void start_solver();
@@ -241,8 +241,8 @@ class GenericSolver : public AbsSmtSolver
   char * read_buf;
 
   // buffer sizes
-  uint write_buf_size;
-  uint read_buf_size;
+  unsigned int write_buf_size;
+  unsigned int read_buf_size;
 
   // tracks the context level of the solver
   // (e.g., number of pushes - number of pops)
@@ -253,7 +253,7 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<std::unordered_map<Sort, std::string>> sort_name_map;
 
   // internal counter for naming terms
-  uint * term_counter;
+  unsigned int * term_counter;
 
   // maps between Term name and actual Term and vice versa
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
