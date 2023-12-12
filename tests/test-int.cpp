@@ -41,6 +41,27 @@ class IntTests : public ::testing::Test,
   Sort intsort;
 };
 
+// test for creating variadic mult-terms
+TEST_P(IntTests, Mult)
+{
+  Term two = s->make_term(2, intsort);
+  Term three = s->make_term(3, intsort);
+  Term four = s->make_term(4, intsort);
+  Term twentyfour = s->make_term(24, intsort);
+  Term mult;
+  try
+  {
+    mult = s->make_term(Mult, {two, three, four});
+  }
+  catch (const IncorrectUsageException &e)
+  {
+    FAIL() <<  "creating mult-term failed: " << e.what();
+  }
+  s->assert_formula(s->make_term(Equal, twentyfour, mult));
+  auto res = s->check_sat();
+  assert(res.is_sat());
+}
+
 TEST_P(IntTests, IntDiv)
 {
   Term five = s->make_term(5, intsort);
