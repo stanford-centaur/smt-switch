@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 Z3_VERSION=6cc52e04c3ea7e2534644a285d231bdaaafd8714
 
