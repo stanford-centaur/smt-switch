@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 BTOR_VERSION=97698b06a5de1a4e5743c034c867d384630dc936
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
