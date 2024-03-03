@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_options(-fsanitize=address -fsanitize=undefined)
+add_link_options(-fsanitize=address -fsanitize=undefined)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 

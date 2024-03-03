@@ -3,14 +3,23 @@
 #include <inttypes.h>
 #include <z3++.h>
 
-#include "solver_utils.h"
-
+#include <exception>
 #include <iostream>
+#include <iterator>
+#include <memory>
+
+#include "exceptions.h"
+#include "smt_defs.h"
+#include "solver_utils.h"
 
 // TEMP for conversions, e.g. creating bit-vectors from base 2 or base 16
 // TODO look deeper into Z3 API to see if there's dedicated support
 //      Note: there is one for base 2 but not an obvious one for base 16
 #include "gmpxx.h"
+#include "sort.h"
+#include "z3_datatype.h"
+#include "z3_sort.h"
+#include "z3_term.h"
 
 using namespace std;
 
@@ -143,7 +152,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    unsigned milliseconds = stoi(value)*1000;
+    unsigned milliseconds = stoi(value) * 1000;
     slv.set("timeout", milliseconds);
   }
   else if (option == "produce-unsat-assumptions")
@@ -221,49 +230,179 @@ Term Z3Solver::make_term(bool b) const
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
 {
-  throw NotImplementedException("Z3Solver::make_sort");
-};
+  try
+  {
+    std::shared_ptr<z3DatatypeDecl> cd =
+        std::static_pointer_cast<z3DatatypeDecl>(d);
+    auto sort = ctx.datatype(ctx.str_symbol(cd->name.data()), cd->cs);
+    return std::make_shared<Z3Sort>(sort, ctx);
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+SortVec Z3Solver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls) const
+{
+  std::vector<z3::symbol> syms;
+  std::vector<z3::constructor_list> clvec;
+  std::vector<z3::constructor_list *> clpvec;  // constructor_list pointer vec
+  for (auto & absdecl : decls)
+  {
+    std::shared_ptr<z3DatatypeDecl> decl =
+        std::static_pointer_cast<z3DatatypeDecl>(absdecl);
+    syms.push_back(ctx.str_symbol(decl->name.c_str()));
+    clvec.emplace_back(decl->cs);
+    clpvec.push_back(&clvec.back());
+  }
+  auto raw_sorts = ctx.datatypes(decls.size(), syms.data(), clpvec.data());
+  SortVec sorts{};
+  for (auto s : raw_sorts) sorts.push_back(std::make_shared<Z3Sort>(s, ctx));
+  return sorts;
+}
+
 DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s)
 {
-  throw NotImplementedException("Z3Solver::make_datatype_decl");
+  try
+  {
+    return std::make_shared<z3DatatypeDecl>(ctx, s);
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
+
 DatatypeConstructorDecl Z3Solver::make_datatype_constructor_decl(
     const std::string s)
 {
-  throw NotImplementedException("Z3Solver::make_datatype_constructor_decl");
-};
+  try
+  {
+    return std::make_shared<z3DatatypeConstructorDecl>(ctx, s);
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 void Z3Solver::add_constructor(DatatypeDecl & dt,
-                               const DatatypeConstructorDecl & con) const
+                               const DatatypeConstructorDecl & cons) const
 {
-  throw NotImplementedException("Z3Solver::add_constructor");
-};
+  try
+  {
+    auto z3dt = std::static_pointer_cast<z3DatatypeDecl>(dt);
+    auto z3cons = std::static_pointer_cast<z3DatatypeConstructorDecl>(cons);
+    auto & cname = z3cons->name;
+    auto recognizer = "is-"s + cname;
+    std::vector<z3::symbol> syms;
+    std::transform(z3cons->names.begin(),
+                   z3cons->names.end(),
+                   std::back_inserter(syms),
+                   [this](auto & str) { return ctx.str_symbol(str.c_str()); });
+    std::vector<z3::sort> sorts;
+    std::transform(z3cons->sorts.begin(),
+                   z3cons->sorts.end(),
+                   std::back_inserter(sorts),
+                   [this](const Sort & s) {
+                     return std::static_pointer_cast<Z3Sort>(s)->get_z3_type();
+                   });
+    assert(syms.size() == sorts.size()
+           and sorts.size() == z3cons->names.size());
+    z3dt->cs.add(ctx.str_symbol(cname.c_str()),
+                 ctx.str_symbol(recognizer.c_str()),
+                 z3cons->names.size(),
+                 syms.data(),
+                 sorts.data());
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
                             const std::string & name,
                             const Sort & s) const
 {
-  throw NotImplementedException("Z3Solver::add_selector");
-};
+  try
+  {
+    auto cdt = std::static_pointer_cast<z3DatatypeConstructorDecl>(dt);
+    cdt->addField(name, s);
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
                                  const std::string & name) const
 {
-  throw NotImplementedException("Z3Solver::add_selector_self");
-};
+  try
+  {
+    auto cdt = std::static_pointer_cast<z3DatatypeConstructorDecl>(dt);
+    cdt->addSelfRef(name);
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Z3Solver::get_constructor");
-};
+  try
+  {
+    auto z3sort = std::static_pointer_cast<Z3Sort>(s);
+    auto dt = std::static_pointer_cast<z3Datatype>(z3sort->get_datatype());
+    for (size_t i = 0; i < dt->get_num_constructors(); i++)
+    {
+      z3::func_decl cons{
+        ctx, Z3_get_datatype_sort_constructor(ctx, dt->datatype, i)
+      };
+      if (cons.name().str() == name) return std::make_shared<Z3Term>(cons, ctx);
+    }
+    throw InternalSolverException("Constructor" + name + " not found");
+  }
+  catch (z3::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
 Term Z3Solver::get_tester(const Sort & s, std::string name) const
 {
-  throw NotImplementedException("Z3Solver::get_testeer");
-};
+  auto z3sort = std::static_pointer_cast<Z3Sort>(s);
+  auto dt = std::static_pointer_cast<z3Datatype>(z3sort->get_datatype());
+  for (size_t i = 0; i < dt->get_num_constructors(); i++)
+  {
+    z3::func_decl cons{
+      ctx, Z3_get_datatype_sort_constructor(ctx, dt->datatype, i)
+    };
+    if (cons.name().str() == name)
+      return std::make_shared<Z3Term>(
+          z3::func_decl{
+              ctx, Z3_get_datatype_sort_recognizer(ctx, dt->datatype, i) },
+          ctx);
+  }
+  throw InternalSolverException("tester " + name + " not found");
+}
 
 Term Z3Solver::get_selector(const Sort & s,
                             std::string con,
                             std::string name) const
 {
-  throw NotImplementedException("Z3Solver::get_selector");
-};
+  auto cons = get_constructor(s, con);
+  auto func = std::static_pointer_cast<Z3Term>(cons)->get_z3_func_decl();
+  for (auto field : func.accessors())
+  {
+    if (field.name().str() == name) return std::make_shared<Z3Term>(field, ctx);
+  }
+  throw InternalSolverException("Selector " + name + " not found");
+}
 
 Term Z3Solver::make_term(int64_t i, const Sort & sort) const
 {

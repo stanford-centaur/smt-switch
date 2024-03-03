@@ -108,6 +108,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             ARRAY_FUN_BOOLS,
             CONSTARR,
             UNSAT_CORE,
+            THEORY_DATATYPE,
             QUANTIFIERS,
             UNINTERP_SORT,
             TIMELIMIT } },
