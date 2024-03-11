@@ -227,6 +227,30 @@ Term Z3Solver::make_term(bool b) const
 
   return std::make_shared<Z3Term>(z_term, ctx);
 }
+void Z3Solver::add_constructor(z3::constructors * cs,
+                               const DatatypeConstructorDecl & cons) const
+{
+  auto z3cons = std::static_pointer_cast<z3DatatypeConstructorDecl>(cons);
+  auto & cname = z3cons->name;
+  auto recognizer = "is-"s + cname;
+  std::vector<z3::symbol> syms;
+  std::vector<z3::sort> sorts;
+  std::transform(z3cons->names.begin(),
+                 z3cons->names.end(),
+                 std::back_inserter(syms),
+                 [this](auto & str) { return ctx.str_symbol(str.c_str()); });
+  std::transform(z3cons->sorts.begin(),
+                 z3cons->sorts.end(),
+                 std::back_inserter(sorts),
+                 [this](const Sort & s) {
+                   return std::static_pointer_cast<Z3Sort>(s)->get_z3_type();
+                 });
+  cs->add(ctx.str_symbol(cname.c_str()),
+         ctx.str_symbol(recognizer.c_str()),
+         z3cons->names.size(),
+         syms.data(),
+         sorts.data());
+}
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
 {
@@ -234,7 +258,13 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
   {
     std::shared_ptr<z3DatatypeDecl> cd =
         std::static_pointer_cast<z3DatatypeDecl>(d);
-    auto sort = ctx.datatype(ctx.str_symbol(cd->name.data()), cd->cs);
+    // TODO
+    z3::constructors cs{ ctx };
+    for (auto cons : cd->consvec)
+    {
+      add_constructor(&cs, cons);
+    }
+    auto sort = ctx.datatype(ctx.str_symbol(cd->name.data()), cs);
     return std::make_shared<Z3Sort>(sort, ctx);
   }
   catch (z3::exception & e)
@@ -247,15 +277,19 @@ SortVec Z3Solver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & decls) const
 {
   std::vector<z3::symbol> syms;
-  std::vector<z3::constructor_list> clvec;
-  std::vector<z3::constructor_list *> clpvec;  // constructor_list pointer vec
+  std::vector<std::unique_ptr<z3::constructors>> consvec;
+  std::vector<z3::constructor_list> clvec{};
+  std::vector<z3::constructor_list *> clpvec{};  // constructor_list pointer vec
   for (auto & absdecl : decls)
   {
     std::shared_ptr<z3DatatypeDecl> decl =
         std::static_pointer_cast<z3DatatypeDecl>(absdecl);
     syms.push_back(ctx.str_symbol(decl->name.c_str()));
-    clvec.emplace_back(decl->cs);
+    auto cs = std::make_unique<z3::constructors>(ctx);
+    for (auto cons : decl->consvec) add_constructor(cs.get(), cons);
+    clvec.emplace_back(*cs);
     clpvec.push_back(&clvec.back());
+    consvec.push_back(std::move(cs));
   }
   auto raw_sorts = ctx.datatypes(decls.size(), syms.data(), clpvec.data());
   SortVec sorts{};
@@ -294,28 +328,7 @@ void Z3Solver::add_constructor(DatatypeDecl & dt,
   try
   {
     auto z3dt = std::static_pointer_cast<z3DatatypeDecl>(dt);
-    auto z3cons = std::static_pointer_cast<z3DatatypeConstructorDecl>(cons);
-    auto & cname = z3cons->name;
-    auto recognizer = "is-"s + cname;
-    std::vector<z3::symbol> syms;
-    std::transform(z3cons->names.begin(),
-                   z3cons->names.end(),
-                   std::back_inserter(syms),
-                   [this](auto & str) { return ctx.str_symbol(str.c_str()); });
-    std::vector<z3::sort> sorts;
-    std::transform(z3cons->sorts.begin(),
-                   z3cons->sorts.end(),
-                   std::back_inserter(sorts),
-                   [this](const Sort & s) {
-                     return std::static_pointer_cast<Z3Sort>(s)->get_z3_type();
-                   });
-    assert(syms.size() == sorts.size()
-           and sorts.size() == z3cons->names.size());
-    z3dt->cs.add(ctx.str_symbol(cname.c_str()),
-                 ctx.str_symbol(recognizer.c_str()),
-                 z3cons->names.size(),
-                 syms.data(),
-                 sorts.data());
+    z3dt->consvec.push_back(cons);
   }
   catch (z3::exception & e)
   {
@@ -356,6 +369,7 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 {
   try
   {
+    // TODO: context has a method for it.
     auto z3sort = std::static_pointer_cast<Z3Sort>(s);
     auto dt = std::static_pointer_cast<z3Datatype>(z3sort->get_datatype());
     for (size_t i = 0; i < dt->get_num_constructors(); i++)

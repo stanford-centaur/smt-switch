@@ -156,5 +156,6 @@ class Z3Solver : public AbsSmtSolver
       throw NotImplementedException("Unimplemented result type from Z3");
     }
   }
+  void add_constructor(z3::constructors*, const DatatypeConstructorDecl&) const;
 };
 }  // namespace smt

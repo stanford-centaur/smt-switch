@@ -16,14 +16,14 @@ class z3DatatypeConstructorDecl;
 class z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  z3DatatypeDecl(z3::context & c, std::string name) : c(c), cs(c), name(name){};
+  z3DatatypeDecl(z3::context & c, std::string name) : c(c), name(name){};
 
  protected:
   friend class Z3Solver;
   friend class z3Datatype;
   z3::context & c;
   std::string name;
-  z3::constructors cs;
+  std::vector<DatatypeConstructorDecl> consvec {};
 };
 
 class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
@@ -43,8 +43,8 @@ class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
   z3::context & c;
   std::string name;
-  std::vector<std::string> names;
-  std::vector<Sort> sorts;
+  std::vector<std::string> names {};
+  std::vector<Sort> sorts {};
 };
 
 class z3Datatype : public AbsDatatype
