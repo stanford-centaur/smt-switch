@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "exceptions.h"
+#include "ops.h"
 #include "smt_defs.h"
 #include "solver_utils.h"
 
@@ -227,29 +228,25 @@ Term Z3Solver::make_term(bool b) const
 
   return std::make_shared<Z3Term>(z_term, ctx);
 }
-void Z3Solver::add_constructor(z3::constructors * cs,
+void Z3Solver::add_constructor(z3::sort dtsort,
+                               z3::constructors * cs,
                                const DatatypeConstructorDecl & cons) const
 {
   auto z3cons = std::static_pointer_cast<z3DatatypeConstructorDecl>(cons);
-  auto & cname = z3cons->name;
+  auto & cname = z3cons->constructorname;
   auto recognizer = "is-"s + cname;
-  std::vector<z3::symbol> syms;
-  std::vector<z3::sort> sorts;
-  std::transform(z3cons->names.begin(),
-                 z3cons->names.end(),
-                 std::back_inserter(syms),
-                 [this](auto & str) { return ctx.str_symbol(str.c_str()); });
-  std::transform(z3cons->sorts.begin(),
-                 z3cons->sorts.end(),
-                 std::back_inserter(sorts),
-                 [this](const Sort & s) {
-                   return std::static_pointer_cast<Z3Sort>(s)->get_z3_type();
-                 });
+  for (auto & sort : z3cons->sorts)
+  {
+    if (static_cast<Z3_sort>(sort) == nullptr)
+    {
+      sort = dtsort;  // assignment?
+    }
+  }
   cs->add(ctx.str_symbol(cname.c_str()),
-         ctx.str_symbol(recognizer.c_str()),
-         z3cons->names.size(),
-         syms.data(),
-         sorts.data());
+          ctx.str_symbol(recognizer.c_str()),
+          z3cons->fieldnames.size(),
+          z3cons->fieldnames.data(),
+          z3cons->sorts.data());
 }
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
@@ -258,11 +255,12 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
   {
     std::shared_ptr<z3DatatypeDecl> cd =
         std::static_pointer_cast<z3DatatypeDecl>(d);
+    auto dtsort = ctx.datatype_sort(ctx.str_symbol(cd->name.c_str()));
     // TODO
     z3::constructors cs{ ctx };
     for (auto cons : cd->consvec)
     {
-      add_constructor(&cs, cons);
+      add_constructor(dtsort, &cs, cons);
     }
     auto sort = ctx.datatype(ctx.str_symbol(cd->name.data()), cs);
     return std::make_shared<Z3Sort>(sort, ctx);
@@ -284,9 +282,11 @@ SortVec Z3Solver::make_datatype_sorts(
   {
     std::shared_ptr<z3DatatypeDecl> decl =
         std::static_pointer_cast<z3DatatypeDecl>(absdecl);
-    syms.push_back(ctx.str_symbol(decl->name.c_str()));
+    auto dt_symbol = ctx.str_symbol(decl->name.c_str());
+    auto dt_sort = ctx.datatype_sort(dt_symbol);
+    syms.push_back(dt_symbol);
     auto cs = std::make_unique<z3::constructors>(ctx);
-    for (auto cons : decl->consvec) add_constructor(cs.get(), cons);
+    for (auto cons : decl->consvec) add_constructor(dt_sort, cs.get(), cons);
     clvec.emplace_back(*cs);
     clpvec.push_back(&clvec.back());
     consvec.push_back(std::move(cs));
@@ -369,14 +369,11 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 {
   try
   {
-    // TODO: context has a method for it.
     auto z3sort = std::static_pointer_cast<Z3Sort>(s);
     auto dt = std::static_pointer_cast<z3Datatype>(z3sort->get_datatype());
-    for (size_t i = 0; i < dt->get_num_constructors(); i++)
+    for (auto cons_raw : dt->datatype.constructors())
     {
-      z3::func_decl cons{
-        ctx, Z3_get_datatype_sort_constructor(ctx, dt->datatype, i)
-      };
+      z3::func_decl cons{ ctx, cons_raw };
       if (cons.name().str() == name) return std::make_shared<Z3Term>(cons, ctx);
     }
     throw InternalSolverException("Constructor" + name + " not found");
@@ -886,11 +883,14 @@ Term Z3Solver::make_term(Op op, const Term & t) const
 
   if (zterm->is_function)
   {
-    throw IncorrectUsageException(
-        "Cannot make a unary operator term with a function.");
+    if (op.prim_op != Apply_Constructor)
+    {
+      throw IncorrectUsageException(
+          "Cannot make a unary operator term with a function.");
+    }
+    res = Z3_mk_app(ctx, zterm->get_z3_func_decl(), 0, 0);
   }
-
-  if (op.prim_op == Extract)
+  else if (op.prim_op == Extract)
   {
     if (op.idx0 < 0 || op.idx1 < 0)
     {
@@ -990,6 +990,8 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
     {
       return make_term(op, TermVec{ t0, t1 });
     }
+    if (op == Apply_Constructor || op == Apply_Tester || op == Apply_Selector)
+      return make_term(Apply, t0, t1);
     throw IncorrectUsageException(
         "Cannot make a binary op term with a function.");
   }
@@ -1056,6 +1058,7 @@ Term Z3Solver::make_term(Op op,
     {
       return make_term(op, TermVec{ t0, t1, t2 });
     }
+    if (op == Apply_Constructor) return make_term(Apply, t0, t1, t2);
     throw IncorrectUsageException(
         "Cannot make a ternary op term with a function.");
   }

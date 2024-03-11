@@ -30,7 +30,7 @@ class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   z3DatatypeConstructorDecl(z3::context & c, std::string name)
-      : c(c), name(name){};
+      : c(c), constructorname(name){};
   bool compare(const DatatypeConstructorDecl &) const override;
 
  private:
@@ -42,9 +42,9 @@ class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   friend class z3Datatype;
 
   z3::context & c;
-  std::string name;
-  std::vector<std::string> names {};
-  std::vector<Sort> sorts {};
+  std::string constructorname, datatypename;
+  std::vector<z3::symbol> fieldnames {};
+  std::vector<z3::sort> sorts {};
 };
 
 class z3Datatype : public AbsDatatype
@@ -61,7 +61,7 @@ class z3Datatype : public AbsDatatype
     for (size_t i = 0; i < get_num_constructors(); i++)
     {
       z3::func_decl cons{ c, Z3_get_datatype_sort_constructor(c, datatype, i) };
-      if (cons.name().str() == name) return cons.num_parameters();
+      if (cons.name().str() == name) return cons.arity();
     }
     throw InternalSolverException(datatype.name().str() + "." + name
                                   + " not found");
