@@ -11,25 +11,25 @@ namespace smt {
 
 // forward declaration
 class Z3Solver;
-class z3Datatype;
-class z3DatatypeConstructorDecl;
-class z3DatatypeDecl : public AbsDatatypeDecl
+class Z3Datatype;
+class Z3DatatypeConstructorDecl;
+class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  z3DatatypeDecl(z3::context & c, std::string name) : c(c), name(name){};
+  Z3DatatypeDecl(z3::context & c, std::string name) : c(c), name(name){};
 
  protected:
   friend class Z3Solver;
-  friend class z3Datatype;
+  friend class Z3Datatype;
   z3::context & c;
   std::string name;
   std::vector<DatatypeConstructorDecl> consvec {};
 };
 
-class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
+class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  z3DatatypeConstructorDecl(z3::context & c, std::string name)
+  Z3DatatypeConstructorDecl(z3::context & c, std::string name)
       : c(c), constructorname(name){};
   bool compare(const DatatypeConstructorDecl &) const override;
 
@@ -39,7 +39,7 @@ class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
  protected:
   friend class Z3Solver;
-  friend class z3Datatype;
+  friend class Z3Datatype;
 
   z3::context & c;
   std::string constructorname, datatypename;
@@ -47,10 +47,10 @@ class z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::vector<z3::sort> sorts {};
 };
 
-class z3Datatype : public AbsDatatype
+class Z3Datatype : public AbsDatatype
 {
  public:
-  z3Datatype(z3::context & c, z3::sort s) : c(c), datatype(s) {}
+  Z3Datatype(z3::context & c, z3::sort s) : c(c), datatype(s) {}
   std::string get_name() const override { return datatype.name().str(); }
   int get_num_constructors() const override
   {

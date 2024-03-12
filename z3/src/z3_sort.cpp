@@ -128,7 +128,7 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
 Datatype Z3Sort::get_datatype() const
 {
   if (type.is_datatype())
-    return std::make_shared<z3Datatype>(*ctx, type);
+    return std::make_shared<Z3Datatype>(*ctx, type);
   else
     throw InternalSolverException("Sort is not datatype");
 };

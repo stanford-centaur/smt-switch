@@ -2,32 +2,39 @@
 
 #include <memory>
 
+#include "z3++.h"
 #include "z3_sort.h"
 
-const bool operator==(const z3::sort& lhs, const z3::sort& rhs) {
+namespace z3 {
+const bool operator==(const z3::sort & lhs, const z3::sort & rhs)
+{
   return z3::eq(lhs, rhs);
 }
+const bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
+{
+  return lhs.str() == rhs.str();
+}
+}  // namespace z3
 
 namespace smt {
-bool z3DatatypeConstructorDecl::compare(
+bool Z3DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & other) const
 {
-  auto cast = std::static_pointer_cast<z3DatatypeConstructorDecl>(other);
-  // FIXME: Compare the sorts and symbols!
-  return std::tie(constructorname)
-         == std::tie(cast->constructorname);
+  auto cast = std::static_pointer_cast<Z3DatatypeConstructorDecl>(other);
+  return std::tie(constructorname, fieldnames, sorts)
+         == std::tie(cast->constructorname, cast->fieldnames, cast->sorts);
 }
 
-void z3DatatypeConstructorDecl::addField(std::string fn, const Sort & sort)
+void Z3DatatypeConstructorDecl::addField(std::string fn, const Sort & sort)
 {
   fieldnames.push_back(c.str_symbol(fn.c_str()));
   sorts.push_back(std::static_pointer_cast<Z3Sort>(sort)->get_z3_type());
 }
 
-void z3DatatypeConstructorDecl::addSelfRef(std::string fn)
+void Z3DatatypeConstructorDecl::addSelfRef(std::string fn)
 {
   fieldnames.push_back(c.str_symbol(fn.c_str()));
-  sorts.emplace_back(c);  // push back an empty sort
+  sorts.emplace_back(c);  // push back an empty sort because we don't know the datatype name yet
 }
 
 }  // namespace smt
