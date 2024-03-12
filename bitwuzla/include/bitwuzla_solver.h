@@ -41,7 +41,7 @@ class BzlaSolver : public AbsSmtSolver
  public:
   BzlaSolver()
       : AbsSmtSolver(BZLA),
-        bzla(bitwuzla_new()),
+        bzla(new bitwuzla::Bitwuzla()),
         context_level(0),
         time_limit(0),
         terminate_bzla(false)
@@ -71,7 +71,7 @@ class BzlaSolver : public AbsSmtSolver
   {
     // need to destruct all stored terms in symbol_table
     symbol_table.clear();
-    bitwuzla_delete(bzla);
+    delete bzla;
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
@@ -147,10 +147,10 @@ class BzlaSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  Bitwuzla * get_bitwuzla() const { return bzla; };
+  bitwuzla::Bitwuzla * get_bitwuzla() const { return bzla; };
 
  protected:
-  Bitwuzla * bzla;
+  bitwuzla::Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
 
@@ -160,25 +160,24 @@ class BzlaSolver : public AbsSmtSolver
   bool terminate_bzla;  ///< used if time limit is reached
 
   // helper functions
-  template <class I>
-  inline Result check_sat_assuming_internal(I it, const I & end)
+  template <class T>
+  inline Result check_sat_assuming_internal(T container)
   {
+    std::vector<bitwuzla::Term> assumptions;
     std::shared_ptr<BzlaTerm> bt;
-    while (it != end)
+    for (auto&& elt: container)
     {
-      bt = std::static_pointer_cast<BzlaTerm>(*it);
-      bitwuzla_assume(bzla, bt->term);
-      ++it;
+      assumptions.push_back(elt);
     }
 
     timelimit_start();
-    BitwuzlaResult res = bitwuzla_check_sat(bzla);
+    bitwuzla::Result res = bzla->check_sat(assumptions);
     bool tl_triggered = timelimit_end();
-    if (res == BITWUZLA_SAT)
+    if (res == bitwuzla::Result::SAT)
     {
       return Result(SAT);
     }
-    else if (res == BITWUZLA_UNSAT)
+    else if (res == bitwuzla::Result::UNSAT)
     {
       return Result(UNSAT);
     }

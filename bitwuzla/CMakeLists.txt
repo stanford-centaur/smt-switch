@@ -11,7 +11,7 @@ target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/in
 target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/bitwuzla/include")
-target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/src/api/c")
+target_include_directories (smt-switch-bitwuzla PUBLIC "${BITWUZLA_HOME}/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC ${GMP_INCLUDE_DIR})
 
 target_link_libraries(smt-switch-bitwuzla "${BITWUZLA_HOME}/build/lib/libbitwuzla.a")

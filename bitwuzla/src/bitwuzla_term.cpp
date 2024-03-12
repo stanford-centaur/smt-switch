@@ -29,9 +29,9 @@ using namespace std;
 namespace std {
 // specialize the hash template
 template <>
-struct hash<BitwuzlaKind>
+struct hash<bitwuzla::Kind>
 {
-  size_t operator()(const BitwuzlaKind bk) const
+  size_t operator()(const bitwuzla::Kind bk) const
   {
     return static_cast<std::size_t>(bk);
   }
@@ -40,62 +40,62 @@ struct hash<BitwuzlaKind>
 
 namespace smt {
 
-const std::unordered_map<BitwuzlaKind, PrimOp> bkind2primop(
+const std::unordered_map<bitwuzla::Kind, PrimOp> bkind2primop(
     { /* Core Theory */
-      { BITWUZLA_KIND_AND, And },
-      { BITWUZLA_KIND_OR, Or },
-      { BITWUZLA_KIND_XOR, Xor },
-      { BITWUZLA_KIND_NOT, Not },
+      { bitwuzla::Kind::AND, And },
+      { bitwuzla::Kind::OR, Or },
+      { bitwuzla::Kind::XOR, Xor },
+      { bitwuzla::Kind::NOT, Not },
       // needs to be translated
-      { BITWUZLA_KIND_IMPLIES, Implies },
-      { BITWUZLA_KIND_IFF, Equal },
-      { BITWUZLA_KIND_ITE, Ite },
-      { BITWUZLA_KIND_EQUAL, Equal },
-      { BITWUZLA_KIND_DISTINCT, Distinct },
+      { bitwuzla::Kind::IMPLIES, Implies },
+      { bitwuzla::Kind::IFF, Equal },
+      { bitwuzla::Kind::ITE, Ite },
+      { bitwuzla::Kind::EQUAL, Equal },
+      { bitwuzla::Kind::DISTINCT, Distinct },
       /* Uninterpreted Functions */
-      { BITWUZLA_KIND_APPLY, Apply },
+      { bitwuzla::Kind::APPLY, Apply },
       /* Fixed Size BitVector Theory */
-      { BITWUZLA_KIND_BV_CONCAT, Concat },
-      { BITWUZLA_KIND_BV_EXTRACT, Extract },
-      { BITWUZLA_KIND_BV_NOT, BVNot },
-      { BITWUZLA_KIND_BV_NEG, BVNeg },
-      { BITWUZLA_KIND_BV_AND, BVAnd },
-      { BITWUZLA_KIND_BV_OR, BVOr },
-      { BITWUZLA_KIND_BV_XOR, BVXor },
-      { BITWUZLA_KIND_BV_NAND, BVNand },
-      { BITWUZLA_KIND_BV_NOR, BVNor },
-      { BITWUZLA_KIND_BV_XNOR, BVXnor },
-      { BITWUZLA_KIND_BV_ADD, BVAdd },
-      { BITWUZLA_KIND_BV_SUB, BVSub },
-      { BITWUZLA_KIND_BV_MUL, BVMul },
-      { BITWUZLA_KIND_BV_UDIV, BVUdiv },
-      { BITWUZLA_KIND_BV_SDIV, BVSdiv },
-      { BITWUZLA_KIND_BV_UREM, BVUrem },
-      { BITWUZLA_KIND_BV_SREM, BVSrem },
-      { BITWUZLA_KIND_BV_SMOD, BVSmod },
-      { BITWUZLA_KIND_BV_SHL, BVShl },
-      { BITWUZLA_KIND_BV_ASHR, BVAshr },
-      { BITWUZLA_KIND_BV_SHR, BVLshr },
-      { BITWUZLA_KIND_BV_COMP, BVComp },
-      { BITWUZLA_KIND_BV_ULT, BVUlt },
-      { BITWUZLA_KIND_BV_ULE, BVUle },
-      { BITWUZLA_KIND_BV_UGT, BVUgt },
-      { BITWUZLA_KIND_BV_UGE, BVUge },
-      { BITWUZLA_KIND_BV_SLT, BVSlt },
-      { BITWUZLA_KIND_BV_SLE, BVSle },
-      { BITWUZLA_KIND_BV_SGT, BVSgt },
-      { BITWUZLA_KIND_BV_SGE, BVSge },
-      { BITWUZLA_KIND_BV_ZERO_EXTEND, Zero_Extend },  // Indexed
-      { BITWUZLA_KIND_BV_SIGN_EXTEND, Sign_Extend },  // Indexed
-      { BITWUZLA_KIND_BV_REPEAT, Repeat },            // Indexed
-      { BITWUZLA_KIND_BV_ROLI, Rotate_Left },         // Indexed
-      { BITWUZLA_KIND_BV_RORI, Rotate_Right },        // Indexed
+      { bitwuzla::Kind::BV_CONCAT, Concat },
+      { bitwuzla::Kind::BV_EXTRACT, Extract },
+      { bitwuzla::Kind::BV_NOT, BVNot },
+      { bitwuzla::Kind::BV_NEG, BVNeg },
+      { bitwuzla::Kind::BV_AND, BVAnd },
+      { bitwuzla::Kind::BV_OR, BVOr },
+      { bitwuzla::Kind::BV_XOR, BVXor },
+      { bitwuzla::Kind::BV_NAND, BVNand },
+      { bitwuzla::Kind::BV_NOR, BVNor },
+      { bitwuzla::Kind::BV_XNOR, BVXnor },
+      { bitwuzla::Kind::BV_ADD, BVAdd },
+      { bitwuzla::Kind::BV_SUB, BVSub },
+      { bitwuzla::Kind::BV_MUL, BVMul },
+      { bitwuzla::Kind::BV_UDIV, BVUdiv },
+      { bitwuzla::Kind::BV_SDIV, BVSdiv },
+      { bitwuzla::Kind::BV_UREM, BVUrem },
+      { bitwuzla::Kind::BV_SREM, BVSrem },
+      { bitwuzla::Kind::BV_SMOD, BVSmod },
+      { bitwuzla::Kind::BV_SHL, BVShl },
+      { bitwuzla::Kind::BV_ASHR, BVAshr },
+      { bitwuzla::Kind::BV_SHR, BVLshr },
+      { bitwuzla::Kind::BV_COMP, BVComp },
+      { bitwuzla::Kind::BV_ULT, BVUlt },
+      { bitwuzla::Kind::BV_ULE, BVUle },
+      { bitwuzla::Kind::BV_UGT, BVUgt },
+      { bitwuzla::Kind::BV_UGE, BVUge },
+      { bitwuzla::Kind::BV_SLT, BVSlt },
+      { bitwuzla::Kind::BV_SLE, BVSle },
+      { bitwuzla::Kind::BV_SGT, BVSgt },
+      { bitwuzla::Kind::BV_SGE, BVSge },
+      { bitwuzla::Kind::BV_ZERO_EXTEND, Zero_Extend },  // Indexed
+      { bitwuzla::Kind::BV_SIGN_EXTEND, Sign_Extend },  // Indexed
+      { bitwuzla::Kind::BV_REPEAT, Repeat },            // Indexed
+      { bitwuzla::Kind::BV_ROLI, Rotate_Left },         // Indexed
+      { bitwuzla::Kind::BV_RORI, Rotate_Right },        // Indexed
                                                       /* Array Theory */
-      { BITWUZLA_KIND_ARRAY_SELECT, Select },
-      { BITWUZLA_KIND_ARRAY_STORE, Store },
+      { bitwuzla::Kind::ARRAY_SELECT, Select },
+      { bitwuzla::Kind::ARRAY_STORE, Store },
       /* Quantifiers */
-      { BITWUZLA_KIND_FORALL, Forall },
-      { BITWUZLA_KIND_EXISTS, Exists } });
+      { bitwuzla::Kind::FORALL, Forall },
+      { bitwuzla::Kind::EXISTS, Exists } });
 
 const unordered_set<PrimOp> indexed_ops(
     { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
@@ -143,14 +143,14 @@ bool BzlaTermIter::equal(const TermIterBase & other) const
 
 /*  end BzlaTermIter implementation */
 
-BzlaTerm::BzlaTerm(const BitwuzlaTerm * t) : term(t) {}
+BzlaTerm::BzlaTerm(const bitwuzla::Term * t) : term(t) {}
 
 BzlaTerm::~BzlaTerm() {}
 
-std::size_t BzlaTerm::hash() const { return bitwuzla_term_hash(term); }
+std::size_t BzlaTerm::hash() const { return std::hash<bitwuzla::Term>{}(*term); }
 
 // hash is unique in bitwuzla
-std::size_t BzlaTerm::get_id() const { return bitwuzla_term_hash(term); }
+std::size_t BzlaTerm::get_id() const { return std::hash<bitwuzla::Term>{}(*term); }
 
 bool BzlaTerm::compare(const Term & absterm) const
 {
@@ -161,13 +161,13 @@ bool BzlaTerm::compare(const Term & absterm) const
 
 Op BzlaTerm::get_op() const
 {
-  if (bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term)
-      || bitwuzla_term_is_const_array(term) || bitwuzla_term_is_bv_value(term))
+  if (term->is_const() || term->is_variable()
+      || term->is_ || bitwuzla_term_is_bv_value(term))
   {
     return Op();
   }
 
-  BitwuzlaKind bkind = bitwuzla_term_get_kind(term);
+  bitwuzla::Kind bkind = term->kind();
   auto it = bkind2primop.find(bkind);
   if (it == bkind2primop.end())
   {
@@ -201,16 +201,16 @@ Op BzlaTerm::get_op() const
 
 Sort BzlaTerm::get_sort() const
 {
-  return make_shared<BzlaSort>(bitwuzla_term_get_sort(term));
+  return make_shared<BzlaSort>(term->sort());
 }
 
 bool BzlaTerm::is_symbol() const
 {
   // symbols include constants, parameters, and function symbols
-  return bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term);
+  return term->is_const() || term->is_variable();
 }
 
-bool BzlaTerm::is_param() const { return bitwuzla_term_is_var(term); }
+bool BzlaTerm::is_param() const { return term->is_variable(); }
 
 bool BzlaTerm::is_symbolic_const() const
 {
@@ -258,7 +258,7 @@ uint64_t BzlaTerm::to_int() const
 TermIter BzlaTerm::begin()
 {
   size_t size;
-  const BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
+  const bitwuzla::Term ** children = bitwuzla_term_get_children(term, &size);
   return TermIter(
       new BzlaTermIter(vector<const BitwuzlaTerm *>(children, children + size), 0));
 }
@@ -266,7 +266,7 @@ TermIter BzlaTerm::begin()
 TermIter BzlaTerm::end()
 {
   size_t size;
-  const BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
+  const bitwuzla::Term ** children = bitwuzla_term_get_children(term, &size);
   return TermIter(new BzlaTermIter(
       vector<const BitwuzlaTerm *>(children, children + size), size));
 }
