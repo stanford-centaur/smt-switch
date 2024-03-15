@@ -1,8 +1,4 @@
 #include "z3_datatype.h"
-
-#include <memory>
-
-#include "z3++.h"
 #include "z3_sort.h"
 
 namespace z3 {

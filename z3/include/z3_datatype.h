@@ -1,11 +1,7 @@
 #pragma once
-#include <memory>
-#include <string>
-#include <vector>
-
+#include "z3++.h"
 #include "datatype.h"
 #include "exceptions.h"
-#include "z3++.h"
 
 namespace smt {
 
