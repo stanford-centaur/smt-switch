@@ -23,10 +23,6 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
       : c(c), constructorname(name){};
   bool compare(const DatatypeConstructorDecl &) const override;
 
- private:
-  void addField(std::string fn, const Sort & sort);
-  void addSelfRef(std::string name);
-
  protected:
   friend class Z3Solver;
 

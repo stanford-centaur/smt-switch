@@ -342,7 +342,8 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = std::static_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->addField(name, s);
+    cdt->fieldnames.push_back(ctx.str_symbol(name.c_str()));
+    cdt->sorts.push_back(std::static_pointer_cast<Z3Sort>(s)->get_z3_type());
   }
   catch (z3::exception & e)
   {
@@ -356,7 +357,9 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = std::static_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->addSelfRef(name);
+    cdt->fieldnames.push_back(ctx.str_symbol(name.c_str()));
+    cdt->sorts.emplace_back(ctx);  // push back an empty sort because we don't
+                                   // know the datatype name yet
   }
   catch (z3::exception & e)
   {
