@@ -300,7 +300,7 @@ DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s)
 {
   try
   {
-    return std::make_shared<Z3DatatypeDecl>(ctx, s);
+    return std::make_shared<Z3DatatypeDecl>(s);
   }
   catch (z3::exception & e)
   {

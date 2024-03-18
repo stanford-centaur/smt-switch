@@ -5,19 +5,13 @@
 
 namespace smt {
 
-// forward declaration
-class Z3Solver;
-class Z3Datatype;
-class Z3DatatypeConstructorDecl;
 class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  Z3DatatypeDecl(z3::context & c, std::string name) : c(c), name(name){};
+  Z3DatatypeDecl(std::string name) : name(name){};
 
  protected:
   friend class Z3Solver;
-  friend class Z3Datatype;
-  z3::context & c;
   std::string name;
   std::vector<DatatypeConstructorDecl> consvec {};
 };
@@ -35,7 +29,6 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
  protected:
   friend class Z3Solver;
-  friend class Z3Datatype;
 
   z3::context & c;
   std::string constructorname, datatypename;
