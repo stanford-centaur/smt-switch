@@ -26,7 +26,6 @@ if [ ! -d "$DEPS/z3" ]; then
     # a pthread related issue
     # compiling with --single-threaded helps, but isn't a real solution
     # see https://github.com/Z3Prover/z3/issues/4554
-    # ./configure --staticlib --single-threaded
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DZ3_BUILD_LIBZ3_SHARED=Off -DZ3_BUILD_LIBZ3_MSVC_STATIC=On
     cmake --build build -j$NUM_CORES
     cd $DIR
