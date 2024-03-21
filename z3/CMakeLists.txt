@@ -4,6 +4,7 @@ add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_term.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_datatype.cpp"
   )
 
 target_include_directories (smt-switch-z3 PUBLIC "${PROJECT_SOURCE_DIR}/include")

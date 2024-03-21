@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "exceptions.h"
+#include "z3_datatype.h"
 
 using namespace std;
 
@@ -126,7 +127,10 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
 
 Datatype Z3Sort::get_datatype() const
 {
-  throw NotImplementedException("get_datatype");
+  if (type.is_datatype())
+    return std::make_shared<Z3Datatype>(*ctx, type);
+  else
+    throw InternalSolverException("Sort is not datatype");
 };
 
 bool Z3Sort::compare(const Sort & s) const
