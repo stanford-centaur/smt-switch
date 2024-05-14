@@ -29,24 +29,24 @@ BzlaSort::~BzlaSort()
   // TODO: figure out if sorts need to be destroyed
 }
 
-size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(*sort); }
+size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
 
-uint64_t BzlaSort::get_width() const { return sort->bv_size(); }
+uint64_t BzlaSort::get_width() const { return sort.bv_size(); }
 
 Sort BzlaSort::get_indexsort() const
 {
-  return make_shared<BzlaSort>(sort->array_index());
+  return make_shared<BzlaSort>(sort.array_index());
 }
 
 Sort BzlaSort::get_elemsort() const
 {
-  return make_shared<BzlaSort>(sort->array_element());
+  return make_shared<BzlaSort>(sort.array_element());
 }
 
 SortVec BzlaSort::get_domain_sorts() const
 {
   size_t arity;
-  std::vector<bitwuzla::Sort> bsorts = sort->fun_domain();
+  std::vector<bitwuzla::Sort> bsorts = sort.fun_domain();
   SortVec domain_sorts; domain_sorts.reserve(arity);
 
   for (auto&& bsort : bsorts)
@@ -59,7 +59,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
-  return make_shared<BzlaSort>(sort->fun_codomain());
+  return make_shared<BzlaSort>(sort.fun_codomain());
 }
 
 std::string BzlaSort::get_uninterpreted_name() const
@@ -68,7 +68,7 @@ std::string BzlaSort::get_uninterpreted_name() const
       "Bitwuzla does not support uninterpreted sorts.");
 }
 
-size_t BzlaSort::get_arity() const { return sort->fun_arity(); }
+size_t BzlaSort::get_arity() const { return sort.fun_arity(); }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
@@ -88,25 +88,25 @@ bool BzlaSort::compare(const Sort & s) const
 
 SortKind BzlaSort::get_sort_kind() const
 {
-  if (sort->is_bv())
+  if (sort.is_bv())
   {
     return BV;
   }
-  else if (sort->is_array())
+  else if (sort.is_array())
   {
     return ARRAY;
   }
-  else if (sort->is_fun())
+  else if (sort.is_fun())
   {
     return FUNCTION;
   }
-  else if (sort->is_fp()) {
+  else if (sort.is_fp()) {
     return REAL;
   }
-  else if (sort->is_bool()) {
+  else if (sort.is_bool()) {
     return BOOL;
   }
-  else if (sort->is_uninterpreted()) {
+  else if (sort.is_uninterpreted()) {
     return UNINTERPRETED;
   }
   else

@@ -41,29 +41,31 @@ class BzlaSolver : public AbsSmtSolver
  public:
   BzlaSolver()
       : AbsSmtSolver(BZLA),
-        bzla(new bitwuzla::Bitwuzla()),
+        tm(),
+        options(),
+        bzla(),
         context_level(0),
         time_limit(0),
         terminate_bzla(false)
   {
-    // set termination function -- throw an exception
-    auto throw_exception = [](const char * msg) -> void {
-      throw InternalSolverException(msg);
-    };
-    bitwuzla_set_abort_callback(throw_exception);
+  //   // set termination function -- throw an exception
+  //   auto throw_exception = [](const char * msg) -> void {
+  //     throw InternalSolverException(msg);
+  //   };
+  //   bitwuzla_set_abort_callback(throw_exception);
 
-    // this termination callback is used to support a time limit option
-    // used in conjunction with C alarm function. See timelimit_start()
-    // and timelimit_end() helper functions
-    auto terminate = [](void * state) -> int32_t {
-      bool terminate_bzla = *reinterpret_cast<bool *>(state);
-      if (terminate_bzla)
-      {
-        return 1;
-      }
-      return 0;
-    };
-    bitwuzla_set_termination_callback(bzla, terminate, &terminate_bzla);
+  //   // this termination callback is used to support a time limit option
+  //   // used in conjunction with C alarm function. See timelimit_start()
+  //   // and timelimit_end() helper functions
+  //   auto terminate = [](void * state) -> int32_t {
+  //     bool terminate_bzla = *reinterpret_cast<bool *>(state);
+  //     if (terminate_bzla)
+  //     {
+  //       return 1;
+  //     }
+  //     return 0;
+  //   };
+  //   bitwuzla_set_termination_callback(bzla, terminate, &terminate_bzla);
   };
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
@@ -147,9 +149,11 @@ class BzlaSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  bitwuzla::Bitwuzla * get_bitwuzla() const { return bzla; };
+  // bitwuzla::Bitwuzla * get_bitwuzla() const { return bzla; };
 
  protected:
+  bitwuzla::Options options;
+  bitwuzla::TermManager * tm;
   bitwuzla::Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
@@ -164,15 +168,15 @@ class BzlaSolver : public AbsSmtSolver
   inline Result check_sat_assuming_internal(T container)
   {
     std::vector<bitwuzla::Term> assumptions;
-    std::shared_ptr<BzlaTerm> bt;
-    for (auto&& elt: container)
+    // std::shared_ptr<BzlaTerm> bt;
+    for (auto t: container)
     {
-      assumptions.push_back(elt);
+      assumptions.push_back(static_pointer_cast<BzlaTerm>(t)->term);
     }
 
-    timelimit_start();
+    // timelimit_start();
     bitwuzla::Result res = bzla->check_sat(assumptions);
-    bool tl_triggered = timelimit_end();
+    // bool tl_triggered = timelimit_end();
     if (res == bitwuzla::Result::SAT)
     {
       return Result(SAT);
@@ -181,10 +185,10 @@ class BzlaSolver : public AbsSmtSolver
     {
       return Result(UNSAT);
     }
-    else if (tl_triggered)
-    {
-      return Result(UNKNOWN, "Time limit reached.");
-    }
+    // else if (tl_triggered)
+    // {
+    //   return Result(UNKNOWN, "Time limit reached.");
+    // }
     else
     {
       return Result(UNKNOWN);

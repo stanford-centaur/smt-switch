@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BITWUZLA_VERSION=6e46391816b4baf8c9fc0b8c0c1d2fbe63b6f30e
+#BITWUZLA_VERSION=6e46391816b4baf8c9fc0b8c0c1d2fbe63b6f30e
+BITWUZLA_VERSION=a520dd9f9d3cc7267f0687dcbb3a72f991865581
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -21,12 +22,16 @@ if [ ! -d "$DEPS/bitwuzla" ]; then
     chmod -R 777 bitwuzla
     cd bitwuzla
     git checkout -f $BITWUZLA_VERSION
-    CFLAGS="" ./contrib/setup-btor2tools.sh
-    ./contrib/setup-cadical.sh
-    ./configure.sh --only-cadical --no-symfpu -fPIC
-    cd build
-    make -j$NUM_CORES
-    cd $DIR
+    #CFLAGS="" ./contrib/setup-btor2tools.sh
+    #./contrib/setup-cadical.sh
+    #./configure.sh --only-cadical --no-symfpu -fPIC
+    #cd build
+    #make -j$NUM_CORES
+    #cd $DIR
+    ./configure.py
+
+    # Build and install
+    cd build && ninja install   # or just `ninja` to only build Bitwuzla
 else
     echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi
