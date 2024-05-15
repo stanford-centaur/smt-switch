@@ -116,7 +116,7 @@ void BzlaTermIter::operator++()
 
 const Term BzlaTermIter::operator*()
 {
-  assert(idx < terms.size());
+  assert(idx < terms.num_children());
   return make_shared<BzlaTerm>(terms[idx]);
 }
 
@@ -222,7 +222,7 @@ bool BzlaTerm::is_symbolic_const() const
 bool BzlaTerm::is_value() const
 {
   // return term.sort().is_bv() || term.is_const_array();
-  return term.sort().is_bv();
+  return term.is_value();
 }
 
 std::string BzlaTerm::to_string() { return to_string_formatted("smt2"); }

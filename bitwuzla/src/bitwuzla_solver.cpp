@@ -96,26 +96,30 @@ const unordered_map<uint64_t, uint64_t> bvbasemap(
 void BzlaSolver::set_opt(const string option, const string value)
 {
   // TODO support more options
-  // if (option == "incremental")
-  // {
-  //   bitwuzla_set_option(bzla, bitwuzla::Option::INCREMENTAL, (value == "true"));
-  // }
-  // else if (option == "produce-models")
-  // {
-  //   bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
-  // }
-  // else if (option == "produce-unsat-assumptions")
-  // {
-  //   bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
-  // }
-  // else if (option == "time-limit")
-  // {
-  //   time_limit = stoi(value);
-  // }
-  // else
-  // {
+  if (option == "incremental")
+  {
+    // options.set(bitwuzla::Option::INCREMENTAL, true);
+    // bitwuzla_set_option(bzla, bitwuzla::Option::INCREMENTAL, (value == "true"));
+    // throw SmtException("Bitwuzla backend does not support option: " + option);
+  }
+  else if (option == "produce-models")
+  {
+    options.set(bitwuzla::Option::PRODUCE_MODELS, true);
+    // bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
+  }
+  else if (option == "produce-unsat-assumptions")
+  {
+    options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, true);
+    // bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
+  }
+  else if (option == "time-limit")
+  {
+    time_limit = stoi(value);
+  }
+  else
+  {
     throw SmtException("Bitwuzla backend does not support option: " + option);
-  // }
+  }
 }
 
 void BzlaSolver::set_logic(const string logic)
@@ -127,13 +131,13 @@ void BzlaSolver::set_logic(const string logic)
 void BzlaSolver::assert_formula(const Term & t)
 {
   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(t);
-  bzla->assert_formula(bterm->term);
+  get_bzla()->assert_formula(bterm->term);
 }
 
 Result BzlaSolver::check_sat()
 {
   timelimit_start();
-  bitwuzla::Result r = bzla->check_sat();
+  bitwuzla::Result r = get_bzla()->check_sat();
   bool tl_triggered = timelimit_end();
   if (r == bitwuzla::Result::SAT)
   {
@@ -145,7 +149,7 @@ Result BzlaSolver::check_sat()
   }
   else
   {
-    assert(r == bitwuzla::Result::U);
+    assert(r == bitwuzla::Result::UNKNOWN);
     if (tl_triggered)
     {
       return Result(UNKNOWN, "Time limit reached.");
@@ -172,13 +176,13 @@ Result BzlaSolver::check_sat_assuming_set(
 
 void BzlaSolver::push(uint64_t num)
 {
-  bzla->push(num);
+  get_bzla()->push(num);
   context_level += num;
 }
 
 void BzlaSolver::pop(uint64_t num)
 {
-  bzla->pop(num);
+  get_bzla()->pop(num);
   context_level -= num;
 }
 
@@ -187,7 +191,8 @@ uint64_t BzlaSolver::get_context_level() const { return context_level; }
 Term BzlaSolver::get_value(const Term & t) const
 {
   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(t);
-  return make_shared<BzlaTerm>(bzla->get_value(bterm->term));
+  return make_shared<BzlaTerm>(get_bzla()->get_value(bterm->term));
+  // return get_bzla()->get_value(bterm->term);
 }
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
@@ -199,7 +204,7 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
-  std::vector<bitwuzla::Term> bcore = bzla->get_unsat_assumptions();
+  std::vector<bitwuzla::Term> bcore = get_bzla()->get_unsat_assumptions();
     // std::shared_ptr<BzlaTerm> bt;
   for (auto&& elt: bcore)
   {
@@ -234,7 +239,7 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort from sort kind ");
+    std::string msg("Can't create sort from sort kind");
     msg += to_string(sk);
     msg += " with int argument.";
     throw IncorrectUsageException(msg);
@@ -482,8 +487,7 @@ Term BzlaSolver::make_symbol(const string name, const Sort & sort)
     throw IncorrectUsageException("Symbol name " + name + " already used.");
   }
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  Term sym =
-      make_shared<BzlaTerm>(tm->mk_const(bsort->sort, name));
+  Term sym = make_shared<BzlaTerm>(tm->mk_const(bsort->sort, name));
   symbol_table[name] = sym;
   return sym;
 }

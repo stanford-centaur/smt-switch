@@ -41,13 +41,16 @@ class BzlaSolver : public AbsSmtSolver
  public:
   BzlaSolver()
       : AbsSmtSolver(BZLA),
-        tm(),
+        // tm(),
         options(),
-        bzla(),
+        // bzla(),
         context_level(0),
         time_limit(0),
         terminate_bzla(false)
   {
+    tm = new bitwuzla::TermManager();
+    // bzla = new bitwuzla::Bitwuzla(* tm, options);
+    bzla = nullptr;
   //   // set termination function -- throw an exception
   //   auto throw_exception = [](const char * msg) -> void {
   //     throw InternalSolverException(msg);
@@ -74,6 +77,7 @@ class BzlaSolver : public AbsSmtSolver
     // need to destruct all stored terms in symbol_table
     symbol_table.clear();
     delete bzla;
+    delete tm;
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
@@ -149,12 +153,18 @@ class BzlaSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  // bitwuzla::Bitwuzla * get_bitwuzla() const { return bzla; };
+  bitwuzla::Bitwuzla * get_bzla() const {
+    if (bzla == nullptr) {
+        delete bzla;
+        bzla = new bitwuzla::Bitwuzla(*tm, options);
+    }
+    return bzla;
+  }
 
  protected:
   bitwuzla::Options options;
   bitwuzla::TermManager * tm;
-  bitwuzla::Bitwuzla * bzla;
+  mutable bitwuzla::Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
 
@@ -171,6 +181,7 @@ class BzlaSolver : public AbsSmtSolver
     // std::shared_ptr<BzlaTerm> bt;
     for (auto t: container)
     {
+      // assumptions.push_back(make_shared<BzlaTerm>(t)->term);
       assumptions.push_back(static_pointer_cast<BzlaTerm>(t)->term);
     }
 
