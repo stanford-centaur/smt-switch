@@ -99,9 +99,19 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
           // Strings
           { "S",
             { { "str.<", StrLt },
-              { "str.<=", StrLeq},
-              { "str.len", StrLen}, 
-              { "str.++", StrConcat} } },
+              { "str.<=", StrLeq },
+              { "str.len", StrLen }, 
+              { "str.++", StrConcat }, 
+              { "str.substr", StrSubstr }, 
+              { "str.at", StrAt },
+              { "str.contains", StrContains },
+              { "str.indexof", StrIndexof },
+              { "str.replace", StrReplace },
+              { "str.replace_all", StrReplaceAll },
+              { "str.prefixof", StrPrefixof },
+              { "str.suffixof", StrSuffixof },
+              { "str.is_digit", StrIsDigit }, 
+            } },
           // ArraysEx
           { "A",
             {

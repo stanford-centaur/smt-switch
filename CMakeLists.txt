@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 project(smt-switch)
 
@@ -196,7 +196,9 @@ option (BUILD_Z3
   "Should we build the libraries for z3" OFF)
 
 if (BUILD_Z3)
-  set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
+  if (NOT DEFINED Z3_HOME)
+    set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
+  endif()
   add_subdirectory (z3)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
 

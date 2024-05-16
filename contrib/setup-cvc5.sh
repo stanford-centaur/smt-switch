@@ -1,11 +1,12 @@
 #!/bin/bash
+set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
 mkdir -p $DEPS
 
-CVC5_VERSION=cvc5-1.0.8
+CVC5_VERSION=cvc5-1.1.1
 
 if [ "$(uname)" == "Darwin" ]; then
     NUM_CORES=$(sysctl -n hw.logicalcpu)

@@ -1,6 +1,7 @@
 #!/bin/bash
+set -e
 
-BTOR_VERSION=95859db82fe5b08d063a16d6a7ffe4a941cb0f7d
+BTOR_VERSION=97698b06a5de1a4e5743c034c867d384630dc936
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEPS=$DIR/../deps
 
@@ -31,7 +32,7 @@ else
     echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/cadical/build/libcadical.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/btor2parser.o ] ; then \
+if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/cadical/build/libcadical.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/lib/libbtor2parser.a ] ; then \
     echo "It appears boolector was setup successfully into $DEPS/boolector."
     echo "You may now install it with make ./configure.sh --btor && cd build && make"
 else

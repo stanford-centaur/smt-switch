@@ -103,6 +103,15 @@ enum PrimOp
   StrLeq,
   StrLen,
   StrConcat,
+  StrSubstr,
+  StrAt,
+  StrContains,
+  StrIndexof,
+  StrReplace,
+  StrReplaceAll,
+  StrPrefixof,
+  StrSuffixof,
+  StrIsDigit,
   /* Array Theory */
   Select,
   Store,
@@ -187,7 +196,7 @@ namespace std
 namespace smt {
 // ops that can be applied to n arguments
 const std::unordered_set<PrimOp> variadic_ops(
-    { And, Or, Xor, Plus, BVAnd, BVOr, BVAdd });
+    { And, Or, Xor, Plus, Mult, BVAnd, BVOr, BVAdd });
 
 bool is_variadic(PrimOp po);
 }  // namespace smt

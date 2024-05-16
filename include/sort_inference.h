@@ -163,6 +163,27 @@ bool check_tester_sorts(const SortVec & sorts);
 
 bool check_store_sorts(const SortVec & sorts);
 
+/** Checks if the sorts are well-sorted for a substring operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is the string sort
+ *         and the next two match the int sort
+ */
+bool check_substr_sorts(const SortVec & sorts);
+
+/** Checks if the sorts are well-sorted for a char at operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is the string sort
+ *         and the second is the int sort
+ */
+bool check_charat_sorts(const SortVec & sorts);
+
+/** Checks if the sorts are well-sorted for an index of operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first two sorts are the string sort
+ *         and the third is the int sort
+ */
+bool check_indexof_sorts(const SortVec & sorts);
+
 bool bool_sorts(const SortVec & sorts);
 
 bool bv_sorts(const SortVec & sorts);

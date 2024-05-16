@@ -26,6 +26,7 @@
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
+#include "z3_datatype.h"
 #include "z3_sort.h"
 #include "z3_term.h"
 
@@ -75,6 +76,8 @@ class Z3Solver : public AbsSmtSolver
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
 
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
@@ -153,5 +156,6 @@ class Z3Solver : public AbsSmtSolver
       throw NotImplementedException("Unimplemented result type from Z3");
     }
   }
+  void add_constructor(z3::sort, z3::constructors*, const DatatypeConstructorDecl&) const;
 };
 }  // namespace smt

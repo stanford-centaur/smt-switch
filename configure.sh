@@ -227,6 +227,10 @@ if [ $msat_home != default -a $build_msat = default ]; then
     build_msat=ON
 fi
 
+if [ $z3_home != default -a $build_z3 = default ]; then
+    build_z3=ON
+fi
+
 if [ $yices2_home != default -a $build_yices2 = default ]; then
     build_yices2=ON
 fi

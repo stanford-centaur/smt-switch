@@ -67,8 +67,8 @@ std::string & trim(std::string & str)
 // class methods implementation
 GenericSolver::GenericSolver(string path,
                              vector<string> cmd_line_args,
-                             uint write_buf_size,
-                             uint read_buf_size)
+                             unsigned int write_buf_size,
+                             unsigned int read_buf_size)
     : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
       path(path),
       cmd_line_args(cmd_line_args),
@@ -95,7 +95,7 @@ GenericSolver::GenericSolver(string path,
         "Generic Solvers require a buffer size of at least 2 and at most 256.");
     throw IncorrectUsageException(msg);
   }
-  term_counter = new uint;
+  term_counter = new unsigned int;
   //allocate memory for the buffers
   write_buf = new char[write_buf_size];
   read_buf = new char[read_buf_size];
@@ -170,14 +170,14 @@ void GenericSolver::start_solver() {
 void GenericSolver::write_internal(string str) const
 {
   // track how many charas were written so far
-  uint written_chars = 0;
+  unsigned int written_chars = 0;
   // continue writing  until entire str was written
   while (written_chars < str.size())
   {
     // how many characters are there left to write
-    uint remaining = str.size() - written_chars;
+    unsigned int remaining = str.size() - written_chars;
     // how many characters are we writing in this iteration
-    uint substr_size;
+    unsigned int substr_size;
     if (remaining < write_buf_size)
     {
       substr_size = remaining;
@@ -775,7 +775,7 @@ Term GenericSolver::store_term(Term term) const
 }
 
 Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
-                                               uint width) const
+                                               unsigned int width) const
 {
   Sort bvsort = make_sort(BV, width);
   string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
@@ -783,13 +783,13 @@ Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
   return term;
 }
 
-Term GenericSolver::make_non_negative_bv_const(int64_t i, uint width) const
+Term GenericSolver::make_non_negative_bv_const(int64_t i, unsigned int width) const
 {
   assert(i >= 0);
   return make_non_negative_bv_const(std::to_string(i), width);
 }
 
-Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
+Term GenericSolver::make_negative_bv_const(string abs_decimal, unsigned int width) const
 {
   Term zero = make_non_negative_bv_const("0", width);
   Term abs = make_non_negative_bv_const(abs_decimal, width);
@@ -797,7 +797,7 @@ Term GenericSolver::make_negative_bv_const(string abs_decimal, uint width) const
   return result;
 }
 
-Term GenericSolver::make_negative_bv_const(int64_t abs_value, uint width) const
+Term GenericSolver::make_negative_bv_const(int64_t abs_value, unsigned int width) const
 {
   assert(abs_value >= 0);
   return make_negative_bv_const(std::to_string(abs_value), width);
