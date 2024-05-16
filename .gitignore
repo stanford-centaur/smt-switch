@@ -32,15 +32,15 @@
 *.app
 
 # Python wheels build artifacts
-build/
 dist/
 *egg-info
 
-
-deps/CVC4/
-
+# Directories
+build/
 deps/
-
 local/
 .cache/
 .vscode/
+
+# Generated files
+compile_commands.json
