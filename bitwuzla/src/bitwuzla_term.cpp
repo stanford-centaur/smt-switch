@@ -98,7 +98,7 @@ const std::unordered_map<bitwuzla::Kind, PrimOp> bkind2primop(
       { bitwuzla::Kind::EXISTS, Exists } });
 
 const unordered_set<PrimOp> indexed_ops(
-    { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
+    { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, And });
 
 /*  start BzlaTermIter implementation */
 
@@ -161,7 +161,7 @@ bool BzlaTerm::compare(const Term & absterm) const
 
 Op BzlaTerm::get_op() const
 {
-  if (term.is_const() || term.is_variable() || term.sort().is_bv())
+  if (term.is_const() || term.is_variable() || term.sort().is_bv() || term.sort().is_array())
       // || term->is_ || bitwuzla_term_is_bv_value(term))
   {
     return Op();
@@ -176,13 +176,13 @@ Op BzlaTerm::get_op() const
 
   PrimOp po = it->second;
 
-  if (term.num_children() >0)
+  if (term.num_children()>1)
   {
     assert(indexed_ops.find(po) != indexed_ops.end());
     size_t num_indices = term.num_indices();
     std::vector<uint64_t> indices = term.indices();
-    assert(num_indices);
-    assert(num_indices <= 2);
+    // assert(num_indices>0);
+    // assert(num_indices <= 2);
     uint32_t idx0 = indices[0];
     if (num_indices == 1)
     {
@@ -216,7 +216,7 @@ bool BzlaTerm::is_symbolic_const() const
   // in Bitwuzla arrays are functions
   // for smt-switch we consider arrays symbolic constants but not functions
   // return (bitwuzla_term_is_const(term) && !bitwuzla_term_is_fun(term));
-  return (term.is_const());
+  return (term.is_const() && !(term.sort().is_fun()));
 }
 
 bool BzlaTerm::is_value() const
@@ -225,7 +225,9 @@ bool BzlaTerm::is_value() const
   return term.is_value();
 }
 
-std::string BzlaTerm::to_string() { return to_string_formatted("smt2"); }
+std::string BzlaTerm::to_string() { 
+  return term.str(); 
+}
 
 uint64_t BzlaTerm::to_int() const
 {
@@ -242,7 +244,7 @@ uint64_t BzlaTerm::to_int() const
     msg += " in a uint64_t";
     throw IncorrectUsageException(msg.c_str());
   }
-  string bits = to_string_formatted("smt2");
+  string bits = term.str();
   // special case -- 1-bit bit-vectors are
   // printed as Booleans in bitwuzla.
   if (bits == "true") {

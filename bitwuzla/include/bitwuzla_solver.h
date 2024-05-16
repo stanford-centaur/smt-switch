@@ -152,10 +152,8 @@ class BzlaSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
-
   bitwuzla::Bitwuzla * get_bzla() const {
     if (bzla == nullptr) {
-        delete bzla;
         bzla = new bitwuzla::Bitwuzla(*tm, options);
     }
     return bzla;
@@ -167,9 +165,7 @@ class BzlaSolver : public AbsSmtSolver
   mutable bitwuzla::Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
-
   uint64_t context_level;
-
   uint64_t time_limit;
   bool terminate_bzla;  ///< used if time limit is reached
 
@@ -178,11 +174,9 @@ class BzlaSolver : public AbsSmtSolver
   inline Result check_sat_assuming_internal(T container)
   {
     std::vector<bitwuzla::Term> assumptions;
-    // std::shared_ptr<BzlaTerm> bt;
-    for (auto t: container)
+    for (auto&& t: container)
     {
-      // assumptions.push_back(make_shared<BzlaTerm>(t)->term);
-      assumptions.push_back(static_pointer_cast<BzlaTerm>(t)->term);
+      assumptions.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
     }
 
     // timelimit_start();

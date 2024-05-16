@@ -98,19 +98,19 @@ void BzlaSolver::set_opt(const string option, const string value)
   // TODO support more options
   if (option == "incremental")
   {
-    // options.set(bitwuzla::Option::INCREMENTAL, true);
-    // bitwuzla_set_option(bzla, bitwuzla::Option::INCREMENTAL, (value == "true"));
-    // throw SmtException("Bitwuzla backend does not support option: " + option);
+
   }
   else if (option == "produce-models")
   {
     options.set(bitwuzla::Option::PRODUCE_MODELS, true);
-    // bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
   }
   else if (option == "produce-unsat-assumptions")
   {
+    options.set(bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS, true);
+  }
+  else if (option == "produce-unsat-cores")
+  {
     options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, true);
-    // bitwuzla_set_option(bzla, bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
   }
   else if (option == "time-limit")
   {
@@ -168,8 +168,7 @@ Result BzlaSolver::check_sat_assuming_list(const TermList & assumptions)
   return check_sat_assuming_internal(assumptions);
 }
 
-Result BzlaSolver::check_sat_assuming_set(
-    const UnorderedTermSet & assumptions)
+Result BzlaSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
   return check_sat_assuming_internal(assumptions);
 }
@@ -192,7 +191,6 @@ Term BzlaSolver::get_value(const Term & t) const
 {
   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(t);
   return make_shared<BzlaTerm>(get_bzla()->get_value(bterm->term));
-  // return get_bzla()->get_value(bterm->term);
 }
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
@@ -204,11 +202,18 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
-  std::vector<bitwuzla::Term> bcore = get_bzla()->get_unsat_assumptions();
-    // std::shared_ptr<BzlaTerm> bt;
-  for (auto&& elt: bcore)
+  try
   {
-    out.insert(make_shared<BzlaTerm>(elt));
+    std::vector<bitwuzla::Term> bcore = get_bzla()->get_unsat_assumptions();
+    for (auto&& elt: bcore)
+    {
+      out.insert(make_shared<BzlaTerm>(elt));
+    }
+    // assert(out.size() > 1);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
   }
 }
 
@@ -261,8 +266,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
 
   if (sk == ARRAY)
   {
-    return make_shared<BzlaSort>(
-        tm->mk_array_sort(bsort1->sort, bsort2->sort));
+    return make_shared<BzlaSort>(tm->mk_array_sort(bsort1->sort, bsort2->sort));
   }
   else if (sk == FUNCTION)
   {
@@ -291,8 +295,7 @@ Sort BzlaSolver::make_sort(SortKind sk,
   if (sk == FUNCTION)
   {
     const vector<bitwuzla::Sort> domain_sorts({ bsort1->sort, bsort2->sort });
-    return make_shared<BzlaSort>(tm->mk_fun_sort(
-       domain_sorts, bsort3->sort));
+    return make_shared<BzlaSort>(tm->mk_fun_sort(domain_sorts, bsort3->sort));
   }
   else
   {
@@ -327,8 +330,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
       bzla_sorts.push_back(bs->sort);
     }
 
-    return std::make_shared<BzlaSort>(tm->mk_fun_sort(
-        bzla_sorts, {bzla_return_sort->sort}));
+    return std::make_shared<BzlaSort>(tm->mk_fun_sort(bzla_sorts, {bzla_return_sort->sort}));
   }
   else if (sorts.size() == 1)
   {
@@ -431,8 +433,7 @@ Term BzlaSolver::make_term(int64_t i, const Sort & sort) const
   }
 
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  return make_shared<BzlaTerm>(
-      tm->mk_bv_value_uint64(bsort->sort, i));
+  return make_shared<BzlaTerm>(tm->mk_bv_value_uint64(bsort->sort, i));
 }
 
 Term BzlaSolver::make_term(const std::string val,
@@ -455,8 +456,7 @@ Term BzlaSolver::make_term(const std::string val,
   }
 
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  return make_shared<BzlaTerm>(
-      tm->mk_bv_value(bsort->sort, val.c_str(), baseit->second));
+  return make_shared<BzlaTerm>(tm->mk_bv_value(bsort->sort, val.c_str(), baseit->second));
 }
 
 Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
@@ -476,8 +476,7 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
 
   shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(val);
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  return make_shared<BzlaTerm>(
-      tm->mk_const_array(bsort->sort, bterm->term));
+  return make_shared<BzlaTerm>(tm->mk_const_array(bsort->sort, bterm->term));
 }
 
 Term BzlaSolver::make_symbol(const string name, const Sort & sort)
@@ -505,8 +504,7 @@ Term BzlaSolver::get_symbol(const string & name)
 Term BzlaSolver::make_param(const std::string name, const Sort & sort)
 {
   shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(sort);
-  return make_shared<BzlaTerm>(
-      tm->mk_var(bsort->sort, name));
+  return make_shared<BzlaTerm>(tm->mk_var(bsort->sort, name));
 }
 
 Term BzlaSolver::make_term(Op op, const Term & t) const
@@ -533,8 +531,7 @@ Term BzlaSolver::make_term(Op op, const Term & t) const
   else
   {
     assert(op.num_idx == 2);
-    return make_shared<BzlaTerm>(
-        tm->mk_term(bkind, {bterm->term}, {op.idx0, op.idx1}));
+    return make_shared<BzlaTerm>(tm->mk_term(bkind, {bterm->term}, {op.idx0, op.idx1}));
   }
 }
 
