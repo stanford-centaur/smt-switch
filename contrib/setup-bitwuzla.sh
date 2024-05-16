@@ -19,19 +19,10 @@ fi
 if [ ! -d "$DEPS/bitwuzla" ]; then
     cd $DEPS
     git clone https://github.com/bitwuzla/bitwuzla.git
-    chmod -R 777 bitwuzla
     cd bitwuzla
     git checkout -f $BITWUZLA_VERSION
-    #CFLAGS="" ./contrib/setup-btor2tools.sh
-    #./contrib/setup-cadical.sh
-    #./configure.sh --only-cadical --no-symfpu -fPIC
-    #cd build
-    #make -j$NUM_CORES
-    #cd $DIR
     ./configure.py
-
-    # Build and install
-    cd build && ninja install   # or just `ninja` to only build Bitwuzla
+    meson compile -C build
 else
     echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi
