@@ -182,7 +182,7 @@ class BzlaSolver : public AbsSmtSolver
     for (auto t: container)
     {
       // assumptions.push_back(make_shared<BzlaTerm>(t)->term);
-      assumptions.push_back(static_pointer_cast<BzlaTerm>(t)->term);
+      assumptions.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
     }
 
     // timelimit_start();
