@@ -98,7 +98,7 @@ const std::unordered_map<bitwuzla::Kind, PrimOp> bkind2primop(
       { bitwuzla::Kind::EXISTS, Exists } });
 
 const unordered_set<PrimOp> indexed_ops(
-    { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, And });
+    { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
 
 /*  start BzlaTermIter implementation */
 
@@ -161,8 +161,7 @@ bool BzlaTerm::compare(const Term & absterm) const
 
 Op BzlaTerm::get_op() const
 {
-  if (term.is_const() || term.is_variable() || term.sort().is_bv() || term.sort().is_array())
-      // || term->is_ || bitwuzla_term_is_bv_value(term))
+  if (term.is_const() || term.is_variable() || term.is_value())
   {
     return Op();
   }
@@ -176,13 +175,12 @@ Op BzlaTerm::get_op() const
 
   PrimOp po = it->second;
 
-  if (term.num_children()>1)
+  if (indexed_ops.find(po) != indexed_ops.end())
   {
-    assert(indexed_ops.find(po) != indexed_ops.end());
     size_t num_indices = term.num_indices();
+    assert(num_indices > 0);
+    assert(num_indices <= 2);
     std::vector<uint64_t> indices = term.indices();
-    // assert(num_indices>0);
-    // assert(num_indices <= 2);
     uint32_t idx0 = indices[0];
     if (num_indices == 1)
     {
