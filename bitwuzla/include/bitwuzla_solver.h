@@ -180,7 +180,7 @@ class BzlaSolver : public AbsSmtSolver
     }
 
     // timelimit_start();
-    bitwuzla::Result res = bzla->check_sat(assumptions);
+    bitwuzla::Result res = get_bzla()->check_sat(assumptions);
     // bool tl_triggered = timelimit_end();
     if (res == bitwuzla::Result::SAT)
     {
