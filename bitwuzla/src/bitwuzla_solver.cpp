@@ -659,71 +659,51 @@ void BzlaSolver::reset_assertions()
 Term BzlaSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
 {
-  // shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
-  // size_t smap_size = substitution_map.size();
-  // vector<const BzlaTerm *> map_keys;
-  // map_keys.reserve(smap_size);
-  // vector<const bitwuzla::Term *> map_vals;
-  // map_keys.reserve(smap_size);
-  // for (auto elem : substitution_map)
-  // {
-  //   if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-  //   {
-  //     throw SmtException(
-  //         "Bitwuzla backend doesn't support substitution with non symbol keys");
-  //   }
-  //   map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
-  //   map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
-  // }
-  // return make_shared<BzlaTerm>(bitwuzla_substitute_term(
-  //     bzla, bterm->term, map_keys.size(), map_keys.data(), map_vals.data()));
-    throw SmtException(
-          "Bitwuzla backend doesn't support substitution");
+  shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(term);
+  std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
+  for (auto elem : substitution_map)
+  {
+    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
+    {
+      throw SmtException(
+          "Bitwuzla backend doesn't support substitution with non symbol keys");
+    }
+    substitution_bterms_map.insert({static_pointer_cast<BzlaTerm>(elem.first)->term, 
+        static_pointer_cast<BzlaTerm>(elem.second)->term});
+  }
+  return make_shared<BzlaTerm>(tm->substitute_term(bterm->term, substitution_bterms_map));
 }
 
 TermVec BzlaSolver::substitute_terms(
     const TermVec & terms, const UnorderedTermMap & substitution_map) const
 {
-  // size_t terms_size = terms.size();
-  // vector<const BitwuzlaTerm *> bterms;
-  // bterms.reserve(terms_size);
-  // size_t smap_size = substitution_map.size();
-  // vector<const BitwuzlaTerm *> map_keys;
-  // map_keys.reserve(smap_size);
-  // vector<const BitwuzlaTerm *> map_vals;
-  // map_keys.reserve(smap_size);
-  // for (auto t : terms)
-  // {
-  //   bterms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
-  // }
-  // for (auto elem : substitution_map)
-  // {
-  //   if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-  //   {
-  //     throw SmtException(
-  //         "Bitwuzla backend doesn't support substitution with non symbol keys");
-  //   }
-  //   map_keys.push_back(static_pointer_cast<BzlaTerm>(elem.first)->term);
-  //   map_vals.push_back(static_pointer_cast<BzlaTerm>(elem.second)->term);
-  // }
+  vector<bitwuzla::Term> bterms;
+  size_t terms_size = terms.size();
+  bterms.reserve(terms_size);
+  for (auto t : terms)
+  {
+    bterms.push_back(static_pointer_cast<BzlaTerm>(t)->term);
+  }
+  std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
+  for (auto elem : substitution_map)
+  {
+    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
+    {
+      throw SmtException(
+          "Bitwuzla backend doesn't support substitution with non symbol keys");
+    }
+    substitution_bterms_map.insert({static_pointer_cast<BzlaTerm>(elem.first)->term, 
+        static_pointer_cast<BzlaTerm>(elem.second)->term});
+  }
+  tm->substitute_terms(bterms, substitution_bterms_map);
 
-  // // bterms array is updated in place
-  // bitwuzla_substitute_terms(bzla,
-  //                           terms_size,
-  //                           bterms.data(),
-  //                           smap_size,
-  //                           map_keys.data(),
-  //                           map_vals.data());
-  // TermVec res;
-  // res.reserve(terms_size);
-  // for (auto t : bterms)
-  // {
-  //   res.push_back(make_shared<BzlaTerm>(t));
-  // }
-  // return res;
-
-  throw SmtException(
-        "Bitwuzla backend doesn't support substitution");
+  TermVec res;
+  res.reserve(terms_size);
+  for (auto t : bterms)
+  {
+    res.push_back(make_shared<BzlaTerm>(t));
+  }
+  return res;
 }
 
 void BzlaSolver::dump_smt2(std::string filename) const
