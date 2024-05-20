@@ -45,9 +45,8 @@ Sort BzlaSort::get_elemsort() const
 
 SortVec BzlaSort::get_domain_sorts() const
 {
-  size_t arity;
   std::vector<bitwuzla::Sort> bsorts = sort.fun_domain();
-  SortVec domain_sorts; domain_sorts.reserve(arity);
+  SortVec domain_sorts; domain_sorts.reserve(bsorts.size());
 
   for (auto&& bsort : bsorts)
   {
