@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <signal.h>
 #include <unistd.h>
 
 #include <memory>
@@ -26,7 +25,6 @@
 
 #include "bitwuzla_sort.h"
 #include "bitwuzla_term.h"
-#include "exceptions.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
@@ -51,24 +49,6 @@ class BzlaSolver : public AbsSmtSolver
     tm = new bitwuzla::TermManager();
     // bzla = new bitwuzla::Bitwuzla(* tm, options);
     bzla = nullptr;
-  //   // set termination function -- throw an exception
-  //   auto throw_exception = [](const char * msg) -> void {
-  //     throw InternalSolverException(msg);
-  //   };
-  //   bitwuzla_set_abort_callback(throw_exception);
-
-  //   // this termination callback is used to support a time limit option
-  //   // used in conjunction with C alarm function. See timelimit_start()
-  //   // and timelimit_end() helper functions
-  //   auto terminate = [](void * state) -> int32_t {
-  //     bool terminate_bzla = *reinterpret_cast<bool *>(state);
-  //     if (terminate_bzla)
-  //     {
-  //       return 1;
-  //     }
-  //     return 0;
-  //   };
-  //   bitwuzla_set_termination_callback(bzla, terminate, &terminate_bzla);
   };
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
@@ -179,9 +159,7 @@ class BzlaSolver : public AbsSmtSolver
       assumptions.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
     }
 
-    // timelimit_start();
     bitwuzla::Result res = get_bzla()->check_sat(assumptions);
-    // bool tl_triggered = timelimit_end();
     if (res == bitwuzla::Result::SAT)
     {
       return Result(SAT);
@@ -190,27 +168,12 @@ class BzlaSolver : public AbsSmtSolver
     {
       return Result(UNSAT);
     }
-    // else if (tl_triggered)
-    // {
-    //   return Result(UNKNOWN, "Time limit reached.");
-    // }
     else
     {
+      assert(res == bitwuzla::Result::UNKNOWN);
       return Result(UNKNOWN);
     }
   }
-
-  /** Helper function for managing time limits (if one is set)
-   *  Registers a signal handler to use with alarm
-   *  and a termination callback function.
-   */
-  void timelimit_start();
-
-  /** Helper function for managing time limits (if one is set)
-   *  Returns true iff the query was terminated due to the
-   *  time limit.
-   */
-  bool timelimit_end();
 };
 
 }  // namespace smt
