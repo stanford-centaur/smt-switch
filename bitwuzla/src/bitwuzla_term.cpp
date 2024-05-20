@@ -167,6 +167,11 @@ Op BzlaTerm::get_op() const
   }
 
   bitwuzla::Kind bkind = term.kind();
+  if (bkind == bitwuzla::Kind::CONST_ARRAY) 
+  {
+    return Op();
+  }
+
   auto it = bkind2primop.find(bkind);
   if (it == bkind2primop.end())
   {
