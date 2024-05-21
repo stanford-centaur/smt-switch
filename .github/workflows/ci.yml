@@ -18,6 +18,8 @@ jobs:
         include:
           - name: msat
             setup_opts: --auto-yes
+          - name: yices2
+            extra_macos_packages: autoconf
 
     name: ${{ matrix.os }}:${{ matrix.name }} 
     runs-on: ${{ matrix.os}}
@@ -41,7 +43,8 @@ jobs:
           brew update
           brew install \
             gmp \
-            gperf
+            gperf \
+            ${{ matrix.extra_macos_packages }}
 
       - name: Python Dependencies
         run: |
