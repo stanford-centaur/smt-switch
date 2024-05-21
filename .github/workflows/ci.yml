@@ -36,6 +36,7 @@ jobs:
             cmake \
             gperf \
             libgmp-dev \
+            meson \
             openjdk-8-jdk
 
       - name: Install Packages (macOS)
@@ -45,6 +46,7 @@ jobs:
           brew install \
             gmp \
             gperf \
+            meson \
             ${{ matrix.extra_macos_packages }}
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
