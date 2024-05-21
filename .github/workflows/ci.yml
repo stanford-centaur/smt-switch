@@ -45,6 +45,10 @@ jobs:
             gmp \
             gperf \
             ${{ matrix.extra_macos_packages }}
+          echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
+          echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
+          echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
+
 
       - name: Python Dependencies
         run: |
