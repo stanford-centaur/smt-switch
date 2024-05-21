@@ -224,7 +224,6 @@ bool BzlaTerm::is_symbolic_const() const
 
 bool BzlaTerm::is_value() const
 {
-  // return term.sort().is_bv() || term.is_const_array();
   return term.is_value();
 }
 
@@ -263,7 +262,6 @@ uint64_t BzlaTerm::to_int() const
 
 TermIter BzlaTerm::begin()
 {
-  // std::vector<bitwuzla::Term> children = term.children();
   return TermIter(
       new BzlaTermIter(term, 0));
 }
@@ -271,7 +269,6 @@ TermIter BzlaTerm::begin()
 TermIter BzlaTerm::end()
 {
   size_t num_children = term.num_children();
-  // std::vector<bitwuzla::Term> children = term.children();
   return TermIter(
       new BzlaTermIter(term, num_children));
 }
@@ -307,37 +304,5 @@ string BzlaTerm::print_value_as(SortKind sk)
   {
     return to_string();
   }
-}
-
-// protected helpers
-std::string BzlaTerm::to_string_formatted(const char * fmt) const
-{
-  // TODO: make sure this works all right for symbols etc...
-  // if (term.is_const() || term.is_variable())
-  // {
-  //   return term.get_symbol();
-  // }
-
-  // char * cres;
-  // size_t size;
-  // FILE * stream = open_memstream(&cres, &size);
-  // bitwuzla_term_dump(term, fmt, stream);
-  // int64_t status = fflush(stream);
-  // if (status != 0)
-  // {
-  //   throw InternalSolverException(
-  //       "Error flushing stream for bitwuzla to_string");
-  // }
-  // status = fclose(stream);
-  // if (status != 0)
-  // {
-  //   throw InternalSolverException(
-  //       "Error closing stream for bitwuzla to_string");
-  // }
-  // string sres(cres);
-  // free(cres);
-  // return sres;
-  throw InternalSolverException(
-      "to_string_formatted not implemented yet");
 }
 }  // namespace smt

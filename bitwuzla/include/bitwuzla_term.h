@@ -78,18 +78,9 @@ class BzlaTerm : public AbsTerm
   TermIter end() override;
   std::string print_value_as(SortKind sk) override;
 
-  // getters for solver-specific objects
-  // for interacting with third-party Bitwuzla-specific software
-
-  // const bitwuzla::Term * get_bitwuzla_term() const { return term; };
-
  protected:
   // the actual API level node that is used
   const bitwuzla::Term term;
-
-  // helpers
-  /** Calls boolector's to_string with either btor or smt2 format*/
-  std::string to_string_formatted(const char * fmt) const;
 
   friend class BzlaSolver;
   friend class BzlaTermIter;

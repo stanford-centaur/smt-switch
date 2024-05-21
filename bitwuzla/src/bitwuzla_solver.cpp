@@ -192,7 +192,6 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
     {
       out.insert(make_shared<BzlaTerm>(elt));
     }
-    // assert(out.size() > 1);
   }
   catch (std::exception & e)
   {
@@ -691,9 +690,6 @@ TermVec BzlaSolver::substitute_terms(
 
 void BzlaSolver::dump_smt2(std::string filename) const
 {
-  // FILE * file = fopen(filename.c_str(), "w");
-  // bitwuzla_dump_formula(bzla, "smt2", file);
-  // fclose(file);
   throw SmtException(
         "Bitwuzla backend doesn't support dump_smt2");
 }

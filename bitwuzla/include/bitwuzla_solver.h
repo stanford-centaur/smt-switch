@@ -39,15 +39,12 @@ class BzlaSolver : public AbsSmtSolver
  public:
   BzlaSolver()
       : AbsSmtSolver(BZLA),
-        // tm(),
         options(),
-        // bzla(),
         context_level(0),
         time_limit(0),
         terminate_bzla(false)
   {
     tm = new bitwuzla::TermManager();
-    // bzla = new bitwuzla::Bitwuzla(* tm, options);
     bzla = nullptr;
   };
   BzlaSolver(const BzlaSolver &) = delete;
