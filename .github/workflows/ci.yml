@@ -36,7 +36,7 @@ jobs:
             cmake \
             gperf \
             libgmp-dev \
-            ninja \
+            ninja-build \
             openjdk-8-jdk
 
       - name: Install Packages (macOS)
