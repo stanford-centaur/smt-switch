@@ -26,13 +26,3 @@ if [ ! -d "$DEPS/bitwuzla" ]; then
 else
     echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi
-
-if [ -f $DEPS/bitwuzla/build/lib/libbitwuzla.a ] && [ -f $DEPS/bitwuzla/deps/cadical/build/libcadical.a ] && [ -f $DEPS/bitwuzla/deps/btor2tools/build/lib/libbtor2parser.a ] ; then \
-    echo "It appears bitwuzla was setup successfully into $DEPS/bitwuzla."
-    echo "You may now install it with make ./configure.sh --bitwuzla && cd build && make"
-else
-    echo "Building bitwuzla failed."
-    echo "You might be missing some dependencies."
-    echo "Please see their github page for installation instructions: https://github.com/Bitwuzla/bitwuzla"
-    exit 1
-fi
