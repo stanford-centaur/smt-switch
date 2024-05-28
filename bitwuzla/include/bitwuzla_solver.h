@@ -127,9 +127,11 @@ class BzlaSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
-  bitwuzla::Bitwuzla * get_bzla() const {
-    if (bzla == nullptr) {
-        bzla = new bitwuzla::Bitwuzla(*tm, options);
+  bitwuzla::Bitwuzla * get_bzla() const
+  {
+    if (bzla == nullptr)
+    {
+      bzla = new bitwuzla::Bitwuzla(*tm, options);
     }
     return bzla;
   }
@@ -149,7 +151,7 @@ class BzlaSolver : public AbsSmtSolver
   inline Result check_sat_assuming_internal(T container)
   {
     std::vector<bitwuzla::Term> assumptions;
-    for (auto&& t: container)
+    for (auto && t : container)
     {
       assumptions.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
     }
