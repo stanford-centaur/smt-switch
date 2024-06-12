@@ -21,8 +21,10 @@ if [ ! -d "$DEPS/bitwuzla" ]; then
     git clone https://github.com/bitwuzla/bitwuzla.git
     cd bitwuzla
     git checkout -f $BITWUZLA_VERSION
-    ./configure.py
-    meson compile -C build
+    ./configure.py --prefix $DEPS/install
+    cd build
+    meson compile
+    meson install
 else
     echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi

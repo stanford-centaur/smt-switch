@@ -150,14 +150,15 @@ endif (BUILD_BTOR)
 option (BUILD_BITWUZLA
   "Should we build the libraries for bitwuzla" OFF)
 if (BUILD_BITWUZLA)
-  if (NOT DEFINED BITWUZLA_HOME)
-    set(BITWUZLA_HOME "${PROJECT_SOURCE_DIR}/deps/bitwuzla")
+  if (NOT DEFINED BITWUZLA_DIR)
+    # default location if using contrib/setup-bitwuzla.sh
+    # will also search global paths
+    set (BITWUZLA_DIR "${PROJECT_SOURCE_DIR}/deps/install")
   endif()
   add_subdirectory (bitwuzla)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
 
   add_definitions(-DBUILD_BITWUZLA)
-  add_definitions(-DBITWUZLA_HOME=${BITWUZLA_HOME})
 endif (BUILD_BITWUZLA)
 
 
