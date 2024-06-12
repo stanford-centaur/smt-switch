@@ -7,15 +7,6 @@ DEPS="$( cd "$( dirname "$DIR" )/deps" && pwd )"
 
 mkdir -p $DEPS
 
-if [ "$(uname)" == "Darwin" ]; then
-    NUM_CORES=$(sysctl -n hw.logicalcpu)
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    NUM_CORES=$(nproc)
-else
-    NUM_CORES=1
-fi
-
-
 if [ ! -d "$DEPS/bitwuzla" ]; then
     cd $DEPS
     git clone https://github.com/bitwuzla/bitwuzla.git
