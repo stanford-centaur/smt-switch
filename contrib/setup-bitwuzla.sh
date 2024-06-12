@@ -3,7 +3,7 @@ set -e
 
 BITWUZLA_VERSION=229c0fa35bfbdcae7189558f98911a24909a7f04
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-DEPS=$DIR/../deps
+DEPS="$( cd "$( dirname "$DIR" )/deps" && pwd )"
 
 mkdir -p $DEPS
 
