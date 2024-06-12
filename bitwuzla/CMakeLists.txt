@@ -13,7 +13,6 @@ add_library(smt-switch-bitwuzla "${SMT_SWITCH_LIB_TYPE}"
   )
 
 target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_include_directories (smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 target_include_directories (smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories (smt-switch-bitwuzla PUBLIC ${BITWUZLA_INCLUDE_DIRS})
 
