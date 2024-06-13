@@ -98,15 +98,15 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "produce-models")
   {
-    options.set(bitwuzla::Option::PRODUCE_MODELS, true);
+    options.set(bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
   }
   else if (option == "produce-unsat-assumptions")
   {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS, true);
+    options.set(bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS, (value == "true"));
   }
   else if (option == "produce-unsat-cores")
   {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, true);
+    options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
   }
   else if (option == "time-limit")
   {
