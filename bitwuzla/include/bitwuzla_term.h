@@ -32,8 +32,7 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(bitwuzla::Term terms, std::size_t idx)
-      : terms(terms), idx(idx)
+  BzlaTermIter(bitwuzla::Term terms, std::size_t idx) : terms(terms), idx(idx)
   {
   }
   BzlaTermIter(const BzlaTermIter & it)
@@ -78,6 +77,11 @@ class BzlaTerm : public AbsTerm
   TermIter begin() override;
   TermIter end() override;
   std::string print_value_as(SortKind sk) override;
+
+  // getters for solver-specific objects
+  // for interacting with third-party Bitwuzla-specific software
+
+  const bitwuzla::Term get_bitwuzla_term() const { return term; };
 
  protected:
   // the actual API level node that is used
