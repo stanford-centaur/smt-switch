@@ -94,7 +94,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   // TODO support more options
   if (option == "incremental")
   {
-
+    // Do nothing, Bitwuzla is always incremental.
   }
   else if (option == "produce-models")
   {
