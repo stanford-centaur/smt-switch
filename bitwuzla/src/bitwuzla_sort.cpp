@@ -16,11 +16,15 @@
 
 #include "bitwuzla_sort.h"
 
-#include "assert.h"
-#include "bitwuzla/cpp/bitwuzla.h"
-#include "sort.h"
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
-using namespace std;
+#include "bitwuzla/cpp/bitwuzla.h"
+#include "smt.h"
 
 namespace smt {
 
@@ -29,28 +33,29 @@ BzlaSort::~BzlaSort()
   // TODO: figure out if sorts need to be destroyed
 }
 
-size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
+std::size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
 
-uint64_t BzlaSort::get_width() const { return sort.bv_size(); }
+std::uint64_t BzlaSort::get_width() const { return sort.bv_size(); }
 
 Sort BzlaSort::get_indexsort() const
 {
-  return make_shared<BzlaSort>(sort.array_index());
+  return std::make_shared<BzlaSort>(sort.array_index());
 }
 
 Sort BzlaSort::get_elemsort() const
 {
-  return make_shared<BzlaSort>(sort.array_element());
+  return std::make_shared<BzlaSort>(sort.array_element());
 }
 
 SortVec BzlaSort::get_domain_sorts() const
 {
   std::vector<bitwuzla::Sort> bsorts = sort.fun_domain();
-  SortVec domain_sorts; domain_sorts.reserve(bsorts.size());
+  SortVec domain_sorts;
+  domain_sorts.reserve(bsorts.size());
 
-  for (auto&& bsort : bsorts)
+  for (auto && bsort : bsorts)
   {
-    domain_sorts.push_back(make_shared<BzlaSort>(bsort));
+    domain_sorts.push_back(std::make_shared<BzlaSort>(bsort));
   }
 
   return domain_sorts;
@@ -58,7 +63,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
-  return make_shared<BzlaSort>(sort.fun_codomain());
+  return std::make_shared<BzlaSort>(sort.fun_codomain());
 }
 
 std::string BzlaSort::get_uninterpreted_name() const
@@ -67,7 +72,7 @@ std::string BzlaSort::get_uninterpreted_name() const
       "Bitwuzla does not support uninterpreted sorts.");
 }
 
-size_t BzlaSort::get_arity() const { return sort.fun_arity(); }
+std::size_t BzlaSort::get_arity() const { return sort.fun_arity(); }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
@@ -81,7 +86,7 @@ Datatype BzlaSort::get_datatype() const
 
 bool BzlaSort::compare(const Sort & s) const
 {
-  shared_ptr<BzlaSort> bsort = static_pointer_cast<BzlaSort>(s);
+  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(s);
   return sort == bsort->sort;
 }
 
@@ -99,13 +104,16 @@ SortKind BzlaSort::get_sort_kind() const
   {
     return FUNCTION;
   }
-  else if (sort.is_fp()) {
+  else if (sort.is_fp())
+  {
     return REAL;
   }
-  else if (sort.is_bool()) {
+  else if (sort.is_bool())
+  {
     return BOOL;
   }
-  else if (sort.is_uninterpreted()) {
+  else if (sort.is_uninterpreted())
+  {
     return UNINTERPRETED;
   }
   else

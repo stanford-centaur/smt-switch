@@ -16,8 +16,11 @@
 
 #include "bitwuzla_factory.h"
 
+#include <memory>
+
 #include "bitwuzla_solver.h"
 #include "logging_solver.h"
+#include "smt_defs.h"
 
 namespace smt {
 

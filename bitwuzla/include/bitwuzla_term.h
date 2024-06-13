@@ -16,12 +16,13 @@
 
 #pragma once
 
-#include <vector>
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
 #include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_sort.h"
-#include "term.h"
-#include "utils.h"
+#include "smt.h"
 
 namespace smt {
 
@@ -31,7 +32,7 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(bitwuzla::Term terms, size_t idx)
+  BzlaTermIter(bitwuzla::Term terms, std::size_t idx)
       : terms(terms), idx(idx)
   {
   }
@@ -53,7 +54,7 @@ class BzlaTermIter : public TermIterBase
 
  private:
   bitwuzla::Term terms;  // terms to iterate over (e.g. children)
-  size_t idx;             // current idx of iteration
+  std::size_t idx;       // current idx of iteration
 };
 
 class BzlaTerm : public AbsTerm
@@ -71,7 +72,7 @@ class BzlaTerm : public AbsTerm
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
-  uint64_t to_int() const override;
+  std::uint64_t to_int() const override;
   /** Iterators for traversing the children
    */
   TermIter begin() override;

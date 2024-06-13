@@ -16,18 +16,17 @@
 
 #pragma once
 
-#include <unistd.h>
-
+#include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
-#include "bitwuzla_sort.h"
+#include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_term.h"
 #include "result.h"
 #include "smt.h"
-#include "sort.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -61,16 +60,16 @@ class BzlaSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   Result check_sat_assuming_list(const TermList & assumptions) override;
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
+  void push(std::uint64_t num = 1) override;
+  void pop(std::uint64_t num = 1) override;
+  std::uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
-  Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
-  Sort make_sort(SortKind sk, uint64_t size) const override;
+  Sort make_sort(SortKind sk, std::uint64_t size) const override;
   Sort make_sort(SortKind sk, const Sort & sort1) const override;
   Sort make_sort(SortKind sk,
                  const Sort & sort1,
@@ -100,10 +99,10 @@ class BzlaSolver : public AbsSmtSolver
                     std::string name) const override;
 
   Term make_term(bool b) const override;
-  Term make_term(int64_t i, const Sort & sort) const override;
+  Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
                  const Sort & sort,
-                 uint64_t base = 10) const override;
+                 std::uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) override;
@@ -142,8 +141,8 @@ class BzlaSolver : public AbsSmtSolver
   mutable bitwuzla::Bitwuzla * bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
-  uint64_t context_level;
-  uint64_t time_limit;
+  std::uint64_t context_level;
+  std::uint64_t time_limit;
   bool terminate_bzla;  ///< used if time limit is reached
 
   // helper functions
@@ -167,7 +166,7 @@ class BzlaSolver : public AbsSmtSolver
     }
     else
     {
-      assert(res == bitwuzla::Result::UNKNOWN);
+      Assert(res == bitwuzla::Result::UNKNOWN);
       return Result(UNKNOWN);
     }
   }
