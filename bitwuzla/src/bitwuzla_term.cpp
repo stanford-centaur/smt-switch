@@ -164,13 +164,9 @@ bool BzlaTerm::compare(const Term & absterm) const
 
 Op BzlaTerm::get_op() const
 {
-  if (term.is_const() || term.is_variable() || term.is_value())
-  {
-    return Op();
-  }
-
   bitwuzla::Kind bkind = term.kind();
-  if (bkind == bitwuzla::Kind::CONST_ARRAY)
+  if (term.is_const() || term.is_variable() || term.is_value()
+      || bkind == bitwuzla::Kind::CONST_ARRAY)
   {
     return Op();
   }
