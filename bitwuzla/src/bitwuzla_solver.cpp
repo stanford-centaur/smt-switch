@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -707,7 +708,8 @@ TermVec BzlaSolver::substitute_terms(
 
 void BzlaSolver::dump_smt2(std::string filename) const
 {
-  throw SmtException("Bitwuzla backend doesn't support dump_smt2");
+  std::ofstream out(filename);
+  get_bitwuzla()->print_formula(out, "smt2");
 }
 
 }  // namespace smt
