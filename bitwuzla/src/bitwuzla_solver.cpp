@@ -233,7 +233,7 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort from sort kind");
+    std::string msg("Can't create sort from sort kind ");
     msg += to_string(sk);
     msg += " with int argument.";
     throw IncorrectUsageException(msg);
