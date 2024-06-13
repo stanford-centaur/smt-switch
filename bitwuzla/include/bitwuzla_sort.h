@@ -46,6 +46,11 @@ class BzlaSort : public AbsSort
   bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party Bitwuzla-specific software
+
+  const bitwuzla::Sort get_bitwuzla_sort() const { return sort; };
+
  protected:
   // objects from Bitwuzla API
   const bitwuzla::Sort sort;
