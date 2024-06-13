@@ -284,10 +284,8 @@ Sort BzlaSolver::make_sort(SortKind sk,
 
   if (sk == FUNCTION)
   {
-    const std::vector<bitwuzla::Sort> domain_sorts(
-        { bsort1->sort, bsort2->sort });
     return std::make_shared<BzlaSort>(
-        tm->mk_fun_sort(domain_sorts, bsort3->sort));
+        tm->mk_fun_sort({ bsort1->sort, bsort2->sort }, bsort3->sort));
   }
   else
   {
