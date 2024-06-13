@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "bitwuzla/cpp/bitwuzla.h"
@@ -86,8 +87,7 @@ const std::unordered_map<PrimOp, bitwuzla::Kind> op2bkind(
       { Forall, bitwuzla::Kind::FORALL },
       { Exists, bitwuzla::Kind::EXISTS } });
 
-const std::unordered_map<std::uint64_t, std::uint64_t> bvbasemap(
-    { { 2, 2 }, { 10, 10 }, { 16, 16 } });
+const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
@@ -443,8 +443,7 @@ Term BzlaSolver::make_term(const std::string val,
         + to_string(sk));
   }
 
-  auto baseit = bvbasemap.find(base);
-  if (baseit == bvbasemap.end())
+  if (bvbases.count(base) == 0)
   {
     throw IncorrectUsageException(::std::to_string(base) + " base for creating a BV value is not supported."
                                   " Options are 2, 10, and 16");
@@ -452,7 +451,7 @@ Term BzlaSolver::make_term(const std::string val,
 
   std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
   return std::make_shared<BzlaTerm>(
-      tm->mk_bv_value(bsort->sort, val.c_str(), baseit->second));
+      tm->mk_bv_value(bsort->sort, val.c_str(), base));
 }
 
 Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
