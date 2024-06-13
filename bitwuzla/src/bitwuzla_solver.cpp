@@ -449,8 +449,7 @@ Term BzlaSolver::make_term(const std::string val,
   }
 
   std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(
-      tm->mk_bv_value(bsort->sort, val, base));
+  return std::make_shared<BzlaTerm>(tm->mk_bv_value(bsort->sort, val, base));
 }
 
 Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
@@ -656,6 +655,7 @@ Term BzlaSolver::substitute(const Term term,
 {
   std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(term);
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
+  substitution_bterms_map.reserve(substitution_map.size());
   for (auto elem : substitution_map)
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
@@ -682,6 +682,7 @@ TermVec BzlaSolver::substitute_terms(
     bterms.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
   }
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
+  substitution_bterms_map.reserve(substitution_map.size());
   for (auto elem : substitution_map)
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
