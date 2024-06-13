@@ -449,7 +449,7 @@ Term BzlaSolver::make_term(const std::string val,
 
   std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
   return std::make_shared<BzlaTerm>(
-      tm->mk_bv_value(bsort->sort, val.c_str(), base));
+      tm->mk_bv_value(bsort->sort, val, base));
 }
 
 Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
