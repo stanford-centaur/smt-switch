@@ -609,7 +609,7 @@ Term BzlaSolver::make_term(Op op,
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   std::vector<bitwuzla::Term> bitwuzla_terms;
-  for (auto t : terms)
+  for (auto && t : terms)
   {
     bitwuzla_terms.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
   }
@@ -656,7 +656,7 @@ Term BzlaSolver::substitute(const Term term,
   std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(term);
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
   substitution_bterms_map.reserve(substitution_map.size());
-  for (auto elem : substitution_map)
+  for (auto && elem : substitution_map)
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
@@ -677,13 +677,13 @@ TermVec BzlaSolver::substitute_terms(
   std::vector<bitwuzla::Term> bterms;
   std::size_t terms_size = terms.size();
   bterms.reserve(terms_size);
-  for (auto t : terms)
+  for (auto && t : terms)
   {
     bterms.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
   }
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
   substitution_bterms_map.reserve(substitution_map.size());
-  for (auto elem : substitution_map)
+  for (auto && elem : substitution_map)
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
@@ -698,7 +698,7 @@ TermVec BzlaSolver::substitute_terms(
 
   TermVec res;
   res.reserve(terms_size);
-  for (auto t : bterms)
+  for (auto && t : bterms)
   {
     res.push_back(std::make_shared<BzlaTerm>(t));
   }
