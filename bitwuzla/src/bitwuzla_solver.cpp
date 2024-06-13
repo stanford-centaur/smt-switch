@@ -127,12 +127,12 @@ void BzlaSolver::set_logic(const std::string logic)
 void BzlaSolver::assert_formula(const Term & t)
 {
   std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
-  get_bzla()->assert_formula(bterm->term);
+  get_bitwuzla()->assert_formula(bterm->term);
 }
 
 Result BzlaSolver::check_sat()
 {
-  bitwuzla::Result r = get_bzla()->check_sat();
+  bitwuzla::Result r = get_bitwuzla()->check_sat();
   if (r == bitwuzla::Result::SAT)
   {
     return Result(SAT);
@@ -165,13 +165,13 @@ Result BzlaSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 
 void BzlaSolver::push(std::uint64_t num)
 {
-  get_bzla()->push(num);
+  get_bitwuzla()->push(num);
   context_level += num;
 }
 
 void BzlaSolver::pop(std::uint64_t num)
 {
-  get_bzla()->pop(num);
+  get_bitwuzla()->pop(num);
   context_level -= num;
 }
 
@@ -180,7 +180,7 @@ uint64_t BzlaSolver::get_context_level() const { return context_level; }
 Term BzlaSolver::get_value(const Term & t) const
 {
   std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
-  return std::make_shared<BzlaTerm>(get_bzla()->get_value(bterm->term));
+  return std::make_shared<BzlaTerm>(get_bitwuzla()->get_value(bterm->term));
 }
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
@@ -194,7 +194,7 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   try
   {
-    std::vector<bitwuzla::Term> bcore = get_bzla()->get_unsat_assumptions();
+    std::vector<bitwuzla::Term> bcore = get_bitwuzla()->get_unsat_assumptions();
     for (auto && elt : bcore)
     {
       out.insert(std::make_shared<BzlaTerm>(elt));
