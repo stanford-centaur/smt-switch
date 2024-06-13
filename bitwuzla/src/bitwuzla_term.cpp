@@ -220,7 +220,10 @@ bool BzlaTerm::is_symbolic_const() const
   return (term.is_const() && !(term.sort().is_fun()));
 }
 
-bool BzlaTerm::is_value() const { return term.is_value(); }
+bool BzlaTerm::is_value() const
+{
+  return term.is_value() || term.kind() == bitwuzla::Kind::CONST_ARRAY;
+}
 
 std::string BzlaTerm::to_string() { return term.str(); }
 
