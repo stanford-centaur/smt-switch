@@ -145,10 +145,12 @@ class BzlaSolver : public AbsSmtSolver
   template <class T>
   inline Result check_sat_assuming_internal(T container)
   {
+    std::shared_ptr<BzlaTerm> bt;
     std::vector<bitwuzla::Term> assumptions;
     for (auto && t : container)
     {
-      assumptions.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
+      bt = std::static_pointer_cast<BzlaTerm>(t);
+      assumptions.push_back(bt->term);
     }
 
     bitwuzla::Result res = get_bitwuzla()->check_sat(assumptions);
