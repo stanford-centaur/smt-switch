@@ -41,9 +41,7 @@ class BzlaSolver : public AbsSmtSolver
         options(),
         tm(new bitwuzla::TermManager()),
         bzla(nullptr),
-        context_level(0),
-        time_limit(0),
-        terminate_bzla(false){};
+        context_level(0){};
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
   ~BzlaSolver()
@@ -142,8 +140,6 @@ class BzlaSolver : public AbsSmtSolver
 
   std::unordered_map<std::string, Term> symbol_table;
   std::uint64_t context_level;
-  std::uint64_t time_limit;
-  bool terminate_bzla;  ///< used if time limit is reached
 
   // helper functions
   template <class T>
