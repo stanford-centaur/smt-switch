@@ -3,8 +3,14 @@
 # build testing infrastructure
 enable_testing()
 
-# first try finding a system installation of googletest
-find_package(GTest CONFIG)
+option (SYSTEM_GTEST "Should we try to use the system GTest" ON)
+
+if (SYSTEM_GTEST)
+  # try finding a system installation of googletest
+  find_package(GTest 1.12 CONFIG)
+else()
+  set(GTest_FOUND FALSE)
+endif()
 
 if(NOT GTest_FOUND)
   # Download and unpack googletest at configure time
