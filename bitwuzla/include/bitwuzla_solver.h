@@ -153,7 +153,16 @@ class BzlaSolver : public AbsSmtSolver
       assumptions.push_back(bt->term);
     }
 
-    bitwuzla::Result res = get_bitwuzla()->check_sat(assumptions);
+    bitwuzla::Result res;
+    try
+    {
+      res = get_bitwuzla()->check_sat(assumptions);
+    }
+    catch (std::exception & e)
+    {
+      throw InternalSolverException(e.what());
+    }
+
     if (res == bitwuzla::Result::SAT)
     {
       return Result(SAT);

@@ -134,7 +134,16 @@ void BzlaSolver::assert_formula(const Term & t)
 
 Result BzlaSolver::check_sat()
 {
-  bitwuzla::Result r = get_bitwuzla()->check_sat();
+  bitwuzla::Result r;
+  try
+  {
+    r = get_bitwuzla()->check_sat();
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+
   if (r == bitwuzla::Result::SAT)
   {
     return Result(SAT);
@@ -194,17 +203,18 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
+  std::vector<bitwuzla::Term> bcore;
   try
   {
-    std::vector<bitwuzla::Term> bcore = get_bitwuzla()->get_unsat_assumptions();
-    for (auto && elt : bcore)
-    {
-      out.insert(std::make_shared<BzlaTerm>(elt));
-    }
+    bcore = get_bitwuzla()->get_unsat_assumptions();
   }
   catch (std::exception & e)
   {
     throw InternalSolverException(e.what());
+  }
+  for (auto && elt : bcore)
+  {
+    out.insert(std::make_shared<BzlaTerm>(elt));
   }
 }
 
