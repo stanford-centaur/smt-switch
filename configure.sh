@@ -19,7 +19,6 @@ Configures the CMAKE build environment.
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
 --btor-home=STR         custom BTOR location    (default: deps/boolector)
---bitwuzla-home=STR     custom Bitwuzla location  (default: deps/bitwuzla)
 --cvc5-home=STR         custom cvc5 location    (default: deps/cvc5)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)
@@ -33,6 +32,7 @@ Configures the CMAKE build environment.
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
+--bitwuzla-dir=STR      custom Bitwuzla installation directory
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -54,7 +54,6 @@ build_msat=default
 build_yices2=default
 build_z3=default
 btor_home=default
-bitwuzla_home=default
 cvc5_home=default
 msat_home=default
 yices2_home=default
@@ -66,6 +65,7 @@ python=default
 smtlib_reader=default
 bison_dir=default
 flex_dir=default
+bitwuzla_dir=default
 
 build_type=Release
 
@@ -113,16 +113,6 @@ do
                     *) btor_home=$(pwd)/$btor_home ;; # make absolute path
                 esac
                 ;;
-        --bitwuzla-home) die "missing argument to $1 (see -h)" ;;
-        --bitwuzla-home=*)
-            bitwuzla_home=${1##*=}
-            # Check if bitwuzla_home is an absolute path and if not, make it
-            # absolute.
-            case $bitwuzla_home in
-                /*) ;;                                      # absolute path
-                *) bitwuzla_home=$(pwd)/$bitwuzla_home ;; # make absolute path
-            esac
-            ;;
         --cvc5-home) die "missing argument to $1 (see -h)" ;;
         --cvc5-home=*)
             cvc5_home=${1##*=}
@@ -209,6 +199,12 @@ do
                 *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
             esac
             ;;
+        --bitwuzla-dir) die "missing argument to $1 (see -h)" ;;
+        --bitwuzla-dir=*)
+            bitwuzla_dir="${1##*=}"
+            # Make relative paths absolute
+            bitwuzla_dir="$(cd -- "$bitwuzla_dir" && pwd)"
+            ;;
         -D*) cmake_opts="${cmake_opts} $1" ;;
         *) die "unexpected argument: $1";;
     esac
@@ -218,10 +214,6 @@ done
 # enable solvers automatically if a custom home is provided
 if [ $btor_home != default -a $build_btor = default ]; then
     build_btor=ON
-fi
-
-if [ $bitwuzla_home != default -a $build_bitwuzla = default ]; then
-    build_bitwuzla=ON
 fi
 
 if [ $cvc5_home != default -a $build_cvc5 = default ]; then
@@ -266,9 +258,6 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
 
-[ $bitwuzla_home != default ] \
-    && cmake_opts="$cmake_opts -DBITWUZLA_HOME=$bitwuzla_home"
-
 [ $cvc5_home != default ] \
     && cmake_opts="$cmake_opts -DCVC5_HOME=$cvc5_home"
 
@@ -301,6 +290,9 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $flex_dir != default ] \
     && cmake_opts="$cmake_opts -DFLEX_DIR=$flex_dir"
+
+[ $bitwuzla_dir != default ] \
+    && cmake_opts="$cmake_opts -DBITWUZLA_DIR=$bitwuzla_dir"
 
 root_dir=$(pwd)
 

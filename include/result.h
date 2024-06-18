@@ -44,9 +44,8 @@ struct Result
   std::string to_string() const;
   ResultType result;
   std::string explanation;
-  };
+};
 
-  std::ostream & operator<<(std::ostream & output, const Result r);
-  bool operator==(const Result & r1, const Result & r2);
-}
-
+std::ostream & operator<<(std::ostream & output, const Result r);
+bool operator==(const Result & r1, const Result & r2);
+}  // namespace smt

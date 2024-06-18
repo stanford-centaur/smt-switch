@@ -9,6 +9,7 @@ jobs:
         name:
           [
             btor,
+            bitwuzla,
             cvc5,
             msat,
             yices2,
@@ -35,6 +36,7 @@ jobs:
             cmake \
             gperf \
             libgmp-dev \
+            ninja-build \
             openjdk-8-jdk
 
       - name: Install Packages (macOS)
@@ -44,6 +46,7 @@ jobs:
           brew install \
             gmp \
             gperf \
+            ninja \
             ${{ matrix.extra_macos_packages }}
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
@@ -55,7 +58,12 @@ jobs:
           python3 -m venv ./.venv
           source ./.venv/bin/activate
           python3 -m pip install Cython==0.29.*
-          python3 -m pip install pytest scikit-build toml pyparsing
+          python3 -m pip install \
+            pytest \
+            scikit-build \
+            toml \
+            pyparsing \
+            meson
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Install Bison

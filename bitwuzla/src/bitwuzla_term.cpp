@@ -14,90 +14,93 @@
 **
 **/
 
-// include standard version of open_memstream
-// for compatability with FreeBSD / Darwin which doesn't support it natively
-extern "C" {
-#include "memstream.h"
-}
-
-#include <sstream>
-
 #include "bitwuzla_term.h"
 
-using namespace std;
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "bitwuzla/cpp/bitwuzla.h"
+#include "smt.h"
+#include "utils.h"
 
 namespace std {
 // specialize the hash template
 template <>
-struct hash<BitwuzlaKind>
+struct hash<bitwuzla::Kind>
 {
-  size_t operator()(const BitwuzlaKind bk) const
+  size_t operator()(const bitwuzla::Kind bk) const
   {
-    return static_cast<std::size_t>(bk);
+    return static_cast<size_t>(bk);
   }
 };
 }  // namespace std
 
 namespace smt {
 
-const std::unordered_map<BitwuzlaKind, PrimOp> bkind2primop(
+const std::unordered_map<bitwuzla::Kind, PrimOp> bkind2primop(
     { /* Core Theory */
-      { BITWUZLA_KIND_AND, And },
-      { BITWUZLA_KIND_OR, Or },
-      { BITWUZLA_KIND_XOR, Xor },
-      { BITWUZLA_KIND_NOT, Not },
+      { bitwuzla::Kind::AND, And },
+      { bitwuzla::Kind::OR, Or },
+      { bitwuzla::Kind::XOR, Xor },
+      { bitwuzla::Kind::NOT, Not },
       // needs to be translated
-      { BITWUZLA_KIND_IMPLIES, Implies },
-      { BITWUZLA_KIND_IFF, Equal },
-      { BITWUZLA_KIND_ITE, Ite },
-      { BITWUZLA_KIND_EQUAL, Equal },
-      { BITWUZLA_KIND_DISTINCT, Distinct },
+      { bitwuzla::Kind::IMPLIES, Implies },
+      { bitwuzla::Kind::IFF, Equal },
+      { bitwuzla::Kind::ITE, Ite },
+      { bitwuzla::Kind::EQUAL, Equal },
+      { bitwuzla::Kind::DISTINCT, Distinct },
       /* Uninterpreted Functions */
-      { BITWUZLA_KIND_APPLY, Apply },
+      { bitwuzla::Kind::APPLY, Apply },
       /* Fixed Size BitVector Theory */
-      { BITWUZLA_KIND_BV_CONCAT, Concat },
-      { BITWUZLA_KIND_BV_EXTRACT, Extract },
-      { BITWUZLA_KIND_BV_NOT, BVNot },
-      { BITWUZLA_KIND_BV_NEG, BVNeg },
-      { BITWUZLA_KIND_BV_AND, BVAnd },
-      { BITWUZLA_KIND_BV_OR, BVOr },
-      { BITWUZLA_KIND_BV_XOR, BVXor },
-      { BITWUZLA_KIND_BV_NAND, BVNand },
-      { BITWUZLA_KIND_BV_NOR, BVNor },
-      { BITWUZLA_KIND_BV_XNOR, BVXnor },
-      { BITWUZLA_KIND_BV_ADD, BVAdd },
-      { BITWUZLA_KIND_BV_SUB, BVSub },
-      { BITWUZLA_KIND_BV_MUL, BVMul },
-      { BITWUZLA_KIND_BV_UDIV, BVUdiv },
-      { BITWUZLA_KIND_BV_SDIV, BVSdiv },
-      { BITWUZLA_KIND_BV_UREM, BVUrem },
-      { BITWUZLA_KIND_BV_SREM, BVSrem },
-      { BITWUZLA_KIND_BV_SMOD, BVSmod },
-      { BITWUZLA_KIND_BV_SHL, BVShl },
-      { BITWUZLA_KIND_BV_ASHR, BVAshr },
-      { BITWUZLA_KIND_BV_SHR, BVLshr },
-      { BITWUZLA_KIND_BV_COMP, BVComp },
-      { BITWUZLA_KIND_BV_ULT, BVUlt },
-      { BITWUZLA_KIND_BV_ULE, BVUle },
-      { BITWUZLA_KIND_BV_UGT, BVUgt },
-      { BITWUZLA_KIND_BV_UGE, BVUge },
-      { BITWUZLA_KIND_BV_SLT, BVSlt },
-      { BITWUZLA_KIND_BV_SLE, BVSle },
-      { BITWUZLA_KIND_BV_SGT, BVSgt },
-      { BITWUZLA_KIND_BV_SGE, BVSge },
-      { BITWUZLA_KIND_BV_ZERO_EXTEND, Zero_Extend },  // Indexed
-      { BITWUZLA_KIND_BV_SIGN_EXTEND, Sign_Extend },  // Indexed
-      { BITWUZLA_KIND_BV_REPEAT, Repeat },            // Indexed
-      { BITWUZLA_KIND_BV_ROLI, Rotate_Left },         // Indexed
-      { BITWUZLA_KIND_BV_RORI, Rotate_Right },        // Indexed
-                                                      /* Array Theory */
-      { BITWUZLA_KIND_ARRAY_SELECT, Select },
-      { BITWUZLA_KIND_ARRAY_STORE, Store },
+      { bitwuzla::Kind::BV_CONCAT, Concat },
+      { bitwuzla::Kind::BV_EXTRACT, Extract },
+      { bitwuzla::Kind::BV_NOT, BVNot },
+      { bitwuzla::Kind::BV_NEG, BVNeg },
+      { bitwuzla::Kind::BV_AND, BVAnd },
+      { bitwuzla::Kind::BV_OR, BVOr },
+      { bitwuzla::Kind::BV_XOR, BVXor },
+      { bitwuzla::Kind::BV_NAND, BVNand },
+      { bitwuzla::Kind::BV_NOR, BVNor },
+      { bitwuzla::Kind::BV_XNOR, BVXnor },
+      { bitwuzla::Kind::BV_ADD, BVAdd },
+      { bitwuzla::Kind::BV_SUB, BVSub },
+      { bitwuzla::Kind::BV_MUL, BVMul },
+      { bitwuzla::Kind::BV_UDIV, BVUdiv },
+      { bitwuzla::Kind::BV_SDIV, BVSdiv },
+      { bitwuzla::Kind::BV_UREM, BVUrem },
+      { bitwuzla::Kind::BV_SREM, BVSrem },
+      { bitwuzla::Kind::BV_SMOD, BVSmod },
+      { bitwuzla::Kind::BV_SHL, BVShl },
+      { bitwuzla::Kind::BV_ASHR, BVAshr },
+      { bitwuzla::Kind::BV_SHR, BVLshr },
+      { bitwuzla::Kind::BV_COMP, BVComp },
+      { bitwuzla::Kind::BV_ULT, BVUlt },
+      { bitwuzla::Kind::BV_ULE, BVUle },
+      { bitwuzla::Kind::BV_UGT, BVUgt },
+      { bitwuzla::Kind::BV_UGE, BVUge },
+      { bitwuzla::Kind::BV_SLT, BVSlt },
+      { bitwuzla::Kind::BV_SLE, BVSle },
+      { bitwuzla::Kind::BV_SGT, BVSgt },
+      { bitwuzla::Kind::BV_SGE, BVSge },
+      { bitwuzla::Kind::BV_ZERO_EXTEND, Zero_Extend },  // Indexed
+      { bitwuzla::Kind::BV_SIGN_EXTEND, Sign_Extend },  // Indexed
+      { bitwuzla::Kind::BV_REPEAT, Repeat },            // Indexed
+      { bitwuzla::Kind::BV_ROLI, Rotate_Left },         // Indexed
+      { bitwuzla::Kind::BV_RORI, Rotate_Right },        // Indexed
+      /* Array Theory */
+      { bitwuzla::Kind::ARRAY_SELECT, Select },
+      { bitwuzla::Kind::ARRAY_STORE, Store },
       /* Quantifiers */
-      { BITWUZLA_KIND_FORALL, Forall },
-      { BITWUZLA_KIND_EXISTS, Exists } });
+      { bitwuzla::Kind::FORALL, Forall },
+      { bitwuzla::Kind::EXISTS, Exists } });
 
-const unordered_set<PrimOp> indexed_ops(
+const std::unordered_set<PrimOp> indexed_ops(
     { Extract, Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right });
 
 /*  start BzlaTermIter implementation */
@@ -109,15 +112,12 @@ BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
   return *this;
 }
 
-void BzlaTermIter::operator++()
-{
-  idx++;
-}
+void BzlaTermIter::operator++() { idx++; }
 
 const Term BzlaTermIter::operator*()
 {
-  assert(idx < terms.size());
-  return make_shared<BzlaTerm>(terms.at(idx));
+  Assert(idx < terms.num_children());
+  return std::make_shared<BzlaTerm>(terms[idx]);
 }
 
 TermIterBase * BzlaTermIter::clone() const
@@ -132,7 +132,7 @@ bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
 bool BzlaTermIter::equal(const TermIterBase & other) const
 {
   const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  if (idx != bti.idx || terms.size() != bti.terms.size())
+  if (idx != bti.idx || terms.num_children() != bti.terms.num_children())
   {
     // do a cheap equality test first
     return false;
@@ -143,31 +143,34 @@ bool BzlaTermIter::equal(const TermIterBase & other) const
 
 /*  end BzlaTermIter implementation */
 
-BzlaTerm::BzlaTerm(const BitwuzlaTerm * t) : term(t) {}
+BzlaTerm::BzlaTerm(const bitwuzla::Term t) : term(t) {}
 
 BzlaTerm::~BzlaTerm() {}
 
-std::size_t BzlaTerm::hash() const { return bitwuzla_term_hash(term); }
+std::size_t BzlaTerm::hash() const { return std::hash<bitwuzla::Term>{}(term); }
 
 // hash is unique in bitwuzla
-std::size_t BzlaTerm::get_id() const { return bitwuzla_term_hash(term); }
+std::size_t BzlaTerm::get_id() const
+{
+  return std::hash<bitwuzla::Term>{}(term);
+}
 
 bool BzlaTerm::compare(const Term & absterm) const
 {
-  shared_ptr<BzlaTerm> bterm = static_pointer_cast<BzlaTerm>(absterm);
+  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(absterm);
   // in bitwuzla, the pointers will be equivalent iff the terms are equivalent
   return term == bterm->term;
 }
 
 Op BzlaTerm::get_op() const
 {
-  if (bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term)
-      || bitwuzla_term_is_const_array(term) || bitwuzla_term_is_bv_value(term))
+  bitwuzla::Kind bkind = term.kind();
+  if (term.is_const() || term.is_variable() || term.is_value()
+      || bkind == bitwuzla::Kind::CONST_ARRAY)
   {
     return Op();
   }
 
-  BitwuzlaKind bkind = bitwuzla_term_get_kind(term);
   auto it = bkind2primop.find(bkind);
   if (it == bkind2primop.end())
   {
@@ -176,22 +179,20 @@ Op BzlaTerm::get_op() const
 
   PrimOp po = it->second;
 
-  if (bitwuzla_term_is_indexed(term))
+  if (indexed_ops.find(po) != indexed_ops.end())
   {
-    assert(indexed_ops.find(po) != indexed_ops.end());
-    size_t num_indices;
-    uint32_t * indices = bitwuzla_term_get_indices(term, &num_indices);
-    assert(num_indices);
-    assert(num_indices <= 2);
-    uint32_t idx0 = *indices;
+    std::size_t num_indices = term.num_indices();
+    Assert(num_indices > 0);
+    Assert(num_indices <= 2);
+    std::vector<std::uint64_t> indices = term.indices();
+    std::uint64_t idx0 = indices[0];
     if (num_indices == 1)
     {
       return Op(po, idx0);
     }
     else
     {
-      indices++;
-      uint32_t idx1 = *indices;
+      std::uint64_t idx1 = indices[1];
       return Op(po, idx0, idx1);
     }
   }
@@ -201,77 +202,72 @@ Op BzlaTerm::get_op() const
 
 Sort BzlaTerm::get_sort() const
 {
-  return make_shared<BzlaSort>(bitwuzla_term_get_sort(term));
+  return std::make_shared<BzlaSort>(term.sort());
 }
 
 bool BzlaTerm::is_symbol() const
 {
   // symbols include constants, parameters, and function symbols
-  return bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term);
+  return (term.is_const() || term.is_variable());
 }
 
-bool BzlaTerm::is_param() const { return bitwuzla_term_is_var(term); }
+bool BzlaTerm::is_param() const { return term.is_variable(); }
 
 bool BzlaTerm::is_symbolic_const() const
 {
   // in Bitwuzla arrays are functions
   // for smt-switch we consider arrays symbolic constants but not functions
-  return (bitwuzla_term_is_const(term) && !bitwuzla_term_is_fun(term));
+  return (term.is_const() && !(term.sort().is_fun()));
 }
 
 bool BzlaTerm::is_value() const
 {
-  return bitwuzla_term_is_bv_value(term) || bitwuzla_term_is_const_array(term);
+  return term.is_value() || term.kind() == bitwuzla::Kind::CONST_ARRAY;
 }
 
-std::string BzlaTerm::to_string() { return to_string_formatted("smt2"); }
+std::string BzlaTerm::to_string() { return term.str(); }
 
-uint64_t BzlaTerm::to_int() const
+std::uint64_t BzlaTerm::to_int() const
 {
-  if (!bitwuzla_term_is_bv_value(term))
+  if (!term.sort().is_bv())
   {
     throw IncorrectUsageException(
         "Can't get bitstring from a non-bitvector value term.");
   }
-  uint32_t width = bitwuzla_term_bv_get_size(term);
+  std::uint64_t width = term.sort().bv_size();
   if (width > 64)
   {
-    string msg("Can't represent a bit-vector of size ");
+    std::string msg("Can't represent a bit-vector of size ");
     msg += std::to_string(width);
     msg += " in a uint64_t";
     throw IncorrectUsageException(msg.c_str());
   }
-  string bits = to_string_formatted("smt2");
+  std::string bits = term.str();
   // special case -- 1-bit bit-vectors are
   // printed as Booleans in bitwuzla.
-  if (bits == "true") {
+  if (bits == "true")
+  {
     return 1;
-  } else if (bits == "false") {
+  }
+  else if (bits == "false")
+  {
     return 0;
   }
-  assert(bits.substr(0, 2) == "#b");
+  Assert(bits.substr(0, 2) == "#b");
   bits = bits.substr(2, bits.length());
-  string::size_type sz = 0;
+  std::string::size_type sz = 0;
   return std::stoull(bits, &sz, 2);
 }
 
-TermIter BzlaTerm::begin()
-{
-  size_t size;
-  const BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
-  return TermIter(
-      new BzlaTermIter(vector<const BitwuzlaTerm *>(children, children + size), 0));
-}
+TermIter BzlaTerm::begin() { return TermIter(new BzlaTermIter(term, 0)); }
 
 TermIter BzlaTerm::end()
 {
-  size_t size;
-  const BitwuzlaTerm ** children = bitwuzla_term_get_children(term, &size);
-  return TermIter(new BzlaTermIter(
-      vector<const BitwuzlaTerm *>(children, children + size), size));
+  std::size_t num_children = term.num_children();
+  return TermIter(new BzlaTermIter(term, num_children));
 }
 
-string BzlaTerm::print_value_as(SortKind sk)
+std::string BzlaTerm::print_value_as(SortKind sk)
 {
   if (!is_value())
   {
@@ -279,12 +275,12 @@ string BzlaTerm::print_value_as(SortKind sk)
         "Cannot use print_value_as on a non-value term.");
   }
 
-  if (bitwuzla_term_is_bv(term))
+  if (term.sort().is_bv())
   {
-    uint64_t width = bitwuzla_term_bv_get_size(term);
+    std::uint64_t width = term.sort().bv_size();
     if (width == 1 && sk == BV)
     {
-      if (bitwuzla_term_is_bv_value_one(term))
+      if (term.is_bv_value_one())
       {
         return "#b1";
       }
@@ -303,35 +299,4 @@ string BzlaTerm::print_value_as(SortKind sk)
     return to_string();
   }
 }
-
-// protected helpers
-std::string BzlaTerm::to_string_formatted(const char * fmt) const
-{
-  // TODO: make sure this works all right for symbols etc...
-  if (bitwuzla_term_is_const(term) || bitwuzla_term_is_var(term))
-  {
-    return bitwuzla_term_get_symbol(term);
-  }
-
-  char * cres;
-  size_t size;
-  FILE * stream = open_memstream(&cres, &size);
-  bitwuzla_term_dump(term, fmt, stream);
-  int64_t status = fflush(stream);
-  if (status != 0)
-  {
-    throw InternalSolverException(
-        "Error flushing stream for bitwuzla to_string");
-  }
-  status = fclose(stream);
-  if (status != 0)
-  {
-    throw InternalSolverException(
-        "Error closing stream for bitwuzla to_string");
-  }
-  string sres(cres);
-  free(cres);
-  return sres;
-}
-
 }  // namespace smt

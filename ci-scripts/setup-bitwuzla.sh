@@ -1,1 +1,1 @@
-./contrib/setup-bitwuzla.sh
+../contrib/setup-bitwuzla.sh

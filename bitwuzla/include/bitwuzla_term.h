@@ -16,12 +16,13 @@
 
 #pragma once
 
-#include <vector>
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
-#include "bitwuzla.h"
+#include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_sort.h"
-#include "term.h"
-#include "utils.h"
+#include "smt.h"
 
 namespace smt {
 
@@ -31,8 +32,7 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(std::vector<const BitwuzlaTerm *> terms, size_t idx)
-      : terms(terms), idx(idx)
+  BzlaTermIter(bitwuzla::Term terms, std::size_t idx) : terms(terms), idx(idx)
   {
   }
   BzlaTermIter(const BzlaTermIter & it)
@@ -52,14 +52,14 @@ class BzlaTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  std::vector<const BitwuzlaTerm *> terms;  // terms to iterate over (e.g. children)
-  size_t idx;             // current idx of iteration
+  bitwuzla::Term terms;  // terms to iterate over (e.g. children)
+  std::size_t idx;       // current idx of iteration
 };
 
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(const BitwuzlaTerm * n);
+  BzlaTerm(const bitwuzla::Term n);
   ~BzlaTerm();
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -71,7 +71,7 @@ class BzlaTerm : public AbsTerm
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() override;
-  uint64_t to_int() const override;
+  std::uint64_t to_int() const override;
   /** Iterators for traversing the children
    */
   TermIter begin() override;
@@ -81,15 +81,11 @@ class BzlaTerm : public AbsTerm
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  const BitwuzlaTerm * get_bitwuzla_term() const { return term; };
+  const bitwuzla::Term get_bitwuzla_term() const { return term; };
 
  protected:
   // the actual API level node that is used
-  const BitwuzlaTerm * term;
-
-  // helpers
-  /** Calls boolector's to_string with either btor or smt2 format*/
-  std::string to_string_formatted(const char * fmt) const;
+  const bitwuzla::Term term;
 
   friend class BzlaSolver;
   friend class BzlaTermIter;
