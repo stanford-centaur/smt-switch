@@ -15,6 +15,7 @@ else
     NUM_CORES=1
 fi
 
+$DIR/setup-cadical.sh
 
 if [ ! -d "$DEPS/boolector" ]; then
     cd $DEPS
@@ -23,8 +24,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     cd boolector
     git checkout -f $BTOR_VERSION
     CFLAGS="" ./contrib/setup-btor2tools.sh
-    ./contrib/setup-cadical.sh
-    ./configure.sh --only-cadical -fPIC
+    ./configure.sh --only-cadical -fPIC --path "$DEPS/install"
     cd build
     make -j$NUM_CORES
     cd $DIR
@@ -32,7 +32,7 @@ else
     echo "$DEPS/boolector already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/boolector/deps/cadical/build/libcadical.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/lib/libbtor2parser.a ] ; then \
+if [ -f $DEPS/boolector/build/lib/libboolector.a ] && [ -f $DEPS/install/lib/libcadical.a ] && [ -f $DEPS/boolector/deps/btor2tools/build/lib/libbtor2parser.a ] ; then \
     echo "It appears boolector was setup successfully into $DEPS/boolector."
     echo "You may now install it with make ./configure.sh --btor && cd build && make"
 else

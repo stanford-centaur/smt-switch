@@ -13,7 +13,7 @@ set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
 
 # add to search path for find_package
-list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
 if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)

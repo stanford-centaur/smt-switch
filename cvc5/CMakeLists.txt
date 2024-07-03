@@ -32,7 +32,7 @@ find_library(POLYLIBXX REQUIRED
 
 find_library(CADICAL REQUIRED
              NAMES libcadical.a libcadical.so libcadical.dylib
-             PATHS "${CVC5_HOME}/build/deps/lib")
+             )
 
 target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/libcvc5.a")
 target_link_libraries(smt-switch-cvc5 "${CVC5_HOME}/build/src/parser/libcvc5parser.a")
