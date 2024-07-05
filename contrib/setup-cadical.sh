@@ -23,4 +23,5 @@ else
     CXXFLAGS=-fPIC ./configure
 fi
 make
-install -Dm644 -t "$DEPS_DIR/install/lib" "build/libcadical.a"
+mkdir -p "$DEPS_DIR/install/lib"
+install -m644 "build/libcadical.a" "$DEPS_DIR/install/lib"
