@@ -24,18 +24,31 @@ target_link_libraries(smt-switch-btor m)
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the boolector source
   # we need to unpack and repack the libraries
-  add_custom_target(repack-btor-static-lib
-    ALL
+  add_custom_command(
+    OUTPUT static-smt-switch-btor.stamp
     COMMAND
-      mkdir smt-switch-btor && cd smt-switch-btor && ar -x "../$<TARGET_FILE_NAME:smt-switch-btor>" && cd ../ &&
-      mkdir boolector && cd boolector && ar -x "${BTOR_HOME}/build/lib/libboolector.a" &&
-      ar -x "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a" &&
-      ar -x "${BTOR_HOME}/deps/btor2tools/build/lib/libbtor2parser.a" && cd ../ &&
-      ar -qc "$<TARGET_FILE_NAME:smt-switch-btor>" ./boolector/*.o ./smt-switch-btor/*.o &&
+      mkdir smt-switch-btor-working && cd smt-switch-btor-working &&
+      # create new static library that combines them all
+      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-btor>"
+        "${BTOR_HOME}/build/lib/libboolector.a"
+        "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a"
+        "${BTOR_HOME}/deps/btor2tools/build/lib/libbtor2parser.a"
+        "../$<TARGET_FILE_NAME:smt-switch-btor>" &&
+      # replace the original one
+      mv "$<TARGET_FILE_NAME:smt-switch-btor>" "../$<TARGET_FILE_NAME:smt-switch-btor>" &&
       # now clean up
-      rm -rf smt-switch-btor boolector
+      cd .. && rm -rf smt-switch-btor-working
+    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-btor.stamp
     DEPENDS
       smt-switch-btor
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+    )
+
+  add_custom_target(repack-btor-static-lib
+    ALL
+    DEPENDS
+      static-smt-switch-btor.stamp
     )
 endif()
 
