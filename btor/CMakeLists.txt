@@ -15,7 +15,7 @@ target_include_directories (smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/
 target_include_directories (smt-switch-btor PUBLIC "${BTOR_HOME}/src")
 
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/build/lib/libboolector.a")
-target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/cadical/build/libcadical.a")
+target_link_libraries(smt-switch-btor "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a")
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/deps/btor2tools/build/lib/libbtor2parser.a")
 target_link_libraries(smt-switch-btor smt-switch)
 target_link_libraries(smt-switch-btor pthread)
@@ -29,7 +29,7 @@ if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
     COMMAND
       mkdir smt-switch-btor && cd smt-switch-btor && ar -x "../$<TARGET_FILE_NAME:smt-switch-btor>" && cd ../ &&
       mkdir boolector && cd boolector && ar -x "${BTOR_HOME}/build/lib/libboolector.a" &&
-      ar -x "${BTOR_HOME}/deps/cadical/build/libcadical.a" &&
+      ar -x "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a" &&
       ar -x "${BTOR_HOME}/deps/btor2tools/build/lib/libbtor2parser.a" && cd ../ &&
       ar -qc "$<TARGET_FILE_NAME:smt-switch-btor>" ./boolector/*.o ./smt-switch-btor/*.o &&
       # now clean up
