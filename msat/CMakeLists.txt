@@ -21,22 +21,18 @@ target_link_libraries(smt-switch-msat ${GMPXX_LIBRARIES})
 if (SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the mathsat source
   # we need to unpack and repack the libraries
-  # newer versions of mathsat (5.6.4+) have the same issue as cvc5 where
-  # unpacking and repacking with ar seemed to lose info (missing symbols)
-  # the work around is to just copy libmathsat.a and add to it
   add_custom_command(
     OUTPUT static-smt-switch-msat.stamp
     COMMAND
-    mkdir ssm && cd ssm &&
-    ar -x "../$<TARGET_FILE_NAME:smt-switch-msat>" && cd ../
-    && rm "$<TARGET_FILE_NAME:smt-switch-msat>" &&
-    # copy the mathsat static library to libsmt-switch-msat.a
-    cp "${MSAT_HOME}/lib/libmathsat.a" "$<TARGET_FILE_NAME:smt-switch-msat>" &&
-    # add the smt-switch-msat object files to the static library
-    bash -c "ar -rs $<TARGET_FILE_NAME:smt-switch-msat> ./ssm/*.o"
-    &&
-    # now clean up the temporary directory
-    rm -rf ssm
+      mkdir smt-switch-msat-working && cd smt-switch-msat-working &&
+      # create new static library that combines them all
+      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-msat>"
+        "${MSAT_HOME}/lib/libmathsat.a"
+        "../$<TARGET_FILE_NAME:smt-switch-msat>" &&
+      # replace the original one
+      mv "$<TARGET_FILE_NAME:smt-switch-msat>" "../$<TARGET_FILE_NAME:smt-switch-msat>" &&
+      # now clean up the temporary directory
+      cd .. && rm -rf smt-switch-msat-working
     COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-msat.stamp
     DEPENDS
       smt-switch-msat
