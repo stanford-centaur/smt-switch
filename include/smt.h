@@ -17,26 +17,25 @@
 #pragma once
 
 // Exceptions used by SMT API.
-#include "exceptions.h"
+#include "exceptions.h"  // IWYU pragma: export
 
 // Class and smart pointer definitions.
-#include "smt_defs.h"
+#include "smt_defs.h"  // IWYU pragma: export
 
 // SMT-LIB Sort and Function operators.
-#include "ops.h"
+#include "ops.h"  // IWYU pragma: export
 
 // Abstract sort interface.
-#include "sort.h"
+#include "sort.h"  // IWYU pragma: export
 
 // Abstract term interface.
-#include "term.h"
+#include "term.h"  // IWYU pragma: export
 
 // Transfer terms between solvers.
-#include "term_translator.h"
+#include "term_translator.h"  // IWYU pragma: export
 
 // Main solver interface.
-#include "solver.h"
+#include "solver.h"  // IWYU pragma: export
 
 // Solver enums for identifying solver
-#include "solver_enums.h"
-
+#include "solver_enums.h"  // IWYU pragma: export
