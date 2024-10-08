@@ -20,6 +20,14 @@ if [ ! -f "$DEPS/bison-$VERSION.tar.xz" ]; then
     exit 1
 fi
 
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
 cd $DEPS
 tar -xf bison-$VERSION.tar.xz
 rm bison-$VERSION.tar.xz
@@ -27,7 +35,7 @@ mv ./bison-$VERSION ./bison
 cd bison
 mkdir bison-install
 ./configure --prefix $DEPS/bison/bison-install --exec-prefix $DEPS/bison/bison-install
-make -j$(nproc)
+make -j$NUM_CORES
 make install
 cd $DIR
 
