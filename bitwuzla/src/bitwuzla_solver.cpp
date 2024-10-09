@@ -111,7 +111,19 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
   else
   {
-    options.set(option, value);
+    try
+    {
+      options.set(option, value);
+    }
+    catch (const bitwuzla::Exception & exception)
+    {
+      std::string detail = exception.what();
+      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception message.
+      detail.erase(0, detail.find(")"));
+      detail.erase(0, detail.find(","));
+      throw IncorrectUsageException("Bitwuzla backend got bad option " + option
+                                    + detail);
+    }
   }
 }
 
