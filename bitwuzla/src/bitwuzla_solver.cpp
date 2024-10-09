@@ -109,8 +109,10 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   {
     throw SmtException("Bitwuzla backend does not support option: " + option);
   }
-
-  options.set(option, value);
+  else
+  {
+    options.set(option, value);
+  }
 }
 
 void BzlaSolver::set_logic(const std::string logic)
