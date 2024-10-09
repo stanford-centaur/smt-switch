@@ -19,6 +19,14 @@ if [ ! -f "$DEPS/flex-2.6.4.tar.gz" ]; then
     exit 1
 fi
 
+if [ "$(uname)" == "Darwin" ]; then
+    NUM_CORES=$(sysctl -n hw.logicalcpu)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    NUM_CORES=$(nproc)
+else
+    NUM_CORES=1
+fi
+
 # Set CFLAGS to work around compiler issue with building flex
 export CFLAGS="$CFLAGS -D_GNU_SOURCE"
 cd $DEPS
@@ -28,7 +36,7 @@ mv flex-2.6.4 flex
 cd flex
 mkdir flex-install
 ./configure --prefix $DEPS/flex/flex-install --exec-prefix $DEPS/flex/flex-install
-make -j$(nproc)
+make -j$NUM_CORES
 make install
 cd $DIR
 
