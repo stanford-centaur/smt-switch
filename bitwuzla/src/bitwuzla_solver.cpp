@@ -93,7 +93,6 @@ const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
-  // General options
   if (option == "incremental")
   {
     if (value != "true")
@@ -101,235 +100,17 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
       throw NotImplementedException("Bitwuzla only supports incremental mode");
     }
   }
-  else if (option == "log-level")
-  {
-    options.set(bitwuzla::Option::LOGLEVEL, std::stoul(value));
-  }
-  else if (option == "produce-models")
-  {
-    options.set(bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
-  }
-  else if (option == "produce-unsat-assumptions")
-  {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS, (value == "true"));
-  }
-  else if (option == "produce-unsat-cores")
-  {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
-  }
-  else if (option == "seed")
-  {
-    options.set(bitwuzla::Option::SEED, std::stoull(value));
-  }
-  else if (option == "verbosity")
-  {
-    options.set(bitwuzla::Option::VERBOSITY, std::stoull(value));
-  }
   else if (option == "time-limit")
   {
     // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
     options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stod(value) * 1000);
   }
-  else if (option == "memory-limit")
-  {
-    options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stoull(value));
-  }
-
-  // Bitwuzla-specific options
-  else if (option == "bv-solver")
-  {
-    options.set(bitwuzla::Option::BV_SOLVER, value);
-  }
-  else if (option == "rewrite-level")
-  {
-    options.set(bitwuzla::Option::REWRITE_LEVEL, std::stoull(value));
-  }
-  else if (option == "sat-solver")
-  {
-    options.set(bitwuzla::Option::SAT_SOLVER, value);
-  }
-
-  // Prop engine options
-  else if (option == "prop-const-bits")
-  {
-    options.set(bitwuzla::Option::PROP_CONST_BITS, (value == "true"));
-  }
-  else if (option == "prop-infer-ineq-bounds")
-  {
-    options.set(bitwuzla::Option::PROP_INFER_INEQ_BOUNDS, (value == "true"));
-  }
-  else if (option == "prop-nprops")
-  {
-    options.set(bitwuzla::Option::PROP_NPROPS, std::stoull(value));
-  }
-  else if (option == "prop-nupdates")
-  {
-    options.set(bitwuzla::Option::PROP_NUPDATES, std::stoull(value));
-  }
-  else if (option == "prop-opt-lt-concat-sext")
-  {
-    options.set(bitwuzla::Option::PROP_OPT_LT_CONCAT_SEXT, (value == "true"));
-  }
-  else if (option == "prop-path-sel")
-  {
-    options.set(bitwuzla::Option::PROP_PATH_SEL, value);
-  }
-  else if (option == "prop-prob-random-input")
-  {
-    options.set(bitwuzla::Option::PROP_PROB_RANDOM_INPUT, std::stoull(value));
-  }
-  else if (option == "prop-prob-use-inv-value")
-  {
-    options.set(bitwuzla::Option::PROP_PROB_USE_INV_VALUE, std::stoull(value));
-  }
-  else if (option == "prop-sext")
-  {
-    options.set(bitwuzla::Option::PROP_SEXT, (value == "true"));
-  }
-  else if (option == "prop-normalize")
-  {
-    options.set(bitwuzla::Option::PROP_NORMALIZE, (value == "true"));
-  }
-
-  // Abstraction module
-  else if (option == "abstraction")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION, (value == "true"));
-  }
-  else if (option == "abstraction-bv-size")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_BV_SIZE, std::stoull(value));
-  }
-  else if (option == "abstraction-eager-refine")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_EAGER_REFINE, (value == "true"));
-  }
-  else if (option == "abstraction-value-limit")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_VALUE_LIMIT, std::stoull(value));
-  }
-  else if (option == "abstraction-value-only")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_VALUE_ONLY, (value == "true"));
-  }
-  else if (option == "abstraction-assert")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_ASSERT, (value == "true"));
-  }
-  else if (option == "abstraction-assert-refs")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_ASSERT_REFS, std::stoull(value));
-  }
-  else if (option == "abstraction-initial-lemmas")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_INITIAL_LEMMAS,
-                (value == "true"));
-  }
-  else if (option == "abstraction-inc-bitblast")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_INC_BITBLAST, (value == "true"));
-  }
-  else if (option == "abstraction-bv-add")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_BV_ADD, (value == "true"));
-  }
-  else if (option == "abstraction-bv-mul")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_BV_MUL, (value == "true"));
-  }
-  else if (option == "abstraction-bv-udiv")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_BV_UDIV, (value == "true"));
-  }
-  else if (option == "abstraction-bv-urem")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_BV_UREM, (value == "true"));
-  }
-  else if (option == "abstraction-equal")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_EQUAL, (value == "true"));
-  }
-  else if (option == "abstraction-ite")
-  {
-    options.set(bitwuzla::Option::ABSTRACTION_ITE, (value == "true"));
-  }
-
-  // Preprocessing
-  else if (option == "preprocess")
-  {
-    options.set(bitwuzla::Option::PREPROCESS, (value == "true"));
-  }
-  else if (option == "pp-contradicting-ands")
-  {
-    options.set(bitwuzla::Option::PP_CONTRADICTING_ANDS, (value == "true"));
-  }
-  else if (option == "pp-elim-bv-extracts")
-  {
-    options.set(bitwuzla::Option::PP_ELIM_BV_EXTRACTS, (value == "true"));
-  }
-  else if (option == "pp-elim-bv-udiv")
-  {
-    options.set(bitwuzla::Option::PP_ELIM_BV_UDIV, (value == "true"));
-  }
-  else if (option == "pp-embedded-constr")
-  {
-    options.set(bitwuzla::Option::PP_EMBEDDED_CONSTR, (value == "true"));
-  }
-  else if (option == "pp-flatten-and")
-  {
-    options.set(bitwuzla::Option::PP_FLATTEN_AND, (value == "true"));
-  }
-  else if (option == "pp-normalize")
-  {
-    options.set(bitwuzla::Option::PP_NORMALIZE, (value == "true"));
-  }
-  else if (option == "pp-normalize-share-aware")
-  {
-    options.set(bitwuzla::Option::PP_NORMALIZE_SHARE_AWARE, (value == "true"));
-  }
-  else if (option == "pp-skeleton-preproc")
-  {
-    options.set(bitwuzla::Option::PP_SKELETON_PREPROC, (value == "true"));
-  }
-  else if (option == "pp-variable-subst")
-  {
-    options.set(bitwuzla::Option::PP_VARIABLE_SUBST, (value == "true"));
-  }
-  else if (option == "pp-variable-subst-norm-eq")
-  {
-    options.set(bitwuzla::Option::PP_VARIABLE_SUBST_NORM_EQ, (value == "true"));
-  }
-  else if (option == "pp-variable-subst-norm-diseq")
-  {
-    options.set(bitwuzla::Option::PP_VARIABLE_SUBST_NORM_DISEQ, (value == "true"));
-  }
-  else if (option == "pp-variable-subst-norm-bv-ineq")
-  {
-    options.set(bitwuzla::Option::PP_VARIABLE_SUBST_NORM_BV_INEQ, (value == "true"));
-  }
-
-  // Debug options
-  else if (option == "dbg-rw-node-thresh")
-  {
-    options.set(bitwuzla::Option::DBG_RW_NODE_THRESH, std::stoull(value));
-  }
-  else if (option == "dbg-pp-node-thresh")
-  {
-    options.set(bitwuzla::Option::DBG_PP_NODE_THRESH, std::stoull(value));
-  }
-  else if (option == "dbg-check-model")
-  {
-    options.set(bitwuzla::Option::DBG_CHECK_MODEL, (value == "true"));
-  }
-  else if (option == "dbg-check-unsat-core")
-  {
-    options.set(bitwuzla::Option::DBG_CHECK_UNSAT_CORE, (value == "true"));
-  }
-
-  else
+  else if (!options.is_valid(option))
   {
     throw SmtException("Bitwuzla backend does not support option: " + option);
   }
+
+  options.set(option, value);
 }
 
 void BzlaSolver::set_logic(const std::string logic)
