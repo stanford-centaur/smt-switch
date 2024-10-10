@@ -93,30 +93,37 @@ const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
-  // TODO support more options
   if (option == "incremental")
   {
-    // Do nothing, Bitwuzla is always incremental.
-  }
-  else if (option == "produce-models")
-  {
-    options.set(bitwuzla::Option::PRODUCE_MODELS, (value == "true"));
-  }
-  else if (option == "produce-unsat-assumptions")
-  {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS, (value == "true"));
-  }
-  else if (option == "produce-unsat-cores")
-  {
-    options.set(bitwuzla::Option::PRODUCE_UNSAT_CORES, (value == "true"));
+    if (value != "true")
+    {
+      throw NotImplementedException("Bitwuzla only supports incremental mode");
+    }
   }
   else if (option == "time-limit")
   {
-    options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stoi(value) * 1000);
+    // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
+    options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stod(value) * 1000);
+  }
+  else if (!options.is_valid(option))
+  {
+    throw SmtException("Bitwuzla backend does not support option: " + option);
   }
   else
   {
-    throw SmtException("Bitwuzla backend does not support option: " + option);
+    try
+    {
+      options.set(option, value);
+    }
+    catch (const bitwuzla::Exception & exception)
+    {
+      std::string detail = exception.what();
+      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception message.
+      detail.erase(0, detail.find(")"));
+      detail.erase(0, detail.find(","));
+      throw IncorrectUsageException("Bitwuzla backend got bad option " + option
+                                    + detail);
+    }
   }
 }
 
