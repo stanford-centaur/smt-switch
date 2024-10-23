@@ -26,6 +26,7 @@ if [ ! -d "$DEPS/cvc5" ]; then
     ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install"
     cd build
     make -j$NUM_CORES
+    make check
     make install
     cd $DIR
 else
