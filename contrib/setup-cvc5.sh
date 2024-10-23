@@ -37,7 +37,7 @@ LIBS="$DEPS/install/lib"
 
 if [ -f $LIBS/libcvc5.a ] && [ -f $LIBS/libcvc5parser.a ] && [ -f $LIBS/libcadical.a ]; then
     echo "It appears cvc5 was setup successfully into $DEPS/cvc5."
-    echo "You may now install it with make ./configure.sh --cvc5 && cd build && make"
+    echo "You may now install it with ./configure.sh --cvc5 && cd build && make"
 else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."
