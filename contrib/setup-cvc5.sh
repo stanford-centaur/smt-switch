@@ -23,7 +23,7 @@ if [ ! -d "$DEPS/cvc5" ]; then
     git clone https://github.com/cvc5/cvc5.git
     cd cvc5
     git checkout -f ${CVC5_VERSION}
-    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install"
+    ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install"
     cd build
     make -j$NUM_CORES
     make install
