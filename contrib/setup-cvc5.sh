@@ -23,15 +23,18 @@ if [ ! -d "$DEPS/cvc5" ]; then
     git clone https://github.com/cvc5/cvc5.git
     cd cvc5
     git checkout -f ${CVC5_VERSION}
-    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --static --auto-download --dep-path="$DEPS/install"
+    CXXFLAGS=-fPIC CFLAGS=-fPIC ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install"
     cd build
     make -j$NUM_CORES
+    make install
     cd $DIR
 else
     echo "$DEPS/cvc5 already exists. If you want to rebuild, please remove it manually."
 fi
 
-if [ -f $DEPS/cvc5/build/src/libcvc5.a ] && [ -f $DEPS/cvc5/build/src/parser/libcvc5parser.a ] && [ -f $DEPS/install/lib/libcadical.a ]; then
+LIBS="$DEPS/install/lib"
+
+if [ -f $LIBS/libcvc5.a ] && [ -f $LIBS/libcvc5parser.a ] && [ -f $LIBS/libcadical.a ]; then
     echo "It appears cvc5 was setup successfully into $DEPS/cvc5."
     echo "You may now install it with make ./configure.sh --cvc5 && cd build && make"
 else
