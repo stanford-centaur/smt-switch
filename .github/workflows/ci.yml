@@ -44,7 +44,6 @@ jobs:
         run: |
           brew update
           brew install \
-            gmp \
             gperf \
             ninja \
             ${{ matrix.extra_macos_packages }}
