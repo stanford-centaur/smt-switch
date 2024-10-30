@@ -14,6 +14,8 @@
 **
 **/
 
+// IWYU pragma: private, include "smt.h"
+
 #pragma once
 
 #include <memory>
@@ -42,4 +44,3 @@ class AbsDatatype;
 using Datatype = std::shared_ptr<AbsDatatype>;
 
 }  // namespace smt
-

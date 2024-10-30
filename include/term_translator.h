@@ -14,6 +14,8 @@
 **        symbols, which would throw an exception).
 **/
 
+// IWYU pragma: private, include "smt.h"
+
 #pragma once
 
 #include <unordered_map>
@@ -156,4 +158,3 @@ class TermTranslator
   std::unordered_map<std::string, Sort> uninterpreted_sorts;
 };
 }  // namespace smt
-

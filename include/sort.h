@@ -14,14 +14,14 @@
 **
 **/
 
+// IWYU pragma: private, include "smt.h"
+
 #pragma once
 
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-#include "ops.h"
-#include "datatype.h"
 #include "smt_defs.h"
 
 // Sort needs to have arguments
@@ -113,5 +113,4 @@ struct hash<smt::Sort>
 {
   size_t operator()(const smt::Sort & s) const { return s->hash(); }
 };
-}
-
+}  // namespace std
