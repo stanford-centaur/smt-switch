@@ -14,6 +14,8 @@
 **
 **/
 
+// IWYU pragma: private, include "smt.h"
+
 #pragma once
 
 #include <unordered_set>

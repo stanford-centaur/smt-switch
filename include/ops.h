@@ -14,6 +14,8 @@
 **
 **/
 
+// IWYU pragma: private, include "smt.h"
+
 #pragma once
 
 #include <cstdint>
@@ -191,7 +193,7 @@ namespace std
         return str_hash(o.to_string());
       }
     };
-}
+}  // namespace std
 
 namespace smt {
 // ops that can be applied to n arguments
