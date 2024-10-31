@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 #include "ops.h"
 #include "smt_defs.h"
 #include "term.h"

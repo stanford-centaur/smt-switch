@@ -16,10 +16,8 @@
 
 #pragma once
 
-#include <utility>
-
-#include "exceptions.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "term.h"
 
 
 namespace smt
