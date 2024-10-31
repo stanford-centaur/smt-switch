@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
+#include <iostream>
+#include <string>
 #include <unordered_set>
 
 namespace smt {

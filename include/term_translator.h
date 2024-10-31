@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <string>
 #include <unordered_map>
 
 #include "smt_defs.h"

@@ -16,10 +16,18 @@
 
 #pragma once
 
-#include "solver.h"
-#include "term_hashtable.h"
-
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <string>
+#include <unordered_map>
+
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
+#include "term_hashtable.h"
 
 namespace smt {
 

@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <string>
-#include <utility>
 #include <unordered_set>
-#include <functional>
+#include <utility>
 
 namespace smt {
 
