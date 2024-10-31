@@ -44,3 +44,4 @@ local/
 
 # Generated files
 compile_commands.json
+python/smt_switch/smt_solvers.px[di]
