@@ -15,7 +15,8 @@
 
 #pragma once
 
-#include "smt.h"
+#include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 

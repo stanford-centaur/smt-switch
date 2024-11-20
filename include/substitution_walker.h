@@ -16,6 +16,8 @@
 #pragma once
 
 #include "identity_walker.h"
+#include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 // class for doing substitutions

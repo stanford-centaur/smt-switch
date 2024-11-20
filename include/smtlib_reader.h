@@ -16,12 +16,21 @@
 
 #pragma once
 
-#include "assert.h"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-#include "smt.h"
+#include "exceptions.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
 #include "smtlibparser.h"
+#include "sort.h"
+#include "term.h"
 
 #define YY_DECL smtlib::parser::symbol_type yylex(smt::SmtLibReader & drv)
 YY_DECL;
