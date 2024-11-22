@@ -450,7 +450,11 @@ Term TermTranslator::value_from_smt2(const std::string val,
     }
   }
   else if (sk == STRING){
-    return solver->make_term(val, false, sort);
+    std::string new_val = val;
+    if (val.length() > 1 && val.at(0) == '\"') {
+      new_val = new_val.substr(1,new_val.length()-2);
+    }
+    return solver->make_term(new_val, true, sort);
   }
   {
     throw NotImplementedException(
