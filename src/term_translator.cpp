@@ -352,11 +352,9 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const {
   int ind_of_up_end;
   if (smtlib.substr(ind_of_up_start, 2) == "(-")
   {
-    //std::cout<<"1 "<<std::endl;    
     ind_of_up_end = smtlib.find_first_of(')', ind_of_up_start);
     new_up = "- "+smtlib.substr(ind_of_up_start+3, ind_of_up_end-ind_of_up_start-3);
   } else {
-    //std::cout<<"2 "<<std::endl;    
     ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
     assert(ind_of_up_end != std::string::npos);
     ind_of_up_end -= 1;
