@@ -59,6 +59,7 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * curl \[optional : setup scripts in `contrib`\]
 * Solver libraries
   * Bitwuzla (has setup script in `contrib`)
+  * Boolector (has setup script in `contrib`)
   * cvc5 (has setup script in `contrib`)
   * MathSAT (must be obtained independently; user responsible for meeting license conditions)
   * Yices2 (must be obtained independently; user responsible for meeting license conditions)
@@ -88,7 +89,7 @@ Once you've configured the build system, simply enter the build directory (`./bu
 ### BSD compatible
 
 * Bitwuzla
-* Bitwuzla
+* Boolector
 * cvc5
 * Z3
 
