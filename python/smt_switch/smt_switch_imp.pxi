@@ -284,6 +284,9 @@ cdef class SmtSolver:
     def check_sat_assuming(self, assumptions):
         cdef c_TermVec ctv
         cdef Result r = Result()
+        if not isinstance(assumptions, list) and \
+           not isinstance(assumptions, set):
+            raise ValueError('check_sat_assuming takes a list or set of Term assumptions')
         for a in assumptions:
             if not isinstance(a, Term):
                 raise ValueError("Expecting a Term but got {}")

@@ -123,15 +123,15 @@ def test_check_sat_assuming(create_solver):
 
     xeq0 = solver.make_term(ss.primops.Equal, x, solver.make_term(0, bvsort8))
     solver.assert_formula(solver.make_term(ss.primops.Not, xeq0))
-    solver.assert_formula(solver.make_term(ss.primops.Implies, b, xeq0))
 
-    try:
-        solver.check_sat_assuming([xeq0])
-        assert False, "Expecting a thrown exception for check_sat_assuming with a formula"
-    except:
-        pass
+    with pytest.raises(ValueError):
+        # expect an exception if assumptions are not a list or set
+        solver.check_sat_assuming(xeq0)
 
-    r = solver.check_sat_assuming([b])
+    r = solver.check_sat_assuming([xeq0])
+    assert r.is_unsat()
+
+    r = solver.check_sat_assuming({xeq0})
     assert r.is_unsat()
 
 
