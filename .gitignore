@@ -34,6 +34,7 @@
 # Python wheels build artifacts
 dist/
 *egg-info
+smt_solvers.px[di]
 
 # Directories
 build/
