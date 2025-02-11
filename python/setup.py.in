@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import Cython
+from Cython.Build import cythonize
 import os
 import sys
-import glob
+import sysconfig
 import shutil
 from pathlib import Path
+import platform
 from setuptools import setup
+from setuptools.extension import Extension
 
 # These paths will be configured by CMake
 PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
@@ -81,13 +85,8 @@ packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in solver_libs.ke
 
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
-    import sys
-    from setuptools.extension import Extension
-    from Cython.Build import cythonize
-
     # Handle macOS-specific settings
     if sys.platform == 'darwin':
-        import platform
         mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
         if mac_ver is None:
             version_str, _, _ = platform.mac_ver()

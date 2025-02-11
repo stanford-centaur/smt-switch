@@ -1,0 +1,41 @@
+[build-system]
+requires = [
+    "setuptools>=61.0.0",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smt-switch"
+description = "Python bindings for the smt-switch C++ SMT solving library"
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.9"
+license = {text = "BSD-3-Clause"}
+dynamic = ["version"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+dependencies = []
+
+[project.optional-dependencies]
+pysmt = ["pysmt"]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/makaimann/smt-switch"
+Repository = "https://github.com/makaimann/smt-switch.git"
+Documentation = "https://github.com/makaimann/smt-switch/tree/master/docs"
+Issues = "https://github.com/makaimann/smt-switch/issues"
+
+[tool.setuptools]
+include-package-data = true
+# Use find namespace directive to automatically discover packages
+# This will only find directories that contain __init__.py files
+find = { include = ["smt_switch*"] }
+
+# This tells setuptools to include all .dylib/.so files found in any package
+[tool.setuptools.package-data]
+"*" = ["*.dylib", "*.so"]
+
+[tool.setuptools.dynamic]
+version = {attr = "smt_switch.__version__"}
