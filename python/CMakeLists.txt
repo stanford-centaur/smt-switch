@@ -34,19 +34,30 @@ check_python_module("cython" "Cython>=3.0.0")
 set(PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
 file(MAKE_DIRECTORY ${PYTHON_PACKAGE_DIR})
 
-# Copy necessary source files to the build directory
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/smt_switch.pyx"
-    "${CMAKE_CURRENT_BINARY_DIR}/smt_switch.pyx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
+    "${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py"
     COPYONLY
 )
 
-# If you have additional .pxd or header files, copy them too
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/smt_switch.pxd"
-    "${CMAKE_CURRENT_BINARY_DIR}/smt_switch.pxd"
-    COPYONLY
+# Copy necessary Cython source files to the build directory
+file(GLOB CYTHON_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.pyx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.pxd"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.pxi"
 )
+
+# Cache the list of files
+set(CYTHON_SOURCE_FILES ${CYTHON_SOURCE_FILES} CACHE INTERNAL "")
+
+# Force CMake to rerun if any of these files change
+foreach(CYTHON_FILE ${CYTHON_SOURCE_FILES})
+    configure_file(
+        ${CYTHON_FILE}
+        "${CMAKE_CURRENT_BINARY_DIR}/${CYTHON_FILE}"
+        COPYONLY
+    )
+endforeach()
 
 # Configure setup.py with the correct paths and options
 configure_file(
@@ -134,7 +145,7 @@ add_custom_target(gen-smt-solver-declarations
   ALL
   COMMAND
     ${PYTHON_EXECUTABLE}
-    ${CMAKE_CURRENT_LIST_DIR}/gen-smt-solver-declarations.py
+    ${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py
     ${GEN_OPTIONS}
   DEPENDS
     gen-smt-solver-declarations.py
