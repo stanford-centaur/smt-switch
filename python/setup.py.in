@@ -20,17 +20,7 @@ else:  # linux
     lib_ext = ".so"
 
 def find_solver_libs():
-    """
-    Recursively find all solver-specific libraries in the build directory.
-    Returns a dictionary mapping solver names to their library paths.
-
-    The function looks for libraries matching the pattern libsmt-switch-*.{dylib,so,dll}
-    and extracts the solver name from the library filename. For example:
-    libsmt-switch-bitwuzla.dylib -> solver name is 'bitwuzla'
-
-    Returns:
-        dict: A mapping of solver names to their library paths
-    """
+    """Find all solver-specific libraries recursively in the build directory."""
     solver_libs = {}
     build_dir = Path(PROJECT_BINARY_DIR)
 
@@ -38,16 +28,12 @@ def find_solver_libs():
     base_lib = f"libsmt-switch{lib_ext}"
     base_lib_path = build_dir / base_lib
     if not base_lib_path.exists():
-        raise FileNotFoundError(
-            f"Could not find base library: {base_lib} in {build_dir}"
-        )
+        raise FileNotFoundError(f"Could not find base library: {base_lib} in {build_dir}")
 
     # Use recursive glob to find all solver libraries
-    # The '**' pattern means "search recursively in all subdirectories"
     pattern = f"**/libsmt-switch-*{lib_ext}"
     for lib_path in build_dir.glob(pattern):
         # Extract solver name from library filename
-        # libsmt-switch-<solver>.ext -> <solver>
         lib_name = lib_path.name
         solver = lib_name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
 
@@ -65,14 +51,7 @@ def find_solver_libs():
     return solver_libs
 
 def copy_libraries():
-    """
-    Copy all libraries to their proper locations in the package structure.
-
-    This function:
-    1. Creates the main package directory if needed
-    2. Copies the base smt-switch library to the main package directory
-    3. Copies each solver-specific library to its respective subdirectory
-    """
+    """Copy libraries to their proper package locations."""
     pkg_dir = Path("smt_switch")
     pkg_dir.mkdir(exist_ok=True)
 
@@ -93,14 +72,77 @@ def copy_libraries():
         dst_path = dst_dir / Path(lib_path).name
         shutil.copy2(lib_path, str(dst_path))
 
-# Copy libraries before building the package
-copy_libraries()
+# Get Python extension suffix
+ext_filename = 'smt_switch' + sysconfig.get_config_var('EXT_SUFFIX')
 
-setup(
-    # Most configuration is handled in pyproject.toml
-    # This just handles the build-time specifics
-    package_data={
-        'smt_switch': [f'*{lib_ext}'],  # Include all libraries in base package
-        'smt_switch.*': [f'*{lib_ext}']  # Include all libraries in solver subpackages
+# Set up package structure
+solver_libs = find_solver_libs()
+packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in solver_libs.keys()]
+
+# Handle Cython compilation if the extension hasn't been built yet
+if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
+    import sys
+    from setuptools.extension import Extension
+    from Cython.Build import cythonize
+
+    # Handle macOS-specific settings
+    if sys.platform == 'darwin':
+        import platform
+        mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
+        if mac_ver is None:
+            version_str, _, _ = platform.mac_ver()
+            major_minor = version_str.split(".")[:2]
+            mac_ver = ".".join(major_minor)
+            os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", mac_ver)
+        arch = "@MACOS_ARCH@"  # Set by CMake
+        if not arch:
+            arch = platform.machine()
+        host_platform = "macosx-" + mac_ver + "-" + arch
+        os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
+        arch_flags = "-arch " + arch
+        os.environ.setdefault("ARCHFLAGS", arch_flags)
+
+    # Cython compilation settings
+    compiler_directives = {
+        'language_level': 3,
+        'binding': False,
     }
-)
+
+    extra_compile_args = ["-std=c++17"]
+    if sys.platform == "win32":
+        extra_compile_args += ["-DMS_WIN64"]
+        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+
+    # Set up the extension module
+    ext_options = {
+        "libraries": ["smt-switch"] + [f"smt-switch-{solver}" for solver in solver_libs.keys()],
+        "library_dirs": ["@CMAKE_BINARY_DIR@"],
+        "include_dirs": ["@PROJECT_SOURCE_DIR@/include"],
+        "language": "c++",
+        "extra_compile_args": extra_compile_args
+    }
+
+    ext_module = Extension(
+        "smt_switch.smt_switch",
+        ["smt_switch.pyx"],
+        **ext_options
+    )
+    ext_module.cython_directives = {"embedsignature": True}
+
+    # Copy libraries and set up the package
+    copy_libraries()
+
+    setup(
+        ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
+        packages=packages,
+        package_data={'': [f'*{lib_ext}']},
+    )
+else:
+    # If extension is already built, just include it in the package
+    copy_libraries()
+
+    setup(
+        packages=packages,
+        package_data={'': [f'*{lib_ext}']},
+        has_ext_modules=lambda: True,
+    )
