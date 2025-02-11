@@ -1,23 +1,106 @@
-from setuptools import setup, find_packages
-from distutils.core import Extension
+#!/usr/bin/env python3
 
-PYSMT_REQUIRES = ['pysmt']
-TEST_REQUIRES = ['pytest']
+import os
+import sys
+import glob
+import shutil
+from pathlib import Path
+from setuptools import setup
 
-# could probably get cmake to populate this but whatever
-PACKAGE_NAME = 'smt_switch'
+# These paths will be configured by CMake
+PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
+PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 
-setup(name=PACKAGE_NAME,
-      version='0.3.0',
-      long_description='python bindings for the C++ solver-agnostic SMT solving library, smt-switch',
-      url='http://github.com/makaimann/smt-switch',
-      license='BSD',
-      zip_safe=False,
-      packages=[PACKAGE_NAME],
-      py_modules=[PACKAGE_NAME],
-      package_data={PACKAGE_NAME: [f'{PACKAGE_NAME}.so']},
-      extras_require={
-          'pysmt': PYSMT_REQUIRES,
-          'test': TEST_REQUIRES,
-      },
+# Get the platform-specific library extension
+if sys.platform == "darwin":
+    lib_ext = ".dylib"
+elif sys.platform == "win32":
+    lib_ext = ".dll"
+else:  # linux
+    lib_ext = ".so"
+
+def find_solver_libs():
+    """
+    Recursively find all solver-specific libraries in the build directory.
+    Returns a dictionary mapping solver names to their library paths.
+
+    The function looks for libraries matching the pattern libsmt-switch-*.{dylib,so,dll}
+    and extracts the solver name from the library filename. For example:
+    libsmt-switch-bitwuzla.dylib -> solver name is 'bitwuzla'
+
+    Returns:
+        dict: A mapping of solver names to their library paths
+    """
+    solver_libs = {}
+    build_dir = Path(PROJECT_BINARY_DIR)
+
+    # First verify the base library exists
+    base_lib = f"libsmt-switch{lib_ext}"
+    base_lib_path = build_dir / base_lib
+    if not base_lib_path.exists():
+        raise FileNotFoundError(
+            f"Could not find base library: {base_lib} in {build_dir}"
+        )
+
+    # Use recursive glob to find all solver libraries
+    # The '**' pattern means "search recursively in all subdirectories"
+    pattern = f"**/libsmt-switch-*{lib_ext}"
+    for lib_path in build_dir.glob(pattern):
+        # Extract solver name from library filename
+        # libsmt-switch-<solver>.ext -> <solver>
+        lib_name = lib_path.name
+        solver = lib_name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
+
+        # Create the solver package directory if it doesn't exist
+        solver_pkg_dir = Path("smt_switch") / solver
+        solver_pkg_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create an __init__.py file for the solver package
+        init_file = solver_pkg_dir / "__init__.py"
+        if not init_file.exists():
+            init_file.touch()
+
+        solver_libs[solver] = str(lib_path)
+
+    return solver_libs
+
+def copy_libraries():
+    """
+    Copy all libraries to their proper locations in the package structure.
+
+    This function:
+    1. Creates the main package directory if needed
+    2. Copies the base smt-switch library to the main package directory
+    3. Copies each solver-specific library to its respective subdirectory
+    """
+    pkg_dir = Path("smt_switch")
+    pkg_dir.mkdir(exist_ok=True)
+
+    # Copy base library
+    base_lib = f"libsmt-switch{lib_ext}"
+    base_src = Path(PROJECT_BINARY_DIR) / base_lib
+    base_dst = pkg_dir / base_lib
+
+    if base_src.exists():
+        shutil.copy2(str(base_src), str(base_dst))
+    else:
+        raise FileNotFoundError(f"Base library not found: {base_src}")
+
+    # Copy solver libraries
+    solver_libs = find_solver_libs()
+    for solver, lib_path in solver_libs.items():
+        dst_dir = pkg_dir / solver
+        dst_path = dst_dir / Path(lib_path).name
+        shutil.copy2(lib_path, str(dst_path))
+
+# Copy libraries before building the package
+copy_libraries()
+
+setup(
+    # Most configuration is handled in pyproject.toml
+    # This just handles the build-time specifics
+    package_data={
+        'smt_switch': [f'*{lib_ext}'],  # Include all libraries in base package
+        'smt_switch.*': [f'*{lib_ext}']  # Include all libraries in solver subpackages
+    }
 )

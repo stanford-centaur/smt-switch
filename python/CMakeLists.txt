@@ -1,10 +1,11 @@
-# Note: using same pattern used in cvc5 for scikit-build / python module checking
-# Check if given Python module is installed and raises a FATAL_ERROR error
-# if the module cannot be found.
+# First, find Python and required packages
+find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development)
+
+# Keep the useful module checking function
 function(check_python_module module)
   execute_process(
     COMMAND
-    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    ${Python_EXECUTABLE} -c "import ${module}"
     RESULT_VARIABLE
       RET_MODULE_TEST
     ERROR_QUIET
@@ -17,56 +18,134 @@ function(check_python_module module)
   if(RET_MODULE_TEST)
     message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
-        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
 
+# Check for required Python packages
+check_python_module("setuptools")
+check_python_module("wheel")
+check_python_module("cython" "Cython>=3.0.0")
 
-# Check that scikit-build is installed
-# Provides CMake files for Python bindings
-# and used to find correct Python includes
-# and libraries
-check_python_module("skbuild" "scikit-build")
-
-# Find cmake modules distributed with scikit-build
-# They are distributed under <scikit-build directory>/resources/cmake
-# Prevent printout when importing skbuild by temporarily redirecting stdout
-execute_process(
-  COMMAND
-    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
-    import os; import sys; temp = sys.stdout; sys.stdout = open(os.devnull,\"w\"); import skbuild; sys.stdout = temp; \
-      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
-        'resources', 'cmake'); print(cmake_module_path, end='')"
-  OUTPUT_VARIABLE
-    SKBUILD_CMAKE_MODULE_PATH
-  RESULT_VARIABLE
-    RET_SKBUILD_CMAKE_MODULE_PATH
-)
-
-if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
-  message(FATAL_ERROR "Expected CMake module path from
-                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
-endif()
-
-# Add scikit-build cmake files to cmake module path
-# Required for Cython target below
-list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
-
-include(FindPythonExtensions)
-
-if(POLICY CMP0057)
-  # For cmake >= 3.3 this policy changed the behavior of IN_LIST
-  # if the policy exists, we use the NEW behavior
-  cmake_policy(SET CMP0057 NEW)
-endif()
-
+# Find Cython package
 find_package(Cython 3.0.0 REQUIRED)
 
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
+# Set up the Python package directory structure
+set(PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
+file(MAKE_DIRECTORY ${PYTHON_PACKAGE_DIR})
 
-add_subdirectory(smt_switch)
+# Add Cython target
+add_cython_target(smt_switch CXX)
+add_library(smt_switch_module MODULE ${smt_switch})
+
+# Include directories and link libraries
+target_include_directories(smt_switch_module PRIVATE
+    "${PROJECT_SOURCE_DIR}/include"
+    ${CMAKE_CURRENT_LIST_DIR}  # For generated files
+)
+target_link_libraries(smt_switch_module PRIVATE smt-switch)
+
+# Handle solver-specific configuration
+set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_LIST_DIR})
+
+if(BUILD_BTOR)
+    target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/btor/include")
+    target_link_libraries(smt_switch_module PRIVATE smt-switch-btor)
+    set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
+endif()
+
+if(BUILD_BITWUZLA)
+    target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/bitwuzla/include")
+    target_link_libraries(smt_switch_module PRIVATE smt-switch-bitwuzla)
+    set(GEN_OPTIONS ${GEN_OPTIONS} --bitwuzla)
+endif()
+
+if (BUILD_CVC5)
+  target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/cvc5/include")
+  target_link_libraries(smt_switch_module PRIVATE smt-switch-cvc5)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --cvc5)
+endif()
+
+if (BUILD_MSAT)
+  target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/msat/include")
+  target_link_libraries(smt_switch_module PRIVATE smt-switch-msat)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
+endif()
+
+if (BUILD_YICES2)
+  target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/yices2/include")
+  target_link_libraries(smt_switch_module PRIVATE smt-switch-yices2)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
+endif()
+
+if (BUILD_Z3)
+  target_include_directories(smt_switch_module PRIVATE "${PROJECT_SOURCE_DIR}/z3/include")
+  target_link_libraries(smt_switch_module PRIVATE smt-switch-z3)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
+endif()
+
+# Generate solver declarations
+add_custom_target(gen-smt-solver-declarations
+    ALL
+    COMMAND
+        ${Python_EXECUTABLE}
+        ${CMAKE_CURRENT_LIST_DIR}/gen-smt-solver-declarations.py
+        ${GEN_OPTIONS}
+    DEPENDS
+        gen-smt-solver-declarations.py
+    COMMENT
+        "Generate smt_solvers.{pxd,pxi}"
+)
+
+# Mark as Python extension
+python_extension_module(smt_switch_module)
+add_dependencies(smt_switch_module gen-smt-solver-declarations)
+
+# Configure setup.py and pyproject.toml
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/setup.py"
+    @ONLY
+)
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
+    "${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml"
+    COPYONLY
+)
+
+# Copy initialization files
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
+    "${PYTHON_PACKAGE_DIR}/__init__.py"
+    COPYONLY
+)
+
+# Set up pysmt frontend
+file(MAKE_DIRECTORY "${PYTHON_PACKAGE_DIR}/pysmt_frontend")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend/__init__.py"
+    "${PYTHON_PACKAGE_DIR}/pysmt_frontend/__init__.py"
+    COPYONLY
+)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend/pysmt_solver.py"
+    "${PYTHON_PACKAGE_DIR}/pysmt_frontend/pysmt_solver.py"
+    COPYONLY
+)
+
+# Add custom target for building Python package
+add_custom_target(python_bindings ALL
+    COMMAND ${Python_EXECUTABLE} -m pip install --no-deps -e .
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS smt_switch_module
+    COMMENT "Building Python bindings"
+)
+
+# Install targets
+install(TARGETS smt_switch_module DESTINATION lib)
+install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --no-deps . WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})"
+        COMPONENT python)
