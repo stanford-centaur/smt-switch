@@ -90,6 +90,19 @@ add_custom_target(python_bindings ALL
     COMMENT "Building Python bindings"
 )
 
+add_custom_target(gen-smt-solver-declarations
+  ALL
+  COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_LIST_DIR}/gen-smt-solver-declarations.py
+    ${GEN_OPTIONS}
+  DEPENDS
+    gen-smt-solver-declarations.py
+  COMMENT
+    "Generate smt_solvers.{pxd,pxi}"
+  )
+add_dependencies(python_bindings gen-smt-solver-declarations)
+
 # Add install target for Python package
 install(CODE
     "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --no-deps . \
