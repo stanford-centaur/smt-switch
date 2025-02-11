@@ -123,6 +123,7 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     }
 
     ext_module = Extension(
+        # TODO: consider making this just smt_switch
         "smt_switch.smt_switch",
         ["smt_switch.pyx"],
         **ext_options
