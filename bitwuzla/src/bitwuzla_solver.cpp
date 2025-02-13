@@ -95,10 +95,9 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (value != "true")
-    {
-      throw NotImplementedException("Bitwuzla only supports incremental mode");
-    }
+    // Bitwuzla does not distinguish between incremental and non-incremental
+    // solving.
+    return;
   }
   else if (option == "time-limit")
   {
@@ -118,7 +117,8 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     catch (const bitwuzla::Exception & exception)
     {
       std::string detail = exception.what();
-      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception message.
+      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception
+      // message.
       detail.erase(0, detail.find(")"));
       detail.erase(0, detail.find(","));
       throw IncorrectUsageException("Bitwuzla backend got bad option " + option
