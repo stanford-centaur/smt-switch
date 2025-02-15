@@ -3,7 +3,7 @@ from types import ModuleType
 
 from smt_switch_enums cimport (
     c_PrimOp,
-    c_ResultType
+    c_ResultType,
     c_SolverAttribute,
     c_SolverEnum,
     c_SortKind

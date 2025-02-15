@@ -6,16 +6,16 @@ from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
 from smt_switch_core cimport (
-    c_Op
-    c_Result
-    c_SmtSolver
-    c_Sort
-    c_SortVec
-    c_SortingNetwork
-    c_Term
-    c_TermIter
-    c_TermVec
-    c_UnorderedTermMap
+    c_Op,
+    c_Result,
+    c_SmtSolver,
+    c_Sort,
+    c_SortVec,
+    c_SortingNetwork,
+    c_Term,
+    c_TermIter,
+    c_TermVec,
+    c_UnorderedTermMap,
     c_UnorderedTermSet
 )
 
