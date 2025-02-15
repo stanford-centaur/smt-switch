@@ -136,19 +136,3 @@ cdef extern from "result.h" namespace "smt":
     cdef c_ResultType SAT
     cdef c_ResultType UNSAT
     cdef c_ResultType UNKNOWN
-
-
-cdef class SortKind:
-    cdef c_SortKind sk
-
-
-cdef class SolverEnum:
-    cdef c_SolverEnum se
-
-
-cdef class SolverAttribute:
-    cdef c_SolverAttribute sa
-
-
-cdef class PrimOp:
-    cdef c_PrimOp po

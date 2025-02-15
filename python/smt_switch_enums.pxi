@@ -1,7 +1,123 @@
 import sys
 from types import ModuleType
 
-FILENAME="enums_imp.pxi"
+from smt_switch_enums cimport (
+    c_PrimOp,
+    c_ResultType,
+    c_SolverAttribute,
+    c_SolverEnum,
+    c_SortKind,
+    to_string
+)
+
+from smt_switch_enums cimport (
+    # SortKind
+    c_ARRAY,
+    c_BOOL,
+    c_BV,
+    c_INT,
+    c_REAL,
+    c_FUNCTION,
+    # SolverEnum
+    c_BTOR,
+    c_CVC5,
+    c_MSAT,
+    c_YICES2,
+    c_MSAT_INTERPOLATOR,
+    c_CVC5_INTERPOLATOR,
+    c_GENERIC_SOLVER,
+    # SolverAttribute
+    c_TERMITER,
+    c_THEORY_INT,
+    c_THEORY_REAL,
+    c_ARRAY_MODELS,
+    c_CONSTARR,
+    c_FULL_TRANSFER,
+    c_ARRAY_FUN_BOOLS,
+    c_UNSAT_CORE,
+    c_THEORY_DATATYPE,
+    c_QUANTIFIERS,
+    c_BOOL_BV1_ALIASING,
+    c_TIMELIMIT,
+    # PrimOp
+    c_And,
+    c_Or,
+    c_Xor,
+    c_Not,
+    c_Implies,
+    c_Ite,
+    c_Equal,
+    c_Distinct,
+    c_Apply,
+    c_Plus,
+    c_Minus,
+    c_Negate,
+    c_Mult,
+    c_Div,
+    c_Lt,
+    c_Le,
+    c_Gt,
+    c_Ge,
+    # Integers only
+    c_Mod,
+    c_Abs,
+    c_Pow,
+    # Int/Real Conversion and Queries
+    c_To_Real,
+    c_To_Int,
+    c_Is_Int,
+    # Fixed Size BitVector Theory
+    c_Concat,
+    c_Extract,
+    c_BVNot,
+    c_BVNeg,
+    c_BVAnd,
+    c_BVOr,
+    c_BVXor,
+    c_BVNand,
+    c_BVNor,
+    c_BVXnor,
+    c_BVComp,
+    c_BVAdd,
+    c_BVSub,
+    c_BVMul,
+    c_BVUdiv,
+    c_BVSdiv,
+    c_BVUrem,
+    c_BVSrem,
+    c_BVSmod,
+    c_BVShl,
+    c_BVAshr,
+    c_BVLshr,
+    c_BVUlt,
+    c_BVUle,
+    c_BVUgt,
+    c_BVUge,
+    c_BVSlt,
+    c_BVSle,
+    c_BVSgt,
+    c_BVSge,
+    c_Zero_Extend,
+    c_Sign_Extend,
+    c_Repeat,
+    c_Rotate_Left,
+    c_Rotate_Right,
+    # BitVector Conversion
+    c_BV_To_Nat,
+    c_Int_To_BV,
+    # Array Theory
+    c_Select,
+    c_Store,
+    # Quantifiers
+    c_Forall,
+    c_Exists,
+    # ResultType
+    SAT,
+    UNSAT,
+    UNKNOWN
+)
+
+FILENAME="smt_switch_enums.pxi"
 _PACKAGE_ROOT=__name__.split('.')[0]
 
 def _add_module(m):
@@ -10,6 +126,8 @@ def _add_module(m):
 
 ################################################ SortKind #################################################
 cdef class SortKind:
+    cdef c_SortKind sk
+
     def __cinit__(self):
         pass
 
@@ -65,6 +183,8 @@ setattr(sortkinds, 'FUNCTION', FUNCTION)
 
 ################################################ SolverEnum #################################################
 cdef class SolverEnum:
+    cdef c_SolverEnum se
+
     def __cinit__(self):
         pass
 
@@ -123,6 +243,8 @@ setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
+    cdef c_SolverAttribute sa
+
     def __cinit__(self):
         pass
 
@@ -201,6 +323,8 @@ setattr(solverattr, "TIMELIMIT", TIMELIMIT)
 
 ################################################ PrimOps #################################################
 cdef class PrimOp:
+    cdef c_PrimOp po
+
     def __cinit__(self):
         pass
 
