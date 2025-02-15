@@ -1,13 +1,4 @@
-from .smt_switch import *
-
-try:
-    # try importing pysmt first
-    # this helps with some debuggers so they don't treat the ModuleNotFoundError
-    # raised by pysmt_frontend as uncaught (thus stopping execution) if pysmt is
-    # not available
-    import pysmt
-    from . import pysmt_frontend
-except ImportError:
-    pass
-
-
+import sys
+from .smt_switch_base import *
+__file__ = smt_switch_base.__file__
+__version__ = "${SMT_SWITCH_VERSION}"

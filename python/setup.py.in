@@ -115,23 +115,16 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     # Set up the extension module
     ext_options = {
         "libraries": ["smt-switch"] + [f"smt-switch-{solver}" for solver in solver_libs.keys()],
-        "library_dirs": ["@CMAKE_BINARY_DIR@"],
-        "include_dirs": ["@PROJECT_SOURCE_DIR@/include", "@CMAKE_BINARY_DIR@", "@PROJECT_SOURCE_DIR@/bitwuzla/include"],
+        "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
+        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in solver_libs],
         "language": "c++",
         "extra_compile_args": extra_compile_args
     }
 
     ext_module = Extension(
-        # TODO: consider making this just smt_switch
-        "smt_switch.smt_switch",
+        "smt_switch.smt_switch_base",
         [
-         "smt_switch.pyx",
-         "enums_dec.pxi",
-         "enums_imp.pxi",
-         "smt_switch_dec.pxi",
-         "smt_switch_imp.pxi",
-         "smt_switch.pyx",
-         "smt_solvers.pxi",
+         "smt_switch_core.pyx",
          ],
         **ext_options
     )
@@ -144,10 +137,6 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
         packages=packages,
         package_data={'': [f'*{lib_ext}']},
-        include_dirs=["/Users/makaim/repos/smt-switch/include",
-                      "/Users/makaim/repos/smt-switch/build/python",
-                      "/Users/makaim/repos/smt-switch/bitwuzla/include",
-                      ],
     )
 else:
     # If extension is already built, just include it in the package
