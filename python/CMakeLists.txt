@@ -52,9 +52,10 @@ set(CYTHON_SOURCE_FILES ${CYTHON_SOURCE_FILES} CACHE INTERNAL "")
 
 # Force CMake to rerun if any of these files change
 foreach(CYTHON_FILE ${CYTHON_SOURCE_FILES})
+    get_filename_component(FILE_NAME "${CYTHON_FILE}" NAME)
     configure_file(
         ${CYTHON_FILE}
-        "${CMAKE_CURRENT_BINARY_DIR}/${CYTHON_FILE}"
+        "${CMAKE_CURRENT_BINARY_DIR}/${FILE_NAME}"
         COPYONLY
     )
 endforeach()
