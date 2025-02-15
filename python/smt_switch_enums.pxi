@@ -2,11 +2,11 @@ import sys
 from types import ModuleType
 
 from smt_switch_enums cimport (
-    c_PrimOp,
+    c_PrimOp, PrimOp,
     c_ResultType,
-    c_SolverAttribute,
-    c_SolverEnum,
-    c_SortKind
+    c_SolverAttribute, SolverAttribute,
+    c_SolverEnum, SolverEnum,
+    c_SortKind, SortKind
 )
 
 from smt_switch_enums cimport (
