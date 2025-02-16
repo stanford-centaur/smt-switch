@@ -2,11 +2,12 @@ import sys
 from types import ModuleType
 
 from smt_switch_enums cimport (
-    c_PrimOp, PrimOp,
+    c_PrimOp,
     c_ResultType,
-    c_SolverAttribute, SolverAttribute,
-    c_SolverEnum, SolverEnum,
-    c_SortKind, SortKind
+    c_SolverAttribute,
+    c_SolverEnum,
+    c_SortKind,
+    to_string
 )
 
 from smt_switch_enums cimport (
@@ -125,6 +126,8 @@ def _add_module(m):
 
 ################################################ SortKind #################################################
 cdef class SortKind:
+    cdef c_SortKind sk
+
     def __cinit__(self):
         pass
 
@@ -180,6 +183,8 @@ setattr(sortkinds, 'FUNCTION', FUNCTION)
 
 ################################################ SolverEnum #################################################
 cdef class SolverEnum:
+    cdef c_SolverEnum se
+
     def __cinit__(self):
         pass
 
@@ -238,6 +243,8 @@ setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
+    cdef c_SolverAttribute sa
+
     def __cinit__(self):
         pass
 
@@ -316,6 +323,8 @@ setattr(solverattr, "TIMELIMIT", TIMELIMIT)
 
 ################################################ PrimOps #################################################
 cdef class PrimOp:
+    cdef c_PrimOp po
+
     def __cinit__(self):
         pass
 

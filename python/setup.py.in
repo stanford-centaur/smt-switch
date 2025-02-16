@@ -69,11 +69,10 @@ def copy_libraries():
     else:
         raise FileNotFoundError(f"Base library not found: {base_src}")
 
-    # Copy solver libraries
+    # Copy solver libraries to the same directory
     solver_libs = find_solver_libs()
     for solver, lib_path in solver_libs.items():
-        dst_dir = pkg_dir / solver
-        dst_path = dst_dir / Path(lib_path).name
+        dst_path = pkg_dir / Path(lib_path).name
         shutil.copy2(lib_path, str(dst_path))
 
 # Get Python extension suffix
@@ -116,6 +115,7 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     ext_options = {
         "libraries": ["smt-switch"] + [f"smt-switch-{solver}" for solver in solver_libs.keys()],
         "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
+        "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
         "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in solver_libs],
         "language": "c++",
         "extra_compile_args": extra_compile_args

@@ -134,25 +134,3 @@ cdef extern from "utils.h" namespace "smt":
     void get_free_symbols(const c_Term & term, c_UnorderedTermSet & out) except +
     void op_partition(c_PrimOp po, const c_Term & term, c_TermVec & out) except +
     void conjunctive_partition(const c_Term & term, c_TermVec & out, bint include_bvand) except +
-
-
-cdef class Op:
-    cdef c_Op op
-
-cdef class Result:
-    cdef c_Result cr
-
-cdef class Sort:
-    cdef c_Sort cs
-    cdef SmtSolver _solver
-
-cdef class Term:
-    cdef c_Term ct
-    cdef SmtSolver _solver
-
-cdef class SmtSolver:
-    cdef c_SmtSolver css
-
-cdef class SortingNetwork:
-    cdef c_SortingNetwork * csn
-    cdef SmtSolver _solver
