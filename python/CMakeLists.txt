@@ -99,38 +99,26 @@ include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
 set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_BINARY_DIR})
 
 if (BUILD_BTOR)
-#   include_directories("${PROJECT_SOURCE_DIR}/btor/include")
-#   target_link_libraries(smt_switch smt-switch-btor)
   set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
 endif()
 
 if (BUILD_BITWUZLA)
-#   include_directories("${PROJECT_SOURCE_DIR}/bitwuzla/include")
-#   target_link_libraries(smt_switch smt-switch-bitwuzla)
   set(GEN_OPTIONS ${GEN_OPTIONS} --bitwuzla)
 endif()
 
 if (BUILD_CVC5)
-#   include_directories("${PROJECT_SOURCE_DIR}/cvc5/include")
-#   target_link_libraries(smt_switch smt-switch-cvc5)
   set(GEN_OPTIONS ${GEN_OPTIONS} --cvc5)
 endif()
 
 if (BUILD_MSAT)
-#   include_directories("${PROJECT_SOURCE_DIR}/msat/include")
-#   target_link_libraries(smt_switch smt-switch-msat)
   set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
 endif()
 
 if (BUILD_YICES2)
-#   include_directories("${PROJECT_SOURCE_DIR}/yices2/include")
-#   target_link_libraries(smt_switch smt-switch-yices2)
   set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
 endif()
 
 if (BUILD_Z3)
-#   include_directories("${PROJECT_SOURCE_DIR}/z3/include")
-#   target_link_libraries(smt_switch smt-switch-z3)
   set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
 endif()
 
