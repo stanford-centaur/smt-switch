@@ -88,7 +88,7 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         "libraries": ["smt-switch"] + [f"smt-switch-{solver}" for solver in solver_libs.keys()],
         "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
         "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
-        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in solver_libs],
+        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in solver_libs],
         "language": "c++",
         "extra_compile_args": ["-std=c++17"]
     }
