@@ -119,14 +119,9 @@ option (USE_PYTHON2
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  # We currently use FindPythonInterp even though it is deprecated since 3.12
-  # This is because the scikit-build files still use this version and it will
-  # not interact well with the latest Python finding cmake modules
-  # https://cmake.org/cmake/help/v3.12/module/FindPython.html
-  # in the future, we can switch to FindPython3 once it has become more standard
-  # i.e. when the following issue is resolved:
-  # https://github.com/scikit-build/scikit-build/issues/506
-  find_package(PythonInterp 3.5 REQUIRED)
+  # Check for a virtualenv python first
+  find_package(PythonVirtualEnv)
+  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development)
 endif()
 
 if (BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)

@@ -1,4 +1,6 @@
 # First, ensure we have Python 3.9 or newer with all required components
+# Check for a virtualenv python first
+find_package(PythonVirtualEnv)
 find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development)
 
 # Helper function to check for required Python packages
