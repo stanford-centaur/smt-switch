@@ -76,7 +76,7 @@ configure_file(
     @ONLY
 )
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend"
-     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/smt_switch/pysmt_frontend")
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/smt_switch/")
 
 # Copy pyproject.toml to build directory
 configure_file(
