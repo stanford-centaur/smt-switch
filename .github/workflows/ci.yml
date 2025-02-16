@@ -79,9 +79,6 @@ jobs:
       - name: Configure
         run: source ./.venv/bin/activate && ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Build
         run: |
           source ./.venv/bin/activate
