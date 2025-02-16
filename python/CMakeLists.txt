@@ -96,7 +96,7 @@ endif()
 
 # generate necessary collateral here
 include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
-set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_LIST_DIR})
+set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_BINARY_DIR})
 
 if (BUILD_BTOR)
 #   include_directories("${PROJECT_SOURCE_DIR}/btor/include")
@@ -145,6 +145,7 @@ add_custom_target(python_bindings ALL
     COMMENT "Building Python bindings"
 )
 
+message(STATUS "Running gen-smt-solver-declarations.py ${GEN_OPTIONS}")
 add_custom_target(gen-smt-solver-declarations
   ALL
   COMMAND
