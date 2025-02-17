@@ -1,0 +1,119 @@
+name: Build and Upload Wheels
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        type: choice
+        description: "Choose the deployment target"
+        options:
+        - None
+        - PyPI
+        - Test PyPI
+
+jobs:
+  build_wheels:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        name: [manylinux-x86_64, macos-x86_64, macos-arm64]
+        include:
+          - name: manylinux-x86_64
+            os: ubuntu-latest
+            arch: x86_64
+          - name: macos-x86_64
+            os: macos-13
+            macos-target: 10.13
+          - name: macos-arm64
+            os: macos-14
+            macos-target: 11
+            extra_macos_packages: ""  # We can specify additional packages per architecture if needed
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install system-level dependencies first
+    - name: Install Packages (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          gperf \
+          libgmp-dev \
+          ninja-build \
+          openjdk-8-jdk
+
+    - name: Install Packages (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install \
+          gperf \
+          ninja \
+          ${{ matrix.extra_macos_packages }}
+        # Set up environment variables for compiler and linker to find brew-installed packages
+        echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
+        echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
+        echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
+
+    # Set up Python virtual environment and install Python dependencies
+    - name: Python Dependencies
+      run: |
+        python3 -m venv ./.venv
+        source ./.venv/bin/activate
+        python3 -m pip install \
+          Cython \
+          meson \
+          pyparsing \
+          pytest \
+          setuptools \
+          toml \
+          wheel
+        echo "$PWD/.venv/bin" >> $GITHUB_PATH
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.16.2
+      with:
+        # Where the setup.py/pyproject.toml build infrastructure is
+        package-dir: ./build/python
+      env:
+        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+        CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
+        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_BEFORE_ALL_LINUX: bash ./ci-scripts/cibw_before_build.sh
+        CIBW_BEFORE_ALL_MACOS: bash ./ci-scripts/cibw_before_build.sh
+        CIBW_ENVIRONMENT_MACOS: >
+          DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
+          MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+        CIBW_TEST_COMMAND: pytest {project}/tests
+
+    - name: Upload wheels to PyPI
+      if: >
+        github.event_name == 'release' ||
+        (github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.deploy_target == 'PyPI')
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        source ./.venv/bin/activate
+        pip install twine
+        twine upload --skip-existing wheelhouse/*.whl
+
+    - name: Upload wheels to TestPyPI
+      if: >
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.deploy_target == 'Test PyPI'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+      run: |
+        source ./.venv/bin/activate
+        pip install twine
+        twine upload --repository testpypi wheelhouse/*.whl
