@@ -3,6 +3,9 @@ name: Build and Upload Wheels
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - setuptools
   workflow_dispatch:
     inputs:
       deploy_target:
