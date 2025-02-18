@@ -80,12 +80,6 @@ jobs:
           wheel
         echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
-    - name: Clean up existing .so files on Linux
-      if: runner.os == 'Linux'
-      run: |
-        find ./build/python -name "*.so" -delete
-        find ./build/python -name "*.o" -delete
-
     # cibuildwheel requires the pyproject.toml to be present already
     - name: Place pyproject.toml
       run: |
