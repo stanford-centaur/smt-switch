@@ -86,6 +86,12 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macos-target }}
 
+    - name: Clean up existing .so files on Linux
+      if: runner.os == 'Linux'
+      run: |
+        find ./build/python -name "*.so" -delete
+        find ./build/python -name "*.o" -delete
+
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.16.2
       with:
