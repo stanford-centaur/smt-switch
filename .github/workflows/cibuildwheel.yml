@@ -80,6 +80,12 @@ jobs:
           wheel
         echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
+    - name: Build C++ libraries
+      run: |
+        bash ./ci-scripts/cibw_before_build.sh
+      env:
+        MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macos-target }}
+
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.16.2
       with:
@@ -89,8 +95,6 @@ jobs:
         CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
-        CIBW_BEFORE_ALL_LINUX: bash ./ci-scripts/cibw_before_build.sh
-        CIBW_BEFORE_ALL_MACOS: bash ./ci-scripts/cibw_before_build.sh
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
