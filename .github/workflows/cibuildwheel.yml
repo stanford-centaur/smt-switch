@@ -88,11 +88,13 @@ jobs:
 
     - name: Debug Prints
       run: |
-        echo "build"
+        echo ": pwd"
+        pwd
+        echo ": build"
         ls ./build
-        echo "build/python"
+        echo ": build/python"
         ls ./build/python
-        echo "setup.py"
+        echo ": setup.py"
         cat ./build/python/setup.py
 
     - name: Clean up existing .so files on Linux
