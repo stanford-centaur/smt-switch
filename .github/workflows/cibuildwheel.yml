@@ -98,7 +98,7 @@ jobs:
         # Where the setup.py/pyproject.toml build infrastructure is
         package-dir: ./build/python
       env:
-        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_ENVIRONMENT_MACOS: >
