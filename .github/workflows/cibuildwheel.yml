@@ -100,8 +100,12 @@ jobs:
     - name: Clean up existing .so files on Linux
       if: runner.os == 'Linux'
       run: |
+        echo ": build before"
+        ls ./build
         find ./build/python -name "*.so" -delete
         find ./build/python -name "*.o" -delete
+        echo ": build after"
+        ls ./build
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.16.2
