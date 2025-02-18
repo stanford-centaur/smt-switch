@@ -82,7 +82,7 @@ jobs:
 
     - name: Build C++ libraries
       run: |
-        bash ./ci-scripts/cibw_before_build.sh
+        bash ./ci-scripts/cibw_build_before.sh
       env:
         MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macos-target }}
 
