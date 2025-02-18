@@ -80,32 +80,17 @@ jobs:
           wheel
         echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
-    - name: Build C++ libraries
-      run: |
-        bash ./ci-scripts/cibw_build_before.sh
-      env:
-        MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macos-target }}
-
-    - name: Debug Prints
-      run: |
-        echo ": pwd"
-        pwd
-        echo ": build"
-        ls ./build
-        echo ": build/python"
-        ls ./build/python
-        echo ": setup.py"
-        cat ./build/python/setup.py
-
     - name: Clean up existing .so files on Linux
       if: runner.os == 'Linux'
       run: |
-        echo ": build before"
-        ls ./build
         find ./build/python -name "*.so" -delete
         find ./build/python -name "*.o" -delete
-        echo ": build after"
-        ls ./build
+
+    # cibuildwheel requires the pyproject.toml to be present already
+    - name: Place pyproject.toml
+      run: |
+        mkdir -p ./build/python
+        cp ./python/pyproject.toml ./build/python/
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.16.2
@@ -116,6 +101,7 @@ jobs:
         CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_BEFORE_BUILD: bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
