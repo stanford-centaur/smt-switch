@@ -22,11 +22,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        name: [manylinux-x86_64, macos-x86_64, macos-arm64]
+        name: [manylinux-x86_64, manylinux-aarch64, macos-x86_64, macos-arm64]
         include:
           - name: manylinux-x86_64
             os: ubuntu-latest
             arch: x86_64
+          - name: manylinux-aarch64
+            os: ubuntu-24.04-arm
+            arch: aarch64
+            shell: bash
           - name: macos-x86_64
             os: macos-13
             macos-target: 10.13
@@ -40,51 +44,11 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install system-level dependencies first
-    - name: Install Packages (Linux)
-      if: runner.os == 'Linux'
+    # cibuildwheel requires the pyproject.toml to be present already
+    - name: Place pyproject.toml
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          cmake \
-          gperf \
-          libgmp-dev \
-          ninja-build \
-          openjdk-8-jdk
-
-    - name: Install Packages (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew update
-        brew install \
-          gperf \
-          ninja \
-          ${{ matrix.extra_macos_packages }}
-        # Set up environment variables for compiler and linker to find brew-installed packages
-        echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
-        echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
-        echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
-
-    # Set up Python virtual environment and install Python dependencies
-    - name: Python Dependencies
-      run: |
-        python3 -m venv ./.venv
-        source ./.venv/bin/activate
-        python3 -m pip install \
-          Cython \
-          meson \
-          pyparsing \
-          pytest \
-          setuptools \
-          toml \
-          wheel
-        echo "$PWD/.venv/bin" >> $GITHUB_PATH
-
-    - name: Build C++ libraries
-      run: |
-        bash ./ci-scripts/cibw_build_before.sh
-      env:
-        MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macos-target }}
+        mkdir -p ./build/python
+        cp ./python/pyproject.toml ./build/python/
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.16.2
@@ -92,9 +56,92 @@ jobs:
         # Where the setup.py/pyproject.toml build infrastructure is
         package-dir: ./build/python
       env:
-        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_BEFORE_ALL_LINUX: |
+          # First detect our architecture
+          ARCH=$(uname -m)
+          echo "Building for architecture: $ARCH"
+
+          # Configure repository based on architecture
+          if [ "$ARCH" = "x86_64" ]; then
+            # Standard CentOS vault for x86_64
+            echo "[base]
+            name=CentOS-7 - Base
+            baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
+            gpgcheck=0
+            enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
+          else
+            # AltArch repository for aarch64
+            echo "[base]
+            name=CentOS-7 - Base
+            baseurl=http://mirror.centos.org/altarch/7/os/aarch64/
+            gpgcheck=0
+            enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
+          fi
+
+          # Enable the devtoolset for our modern compiler
+          source /opt/rh/devtoolset-10/enable
+
+          # Clean and rebuild package cache
+          yum clean all
+          yum makecache
+
+          # Install all static development packages
+          yum install -y \
+            cmake \
+            gcc \
+            gcc-c++ \
+            glibc-devel \
+            glibc-static \
+            glibc-static-devel \
+            gmp-devel \
+            gmp-static \
+            java-1.8.0-openjdk-devel \
+            make \
+            libstdc++-static \
+            libstdc++-devel
+
+          # Set up architecture-specific library paths
+          if [ "$ARCH" = "x86_64" ]; then
+            LIB_DIRS="/lib64:/usr/lib64"
+          else
+            LIB_DIRS="/lib64:/usr/lib64:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu"
+          fi
+
+          # Set up environment with our architecture-specific paths
+          export LD_LIBRARY_PATH="$LIB_DIRS:$LD_LIBRARY_PATH"
+          export LIBRARY_PATH="$LIB_DIRS:$LIBRARY_PATH"
+          export CFLAGS="-fPIC"
+          export CXXFLAGS="-fPIC"
+          export LDFLAGS="-L/usr/lib64 -static-libstdc++ -static-libgcc"
+
+          # Print diagnostic information to help with debugging
+          echo "Architecture: $ARCH"
+          echo "Library paths: $LIB_DIRS"
+          echo "Checking for static libraries:"
+          ls -l /usr/lib64/lib*.a 2>/dev/null || true
+          if [ "$ARCH" = "aarch64" ]; then
+            ls -l /usr/lib/aarch64-linux-gnu/lib*.a 2>/dev/null || true
+          fi
+          echo "Compiler versions:"
+          gcc --version
+          g++ --version
+        CIBW_BEFORE_ALL_MACOS: |
+          brew update
+          brew install gperf ninja
+          brew install SRI-CSL/sri-csl/libpoly
+        CIBW_BEFORE_BUILD: >
+          python3 -m pip install \
+            Cython \
+            meson \
+            pyparsing \
+            pytest \
+            setuptools \
+            toml \
+            wheel
+          bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
@@ -109,9 +156,10 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        source ./.venv/bin/activate
-        pip install twine
-        twine upload --skip-existing wheelhouse/*.whl
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     - name: Upload wheels to TestPyPI
       if: >
@@ -122,6 +170,7 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
       run: |
-        source ./.venv/bin/activate
-        pip install twine
-        twine upload --repository testpypi wheelhouse/*.whl
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl
