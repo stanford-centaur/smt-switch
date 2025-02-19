@@ -96,6 +96,9 @@ jobs:
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_BEFORE_BUILD: bash {project}/ci-scripts/cibw_build_before.sh
+        CIBW_BEFORE_ALL_MACOS: |
+          brew update
+          brew install SRI-CSL/sri-csl/libpoly
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
