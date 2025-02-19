@@ -22,11 +22,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        name: [manylinux-x86_64, macos-x86_64, macos-arm64]
+        name: [manylinux-x86_64, manylinux-aarch64, macos-x86_64, macos-arm64]
         include:
           - name: manylinux-x86_64
             os: ubuntu-latest
             arch: x86_64
+          - name: manylinux-aarch64
+            os: ubuntu-24.04-arm
+            arch: aarch64
+            shell: bash
           - name: macos-x86_64
             os: macos-13
             macos-target: 10.13
@@ -66,14 +70,13 @@ jobs:
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_BEFORE_ALL_LINUX: |
-          yum clean all
-          yum makecache
-          yum install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             cmake \
             gperf \
-            gmp-devel \
+            libgmp-dev \
             ninja-build \
-            java-1.8.0-openjdk-devel
+            openjdk-8-jdk
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
