@@ -69,24 +69,6 @@ jobs:
             toml \
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
-        CIBW_BEFORE_ALL_LINUX: |
-          # First configure a working mirror
-          echo "Using vault.centos.org for base repository"
-          echo "[base]
-          name=CentOS-7 - Base
-          baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
-          gpgcheck=0
-          enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
-
-          # Now try to install packages, using only the base repo
-          yum clean all
-          yum makecache --disablerepo=* --enablerepo=base
-          yum install -y --disablerepo=* --enablerepo=base \
-            cmake \
-            gperf \
-            gmp-devel \
-            ninja-build \
-            java-1.8.0-openjdk-devel
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
