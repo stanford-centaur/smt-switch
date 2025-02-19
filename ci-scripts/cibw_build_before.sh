@@ -14,5 +14,5 @@ make -j
 # cibuildwheel doesn't want the generated .so file for the packaged Python
 # That happens automatically when built with python bindings
 # delete them now and let cibuildwheel do the packaging
-find ./build/python -name "*.so" -delete
-find ./build/python -name "*.o" -delete
+find ./python -name "*.so" -delete
+find ./python -name "*.o" -delete
