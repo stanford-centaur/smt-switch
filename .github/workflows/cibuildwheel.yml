@@ -66,6 +66,8 @@ jobs:
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_BEFORE_ALL_LINUX: |
+          yum clean all
+          yum makecache
           yum install -y \
             cmake \
             gperf \
