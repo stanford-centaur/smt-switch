@@ -60,17 +60,21 @@ jobs:
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: |
-          # First configure the base CentOS repository
+          # Determine the architecture for our repositories
+          ARCH=$(uname -m)
+          echo "Building for architecture: $ARCH"
+
+          # Configure base CentOS repository with dynamic architecture
           echo "[base]
           name=CentOS-7 - Base
-          baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
+          baseurl=http://vault.centos.org/7.9.2009/os/$ARCH/
           gpgcheck=0
           enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
 
-          # Configure EPEL repository
+          # Configure EPEL repository with dynamic architecture
           echo "[epel]
-          name=Extra Packages for Enterprise Linux 7 - x86_64
-          baseurl=http://archive.fedoraproject.org/pub/epel/7/x86_64/
+          name=Extra Packages for Enterprise Linux 7 - $ARCH
+          baseurl=https://archives.fedoraproject.org/pub/archive/epel/7/$ARCH/
           gpgcheck=0
           enabled=1" > /etc/yum.repos.d/epel.repo
 
