@@ -60,10 +60,10 @@ jobs:
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: |
-          # Enable the devtoolset environment properly
+          # First enable the devtoolset properly
           source /opt/rh/devtoolset-10/enable
 
-          # Install necessary development packages
+          # Install development packages
           yum install -y \
             cmake \
             gcc \
@@ -71,11 +71,26 @@ jobs:
             glibc-devel \
             gmp-devel \
             java-1.8.0-openjdk-devel \
-            make
+            make \
+            libstdc++-static \
+            glibc-static
 
-          # Set library paths explicitly
+          # Set up library paths and compiler flags
           export LD_LIBRARY_PATH="/lib64:/usr/lib64:$LD_LIBRARY_PATH"
           export LIBRARY_PATH="/lib64:/usr/lib64:$LIBRARY_PATH"
+          export CFLAGS="-fPIC"
+          export CXXFLAGS="-fPIC"
+          export LDFLAGS="-L/usr/lib64 -static-libstdc++ -static-libgcc"
+
+          # Print diagnostic information
+          gcc --version
+          g++ --version
+          which gcc
+          which g++
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+          echo "LIBRARY_PATH=$LIBRARY_PATH"
+          ls -l /usr/lib64/libstdc++*
+          ls -l /usr/lib64/libgcc*
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
