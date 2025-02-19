@@ -10,8 +10,9 @@
 # Find the Python root directory for the current Python version
 # This is important for the manylinux infrastructure, which is in
 # a nonstandard location that CMake has trouble finding
-PYTHON_ROOT=$(dirname $(dirname $(realpath $(which python3))))
+PYTHON_EXECUABLE=$(which python3)
+PYTHON_ROOT=$(dirname $(dirname $(realpath ${PYTHON_EXECUTABLE})))
 
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-root-dir=${PYTHON_ROOT}
+./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE} --python-root-dir=${PYTHON_ROOT}
 cd build
 make -j
