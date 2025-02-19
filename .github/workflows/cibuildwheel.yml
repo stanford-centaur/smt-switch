@@ -64,10 +64,18 @@ jobs:
           ARCH=$(uname -m)
           echo "Building for architecture: $ARCH"
 
-          # Configure base CentOS repository with dynamic architecture
+          if [ "$ARCH" = "x86_64" ]; then
+            # x86_64 uses the standard vault
+            CENTOS_BASE_URL="http://vault.centos.org/7.9.2009/os/x86_64/"
+          else
+            # aarch64 uses the AltArch repository
+            CENTOS_BASE_URL="http://mirror.centos.org/altarch/7/os/aarch64/"
+          fi
+
+          # Configure base CentOS repository with architecture-specific URL
           echo "[base]
           name=CentOS-7 - Base
-          baseurl=http://vault.centos.org/7.9.2009/os/$ARCH/
+          baseurl=$CENTOS_BASE_URL
           gpgcheck=0
           enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
 
