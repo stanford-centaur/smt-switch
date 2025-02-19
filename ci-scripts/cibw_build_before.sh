@@ -10,13 +10,12 @@ PYTHON_EXECUTABLE=$(which python3)
 PYTHON_ROOT=$(dirname $(dirname $(realpath ${PYTHON_EXECUTABLE})))
 
 echo "Identified Python executable and root directory as:"
-echo "Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 echo "Python_ROOT_DIR: ${PYTHON_ROOT}"
 
 ./contrib/setup-bitwuzla.sh
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
 
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE} --python-root-dir=${PYTHON_ROOT}
+./configure.sh --bitwuzla --cvc5 --z3 --python --python-root-dir=${PYTHON_ROOT}
 cd build
 make -j

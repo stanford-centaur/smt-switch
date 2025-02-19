@@ -307,7 +307,7 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
     && cmake_opts="$cmake_opts -DPython_EXECUTABLE=$python_executable"
 
 [ $python_root_dir != default ] \
-    && cmake_opts="$cmake_opts -DPython_ROOT_DIR=$python_root_dir"
+    && cmake_opts="$cmake_opts -DPython_ROOT_DIR=$python_root_dir -DCMAKE_PREFIX_PATH=$python_root_dir"
 
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"

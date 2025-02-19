@@ -60,17 +60,10 @@ jobs:
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: |
-          # Let's first examine our environment
-          echo "Building for architecture: $(uname -m)"
-          echo "Checking existing repository configuration:"
-          ls -l /etc/yum.repos.d/
-          cat /etc/yum.repos.d/*.repo
+          # Enable the devtoolset environment properly
+          source /opt/rh/devtoolset-10/enable
 
-          # Try to use existing repository configuration
-          yum clean all
-          yum repolist
-
-          # Install our needed packages
+          # Install necessary development packages
           yum install -y \
             cmake \
             gcc \
@@ -80,9 +73,9 @@ jobs:
             java-1.8.0-openjdk-devel \
             make
 
-          # Show what we installed for debugging
-          gcc --version
-          cmake --version
+          # Set library paths explicitly
+          export LD_LIBRARY_PATH="/lib64:/usr/lib64:$LD_LIBRARY_PATH"
+          export LIBRARY_PATH="/lib64:/usr/lib64:$LIBRARY_PATH"
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
