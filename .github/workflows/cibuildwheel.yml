@@ -70,14 +70,16 @@ jobs:
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_BEFORE_ALL_LINUX: |
-          lsb_release -a
-          apt update
-          apt install -y \
+          cat /etc/os-release
+          yum clean all
+          yum repolist
+          yum makecache
+          yum install -y \
             cmake \
             gperf \
-            libgmp-dev \
+            gmp-devel \
             ninja-build \
-            openjdk-8-jdk
+            java-1.8.0-openjdk-devel
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
