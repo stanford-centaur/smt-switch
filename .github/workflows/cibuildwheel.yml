@@ -78,16 +78,11 @@ jobs:
             glibc-devel \
             gmp-devel \
             java-1.8.0-openjdk-devel \
-            make \
-            python3-devel
+            make
 
           # Show what we installed for debugging
           gcc --version
           cmake --version
-
-          # Check Python development files
-          echo "Checking Python development files:"
-          ls -l /usr/include/python*
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja

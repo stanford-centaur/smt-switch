@@ -29,7 +29,7 @@ Configures the CMAKE build environment.
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
---python-executabe      use this version of Python
+--python-root-dir       point to the base directory of your preferred Python
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
@@ -180,13 +180,13 @@ do
         --python)
             python=yes
             ;;
-        --python-executable=*)
-            python_executable=${1##*=}
-            # Check if python_executable is an absolute path and if not, make it
+        --python-root-dir=*)
+            python_root_dir=${1##*=}
+            # Check if python_root_dir is an absolute path and if not, make it
             # absolute.
-            case $python_executable in
+            case $python_root_dir in
                 /*) ;;                            # absolute path
-                *) python_executable=$(pwd)/$python_executable ;; # make absolute path
+                *) python_root_dir=$(pwd)/$python_root_dir ;; # make absolute path
             esac
             ;;
         --smtlib-reader)
@@ -293,8 +293,8 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
 
-[ $python_executable != default ] \
-    && cmake_opts="$cmake_opts -DPython_EXECUTABLE=$python_executable"
+[ $python_root_dir != default ] \
+    && cmake_opts="$cmake_opts -DPython_ROOT_DIR=$python_root_dir"
 
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"

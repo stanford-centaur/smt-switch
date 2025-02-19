@@ -7,6 +7,11 @@
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
 
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=$(which python3)
+# Find the Python root directory for the current Python version
+# This is important for the manylinux infrastructure, which is in
+# a nonstandard location that CMake has trouble finding
+PYTHON_ROOT=$(dirname $(dirname $(realpath $(which python3))))
+
+./configure.sh --bitwuzla --cvc5 --z3 --python --python-root-dir=${PYTHON_ROOT}
 cd build
 make -j
