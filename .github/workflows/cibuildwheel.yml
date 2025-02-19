@@ -87,6 +87,8 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
         python3 -m pip install twine
         python3 -m twine upload --skip-existing wheelhouse/*.whl
 
@@ -99,5 +101,7 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
       run: |
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
         python3 -m pip install twine
         python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl
