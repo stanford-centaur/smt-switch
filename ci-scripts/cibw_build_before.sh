@@ -11,8 +11,3 @@ source ./.venv/bin/activate
 ./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=$(which python3)
 cd build
 make -j
-# cibuildwheel doesn't want the generated .so file for the packaged Python
-# That happens automatically when built with python bindings
-# delete them now and let cibuildwheel do the packaging
-find ./python -name "*.so" -delete
-find ./python -name "*.o" -delete
