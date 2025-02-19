@@ -59,6 +59,42 @@ jobs:
         CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_BEFORE_ALL_LINUX: |
+          # First configure the base CentOS repository
+          echo "[base]
+          name=CentOS-7 - Base
+          baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
+          gpgcheck=0
+          enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
+
+          # Configure EPEL repository
+          echo "[epel]
+          name=Extra Packages for Enterprise Linux 7 - x86_64
+          baseurl=http://archive.fedoraproject.org/pub/epel/7/x86_64/
+          gpgcheck=0
+          enabled=1" > /etc/yum.repos.d/epel.repo
+
+          # Install development tools and libraries
+          yum clean all
+          yum makecache --disablerepo=* --enablerepo=base,epel
+          yum install -y --disablerepo=* --enablerepo=base,epel \
+            cmake \
+            gcc \
+            gcc-c++ \
+            glibc-devel \
+            gmp-devel \
+            java-1.8.0-openjdk-devel \
+            make \
+            ninja-build
+
+          # Show what we installed for debugging
+          gcc --version
+          cmake --version
+          ninja --version
+        CIBW_BEFORE_ALL_MACOS: |
+          brew update
+          brew install gperf ninja
+          brew install SRI-CSL/sri-csl/libpoly
         CIBW_BEFORE_BUILD: >
           python3 -m pip install \
             Cython \
@@ -69,10 +105,6 @@ jobs:
             toml \
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
-        CIBW_BEFORE_ALL_MACOS: |
-          brew update
-          brew install gperf ninja
-          brew install SRI-CSL/sri-csl/libpoly
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
