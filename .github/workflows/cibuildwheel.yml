@@ -60,49 +60,29 @@ jobs:
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: |
-          # Determine the architecture for our repositories
-          ARCH=$(uname -m)
-          echo "Building for architecture: $ARCH"
+          # Let's first examine our environment
+          echo "Building for architecture: $(uname -m)"
+          echo "Checking existing repository configuration:"
+          ls -l /etc/yum.repos.d/
+          cat /etc/yum.repos.d/*.repo
 
-          if [ "$ARCH" = "x86_64" ]; then
-            # x86_64 uses the standard vault
-            CENTOS_BASE_URL="http://vault.centos.org/7.9.2009/os/x86_64/"
-          else
-            # aarch64 uses the AltArch repository
-            CENTOS_BASE_URL="http://mirror.centos.org/altarch/7/os/aarch64/"
-          fi
-
-          # Configure base CentOS repository with architecture-specific URL
-          echo "[base]
-          name=CentOS-7 - Base
-          baseurl=$CENTOS_BASE_URL
-          gpgcheck=0
-          enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
-
-          # Configure EPEL repository with dynamic architecture
-          echo "[epel]
-          name=Extra Packages for Enterprise Linux 7 - $ARCH
-          baseurl=https://archives.fedoraproject.org/pub/archive/epel/7/$ARCH/
-          gpgcheck=0
-          enabled=1" > /etc/yum.repos.d/epel.repo
-
-          # Install development tools and libraries
+          # Try to use existing repository configuration
           yum clean all
-          yum makecache --disablerepo=* --enablerepo=base,epel
-          yum install -y --disablerepo=* --enablerepo=base,epel \
+          yum repolist
+
+          # Install our needed packages
+          yum install -y \
             cmake \
             gcc \
             gcc-c++ \
             glibc-devel \
             gmp-devel \
             java-1.8.0-openjdk-devel \
-            make \
-            ninja-build
+            make
 
           # Show what we installed for debugging
           gcc --version
           cmake --version
-          ninja --version
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
