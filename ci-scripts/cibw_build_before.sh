@@ -7,7 +7,6 @@
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
 
-source ./.venv/bin/activate
 ./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=$(which python3)
 cd build
 make -j
