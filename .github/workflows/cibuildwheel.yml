@@ -70,9 +70,16 @@ jobs:
             wheel
           bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_BEFORE_ALL_LINUX: |
-          cat /etc/os-release
+          # First configure a working mirror
+          echo "Using vault.centos.org for base repository"
+          echo "[base]
+          name=CentOS-7 - Base
+          baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
+          gpgcheck=0
+          enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
+
+          # Now try to install packages
           yum clean all
-          yum repolist
           yum makecache
           yum install -y \
             cmake \
