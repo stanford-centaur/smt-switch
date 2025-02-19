@@ -78,10 +78,10 @@ jobs:
           gpgcheck=0
           enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
 
-          # Now try to install packages
+          # Now try to install packages, using only the base repo
           yum clean all
-          yum makecache
-          yum install -y \
+          yum makecache --disablerepo=* --enablerepo=base
+          yum install -y --disablerepo=* --enablerepo=base \
             cmake \
             gperf \
             gmp-devel \
