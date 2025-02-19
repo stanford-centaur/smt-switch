@@ -95,7 +95,16 @@ jobs:
         CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
-        CIBW_BEFORE_BUILD: bash {project}/ci-scripts/cibw_build_before.sh
+        CIBW_BEFORE_BUILD: >
+          python3 -m pip install
+            Cython \
+            meson \
+            pyparsing \
+            pytest \
+            setuptools \
+            toml \
+            wheel
+          bash {project}/ci-scripts/cibw_build_before.sh
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install SRI-CSL/sri-csl/libpoly
