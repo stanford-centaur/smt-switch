@@ -51,7 +51,7 @@ jobs:
         cp ./python/pyproject.toml ./build/python/
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v2.22.0
+      uses: pypa/cibuildwheel@v2.21.3
       with:
         # Where the setup.py/pyproject.toml build infrastructure is
         package-dir: ./build/python
