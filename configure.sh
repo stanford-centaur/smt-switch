@@ -30,7 +30,6 @@ Configures the CMAKE build environment.
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
 --python-executabe      use this particular Python interpreter
---python-root-dir       start the search for Python libs and interpreter at this base directory
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
@@ -190,15 +189,6 @@ do
                 *) python_executable=$(pwd)/$python_executable ;; # make absolute path
             esac
             ;;
-        --python-root-dir=*)
-            python_root_dir=${1##*=}
-            # Check if python_root_dir is an absolute path and if not, make it
-            # absolute.
-            case $python_root_dir in
-                /*) ;;                            # absolute path
-                *) python_root_dir=$(pwd)/$python_root_dir ;; # make absolute path
-            esac
-            ;;
         --smtlib-reader)
             smtlib_reader=yes
             ;;
@@ -305,9 +295,6 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $python_executable != default ] \
     && cmake_opts="$cmake_opts -DPython_EXECUTABLE=$python_executable"
-
-[ $python_root_dir != default ] \
-    && cmake_opts="$cmake_opts -DPython_ROOT_DIR=$python_root_dir -DCMAKE_PREFIX_PATH=$python_root_dir"
 
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"

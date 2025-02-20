@@ -1,7 +1,9 @@
 # First, ensure we have Python 3.9 or newer with all required components
 # Check for a virtualenv python first
 find_package(PythonVirtualEnv)
-find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development)
+# Want python for building a module, so use Development.Module. See:
+# https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
+find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 
 # Helper function to check for required Python packages
 function(check_python_module module)
