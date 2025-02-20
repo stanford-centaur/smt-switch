@@ -12,7 +12,29 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # a helper to find Python in a virtualenv
 find_package(PythonVirtualEnv)
 
-set(SMT_SWITCH_VERSION "0.3.1")
+# Get the latest tag
+execute_process(
+    COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+
+# Remove the 'v' prefix if it exists
+if(GIT_TAG_VERSION MATCHES "^v(.*)")
+    set(GIT_TAG_VERSION ${CMAKE_MATCH_1})
+endif()
+
+# Parse into major, minor, patch if you need them separately
+if(GIT_TAG_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+    set(VERSION_MAJOR ${CMAKE_MATCH_1})
+    set(VERSION_MINOR ${CMAKE_MATCH_2})
+    set(VERSION_PATCH ${CMAKE_MATCH_3})
+    message(STATUS "Parsed version: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+endif()
+
+set(SMT_SWITCH_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
