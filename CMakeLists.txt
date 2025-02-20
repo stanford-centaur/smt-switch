@@ -8,6 +8,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+# defines find_python_in_virtualenv()
+# a helper to find Python in a virtualenv
+find_package(PythonVirtualEnv)
 
 set(SMT_SWITCH_VERSION "0.3.1")
 
@@ -120,7 +123,7 @@ option (USE_PYTHON2
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
   # Check for a virtualenv python first
-  find_package(PythonVirtualEnv)
+  find_python_in_virtualenv()
   # Want python for building a module, so use Development.Module. See:
   # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
