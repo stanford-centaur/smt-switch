@@ -116,8 +116,6 @@ target_link_libraries( smt-switch PRIVATE Threads::Threads)
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
    "Build Python bindings")
-option (USE_PYTHON2
-   "Use Python2 for bindings")
 
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
