@@ -8,7 +8,7 @@ set -e
 # Find the Python root directory for the current Python version
 # This is important for the manylinux infrastructure, which is in
 # a nonstandard location that CMake has trouble finding
-PYTHON_EXECUTABLE=$(realpath $(which python3))
+PYTHON_EXECUTABLE=$(which python3)
 echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
 ./contrib/setup-bitwuzla.sh

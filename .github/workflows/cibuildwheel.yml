@@ -72,7 +72,7 @@ jobs:
             libstdc++-static
         CIBW_BEFORE_ALL_MACOS: |
           brew update
-          brew install gperf ninja
+          brew install cmake gperf ninja
           brew install SRI-CSL/sri-csl/libpoly
         CIBW_BEFORE_BUILD: >
           python3 -m pip install \
