@@ -7,25 +7,12 @@
 # This is important for the manylinux infrastructure, which is in
 # a nonstandard location that CMake has trouble finding
 PYTHON_EXECUTABLE=$(realpath $(which python3))
-PYTHON_ROOT=$(dirname $(dirname ${PYTHON_EXECUTABLE}))
-
-echo "Identified Python executable and root directory as:"
-echo "Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
-echo "Python_ROOT_DIR: ${PYTHON_ROOT}"
-
-# TODO: determine if we need this or not
-# if [ "$(uname)" = "Darwin" ]; then
-#     echo "Running on macOS - using Python executable only" &&
-#     CMAKE_PYTHON_OPTIONS="--python-executable=${PYTHON_EXECUTABLE}"
-# else
-#     echo "Running on Linux - using python root dir" &&
-#     CMAKE_PYTHON_OPTIONS="--python-root-dir=$PYTHON_ROOT"
-# fi
+echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
 ./contrib/setup-bitwuzla.sh
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
 
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-root-dir=${PYTHON_ROOT}
+./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE}
 cd build
 make -j
