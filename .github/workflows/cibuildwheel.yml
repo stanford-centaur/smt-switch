@@ -3,9 +3,6 @@ name: Build and Upload Wheels
 on:
   release:
     types: [published]
-  push:
-    branches:
-      - setuptools
   workflow_dispatch:
     inputs:
       deploy_target:
@@ -106,8 +103,7 @@ jobs:
     - name: Upload wheels to TestPyPI
       if: >
         github.event_name == 'workflow_dispatch' &&
-        github.event.inputs.deploy_target == 'Test PyPI' ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/setuptools')
+        github.event.inputs.deploy_target == 'Test PyPI'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
