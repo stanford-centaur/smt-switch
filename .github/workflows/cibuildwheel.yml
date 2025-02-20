@@ -56,78 +56,20 @@ jobs:
         # Where the setup.py/pyproject.toml build infrastructure is
         package-dir: ./build/python
       env:
-        CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+        CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
         CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
+        CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_28_aarch64
         CIBW_BEFORE_ALL_LINUX: |
-          # First detect our architecture
-          ARCH=$(uname -m)
-          echo "Building for architecture: $ARCH"
-
-          # Configure repository based on architecture
-          if [ "$ARCH" = "x86_64" ]; then
-            # Standard CentOS vault for x86_64
-            echo "[base]
-            name=CentOS-7 - Base
-            baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
-            gpgcheck=0
-            enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
-          else
-            # AltArch repository for aarch64
-            echo "[base]
-            name=CentOS-7 - Base
-            baseurl=http://mirror.centos.org/altarch/7/os/aarch64/
-            gpgcheck=0
-            enabled=1" > /etc/yum.repos.d/CentOS-Base.repo
-          fi
-
-          # Enable the devtoolset for our modern compiler
-          source /opt/rh/devtoolset-10/enable
-
-          # Clean and rebuild package cache
-          yum clean all
-          yum makecache
-
-          # Install all static development packages
-          yum install -y \
-            cmake \
-            gcc \
-            gcc-c++ \
-            glibc-devel \
-            glibc-static \
-            glibc-static-devel \
-            gmp-devel \
-            gmp-static \
-            java-1.8.0-openjdk-devel \
-            make \
-            libstdc++-static \
-            libstdc++-devel
-
-          # Set up architecture-specific library paths
-          if [ "$ARCH" = "x86_64" ]; then
-            LIB_DIRS="/lib64:/usr/lib64"
-          else
-            LIB_DIRS="/lib64:/usr/lib64:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu"
-          fi
-
-          # Set up environment with our architecture-specific paths
-          export LD_LIBRARY_PATH="$LIB_DIRS:$LD_LIBRARY_PATH"
-          export LIBRARY_PATH="$LIB_DIRS:$LIBRARY_PATH"
-          export CFLAGS="-fPIC"
-          export CXXFLAGS="-fPIC"
-          export LDFLAGS="-L/usr/lib64 -static-libstdc++ -static-libgcc"
-
-          # Print diagnostic information to help with debugging
-          echo "Architecture: $ARCH"
-          echo "Library paths: $LIB_DIRS"
-          echo "Checking for static libraries:"
-          ls -l /usr/lib64/lib*.a 2>/dev/null || true
-          if [ "$ARCH" = "aarch64" ]; then
-            ls -l /usr/lib/aarch64-linux-gnu/lib*.a 2>/dev/null || true
-          fi
-          echo "Compiler versions:"
-          gcc --version
-          g++ --version
+          dnf install -y \
+             cmake \
+             gperf \
+             gmp-devel \
+             ninja-build \
+             java-1.8.0-openjdk-devel \
+             glibc-static \
+             libstdc++-static
         CIBW_BEFORE_ALL_MACOS: |
           brew update
           brew install gperf ninja
