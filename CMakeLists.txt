@@ -12,29 +12,76 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # a helper to find Python in a virtualenv
 find_package(PythonVirtualEnv)
 
-# Get the latest tag
+########################### Identify the current version ########################
+# Function to parse and validate a version string
+# Returns TRUE if valid, FALSE otherwise
+function(parse_version_string VERSION_STR)
+    # Remove 'v' prefix if present
+    if(VERSION_STR MATCHES "^v(.*)")
+        set(VERSION_STR ${CMAKE_MATCH_1})
+    endif()
+
+    # Check if the version matches semantic versioning format
+    if(VERSION_STR MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+        # Set version components in parent scope
+        set(PARSED_VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}" PARENT_SCOPE)
+        return()
+    endif()
+
+    # If we get here, version string was invalid
+    set(PARSED_VERSION "" PARENT_SCOPE)
+endfunction()
+
+# First attempt: Get version from Git tag
 execute_process(
     COMMAND git describe --tags --abbrev=0
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE GIT_TAG_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE GIT_RESULT
     ERROR_QUIET
 )
 
-# Remove the 'v' prefix if it exists
-if(GIT_TAG_VERSION MATCHES "^v(.*)")
-    set(GIT_TAG_VERSION ${CMAKE_MATCH_1})
+# Check if we got a valid Git tag
+if(GIT_RESULT EQUAL 0)
+    parse_version_string("${GIT_TAG_VERSION}")
+    if(PARSED_VERSION)
+        message(STATUS "Using version from Git tag: ${PARSED_VERSION}")
+        project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+    endif()
 endif()
 
-# Parse into major, minor, patch if you need them separately
-if(GIT_TAG_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
-    set(VERSION_MAJOR ${CMAKE_MATCH_1})
-    set(VERSION_MINOR ${CMAKE_MATCH_2})
-    set(VERSION_PATCH ${CMAKE_MATCH_3})
-    message(STATUS "Parsed version: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+# If Git tag wasn't available or valid, try VERSION file
+if(NOT PARSED_VERSION)
+    message(STATUS "Git tag not available or invalid. Falling back to VERSION file...")
+
+    # Read the VERSION file, ignoring comment lines
+    file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION_LINES)
+
+    # Process lines until we find a non-comment version
+    foreach(LINE IN LISTS VERSION_LINES)
+        # Skip empty lines and comments
+        if(LINE AND NOT LINE MATCHES "^[ ]*#")
+            parse_version_string("${LINE}")
+            if(PARSED_VERSION)
+                message(STATUS "Using version from VERSION file: ${PARSED_VERSION}")
+                project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+                break()
+            endif()
+        endif()
+    endforeach()
 endif()
 
-set(SMT_SWITCH_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+# Final check to ensure we got a valid version
+if(NOT PARSED_VERSION)
+    message(FATAL_ERROR "Could not determine valid version from either Git tags or VERSION file")
+endif()
+
+# - PROJECT_VERSION: Full version string
+# - PROJECT_VERSION_MAJOR: Major version component
+# - PROJECT_VERSION_MINOR: Minor version component
+# - PROJECT_VERSION_PATCH: Patch version component
+message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
