@@ -3,6 +3,8 @@
 # This script is meant to build the smt-switch C++ libraries for the PyPi upload
 # cibuildwheel (abbreviated cibw) will take care of building and packaging the Python wheel
 
+set -e
+
 # Find the Python root directory for the current Python version
 # This is important for the manylinux infrastructure, which is in
 # a nonstandard location that CMake has trouble finding
