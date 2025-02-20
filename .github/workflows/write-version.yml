@@ -1,0 +1,45 @@
+name: Update VERSION file
+
+on:
+  release:
+    types: [published]
+  # TODO: remove this
+  push:
+    branches:
+      - makaimann/cibuildwheel
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Get release version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Update VERSION file
+        run: |
+          echo "${{ steps.get_version.outputs.version }}" > VERSION
+          
+      - name: Commit and push if changed
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
+          git add VERSION
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          git commit -m "chore: Update VERSION file to ${{ steps.get_version.outputs.version }}"
+          git push
