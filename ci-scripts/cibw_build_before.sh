@@ -10,6 +10,8 @@ PYTHON_EXECUTABLE=$(realpath $(which python3))
 echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
 ./contrib/setup-bitwuzla.sh
+# the version of ld.gold is too old in manylinux_2_28, remove it so cvc5 falls back on bfd
+rm -f /usr/bin/ld.gold
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
 
