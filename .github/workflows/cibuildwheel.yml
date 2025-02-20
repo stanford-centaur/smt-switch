@@ -83,7 +83,7 @@ jobs:
             setuptools \
             toml \
             wheel
-          bash {project}/ci-scripts/cibw_build_before.sh
+          bash {project}/ci-scripts/cibw-build-before.sh
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
