@@ -82,7 +82,7 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
         "language": "c++",
         "extra_compile_args": ["-std=c++17"],
-        "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs] + ["-Wl,--enable-new-dtags"]
+        "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs]
     }
 
     ext_module = Extension(
