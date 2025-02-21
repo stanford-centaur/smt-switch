@@ -16,6 +16,8 @@
 
 set -e
 
+python3 -m venv ./build-deps-env
+source ./build-deps-env/bin/activate
 python3 -m pip install meson setuptools pyparsing toml
 
 ./contrib/setup-bitwuzla.sh
