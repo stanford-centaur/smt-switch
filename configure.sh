@@ -29,7 +29,7 @@ Configures the CMAKE build environment.
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
---python-executabe      use this particular Python interpreter
+--python-executabe      point to a particular Python interpreter - will look around this for include and lib dirs
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory

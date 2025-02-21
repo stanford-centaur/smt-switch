@@ -25,14 +25,14 @@ test = ["pytest"]
 [project.urls]
 Homepage = "https://github.com/makaimann/smt-switch"
 Repository = "https://github.com/makaimann/smt-switch.git"
-Documentation = "https://github.com/makaimann/smt-switch/tree/master/docs"
 Issues = "https://github.com/makaimann/smt-switch/issues"
 
 [tool.setuptools]
 include-package-data = true
-[tool.setuptools.packages.find]
+
 # Use find namespace directive to automatically discover packages
 # This will only find directories that contain __init__.py files
+[tool.setuptools.packages.find]
 include = ["smt_switch*"]
 
 # This tells setuptools to include all .dylib/.so files found in any package

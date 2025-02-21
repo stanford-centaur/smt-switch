@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+###############################################################################
+# Top contributors (to current version):
+#  Makai Mann 
+#
+#  This file is part of the smt-switch project.
+#
+#  Copyright (c) 2025 by the authors listed in the file AUTHORS
+#  in the top-level source directory) and their institutional affiliations.
+#  All rights reserved.  See the file LICENSE in the top-level source
+#  directory for licensing information.\endverbatim
+###############################################################################
 #
 # This script is meant to build the smt-switch C++ libraries for the PyPi upload
 # cibuildwheel (abbreviated cibw) will take care of building and packaging the Python wheel

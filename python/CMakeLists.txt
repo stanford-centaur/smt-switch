@@ -98,7 +98,8 @@ if(APPLE)
     set(MACOS_ARCH ${MACOS_ARCH} CACHE STRING "macOS architecture")
 endif()
 
-# generate necessary collateral here
+# Collect option flags for generating the smt solvers Cython file
+# It will include all of the solvers that are enabled for this build
 include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
 set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -126,17 +127,6 @@ if (BUILD_Z3)
   set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
 endif()
 
-# Add custom target for building Python bindings
-add_custom_target(python_bindings ALL
-    # First ensure the build directory is clean
-    COMMAND ${CMAKE_COMMAND} -E remove_directory build
-    # Then build the package in place
-    COMMAND ${Python_EXECUTABLE} -m pip install --no-deps -e .
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS smt-switch  # Main library target
-    COMMENT "Building Python bindings"
-)
-
 message(STATUS "Running gen-smt-solver-declarations.py ${GEN_OPTIONS}")
 add_custom_target(gen-smt-solver-declarations
   ALL
@@ -149,9 +139,20 @@ add_custom_target(gen-smt-solver-declarations
   COMMENT
     "Generate smt_solvers.{pxd,pxi}"
   )
+
+# Custom target for building Python bindings
+add_custom_target(python_bindings ALL
+    # First ensure the build directory is clean
+    COMMAND ${CMAKE_COMMAND} -E remove_directory build
+    # Then build the package in place
+    COMMAND ${Python_EXECUTABLE} -m pip install --no-deps -e .
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS smt-switch  # Main library target
+    COMMENT "Building Python bindings"
+)
 add_dependencies(python_bindings gen-smt-solver-declarations)
 
-# Add install target for Python package
+# Install target for Python package
 install(CODE
     "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --no-deps . \
      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})"

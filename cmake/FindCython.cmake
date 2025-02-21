@@ -2,12 +2,16 @@
 # Top contributors (to current version):
 #   Daniel Larraz
 #
-# This file is part of the cvc5 project.
+#  This file is part of the smt-switch project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
-# in the top-level source directory and their institutional affiliations.
-# All rights reserved.  See the file COPYING in the top-level source
-# directory for licensing information.
+#  Copyright (c) 2025 by the authors listed in the file AUTHORS
+#  in the top-level source directory) and their institutional affiliations.
+#  All rights reserved.  See the file LICENSE in the top-level source
+#  directory for licensing information.\endverbatim
+#
+# This file was copied from the cvc5 project. See original source here:
+# https://github.com/cvc5/cvc5/blob/main/cmake/FindCython.cmake
+#
 # #############################################################################
 #
 # Find Cython
