@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import Cython
 from Cython.Build import cythonize
 import os
 import sys
 import sysconfig
-import shutil
 from pathlib import Path
 import platform
 from setuptools import setup
@@ -23,16 +21,16 @@ elif sys.platform == "win32":
 else:  # linux
     lib_ext = ".so"
 
-def find_solver_libs():
-    """Find all solver-specific libraries recursively in the build directory."""
-    solver_libs = {}
+def find_solvers():
+    """Find all compiled solvers based on built libraries in the build directory."""
+    all_solvers = set()
     build_dir = Path(PROJECT_BINARY_DIR)
 
     # First verify the base library exists
-    base_lib = f"libsmt-switch{lib_ext}"
-    base_lib_path = build_dir / base_lib
+    base_lib_name = f"libsmt-switch{lib_ext}"
+    base_lib_path = build_dir / base_lib_name
     if not base_lib_path.exists():
-        raise FileNotFoundError(f"Could not find base library: {base_lib} in {build_dir}")
+        raise FileNotFoundError(f"Could not find base library: {base_lib_name} in {build_dir}")
 
     # Use recursive glob to find all solver libraries
     pattern = f"**/libsmt-switch-*{lib_ext}"
@@ -40,26 +38,16 @@ def find_solver_libs():
         # Extract solver name from library filename
         lib_name = lib_path.name
         solver = lib_name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
+        all_solvers.add(solver)
 
-        # Create the solver package directory if it doesn't exist
-        solver_pkg_dir = Path("smt_switch") / solver
-        solver_pkg_dir.mkdir(parents=True, exist_ok=True)
-
-        # Create an __init__.py file for the solver package
-        init_file = solver_pkg_dir / "__init__.py"
-        if not init_file.exists():
-            init_file.touch()
-
-        solver_libs[solver] = str(lib_path)
-
-    return solver_libs
+    return sorted(list(all_solvers))
 
 # Get Python extension suffix
 ext_filename = 'smt_switch' + sysconfig.get_config_var('EXT_SUFFIX')
 
 # Set up package structure
-solver_libs = find_solver_libs()
-packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in solver_libs.keys()]
+built_solvers = find_solvers()
+packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
@@ -85,10 +73,10 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
 
     # Set up the extension module
     ext_options = {
-        "libraries": [f"smt-switch-{solver}" for solver in solver_libs.keys()] + ["smt-switch"],
-        "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
-        "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in solver_libs],
-        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in solver_libs],
+        "libraries": [f"smt-switch-{solver}" for solver in built_solvers] + ["smt-switch"],
+        "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
+        "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
+        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
         "language": "c++",
         "extra_compile_args": ["-std=c++17"]
     }
