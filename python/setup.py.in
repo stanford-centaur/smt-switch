@@ -71,14 +71,18 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         extra_compile_args += ["-DMS_WIN64"]
         os.environ['PATH'] += r';C:\msys64\mingw64\bin'
 
+    # The list of all directories containing relevant solver libraries
+    library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers]
+
     # Set up the extension module
     ext_options = {
         "libraries": [f"smt-switch-{solver}" for solver in built_solvers] + ["smt-switch"],
-        "library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
+        "library_dirs": library_dirs,
         "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
         "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
         "language": "c++",
-        "extra_compile_args": ["-std=c++17"]
+        "extra_compile_args": ["-std=c++17"],
+        "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs]
     }
 
     ext_module = Extension(
