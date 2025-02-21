@@ -23,5 +23,6 @@ python3 -m pip install meson setuptools pyparsing toml tomli
 ./contrib/setup-bitwuzla.sh
 # the version of ld.gold is too old in manylinux_2_28, remove it so cvc5 falls back on bfd
 rm -f /usr/bin/ld.gold
+source ./build-deps-env/bin/activate
 ./contrib/setup-cvc5.sh
 ./contrib/setup-z3.sh
