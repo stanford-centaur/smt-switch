@@ -2,7 +2,6 @@
 
 from Cython.Build import cythonize
 import os
-import shutil
 import sys
 import sysconfig
 from pathlib import Path
@@ -22,8 +21,8 @@ elif sys.platform == "win32":
 else:  # linux
     lib_ext = ".so"
 
-def copy_solver_libs():
-    """Copies all compiled solver libraries into the Python package. Returns the list of built solvers."""
+def find_solvers():
+    """Find all compiled solvers based on built libraries in the build directory."""
     all_solvers = set()
     build_dir = Path(PROJECT_BINARY_DIR)
 
@@ -41,29 +40,13 @@ def copy_solver_libs():
         solver = lib_name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
         all_solvers.add(solver)
 
-    # Copy base library to package directory
-    shutil.copy2(base_lib_path, Path("smt_switch") / base_lib_name)
-
-    # Handle solver-specific libraries
-    for lib_path in build_dir.glob(f"**/libsmt-switch-*{lib_ext}"):
-        solver = lib_path.name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
-        all_solvers.add(solver)
-
-        # Set up solver package directory
-        solver_dir = Path("smt_switch") / solver
-        solver_dir.mkdir(parents=True, exist_ok=True)
-        (solver_dir / "__init__.py").touch()
-
-        # Copy solver library
-        shutil.copy2(lib_path, solver_dir / lib_path.name)
-
     return sorted(list(all_solvers))
 
 # Get Python extension suffix
 ext_filename = 'smt_switch' + sysconfig.get_config_var('EXT_SUFFIX')
 
 # Set up package structure
-built_solvers = copy_solver_libs()
+built_solvers = find_solvers()
 packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 
 # Handle Cython compilation if the extension hasn't been built yet
