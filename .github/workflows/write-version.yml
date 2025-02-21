@@ -3,10 +3,6 @@ name: Update VERSION file
 on:
   release:
     types: [published]
-  # TODO: remove this
-  push:
-    branches:
-      - makaimann/cibuildwheel
 
 jobs:
   update-version:

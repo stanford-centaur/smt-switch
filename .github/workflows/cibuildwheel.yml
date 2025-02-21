@@ -36,14 +36,13 @@ jobs:
           - name: macos-arm64
             os: macos-14
             macos-target: 14
-            extra_macos_packages: ""  # We can specify additional packages per architecture if needed
 
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    # cibuildwheel requires the pyproject.toml to be present already
+    # cibuildwheel requires the pyproject.toml to be present from the beginning
     - name: Place pyproject.toml
       run: |
         mkdir -p ./build/python
@@ -52,7 +51,7 @@ jobs:
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.22.0
       with:
-        # Where the setup.py/pyproject.toml build infrastructure is
+        # Where the setup.py and pyproject.toml build infrastructure is
         package-dir: ./build/python
       env:
         CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
