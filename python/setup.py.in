@@ -50,63 +50,56 @@ built_solvers = find_solvers()
 packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 
 # Handle Cython compilation if the extension hasn't been built yet
-if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
-    # Handle macOS-specific settings
-    if sys.platform == 'darwin':
-        mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
-        if mac_ver is None:
-            version_str, _, _ = platform.mac_ver()
-            major_minor = version_str.split(".")[:2]
-            mac_ver = ".".join(major_minor)
-            os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", mac_ver)
-        arch = "@MACOS_ARCH@"  # Set by CMake
-        if not arch:
-            arch = platform.machine()
-        host_platform = "macosx-" + mac_ver + "-" + arch
-        os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
-        arch_flags = "-arch " + arch
-        os.environ.setdefault("ARCHFLAGS", arch_flags)
+# Handle macOS-specific settings
+if sys.platform == 'darwin':
+    mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
+    if mac_ver is None:
+        version_str, _, _ = platform.mac_ver()
+        major_minor = version_str.split(".")[:2]
+        mac_ver = ".".join(major_minor)
+        os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", mac_ver)
+    arch = "@MACOS_ARCH@"  # Set by CMake
+    if not arch:
+        arch = platform.machine()
+    host_platform = "macosx-" + mac_ver + "-" + arch
+    os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
+    arch_flags = "-arch " + arch
+    os.environ.setdefault("ARCHFLAGS", arch_flags)
 
-    if sys.platform == "win32":
-        extra_compile_args += ["-DMS_WIN64"]
-        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+if sys.platform == "win32":
+    extra_compile_args += ["-DMS_WIN64"]
+    os.environ['PATH'] += r';C:\msys64\mingw64\bin'
 
-    # The list of all directories containing relevant solver libraries
-    library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers]
+# The list of all directories containing relevant solver libraries
+library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers]
 
-    # Set up the extension module
-    ext_options = {
-        "libraries": [f"smt-switch-{solver}" for solver in built_solvers] + ["smt-switch"],
-        "library_dirs": library_dirs,
-        "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
-        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
-        "language": "c++",
-        "extra_compile_args": ["-std=c++17"],
-        "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs]
-    }
+# Set up the extension module
+ext_options = {
+    "libraries": [f"smt-switch-{solver}" for solver in built_solvers] + ["smt-switch"],
+    "library_dirs": library_dirs,
+    "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
+    "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
+    "language": "c++",
+    "extra_compile_args": ["-std=c++17"],
+    "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs]
+}
 
-    ext_module = Extension(
-        "smt_switch.smt_switch_base",
-        [
-         "smt_switch_base.pyx",
-         ],
-        **ext_options
-    )
-    ext_module.cython_directives = {"embedsignature": True}
+ext_module = Extension(
+    "smt_switch.smt_switch_base",
+    [
+        "smt_switch_base.pyx",
+        ],
+    **ext_options
+)
+ext_module.cython_directives = {"embedsignature": True}
 
-    # Cython compilation settings
-    compiler_directives = {
-        'language_level': 3,
-        'binding': False,
-    }
-    setup(
-        ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
-        packages=packages,
-        package_data={'': [f'*{lib_ext}']},
-    )
-else:
-    setup(
-        packages=packages,
-        package_data={'': [f'*{lib_ext}']},
-        has_ext_modules=lambda: True,
-    )
+# Cython compilation settings
+compiler_directives = {
+    'language_level': 3,
+    'binding': False,
+}
+setup(
+    ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
+    packages=packages,
+    package_data={'': [f'*{lib_ext}']},
+)
