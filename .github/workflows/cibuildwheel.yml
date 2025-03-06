@@ -81,7 +81,7 @@ jobs:
             pyparsing \
             pytest \
             setuptools \
-            toml \
+            tomli \
             wheel
           bash {project}/ci-scripts/cibw-build-before.sh
         CIBW_ENVIRONMENT_MACOS: >

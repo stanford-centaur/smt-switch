@@ -32,7 +32,7 @@ endfunction()
 # Verify required Python packages are installed
 check_python_module("setuptools")
 check_python_module("wheel")
-check_python_module("cython" "Cython>=3.0.0")
+check_python_module("Cython>=3.0.0")
 
 # Set up the Python package directory structure
 set(PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")

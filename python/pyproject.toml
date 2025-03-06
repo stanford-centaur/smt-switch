@@ -24,9 +24,9 @@ pysmt = ["pysmt"]
 test = ["pytest"]
 
 [project.urls]
-Homepage = "https://github.com/makaimann/smt-switch"
-Repository = "https://github.com/makaimann/smt-switch.git"
-Issues = "https://github.com/makaimann/smt-switch/issues"
+Homepage = "https://github.com/stanford-centaur/smt-switch"
+Repository = "https://github.com/stanford-centaur/smt-switch.git"
+Issues = "https://github.com/stanford-centaur/smt-switch/issues"
 
 [tool.setuptools]
 include-package-data = true
