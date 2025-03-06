@@ -8,6 +8,83 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+# defines find_python_in_virtualenv()
+# a helper to find Python in a virtualenv
+find_package(PythonVirtualEnv)
+
+########################### Identify the current version ########################
+# Function to parse and validate a version string
+# Returns TRUE if valid, FALSE otherwise
+function(parse_version_string VERSION_STR)
+    # Remove 'v' prefix if present
+    if(VERSION_STR MATCHES "^v(.*)")
+        set(VERSION_STR ${CMAKE_MATCH_1})
+    endif()
+
+    # Check if the version matches semantic versioning format
+    if(VERSION_STR MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+        # Set version components in parent scope
+        set(PARSED_VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}" PARENT_SCOPE)
+        return()
+    endif()
+
+    # If we get here, version string was invalid
+    set(PARSED_VERSION "" PARENT_SCOPE)
+endfunction()
+
+# First attempt: Get version from Git tag
+execute_process(
+    COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE GIT_RESULT
+    ERROR_QUIET
+)
+
+# Check if we got a valid Git tag
+if(GIT_RESULT EQUAL 0)
+    parse_version_string("${GIT_TAG_VERSION}")
+    if(PARSED_VERSION)
+        message(STATUS "Using version from Git tag: ${PARSED_VERSION}")
+        project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+    endif()
+endif()
+
+# If Git tag wasn't available or valid, try VERSION file
+# Note: this is only for scenarios where git metadata is not available
+# we have to use git as the source of truth, otherwise wheels might be built
+# with the old version before the GitHub Action writes the new VERSION file
+if(NOT PARSED_VERSION)
+    message(STATUS "Git tag not available or invalid. Falling back to VERSION file...")
+
+    # Read the VERSION file, ignoring comment lines
+    file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION_LINES)
+
+    # Process lines until we find a non-comment version
+    foreach(LINE IN LISTS VERSION_LINES)
+        # Skip empty lines and comments
+        if(LINE AND NOT LINE MATCHES "^[ ]*#")
+            parse_version_string("${LINE}")
+            if(PARSED_VERSION)
+                message(STATUS "Using version from VERSION file: ${PARSED_VERSION}")
+                project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+                break()
+            endif()
+        endif()
+    endforeach()
+endif()
+
+# Final check to ensure we got a valid version
+if(NOT PARSED_VERSION)
+    message(FATAL_ERROR "Could not determine valid version from either Git tags or VERSION file")
+endif()
+
+# - PROJECT_VERSION: Full version string
+# - PROJECT_VERSION_MAJOR: Major version component
+# - PROJECT_VERSION_MINOR: Minor version component
+# - PROJECT_VERSION_PATCH: Patch version component
+message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
@@ -111,20 +188,15 @@ target_link_libraries( smt-switch PRIVATE Threads::Threads)
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
    "Build Python bindings")
-option (USE_PYTHON2
-   "Use Python2 for bindings")
 
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  # We currently use FindPythonInterp even though it is deprecated since 3.12
-  # This is because the scikit-build files still use this version and it will
-  # not interact well with the latest Python finding cmake modules
-  # https://cmake.org/cmake/help/v3.12/module/FindPython.html
-  # in the future, we can switch to FindPython3 once it has become more standard
-  # i.e. when the following issue is resolved:
-  # https://github.com/scikit-build/scikit-build/issues/506
-  find_package(PythonInterp 3.5 REQUIRED)
+  # Check for a virtualenv python first
+  find_python_in_virtualenv()
+  # Want python for building a module, so use Development.Module. See:
+  # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
+  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
 if (BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
