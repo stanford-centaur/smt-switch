@@ -76,7 +76,7 @@ jobs:
           bash {project}/ci-scripts/cibw-build-deps.sh
         CIBW_BEFORE_BUILD: >
           python3 -m pip install \
-            Cython \
+            Cython>=3.0.0 \
             meson \
             pyparsing \
             pytest \
