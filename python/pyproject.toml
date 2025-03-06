@@ -16,6 +16,7 @@ dynamic = ["version"]
 authors = [
     {name = "Makai Mann", email = "makaim@cs.stanford.edu"},
     {name = "Clark Barrett", email = "barrett@cs.stanford.edu"}
+    {name = "Aron Perez-Lopez", email = "arpl@cs.stanford.edu"}
 ]
 dependencies = []
 
