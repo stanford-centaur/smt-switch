@@ -5,34 +5,13 @@ find_python_in_virtualenv()
 # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
 find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 
-# Helper function to check for required Python packages
-function(check_python_module module)
-    execute_process(
-        COMMAND
-            ${Python_EXECUTABLE} -c "import ${module}"
-        RESULT_VARIABLE
-            RET_MODULE_TEST
-        ERROR_QUIET
-    )
-    set(module_name ${ARGN})
-    if(NOT module_name)
-        set(module_name ${module})
-    endif()
-
-    if(RET_MODULE_TEST)
-        message(FATAL_ERROR
-            "Could not find module ${module_name} for Python "
-            "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
-            "Make sure to install ${module_name} for this Python version "
-            "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
-            "Note: You need to have pip installed for this Python version.")
-    endif()
-endfunction()
+# Include helper function to check for required Python packages
+include(CheckPythonModule)
 
 # Verify required Python packages are installed
 check_python_module("setuptools")
 check_python_module("wheel")
-check_python_module("Cython>=3.0.0")
+check_python_module("Cython" 3.0.0)
 
 # Set up the Python package directory structure
 set(PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
