@@ -42,7 +42,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          echo "Creating tag v${{ steps.version.output.version }}"
+          echo "Creating tag v${{ steps.version.outputs.version }}"
           # git tag -a "v${{ steps.version.outputs.version }}" -m "Version ${{ steps.version.outputs.version }}"
           # git push origin "v${{ steps.version.outputs.version }}"
 
