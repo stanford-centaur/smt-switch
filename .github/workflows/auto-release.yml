@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - test-auto-release
-    # paths:
-    #   - 'VERSION'
+    paths:
+      - 'VERSION'
 
 jobs:
   create-tag:
