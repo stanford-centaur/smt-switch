@@ -1,11 +1,9 @@
-name: Version Tag Creator
+name: Draft an Auto-Release on Version Bump
 
 on:
   push:
     branches:
       - test-auto-release
-    paths:
-      - 'VERSION'  # This triggers the workflow only when the VERSION file changes
 
 jobs:
   create-tag:
@@ -24,36 +22,3 @@ jobs:
       - name: Read VERSION file
         id: version
         run: echo "version=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
-
-      # Check if the tag already exists
-      - name: Check if tag exists
-        id: check_tag
-        run: |
-          if git tag -l "v${{ steps.version.outputs.version }}" | grep -q .; then
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      # Create and push the tag if it doesn't exist
-      - name: Create and push tag
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-          echo "Generating tag ${{ steps.version.outputs.version }}"
-          # git tag -a "v${{ steps.version.outputs.version }}" -m "Version ${{ steps.version.outputs.version }}"
-          # git push origin "v${{ steps.version.outputs.version }}"
-
-      # Optional: Create a GitHub release based on the tag
-      - name: Create GitHub Release
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Release v${{ steps.version.outputs.version }}
-          draft: true
-          prerelease: true
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
