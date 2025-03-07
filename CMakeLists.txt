@@ -51,11 +51,34 @@ if(GIT_RESULT EQUAL 0)
     endif()
 endif()
 
+# If Git tag wasn't available or valid, try VERSION file
+# Note: this is only for scenarios where git metadata is not available
+# we have to use git as the source of truth, otherwise wheels might be built
+# with the old version before the GitHub Action writes the new VERSION file
 if(NOT PARSED_VERSION)
-    message(STATUS "Git tag not available or invalid. Setting to '0.0.0'")
-    project(${PROJECT_NAME} VERSION 0.0.0)
+    message(STATUS "Git tag not available or invalid. Falling back to VERSION file...")
+
+    # Read the VERSION file, ignoring comment lines
+    file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION_LINES)
+
+    # Process lines until we find a non-comment version
+    foreach(LINE IN LISTS VERSION_LINES)
+        # Skip empty lines and comments
+        if(LINE AND NOT LINE MATCHES "^[ ]*#")
+            parse_version_string("${LINE}")
+            if(PARSED_VERSION)
+                message(STATUS "Using version from VERSION file: ${PARSED_VERSION}")
+                project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+                break()
+            endif()
+        endif()
+    endforeach()
 endif()
 
+# Final check to ensure we got a valid version
+if(NOT PARSED_VERSION)
+    message(FATAL_ERROR "Could not determine valid version from either Git tags or VERSION file")
+endif()
 
 # - PROJECT_VERSION: Full version string
 # - PROJECT_VERSION_MAJOR: Major version component
