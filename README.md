@@ -183,4 +183,4 @@ A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of Te
 We welcome external contributions, please see
 [CONTRIBUTING.md](./CONTRIBUTING.md) for more details. If you are interested in
 becoming a long-term contributor to smt-switch, please contact one of the
-primary authors in [AUTHORS](./AUTHORS)
+primary authors in [AUTHORS](./AUTHORS). For instructions and a more detailed overview of the code, see he [DEVELOPERS doc](./DEVELOPERS.md).
