@@ -3,7 +3,7 @@ name: Version Tag Creator
 on:
   push:
     branches:
-      - tag-version
+      - test-auto-release
     paths:
       - 'VERSION'  # This triggers the workflow only when the VERSION file changes
 
