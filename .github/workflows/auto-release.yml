@@ -18,10 +18,13 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history to ensure we can check if tag exists
 
-      # Read the VERSION file content
       - name: Read VERSION file
         id: version
-        run: echo "version=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+        run: |
+          # Use grep to filter out comment lines, then take the first non-comment line
+          VERSION_VALUE=$(grep -v '^#' VERSION | head -n 1 | tr -d '[:space:]')
+          echo "Detected version: $VERSION_VALUE"
+          echo "version=$VERSION_VALUE" >> $GITHUB_OUTPUT
 
       # Check if the tag already exists
       - name: Check if tag exists
