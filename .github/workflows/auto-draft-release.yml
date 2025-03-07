@@ -1,4 +1,4 @@
-name: Draft an Auto-Release on Version Bump
+name: Automatically Draft a Release on Version Bump
 
 on:
   push:
