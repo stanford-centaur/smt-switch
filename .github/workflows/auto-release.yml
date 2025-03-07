@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - test-auto-release
-    paths:
-      - 'VERSION'
 
 jobs:
   create-tag:
@@ -51,8 +49,8 @@ jobs:
       #   with:
       #     tag_name: v${{ steps.version.outputs.version }}
       #     name: Release v${{ steps.version.outputs.version }}
-      #     draft: false
-      #     prerelease: false
+      #     draft: true
+      #     prerelease: true
       #     generate_release_notes: true
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
