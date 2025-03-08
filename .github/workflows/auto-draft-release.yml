@@ -46,7 +46,7 @@ jobs:
 
       - name: Create draft GitHub Release
         if: steps.check_tag.outputs.tag_exists == 'false'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
