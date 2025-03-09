@@ -14,10 +14,10 @@ requires-python = ">=3.9"
 license = {text = "BSD-3-Clause"}
 dynamic = ["version"]
 authors = [
-    {name = "Makai Mann", email = "makaim@cs.stanford.edu"},
-    {name = "Clark Barrett", email = "barrett@cs.stanford.edu"},
     {name = "Yoni Zohar", email = "yoni.zohar@biu.ac.il"},
-    {name = "Áron Ricardo Perez-Lopez", email = "arpl@cs.stanford.edu"}
+    {name = "Áron Ricardo Perez-Lopez", email = "arpl@cs.stanford.edu"},
+    {name = "Makai Mann", email = "makaim@cs.stanford.edu"},
+    {name = "Clark Barrett", email = "barrett@cs.stanford.edu"}
 ]
 dependencies = []
 
