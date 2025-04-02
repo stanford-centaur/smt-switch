@@ -3,7 +3,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-CADICAL_VERSION=rel-1.7.4
+CADICAL_VERSION=rel-2.1.3
 
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
