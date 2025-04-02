@@ -23,6 +23,7 @@ if [ ! -d "$DEPS/boolector" ]; then
     chmod -R 777 boolector
     cd boolector
     git checkout -f $BTOR_VERSION
+    export CMAKE_POLICY_VERSION_MINIMUM=3.5
     CFLAGS="" ./contrib/setup-btor2tools.sh
     ./configure.sh --only-cadical -fPIC --path "$DEPS/install"
     cd build
