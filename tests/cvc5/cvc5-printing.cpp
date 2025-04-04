@@ -88,6 +88,13 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
 
+  // x<y /\ y<z
+  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  // x<z
+  Term B = s->make_term(Gt, x, z);
+  Term I;
+  Result r = s->get_interpolant(A, B, I);
+
   try
   {
     // x=0
@@ -98,12 +105,6 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
     cout << e.what() << endl;
   }
 
-  // x<y /\ y<z
-  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
-  // x<z
-  Term B = s->make_term(Gt, x, z);
-  Term I;
-  Result r = s->get_interpolant(A, B, I);
   dump_and_run(
       strbuf, "(define-fun I () Bool (<= x z))\n", "--produce-interpolants");
 }
