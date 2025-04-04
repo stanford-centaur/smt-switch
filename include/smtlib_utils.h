@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 /* string constants for the SMT-LIB commands */
 const std::string SET_OPTION_STR = "set-option";
 const std::string SET_LOGIC_STR = "set-logic";

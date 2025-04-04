@@ -15,8 +15,13 @@
 
 #pragma once
 
+#include <cstdint>
+#include <iostream>
+#include <string>
+
+#include "smt_defs.h"
 #include "solver.h"
-#include "term_hashtable.h"
+#include "term.h"
 
 namespace smt {
 

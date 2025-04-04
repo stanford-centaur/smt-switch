@@ -18,10 +18,8 @@
 
 #include <unordered_set>
 
-#include "assert.h"
-#include "generic_sort.h"
-#include "ops.h"
-#include "solver.h"
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
 
 namespace smt {
@@ -240,4 +238,3 @@ Sort constructor_sort(Op op,
                       const SortVec & sorts);
 
 }  // namespace smt
-
