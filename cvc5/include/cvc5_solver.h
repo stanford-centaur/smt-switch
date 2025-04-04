@@ -47,6 +47,7 @@ class Cvc5Solver : public AbsSmtSolver
   {
     solver.setOption("lang", "smt2");
     solver.setOption("bv-print-consts-as-indexed-symbols", "true");
+    solver.setOption("arrays-exp", "true");
   };
   Cvc5Solver(const Cvc5Solver &) = delete;
   Cvc5Solver & operator=(const Cvc5Solver &) = delete;

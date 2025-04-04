@@ -614,7 +614,7 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
   gs.reset();
   string path = (STRFY(CVC5_HOME));
   path += "/build/bin/cvc5";
-  vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0" };
+  vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp" };
   gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
