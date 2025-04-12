@@ -33,10 +33,14 @@ else
 fi
 
 LIBS="$DEPS/install/lib"
+LIBS64="$DEPS/install/lib64" # for systems that install to lib64 (ex: arm)
 
 if [ -f $LIBS/libcvc5.a ] && [ -f $LIBS/libcvc5parser.a ] && [ -f $LIBS/libcadical.a ]; then
-    echo "It appears cvc5 was setup successfully into $DEPS/cvc5."
-    echo "You may now install it with ./configure.sh --cvc5 && cd build && make"
+    echo "It appears cvc5 was setup successfully into $LIBS/cvc5."
+    echo "You may now configure smt-switch to build with a cvc5 backend using ./configure.sh --cvc5 && cd build && make"
+elif [ -f $LIBS64/libcvc5.a ] && [ -f $LIBS64/libcvc5parser.a ] && [ -f $LIBS64/libcadical.a ]; then
+    echo "It appears cvc5 was setup successfully into $LIBS64/cvc5."
+    echo "You may now configure smt-switch to build with a cvc5 backend using ./configure.sh --cvc5 && cd build && make"
 else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."
