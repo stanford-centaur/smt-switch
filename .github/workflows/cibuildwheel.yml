@@ -1,6 +1,10 @@
 name: Build and Upload Wheels
 
 on:
+  # TODO: remove the push one
+  push:
+    branches:
+      - mmann/arm-lib64
   release:
     types: [published]
   schedule:
@@ -105,8 +109,9 @@ jobs:
 
     - name: Upload wheels to TestPyPI
       if: >
-        github.event_name == 'workflow_dispatch' &&
-        github.event.inputs.deploy_target == 'Test PyPI'
+        github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.deploy_target == 'Test PyPI')
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
