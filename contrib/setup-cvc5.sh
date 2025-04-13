@@ -45,5 +45,7 @@ else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."
     echo "Please see their github page for installation instructions: https://github.com/cvc5/cvc5"
+    echo "Current contents of $DEPS/install"
+    ls -lR $DEPS/install
     exit 1
 fi
