@@ -35,17 +35,14 @@ fi
 LIBS="$DEPS/install/lib"
 LIBS64="$DEPS/install/lib64" # for systems that install to lib64 (ex: arm)
 
-if [ -f $LIBS/libcvc5.a ] && [ -f $LIBS/libcvc5parser.a ] && [ -f $LIBS/libcadical.a ]; then
-    echo "It appears cvc5 was setup successfully into $LIBS/cvc5."
-    echo "You may now configure smt-switch to build with a cvc5 backend using ./configure.sh --cvc5 && cd build && make"
-elif [ -f $LIBS64/libcvc5.a ] && [ -f $LIBS64/libcvc5parser.a ] && [ -f $LIBS64/libcadical.a ]; then
-    echo "It appears cvc5 was setup successfully into $LIBS64/cvc5."
+if [[ -f $LIBS/libcvc5.a || -f $LIBS64/libcvc5.a ]] && \
+   [[ -f $LIBS/libcvc5parser.a || -f $LIBS64/libcvc5parser.a ]] && \
+   [[ -f $LIBS/libcadical.a || -f $LIBS64/libcadical.a ]]; then
+    echo "It appears cvc5 was setup successfully into $DEPS/install."
     echo "You may now configure smt-switch to build with a cvc5 backend using ./configure.sh --cvc5 && cd build && make"
 else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."
     echo "Please see their github page for installation instructions: https://github.com/cvc5/cvc5"
-    echo "Current contents of $DEPS/install"
-    ls -lR $DEPS/install
     exit 1
 fi
