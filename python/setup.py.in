@@ -49,6 +49,8 @@ ext_filename = 'smt_switch' + sysconfig.get_config_var('EXT_SUFFIX')
 built_solvers = find_solvers()
 packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 
+print(f"DEBUG: {built_solvers}")
+
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     # Handle macOS-specific settings
