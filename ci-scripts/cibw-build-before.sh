@@ -24,7 +24,7 @@ PYTHON_EXECUTABLE=$(which python3)
 echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE}
+./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE}
 cd build
 make -j
 echo "DEBUG: Checking for Z3SolverFactory symbol"
