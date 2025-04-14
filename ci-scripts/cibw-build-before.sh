@@ -27,3 +27,5 @@ echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 ./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE}
 cd build
 make -j
+echo "Checking for Z3SolverFactory symbol"
+nm -D ./z3/libsmt-switch-z3.so | grep Z3SolverFactory
