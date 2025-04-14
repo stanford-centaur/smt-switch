@@ -18,6 +18,10 @@ on:
         - None
         - PyPI
         - Test PyPI
+      debug_enabled:
+        description: 'Enable SSH debugging with tmate'
+        type: boolean
+        default: false
 
 jobs:
   build_wheels:
@@ -95,47 +99,14 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: pytest {project}/tests
 
-    - name: Verify wheel contents
-      if: always()  # This ensures the step runs regardless of previous step success/failure
-      run: |
-        echo "Attempting to diagnose wheel issues..."
-        ls -lR ./*
-        if ls dist/*.whl &>/dev/null; then
-          echo "Found wheel(s) to analyze:"
-          ls -la dist/*.whl
-          
-          echo "Unpacking wheel contents..."
-          mkdir -p wheel_contents
-          unzip -l dist/*.whl || echo "Failed to list wheel contents"
-          unzip -d wheel_contents dist/*.whl || echo "Failed to extract wheel"
-          
-          echo "Looking for Z3SolverFactory symbols..."
-          find wheel_contents -name "*.so" -type f | while read so_file; do
-            echo "Checking $so_file"
-            nm -D "$so_file" 2>/dev/null | grep Z3SolverFactory || echo "No Z3SolverFactory symbols found in $so_file"
-          done
-          
-          echo "Examining all libraries in the wheel..."
-          find wheel_contents -name "*.so" -type f | while read so_file; do
-            echo "Dependencies for $so_file:"
-            ldd "$so_file" 2>/dev/null || echo "Failed to run ldd on $so_file"
-          done
-        else
-          echo "No wheels found in dist/ directory"
-          echo "Checking intermediate build directories..."
-          find . -name "*.whl" -type f
-          find . -path "*/wheelhouse/*" -type d -exec ls -la {} \;
-          
-          echo "Checking for any built libraries..."
-          find ./build -name "*.so" -o -name "*.dylib" -o -name "*.dll" | while read lib; do
-            echo "Found library: $lib"
-            if [[ "$lib" == *"z3"* ]]; then
-              echo "Z3-related library found, checking symbols:"
-              nm -D "$lib" 2>/dev/null | grep Z3SolverFactory || echo "No Z3SolverFactory symbols in $lib"
-            fi
-          done
-        fi
-  
+    # Setup debugging after the build for inspection
+    - name: Setup tmate session after build
+      uses: mxschmitt/action-tmate@v3
+      if: steps.build-wheels.outcome == 'failure' && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true'
+      with:
+        limit-access-to-actor: true
+        sudo: true
+
     - name: Fail if wheel build failed
       if: steps.build-wheels.outcome == 'failure'
       run: exit 1
