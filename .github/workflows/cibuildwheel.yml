@@ -21,7 +21,7 @@ on:
       debug_enabled:
         description: 'Enable SSH debugging with tmate'
         type: boolean
-        default: false
+        default: true
 
 jobs:
   build_wheels:
@@ -102,7 +102,7 @@ jobs:
     # Setup debugging after the build for inspection
     - name: Setup tmate session after build
       uses: mxschmitt/action-tmate@v3
-      if: steps.build-wheels.outcome == 'failure' && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true'
+      if: steps.build-wheels.outcome == 'failure' && github.event.inputs.debug_enabled == 'true'
       with:
         limit-access-to-actor: true
         sudo: true
