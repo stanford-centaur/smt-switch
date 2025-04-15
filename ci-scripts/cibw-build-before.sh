@@ -32,7 +32,7 @@ rm -rf ${PYTHON_BUILD_DIR}
 mkdir -p ${PYTHON_BUILD_DIR}
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE} --build-dir ${PYTHON_BUILD_DIR}
+./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE} --build-dir=${PYTHON_BUILD_DIR}
 cd ${PYTHON_BUILD_DIR}
 make -j
 echo "DEBUG: Checking for Z3SolverFactory symbol"

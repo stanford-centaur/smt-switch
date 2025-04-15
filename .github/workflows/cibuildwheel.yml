@@ -57,6 +57,13 @@ jobs:
         mkdir -p ./build/python
         cp ./python/pyproject.toml ./build/python/
 
+    - name: Setup tmate session to inspect build
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+        sudo: true
+
+
     - name: Build wheels
       id: build-wheels  # To be referred to by tmate section
       uses: pypa/cibuildwheel@v2.22.0
@@ -99,14 +106,6 @@ jobs:
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: pytest {project}/tests
-
-    # Setup debugging after the build for inspection
-    - name: Setup tmate session after build
-      uses: mxschmitt/action-tmate@v3
-      if: github.event.inputs.debug_enabled == 'true'
-      with:
-        limit-access-to-actor: true
-        sudo: true
 
     - name: Fail if wheel build failed
       if: steps.build-wheels.outcome == 'failure'
