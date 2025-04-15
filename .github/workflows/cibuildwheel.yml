@@ -103,14 +103,6 @@ jobs:
           python3 -c "import smt_switch as ss; print(ss.solvers); print(ss.__file__)"
           pytest {project}/tests
 
-    - name: Setup tmate session to inspect build
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: true
-        sudo: true
-        timeout-minutes: 15
-        continue-on-error: true
-
     - name: Fail if wheel build failed
       if: steps.build-wheels.outcome == 'failure'
       run: exit 1
