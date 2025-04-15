@@ -23,6 +23,10 @@ set -e
 PYTHON_EXECUTABLE=$(which python3)
 echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
+# clean build directory
+rm -rf build
+mkdir build
+
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
 ./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE}
 cd build
