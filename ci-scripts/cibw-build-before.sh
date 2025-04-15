@@ -23,13 +23,17 @@ set -e
 PYTHON_EXECUTABLE=$(which python3)
 echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
 
-# clean build directory
-rm -rf build
-mkdir build
+# Get Python version for unique build directory
+PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+PYTHON_BUILD_DIR="build-py${PYTHON_VERSION}"
+
+# Clean and recreate build directory
+rm -rf ${PYTHON_BUILD_DIR}
+mkdir -p ${PYTHON_BUILD_DIR}
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE}
-cd build
+./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE} --build-dir ${PYTHON_BUILD_DIR}
+cd ${PYTHON_BUILD_DIR}
 make -j
 echo "DEBUG: Checking for Z3SolverFactory symbol"
 nm -D ./z3/libsmt-switch-z3.so | grep Z3SolverFactory
