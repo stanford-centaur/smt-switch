@@ -58,6 +58,7 @@ jobs:
         cp ./python/pyproject.toml ./build/python/
 
     - name: Build wheels
+      id: build-wheels  # To be referred to by tmate section
       uses: pypa/cibuildwheel@v2.22.0
       continue-on-error: true 
       with:
@@ -102,7 +103,7 @@ jobs:
     # Setup debugging after the build for inspection
     - name: Setup tmate session after build
       uses: mxschmitt/action-tmate@v3
-      if: steps.build-wheels.outcome == 'failure' && github.event.inputs.debug_enabled == 'true'
+      if: github.event.inputs.debug_enabled == 'true'
       with:
         limit-access-to-actor: true
         sudo: true
