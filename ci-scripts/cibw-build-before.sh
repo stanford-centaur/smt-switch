@@ -28,12 +28,11 @@ PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.ve
 PYTHON_BUILD_DIR="build-py${PYTHON_VERSION}"
 
 # Clean and recreate build directory
-rm -rf ${PYTHON_BUILD_DIR}
-mkdir -p ${PYTHON_BUILD_DIR}
+rm -rf build
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE} --build-dir=${PYTHON_BUILD_DIR}
-cd ${PYTHON_BUILD_DIR}
+./configure.sh --z3 --python --python-executable=${PYTHON_EXECUTABLE}
+cd build
 make -j
 echo "DEBUG: Checking for Z3SolverFactory symbol"
 nm -D ./z3/libsmt-switch-z3.so | grep Z3SolverFactory
