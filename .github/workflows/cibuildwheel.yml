@@ -98,7 +98,10 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
-        CIBW_TEST_COMMAND: pytest {project}/tests
+        CIBW_TEST_COMMAND: > 
+          cd {project}
+          python3 -c "import smt_switch as ss; print(ss.solvers); print(ss.__file__)"
+          pytest {project}/tests
 
     - name: Setup tmate session to inspect build
       uses: mxschmitt/action-tmate@v3
