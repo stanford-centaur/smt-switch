@@ -1,6 +1,9 @@
 name: Build and Upload Wheels
 
 on:
+  push:
+    branches:
+      - makaimann/fix-wheels-ci
   release:
     types: [published]
   schedule:
