@@ -16,10 +16,13 @@ PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 # Get the platform-specific library extension
 if sys.platform == "darwin":
     lib_ext = ".dylib"
+    static_lib_ext = ".a"
 elif sys.platform == "win32":
     lib_ext = ".dll"
+    static_lib_ext = ".lib"
 else:  # linux
     lib_ext = ".so"
+    static_lib_ext = ".a"
 
 def find_solvers():
     """Find all compiled solvers based on built libraries in the build directory."""
@@ -27,18 +30,26 @@ def find_solvers():
     build_dir = Path(PROJECT_BINARY_DIR)
 
     # First verify the base library exists
-    base_lib_name = f"libsmt-switch{lib_ext}"
-    base_lib_path = build_dir / base_lib_name
-    if not base_lib_path.exists():
-        raise FileNotFoundError(f"Could not find base library: {base_lib_name} in {build_dir}")
+    base_lib = "libsmt-switch"
+    for ext in [lib_ext, static_lib_ext]:
+        base_lib_name = base_lib + ext
+        base_lib_path = build_dir / base_lib_name
+        if base_lib_path.exists():
+            break
+    else:
+        raise FileNotFoundError(
+            f"Could not find {base_lib}{lib_ext} or {base_lib}{static_lib_ext}"
+            f"in {build_dir}"
+        )
 
     # Use recursive glob to find all solver libraries
-    pattern = f"**/libsmt-switch-*{lib_ext}"
-    for lib_path in build_dir.glob(pattern):
-        # Extract solver name from library filename
-        lib_name = lib_path.name
-        solver = lib_name.replace(f"libsmt-switch-", "").replace(lib_ext, "")
-        all_solvers.add(solver)
+    for ext in [lib_ext, static_lib_ext]:
+        pattern = f"**/libsmt-switch-*{ext}"
+        for lib_path in build_dir.glob(pattern):
+            # Extract solver name from library filename
+            lib_name = lib_path.name
+            solver = lib_name.replace(f"libsmt-switch-", "").replace(ext, "")
+            all_solvers.add(solver)
 
     return sorted(list(all_solvers))
 
