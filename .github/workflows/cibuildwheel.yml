@@ -103,7 +103,7 @@ jobs:
           rm -rf ./build
           ls ./
           python3 -c "import smt_switch as ss; print(ss.solvers); print(ss.__file__)"
-          pytest {project}/tests
+          python3 -m pytest {project}/tests
 
     - name: Fail if wheel build failed
       if: steps.build-wheels.outcome == 'failure'
