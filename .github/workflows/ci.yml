@@ -6,6 +6,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        library_type: [dynamic, static]
         name:
           [
             btor,
@@ -21,6 +22,8 @@ jobs:
             setup_opts: --auto-yes
           - name: yices2
             extra_macos_packages: autoconf
+          - library_type: static
+            config_opts: --static
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os}}
@@ -77,7 +80,7 @@ jobs:
         run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
-        run: source ./.venv/bin/activate && ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader
+        run: source ./.venv/bin/activate && ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader ${{ matrix.config_opts }}
 
       - name: Build
         run: |
