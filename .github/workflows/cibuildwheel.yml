@@ -100,6 +100,7 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: |
           cd {project}
+          rm -rf ./build
           ls ./
           python3 -c "import smt_switch as ss; print(ss.solvers); print(ss.__file__)"
           pytest {project}/tests
