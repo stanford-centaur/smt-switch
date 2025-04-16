@@ -9,9 +9,11 @@ import platform
 from setuptools import setup
 from setuptools.extension import Extension
 
-# These paths will be configured by CMake
+# These variables will be substituted in by CMake during configuration.
 PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
 PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
+SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
+BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")
 
 # Get the platform-specific library extension
 if sys.platform == "darwin":
@@ -74,6 +76,17 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     extra_link_args = []
     for path in library_dirs:
         extra_link_args.append(f"-Wl,-rpath,{path}")
+
+    # When smt-switch is compiled as a static library, we need to link dependencies manually.
+    if SMT_SWITCH_LIB_TYPE == "STATIC":
+        # Some solvers need GMP.
+        for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
+            if gmp_solver in built_solvers:
+                libraries += ["gmp"]
+                break
+        # Bitwuzla has its own linking flags.
+        if "bitwuzla" in built_solvers:
+            extra_link_args += BITWUZLA_LDFLAGS
 
     # Handle OS-specific settings.
     if sys.platform == 'darwin':
