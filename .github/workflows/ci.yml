@@ -23,9 +23,10 @@ jobs:
           - name: yices2
             extra_macos_packages: autoconf
           - library_type: static
+            name_suffix: -static
             config_opts: --static
 
-    name: ${{ matrix.os }}:${{ matrix.name }}
+    name: ${{ matrix.os }}:${{ matrix.name }}${{ matrix.name_suffix }}
     runs-on: ${{ matrix.os}}
 
     steps:
