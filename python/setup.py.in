@@ -51,7 +51,20 @@ packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
-    # Handle macOS-specific settings
+    # Add flags and directories for found solvers.
+    libraries = ["smt-switch"]
+    library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
+    include_dirs = [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
+    for solver in built_solvers:
+        libraries.append(f"smt-switch-{solver}")
+        library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
+        include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
+    extra_compile_args = ["-std=c++17"]
+    extra_link_args = []
+    for path in library_dirs:
+        extra_link_args.append(f"-Wl,-rpath,{path}")
+
+    # Handle OS-specific settings.
     if sys.platform == 'darwin':
         mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
         if mac_ver is None:
@@ -66,31 +79,21 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
         arch_flags = "-arch " + arch
         os.environ.setdefault("ARCHFLAGS", arch_flags)
-
     if sys.platform == "win32":
         extra_compile_args += ["-DMS_WIN64"]
         os.environ['PATH'] += r';C:\msys64\mingw64\bin'
 
-    # The list of all directories containing relevant solver libraries
-    library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers]
-
     # Set up the extension module
-    ext_options = {
-        "libraries": [f"smt-switch-{solver}" for solver in built_solvers] + ["smt-switch"],
-        "library_dirs": library_dirs,
-        "runtime_library_dirs": [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_BINARY_DIR}/{solver}" for solver in built_solvers],
-        "include_dirs": [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"] + [f"{PROJECT_SOURCE_DIR}/{solver}/include" for solver in built_solvers],
-        "language": "c++",
-        "extra_compile_args": ["-std=c++17"],
-        "extra_link_args": [f"-Wl,-rpath,{path}" for path in library_dirs]
-    }
-
     ext_module = Extension(
-        "smt_switch.smt_switch_base",
-        [
-         "smt_switch_base.pyx",
-         ],
-        **ext_options
+        name="smt_switch.smt_switch_base",
+        sources=["smt_switch_base.pyx"],
+        libraries=libraries,
+        library_dirs=library_dirs,
+        runtime_library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        language="c++",
+        extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args,
     )
     ext_module.cython_directives = {"embedsignature": True}
 
