@@ -23,7 +23,8 @@ if [ ! -d "$DEPS/cvc5" ]; then
     git clone https://github.com/cvc5/cvc5.git
     cd cvc5
     git checkout -f ${CVC5_VERSION}
-    ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install"
+    # ensure the cvc5 libraries are placed in deps/install/lib
+    ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install" -DCMAKE_INSTALL_LIBDIR=lib
     cd build
     make -j$NUM_CORES
     make install
@@ -35,8 +36,8 @@ fi
 LIBS="$DEPS/install/lib"
 
 if [ -f $LIBS/libcvc5.a ] && [ -f $LIBS/libcvc5parser.a ] && [ -f $LIBS/libcadical.a ]; then
-    echo "It appears cvc5 was setup successfully into $DEPS/cvc5."
-    echo "You may now install it with ./configure.sh --cvc5 && cd build && make"
+    echo "It appears cvc5 was setup successfully into $DEPS/install."
+    echo "You may now configure smt-switch to build with a cvc5 backend using ./configure.sh --cvc5 && cd build && make"
 else
     echo "Building cvc5 failed."
     echo "You might be missing some dependencies."

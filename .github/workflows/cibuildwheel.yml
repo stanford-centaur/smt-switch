@@ -87,7 +87,11 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
-        CIBW_TEST_COMMAND: pytest {project}/tests
+        CIBW_TEST_COMMAND: |
+          # cibuildwheel creates a dedicated virtualenv for the test
+          # make sure to use that python (just calling pytest may use system pytest)
+          python3 -m pip install pytest
+          python3 -m pytest {project}/tests
 
     - name: Upload wheels to PyPI
       if: >
