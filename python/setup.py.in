@@ -65,13 +65,14 @@ packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     # Add flags and directories for found solvers.
-    libraries = ["smt-switch"]
+    libraries = []
     library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
     include_dirs = [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
     for solver in built_solvers:
         libraries.append(f"smt-switch-{solver}")
         library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
         include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
+    libraries.append("smt-switch")  # needs to come after the solver-specific libraries
     extra_compile_args = ["-std=c++17"]
     extra_link_args = []
     for path in library_dirs:
