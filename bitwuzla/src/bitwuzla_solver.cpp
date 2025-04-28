@@ -445,7 +445,7 @@ Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
   }
 
   std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(tm->mk_bv_value_uint64(bsort->sort, i));
+  return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bsort->sort, i));
 }
 
 Term BzlaSolver::make_term(const std::string val,
