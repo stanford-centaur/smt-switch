@@ -85,9 +85,16 @@ jobs:
 
       - name: Build
         run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            NUM_CORES=$(nproc)
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            NUM_CORES=$(sysctl -n hw.ncpu)
+          else
+            NUM_CORES=2
+          fi
           source ./.venv/bin/activate
           cd build
-          make -j
+          make -j$NUM_CORES
 
       - name: Test C++
         run: |
