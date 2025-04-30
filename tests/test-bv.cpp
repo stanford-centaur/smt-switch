@@ -53,6 +53,14 @@ TEST_P(BVTests, to_int)
   ASSERT_TRUE(0 <= i1 && i1 <= 1);
   ASSERT_TRUE(0 <= i2 && i2 <= 3);
 
+  Sort bv3 = s->make_sort(BV, 3);
+  Term minus_one = s->make_term(-1, bv3);
+  Term one = s->make_term(1, bv3);
+  Term x = s->make_symbol("x", bv3);
+  s->assert_formula(s->make_term(BVSlt, minus_one, x));
+  s->assert_formula(s->make_term(BVSlt, x, one));
+  s->check_sat();
+  EXPECT_EQ(s->get_value(x)->to_int(), 0);
 }
 
 INSTANTIATE_TEST_SUITE_P(
