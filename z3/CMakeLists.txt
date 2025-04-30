@@ -16,6 +16,7 @@ add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
 target_include_directories(smt-switch-z3 PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(smt-switch-z3 PUBLIC ${Z3_INCLUDE_DIRS})
+target_include_directories(smt-switch-z3 PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 target_link_libraries(smt-switch-z3 PUBLIC ${Z3_LDFLAGS})
 target_link_libraries(smt-switch-z3 PRIVATE ${GMP_LIBRARIES})
