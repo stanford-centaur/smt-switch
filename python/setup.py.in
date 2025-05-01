@@ -14,6 +14,7 @@ PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
 PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
 BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")
+Z3_LDFLAGS = "@Z3_LDFLAGS@".split(";")
 
 # Get the platform-specific library extension
 if sys.platform == "darwin":
@@ -50,7 +51,7 @@ def find_solvers():
         for lib_path in build_dir.glob(pattern):
             # Extract solver name from library filename
             lib_name = lib_path.name
-            solver = lib_name.replace(f"libsmt-switch-", "").replace(ext, "")
+            solver = lib_name.replace("libsmt-switch-", "").replace(ext, "")
             all_solvers.add(solver)
 
     return sorted(list(all_solvers))
@@ -80,14 +81,16 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
 
     # When smt-switch is compiled as a static library, we need to link dependencies manually.
     if SMT_SWITCH_LIB_TYPE == "STATIC":
-        # Some solvers need GMP.
+        # Some solver implementations need GMP.
         for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
             if gmp_solver in built_solvers:
                 libraries += ["gmp"]
                 break
-        # Bitwuzla has its own linking flags.
+        # Some solvers have their own linking flags.
         if "bitwuzla" in built_solvers:
             extra_link_args += BITWUZLA_LDFLAGS
+        if "z3" in built_solvers:
+            extra_link_args += Z3_LDFLAGS
 
     # Handle OS-specific settings.
     if sys.platform == 'darwin':
