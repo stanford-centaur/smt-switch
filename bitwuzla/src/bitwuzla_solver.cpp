@@ -664,8 +664,8 @@ void BzlaSolver::reset()
 
 void BzlaSolver::reset_assertions()
 {
-  throw NotImplementedException(
-      "Bitwuzla does not currently support reset_assertions");
+  delete bzla;
+  bzla = new bitwuzla::Bitwuzla(*tm, options);
 }
 
 Term BzlaSolver::substitute(const Term term,
