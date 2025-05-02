@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-Z3_VERSION=z3-4.12.6
+Z3_VERSION=z3-4.14.1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
