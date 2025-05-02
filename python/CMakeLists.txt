@@ -127,7 +127,7 @@ add_custom_target(python_bindings ALL
     # Then build the package in place
     COMMAND ${Python_EXECUTABLE} -m pip install --no-deps -e .
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS smt-switch  # Main library target
+    DEPENDS smt-switch ${SOLVER_BACKEND_LIBS}
     COMMENT "Building Python bindings"
 )
 add_dependencies(python_bindings gen-smt-solver-declarations)

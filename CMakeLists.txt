@@ -57,11 +57,8 @@ endif()
 # - PROJECT_VERSION_PATCH: Patch version component
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
-set(INCLUDE_DIRS
-  "${PROJECT_SOURCE_DIR}/include")
-
 # add to search path for find_package
-list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
+list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
 if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
@@ -69,7 +66,9 @@ endif()
 
 add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 
-set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
+set(INCLUDE_DIRS
+  "${PROJECT_SOURCE_DIR}/include")
+set(SOURCES
   "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
@@ -148,13 +147,12 @@ else()
     PATTERN "smtlibparser_maps.h" EXCLUDE)
 endif()
 
-include_directories (${INCLUDE_DIRS})
-
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
+target_include_directories(smt-switch PUBLIC ${INCLUDE_DIRS})
 
 set(THREADS_PREFER_PTHREAD_FLAG True)
 find_package(Threads)
-target_link_libraries( smt-switch PRIVATE Threads::Threads)
+target_link_libraries(smt-switch PRIVATE Threads::Threads)
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
@@ -235,21 +233,6 @@ if (BUILD_MSAT)
   add_definitions(-DMSAT_HOME=${MSAT_HOME})
 endif()
 
-# should we build z3?
-option (BUILD_Z3
-  "Should we build the libraries for z3" OFF)
-
-if (BUILD_Z3)
-  if (NOT DEFINED Z3_HOME)
-    set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
-  endif()
-  add_subdirectory (z3)
-  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
-
-  add_definitions(-DBUILD_Z3)
-  add_definitions(-DZ3_HOME=${Z3_HOME})
-endif (BUILD_Z3)
-
 # should we build yices2?
 option (BUILD_YICES2
   "Should we build the libraries for yices2" OFF)
@@ -264,6 +247,14 @@ if (BUILD_YICES2)
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_HOME=${YICES2_HOME})
 endif (BUILD_YICES2)
+
+# should we build z3?
+option (BUILD_Z3 "Should we build the libraries for z3" OFF)
+if (BUILD_Z3)
+  add_definitions(-DBUILD_Z3)
+  add_subdirectory(z3)
+  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
+endif (BUILD_Z3)
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
