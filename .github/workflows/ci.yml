@@ -4,19 +4,17 @@ name: CI
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         library_type: [dynamic, static]
         name:
-          [
-            btor,
-            bitwuzla,
-            cvc5,
-            msat,
-            yices2,
-            z3
-          ]
-
+        - btor
+        - bitwuzla
+        - cvc5
+        - msat
+        - yices2
+        - z3
         include:
           - name: msat
             setup_opts: --auto-yes
@@ -25,7 +23,6 @@ jobs:
           - library_type: static
             name_suffix: -static
             config_opts: --static
-
     name: ${{ matrix.os }}:${{ matrix.name }}${{ matrix.name_suffix }}
     runs-on: ${{ matrix.os}}
 
