@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BITWUZLA_VERSION=0e81e616af4d4421729884f01928b194c3536c76
+BITWUZLA_VERSION=1e4c0b4d0cd3c0108c821399b90fdb9d2e6394e4
 CONTRIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 SOURCE_DIR="$(dirname "$CONTRIB_DIR")"
 DEPS_DIR="$SOURCE_DIR/deps"
