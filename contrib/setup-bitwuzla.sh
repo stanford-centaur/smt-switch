@@ -2,20 +2,22 @@
 set -e
 
 BITWUZLA_VERSION=0e81e616af4d4421729884f01928b194c3536c76
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-DEPS="$(dirname "$DIR")/deps"
+CONTRIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+SOURCE_DIR="$(dirname "$CONTRIB_DIR")"
+DEPS_DIR="$SOURCE_DIR/deps"
+INSTALL_DIR="$DEPS_DIR/install"
 
-mkdir -p $DEPS
+mkdir -p "$DEPS_DIR" && cd "$DEPS_DIR"
 
-if [ ! -d "$DEPS/bitwuzla" ]; then
-    cd $DEPS
-    git clone https://github.com/bitwuzla/bitwuzla.git
-    cd bitwuzla
+if [ ! -d bitwuzla ]; then
+    "$CONTRIB_DIR/setup-cadical.sh"
+    git clone https://github.com/bitwuzla/bitwuzla.git && cd bitwuzla
     git checkout -f $BITWUZLA_VERSION
-    ./configure.py --prefix $DEPS/install
-    cd build
+    export CPLUS_INCLUDE_PATH="$INSTALL_DIR/include" LIBRARY_PATH="$INSTALL_DIR/lib"
+    ./configure.py --prefix "$INSTALL_DIR" && cd build
+    meson configure -Dlibdir=lib  # makes sure libraries go into deps/install/lib
     meson compile
     meson install
 else
-    echo "$DEPS/bitwuzla already exists. If you want to rebuild, please remove it manually."
+    echo "$DEPS_DIR/bitwuzla already exists. If you want to rebuild, please remove it manually."
 fi
