@@ -17,9 +17,10 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <thread>
+#include <vector>
 
-#include "smt.h"
+#include "result.h"
+#include "smt_defs.h"
 
 namespace smt {
 
