@@ -24,9 +24,8 @@ if [ ! -d cvc5 ]; then
     git clone https://github.com/cvc5/cvc5.git && cd cvc5
     git checkout -f $CVC5_VERSION
     # ensure the cvc5 libraries are placed in deps/install/lib
-    ./configure.sh --prefix=$DEPS/install --static --auto-download --dep-path="$DEPS/install" -DCMAKE_INSTALL_LIBDIR=lib
-    cd build
-    cmake --build . --target install -j$NUM_CORES
+    ./configure.sh --static --auto-download --dep-path="$INSTALL_DIR" --prefix="$INSTALL_DIR" -DCMAKE_INSTALL_LIBDIR=lib
+    cmake --build build --target install -j$NUM_CORES
 else
     echo "$DEPS_DIR/cvc5 already exists. If you want to rebuild, please remove it manually."
 fi
