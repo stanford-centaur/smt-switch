@@ -61,6 +61,7 @@ jobs:
             Cython>=3.0.0 \
             meson \
             pyparsing \
+            pysmt \
             pytest \
             setuptools \
             toml \
