@@ -98,11 +98,6 @@ jobs:
           cd build
           make test
 
-      - name: Install Python Bindings
-        run: |
-          source ./.venv/bin/activate
-          python3 -m pip install -e ./build/python[test,pysmt]
-
       - name: Test Python Bindings
         run: |
           source ./.venv/bin/activate
