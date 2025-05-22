@@ -52,7 +52,8 @@ int main()
 # Dependencies
 
 Smt-Switch depends on the following libraries. Dependencies needed only for certain backends and/or optional features are marked \["optional" : _reason_\].
-* CMake >= 3.1
+* CMake >= 3.5
+* GNU Make or Ninja
 * C compiler
 * C++ compiler supporting C++11
 * git
