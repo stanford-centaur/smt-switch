@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-CVC5_VERSION=f82d1403b63647e45a5b66d15fc91ca20316348f
+CVC5_VERSION=d9d5ad1b42d32fc2253d5abaf850b9ca8a20053f
 
 CONTRIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 SOURCE_DIR="$(dirname "$CONTRIB_DIR")"
