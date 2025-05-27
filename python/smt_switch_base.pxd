@@ -1,4 +1,4 @@
-from smt_switch_core cimport c_Op, c_Result, c_SmtSolver, c_Sort, c_SortingNetwork, c_Term
+from .smt_switch_core cimport c_Op, c_Result, c_SmtSolver, c_Sort, c_SortingNetwork, c_Term
 
 cdef class Op:
     cdef c_Op op

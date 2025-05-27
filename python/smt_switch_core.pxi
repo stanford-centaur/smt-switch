@@ -5,7 +5,7 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from smt_switch_core cimport (
+from .smt_switch_core cimport (
     c_Op,
     c_Result,
     c_SmtSolver,
@@ -19,12 +19,12 @@ from smt_switch_core cimport (
     c_UnorderedTermSet
 )
 
-from smt_switch_core cimport get_free_symbolic_consts as c_get_free_symbolic_consts
-from smt_switch_core cimport get_free_symbols as c_get_free_symbols
-from smt_switch_core cimport op_partition as c_op_partition
-from smt_switch_core cimport conjunctive_partition as c_conjunctive_partition
+from .smt_switch_core cimport get_free_symbolic_consts as c_get_free_symbolic_consts
+from .smt_switch_core cimport get_free_symbols as c_get_free_symbols
+from .smt_switch_core cimport op_partition as c_op_partition
+from .smt_switch_core cimport conjunctive_partition as c_conjunctive_partition
 
-from smt_switch_enums cimport (
+from .smt_switch_enums cimport (
     c_SortKind,
     c_ARRAY,
     c_BOOL,
@@ -33,7 +33,7 @@ from smt_switch_enums cimport (
     c_REAL,
     c_FUNCTION,
 )
-from smt_switch_enums cimport c_PrimOp
+from .smt_switch_enums cimport c_PrimOp
 
 
 cdef class Op:
