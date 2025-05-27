@@ -11,7 +11,7 @@ name = "smt-switch"
 description = "Python bindings for the smt-switch C++ SMT solving library"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
-license = {text = "BSD-3-Clause"}
+license = "BSD-3-Clause"
 dynamic = ["version"]
 authors = [
     {name = "Yoni Zohar", email = "yoni.zohar@biu.ac.il"},
