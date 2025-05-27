@@ -37,8 +37,6 @@ from smt_switch_enums cimport c_PrimOp
 
 
 cdef class Op:
-    cdef c_Op op
-
     def __cinit__(self, prim_op=None, idx0=None, idx1=None):
         if isinstance(prim_op, PrimOp):
             if idx0 is None:
@@ -93,8 +91,6 @@ cdef class Op:
             raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
 cdef class Result:
-    cdef c_Result cr
-
     def __cinit__(self):
         pass
 
@@ -121,9 +117,6 @@ cdef class Result:
 
 
 cdef class Sort:
-    cdef c_Sort cs
-    cdef SmtSolver _solver
-
     def __cinit__(self):
         pass
 
@@ -183,9 +176,6 @@ cdef class Sort:
 
 
 cdef class Term:
-    cdef c_Term ct
-    cdef SmtSolver _solver
-
     def __cinit__(self):
         pass
 
@@ -286,8 +276,6 @@ cdef class Term:
 
 
 cdef class SmtSolver:
-    cdef c_SmtSolver css
-
     def __cinit__(self):
         pass
 
@@ -465,9 +453,6 @@ cdef class SmtSolver:
 
 
 cdef class SortingNetwork:
-    cdef c_SortingNetwork * csn
-    cdef SmtSolver _solver
-
     def __cinit__(self, SmtSolver solver):
         self.csn = new c_SortingNetwork(solver.css)
         self._solver = solver
