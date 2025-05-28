@@ -1,7 +1,7 @@
 import sys
 from types import ModuleType
 
-from .smt_switch_enums cimport (
+from .cppenums cimport (
     c_PrimOp,
     c_ResultType,
     c_SolverAttribute,
@@ -10,7 +10,7 @@ from .smt_switch_enums cimport (
     to_string
 )
 
-from .smt_switch_enums cimport (
+from .cppenums cimport (
     # SortKind
     c_ARRAY,
     c_BOOL,
@@ -117,7 +117,7 @@ from .smt_switch_enums cimport (
     UNKNOWN
 )
 
-FILENAME="smt_switch_enums.pxi"
+FILENAME="enums.pyx"
 _PACKAGE_ROOT=__name__.split('.')[0]
 
 def _add_module(m):
