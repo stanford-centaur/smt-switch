@@ -126,8 +126,6 @@ def _add_module(m):
 
 ################################################ SortKind #################################################
 cdef class SortKind:
-    cdef c_SortKind sk
-
     def __cinit__(self):
         pass
 
@@ -183,8 +181,6 @@ setattr(sortkinds, 'FUNCTION', FUNCTION)
 
 ################################################ SolverEnum #################################################
 cdef class SolverEnum:
-    cdef c_SolverEnum se
-
     def __cinit__(self):
         pass
 
@@ -243,8 +239,6 @@ setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
-    cdef c_SolverAttribute sa
-
     def __cinit__(self):
         pass
 
@@ -323,8 +317,6 @@ setattr(solverattr, "TIMELIMIT", TIMELIMIT)
 
 ################################################ PrimOps #################################################
 cdef class PrimOp:
-    cdef c_PrimOp po
-
     def __cinit__(self):
         pass
 
