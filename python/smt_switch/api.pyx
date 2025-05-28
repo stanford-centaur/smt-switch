@@ -95,9 +95,6 @@ cdef class Op:
             raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
 cdef class Result:
-    def __cinit__(self):
-        pass
-
     def is_sat(self):
         return self.cr.is_sat()
 
@@ -121,9 +118,6 @@ cdef class Result:
 
 
 cdef class Sort:
-    def __cinit__(self):
-        pass
-
     def __init__(self, SmtSolver solver):
         # some backends require the solver to be present for destruction
         # of sorts and terms
@@ -180,9 +174,6 @@ cdef class Sort:
 
 
 cdef class Term:
-    def __cinit__(self):
-        pass
-
     def __init__(self, SmtSolver solver):
         # some backends require the solver to be present for destruction
         # of sorts and terms
@@ -280,9 +271,6 @@ cdef class Term:
 
 
 cdef class SmtSolver:
-    def __cinit__(self):
-        pass
-
     def set_opt(self, str option, str value):
         dref(self.css).set_opt(option.encode(), value.encode())
 

@@ -126,9 +126,6 @@ def _add_module(m):
 
 ################################################ SortKind #################################################
 cdef class SortKind:
-    def __cinit__(self):
-        pass
-
     def __eq__(self, SortKind other):
         return (<int> self.sk) == (<int> other.sk)
 
@@ -181,9 +178,6 @@ setattr(sortkinds, 'FUNCTION', FUNCTION)
 
 ################################################ SolverEnum #################################################
 cdef class SolverEnum:
-    def __cinit__(self):
-        pass
-
     def __eq__(self, SolverEnum other):
         return (<int> self.se) == (<int> other.se)
 
@@ -239,9 +233,6 @@ setattr(solverenums, "GENERIC_SOLVER", GENERIC_SOLVER)
 
 ################################################ SolverAttribute #################################################
 cdef class SolverAttribute:
-    def __cinit__(self):
-        pass
-
     def __eq__(self, SolverAttribute other):
         return (<int> self.sa) == (<int> other.sa)
 
@@ -317,9 +308,6 @@ setattr(solverattr, "TIMELIMIT", TIMELIMIT)
 
 ################################################ PrimOps #################################################
 cdef class PrimOp:
-    def __cinit__(self):
-        pass
-
     def __eq__(self, PrimOp other):
         return (<int> self.po) == (<int> other.po)
 
