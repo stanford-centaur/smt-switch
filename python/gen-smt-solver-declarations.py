@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = 'from smt_switch_core cimport c_SmtSolver'
+    pxd = 'from .smt_switch_core cimport c_SmtSolver'
     pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         imports.append('cpp_create_z3_solver')
 
     if imports:
-        CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)
+        CREATE_IMPORTS ='from .smt_solvers cimport ' + ','.join(imports)
     else:
         CREATE_IMPORTS = '# Built with no solvers...'
 

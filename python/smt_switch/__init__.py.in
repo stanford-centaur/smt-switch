@@ -1,4 +1,2 @@
-import sys
 from .smt_switch_base import *
-__file__ = smt_switch_base.__file__
 __version__ = "@PROJECT_VERSION@"

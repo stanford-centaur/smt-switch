@@ -14,35 +14,11 @@ check_python_module("setuptools")
 check_python_module("wheel")
 check_python_module("Cython" 3.0.0)
 
-# Set up the Python package directory structure
-set(PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
-file(MAKE_DIRECTORY ${PYTHON_PACKAGE_DIR})
-
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
     "${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py"
     COPYONLY
 )
-
-# Copy necessary Cython source files to the build directory
-file(GLOB CYTHON_SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.pyx"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.pxd"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.pxi"
-)
-
-# Cache the list of files
-set(CYTHON_SOURCE_FILES ${CYTHON_SOURCE_FILES} CACHE INTERNAL "")
-
-# Force CMake to rerun if any of these files change
-foreach(CYTHON_FILE ${CYTHON_SOURCE_FILES})
-    get_filename_component(FILE_NAME "${CYTHON_FILE}" NAME)
-    configure_file(
-        ${CYTHON_FILE}
-        "${CMAKE_CURRENT_BINARY_DIR}/${FILE_NAME}"
-        COPYONLY
-    )
-endforeach()
 
 # Configure setup.py with the correct paths and options
 configure_file(
@@ -51,21 +27,15 @@ configure_file(
     @ONLY  # Use @VAR@ instead of ${VAR} syntax in setup.py.in
 )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/smt_switch)
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/smt_switch/__init__.py"
-    @ONLY
-)
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pysmt_frontend"
-     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/smt_switch/")
-
 # Copy pyproject.toml to build directory
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
     "${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml"
     COPYONLY
 )
+
+# Add Python package directory containing Cython files.
+add_subdirectory(smt_switch)
 
 # Handle macOS-specific configuration
 if(APPLE)
@@ -81,7 +51,7 @@ endif()
 # Collect option flags for generating the smt solvers Cython file
 # It will include all of the solvers that are enabled for this build
 include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
-set(GEN_OPTIONS --dest-dir ${CMAKE_CURRENT_BINARY_DIR})
+set(GEN_OPTIONS --dest-dir "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
 
 if (BUILD_BTOR)
   set(GEN_OPTIONS ${GEN_OPTIONS} --btor)

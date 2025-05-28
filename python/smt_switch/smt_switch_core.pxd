@@ -5,7 +5,7 @@ from libcpp.unordered_map cimport unordered_map
 from libcpp.unordered_set cimport unordered_set
 from libcpp.vector cimport vector
 
-from smt_switch_enums cimport c_PrimOp, c_SortKind
+from .smt_switch_enums cimport c_PrimOp, c_SortKind
 
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
