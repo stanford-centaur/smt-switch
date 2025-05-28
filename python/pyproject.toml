@@ -40,7 +40,7 @@ include = ["smt_switch*"]
 
 # This tells setuptools to include all .dylib/.so files found in any package
 [tool.setuptools.package-data]
-"*" = ["*.dylib", "*.so"]
+"*" = ["*.dylib", "*.so", "*.pxd"]
 
 [tool.setuptools.dynamic]
 version = {attr = "smt_switch.__version__"}
