@@ -1,4 +1,17 @@
-from .api import Op, Result, SmtSolver, Sort, SortingNetwork, Term
+from .api import (
+    IdentityVisitor,
+    Op,
+    Result,
+    SmtSolver,
+    Sort,
+    SortingNetwork,
+    Term,
+    TermDagVisitor,
+    conjunctive_partition,
+    get_free_symbolic_consts,
+    get_free_symbols,
+    op_partition,
+)
 from .enums import PrimOp, SolverAttribute, SolverEnum, SortKind
 from .smt_solvers import *
 
