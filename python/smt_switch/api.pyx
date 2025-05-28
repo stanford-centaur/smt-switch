@@ -5,8 +5,8 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from .enums import int2primop, int2sortkind
-from .sortkinds import BV, INT
+from .primops import int2primop
+from .sortkinds import BV, INT, int2sortkind
 
 from .cppapi cimport (
     c_Op,

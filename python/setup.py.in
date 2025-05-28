@@ -115,7 +115,11 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     modules = [
         "api",
         "enums",
+        "primops",
         "smt_solvers",
+        "solverattr",
+        "solverenums",
+        "sortkinds",
     ]
     ext_modules = [Extension(
         name=f"smt_switch.{module}",
