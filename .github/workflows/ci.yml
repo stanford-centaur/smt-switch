@@ -40,6 +40,10 @@ jobs:
             ninja-build \
             openjdk-8-jdk
 
+      - name: Free up space (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get remove libz3-4 libz3-dev
+
       - name: Install Packages (macOS)
         if: runner.os == 'macOS'
         run: |
