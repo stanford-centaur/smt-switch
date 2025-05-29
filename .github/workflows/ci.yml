@@ -39,6 +39,7 @@ jobs:
             libgmp-dev \
             ninja-build \
             openjdk-8-jdk
+          dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -nr
 
       - name: Free up space (Linux)
         if: runner.os == 'Linux'
