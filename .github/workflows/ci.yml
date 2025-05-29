@@ -32,6 +32,14 @@ jobs:
       - name: Install Packages (Linux)
         if: runner.os == 'Linux'
         run: |
+          df -h .
+          # Remove the largest ones first to free up some space.
+          sudo apt-get remove \
+            azure-cli \
+            google-chrome-stable \
+            google-cloud-cli \
+            microsoft-edge-stable
+          df -h .
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
@@ -40,10 +48,6 @@ jobs:
             ninja-build \
             openjdk-8-jdk
           dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -nr
-
-      - name: Free up space (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get remove libz3-4 libz3-dev
 
       - name: Install Packages (macOS)
         if: runner.os == 'macOS'
