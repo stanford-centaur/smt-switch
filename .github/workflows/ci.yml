@@ -64,8 +64,7 @@ jobs:
             pysmt \
             pytest \
             setuptools \
-            toml \
-            wheel
+            toml
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Install Bison
