@@ -36,9 +36,7 @@ jobs:
           sudo apt-get install -y \
             cmake \
             gperf \
-            libgmp-dev \
-            ninja-build \
-            openjdk-8-jdk
+            ninja-build
 
       - name: Install Packages (macOS)
         if: runner.os == 'macOS'
@@ -46,7 +44,6 @@ jobs:
           brew update
           brew install \
             gperf \
-            ninja \
             ${{ matrix.extra_macos_packages }}
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
@@ -58,13 +55,12 @@ jobs:
           python3 -m venv ./.venv
           source ./.venv/bin/activate
           python3 -m pip install \
-            Cython>=3.0.0 \
+            Cython \
             meson \
-            pyparsing \
+            packaging \
             pysmt \
             pytest \
-            setuptools \
-            toml
+            setuptools
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Install Bison

@@ -65,24 +65,18 @@ jobs:
             gperf \
             gmp-devel \
             ninja-build \
-            java-1.8.0-openjdk-devel \
             glibc-static \
             libstdc++-static
           bash {project}/ci-scripts/cibw-build-deps.sh
         CIBW_BEFORE_ALL_MACOS: |
           brew update
-          brew install gperf ninja
+          brew install gperf
           brew install SRI-CSL/sri-csl/libpoly
           bash {project}/ci-scripts/cibw-build-deps.sh
         CIBW_BEFORE_BUILD: >
           python3 -m pip install \
             Cython>=3.0.0 \
-            meson \
-            pyparsing \
-            pytest \
-            setuptools \
-            tomli \
-            wheel
+            setuptools
           bash {project}/ci-scripts/cibw-build-before.sh
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
