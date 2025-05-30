@@ -1,1 +1,1 @@
-../contrib/setup-btor.sh
+../contrib/setup-boolector.sh
