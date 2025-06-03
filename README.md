@@ -67,7 +67,6 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * pthread [optional: Bitwuzla]
 * gmp [optional: cvc5, MathSAT, Yices2]
 * autoconf [optional: Yices2 setup script]
-* Java [optional: cvc5 ANTLR]
 * Flex >= 2.6.4 [optional: SMT-LIB parser]
 * Bison >= 3.7 [optional: SMT-LIB parser]
 * Python [optional: Python bindings]
