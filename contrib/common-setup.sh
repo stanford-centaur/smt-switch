@@ -75,3 +75,10 @@ rm $filename.tar.gz
 mv $filename $dep_name
 
 cd $dep_name
+
+if declare -F prepare_step >/dev/null; then
+  prepare_step
+fi
+configure_step
+build_step
+install_step
