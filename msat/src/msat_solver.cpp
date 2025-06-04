@@ -1241,6 +1241,16 @@ void MsatInterpolatingSolver::set_opt(const string option, const string value)
   throw IncorrectUsageException("Can't set options of interpolating solver.");
 }
 
+void MsatInterpolatingSolver::push(uint64_t num)
+{
+  throw IncorrectUsageException("Can't call push from interpolating solver");
+}
+
+void MsatInterpolatingSolver::pop(uint64_t num)
+{
+  throw IncorrectUsageException("Can't call pop from interpolating solver");
+}
+
 void MsatInterpolatingSolver::assert_formula(const Term & t)
 {
   throw IncorrectUsageException(
@@ -1264,72 +1274,74 @@ Term MsatInterpolatingSolver::get_value(const Term & t) const
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
+// delegate the interpolation procedure to `get_sequence_interpolants`
 Result MsatInterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
 {
-  initialize_env();
-  // reset the environment -- each interpolant is it's own separate call
-  msat_reset_env(env);
-
-  if (A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
+  TermVec formulas{ A, B };
+  TermVec itp_seq;
+  Result res = get_sequence_interpolants(formulas, itp_seq);
+  assert(itp_seq.empty() <= 1);
+  if (itp_seq.size() == 1)
   {
-    throw IncorrectUsageException("get_interpolant requires two boolean terms");
+    out_I = itp_seq.front();
   }
-
-  msat_term mA = static_pointer_cast<MsatTerm>(A)->term;
-  msat_term mB = static_pointer_cast<MsatTerm>(B)->term;
-
-  int group_A = msat_create_itp_group(env);
-  int group_B = msat_create_itp_group(env);
-
-  msat_set_itp_group(env, group_A);
-  msat_assert_formula(env, mA);
-  msat_set_itp_group(env, group_B);
-  msat_assert_formula(env, mB);
-
-  msat_result res = msat_solve(env);
-
-  if (res == MSAT_UNSAT)
-  {
-    msat_term itp = msat_get_interpolant(env, &group_A, 1);
-    if (MSAT_ERROR_TERM(itp))
-    {
-      throw InternalSolverException("Failed when computing interpolant.");
-    }
-    else
-    {
-      out_I = make_shared<MsatTerm>(env, itp);
-      return Result(UNSAT);
-    }
-  }
-  else if (res == MSAT_SAT)
-  {
-    return Result(SAT);
-  }
-  else
-  {
-    return Result(UNKNOWN);
-  }
+  return res;
 }
 
+// Compute interpolation sequence with incremental solving.
+// The function trys to reuse as many previously-asserted formulas as possible.
+// Before and after the call, the folllowing invariant should hold:
+// `#msat-backtrack-points == #msat-assertions == term_to_int_group_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   initialize_env();
-  // reset the environment -- each get_sequence_interpolants is it's own
-  // separate call
-  msat_reset_env(env);
+  size_t num_assertions;
+  msat_term * assertions = msat_get_asserted_formulas(env, &num_assertions);
+  assert(msat_num_backtrack_points(env) == num_assertions);
+  assert(term_to_int_group_.size() == num_assertions);
 
+  // check which assertions can be reused
+  for (size_t i = 0; i < num_assertions && i < formulae.size(); ++i)
+  {
+    Term ith_assertion = make_shared<MsatTerm>(env, assertions[i]);
+    if (ith_assertion != formulae[i])
+    {
+      // remove formulas that cannot be reused
+      for (size_t j = i; j < num_assertions; ++j)
+      {
+        Term jth_assertion = make_shared<MsatTerm>(env, assertions[i]);
+        term_to_int_group_.erase(jth_assertion);
+        msat_pop_backtrack_point(env);
+      }
+      break;
+    }
+  }
+  msat_free(assertions);
+
+  const size_t num_reused = msat_num_backtrack_points(env);
   vector<int> itp_groups;
   for (size_t k = 0; k < formulae.size(); ++k)
   {
-    int grp = msat_create_itp_group(env);
+    int grp;
+    if (k < num_reused)
+    {
+      // reuse existing assertion
+      grp = term_to_int_group_[formulae.at(k)];
+    }
+    else
+    {
+      // Add a new interpolation group and a new backtrack point
+      // then push the formula.
+      grp = msat_create_itp_group(env);
+      msat_set_itp_group(env, grp);
+      msat_push_backtrack_point(env);
+      msat_assert_formula(env,
+                          static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+    }
     itp_groups.push_back(grp);
-    msat_set_itp_group(env, grp);
-    msat_assert_formula(env,
-                        static_pointer_cast<MsatTerm>(formulae.at(k))->term);
   }
 
   msat_result msat_res = msat_solve(env);

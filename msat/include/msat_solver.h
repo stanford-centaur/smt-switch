@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -261,6 +262,8 @@ class MsatInterpolatingSolver : public MsatSolver
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
   void set_opt(const std::string option, const std::string value) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
@@ -279,12 +282,16 @@ class MsatInterpolatingSolver : public MsatSolver
       msat_set_option(cfg, "theory.bv.eager", "false");
       msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
       msat_set_option(cfg, "interpolation", "true");
+      msat_set_option(cfg, "incremental", "true");
       // TODO: decide if we should add this
       // msat_set_option(cfg, "theory.eq_propagation", "false");
       env = msat_create_env(cfg);
       env_uninitialized = false;
     }
   }
+
+  mutable std::map<Term, int>
+      term_to_int_group_;  ///< maps terms to their interpolation group
 };
 
 }  // namespace smt
