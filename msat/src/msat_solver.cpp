@@ -1293,7 +1293,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 // Compute interpolation sequence with incremental solving.
 // The function trys to reuse as many previously-asserted formulas as possible.
 // Before and after the call, the folllowing invariant should hold:
-// `#msat-backtrack-points == #msat-assertions == term_to_int_group_.size()`
+// `#msat-backtrack-points == #msat-assertions == interp_grps_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
@@ -1301,7 +1301,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   size_t num_assertions;
   msat_term * assertions = msat_get_asserted_formulas(env, &num_assertions);
   assert(msat_num_backtrack_points(env) == num_assertions);
-  assert(term_to_int_group_.size() == num_assertions);
+  assert(interp_grps_.size() == num_assertions);
 
   // check which assertions can be reused
   for (size_t i = 0; i < num_assertions && i < formulae.size(); ++i)
@@ -1309,11 +1309,9 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     Term ith_assertion = make_shared<MsatTerm>(env, assertions[i]);
     if (ith_assertion != formulae[i])
     {
-      // remove formulas that cannot be reused
+      // pop formulas that cannot be reused
       for (size_t j = i; j < num_assertions; ++j)
       {
-        Term jth_assertion = make_shared<MsatTerm>(env, assertions[i]);
-        term_to_int_group_.erase(jth_assertion);
         msat_pop_backtrack_point(env);
       }
       break;
@@ -1322,14 +1320,13 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   msat_free(assertions);
 
   const size_t num_reused = msat_num_backtrack_points(env);
-  vector<int> itp_groups;
+  interp_grps_.resize(num_reused);
   for (size_t k = 0; k < formulae.size(); ++k)
   {
     int grp;
     if (k < num_reused)
     {
       // reuse existing assertion
-      grp = term_to_int_group_[formulae.at(k)];
     }
     else
     {
@@ -1340,9 +1337,11 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
       msat_push_backtrack_point(env);
       msat_assert_formula(env,
                           static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+      interp_grps_.push_back(grp);
     }
-    itp_groups.push_back(grp);
   }
+  assert(interp_grps_.size() == formulae.size());
+  assert(interp_grps_.size() == msat_num_backtrack_points(env));
 
   msat_result msat_res = msat_solve(env);
 
@@ -1358,9 +1357,9 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   assert(msat_res == MSAT_UNSAT);
 
   Result r = Result(UNSAT);
-  for (size_t i = 1; i < itp_groups.size(); ++i)
+  for (size_t i = 1; i < interp_grps_.size(); ++i)
   {
-    msat_term mI = msat_get_interpolant(env, itp_groups.data(), i);
+    msat_term mI = msat_get_interpolant(env, interp_grps_.data(), i);
     if (MSAT_ERROR_TERM(mI))
     {
       // add a null term -- see solver.h documentation for this function

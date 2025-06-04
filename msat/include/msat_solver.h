@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -290,8 +289,8 @@ class MsatInterpolatingSolver : public MsatSolver
     }
   }
 
-  mutable std::map<Term, int>
-      term_to_int_group_;  ///< maps terms to their interpolation group
+  mutable std::vector<int>
+      interp_grps_;  ///< interpolation group for each assertion level
 };
 
 }  // namespace smt
