@@ -1293,54 +1293,47 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 // Compute interpolation sequence with incremental solving.
 // The function trys to reuse as many previously-asserted formulas as possible.
 // Before and after the call, the folllowing invariant should hold:
-// `#msat-backtrack-points == #msat-assertions == interp_grps_.size()`
+// `#msat-backtrack-points == assertions_.size() == interp_grps_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   initialize_env();
-  size_t num_assertions;
-  msat_term * assertions = msat_get_asserted_formulas(env, &num_assertions);
-  assert(msat_num_backtrack_points(env) == num_assertions);
-  assert(interp_grps_.size() == num_assertions);
+  assert(msat_num_backtrack_points(env) == assertions_.size());
+  assert(interp_grps_.size() == assertions_.size());
 
   // check which assertions can be reused
-  for (size_t i = 0; i < num_assertions && i < formulae.size(); ++i)
+  for (size_t i = 0; i < assertions_.size() && i < formulae.size(); ++i)
   {
-    Term ith_assertion = make_shared<MsatTerm>(env, assertions[i]);
-    if (ith_assertion != formulae[i])
+    if (assertions_.at(i) != formulae.at(i))
     {
       // pop formulas that cannot be reused
-      for (size_t j = i; j < num_assertions; ++j)
+      for (size_t j = i; j < assertions_.size(); ++j)
       {
         msat_pop_backtrack_point(env);
       }
       break;
     }
   }
-  msat_free(assertions);
 
   const size_t num_reused = msat_num_backtrack_points(env);
   interp_grps_.resize(num_reused);
-  for (size_t k = 0; k < formulae.size(); ++k)
+  interp_grps_.reserve(formulae.size());
+  assertions_.resize(num_reused);
+  assertions_.reserve(formulae.size());
+  for (size_t k = num_reused; k < formulae.size(); ++k)
   {
-    int grp;
-    if (k < num_reused)
-    {
-      // reuse existing assertion
-    }
-    else
-    {
-      // Add a new interpolation group and a new backtrack point
-      // then push the formula.
-      grp = msat_create_itp_group(env);
-      msat_set_itp_group(env, grp);
-      msat_push_backtrack_point(env);
-      msat_assert_formula(env,
-                          static_pointer_cast<MsatTerm>(formulae.at(k))->term);
-      interp_grps_.push_back(grp);
-    }
+    // Add a new interpolation group and a new backtrack point
+    // then push the formula.
+    int grp = msat_create_itp_group(env);
+    msat_set_itp_group(env, grp);
+    msat_push_backtrack_point(env);
+    msat_assert_formula(env,
+                        static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+    interp_grps_.push_back(grp);
+    assertions_.push_back(formulae.at(k));
   }
   assert(interp_grps_.size() == formulae.size());
+  assert(interp_grps_.size() == assertions_.size());
   assert(interp_grps_.size() == msat_num_backtrack_points(env));
 
   msat_result msat_res = msat_solve(env);
