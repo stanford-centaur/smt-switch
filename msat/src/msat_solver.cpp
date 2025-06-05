@@ -1292,7 +1292,18 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 
 // Compute interpolation sequence with incremental solving.
 // The function trys to reuse as many previously-asserted formulas as possible.
-// Before and after the call, the folllowing invariant should hold:
+// To achieve this, an assertion stack is maintained, where each assertion
+// is associated with a context level (backtrack point in MathSAT) and an
+// interpolation group.
+//
+// Before SMT solving, the function scans the assertion stack and the current
+// input formulae in order, checking if they match at each position.
+// Specifically, the i-th element on the assertion stack must match the i-th
+// element in the input formulae. If they match, the assertion can be reused;
+// otherwise, the function backtracks the solver to the point where the match
+// ends and asserts the remaining formulas from that point onward.
+//
+// The folllowing invariant should hold before and after the call:
 // `#msat-backtrack-points == assertions_.size() == interp_grps_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
