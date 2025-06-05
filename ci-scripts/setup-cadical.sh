@@ -1,1 +1,0 @@
-../contrib/setup-cadical.sh
