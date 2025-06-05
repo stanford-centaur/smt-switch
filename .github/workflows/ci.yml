@@ -90,9 +90,24 @@ jobs:
           make -j$NUM_CORES
 
       - name: Test C++
+        id: test-cpp
+        continue-on-error: true
         run: |
           cd build
           make test
+
+      - name: Upload failing test log
+        if: steps.test-cpp.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.name }}${{ matrix.name_suffix }}-test-log-${{ github.run_id }}
+          path: build/Testing/Temporary/LastTest.log
+
+      - name: Fail pipeline due to C++ test failure
+        if: steps.test-cpp.outcome == 'failure'
+        run: |
+          echo "C++ tests failed. Inspect the artifact for details."
+          exit 1
 
       - name: Test Python Bindings
         run: |
