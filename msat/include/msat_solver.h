@@ -289,8 +289,12 @@ class MsatInterpolatingSolver : public MsatSolver
     }
   }
 
-  mutable std::vector<int>
-      interp_grps_;  ///< interpolation group for each assertion level
+  // assertion at each level
+  // (although one can get assertions using `msat_get_asserted_formulas`,
+  // the method does not guarantee that the assertions are in the correct order)
+  mutable TermVec assertions_;
+  // interpolation group for each assertion level
+  mutable std::vector<int> interp_grps_;
 };
 
 }  // namespace smt
