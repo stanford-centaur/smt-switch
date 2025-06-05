@@ -112,9 +112,18 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         os.environ['PATH'] += r';C:\msys64\mingw64\bin'
 
     # Set up the extension module
-    ext_module = Extension(
-        name="smt_switch.smt_switch_base",
-        sources=["smt_switch/smt_switch_base.pyx"],
+    modules = [
+        "api",
+        "enums",
+        "primops",
+        "smt_solvers",
+        "solverattr",
+        "solverenums",
+        "sortkinds",
+    ]
+    ext_modules = [Extension(
+        name=f"smt_switch.{module}",
+        sources=[f"smt_switch/{module}.pyx"],
         libraries=libraries,
         library_dirs=library_dirs,
         runtime_library_dirs=library_dirs,
@@ -122,16 +131,16 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         language="c++",
         extra_compile_args=extra_compile_args,
         extra_link_args=extra_link_args,
-    )
-    ext_module.cython_directives = {"embedsignature": True}
+    ) for module in modules]
 
     # Cython compilation settings
     compiler_directives = {
         'language_level': 3,
         'binding': False,
+        'embedsignature': True,
     }
     setup(
-        ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
+        ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
         packages=packages,
         package_data={'': [f'*{lib_ext}']},
     )
