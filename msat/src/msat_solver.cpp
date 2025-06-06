@@ -1317,10 +1317,18 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   {
     if (assertions_.at(i) != formulae.at(i))
     {
-      // pop formulas that cannot be reused
-      for (size_t j = i; j < assertions_.size(); ++j)
+      if (i == 0)
       {
-        msat_pop_backtrack_point(env);
+        // no reusable formulas, simply reset
+        msat_reset_env(env);
+      }
+      else
+      {
+        // pop formulas that cannot be reused
+        for (size_t j = i; j < assertions_.size(); ++j)
+        {
+          msat_pop_backtrack_point(env);
+        }
       }
       break;
     }
