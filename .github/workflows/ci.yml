@@ -21,7 +21,8 @@ jobs:
           - name: msat
             setup_opts: --auto-yes
           - name: yices2
-            extra_macos_packages: autoconf
+            extra_linux_packages: gperf
+            macos_packages: autoconf gperf
           - library_type: static
             name_suffix: -static
             config_opts: --static
@@ -37,15 +38,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
-            gperf
+            ${{ matrix.extra_linux_packages }}
 
       - name: Install Packages (macOS)
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && matrix.macos_packages
         run: |
           brew update
-          brew install \
-            gperf \
-            ${{ matrix.extra_macos_packages }}
+          brew install ${{ matrix.macos_packages }}
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
