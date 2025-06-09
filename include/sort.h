@@ -49,11 +49,32 @@ enum SortKind
   CONSTRUCTOR,
   SELECTOR,
   TESTER,
+  FLOAT32,
+  FLOAT64,
 
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array
   */
   NUM_SORT_KINDS
+};
+
+template <SortKind sk>
+struct FPSizes;
+
+template <>
+struct FPSizes<FLOAT32>
+{
+  static constexpr uint32_t exp = 8;
+  static constexpr uint32_t sig = 24;
+  static constexpr uint32_t size = exp + sig;
+};
+
+template <>
+struct FPSizes<FLOAT64>
+{
+  static constexpr uint32_t exp = 11;
+  static constexpr uint32_t sig = 53;
+  static constexpr uint32_t size = exp + sig;
 };
 
 std::string to_string(SortKind);
