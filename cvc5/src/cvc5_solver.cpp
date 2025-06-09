@@ -121,7 +121,39 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       { Exists, ::cvc5::Kind::EXISTS },
       { Apply_Selector, ::cvc5::Kind::APPLY_SELECTOR },
       { Apply_Tester, ::cvc5::Kind::APPLY_TESTER },
-      { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR } });
+      { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR },
+      { FPEq, ::cvc5::Kind::FLOATINGPOINT_EQ },
+      { FPAbs, ::cvc5::Kind::FLOATINGPOINT_ABS },
+      { FPNeg, ::cvc5::Kind::FLOATINGPOINT_NEG },
+      { FPAdd, ::cvc5::Kind::FLOATINGPOINT_ADD },
+      { FPSub, ::cvc5::Kind::FLOATINGPOINT_SUB },
+      { FPMul, ::cvc5::Kind::FLOATINGPOINT_MULT },
+      { FPDiv, ::cvc5::Kind::FLOATINGPOINT_DIV },
+      { FPFma, ::cvc5::Kind::FLOATINGPOINT_FMA },
+      { FPSqrt, ::cvc5::Kind::FLOATINGPOINT_SQRT },
+      { FPRem, ::cvc5::Kind::FLOATINGPOINT_REM },
+      { FPRti, ::cvc5::Kind::FLOATINGPOINT_RTI },
+      { FPMin, ::cvc5::Kind::FLOATINGPOINT_MIN },
+      { FPMax, ::cvc5::Kind::FLOATINGPOINT_MAX },
+      { FPLeq, ::cvc5::Kind::FLOATINGPOINT_LEQ },
+      { FPLt, ::cvc5::Kind::FLOATINGPOINT_LT },
+      { FPGeq, ::cvc5::Kind::FLOATINGPOINT_GEQ },
+      { FPGt, ::cvc5::Kind::FLOATINGPOINT_GT },
+      { FPIsNormal, ::cvc5::Kind::FLOATINGPOINT_IS_NORMAL },
+      { FPIsSubNormal, ::cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL },
+      { FPIsZero, ::cvc5::Kind::FLOATINGPOINT_IS_ZERO },
+      { FPIsInf, ::cvc5::Kind::FLOATINGPOINT_IS_INF },
+      { FPIsNan, ::cvc5::Kind::FLOATINGPOINT_IS_NAN },
+      { FPIsNeg, ::cvc5::Kind::FLOATINGPOINT_IS_NEG },
+      { FPIsPos, ::cvc5::Kind::FLOATINGPOINT_IS_POS },
+      { IEEEBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV },
+      { FP_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP },
+      { Real_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL },
+      { SBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV },
+      { UBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV },
+      { FP_To_UBV, ::cvc5::Kind::FLOATINGPOINT_TO_UBV },
+      { FP_To_SBV, ::cvc5::Kind::FLOATINGPOINT_TO_SBV },
+      { FP_To_REAL, ::cvc5::Kind::FLOATINGPOINT_TO_REAL } });
 
 /* Cvc5Solver implementation */
 
@@ -301,6 +333,20 @@ Term Cvc5Solver::make_term(std::string val,
     else if (sk == BV)
     {
       c = term_manager->mkBitVector(sort->get_width(), val, base);
+    }
+    else if (sk == FLOAT32)
+    {
+      float value = std::stof(val);
+      auto bv = solver.mkBitVector(FPSizes<FLOAT32>::size, (uint32_t)value);
+      c = solver.mkFloatingPoint(
+          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig, bv);
+    }
+    else if (sk == FLOAT64)
+    {
+      double value = std::stod(val);
+      auto bv = solver.mkBitVector(FPSizes<FLOAT64>::size, (uint64_t)value);
+      c = solver.mkFloatingPoint(
+          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig, bv);
     }
     else
     {
@@ -566,6 +612,16 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
     else if (sk == STRING)
     {
       return std::make_shared<Cvc5Sort>(term_manager->getStringSort());
+    }    
+    else if (sk == FLOAT32)
+    {
+      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
+          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig));
+    }
+    else if (sk == FLOAT64)
+    {
+      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
+          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig));
     }
     else
     {
@@ -961,6 +1017,28 @@ SortVec Cvc5Solver::make_datatype_sorts(
 
 Term Cvc5Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
+  // TODO: rounding mode must be specified by the caller for FP operations
+  switch (op.prim_op)
+  {
+    case FPAdd:
+    case FPSub:
+    case FPMul:
+    case FPDiv:
+    case FPFma:
+    case FPSqrt:
+    case FPRti:
+    case FP_To_FP:
+    case Real_To_FP:
+    case SBV_To_FP:
+    case UBV_To_FP:
+    case FP_To_UBV:
+    case FP_To_SBV: {
+      auto rm = std::make_shared<Cvc5Term>(solver.mkRoundingMode(
+          cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+      return make_term(op, TermVec({ rm, t0, t1 }));
+    }
+    default: break;
+  }
   return make_term(op, TermVec({ t0, t1 }));
 }
 
