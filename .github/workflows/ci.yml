@@ -62,7 +62,6 @@ jobs:
             packaging \
             pysmt \
             pytest \
-            setuptools \
             ${{ matrix.extra_python_packages }}
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
