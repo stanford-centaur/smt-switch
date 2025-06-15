@@ -1,5 +1,5 @@
 #!/bin/bash
-git_commit=f82d1403b63647e45a5b66d15fc91ca20316348f
+git_commit=befcee5dd12f2183b6a16a5b3d0b0d87fa2edd87
 cmake_options=(-DENABLE_AUTO_DOWNLOAD=ON -DUSE_POLY=ON)
 
 prepare_step() {
