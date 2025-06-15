@@ -16,6 +16,8 @@
 
 #include "cvc5_term.h"
 
+#include <string>
+
 #include "cvc5/cvc5.h"
 #include "assert.h"
 #include "cvc5_sort.h"
@@ -225,7 +227,7 @@ Op Cvc5Term::get_op() const
   if (kind2primop.find(cvc5_kind) == kind2primop.end())
   {
     throw NotImplementedException("get_op not implemented for cvc5 Kind "
-                                  + cvc5::kindToString(cvc5_kind));
+                                  + std::to_string(cvc5_kind));
   }
   PrimOp po = kind2primop.at(cvc5_kind);
 
@@ -235,7 +237,7 @@ Op Cvc5Term::get_op() const
     if (kind2numindices.find(cvc5_kind) == kind2numindices.end())
     {
       throw NotImplementedException("get_op not implemented for cvc5 Kind "
-                                    + cvc5::kindToString(cvc5_kind));
+                                    + std::to_string(cvc5_kind));
     }
     size_t num_indices = kind2numindices.at(cvc5_kind);
     if (num_indices == 1)
