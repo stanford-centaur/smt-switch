@@ -86,7 +86,7 @@ add_custom_target(gen-smt-solver-declarations
   DEPENDS
     gen-smt-solver-declarations.py
   COMMENT
-    "Generate smt_solvers.{pxd,pxi}"
+    "Generate smt_solvers.{pxd,pyx}"
   )
 
 # Custom target for building Python bindings

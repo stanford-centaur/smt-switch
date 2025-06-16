@@ -5,7 +5,7 @@ from libcpp.unordered_map cimport unordered_map
 from libcpp.unordered_set cimport unordered_set
 from libcpp.vector cimport vector
 
-from .smt_switch_enums cimport c_PrimOp, c_SortKind
+from .cppenums cimport c_PrimOp, c_SortKind
 
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
@@ -127,10 +127,3 @@ cdef extern from "sorting_network.h" namespace "smt":
     cdef cppclass c_SortingNetwork "smt::SortingNetwork":
         c_SortingNetwork(const c_SmtSolver & solver) except +
         c_TermVec sorting_network(const c_TermVec & unsorted) except +
-
-
-cdef extern from "utils.h" namespace "smt":
-    void get_free_symbolic_consts(const c_Term & term, c_UnorderedTermSet & out) except +
-    void get_free_symbols(const c_Term & term, c_UnorderedTermSet & out) except +
-    void op_partition(c_PrimOp po, const c_Term & term, c_TermVec & out) except +
-    void conjunctive_partition(const c_Term & term, c_TermVec & out, bint include_bvand) except +
