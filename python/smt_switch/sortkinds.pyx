@@ -33,8 +33,7 @@ FUNCTION.sk = c_FUNCTION
 globals()["FUNCTION"] = FUNCTION
 
 
-attrs = dict(globals())
+attrs = {attr: pysk for attr, pysk in globals().items() if not attr.startswith("_")}
 int2sortkind = dict()
 for attr, pysk in attrs.items():
-    if not attr.startswith("_"):
-        int2sortkind[(<int> (<SortKind?> pysk).sk)] = pysk
+    int2sortkind[(<int> (<SortKind?> pysk).sk)] = pysk

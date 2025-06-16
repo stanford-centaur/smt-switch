@@ -338,8 +338,7 @@ Exists.po = c_Exists
 globals()["Exists"] = Exists
 
 
-attrs = dict(globals())
+attrs = {attr: pypo for attr, pypo in globals().items() if not attr.startswith("_")}
 int2primop = dict()
 for attr, pypo in attrs.items():
-    if not attr.startswith("_"):
-        int2primop[(<int> (<PrimOp?> pypo).po)] = pypo
+    int2primop[(<int> (<PrimOp?> pypo).po)] = pypo
