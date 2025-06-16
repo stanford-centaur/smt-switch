@@ -67,13 +67,12 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
 * pthread [optional: Bitwuzla]
 * gmp [optional: cvc5, MathSAT, Yices2]
 * autoconf [optional: Yices2 setup script]
-* Java [optional: cvc5 ANTLR]
 * Flex >= 2.6.4 [optional: SMT-LIB parser]
 * Bison >= 3.7 [optional: SMT-LIB parser]
 * Python [optional: Python bindings]
 * Cython >= 3.0.0 [optional: Python bindings]
 * setuptools >= 61.0.0 [optional: Python bindings]
-* wheel [optional: Python bindings]
+* packaging [optional: Python bindings]
 
 # Operating Systems
 
@@ -117,7 +116,7 @@ It is highly recommended to use a Python [virtual environment](https://docs.pyth
 
 First, install the required Python modules:
 ```
-python3 -m pip install Cython setuptools wheel pytest
+python3 -m pip install Cython setuptools packaging pytest
 ```
 If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster.
 

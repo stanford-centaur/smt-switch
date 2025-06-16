@@ -84,7 +84,7 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         # Some solver implementations need GMP.
         for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
             if gmp_solver in built_solvers:
-                libraries += ["gmp"]
+                libraries += ["gmp", "gmpxx"]
                 break
         # Some solvers have their own linking flags.
         if "bitwuzla" in built_solvers:
