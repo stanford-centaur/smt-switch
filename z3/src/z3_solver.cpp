@@ -955,6 +955,14 @@ Term Z3Solver::make_term(Op op, const Term & t) const
     // this becomes bv2nat
     res = Z3_mk_bv2int(ctx, zterm->term, false);
   }
+  else if (op.prim_op == UBV_To_Int)
+  {
+    res = Z3_mk_bv2int(ctx, zterm->term, /* is_signed */ false);
+  }
+  else if (op.prim_op == SBV_To_Int)
+  {
+    res = Z3_mk_bv2int(ctx, zterm->term, /* is_signed */ true);
+  }
 
   else if (!op.num_idx)
   {

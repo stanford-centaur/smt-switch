@@ -105,7 +105,9 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       // Indexed Op
       { ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, Rotate_Right },
       // Conversion
-      { ::cvc5::Kind::BITVECTOR_TO_NAT, BV_To_Nat },
+      { ::cvc5::Kind::BITVECTOR_TO_NAT, UBV_To_Int },
+      { ::cvc5::Kind::BITVECTOR_UBV_TO_INT, UBV_To_Int },
+      { ::cvc5::Kind::BITVECTOR_SBV_TO_INT, SBV_To_Int },
       // String Op
       { ::cvc5::Kind::STRING_LT, StrLt },
       { ::cvc5::Kind::STRING_LEQ, StrLeq },

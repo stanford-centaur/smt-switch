@@ -122,6 +122,8 @@ cdef extern from "ops.h" namespace "smt":
     cdef c_PrimOp c_Rotate_Right "smt::Rotate_Right"
     # BitVector Conversion
     cdef c_PrimOp c_BV_To_Nat "smt::BV_To_Nat"
+    cdef c_PrimOp c_UBV_To_Int "smt::UBV_To_Int"
+    cdef c_PrimOp c_SBV_To_Int "smt::SBV_To_Int"
     cdef c_PrimOp c_Int_To_BV "smt::Int_To_BV"
     # Array Theory
     cdef c_PrimOp c_Select "smt::Select"
