@@ -66,6 +66,8 @@ from .cppenums cimport (
     c_Rotate_Right,
     # BitVector Conversion
     c_BV_To_Nat,
+    c_UBV_To_Int,
+    c_SBV_To_Int,
     c_Int_To_BV,
     # Array Theory
     c_Select,
@@ -316,6 +318,14 @@ globals()["Rotate_Right"] = Rotate_Right
 cdef PrimOp BV_To_Nat = PrimOp()
 BV_To_Nat.po = c_BV_To_Nat
 globals()["BV_To_Nat"] = BV_To_Nat
+
+cdef PrimOp UBV_To_Int = PrimOp()
+UBV_To_Int.po = c_UBV_To_Int
+globals()["UBV_To_Int"] = UBV_To_Int
+
+cdef PrimOp SBV_To_Int = PrimOp()
+SBV_To_Int.po = c_SBV_To_Int
+globals()["SBV_To_Int"] = SBV_To_Int
 
 cdef PrimOp Int_To_BV = PrimOp()
 Int_To_BV.po = c_Int_To_BV

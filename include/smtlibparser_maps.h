@@ -123,7 +123,10 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
     nonstrict_theory2opmap({ { "BVIA",
                                {
                                    { "int2bv", Int_To_BV },
-                                   { "bv2nat", BV_To_Nat },
+                                   { "int_to_bv", Int_To_BV },
+                                   { "bv2nat", UBV_To_Int },
+                                   { "ubv_to_int", UBV_To_Int },
+                                   { "sbv_to_int", SBV_To_Int },
                                } },
                              { "IA", { { "pow", Pow } } } });
 
