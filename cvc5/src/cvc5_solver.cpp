@@ -337,14 +337,14 @@ Term Cvc5Solver::make_term(std::string val,
     else if (sk == FLOAT32)
     {
       float value = std::stof(val);
-      auto bv = solver.mkBitVector(FPSizes<FLOAT32>::size, (uint32_t)value);
+      auto bv = solver.mkBitVector(FPSizes<FLOAT32>::size, *(uint32_t*)&value);
       c = solver.mkFloatingPoint(
           FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig, bv);
     }
     else if (sk == FLOAT64)
     {
       double value = std::stod(val);
-      auto bv = solver.mkBitVector(FPSizes<FLOAT64>::size, (uint64_t)value);
+      auto bv = solver.mkBitVector(FPSizes<FLOAT64>::size, *(uint64_t*)&value);
       c = solver.mkFloatingPoint(
           FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig, bv);
     }
