@@ -179,6 +179,10 @@ SortKind Cvc5Sort::get_sort_kind() const
       throw NotImplementedException("Unknown kind in cvc5 translation.");
     }
   }
+  else if (sort.isRoundingMode())
+  {
+    return ROUNDINGMODE;
+  }
   else
   {
     throw NotImplementedException("Unknown kind in cvc5 translation.");

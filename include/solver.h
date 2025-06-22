@@ -252,6 +252,15 @@ class AbsSmtSolver
    */
   virtual Term make_term(const Term & val, const Sort & sort) const = 0;
 
+  /* Make a RoundingMode value term to be used in Floating-Point arithmetic 
+   * operations.
+   * @param roundingMode the RoundingMode value to create
+   * @return a value term with Sort ROUNDINGMODE
+   */
+  virtual Term make_term(FPRoundingMode roundingMode) const {
+        throw NotImplementedException("FPRoundingMode not supported for this solver.");
+  }
+
   /* Make a symbolic constant or function term
    * SMTLIB: (declare-fun <name> (s1 ... sn) s) where sort = s1x...xsn -> s
    * @param name the name of constant or function
