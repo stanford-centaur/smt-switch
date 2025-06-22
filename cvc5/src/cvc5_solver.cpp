@@ -372,6 +372,30 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
   return std::make_shared<Cvc5Term>(const_arr);
 }
 
+Term Cvc5Solver::make_term(FPRoundingMode roundingMode) const
+{
+  auto rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+  switch (roundingMode)
+  {
+    case FPRoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+      rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_POSITIVE:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_POSITIVE;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_NEGATIVE:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_ZERO:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_ZERO;
+      break;
+    case FPRoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+      rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY;
+      break;
+  }
+  return std::make_shared<Cvc5Term>(solver.mkRoundingMode(rm));
+}
+
 void Cvc5Solver::assert_formula(const Term & t)
 {
   try
@@ -1017,28 +1041,6 @@ SortVec Cvc5Solver::make_datatype_sorts(
 
 Term Cvc5Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  // TODO: rounding mode must be specified by the caller for FP operations
-  switch (op.prim_op)
-  {
-    case FPAdd:
-    case FPSub:
-    case FPMul:
-    case FPDiv:
-    case FPFma:
-    case FPSqrt:
-    case FPRti:
-    case FP_To_FP:
-    case Real_To_FP:
-    case SBV_To_FP:
-    case UBV_To_FP:
-    case FP_To_UBV:
-    case FP_To_SBV: {
-      auto rm = std::make_shared<Cvc5Term>(solver.mkRoundingMode(
-          cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
-      return make_term(op, TermVec({ rm, t0, t1 }));
-    }
-    default: break;
-  }
   return make_term(op, TermVec({ t0, t1 }));
 }
 

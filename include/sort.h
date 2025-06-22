@@ -51,6 +51,7 @@ enum SortKind
   TESTER,
   FLOAT32,
   FLOAT64,
+  ROUNDINGMODE,
 
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array
@@ -75,6 +76,15 @@ struct FPSizes<FLOAT64>
   static constexpr uint32_t exp = 11;
   static constexpr uint32_t sig = 53;
   static constexpr uint32_t size = exp + sig;
+};
+
+enum class FPRoundingMode
+{
+  ROUND_NEAREST_TIES_TO_EVEN,
+  ROUND_TOWARD_POSITIVE,
+  ROUND_TOWARD_NEGATIVE,
+  ROUND_TOWARD_ZERO,
+  ROUND_NEAREST_TIES_TO_AWAY,
 };
 
 std::string to_string(SortKind);
