@@ -82,4 +82,3 @@ class InternalSolverException : public SmtException
   explicit InternalSolverException(const char * msg) : SmtException(msg){};
   explicit InternalSolverException(const std::string& msg) : SmtException(msg){};
 };
-

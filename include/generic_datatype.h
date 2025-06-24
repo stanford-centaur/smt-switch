@@ -1,9 +1,10 @@
 #pragma once
-#include <unordered_map>
+
+#include <functional>
+#include <string>
 #include <vector>
 
 #include "datatype.h"
-#include "exceptions.h"
 #include "generic_sort.h"
 #include "smt_defs.h"
 
