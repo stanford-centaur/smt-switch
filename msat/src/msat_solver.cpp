@@ -1291,7 +1291,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 }
 
 // Compute interpolation sequence with incremental solving.
-// The function trys to reuse as many previously-asserted formulas as possible.
+// The function tries to reuse as many previously-asserted formulas as possible.
 // To achieve this, an assertion stack is maintained, where each assertion
 // is associated with a context level (backtrack point in MathSAT) and an
 // interpolation group.
