@@ -118,6 +118,6 @@ jobs:
       - name: Install and test Python Bindings
         run: |
           source ./.venv/bin/activate
-          python3 -m pip install build/python/*.whl[pysmt,test]
+          python3 -m pip install $(ls build/python/*.whl)[pysmt,test]
           cd tests/python
           pytest
