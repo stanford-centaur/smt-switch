@@ -92,16 +92,9 @@ add_custom_target(python_bindings ALL
     # First ensure the build directory is clean
     COMMAND ${CMAKE_COMMAND} -E remove_directory build
     # Then build the package in place
-    COMMAND ${Python_EXECUTABLE} -m pip install --no-deps -e .
+    COMMAND ${Python_EXECUTABLE} -m pip wheel --no-deps .
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS smt-switch ${SOLVER_BACKEND_LIBS}
     COMMENT "Building Python bindings"
 )
 add_dependencies(python_bindings gen-smt-solver-declarations)
-
-# Install target for Python package
-install(CODE
-    "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --no-deps . \
-     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})"
-    COMPONENT python
-)

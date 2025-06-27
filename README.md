@@ -110,23 +110,17 @@ You can run all tests for the currently built solvers with `make test` from the 
 The tests currently use C-style assertions which are compiled out in Release mode (the default). To build tests with assertions, please add the `--debug` flag when using `./configure.sh`.
 
 # Python bindings
-It is highly recommended to use a Python [virtual environment](https://docs.python.org/3/library/venv.html) or [Conda environment](https://docs.conda.io/en/latest/) when building Python bindings. Note: only Python3 is supported.
+It is highly recommended to use a Python [virtual environment](https://docs.python.org/3/library/venv.html) or [Conda environment](https://docs.conda.io/en/latest/) when building Python bindings. Note: only Python 3.5 or later is supported.
 
-First, install the required Python modules:
+First, install the required packages:
 ```
-python3 -m pip install packaging pytest
+python3 -m pip install packaging
 ```
-If you're building the python bindings in a setting where you don't care too much about runtime speed (e.g. for CI), you can add the option `--install-option="--no-cython-compile"` to the end of the Cython installation command to install it faster.
 
-Then, to compile python bindings, use the `--python` flag of `configure.sh`. After configuring with python bindings, run `make` in the build directory as usual. The Python extension module will be `build/python/smt_switch/smt_switch*.so`. To install this in your python environment, you can run `python3 -m pip install -e ./python` from the `build` directory.
-
-After installing the bindings, you can test them from the top-level of the repository with:
-```
-pytest ./tests/
-```
+Then, to compile Python bindings, use the `--python` flag of `configure.sh`. Afterwards, build `smt-switch` as usual. The Python wheel will be built inside `build/python` as the file `smt_switch-<version>-<tags>.whl`, where the version will be the current version you are building, and the tags will depend on the version of Python you have installed and your operating system. To install this in your Python environment, you can run `python3 -m pip install build/python/<filename>.whl`.
 
 ## PySMT front end
-Optionally, smt-switch can be used with a [pySMT](https://pysmt.readthedocs.io/en/latest/) front-end .  To install the pySMT front-end install `smt-switch` with the `pysmt` extra (`python3 -m install -e ./python[pysmt]`).  Note, some shells, notable `zsh`, require brackets be escaped or the path to be quoted, i.e., `./python\[pysmt\]` or `"./python[pysmt]"`.
+Optionally, smt-switch can be used with a [pySMT](https://pysmt.readthedocs.io/en/latest/) front-end .  To install the pySMT front-end install `smt-switch` with the `pysmt` extra (`python3 -m pip install build/python/<filename>.whl[pysmt]`).  Note, some shells, like `zsh`, require brackets to be escaped or the path to be quoted, i.e., `build/python/<filename>.whl\[pysmt\]` or `"build/python/<filename>.whl[pysmt]"`.
 
 A pySMT solver for each switch back-end can be instantiated directly or using the helper function `Solver`:
 ```Python
@@ -147,9 +141,8 @@ with pysmt_frontend.Solver("cvc5") as solver: ...
 
 Please refer to the pySMT docs for further information.
 
-
 ## Testing python bindings
-Python bindings are tested with [pytest](https://docs.pytest.org/en/latest/). This can be installed using `pip` or automatically by installing the python bindings with the `test` extra (`python3 -m install -e ./python[test]`). To run all tests, simply run `pytest ./tests` from the top-level directory. Note, running `pytest` alone might unnecessarily run tests in dependencies located in subdirectories. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.  The tests for the pySMT front-end will only be run if it is installed.  Note, multiple extras may be installed by passing them as a comma separated list:`python3 -m install -e ./python[test,pysmt]`.
+Python bindings can be tested with [pytest](https://docs.pytest.org/en/latest/), which can be installed by running `python3 -m pip install pytest` or by installing the python bindings with the `test` extra (`python3 -m pip install build/python/<filename>.whl[test]`). To run all tests, switch to the appropriate folder with `cd tests/python` and simply run `pytest`. To run a particular test, use the `-k test_name[parameter1-...-parameter_n]` format, e.g. `pytest -k test_bvadd[create_btor_solver]`.  The tests for the pySMT front-end will only be run if it is installed. Note, multiple extras may be installed by passing them as a comma separated list: `python3 -m pip install build/python/<filename>.whl[test,pysmt]`.
 
 # Current Limitations and Gotchas
 While we try to guarantee that all solver backends are fully compliant with the abstract interface, and exhibit the exact same behavior given the same API calls, we are not able to do this in every case (yet). Below are some known, current limitations along with recommended usage.
