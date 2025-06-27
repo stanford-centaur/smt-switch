@@ -13,8 +13,13 @@
 **
 **
 **/
-#include <limits>
 #include "cvc5_solver.h"
+
+#include <cstdint>
+#include <limits>
+#include <string>
+
+#include "smt.h"
 #include "utils.h"
 
 namespace smt {
@@ -91,12 +96,14 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       // Indexed Op
       { Rotate_Right, ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT },
       // Conversion
-      { BV_To_Nat, ::cvc5::Kind::BITVECTOR_TO_NAT },
+      { BV_To_Nat, ::cvc5::Kind::BITVECTOR_UBV_TO_INT },
+      { UBV_To_Int, ::cvc5::Kind::BITVECTOR_UBV_TO_INT },
+      { SBV_To_Int, ::cvc5::Kind::BITVECTOR_SBV_TO_INT },
       { Int_To_BV, ::cvc5::Kind::INT_TO_BITVECTOR },
       // String Op
       { StrLt, ::cvc5::Kind::STRING_LT },
       { StrLeq, ::cvc5::Kind::STRING_LEQ },
-      { StrLen, ::cvc5::Kind::STRING_LENGTH }, 
+      { StrLen, ::cvc5::Kind::STRING_LENGTH },
       { StrConcat, ::cvc5::Kind::STRING_CONCAT },
       { StrSubstr, ::cvc5::Kind::STRING_SUBSTR },
       { StrAt, ::cvc5::Kind::STRING_CHARAT },
@@ -117,6 +124,16 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR } });
 
 /* Cvc5Solver implementation */
+
+Cvc5Solver::Cvc5Solver()
+    : AbsSmtSolver(CVC5),
+      term_manager(new ::cvc5::TermManager()),
+      solver(*term_manager)
+{
+  solver.setOption("lang", "smt2");
+  solver.setOption("bv-print-consts-as-indexed-symbols", "true");
+  solver.setOption("arrays-exp", "true");
+}
 
 void Cvc5Solver::set_opt(const std::string option, const std::string value)
 {
@@ -155,7 +172,7 @@ Term Cvc5Solver::make_term(bool b) const
 {
   try
   {
-    return std::make_shared<Cvc5Term>(solver.mkBoolean(b));
+    return std::make_shared<Cvc5Term>(term_manager->mkBoolean(b));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -172,18 +189,18 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
 
     if (sk == INT)
     {
-      c = solver.mkInteger(i);
+      c = term_manager->mkInteger(i);
     }
     else if (sk == REAL)
     {
-      c = solver.mkReal(i);
-    }   
+      c = term_manager->mkReal(i);
+    }
     else if (sk == BV)
     {
       // cvc5 uses unsigned integers for mkBitVector
       // to avoid casting issues, always use a string in base 10
       std::string sval = std::to_string(i);
-      c = solver.mkBitVector(sort->get_width(), sval, 10);
+      c = term_manager->mkBitVector(sort->get_width(), sval, 10);
     }
     else
     {
@@ -201,7 +218,9 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
   }
 }
 
-Term Cvc5Solver::make_term(const std::string& s, bool useEscSequences, const Sort & sort) const
+Term Cvc5Solver::make_term(const std::string & s,
+                           bool useEscSequences,
+                           const Sort & sort) const
 {
   try
   {
@@ -210,8 +229,8 @@ Term Cvc5Solver::make_term(const std::string& s, bool useEscSequences, const Sor
 
     if (sk == STRING)
     {
-      c = solver.mkString(s, useEscSequences);
-    }    
+      c = term_manager->mkString(s, useEscSequences);
+    }
     else
     {
       std::string msg = "Can't create a string constant for sort ";
@@ -227,7 +246,7 @@ Term Cvc5Solver::make_term(const std::string& s, bool useEscSequences, const Sor
   }
 }
 
-Term Cvc5Solver::make_term(const std::wstring& s, const Sort & sort) const
+Term Cvc5Solver::make_term(const std::wstring & s, const Sort & sort) const
 {
   try
   {
@@ -236,8 +255,8 @@ Term Cvc5Solver::make_term(const std::wstring& s, const Sort & sort) const
 
     if (sk == STRING)
     {
-      c = solver.mkString(s);
-    }    
+      c = term_manager->mkString(s);
+    }
     else
     {
       std::string msg = "Can't create string constant for sort ";
@@ -272,16 +291,16 @@ Term Cvc5Solver::make_term(std::string val,
       }
       if (sk == INT)
       {
-        c = solver.mkInteger(val);
+        c = term_manager->mkInteger(val);
       }
       else
       {
-        c = solver.mkReal(val);
+        c = term_manager->mkReal(val);
       }
     }
     else if (sk == BV)
     {
-      c = solver.mkBitVector(sort->get_width(), val, base);
+      c = term_manager->mkBitVector(sort->get_width(), val, base);
     }
     else
     {
@@ -303,7 +322,7 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 {
   std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(val);
   std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-  ::cvc5::Term const_arr = solver.mkConstArray(csort->sort, cterm->term);
+  ::cvc5::Term const_arr = term_manager->mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
 }
 
@@ -534,20 +553,20 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
   {
     if (sk == BOOL)
     {
-      return std::make_shared<Cvc5Sort>(solver.getBooleanSort());
+      return std::make_shared<Cvc5Sort>(term_manager->getBooleanSort());
     }
     else if (sk == INT)
     {
-      return std::make_shared<Cvc5Sort>(solver.getIntegerSort());
+      return std::make_shared<Cvc5Sort>(term_manager->getIntegerSort());
     }
     else if (sk == REAL)
     {
-      return std::make_shared<Cvc5Sort>(solver.getRealSort());
+      return std::make_shared<Cvc5Sort>(term_manager->getRealSort());
     }
     else if (sk == STRING)
     {
-      return std::make_shared<Cvc5Sort>(solver.getStringSort());
-    }    
+      return std::make_shared<Cvc5Sort>(term_manager->getStringSort());
+    }
     else
     {
       std::string msg("Can't create sort with sort constructor ");
@@ -568,7 +587,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   {
     if (sk == BV)
     {
-      return std::make_shared<Cvc5Sort>(solver.mkBitVectorSort(size));
+      return std::make_shared<Cvc5Sort>(term_manager->mkBitVectorSort(size));
     }
     else
     {
@@ -603,7 +622,7 @@ Sort Cvc5Solver::make_sort(SortKind sk,
       std::shared_ptr<Cvc5Sort> celemsort =
           std::static_pointer_cast<Cvc5Sort>(sort2);
       return std::make_shared<Cvc5Sort>(
-          solver.mkArraySort(cidxsort->sort, celemsort->sort));
+          term_manager->mkArraySort(cidxsort->sort, celemsort->sort));
     }
     else
     {
@@ -654,7 +673,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       }
 
       csort = std::static_pointer_cast<Cvc5Sort>(sorts.back())->sort;
-      ::cvc5::Sort cfunsort = solver.mkFunctionSort(csorts, csort);
+      ::cvc5::Sort cfunsort = term_manager->mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
     else if (sorts.size() == 1)
@@ -728,7 +747,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = solver.mkConst(csort->sort, name);
+    ::cvc5::Term t = term_manager->mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::Cvc5Term>(t);
     symbol_table[name] = res;
     return res;
@@ -754,7 +773,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = solver.mkVar(csort->sort, name);
+    ::cvc5::Term t = term_manager->mkVar(csort->sort, name);
     return std::make_shared<::smt::Cvc5Term>(t);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -775,7 +794,8 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
     std::shared_ptr<Cvc5DatatypeDecl> cd =
         std::static_pointer_cast<Cvc5DatatypeDecl>(d);
 
-    return std::make_shared<Cvc5Sort>(solver.mkDatatypeSort(cd->datatypedecl));
+    return std::make_shared<Cvc5Sort>(
+        term_manager->mkDatatypeSort(cd->datatypedecl));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -787,7 +807,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s)
 {
   try
   {
-    return std::make_shared<Cvc5DatatypeDecl>(solver.mkDatatypeDecl(s));
+    return std::make_shared<Cvc5DatatypeDecl>(term_manager->mkDatatypeDecl(s));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -801,7 +821,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   try
   {
     return std::make_shared<Cvc5DatatypeConstructorDecl>(
-        solver.mkDatatypeConstructorDecl(s));
+        term_manager->mkDatatypeConstructorDecl(s));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -927,7 +947,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
           std::static_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
     }
 
-    for (const auto & csort : solver.mkDatatypeSorts(cvc5_decls))
+    for (const auto & csort : term_manager->mkDatatypeSorts(cvc5_decls))
     {
       dt_sorts.push_back(std::make_shared<Cvc5Sort>(csort));
     }
@@ -975,21 +995,21 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       while (cterms.size())
       {
         ::cvc5::Term bound_var =
-            solver.mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
+            term_manager->mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
         cterms.pop_back();
-        quant_res = solver.mkTerm(quant_kind, { bound_var, quant_res });
+        quant_res = term_manager->mkTerm(quant_kind, { bound_var, quant_res });
       }
       return std::make_shared<Cvc5Term>(quant_res);
     }
     else if (op.num_idx == 0)
     {
       return std::make_shared<Cvc5Term>(
-          solver.mkTerm(primop2kind.at(op.prim_op), cterms));
+          term_manager->mkTerm(primop2kind.at(op.prim_op), cterms));
     }
     else
     {
       ::cvc5::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(solver.mkTerm(cvc5_op, cterms));
+      return std::make_shared<Cvc5Term>(term_manager->mkTerm(cvc5_op, cterms));
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -1057,8 +1077,8 @@ void Cvc5Solver::dump_smt2(std::string filename) const
       throw SmtException("Op index (" + std::to_string(op.idx0)
                          + ") is too large for cvc5 backend.");
     }
-    return solver.mkOp(primop2kind.at(op.prim_op),
-                       { static_cast<uint32_t>(op.idx0) });
+    return term_manager->mkOp(primop2kind.at(op.prim_op),
+                              { static_cast<uint32_t>(op.idx0) });
   }
   else if (op.num_idx == 2)
   {
@@ -1072,7 +1092,7 @@ void Cvc5Solver::dump_smt2(std::string filename) const
       throw SmtException("Op index 1 (" + std::to_string(op.idx1)
                          + ") is too large for cvc5 backend.");
     }
-    return solver.mkOp(
+    return term_manager->mkOp(
         primop2kind.at(op.prim_op),
         { static_cast<uint32_t>(op.idx0), static_cast<uint32_t>(op.idx1) });
   }
@@ -1081,6 +1101,32 @@ void Cvc5Solver::dump_smt2(std::string filename) const
     throw NotImplementedException(
         "cvc5 does not have any indexed "
         "operators with more than two indices");
+  }
+}
+
+::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return solver; }
+
+Result Cvc5Solver::check_sat_assuming(
+    const std::vector<cvc5::Term> & cvc5assumps)
+{
+  ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
+  if (r.isUnsat())
+  {
+    return Result(UNSAT);
+  }
+  else if (r.isSat())
+  {
+    return Result(SAT);
+  }
+  else if (r.isUnknown())
+  {
+    std::stringstream ss;
+    ss << r.getUnknownExplanation();
+    return Result(UNKNOWN, ss.str());
+  }
+  else
+  {
+    throw NotImplementedException("Unimplemented result type from cvc5");
   }
 }
 

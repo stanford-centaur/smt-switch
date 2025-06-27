@@ -465,6 +465,8 @@ class SwitchConverter(Converter, DagWalker):
     walk_bv_srem = make_walk_binary(ss.primops.BVSrem)
     walk_bv_sub = make_walk_binary(ss.primops.BVSub)
     walk_bv_tonatural = make_walk_unary(ss.primops.BV_To_Nat)
+    walk_ubv_to_int = make_walk_unary(ss.primops.UBV_To_Int)
+    walk_sbv_to_int = make_walk_unary(ss.primops.SBV_To_Int)
     walk_bv_udiv = make_walk_binary(ss.primops.BVUdiv)
     walk_bv_ule = make_walk_binary(ss.primops.BVUle)
     walk_bv_ult = make_walk_binary(ss.primops.BVUlt)
@@ -530,6 +532,8 @@ class BackVisitor(ss.TermDagVisitor):
             ss.primops.BVXnor: mgr.BVXnor,
             ss.primops.BVXor: mgr.BVXor,
             ss.primops.BV_To_Nat: mgr.BVToNatural,
+            ss.primops.UBV_To_Int: mgr.BVToNatural,
+            # ss.primops.SBV_To_Int: NOT SUPPORTED BY PYSMT
             ss.primops.Concat: mgr.BVConcat,
             ss.primops.Distinct: mgr.AllDifferent,
             ss.primops.Div: mgr.Div,
@@ -592,7 +596,7 @@ class BackVisitor(ss.TermDagVisitor):
         else:
             assert term.get_sort().get_sort_kind() is ss.sortkinds.FUNCTION
             sort = self._convert_sort(term.get_sort())
-            return slf.mgr.Symbol(str(term), sort)
+            return self.mgr.Symbol(str(term), sort)
 
     def _convert_sort(self, sort):
         kind = sort.get_sort_kind()

@@ -98,7 +98,9 @@ enum PrimOp
   Rotate_Left,
   Rotate_Right,
   // BitVector Conversion
-  BV_To_Nat,
+  BV_To_Nat,  // deprecated alias to UBV_To_Int
+  UBV_To_Int,
+  SBV_To_Int,
   Int_To_BV,
   // Strings
   StrLt,

@@ -82,11 +82,11 @@ TEST_P(IntTests, Bv2Int)
   Term intx;
   try
   {
-    intx = s->make_term(BV_To_Nat, bvx);
+    intx = s->make_term(UBV_To_Int, bvx);
   }
   catch (SmtException & e)
   {
-    std::cout << "Got exception when trying to apply BV_To_Nat: " << e.what()
+    std::cout << "Got exception when trying to apply UBV_To_Int: " << e.what()
               << std::endl;
     // it's fine if this op is not supported, just end the test
     return;
@@ -94,12 +94,33 @@ TEST_P(IntTests, Bv2Int)
 
   ASSERT_TRUE(intx);
   EXPECT_EQ(intx->get_sort(), intsort);
-  EXPECT_EQ(intx->get_op(), BV_To_Nat);
+  EXPECT_EQ(intx->get_op(), UBV_To_Int);
 
   Term inty = s->make_symbol("inty", intsort);
   Term bvy = s->make_term(Op(Int_To_BV, 8), inty);
   EXPECT_EQ(bvy->get_sort(), bvsort);
   EXPECT_EQ(bvy->get_op(), Op(Int_To_BV, 8));
+
+  Term intz;
+  try
+  {
+    intz = s->make_term(SBV_To_Int, bvx);
+  }
+  catch (SmtException & e)
+  {
+    std::cout << "Got exception when trying to apply SBV_To_Int: " << e.what()
+              << std::endl;
+    // it's fine if this op is not supported, just end the test
+    return;
+  }
+
+  ASSERT_TRUE(intz);
+  EXPECT_EQ(intz->get_sort(), intsort);
+  if (intz->get_op() != SBV_To_Int) {
+    // Some solvers (e.g., Z3) have different implementations that predate
+    // SMT-LIB support for this operation.
+    std::cout << "Got " << intz->get_op().to_string() << " when checking SBV_To_Int" << std::endl;
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(
