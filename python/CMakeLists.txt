@@ -10,8 +10,6 @@ include(CheckPythonModule)
 
 # Verify required Python packages are installed
 check_python_module("packaging")
-check_python_module("setuptools")
-check_python_module("Cython" 3.0.0)
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
