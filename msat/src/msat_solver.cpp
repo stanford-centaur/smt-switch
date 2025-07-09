@@ -1312,33 +1312,36 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   assert(msat_num_backtrack_points(env) == assertions_.size());
   assert(interp_grps_.size() == assertions_.size());
 
-  // check which assertions can be reused
-  for (size_t i = 0; i < assertions_.size() && i < formulae.size(); ++i)
+  // count how many assertions can be reused
+  size_t num_reused = 0;
+  while (num_reused < assertions_.size() && num_reused < formulae.size()
+         && assertions_.at(num_reused) == formulae.at(num_reused))
   {
-    if (assertions_.at(i) != formulae.at(i))
+    ++num_reused;
+  }
+
+  // pop formulas that cannot be reused
+  if (num_reused == 0)
+  {
+    // no reusable formulas, simply reset
+    msat_reset_env(env);
+  }
+  else
+  {
+    for (size_t i = num_reused; i < assertions_.size(); ++i)
     {
-      if (i == 0)
-      {
-        // no reusable formulas, simply reset
-        msat_reset_env(env);
-      }
-      else
-      {
-        // pop formulas that cannot be reused
-        for (size_t j = i; j < assertions_.size(); ++j)
-        {
-          msat_pop_backtrack_point(env);
-        }
-      }
-      break;
+      msat_pop_backtrack_point(env);
     }
   }
 
-  const size_t num_reused = msat_num_backtrack_points(env);
+  // update the interpolation groups and assertions
+  assert(num_reused == msat_num_backtrack_points(env));
   interp_grps_.resize(num_reused);
   interp_grps_.reserve(formulae.size());
   assertions_.resize(num_reused);
   assertions_.reserve(formulae.size());
+
+  // add new assertions from formulas
   for (size_t k = num_reused; k < formulae.size(); ++k)
   {
     // Add a new interpolation group and a new backtrack point
@@ -1355,6 +1358,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   assert(interp_grps_.size() == assertions_.size());
   assert(interp_grps_.size() == msat_num_backtrack_points(env));
 
+  // solve query and get interpolants
   msat_result msat_res = msat_solve(env);
 
   if (msat_res == MSAT_SAT)
