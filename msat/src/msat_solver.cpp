@@ -60,6 +60,8 @@ const unordered_map<PrimOp, msat_un_fun> msat_unary_ops({
     // { Rotate_Right, }
     // BitVector conversion
     { BV_To_Nat, msat_make_int_from_ubv },
+    { UBV_To_Int, msat_make_int_from_ubv },
+    { SBV_To_Int, msat_make_int_from_sbv },
     // Indexed Op
     // { Int_To_BV, }
     // Special case

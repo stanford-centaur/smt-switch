@@ -229,7 +229,9 @@ Op Z3Term::get_op() const
         return Op(Int_To_BV, out_width);
       }
       case Z3_OP_BV2INT:
-        return Op(BV_To_Nat);
+        return Op(UBV_To_Int);
+      case Z3_OP_SBV2INT:
+        return Op(SBV_To_Int);
       case Z3_OP_UNINTERPRETED: return Op(Apply);
 
       default: {

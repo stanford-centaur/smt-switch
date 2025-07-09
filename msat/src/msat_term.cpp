@@ -86,7 +86,8 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     { MSAT_TAG_ARRAY_CONST,
       NUM_OPS_AND_NULL },  // Const Array is a value (no op)
     { MSAT_TAG_INT_TO_BV, Int_To_BV },
-    { MSAT_TAG_INT_FROM_UBV, BV_To_Nat },
+    { MSAT_TAG_INT_FROM_UBV, UBV_To_Int },
+    { MSAT_TAG_INT_FROM_SBV, SBV_To_Int },
     { MSAT_TAG_FORALL, Forall },
     { MSAT_TAG_EXISTS, Exists },
     // MSAT_TAG_FP_EQ,
@@ -115,8 +116,6 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
     // MSAT_TAG_FP_ISNEG,
     // MSAT_TAG_FP_ISPOS,
     // MSAT_TAG_FP_FROM_IEEEBV,
-    // smt-lib doesn't have this kind -- if we never create it can probably
-    // ignore it MSAT_TAG_INT_FROM_SBV
 });
 
 // MsatTermIter implementation
@@ -413,7 +412,11 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_int_from_ubv(env, term))
   {
-    return Op(BV_To_Nat);
+    return Op(UBV_To_Int);
+  }
+  else if (msat_term_is_int_from_sbv(env, term))
+  {
+    return Op(SBV_To_Int);
   }
   else if (msat_term_is_int_to_bv(env, term))
   {
