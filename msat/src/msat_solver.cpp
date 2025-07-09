@@ -1312,6 +1312,18 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   assert(msat_num_backtrack_points(env) == assertions_.size());
   assert(interp_grps_.size() == assertions_.size());
 
+  if (formulae.size() < 2)
+  {
+    throw IncorrectUsageException(
+        "Require at least 2 input formulae for sequence interpolation.");
+  }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
+
   // count how many assertions can be reused
   size_t num_reused = 0;
   while (num_reused < assertions_.size() && num_reused < formulae.size()
