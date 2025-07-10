@@ -292,12 +292,12 @@ class MsatInterpolatingSolver : public MsatSolver
     }
   }
 
-  // assertion at each level
+  // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
   // the method does not guarantee that the assertions are in the correct order)
-  mutable TermVec assertions_;
+  mutable TermVec last_itp_query_assertions_;
   // interpolation group for each assertion level
-  mutable std::vector<int> interp_grps_;
+  mutable std::vector<int> itp_grps_;
 };
 
 }  // namespace smt

@@ -1305,13 +1305,13 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 // ends and asserts the remaining formulas from that point onward.
 //
 // The folllowing invariant should hold before and after the call:
-// `#msat-backtrack-points == assertions_.size() == interp_grps_.size()`
+// `#backtrack-points == last_itp_query_assertions_.size() == itp_grps_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   initialize_env();
-  assert(msat_num_backtrack_points(env) == assertions_.size());
-  assert(interp_grps_.size() == assertions_.size());
+  assert(msat_num_backtrack_points(env) == last_itp_query_assertions_.size());
+  assert(itp_grps_.size() == last_itp_query_assertions_.size());
 
   if (formulae.size() < 2)
   {
@@ -1327,8 +1327,10 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 
   // count how many assertions can be reused
   size_t num_reused = 0;
-  while (num_reused < assertions_.size() && num_reused < formulae.size()
-         && assertions_.at(num_reused) == formulae.at(num_reused))
+  while (num_reused < last_itp_query_assertions_.size()
+         && num_reused < formulae.size()
+         && last_itp_query_assertions_.at(num_reused)
+                == formulae.at(num_reused))
   {
     ++num_reused;
   }
@@ -1341,7 +1343,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   }
   else
   {
-    for (size_t i = num_reused; i < assertions_.size(); ++i)
+    for (size_t i = num_reused; i < last_itp_query_assertions_.size(); ++i)
     {
       msat_pop_backtrack_point(env);
     }
@@ -1349,10 +1351,10 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 
   // update the interpolation groups and assertions
   assert(num_reused == msat_num_backtrack_points(env));
-  interp_grps_.resize(num_reused);
-  interp_grps_.reserve(formulae.size());
-  assertions_.resize(num_reused);
-  assertions_.reserve(formulae.size());
+  itp_grps_.resize(num_reused);
+  itp_grps_.reserve(formulae.size());
+  last_itp_query_assertions_.resize(num_reused);
+  last_itp_query_assertions_.reserve(formulae.size());
 
   // add new assertions from formulas
   for (size_t k = num_reused; k < formulae.size(); ++k)
@@ -1364,12 +1366,12 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     msat_push_backtrack_point(env);
     msat_assert_formula(env,
                         static_pointer_cast<MsatTerm>(formulae.at(k))->term);
-    interp_grps_.push_back(grp);
-    assertions_.push_back(formulae.at(k));
+    itp_grps_.push_back(grp);
+    last_itp_query_assertions_.push_back(formulae.at(k));
   }
-  assert(interp_grps_.size() == formulae.size());
-  assert(interp_grps_.size() == assertions_.size());
-  assert(interp_grps_.size() == msat_num_backtrack_points(env));
+  assert(itp_grps_.size() == formulae.size());
+  assert(itp_grps_.size() == last_itp_query_assertions_.size());
+  assert(itp_grps_.size() == msat_num_backtrack_points(env));
 
   // solve query and get interpolants
   msat_result msat_res = msat_solve(env);
@@ -1386,9 +1388,9 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   assert(msat_res == MSAT_UNSAT);
 
   Result r = Result(UNSAT);
-  for (size_t i = 1; i < interp_grps_.size(); ++i)
+  for (size_t i = 1; i < itp_grps_.size(); ++i)
   {
-    msat_term mI = msat_get_interpolant(env, interp_grps_.data(), i);
+    msat_term mI = msat_get_interpolant(env, itp_grps_.data(), i);
     if (MSAT_ERROR_TERM(mI))
     {
       // add a null term -- see solver.h documentation for this function
@@ -1411,15 +1413,15 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 void MsatInterpolatingSolver::reset_assertions()
 {
   super::reset_assertions();
-  assertions_.clear();
-  interp_grps_.clear();
+  last_itp_query_assertions_.clear();
+  itp_grps_.clear();
 }
 
 void MsatInterpolatingSolver::reset()
 {
   super::reset();
-  assertions_.clear();
-  interp_grps_.clear();
+  last_itp_query_assertions_.clear();
+  itp_grps_.clear();
 }
 
 // end MsatInterpolatingSolver implementation
