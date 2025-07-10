@@ -1139,6 +1139,7 @@ void MsatSolver::reset()
 
   cfg = msat_create_config();
   env = msat_create_env(cfg);
+  base_assertions_.clear();
 }
 
 void MsatSolver::reset_assertions()
@@ -1405,6 +1406,20 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 
   assert(out_I.size() == formulae.size() - 1);
   return r;
+}
+
+void MsatInterpolatingSolver::reset_assertions()
+{
+  super::reset_assertions();
+  assertions_.clear();
+  interp_grps_.clear();
+}
+
+void MsatInterpolatingSolver::reset()
+{
+  super::reset();
+  assertions_.clear();
+  interp_grps_.clear();
 }
 
 // end MsatInterpolatingSolver implementation

@@ -250,6 +250,7 @@ class MsatSolver : public AbsSmtSolver
 class MsatInterpolatingSolver : public MsatSolver
 {
  public:
+  typedef MsatSolver super;
   MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
   MsatInterpolatingSolver(msat_config c, msat_env e)
   {
@@ -272,6 +273,8 @@ class MsatInterpolatingSolver : public MsatSolver
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
+  void reset() override;
+  void reset_assertions() override;
 
  protected:
   virtual void initialize_env() const override
