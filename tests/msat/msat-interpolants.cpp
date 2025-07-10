@@ -17,8 +17,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "msat_factory.h"
 #include "smt.h"
 // after a full installation
@@ -60,6 +60,8 @@ int main()
     cout << "Didn't find an interpolant..." << endl;
     assert(false);
   }
+
+  s->reset_assertions();
 
   // try getting a second interpolant with different A and B
   A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
