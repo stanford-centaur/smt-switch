@@ -123,7 +123,7 @@ class Cvc5Solver : public AbsSmtSolver
 
   std::unordered_map<std::string, Term> symbol_table;
 
-  std::uint64_t context_level;
+  std::uint64_t context_level = 0;
 
   // helper function
   Result check_sat_assuming(const std::vector<cvc5::Term> & cvc5assumps);
