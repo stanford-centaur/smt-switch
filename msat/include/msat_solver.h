@@ -250,6 +250,7 @@ class MsatSolver : public AbsSmtSolver
 class MsatInterpolatingSolver : public MsatSolver
 {
  public:
+  typedef MsatSolver super;
   MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
   MsatInterpolatingSolver(msat_config c, msat_env e)
   {
@@ -261,6 +262,8 @@ class MsatInterpolatingSolver : public MsatSolver
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
   void set_opt(const std::string option, const std::string value) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
@@ -270,6 +273,8 @@ class MsatInterpolatingSolver : public MsatSolver
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
+  void reset() override;
+  void reset_assertions() override;
 
  protected:
   virtual void initialize_env() const override
@@ -279,12 +284,20 @@ class MsatInterpolatingSolver : public MsatSolver
       msat_set_option(cfg, "theory.bv.eager", "false");
       msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
       msat_set_option(cfg, "interpolation", "true");
+      msat_set_option(cfg, "incremental", "true");
       // TODO: decide if we should add this
       // msat_set_option(cfg, "theory.eq_propagation", "false");
       env = msat_create_env(cfg);
       env_uninitialized = false;
     }
   }
+
+  // assertions from the last interpolation query, indexed by the context level
+  // (although one can get assertions using `msat_get_asserted_formulas`,
+  // the method does not guarantee that the assertions are in the correct order)
+  mutable TermVec last_itp_query_assertions_;
+  // interpolation group for each assertion level
+  mutable std::vector<int> itp_grps_;
 };
 
 }  // namespace smt

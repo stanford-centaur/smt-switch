@@ -125,6 +125,12 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
     throw IncorrectUsageException(
         "Require at least 2 input formulae for sequence interpolation.");
   }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
 
   Term A = formulae.at(0);
   TermVec Bvec;
