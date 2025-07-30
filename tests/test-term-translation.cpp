@@ -323,15 +323,20 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 TEST_P(StringTranslationTests, Strings)
 {
   Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
+  Term nt = s1->make_term("", false, strsort);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
 
   Term t2 = to_s2.transfer_term(t);
   EXPECT_EQ(t2->to_string(), t->to_string());
+  Term nt2 = to_s2.transfer_term(nt);
+  EXPECT_EQ(nt2->to_string(), nt->to_string());
 
   Term t1 = to_s1.transfer_term(t2);
   EXPECT_EQ(t, t1);
+  Term nt1 = to_s1.transfer_term(nt2);
+  EXPECT_EQ(nt, nt1);
 }
 
 // All tests are instantiated with non-generic solvers,
