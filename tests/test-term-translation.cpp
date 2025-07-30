@@ -297,7 +297,7 @@ TEST_P(TranslationTests, UninterpretedSort)
 TEST_P(TranslationTests, Strings)
 {
   Sort strsort = s1->make_sort(STRING);
-  Term t = s1->make_term("\\u{a}", true, strsort);
+  Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
