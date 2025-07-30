@@ -14,11 +14,13 @@
 **        symbols, which would throw an exception).
 **/
 
+#include <cassert>
+#include <cstddef>
 #include <iterator>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include "assert.h"
 
 #include "sort_inference.h"
 #include "term_translator.h"
@@ -449,8 +451,25 @@ Term TermTranslator::value_from_smt2(const std::string val,
       return solver->make_term(val == "true");
     }
   }
-  else if (sk == STRING){
-    return solver->make_term(val, false, sort);
+  else if (sk == STRING)
+  {
+    // The SMT-LIB representation of a string will be wrapped in double quotes.
+    // These need to be stripped.
+    string strval = val.substr(1, val.size() - 2);
+    // Additionally, SMT-LIB escapes internal double quotes by doubling them.
+    // We need to replace them each by a single double quote.
+    string::size_type startpos = 0;
+    while (startpos < strval.size())
+    {
+      auto pos = strval.find("\"\"", startpos);
+      if (pos == strval.npos)
+      {
+        break;
+      }
+      strval.erase(pos, 1);
+      startpos = pos + 1;
+    }
+    return solver->make_term(strval, true, sort);
   }
   {
     throw NotImplementedException(
