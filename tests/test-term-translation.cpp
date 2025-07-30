@@ -16,8 +16,6 @@
 
 #include <string>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -108,6 +106,18 @@ class BoolArrayTranslationTests : public TranslationTests
   }
   Sort arrsort;
   Term arr;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(StringTranslationTests);
+class StringTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    strsort = s1->make_sort(STRING);
+  }
+  Sort strsort;
 };
 
 TEST_P(SelfTranslationTests, BVTransfer)
@@ -294,21 +304,6 @@ TEST_P(TranslationTests, UninterpretedSort)
   EXPECT_EQ(fv, fv_1);
 }
 
-TEST_P(TranslationTests, Strings)
-{
-  Sort strsort = s1->make_sort(STRING);
-  Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
-
-  TermTranslator to_s2(s2);
-  TermTranslator to_s1(s1);
-
-  Term t2 = to_s2.transfer_term(t);
-  EXPECT_EQ(t2->to_string(), t->to_string());
-
-  Term t1 = to_s1.transfer_term(t2);
-  EXPECT_EQ(t, t1);
-}
-
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
   Term f = s1->make_term(false);
@@ -325,8 +320,22 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   ASSERT_EQ(stores, stores_1);
 }
 
-// All tests are instantiated with non-generic solver,
-// as genreic solvers do not support term translation
+TEST_P(StringTranslationTests, Strings)
+{
+  Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  Term t2 = to_s2.transfer_term(t);
+  EXPECT_EQ(t2->to_string(), t->to_string());
+
+  Term t1 = to_s1.transfer_term(t2);
+  EXPECT_EQ(t, t1);
+}
+
+// All tests are instantiated with non-generic solvers,
+// as generic solvers do not support term translation
 // currently.
 
 INSTANTIATE_TEST_SUITE_P(
@@ -355,5 +364,13 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedStringTranslationTests,
+    StringTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_STR })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_STR }))));
 
 }  // namespace smt_tests
