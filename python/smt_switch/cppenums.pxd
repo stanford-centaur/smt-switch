@@ -122,6 +122,8 @@ cdef extern from "ops.h" namespace "smt":
     cdef c_PrimOp c_Rotate_Right "smt::Rotate_Right"
     # BitVector Conversion
     cdef c_PrimOp c_BV_To_Nat "smt::BV_To_Nat"
+    cdef c_PrimOp c_UBV_To_Int "smt::UBV_To_Int"
+    cdef c_PrimOp c_SBV_To_Int "smt::SBV_To_Int"
     cdef c_PrimOp c_Int_To_BV "smt::Int_To_BV"
     # Array Theory
     cdef c_PrimOp c_Select "smt::Select"
@@ -136,19 +138,3 @@ cdef extern from "result.h" namespace "smt":
     cdef c_ResultType SAT
     cdef c_ResultType UNSAT
     cdef c_ResultType UNKNOWN
-
-
-cdef class SortKind:
-    cdef c_SortKind sk
-
-
-cdef class SolverEnum:
-    cdef c_SolverEnum se
-
-
-cdef class SolverAttribute:
-    cdef c_SolverAttribute sa
-
-
-cdef class PrimOp:
-    cdef c_PrimOp po

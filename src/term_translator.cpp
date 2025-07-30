@@ -23,7 +23,6 @@
 #include <unordered_set>
 
 #include "sort_inference.h"
-#include "utils.h"
 #include "term_translator.h"
 
 using namespace std;
@@ -40,6 +39,7 @@ const unordered_set<PrimOp> bv_ops({
     BVShl,       BVAshr,      BVLshr, BVComp,      BVUlt,        BVUle,
     BVUgt,       BVUge,       BVSlt,  BVSle,       BVSgt,        BVSge,
     Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, BV_To_Nat,
+    UBV_To_Int,  SBV_To_Int,
 });
 
 // boolean ops that can easily be represented with bit-vector operators

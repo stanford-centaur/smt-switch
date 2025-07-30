@@ -6,14 +6,61 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+# defines find_python_in_virtualenv()
+# a helper to find Python in a virtualenv
+find_package(PythonVirtualEnv)
 
-set(INCLUDE_DIRS
-  "${PROJECT_SOURCE_DIR}/include")
+########################### Identify the current version ########################
+# Function to parse and validate a version string
+# Returns TRUE if valid, FALSE otherwise
+function(parse_version_string VERSION_STR)
+    # Remove 'v' prefix if present
+    if(VERSION_STR MATCHES "^v(.*)")
+        set(VERSION_STR ${CMAKE_MATCH_1})
+    endif()
+
+    # Check if the version matches semantic versioning format
+    if(VERSION_STR MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+        # Set version components in parent scope
+        set(PARSED_VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}" PARENT_SCOPE)
+        return()
+    endif()
+
+    # If we get here, version string was invalid
+    set(PARSED_VERSION "" PARENT_SCOPE)
+endfunction()
+
+# Look up the current version in the VERSION file
+file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION_LINES)
+# Process lines until we find a non-comment line and assume that's the version
+foreach(LINE IN LISTS VERSION_LINES)
+    # Skip empty lines and comments
+    if(LINE AND NOT LINE MATCHES "^[ ]*#")
+        parse_version_string("${LINE}")
+        if(PARSED_VERSION)
+            message(STATUS "Using version from VERSION file: ${PARSED_VERSION}")
+            project(${PROJECT_NAME} VERSION ${PARSED_VERSION})
+            break()
+        endif()
+    endif()
+endforeach()
+
+if(NOT PARSED_VERSION)
+    message(FATAL_ERROR "Could not determine valid version from VERSION file")
+endif()
+
+# - PROJECT_VERSION: Full version string
+# - PROJECT_VERSION_MAJOR: Major version component
+# - PROJECT_VERSION_MINOR: Minor version component
+# - PROJECT_VERSION_PATCH: Patch version component
+message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
 # add to search path for find_package
-list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
+list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
 if (NOT SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
@@ -21,7 +68,9 @@ endif()
 
 add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 
-set (SOURCES "${SMT_SWITCH_LIB_TYPE}"
+set(INCLUDE_DIRS
+  "${PROJECT_SOURCE_DIR}/include")
+set(SOURCES
   "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
@@ -100,31 +149,25 @@ else()
     PATTERN "smtlibparser_maps.h" EXCLUDE)
 endif()
 
-include_directories (${INCLUDE_DIRS})
-
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
+target_include_directories(smt-switch PUBLIC ${INCLUDE_DIRS})
 
 set(THREADS_PREFER_PTHREAD_FLAG True)
 find_package(Threads)
-target_link_libraries( smt-switch PRIVATE Threads::Threads)
+target_link_libraries(smt-switch PRIVATE Threads::Threads)
 
 # Should we build python bindings
 option (BUILD_PYTHON_BINDINGS
    "Build Python bindings")
-option (USE_PYTHON2
-   "Use Python2 for bindings")
 
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if (BUILD_PYTHON_BINDINGS)
-  # We currently use FindPythonInterp even though it is deprecated since 3.12
-  # This is because the scikit-build files still use this version and it will
-  # not interact well with the latest Python finding cmake modules
-  # https://cmake.org/cmake/help/v3.12/module/FindPython.html
-  # in the future, we can switch to FindPython3 once it has become more standard
-  # i.e. when the following issue is resolved:
-  # https://github.com/scikit-build/scikit-build/issues/506
-  find_package(PythonInterp 3.5 REQUIRED)
+  # Check for a virtualenv python first
+  find_python_in_virtualenv()
+  # Want python for building a module, so use Development.Module. See:
+  # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
+  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
 if (BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
@@ -192,21 +235,6 @@ if (BUILD_MSAT)
   add_definitions(-DMSAT_HOME=${MSAT_HOME})
 endif()
 
-# should we build z3?
-option (BUILD_Z3
-  "Should we build the libraries for z3" OFF)
-
-if (BUILD_Z3)
-  if (NOT DEFINED Z3_HOME)
-    set(Z3_HOME "${PROJECT_SOURCE_DIR}/deps/z3")
-  endif()
-  add_subdirectory (z3)
-  set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
-
-  add_definitions(-DBUILD_Z3)
-  add_definitions(-DZ3_HOME=${Z3_HOME})
-endif (BUILD_Z3)
-
 # should we build yices2?
 option (BUILD_YICES2
   "Should we build the libraries for yices2" OFF)
@@ -221,6 +249,14 @@ if (BUILD_YICES2)
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_HOME=${YICES2_HOME})
 endif (BUILD_YICES2)
+
+# should we build z3?
+option (BUILD_Z3 "Should we build the libraries for z3" OFF)
+if (BUILD_Z3)
+  add_definitions(-DBUILD_Z3)
+  add_subdirectory(z3)
+  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
+endif (BUILD_Z3)
 
 if (BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)

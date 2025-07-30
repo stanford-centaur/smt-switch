@@ -1,72 +1,100 @@
-# Note: using same pattern used in cvc5 for scikit-build / python module checking
-# Check if given Python module is installed and raises a FATAL_ERROR error
-# if the module cannot be found.
-function(check_python_module module)
-  execute_process(
-    COMMAND
-    ${PYTHON_EXECUTABLE} -c "import ${module}"
-    RESULT_VARIABLE
-      RET_MODULE_TEST
-    ERROR_QUIET
-  )
-  set(module_name ${ARGN})
-  if(NOT module_name)
-    set(module_name ${module})
-  endif()
+# First, ensure we have Python 3.9 or newer with all required components
+# Check for a virtualenv python first
+find_python_in_virtualenv()
+# Want python for building a module, so use Development.Module. See:
+# https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
+find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 
-  if(RET_MODULE_TEST)
-    message(FATAL_ERROR
-        "Could not find module ${module_name} for Python "
-        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
-        "Make sure to install ${module_name} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
-        "Note: You need to have pip installed for this Python version.")
-  endif()
-endfunction()
+# Include helper function to check for required Python packages
+include(CheckPythonModule)
 
+# Verify required Python packages are installed
+check_python_module("packaging")
 
-# Check that scikit-build is installed
-# Provides CMake files for Python bindings
-# and used to find correct Python includes
-# and libraries
-check_python_module("skbuild" "scikit-build")
-
-# Find cmake modules distributed with scikit-build
-# They are distributed under <scikit-build directory>/resources/cmake
-# Prevent printout when importing skbuild by temporarily redirecting stdout
-execute_process(
-  COMMAND
-    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
-    import os; import sys; temp = sys.stdout; sys.stdout = open(os.devnull,\"w\"); import skbuild; sys.stdout = temp; \
-      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
-        'resources', 'cmake'); print(cmake_module_path, end='')"
-  OUTPUT_VARIABLE
-    SKBUILD_CMAKE_MODULE_PATH
-  RESULT_VARIABLE
-    RET_SKBUILD_CMAKE_MODULE_PATH
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
+    "${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py"
+    COPYONLY
 )
 
-if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
-  message(FATAL_ERROR "Expected CMake module path from
-                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
-endif()
+# Configure setup.py with the correct paths and options
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/setup.py"
+    @ONLY  # Use @VAR@ instead of ${VAR} syntax in setup.py.in
+)
 
-# Add scikit-build cmake files to cmake module path
-# Required for Cython target below
-list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
+# Copy pyproject.toml to build directory
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
+    "${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml"
+    COPYONLY
+)
 
-include(FindPythonExtensions)
-
-if(POLICY CMP0057)
-  # For cmake >= 3.3 this policy changed the behavior of IN_LIST
-  # if the policy exists, we use the NEW behavior
-  cmake_policy(SET CMP0057 NEW)
-endif()
-
-find_package(Cython 0.29 REQUIRED)
-
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
-
+# Add Python package directory containing Cython files.
 add_subdirectory(smt_switch)
+
+# Handle macOS-specific configuration
+if(APPLE)
+    # Detect architecture for proper compilation flags
+    execute_process(
+        COMMAND uname -m
+        OUTPUT_VARIABLE MACOS_ARCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(MACOS_ARCH ${MACOS_ARCH} CACHE STRING "macOS architecture")
+endif()
+
+# Collect option flags for generating the smt solvers Cython file
+# It will include all of the solvers that are enabled for this build
+include_directories(${CMAKE_CURRENT_LIST_DIR})     # For generated files
+set(GEN_OPTIONS --dest-dir "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
+
+if (BUILD_BTOR)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
+endif()
+
+if (BUILD_BITWUZLA)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --bitwuzla)
+endif()
+
+if (BUILD_CVC5)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --cvc5)
+endif()
+
+if (BUILD_MSAT)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
+endif()
+
+if (BUILD_YICES2)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
+endif()
+
+if (BUILD_Z3)
+  set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
+endif()
+
+message(STATUS "Running gen-smt-solver-declarations.py ${GEN_OPTIONS}")
+add_custom_target(gen-smt-solver-declarations
+  ALL
+  COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py
+    ${GEN_OPTIONS}
+  DEPENDS
+    gen-smt-solver-declarations.py
+  COMMENT
+    "Generate smt_solvers.{pxd,pyx}"
+  )
+
+# Custom target for building Python bindings
+add_custom_target(python_bindings ALL
+    # First ensure the build directory is clean
+    COMMAND ${CMAKE_COMMAND} -E remove_directory build
+    # Then build the package in place
+    COMMAND ${Python_EXECUTABLE} -m pip wheel --no-deps .
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS smt-switch ${SOLVER_BACKEND_LIBS}
+    COMMENT "Building Python bindings"
+)
+add_dependencies(python_bindings gen-smt-solver-declarations)

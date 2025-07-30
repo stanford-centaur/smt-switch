@@ -780,7 +780,7 @@ Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
   Sort bvsort = make_sort(BV, width);
   string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
-  return term;
+  return store_term(term);
 }
 
 Term GenericSolver::make_non_negative_bv_const(int64_t i, unsigned int width) const

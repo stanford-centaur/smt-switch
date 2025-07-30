@@ -22,17 +22,18 @@ Configures the CMAKE build environment.
 --cvc5-home=STR         custom cvc5 location    (default: deps/cvc5)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)
---z3-home=STR           custom Z3 location      (default: deps/z3)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libaries (default: off)
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
+--python-executabe      point to a particular Python interpreter - will look around this for include and lib dirs
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
 --bitwuzla-dir=STR      custom Bitwuzla installation directory
+--z3-install-dir=STR    custom Z3 installation directory (default: deps/install)
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -57,15 +58,16 @@ btor_home=default
 cvc5_home=default
 msat_home=default
 yices2_home=default
-z3_home=default
 static=default
 build_tests=default
 system_gtest=default
 python=default
+python_executable=default
 smtlib_reader=default
 bison_dir=default
 flex_dir=default
 bitwuzla_dir=default
+z3_install_dir=default
 
 build_type=Release
 
@@ -133,16 +135,6 @@ do
                 *) msat_home=$(pwd)/$msat_home ;; # make absolute path
             esac
             ;;
-        --z3-home) die "missing argument to $1 (see -h)" ;;
-            --z3-home=*)
-                z3_home=${1##*=}
-                # Check if z3_home is an absolute path and if not, make it
-                # absolute.
-                case $z3_home in
-                    /*) ;;                                      # absolute path
-                    *) z3_home=$(pwd)/$z3_home ;; # make absolute path
-            esac
-            ;;
         --yices2-home) die "missing argument to $1 (see -h)" ;;
         --yices2-home=*)
             yices2_home=${1##*=}
@@ -178,6 +170,15 @@ do
         --python)
             python=yes
             ;;
+        --python-executable=*)
+            python_executable=${1##*=}
+            # Check if python_executable is an absolute path and if not, make it
+            # absolute.
+            case $python_executable in
+                /*) ;;                            # absolute path
+                *) python_executable=$(pwd)/$python_executable ;; # make absolute path
+            esac
+            ;;
         --smtlib-reader)
             smtlib_reader=yes
             ;;
@@ -205,6 +206,12 @@ do
             # Make relative paths absolute
             bitwuzla_dir="$(cd -- "$bitwuzla_dir" && pwd)"
             ;;
+        --z3-install-dir) die "missing argument to $1 (see -h)" ;;
+        --z3-install-dir=*)
+            z3_install_dir=${1##*=}
+            # Make relative paths absolute
+            z3_install_dir="$(cd -- "$z3_install_dir" && pwd)"
+            ;;
         -D*) cmake_opts="${cmake_opts} $1" ;;
         *) die "unexpected argument: $1";;
     esac
@@ -222,10 +229,6 @@ fi
 
 if [ $msat_home != default -a $build_msat = default ]; then
     build_msat=ON
-fi
-
-if [ $z3_home != default -a $build_z3 = default ]; then
-    build_z3=ON
 fi
 
 if [ $yices2_home != default -a $build_yices2 = default ]; then
@@ -249,11 +252,11 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $build_msat != default ] \
     && cmake_opts="$cmake_opts -DBUILD_MSAT=$build_msat"
 
-[ $build_z3 != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
-
 [ $build_yices2 != default ] \
     && cmake_opts="$cmake_opts -DBUILD_YICES2=$build_yices2"
+
+[ $build_z3 != default ] \
+    && cmake_opts="$cmake_opts -DBUILD_Z3=$build_z3"
 
 [ $btor_home != default ] \
     && cmake_opts="$cmake_opts -DBTOR_HOME=$btor_home"
@@ -263,9 +266,6 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 
 [ $msat_home != default ] \
     && cmake_opts="$cmake_opts -DMSAT_HOME=$msat_home"
-
-[ $z3_home != default ] \
-    && cmake_opts="$cmake_opts -DZ3_HOME=$z3_home"
 
 [ $yices2_home != default ] \
     && cmake_opts="$cmake_opts -DYICES2_HOME=$yices2_home"
@@ -282,6 +282,9 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $python != default ] \
     && cmake_opts="$cmake_opts -DBUILD_PYTHON_BINDINGS=ON"
 
+[ $python_executable != default ] \
+    && cmake_opts="$cmake_opts -DPython_EXECUTABLE=$python_executable"
+
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"
 
@@ -294,15 +297,14 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $bitwuzla_dir != default ] \
     && cmake_opts="$cmake_opts -DBITWUZLA_DIR=$bitwuzla_dir"
 
-root_dir=$(pwd)
-
-[ -e "$build_dir" ] && rm -r "$build_dir"
+[ $z3_install_dir != default ] \
+    && cmake_opts="$cmake_opts -DZ3_INSTALL_DIR=$z3_install_dir"
 
 mkdir -p "$build_dir"
 cd "$build_dir" || exit 1
 
+# Reset build configuration.
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 
 echo "Running with cmake options: $cmake_opts"
-
-cmake "$root_dir" $cmake_opts 2>&1
+cmake .. $cmake_opts 2>&1

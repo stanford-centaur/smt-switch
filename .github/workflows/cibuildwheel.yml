@@ -1,0 +1,115 @@
+name: Build and Upload Wheels
+
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        type: choice
+        description: "Choose the deployment target"
+        options:
+        - None
+        - PyPI
+        - Test PyPI
+
+jobs:
+  build_wheels:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        name: [manylinux-x86_64, manylinux-aarch64, macos-x86_64, macos-arm64]
+        include:
+          - name: manylinux-x86_64
+            os: ubuntu-latest
+            arch: x86_64
+          - name: manylinux-aarch64
+            os: ubuntu-24.04-arm
+            arch: aarch64
+            shell: bash
+          - name: macos-x86_64
+            os: macos-13
+            macos-target: 13
+          - name: macos-arm64
+            os: macos-14
+            macos-target: 14
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # cibuildwheel requires the pyproject.toml to be present from the beginning
+    - name: Place pyproject.toml
+      run: |
+        mkdir -p ./build/python
+        cp ./python/pyproject.toml ./build/python/
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.22.0
+      with:
+        # Where the setup.py and pyproject.toml build infrastructure is
+        package-dir: ./build/python
+      env:
+        CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+        CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
+        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
+        CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_28_aarch64
+        CIBW_BEFORE_ALL_LINUX: |
+          dnf install -y \
+            cmake \
+            gperf \
+            gmp-devel \
+            ninja-build \
+            glibc-static \
+            libstdc++-static
+          bash {project}/ci-scripts/cibw-build-deps.sh
+        CIBW_BEFORE_ALL_MACOS: |
+          brew update
+          brew install gperf
+          brew install SRI-CSL/sri-csl/libpoly
+          bash {project}/ci-scripts/cibw-build-deps.sh
+        CIBW_BEFORE_BUILD: >
+          python3 -m pip install \
+            Cython>=3.0.0 \
+            setuptools
+          bash {project}/ci-scripts/cibw-build-before.sh
+        CIBW_ENVIRONMENT_MACOS: >
+          DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
+          MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+        CIBW_TEST_COMMAND: |
+          # cibuildwheel creates a dedicated virtualenv for the test
+          # make sure to use that python (just calling pytest may use system pytest)
+          python3 -m pip install pytest
+          python3 -m pytest {project}/tests
+
+    - name: Upload wheels to PyPI
+      if: >
+        github.event_name == 'release' ||
+        (github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.deploy_target == 'PyPI')
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
+
+    - name: Upload wheels to TestPyPI
+      if: >
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.deploy_target == 'Test PyPI'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+      run: |
+        python3 -m venv ./upload-env
+        source ./upload-env/bin/activate
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl

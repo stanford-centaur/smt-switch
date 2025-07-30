@@ -95,10 +95,9 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (value != "true")
-    {
-      throw NotImplementedException("Bitwuzla only supports incremental mode");
-    }
+    // Bitwuzla does not distinguish between incremental and non-incremental
+    // solving.
+    return;
   }
   else if (option == "time-limit")
   {
@@ -118,7 +117,8 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     catch (const bitwuzla::Exception & exception)
     {
       std::string detail = exception.what();
-      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception message.
+      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception
+      // message.
       detail.erase(0, detail.find(")"));
       detail.erase(0, detail.find(","));
       throw IncorrectUsageException("Bitwuzla backend got bad option " + option
@@ -445,7 +445,7 @@ Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
   }
 
   std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(tm->mk_bv_value_uint64(bsort->sort, i));
+  return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bsort->sort, i));
 }
 
 Term BzlaSolver::make_term(const std::string val,
@@ -664,8 +664,8 @@ void BzlaSolver::reset()
 
 void BzlaSolver::reset_assertions()
 {
-  throw NotImplementedException(
-      "Bitwuzla does not currently support reset_assertions");
+  delete bzla;
+  bzla = new bitwuzla::Bitwuzla(*tm, options);
 }
 
 Term BzlaSolver::substitute(const Term term,

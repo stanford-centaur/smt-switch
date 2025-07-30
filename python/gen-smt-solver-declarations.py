@@ -120,47 +120,47 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = 'from smt_switch cimport c_SmtSolver'
-    pxi = '# collect available solvers here\nsolvers = {}\n\n%s'
+    pxd = 'from .cppapi cimport c_SmtSolver'
+    pyx = 'from .api cimport SmtSolver\n\n# collect available solvers here\nsolvers = {}\n\n%s'
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
-        pxi += "\n" + CREATE_BTOR
+        pyx += "\n" + CREATE_BTOR
         imports.append('cpp_create_btor_solver')
 
     if args.bitwuzla:
         pxd += "\n" + DECLARE_BITWUZLA
-        pxi += "\n" + CREATE_BITWUZLA
+        pyx += "\n" + CREATE_BITWUZLA
         imports.append('cpp_create_bitwuzla_solver')
 
     if args.cvc5:
         pxd += "\n" + DECLARE_CVC5
-        pxi += "\n" + CREATE_CVC5
+        pyx += "\n" + CREATE_CVC5
         imports.append('cpp_create_cvc5_solver')
         imports.append('cpp_create_cvc5_interpolator')
 
     if args.msat:
         pxd += "\n" + DECLARE_MSAT
-        pxi += "\n" + CREATE_MSAT
+        pyx += "\n" + CREATE_MSAT
         imports.append('cpp_create_msat_solver')
         imports.append('cpp_create_msat_interpolator')
 
     if args.yices2:
         pxd += "\n" + DECLARE_YICES2
-        pxi += "\n" + CREATE_YICES2
+        pyx += "\n" + CREATE_YICES2
         imports.append('cpp_create_yices2_solver')
 
     if args.z3:
         pxd += "\n" + DECLARE_Z3
-        pxi += "\n" + CREATE_Z3
+        pyx += "\n" + CREATE_Z3
         imports.append('cpp_create_z3_solver')
 
     if imports:
-        CREATE_IMPORTS ='from smt_solvers cimport ' + ','.join(imports)
+        CREATE_IMPORTS ='from .smt_solvers cimport ' + ','.join(imports)
     else:
         CREATE_IMPORTS = '# Built with no solvers...'
 
     with open(dest_dir + "/smt_solvers.pxd", 'w') as f:
         f.write(pxd)
 
-    with open(dest_dir + "/smt_solvers.pxi", 'w') as f:
-        f.write(pxi%CREATE_IMPORTS)
+    with open(dest_dir + "/smt_solvers.pyx", 'w') as f:
+        f.write(pyx%CREATE_IMPORTS)

@@ -5,23 +5,39 @@ from libcpp.string cimport string
 from libcpp.unordered_map cimport unordered_map
 from libcpp.vector cimport vector
 
-from smt_switch cimport c_Op
-from smt_switch cimport c_Result
-from smt_switch cimport c_SmtSolver
-from smt_switch cimport c_Sort
-from smt_switch cimport c_SortVec
-from smt_switch cimport c_Term
-from smt_switch cimport c_TermVec
-from smt_switch cimport c_UnorderedTermMap
-from smt_switch cimport c_TermIter
-from smt_switch cimport c_PrimOp, c_SortKind, c_BOOL
-from smt_switch cimport c_SortingNetwork
+from .primops import int2primop
+from .sortkinds import BV, INT, int2sortkind
 
-from smt_switch cimport get_free_symbolic_consts as c_get_free_symbolic_consts
-from smt_switch cimport get_free_symbols as c_get_free_symbols
-from smt_switch cimport op_partition as c_op_partition
-from smt_switch cimport conjunctive_partition as c_conjunctive_partition
-
+from .cppapi cimport (
+    c_Op,
+    c_Result,
+    c_SmtSolver,
+    c_Sort,
+    c_SortVec,
+    c_SortingNetwork,
+    c_Term,
+    c_TermIter,
+    c_TermVec,
+    c_UnorderedTermMap,
+    c_UnorderedTermSet
+)
+from .cpputils cimport (
+    conjunctive_partition as c_conjunctive_partition,
+    get_free_symbolic_consts as c_get_free_symbolic_consts,
+    get_free_symbols as c_get_free_symbols,
+    op_partition as c_op_partition,
+)
+from .cppenums cimport (
+    c_PrimOp,
+    c_SortKind,
+    c_ARRAY,
+    c_BOOL,
+    c_BV,
+    c_INT,
+    c_REAL,
+    c_FUNCTION,
+)
+from .enums cimport PrimOp, SortKind
 
 
 cdef class Op:
@@ -79,9 +95,6 @@ cdef class Op:
             raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
 
 cdef class Result:
-    def __cinit__(self):
-        pass
-
     def is_sat(self):
         return self.cr.is_sat()
 
@@ -105,9 +118,6 @@ cdef class Result:
 
 
 cdef class Sort:
-    def __cinit__(self):
-        pass
-
     def __init__(self, SmtSolver solver):
         # some backends require the solver to be present for destruction
         # of sorts and terms
@@ -164,9 +174,6 @@ cdef class Sort:
 
 
 cdef class Term:
-    def __cinit__(self):
-        pass
-
     def __init__(self, SmtSolver solver):
         # some backends require the solver to be present for destruction
         # of sorts and terms
@@ -264,9 +271,6 @@ cdef class Term:
 
 
 cdef class SmtSolver:
-    def __cinit__(self):
-        pass
-
     def set_opt(self, str option, str value):
         dref(self.css).set_opt(option.encode(), value.encode())
 

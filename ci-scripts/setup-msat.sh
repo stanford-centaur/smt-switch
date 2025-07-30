@@ -39,17 +39,19 @@ if [[ "$get_msat" != y ]]; then
     exit 0
 fi
 
+RELEASE_URL="https://mathsat.fbk.eu/release/"
+
 if [ ! -d "$DEPS/mathsat" ]; then
     cd $DEPS
     mkdir mathsat
     if [[ "$OSTYPE" == linux* ]]; then
-        curl -o mathsat.tar.gz -L https://mathsat.fbk.eu/download.php?file=mathsat-5.6.10-linux-x86_64.tar.gz
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-linux-x86_64.tar.gz
     elif [[ "$OSTYPE" == darwin* ]]; then
-        curl -o mathsat.tar.gz -L https://mathsat.fbk.eu/download.php?file=mathsat-5.6.10-osx.tar.gz
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-osx.tar.gz
     elif [[ "$OSTYPE" == msys* ]]; then
-        curl -o mathsat.tar.gz -L https://mathsat.fbk.eu/download.php?file=mathsat-5.6.10-win64-msvc.zip
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-win64-msvc.zip
     elif [[ "$OSTYPE" == cygwin* ]]; then
-        curl -o mathsat.tar.gz -L https://mathsat.fbk.eu/download.php?file=mathsat-5.6.10-linux-x86_64.tar.gz
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-linux-x86_64.tar.gz
     else
         echo "Unrecognized OSTYPE=$OSTYPE"
         exit 1
