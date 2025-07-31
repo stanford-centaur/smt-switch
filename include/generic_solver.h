@@ -23,13 +23,18 @@
 
 #pragma once
 
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
-#include "generic_sort.h"
-#include "generic_term.h"
+#include "generic_datatype.h"
+#include "result.h"
+#include "smt_defs.h"
 #include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 

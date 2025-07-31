@@ -18,10 +18,11 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
-#include "exceptions.h"
-#include "smt.h"
+#include "smt_defs.h"
 
 namespace smt {
 /* vector of pairs holding terms and ints that gets used within visit in the
