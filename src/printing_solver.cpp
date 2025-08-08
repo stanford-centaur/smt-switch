@@ -17,9 +17,12 @@
 
 #include "printing_solver.h"
 
-#include "smtlib_utils.h"
+#include <cassert>
+#include <cstdint>
+#include <ostream>
+#include <string>
 
-using namespace std;
+#include "smtlib_utils.h"
 
 namespace smt {
 
@@ -38,15 +41,16 @@ PrintingSolver::PrintingSolver(SmtSolver s,
 
 PrintingSolver::~PrintingSolver() {}
 
-Term PrintingSolver::get_symbol(const string & name)
+Term PrintingSolver::get_symbol(const std::string & name)
 {
   return wrapped_solver->get_symbol(name);
 }
 
-Sort PrintingSolver::make_sort(const string name, uint64_t arity) const
+Sort PrintingSolver::make_sort(const std::string name,
+                               std::uint64_t arity) const
 {
   (*out_stream) << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")"
-                << endl;
+                << std::endl;
   return wrapped_solver->make_sort(name, arity);
 }
 
@@ -55,7 +59,7 @@ Sort PrintingSolver::make_sort(const SortKind sk) const
   return wrapped_solver->make_sort(sk);
 }
 
-Sort PrintingSolver::make_sort(const SortKind sk, uint64_t size) const
+Sort PrintingSolver::make_sort(const SortKind sk, std::uint64_t size) const
 {
   return wrapped_solver->make_sort(sk, size);
 }
@@ -149,7 +153,7 @@ Term PrintingSolver::make_term(bool b) const
   return wrapped_solver->make_term(b);
 }
 
-Term PrintingSolver::make_term(int64_t i, const Sort & sort) const
+Term PrintingSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   return wrapped_solver->make_term(i, sort);
 }
@@ -166,9 +170,9 @@ Term PrintingSolver::make_term(const std::wstring & s, const Sort & sort) const
   return wrapped_solver->make_term(s, sort);
 }
 
-Term PrintingSolver::make_term(const string name,
+Term PrintingSolver::make_term(const std::string name,
                                const Sort & sort,
-                               uint64_t base) const
+                               std::uint64_t base) const
 {
   return wrapped_solver->make_term(name, sort, base);
 }
@@ -178,11 +182,11 @@ Term PrintingSolver::make_term(const Term & val, const Sort & sort) const
   return wrapped_solver->make_term(val, sort);
 }
 
-Term PrintingSolver::make_symbol(const string name, const Sort & sort)
+Term PrintingSolver::make_symbol(const std::string name, const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();
-  string domain_str = "";
-  string range_str = "";
+  std::string domain_str = "";
+  std::string range_str = "";
   if (sk == smt::SortKind::FUNCTION)
   {
     for (Sort ds : sort->get_domain_sorts())
@@ -196,11 +200,11 @@ Term PrintingSolver::make_symbol(const string name, const Sort & sort)
     range_str = sort->to_string();
   }
   (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "("
-                << domain_str << ")" << " " << range_str << ")" << endl;
+                << domain_str << ")" << " " << range_str << ")" << std::endl;
   return wrapped_solver->make_symbol(name, sort);
 }
 
-Term PrintingSolver::make_param(const string name, const Sort & sort)
+Term PrintingSolver::make_param(const std::string name, const Sort & sort)
 {
   // bound parameters are not declared -- they'll show up in the printed term
   return wrapped_solver->make_param(name, sort);
@@ -233,26 +237,26 @@ Term PrintingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term PrintingSolver::get_value(const Term & t) const
 {
-  (*out_stream) << "(" << GET_VALUE_STR << " (" << t << "))" << endl;
+  (*out_stream) << "(" << GET_VALUE_STR << " (" << t << "))" << std::endl;
   return wrapped_solver->get_value(t);
 }
 
 void PrintingSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
-  (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << endl;
+  (*out_stream) << "(" << GET_UNSAT_ASSUMPTIONS_STR << ")" << std::endl;
   wrapped_solver->get_unsat_assumptions(out);
 }
 
 UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
                                                   Term & out_const_base) const
 {
-  (*out_stream) << "(get-value (" << arr << "))" << endl;
+  (*out_stream) << "(get-value (" << arr << "))" << std::endl;
   return wrapped_solver->get_array_values(arr, out_const_base);
 }
 
 void PrintingSolver::reset()
 {
-  (*out_stream) << "(" << RESET_STR << ")" << endl;
+  (*out_stream) << "(" << RESET_STR << ")" << std::endl;
   wrapped_solver->reset();
 }
 
@@ -262,59 +266,60 @@ void PrintingSolver::set_opt(const std::string option, const std::string value)
 {
   wrapped_solver->set_opt(option, value);
   (*out_stream) << "(" << SET_OPTION_STR << " :" << option << " " << value
-                << ")" << endl;
+                << ")" << std::endl;
 }
 
 void PrintingSolver::set_logic(const std::string logic)
 {
-  (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << endl;
+  (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << std::endl;
   wrapped_solver->set_logic(logic);
 }
 
 void PrintingSolver::assert_formula(const Term & t)
 {
-  (*out_stream) << "(" << ASSERT_STR << " " << t->to_string() << ")" << endl;
+  (*out_stream) << "(" << ASSERT_STR << " " << t->to_string() << ")"
+                << std::endl;
   wrapped_solver->assert_formula(t);
 }
 
 Result PrintingSolver::check_sat()
 {
-  (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
+  (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
   return wrapped_solver->check_sat();
 }
 
 Result PrintingSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  string assumptions_str;
+  std::string assumptions_str;
   for (Term a : assumptions)
   {
     assumptions_str += a->to_string() + " ";
   }
   (*out_stream) << "(" << CHECK_SAT_ASSUMING_STR << " (" << assumptions_str
-                << "))" << endl;
+                << "))" << std::endl;
   return wrapped_solver->check_sat_assuming(assumptions);
 }
 
-void PrintingSolver::push(uint64_t num)
+void PrintingSolver::push(std::uint64_t num)
 {
-  (*out_stream) << "(" << PUSH_STR << " " << num << ")" << endl;
+  (*out_stream) << "(" << PUSH_STR << " " << num << ")" << std::endl;
   wrapped_solver->push(num);
 }
 
-void PrintingSolver::pop(uint64_t num)
+void PrintingSolver::pop(std::uint64_t num)
 {
-  (*out_stream) << "(" << POP_STR << " " << num << ")" << endl;
+  (*out_stream) << "(" << POP_STR << " " << num << ")" << std::endl;
   wrapped_solver->pop(num);
 }
 
-uint64_t PrintingSolver::get_context_level() const
+std::uint64_t PrintingSolver::get_context_level() const
 {
   return wrapped_solver->get_context_level();
 }
 
 void PrintingSolver::reset_assertions()
 {
-  (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << endl;
+  (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << std::endl;
   wrapped_solver->reset_assertions();
 }
 
@@ -329,21 +334,22 @@ Result PrintingSolver::get_interpolant(const Term & A,
   if (style == PrintingStyleEnum::MSAT_STYLE)
   {
     (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :"
-                  << INTERPOLATION_GROUP_STR << " g1))" << endl;
+                  << INTERPOLATION_GROUP_STR << " g1))" << std::endl;
     (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :"
-                  << INTERPOLATION_GROUP_STR << " g2))" << endl;
+                  << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
     ;
-    (*out_stream) << "(" << CHECK_SAT_STR << ")" << endl;
-    (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")" << endl;
+    (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+    (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")"
+                  << std::endl;
     (*out_stream) << "; when running mathsat, use `-interpolation=true` flag"
-                  << endl;
+                  << std::endl;
   }
   else
   {
     assert(style == PrintingStyleEnum::CVC5_STYLE);
-    (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << endl;
+    (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
     (*out_stream) << "(" << CVC5_GET_INTERPOLANT_STR << " I (not " << B << "))"
-                  << endl;
+                  << std::endl;
   }
   return wrapped_solver->get_interpolant(A, B, out_I);
 }
