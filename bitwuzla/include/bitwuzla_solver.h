@@ -2,7 +2,7 @@
 /*! \file bitwuzla_solver.h
 ** \verbatim
 ** Top contributors (to current version):
-**   Makai Mann
+**   Makai Mann, Po-Chun Chien
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
@@ -177,6 +177,40 @@ class BzlaSolver : public AbsSmtSolver
       return Result(UNKNOWN);
     }
   }
+};
+
+class BzlaInterpolatingSolver : public BzlaSolver
+{
+ public:
+  typedef BzlaSolver super;
+  BzlaInterpolatingSolver()
+  {
+    solver_enum = BZLA_INTERPOLATOR;
+    options.set(bitwuzla::Option::PRODUCE_INTERPOLANTS, true);
+  };
+  BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
+  BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
+
+  void set_opt(const std::string option, const std::string value) override;
+  void push(uint64_t num = 1) override;
+  void pop(uint64_t num = 1) override;
+  void assert_formula(const Term & t) override;
+  Result check_sat() override;
+  Result check_sat_assuming(const TermVec & assumptions) override;
+  Term get_value(const Term & t) const override;
+  Result get_interpolant(const Term & A,
+                         const Term & B,
+                         Term & out_I) const override;
+  Result get_sequence_interpolants(const TermVec & formulae,
+                                   TermVec & out_I) const override;
+  void reset() override;
+  void reset_assertions() override;
+
+ protected:
+  // assertions from the last interpolation query, indexed by the context level
+  // (although one can get assertions using `bzla->get_assertions()`,
+  // the method does not guarantee that the assertions are in the correct order)
+  mutable TermVec last_itp_query_assertions;
 };
 
 }  // namespace smt
