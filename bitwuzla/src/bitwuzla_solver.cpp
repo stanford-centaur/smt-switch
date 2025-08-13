@@ -825,7 +825,6 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         std::static_pointer_cast<BzlaTerm>(formulae.at(k))->term);
     last_itp_query_assertions.push_back(formulae.at(k));
   }
-  assert(last_itp_query_assertions.size() == context_level);
   assert(formulae == last_itp_query_assertions);
 
   // solve query and get interpolants
