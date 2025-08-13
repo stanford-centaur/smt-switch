@@ -800,6 +800,17 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         "get_sequence_interpolants.");
   }
 
+  // Reset the solver (disable incremental solving)
+  // This is a workaround for
+  // https://github.com/bitwuzla/bitwuzla-interpolants/issues/1
+  // TODO: remove this once the issue is fixed in Bitwuzla
+  if (bzla != nullptr)
+  {
+    delete bzla;
+  }
+  bzla = new bitwuzla::Bitwuzla(*tm, options);
+  last_itp_query_assertions.clear();
+
   // count how many assertions can be reused
   size_t num_reused = 0;
   while (num_reused < last_itp_query_assertions.size()
