@@ -199,9 +199,11 @@ Term PrintingSolver::make_symbol(const std::string name, const Sort & sort)
   {
     range_str = sort->to_string();
   }
-  (*out_stream) << "(" << DECLARE_FUN_STR << " " << name << " " << "("
+  Term sym = wrapped_solver->make_symbol(name, sort);
+  std::string name_str = sym->to_string();
+  (*out_stream) << "(" << DECLARE_FUN_STR << " " << name_str << " " << "("
                 << domain_str << ")" << " " << range_str << ")" << std::endl;
-  return wrapped_solver->make_symbol(name, sort);
+  return sym;
 }
 
 Term PrintingSolver::make_param(const std::string name, const Sort & sort)
