@@ -809,8 +809,20 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     ++num_reused;
   }
 
-  // pop formulas that cannot be reused
-  get_bitwuzla()->pop(last_itp_query_assertions.size() - num_reused);
+  if (num_reused == 0)
+  {
+    if (!last_itp_query_assertions.empty())
+    {
+      // if no assertions can be reused, simply reset the solver
+      delete bzla;
+      bzla = new bitwuzla::Bitwuzla(*tm, options);
+    }
+  }
+  else
+  {
+    // pop formulas that cannot be reused
+    get_bitwuzla()->pop(last_itp_query_assertions.size() - num_reused);
+  }
 
   // update the interpolation groups and assertions
   last_itp_query_assertions.resize(num_reused);
