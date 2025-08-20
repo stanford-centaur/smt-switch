@@ -666,6 +666,7 @@ void BzlaSolver::reset_assertions()
 {
   delete bzla;
   bzla = new bitwuzla::Bitwuzla(*tm, options);
+  context_level = 0;
 }
 
 Term BzlaSolver::substitute(const Term term,
