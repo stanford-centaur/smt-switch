@@ -25,3 +25,4 @@ switch_add_btor_test(btor-neg-numbers)
 # Google Test
 
 switch_add_btor_test(btor-opts)
+switch_add_btor_test(btor-printing)
