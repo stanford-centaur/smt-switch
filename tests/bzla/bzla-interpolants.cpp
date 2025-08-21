@@ -63,10 +63,38 @@ int main()
 
   s->reset_assertions();
 
-  // try getting a second interpolant with different A and B
+  // try getting another interpolant with different A and B
   A = s->make_term(And, s->make_term(BVUgt, x, y), s->make_term(BVUgt, y, z));
   B = s->make_term(BVUlt, x, z);
   r = s->get_interpolant(A, B, I);
+
+  if (r.is_unsat())
+  {
+    cout << "Found interpolant: " << I << endl;
+  }
+  else
+  {
+    cout << "Didn't find an interpolant..." << endl;
+    assert(false);
+  }
+
+  // try getting an interpolant with A itself being unsat
+  Term unsat_term =
+      s->make_term(And, s->make_term(BVUgt, z, y), s->make_term(BVUgt, y, z));
+  r = s->get_interpolant(unsat_term, B, I);
+
+  if (r.is_unsat())
+  {
+    cout << "Found interpolant: " << I << endl;
+  }
+  else
+  {
+    cout << "Didn't find an interpolant..." << endl;
+    assert(false);
+  }
+
+  // try getting an interpolant with B itself being unsat
+  r = s->get_interpolant(A, unsat_term, I);
 
   if (r.is_unsat())
   {
