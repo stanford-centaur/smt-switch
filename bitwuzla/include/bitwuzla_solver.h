@@ -187,6 +187,7 @@ class BzlaInterpolatingSolver : public BzlaSolver
   {
     solver_enum = BZLA_INTERPOLATOR;
     options.set(bitwuzla::Option::PRODUCE_INTERPOLANTS, true);
+    options.set(bitwuzla::Option::DBG_CHECK_INTERPOLANT, true);
   };
   BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
   BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
