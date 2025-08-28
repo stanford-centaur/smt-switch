@@ -1,5 +1,9 @@
 #!/bin/bash
-git_commit=532ca9729136969008960481167ab55696a9cc52
+git_commit=507893c57fb379743c7a52ad770b0c2525021f4a
+
+download_step() {
+  git clone --revision=$git_commit git@github.com:bitwuzla/bitwuzla-interpolants.git $dep_name
+}
 
 prepare_step() {
   "$contrib_dir/setup-cadical.sh"
