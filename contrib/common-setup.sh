@@ -68,11 +68,15 @@ elif [ -n "${git_branch-}" ]; then
 fi
 
 # Download and unpack archive.
-filename=$dep_name-$version
-curl -L "$url" -o $filename.tar.gz
-tar -xf $filename.tar.gz
-rm $filename.tar.gz
-mv $filename $dep_name
+if declare -F download_step >/dev/null; then
+  download_step
+else
+  filename=$dep_name-$version
+  curl -L "$url" -o $filename.tar.gz
+  tar -xf $filename.tar.gz
+  rm $filename.tar.gz
+  mv $filename $dep_name
+fi
 
 cd $dep_name
 
