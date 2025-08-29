@@ -788,6 +788,12 @@ Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
+  return get_sequence_interpolants(formulae, out_I, true);
+}
+
+Result BzlaInterpolatingSolver::get_sequence_interpolants(
+    const TermVec & formulae, TermVec & out_I, bool retry) const
+{
   if (formulae.size() < 2)
   {
     throw IncorrectUsageException(
@@ -860,7 +866,26 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
       partition.push_back(
           std::static_pointer_cast<BzlaTerm>(formulae.at(j))->term);
     }
-    bitwuzla::Term itp = get_bitwuzla()->get_interpolant(partition);
+    bitwuzla::Term itp;
+    try
+    {
+      itp = get_bitwuzla()->get_interpolant(partition);
+    }
+    catch (bitwuzla::Exception & e)
+    {
+      if (!retry)
+      {
+        // TODO: change it to throw InternalSolverException(e.what())
+        // simply rethrow for now to make debugging easier
+        throw e;
+      }
+      // reset the solver and retry
+      delete bzla;
+      bzla = new bitwuzla::Bitwuzla(*tm, options);
+      last_itp_query_assertions.clear();
+      out_I.clear();
+      get_sequence_interpolants(formulae, out_I, false);
+    }
     if (itp.is_null())
     {
       Term nullterm;
