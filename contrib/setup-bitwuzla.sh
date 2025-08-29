@@ -1,5 +1,5 @@
 #!/bin/bash
-git_commit=e0cbb81fa8c30413f82abcee4dfa70203f2f8200
+git_commit=e91f81ee21e32ef91f1a4c6f9341281179f952d5
 
 download_step() {
   git clone --revision=$git_commit git@github.com:bitwuzla/bitwuzla-interpolants.git $dep_name
