@@ -886,7 +886,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
       bzla = new bitwuzla::Bitwuzla(*tm, no_abs_opts);
       last_itp_query_assertions.clear();
       out_I.clear();
-      get_sequence_interpolants(formulae, out_I, false);
+      return get_sequence_interpolants(formulae, out_I, false);
     }
     if (itp.is_null())
     {
