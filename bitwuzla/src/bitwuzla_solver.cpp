@@ -879,9 +879,11 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         // simply rethrow for now to make debugging easier
         throw e;
       }
-      // reset the solver and retry
+      // reset the solver, disable abstraction, and retry
       delete bzla;
-      bzla = new bitwuzla::Bitwuzla(*tm, options);
+      bitwuzla::Options no_abs_opts(options);
+      no_abs_opts.set(bitwuzla::Option::ABSTRACTION, false);
+      bzla = new bitwuzla::Bitwuzla(*tm, no_abs_opts);
       last_itp_query_assertions.clear();
       out_I.clear();
       get_sequence_interpolants(formulae, out_I, false);
