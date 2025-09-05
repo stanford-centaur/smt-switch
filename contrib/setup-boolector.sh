@@ -1,5 +1,5 @@
 #!/bin/bash
-git_commit=97698b06a5de1a4e5743c034c867d384630dc936
+git_tag=3.2.4
 cmake_options=(-DUSE_CADICAL=ON)
 
 prepare_step() {
