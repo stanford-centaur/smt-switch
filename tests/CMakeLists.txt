@@ -49,6 +49,10 @@ if (BUILD_BTOR)
   add_subdirectory(btor)
 endif()
 
+if (BUILD_BITWUZLA)
+  add_subdirectory(bzla)
+endif()
+
 if (BUILD_CVC5)
   add_subdirectory(cvc5)
 endif()
