@@ -788,7 +788,7 @@ Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
-  return get_sequence_interpolants(formulae, out_I, true);
+  return get_sequence_interpolants(formulae, out_I, false);
 }
 
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
