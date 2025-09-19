@@ -207,10 +207,6 @@ class BzlaInterpolatingSolver : public BzlaSolver
   void reset_assertions() override;
 
  protected:
-  Result get_sequence_interpolants(const TermVec & formulae,
-                                   TermVec & out_I,
-                                   bool retry) const;
-
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `bzla->get_assertions()`,
   // the method does not guarantee that the assertions are in the correct order)

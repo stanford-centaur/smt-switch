@@ -788,12 +788,6 @@ Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
-  return get_sequence_interpolants(formulae, out_I, false);
-}
-
-Result BzlaInterpolatingSolver::get_sequence_interpolants(
-    const TermVec & formulae, TermVec & out_I, bool retry) const
-{
   if (formulae.size() < 2)
   {
     throw IncorrectUsageException(
@@ -866,28 +860,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
       partition.push_back(
           std::static_pointer_cast<BzlaTerm>(formulae.at(j))->term);
     }
-    bitwuzla::Term itp;
-    try
-    {
-      itp = get_bitwuzla()->get_interpolant(partition);
-    }
-    catch (bitwuzla::Exception & e)
-    {
-      if (!retry)
-      {
-        // TODO: change it to throw InternalSolverException(e.what())
-        // simply rethrow for now to make debugging easier
-        throw e;
-      }
-      // reset the solver, disable abstraction, and retry
-      delete bzla;
-      bitwuzla::Options no_abs_opts(options);
-      no_abs_opts.set(bitwuzla::Option::ABSTRACTION, false);
-      bzla = new bitwuzla::Bitwuzla(*tm, no_abs_opts);
-      last_itp_query_assertions.clear();
-      out_I.clear();
-      return get_sequence_interpolants(formulae, out_I, false);
-    }
+    bitwuzla::Term itp = get_bitwuzla()->get_interpolant(partition);
     if (itp.is_null())
     {
       Term nullterm;
