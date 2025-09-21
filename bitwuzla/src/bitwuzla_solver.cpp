@@ -733,7 +733,33 @@ void BzlaSolver::dump_smt2(std::string filename) const
 void BzlaInterpolatingSolver::set_opt(const std::string option,
                                       const std::string value)
 {
-  throw IncorrectUsageException("Can't set options of interpolating solver.");
+  if (allowed_options.find(option) == allowed_options.end())
+  {
+    throw IncorrectUsageException(
+        "Bitwuzla interpolator does not allow option: " + option);
+  }
+  if (option == "incremental")
+  {
+    // Bitwuzla itself does not distinguish between incremental and
+    // non-incremental solving. However, we use this option to determine whether
+    // we want to reuse assertions on the solver stack between interpolation
+    // queries.
+    if (value == "true" || value == "1")
+    {
+      incremental_mode = true;
+    }
+    else if (value == "false" || value == "0")
+    {
+      incremental_mode = false;
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "Invalid value for boolean option 'incremental'");
+    }
+    return;
+  }
+  super::set_opt(option, value);
 }
 
 void BzlaInterpolatingSolver::push(uint64_t num)
@@ -798,6 +824,10 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     throw IncorrectUsageException(
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
+  }
+  if (!incremental_mode)
+  {
+    last_itp_query_assertions.clear();
   }
 
   // count how many assertions can be reused

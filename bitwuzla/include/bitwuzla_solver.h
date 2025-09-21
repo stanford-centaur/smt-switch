@@ -187,6 +187,7 @@ class BzlaInterpolatingSolver : public BzlaSolver
   {
     solver_enum = BZLA_INTERPOLATOR;
     options.set(bitwuzla::Option::PRODUCE_INTERPOLANTS, true);
+    incremental_mode = true;
   };
   BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
   BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
@@ -211,6 +212,12 @@ class BzlaInterpolatingSolver : public BzlaSolver
   // (although one can get assertions using `bzla->get_assertions()`,
   // the method does not guarantee that the assertions are in the correct order)
   mutable TermVec last_itp_query_assertions;
+
+  inline static const std::unordered_set<std::string> allowed_options = {
+    "abstraction",       "check-interpolant", "incremental",
+    "interpolants-algo", "interpolants-lift", "preprocess"
+  };
+  bool incremental_mode;
 };
 
 }  // namespace smt
