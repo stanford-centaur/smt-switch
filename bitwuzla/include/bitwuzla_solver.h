@@ -213,9 +213,8 @@ class BzlaInterpolatingSolver : public BzlaSolver
   // the method does not guarantee that the assertions are in the correct order)
   mutable TermVec last_itp_query_assertions;
 
-  inline static const std::unordered_set<std::string> allowed_options = {
-    "abstraction",       "check-interpolant", "incremental",
-    "interpolants-algo", "interpolants-lift", "preprocess"
+  inline static const std::unordered_set<std::string> disallowed_options = {
+    "produce-interpolants"
   };
   bool incremental_mode;
 };

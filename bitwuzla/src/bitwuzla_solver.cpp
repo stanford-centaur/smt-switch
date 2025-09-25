@@ -733,7 +733,7 @@ void BzlaSolver::dump_smt2(std::string filename) const
 void BzlaInterpolatingSolver::set_opt(const std::string option,
                                       const std::string value)
 {
-  if (allowed_options.find(option) == allowed_options.end())
+  if (disallowed_options.find(option) != disallowed_options.end())
   {
     throw IncorrectUsageException(
         "Bitwuzla interpolator does not allow option: " + option);
