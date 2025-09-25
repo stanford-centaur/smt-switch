@@ -337,15 +337,17 @@ Term Cvc5Solver::make_term(std::string val,
     else if (sk == FLOAT32)
     {
       float value = std::stof(val);
-      auto bv = solver.mkBitVector(FPSizes<FLOAT32>::size, *(uint32_t*)&value);
-      c = solver.mkFloatingPoint(
+      auto bv = term_manager->mkBitVector(FPSizes<FLOAT32>::size,
+                                          *(uint32_t *)&value);
+      c = term_manager->mkFloatingPoint(
           FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig, bv);
     }
     else if (sk == FLOAT64)
     {
       double value = std::stod(val);
-      auto bv = solver.mkBitVector(FPSizes<FLOAT64>::size, *(uint64_t*)&value);
-      c = solver.mkFloatingPoint(
+      auto bv = term_manager->mkBitVector(FPSizes<FLOAT64>::size,
+                                          *(uint64_t *)&value);
+      c = term_manager->mkFloatingPoint(
           FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig, bv);
     }
     else
@@ -393,7 +395,7 @@ Term Cvc5Solver::make_term(FPRoundingMode roundingMode) const
       rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY;
       break;
   }
-  return std::make_shared<Cvc5Term>(solver.mkRoundingMode(rm));
+  return std::make_shared<Cvc5Term>(term_manager->mkRoundingMode(rm));
 }
 
 void Cvc5Solver::assert_formula(const Term & t)
