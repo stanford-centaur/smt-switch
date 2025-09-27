@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from Cython.Build import cythonize
 import os
 import sys
@@ -60,12 +58,6 @@ def find_solvers():
 
 # Get Python extension suffix
 ext_filename = "smt_switch" + sysconfig.get_config_var("EXT_SUFFIX")
-
-# Set up package structure
-setup_args = {
-    "packages": ["smt_switch"],
-    "package_data": {"smt_switch": [f"*{lib_ext}"]},
-}
 
 # Handle Cython compilation if the extension hasn't been built yet
 if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
@@ -165,10 +157,8 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
     }
     setup(
         ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
-        **setup_args,
     )
 else:
     setup(
         has_ext_modules=lambda: True,
-        **setup_args,
     )
