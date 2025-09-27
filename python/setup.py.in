@@ -142,11 +142,11 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
     setup(
         ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
         packages=packages,
-        package_data={'': [f'*{lib_ext}']},
+        package_data={'': [f'*{lib_ext}', '*.pxd']},
     )
 else:
     setup(
         packages=packages,
-        package_data={'': [f'*{lib_ext}']},
+        package_data={'': [f'*{lib_ext}', '*.pxd']},
         has_ext_modules=lambda: True,
     )

@@ -30,16 +30,14 @@ Repository = "https://github.com/stanford-centaur/smt-switch.git"
 Issues = "https://github.com/stanford-centaur/smt-switch/issues"
 
 [tool.setuptools]
-include-package-data = true
-
-# Use find namespace directive to automatically discover packages
-# This will only find directories that contain __init__.py files
-[tool.setuptools.packages.find]
-include = ["smt_switch*"]
+packages = ["smt_switch", "smt_switch.pysmt_frontend"]
 
 # This tells setuptools to include all .dylib/.so files found in any package
 [tool.setuptools.package-data]
-"*" = ["*.dylib", "*.so", "*.pxd"]
+"*" = ["*.pxd", "*.pxi", "*.pyx"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.cpp"]
 
 [tool.setuptools.dynamic]
 version = {attr = "smt_switch.__version__"}
