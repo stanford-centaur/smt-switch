@@ -35,7 +35,9 @@ jobs:
       - name: Install Packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          # Remove the largest ones first to free up some space.
+          # Remove some packages first to free up some space.
+          # inspired by https://github.com/marketplace/actions/maximize-build-disk-space
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo apt-get remove \
             azure-cli \
             google-chrome-stable \
@@ -58,7 +60,6 @@ jobs:
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
-
 
       - name: Python Dependencies
         run: |
