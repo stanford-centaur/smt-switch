@@ -17,6 +17,14 @@ else
   export LIBRARY_PATH="$install_libdir:$LIBRARY_PATH"
 fi
 
+# Tell CMake/Meson where the pkg-config files are.
+pkg_config_dir="$install_libdir/pkgconfig"
+if [ -z "${PKG_CONFIG_PATH-}" ]; then
+  export PKG_CONFIG_PATH="$pkg_config_dir"
+else
+  export PKG_CONFIG_PATH="$pkg_config_dir:$PKG_CONFIG_PATH"
+fi
+
 # Tell compilers where the headers of downloaded dependencies are.
 install_includedir="$install_dir/include"
 if [ -z "${C_INCLUDE_PATH-}" ]; then
@@ -40,7 +48,7 @@ else
 fi
 
 # Create directories under deps/.
-mkdir -p "$install_libdir" "$install_includedir"
+mkdir -p "$pkg_config_dir" "$install_includedir"
 
 cd "$deps_dir"
 
