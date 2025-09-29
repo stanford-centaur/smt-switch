@@ -37,10 +37,16 @@ jobs:
         run: |
           # Remove the largest packages to free up some space.
           sudo apt-get autoremove \
+            ant \
             azure-cli \
+            firefox \
             google-chrome-stable \
             google-cloud-cli \
-            microsoft-edge-stable
+            microsoft-edge-stable \
+            temurin-8-jdk \
+            temurin-11-jdk \
+            temurin-17-jdk \
+            temurin-21-jdk
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
