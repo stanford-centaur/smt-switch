@@ -16,12 +16,17 @@
 
 #pragma once
 
+#include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
-#include "assert.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "term.h"
+#include "term_translator.h"
 
 #ifndef NDEBUG
 #define _ASSERTIONS
