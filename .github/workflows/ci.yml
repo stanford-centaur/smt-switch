@@ -35,8 +35,8 @@ jobs:
       - name: Install Packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          # Remove the largest ones first to free up some space.
-          sudo apt-get remove \
+          # Remove the largest packages to free up some space.
+          sudo apt-get autoremove \
             azure-cli \
             google-chrome-stable \
             google-cloud-cli \
