@@ -217,6 +217,8 @@ class BzlaInterpolatingSolver : public BzlaSolver
     "produce-interpolants"
   };
   bool incremental_mode;
+  std::string dump_queries_prefix = "";
+  mutable uint32_t itp_query_count = 0;
 };
 
 }  // namespace smt

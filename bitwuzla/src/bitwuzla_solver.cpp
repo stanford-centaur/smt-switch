@@ -759,6 +759,19 @@ void BzlaInterpolatingSolver::set_opt(const std::string option,
     }
     return;
   }
+  if (option == "dump-queries")
+  {
+    // A special option for dumping interpolation queries to files.
+    // The value is expected to contain a filename prefix.
+    if (value.empty())
+    {
+      throw IncorrectUsageException(
+          "Invalid value for option 'dump-queries', "
+          "expected a non-empty string");
+    }
+    dump_queries_prefix = value;
+    return;
+  }
   super::set_opt(option, value);
 }
 
@@ -856,6 +869,16 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     last_itp_query_assertions.push_back(formulae.at(k));
   }
   assert(formulae == last_itp_query_assertions);
+
+  if (!dump_queries_prefix.empty())
+  {
+    // Note: the dumped query will only include the current assertions
+    std::ofstream out(dump_queries_prefix + "."
+                      + std::to_string(itp_query_count) + ".smt2");
+    get_bitwuzla()->print_formula(out, "smt2");
+    out.close();
+  }
+  itp_query_count++;
 
   // solve query and get interpolants
   bitwuzla::Result bzla_res;
