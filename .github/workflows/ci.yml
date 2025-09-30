@@ -8,7 +8,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         build_type: [release, debug]
-        name:
+        solver:
         - btor
         - bitwuzla
         - cvc5
@@ -18,9 +18,9 @@ jobs:
         include:
           - build_type: debug
             config_opts: --debug
-          - name: msat
+          - solver: msat
             setup_opts: --auto-yes
-    name: ${{ matrix.os }}:${{ matrix.name }}-${{ matrix.build_type }}
+    name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
     runs-on: ${{ matrix.os}}
 
     steps:
@@ -64,12 +64,12 @@ jobs:
           echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
 
       - name: Set up Underlying Solver
-        run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
+        run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
-        run: ./configure.sh --${{ matrix.name }} --python --smtlib-reader --static ${{ matrix.config_opts }}
+        run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.config_opts }}
 
       - name: Build
         run: ninja -C build
@@ -86,7 +86,7 @@ jobs:
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-${{ matrix.name }}${{ matrix.name_suffix }}-test-log-${{ github.run_id }}
+          name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
           path: build/Testing/Temporary/LastTest.log
 
       - name: Fail pipeline due to C++ test failure
