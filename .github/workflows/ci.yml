@@ -36,6 +36,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           # Remove the largest packages to free up some space.
+          ghcup nuke
           sudo apt-get autoremove \
             ant \
             azure-cli \
