@@ -68,19 +68,12 @@ jobs:
         run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
+        env:
+          CMAKE_GENERATOR: Ninja
         run: ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader ${{ matrix.config_opts }}
 
       - name: Build
-        run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            NUM_CORES=$(nproc)
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            NUM_CORES=$(sysctl -n hw.ncpu)
-          else
-            NUM_CORES=2
-          fi
-          cd build
-          make -j$NUM_CORES
+        run: ninja -C build
 
       - name: Install Python bindings
         run: pip install $(ls build/python/*.whl)[pysmt,test]
@@ -88,9 +81,7 @@ jobs:
       - name: Test C++
         id: test-cpp
         continue-on-error: true
-        run: |
-          cd build
-          make test
+        run: ctest --test-dir build
 
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
