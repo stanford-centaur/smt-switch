@@ -20,9 +20,6 @@ jobs:
             extra_python_packages: meson
           - name: msat
             setup_opts: --auto-yes
-          - name: yices2
-            linux_packages: gperf
-            macos_packages: autoconf gperf
           - library_type: static
             name_suffix: -static
             config_opts: --static
@@ -37,16 +34,19 @@ jobs:
         run: ghcup nuke
 
       - name: Install Packages (Linux)
-        if: runner.os == 'Linux' && matrix.linux_packages
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ${{ matrix.linux_packages }}
+          sudo apt-get install -y \
+            gperf
 
       - name: Install Packages (macOS)
-        if: runner.os == 'macOS' && matrix.macos_packages
+        if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ${{ matrix.macos_packages }}
+          brew install \
+            autoconf \
+            gperf
 
       - name: Fix Homebrew paths (macOS)
         if: runner.os == 'macOS'
