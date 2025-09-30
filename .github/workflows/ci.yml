@@ -46,6 +46,7 @@ jobs:
           brew update
           brew install \
             autoconf \
+            bison \
             gperf
 
       - name: Fix Homebrew paths (macOS)
@@ -54,7 +55,7 @@ jobs:
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
-
+          echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH" >> "$GITHUB_ENV"
 
       - name: Python Dependencies
         run: |
@@ -64,13 +65,6 @@ jobs:
             packaging \
             ${{ matrix.extra_python_packages }}
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
-
-      - name: Install Bison
-        run: ./contrib/setup-bison.sh
-
-      - name: Install Flex (macOS)
-        if: runner.os == 'macOS'
-        run: ./contrib/setup-flex.sh
 
       - name: Setup Underlying Solver
         run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
