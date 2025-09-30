@@ -21,7 +21,7 @@ jobs:
           - name: msat
             setup_opts: --auto-yes
           - name: yices2
-            extra_linux_packages: gperf
+            linux_packages: gperf
             macos_packages: autoconf gperf
           - library_type: static
             name_suffix: -static
@@ -39,12 +39,10 @@ jobs:
           sudo rm -rf /usr/local/lib/android
 
       - name: Install Packages (Linux)
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.linux_packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            cmake \
-            ${{ matrix.extra_linux_packages }}
+          sudo apt-get install -y ${{ matrix.linux_packages }}
 
       - name: Install Packages (macOS)
         if: runner.os == 'macOS' && matrix.macos_packages
