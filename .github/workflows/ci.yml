@@ -37,6 +37,7 @@ jobs:
         run: |
           # Remove the largest packages to free up some space.
           ghcup nuke
+          sudo rm -rf /usr/local/lib/android
           sudo apt-get autoremove \
             ant \
             azure-cli \
