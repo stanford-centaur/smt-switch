@@ -7,6 +7,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        build_type: [release, debug]
         name:
         - btor
         - bitwuzla
@@ -15,9 +16,11 @@ jobs:
         - yices2
         - z3
         include:
+          - build_type: debug
+            config_opts: --debug
           - name: msat
             setup_opts: --auto-yes
-    name: ${{ matrix.os }}:${{ matrix.name }}
+    name: ${{ matrix.os }}:${{ matrix.name }}-${{ matrix.build_type }}
     runs-on: ${{ matrix.os}}
 
     steps:
@@ -66,7 +69,7 @@ jobs:
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
-        run: ./configure.sh --${{ matrix.name }} --static --debug --python --smtlib-reader
+        run: ./configure.sh --${{ matrix.name }} --python --smtlib-reader --static ${{ matrix.config_opts }}
 
       - name: Build
         run: ninja -C build
