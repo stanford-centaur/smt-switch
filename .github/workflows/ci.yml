@@ -32,23 +32,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free up disk space (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          ghcup nuke
+          sudo rm -rf /usr/local/lib/android
+
       - name: Install Packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          # Remove the largest packages to free up some space.
-          ghcup nuke
-          sudo rm -rf /usr/local/lib/android
-          sudo apt-get autoremove \
-            ant \
-            azure-cli \
-            firefox \
-            google-chrome-stable \
-            google-cloud-cli \
-            microsoft-edge-stable \
-            temurin-8-jdk \
-            temurin-11-jdk \
-            temurin-17-jdk \
-            temurin-21-jdk
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
