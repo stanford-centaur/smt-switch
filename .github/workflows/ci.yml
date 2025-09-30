@@ -32,11 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free up disk space (Linux)
+      - name: Remove GHC to free up disk space (Linux)
         if: runner.os == 'Linux'
-        run: |
-          ghcup nuke
-          sudo rm -rf /usr/local/lib/android
+        run: ghcup nuke
 
       - name: Install Packages (Linux)
         if: runner.os == 'Linux' && matrix.linux_packages
