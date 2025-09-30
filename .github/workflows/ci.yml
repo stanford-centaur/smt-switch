@@ -82,6 +82,9 @@ jobs:
           cd build
           make -j$NUM_CORES
 
+      - name: Install Python bindings
+        run: pip install $(ls build/python/*.whl)[pysmt,test]
+
       - name: Test C++
         id: test-cpp
         continue-on-error: true
@@ -102,8 +105,5 @@ jobs:
           echo "C++ tests failed. Inspect the artifact for details."
           exit 1
 
-      - name: Install and test Python Bindings
-        run: |
-          python3 -m pip install $(ls build/python/*.whl)[pysmt,test]
-          cd tests/python
-          pytest
+      - name: Test Python Bindings
+        run: pytest tests/python
