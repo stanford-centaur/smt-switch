@@ -30,7 +30,7 @@ jobs:
         if: runner.os == 'Linux'
         run: ghcup nuke
 
-      - name: Install Packages (Linux)
+      - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -39,7 +39,7 @@ jobs:
             meson \
             python3-packaging
 
-      - name: Install Packages (macOS)
+      - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
           brew update
@@ -63,7 +63,7 @@ jobs:
           python3 -m venv .venv --system-site-packages
           echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Set up Underlying Solver
+      - name: Set up underlying solver
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
@@ -95,5 +95,5 @@ jobs:
           echo "C++ tests failed. Inspect the artifact for details."
           exit 1
 
-      - name: Test Python Bindings
+      - name: Test Python bindings
         run: pytest tests/python
