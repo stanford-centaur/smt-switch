@@ -49,10 +49,6 @@ jobs:
             gperf \
             meson \
             python-packaging
-
-      - name: Fix Homebrew paths (macOS)
-        if: runner.os == 'macOS'
-        run: |
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
