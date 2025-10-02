@@ -14,12 +14,12 @@
 **
 **/
 
-#include <iostream>
+#include "solver_enums.h"
+
 #include <sstream>
 #include <unordered_map>
 
 #include "exceptions.h"
-#include "solver_enums.h"
 
 using namespace std;
 
@@ -41,11 +41,7 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             CONSTARR,
             UNSAT_CORE,
             THEORY_BV,
-            // TEMP only temporarily disabled until bitwuzla
-            //      quantifier refactoring is done
-            //      see
-            //      https://github.com/bitwuzla/bitwuzla/commit/605f31557ec6c635e3c617d2b0ab257309e994c4
-            // QUANTIFIERS,
+            QUANTIFIERS,
             BOOL_BV1_ALIASING,
             TIMELIMIT } },
 

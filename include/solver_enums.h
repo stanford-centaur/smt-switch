@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <ostream>
+#include <string>
 #include <unordered_set>
 
 namespace smt {
