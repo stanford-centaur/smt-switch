@@ -33,5 +33,10 @@ class BitwuzlaSolverFactory
    *  @return a Bitwuzla SmtSolver
    */
   static SmtSolver create(bool logging);
+
+  /** Create an interpolating Bitwuzla SmtSolver
+   *  @return an interpolating Bitwuzla SmtSolver
+   */
+  static SmtSolver create_interpolating_solver();
 };
 }  // namespace smt
