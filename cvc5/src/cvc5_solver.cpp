@@ -121,7 +121,39 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       { Exists, ::cvc5::Kind::EXISTS },
       { Apply_Selector, ::cvc5::Kind::APPLY_SELECTOR },
       { Apply_Tester, ::cvc5::Kind::APPLY_TESTER },
-      { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR } });
+      { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR },
+      { FPEq, ::cvc5::Kind::FLOATINGPOINT_EQ },
+      { FPAbs, ::cvc5::Kind::FLOATINGPOINT_ABS },
+      { FPNeg, ::cvc5::Kind::FLOATINGPOINT_NEG },
+      { FPAdd, ::cvc5::Kind::FLOATINGPOINT_ADD },
+      { FPSub, ::cvc5::Kind::FLOATINGPOINT_SUB },
+      { FPMul, ::cvc5::Kind::FLOATINGPOINT_MULT },
+      { FPDiv, ::cvc5::Kind::FLOATINGPOINT_DIV },
+      { FPFma, ::cvc5::Kind::FLOATINGPOINT_FMA },
+      { FPSqrt, ::cvc5::Kind::FLOATINGPOINT_SQRT },
+      { FPRem, ::cvc5::Kind::FLOATINGPOINT_REM },
+      { FPRti, ::cvc5::Kind::FLOATINGPOINT_RTI },
+      { FPMin, ::cvc5::Kind::FLOATINGPOINT_MIN },
+      { FPMax, ::cvc5::Kind::FLOATINGPOINT_MAX },
+      { FPLeq, ::cvc5::Kind::FLOATINGPOINT_LEQ },
+      { FPLt, ::cvc5::Kind::FLOATINGPOINT_LT },
+      { FPGeq, ::cvc5::Kind::FLOATINGPOINT_GEQ },
+      { FPGt, ::cvc5::Kind::FLOATINGPOINT_GT },
+      { FPIsNormal, ::cvc5::Kind::FLOATINGPOINT_IS_NORMAL },
+      { FPIsSubNormal, ::cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL },
+      { FPIsZero, ::cvc5::Kind::FLOATINGPOINT_IS_ZERO },
+      { FPIsInf, ::cvc5::Kind::FLOATINGPOINT_IS_INF },
+      { FPIsNan, ::cvc5::Kind::FLOATINGPOINT_IS_NAN },
+      { FPIsNeg, ::cvc5::Kind::FLOATINGPOINT_IS_NEG },
+      { FPIsPos, ::cvc5::Kind::FLOATINGPOINT_IS_POS },
+      { IEEEBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV },
+      { FP_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP },
+      { Real_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL },
+      { SBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV },
+      { UBV_To_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV },
+      { FP_To_UBV, ::cvc5::Kind::FLOATINGPOINT_TO_UBV },
+      { FP_To_SBV, ::cvc5::Kind::FLOATINGPOINT_TO_SBV },
+      { FP_To_REAL, ::cvc5::Kind::FLOATINGPOINT_TO_REAL } });
 
 /* Cvc5Solver implementation */
 
@@ -302,6 +334,22 @@ Term Cvc5Solver::make_term(std::string val,
     {
       c = term_manager->mkBitVector(sort->get_width(), val, base);
     }
+    else if (sk == FLOAT32)
+    {
+      float value = std::stof(val);
+      auto bv = term_manager->mkBitVector(FPSizes<FLOAT32>::size,
+                                          *(uint32_t *)&value);
+      c = term_manager->mkFloatingPoint(
+          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig, bv);
+    }
+    else if (sk == FLOAT64)
+    {
+      double value = std::stod(val);
+      auto bv = term_manager->mkBitVector(FPSizes<FLOAT64>::size,
+                                          *(uint64_t *)&value);
+      c = term_manager->mkFloatingPoint(
+          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig, bv);
+    }
     else
     {
       std::string msg = "Can't create constant with integer for sort ";
@@ -324,6 +372,30 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
   std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
   ::cvc5::Term const_arr = term_manager->mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
+}
+
+Term Cvc5Solver::make_term(FPRoundingMode roundingMode) const
+{
+  auto rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+  switch (roundingMode)
+  {
+    case FPRoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+      rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_POSITIVE:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_POSITIVE;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_NEGATIVE:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE;
+      break;
+    case FPRoundingMode::ROUND_TOWARD_ZERO:
+      rm = cvc5::RoundingMode::ROUND_TOWARD_ZERO;
+      break;
+    case FPRoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+      rm = cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY;
+      break;
+  }
+  return std::make_shared<Cvc5Term>(term_manager->mkRoundingMode(rm));
 }
 
 void Cvc5Solver::assert_formula(const Term & t)
@@ -566,6 +638,16 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
     else if (sk == STRING)
     {
       return std::make_shared<Cvc5Sort>(term_manager->getStringSort());
+    }    
+    else if (sk == FLOAT32)
+    {
+      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
+          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig));
+    }
+    else if (sk == FLOAT64)
+    {
+      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
+          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig));
     }
     else
     {
