@@ -35,7 +35,7 @@ function(parse_version_string VERSION_STR)
 endfunction()
 
 # Look up the current version in the VERSION file
-file(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" VERSION_LINES)
+file(STRINGS "${PROJECT_SOURCE_DIR}/VERSION" VERSION_LINES)
 # Process lines until we find a non-comment line and assume that's the version
 foreach(LINE IN LISTS VERSION_LINES)
     # Skip empty lines and comments
