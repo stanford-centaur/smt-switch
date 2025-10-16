@@ -1251,7 +1251,10 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void Z3Solver::reset() { slv.reset(); }
+void Z3Solver::reset() { 
+  slv.reset();
+  symbol_table.clear();
+}
 
 void Z3Solver::reset_assertions() { slv.reset(); }
 
