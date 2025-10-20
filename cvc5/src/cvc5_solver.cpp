@@ -649,6 +649,10 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
       return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
           FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig));
     }
+    else if (sk == ROUNDINGMODE)
+    {
+      return std::make_shared<Cvc5Sort>(term_manager->getRoundingModeSort());
+    }
     else
     {
       std::string msg("Can't create sort with sort constructor ");
