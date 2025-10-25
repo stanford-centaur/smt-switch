@@ -398,6 +398,37 @@ Term Cvc5Solver::make_term(FPRoundingMode roundingMode) const
   return std::make_shared<Cvc5Term>(term_manager->mkRoundingMode(rm));
 }
 
+Term Cvc5Solver::make_term(FPSpecialValue val, const Sort & sort) const
+{
+  assert(sort->get_sort_kind() == FLOAT32 || sort->get_sort_kind() == FLOAT64);
+
+  auto exp = sort->get_sort_kind() == FLOAT32 ? FPSizes<FLOAT32>::exp
+                                              : FPSizes<FLOAT64>::exp;
+  auto sig = sort->get_sort_kind() == FLOAT32 ? FPSizes<FLOAT32>::sig
+                                              : FPSizes<FLOAT64>::sig;
+
+  cvc5::Term result;
+  switch (val)
+  {
+    case FPSpecialValue::POS_INFINITY:
+      result = term_manager->mkFloatingPointPosInf(exp, sig);
+      break;
+    case FPSpecialValue::NEG_INFINITY:
+      result = term_manager->mkFloatingPointNegInf(exp, sig);
+      break;
+    case FPSpecialValue::NOT_A_NUMBER:
+      result = term_manager->mkFloatingPointNaN(exp, sig);
+      break;
+    case FPSpecialValue::POS_ZERO:
+      result = term_manager->mkFloatingPointPosZero(exp, sig);
+      break;
+    case FPSpecialValue::NEG_ZERO:
+      result = term_manager->mkFloatingPointNegZero(exp, sig);
+      break;
+  }
+  return std::make_shared<Cvc5Term>(result);
+}
+
 void Cvc5Solver::assert_formula(const Term & t)
 {
   try

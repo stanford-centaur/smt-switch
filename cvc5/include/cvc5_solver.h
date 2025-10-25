@@ -94,6 +94,7 @@ class Cvc5Solver : public AbsSmtSolver
                  std::uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_term(FPRoundingMode roundingMode) const override;
+  Term make_term(FPSpecialValue val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;

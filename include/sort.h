@@ -87,6 +87,15 @@ enum class FPRoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
+enum class FPSpecialValue
+{
+  POS_INFINITY,
+  NEG_INFINITY,
+  NOT_A_NUMBER,
+  POS_ZERO,
+  NEG_ZERO,
+};
+
 std::string to_string(SortKind);
 
 /**
