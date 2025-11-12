@@ -8,26 +8,15 @@ contrib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 smt_switch_dir="$(dirname "$contrib_dir")"
 deps_dir="$smt_switch_dir/deps"
 install_dir="$deps_dir/install"
-
-# Tell linkers where the library files of downloaded dependencies are.
 install_libdir="$install_dir/lib"
-if [ -z "${LIBRARY_PATH-}" ]; then
-  export LIBRARY_PATH="$install_libdir"
-else
-  export LIBRARY_PATH="$install_libdir:$LIBRARY_PATH"
-fi
-
-# Tell compilers where the headers of downloaded dependencies are.
 install_includedir="$install_dir/include"
-if [ -z "${C_INCLUDE_PATH-}" ]; then
-  export C_INCLUDE_PATH="$install_includedir"
+
+# Tell CMake/Meson where the pkg-config files are.
+pkg_config_dir="$install_libdir/pkgconfig"
+if [ -z "${PKG_CONFIG_PATH-}" ]; then
+  export PKG_CONFIG_PATH="$pkg_config_dir"
 else
-  export C_INCLUDE_PATH="$install_includedir:$C_INCLUDE_PATH"
-fi
-if [ -z "${CPLUS_INCLUDE_PATH-}" ]; then
-  export CPLUS_INCLUDE_PATH="$install_includedir"
-else
-  export CPLUS_INCLUDE_PATH="$install_includedir:$CPLUS_INCLUDE_PATH"
+  export PKG_CONFIG_PATH="$pkg_config_dir:$PKG_CONFIG_PATH"
 fi
 
 # Get the number of CPUs for parallel builds.
@@ -40,7 +29,7 @@ else
 fi
 
 # Create directories under deps/.
-mkdir -p "$install_libdir" "$install_includedir"
+mkdir -p "$pkg_config_dir" "$install_includedir"
 
 cd "$deps_dir"
 
