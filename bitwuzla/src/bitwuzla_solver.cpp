@@ -904,16 +904,16 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   assert(bzla_res == bitwuzla::Result::UNSAT);
 
   Result r = Result(UNSAT);
-  for (size_t i = 1; i < formulae.size(); ++i)
+  std::vector<std::vector<bitwuzla::Term>> partitions;
+  for (size_t i = 0, n = formulae.size() - 1; i < n; ++i)
   {
-    std::vector<bitwuzla::Term> partition;
-    partition.reserve(i);
-    for (size_t j = 0; j < i; ++j)
-    {
-      partition.push_back(
-          std::static_pointer_cast<BzlaTerm>(formulae.at(j))->term);
-    }
-    bitwuzla::Term itp = get_bitwuzla()->get_interpolant(partition);
+    partitions.push_back(
+        { std::static_pointer_cast<BzlaTerm>(formulae.at(i))->term });
+  }
+  const std::vector<bitwuzla::Term> itps =
+      get_bitwuzla()->get_interpolants(partitions);
+  for (const auto & itp : itps)
+  {
     if (itp.is_null())
     {
       Term nullterm;
