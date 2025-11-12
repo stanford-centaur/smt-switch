@@ -7,8 +7,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        library_type: [dynamic, static]
-        name:
+        build_type: [release, debug]
+        solver:
         - btor
         - bitwuzla
         - cvc5
@@ -16,95 +16,73 @@ jobs:
         - yices2
         - z3
         include:
-          - name: bitwuzla
-            extra_python_packages: meson
-          - name: msat
+          - build_type: debug
+            config_opts: --debug
+          - solver: msat
             setup_opts: --auto-yes
-          - name: yices2
-            linux_packages: gperf
-            macos_packages: autoconf gperf
-          - library_type: static
-            name_suffix: -static
-            config_opts: --static
-    name: ${{ matrix.os }}:${{ matrix.name }}${{ matrix.name_suffix }}
+    name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
     runs-on: ${{ matrix.os}}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free up disk space (Linux)
+      - name: Remove GHC to free up disk space (Linux)
+        if: runner.os == 'Linux'
+        run: ghcup nuke
+
+      - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          ghcup nuke
-          sudo rm -rf /usr/local/lib/android
-
-      - name: Install Packages (Linux)
-        if: runner.os == 'Linux' && matrix.linux_packages
-        run: |
           sudo apt-get update
-          sudo apt-get install -y ${{ matrix.linux_packages }}
+          sudo apt-get install -y \
+            gperf \
+            meson \
+            python3-packaging
 
-      - name: Install Packages (macOS)
-        if: runner.os == 'macOS' && matrix.macos_packages
-        run: |
-          brew update
-          brew install ${{ matrix.macos_packages }}
-
-      - name: Fix Homebrew paths (macOS)
+      - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
+          brew update
+          brew install \
+            autoconf \
+            bison \
+            gperf \
+            meson \
+            python-packaging
           echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
+          echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH" >> "$GITHUB_ENV"
 
-
-      - name: Python Dependencies
+      - name: Set up Python virtual environment
         run: |
-          python3 -m venv ./.venv
-          source ./.venv/bin/activate
-          python3 -m pip install \
-            packaging \
-            ${{ matrix.extra_python_packages }}
-          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          python3 -m venv .venv --system-site-packages
+          echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Install Bison
-        run: ./contrib/setup-bison.sh
-
-      - name: Install Flex (macOS)
-        if: runner.os == 'macOS'
-        run: ./contrib/setup-flex.sh
-
-      - name: Setup Underlying Solver
-        run: ./ci-scripts/setup-${{ matrix.name }}.sh ${{ matrix.setup_opts }}
+      - name: Set up underlying solver
+        run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
-        run: source ./.venv/bin/activate && ./configure.sh --${{ matrix.name }} --debug --python --smtlib-reader ${{ matrix.config_opts }}
+        env:
+          CMAKE_GENERATOR: Ninja
+        run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.config_opts }}
 
       - name: Build
-        run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            NUM_CORES=$(nproc)
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            NUM_CORES=$(sysctl -n hw.ncpu)
-          else
-            NUM_CORES=2
-          fi
-          source ./.venv/bin/activate
-          cd build
-          make -j$NUM_CORES
+        run: ninja -C build
+
+      - name: Install Python bindings
+        run: pip install $(ls build/python/*.whl)[pysmt,test]
 
       - name: Test C++
         id: test-cpp
         continue-on-error: true
-        run: |
-          cd build
-          make test
+        run: ctest --test-dir build
 
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-${{ matrix.name }}${{ matrix.name_suffix }}-test-log-${{ github.run_id }}
+          name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
           path: build/Testing/Temporary/LastTest.log
 
       - name: Fail pipeline due to C++ test failure
@@ -113,9 +91,5 @@ jobs:
           echo "C++ tests failed. Inspect the artifact for details."
           exit 1
 
-      - name: Install and test Python Bindings
-        run: |
-          source ./.venv/bin/activate
-          python3 -m pip install $(ls build/python/*.whl)[pysmt,test]
-          cd tests/python
-          pytest
+      - name: Test Python bindings
+        run: pytest tests/python
