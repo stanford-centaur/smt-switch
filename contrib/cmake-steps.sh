@@ -10,7 +10,7 @@ configure_step() {
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     -DCMAKE_PREFIX_PATH="$install_dir"
   )
-  cmake -S . -B build "${cmake_options[@]}"
+  cmake --no-warn-unused-cli -S . -B build "${cmake_options[@]}"
 }
 
 build_step() {
