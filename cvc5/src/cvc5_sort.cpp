@@ -162,6 +162,27 @@ SortKind Cvc5Sort::get_sort_kind() const
   {
     return TESTER;
   }
+  else if (sort.isFloatingPoint())
+  {
+    if (sort.getFloatingPointExponentSize() == FPSizes<FLOAT32>::exp
+        && sort.getFloatingPointSignificandSize() == FPSizes<FLOAT32>::sig)
+    {
+      return FLOAT32;
+    }
+    else if (sort.getFloatingPointExponentSize() == FPSizes<FLOAT64>::exp
+             && sort.getFloatingPointSignificandSize() == FPSizes<FLOAT64>::sig)
+    {
+      return FLOAT64;
+    }
+    else
+    {
+      throw NotImplementedException("Unknown kind in cvc5 translation.");
+    }
+  }
+  else if (sort.isRoundingMode())
+  {
+    return ROUNDINGMODE;
+  }
   else
   {
     throw NotImplementedException("Unknown kind in cvc5 translation.");
