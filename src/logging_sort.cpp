@@ -16,19 +16,26 @@
 
 #include "logging_sort.h"
 
-using namespace std;
+#include <cstddef>
+#include <memory>
+#include <string>
+
+#include "exceptions.h"
+#include "sort.h"
 
 namespace smt {
 
 /* Helper functions */
 
-Sort make_uninterpreted_logging_sort(Sort s, string name, uint64_t arity)
+Sort make_uninterpreted_logging_sort(Sort s,
+                                     std::string name,
+                                     std::uint64_t arity)
 {
   return std::make_shared<UninterpretedLoggingSort>(s, name, arity);
 }
 
 Sort make_uninterpreted_logging_sort(Sort s,
-                                     string name,
+                                     std::string name,
                                      const SortVec & sorts)
 {
   // sort has zero arity after being constructed
@@ -44,12 +51,12 @@ Sort make_logging_sort(SortKind sk, Sort s)
   return std::make_shared<LoggingSort>(sk, s);
 }
 
-Sort make_logging_sort(SortKind sk, Sort s, uint64_t width)
+Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width)
 {
   if (sk != BV)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk)
-                                  + " and " + ::std::to_string(width));
+                                  + " and " + std::to_string(width));
   }
   return std::make_shared<BVLoggingSort>(s, width);
 }
@@ -136,17 +143,17 @@ bool LoggingSort::compare(const Sort & s) const
     case BOOL:
     case INT:
     case REAL:
-    case STRING: { return true;
+    case STRING: {
+      return true;
     }
-    case BV: { return get_width() == s->get_width();
+    case BV: {
+      return get_width() == s->get_width();
     }
-    case ARRAY:
-    {
+    case ARRAY: {
       return (get_indexsort() == s->get_indexsort())
              && (get_elemsort() == s->get_elemsort());
     }
-    case FUNCTION:
-    {
+    case FUNCTION: {
       SortVec domain_sorts = get_domain_sorts();
       SortVec other_domain_sorts = s->get_domain_sorts();
       Sort return_sort = get_codomain_sort();
@@ -158,7 +165,7 @@ bool LoggingSort::compare(const Sort & s) const
         return false;
       }
 
-      for (size_t i = 0; i < domain_sorts.size(); i++)
+      for (std::size_t i = 0; i < domain_sorts.size(); i++)
       {
         if (domain_sorts[i] != other_domain_sorts[i])
         {
@@ -168,20 +175,17 @@ bool LoggingSort::compare(const Sort & s) const
 
       return true;
     }
-    case UNINTERPRETED:
-    {
+    case UNINTERPRETED: {
       return get_uninterpreted_name() == s->get_uninterpreted_name();
     }
-    case DATATYPE:
-    {
+    case DATATYPE: {
       throw NotImplementedException("LoggingSort::compare");
     }
     case NUM_SORT_KINDS: {
       // null sorts should not be equal
       return false;
     }
-    default:
-    {
+    default: {
       // this code should be unreachable
       throw SmtException(
           "Hit default case in LoggingSort comparison -- missing case for "
@@ -193,18 +197,18 @@ bool LoggingSort::compare(const Sort & s) const
 
 // dispatched to underlying sort
 
-size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
+std::size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
 
 // BVLoggingSort
 
-BVLoggingSort::BVLoggingSort(Sort s, uint64_t width)
+BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t width)
     : super(BV, s), width(width)
 {
 }
 
 BVLoggingSort::~BVLoggingSort() {}
 
-uint64_t BVLoggingSort::get_width() const { return width; }
+std::uint64_t BVLoggingSort::get_width() const { return width; }
 
 // ArrayLoggingSort
 
@@ -228,16 +232,15 @@ FunctionLoggingSort::FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort)
 
 FunctionLoggingSort::~FunctionLoggingSort() {}
 
-SortVec FunctionLoggingSort::get_domain_sorts() const
-{
-  return domain_sorts;
-}
+SortVec FunctionLoggingSort::get_domain_sorts() const { return domain_sorts; }
 
 Sort FunctionLoggingSort::get_codomain_sort() const { return codomain_sort; }
 
 // UninterpretedLoggingSort
 
-UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s, string n, uint64_t a)
+UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
+                                                   std::string n,
+                                                   std::uint64_t a)
     // non-zero arity means it's a sort constructor
     // otherwise it's just an uninterpreted sort
     : super(a ? UNINTERPRETED_CONS : UNINTERPRETED, s), name(n), arity(a)
@@ -245,8 +248,8 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s, string n, uint64_t a)
 }
 
 UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
-                                                   string n,
-                                                   uint64_t a,
+                                                   std::string n,
+                                                   std::uint64_t a,
                                                    const SortVec & sorts)
     : super(UNINTERPRETED, s), name(n), arity(a), param_sorts(sorts)
 {
@@ -259,7 +262,7 @@ std::string UninterpretedLoggingSort::get_uninterpreted_name() const
   return name;
 }
 
-size_t UninterpretedLoggingSort::get_arity() const { return arity; }
+std::size_t UninterpretedLoggingSort::get_arity() const { return arity; }
 
 SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 {

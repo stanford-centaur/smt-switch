@@ -16,6 +16,8 @@
 #pragma once
 
 #include "identity_walker.h"
+#include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 // class for doing substitutions
@@ -26,7 +28,6 @@ namespace smt {
 class SubstitutionWalker : public IdentityWalker
 {
  public:
-  SubstitutionWalker(const smt::SmtSolver & solver,
-                     const smt::UnorderedTermMap & smap);
+  SubstitutionWalker(const SmtSolver & solver, const UnorderedTermMap & smap);
 };
 }  // namespace smt

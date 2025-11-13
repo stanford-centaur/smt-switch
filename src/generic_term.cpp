@@ -16,22 +16,27 @@
 
 #include "generic_term.h"
 
-#include "exceptions.h"
-#include "utils.h"
+#include <cstdint>
+#include <memory>
+#include <string>
 
-using namespace std;
+#include "exceptions.h"
+#include "smt_defs.h"
+#include "sort.h"
+#include "term.h"
+#include "utils.h"
 
 namespace smt {
 
 /* GenericTerm */
 
-GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r)
+GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
     : sort(s), op(o), children(c), repr(r), is_sym(false), is_par(false)
 {
   ground = compute_ground();
 }
 
-GenericTerm::GenericTerm(Sort s, Op o, TermVec c, string r, bool is_sym)
+GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym)
     : sort(s),
       op(o),
       children(c),
@@ -54,7 +59,8 @@ bool GenericTerm::compute_ground()
   // is not ground.
   for (Term child : get_children())
   {
-    shared_ptr<GenericTerm> gc = static_pointer_cast<GenericTerm>(child);
+    std::shared_ptr<GenericTerm> gc =
+        std::static_pointer_cast<GenericTerm>(child);
     // This is not a recursive call -- is_ground is
     // just a getter. Their `ground` member
     // was initialized upon their construction.
@@ -87,19 +93,19 @@ bool GenericTerm::compare(const Term & t) const
     // The null term is different than any constructed term.
     return false;
   }
-  shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(t);
+  std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(t);
   // The comparison is based on a string comparison
   return repr == gt->to_string();
 }
 
-string GenericTerm::compute_string() const
+std::string GenericTerm::compute_string() const
 {
   if (!repr.empty())
   {
     return repr;
   }
   Assert(!op.is_null());
-  string result = "(";
+  std::string result = "(";
   result += op.to_string();
   for (auto c : children)
   {
@@ -132,7 +138,7 @@ TermIter GenericTerm::end()
   return TermIter(new GenericTermIter(children.end()));
 }
 
-string GenericTerm::to_string()
+std::string GenericTerm::to_string()
 {
   if (repr.empty())
   {
@@ -141,7 +147,7 @@ string GenericTerm::to_string()
   return repr;
 }
 
-size_t GenericTerm::hash() const { return str_hash(compute_string()); }
+std::size_t GenericTerm::hash() const { return str_hash(compute_string()); }
 
 // check if op is null because a non-value
 // may have been simplified to a value by the underlying solver
@@ -152,11 +158,12 @@ bool GenericTerm::is_value() const
 
 bool GenericTerm::is_ground() const { return ground; }
 
-uint64_t GenericTerm::to_int() const { 
+std::uint64_t GenericTerm::to_int() const
+{
   Assert(repr.at(0) == '#');
-  Assert(repr.at(1)  == 'b');
+  Assert(repr.at(1) == 'b');
   std::string bit_string = repr.substr(2, repr.size() - 1);
-  uint64_t result = std::stoi(bit_string, 0, 2);
+  std::uint64_t result = std::stoi(bit_string, 0, 2);
   return result;
 }
 

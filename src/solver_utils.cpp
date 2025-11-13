@@ -14,21 +14,26 @@
 **
 **/
 
-#include "assert.h"
-
 #include "solver_utils.h"
+
+#include <cassert>
+#include <cstddef>
+
+#include "ops.h"
+#include "solver.h"
+#include "term.h"
 
 namespace smt {
 
 Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms)
 {
-  size_t size = terms.size();
+  std::size_t size = terms.size();
   assert(size);
 
   TermVec pairs;
-  for (size_t i = 0; i < terms.size(); ++i)
+  for (std::size_t i = 0; i < terms.size(); ++i)
   {
-    for (size_t j = 0; j < terms.size(); ++j)
+    for (std::size_t j = 0; j < terms.size(); ++j)
     {
       if (i != j)
       {

@@ -16,8 +16,15 @@
 
 #include "solver.h"
 
-#include "assert.h"
+#include <cassert>
+#include <cstddef>
+
 #include "exceptions.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver_enums.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 
@@ -119,7 +126,7 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
   // interpolant the solver will likely use the same proof and just manipulate
   // it to get each sequence interpolant
 
-  size_t formulae_size = formulae.size();
+  std::size_t formulae_size = formulae.size();
   if (formulae_size < 2)
   {
     throw IncorrectUsageException(

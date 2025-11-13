@@ -15,9 +15,14 @@
 
 #include "sorting_network.h"
 
-#include <assert.h>
+#include <cassert>
+#include <cstddef>
 
 #include "exceptions.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 
@@ -58,8 +63,8 @@ TermVec SortingNetwork::sort_two(const Term & t1, const Term & t2) const
 TermVec SortingNetwork::merge(const TermVec & sorted1,
                               const TermVec & sorted2) const
 {
-  size_t len1 = sorted1.size();
-  size_t len2 = sorted2.size();
+  std::size_t len1 = sorted1.size();
+  std::size_t len2 = sorted2.size();
 
   if (len1 == 0)
   {
@@ -86,7 +91,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
   TermVec even_sorted1;
   TermVec odd_sorted1;
 
-  for (size_t i = 0; i < len1; ++i)
+  for (std::size_t i = 0; i < len1; ++i)
   {
     if (i % 2 == 0)
     {
@@ -101,7 +106,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
   TermVec even_sorted2;
   TermVec odd_sorted2;
 
-  for (size_t i = 0; i < len2; ++i)
+  for (std::size_t i = 0; i < len2; ++i)
   {
     if (i % 2 == 0)
     {
@@ -115,8 +120,8 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
   TermVec res_even = merge(even_sorted1, even_sorted2);
   TermVec res_odd = merge(odd_sorted1, odd_sorted2);
-  size_t len_res_even = res_even.size();
-  size_t len_res_odd = res_odd.size();
+  std::size_t len_res_even = res_even.size();
+  std::size_t len_res_odd = res_odd.size();
 
   TermVec res;
   res.reserve(len1 + len2);
@@ -132,7 +137,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
     Term first_res_odd = res_odd[0];
     res.push_back(first_res_odd);
-    for (size_t i = 0; i < len_res_odd - 1; ++i)
+    for (std::size_t i = 0; i < len_res_odd - 1; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
       assert(two_sorted.size() == 2);
@@ -153,7 +158,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
     //   processed down to the base case of merge
     Term first_res_odd = res_odd[0];
     res.push_back(first_res_odd);
-    for (size_t i = 0; i < len_res_even; ++i)
+    for (std::size_t i = 0; i < len_res_even; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
       assert(two_sorted.size() == 2);
@@ -175,7 +180,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
     Term last_res_odd = res_odd.back();
 
     res.push_back(first_res_odd);
-    for (size_t i = 0; i < len_res_even; ++i)
+    for (std::size_t i = 0; i < len_res_even; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
       assert(two_sorted.size() == 2);
@@ -198,7 +203,7 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
 TermVec SortingNetwork::sorting_network_rec(const TermVec & unsorted) const
 {
-  size_t len = unsorted.size();
+  std::size_t len = unsorted.size();
   if (len == 1)
   {
     return unsorted;
@@ -208,7 +213,7 @@ TermVec SortingNetwork::sorting_network_rec(const TermVec & unsorted) const
     return sort_two(unsorted[0], unsorted[1]);
   }
 
-  size_t pivot = len / 2;
+  std::size_t pivot = len / 2;
   auto begin = unsorted.begin();
   TermVec left_vec(begin, begin + pivot);
   TermVec right_vec(begin + pivot, unsorted.end());

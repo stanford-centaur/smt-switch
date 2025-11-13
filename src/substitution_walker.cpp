@@ -15,11 +15,12 @@
 
 #include "substitution_walker.h"
 
+#include "exceptions.h"
+
 namespace smt {
 
 SubstitutionWalker::SubstitutionWalker(
-    const smt::SmtSolver & solver,
-    const smt::UnorderedTermMap & substitution_map)
+    const SmtSolver & solver, const UnorderedTermMap & substitution_map)
     : IdentityWalker(solver, false)
 {
   // pre-populate the cache with substitutions

@@ -18,10 +18,8 @@
 
 #include <unordered_set>
 
-#include "assert.h"
-#include "generic_sort.h"
-#include "ops.h"
-#include "solver.h"
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
 
 namespace smt {
@@ -92,7 +90,7 @@ bool check_quantifier_terms(const TermVec & terms);
  *  Note: this is applied directly in compute_sort because it must
  *  be over terms
  */
- bool check_quantifier_sorts(const SortVec & sorts);
+bool check_quantifier_sorts(const SortVec & sorts);
 
 /** Checks that the sorts are equivalent
  *  @param sorts a non-empty vector of sorts
@@ -156,12 +154,11 @@ bool check_select_sorts(const SortVec & sorts);
  *  @param returns true iff the first sort is an array sort
  *         and the next two match the index and element sort
  */
+bool check_store_sorts(const SortVec & sorts);
 
 bool check_selector_sorts(const SortVec & sorts);
 bool check_constructor_sorts(const SortVec & sorts);
 bool check_tester_sorts(const SortVec & sorts);
-
-bool check_store_sorts(const SortVec & sorts);
 
 /** Checks if the sorts are well-sorted for a substring operator
  *  @param sorts the vector of sorts
@@ -185,53 +182,31 @@ bool check_charat_sorts(const SortVec & sorts);
 bool check_indexof_sorts(const SortVec & sorts);
 
 bool bool_sorts(const SortVec & sorts);
-
 bool bv_sorts(const SortVec & sorts);
-
 bool eq_bv_sorts(const SortVec & sorts);
-
 bool real_sorts(const SortVec & sorts);
-
 bool int_sorts(const SortVec & sorts);
-
 bool string_sorts(const SortVec & sorts);
-
 bool arithmetic_sorts(const SortVec & sorts);
-
 bool array_sorts(const SortVec & sorts);
-
 bool function_sorts(const SortVec & sorts);
 
 /* Helper functions for sort inference */
 
 Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort int_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort string_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort select_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
-
 Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort tester_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
@@ -240,4 +215,3 @@ Sort constructor_sort(Op op,
                       const SortVec & sorts);
 
 }  // namespace smt
-

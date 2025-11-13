@@ -8,7 +8,7 @@
 ** in the top-level source directory) and their institutional affiliations.
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
-** 
+**
 **
 ** \brief A class that represents a generic solver
 **
@@ -23,25 +23,31 @@
 
 #include "generic_solver.h"
 
-#include <fcntl.h>
-#include <poll.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/prctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
-#include "assert.h"
+#include "exceptions.h"
+#include "generic_datatype.h"
+#include "generic_sort.h"
+#include "generic_term.h"
+#include "ops.h"
+#include "smt_defs.h"
 #include "smtlib_utils.h"
 #include "sort.h"
 #include "sort_inference.h"
+#include "term.h"
 #include "utils.h"
-
-using namespace std;
 
 namespace smt {
 
@@ -65,8 +71,8 @@ std::string & trim(std::string & str)
 }
 
 // class methods implementation
-GenericSolver::GenericSolver(string path,
-                             vector<string> cmd_line_args,
+GenericSolver::GenericSolver(std::string path,
+                             std::vector<std::string> cmd_line_args,
                              unsigned int write_buf_size,
                              unsigned int read_buf_size)
     : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
@@ -75,14 +81,15 @@ GenericSolver::GenericSolver(string path,
       write_buf_size(write_buf_size),
       read_buf_size(read_buf_size),
       context_level_(0),
-      name_sort_map(new unordered_map<string, Sort>()),
-      sort_name_map(new unordered_map<Sort, string>()),
-      name_term_map(new unordered_map<string, Term>()),
-      term_name_map(new unordered_map<Term, string>()),
+      name_sort_map(new std::unordered_map<std::string, Sort>()),
+      sort_name_map(new std::unordered_map<Sort, std::string>()),
+      name_term_map(new std::unordered_map<std::string, Term>()),
+      term_name_map(new std::unordered_map<Term, std::string>()),
       name_datatype_map(
-          new unordered_map<string, std::shared_ptr<GenericDatatype>>()),
-      datatype_name_map(
-          new unordered_map<std::shared_ptr<GenericDatatype>, string>())
+          new std::unordered_map<std::string,
+                                 std::shared_ptr<GenericDatatype>>()),
+      datatype_name_map(new std::unordered_map<std::shared_ptr<GenericDatatype>,
+                                               std::string>())
 {
   // Buffer sizes over 256 caused issues in tests.
   // Until this is investigated, we support a conservative
@@ -91,32 +98,35 @@ GenericSolver::GenericSolver(string path,
   if (write_buf_size < 2 || write_buf_size > 256 || read_buf_size < 2
       || read_buf_size > 256)
   {
-    string msg(
+    std::string msg(
         "Generic Solvers require a buffer size of at least 2 and at most 256.");
     throw IncorrectUsageException(msg);
   }
   term_counter = new unsigned int;
-  //allocate memory for the buffers
+  // allocate memory for the buffers
   write_buf = new char[write_buf_size];
   read_buf = new char[read_buf_size];
 
-  // sure allocation was successful
+  // make sure allocation was successful
   assert(write_buf != NULL);
   assert(read_buf != NULL);
-  //initialize write_buf
-  for (int i=0; i < write_buf_size; i++) {
-    write_buf[i]=0;
+  // initialize write_buf
+  for (int i = 0; i < write_buf_size; i++)
+  {
+    write_buf[i] = 0;
   }
-  //initialize read_buf
-  for (int i=0; i < read_buf_size; i++) {
-    read_buf[i]=0;
+  // initialize read_buf
+  for (int i = 0; i < read_buf_size; i++)
+  {
+    read_buf[i] = 0;
   }
   // start the process with the solver binary
   start_solver();
 }
 
-GenericSolver::~GenericSolver() {
-  //deallocate the buffers memory
+GenericSolver::~GenericSolver()
+{
+  // deallocate the buffers memory
   delete write_buf;
   delete read_buf;
   delete term_counter;
@@ -124,7 +134,8 @@ GenericSolver::~GenericSolver() {
   close_solver();
 }
 
-void GenericSolver::start_solver() {
+void GenericSolver::start_solver()
+{
   pid = 0;
 
   pipe(inpipefd);
@@ -156,7 +167,7 @@ void GenericSolver::start_solver() {
     execv(path.c_str(), (char **)argv);
     // Nothing below this line should be executed by child process. If so,
     // it means that the execl function wasn't successfull, so lets exit:
-    string msg("failure to run binary: ");
+    std::string msg("failure to run binary: ");
     msg += path;
     throw IncorrectUsageException(msg);
     exit(1);
@@ -167,7 +178,7 @@ void GenericSolver::start_solver() {
   set_opt("print-success", "true");
 }
 
-void GenericSolver::write_internal(string str) const
+void GenericSolver::write_internal(std::string str) const
 {
   // track how many charas were written so far
   unsigned int written_chars = 0;
@@ -235,9 +246,9 @@ bool GenericSolver::is_done(int just_read, std::string result) const
   return done;
 }
 
-string GenericSolver::read_internal() const
+std::string GenericSolver::read_internal() const
 {
-  string result = "";
+  std::string result = "";
   bool done = false;
   // read to the buffer until no more output to read
   while (!done)
@@ -245,7 +256,7 @@ string GenericSolver::read_internal() const
     // read command, and how many chars were read.
     int just_read = read(inpipefd[0], read_buf, read_buf_size);
     // store the content and trim it
-    string read_buf_str(read_buf);
+    std::string read_buf_str(read_buf);
     read_buf_str = read_buf_str.substr(0, read_buf_size);
     result = result.append(read_buf_str);
     done = is_done(just_read, result);
@@ -258,25 +269,26 @@ string GenericSolver::read_internal() const
   // normalize outout of solver:
   // - no newlines in the middle of the content
   // - no double spaces
-  while (result.find("\n") != string::npos)
+  while (result.find("\n") != std::string::npos)
   {
     result.replace(result.find("\n"), 1, " ");
   }
-  while (result.find("  ") != string::npos)
+  while (result.find("  ") != std::string::npos)
   {
     result.replace(result.find("  "), 2, " ");
   }
   return result;
 }
 
-string GenericSolver::run_command(string cmd, bool verify_success_flag) const
+std::string GenericSolver::run_command(std::string cmd,
+                                       bool verify_success_flag) const
 {
   // adding a newline to simulate an "enter" hit.
   cmd = cmd + "\n";
   // writing the cmd string to the process
   write_internal(cmd);
   // reading the result
-  string result = read_internal();
+  std::string result = read_internal();
   result = trim(result);
   // verify success if needed
   if (verify_success_flag)
@@ -286,7 +298,7 @@ string GenericSolver::run_command(string cmd, bool verify_success_flag) const
   return result;
 }
 
-void GenericSolver::verify_success(string result) const
+void GenericSolver::verify_success(std::string result) const
 {
   if (result == "success")
   {
@@ -301,7 +313,8 @@ void GenericSolver::verify_success(string result) const
   }
 }
 
-void GenericSolver::close_solver() {
+void GenericSolver::close_solver()
+{
   kill(pid, SIGKILL);
   waitpid(pid, &status, 0);
 }
@@ -324,7 +337,7 @@ void GenericSolver::define_fun(std::string name,
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
-  shared_ptr<GenericTerm> gt = static_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(term);
   bool nullary_constructor = false;
   // generic terms with no operators are represented by their
   // name.
@@ -335,11 +348,12 @@ std::string GenericSolver::to_smtlib_def(Term term) const
   else
   {
     // generic terms with operators are written as s-expressions.
-    string result;
+    std::string result;
     if (gt->get_op() == Apply_Constructor)
     {
-      shared_ptr<GenericDatatype> dt = static_pointer_cast<GenericDatatype>(
-          (gt->get_sort())->get_datatype());
+      std::shared_ptr<GenericDatatype> dt =
+          std::static_pointer_cast<GenericDatatype>(
+              (gt->get_sort())->get_datatype());
       nullary_constructor =
           dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
       result = nullary_constructor ? "(" : "";
@@ -392,12 +406,15 @@ std::string GenericSolver::to_smtlib_def(Term term) const
   }
 }
 
-Sort GenericSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const {
+Sort GenericSolver::make_sort(const Sort & sort_con,
+                              const SortVec & sorts) const
+{
   throw NotImplementedException(
       "Sort constructor are not supported by generic solvers");
 }
 
-Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
+Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
+{
   // when creating a new uninterpreted sort, the name
   // must be new.
   if (name_sort_map->find(name) == name_sort_map->end())
@@ -414,8 +431,7 @@ Sort GenericSolver::make_sort(const std::string name, uint64_t arity) const {
   }
   else
   {
-    throw IncorrectUsageException(string("sort name: ") + name
-                                  + string(" already taken"));
+    throw IncorrectUsageException("sort name: " + name + " already taken");
   }
 }
 
@@ -424,7 +440,7 @@ Sort GenericSolver::make_sort(const SortKind sk) const
   // create the sort
   Sort sort = make_generic_sort(sk);
   // compute the name of the sort
-  string name = sort->to_string();
+  std::string name = sort->to_string();
 
   // note that nothing needs to be communicated to the solver,
   // as in this case the sort is built in.
@@ -442,12 +458,12 @@ Sort GenericSolver::make_sort(const SortKind sk) const
   }
 }
 
-Sort GenericSolver::make_sort(const SortKind sk, uint64_t size) const
+Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
 {
   // create the sort
   Sort sort = make_generic_sort(sk, size);
   // compute the name
-  string name = sort->to_string();
+  std::string name = sort->to_string();
 
   // note that nothing needs to be communicated to the solver,
   // as in this case the sort is built in.
@@ -490,7 +506,7 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   // create the sort
   Sort sort = make_generic_sort(sk, sorts);
   // compute the name
-  string name = sort->to_string();
+  std::string name = sort->to_string();
 
   // note that nothing needs to be communicated to the solver,
   // as in this case the sort is built in, or can used
@@ -511,11 +527,11 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  shared_ptr<GenericDatatypeDecl> gdt_decl =
-      static_pointer_cast<GenericDatatypeDecl>(d);
-  string dt_decl_name = gdt_decl->get_name();
+  std::shared_ptr<GenericDatatypeDecl> gdt_decl =
+      std::static_pointer_cast<GenericDatatypeDecl>(d);
+  std::string dt_decl_name = gdt_decl->get_name();
   assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
-  shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+  std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
     Sort dt_sort = make_generic_sort(curr_dt);
@@ -532,29 +548,30 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     {
       DatatypeConstructorDecl curr_dt_cons_decl = curr_dt->get_cons_vector()[i];
       to_solver += " ("
-                   + static_pointer_cast<GenericDatatypeConstructorDecl>(
+                   + std::static_pointer_cast<GenericDatatypeConstructorDecl>(
                          curr_dt_cons_decl)
                          ->get_name();
       // Adjust string for each selector
       for (unsigned long f = 0;
-           f < static_pointer_cast<GenericDatatypeConstructorDecl>(
+           f < std::static_pointer_cast<GenericDatatypeConstructorDecl>(
                    curr_dt_cons_decl)
                    ->get_selector_vector()
                    .size();
            ++f)
       {
         to_solver += " ( "
-                     + static_pointer_cast<GenericDatatypeConstructorDecl>(
+                     + std::static_pointer_cast<GenericDatatypeConstructorDecl>(
                            curr_dt_cons_decl)
                            ->get_selector_vector()[f]
                            .name;
-        to_solver += " "
-                     + (static_pointer_cast<GenericDatatypeConstructorDecl>(
-                            curr_dt_cons_decl)
-                            ->get_selector_vector()[f]
-                            .sort)
-                           ->to_string()
-                     + " )";
+        to_solver +=
+            " "
+            + (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
+                   curr_dt_cons_decl)
+                   ->get_selector_vector()[f]
+                   .sort)
+                  ->to_string()
+            + " )";
       }
 
       to_solver += ")";
@@ -569,78 +586,83 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   }
   else
   {
-    throw IncorrectUsageException(string("sort name: ") + dt_decl_name
-                                  + string(" already taken"));
+    throw IncorrectUsageException("sort name: " + dt_decl_name
+                                  + " already taken");
   }
 }
 
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
 {
-  DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>(s);
-  shared_ptr<GenericDatatype> new_dt =
-      shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
+  DatatypeDecl new_dt_decl = std::make_shared<GenericDatatypeDecl>(s);
+  std::shared_ptr<GenericDatatype> new_dt =
+      std::shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
   (*name_datatype_map)[s] = new_dt;
   (*datatype_name_map)[new_dt] = s;
   return new_dt_decl;
 }
+
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s)
 {
-  shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
-      shared_ptr<GenericDatatypeConstructorDecl>(
+  std::shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
+      std::shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl(s));
   return new_dt_cons_decl;
 }
 
-void GenericSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
-  {
-    shared_ptr<GenericDatatypeDecl> gdt_decl =
-        static_pointer_cast<GenericDatatypeDecl>(dt);
-    string name = gdt_decl->get_name();
-    auto gdt = (*name_datatype_map)[name];
-    gdt->add_constructor(con);
+void GenericSolver::add_constructor(DatatypeDecl & dt,
+                                    const DatatypeConstructorDecl & con) const
+{
+  std::shared_ptr<GenericDatatypeDecl> gdt_decl =
+      std::static_pointer_cast<GenericDatatypeDecl>(dt);
+  std::string name = gdt_decl->get_name();
+  auto gdt = (*name_datatype_map)[name];
+  gdt->add_constructor(con);
 }
 
-void GenericSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const
+void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
+                                 const std::string & name,
+                                 const Sort & s) const
 {
-  shared_ptr<SelectorComponents> newSelector =
-      make_shared<SelectorComponents>();
+  std::shared_ptr<SelectorComponents> newSelector =
+      std::make_shared<SelectorComponents>();
   newSelector->name = name;
   newSelector->sort = s;
   newSelector->finalized = true;
-  shared_ptr<GenericDatatypeConstructorDecl> gdtc =
-      static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+  std::shared_ptr<GenericDatatypeConstructorDecl> gdtc =
+      std::static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   gdtc->add_new_selector(*newSelector);
 }
-  
-void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const
-  {
-    shared_ptr<SelectorComponents> newSelector =
-        make_shared<SelectorComponents>();
-    shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
-        static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
-    string dt_decl_name = gdt_cons->get_dt_name();
 
-    newSelector->name = name;
-    // Sets the sort to be a placeholder value until the self sort is
-    // constructed.
-    newSelector->sort = make_shared<GenericSort>(name);
-    // This indicates that the sort in this selector will eventually
-    // be replaced
-    newSelector->finalized = false;
-    assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
-    shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
-    gdt_cons->add_new_selector(*newSelector);
+void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
+                                      const std::string & name) const
+{
+  std::shared_ptr<SelectorComponents> newSelector =
+      std::make_shared<SelectorComponents>();
+  std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
+      std::static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+  std::string dt_decl_name = gdt_cons->get_dt_name();
+
+  newSelector->name = name;
+  // Sets the sort to be a placeholder value until the self sort is
+  // constructed.
+  newSelector->sort = std::make_shared<GenericSort>(name);
+  // This indicates that the sort in this selector will eventually
+  // be replaced
+  newSelector->finalized = false;
+  assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
+  std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+  gdt_cons->add_new_selector(*newSelector);
 }
 
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
-  shared_ptr<GenericDatatype> dt =
-      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  std::shared_ptr<GenericDatatype> dt =
+      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
-    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+    if (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
             dt->get_cons_vector()[i])
             ->get_name()
         == name)
@@ -661,15 +683,14 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
   return (*name_term_map)[name];
 }
 
-  
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
-  shared_ptr<GenericDatatype> dt =
-      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  std::shared_ptr<GenericDatatype> dt =
+      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
-    if (static_pointer_cast<GenericDatatypeConstructorDecl>(
+    if (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
             dt->get_cons_vector()[i])
             ->get_name()
         == name)
@@ -691,16 +712,18 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   return (*name_term_map)[name];
 }
 
-Term GenericSolver::get_selector(const Sort & s, std::string con, std::string name) const
+Term GenericSolver::get_selector(const Sort & s,
+                                 std::string con,
+                                 std::string name) const
 {
-  shared_ptr<GenericDatatype> dt =
-      static_pointer_cast<GenericDatatype>(s->get_datatype());
+  std::shared_ptr<GenericDatatype> dt =
+      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
   Sort cons_sort = make_generic_sort(SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
-    shared_ptr<GenericDatatypeConstructorDecl> curr_con =
-        static_pointer_cast<GenericDatatypeConstructorDecl>(
+    std::shared_ptr<GenericDatatypeConstructorDecl> curr_con =
+        std::static_pointer_cast<GenericDatatypeConstructorDecl>(
             dt->get_cons_vector()[i]);
     if (curr_con->get_name() == con)
     {
@@ -709,7 +732,7 @@ Term GenericSolver::get_selector(const Sort & s, std::string con, std::string na
         if (((curr_con->get_selector_vector())[f]).name == name)
         {
           found = true;
-          static_pointer_cast<DatatypeComponentSort>(cons_sort)
+          std::static_pointer_cast<DatatypeComponentSort>(cons_sort)
               ->set_selector_sort(((curr_con->get_selector_vector())[f]).sort);
           break;
         }
@@ -738,11 +761,12 @@ std::string GenericSolver::get_name(Term term) const
 Term GenericSolver::store_term(Term term) const
 {
   // cast the term to a GenericTerm
-  shared_ptr<GenericTerm> gterm = static_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gterm =
+      std::static_pointer_cast<GenericTerm>(term);
   // store the term in the maps in case it is not there already
   if (term_name_map->find(gterm) == term_name_map->end())
   {
-    string name;
+    std::string name;
     // ground terms are communicated to the binary
     // using a define-fun command.
     // In future instances of this term, we will use the name
@@ -770,26 +794,28 @@ Term GenericSolver::store_term(Term term) const
     (*term_name_map)[gterm] = name;
   }
   // return the term from the internal map
-  string name = (*term_name_map)[gterm];
+  std::string name = (*term_name_map)[gterm];
   return (*name_term_map)[name];
 }
 
-Term GenericSolver::make_non_negative_bv_const(string abs_decimal,
+Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                unsigned int width) const
 {
   Sort bvsort = make_sort(BV, width);
-  string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
+  std::string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
 }
 
-Term GenericSolver::make_non_negative_bv_const(int64_t i, unsigned int width) const
+Term GenericSolver::make_non_negative_bv_const(std::int64_t i,
+                                               unsigned int width) const
 {
   assert(i >= 0);
   return make_non_negative_bv_const(std::to_string(i), width);
 }
 
-Term GenericSolver::make_negative_bv_const(string abs_decimal, unsigned int width) const
+Term GenericSolver::make_negative_bv_const(std::string abs_decimal,
+                                           unsigned int width) const
 {
   Term zero = make_non_negative_bv_const("0", width);
   Term abs = make_non_negative_bv_const(abs_decimal, width);
@@ -797,7 +823,8 @@ Term GenericSolver::make_negative_bv_const(string abs_decimal, unsigned int widt
   return result;
 }
 
-Term GenericSolver::make_negative_bv_const(int64_t abs_value, unsigned int width) const
+Term GenericSolver::make_negative_bv_const(std::int64_t abs_value,
+                                           unsigned int width) const
 {
   assert(abs_value >= 0);
   return make_negative_bv_const(std::to_string(abs_value), width);
@@ -818,19 +845,19 @@ Term GenericSolver::make_value(bool b) const
   return term;
 }
 
-Term GenericSolver::make_term(int64_t i, const Sort & sort) const
+Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   Term value_term = make_value(i, sort);
   return store_term(value_term);
 }
 
-Term GenericSolver::make_value(int64_t i, const Sort & sort) const
+Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   assert(sk == BV || sk == INT || sk == REAL);
   if (sk == INT || sk == REAL)
   {
-    string repr = std::to_string(i);
+    std::string repr = std::to_string(i);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -839,7 +866,7 @@ Term GenericSolver::make_value(int64_t i, const Sort & sort) const
     // sk == BV
     if (i < 0)
     {
-      int64_t abs_value = i * (-1);
+      std::int64_t abs_value = i * (-1);
       Term term = make_negative_bv_const(abs_value, sort->get_width());
       return term;
     }
@@ -851,22 +878,22 @@ Term GenericSolver::make_value(int64_t i, const Sort & sort) const
   }
 }
 
-Term GenericSolver::make_term(const string val,
+Term GenericSolver::make_term(const std::string val,
                               const Sort & sort,
-                              uint64_t base) const
+                              std::uint64_t base) const
 {
   Term value_term = make_value(val, sort, base);
   return store_term(value_term);
 }
 
-Term GenericSolver::make_value(const string val,
+Term GenericSolver::make_value(const std::string val,
                                const Sort & sort,
-                               uint64_t base) const
+                               std::uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
   assert(sk == BV || sk == INT || sk == REAL);
   assert(base == 2 || base == 10 | base == 16);
-  string repr;
+  std::string repr;
   if (sk == INT || sk == REAL)
   {
     assert(base == 10);
@@ -881,7 +908,7 @@ Term GenericSolver::make_value(const string val,
     {
       if (val.find("-") == 0)
       {
-        string abs_decimal = val.substr(1);
+        std::string abs_decimal = val.substr(1);
         return make_negative_bv_const(abs_decimal, sort->get_width());
       }
       else
@@ -906,7 +933,8 @@ Term GenericSolver::make_value(const string val,
   }
 }
 
-string GenericSolver::cons_arr_string(const Term & val, const Sort & sort) const
+std::string GenericSolver::cons_arr_string(const Term & val,
+                                           const Sort & sort) const
 {
   assert(term_name_map->find(val) != term_name_map->end());
   assert(sort_name_map->find(sort) != sort_name_map->end());
@@ -923,17 +951,17 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
   return store_term(term);
 }
 
-Term GenericSolver::make_symbol(const string name, const Sort & sort)
+Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // always put pipes around name in case there
   // are special symbols / spaces
-  string piped_name = "|" + name + "|";
+  std::string piped_name = "|" + name + "|";
   // make sure that the symbol name is not aready taken.
   if (name_term_map->find(piped_name) != name_term_map->end())
   {
     throw IncorrectUsageException(
-        string("symbol name: ") + name
-        + string(" already taken, either by another symbol or by a param"));
+        "symbol name: " + name
+        + " already taken, either by another symbol or by a param");
   }
 
   // create the sumbol and store it in the maps
@@ -953,11 +981,11 @@ Term GenericSolver::make_symbol(const string name, const Sort & sort)
   return (*name_term_map)[piped_name];
 }
 
-Term GenericSolver::get_symbol(const string & name)
+Term GenericSolver::get_symbol(const std::string & name)
 {
   // GenericSolver always puts pipes around symbol names
   // in case there are special symbols / spaces
-  string piped_name = "|" + name + "|";
+  std::string piped_name = "|" + name + "|";
   auto it = name_term_map->find(piped_name);
   if (it == name_term_map->end())
   {
@@ -966,13 +994,13 @@ Term GenericSolver::get_symbol(const string & name)
   return it->second;
 }
 
-Term GenericSolver::make_param(const string name, const Sort & sort)
+Term GenericSolver::make_param(const std::string name, const Sort & sort)
 {
   if (name_term_map->find(name) != name_term_map->end())
   {
     throw IncorrectUsageException(
-        string("param name: ") + name
-        + string(" already taken, either by another param or by a symbol"));
+        "param name: " + name
+        + " already taken, either by another param or by a symbol");
   }
   Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, false);
   (*name_term_map)[name] = term;
@@ -1003,7 +1031,7 @@ Term GenericSolver::make_term(const Op op,
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
   Sort sort = compute_sort(op, this, terms);
-  string repr = "(" + op.to_string();
+  std::string repr = "(" + op.to_string();
   for (int i = 0; i < terms.size(); i++)
   {
     assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
@@ -1025,15 +1053,16 @@ Term GenericSolver::get_value(const Term & t) const
 
   // get the name of the term (the way the term is defined in the solver)
   assert(term_name_map->find(t) != term_name_map->end());
-  string name = (*term_name_map)[t];
+  std::string name = (*term_name_map)[t];
 
   // ask the binary for the value and parse it
-  string result = run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
+  std::string result =
+      run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
 
   // check that there was no error
   check_no_error(result);
 
-  string value = strip_value_from_result(result);
+  std::string value = strip_value_from_result(result);
 
   // translate the string representation of the result into a term
   Term resulting_term;
@@ -1055,11 +1084,11 @@ Term GenericSolver::get_value(const Term & t) const
     {
       // decimal representation.
       // parse strings of the form (_ bv<decimal> <bitwidth>)
-      size_t index_of__ = value.find("_ ");
-      assert(index_of__ != string::npos);
+      std::size_t index_of__ = value.find("_ ");
+      assert(index_of__ != std::string::npos);
       int start_of_decimal = index_of__ + 4;
       int end_of_decimal = value.find(' ', start_of_decimal);
-      string decimal =
+      std::string decimal =
           value.substr(start_of_decimal, end_of_decimal - start_of_decimal + 1);
       resulting_term = make_value(decimal, sort, 10);
     }
@@ -1077,7 +1106,7 @@ Term GenericSolver::get_value(const Term & t) const
   return resulting_term;
 }
 
-string GenericSolver::strip_value_from_result(string result) const
+std::string GenericSolver::strip_value_from_result(std::string result) const
 {
   // trim spaces
   result = trim(result);
@@ -1111,7 +1140,7 @@ string GenericSolver::strip_value_from_result(string result) const
   }
 
   // crop the relevant substring
-  string strip =
+  std::string strip =
       result.substr(start_of_value, end_of_value - start_of_value + 1);
   return strip;
 }
@@ -1119,7 +1148,8 @@ string GenericSolver::strip_value_from_result(string result) const
 void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   // run get-unsat-assumptions command
-  string result = run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
+  std::string result =
+      run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
 
   // check that there was no error
   check_no_error(result);
@@ -1131,17 +1161,18 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
   out.insert(assumptions.begin(), assumptions.end());
 }
 
-void GenericSolver::check_no_error(string str) const
+void GenericSolver::check_no_error(std::string str) const
 {
   str = trim(str);
-  string err_prefix("(error ");
+  std::string err_prefix("(error ");
   if (str.compare(0, err_prefix.size(), err_prefix) == 0)
   {
     throw SmtException("Exception from the solver: " + str);
   }
 }
 
-UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
+UnorderedTermSet GenericSolver::get_assumptions_from_string(
+    std::string result) const
 {
   // the result from the solver is a
   // space-separated list of Boolean literals.
@@ -1151,7 +1182,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
   result = trim(result);
 
   // unwrap parenthesis and trim spaces again
-  string strip = result.substr(1, result.size() - 2);
+  std::string strip = result.substr(1, result.size() - 2);
   strip = trim(strip);
 
   // position in the string
@@ -1172,7 +1203,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
     {
       begin = index + 5;
       end = strip.find(")", begin + 1) - 1;
-      assert(end != string::npos);
+      assert(end != std::string::npos);
       positive = false;
     }
     else
@@ -1181,7 +1212,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
       begin = index;
       // end -- one character after the end of the substring
       end = strip.find(" ", begin + 1);
-      if (end == string::npos)
+      if (end == std::string::npos)
       {
         end = strip.size();
       }
@@ -1191,7 +1222,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(string result) const
     }
 
     // retrieve the literal from the map
-    string str_atom = strip.substr(begin, end - begin + 1);
+    std::string str_atom = strip.substr(begin, end - begin + 1);
     auto it = name_term_map->find(str_atom);
     if (it == name_term_map->end())
     {
@@ -1236,7 +1267,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 
 void GenericSolver::reset()
 {
-  string result = run_command("(" + RESET_STR + ")");
+  std::string result = run_command("(" + RESET_STR + ")");
 }
 
 void GenericSolver::set_opt(const std::string option, const std::string value)
@@ -1252,17 +1283,17 @@ void GenericSolver::set_logic(const std::string logic)
 void GenericSolver::assert_formula(const Term & t)
 {
   // cast to generic term, as we need to print it to the solver
-  shared_ptr<GenericTerm> lt = static_pointer_cast<GenericTerm>(t);
+  std::shared_ptr<GenericTerm> lt = std::static_pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
   assert(term_name_map->find(lt) != term_name_map->end());
-  string name = (*term_name_map)[lt];
+  std::string name = (*term_name_map)[lt];
 
   // communicate the assertion to the binary of the solver
   run_command("(" + ASSERT_STR + " " + name + ")");
 }
 
-Result GenericSolver::str_to_result(string result) const
+Result GenericSolver::str_to_result(std::string result) const
 {
   if (result == "unsat")
   {
@@ -1286,21 +1317,21 @@ Result GenericSolver::str_to_result(string result) const
 
 Result GenericSolver::check_sat()
 {
-  string result = run_command("(" + CHECK_SAT_STR + ")", false);
+  std::string result = run_command("(" + CHECK_SAT_STR + ")", false);
   Result r = str_to_result(result);
   return r;
 }
 
 Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  string names;
+  std::string names;
   for (Term t : assumptions)
   {
     // assumptions can only be Boolean literals
     if (t->get_sort()->get_sort_kind() != BOOL)
     {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + t->to_string());
+      throw IncorrectUsageException(
+          "Expecting boolean indicator literals but got: " + t->to_string());
     }
 
     // add the name of the literal to the list of assumptions
@@ -1309,31 +1340,35 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
   }
 
   // send command to the solver and parse it
-  string result =
+  std::string result =
       run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
   Result r = str_to_result(result);
   return r;
 }
 
-void GenericSolver::push(uint64_t num)
-  {
-    string result =
-        run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
-    context_level_ += num;
-  }
-
-void GenericSolver::pop(uint64_t num)
+void GenericSolver::push(std::uint64_t num)
 {
-  string result = run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  std::string result =
+      run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+  context_level_ += num;
+}
+
+void GenericSolver::pop(std::uint64_t num)
+{
+  std::string result =
+      run_command("(" + POP_STR + " " + std::to_string(num) + ")");
   context_level_ -= num;
 }
 
-uint64_t GenericSolver::get_context_level() const { return context_level_; }
+std::uint64_t GenericSolver::get_context_level() const
+{
+  return context_level_;
+}
 
 void GenericSolver::reset_assertions()
-  {
-    string result = run_command("(" + RESET_ASSERTIONS_STR + ")");
-  }
+{
+  std::string result = run_command("(" + RESET_ASSERTIONS_STR + ")");
+}
 
 }  // namespace smt
 

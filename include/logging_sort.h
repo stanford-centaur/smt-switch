@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "sort.h"
@@ -25,12 +29,14 @@ namespace smt {
 /* Helper functions for creating logging sorts */
 // Sort s is the underlying sort
 // all other sorts are LoggingSorts
-Sort make_uninterpreted_logging_sort(Sort s, std::string name, uint64_t arity);
+Sort make_uninterpreted_logging_sort(Sort s,
+                                     std::string name,
+                                     std::uint64_t arity);
 Sort make_uninterpreted_logging_sort(Sort s,
                                      std::string name,
                                      const SortVec & sorts);
 Sort make_logging_sort(SortKind sk, Sort s);
-Sort make_logging_sort(SortKind sk, Sort s, uint64_t width);
+Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width);
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1);
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2);
 Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3);
@@ -43,7 +49,7 @@ class LoggingSort : public AbsSort
 {
  public:
   LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
-  virtual ~LoggingSort(){};
+  virtual ~LoggingSort() {};
   // implementations
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
@@ -53,7 +59,7 @@ class LoggingSort : public AbsSort
   // throw not implemented exception
   // for specific getters (will be
   // implemented by a subclass)
-  uint64_t get_width() const override
+  std::uint64_t get_width() const override
   {
     throw NotImplementedException(
         "get_width not implemented by generic LoggingSort");
@@ -89,7 +95,7 @@ class LoggingSort : public AbsSort
         "get_uninterpreted_name not implemented by generic LoggingSort");
   }
 
-  size_t get_arity() const override
+  std::size_t get_arity() const override
   {
     throw NotImplementedException(
         "get_arity not implemented by generic LoggingSort");
@@ -123,10 +129,10 @@ class BVLoggingSort : public LoggingSort
 
   typedef LoggingSort super;
 
-  uint64_t get_width() const override;
+  std::uint64_t get_width() const override;
 
  protected:
-  uint64_t width;
+  std::uint64_t width;
 };
 
 class ArrayLoggingSort : public LoggingSort
@@ -164,22 +170,22 @@ class FunctionLoggingSort : public LoggingSort
 class UninterpretedLoggingSort : public LoggingSort
 {
  public:
-  UninterpretedLoggingSort(Sort s, std::string n, uint64_t a);
+  UninterpretedLoggingSort(Sort s, std::string n, std::uint64_t a);
   UninterpretedLoggingSort(Sort s,
                            std::string n,
-                           uint64_t a,
+                           std::uint64_t a,
                            const SortVec & sorts);
   ~UninterpretedLoggingSort();
 
   typedef LoggingSort super;
 
   std::string get_uninterpreted_name() const override;
-  size_t get_arity() const override;
+  std::size_t get_arity() const override;
   SortVec get_uninterpreted_param_sorts() const override;
 
  protected:
   std::string name;
-  uint64_t arity;
+  std::uint64_t arity;
   SortVec param_sorts;
 };
 

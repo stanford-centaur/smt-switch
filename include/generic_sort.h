@@ -10,27 +10,29 @@
 ** directory for licensing information.\endverbatim
 **
 ** \brief Class that represents a sort in generic solvers
-**        
+**
 **
 **/
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <string>
+#include <vector>
 
 #include "exceptions.h"
-#include "generic_datatype.h"
 #include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
 
-class GenericDatatye;
 /* Helper functions for creating generic sorts */
-Sort make_uninterpreted_generic_sort(std::string name, uint64_t arity);
-Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec& sorts);
+Sort make_uninterpreted_generic_sort(std::string name, std::uint64_t arity);
+Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec & sorts);
 Sort make_generic_sort(SortKind sk);
-Sort make_generic_sort(SortKind sk, uint64_t width);
+Sort make_generic_sort(SortKind sk, std::uint64_t width);
 Sort make_generic_sort(SortKind sk, Sort sort1);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
 Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
@@ -54,20 +56,16 @@ class GenericSort : public AbsSort
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
 
-  /** The following functions are 
-   *   implemented by sub-classes 
-   */
+  /* The following functions are implemented by sub-classes */
 
-  uint64_t get_width() const override
+  std::uint64_t get_width() const override
   {
-    throw NotImplementedException(
-        "get_width not implemented by GenericSort");
+    throw NotImplementedException("get_width not implemented by GenericSort");
   }
 
-  size_t get_arity() const override
+  std::size_t get_arity() const override
   {
-    throw NotImplementedException(
-        "get_width not implemented by GenericSort");
+    throw NotImplementedException("get_width not implemented by GenericSort");
   }
 
   Sort get_indexsort() const override
@@ -100,7 +98,7 @@ class GenericSort : public AbsSort
         "get_uninterpreted_name not implemented by GenericSort");
   }
 
-  std::vector<Sort> get_uninterpreted_param_sorts() const override 
+  std::vector<Sort> get_uninterpreted_param_sorts() const override
   {
     throw NotImplementedException(
         "get_uninterpreted_param_sorts not implemented by GenericSort");
@@ -111,7 +109,7 @@ class GenericSort : public AbsSort
     throw NotImplementedException(
         "get_datatype not implemented by GenericSort");
   }
-  
+
   // hash computed via std::string hash
   std::size_t hash() const override;
 
@@ -132,7 +130,7 @@ class GenericSort : public AbsSort
   friend class GenericSolver;
 };
 
-/** 
+/**
  * sub-classes of specific kinds of sorts
  */
 
@@ -142,10 +140,10 @@ class BVGenericSort : public GenericSort
   BVGenericSort(uint64_t width);
   ~BVGenericSort();
 
-  uint64_t get_width() const override;
+  std::uint64_t get_width() const override;
 
  protected:
-  uint64_t width;
+  std::uint64_t width;
 };
 
 class ArrayGenericSort : public GenericSort
@@ -179,19 +177,18 @@ class FunctionGenericSort : public GenericSort
 class UninterpretedGenericSort : public GenericSort
 {
  public:
-  UninterpretedGenericSort(std::string n, uint64_t a);
-  UninterpretedGenericSort(Sort sort_cons,
-                           const SortVec & sorts);
+  UninterpretedGenericSort(std::string n, std::uint64_t a);
+  UninterpretedGenericSort(Sort sort_cons, const SortVec & sorts);
   ~UninterpretedGenericSort();
 
   std::string get_uninterpreted_name() const override;
-  size_t get_arity() const override;
+  std::size_t get_arity() const override;
   SortVec get_uninterpreted_param_sorts() const override;
 
  protected:
   std::string name;
-  uint64_t arity;
-  SortVec param_sorts;  
+  std::uint64_t arity;
+  SortVec param_sorts;
 };
 
 class GenericDatatypeSort : public GenericSort
@@ -216,7 +213,7 @@ class DatatypeComponentSort : public GenericSort
 {
  public:
   DatatypeComponentSort(SortKind sk, std::string name, Sort dt);
-  ~DatatypeComponentSort(){};
+  ~DatatypeComponentSort() {};
   std::string compute_string() const override;
   std::string to_string() const override;
   std::string get_uninterpreted_name() const override;
