@@ -103,15 +103,7 @@ std::size_t Z3Term::get_id() const
 bool Z3Term::compare(const Term & absterm) const
 {
   std::shared_ptr<Z3Term> zs = std::static_pointer_cast<Z3Term>(absterm);
-  if (is_function && zs->is_function)
-  {
-    return z_func.hash() == (zs->z_func).hash();
-  }
-  else if (!is_function && !zs->is_function)
-  {
-    return term.hash() == (zs->term).hash();
-  }
-  return false;
+  return (is_function == zs->is_function) && (get_id() == zs->get_id());
 }
 
 Op Z3Term::get_op() const
