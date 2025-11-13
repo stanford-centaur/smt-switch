@@ -25,19 +25,19 @@
 namespace smt {
 enum SolverEnum
 {
-  BTOR = 0,  // boolector
-  BZLA,      // bitwuzla
-  CVC5,      // cvc5
-  MSAT,      // mathsat
-  YICES2,    // yices2
-  Z3,        // z3
+  BTOR = 0,        // boolector
+  BZLA,            // bitwuzla
+  CVC5,            // cvc5
+  GENERIC_SOLVER,  // generic solver (binary)
+  MSAT,            // mathsat
+  YICES2,          // yices2
+  Z3,              // z3
 
   // interpolating solvers -- note these cannot be logging solvers
   // because the solver takes the initiative in creating the interpolant
   // so there's no way to keep a DAG at the smt-switch level
   CVC5_INTERPOLATOR,
   MSAT_INTERPOLATOR,
-  GENERIC_SOLVER
 
   // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
   // and enums_imp.pxi

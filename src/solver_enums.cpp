@@ -111,8 +111,10 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
 
     });
 
-const unordered_set<SolverEnum> interpolator_solver_enums(
-    { MSAT_INTERPOLATOR, CVC5_INTERPOLATOR });
+const unordered_set<SolverEnum> interpolator_solver_enums({
+    CVC5_INTERPOLATOR,
+    MSAT_INTERPOLATOR,
+});
 
 bool is_interpolator_solver_enum(SolverEnum se)
 {
@@ -142,12 +144,12 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case BTOR: o << "BTOR"; break;
     case BZLA: o << "BZLA"; break;
     case CVC5: o << "CVC5"; break;
+    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
     case Z3: o << "Z3"; break;
-    case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     case CVC5_INTERPOLATOR: o << "CVC5_INTERPOLATOR"; break;
-    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
+    case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
