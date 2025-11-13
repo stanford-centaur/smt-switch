@@ -44,14 +44,12 @@ RELEASE_URL="https://mathsat.fbk.eu/release/"
 if [ ! -d "$DEPS/mathsat" ]; then
     cd $DEPS
     mkdir mathsat
-    if [[ "$OSTYPE" == linux* ]]; then
-        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-linux-x86_64.tar.gz
+    if [[ "$OSTYPE" == linux* || "$OSTYPE" == cygwin* ]]; then
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.12-linux-x86_64.tar.gz
     elif [[ "$OSTYPE" == darwin* ]]; then
-        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-osx.tar.gz
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.12-macos.tar.gz
     elif [[ "$OSTYPE" == msys* ]]; then
-        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-win64-msvc.zip
-    elif [[ "$OSTYPE" == cygwin* ]]; then
-        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.10-linux-x86_64.tar.gz
+        curl -o mathsat.tar.gz -L ${RELEASE_URL}mathsat-5.6.12-win64.zip
     else
         echo "Unrecognized OSTYPE=$OSTYPE"
         exit 1
@@ -62,7 +60,6 @@ if [ ! -d "$DEPS/mathsat" ]; then
 
 else
     echo "$DEPS/mathsat already exists. If you want to re-download, please remove it manually."
-    exit 1
 fi
 
 if [ -f $DEPS/mathsat/lib/libmathsat.a ] ; then \
