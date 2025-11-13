@@ -109,22 +109,15 @@ const std::unordered_map<PrimOp, std::string> primop2str(
       { Apply_Constructor, "apply_constructor" } });
 
 // a map from PrimOp to <minimum arity, maximum arity>
-// TODO: support INT_MAX arity for those that allow it in SMT-LIB
-//       for example, AND/OR/DISTINCT should have maximum arity INT_MAX
-//       Requires some work in backend solvers because not all
-//       solvers support this through the API
-//       would need to add reduces for those operators in the backend
-//       For now, just keeping the arities conservative
-//       The expressiveness is not affected
 const std::unordered_map<PrimOp, std::pair<size_t, size_t>> primop2arity(
-    { { And, { 2, 2 } },
-      { Or, { 2, 2 } },
-      { Xor, { 2, 2 } },
+    { { And, { 2, INT_MAX } },
+      { Or, { 2, INT_MAX } },
+      { Xor, { 2, INT_MAX } },
       { Not, { 1, 1 } },
-      { Implies, { 2, 2 } },
+      { Implies, { 2, INT_MAX } },
       { Ite, { 3, 3 } },
-      { Equal, { 2, 2 } },
-      { Distinct, { 2, 2 } },
+      { Equal, { 2, INT_MAX } },
+      { Distinct, { 2, INT_MAX } },
       // at least the function and one argument
       // of course, to be well-sorted the number of arguments must
       // match the function domain
