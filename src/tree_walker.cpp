@@ -1,19 +1,19 @@
 #include "tree_walker.h"
 
-#include <iostream>
-#include <string>
+#include <utility>
+#include <vector>
 
-using namespace smt;
-using namespace std;
+#include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 
-pair<Term, vector<int>> TreeWalker::visit(Term & node)
+std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
 {
   // iterates over children, for tracking which child of it's parent node
   int child_no;
   // path for parts of the formula
-  vector<int> tree_path;
+  std::vector<int> tree_path;
 
   if (clear_cache_)
   {
@@ -28,7 +28,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
   // out is meant to store the result of querying the query cache
   // by default, out gives topmost node's occurence with which to query cache
   // before continuing
-  pair<Term, vector<int>> out;
+  std::pair<Term, std::vector<int>> out;
   out.first = node;
   out.second = tree_path;
   if (query_cache(node, out))
@@ -54,7 +54,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
    * node marked with a -1, indicating the traversal is finished.
    * */
   TermPairVec to_visit;
-  pair<Term, int> p1(node, -1);
+  std::pair<Term, int> p1(node, -1);
   // push_back topmost node flagged with a -1
   to_visit.push_back(p1);
   // initialize child_no before starting the loop
@@ -70,13 +70,13 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
 
   // current_pair the term and int/flag we are looking at in the current
   // iteration, last entry in to_visit
-  pair<Term, int> current_pair;
+  std::pair<Term, int> current_pair;
   // current_term the term we are visiting in the current iteration, first
   // element of the pair popped off of to_visit
   Term current_term;
   // pairs of term and child number or "-1 flag" that get pushed back to
   // to_visit to visit in subsequent iterations
-  pair<Term, int> pn;
+  std::pair<Term, int> pn;
   while (to_visit.size())
   {
     // get last pair on to_visit, which we visit in this iteration
@@ -134,7 +134,7 @@ pair<Term, vector<int>> TreeWalker::visit(Term & node)
 
 TreeWalkerStepResult TreeWalker::visit_term(Term & formula,
                                             Term & term,
-                                            vector<int> & path)
+                                            std::vector<int> & path)
 {
   // default implementation of visit_term builds up cache to map from a term in
   // the formula to a pair giving the full formula in which it occurs and the
@@ -142,7 +142,7 @@ TreeWalkerStepResult TreeWalker::visit_term(Term & formula,
 
   // occurrence of the term represented by the formula in which it is found and
   // the path indicating its placement in the formula
-  pair<Term, vector<int>> occ;
+  std::pair<Term, std::vector<int>> occ;
   occ.first = formula;
   occ.second = path;
   // save mapping from term we're visiting to the pair containing the formula it
@@ -165,7 +165,7 @@ bool TreeWalker::in_cache(const Term & key) const
 }
 
 bool TreeWalker::query_cache(const Term & key,
-                             pair<Term, vector<int>> & out) const
+                             std::pair<Term, std::vector<int>> & out) const
 {
   if (ext_cache_)
   {
@@ -189,7 +189,7 @@ bool TreeWalker::query_cache(const Term & key,
 }
 
 void TreeWalker::save_in_cache(const Term & key,
-                               const pair<Term, vector<int>> & val)
+                               const std::pair<Term, std::vector<int>> & val)
 {
   if (ext_cache_)
   {

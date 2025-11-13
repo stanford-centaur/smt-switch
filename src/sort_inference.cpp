@@ -14,13 +14,21 @@
 **
 **/
 
-#include <algorithm>
-#include <functional>
-
-#include "exceptions.h"
 #include "sort_inference.h"
 
-using namespace std;
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <unordered_map>
+
+#include "exceptions.h"
+#include "generic_sort.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 
 namespace smt {
 
@@ -28,94 +36,94 @@ namespace smt {
 // maps primitive operators to a function used to check that the sorts are
 // expected
 const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
-    sort_check_dispatch({ { And, bool_sorts },
-                          { Or, bool_sorts },
-                          { Xor, bool_sorts },
-                          { Not, bool_sorts },
-                          { Implies, bool_sorts },
-                          { Ite, check_ite_sorts },
-                          { Equal, arith_equal_sorts },
-                          { Distinct, arith_equal_sorts },
-                          { Apply, check_apply_sorts },
-                          { Plus, arithmetic_sorts },
-                          { Minus, arithmetic_sorts },
-                          { Negate, arithmetic_sorts },
-                          { Mult, arithmetic_sorts },
-                          { Div, arithmetic_sorts },
-                          { Lt, arithmetic_sorts },
-                          { Le, arithmetic_sorts },
-                          { Gt, arithmetic_sorts },
-                          { Ge, arithmetic_sorts },
-                          { Mod, int_sorts },
-                          // technically Abs/Pow only defined for integers in
-                          // SMT-LIB but not sure if that's true for all solvers
-                          // might also be good to be forward looking
-                          { Abs, int_sorts },
-                          { Pow, int_sorts },
-                          { IntDiv, int_sorts },
-                          { To_Real, int_sorts },
-                          { To_Int, real_sorts },
-                          { Is_Int, int_sorts },
-                          { Concat, bv_sorts },
-                          { Extract, bv_sorts },
-                          { BVNot, bv_sorts },
-                          { BVNeg, bv_sorts },
-                          { BVAnd, eq_bv_sorts },
-                          { BVOr, eq_bv_sorts },
-                          { BVXor, eq_bv_sorts },
-                          { BVNand, eq_bv_sorts },
-                          { BVNor, eq_bv_sorts },
-                          { BVXnor, eq_bv_sorts },
-                          { BVAdd, eq_bv_sorts },
-                          { BVSub, eq_bv_sorts },
-                          { BVMul, eq_bv_sorts },
-                          { BVUdiv, eq_bv_sorts },
-                          { BVSdiv, eq_bv_sorts },
-                          { BVUrem, eq_bv_sorts },
-                          { BVSrem, eq_bv_sorts },
-                          { BVSmod, eq_bv_sorts },
-                          { BVShl, eq_bv_sorts },
-                          { BVAshr, eq_bv_sorts },
-                          { BVLshr, eq_bv_sorts },
-                          { BVComp, eq_bv_sorts },
-                          { BVUlt, eq_bv_sorts },
-                          { BVUle, eq_bv_sorts },
-                          { BVUgt, eq_bv_sorts },
-                          { BVUge, eq_bv_sorts },
-                          { BVSlt, eq_bv_sorts },
-                          { BVSle, eq_bv_sorts },
-                          { BVSgt, eq_bv_sorts },
-                          { BVSge, eq_bv_sorts },
-                          { Zero_Extend, bv_sorts },
-                          { Sign_Extend, bv_sorts },
-                          { Repeat, bv_sorts },
-                          { Rotate_Left, bv_sorts },
-                          { Rotate_Right, bv_sorts },
-                          { BV_To_Nat, bv_sorts },
-                          { UBV_To_Int, bv_sorts },
-                          { SBV_To_Int, bv_sorts },
-                          { Int_To_BV, int_sorts },
-                          { StrLt, string_sorts },
-                          { StrLeq, string_sorts },
-                          { StrConcat, string_sorts },
-                          { StrLen, string_sorts },
-                          { StrSubstr, check_substr_sorts },
-                          { StrAt, check_charat_sorts },
-                          { StrContains, string_sorts },
-                          { StrIndexof, check_indexof_sorts },
-                          { StrReplace, string_sorts },
-                          { StrReplaceAll, string_sorts },
-                          { StrPrefixof, string_sorts },
-                          { StrSuffixof, string_sorts },
-                          { StrIsDigit, string_sorts },
-                          { Select, check_select_sorts },
-                          { Store, check_store_sorts },
-                          { Forall, check_quantifier_sorts },
-                          { Exists, check_quantifier_sorts },
-                          { Apply_Constructor, check_constructor_sorts },
-                          { Apply_Selector, check_selector_sorts },
-                          { Apply_Tester, check_tester_sorts }
-
+    sort_check_dispatch({
+        { And, bool_sorts },
+        { Or, bool_sorts },
+        { Xor, bool_sorts },
+        { Not, bool_sorts },
+        { Implies, bool_sorts },
+        { Ite, check_ite_sorts },
+        { Equal, arith_equal_sorts },
+        { Distinct, arith_equal_sorts },
+        { Apply, check_apply_sorts },
+        { Plus, arithmetic_sorts },
+        { Minus, arithmetic_sorts },
+        { Negate, arithmetic_sorts },
+        { Mult, arithmetic_sorts },
+        { Div, arithmetic_sorts },
+        { Lt, arithmetic_sorts },
+        { Le, arithmetic_sorts },
+        { Gt, arithmetic_sorts },
+        { Ge, arithmetic_sorts },
+        { Mod, int_sorts },
+        // technically Abs/Pow only defined for integers in
+        // SMT-LIB but not sure if that's true for all solvers
+        // might also be good to be forward looking
+        { Abs, int_sorts },
+        { Pow, int_sorts },
+        { IntDiv, int_sorts },
+        { To_Real, int_sorts },
+        { To_Int, real_sorts },
+        { Is_Int, int_sorts },
+        { Concat, bv_sorts },
+        { Extract, bv_sorts },
+        { BVNot, bv_sorts },
+        { BVNeg, bv_sorts },
+        { BVAnd, eq_bv_sorts },
+        { BVOr, eq_bv_sorts },
+        { BVXor, eq_bv_sorts },
+        { BVNand, eq_bv_sorts },
+        { BVNor, eq_bv_sorts },
+        { BVXnor, eq_bv_sorts },
+        { BVAdd, eq_bv_sorts },
+        { BVSub, eq_bv_sorts },
+        { BVMul, eq_bv_sorts },
+        { BVUdiv, eq_bv_sorts },
+        { BVSdiv, eq_bv_sorts },
+        { BVUrem, eq_bv_sorts },
+        { BVSrem, eq_bv_sorts },
+        { BVSmod, eq_bv_sorts },
+        { BVShl, eq_bv_sorts },
+        { BVAshr, eq_bv_sorts },
+        { BVLshr, eq_bv_sorts },
+        { BVComp, eq_bv_sorts },
+        { BVUlt, eq_bv_sorts },
+        { BVUle, eq_bv_sorts },
+        { BVUgt, eq_bv_sorts },
+        { BVUge, eq_bv_sorts },
+        { BVSlt, eq_bv_sorts },
+        { BVSle, eq_bv_sorts },
+        { BVSgt, eq_bv_sorts },
+        { BVSge, eq_bv_sorts },
+        { Zero_Extend, bv_sorts },
+        { Sign_Extend, bv_sorts },
+        { Repeat, bv_sorts },
+        { Rotate_Left, bv_sorts },
+        { Rotate_Right, bv_sorts },
+        { BV_To_Nat, bv_sorts },
+        { UBV_To_Int, bv_sorts },
+        { SBV_To_Int, bv_sorts },
+        { Int_To_BV, int_sorts },
+        { StrLt, string_sorts },
+        { StrLeq, string_sorts },
+        { StrConcat, string_sorts },
+        { StrLen, string_sorts },
+        { StrSubstr, check_substr_sorts },
+        { StrAt, check_charat_sorts },
+        { StrContains, string_sorts },
+        { StrIndexof, check_indexof_sorts },
+        { StrReplace, string_sorts },
+        { StrReplaceAll, string_sorts },
+        { StrPrefixof, string_sorts },
+        { StrSuffixof, string_sorts },
+        { StrIsDigit, string_sorts },
+        { Select, check_select_sorts },
+        { Store, check_store_sorts },
+        { Forall, check_quantifier_sorts },
+        { Exists, check_quantifier_sorts },
+        { Apply_Constructor, check_constructor_sorts },
+        { Apply_Selector, check_selector_sorts },
+        { Apply_Tester, check_tester_sorts },
     });
 
 // map from Primitive Operators to the corresponding sort inference function
@@ -238,7 +246,7 @@ bool check_sortedness(Op op, const TermVec & terms)
 bool check_sortedness(Op op, const SortVec & sorts)
 {
   auto min_max_arity = get_arity(op.prim_op);
-  size_t num_args = sorts.size();
+  std::size_t num_args = sorts.size();
   if (num_args < min_max_arity.first || num_args > min_max_arity.second)
   {
     // wrong number of arguments
@@ -287,23 +295,21 @@ Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts)
 
 bool check_quantifier_terms(const TermVec & terms)
 {
-  return terms.size() == 2 &&
-    terms[0]->is_param() &&
-    terms[1]->get_sort()->get_sort_kind() == BOOL;
+  return terms.size() == 2 && terms[0]->is_param()
+         && terms[1]->get_sort()->get_sort_kind() == BOOL;
 }
 
 /* helpers for sort checking */
 
 bool check_quantifier_sorts(const SortVec & sorts)
 {
-  return sorts.size() == 2 &&
-    sorts[1]->get_sort_kind() == BOOL;
+  return sorts.size() == 2 && sorts[1]->get_sort_kind() == BOOL;
 }
 
 bool equal_sorts(const SortVec & sorts)
 {
   assert(sorts.size());
-  return (adjacent_find(sorts.begin(), sorts.end(), not_equal_to<Sort>())
+  return (adjacent_find(sorts.begin(), sorts.end(), std::not_equal_to<Sort>())
           == sorts.end());
 }
 
@@ -344,7 +350,7 @@ bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
   return true;
 }
 
-bool check_one_of_sortkinds(const unordered_set<SortKind> & sks,
+bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
                             const SortVec & sorts)
 {
   for (auto sort : sorts)
@@ -373,7 +379,7 @@ bool check_apply_sorts(const SortVec & sorts)
     return false;
   }
 
-  for (size_t i = 0; i < domain_sorts.size(); ++i)
+  for (std::size_t i = 0; i < domain_sorts.size(); ++i)
   {
     if (domain_sorts[i] != sorts[i + 1])
     {
@@ -510,7 +516,7 @@ bool check_charat_sorts(const SortVec & sorts)
   {
     return false;
   }
-  
+
   return true;
 }
 
@@ -620,7 +626,6 @@ Sort string_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return solver->make_sort(STRING);
 }
 
-
 Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   if (sorts[1] != sorts[2])
@@ -696,7 +701,7 @@ Sort store_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 Sort selector_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
-  return static_pointer_cast<DatatypeComponentSort>(sorts[0])
+  return std::static_pointer_cast<DatatypeComponentSort>(sorts[0])
       ->get_codomain_sort();
 }
 Sort constructor_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)

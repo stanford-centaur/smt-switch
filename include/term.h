@@ -18,18 +18,20 @@
 
 #pragma once
 
-#include <iostream>
+#include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <list>
+#include <ostream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
-#include "exceptions.h"
 
 namespace smt {
 
@@ -39,14 +41,14 @@ class TermIter;
 class AbsTerm
 {
  public:
-  AbsTerm(){};
-  virtual ~AbsTerm(){};
+  AbsTerm() {};
+  virtual ~AbsTerm() {};
   /** Returns a hash for this term */
   virtual std::size_t hash() const = 0;
   /** Returns a unique id for this term */
   virtual std::size_t get_id() const = 0;
   /* Should return true iff the terms are identical */
-  virtual bool compare(const Term& absterm) const = 0;
+  virtual bool compare(const Term & absterm) const = 0;
   // Term methods
   /* get the Op used to create this term */
   virtual Op get_op() const = 0;
@@ -55,7 +57,8 @@ class AbsTerm
   /* to_string in smt2 format */
   virtual std::string to_string() = 0;
   /* returns the string term as a native string value */
-  virtual std::wstring getStringValue() const{
+  virtual std::wstring getStringValue() const
+  {
     throw NotImplementedException("Strings not supported for this solver.");
   }
   /* returns true iff this term is a symbol */
@@ -69,7 +72,7 @@ class AbsTerm
   /** converts a constant that can be represented as an int to an int
    *  otherwise, throws an IncorrectUsageException
    */
-  virtual uint64_t to_int() const = 0;
+  virtual std::uint64_t to_int() const = 0;
   /** begin iterator
    *  starts iteration through Term's children
    */
@@ -126,7 +129,7 @@ inline bool operator>=(const Term & t1, const Term & t2)
   return t1->get_id() >= t2->get_id();
 }
 
-std::ostream& operator<<(std::ostream& output, const Term t);
+std::ostream & operator<<(std::ostream & output, const Term t);
 
 // term iterators
 // impelementation based on
@@ -139,7 +142,7 @@ class TermIterBase
   virtual void operator++() {}
   const virtual Term operator*();
   virtual TermIterBase * clone() const = 0;
-  bool operator==(const TermIterBase& other) const;
+  bool operator==(const TermIterBase & other) const;
 
  protected:
   virtual bool equal(const TermIterBase & other) const = 0;
@@ -149,8 +152,10 @@ class TermIter
 {
  public:
   // typedefs for marking as an input iterator
-  // based on iterator_traits: https://en.cppreference.com/w/cpp/iterator/iterator_traits
-  // used by the compiler for statements such as: TermVec children(term->begin(), term->end())
+  // based on iterator_traits:
+  // https://en.cppreference.com/w/cpp/iterator/iterator_traits
+  // used by the compiler for statements such as:
+  // TermVec children(term->begin(), term->end())
   typedef Term value_type;
   typedef std::ptrdiff_t difference_type;
   typedef Term * pointer;
@@ -158,18 +163,18 @@ class TermIter
   typedef std::input_iterator_tag iterator_category;
 
   TermIter() : iter_(0) {}
-  TermIter(TermIterBase* tib) : iter_(tib) {}
+  TermIter(TermIterBase * tib) : iter_(tib) {}
   ~TermIter() { delete iter_; }
-  TermIter(const TermIter& other) : iter_(other.iter_->clone()) {}
-  TermIter& operator=(const TermIter& other);
-  TermIter& operator++();
+  TermIter(const TermIter & other) : iter_(other.iter_->clone()) {}
+  TermIter & operator=(const TermIter & other);
+  TermIter & operator++();
   TermIter operator++(int junk);
   Term operator*() const { return *(*iter_); }
-  bool operator==(const TermIter& other) const;
-  bool operator!=(const TermIter& other) const;
+  bool operator==(const TermIter & other) const;
+  bool operator!=(const TermIter & other) const;
 
  protected:
-  TermIterBase* iter_;
+  TermIterBase * iter_;
 };
 
 // useful typedefs for data structures
@@ -177,21 +182,17 @@ using TermVec = std::vector<Term>;
 using TermList = std::list<Term>;
 using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
+
 // range-based iteration
 inline TermIter begin(Term & t) { return t->begin(); }
 inline TermIter end(Term & t) { return t->end(); }
 
 }  // namespace smt
 
-namespace std
+namespace std {
+// Specialize the hash function for data structures
+inline size_t hash<smt::Term>::operator()(const smt::Term & t) const
 {
-  // Specialize the hash function for data structures
-  template<>
-  struct hash<smt::Term>
-  {
-    size_t operator()(const smt::Term & t) const
-    {
-      return t->hash();
-    }
-  };
+  return t->hash();
 }
+}  // namespace std

@@ -22,7 +22,9 @@
 #include <ostream>
 #include <string>
 
+#include "smt_defs.h"
 #include "smtlib_utils.h"
+#include "sort.h"
 
 namespace smt {
 
@@ -187,7 +189,7 @@ Term PrintingSolver::make_symbol(const std::string name, const Sort & sort)
   SortKind sk = sort->get_sort_kind();
   std::string domain_str = "";
   std::string range_str = "";
-  if (sk == smt::SortKind::FUNCTION)
+  if (sk == FUNCTION)
   {
     for (Sort ds : sort->get_domain_sorts())
     {

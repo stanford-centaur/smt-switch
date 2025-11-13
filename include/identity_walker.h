@@ -16,24 +16,20 @@
 
 #pragma once
 
-#include <utility>
+#include "smt_defs.h"
+#include "term.h"
 
-#include "exceptions.h"
-#include "smt.h"
-
-
-namespace smt
-{
-  /** \enum
-   * Walker_Continue : rebuild the current term and continue
-   * Walker_Skip     : skip this term and all subterms
-   * Walker_Abort    : abort visiting
-   */
+namespace smt {
+/** \enum
+ * Walker_Continue : rebuild the current term and continue
+ * Walker_Skip     : skip this term and all subterms
+ * Walker_Abort    : abort visiting
+ */
 enum WalkerStepResult
 {
- Walker_Continue=0,
- Walker_Skip,
- Walker_Abort
+  Walker_Continue = 0,
+  Walker_Skip,
+  Walker_Abort
 };
 
 /** \class
@@ -52,61 +48,60 @@ enum WalkerStepResult
  */
 class IdentityWalker
 {
-public:
- IdentityWalker(const smt::SmtSolver & solver,
-                bool clear_cache,
-                smt::UnorderedTermMap * ext_cache = nullptr)
-     : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
+ public:
+  IdentityWalker(const SmtSolver & solver,
+                 bool clear_cache,
+                 UnorderedTermMap * ext_cache = nullptr)
+      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
 
- /** Visit a term and all its subterms in a post-order traversal
-  *  the member variable preorder_ is true if it's the first time seeing
-  *  a subterm and false if the traversal is in post-order already
-  *  @param term the term to visit
-  *  @return the term after visiting (returns the value of cache[term]
-  *     -- if it has been cached and returns term otherwise)
-  */
- smt::Term visit(smt::Term & term);
+  /** Visit a term and all its subterms in a post-order traversal
+   *  the member variable preorder_ is true if it's the first time seeing
+   *  a subterm and false if the traversal is in post-order already
+   *  @param term the term to visit
+   *  @return the term after visiting (returns the value of cache[term]
+   *     -- if it has been cached and returns term otherwise)
+   */
+  Term visit(Term & term);
 
-protected:
- /** Visit a single term.
-  *  Implement this method in a derived class to change the behavior
-  *  of the walker
-  *  @param term the term to visit
-  *  @return a WalkerStepResult to tell the visit method how to proceed
-  */
- virtual WalkerStepResult visit_term(smt::Term & term);
+ protected:
+  /** Visit a single term.
+   *  Implement this method in a derived class to change the behavior
+   *  of the walker
+   *  @param term the term to visit
+   *  @return a WalkerStepResult to tell the visit method how to proceed
+   */
+  virtual WalkerStepResult visit_term(Term & term);
 
- /** Check if key is in cache
-  *  @param key
-  *  @return true iff the key is in the cache
-  */
- bool in_cache(const Term & key) const;
+  /** Check if key is in cache
+   *  @param key
+   *  @return true iff the key is in the cache
+   */
+  bool in_cache(const Term & key) const;
 
- /** Query the cache. Automatically uses ext_cache_ if non-null.
-  *  @param key the term to check in the cache
-  *  @param out this term is set to the cache result if there's a hit
-  *  @return true iff there is a cache hit
-  */
- bool query_cache(const Term & key, Term & out) const;
+  /** Query the cache. Automatically uses ext_cache_ if non-null.
+   *  @param key the term to check in the cache
+   *  @param out this term is set to the cache result if there's a hit
+   *  @return true iff there is a cache hit
+   */
+  bool query_cache(const Term & key, Term & out) const;
 
- /** Populate the cache. Automatically uses ext_cache_ if non-null.
-  *  It will overwrite the existing mapping if the key is already in the cache
-  *  @param key the key term
-  *  @param val the value term
-  */
- void save_in_cache(const Term & key, const Term & val);
+  /** Populate the cache. Automatically uses ext_cache_ if non-null.
+   *  It will overwrite the existing mapping if the key is already in the cache
+   *  @param key the key term
+   *  @param val the value term
+   */
+  void save_in_cache(const Term & key, const Term & val);
 
- const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
- bool clear_cache_; /**< if true, clears the cache between calls to visit */
- bool preorder_; /**< true when the current term is being visited for the first
-                    time. For use in visit_term */
+  const SmtSolver & solver_; /**< the solver to use for rebuilding terms */
+  bool clear_cache_; /**< if true, clears the cache between calls to visit */
+  bool preorder_; /**< true when the current term is being visited for the first
+                     time. For use in visit_term */
 
-private:
- // derived classes should interact with cache through the methods above only
- smt::UnorderedTermMap cache_;       /**< cache for updating terms */
- smt::UnorderedTermMap * ext_cache_; /**< external (user-provided) cache. If
-                                        non-null, used instead of cache_ */
+ private:
+  // derived classes should interact with cache through the methods above only
+  UnorderedTermMap cache_;       /**< cache for updating terms */
+  UnorderedTermMap * ext_cache_; /**< external (user-provided) cache. If
+                                    non-null, used instead of cache_ */
 };
 
-}
-
+}  // namespace smt

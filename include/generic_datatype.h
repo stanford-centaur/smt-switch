@@ -1,9 +1,10 @@
 #pragma once
-#include <unordered_map>
+
+#include <functional>
+#include <string>
 #include <vector>
 
 #include "datatype.h"
-#include "exceptions.h"
 #include "generic_sort.h"
 #include "smt_defs.h"
 
@@ -24,7 +25,7 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
   GenericDatatypeDecl(const std::string name);
-  virtual ~GenericDatatypeDecl(){};
+  virtual ~GenericDatatypeDecl() {};
   std::string get_name();
 
  protected:
@@ -36,7 +37,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   GenericDatatypeConstructorDecl(const std::string & name);
-  virtual ~GenericDatatypeConstructorDecl(){};
+  virtual ~GenericDatatypeConstructorDecl() {};
   // Stores a new selector in the constructor object. newSelector: the
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
@@ -62,7 +63,7 @@ class GenericDatatype : public AbsDatatype
 {
  public:
   GenericDatatype(const DatatypeDecl & dt_declaration);
-  virtual ~GenericDatatype(){};
+  virtual ~GenericDatatype() {};
   // Stores a constructor object (dt_cons_decl) in the datatype object.
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
   // Stores a new selector (newSelector) in the constructor object

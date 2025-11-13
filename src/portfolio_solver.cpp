@@ -16,13 +16,20 @@
 
 #include "portfolio_solver.h"
 
-#include <unistd.h>
+#include <mutex>
+#include <thread>
+
+#include "smt_defs.h"
+#include "sort.h"
+#include "term_translator.h"
+
 namespace smt {
 
 PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
     : solvers(slvrs), portfolio_term(trm)
 {
 }
+
 /** Translate the term t to the solver s, and check_sat.
  *  @param s The solver to translate the term t to.
  *  @param t The term being translated to solver s.
@@ -30,7 +37,7 @@ PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
 void PortfolioSolver::run_solver(SmtSolver s)
 {
   TermTranslator to_s(s);
-  Term a = to_s.transfer_term(portfolio_term, smt::BOOL);
+  Term a = to_s.transfer_term(portfolio_term, BOOL);
   s->assert_formula(a);
   result = s->check_sat();
   std::lock_guard<std::mutex> lk(m);
@@ -44,7 +51,7 @@ void PortfolioSolver::run_solver(SmtSolver s)
  *  @param solvers The solvers to run.
  *  @param t The term to be checked.
  */
-smt::Result PortfolioSolver::portfolio_solve()
+Result PortfolioSolver::portfolio_solve()
 {
   // We must maintain a vector of pthreads in order to stop the threads that are
   // still running once one of the solvers finish because pthreads is assumed to
