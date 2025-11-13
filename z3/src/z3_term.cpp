@@ -234,6 +234,8 @@ Op Z3Term::get_op() const
         return Op(SBV_To_Int);
       case Z3_OP_UNINTERPRETED: return Op(Apply);
 
+      case Z3_OP_TO_REAL: return Op(To_Real);
+      
       default: {
         std::string msg("Option - ");
         msg += name;
