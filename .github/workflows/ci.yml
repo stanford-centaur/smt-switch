@@ -81,6 +81,8 @@ jobs:
       - name: Test C++
         id: test-cpp
         continue-on-error: true
+        env:
+          DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib  # this lets the precompiled MathSAT binary find libgmp
         run: ctest --test-dir build
 
       - name: Upload failing test log

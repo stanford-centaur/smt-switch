@@ -1152,6 +1152,10 @@ void MsatSolver::reset_assertions()
 Term MsatSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
 {
+  if (substitution_map.size() == 0) {
+    return term;
+  }
+
   initialize_env();
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(term);
 
@@ -1180,8 +1184,6 @@ Term MsatSolver::substitute(const Term term,
     }
     values.push_back(tmp_val->term);
   }
-
-  // TODO: add guarded assertion in debug mode about size of vectors
 
   msat_term res = msat_apply_substitution(
       env, mterm->term, to_subst.size(), &to_subst[0], &values[0]);
