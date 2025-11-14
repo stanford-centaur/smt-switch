@@ -60,7 +60,12 @@ jobs:
           echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
 
       - name: Set up underlying solver
-        run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
+        run: |
+          if [[ "${{ matrix.solver }}" == "bitwuzla" ]]; then
+            eval `ssh-agent -s`
+            ssh-add - <<< '${{ secrets.BZLA_PRIVATE_SSH_KEY }}'
+          fi
+          ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
 
       - name: Configure
         env:
