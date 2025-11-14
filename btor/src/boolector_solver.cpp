@@ -781,6 +781,7 @@ void BoolectorSolver::reset()
   boolector_release_all(btor);
   boolector_delete(btor);
   btor = boolector_new();
+  symbol_table.clear();
 }
 
 void BoolectorSolver::reset_assertions()

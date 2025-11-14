@@ -1020,7 +1020,8 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
 
 void Cvc5Solver::reset()
 {
-  throw NotImplementedException("cvc5 does not support reset");
+  symbol_table.clear();
+  //throw NotImplementedException("cvc5 does not support reset");
 }
 
 void Cvc5Solver::reset_assertions()
