@@ -14,31 +14,33 @@
 **
 **/
 
-#include <iostream>
+#include "result.h"
+
+#include <cstddef>
 #include <string>
 #include <unordered_map>
 
 #include "exceptions.h"
-#include "result.h"
 
-namespace std
+namespace std {
+// specialize the hash template
+template <>
+struct hash<smt::ResultType>
 {
-  // specialize the hash template
-  template<>
-  struct hash<smt::ResultType>
+  size_t operator()(const smt::ResultType r) const
   {
-    size_t operator()(const smt::ResultType r) const
-    {
-      return static_cast<std::size_t>(r);
-    }
-  };
-}
-
+    return static_cast<size_t>(r);
+  }
+};
+}  // namespace std
 
 namespace smt {
 
-const std::unordered_map<ResultType, std::string> result2str(
-    { { SAT, "sat" }, { UNSAT, "unsat" }, { UNKNOWN, "unknown" } });
+const std::unordered_map<ResultType, std::string> result2str({
+    { SAT, "sat" },
+    { UNSAT, "unsat" },
+    { UNKNOWN, "unknown" },
+});
 
 std::string Result::get_explanation() const
 {

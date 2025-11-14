@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 namespace smt {
@@ -44,3 +45,12 @@ class AbsDatatype;
 using Datatype = std::shared_ptr<AbsDatatype>;
 
 }  // namespace smt
+
+// Fordward declare std::hash specialization for smt::Term
+namespace std {
+template <>
+struct hash<smt::Term>
+{
+  size_t operator()(const smt::Term & t) const;
+};
+}  // namespace std

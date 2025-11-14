@@ -16,11 +16,11 @@
 
 #include "identity_walker.h"
 
-using namespace smt;
-using namespace std;
+#include "smt_defs.h"
+#include "solver.h"
+#include "term.h"
 
-namespace smt
-{
+namespace smt {
 
 Term IdentityWalker::visit(Term & term)
 {
@@ -41,7 +41,7 @@ Term IdentityWalker::visit(Term & term)
     return out;
   }
 
-  TermVec to_visit({term});
+  TermVec to_visit({ term });
   // Note: visited is different than cache keys
   //       might want to visit without saving to the cache
   //       and if something is in the cache it wouldn't
@@ -50,7 +50,7 @@ Term IdentityWalker::visit(Term & term)
 
   Term t;
   WalkerStepResult res;
-  while(to_visit.size())
+  while (to_visit.size())
   {
     t = to_visit.back();
     to_visit.pop_back();
@@ -171,4 +171,5 @@ void IdentityWalker::save_in_cache(const Term & key, const Term & val)
     cache_[key] = val;
   }
 }
-}
+
+}  // namespace smt

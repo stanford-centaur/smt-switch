@@ -23,13 +23,20 @@
 
 #pragma once
 
+#include <unistd.h>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
-#include "generic_sort.h"
-#include "generic_term.h"
+#include "generic_datatype.h"
+#include "result.h"
+#include "smt_defs.h"
 #include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 
@@ -69,9 +76,9 @@ class GenericSolver : public AbsSmtSolver
   /***************************************************************/
   /* methods from AbsSmtSolver that are implemented              */
   /***************************************************************/
-  Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
-  Sort make_sort(const SortKind sk, uint64_t size) const override;
+  Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
   Sort make_sort(const SortKind sk,
                  const Sort & sort1,
@@ -84,10 +91,10 @@ class GenericSolver : public AbsSmtSolver
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
 
   Term make_term(bool b) const override;
-  Term make_term(int64_t i, const Sort & sort) const override;
+  Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
                  const Sort & sort,
-                 uint64_t base = 10) const override;
+                 std::uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) override;
@@ -110,13 +117,12 @@ class GenericSolver : public AbsSmtSolver
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
+  void push(std::uint64_t num = 1) override;
+  void pop(std::uint64_t num = 1) override;
+  std::uint64_t get_context_level() const override;
   void reset_assertions() override;
 
  protected:
-
   /******************
    * helper methods *
    *******************/
@@ -126,10 +132,10 @@ class GenericSolver : public AbsSmtSolver
    * Also used to parse get_value responses.
    */
   Term make_value(bool b) const;
-  Term make_value(int64_t i, const Sort & sort) const;
+  Term make_value(std::int64_t i, const Sort & sort) const;
   Term make_value(const std::string val,
                   const Sort & sort,
-                  uint64_t base = 10) const;
+                  std::uint64_t base = 10) const;
 
   // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
@@ -168,28 +174,31 @@ class GenericSolver : public AbsSmtSolver
    * desired bv value. width is the bit-width returns a bv term of width `width`
    * whose value is (-1) * abs_decimal.
    * */
-  Term make_non_negative_bv_const(std::string abs_decimal, unsigned int width) const;
+  Term make_non_negative_bv_const(std::string abs_decimal,
+                                  unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the absolute value of the desired bit-vector.
    * width is the bit-width
    * returns a bv term of width `width` whose value is abs_value.
    * */
-  Term make_non_negative_bv_const(int64_t abs_value, unsigned int width) const;
+  Term make_non_negative_bv_const(std::int64_t abs_value,
+                                  unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the string represnentation of the absolute value of the
    * desired bv value. width is the bit-width returns a bv term of width `width`
    * whose value is abs_decimal.
    * */
-  Term make_negative_bv_const(std::string abs_decimal, unsigned int width) const;
+  Term make_negative_bv_const(std::string abs_decimal,
+                              unsigned int width) const;
 
   /** helper function for bv constant
    * abs_decimal is the absolute value of the desired bit-vector.
    * width is the bit-width
    * returns a bv term of width `width` whose value is (-1) * abs_value.
    * */
-  Term make_negative_bv_const(int64_t abs_value, unsigned int width) const;
+  Term make_negative_bv_const(std::int64_t abs_value, unsigned int width) const;
 
   // open a connection to the binary via a pipe
   void start_solver();
@@ -198,9 +207,9 @@ class GenericSolver : public AbsSmtSolver
 
   // internally defining and storing a function symbol
   void define_fun(std::string str,
-                  smt::SortVec args_sorts,
-                  smt::Sort res_sort,
-                  smt::Term defining_term) const;
+                  SortVec args_sorts,
+                  Sort res_sort,
+                  Term defining_term) const;
 
   // get the name of a term
   std::string get_name(Term t) const;
@@ -246,7 +255,7 @@ class GenericSolver : public AbsSmtSolver
 
   // tracks the context level of the solver
   // (e.g., number of pushes - number of pops)
-  uint64_t context_level_;
+  std::uint64_t context_level_;
 
   // maps between sort name and actual sort and vice versa
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;

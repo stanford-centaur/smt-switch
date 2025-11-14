@@ -18,14 +18,13 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "exceptions.h"
 
-using namespace std;
-
 namespace smt {
 
-const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
+const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
     solver_attributes({
         { BTOR,
           { TERMITER,
@@ -35,7 +34,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             UNSAT_CORE,
             QUANTIFIERS,
             BOOL_BV1_ALIASING } },
-
         { BZLA,
           { TERMITER,
             CONSTARR,
@@ -44,7 +42,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS,
             BOOL_BV1_ALIASING,
             TIMELIMIT } },
-
         { CVC5,
           { TERMITER,
             THEORY_INT,
@@ -60,7 +57,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS,
             UNINTERP_SORT,
             PARAM_UNINTERP_SORT } },
-
         { GENERIC_SOLVER,
           { TERMITER,
             THEORY_INT,
@@ -70,7 +66,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             UNSAT_CORE,
             THEORY_DATATYPE,
             QUANTIFIERS } },
-
         { MSAT,
           { TERMITER,
             THEORY_INT,
@@ -82,7 +77,6 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             UNSAT_CORE,
             QUANTIFIERS,
             UNINTERP_SORT } },
-
         // TODO: Yices2 should support UNSAT_CORE
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
@@ -108,11 +102,13 @@ const unordered_map<SolverEnum, unordered_set<SolverAttribute>>
             QUANTIFIERS,
             UNINTERP_SORT,
             TIMELIMIT } },
-
     });
 
-const unordered_set<SolverEnum> interpolator_solver_enums(
-    { BZLA_INTERPOLATOR, CVC5_INTERPOLATOR, MSAT_INTERPOLATOR });
+const std::unordered_set<SolverEnum> interpolator_solver_enums({
+    BZLA_INTERPOLATOR,
+    CVC5_INTERPOLATOR,
+    MSAT_INTERPOLATOR,
+});
 
 bool is_interpolator_solver_enum(SolverEnum se)
 {
@@ -121,7 +117,7 @@ bool is_interpolator_solver_enum(SolverEnum se)
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
 {
-  unordered_set<SolverAttribute> solver_attrs = get_solver_attributes(se);
+  std::unordered_set<SolverAttribute> solver_attrs = get_solver_attributes(se);
   return solver_attrs.find(sa) != solver_attrs.end();
 }
 
@@ -142,13 +138,13 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case BTOR: o << "BTOR"; break;
     case BZLA: o << "BZLA"; break;
     case CVC5: o << "CVC5"; break;
+    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
     case Z3: o << "Z3"; break;
     case BZLA_INTERPOLATOR: o << "BZLA_INTERPOLATOR"; break;
     case CVC5_INTERPOLATOR: o << "CVC5_INTERPOLATOR"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
-    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
     default:
       // should print the integer representation
       throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
@@ -160,7 +156,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
 
 std::string to_string(SolverEnum e)
 {
-  ostringstream ostr;
+  std::ostringstream ostr;
   ostr << e;
   return ostr.str();
 }
@@ -193,7 +189,7 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
 
 std::string to_string(SolverAttribute a)
 {
-  ostringstream ostr;
+  std::ostringstream ostr;
   ostr << a;
   return ostr.str();
 }

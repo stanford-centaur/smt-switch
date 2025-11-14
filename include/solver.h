@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -39,8 +40,8 @@ class AbsSmtSolver
   /** SolverEnum identifies which underlying solver is being used.
    *  It is provided by the derived class (backend implementation)
    */
-  AbsSmtSolver(SolverEnum se) : solver_enum(se){};
-  virtual ~AbsSmtSolver(){};
+  AbsSmtSolver(SolverEnum se) : solver_enum(se) {};
+  virtual ~AbsSmtSolver() {};
 
   /* Sets a solver option with smt-lib 2 syntax
    * SMTLIB: (set-option :<option> <value>)
@@ -69,7 +70,8 @@ class AbsSmtSolver
 
   /* Check satisfiability of the current assertions under the given assumptions
    * Note: the assumptions must be boolean literals, not arbitrary formulas
-   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with asssumption literals = [t1,...,tn]
+   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with asssumption literals =
+   * [t1,...,tn]
    * @param assumptions a vector of boolean literals
    * @return a result object - see result.h
    */
@@ -83,19 +85,19 @@ class AbsSmtSolver
    * SMTLIB: (push <num>)
    * @param num the number of contexts to push
    */
-  virtual void push(uint64_t num = 1) = 0;
+  virtual void push(std::uint64_t num = 1) = 0;
 
   /* Pop contexts
    * SMTLIB: (pop <num>)
    * @param num the number of contexts to pop
    */
-  virtual void pop(uint64_t num = 1) = 0;
+  virtual void pop(std::uint64_t num = 1) = 0;
 
   /** Returns the current context level of the solver
    *  based on the number of pushes/pops
    *  @return context level
    */
-  virtual uint64_t get_context_level() const = 0;
+  virtual std::uint64_t get_context_level() const = 0;
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * SMTLIB: (get-value (<t>))
@@ -129,7 +131,7 @@ class AbsSmtSolver
    * @param arity the arity of the sort
    * @return a Sort object
    */
-  virtual Sort make_sort(const std::string name, uint64_t arity) const = 0;
+  virtual Sort make_sort(const std::string name, std::uint64_t arity) const = 0;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -142,7 +144,7 @@ class AbsSmtSolver
    * @param size (e.g. bitvector width for BV SortKind)
    * @return a Sort object
    */
-  virtual Sort make_sort(const SortKind sk, uint64_t size) const = 0;
+  virtual Sort make_sort(const SortKind sk, std::uint64_t size) const = 0;
 
   /* Create a sort
    * @param sk the SortKind
@@ -210,10 +212,11 @@ class AbsSmtSolver
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
-  virtual Term make_term(int64_t i, const Sort & sort) const = 0;
+  virtual Term make_term(std::int64_t i, const Sort & sort) const = 0;
 
-  /* Make a string value term from an `std::string` which may contain SMT-LIB compatible
-   * escape sequences like `\u1000` or `\u{20}` to encode unicode characters.
+  /* Make a string value term from an `std::string` which may contain SMT-LIB
+   * compatible escape sequences like `\u1000` or `\u{20}` to encode unicode
+   * characters.
    * @param s is the value
    * @param useEscSequences determines whether escape sequence in `s` should
    * be converted to the corresponding unicode character
@@ -221,29 +224,33 @@ class AbsSmtSolver
    * @return a value term with Sort sort and value s
    */
 
-  virtual Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const{
-        throw NotImplementedException("Strings not supported for this solver.");
+  virtual Term make_term(const std::string & s,
+                         bool useEscSequences,
+                         const Sort & sort) const
+  {
+    throw NotImplementedException("Strings not supported for this solver.");
   }
 
   /* Make a string value term
    * @param s is the value
    * @param sort the sort to create
    * @return a value term with Sort sort and value s
-   */  
-  virtual Term make_term(const std::wstring& s, const Sort & sort) const{
-        throw NotImplementedException("Strings not supported for this solver.");
+   */
+  virtual Term make_term(const std::wstring & s, const Sort & sort) const
+  {
+    throw NotImplementedException("Strings not supported for this solver.");
   }
-
 
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
    * @param sort the sort to create
-   * @param base the base to interpret the value, for bit-vector sorts (ignored otherwise)
+   * @param base the base to interpret the value, for bit-vector sorts (ignored
+   * otherwise)
    * @return a value term with Sort sort and value val
    */
   virtual Term make_term(const std::string val,
                          const Sort & sort,
-                         uint64_t base = 10) const = 0;
+                         std::uint64_t base = 10) const = 0;
 
   /* Make a value of a particular sort, such as constant arrays
    * @param val the Term used to create the value (.e.g constant array with 0)
@@ -264,15 +271,15 @@ class AbsSmtSolver
    *  If no symbol of that name has been declared, throws
    *  IncorrectUsageException
    *
-   *  Allows a user to look up a symbol by name. This can be very useful for term
-   *  translation, since we can look up symbols instead of keeping track of the
-   *  mapping via externally populated caches (in the case where the target
+   *  Allows a user to look up a symbol by name. This can be very useful for
+   * term translation, since we can look up symbols instead of keeping track of
+   * the mapping via externally populated caches (in the case where the target
    *  solver has already been used).
    *
-   *  Note, solver backend deals with the implementation. The main motivation for
-   *  this is that each backend solver has to own the symbol table. If the symbol
-   *  table were stored in AbsSmtSolver then it would get destructed after the
-   *  backend solver which has bad refcounting implications for many solvers.
+   *  Note, solver backend deals with the implementation. The main motivation
+   * for this is that each backend solver has to own the symbol table. If the
+   * symbol table were stored in AbsSmtSolver then it would get destructed after
+   * the backend solver which has bad refcounting implications for many solvers.
    *
    *  @param name the name of the symbol to look up
    *  @return the Term representation of the corresponding symbol
@@ -333,7 +340,6 @@ class AbsSmtSolver
    */
   virtual void reset_assertions() = 0;
 
-
   /* Initialize a datatype declaration with some name
    * @param s Name of the datatype
    * @return an empty Datatype declaration
@@ -351,7 +357,9 @@ class AbsSmtSolver
    * @param dt Datatype
    * @param con Datatype constructor
    */
- virtual void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const = 0; // what is const=0?
+  virtual void add_constructor(
+      DatatypeDecl & dt,
+      const DatatypeConstructorDecl & con) const = 0;  // what is const=0?
 
   /* Add a selector to a datatype constructor
    * @param dt DatatypeConstructorDecl
@@ -359,13 +367,17 @@ class AbsSmtSolver
    * @param s sort of the selector
    */
 
-  virtual void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const = 0;
+  virtual void add_selector(DatatypeConstructorDecl & dt,
+                            const std::string & name,
+                            const Sort & s) const = 0;
 
-  /* Add a selector to a datatype constructor where the sort is the datatype itself (whose sort doesn't exist yet)
+  /* Add a selector to a datatype constructor where the sort is the datatype
+   * itself (whose sort doesn't exist yet)
    * @param dt DatatypeConstructorDecl
    * @param name name of the selector
    */
-  virtual void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const = 0;
+  virtual void add_selector_self(DatatypeConstructorDecl & dt,
+                                 const std::string & name) const = 0;
 
   /* get a term representing to a datatype constructor
    * @param s A datatype sort (error otherwise)
@@ -386,7 +398,9 @@ class AbsSmtSolver
    * @param con name of the constructor
    * @param name name of the selector
    */
-  virtual Term get_selector(const Sort & s, std::string con, std::string name) const = 0;
+  virtual Term get_selector(const Sort & s,
+                            std::string con,
+                            std::string name) const = 0;
 
   /** Create sorts for the corresponding DatatypeDecls.
    *
@@ -421,7 +435,8 @@ class AbsSmtSolver
   /* Dumps full smt-lib representation of current context to a file */
   virtual void dump_smt2(std::string filename) const
   {
-    throw NotImplementedException("Dumping to FILE not supported for this solver.");
+    throw NotImplementedException(
+        "Dumping to FILE not supported for this solver.");
   }
 
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
@@ -439,7 +454,8 @@ class AbsSmtSolver
                                  const Term & B,
                                  Term & out_I) const
   {
-    throw NotImplementedException("Interpolants are not supported by this solver.");
+    throw NotImplementedException(
+        "Interpolants are not supported by this solver.");
   }
 
   /** Compute a sequence interpolants given formulae

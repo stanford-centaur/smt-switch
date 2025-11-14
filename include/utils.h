@@ -16,12 +16,17 @@
 
 #pragma once
 
+#include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
-#include "assert.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "term.h"
+#include "term_translator.h"
 
 #ifndef NDEBUG
 #define _ASSERTIONS
@@ -55,7 +60,7 @@ inline void Log(std::string msg)
 namespace smt {
 
 // term helper methods
-void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
+void op_partition(PrimOp o, const Term & term, TermVec & out);
 
 /** Populates a vector with conjuncts from a term
  *  @param the term to partition
@@ -66,8 +71,8 @@ void op_partition(smt::PrimOp o, const smt::Term & term, smt::TermVec & out);
  *         that is known to be boolean will give you the expected
  *         partition.
  */
-void conjunctive_partition(const smt::Term & term,
-                           smt::TermVec & out,
+void conjunctive_partition(const Term & term,
+                           TermVec & out,
                            bool include_bvand = false);
 
 /** Populates a vector with disjuncts from a term
@@ -75,20 +80,19 @@ void conjunctive_partition(const smt::Term & term,
  *  @param out the output vector
  *  @param include_bvor also split on BVOr over 1-bit signals
  */
-void disjunctive_partition(const smt::Term & term,
-                           smt::TermVec & out,
+void disjunctive_partition(const Term & term,
+                           TermVec & out,
                            bool include_bvor = false);
 
-void get_matching_terms(const smt::Term & term,
-                        smt::UnorderedTermSet & out,
-                        bool (*matching_fun)(const smt::Term & term));
+void get_matching_terms(const Term & term,
+                        UnorderedTermSet & out,
+                        bool (*matching_fun)(const Term & term));
 
-void get_free_symbolic_consts(const smt::Term & term,
-                              smt::UnorderedTermSet & out);
+void get_free_symbolic_consts(const Term & term, UnorderedTermSet & out);
 
-void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out);
+void get_free_symbols(const Term & term, UnorderedTermSet & out);
 
-void get_ops(const smt::Term & term, smt::UnorderedOpSet & out);
+void get_ops(const Term & term, UnorderedOpSet & out);
 
 /** returns true iff l is a literal
  *  e.g. either a boolean symbolic constant or its negation
@@ -103,7 +107,8 @@ bool is_lit(const Term & l, const Sort & boolsort);
 // Returns a string in DIMACs format for a given cnf formula
 void cnf_to_dimacs(Term cnf, std::ostringstream & y);
 
-// Converts any boolean formula to cnf, formula is the formula to be converted to a cnf
+// Converts any boolean formula to cnf, formula is the formula to be converted
+// to a cnf
 Term to_cnf(Term formula, SmtSolver s);
 
 // Returns true if the formula is in cnf form, else false
@@ -113,16 +118,17 @@ bool is_cnf(Term formula);
 
 /** \class
  * UnsatcoreReducer class.
- * Implements an interative unsatcore reducer procedure. 
+ * Implements an interative unsatcore reducer procedure.
  *
  * reducer_solver is the solver that will be used for unsatcore extraction in
  * the procedure. It is different from the ext_solver (external solver used to
  * create the formula and assump)
  *
  */
-class UnsatCoreReducer {
-public:
-  UnsatCoreReducer(smt::SmtSolver reducer_solver);
+class UnsatCoreReducer
+{
+ public:
+  UnsatCoreReducer(SmtSolver reducer_solver);
   ~UnsatCoreReducer();
 
   /** The main method to reduce the assump (vector of assumptions). The method
@@ -137,19 +143,18 @@ public:
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
    */
-  bool reduce_assump_unsatcore(const smt::Term &formula,
-                               const smt::TermVec &assump,
-                               smt::TermVec &out_red,
-                               smt::TermVec *out_rem = NULL,
+  bool reduce_assump_unsatcore(const Term & formula,
+                               const TermVec & assump,
+                               TermVec & out_red,
+                               TermVec * out_rem = NULL,
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
-  
 
-  /** The additional method to reduce the assump (vector of assumptions). The method
-   *  assumes that the conjunction of the formula and assump is unsatisfiable.
-   *  This will iterate through the assump and requires at most size(assump) query
-   *  Note: this function assumes that there are no duplicate assumptions from the
-   *  second input vector.
+  /** The additional method to reduce the assump (vector of assumptions). The
+   * method assumes that the conjunction of the formula and assump is
+   * unsatisfiable. This will iterate through the assump and requires at most
+   * size(assump) queries. Note: this function assumes that there are no
+   * duplicate assumptions from the second input vector.
    *  @param input formula
    *  @param input vector of assumptions
    *  @param output vector for the reduced assumptions
@@ -159,12 +164,11 @@ public:
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
    */
-  bool linear_reduce_assump_unsatcore(
-                               const smt::Term &formula,
-                               const smt::TermVec &assump,
-                               smt::TermVec &out_red,
-                               smt::TermVec *out_rem = NULL,
-                               unsigned iter = 0);
+  bool linear_reduce_assump_unsatcore(const Term & formula,
+                                      const TermVec & assump,
+                                      TermVec & out_red,
+                                      TermVec * out_rem = NULL,
+                                      unsigned iter = 0);
 
   /** This clears the term translation cache. Note, term translator is used to
    *  translate the terms of the external solver to the
@@ -179,13 +183,13 @@ public:
    *  @param Input term t
    *  return a boolean label for the term t
    */
-  smt::Term label(const Term & t);
+  Term label(const Term & t);
 
-  smt::SmtSolver reducer_; // solver for unsatcore-based reduction
-  smt::TermTranslator to_reducer_; // translator for converting terms from
-                                   // ext_solver to reducer_
+  SmtSolver reducer_;          //< solver for unsatcore-based reduction
+  TermTranslator to_reducer_;  //< translator for converting terms from
+                               // ext_solver to reducer_
 
-  smt::UnorderedTermMap labels_;  //< labels for unsat cores
+  UnorderedTermMap labels_;  //< labels for unsat cores
 };
 
 // -----------------------------------------------------------------------------
@@ -196,7 +200,7 @@ public:
 class DisjointSet
 {
  public:
-  DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b));
+  DisjointSet(bool (*c)(const Term & a, const Term & b));
   ~DisjointSet();
 
   DisjointSet() = delete;
@@ -205,13 +209,13 @@ class DisjointSet
    * @param Term a to be added in the same set
    * @param Term b to be added in the same set
    */
-  void add(const smt::Term & a, const smt::Term & b);
+  void add(const Term & a, const Term & b);
 
   /** Find the representative (leader) of the term t.
    * @param Term t whose respresentative to be returned.
    * returns the representative term.
    */
-  smt::Term find(const smt::Term & t) const;
+  Term find(const Term & t) const;
 
   /** Clears the disjoint set
    */
@@ -219,12 +223,12 @@ class DisjointSet
 
  private:
   // Compare function for ranking
-  bool (*comp)(const smt::Term & a, const smt::Term & b);
+  bool (*comp)(const Term & a, const Term & b);
 
   // member to group's leader
-  smt::UnorderedTermMap leader_;
+  UnorderedTermMap leader_;
   // group leader to group
-  std::unordered_map<smt::Term, smt::UnorderedTermSet> group_;
+  std::unordered_map<Term, UnorderedTermSet> group_;
 };
 
 }  // namespace smt

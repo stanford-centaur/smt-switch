@@ -16,47 +16,58 @@
 
 #include "smtlib_reader.h"
 
-#include "assert.h"
+#include <cstddef>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "exceptions.h"
+#include "ops.h"
 #include "smtlibparser.h"
 #include "smtlibparser_maps.h"
-
-using namespace std;
+#include "sort.h"
 
 namespace smt {
 
 // maps logic string to vector of theories included in the logic
-const unordered_map<string, vector<string>> logic_theory_map(
-    { { "A", { "A" } },
-      { "AX", { "A" } },
-      { "BV", { "BV" } },
-      { "IDL", { "IA" } },
-      { "LIA", { "IA" } },
-      { "LIRA", { "IA", "RA", "IRA" } },
-      { "LRA", { "RA" } },
-      { "NIA", { "IA" } },
-      { "NIRA", { "IA", "RA", "IRA" } },
-      { "NRA", { "RA" } },
-      { "RDL", { "RA" } },
-      { "UF", { "UF" } },
-      { "S", { "S" } } });
+const std::unordered_map<std::string, std::vector<std::string>>
+    logic_theory_map({
+        { "A", { "A" } },
+        { "AX", { "A" } },
+        { "BV", { "BV" } },
+        { "IDL", { "IA" } },
+        { "LIA", { "IA" } },
+        { "LIRA", { "IA", "RA", "IRA" } },
+        { "LRA", { "RA" } },
+        { "NIA", { "IA" } },
+        { "NIRA", { "IA", "RA", "IRA" } },
+        { "NRA", { "RA" } },
+        { "RDL", { "RA" } },
+        { "UF", { "UF" } },
+        { "S", { "S" } },
+    });
 
 // maps logic string to vector of associated SortKinds for that logic
-const unordered_map<string, vector<SortKind>> logic_sortkind_map(
-    { { "A", { ARRAY } },
-      { "AX", { ARRAY } },
-      { "BV", { BV } },
-      { "IDL", { INT } },
-      { "LIA", { INT } },
-      { "LIRA", { INT, REAL } },
-      { "LRA", { REAL } },
-      { "NIA", { INT } },
-      { "NIRA", { INT, REAL } },
-      { "NRA", { REAL } },
-      { "RDL", { REAL } },
-      { "UF", { FUNCTION } },
-      { "S", { STRING } } });
+const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
+    {
+        { "A", { ARRAY } },
+        { "AX", { ARRAY } },
+        { "BV", { BV } },
+        { "IDL", { INT } },
+        { "LIA", { INT } },
+        { "LIRA", { INT, REAL } },
+        { "LRA", { REAL } },
+        { "NIA", { INT } },
+        { "NIRA", { INT, REAL } },
+        { "NRA", { REAL } },
+        { "RDL", { REAL } },
+        { "UF", { FUNCTION } },
+        { "S", { STRING } },
+    });
 
-SmtLibReader::SmtLibReader(smt::SmtSolver & solver, bool strict)
+SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),
       logic_("UNSET"),
@@ -96,7 +107,7 @@ int SmtLibReader::parse(const std::string & f)
   return res;
 }
 
-void SmtLibReader::set_logic(const string & logic)
+void SmtLibReader::set_logic(const std::string & logic)
 {
   if (logic == "ALL")
   {
@@ -108,7 +119,7 @@ void SmtLibReader::set_logic(const string & logic)
   logic_ = logic;
 
   // process logic to get available operator symbols
-  string processed_logic = logic;
+  std::string processed_logic = logic;
   if (processed_logic.substr(0, 3) == "QF_")
   {
     // parser doesn't distinguish -- let solver complain
@@ -116,14 +127,14 @@ void SmtLibReader::set_logic(const string & logic)
     processed_logic = processed_logic.substr(3, processed_logic.length() - 3);
   }
 
-  unordered_set<string> theories;
-  size_t logic_size;
+  std::unordered_set<std::string> theories;
+  std::size_t logic_size;
   while ((logic_size = processed_logic.size()))
   {
     // all existing theories have abbreviations of length 4 or shorter
-    for (size_t len = 1; len <= 4; len++)
+    for (std::size_t len = 1; len <= 4; len++)
     {
-      string sub = processed_logic.substr(0, len);
+      std::string sub = processed_logic.substr(0, len);
       if (logic_theory_map.find(sub) != logic_theory_map.end())
       {
         // add operators for this theory
@@ -153,7 +164,7 @@ void SmtLibReader::set_logic(const string & logic)
         {
           for (const SortKind sk : logic_sortkind_map.at(sub))
           {
-            sortkinds_[smt::to_string(sk)] = sk;
+            sortkinds_[to_string(sk)] = sk;
           }
         }
         break;
@@ -171,7 +182,7 @@ void SmtLibReader::set_logic(const string & logic)
     // add non-strict operators
     bool bv_theory = theories.find("BV") != theories.end();
     bool int_theory = theories.find("IA") != theories.end();
-    vector<string> theory_combs;
+    std::vector<std::string> theory_combs;
 
     if (int_theory)
     {
@@ -222,7 +233,7 @@ void SmtLibReader::set_logic_all()
   {
     for (const SortKind & sk : elem.second)
     {
-      sortkinds_[smt::to_string(sk)] = sk;
+      sortkinds_[to_string(sk)] = sk;
     }
   }
 
@@ -239,12 +250,12 @@ void SmtLibReader::set_logic_all()
   }
 }
 
-void SmtLibReader::set_opt(const string & key, const string & val)
+void SmtLibReader::set_opt(const std::string & key, const std::string & val)
 {
   solver_->set_opt(key, val);
 }
 
-void SmtLibReader::set_info(const string & key, const string & val)
+void SmtLibReader::set_info(const std::string & key, const std::string & val)
 {
   // No-Op for set-info by default
 }
@@ -257,29 +268,29 @@ void SmtLibReader::assert_formula(const Term & assertion)
 Result SmtLibReader::check_sat()
 {
   Result r = solver_->check_sat();
-  cout << r << endl;
+  std::cout << r << std::endl;
   return r;
 }
 
 Result SmtLibReader::check_sat_assuming(const TermVec & assumptions)
 {
   Result r = solver_->check_sat_assuming(assumptions);
-  cout << r << endl;
+  std::cout << r << std::endl;
   return r;
 }
 
-void SmtLibReader::push(uint64_t num)
+void SmtLibReader::push(std::uint64_t num)
 {
-  for (size_t i = 0; i < num; ++i)
+  for (std::size_t i = 0; i < num; ++i)
   {
     global_symbols_.push_scope();
   }
   solver_->push(num);
 }
 
-void SmtLibReader::pop(uint64_t num)
+void SmtLibReader::pop(std::uint64_t num)
 {
-  for (size_t i = 0; i < num; ++i)
+  for (std::size_t i = 0; i < num; ++i)
   {
     global_symbols_.pop_scope();
   }
@@ -287,16 +298,17 @@ void SmtLibReader::pop(uint64_t num)
 }
 
 void SmtLibReader::term_attribute(const Term & term,
-                                  const string & keyword,
-                                  const string & value)
+                                  const std::string & keyword,
+                                  const std::string & value)
 {
-  cerr << "Warning: ignoring attribute :" << keyword << " " << value << endl;
+  std::cerr << "Warning: ignoring attribute :" << keyword << " " << value
+            << std::endl;
 }
 
 void SmtLibReader::push_scope()
 {
   arg_param_map_.push_scope();
-  sort_arg_ids_.push_back(std::unordered_map<smt::Sort, size_t>());
+  sort_arg_ids_.push_back(std::unordered_map<Sort, std::size_t>());
 }
 
 void SmtLibReader::pop_scope()
@@ -305,7 +317,7 @@ void SmtLibReader::pop_scope()
   sort_arg_ids_.pop_back();
 }
 
-Term SmtLibReader::lookup_symbol(const string & sym)
+Term SmtLibReader::lookup_symbol(const std::string & sym)
 {
   Term symbol_term;
   assert(!symbol_term);
@@ -335,7 +347,7 @@ Term SmtLibReader::lookup_symbol(const string & sym)
   return symbol_term;
 }
 
-void SmtLibReader::new_symbol(const std::string & name, const smt::Sort & sort)
+void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
 {
   if (global_symbols_.get_symbol(name))
   {
@@ -391,7 +403,7 @@ SortKind SmtLibReader::lookup_sortkind(const std::string & str)
   return sk;
 }
 
-void SmtLibReader::define_fun(const string & name,
+void SmtLibReader::define_fun(const std::string & name,
                               const Term & def,
                               const TermVec & args)
 {
@@ -408,12 +420,12 @@ void SmtLibReader::define_fun(const string & name,
   }
 }
 
-Term SmtLibReader::apply_define_fun(const string & defname,
+Term SmtLibReader::apply_define_fun(const std::string & defname,
                                     const TermVec & args)
 {
   UnorderedTermMap subs_map;
-  size_t num_args = args.size();
-  assert(num_args); // apply_define_fun only for defines which take arguments
+  std::size_t num_args = args.size();
+  assert(num_args);  // apply_define_fun only for defines which take arguments
 
   auto it = defs_.find(defname);
 
@@ -430,7 +442,7 @@ Term SmtLibReader::apply_define_fun(const string & defname,
                        + " not applied to correct number of arguments.");
   }
 
-  for (size_t i = 0; i < args.size(); ++i)
+  for (std::size_t i = 0; i < args.size(); ++i)
   {
     subs_map[def_args_.at(defname)[i]] = args[i];
   }
@@ -438,13 +450,14 @@ Term SmtLibReader::apply_define_fun(const string & defname,
   return solver_->substitute(def, subs_map);
 }
 
-Term SmtLibReader::register_arg(const string & name, const Sort & sort)
+Term SmtLibReader::register_arg(const std::string & name, const Sort & sort)
 {
   assert(current_scope());
   // find the right id for this argument
   // can't associate with same variable as another argument for this define-fun
-  size_t id = 0;
-  unordered_map<Sort, size_t> & current_scope_sort_ids = sort_arg_ids_.back();
+  std::size_t id = 0;
+  std::unordered_map<Sort, size_t> & current_scope_sort_ids =
+      sort_arg_ids_.back();
   auto it = current_scope_sort_ids.find(sort);
   if (it != current_scope_sort_ids.end())
   {
@@ -458,8 +471,8 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   Term tmpvar;
   if (id >= tmp_args_[sort].size())
   {
-    tmpvar = solver_->make_symbol(def_arg_prefix_ + sort->to_string() +
-                                  std::to_string(id), sort);
+    tmpvar = solver_->make_symbol(
+        def_arg_prefix_ + sort->to_string() + std::to_string(id), sort);
     tmp_args_[sort].push_back(tmpvar);
   }
   else
@@ -473,7 +486,7 @@ Term SmtLibReader::register_arg(const string & name, const Sort & sort)
   return tmpvar;
 }
 
-void SmtLibReader::define_sort(const string & name, const Sort & sort)
+void SmtLibReader::define_sort(const std::string & name, const Sort & sort)
 {
   if (sortkinds_.find(name) != sortkinds_.end())
   {
@@ -487,7 +500,7 @@ void SmtLibReader::define_sort(const string & name, const Sort & sort)
   defined_sorts_[name] = sort;
 }
 
-Sort SmtLibReader::lookup_sort(const string & name)
+Sort SmtLibReader::lookup_sort(const std::string & name)
 {
   auto it = defined_sorts_.find(name);
   if (it == defined_sorts_.end())
@@ -497,13 +510,13 @@ Sort SmtLibReader::lookup_sort(const string & name)
   return it->second;
 }
 
-Term SmtLibReader::create_param(const string & name, const Sort & sort)
+Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
 {
   assert(current_scope());
   Term param;
   // some solvers don't allow re-using parameter names
   // need to find a fresh one
-  size_t id = 0;
+  std::size_t id = 0;
   while (!param)
   {
     try
@@ -525,7 +538,7 @@ Term SmtLibReader::create_param(const string & name, const Sort & sort)
   return param;
 }
 
-void SmtLibReader::let_binding(const string & sym, const Term & term)
+void SmtLibReader::let_binding(const std::string & sym, const Term & term)
 {
   assert(current_scope());
   arg_param_map_.add_mapping(sym, term);

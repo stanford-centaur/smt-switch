@@ -18,10 +18,11 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
-#include "exceptions.h"
-#include "smt.h"
+#include "smt_defs.h"
 
 namespace smt {
 /* vector of pairs holding terms and ints that gets used within visit in the
@@ -66,14 +67,13 @@ enum TreeWalkerStepResult
  *
  * Important Note: The term arguments should belong to the solver provided
  */
-
 class TreeWalker
 {
  public:
-  TreeWalker(const smt::SmtSolver & solver,
+  TreeWalker(const SmtSolver & solver,
              bool clear_cache,
-             smt::UnorderedTermPairMap * ext_cache = nullptr)
-      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache){};
+             UnorderedTermPairMap * ext_cache = nullptr)
+      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
 
   /** Visit a term and all its subterms in a post-order traversal
    *  @param term the term to visit
@@ -81,7 +81,7 @@ class TreeWalker
    *    if it has been cached and returns pair of the term itself and the empty
    * path otherwise
    */
-  std::pair<smt::Term, std::vector<int>> visit(smt::Term & node);
+  std::pair<Term, std::vector<int>> visit(Term & node);
 
  protected:
   /** Visit a single term.
@@ -113,8 +113,8 @@ class TreeWalker
    * visiting
    *  @return a TreeWalkerStepResult to tell the visit method how to proceed
    */
-  virtual TreeWalkerStepResult visit_term(smt::Term & formula,
-                                          smt::Term & term,
+  virtual TreeWalkerStepResult visit_term(Term & formula,
+                                          Term & term,
                                           std::vector<int> & path);
 
   /** Check if key is in cache
@@ -139,14 +139,14 @@ class TreeWalker
   void save_in_cache(const Term & key,
                      const std::pair<Term, std::vector<int>> & val);
 
-  const smt::SmtSolver & solver_; /**< the solver to use for rebuilding terms */
+  const SmtSolver & solver_; /**< the solver to use for rebuilding terms */
   bool clear_cache_; /**< if true, clears the cache between calls to visit */
 
  private:
   // derived classes should interact with cache through the methods above only
-  smt::UnorderedTermPairMap cache_;       /**< cache for updating terms */
-  smt::UnorderedTermPairMap * ext_cache_; /**< external (user-provided) cache.
-                                         If non-null, used instead of cache_ */
+  UnorderedTermPairMap cache_;       /**< cache for updating terms */
+  UnorderedTermPairMap * ext_cache_; /**< external (user-provided) cache. If
+                                        non-null, used instead of cache_ */
 };
 
 }  // namespace smt
