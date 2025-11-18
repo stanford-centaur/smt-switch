@@ -124,7 +124,7 @@ class LoggingSort : public AbsSort
 class BVLoggingSort : public LoggingSort
 {
  public:
-  BVLoggingSort(Sort s, uint64_t width);
+  BVLoggingSort(Sort s, std::uint64_t width);
   ~BVLoggingSort();
 
   typedef LoggingSort super;
