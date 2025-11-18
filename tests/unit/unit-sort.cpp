@@ -167,7 +167,7 @@ TEST_P(UnitSortTests, UninterpSortEquality)
   ASSERT_EQ(x->get_sort(), y->get_sort());
 
   s->push();
-  s->make_term(Equal, x, y);
+  s->assert_formula(s->make_term(Equal, x, y));
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
