@@ -27,6 +27,7 @@ else:  # linux
     lib_ext = ".so"
     static_lib_ext = ".a"
 
+
 def find_solvers():
     """Find all compiled solvers based on built libraries in the build directory."""
     all_solvers = set()
@@ -56,44 +57,27 @@ def find_solvers():
 
     return sorted(list(all_solvers))
 
+
 # Get Python extension suffix
-ext_filename = 'smt_switch' + sysconfig.get_config_var('EXT_SUFFIX')
+ext_filename = "smt_switch" + sysconfig.get_config_var("EXT_SUFFIX")
 
 # Set up package structure
-built_solvers = find_solvers()
-packages = ['smt_switch'] + [f'smt_switch.{solver}' for solver in built_solvers]
+setup_args = {
+    "packages": ["smt_switch"],
+    "package_data": {"smt_switch": [f"*{lib_ext}"]},
+}
 
 # Handle Cython compilation if the extension hasn't been built yet
-if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
-    # Add flags and directories for found solvers.
+if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
+    # Add flags and directories for compilation.
     libraries = []
-    library_dirs = [PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
-    include_dirs = [f"{PROJECT_SOURCE_DIR}/include", PROJECT_BINARY_DIR, f"{PROJECT_BINARY_DIR}/python"]
-    for solver in built_solvers:
-        libraries.append(f"smt-switch-{solver}")
-        library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
-        include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
+    library_dirs = [PROJECT_BINARY_DIR]
+    include_dirs = [f"{PROJECT_SOURCE_DIR}/include"]
     libraries.append("smt-switch")  # needs to come after the solver-specific libraries
     extra_compile_args = ["-std=c++17"]
-    extra_link_args = []
-    for path in library_dirs:
-        extra_link_args.append(f"-Wl,-rpath,{path}")
-
-    # When smt-switch is compiled as a static library, we need to link dependencies manually.
-    if SMT_SWITCH_LIB_TYPE == "STATIC":
-        # Some solver implementations need GMP.
-        for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
-            if gmp_solver in built_solvers:
-                libraries += ["gmp", "gmpxx"]
-                break
-        # Some solvers have their own linking flags.
-        if "bitwuzla" in built_solvers:
-            extra_link_args += BITWUZLA_LDFLAGS
-        if "z3" in built_solvers:
-            extra_link_args.append(Z3_LIBRARY_LOCATION)
 
     # Handle OS-specific settings.
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
         if mac_ver is None:
             version_str, _, _ = platform.mac_ver()
@@ -109,44 +93,82 @@ if not os.path.isfile(os.path.join('smt_switch', ext_filename)):
         os.environ.setdefault("ARCHFLAGS", arch_flags)
     if sys.platform == "win32":
         extra_compile_args += ["-DMS_WIN64"]
-        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+        os.environ["PATH"] += r";C:\msys64\mingw64\bin"
 
     # Set up the extension module
     modules = [
         "api",
         "enums",
         "primops",
-        "smt_solvers",
         "solverattr",
         "solverenums",
         "sortkinds",
     ]
-    ext_modules = [Extension(
-        name=f"smt_switch.{module}",
-        sources=[f"smt_switch/{module}.pyx"],
-        libraries=libraries,
-        library_dirs=library_dirs,
-        runtime_library_dirs=library_dirs,
-        include_dirs=include_dirs,
-        language="c++",
-        extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args,
-    ) for module in modules]
+    ext_modules = [
+        Extension(
+            name=f"smt_switch.{module}",
+            sources=[f"smt_switch/{module}.pyx"],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            runtime_library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            language="c++",
+            extra_compile_args=extra_compile_args,
+        )
+        for module in modules
+    ]
+
+    # Set up the smt_solvers module.
+    built_solvers = find_solvers()
+    solver_libraries = []
+    solver_library_dirs = library_dirs.copy()
+    solver_include_dirs = include_dirs.copy()
+    for solver in built_solvers:
+        solver_libraries.append(f"smt-switch-{solver}")
+        solver_library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
+        solver_include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
+    solver_libraries.extend(libraries)
+    solver_link_args = []
+    for path in library_dirs:
+        solver_link_args.append(f"-Wl,-rpath,{path}")
+    if SMT_SWITCH_LIB_TYPE == "STATIC":
+        # When smt-switch is compiled as a static library, we need to link dependencies manually.
+        for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
+            # Some solver implementations need GMP.
+            if gmp_solver in built_solvers:
+                solver_libraries += ["gmp", "gmpxx"]
+                break
+        # Some solvers have their own linking flags.
+        if "bitwuzla" in built_solvers:
+            solver_link_args += BITWUZLA_LDFLAGS
+        if "z3" in built_solvers:
+            solver_link_args.append(Z3_LIBRARY_LOCATION)
+    ext_modules.append(
+        Extension(
+            name="smt_switch.smt_solvers",
+            sources=["smt_switch/smt_solvers.pyx"],
+            libraries=solver_libraries,
+            library_dirs=solver_library_dirs,
+            runtime_library_dirs=solver_library_dirs,
+            include_dirs=solver_include_dirs,
+            language="c++",
+            extra_compile_args=extra_compile_args,
+            extra_link_args=solver_link_args,
+        )
+    )
 
     # Cython compilation settings
     compiler_directives = {
-        'language_level': 3,
-        'binding': False,
-        'embedsignature': True,
+        "language_level": 3,
+        "binding": False,
+        "embedsignature": True,
     }
     setup(
         ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
-        packages=packages,
-        package_data={'': [f'*{lib_ext}']},
+        **setup_args,
     )
 else:
     setup(
-        packages=packages,
-        package_data={'': [f'*{lib_ext}']},
         has_ext_modules=lambda: True,
+        **setup_args,
     )
