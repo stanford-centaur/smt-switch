@@ -6,7 +6,7 @@ configure_step() {
     -DBUILD_SHARED_LIBS=OFF
     -DCMAKE_INSTALL_LIBDIR=lib # makes sure libraries go into deps/install/lib
     -DCMAKE_INSTALL_PREFIX="$install_dir"
-    -DCMAKE_POLICY_VERSION_MINIMUM=3.5  # CMake 4.0 and later require 3.5 at minimum
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.10  # CMake < 3.10 is deprecated
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     -DCMAKE_PREFIX_PATH="$install_dir"
   )
