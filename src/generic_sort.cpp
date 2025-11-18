@@ -344,7 +344,8 @@ Sort FunctionGenericSort::get_codomain_sort() const { return codomain_sort; }
 
 // UninterpretedGenericSort
 
-UninterpretedGenericSort::UninterpretedGenericSort(std::string n, uint64_t a)
+UninterpretedGenericSort::UninterpretedGenericSort(std::string n,
+                                                   std::uint64_t a)
     : GenericSort(a == 0 ? UNINTERPRETED : UNINTERPRETED_CONS),
       name(n),
       arity(a)
@@ -365,7 +366,7 @@ std::string UninterpretedGenericSort::get_uninterpreted_name() const
   return name;
 }
 
-size_t UninterpretedGenericSort::get_arity() const { return arity; }
+std::size_t UninterpretedGenericSort::get_arity() const { return arity; }
 
 SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 {
