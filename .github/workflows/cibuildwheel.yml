@@ -62,6 +62,7 @@ jobs:
         CIBW_BEFORE_ALL_LINUX: |
           dnf install -y \
             cmake \
+            gettext \
             glibc-static \
             gmp-devel \
             gperf \
