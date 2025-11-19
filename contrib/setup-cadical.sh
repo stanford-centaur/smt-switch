@@ -1,6 +1,6 @@
 #!/bin/bash
-version_number=2.1.3
-git_tag=rel-$version_number
+_version=2.1.3
+git_tag=rel-$_version
 github_owner=arminbiere
 
 configure_step() {
@@ -8,15 +8,18 @@ configure_step() {
 }
 
 install_step() {
-  install -m644 build/libcadical.a "$install_libdir"
+  install -d "$install_includedir" "$install_libdir"
   install -m644 src/ccadical.h "$install_includedir"
   install -m644 src/cadical.hpp "$install_includedir"
   install -m644 src/tracer.hpp "$install_includedir"
+  install -m644 build/libcadical.a "$install_libdir"
 
-  export install_dir version_number
-  envsubst '$install_dir $version_number' <"$contrib_dir/pkgconfig/cadical.pc.in" >"$pkg_config_dir/cadical.pc"
-  export -n install_dir version_number
+  export install_dir _version
+  mkdir -p "$install_pkgconfigdir"
+  # shellcheck disable=SC2016
+  envsubst '$install_dir $_version' <"$pkg_config_dir/cadical.pc.in" >"$install_pkgconfigdir/cadical.pc"
+  export -n install_dir _version
 }
 
-source "$(dirname "$0")/make-steps.sh"
-source "$(dirname "$0")/common-setup.sh"
+# shellcheck source=contrib/make-setup.sh
+source "$(dirname "$0")/make-setup.sh"

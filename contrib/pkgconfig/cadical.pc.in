@@ -3,7 +3,7 @@ includedir=${prefix}/include
 libdir=${prefix}/lib
 
 Name: cadical
-Version: ${version_number}
+Version: ${_version}
 Description: CaDiCaL Simplified Satisfiability Solver
 Cflags: -I${includedir}
 Libs: -L${libdir} -lcadical

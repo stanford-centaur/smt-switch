@@ -26,10 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove GHC to free up disk space (Linux)
-        if: runner.os == 'Linux'
-        run: ghcup nuke
-
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |

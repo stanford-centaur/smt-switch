@@ -10,5 +10,5 @@ prepare_step() {
   patch -p1 <"$contrib_dir/bitwuzla_libgmp.patch"
 }
 
-source "$(dirname "$(realpath "$0")")/meson-steps.sh"
-source "$(dirname "$(realpath "$0")")/common-setup.sh"
+# shellcheck source=contrib/meson-setup.sh
+source "$(dirname "$(realpath "$0")")/meson-setup.sh"

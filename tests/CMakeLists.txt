@@ -35,13 +35,14 @@ if(NOT GTest_FOUND)
                   EXCLUDE_FROM_ALL)
 endif()
 
-add_library(test-deps "${SMT_SWITCH_LIB_TYPE}"
+add_library(test-deps SHARED
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp"
   "${PROJECT_SOURCE_DIR}/tests/test-utils.cpp"
   )
 
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
-target_link_libraries(test-deps smt-switch ${SOLVER_BACKEND_LIBS})
+target_link_libraries(test-deps PUBLIC smt-switch)
+target_link_libraries(test-deps PRIVATE ${SOLVER_BACKEND_LIBS})
 
 # add solver-specific test directories
 # these do not use googletest

@@ -137,7 +137,7 @@ class GenericSort : public AbsSort
 class BVGenericSort : public GenericSort
 {
  public:
-  BVGenericSort(uint64_t width);
+  BVGenericSort(std::uint64_t width);
   ~BVGenericSort();
 
   std::uint64_t get_width() const override;

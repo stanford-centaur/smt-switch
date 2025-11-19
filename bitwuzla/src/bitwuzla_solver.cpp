@@ -227,8 +227,19 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
 
 Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
-  throw NotImplementedException(
-      "Bitwuzla backend does not support uninterpreted sorts");
+  if (arity != 0)
+  {
+    throw NotImplementedException(
+        "Bitwuzla does not support parametrized uninterpreted sorts");
+  }
+  try
+  {
+    return std::make_shared<BzlaSort>(tm->mk_uninterpreted_sort(name));
+  }
+  catch (bitwuzla::Exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
 }
 
 Sort BzlaSolver::make_sort(SortKind sk) const
