@@ -1,9 +1,11 @@
 macro(switch_add_msat_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/msat/${name}.cpp")
-  target_link_libraries(${name} gtest gtest_main)
+  target_include_directories(${name} PRIVATE "${PROJECT_SOURCE_DIR}/msat/include")
+  target_include_directories(${name} PRIVATE "${MSAT_HOME}/include")
+  target_include_directories(${name} PRIVATE "${GMP_INCLUDE_DIR}")
+  target_link_libraries(${name} GTest::gtest_main)
   target_link_libraries(${name} test-deps)
-  target_link_libraries(${name} smt-switch-msat)
-  add_test(NAME ${name}_test COMMAND ${name})
+  add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
 # these tests don't use GoogleTest yet
@@ -25,4 +27,6 @@ switch_add_msat_test(msat-seq-interpolants)
 switch_add_msat_test(msat-const-arrays)
 switch_add_msat_test(msat-ite-test)
 switch_add_msat_test(msat-neg-numbers)
+
+# GoogleTest tests
 switch_add_msat_test(msat-printing)

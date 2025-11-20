@@ -201,6 +201,7 @@ if (BUILD_BITWUZLA)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
 
   add_definitions(-DBUILD_BITWUZLA)
+  add_definitions(-DBITWUZLA_DIR=${BITWUZLA_DIR})
 endif (BUILD_BITWUZLA)
 
 
