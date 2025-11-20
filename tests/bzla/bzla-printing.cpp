@@ -33,10 +33,8 @@ class BitwuzlaPrintingTest : public testing::Test
 
 TEST_F(BitwuzlaPrintingTest, Solving)
 {
-  SmtSolver solver =
-      create_printing_solver(BitwuzlaSolverFactory::create(false),
-                             os,
-                             PrintingStyleEnum::DEFAULT_STYLE);
+  SmtSolver solver = create_printing_solver(
+      BitwuzlaSolverFactory::create(false), os, PrintingStyleEnum::BZLA_STYLE);
   solver->set_logic("QF_AUFBV");
   solver->set_opt("produce-models", "true");
   solver->set_opt("produce-unsat-assumptions", "true");
@@ -80,6 +78,46 @@ TEST_F(BitwuzlaPrintingTest, Solving)
       { "((x #b00000000000000000000000000000000))",
         "((x #b11111111111111111111111111111111))" },
   });
+}
+
+TEST_F(BitwuzlaPrintingTest, Interpolation)
+{
+  SmtSolver solver = create_printing_solver(
+      BitwuzlaSolverFactory::create_interpolating_solver(),
+      os,
+      PrintingStyleEnum::BZLA_STYLE);
+  solver->set_logic("QF_BV");
+  solver->set_opt("interpolants-simp", "true");
+  Sort bvsort = solver->make_sort(BV, 2);
+
+  Term x = solver->make_symbol("x", bvsort);
+  Term y = solver->make_symbol("y", bvsort);
+  Term z = solver->make_symbol("z", bvsort);
+
+  // x<y /\ y<z
+  Term A = solver->make_term(
+      And, solver->make_term(BVUlt, x, y), solver->make_term(BVUlt, y, z));
+  // x<z
+  Term B = solver->make_term(BVUgt, x, z);
+  Term I;
+  solver->get_interpolant(A, B, I);
+
+  // z<y /\ y<x
+  Term A1 = solver->make_term(
+      And, solver->make_term(BVUlt, z, y), solver->make_term(BVUlt, y, x));
+  // z<x
+  Term B1 = solver->make_term(BVUgt, z, x);
+  Term I1;
+  solver->get_interpolant(A1, B1, I1);
+
+  check_result(
+      {
+          { "unsat" },
+          { "(and (= ((_ extract 1 1) x) #b0) (not (= z #b00)))" },
+          { "unsat" },
+          { "(and (= #b1 ((_ extract 1 1) x)) (not (= z #b11)))" },
+      },
+      "--produce-interpolants");
 }
 
 }  // namespace smt_tests
