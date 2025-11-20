@@ -9,7 +9,7 @@
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
 **
-** \brief SMT-LIB Utility functions.
+** \brief SMT-LIB syntax strings.
 **
 **
 **/
@@ -25,16 +25,18 @@ const std::string DECLARE_FUN_STR = "declare-fun";
 const std::string DEFINE_FUN_STR = "define-fun";
 const std::string DECLARE_SORT_STR = "declare-sort";
 const std::string DEFINE_SORT_STR = "define-sort";
+const std::string DECLARE_DATATYPE_STR = "declare-datatypes";
 const std::string ASSERT_STR = "assert";
 const std::string CHECK_SAT_STR = "check-sat";
 const std::string CHECK_SAT_ASSUMING_STR = "check-sat-assuming";
 const std::string GET_VALUE_STR = "get-value";
 const std::string GET_UNSAT_ASSUMPTIONS_STR = "get-unsat-assumptions";
+const std::string GET_INTERPOLANT_STR = "get-interpolant";
+const std::string GET_INTERPOLANTS_STR = "get-interpolants";
 const std::string PUSH_STR = "push";
 const std::string POP_STR = "pop";
 const std::string RESET_ASSERTIONS_STR = "reset-assertions";
 const std::string RESET_STR = "reset";
+
+/* string constants for the SMT-LIB attributes */
 const std::string INTERPOLATION_GROUP_STR = "interpolation-group";
-const std::string MSAT_GET_INTERPOLANT_STR = "get-interpolant";
-const std::string CVC5_GET_INTERPOLANT_STR = "get-interpolant";
-const std::string DECLARE_DATATYPE_STR = "declare-datatypes";

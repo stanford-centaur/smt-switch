@@ -23,7 +23,7 @@
 #include <string>
 
 #include "smt_defs.h"
-#include "smtlib_utils.h"
+#include "smtlib_strings.h"
 #include "sort.h"
 
 namespace smt {
@@ -343,8 +343,7 @@ Result PrintingSolver::get_interpolant(const Term & A,
                   << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
     ;
     (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-    (*out_stream) << "(" << MSAT_GET_INTERPOLANT_STR << " (g1)" << ")"
-                  << std::endl;
+    (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")" << std::endl;
     (*out_stream) << "; when running mathsat, use `-interpolation=true` flag"
                   << std::endl;
   }
@@ -352,7 +351,7 @@ Result PrintingSolver::get_interpolant(const Term & A,
   {
     assert(style == PrintingStyleEnum::CVC5_STYLE);
     (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
-    (*out_stream) << "(" << CVC5_GET_INTERPOLANT_STR << " I (not " << B << "))"
+    (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
                   << std::endl;
   }
   return wrapped_solver->get_interpolant(A, B, out_I);
