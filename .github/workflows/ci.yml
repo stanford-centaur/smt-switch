@@ -26,12 +26,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install packages
         run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
-      - name: Set up Python virtual environment
-        run: |
-          python3 -m venv .venv --system-site-packages
-          echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
       - name: Set up underlying solver
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
+      - name: Set up Python virtual environment
+        run: python3 -m venv .venv --system-site-packages && echo "$(pwd)/.venv/bin" >> $GITHUB_PATH
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
