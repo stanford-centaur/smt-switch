@@ -9,10 +9,10 @@ configure_step() {
 
 install_step() {
   install -d "$install_includedir" "$install_libdir"
-  install -m644 src/ccadical.h "$install_includedir"
-  install -m644 src/cadical.hpp "$install_includedir"
-  install -m644 src/tracer.hpp "$install_includedir"
-  install -m644 build/libcadical.a "$install_libdir"
+  install -Cm644 src/ccadical.h "$install_includedir"
+  install -Cm644 src/cadical.hpp "$install_includedir"
+  install -Cm644 src/tracer.hpp "$install_includedir"
+  install -Cm644 build/libcadical.a "$install_libdir"
 
   export install_dir _version
   mkdir -p "$install_pkgconfigdir"
