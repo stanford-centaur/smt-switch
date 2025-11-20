@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <ostream>
 #include <string>
@@ -37,6 +38,7 @@ namespace smt {
 enum PrintingStyleEnum
 {
   DEFAULT_STYLE = 0,
+  BZLA_STYLE,
   CVC5_STYLE,
   MSAT_STYLE,
 };
@@ -133,6 +135,8 @@ class PrintingSolver : public AbsSmtSolver
   std::ostream * out_stream;
   /* A style to use while printing */
   PrintingStyleEnum style;
+  /* Keep track of created names */
+  mutable std::size_t num_names = 0;
 };
 
 /* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.

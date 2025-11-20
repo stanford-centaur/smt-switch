@@ -40,3 +40,4 @@ const std::string RESET_STR = "reset";
 
 /* string constants for the SMT-LIB attributes */
 const std::string INTERPOLATION_GROUP_STR = "interpolation-group";
+const std::string NAMED_STR = "named";
