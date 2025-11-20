@@ -102,6 +102,10 @@ void dump_and_run(SolverEnum solver,
       command = STRFY(BITWUZLA_DIR);
       command += "/bin/bitwuzla ";
       break;
+    case CVC5:
+      command = STRFY(CVC5_HOME);
+      command += "/build/bin/cvc5 ";
+      break;
     default:
       throw std::runtime_error("unhandled solver: " + std::to_string(solver));
   }

@@ -13,19 +13,15 @@
 **
 **
 **/
-#include <array>
-#include <cassert>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
-#include <string>
+#include <gtest/gtest.h>
 
-// note: this file depends on the CMake build infrastructure
-// specifically defined macros
-// it cannot be compiled outside of the build
+#include <cassert>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
 #include "cvc5_factory.h"
 #include "printing_solver.h"
 #include "smt.h"
@@ -33,52 +29,31 @@
 
 using namespace smt;
 
-/**
- * A function for running a process
- * Taken from:
- * https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
- */
-std::string exec(const char * cmd)
-{
-  std::array<char, 128> buffer;
-  std::string result;
-  std::unique_ptr<FILE> pipe(popen(cmd, "r"));
-  if (!pipe)
-  {
-    throw std::runtime_error("popen() failed!");
-  }
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-  {
-    result += buffer.data();
-  }
-  return result;
-}
+namespace smt_tests {
 
-void dump_and_run(std::stringbuf & strbuf,
-                  std::string expected_result,
-                  std::string extra_opts = "")
+class Cvc5PrintingTest : public testing::Test
 {
-  std::string filename = "cvc5-printing.cpp-sample.smt2";
-  std::ofstream out(filename.c_str());
-  out << strbuf.str() << std::endl;
-  out.close();
-  // CVC5_HOME is a macro defined when built with cvc5
-  // that points to the top-level cvc5 directory
-  // STRFY is defined in test-utils.h and converts
-  // a macro to its string representation
-  std::string command(STRFY(CVC5_HOME));
-  command += "/build/bin/cvc5 " + extra_opts + " ";
-  command += filename;
-  std::cout << "Running command: " << command << std::endl;
-  std::string result = exec(command.c_str());
-  std::cout << "got result:\n" << result << std::endl;
-  assert(result == expected_result);
-  remove(filename.c_str());
-}
+ protected:
+  void SetUp() override { os = new std::ostream(&strbuf); }
+  void TearDown() override { delete os; }
+  void check_result(
+      std::vector<std::unordered_set<std::string>> expected_result,
+      std::string extra_opts = "")
+  {
+    dump_and_run(CVC5, strbuf, expected_result, extra_opts);
+  }
+  std::stringbuf strbuf;
+  std::ostream * os;
+};
 
-void test2(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
+TEST_F(Cvc5PrintingTest, Interpolation)
 {
+  SmtSolver s =
+      create_printing_solver(Cvc5SolverFactory::create_interpolating_solver(),
+                             os,
+                             PrintingStyleEnum::CVC5_STYLE);
   s->set_logic("QF_LIA");
+  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_symbol("x", intsort);
@@ -109,18 +84,23 @@ void test2(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
     std::cout << e.what() << std::endl;
   }
 
-  dump_and_run(
-      strbuf,
-      "(define-fun I () Bool (<= x z))\n(define-fun I () Bool (<= z x))\n",
+  check_result(
+      {
+          { "(define-fun I () Bool (<= x z))" },
+          { "(define-fun I () Bool (<= z x))" },
+      },
       "--produce-interpolants --incremental");
 }
 
-void test1(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
+TEST_F(Cvc5PrintingTest, Solving)
 {
+  SmtSolver s = create_printing_solver(
+      Cvc5SolverFactory::create(false), os, PrintingStyleEnum::CVC5_STYLE);
   s->set_logic("QF_AUFBV");
   s->set_opt("produce-models", "true");
-  s->set_opt("incremental", "true");
   s->set_opt("produce-unsat-assumptions", "true");
+  s->set_opt("incremental", "true");
+  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort us = s->make_sort("S", 0);
   Sort bvsort32 = s->make_sort(BV, 32);
   Sort fun_sort = s->make_sort(FUNCTION, SortVec{ bvsort32, us });
@@ -152,26 +132,12 @@ void test1(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
   s->pop(1);
   s->check_sat();
   s->get_value(x);
-  dump_and_run(strbuf, "unsat\n(ind1)\nsat\n((x (_ bv0 32)))\n");
+  check_result({
+      { "unsat" },
+      { "(ind1)" },
+      { "sat" },
+      { "((x (_ bv0 32)))" },
+  });
 }
 
-int main()
-{
-  std::stringbuf strbuf1;
-  SmtSolver cvc5_1 = Cvc5SolverFactory::create(false);
-  std::ostream os1(&strbuf1);
-  SmtSolver s1 =
-      create_printing_solver(cvc5_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
-  s1->set_opt("bv-print-consts-as-indexed-symbols", "true");
-  test1(s1, os1, strbuf1);
-
-  std::stringbuf strbuf2;
-  SmtSolver cvc5_2 = Cvc5SolverFactory::create_interpolating_solver();
-  std::ostream os2(&strbuf2);
-  SmtSolver s2 =
-      create_printing_solver(cvc5_2, &os2, PrintingStyleEnum::CVC5_STYLE);
-  s2->set_opt("bv-print-consts-as-indexed-symbols", "true");
-  test2(s2, os2, strbuf2);
-
-  return 0;
-}
+}  // namespace smt_tests
