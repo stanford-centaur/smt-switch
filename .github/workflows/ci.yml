@@ -24,28 +24,8 @@ jobs:
     runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install packages (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            gperf \
-            meson \
-            python3-packaging
-      - name: Install packages (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install \
-            autoconf \
-            bison \
-            gperf \
-            meson \
-            python-packaging
-          echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
-          echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
-          echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH" >> "$GITHUB_ENV"
+      - name: Install packages
+        run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
