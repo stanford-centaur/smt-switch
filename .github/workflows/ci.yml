@@ -26,8 +26,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install packages
         run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
+      - uses: actions/cache/restore@v4
+        id: cache
+        with:
+          path: deps
+          key: deps-${{ matrix.os }}-${{ matrix.solver }}-${{ hashFiles(format('./ci-scripts/install-packages-{0}.sh', matrix.os), format('./ci-scripts/setup-{0}.sh', matrix.solver)) }}
       - name: Set up underlying solver
+        if: steps.cache.outputs.cache-hit != 'true'
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
+      - uses: actions/cache/save@v4
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
+        with:
+          path: deps
+          key: ${{ steps.cache.outputs.cache-primary-key }}
       - name: Set up Python virtual environment
         run: python3 -m venv .venv --system-site-packages && echo "$(pwd)/.venv/bin" >> $GITHUB_PATH
       - name: Configure
