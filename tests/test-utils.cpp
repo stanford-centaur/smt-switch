@@ -16,7 +16,18 @@
 
 #include "test-utils.h"
 
-using namespace std;
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <array>
+#include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
 using namespace smt;
 
 namespace smt_tests {
@@ -49,6 +60,78 @@ UnorderedTermSet get_free_symbols(Term & t)
   }
 
   return free_symbols;
+}
+
+/**
+ * A function for running a process
+ * Taken from:
+ * https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+ */
+std::string exec(const char * cmd)
+{
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE> pipe(popen(cmd, "r"));
+  if (!pipe)
+  {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+  {
+    result += buffer.data();
+  }
+  return result;
+}
+
+void dump_and_run(SolverEnum solver,
+                  std::stringbuf & strbuf,
+                  std::vector<std::unordered_set<std::string>> expected_results,
+                  std::string extra_opts)
+{
+  // Construct unique file name.
+  std::string filename =
+      testing::UnitTest::GetInstance()->current_test_case()->name();
+  filename += "-sample.smt2";
+
+  // Construct command string.
+  std::string command;
+  switch (solver)
+  {
+    // The paths to the binaries are defined by the build.
+    case BZLA:
+      command = STRFY(BITWUZLA_DIR);
+      command += "/bin/bitwuzla ";
+      break;
+    default:
+      throw std::runtime_error("unhandled solver: " + std::to_string(solver));
+  }
+  if (!extra_opts.empty())
+  {
+    command += extra_opts;
+    command += " ";
+  }
+  command += filename;
+
+  // Dump test case to file.
+  std::ofstream out(filename.c_str());
+  out << "; test case for " << command << std::endl;
+  out << strbuf.str() << std::endl;
+  out.close();
+
+  // Run and check result.
+  std::stringstream result(exec(command.c_str()));
+  std::string line;
+  std::size_t line_index = 0;
+  while (std::getline(result, line))
+  {
+    auto expected_result = expected_results.at(line_index++);
+    EXPECT_THAT(expected_result, testing::Contains(line));
+  }
+  EXPECT_EQ(line_index, expected_results.size());
+  if (!testing::Test::HasFailure())
+  {
+    remove(filename.c_str());
+  }
 }
 
 }  // namespace smt_tests
