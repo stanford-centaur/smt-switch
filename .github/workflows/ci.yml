@@ -52,8 +52,6 @@ jobs:
           path: build/Testing/Temporary/LastTest.log
       - name: Fail pipeline due to C++ test failure
         if: steps.test-cpp.outcome == 'failure'
-        run: |
-          echo "C++ tests failed. Inspect the artifact for details."
-          exit 1
+        run: echo "C++ tests failed. Inspect the artifact for details." && exit 1
       - name: Test Python bindings
         run: pytest tests/python
