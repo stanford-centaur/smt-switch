@@ -1,6 +1,5 @@
 on: [push, workflow_dispatch]
 name: CI
-
 jobs:
   build:
     strategy:
@@ -9,12 +8,12 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         build_type: [release, debug]
         solver:
-        - btor
-        - bitwuzla
-        - cvc5
-        - msat
-        - yices2
-        - z3
+          - btor
+          - bitwuzla
+          - cvc5
+          - msat
+          - yices2
+          - z3
         include:
           - build_type: debug
             config_opts: --debug
@@ -22,10 +21,8 @@ jobs:
             setup_opts: --auto-yes
     name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
     runs-on: ${{ matrix.os}}
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -34,7 +31,6 @@ jobs:
             gperf \
             meson \
             python3-packaging
-
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -49,45 +45,36 @@ jobs:
           echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
           echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH" >> "$GITHUB_ENV"
-
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
           echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
-
       - name: Set up underlying solver
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
-
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
         run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.config_opts }}
-
       - name: Build
         run: ninja -C build
-
       - name: Install Python bindings
         run: pip install $(ls build/python/*.whl)[pysmt,test]
-
       - name: Test C++
         id: test-cpp
         continue-on-error: true
         env:
-          DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib  # this lets the precompiled MathSAT binary find libgmp
+          DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib # this lets the precompiled MathSAT binary find libgmp
         run: ctest --test-dir build
-
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
           path: build/Testing/Temporary/LastTest.log
-
       - name: Fail pipeline due to C++ test failure
         if: steps.test-cpp.outcome == 'failure'
         run: |
           echo "C++ tests failed. Inspect the artifact for details."
           exit 1
-
       - name: Test Python bindings
         run: pytest tests/python
