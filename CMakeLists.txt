@@ -5,11 +5,12 @@ project(smt-switch)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 # defines find_python_in_virtualenv()
 # a helper to find Python in a virtualenv
 find_package(PythonVirtualEnv)
@@ -71,7 +72,6 @@ add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
 set(SOURCES
-  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
@@ -84,7 +84,6 @@ set(SOURCES
   "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
-  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/portfolio_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
@@ -202,6 +201,7 @@ if (BUILD_BITWUZLA)
   set (SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
 
   add_definitions(-DBUILD_BITWUZLA)
+  add_definitions(-DBITWUZLA_DIR=${BITWUZLA_DIR})
 endif (BUILD_BITWUZLA)
 
 

@@ -1,98 +1,73 @@
 on: [push, workflow_dispatch]
 name: CI
-
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu, macos]
+        os_version: [latest]
         build_type: [release, debug]
         solver:
-        - btor
-        - bitwuzla
-        - cvc5
-        - msat
-        - yices2
-        - z3
+          - btor
+          - bitwuzla
+          - cvc5
+          - msat
+          - yices2
+          - z3
         include:
           - build_type: debug
             config_opts: --debug
           - solver: msat
             setup_opts: --auto-yes
     name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
-    runs-on: ${{ matrix.os}}
-
+    runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install packages (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            gperf \
-            meson \
-            python3-packaging
-
-      - name: Install packages (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install \
-            autoconf \
-            bison \
-            gperf \
-            meson \
-            python-packaging
-          echo "LDFLAGS=-L$(brew --prefix)/lib $LDFLAGS" >> "$GITHUB_ENV"
-          echo "CFLAGS=-I$(brew --prefix)/include $CFLAGS" >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$(brew --prefix)/include $CPPFLAGS" >> "$GITHUB_ENV"
-          echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH" >> "$GITHUB_ENV"
-
-      - name: Set up Python virtual environment
-        run: |
-          python3 -m venv .venv --system-site-packages
-          echo "PATH=$GITHUB_WORKSPACE/.venv/bin:$PATH" >> $GITHUB_ENV
-
+      - name: Install packages
+        run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
+      - uses: actions/cache/restore@v4
+        id: cache
+        with:
+          path: deps
+          key: deps-${{ matrix.os }}-${{ matrix.solver }}-${{ hashFiles(format('./ci-scripts/install-packages-{0}.sh', matrix.os), format('./ci-scripts/setup-{0}.sh', matrix.solver)) }}
       - name: Set up underlying solver
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           if [[ "${{ matrix.solver }}" == "bitwuzla" ]]; then
             eval `ssh-agent -s`
             ssh-add - <<< '${{ secrets.BZLA_PRIVATE_SSH_KEY }}'
           fi
           ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
-
+      - uses: actions/cache/save@v4
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
+        with:
+          path: deps
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+      - name: Set up Python virtual environment
+        run: python3 -m venv .venv --system-site-packages && echo "$(pwd)/.venv/bin" >> $GITHUB_PATH
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
         run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.config_opts }}
-
       - name: Build
         run: ninja -C build
-
       - name: Install Python bindings
         run: pip install $(ls build/python/*.whl)[pysmt,test]
-
       - name: Test C++
         id: test-cpp
         continue-on-error: true
         env:
-          DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib  # this lets the precompiled MathSAT binary find libgmp
+          DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib # this lets the precompiled MathSAT binary find libgmp
         run: ctest --test-dir build
-
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
           path: build/Testing/Temporary/LastTest.log
-
       - name: Fail pipeline due to C++ test failure
         if: steps.test-cpp.outcome == 'failure'
-        run: |
-          echo "C++ tests failed. Inspect the artifact for details."
-          exit 1
-
+        run: echo "C++ tests failed. Inspect the artifact for details." && exit 1
       - name: Test Python bindings
         run: pytest tests/python

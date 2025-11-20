@@ -16,6 +16,13 @@
 
 #pragma once
 
+#include <cstdio>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
 #include "smt.h"
 
 // macros for getting string value of another macro
@@ -26,4 +33,19 @@
 namespace smt_tests {
 
 smt::UnorderedTermSet get_free_symbols(smt::Term & t);
-}
+std::string exec(const char * cmd);
+void dump_and_run(smt::SolverEnum solver,
+                  std::stringbuf & strbuf,
+                  std::vector<std::unordered_set<std::string>> expected_results,
+                  std::string extra_opts = "");
+
+}  // namespace smt_tests
+
+namespace std {
+template <>
+struct default_delete<FILE>
+{
+ public:
+  void operator()(FILE * f) const { pclose(f); }
+};
+}  // namespace std

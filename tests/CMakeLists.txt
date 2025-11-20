@@ -43,15 +43,16 @@ add_library(test-deps SHARED
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
 target_link_libraries(test-deps PUBLIC smt-switch)
 target_link_libraries(test-deps PRIVATE ${SOLVER_BACKEND_LIBS})
+target_link_libraries(test-deps PRIVATE GTest::gmock)
 
 # add solver-specific test directories
-# these do not use googletest
-if (BUILD_BTOR)
-  add_subdirectory(btor)
-endif()
 
 if (BUILD_BITWUZLA)
   add_subdirectory(bzla)
+endif()
+
+if (BUILD_BTOR)
+  add_subdirectory(btor)
 endif()
 
 if (BUILD_CVC5)
@@ -74,7 +75,7 @@ if (BUILD_Z3)
   add_subdirectory(z3)
 endif()
 
-# googletest tests
+# general tests
 
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")
