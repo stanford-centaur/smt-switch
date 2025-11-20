@@ -106,6 +106,10 @@ void dump_and_run(SolverEnum solver,
       command = STRFY(CVC5_HOME);
       command += "/build/bin/cvc5 ";
       break;
+    case MSAT:
+      command = STRFY(MSAT_HOME);
+      command += "/bin/mathsat ";
+      break;
     default:
       throw std::runtime_error("unhandled solver: " + std::to_string(solver));
   }
