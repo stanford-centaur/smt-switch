@@ -7,6 +7,7 @@ download_step() {
 
 prepare_step() {
   "$contrib_dir/setup-cadical.sh"
+  patch -p1 <"$contrib_dir/bitwuzla_cadical220.patch"
   patch -p1 <"$contrib_dir/bitwuzla_libgmp.patch"
 }
 
