@@ -5,11 +5,12 @@ project(smt-switch)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 # defines find_python_in_virtualenv()
 # a helper to find Python in a virtualenv
 find_package(PythonVirtualEnv)
