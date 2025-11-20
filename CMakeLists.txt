@@ -71,7 +71,6 @@ add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
 set(SOURCES
-  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
@@ -84,7 +83,6 @@ set(SOURCES
   "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
-  "${PROJECT_SOURCE_DIR}/include/smtlib_utils.h"
   "${PROJECT_SOURCE_DIR}/src/portfolio_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
