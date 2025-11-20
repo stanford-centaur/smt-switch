@@ -14,6 +14,7 @@
 **
 **/
 #include <array>
+#include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -21,9 +22,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
-
-#include "assert.h"
 
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
@@ -34,7 +32,6 @@
 #include "test-utils.h"
 
 using namespace smt;
-using namespace std;
 
 /**
  * A function for running a process
@@ -45,7 +42,7 @@ std::string exec(const char * cmd)
 {
   std::array<char, 128> buffer;
   std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  std::unique_ptr<FILE> pipe(popen(cmd, "r"));
   if (!pipe)
   {
     throw std::runtime_error("popen() failed!");
@@ -57,29 +54,29 @@ std::string exec(const char * cmd)
   return result;
 }
 
-void dump_and_run(stringbuf & strbuf,
-                  string expected_result,
-                  string extra_opts = "")
+void dump_and_run(std::stringbuf & strbuf,
+                  std::string expected_result,
+                  std::string extra_opts = "")
 {
-  string filename = "cvc5-printing.cpp-sample.smt2";
+  std::string filename = "cvc5-printing.cpp-sample.smt2";
   std::ofstream out(filename.c_str());
-  out << strbuf.str() << endl;
+  out << strbuf.str() << std::endl;
   out.close();
   // CVC5_HOME is a macro defined when built with cvc5
   // that points to the top-level cvc5 directory
   // STRFY is defined in test-utils.h and converts
   // a macro to its string representation
-  string command(STRFY(CVC5_HOME));
+  std::string command(STRFY(CVC5_HOME));
   command += "/build/bin/cvc5 " + extra_opts + " ";
   command += filename;
   std::cout << "Running command: " << command << std::endl;
-  string result = exec(command.c_str());
+  std::string result = exec(command.c_str());
   std::cout << "got result:\n" << result << std::endl;
   assert(result == expected_result);
   remove(filename.c_str());
 }
 
-void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
+void test2(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
 {
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
@@ -93,7 +90,14 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
   // x<z
   Term B = s->make_term(Gt, x, z);
   Term I;
-  Result r = s->get_interpolant(A, B, I);
+  s->get_interpolant(A, B, I);
+
+  // z<y /\ y<x
+  Term A1 = s->make_term(And, s->make_term(Lt, z, y), s->make_term(Lt, y, x));
+  // z<x
+  Term B1 = s->make_term(Gt, z, x);
+  Term I1;
+  s->get_interpolant(A1, B1, I1);
 
   try
   {
@@ -102,14 +106,16 @@ void test2(SmtSolver s, ostream & os, stringbuf & strbuf)
   }
   catch (IncorrectUsageException & e)
   {
-    cout << e.what() << endl;
+    std::cout << e.what() << std::endl;
   }
 
   dump_and_run(
-      strbuf, "(define-fun I () Bool (<= x z))\n", "--produce-interpolants");
+      strbuf,
+      "(define-fun I () Bool (<= x z))\n(define-fun I () Bool (<= z x))\n",
+      "--produce-interpolants --incremental");
 }
 
-void test1(SmtSolver s, ostream & os, stringbuf & strbuf)
+void test1(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
 {
   s->set_logic("QF_AUFBV");
   s->set_opt("produce-models", "true");
@@ -151,17 +157,17 @@ void test1(SmtSolver s, ostream & os, stringbuf & strbuf)
 
 int main()
 {
-  stringbuf strbuf1;
+  std::stringbuf strbuf1;
   SmtSolver cvc5_1 = Cvc5SolverFactory::create(false);
-  ostream os1(&strbuf1);
+  std::ostream os1(&strbuf1);
   SmtSolver s1 =
       create_printing_solver(cvc5_1, &os1, PrintingStyleEnum::DEFAULT_STYLE);
   s1->set_opt("bv-print-consts-as-indexed-symbols", "true");
   test1(s1, os1, strbuf1);
 
-  stringbuf strbuf2;
+  std::stringbuf strbuf2;
   SmtSolver cvc5_2 = Cvc5SolverFactory::create_interpolating_solver();
-  ostream os2(&strbuf2);
+  std::ostream os2(&strbuf2);
   SmtSolver s2 =
       create_printing_solver(cvc5_2, &os2, PrintingStyleEnum::CVC5_STYLE);
   s2->set_opt("bv-print-consts-as-indexed-symbols", "true");

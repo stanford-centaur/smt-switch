@@ -331,28 +331,28 @@ Result PrintingSolver::get_interpolant(const Term & A,
                                        const Term & B,
                                        Term & out_I) const
 {
-  /* currently we only support printing msat interpolation commands.
-   * The printing follows the internal implementation from msat_solver.h
-   * in which the assertions are labeled by interpolation groups
-   */
   if (style == PrintingStyleEnum::MSAT_STYLE)
   {
+    /* The printing follows the internal implementation from msat_solver.h
+     * in which the assertions are labeled by interpolation groups
+     */
+    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
     (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :"
                   << INTERPOLATION_GROUP_STR << " g1))" << std::endl;
     (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :"
                   << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
-    ;
     (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
     (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")" << std::endl;
-    (*out_stream) << "; when running mathsat, use `-interpolation=true` flag"
-                  << std::endl;
+    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
   }
   else
   {
     assert(style == PrintingStyleEnum::CVC5_STYLE);
+    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
     (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
     (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
                   << std::endl;
+    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
   }
   return wrapped_solver->get_interpolant(A, B, out_I);
 }
