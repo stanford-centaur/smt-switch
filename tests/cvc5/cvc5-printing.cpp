@@ -112,7 +112,7 @@ void test2(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
   dump_and_run(
       strbuf,
       "(define-fun I () Bool (<= x z))\n(define-fun I () Bool (<= z x))\n",
-      "--produce-interpolants");
+      "--produce-interpolants --incremental");
 }
 
 void test1(SmtSolver s, std::ostream & os, std::stringbuf & strbuf)
