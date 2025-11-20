@@ -5,7 +5,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu, macos]
+        os_version: [latest]
         build_type: [release, debug]
         solver:
           - btor
@@ -20,7 +21,7 @@ jobs:
           - solver: msat
             setup_opts: --auto-yes
     name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
       - uses: actions/checkout@v4
       - name: Install packages (Linux)
