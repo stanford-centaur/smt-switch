@@ -9,8 +9,8 @@ jobs:
         os_version: [latest]
         build_type: [release, debug]
         solver:
-          - btor
           - bitwuzla
+          - btor
           - cvc5
           - msat
           - yices2
@@ -23,18 +23,24 @@ jobs:
     name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out project source
+        uses: actions/checkout@v4
       - name: Install packages
         run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
-      - uses: actions/cache/restore@v4
+      - name: Compute hash from setup scripts for caching solver builds
+        id: compute-solver-hash
+        run: ./ci-scripts/compute-solver-hash.sh ${{ matrix.solver }}
+      - name: Restore solver build from cache
+        uses: actions/cache/restore@v4
         id: cache
         with:
           path: deps
-          key: deps-${{ matrix.os }}-${{ matrix.solver }}-${{ hashFiles(format('./ci-scripts/install-packages-{0}.sh', matrix.os), format('./ci-scripts/setup-{0}.sh', matrix.solver)) }}
+          key: deps-${{ hashFiles(format('ci-scripts/install-packages-{0}.sh', matrix.os)) }}-${{ steps.compute-solver-hash.outputs.result }}
       - name: Set up underlying solver
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
-      - uses: actions/cache/save@v4
+      - name: Save solver build to cache
+        uses: actions/cache/save@v4
         if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
         with:
           path: deps
