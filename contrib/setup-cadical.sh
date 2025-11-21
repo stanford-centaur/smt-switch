@@ -1,10 +1,10 @@
 #!/bin/bash
-_version=2.2.0
+_version=2.1.3
 git_tag=rel-$_version
 github_owner=arminbiere
 
 configure_step() {
-  ./configure CFLAGS="-fPIC " CXXFLAGS="-fPIC"
+  ./configure CXXFLAGS="-fPIC"
 }
 
 install_step() {
