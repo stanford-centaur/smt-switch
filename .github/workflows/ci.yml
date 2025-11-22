@@ -38,7 +38,12 @@ jobs:
           key: deps-${{ hashFiles(format('ci-scripts/install-packages-{0}.sh', matrix.os)) }}-${{ steps.compute-solver-hash.outputs.result }}
       - name: Set up underlying solver
         if: steps.cache.outputs.cache-hit != 'true'
-        run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
+        run: |
+          if [[ "${{ matrix.solver }}" == "bitwuzla" ]]; then
+            eval `ssh-agent -s`
+            ssh-add - <<< '${{ secrets.BZLA_PRIVATE_SSH_KEY }}'
+          fi
+          ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
       - name: Save solver build to cache
         uses: actions/cache/save@v4
         if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'

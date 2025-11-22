@@ -2,7 +2,7 @@
 /*! \file bitwuzla_solver.cpp
 ** \verbatim
 ** Top contributors (to current version):
-**   Makai Mann
+**   Makai Mann, Po-Chun Chien
 ** This file is part of the smt-switch project.
 ** Copyright (c) 2020 by the authors listed in the file AUTHORS
 ** in the top-level source directory) and their institutional affiliations.
@@ -739,6 +739,220 @@ void BzlaSolver::dump_smt2(std::string filename) const
 {
   std::ofstream out(filename);
   get_bitwuzla()->print_formula(out, "smt2");
+}
+
+void BzlaInterpolatingSolver::set_opt(const std::string option,
+                                      const std::string value)
+{
+  if (disallowed_options.find(option) != disallowed_options.end())
+  {
+    throw IncorrectUsageException(
+        "Bitwuzla interpolator does not allow option: " + option);
+  }
+  if (option == "incremental")
+  {
+    // Bitwuzla itself does not distinguish between incremental and
+    // non-incremental solving. However, we use this option to determine whether
+    // we want to reuse assertions on the solver stack between interpolation
+    // queries.
+    if (value == "true" || value == "1")
+    {
+      incremental_mode = true;
+    }
+    else if (value == "false" || value == "0")
+    {
+      incremental_mode = false;
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "Invalid value for boolean option 'incremental'");
+    }
+    return;
+  }
+  if (option == "dump-queries")
+  {
+    // A special option for dumping interpolation queries to files.
+    // The value is expected to contain a filename prefix.
+    if (value.empty())
+    {
+      throw IncorrectUsageException(
+          "Invalid value for option 'dump-queries', "
+          "expected a non-empty string");
+    }
+    dump_queries_prefix = value;
+    return;
+  }
+  super::set_opt(option, value);
+}
+
+void BzlaInterpolatingSolver::push(uint64_t num)
+{
+  throw IncorrectUsageException("Can't call push from interpolating solver");
+}
+
+void BzlaInterpolatingSolver::pop(uint64_t num)
+{
+  throw IncorrectUsageException("Can't call pop from interpolating solver");
+}
+
+void BzlaInterpolatingSolver::assert_formula(const Term & t)
+{
+  throw IncorrectUsageException(
+      "Can't assert formulas in interpolating solver");
+}
+
+Result BzlaInterpolatingSolver::check_sat()
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat from interpolating solver");
+}
+
+Result BzlaInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat_assuming from interpolating solver");
+}
+
+Term BzlaInterpolatingSolver::get_value(const Term & t) const
+{
+  throw IncorrectUsageException("Can't get values from interpolating solver");
+}
+
+// delegate the interpolation procedure to `get_sequence_interpolants`
+Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
+                                                const Term & B,
+                                                Term & out_I) const
+{
+  TermVec formulas{ A, B };
+  TermVec itp_seq;
+  Result res = get_sequence_interpolants(formulas, itp_seq);
+  assert(itp_seq.size() <= 1);
+  if (itp_seq.size() == 1)
+  {
+    out_I = itp_seq.front();
+  }
+  return res;
+}
+
+Result BzlaInterpolatingSolver::get_sequence_interpolants(
+    const TermVec & formulae, TermVec & out_I) const
+{
+  if (formulae.size() < 2)
+  {
+    throw IncorrectUsageException(
+        "Require at least 2 input formulae for sequence interpolation.");
+  }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
+  if (!incremental_mode)
+  {
+    last_itp_query_assertions.clear();
+  }
+
+  // count how many assertions can be reused
+  size_t num_reused = 0;
+  while (num_reused < last_itp_query_assertions.size()
+         && num_reused < formulae.size()
+         && last_itp_query_assertions.at(num_reused) == formulae.at(num_reused))
+  {
+    ++num_reused;
+  }
+
+  // pop formulas that cannot be reused
+  get_bitwuzla()->pop(last_itp_query_assertions.size() - num_reused);
+
+  // update the interpolation groups and assertions
+  last_itp_query_assertions.resize(num_reused);
+  last_itp_query_assertions.reserve(formulae.size());
+
+  // add new assertions from formulas
+  for (size_t k = num_reused; k < formulae.size(); ++k)
+  {
+    // Add a new backtrack point and push the formula.
+    get_bitwuzla()->push(1);
+    get_bitwuzla()->assert_formula(
+        std::static_pointer_cast<BzlaTerm>(formulae.at(k))->term);
+    last_itp_query_assertions.push_back(formulae.at(k));
+  }
+  assert(formulae == last_itp_query_assertions);
+
+  if (!dump_queries_prefix.empty())
+  {
+    // Note: the dumped query will only include the current assertions
+    std::ofstream out(dump_queries_prefix + "."
+                      + std::to_string(itp_query_count) + ".smt2");
+    get_bitwuzla()->print_formula(out, "smt2");
+    out.close();
+  }
+  itp_query_count++;
+
+  // solve query and get interpolants
+  bitwuzla::Result bzla_res;
+  try
+  {
+    bzla_res = get_bitwuzla()->check_sat();
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+
+  if (bzla_res == bitwuzla::Result::SAT)
+  {
+    return Result(SAT);
+  }
+  else if (bzla_res == bitwuzla::Result::UNKNOWN)
+  {
+    return Result(UNKNOWN, "Interpolation failure");
+  }
+
+  // if the result is not UNSAT, we cannot interpolate
+  assert(bzla_res == bitwuzla::Result::UNSAT);
+
+  Result r = Result(UNSAT);
+  std::vector<std::vector<bitwuzla::Term>> partitions;
+  for (size_t i = 0, n = formulae.size() - 1; i < n; ++i)
+  {
+    partitions.push_back(
+        { std::static_pointer_cast<BzlaTerm>(formulae.at(i))->term });
+  }
+  const std::vector<bitwuzla::Term> itps =
+      get_bitwuzla()->get_interpolants(partitions);
+  for (const auto & itp : itps)
+  {
+    if (itp.is_null())
+    {
+      Term nullterm;
+      out_I.push_back(nullterm);
+      r = Result(UNKNOWN,
+                 "Had at least one interpolation failure in "
+                 "get_sequence_interpolants.");
+    }
+    else
+    {
+      out_I.push_back(std::make_shared<BzlaTerm>(itp));
+    }
+  }
+
+  assert(out_I.size() == formulae.size() - 1);
+  return r;
+}
+
+void BzlaInterpolatingSolver::reset_assertions()
+{
+  super::reset_assertions();
+  last_itp_query_assertions.clear();
+}
+
+void BzlaInterpolatingSolver::reset()
+{
+  super::reset();
+  last_itp_query_assertions.clear();
 }
 
 }  // namespace smt
