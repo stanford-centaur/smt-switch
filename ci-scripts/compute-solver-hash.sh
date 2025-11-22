@@ -9,6 +9,8 @@ if [[ $solver == bitwuzla || $solver == btor || $solver == cvc5 || $solver == z3
   solver_hash+="$(gethash contrib/common-setup.sh)"
   if [[ $solver == bitwuzla ]]; then
     solver_hash+="$(gethash contrib/meson-setup.sh)"
+    solver_hash+="$(gethash contrib/bitwuzla_cadical220.patch)"
+    solver_hash+="$(gethash contrib/bitwuzla_libgmp.patch)"
   else
     solver_hash+="$(gethash contrib/cmake-setup.sh)"
   fi
