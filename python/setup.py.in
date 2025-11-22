@@ -2,7 +2,6 @@ from Cython.Build import cythonize
 import os
 import sys
 import sysconfig
-from pathlib import Path
 import platform
 from setuptools import setup
 from setuptools.extension import Extension
@@ -11,6 +10,7 @@ from setuptools.extension import Extension
 PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
 PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
+SOLVER_BACKEND_LIBS = "@SOLVER_BACKEND_LIBS@".split(";")
 BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")
 Z3_LIBRARY_LOCATION = "@Z3_LIBRARY_LOCATION@"
 
@@ -24,37 +24,6 @@ elif sys.platform == "win32":
 else:  # linux
     lib_ext = ".so"
     static_lib_ext = ".a"
-
-
-def find_solvers():
-    """Find all compiled solvers based on built libraries in the build directory."""
-    all_solvers = set()
-    build_dir = Path(PROJECT_BINARY_DIR)
-
-    # First verify the base library exists
-    base_lib = "libsmt-switch"
-    for ext in [lib_ext, static_lib_ext]:
-        base_lib_name = base_lib + ext
-        base_lib_path = build_dir / base_lib_name
-        if base_lib_path.exists():
-            break
-    else:
-        raise FileNotFoundError(
-            f"Could not find {base_lib}{lib_ext} or {base_lib}{static_lib_ext}"
-            f"in {build_dir}"
-        )
-
-    # Use recursive glob to find all solver libraries
-    for ext in [lib_ext, static_lib_ext]:
-        pattern = f"**/libsmt-switch-*{ext}"
-        for lib_path in build_dir.glob(pattern):
-            # Extract solver name from library filename
-            lib_name = lib_path.name
-            solver = lib_name.replace("libsmt-switch-", "").replace(ext, "")
-            all_solvers.add(solver)
-
-    return sorted(list(all_solvers))
-
 
 # Get Python extension suffix
 ext_filename = "smt_switch" + sysconfig.get_config_var("EXT_SUFFIX")
@@ -111,7 +80,7 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
     ]
 
     # Set up the smt_solvers module.
-    built_solvers = find_solvers()
+    built_solvers = [lib.removeprefix("smt-switch-") for lib in SOLVER_BACKEND_LIBS]
     solver_libraries = []
     solver_library_dirs = library_dirs.copy()
     solver_include_dirs = include_dirs.copy()
