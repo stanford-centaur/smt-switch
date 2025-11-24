@@ -7,32 +7,17 @@ option (SYSTEM_GTEST "Should we try to use the system GTest" ON)
 
 if (SYSTEM_GTEST)
   # try finding a system installation of googletest
-  find_package(GTest 1.12 CONFIG)
+  find_package(GTest 1.14 CONFIG)
 else()
   set(GTest_FOUND FALSE)
 endif()
 
 if(NOT GTest_FOUND)
-  # Download and unpack googletest at configure time
-  configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
-  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-  if(result)
-    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-  endif()
-  execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-  if(result)
-    message(FATAL_ERROR "Build step for googletest failed: ${result}")
-  endif()
-
-  # Add googletest directly to our build. This defines
-  # the gtest and gtest_main targets.
-  add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                  EXCLUDE_FROM_ALL)
+  include(FetchContent)
+  FetchContent_Declare(googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0)
+  FetchContent_MakeAvailable(googletest)
 endif()
 
 add_library(test-deps SHARED
@@ -43,15 +28,16 @@ add_library(test-deps SHARED
 target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
 target_link_libraries(test-deps PUBLIC smt-switch)
 target_link_libraries(test-deps PRIVATE ${SOLVER_BACKEND_LIBS})
+target_link_libraries(test-deps PRIVATE GTest::gmock)
 
 # add solver-specific test directories
-# these do not use googletest
-if (BUILD_BTOR)
-  add_subdirectory(btor)
-endif()
 
 if (BUILD_BITWUZLA)
   add_subdirectory(bzla)
+endif()
+
+if (BUILD_BTOR)
+  add_subdirectory(btor)
 endif()
 
 if (BUILD_CVC5)
@@ -74,7 +60,7 @@ if (BUILD_Z3)
   add_subdirectory(z3)
 endif()
 
-# googletest tests
+# general tests
 
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")

@@ -43,7 +43,7 @@
 #include "generic_term.h"
 #include "ops.h"
 #include "smt_defs.h"
-#include "smtlib_utils.h"
+#include "smtlib_strings.h"
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"

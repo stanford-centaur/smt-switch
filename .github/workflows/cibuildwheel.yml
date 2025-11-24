@@ -62,11 +62,13 @@ jobs:
         CIBW_BEFORE_ALL_LINUX: |
           dnf install -y \
             cmake \
-            gperf \
-            gmp-devel \
-            ninja-build \
+            gettext \
             glibc-static \
-            libstdc++-static
+            gmp-devel \
+            gperf \
+            libstdc++-static \
+            ninja-build \
+            wget
           bash {project}/ci-scripts/cibw-build-deps.sh
         CIBW_BEFORE_ALL_MACOS: |
           brew update
