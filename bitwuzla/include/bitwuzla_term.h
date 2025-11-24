@@ -88,6 +88,7 @@ class BzlaTerm : public AbsTerm
   const bitwuzla::Term term;
 
   friend class BzlaSolver;
+  friend class BzlaInterpolatingSolver;
   friend class BzlaTermIter;
 };
 

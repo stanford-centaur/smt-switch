@@ -6,3 +6,8 @@ macro(switch_add_bzla_test name)
 endmacro()
 
 switch_add_bzla_test(bzla-printing)
+
+# these tests don't use GoogleTest yet
+# TODO move old tests to Google Test infrastructure
+switch_add_bzla_test(bzla-interpolants)
+switch_add_bzla_test(bzla-seq-interpolants)

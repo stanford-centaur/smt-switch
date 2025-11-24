@@ -30,6 +30,8 @@ namespace smt {
 
 /* PrintingSolver */
 
+const char * name_prefix = "smt_switch_generated_";
+
 // implementations
 PrintingSolver::PrintingSolver(SmtSolver s,
                                std::ostream * os,
@@ -343,6 +345,19 @@ Result PrintingSolver::get_interpolant(const Term & A,
                   << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
     (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
     (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")" << std::endl;
+    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+  }
+  else if (style == PrintingStyleEnum::BZLA_STYLE)
+  {
+    std::string name = name_prefix + std::to_string(num_names++);
+    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+    (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << NAMED_STR
+                  << " " << name << "))" << std::endl;
+    (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
+    ;
+    (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+    (*out_stream) << "(" << GET_INTERPOLANT_STR << " (" << name << "))"
+                  << std::endl;
     (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
   }
   else

@@ -35,6 +35,11 @@ SmtSolver BitwuzlaSolverFactory::create(bool logging)
   return solver;
 }
 
+SmtSolver BitwuzlaSolverFactory::create_interpolating_solver()
+{
+  return std::make_shared<BzlaInterpolatingSolver>();
+}
+
 /* end BitwuzlaSolverFactory implementation */
 
 }  // namespace smt
