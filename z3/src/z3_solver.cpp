@@ -42,11 +42,20 @@ Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
   return Z3_mk_ite(c, eq, one, zero);
 }
 
+Z3_ast ext_Z3_mk_to_real(Z3_context c, Z3_ast t)
+{
+    auto k = Z3_get_sort_kind(c, Z3_get_sort(c, t));
+    if (k == Z3_INT_SORT || k == Z3_REAL_SORT) {
+        return t;
+    }
+    return Z3_mk_fpa_to_real(c, t);
+}
+
 const std::unordered_map<PrimOp, un_fun> unary_ops(
     { { Not, Z3_mk_not },
       { Negate, Z3_mk_unary_minus },
       { Abs, Z3_mk_fpa_abs },
-      { To_Real, Z3_mk_fpa_to_real },
+      { To_Real, ext_Z3_mk_to_real },
       { To_Int, Z3_mk_str_to_int },
       { Is_Int, Z3_mk_is_int },
       { BVNot, Z3_mk_bvnot },
