@@ -2,7 +2,8 @@
 git_commit=42fc6749a2df0f9ef5b9482927b2e745af810ba9
 
 download_step() {
-  git clone --revision=$git_commit git@github.com:bitwuzla/bitwuzla-interpolants.git "$dep_name"
+  git clone git@github.com:bitwuzla/bitwuzla-interpolants.git "$dep_name"
+  git -C "$dep_name" checkout "$git_commit"
 }
 
 prepare_step() {
