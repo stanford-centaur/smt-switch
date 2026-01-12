@@ -99,6 +99,9 @@ class AbsSmtSolver
    */
   virtual std::uint64_t get_context_level() const = 0;
 
+  /* Pop all contexts */
+  virtual void pop_all() { pop(get_context_level()); }
+
   /* Get the value of a term after check_sat returns a satisfiable result
    * SMTLIB: (get-value (<t>))
    * @param t the term to get the value of
