@@ -301,6 +301,12 @@ cdef class SmtSolver:
     def pop(self, int num=1):
         dref(self.css).pop(num)
 
+    def get_context_level(self):
+        return dref(self.css).get_context_level()
+
+    def pop_all(self):
+        dref(self.css).pop_all()
+
     def get_value(self, Term t):
         cdef Term term = Term(self)
         term.ct = dref(self.css).get_value(t.ct)
