@@ -17,7 +17,7 @@
 
 #include "term_hashtable.h"
 
-using namespace std;
+#include <cstddef>
 
 namespace smt {
 
@@ -31,7 +31,7 @@ void TermHashTable::insert(const Term & t) { table[t->hash()].insert(t); }
 
 bool TermHashTable::contains(const Term & t) const
 {
-  size_t hashval = t->hash();
+  std::size_t hashval = t->hash();
   return (table.find(hashval) != table.end()
           && table.at(hashval).find(t) != table.at(hashval).end());
 }
@@ -51,7 +51,7 @@ bool TermHashTable::lookup(Term & t)
 
 void TermHashTable::erase(const Term & t)
 {
-  size_t hashval = t->hash();
+  std::size_t hashval = t->hash();
   if (table.find(hashval) != table.end()
       && table[hashval].find(t) != table[hashval].end())
   {

@@ -1,0 +1,9 @@
+prefix=${install_dir}
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: cadical
+Version: ${_version}
+Description: CaDiCaL Simplified Satisfiability Solver
+Cflags: -I${includedir}
+Libs: -L${libdir} -lcadical

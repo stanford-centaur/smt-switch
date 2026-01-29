@@ -15,7 +15,8 @@
 **/
 #pragma once
 
-#include "smt.h"
+#include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 
@@ -23,7 +24,6 @@ namespace smt {
  *  @param terms the vector of terms to make distinct
  *  @return the distinctness constraint
  */
-smt::Term make_distinct(const smt::AbsSmtSolver * solver,
-                        const smt::TermVec & terms);
+Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms);
 
 }  // namespace smt

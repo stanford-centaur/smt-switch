@@ -23,7 +23,6 @@
 
 /**
    Base exception for this codebase.
-
    All other exceptions used in the code should be derived
      classes of this.
  */
@@ -37,12 +36,12 @@ class SmtException : public std::exception
    *                 Hence, responsibility for deleting the char* lies
    *                 with the caller.
    */
-  explicit SmtException(const char* message) : msg(message) {}
+  explicit SmtException(const char * message) : msg(message) {}
 
   /** Constructor (C++ STL strings).
    *  @param message The error message.
    */
-  explicit SmtException(const std::string& message) : msg(message) {}
+  explicit SmtException(const std::string & message) : msg(message) {}
 
   /** Destructor.
    * Virtual to allow for subclassing.
@@ -54,7 +53,7 @@ class SmtException : public std::exception
    *          is in posession of the Exception object. Callers must
    *          not attempt to free the memory.
    */
-  virtual const char* what() const throw() { return msg.c_str(); }
+  virtual const char * what() const throw() { return msg.c_str(); }
 
  protected:
   /** Error message.
@@ -65,21 +64,23 @@ class SmtException : public std::exception
 class IncorrectUsageException : public SmtException
 {
  public:
-  explicit IncorrectUsageException(const char * msg) : SmtException(msg){};
-  explicit IncorrectUsageException(const std::string& msg) : SmtException(msg){};
+  explicit IncorrectUsageException(const char * msg) : SmtException(msg) {};
+  explicit IncorrectUsageException(const std::string & msg)
+      : SmtException(msg) {};
 };
 
 class NotImplementedException : public SmtException
 {
  public:
-  explicit NotImplementedException(const char * msg) : SmtException(msg){};
-  explicit NotImplementedException(const std::string& msg) : SmtException(msg){};
+  explicit NotImplementedException(const char * msg) : SmtException(msg) {};
+  explicit NotImplementedException(const std::string & msg)
+      : SmtException(msg) {};
 };
 
 class InternalSolverException : public SmtException
 {
  public:
-  explicit InternalSolverException(const char * msg) : SmtException(msg){};
-  explicit InternalSolverException(const std::string& msg) : SmtException(msg){};
+  explicit InternalSolverException(const char * msg) : SmtException(msg) {};
+  explicit InternalSolverException(const std::string & msg)
+      : SmtException(msg) {};
 };
-

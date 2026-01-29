@@ -16,10 +16,18 @@
 
 #pragma once
 
-#include "solver.h"
-#include "term_hashtable.h"
-
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <string>
+#include <unordered_map>
+
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
+#include "term_hashtable.h"
 
 namespace smt {
 
@@ -30,9 +38,9 @@ class LoggingSolver : public AbsSmtSolver
   ~LoggingSolver();
 
   // implemented
-  Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
-  Sort make_sort(const SortKind sk, uint64_t size) const override;
+  Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
   Sort make_sort(const SortKind sk,
                  const Sort & sort1,
@@ -48,20 +56,28 @@ class LoggingSolver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   Term make_term(bool b) const override;
-  Term make_term(int64_t i, const Sort & sort) const override;
-  Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const override;
-  Term make_term(const std::wstring& s, const Sort & sort) const override;
+  Term make_term(std::int64_t i, const Sort & sort) const override;
+  Term make_term(const std::string & s,
+                 bool useEscSequences,
+                 const Sort & sort) const override;
+  Term make_term(const std::wstring & s, const Sort & sort) const override;
   Term make_term(const std::string val,
                  const Sort & sort,
-                 uint64_t base = 10) const override;
+                 std::uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) override;
@@ -89,9 +105,9 @@ class LoggingSolver : public AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions) override;
   Result check_sat_assuming_list(const TermList & assumptions) override;
   Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
+  void push(std::uint64_t num = 1) override;
+  void pop(std::uint64_t num = 1) override;
+  std::uint64_t get_context_level() const override;
   void reset_assertions() override;
 
  protected:
@@ -110,7 +126,7 @@ class LoggingSolver : public AbsSmtSolver
   // in const methods (make_term), so it is marked mutable
   // this was better than making them non-const because most solvers
   // can respect the const-ness of those make_term functions
-  mutable size_t next_term_id;  ///< used to give LoggingTerms a unique id
+  mutable std::size_t next_term_id;  ///< used to give LoggingTerms a unique id
 };
 
 }  // namespace smt

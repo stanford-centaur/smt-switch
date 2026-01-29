@@ -16,16 +16,18 @@
 
 #include "logging_term.h"
 
-#include "exceptions.h"
-#include "utils.h"
+#include <cstddef>
+#include <memory>
 
-using namespace std;
+#include "sort.h"
+#include "term.h"
+#include "utils.h"
 
 namespace smt {
 
 /* LoggingTerm */
 
-LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, size_t id)
+LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id)
     : wrapped_term(t),
       sort(s),
       op(o),
@@ -37,7 +39,7 @@ LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, size_t id)
 }
 
 LoggingTerm::LoggingTerm(
-    Term t, Sort s, Op o, TermVec c, string r, bool is_sym, size_t id)
+    Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym, std::size_t id)
     : wrapped_term(t),
       sort(s),
       op(o),
@@ -53,7 +55,7 @@ LoggingTerm::~LoggingTerm() {}
 
 // implemented
 
-size_t LoggingTerm::get_id() const { return id_; }
+std::size_t LoggingTerm::get_id() const { return id_; }
 
 bool LoggingTerm::compare(const Term & t) const
 {
@@ -87,7 +89,7 @@ bool LoggingTerm::compare(const Term & t) const
     return false;
   }
 
-  shared_ptr<LoggingTerm> lt = static_pointer_cast<LoggingTerm>(t);
+  std::shared_ptr<LoggingTerm> lt = std::static_pointer_cast<LoggingTerm>(t);
 
   // compare wrapped term and the LoggingSort
   // this handles values (e.g. null operators and no children)
@@ -112,7 +114,7 @@ bool LoggingTerm::compare(const Term & t) const
   }
   else
   {
-    for (size_t i = 0; i < children.size(); i++)
+    for (std::size_t i = 0; i < children.size(); i++)
     {
       // because of hash-consing, we can compare the pointers
       // otherwise would recursively call compare on the LoggingTerm children
@@ -133,7 +135,7 @@ Op LoggingTerm::get_op() const { return op; }
 
 Sort LoggingTerm::get_sort() const { return sort; }
 
-string LoggingTerm::to_string()
+std::string LoggingTerm::to_string()
 {
   if (!repr.empty())
   {
@@ -164,7 +166,7 @@ string LoggingTerm::to_string()
   }
 }
 
-wstring LoggingTerm::getStringValue() const
+std::wstring LoggingTerm::getStringValue() const
 {
   return wrapped_term->getStringValue();
 }
@@ -194,13 +196,16 @@ TermIter LoggingTerm::end()
 
 // dispatched to underlying term
 
-size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
+std::size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
 
 // check if op is null because a non-value
 // may have been simplified to a value by the underlying solver
-bool LoggingTerm::is_value() const { return op.is_null() && wrapped_term->is_value(); }
+bool LoggingTerm::is_value() const
+{
+  return op.is_null() && wrapped_term->is_value();
+}
 
-uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
+std::uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 
 std::string LoggingTerm::print_value_as(SortKind sk)
 {

@@ -14,26 +14,27 @@
 **
 **/
 
-#include <sstream>
+#include "sort.h"
+
+#include <string>
 #include <unordered_map>
 
 #include "exceptions.h"
-#include "sort.h"
-#include "utils.h"
 
 namespace smt {
 
-const std::unordered_map<SortKind, std::string> sortkind2str(
-    { { ARRAY, "Array" },
-      { BOOL, "Bool" },
-      { BV, "BitVec" },
-      { INT, "Int" },
-      { REAL, "Real" },
-      { STRING, "String" },
-      { FUNCTION, "Function" },
-      { UNINTERPRETED, "Uninterpreted" },
-      { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
-      { DATATYPE, "Datatype" } });
+const std::unordered_map<SortKind, std::string> sortkind2str({
+    { ARRAY, "Array" },
+    { BOOL, "Bool" },
+    { BV, "BitVec" },
+    { INT, "Int" },
+    { REAL, "Real" },
+    { STRING, "String" },
+    { FUNCTION, "Function" },
+    { UNINTERPRETED, "Uninterpreted" },
+    { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
+    { DATATYPE, "Datatype" },
+});
 
 std::string to_string(SortKind sk)
 {
@@ -73,7 +74,7 @@ std::string AbsSort::to_string() const
   {
     return "Real";
   }
-    else if (sk == STRING)
+  else if (sk == STRING)
   {
     return "String";
   }
@@ -113,7 +114,7 @@ std::string AbsSort::to_string() const
   else
   {
     std::string msg("To string not implemented for SortKind = ");
-    msg += ::smt::to_string(sk);
+    msg += smt::to_string(sk);
     throw NotImplementedException(msg);
   }
 }

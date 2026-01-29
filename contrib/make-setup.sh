@@ -1,4 +1,5 @@
-#!/bin/echo Script should be sourced from contrib/setup-xxx.sh, not executed directly:
+# shellcheck shell=bash
+#
 # Can be overridden for projects that don't use GNU autotools.
 if ! declare -F configure_step >/dev/null; then
   configure_step() {
@@ -7,7 +8,7 @@ if ! declare -F configure_step >/dev/null; then
 fi
 
 build_step() {
-  make -j$num_cores
+  make -j"$num_cores"
 }
 
 # Can be overridden for projects without an install target.
@@ -16,3 +17,6 @@ if ! declare -F install_step >/dev/null; then
     make install
   }
 fi
+
+# shellcheck source=contrib/common-setup.sh
+source "$(dirname "$0")/common-setup.sh"

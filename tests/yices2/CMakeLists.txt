@@ -2,6 +2,7 @@ macro(switch_add_yices2_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/yices2/${name}.cpp")
   target_link_libraries(${name} gtest gtest_main)
   target_link_libraries(${name} test-deps)
+  target_link_libraries(${name} smt-switch-yices2)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 

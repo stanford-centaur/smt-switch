@@ -14,11 +14,14 @@
 **
 **/
 
-#include "assert.h"
+#include <cassert>
+#include <iostream>
+
 #include "boolector_factory.h"
 #include "cvc5_factory.h"
 #include "msat_factory.h"
 #include "portfolio_solver.h"
+#include "solver.h"
 #include "yices2_factory.h"
 
 using namespace smt;

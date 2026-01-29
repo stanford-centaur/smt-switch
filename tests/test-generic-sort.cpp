@@ -13,25 +13,14 @@
 **
 **
 **/
-#include <fstream>
-#include <cstdio>
-#include <stdexcept>
-#include <string>
-#include <array>
+
+#include <cassert>
 #include <iostream>
 #include <memory>
-#include <vector>
-#include <sstream>
-#include "assert.h"
 
-// note: this file depends on the CMake build infrastructure
-// specifically defined macros
-// it cannot be compiled outside of the build
-#include "cvc5_factory.h"
+#include "generic_datatype.h"
 #include "generic_sort.h"
-#include "gtest/gtest.h"
 #include "smt.h"
-#include "test-utils.h"
 
 using namespace smt;
 using namespace std;

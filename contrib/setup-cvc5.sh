@@ -6,5 +6,5 @@ prepare_step() {
   "$contrib_dir/setup-cadical.sh"
 }
 
-source "$(dirname "$(realpath "$0")")/cmake-steps.sh"
-source "$(dirname "$(realpath "$0")")/common-setup.sh"
+# shellcheck source=contrib/cmake-setup.sh
+source "$(dirname "$(realpath "$0")")/cmake-setup.sh"

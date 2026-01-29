@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 #include "ops.h"
 #include "smt_defs.h"
 #include "term.h"
@@ -25,13 +29,18 @@ namespace smt {
 class LoggingTerm : public AbsTerm
 {
  public:
-  LoggingTerm(Term t, Sort s, Op o, TermVec c, size_t id);
+  LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id);
   // this one is for making symbols
   // if passed with true, sets is_sym true
   // otherwise sets is_param true
   // only symbols and parameters have names
-  LoggingTerm(
-      Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym, size_t id);
+  LoggingTerm(Term t,
+              Sort s,
+              Op o,
+              TermVec c,
+              std::string r,
+              bool is_sym,
+              std::size_t id);
   virtual ~LoggingTerm();
 
   // implemented
@@ -55,7 +64,7 @@ class LoggingTerm : public AbsTerm
   // dispatched to underlying term
   std::size_t hash() const override;
   bool is_value() const override;
-  uint64_t to_int() const override;
+  std::uint64_t to_int() const override;
   std::string print_value_as(SortKind sk) override;
 
  protected:
@@ -66,7 +75,7 @@ class LoggingTerm : public AbsTerm
   std::string repr;
   bool is_sym;
   bool is_par;
-  size_t id_;  ///< unique id for this term
+  std::size_t id_;  ///< unique id for this term
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;

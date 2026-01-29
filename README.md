@@ -4,14 +4,14 @@ A generic C++ API for SMT solving. It provides abstract classes which can be imp
 # Quick Start
 ```
 $ git clone git@github.com:stanford-centaur/smt-switch.git
-$ cd smt-switch 
+$ cd smt-switch
 $ ./contrib/setup-<solver>.sh
 $ ./configure.sh --<solver>
-$ cd build 
-$ make 
+$ cd build
+$ make
 $ make test
 ```
-More details are in the Solvers section of this README. 
+More details are in the Solvers section of this README.
 
 For an example of how to link and use `smt-switch`, please see the [examples directory](./examples).
 
@@ -52,7 +52,7 @@ int main()
 # Dependencies
 
 Smt-Switch depends on the following libraries. Dependencies needed only for certain backends and/or optional features are marked \["optional" : _reason_\].
-* CMake >= 3.5
+* CMake >= 3.10
 * GNU Make or Ninja
 * C compiler
 * C++ compiler supporting C++11

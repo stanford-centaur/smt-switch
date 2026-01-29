@@ -187,7 +187,7 @@ if 'btor' in  ss.solvers:
 
     class SwitchBtor(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = ft.partial(ss.create_btor_solver, False)
+        _create_solver = staticmethod(ft.partial(ss.create_btor_solver, False))
 
         @clear_pending_pop
         def _reset_assertions(self):
@@ -210,7 +210,7 @@ if 'bitwuzla' in  ss.solvers:
 
     class SwitchBitwuzla(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = ft.partial(ss.create_bitwuzla_solver, False)
+        _create_solver = staticmethod(ft.partial(ss.create_bitwuzla_solver, False))
 
     SWITCH_SOLVERS['bitwuzla'] = SwitchBitwuzla
 
@@ -230,7 +230,7 @@ if 'msat' in ss.solvers:
 
     class SwitchMsat(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = ft.partial(ss.create_msat_solver, False)
+        _create_solver = staticmethod(ft.partial(ss.create_msat_solver, False))
 
     SWITCH_SOLVERS['msat'] = SwitchMsat
 
@@ -249,7 +249,7 @@ if 'cvc5' in ss.solvers:
 
     class SwitchCvc5(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = ft.partial(ss.create_cvc5_solver, False)
+        _create_solver = staticmethod(ft.partial(ss.create_cvc5_solver, False))
 
         def _exit(self):
             super()._exit()

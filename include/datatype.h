@@ -16,41 +16,39 @@
 
 #pragma once
 
-#include "smt_defs.h"
+#include <string>
 
+#include "smt_defs.h"
 
 namespace smt {
 
-class AbsDatatypeDecl {
-
+class AbsDatatypeDecl
+{
  public:
-  AbsDatatypeDecl(){};
-  virtual ~AbsDatatypeDecl(){};
-
+  AbsDatatypeDecl() {};
+  virtual ~AbsDatatypeDecl() {};
 };
 
-
-class AbsDatatypeConstructorDecl {
-
+class AbsDatatypeConstructorDecl
+{
  public:
-  AbsDatatypeConstructorDecl(){};
-  virtual ~AbsDatatypeConstructorDecl(){};
+  AbsDatatypeConstructorDecl() {};
+  virtual ~AbsDatatypeConstructorDecl() {};
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 
-
-class AbsDatatype {
-
+class AbsDatatype
+{
  public:
-  AbsDatatype(){};
-  virtual ~AbsDatatype(){};
-  virtual std::string get_name() const=0;
-  virtual int get_num_selectors(std::string cons) const=0;
-  virtual int get_num_constructors() const=0;
+  AbsDatatype() {};
+  virtual ~AbsDatatype() {};
+  virtual std::string get_name() const = 0;
+  virtual int get_num_selectors(std::string cons) const = 0;
+  virtual int get_num_constructors() const = 0;
 };
 // Overloaded equivalence operators for two datatype constructor declarations
 bool operator==(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);
 bool operator!=(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);
-}
+}  // namespace smt

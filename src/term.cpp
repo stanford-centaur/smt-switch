@@ -16,6 +16,8 @@
 
 #include "term.h"
 
+#include <memory>
+
 namespace smt {
 
 std::ostream & operator<<(std::ostream & output, const Term t)

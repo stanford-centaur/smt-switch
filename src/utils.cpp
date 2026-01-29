@@ -17,62 +17,72 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <random>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "exceptions.h"
 #include "identity_walker.h"
 #include "ops.h"
+#include "smt_defs.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 
-void op_partition(smt::PrimOp o,
-                  const smt::Term &term, smt::TermVec &out)
+void op_partition(PrimOp o, const Term & term, TermVec & out)
 {
-  smt::TermVec to_visit({ term });
-  smt::UnorderedTermSet visited;
+  TermVec to_visit({ term });
+  UnorderedTermSet visited;
 
-  smt::Term t;
-  while (to_visit.size()) {
+  Term t;
+  while (to_visit.size())
+  {
     t = to_visit.back();
     to_visit.pop_back();
 
-    if (visited.find(t) == visited.end()) {
+    if (visited.find(t) == visited.end())
+    {
       visited.insert(t);
 
-      smt::Op op = t->get_op();
-      if (op.prim_op == o) {
+      Op op = t->get_op();
+      if (op.prim_op == o)
+      {
         // add children to queue
-        for (auto tt : t) {
+        for (auto tt : t)
+        {
           to_visit.push_back(tt);
         }
-      } else {
+      }
+      else
+      {
         out.push_back(t);
       }
     }
   }
 }
 
-void conjunctive_partition(const smt::Term & term,
-                           smt::TermVec & out,
-                           bool include_bvand)
+void conjunctive_partition(const Term & term, TermVec & out, bool include_bvand)
 {
   if (!include_bvand)
   {
-    op_partition(smt::And, term, out);
+    op_partition(And, term, out);
   }
   else
   {
     TermVec tmp;
-    op_partition(smt::And, term, tmp);
+    op_partition(And, term, tmp);
     Sort sort;
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
       if (sort->get_sort_kind() == BV && sort->get_width() == 1)
       {
-        op_partition(smt::BVAnd, tt, out);
+        op_partition(BVAnd, tt, out);
       }
       else
       {
@@ -82,25 +92,23 @@ void conjunctive_partition(const smt::Term & term,
   }
 }
 
-void disjunctive_partition(const smt::Term & term,
-                           smt::TermVec & out,
-                           bool include_bvor)
+void disjunctive_partition(const Term & term, TermVec & out, bool include_bvor)
 {
   if (!include_bvor)
   {
-    op_partition(smt::Or, term, out);
+    op_partition(Or, term, out);
   }
   else
   {
     TermVec tmp;
-    op_partition(smt::Or, term, tmp);
+    op_partition(Or, term, tmp);
     Sort sort;
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
       if (sort->get_sort_kind() == BV && sort->get_width() == 1)
       {
-        op_partition(smt::BVOr, tt, out);
+        op_partition(BVOr, tt, out);
       }
       else
       {
@@ -110,19 +118,21 @@ void disjunctive_partition(const smt::Term & term,
   }
 }
 
-void get_matching_terms(const smt::Term & term,
-                    smt::UnorderedTermSet & out,
-                    bool (*matching_fun)(const smt::Term & term))
+void get_matching_terms(const Term & term,
+                        UnorderedTermSet & out,
+                        bool (*matching_fun)(const Term & term))
 {
-  smt::TermVec to_visit({ term });
-  smt::UnorderedTermSet visited;
+  TermVec to_visit({ term });
+  UnorderedTermSet visited;
 
-  smt::Term t;
-  while (to_visit.size()) {
+  Term t;
+  while (to_visit.size())
+  {
     t = to_visit.back();
     to_visit.pop_back();
 
-    if (visited.find(t) == visited.end()) {
+    if (visited.find(t) == visited.end())
+    {
       visited.insert(t);
 
       if (matching_fun(t))
@@ -131,7 +141,8 @@ void get_matching_terms(const smt::Term & term,
       }
       else
       {  // add children to queue
-        for (auto tt : t) {
+        for (auto tt : t)
+        {
           to_visit.push_back(tt);
         }
       }
@@ -139,36 +150,39 @@ void get_matching_terms(const smt::Term & term,
   }
 }
 
-void get_free_symbolic_consts(const smt::Term & term,
-                              smt::UnorderedTermSet & out)
+void get_free_symbolic_consts(const Term & term, UnorderedTermSet & out)
 {
-  auto f = [](const smt::Term & t) { return t->is_symbolic_const(); };
+  auto f = [](const Term & t) { return t->is_symbolic_const(); };
   get_matching_terms(term, out, f);
 }
 
-void get_free_symbols(const smt::Term & term, smt::UnorderedTermSet & out)
+void get_free_symbols(const Term & term, UnorderedTermSet & out)
 {
-  auto f = [](const smt::Term & t) { return t->is_symbol(); };
+  auto f = [](const Term & t) { return t->is_symbol(); };
   get_matching_terms(term, out, f);
 }
 
-void get_ops(const smt::Term & term, smt::UnorderedOpSet & out)
+void get_ops(const Term & term, UnorderedOpSet & out)
 {
-  smt::TermVec to_visit({ term });
-  smt::UnorderedTermSet visited;
+  TermVec to_visit({ term });
+  UnorderedTermSet visited;
 
-  smt::Term t;
-  while (to_visit.size()) {
+  Term t;
+  while (to_visit.size())
+  {
     t = to_visit.back();
     to_visit.pop_back();
-    if (visited.find(t) == visited.end()) {
+    if (visited.find(t) == visited.end())
+    {
       visited.insert(t);
       Op op = t->get_op();
       // Only add non-null operators to the set
-      if (!op.is_null()) {
+      if (!op.is_null())
+      {
         out.insert(t->get_op());
         // add children to queue
-        for (auto tt : t) {
+        for (auto tt : t)
+        {
           to_visit.push_back(tt);
         }
       }
@@ -220,9 +234,9 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
   {
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
-    smt::Op op = t->get_op();
-    assert(op.is_null() || op == smt::Or || op == smt::And || op == smt::Not);
-    if (op.prim_op == smt::And)
+    Op op = t->get_op();
+    assert(op.is_null() || op == Or || op == And || op == Not);
+    if (op.prim_op == And)
     {
       for (auto u : t)
       {
@@ -247,91 +261,91 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
        // smt::or by separating the literals
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
-      smt::Op op = t->get_op();
-      assert(op.is_null() || op == smt::Or || op == smt::Not);
+      Op op = t->get_op();
+      assert(op.is_null() || op == Or || op == Not);
 
-      if(op.prim_op == smt::Or)
+      if (op.prim_op == Or)
       {
-        for(auto u : t)
+        for (auto u : t)
         {
           before_or_elimination.push_back(u);
         }
       }
       else
       {
-        assert(op.is_null() || op == smt::Not);
+        assert(op.is_null() || op == Not);
         after_or_elimination.push_back(t);
       }
     }
     clauses.push_back(after_or_elimination);
-   }
+  }
 
-   std::map<Term, int> ma;  // This map will create a mapping from symbols to
-                            // distinct contiguous integer values.
-   int ptr = 0;  // pointer to store the next integer used in mapping
+  std::map<Term, int> ma;  // This map will create a mapping from symbols to
+                           // distinct contiguous integer values.
+  int ptr = 0;             // pointer to store the next integer used in mapping
 
-   // iterating within each clause and mapping every distinct symbol to a
-   // natural number
-   for (auto u : clauses)
-   {
-     for (auto uu : u)
-     {  // Using literals from all the clauses to create the mapping
-       if (uu->is_value() && uu->to_string() == "false")
-       {  // For an empty clause, which will just contain the term "false"
-       }
-       else if (uu->is_symbolic_const())
-       {  // A positive literal
-         if (ma.find(uu) == ma.end())
-         {  // Checking if symbol is absent in the mapping done till now
-           ptr++;
-           ma[uu] = ptr;
-         }
-       }
-       else
-       {  // A negative literal
-         Term t = (*(uu->begin()));
-         if (ma.find(t) == ma.end())
-         {
-           ptr++;
-           ma[t] = ptr;
-         }
-       }
-     }
-   }
-   //printing the output in DIMACS format
-   y << "p cnf ";
-   y << ptr;  // number of distinct symbols
-   y << " ";
+  // iterating within each clause and mapping every distinct symbol to a
+  // natural number
+  for (auto u : clauses)
+  {
+    for (auto uu : u)
+    {  // Using literals from all the clauses to create the mapping
+      if (uu->is_value() && uu->to_string() == "false")
+      {  // For an empty clause, which will just contain the term "false"
+      }
+      else if (uu->is_symbolic_const())
+      {  // A positive literal
+        if (ma.find(uu) == ma.end())
+        {  // Checking if symbol is absent in the mapping done till now
+          ptr++;
+          ma[uu] = ptr;
+        }
+      }
+      else
+      {  // A negative literal
+        Term t = (*(uu->begin()));
+        if (ma.find(t) == ma.end())
+        {
+          ptr++;
+          ma[t] = ptr;
+        }
+      }
+    }
+  }
+  // printing the output in DIMACS format
+  y << "p cnf ";
+  y << ptr;  // number of distinct symbols
+  y << " ";
 
-   int sz = clauses.size();
+  int sz = clauses.size();
 
-   y << sz;  // number of clauses
-   y << "\n";
+  y << sz;  // number of clauses
+  y << "\n";
 
-   // iterating within each clause and assigning the literal their mapped
-   // value(for a positive literal) or it's negative value(for a negative
-   // literal)
-   for (auto u : clauses)
-   {
-     for (auto uu : u)
-     {
-       if (uu->is_value() && uu->to_string() == "false")
-       {  // For an empty clause
-       }
-       else if (uu->is_symbolic_const())
-       {
-         y << (ma[uu]);  // Positive number for a positive literal
-         y << " ";
-       }
-       else
-       {
-         Term t = (*(uu->begin()));
-         y << ((-(ma[t])));  // Negative number for a negative literal
-         y << " ";
-       }
-     }
-     y << 0;  // Symbolizing end of line
-     y << "\n";
+  // iterating within each clause and assigning the literal their mapped
+  // value(for a positive literal) or it's negative value(for a negative
+  // literal)
+  for (auto u : clauses)
+  {
+    for (auto uu : u)
+    {
+      if (uu->is_value() && uu->to_string() == "false")
+      {  // For an empty clause
+      }
+      else if (uu->is_symbolic_const())
+      {
+        y << (ma[uu]);  // Positive number for a positive literal
+        y << " ";
+      }
+      else
+      {
+        Term t = (*(uu->begin()));
+        y << ((-(ma[t])));  // Negative number for a negative literal
+        y << " ";
+      }
+    }
+    y << 0;  // Symbolizing end of line
+    y << "\n";
   }
 }
 
@@ -369,7 +383,7 @@ class TseitinTraversal : public IdentityWalker
     if (!preorder_)  // using post order traversal as I need the new names of
                      // the children to generate the new term
     {
-      smt::Op op = term->get_op();
+      Op op = term->get_op();
       if (!op.is_null())
       {
         std::vector<Term> vec;  // a vector of all children
@@ -407,10 +421,10 @@ class XorBinarize : public IdentityWalker
   {
     if (!preorder_)
     {
-      smt::Op op = term->get_op();
+      Op op = term->get_op();
       if (!op.is_null())
       {
-        if (op == smt::Xor)
+        if (op == Xor)
         {
           auto it = term->begin();
           Term cached_term;
@@ -474,12 +488,12 @@ class EliminateBooleanConstants : public IdentityWalker
     };
     if (!preorder_)
     {
-      smt::Op op = term->get_op();
+      Op op = term->get_op();
       if (!op.is_null())
       {
         Term tr = solver_->make_term(true);   // Term "true"
         Term fa = solver_->make_term(false);  // Term "false"
-        if (op == smt::Not)
+        if (op == Not)
         {
           Term t = (*term->begin());
           Term cached_term;
@@ -500,7 +514,7 @@ class EliminateBooleanConstants : public IdentityWalker
             save_in_cache(term, solver_->make_term(Not, cached_term));
           }
         }
-        else if (op == smt::Equal)
+        else if (op == Equal)
         {
           auto it = term->begin();
           Term le = (*it);
@@ -543,7 +557,7 @@ class EliminateBooleanConstants : public IdentityWalker
                           solver_->make_term(Equal, le_cached, ri_cached));
           }
         }
-        else if (op == smt::Implies)
+        else if (op == Implies)
         {
           auto it = term->begin();
           Term le = (*it);
@@ -583,10 +597,10 @@ class EliminateBooleanConstants : public IdentityWalker
                           solver_->make_term(Implies, le_cached, ri_cached));
           }
         }
-        else if (op == smt::And)
+        else if (op == And)
         {
-          std::vector<Term> vec;  // contains all children which are neither
-                                  // "true" nor "false"
+          std::vector<Term> vec;   // contains all children which are neither
+                                   // "true" nor "false"
           bool false_present = 0;  // false_present=1, if any child is "false"
           auto it = term->begin();
           while (it != term->end())
@@ -626,7 +640,7 @@ class EliminateBooleanConstants : public IdentityWalker
             save_in_cache(term, solver_->make_term(And, vec));
           }
         }
-        else if (op == smt::Or)
+        else if (op == Or)
         {
           std::vector<Term> vec;  // contains all children which are neither
                                   // "true" nor "false"
@@ -669,7 +683,7 @@ class EliminateBooleanConstants : public IdentityWalker
             save_in_cache(term, solver_->make_term(Or, vec));
           }
         }
-        else if (op == smt::Xor)
+        else if (op == Xor)
         {
           std::vector<Term> vec;  // contains all children which are neither
                                   // "true" nor "false"
@@ -766,8 +780,8 @@ bool is_cnf(Term formula)
   {
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
-    smt::Op op = t->get_op();
-    if (op.prim_op == smt::And)
+    Op op = t->get_op();
+    if (op.prim_op == And)
     {
       for (auto u : t)
       {
@@ -788,8 +802,8 @@ bool is_cnf(Term formula)
     {
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
-      smt::Op op = t->get_op();
-      if (op.prim_op == smt::Or)
+      Op op = t->get_op();
+      if (op.prim_op == Or)
       {
         for (auto u : t)
         {
@@ -812,8 +826,8 @@ bool is_cnf(Term formula)
       {
         continue;
       }
-      smt::Op op = literal->get_op();
-      if (op == smt::Not && (*(literal->begin()))->is_symbolic_const())
+      Op op = literal->get_op();
+      if (op == Not && (*(literal->begin()))->is_symbolic_const())
       {
         continue;
       }
@@ -865,9 +879,9 @@ Term to_cnf(Term formula, SmtSolver s)
   {
     Term fi = u.first;
     Term se = u.second;
-    smt::Op op = se->get_op();
+    Op op = se->get_op();
 
-    if (op == smt::Or)
+    if (op == Or)
     {  //(c<->Or(x1, x2, x3, x4....)) = (Or(~c, x1, x2, x3, x4) And (And((c or
        //~x1), (c or ~x2), (c or ~x3), (c or ~x4))
       std::vector<Term> vec;
@@ -881,7 +895,7 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(s->make_term(Or, vec));
       clauses.push_back(s->make_term(And, vec2));
     }
-    else if (op == smt::And)
+    else if (op == And)
     {  //(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c
        // or x1), (~c or x2), (~c or x3), (~c or x4))
       std::vector<Term> vec;
@@ -895,7 +909,7 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(s->make_term(Or, vec));
       clauses.push_back(s->make_term(And, vec2));
     }
-    else if (op == smt::Xor)
+    else if (op == Xor)
     {  //((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and
        //((c) v (a) v (~b))
       auto it = (se->begin());
@@ -913,7 +927,7 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(
           s->make_term(Or, s->make_term(Or, fi, le), s->make_term(Not, ri)));
     }
-    else if (op == smt::Implies)
+    else if (op == Implies)
     {  //((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
       auto it = (se->begin());
       Term le = (*it);
@@ -926,7 +940,7 @@ Term to_cnf(Term formula, SmtSolver s)
       clauses.push_back(s->make_term(Or, le, fi));
       clauses.push_back(s->make_term(Or, s->make_term(Not, ri), fi));
     }
-    else if (op == smt::Equal)
+    else if (op == Equal)
     {  //((~a) v (~b) v (c)) and ((a) v (b) v (c)) and ((~c) v (~b) v (a)) and
        //((c) v (~a) v (b))
       auto it = (se->begin());
@@ -966,28 +980,26 @@ Term to_cnf(Term formula, SmtSolver s)
 
 UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
 
-  : reducer_(reducer_solver),
-    to_reducer_(reducer_solver)
+    : reducer_(reducer_solver), to_reducer_(reducer_solver)
 {
   reducer_->set_opt("produce-unsat-assumptions", "true");
   reducer_->set_opt("incremental", "true");
 }
 
-UnsatCoreReducer::~UnsatCoreReducer()
-{
-}
+UnsatCoreReducer::~UnsatCoreReducer() {}
 
-bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
-                                               const TermVec &assump,
-                                               TermVec &out_red,
-                                               TermVec *out_rem,
+bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
+                                               const TermVec & assump,
+                                               TermVec & out_red,
+                                               TermVec * out_rem,
                                                unsigned iter,
                                                unsigned rand_seed)
 {
   TermVec bool_assump, local_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (const auto & a : assump) {
+  for (const auto & a : assump)
+  {
     Term t = to_reducer_.transfer_term(a);
     cand_res.push_back(t);
     to_ext_assump[t] = a;
@@ -998,17 +1010,21 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
   // exit if the formula is unsat without assumptions.
   Result r = reducer_->check_sat();
-  if (r.is_unsat()) {
+  if (r.is_unsat())
+  {
     reducer_->pop();
     return true;
   }
 
-  if (rand_seed > 0) {
-    shuffle(cand_res.begin(), cand_res.end(),
+  if (rand_seed > 0)
+  {
+    shuffle(cand_res.begin(),
+            cand_res.end(),
             std::default_random_engine(rand_seed));
   }
 
-  for (const auto & a : cand_res) {
+  for (const auto & a : cand_res)
+  {
     Term l = label(a);
     reducer_->assert_formula(reducer_->make_term(Implies, l, a));
     bool_assump.push_back(l);
@@ -1023,7 +1039,8 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
     cur_iter += 1;
     r = reducer_->check_sat_assuming(bool_assump);
 
-    if (first_iter && r.is_sat()) {
+    if (first_iter && r.is_sat())
+    {
       reducer_->pop();
       return false;
     }
@@ -1035,21 +1052,28 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
 
     UnorderedTermSet core_set;
     reducer_->get_unsat_assumptions(core_set);
-    for (const auto & a : cand_res) {
+    for (const auto & a : cand_res)
+    {
       Term l = label(a);
-      if (core_set.find(l) != core_set.end()) {
+      if (core_set.find(l) != core_set.end())
+      {
         local_assump.push_back(a);
         bool_assump.push_back(l);
-      } else if (out_rem) {
+      }
+      else if (out_rem)
+      {
         // add the removed assumption in the out_rem (after translating to the
         // external solver)
         out_rem->push_back(to_ext_assump.at(a));
       }
     }
 
-    if (local_assump.size() == cand_res.size()) {
+    if (local_assump.size() == cand_res.size())
+    {
       break;
-    } else {
+    }
+    else
+    {
       cand_res = local_assump;
     }
 
@@ -1060,24 +1084,25 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term &formula,
   reducer_->pop();
 
   // copy the result
-  for (const auto &a : cand_res) {
+  for (const auto & a : cand_res)
+  {
     out_red.push_back(to_ext_assump.at(a));
   }
 
   return true;
 }
 
-bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
-                              const smt::Term &formula,
-                              const smt::TermVec &assump,
-                              smt::TermVec &out_red,
-                              smt::TermVec *out_rem,
-                              unsigned iter)
+bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
+                                                      const TermVec & assump,
+                                                      TermVec & out_red,
+                                                      TermVec * out_rem,
+                                                      unsigned iter)
 {
   TermVec bool_assump;
   UnorderedTermMap to_ext_assump;
   TermVec cand_res;
-  for (const auto & a : assump) {
+  for (const auto & a : assump)
+  {
     Term t = to_reducer_.transfer_term(a);
     cand_res.push_back(t);
     to_ext_assump[t] = a;
@@ -1088,13 +1113,15 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
 
   // exit if the formula is unsat without assumptions.
   Result r = reducer_->check_sat();
-  if (r.is_unsat()) {
+  if (r.is_unsat())
+  {
     reducer_->pop();
     return true;
   }
 
   UnorderedTermMap label_to_cand_;
-  for (const auto & a : cand_res) {
+  for (const auto & a : cand_res)
+  {
     Term l = label(a);
     reducer_->assert_formula(reducer_->make_term(Implies, l, a));
     bool_assump.push_back(l);
@@ -1102,29 +1129,35 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
   }
 
   unsigned cur_iter = 0;
-  size_t assump_pos_for_removal = 0;
+  std::size_t assump_pos_for_removal = 0;
   r = reducer_->check_sat_assuming(bool_assump);
-  if (r.is_sat()) {
+  if (r.is_sat())
+  {
     reducer_->pop();
     return false;
   }
   assert(r.is_unsat());
 
-  while (cur_iter <= iter && assump_pos_for_removal < bool_assump.size()) {
-    cur_iter = iter > 0 ? cur_iter+1 : cur_iter;
+  while (cur_iter <= iter && assump_pos_for_removal < bool_assump.size())
+  {
+    cur_iter = iter > 0 ? cur_iter + 1 : cur_iter;
 
     TermVec bool_assump_for_query;
-    bool_assump_for_query.reserve(bool_assump.size()-1);
-    for (size_t idx = 0; idx < bool_assump.size(); ++ idx) {
+    bool_assump_for_query.reserve(bool_assump.size() - 1);
+    for (std::size_t idx = 0; idx < bool_assump.size(); ++idx)
+    {
       if (idx != assump_pos_for_removal)
         bool_assump_for_query.push_back(bool_assump.at(idx));
     }
 
     r = reducer_->check_sat_assuming(bool_assump_for_query);
-    if (r.is_sat()) {
+    if (r.is_sat())
+    {
       // we cannot remove this assumption, then try next one
-      ++ assump_pos_for_removal;
-    } else {
+      ++assump_pos_for_removal;
+    }
+    else
+    {
       // we can remove this assumption
       assert(r.is_unsat());
 
@@ -1133,42 +1166,47 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
       // the core could be even smaller
       UnorderedTermSet core_set;
       reducer_->get_unsat_assumptions(core_set);
-      { // remove those not in core_set from bool_assump
+      {  // remove those not in core_set from bool_assump
         TermVec new_bool_assump;
         new_bool_assump.reserve(core_set.size());
-        for (const auto & l : bool_assump) {
-          if (core_set.find(l) != core_set.end())
-            new_bool_assump.push_back(l);
+        for (const auto & l : bool_assump)
+        {
+          if (core_set.find(l) != core_set.end()) new_bool_assump.push_back(l);
         }
-        bool_assump.swap(new_bool_assump); // do "bool_assump = new_bool_assump" w.o. copy
+        bool_assump.swap(
+            new_bool_assump);  // do "bool_assump = new_bool_assump" w.o. copy
       }
       assert(!bool_assump.empty());
       assert(bool_assump.size() <= bool_assump_for_query.size());
       // we don't need to change assump_pos_for_removal, because the size of
       // bool_assump is reduced by at least one, so in the next round
       // it is another element sitting at this location
-    } // end of the unsat case
+    }  // end of the unsat case
     // at this point, bool_assump should be the output
   }
 
-  for (const auto & l : bool_assump) {
+  for (const auto & l : bool_assump)
+  {
     const Term & a = label_to_cand_.at(l);
     out_red.push_back(to_ext_assump.at(a));
   }
 
   // in the case that we don't need the removed ones
   // we don't have to iterate through the constraint vector
-  if (out_rem) {
+  if (out_rem)
+  {
     UnorderedTermSet remaining_labels(bool_assump.begin(), bool_assump.end());
-    for (const auto & a : cand_res) {
+    for (const auto & a : cand_res)
+    {
       Term l = label(a);
-      if (remaining_labels.find(l) == remaining_labels.end()) {
+      if (remaining_labels.find(l) == remaining_labels.end())
+      {
         // add the removed assumption in the out_rem (after translating to the
         // external solver)
         out_rem->push_back(to_ext_assump.at(a));
       }
-    } // for each in cand_res
-  } // if (out_red)
+    }  // for each in cand_res
+  }  // if (out_red)
 
   reducer_->pop();
 
@@ -1178,23 +1216,28 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(
 Term UnsatCoreReducer::label(const Term & t)
 {
   auto it = labels_.find(t);
-  if (it != labels_.end()) {
+  if (it != labels_.end())
+  {
     return labels_.at(t);
   }
 
   unsigned i = 0;
   Term l;
-  while (true) {
-    try {
+  while (true)
+  {
+    try
+    {
       l = reducer_->make_symbol(
           "assump_" + std::to_string(t->hash()) + "_" + std::to_string(i),
           reducer_->make_sort(BOOL));
       break;
     }
-    catch (IncorrectUsageException & e) {
+    catch (IncorrectUsageException & e)
+    {
       ++i;
     }
-    catch (SmtException & e) {
+    catch (SmtException & e)
+    {
       throw e;
     }
   }
@@ -1205,10 +1248,7 @@ Term UnsatCoreReducer::label(const Term & t)
 
 // ----------------------------------------------------------------------------
 
-DisjointSet::DisjointSet(bool (*c)(const smt::Term & a, const smt::Term & b))
-    : comp(c)
-{
-}
+DisjointSet::DisjointSet(bool (*c)(const Term & a, const Term & b)) : comp(c) {}
 
 DisjointSet::~DisjointSet() {}
 

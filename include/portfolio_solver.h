@@ -17,9 +17,10 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <thread>
+#include <vector>
 
-#include "smt.h"
+#include "result.h"
+#include "smt_defs.h"
 
 namespace smt {
 
@@ -33,10 +34,10 @@ class PortfolioSolver
    *  @param solvers The solvers to run.
    *  @param t The term to be checked.
    */
-  smt::Result portfolio_solve();
+  Result portfolio_solve();
 
  private:
-  smt::Result result;
+  Result result;
   std::vector<SmtSolver> solvers;
   Term portfolio_term;
   // Once a solver is done, result has been set,

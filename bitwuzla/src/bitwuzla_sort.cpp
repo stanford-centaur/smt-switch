@@ -68,15 +68,29 @@ Sort BzlaSort::get_codomain_sort() const
 
 std::string BzlaSort::get_uninterpreted_name() const
 {
-  throw IncorrectUsageException(
-      "Bitwuzla does not support uninterpreted sorts.");
+  return sort.uninterpreted_symbol().value_or("");
 }
 
-std::size_t BzlaSort::get_arity() const { return sort.fun_arity(); }
+std::size_t BzlaSort::get_arity() const
+{
+  if (sort.is_uninterpreted())
+  {
+    return 0;
+  }
+  try
+  {
+    return sort.fun_arity();
+  }
+  catch (bitwuzla::Exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
-  throw SmtException("Bitwuzla does not support uninterpreted sorts.");
+  throw SmtException(
+      "Bitwuzla does not support parametrized uninterpreted sorts.");
 }
 
 Datatype BzlaSort::get_datatype() const

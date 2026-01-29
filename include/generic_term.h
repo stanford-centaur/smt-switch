@@ -16,7 +16,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <string>
 
 #include "ops.h"
 #include "smt_defs.h"
@@ -49,7 +52,7 @@ class GenericTerm : public AbsTerm
   std::string to_string() override;
   std::size_t hash() const override;
   bool is_value() const override;
-  uint64_t to_int() const override;
+  std::uint64_t to_int() const override;
   std::string print_value_as(SortKind sk) override;
   // is this a ground term
   bool is_ground() const;

@@ -14,15 +14,14 @@
 **
 **/
 
-#include <utility>
-#include <vector>
+#include <cstddef>
+#include <iostream>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
 
 using namespace smt;
-using namespace std;
 
 namespace smt_tests {
 
@@ -108,7 +107,7 @@ TEST_P(UnitSortTests, UninterpretedSort)
   EXPECT_EQ(uninterp_sort->get_arity(), 0);
 
   // Now try non-zero arity (not supported by very many solvers)
-  size_t num_params = 4;
+  std::size_t num_params = 4;
   Sort sort_cons;
   try
   {
@@ -120,7 +119,7 @@ TEST_P(UnitSortTests, UninterpretedSort)
     std::cout << "got exception when declaring nonzero arity sort: " << e.what()
               << std::endl;
     // but CVC5 expected to support it
-    ASSERT_NE(s->get_solver_enum(), smt::CVC5);
+    ASSERT_NE(s->get_solver_enum(), CVC5);
     return;
   }
 
@@ -167,7 +166,7 @@ TEST_P(UnitSortTests, UninterpSortEquality)
   ASSERT_EQ(x->get_sort(), y->get_sort());
 
   s->push();
-  s->make_term(Equal, x, y);
+  s->assert_formula(s->make_term(Equal, x, y));
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
@@ -179,9 +178,6 @@ TEST_P(UnitSortTests, UninterpSortEquality)
 
   Term xeq = s->make_term(Equal, x, xv);
   Term yeq = s->make_term(Equal, y, yv);
-
-  std::cout << "xeq: " << xeq << std::endl;
-  std::cout << "yeq: " << yeq << std::endl;
 
   s->assert_formula(s->make_term(Distinct, x, y));
   s->assert_formula(xeq);

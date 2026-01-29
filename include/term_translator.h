@@ -18,10 +18,13 @@
 
 #pragma once
 
+#include <string>
 #include <unordered_map>
 
+#include "exceptions.h"
 #include "smt_defs.h"
 #include "solver.h"
+#include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
 
@@ -104,7 +107,7 @@ class TermTranslator
    *  @return a term with the given value
    */
   Term value_from_smt2(const std::string val, const Sort sort);
-  
+
   /** translates an smtlib representation of a const rational "(/ a b)"
    *  into a infix-style representation of a const rational "a / b"
    * @param smtlib is the smtlib representation

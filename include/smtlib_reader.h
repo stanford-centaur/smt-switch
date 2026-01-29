@@ -16,12 +16,22 @@
 
 #pragma once
 
-#include "assert.h"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-#include "smt.h"
+#include "exceptions.h"
+#include "location.hh"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
 #include "smtlibparser.h"
+#include "sort.h"
+#include "term.h"
 
 #define YY_DECL smtlib::parser::symbol_type yylex(smt::SmtLibReader & drv)
 YY_DECL;
@@ -61,9 +71,9 @@ class UnorderedScopedSymbolMap
     symbols_.push_back({});
   }
 
-  size_t current_scope() { return symbols_.size() - 1; }
+  std::size_t current_scope() { return symbols_.size() - 1; }
 
-  void add_mapping(const std::string & sym, const smt::Term & t)
+  void add_mapping(const std::string & sym, const Term & t)
   {
     if (symbol_map_.find(sym) != symbol_map_.end())
     {
@@ -89,7 +99,7 @@ class UnorderedScopedSymbolMap
    *  @param sym the symbol to look up
    *  @return the associated term or null pointer if not in map
    */
-  smt::Term get_symbol(const std::string & sym)
+  Term get_symbol(const std::string & sym)
   {
     Term res;
     auto it = symbol_map_.find(sym);
@@ -102,7 +112,7 @@ class UnorderedScopedSymbolMap
 
  private:
   std::vector<std::unordered_set<std::string>> symbols_;
-  std::unordered_map<std::string, smt::Term> symbol_map_;
+  std::unordered_map<std::string, Term> symbol_map_;
 };
 
 class SmtLibReader
@@ -115,7 +125,7 @@ class SmtLibReader
    *  @param strict if set to true strictly interprets SMT-LIB semantics
    *         otherwise allows non-standard operators
    */
-  SmtLibReader(smt::SmtSolver & solver, bool strict = false);
+  SmtLibReader(SmtSolver & solver, bool strict = false);
 
   int parse(const std::string & f);
   // The name of the file being parsed.
@@ -135,23 +145,23 @@ class SmtLibReader
 
   virtual void set_info(const std::string & key, const std::string & val);
 
-  virtual void assert_formula(const smt::Term & assertion);
+  virtual void assert_formula(const Term & assertion);
 
   virtual Result check_sat();
 
-  virtual Result check_sat_assuming(const smt::TermVec & assumptions);
+  virtual Result check_sat_assuming(const TermVec & assumptions);
 
   /** Pushes num contexts in the solver and the global symbol map
    *  If overriding, make sure to push scopes in global_symbols_
    *    or consider calling this version of the function also
    */
-  virtual void push(uint64_t num = 1);
+  virtual void push(std::uint64_t num = 1);
 
   /** Pops num contexts in the solver and the global symbol map
    *  If overriding, make sure to pop scopes in global_symbols_
    *    or consider calling this version of the function also
    */
-  virtual void pop(uint64_t num = 1);
+  virtual void pop(std::uint64_t num = 1);
 
   /** Mark a term with an attribute
    *  This currently is ignores the attribute and prints a warning.
@@ -161,14 +171,14 @@ class SmtLibReader
    *  @param keyword the attribute keyword
    *  @param value the attribute value
    */
-  virtual void term_attribute(const smt::Term & term,
+  virtual void term_attribute(const Term & term,
                               const std::string & keyword,
                               const std::string & value);
 
   /* getters and setters  */
   smtlib::location & location() { return location_; }
 
-  smt::SmtSolver & solver() { return solver_; }
+  SmtSolver & solver() { return solver_; }
 
   bool is_strict() const { return strict_; }
 
@@ -180,7 +190,7 @@ class SmtLibReader
    */
   void pop_scope();
 
-  size_t current_scope() { return arg_param_map_.current_scope(); }
+  std::size_t current_scope() { return arg_param_map_.current_scope(); }
 
   /* Methods for use in flex/bison generated code */
 
@@ -189,7 +199,7 @@ class SmtLibReader
    *  with that name
    *  @return term
    */
-  smt::Term lookup_symbol(const std::string & sym);
+  Term lookup_symbol(const std::string & sym);
 
   /** Creates a new symbol
    *  This is a light wrapper around solver_->make_symbol
@@ -198,7 +208,7 @@ class SmtLibReader
    *  @param name the name of the symbol
    *  @param sort the sort of the symbol
    */
-  virtual void new_symbol(const std::string & name, const smt::Sort & sort);
+  virtual void new_symbol(const std::string & name, const Sort & sort);
 
   /** Look up a primitive operator by a string
    *  @param str the string representation of this PrimOp
@@ -214,7 +224,7 @@ class SmtLibReader
    *  Returns NUM_SORT_KINDS (a null element) if there's
    *  no match
    */
-  smt::SortKind lookup_sortkind(const std::string & str);
+  SortKind lookup_sortkind(const std::string & str);
 
   /** Create a define-fun macro
    *  @param name the name of the define-fun
@@ -223,8 +233,8 @@ class SmtLibReader
    *  stored in defs_ and def_args_
    */
   void define_fun(const std::string & name,
-                  const smt::Term & def,
-                  const smt::TermVec & args = {});
+                  const Term & def,
+                  const TermVec & args = {});
 
   /** Apply a define fun
    *  @param defname the name of the define-fun
@@ -232,7 +242,7 @@ class SmtLibReader
    *         the parameter args from the define-fun
    *         declaration will be replaced by these arguments
    */
-  Term apply_define_fun(const std::string & defname, const smt::TermVec & args);
+  Term apply_define_fun(const std::string & defname, const TermVec & args);
 
   /** Helper function for define-fun - similar to new_symbol
    *  Associates an argument with a temporary symbol for
@@ -246,7 +256,7 @@ class SmtLibReader
    *  These aren't used except in the definition and will always
    *  be substituted for
    */
-  Term register_arg(const std::string & name, const smt::Sort & sort);
+  Term register_arg(const std::string & name, const Sort & sort);
 
   /** Create an alias for a sort
    *  define-sort in SMT-LIB can take arguments, but currently this
@@ -256,14 +266,13 @@ class SmtLibReader
    *  @param name the name of the defined sort
    *  @param sort the sort to associate name with
    */
-  void define_sort(const std::string & name,
-                   const smt::Sort & sort);
+  void define_sort(const std::string & name, const Sort & sort);
 
   /** Looks up a defined sort by name
    *  @param name the name to look up
    *  @return the sort
    */
-  smt::Sort lookup_sort(const std::string & name);
+  Sort lookup_sort(const std::string & name);
 
   /** Creates a parameter and stores it in the scoped data-structure
    *  arg_param_map_
@@ -272,19 +281,19 @@ class SmtLibReader
    *  @param sort the sort of the parameter
    *  @return the parameter
    */
-  Term create_param(const std::string & name, const smt::Sort & sort);
+  Term create_param(const std::string & name, const Sort & sort);
 
   /** Declare a let binding mapping a symbol to a term
    *  for the current scope
    *  @param sym the symbol
    *  @param term the term
    */
-  void let_binding(const std::string & sym, const smt::Term & term);
+  void let_binding(const std::string & sym, const Term & term);
 
  protected:
   smtlib::location location_;
 
-  smt::SmtSolver solver_;
+  SmtSolver solver_;
 
   bool strict_;
 
@@ -295,20 +304,20 @@ class SmtLibReader
   bool allow_ufs_;  ///< set to true if declaring functions
                     ///< is supported in the set logic
 
-  std::unordered_map<std::string, smt::PrimOp>
+  std::unordered_map<std::string, PrimOp>
       primops_;  ///< available primops with set logic
 
-  std::unordered_map<std::string, smt::SortKind>
+  std::unordered_map<std::string, SortKind>
       sortkinds_;  ///< available sortkinds with set logic
 
-  std::unordered_map<std::string, smt::Term>
+  std::unordered_map<std::string, Term>
       all_symbols_;  ///< remembers all symbolic constants
                      ///< and functions
                      ///< even after context is popped
 
-  std::unordered_map<std::string, smt::Sort>
-    defined_sorts_; ///< mapping from symbol to defined sort
-                    ///< currently only supports 0-arity defines
+  std::unordered_map<std::string, Sort>
+      defined_sorts_;  ///< mapping from symbol to defined sort
+                       ///< currently only supports 0-arity defines
 
   UnorderedScopedSymbolMap
       global_symbols_;  ///< symbolic constants and functions
@@ -323,20 +332,16 @@ class SmtLibReader
                        ///< e.g. nested quantifiers
 
   // define-fun data structures
-  std::unordered_map<std::string, smt::Term>
-      defs_;  ///< keeps track of define-funs
-  std::unordered_map<std::string, smt::TermVec>
-      def_args_;  ///< keeps track of define-fun
-                  ///< arguments
-  std::unordered_map<smt::Sort, smt::TermVec>
-      tmp_args_;  ///< temporary variables
-                  ///< organized by sort
-  std::vector<std::unordered_map<smt::Sort, size_t>>
+  std::unordered_map<std::string, Term> defs_;  ///< keeps track of define-funs
+  std::unordered_map<std::string, TermVec>
+      def_args_;  ///< keeps track of define-fun arguments
+  std::unordered_map<Sort, TermVec>
+      tmp_args_;  ///< temporary variables organized by sort
+  std::vector<std::unordered_map<Sort, std::size_t>>
       sort_arg_ids_;  ///< scope-dependent argument ids in use
                       ///< example: sort_arg_ids_.back()[intsort]
-                      ///< returns the first index into tmp_args
-                      ///< (might be out of bounds, which means a new
-                      ///<  tmp argument is needed)
+                      ///< returns the first index into tmp_args (might be out
+                      ///< of bounds, which means a new tmp argument is needed)
                       ///< that is currently unused in this scope
 
   // useful constants
