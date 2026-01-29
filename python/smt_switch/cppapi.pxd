@@ -100,6 +100,8 @@ cdef extern from "solver.h" namespace "smt":
         c_Result check_sat_assuming(const c_TermVec & assumptions) except +
         void push(uint64_t num) except +
         void pop(uint64_t num) except +
+        uint64_t get_context_level() except +
+        void pop_all() except +
         c_Term get_value(c_Term& t) except +
         void get_unsat_assumptions(c_UnorderedTermSet& out) except +
         c_Sort make_sort(const string name, uint64_t arity) except +

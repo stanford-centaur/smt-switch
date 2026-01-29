@@ -78,6 +78,17 @@ TEST_P(UnitIncrementalTests, ContextLevel)
   s->assert_formula(b);
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
+
+  s->push(5);
+  EXPECT_EQ(s->get_context_level(), 5);
+  s->assert_formula(s->make_term(Not, a));
+  r = s->check_sat();
+  ASSERT_TRUE(r.is_unsat());
+
+  s->pop_all();
+  EXPECT_EQ(s->get_context_level(), 0);
+  r = s->check_sat();
+  ASSERT_TRUE(r.is_sat());
 }
 
 INSTANTIATE_TEST_SUITE_P(

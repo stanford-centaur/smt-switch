@@ -18,7 +18,9 @@
 **    is limited to values between 2 and 256.
 ** 3. Generic solvers cannot be used in term transfer/translation.
 ** 4. This feature is currently linux only -- no support for macOS.
-**
+** 5. All declarations made in the solver are global and permanent
+**    (set-option :global-declarations true), meaning that popping
+**    assertion levels does not remove them.
 **/
 
 #pragma once
