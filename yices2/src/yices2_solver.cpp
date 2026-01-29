@@ -1014,6 +1014,7 @@ void Yices2Solver::reset()
   yices_reset();
   // call this with NULL or config?
   ctx = yices_new_context(NULL);
+  symbol_table.clear();
 }
 
 void Yices2Solver::reset_assertions() { yices_reset_context(ctx); }
