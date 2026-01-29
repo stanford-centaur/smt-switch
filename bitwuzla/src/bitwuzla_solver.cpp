@@ -670,8 +670,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
-  symbol_table.clear();
-  //throw NotImplementedException("Bitwuzla does not currently support reset");
+  throw NotImplementedException("Bitwuzla does not currently support reset");
 }
 
 void BzlaSolver::reset_assertions()
