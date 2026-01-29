@@ -1141,7 +1141,6 @@ void MsatSolver::reset()
   cfg = msat_create_config();
   env = msat_create_env(cfg);
   base_assertions_.clear();
-  symbol_table_.clear();
 }
 
 void MsatSolver::reset_assertions()
