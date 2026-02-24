@@ -8,10 +8,13 @@ configure_step() {
 }
 
 install_step() {
-  install -d "$install_includedir" "$install_libdir"
+  # Bitwuzla expects the Cadical header to be at include/cadical/cadical.hpp,
+  # while Boolector requires include/ccadical.h.
+  install_cadical_includedir="$install_includedir/cadical"
+  install -d "$install_cadical_includedir" "$install_libdir"
   install -Cm644 src/ccadical.h "$install_includedir"
-  install -Cm644 src/cadical.hpp "$install_includedir"
-  install -Cm644 src/tracer.hpp "$install_includedir"
+  install -Cm644 src/cadical.hpp "$install_cadical_includedir"
+  install -Cm644 src/tracer.hpp "$install_cadical_includedir"
   install -Cm644 build/libcadical.a "$install_libdir"
 
   export install_dir _version
