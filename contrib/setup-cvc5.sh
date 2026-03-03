@@ -1,5 +1,5 @@
 #!/bin/bash
-git_commit=86cecd83b685f59e884094693b9a4c5c90a62e03
+git_tag=cvc5-1.3.2
 cmake_options=(-DENABLE_AUTO_DOWNLOAD=ON -DUSE_POLY=ON)
 
 prepare_step() {
