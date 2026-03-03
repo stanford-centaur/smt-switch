@@ -176,6 +176,7 @@ void GenericSolver::start_solver()
   close(outpipefd[0]);
   close(inpipefd[1]);
   set_opt("print-success", "true");
+  set_opt("global-declarations", "true");
 }
 
 void GenericSolver::write_internal(std::string str) const

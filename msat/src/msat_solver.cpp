@@ -320,6 +320,7 @@ void MsatSolver::pop(uint64_t num)
 
 uint64_t MsatSolver::get_context_level() const
 {
+  initialize_env();
   return msat_num_backtrack_points(env);
 }
 
