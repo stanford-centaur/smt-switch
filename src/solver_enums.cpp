@@ -105,6 +105,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
     });
 
 const std::unordered_set<SolverEnum> interpolator_solver_enums({
+    BZLA_INTERPOLATOR,
     CVC5_INTERPOLATOR,
     MSAT_INTERPOLATOR,
 });
@@ -141,6 +142,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case MSAT: o << "MSAT"; break;
     case YICES2: o << "YICES2"; break;
     case Z3: o << "Z3"; break;
+    case BZLA_INTERPOLATOR: o << "BZLA_INTERPOLATOR"; break;
     case CVC5_INTERPOLATOR: o << "CVC5_INTERPOLATOR"; break;
     case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
     default:
