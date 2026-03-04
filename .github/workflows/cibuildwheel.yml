@@ -64,7 +64,6 @@ jobs:
             cmake \
             gettext \
             glibc-static \
-            gmp-devel \
             gperf \
             libstdc++-static \
             ninja-build \
