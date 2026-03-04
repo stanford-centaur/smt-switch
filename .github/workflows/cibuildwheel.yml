@@ -64,11 +64,18 @@ jobs:
             cmake \
             gettext \
             glibc-static \
-            gmp-devel \
             gperf \
             libstdc++-static \
             ninja-build \
             wget
+          # Build GMP and MPFR manually, which are too old in the repos
+          mkdir -p {project}/deps && pushd {project}/deps
+          wget https://ftpmirror.gnu.org/gmp/gmp-6.3.0.tar.xz
+          tar -xf gmp-6.3.0.tar.xz && mv gmp-6.3.0 gmp && rm -f gmp-6.3.0.tar.xz
+          pushd gmp && ./configure --enable-cxx && make install && popd
+          wget https://ftpmirror.gnu.org/mpfr/mpfr-4.2.2.tar.xz
+          tar -xf mpfr-4.2.2.tar.xz && mv mpfr-4.2.2 mpfr && rm -f mpfr-4.2.2.tar.xz
+          cd mpfr && ./configure && make install && popd
           bash {project}/ci-scripts/cibw-build-deps.sh
         CIBW_BEFORE_ALL_MACOS: |
           brew update
@@ -81,6 +88,7 @@ jobs:
             setuptools
           bash {project}/ci-scripts/cibw-build-before.sh
         CIBW_ENVIRONMENT_MACOS: >
+          LIBRARY_PATH="$(brew --prefix)/lib"
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: |
