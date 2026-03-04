@@ -670,11 +670,13 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
-  options = {};
+  delete bzla;
   delete tm;
+  options = {};
   tm = new bitwuzla::TermManager();
+  bzla = new bitwuzla::Bitwuzla(*tm, options);
   symbol_table.clear();
-  reset_assertions();
+  context_level = 0;
 }
 
 void BzlaSolver::reset_assertions()
