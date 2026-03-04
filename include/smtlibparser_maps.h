@@ -53,6 +53,7 @@ const std::unordered_map<std::string, std::unordered_map<std::string, PrimOp>>
                 { ">=", Ge },
                 { "*", Mult },
                 { "/", Div },
+                { "to_real", To_Real },
             } },
           { "IRA",
             {
