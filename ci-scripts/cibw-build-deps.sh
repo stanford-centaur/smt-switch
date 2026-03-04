@@ -20,7 +20,7 @@ set -e
 mkdir -p deps && pushd deps
 wget https://ftpmirror.gnu.org/gmp/gmp-6.3.0.tar.xz
 tar -xf gmp-6.3.0.tar.xz && mv gmp-6.3.0 gmp && rm -f gmp-6.3.0.tar.xz
-pushd gmp && ./configure && make install && popd
+pushd gmp && ./configure --enable-cxx && make install && popd
 wget https://ftpmirror.gnu.org/mpfr/mpfr-4.2.2.tar.xz
 tar -xf mpfr-4.2.2.tar.xz && mv mpfr-4.2.2 mpfr && rm -f mpfr-4.2.2.tar.xz
 cd mpfr && ./configure && make install && popd
