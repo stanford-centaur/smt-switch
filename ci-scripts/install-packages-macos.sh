@@ -10,8 +10,8 @@ brew install \
   python-packaging
 
 {
-  echo "LDFLAGS=-L$(brew --prefix)/lib ${LDFLAGS:-}"
-  echo "CFLAGS=-I$(brew --prefix)/include ${CFLAGS:-}"
-  echo "CPPFLAGS=-I$(brew --prefix)/include ${CPPFLAGS:-}"
-  echo "PATH=$(brew --prefix)/opt/bison/bin:$PATH"
+  echo "CPATH=$(brew --prefix)/include"
+  echo "LIBRARY_PATH=$(brew --prefix)/lib"
+  echo "PKG_CONFIG_PATH=$(brew --prefix)/lib/pkgconfig"
+  echo "PATH=$(brew --prefix bison)/bin:$(brew --prefix)/bin:$PATH"
 } >>"$GITHUB_ENV"

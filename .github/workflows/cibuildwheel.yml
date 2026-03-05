@@ -88,7 +88,9 @@ jobs:
             setuptools
           bash {project}/ci-scripts/cibw-build-before.sh
         CIBW_ENVIRONMENT_MACOS: >
+          CPATH="$(brew --prefix)/include"
           LIBRARY_PATH="$(brew --prefix)/lib"
+          PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: |
