@@ -34,7 +34,7 @@ namespace smt_tests {
 
 smt::UnorderedTermSet get_free_symbols(smt::Term & t);
 std::string exec(const char * cmd);
-void dump_and_run(smt::SolverEnum solver,
+void dump_and_run(const std::string & executable_path,
                   std::stringbuf & strbuf,
                   std::vector<std::unordered_set<std::string>> expected_results,
                   std::string extra_opts = "");

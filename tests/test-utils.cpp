@@ -83,7 +83,7 @@ std::string exec(const char * cmd)
   return result;
 }
 
-void dump_and_run(SolverEnum solver,
+void dump_and_run(const std::string & executable_path,
                   std::stringbuf & strbuf,
                   std::vector<std::unordered_set<std::string>> expected_results,
                   std::string extra_opts)
@@ -94,25 +94,8 @@ void dump_and_run(SolverEnum solver,
   filename += "-sample.smt2";
 
   // Construct command string.
-  std::string command;
-  switch (solver)
-  {
-    // The paths to the binaries are defined by the build.
-    case BZLA:
-      command = STRFY(BITWUZLA_DIR);
-      command += "/bin/bitwuzla ";
-      break;
-    case CVC5:
-      command = STRFY(CVC5_HOME);
-      command += "/build/bin/cvc5 ";
-      break;
-    case MSAT:
-      command = STRFY(MSAT_HOME);
-      command += "/bin/mathsat ";
-      break;
-    default:
-      throw std::runtime_error("unhandled solver: " + std::to_string(solver));
-  }
+  std::string command = executable_path;
+  command += " ";
   if (!extra_opts.empty())
   {
     command += extra_opts;
