@@ -17,7 +17,6 @@
 #pragma once
 
 #include <iostream>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -33,7 +32,8 @@ struct SolverConfiguration
   bool is_logging_solver;
 
   // constructor
-  SolverConfiguration(smt::SolverEnum se, bool ils) {
+  SolverConfiguration(smt::SolverEnum se, bool ils)
+  {
     solver_enum = se;
     is_logging_solver = ils;
   }
@@ -44,7 +44,6 @@ smt::SmtSolver create_solver(SolverConfiguration sc);
 
 /** Creates an interpolating SmtSolver of the provided type */
 smt::SmtSolver create_interpolating_solver(SolverConfiguration sc);
-
 
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
@@ -57,7 +56,6 @@ std::vector<SolverConfiguration> available_solver_configurations();
 
 // collect all the available solvers without generics
 std::vector<SolverConfiguration> available_non_generic_solver_configurations();
-
 
 // collect all the available interpolating solvers
 std::vector<smt::SolverEnum> available_interpolator_enums();

@@ -21,7 +21,7 @@
 #include "cvc5_factory.h"
 #include "msat_factory.h"
 #include "portfolio_solver.h"
-#include "solver.h"
+#include "smt.h"
 #include "yices2_factory.h"
 
 using namespace smt;

@@ -14,12 +14,8 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
-#include "gtest/gtest.h"
-
 #include "available_solvers.h"
+#include "gtest/gtest.h"
 #include "substitution_walker.h"
 #include "utils.h"
 

@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -27,8 +24,9 @@ using namespace std;
 namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTransferTests);
-class UnitTransferTests : public ::testing::Test,
-                          public ::testing::WithParamInterface<SolverConfiguration>
+class UnitTransferTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -79,7 +77,8 @@ TEST_P(UnitTransferTests, MonotonicUF)
 
   Term free_x_le_y = s->make_term(BVUle, x, y);
   Term free_fx_le_fy = s->make_term(BVUle, fx, fy);
-  Term fx_le_fy = s->make_term(Forall, {x}, s->make_term(Forall, {y}, free_fx_le_fy));
+  Term fx_le_fy =
+      s->make_term(Forall, { x }, s->make_term(Forall, { y }, free_fx_le_fy));
 
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tr(s2);
@@ -90,7 +89,7 @@ TEST_P(UnitTransferTests, MonotonicUF)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTransferUnit,
     UnitTransferTests,
-    testing::ValuesIn(
-        filter_non_generic_solver_configurations({ FULL_TRANSFER, QUANTIFIERS })));
+    testing::ValuesIn(filter_non_generic_solver_configurations(
+        { FULL_TRANSFER, QUANTIFIERS })));
 
 }  // namespace smt_tests

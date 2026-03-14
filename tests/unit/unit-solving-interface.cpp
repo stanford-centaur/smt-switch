@@ -14,11 +14,7 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
-#include "exceptions.h"
 #include "gtest/gtest.h"
 #include "smt.h"
 
@@ -81,8 +77,9 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolveTests,
-                         UnitSolveTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSolveTests,
+    UnitSolveTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

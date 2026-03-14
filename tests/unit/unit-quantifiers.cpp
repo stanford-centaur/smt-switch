@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -48,8 +45,9 @@ Term recover_quant(const Term & quant_term, TermVec & out_vars)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierTests);
-class UnitQuantifierTests : public ::testing::Test,
-                            public testing::WithParamInterface<SolverConfiguration>
+class UnitQuantifierTests
+    : public ::testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -65,8 +63,9 @@ class UnitQuantifierTests : public ::testing::Test,
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierIterTests);
-class UnitQuantifierIterTests : public ::testing::Test,
-                                public testing::WithParamInterface<SolverConfiguration>
+class UnitQuantifierIterTests
+    : public ::testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -134,9 +133,9 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
   ASSERT_TRUE(r.is_sat());
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedQuantifierIterTests,
-                         UnitQuantifierIterTests,
-                         testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS,
-                                                                 TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedQuantifierIterTests,
+    UnitQuantifierIterTests,
+    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS, TERMITER })));
 
 }  // namespace smt_tests

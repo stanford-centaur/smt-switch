@@ -17,13 +17,8 @@
 // generic solvers are not supported on macos
 #ifndef __APPLE__
 
-#include <array>
-#include <cstdio>
-#include <fstream>
 #include <iostream>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -32,7 +27,6 @@
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
 // it cannot be compiled outside of the build
-#include "cvc5_factory.h"
 #include "generic_solver.h"
 #include "smt.h"
 #include "test-utils.h"
@@ -614,7 +608,9 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
   gs.reset();
   string path = (STRFY(CVC5_HOME));
   path += "/build/bin/cvc5";
-  vector<string> args = { "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp" };
+  vector<string> args = {
+    "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
+  };
   gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
   init_solver(gs);
 }
@@ -893,7 +889,8 @@ void test_binary(string path, vector<string> args)
   gs->set_opt("produce-models", "true");
 }
 
-int main() {
+int main()
+{
   // testing a non-existing binary
   string path;
   vector<string> args;
@@ -942,4 +939,4 @@ int main() {
   }
 }
 
-#endif  // __APPLE__
+#endif  // __APPLE_
