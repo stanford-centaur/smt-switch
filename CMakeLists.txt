@@ -61,9 +61,9 @@ endif()
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
 # add to search path for find_package
-list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
-if (NOT SMT_SWITCH_LIB_TYPE)
+if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
@@ -98,31 +98,22 @@ set(SOURCES
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp")
 
-if (SMTLIB_READER)
-  if (BISON_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${BISON_DIR}")
-  else()
-    # default location if using contrib/setup-bison.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
-  endif()
-
-  if (FLEX_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
-  else()
-    # default location if using contrib/setup-flex.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/flex/flex-install")
+if(SMTLIB_READER)
+  if(APPLE)
+    # Add Homebrew's flex/bison paths.
+    execute_process(
+      COMMAND brew --prefix
+      RESULT_VARIABLE Brew_RETURNCODE
+      OUTPUT_VARIABLE HOMEBREW_PREFIX
+    )
+    if(Brew_RETURNCODE EQUAL 0)
+      list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_PREFIX}/opt/bison")
+      list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_PREFIX}/opt/flex")
+    endif()
   endif()
 
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
-
-  if (BISON_FOUND)
-    get_filename_component(BISON_PARENT_DIR "${BISON_EXECUTABLE}" DIRECTORY)
-    message("-- Adding bison lib: ${BISON_PARENT_DIR}/../lib")
-    link_directories("${BISON_PARENT_DIR}/../lib/")
-  endif()
 
   BISON_TARGET(SmtLibParser ${PROJECT_SOURCE_DIR}/src/smtlibparser.yy
     ${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.cpp

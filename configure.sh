@@ -2,8 +2,6 @@
 
 # Syntax and structure borrowed from CVC5's configure.sh script
 
-CONF_FILE=Makefile.conf
-
 usage () {
 cat <<EOF
 Usage: $0 [<option> ...]
@@ -30,10 +28,9 @@ Configures the CMAKE build environment.
 --python                compile with python bindings (default: off)
 --python-executabe      point to a particular Python interpreter - will look around this for include and lib dirs
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
---bison-dir=STR         custom bison installation directory
---flex-dir=STR          custom flex installation directory
 --bitwuzla-dir=STR      custom Bitwuzla installation directory
 --z3-install-dir=STR    custom Z3 installation directory (default: deps/install)
+--dep-path=STR          additional dependency search path
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -64,10 +61,9 @@ system_gtest=default
 python=default
 python_executable=default
 smtlib_reader=default
-bison_dir=default
-flex_dir=default
 bitwuzla_dir=default
 z3_install_dir=default
+dep_paths=
 
 build_type=Release
 
@@ -182,24 +178,6 @@ do
         --smtlib-reader)
             smtlib_reader=yes
             ;;
-        --bison-dir=*)
-            bison_dir=${1##*=}
-            # Check if bison_dir is an absolute path and if not, make it
-            # absolute.
-            case $bison_dir in
-                /*) ;;                            # absolute path
-                *) bison_dir=$(pwd)/$bison_dir ;; # make absolute path
-            esac
-            ;;
-        --flex-dir=*)
-            flex_dir=${1##*=}
-            # Check if flex_dir is an absolute path and if not, make it
-            # absolute.
-            case $flex_dir in
-                /*) ;;                            # absolute path
-                *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
-            esac
-            ;;
         --bitwuzla-dir) die "missing argument to $1 (see -h)" ;;
         --bitwuzla-dir=*)
             bitwuzla_dir="${1##*=}"
@@ -211,6 +189,15 @@ do
             z3_install_dir=${1##*=}
             # Make relative paths absolute
             z3_install_dir="$(cd -- "$z3_install_dir" && pwd)"
+            ;;
+        --dep-path) die "missing argument to $1 (see -h)" ;;
+        --dep-path=*)
+            dep_path=$(cd -- "${1##*=}" && pwd)
+            if [ -z "${dep_paths}" ]; then
+              dep_paths="${dep_path}"
+            else
+              dep_paths="${dep_paths};${dep_path}"
+            fi
             ;;
         -D*) cmake_opts="${cmake_opts} $1" ;;
         *) die "unexpected argument: $1";;
@@ -288,17 +275,13 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$build_type"
 [ $smtlib_reader != default ] \
     && cmake_opts="$cmake_opts -DSMTLIB_READER=ON"
 
-[ $bison_dir != default ] \
-    && cmake_opts="$cmake_opts -DBISON_DIR=$bison_dir"
-
-[ $flex_dir != default ] \
-    && cmake_opts="$cmake_opts -DFLEX_DIR=$flex_dir"
-
 [ $bitwuzla_dir != default ] \
     && cmake_opts="$cmake_opts -DBITWUZLA_DIR=$bitwuzla_dir"
 
 [ $z3_install_dir != default ] \
     && cmake_opts="$cmake_opts -DZ3_INSTALL_DIR=$z3_install_dir"
+
+[ -n "${dep_paths}" ] && cmake_opts="${cmake_opts} -DCMAKE_PREFIX_PATH=${dep_paths}"
 
 mkdir -p "$build_dir"
 cd "$build_dir" || exit 1
