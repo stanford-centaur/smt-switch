@@ -24,14 +24,14 @@ jobs:
     runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
       - name: Check out project source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install packages
         run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
       - name: Compute hash from setup scripts for caching solver builds
         id: compute-solver-hash
         run: ./ci-scripts/compute-solver-hash.sh ${{ matrix.solver }}
       - name: Restore solver build from cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         id: cache
         with:
           path: deps
@@ -40,7 +40,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
       - name: Save solver build to cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
         with:
           path: deps
@@ -63,7 +63,7 @@ jobs:
         run: ctest --test-dir build
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
           path: build/Testing/Temporary/LastTest.log
