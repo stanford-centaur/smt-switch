@@ -48,9 +48,12 @@ int main()
 
   assert(r.is_sat());
 
-  Term arr_val = s->get_value(arr);
+  // Yices2 does not support getting array values directly.
+  Term arr_val_x0 = s->get_value(s->make_term(Select, arr, x0));
+  Term arr_val_x1 = s->get_value(s->make_term(Select, arr, x1));
 
-  cout << arr_val << endl;
+  cout << arr_val_x0 << endl;
+  cout << arr_val_x1 << endl;
 
   return 0;
 }

@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -123,8 +120,8 @@ TEST_P(UnitTests, MultiArgFun)
   Sort multiargsort = s->make_sort(FUNCTION, argsorts);
   Term f = s->make_symbol("f", multiargsort);
 
-  TermVec args1{f};
-  TermVec args2{f};
+  TermVec args1{ f };
+  TermVec args2{ f };
   for (size_t i = 0; i < 7; i++)
   {
     args1.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
@@ -144,8 +141,9 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedPrimOp,
                          testing::Range((size_t)0,
                                         static_cast<size_t>(NUM_OPS_AND_NULL)));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnit,
-                         UnitTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnit,
+    UnitTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 }  // namespace smt_tests

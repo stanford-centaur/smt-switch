@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -27,8 +24,9 @@ using namespace std;
 namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolverEnumTests);
-class UnitSolverEnumTests : public ::testing::Test,
-                            public ::testing::WithParamInterface<SolverConfiguration>
+class UnitSolverEnumTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }

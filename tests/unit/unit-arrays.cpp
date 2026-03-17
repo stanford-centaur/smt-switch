@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -72,9 +69,9 @@ TEST_P(UnitArrayTests, ConstArr)
   EXPECT_EQ(out_const_base, zero);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedUnitArray,
-    UnitArrayTests,
-    testing::ValuesIn(filter_solver_configurations({ CONSTARR, ARRAY_MODELS })));
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
+                         UnitArrayTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { CONSTARR, ARRAY_MODELS })));
 
 }  // namespace smt_tests

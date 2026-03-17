@@ -14,13 +14,10 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
-#include "smt.h"
 #include "identity_walker.h"
+#include "smt.h"
 
 using namespace smt;
 using namespace std;
@@ -65,7 +62,7 @@ TEST_P(UnitTests, TermIter)
 
 TEST_P(ConstArrUnitTests, ConstArr)
 {
-  Term zero     = s->make_term(0, bvsort);
+  Term zero = s->make_term(0, bvsort);
   Term constarr = s->make_term(zero, arrsort);
   ASSERT_TRUE(constarr->get_op().is_null());
   ASSERT_TRUE(constarr->get_sort() == arrsort);
@@ -90,7 +87,7 @@ TEST_P(ConstArrUnitTests, IdentityWalker)
   Term store_1 = s->make_term(Store, store_0, y, shift);
   Term final_term = s->make_term(Select, store_1, ypfx);
 
-  IdentityWalker iw(s, false); // don't clear the cache between calls
+  IdentityWalker iw(s, false);  // don't clear the cache between calls
   Term id_final_term = iw.visit(final_term);
   ASSERT_EQ(final_term, id_final_term);
 }
@@ -125,9 +122,10 @@ TEST_P(UnitTests, CopyIter)
   EXPECT_NE(it1, it2);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParametrizedUnit,
-                         UnitTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+INSTANTIATE_TEST_SUITE_P(
+    ParametrizedUnit,
+    UnitTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedConstArrUnit,

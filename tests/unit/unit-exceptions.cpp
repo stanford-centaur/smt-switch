@@ -1,6 +1,6 @@
-#include "exceptions.h"
+#include <cassert>
 
-#include "assert.h"
+#include "exceptions.h"
 
 int throw_exception() { throw SmtException("test"); }
 
@@ -11,7 +11,7 @@ bool catch_exception()
     throw_exception();
     return false;
   }
-  catch (SmtException& e)
+  catch (SmtException & e)
   {
     return true;
   }

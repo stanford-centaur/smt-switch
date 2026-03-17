@@ -13,32 +13,22 @@
 **
 **
 **/
-#include <array>
-#include <cstdio>
-#include <fstream>
+#include <cassert>
 #include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
-#include <vector>
-
-#include "assert.h"
 
 // note: this file depends on the CMake build infrastructure
 // specifically defined macros
 // it cannot be compiled outside of the build
-#include "cvc5_factory.h"
 #include "generic_sort.h"
 #include "generic_term.h"
-#include "gtest/gtest.h"
 #include "smt.h"
-#include "test-utils.h"
 
 using namespace smt;
 using namespace std;
 
-int main() { 
+int main()
+{
   cout << "Testing an integer constant" << endl;
   Sort int_sort = make_generic_sort(INT);
   GenericTerm one(int_sort, Op(), {}, "1");
@@ -48,7 +38,7 @@ int main() {
   assert(!one.is_symbol());
   assert(!one.is_param());
   assert(!one.is_symbolic_const());
-  
+
   cout << "Testing an integer variable" << endl;
   GenericTerm x(int_sort, Op(), {}, "x", true);
   GenericTerm x_prime(int_sort, Op(), {}, "x", true);

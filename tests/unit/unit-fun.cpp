@@ -1,6 +1,5 @@
-#include "assert.h"
+#include <cassert>
 
-#include "fun.h"
 #include "ops.h"
 
 using namespace smt;

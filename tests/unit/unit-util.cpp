@@ -15,8 +15,6 @@
 **/
 
 #include <sstream>
-#include <utility>
-#include <vector>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -71,11 +69,11 @@ class UnitUtilDimacsTests : public ::testing::Test,
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilIntTests);
 class UnitUtilIntTests : public UnitUtilTests
 {
-protected:
+ protected:
   void SetUp() override
   {
     UnitUtilTests::SetUp();
-    intsort  = s->make_sort(INT);
+    intsort = s->make_sort(INT);
   }
   Sort intsort;
 };
@@ -142,7 +140,8 @@ TEST_P(UnitUtilIntTests, Oracles)
   // on logging solvers different from BTOR.
   // We only include logging solvers because otherwise
   // the operators and symbols might change due to internal rewrites.
-  if (c.is_logging_solver) {
+  if (c.is_logging_solver)
+  {
     Sort int_sort = s->make_sort(INT);
     Sort bv_sort = s->make_sort(BV, 4);
     Term int1 = s->make_symbol("int1", int_sort);
@@ -187,9 +186,10 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   Term clause1 = s->make_term(Or, a, s->make_term(Or, b, s->make_term(Not, c)));
   Term clause2 = s->make_term(Or, b, s->make_term(Or, s->make_term(Not, c), d));
   Term clause3 = s->make_term(Or, d, s->make_term(Or, s->make_term(Not, c), a));
-  Term cnf=s->make_term(And, clause1, s->make_term(And, clause2, clause3));
-//The terms in the output string is not in accordance with the order of the input because of how to function is operating on the terms
-//, a dry run will show how the mapping of symbol to integer happens
+  Term cnf = s->make_term(And, clause1, s->make_term(And, clause2, clause3));
+  // The terms in the output string is not in accordance with the order of the
+  // input because of how to function is operating on the terms , a dry run will
+  // show how the mapping of symbol to integer happens
 
   // Test 1
 
@@ -238,8 +238,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term q = s->make_symbol("q", boolsort);
   Term r = s->make_symbol("r", boolsort);
   Term t = s->make_symbol("t", boolsort);
-  
-  //a=((p or q) and r) implies (not t)
+
+  // a=((p or q) and r) implies (not t)
   Term a = s->make_term(Implies,
                         s->make_term(And, s->make_term(Or, p, q), r),
                         s->make_term(Not, t));
@@ -365,7 +365,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ans = "true";
   ASSERT_TRUE(st == ans);
 
-  std::vector<Term> vec;
+  TermVec vec;
   vec.push_back(p);
   vec.push_back(q);
   vec.push_back(r);
@@ -395,7 +395,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // cheking function is_cnf
 
-  std::vector<Term> vecs;
+  TermVec vecs;
   vecs.push_back(p);
   vecs.push_back(q);
   vecs.push_back(r);
@@ -459,14 +459,15 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE(st == ans);
 }
 
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitUtilTests,
+    UnitUtilTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilTests,
-                         UnitUtilTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER })));
-
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilIntTests,
-                         UnitUtilIntTests,
-                         testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitUtilIntTests,
+    UnitUtilIntTests,
+    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
                          UnitUtilDimacsTests,

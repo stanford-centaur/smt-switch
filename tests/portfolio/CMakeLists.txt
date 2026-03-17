@@ -1,9 +1,10 @@
 macro(switch_add_portfolio_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/portfolio/${name}.cpp")
-  target_link_libraries(${name} gtest gtest_main)
-  target_link_libraries(${name} test-deps)
+  target_link_libraries(${name} smt-switch-btor)
+  target_link_libraries(${name} smt-switch-cvc5)
+  target_link_libraries(${name} smt-switch-msat)
+  target_link_libraries(${name} smt-switch-yices2)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
 switch_add_portfolio_test(test-portfolio-solver)
-
