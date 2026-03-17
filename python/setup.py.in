@@ -36,6 +36,7 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
     include_dirs = [f"{PROJECT_SOURCE_DIR}/include"]
     libraries.append("smt-switch")  # needs to come after the solver-specific libraries
     extra_compile_args = ["-std=c++17"]
+    extra_link_args = []
 
     # Handle OS-specific settings.
     if sys.platform == "darwin":
@@ -52,6 +53,7 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
         os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
         arch_flags = "-arch " + arch
         os.environ.setdefault("ARCHFLAGS", arch_flags)
+        extra_link_args.append("-Wl,-headerpad_max_install_names")
     if sys.platform == "win32":
         extra_compile_args += ["-DMS_WIN64"]
         os.environ["PATH"] += r";C:\msys64\mingw64\bin"
@@ -89,9 +91,8 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
         solver_library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
         solver_include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
     solver_libraries.extend(libraries)
-    solver_link_args = []
     for path in library_dirs:
-        solver_link_args.append(f"-Wl,-rpath,{path}")
+        extra_link_args.append(f"-Wl,-rpath,{path}")
     if SMT_SWITCH_LIB_TYPE == "STATIC":
         # When smt-switch is compiled as a static library, we need to link dependencies manually.
         for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
@@ -101,9 +102,9 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
                 break
         # Some solvers have their own linking flags.
         if "bitwuzla" in built_solvers:
-            solver_link_args += BITWUZLA_LDFLAGS
+            extra_link_args += BITWUZLA_LDFLAGS
         if "z3" in built_solvers:
-            solver_link_args.append(Z3_LIBRARY_LOCATION)
+            extra_link_args.append(Z3_LIBRARY_LOCATION)
     ext_modules.append(
         Extension(
             name="smt_switch.smt_solvers",
@@ -114,7 +115,7 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
             include_dirs=solver_include_dirs,
             language="c++",
             extra_compile_args=extra_compile_args,
-            extra_link_args=solver_link_args,
+            extra_link_args=extra_link_args,
         )
     )
 
