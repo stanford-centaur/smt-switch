@@ -33,6 +33,9 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_uflia_tests({
         smt::Result(smt::SAT) } },
 });
 
+const std::unordered_map<std::string, std::vector<smt::Result>> qf_lra_tests(
+    { { "test-reals.smt2", { smt::Result(smt::SAT) } } });
+
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_s_tests({
     { "test-ops.smt2", { smt::Result(smt::SAT)} },
     { "test-ops-SLIA.smt2", { smt::Result(smt::SAT)} },
