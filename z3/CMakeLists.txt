@@ -11,7 +11,9 @@ list(GET Z3_CONFIGURATIONS 0 Z3_DEFAULT_CONFIGURATION)
 get_target_property(Z3_LIBRARY_LOCATION z3::libz3 IMPORTED_LOCATION_${Z3_DEFAULT_CONFIGURATION})
 set(Z3_LIBRARY_LOCATION "${Z3_LIBRARY_LOCATION}" PARENT_SCOPE)
 
-add_library(smt-switch-z3 "${SMT_SWITCH_LIB_TYPE}"
+add_library(
+  smt-switch-z3
+  "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_datatype.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_solver.cpp"
@@ -29,6 +31,9 @@ target_link_libraries(smt-switch-z3 PRIVATE ${GMPXX_LIBRARIES})
 
 install(TARGETS smt-switch-z3 DESTINATION lib)
 # install headers -- for expert use only
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+install(
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   DESTINATION include/smt-switch
-  FILES_MATCHING PATTERN "*.h")
+  FILES_MATCHING
+  PATTERN "*.h"
+)
