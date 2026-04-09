@@ -358,7 +358,9 @@ class TseitinTraversal : public IdentityWalker
   std::vector<std::pair<Term, Term>>
       reduced;  // stores a pair of (lhs, rhs) in x1(lhs)<->(formula(rhs))
 
-  TseitinTraversal(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  TseitinTraversal(const SmtSolver & solver_) : IdentityWalker{ solver_, false }
+  {
+  }
   WalkerStepResult visit_term(Term & term)
   {
     Sort boolsort = term->get_sort();
@@ -416,7 +418,7 @@ class TseitinTraversal : public IdentityWalker
 class XorBinarize : public IdentityWalker
 {
  public:
-  XorBinarize(SmtSolver solver_) : IdentityWalker{ solver_, false } {}
+  XorBinarize(const SmtSolver & solver_) : IdentityWalker{ solver_, false } {}
   WalkerStepResult visit_term(Term & term)
   {
     if (!preorder_)
@@ -472,7 +474,7 @@ class XorBinarize : public IdentityWalker
 class EliminateBooleanConstants : public IdentityWalker
 {
  public:
-  EliminateBooleanConstants(SmtSolver solver_)
+  EliminateBooleanConstants(const SmtSolver & solver_)
       : IdentityWalker{ solver_, false }
   {
   }
