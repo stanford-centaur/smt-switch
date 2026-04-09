@@ -33,7 +33,14 @@ const std::unordered_map<::cvc5::Kind, size_t> kind2numindices(
       { ::cvc5::Kind::BITVECTOR_REPEAT, 1 },
       { ::cvc5::Kind::BITVECTOR_ROTATE_LEFT, 1 },
       { ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, 1 },
-      { ::cvc5::Kind::INT_TO_BITVECTOR, 1 } });
+      { ::cvc5::Kind::INT_TO_BITVECTOR, 1 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 2 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP, 2 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL, 2 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV, 2 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV, 2 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_UBV, 1 },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_SBV, 1 } });
 
 const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
     { { ::cvc5::Kind::AND, And },
@@ -131,7 +138,40 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       // Datatype
       { ::cvc5::Kind::APPLY_CONSTRUCTOR, Apply_Constructor },
       { ::cvc5::Kind::APPLY_TESTER, Apply_Tester },
-      { ::cvc5::Kind::APPLY_SELECTOR, Apply_Selector } });
+      { ::cvc5::Kind::APPLY_SELECTOR, Apply_Selector },
+      // Floating-Point
+      { ::cvc5::Kind::FLOATINGPOINT_EQ, FPEq },
+      { ::cvc5::Kind::FLOATINGPOINT_ABS, FPAbs },
+      { ::cvc5::Kind::FLOATINGPOINT_NEG, FPNeg },
+      { ::cvc5::Kind::FLOATINGPOINT_ADD, FPAdd },
+      { ::cvc5::Kind::FLOATINGPOINT_SUB, FPSub },
+      { ::cvc5::Kind::FLOATINGPOINT_MULT, FPMul },
+      { ::cvc5::Kind::FLOATINGPOINT_DIV, FPDiv },
+      { ::cvc5::Kind::FLOATINGPOINT_FMA, FPFma },
+      { ::cvc5::Kind::FLOATINGPOINT_SQRT, FPSqrt },
+      { ::cvc5::Kind::FLOATINGPOINT_REM, FPRem },
+      { ::cvc5::Kind::FLOATINGPOINT_RTI, FPRti },
+      { ::cvc5::Kind::FLOATINGPOINT_MIN, FPMin },
+      { ::cvc5::Kind::FLOATINGPOINT_MAX, FPMax },
+      { ::cvc5::Kind::FLOATINGPOINT_LEQ, FPLeq },
+      { ::cvc5::Kind::FLOATINGPOINT_LT, FPLt },
+      { ::cvc5::Kind::FLOATINGPOINT_GEQ, FPGeq },
+      { ::cvc5::Kind::FLOATINGPOINT_GT, FPGt },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_NORMAL, FPIsNormal },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL, FPIsSubNormal },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_ZERO, FPIsZero },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_INF, FPIsInf },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_NAN, FPIsNan },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_NEG, FPIsNeg },
+      { ::cvc5::Kind::FLOATINGPOINT_IS_POS, FPIsPos },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, IEEEBV_To_FP },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP, FP_To_FP },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL, Real_To_FP },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV, SBV_To_FP },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV, UBV_To_FP },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_UBV, FP_To_UBV },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_SBV, FP_To_SBV },
+      { ::cvc5::Kind::FLOATINGPOINT_TO_REAL, FP_To_REAL } });
 
 // struct for hashing
 std::hash<cvc5::Term> termhash;
