@@ -127,8 +127,8 @@ GenericSolver::GenericSolver(std::string path,
 GenericSolver::~GenericSolver()
 {
   // deallocate the buffers memory
-  delete write_buf;
-  delete read_buf;
+  delete[] write_buf;
+  delete[] read_buf;
   delete term_counter;
   // close the solver process
   close_solver();
