@@ -49,7 +49,7 @@ class GenericSolver : public AbsSmtSolver
                 std::vector<std::string> cmd_line_args,
                 unsigned int write_buf_size = 256,
                 unsigned int read_buf_size = 256);
-  ~GenericSolver();
+  ~GenericSolver() override;
 
   /***************************************************************/
   /* methods from AbsSmtSolver that are currently not implemented*/
