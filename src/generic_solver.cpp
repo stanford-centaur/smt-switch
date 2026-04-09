@@ -196,7 +196,7 @@ void GenericSolver::write_internal(std::string str) const
     }
     else
     {
-      substr_size = write_buf_size;
+      substr_size = write_buf_size - 1;
     }
     // write
     strcpy(write_buf, str.substr(written_chars, substr_size).c_str());
@@ -254,8 +254,9 @@ std::string GenericSolver::read_internal() const
   // read to the buffer until no more output to read
   while (!done)
   {
-    // read command, and how many chars were read.
-    int just_read = read(inpipefd[0], read_buf, read_buf_size);
+    // read command and how many chars were read
+    // the very last character must be left as the null terminator
+    int just_read = read(inpipefd[0], read_buf, read_buf_size - 1);
     // store the content and trim it
     std::string read_buf_str(read_buf);
     read_buf_str = read_buf_str.substr(0, read_buf_size);
