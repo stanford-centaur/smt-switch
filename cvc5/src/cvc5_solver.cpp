@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string>
 
 #include "smt.h"
@@ -127,7 +128,7 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
 
 Cvc5Solver::Cvc5Solver()
     : AbsSmtSolver(CVC5),
-      term_manager(new ::cvc5::TermManager()),
+      term_manager(std::make_unique<cvc5::TermManager>()),
       solver(*term_manager)
 {
   solver.setOption("lang", "smt2");
