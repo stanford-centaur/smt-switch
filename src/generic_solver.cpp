@@ -121,7 +121,18 @@ GenericSolver::GenericSolver(std::string path,
     read_buf[i] = 0;
   }
   // start the process with the solver binary
-  start_solver();
+  try
+  {
+    start_solver();
+  }
+  catch (IncorrectUsageException &)
+  {
+    // deallocate memory manually, since destructor won't be called
+    delete[] write_buf;
+    delete[] read_buf;
+    delete term_counter;
+    throw;
+  }
 }
 
 GenericSolver::~GenericSolver()
