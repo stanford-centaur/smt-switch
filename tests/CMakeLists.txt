@@ -18,16 +18,9 @@ if(NOT GTest_FOUND)
   FetchContent_MakeAvailable(googletest)
 endif()
 
-add_library(
-  test-deps
-  SHARED
-  "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp"
-  "${PROJECT_SOURCE_DIR}/tests/test-utils.cpp"
-)
-target_include_directories(test-deps PUBLIC "${PROJECT_SOURCE_DIR}/tests/")
-target_link_libraries(test-deps PUBLIC smt-switch)
-target_link_libraries(test-deps PRIVATE ${SOLVER_BACKEND_LIBS})
-target_link_libraries(test-deps PRIVATE GTest::gmock)
+add_library(exec-utils SHARED "${PROJECT_SOURCE_DIR}/tests/exec_utils.cpp")
+target_include_directories(exec-utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(exec-utils PRIVATE GTest::gmock)
 
 # add solver-specific test directories
 
@@ -61,10 +54,15 @@ endif()
 
 # general tests
 
+add_library(available-solvers SHARED "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
+target_include_directories(available-solvers PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(available-solvers PUBLIC smt-switch)
+target_link_libraries(available-solvers PRIVATE ${SOLVER_BACKEND_LIBS})
+
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")
+  target_link_libraries(${name} available-solvers)
   target_link_libraries(${name} smt-switch)
-  target_link_libraries(${name} test-deps)
   target_link_libraries(${name} GTest::gtest_main)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()

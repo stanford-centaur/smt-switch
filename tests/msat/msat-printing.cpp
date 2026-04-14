@@ -22,10 +22,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "exec_utils.h"
 #include "msat_factory.h"
 #include "printing_solver.h"
 #include "smt.h"
-#include "test-utils.h"
 #include "utils.h"
 
 using namespace smt;

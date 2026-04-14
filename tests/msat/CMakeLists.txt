@@ -4,7 +4,7 @@ macro(switch_add_msat_legacy_test name)
   target_include_directories(${name} PRIVATE "${MSAT_HOME}/include")
   target_include_directories(${name} PRIVATE "${GMP_INCLUDE_DIR}")
   target_link_libraries(${name} smt-switch-msat)
-  target_link_libraries(${name} test-deps)
+  target_link_libraries(${name} exec-utils)
   add_test(NAME ${name} COMMAND ${name})
 endmacro()
 

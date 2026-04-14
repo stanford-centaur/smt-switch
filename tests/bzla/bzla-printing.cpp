@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "bitwuzla_factory.h"
+#include "exec_utils.h"
 #include "printing_solver.h"
 #include "smt.h"
-#include "test-utils.h"
 #include "utils.h"
 
 using namespace smt;
