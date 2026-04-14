@@ -10,6 +10,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
 # defines find_python_in_virtualenv()
 # a helper to find Python in a virtualenv
@@ -60,14 +61,9 @@ endif()
 # - PROJECT_VERSION_PATCH: Patch version component
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
-# add to search path for find_package
-list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-
 if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
-
-add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 
 set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 set(
@@ -100,30 +96,21 @@ set(
 )
 
 if(SMTLIB_READER)
-  if(BISON_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${BISON_DIR}")
-  else()
-    # default location if using contrib/setup-bison.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
-  endif()
-
-  if(FLEX_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
-  else()
-    # default location if using contrib/setup-flex.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/flex/flex-install")
+  if(APPLE)
+    # Add Homebrew's flex/bison paths.
+    execute_process(
+      COMMAND brew --prefix
+      RESULT_VARIABLE Brew_RETURNCODE
+      OUTPUT_VARIABLE HOMEBREW_PREFIX
+    )
+    if(Brew_RETURNCODE EQUAL 0)
+      list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_PREFIX}/opt/bison")
+      list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_PREFIX}/opt/flex")
+    endif()
   endif()
 
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
-
-  if(BISON_FOUND)
-    get_filename_component(BISON_PARENT_DIR "${BISON_EXECUTABLE}" DIRECTORY)
-    message("-- Adding bison lib: ${BISON_PARENT_DIR}/../lib")
-    link_directories("${BISON_PARENT_DIR}/../lib/")
-  endif()
 
   bison_target(
     SmtLibParser
@@ -166,10 +153,6 @@ endif()
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
 target_include_directories(smt-switch PUBLIC ${INCLUDE_DIRS})
 
-set(THREADS_PREFER_PTHREAD_FLAG True)
-find_package(Threads)
-target_link_libraries(smt-switch PRIVATE Threads::Threads)
-
 # Should we build python bindings
 option(BUILD_PYTHON_BINDINGS "Build Python bindings")
 
@@ -183,81 +166,53 @@ if(BUILD_PYTHON_BINDINGS)
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
-if(BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
-  find_package(GMP REQUIRED)
-endif()
-
-# should we build boolector?
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)
-  if(NOT DEFINED BTOR_HOME)
-    set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
-  endif()
+  add_definitions(-DBUILD_BTOR)
   add_subdirectory(btor)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
-
-  add_definitions(-DBUILD_BTOR)
-  add_definitions(-DBTOR_HOME=${BTOR_HOME})
 endif()
 
-# should we build bitwuzla?
 option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
 if(BUILD_BITWUZLA)
-  if(NOT DEFINED BITWUZLA_DIR)
-    # default location if using contrib/setup-bitwuzla.sh
-    # will also search global paths
-    set(BITWUZLA_DIR "${PROJECT_SOURCE_DIR}/deps/install")
-  endif()
+  add_definitions(-DBUILD_BITWUZLA)
   add_subdirectory(bitwuzla)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
-
-  add_definitions(-DBUILD_BITWUZLA)
-  add_definitions(-DBITWUZLA_DIR=${BITWUZLA_DIR})
 endif()
 
-# should we build cvc5?
 option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
-  if(NOT DEFINED CVC5_HOME)
-    set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5")
-  endif()
+  add_definitions(-DBUILD_CVC5)
   add_subdirectory(cvc5)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
-
-  add_definitions(-DBUILD_CVC5)
-  add_definitions(-DCVC5_HOME=${CVC5_HOME})
 endif()
 
-# should we build msat?
 option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 if(BUILD_MSAT)
-  if(NOT DEFINED MSAT_HOME)
-    set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
+  if(DEFINED MSAT_HOME)
+    list(PREPEND CMAKE_PREFIX_PATH "${MSAT_HOME}")
+  else()
+    list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/mathsat")
   endif()
+  add_definitions(-DBUILD_MSAT)
   add_subdirectory(msat)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
-
-  add_definitions(-DBUILD_MSAT)
-  add_definitions(-DMSAT_HOME=${MSAT_HOME})
 endif()
 
-# should we build yices2?
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
-  if(NOT DEFINED YICES2_HOME)
-    set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
-  endif()
+  add_definitions(-DBUILD_YICES2)
   add_subdirectory(yices2)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
-
-  add_definitions(-DBUILD_YICES2)
-  add_definitions(-DYICES2_HOME=${YICES2_HOME})
 endif()
 
-# should we build z3?
 option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 if(BUILD_Z3)
   add_definitions(-DBUILD_Z3)
+  if(NOT DEFINED Z3_INSTALL_DIR)
+    set(Z3_INSTALL_DIR "${PROJECT_SOURCE_DIR}/deps/install")
+  endif()
+  add_definitions(-DZ3_INSTALL_DIR=${Z3_INSTALL_DIR})
   add_subdirectory(z3)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
 endif()

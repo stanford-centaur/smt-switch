@@ -22,4 +22,4 @@ install_step() {
 }
 
 # shellcheck source=contrib/common-setup.sh
-source "$(dirname "$(realpath "$0")")/common-setup.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common-setup.sh"
