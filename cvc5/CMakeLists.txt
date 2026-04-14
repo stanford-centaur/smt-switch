@@ -38,30 +38,6 @@ target_link_libraries(smt-switch-cvc5 "${CADICAL}")
 target_link_libraries(smt-switch-cvc5 smt-switch)
 target_link_libraries(smt-switch-cvc5 ${GMP_LIBRARIES})
 
-if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the cvc5 source and dependencies (except GMP)
-  # use libtool to combine
-  add_custom_command(
-    OUTPUT static-smt-switch-cvc5.stamp
-    COMMAND
-      mkdir ssc-working && cd ssc-working &&
-      # create new static library that combines them all
-      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-cvc5>"
-      "${CVC5_HOME}/build/src/libcvc5.a" "${POLYLIBXX}" "${POLYLIB}" "${CADICAL}"
-      "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # replace the original one
-      mv "$<TARGET_FILE_NAME:smt-switch-cvc5>" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # now clean up the temporary directory
-      cd ../ && rm -rf ssc-working
-    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-cvc5.stamp
-    DEPENDS smt-switch-cvc5
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-  )
-
-  add_custom_target(repack-cvc5-static-lib ALL DEPENDS static-smt-switch-cvc5.stamp)
-endif()
-
 install(TARGETS smt-switch-cvc5 DESTINATION lib)
 # install headers -- for expert use only
 install(
