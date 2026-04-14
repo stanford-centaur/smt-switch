@@ -89,6 +89,10 @@ switch_add_test(test-variadic-ops)
 
 if(SMTLIB_READER)
   switch_add_test(test-smtlib-reader)
+  target_compile_definitions(
+    test-smtlib-reader
+    PRIVATE SMTLIB_TEST_RESOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/smt2
+  )
 endif()
 
 add_subdirectory(unit)

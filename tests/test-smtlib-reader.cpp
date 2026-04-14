@@ -18,6 +18,7 @@
 #define STRFY(A) STRHELPER(A)
 
 #include <gtest/gtest.h>
+
 #include <utility>
 #include <vector>
 
@@ -105,11 +106,9 @@ class UninterpReaderTests : public ReaderTests
 
 TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
 {
-  // SMT_SWITCH_DIR is a macro defined at build time
-  // and should point to the top-level Smt-Switch directory
-  string test = STRFY(SMT_SWITCH_DIR);
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
-  test += "/tests/smt2/qf_uflia/" + testpair.first;
+  test += "/qf_uflia/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -124,11 +123,9 @@ TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
 
 TEST_P(StrReaderTests, QF_S_Smt2Files)
 {
-  // SMT_SWITCH_DIR is a macro defined at build time
-  // and should point to the top-level Smt-Switch directory
-  string test = STRFY(SMT_SWITCH_DIR);
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
-  test += "/tests/smt2/qf_s/" + testpair.first;
+  test += "/qf_s/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -143,11 +140,9 @@ TEST_P(StrReaderTests, QF_S_Smt2Files)
 
 TEST_P(BitVecReaderTests, QF_UFBV_Smt2Files)
 {
-  // SMT_SWITCH_DIR is a macro defined at build time
-  // and should point to the top-level Smt-Switch directory
-  string test = STRFY(SMT_SWITCH_DIR);
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
-  test += "/tests/smt2/qf_ufbv/" + testpair.first;
+  test += "/qf_ufbv/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -162,11 +157,9 @@ TEST_P(BitVecReaderTests, QF_UFBV_Smt2Files)
 
 TEST_P(ArrayIntReaderTests, QF_ALIA_Smt2Files)
 {
-  // SMT_SWITCH_DIR is a macro defined at build time
-  // and should point to the top-level Smt-Switch directory
-  string test = STRFY(SMT_SWITCH_DIR);
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
-  test += "/tests/smt2/qf_alia/" + testpair.first;
+  test += "/qf_alia/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -181,11 +174,9 @@ TEST_P(ArrayIntReaderTests, QF_ALIA_Smt2Files)
 
 TEST_P(UninterpReaderTests, QF_UF_Smt2Files)
 {
-  // SMT_SWITCH_DIR is a macro defined at build time
-  // and should point to the top-level Smt-Switch directory
-  string test = STRFY(SMT_SWITCH_DIR);
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
-  test += "/tests/smt2/qf_uf/" + testpair.first;
+  test += "/qf_uf/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -209,11 +200,9 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverStrReaderTests,
     StrReaderTests,
-    testing::Combine(
-        testing::ValuesIn(filter_non_generic_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT, THEORY_STR })),
-        testing::ValuesIn(qf_s_tests.begin(), qf_s_tests.end())));
-
+                     testing::ValuesIn(qf_s_tests.begin(), qf_s_tests.end())));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverBitVecReaderTests,
