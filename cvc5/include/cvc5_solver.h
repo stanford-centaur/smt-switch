@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -37,7 +38,7 @@ class Cvc5Solver : public AbsSmtSolver
   Cvc5Solver();
   Cvc5Solver(const Cvc5Solver &) = delete;
   Cvc5Solver & operator=(const Cvc5Solver &) = delete;
-  ~Cvc5Solver(){};
+  ~Cvc5Solver() = default;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -87,8 +88,10 @@ class Cvc5Solver : public AbsSmtSolver
 
   Term make_term(bool b) const override;
   Term make_term(std::int64_t i, const Sort & sort) const override;
-  Term make_term(const std::string& s, bool useEscSequences, const Sort & sort) const override;
-  Term make_term(const std::wstring& s, const Sort & sort) const override;
+  Term make_term(const std::string & s,
+                 bool useEscSequences,
+                 const Sort & sort) const override;
+  Term make_term(const std::wstring & s, const Sort & sort) const override;
   Term make_term(const std::string val,
                  const Sort & sort,
                  std::uint64_t base = 10) const override;
@@ -118,7 +121,7 @@ class Cvc5Solver : public AbsSmtSolver
   ::cvc5::Solver & get_cvc5_solver();
 
  protected:
-  ::cvc5::TermManager * term_manager;
+  std::unique_ptr<::cvc5::TermManager> term_manager;
   ::cvc5::Solver solver;
 
   std::unordered_map<std::string, Term> symbol_table;
