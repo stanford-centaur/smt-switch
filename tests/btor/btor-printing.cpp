@@ -14,18 +14,18 @@
 ** Note: this file depends on the CMake build infrastructure, specifically on
 ** defined macros. It cannot be compiled outside of the build.
 **/
+#include <gtest/gtest.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
-
 #include "boolector_factory.h"
-#include "smt.h"
 #include "printing_solver.h"
-#include "test-utils.h"
+#include "smt.h"
+#include "utils.h"
 
 using namespace smt;
 
@@ -34,7 +34,8 @@ TEST(BtorPrintingTest, SymbolName)
   std::string smt_filename = "btor-printing-test.smt2";
   std::ofstream smt_file(smt_filename, std::ios::trunc);
   SmtSolver solver = BoolectorSolverFactory::create(false);
-  solver = create_printing_solver(solver, &smt_file, PrintingStyleEnum::DEFAULT_STYLE);
+  solver = create_printing_solver(
+      solver, &smt_file, PrintingStyleEnum::DEFAULT_STYLE);
   solver->set_logic("QF_BV");
   solver->set_opt("incremental", "true");
   Sort sort = solver->make_sort(SortKind::BOOL);

@@ -14,9 +14,6 @@
 **
 **/
 
-#define STRHELPER(A) #A
-#define STRFY(A) STRHELPER(A)
-
 #include <gtest/gtest.h>
 
 #include <utility>
@@ -26,6 +23,7 @@
 #include "smt.h"
 #include "smtlib_reader.h"
 #include "smtlib_reader_test_inputs.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace std;

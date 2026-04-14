@@ -17,19 +17,15 @@
 // generic solvers are not supported on macos
 #ifndef __APPLE__
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "assert.h"
-
-// note: this file depends on the CMake build infrastructure
-// specifically defined macros
-// it cannot be compiled outside of the build
 #include "generic_solver.h"
 #include "smt.h"
-#include "test-utils.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace std;

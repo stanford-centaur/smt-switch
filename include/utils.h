@@ -28,6 +28,11 @@
 #include "term.h"
 #include "term_translator.h"
 
+// macro for getting string value of another macro
+// i.e. STRFY(FOO) := "FOO"
+#define STRHELPER(A) #A
+#define STRFY(A) STRHELPER(A)
+
 #ifndef NDEBUG
 #define _ASSERTIONS
 #endif

@@ -23,7 +23,7 @@
 
 #include "exceptions.h"
 #include "logging_solver.h"
-#include "test-utils.h"
+#include "utils.h"
 
 #if BUILD_BTOR
 #include "boolector_factory.h"

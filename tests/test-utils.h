@@ -23,11 +23,6 @@
 #include <unordered_set>
 #include <vector>
 
-// macros for getting string value of another macro
-// i.e. STRFY(FOO) := "FOO"
-#define STRHELPER(A) #A
-#define STRFY(A) STRHELPER(A)
-
 namespace smt_tests {
 void dump_and_run(const std::string & executable_path,
                   std::stringbuf & strbuf,
