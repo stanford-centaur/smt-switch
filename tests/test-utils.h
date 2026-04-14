@@ -23,22 +23,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include "smt.h"
-
 // macros for getting string value of another macro
 // i.e. STRFY(FOO) := "FOO"
 #define STRHELPER(A) #A
 #define STRFY(A) STRHELPER(A)
 
 namespace smt_tests {
-
-smt::UnorderedTermSet get_free_symbols(smt::Term & t);
-std::string exec(const char * cmd);
 void dump_and_run(const std::string & executable_path,
                   std::stringbuf & strbuf,
                   std::vector<std::unordered_set<std::string>> expected_results,
                   std::string extra_opts = "");
-
 }  // namespace smt_tests
 
 namespace std {

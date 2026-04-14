@@ -14,13 +14,10 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
-#include "test-utils.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace std;
@@ -59,7 +56,8 @@ TEST_P(ItpTests, Test_ITP)
   Result r = itp->get_interpolant(A, B, I);
   ASSERT_TRUE(r.is_unsat());
 
-  UnorderedTermSet free_symbols = get_free_symbols(I);
+  UnorderedTermSet free_symbols;
+  get_free_symbolic_consts(I, free_symbols);
 
   ASSERT_TRUE(free_symbols.find(y) == free_symbols.end());
   ASSERT_TRUE(free_symbols.find(z) == free_symbols.end());
