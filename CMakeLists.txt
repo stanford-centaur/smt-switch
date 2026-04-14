@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # defines find_python_in_virtualenv()
 # a helper to find Python in a virtualenv
@@ -63,7 +63,7 @@ message(STATUS "Project version set to: ${PROJECT_VERSION}")
 # add to search path for find_package
 list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
-if(NOT SMT_SWITCH_LIB_TYPE)
+if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
@@ -141,11 +141,10 @@ if(SMTLIB_READER)
   add_flex_bison_dependency(SmtLibScanner SmtLibParser)
 
   # putting generated header files in build dir
-  set(INCLUDE_DIRS "${INCLUDE_DIRS}" "${CMAKE_BINARY_DIR}")
+  list(APPEND INCLUDE_DIRS "${CMAKE_BINARY_DIR}")
 
-  set(
-    SOURCES
-    "${SOURCES}"
+  list(
+    APPEND SOURCES
     "${PROJECT_SOURCE_DIR}/src/smtlib_reader.cpp"
     "${BISON_SmtLibParser_OUTPUTS}"
     "${FLEX_SmtLibScanner_OUTPUTS}"
@@ -190,7 +189,6 @@ endif()
 
 # should we build boolector?
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
-
 if(BUILD_BTOR)
   if(NOT DEFINED BTOR_HOME)
     set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
@@ -200,7 +198,7 @@ if(BUILD_BTOR)
 
   add_definitions(-DBUILD_BTOR)
   add_definitions(-DBTOR_HOME=${BTOR_HOME})
-endif(BUILD_BTOR)
+endif()
 
 # should we build bitwuzla?
 option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
@@ -215,11 +213,10 @@ if(BUILD_BITWUZLA)
 
   add_definitions(-DBUILD_BITWUZLA)
   add_definitions(-DBITWUZLA_DIR=${BITWUZLA_DIR})
-endif(BUILD_BITWUZLA)
+endif()
 
 # should we build cvc5?
 option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
-
 if(BUILD_CVC5)
   if(NOT DEFINED CVC5_HOME)
     set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5")
@@ -229,11 +226,10 @@ if(BUILD_CVC5)
 
   add_definitions(-DBUILD_CVC5)
   add_definitions(-DCVC5_HOME=${CVC5_HOME})
-endif(BUILD_CVC5)
+endif()
 
 # should we build msat?
 option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
-
 if(BUILD_MSAT)
   if(NOT DEFINED MSAT_HOME)
     set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
@@ -247,7 +243,6 @@ endif()
 
 # should we build yices2?
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
-
 if(BUILD_YICES2)
   if(NOT DEFINED YICES2_HOME)
     set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
@@ -257,7 +252,7 @@ if(BUILD_YICES2)
 
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_HOME=${YICES2_HOME})
-endif(BUILD_YICES2)
+endif()
 
 # should we build z3?
 option(BUILD_Z3 "Should we build the libraries for z3" OFF)
@@ -265,7 +260,7 @@ if(BUILD_Z3)
   add_definitions(-DBUILD_Z3)
   add_subdirectory(z3)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
-endif(BUILD_Z3)
+endif()
 
 if(BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
