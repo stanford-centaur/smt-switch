@@ -10,13 +10,17 @@ endif()
 if(NOT GTest_FOUND)
   include(FetchContent)
   set(INSTALL_GTEST OFF)
-  FetchContent_Declare(googletest
+  FetchContent_Declare(
+    googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.17.0)
+    GIT_TAG v1.17.0
+  )
   FetchContent_MakeAvailable(googletest)
 endif()
 
-add_library(test-deps SHARED
+add_library(
+  test-deps
+  SHARED
   "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp"
   "${PROJECT_SOURCE_DIR}/tests/test-utils.cpp"
 )
@@ -31,11 +35,11 @@ if(BUILD_BITWUZLA)
   add_subdirectory(bzla)
 endif()
 
-if (BUILD_BTOR)
+if(BUILD_BTOR)
   add_subdirectory(btor)
 endif()
 
-if (BUILD_CVC5)
+if(BUILD_CVC5)
   add_subdirectory(cvc5)
 endif()
 
