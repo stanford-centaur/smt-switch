@@ -15,12 +15,13 @@
 **/
 
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
-#include "test-utils.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace std;
@@ -28,8 +29,9 @@ using namespace std;
 namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationTests);
-class SelfTranslationTests : public ::testing::Test,
-                             public ::testing::WithParamInterface<SolverConfiguration>
+class SelfTranslationTests
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -48,8 +50,9 @@ class SelfTranslationTests : public ::testing::Test,
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationIntTests);
-class SelfTranslationIntTests : public ::testing::Test,
-                                public ::testing::WithParamInterface<SolverConfiguration>
+class SelfTranslationIntTests
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -67,9 +70,9 @@ class SelfTranslationIntTests : public ::testing::Test,
   Term x, y, z;
 };
 
-class TranslationTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<tuple<SolverConfiguration, SolverConfiguration>>
+class TranslationTests : public testing::Test,
+                         public testing::WithParamInterface<
+                             tuple<SolverConfiguration, SolverConfiguration>>
 {
  protected:
   void SetUp() override
@@ -154,8 +157,10 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
 
   Term xpymz_transfer = tt.transfer_term(xpymz);
   // recover symbols
+  UnorderedTermSet free_symbols;
+  get_free_symbolic_consts(xpymz_transfer, free_symbols);
   unordered_map<string, Term> s2_symbols;
-  for (auto sym : get_free_symbols(xpymz_transfer))
+  for (auto sym : free_symbols)
   {
     s2_symbols[sym->to_string()] = sym;
   }

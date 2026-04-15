@@ -1,7 +1,6 @@
 macro(switch_add_btor_legacy_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/btor/${name}.cpp")
   target_link_libraries(${name} smt-switch-btor)
-  target_link_libraries(${name} test-deps)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
