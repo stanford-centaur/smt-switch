@@ -19,9 +19,8 @@
 
 #include <vector>
 
-#include "mathsat.h"
-
 #include "exceptions.h"
+#include "mathsat.h"
 
 using namespace std;
 
@@ -89,14 +88,18 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   msat_type itype = msat_term_get_type(i);
   msat_type ttype = msat_term_get_type(t);
   msat_type eltype = msat_term_get_type(el);
-
+  bool ttype_is_int_or_rat =
+      msat_is_integer_type(e, ttype) || msat_is_rational_type(e, ttype);
+  bool eltype_is_int_or_rat =
+      msat_is_integer_type(e, eltype) || msat_is_rational_type(e, eltype);
   if (!msat_is_bool_type(e, itype))
   {
     string msg("Expecting a boolean term for first ITE argument but got\n\t");
     throw IncorrectUsageException(msg + msat_to_smtlib2_term(e, i));
   }
 
-  if (!msat_type_equals(ttype, eltype))
+  if (!msat_type_equals(ttype, eltype)
+      && !(ttype_is_int_or_rat && eltype_is_int_or_rat))
   {
     string msg("Expecting matching branch terms for ITE but got\n\t");
     throw IncorrectUsageException(msg + msat_type_repr(ttype) + " "
