@@ -51,8 +51,7 @@ enum SortKind
   CONSTRUCTOR,
   SELECTOR,
   TESTER,
-  FLOAT32,
-  FLOAT64,
+  FLOAT,
   ROUNDINGMODE,
 
   /** IMPORTANT: This must stay at the bottom.
@@ -61,11 +60,11 @@ enum SortKind
   NUM_SORT_KINDS
 };
 
-template <SortKind sk>
+template <std::uint64_t>
 struct FPSizes;
 
 template <>
-struct FPSizes<FLOAT32>
+struct FPSizes<32>
 {
   static constexpr uint32_t exp = 8;
   static constexpr uint32_t sig = 24;
@@ -73,7 +72,7 @@ struct FPSizes<FLOAT32>
 };
 
 template <>
-struct FPSizes<FLOAT64>
+struct FPSizes<64>
 {
   static constexpr uint32_t exp = 11;
   static constexpr uint32_t sig = 53;

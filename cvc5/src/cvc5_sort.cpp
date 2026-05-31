@@ -30,6 +30,16 @@ std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
 
 uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
 
+uint64_t Cvc5Sort::get_exponent_width() const
+{
+  return sort.getFloatingPointExponentSize();
+}
+
+uint64_t Cvc5Sort::get_significand_width() const
+{
+  return sort.getFloatingPointSignificandSize();
+}
+
 Sort Cvc5Sort::get_indexsort() const
 {
   return std::make_shared<Cvc5Sort>(sort.getArrayIndexSort());
@@ -164,20 +174,7 @@ SortKind Cvc5Sort::get_sort_kind() const
   }
   else if (sort.isFloatingPoint())
   {
-    if (sort.getFloatingPointExponentSize() == FPSizes<FLOAT32>::exp
-        && sort.getFloatingPointSignificandSize() == FPSizes<FLOAT32>::sig)
-    {
-      return FLOAT32;
-    }
-    else if (sort.getFloatingPointExponentSize() == FPSizes<FLOAT64>::exp
-             && sort.getFloatingPointSignificandSize() == FPSizes<FLOAT64>::sig)
-    {
-      return FLOAT64;
-    }
-    else
-    {
-      throw NotImplementedException("Unknown kind in cvc5 translation.");
-    }
+    return FLOAT;
   }
   else if (sort.isRoundingMode())
   {

@@ -335,21 +335,28 @@ Term Cvc5Solver::make_term(std::string val,
     {
       c = term_manager->mkBitVector(sort->get_width(), val, base);
     }
-    else if (sk == FLOAT32)
+    else if (sk == FLOAT)
     {
-      float value = std::stof(val);
-      auto bv = term_manager->mkBitVector(FPSizes<FLOAT32>::size,
-                                          *(uint32_t *)&value);
-      c = term_manager->mkFloatingPoint(
-          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig, bv);
-    }
-    else if (sk == FLOAT64)
-    {
-      double value = std::stod(val);
-      auto bv = term_manager->mkBitVector(FPSizes<FLOAT64>::size,
-                                          *(uint64_t *)&value);
-      c = term_manager->mkFloatingPoint(
-          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig, bv);
+      ::cvc5::Term bv;
+      auto exp = sort->get_exponent_width();
+      auto sig = sort->get_significand_width();
+      if (exp == FPSizes<32>::exp && sig == FPSizes<32>::sig)
+      {
+        float value = std::stof(val);
+        bv = term_manager->mkBitVector(sort->get_width(), *(uint32_t *)&value);
+      }
+      else if (exp == FPSizes<64>::exp && sig == FPSizes<64>::sig)
+      {
+        double value = std::stod(val);
+        bv = term_manager->mkBitVector(sort->get_width(), *(uint64_t *)&value);
+      }
+      else
+      {
+        throw IncorrectUsageException(
+            "Can't create term for floating-point sort with width other than "
+            "32 or 64");
+      }
+      c = term_manager->mkFloatingPoint(exp, sig, bv);
     }
     else
     {
@@ -401,12 +408,10 @@ Term Cvc5Solver::make_term(FPRoundingMode roundingMode) const
 
 Term Cvc5Solver::make_term(FPSpecialValue val, const Sort & sort) const
 {
-  assert(sort->get_sort_kind() == FLOAT32 || sort->get_sort_kind() == FLOAT64);
+  assert(sort->get_sort_kind() == FLOAT);
 
-  auto exp = sort->get_sort_kind() == FLOAT32 ? FPSizes<FLOAT32>::exp
-                                              : FPSizes<FLOAT64>::exp;
-  auto sig = sort->get_sort_kind() == FLOAT32 ? FPSizes<FLOAT32>::sig
-                                              : FPSizes<FLOAT64>::sig;
+  auto exp = sort->get_exponent_width();
+  auto sig = sort->get_significand_width();
 
   cvc5::Term result;
   switch (val)
@@ -670,16 +675,6 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
     else if (sk == STRING)
     {
       return std::make_shared<Cvc5Sort>(term_manager->getStringSort());
-    }    
-    else if (sk == FLOAT32)
-    {
-      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
-          FPSizes<FLOAT32>::exp, FPSizes<FLOAT32>::sig));
-    }
-    else if (sk == FLOAT64)
-    {
-      return std::make_shared<Cvc5Sort>(term_manager->mkFloatingPointSort(
-          FPSizes<FLOAT64>::exp, FPSizes<FLOAT64>::sig));
     }
     else if (sk == ROUNDINGMODE)
     {
@@ -712,6 +707,31 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
       std::string msg("Can't create sort with sort constructor ");
       msg += to_string(sk);
       msg += " and an integer argument";
+      throw IncorrectUsageException(msg.c_str());
+    }
+  }
+  catch (::cvc5::CVC5ApiException & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+}
+
+Sort Cvc5Solver::make_sort(SortKind sk,
+                           std::uint64_t exp_width,
+                           std::uint64_t sig_width) const
+{
+  try
+  {
+    if (sk == FLOAT)
+    {
+      return std::make_shared<Cvc5Sort>(
+          term_manager->mkFloatingPointSort(exp_width, sig_width));
+    }
+    else
+    {
+      std::string msg("Can't create sort with sort constructor ");
+      msg += to_string(sk);
+      msg += " and two integer arguments";
       throw IncorrectUsageException(msg.c_str());
     }
   }
