@@ -116,6 +116,8 @@ class AbsSort
   virtual std::size_t hash() const = 0;
   // TODO: decide on exception or special value for incorrect usage
   virtual std::uint64_t get_width() const = 0;
+  virtual std::uint64_t get_exponent_width() const = 0;
+  virtual std::uint64_t get_significand_width() const = 0;
   virtual Sort get_indexsort() const = 0;
   virtual Sort get_elemsort() const = 0;
   virtual std::vector<Sort> get_domain_sorts() const = 0;
