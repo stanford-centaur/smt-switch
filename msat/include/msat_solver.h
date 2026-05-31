@@ -91,6 +91,13 @@ class MsatSolver : public AbsSmtSolver
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
+  Sort make_sort(const SortKind sk,
+                 std::uint64_t exp_width,
+                 std::uint64_t sig_width) const override
+  {
+    throw NotImplementedException(
+        "Unimplemented make_sort from the MsatSolver");
+  }
   Sort make_sort(SortKind sk, const Sort & sort1) const override;
   Sort make_sort(SortKind sk,
                  const Sort & sort1,

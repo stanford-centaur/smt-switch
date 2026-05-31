@@ -150,6 +150,17 @@ class AbsSmtSolver
   virtual Sort make_sort(const SortKind sk, std::uint64_t size) const = 0;
 
   /* Create a sort
+   * @param sk the SortKind (FLOAT)
+   * @param exponent size (e.g. exponent bitvector width for FLOAT SortKind)
+   * @param significand size (e.g. significand bitvector width for FLOAT
+   * SortKind)
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const SortKind sk,
+                         std::uint64_t exp_width,
+                         std::uint64_t sig_width) const = 0;
+
+  /* Create a sort
    * @param sk the SortKind
    * @param sort1 first sort
    * @return a Sort object
