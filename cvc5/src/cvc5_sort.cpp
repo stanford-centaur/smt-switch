@@ -28,7 +28,12 @@ std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
 std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
 
-uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
+uint64_t Cvc5Sort::get_width() const
+{
+  return this->get_sort_kind() == smt::FLOAT
+             ? get_exponent_width() + get_significand_width()
+             : sort.getBitVectorSize();
+}
 
 uint64_t Cvc5Sort::get_exponent_width() const
 {
