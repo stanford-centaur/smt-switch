@@ -84,6 +84,7 @@ switch_add_test(test-time-limit)
 switch_add_test(test-unsat-core)
 switch_add_test(test-unsat-core-reducer)
 switch_add_test(test-variadic-ops)
+switch_add_test(test-fp)
 
 if(SMTLIB_READER)
   switch_add_test(test-smtlib-reader)

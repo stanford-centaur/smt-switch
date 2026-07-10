@@ -150,6 +150,17 @@ class AbsSmtSolver
   virtual Sort make_sort(const SortKind sk, std::uint64_t size) const = 0;
 
   /* Create a sort
+   * @param sk the SortKind (FLOAT)
+   * @param exponent size (e.g. exponent bitvector width for FLOAT SortKind)
+   * @param significand size (e.g. significand bitvector width for FLOAT
+   * SortKind)
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const SortKind sk,
+                         std::uint64_t exp_width,
+                         std::uint64_t sig_width) const = 0;
+
+  /* Create a sort
    * @param sk the SortKind
    * @param sort1 first sort
    * @return a Sort object
@@ -261,6 +272,25 @@ class AbsSmtSolver
    * @return a value term with Sort sort
    */
   virtual Term make_term(const Term & val, const Sort & sort) const = 0;
+
+  /* Make a RoundingMode value term to be used in Floating-Point arithmetic 
+   * operations.
+   * @param roundingMode the RoundingMode value to create
+   * @return a value term with Sort ROUNDINGMODE
+   */
+  virtual Term make_term(FPRoundingMode roundingMode) const {
+        throw NotImplementedException("FPRoundingMode not supported for this solver.");
+  }
+
+  /* Make a floating-point special value term to be used in Floating-Point arithmetic 
+   * operations.
+   * @param val the floating-point special value to create
+   * @param sort the sort of value to create (must be FLOAT32 or FLOAT64)
+   * @return a value term with Sort sort
+   */
+  virtual Term make_term(FPSpecialValue val, const Sort & sort) const {
+        throw NotImplementedException("FPSpecialValue not supported for this solver.");
+  }  
 
   /* Make a symbolic constant or function term
    * SMTLIB: (declare-fun <name> (s1 ... sn) s) where sort = s1x...xsn -> s
