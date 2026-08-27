@@ -59,6 +59,8 @@ enum SolverAttribute
   THEORY_REAL,
   // supports STR theory
   THEORY_STR,
+  // supports floating-point theory
+  THEORY_FP,  
   // supports array models
   ARRAY_MODELS,
   // supports constant arrays

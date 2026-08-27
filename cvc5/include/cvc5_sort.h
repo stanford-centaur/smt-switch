@@ -35,6 +35,8 @@ class Cvc5Sort : public AbsSort
   std::string to_string() const override;
   std::size_t hash() const override;
   uint64_t get_width() const override;
+  std::uint64_t get_exponent_width() const override;
+  std::uint64_t get_significand_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;

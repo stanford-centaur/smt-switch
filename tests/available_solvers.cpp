@@ -316,6 +316,22 @@ std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
   return result;
 }
 
+std::vector<SolverConfiguration> filter_non_logging_solver_configurations(
+    const std::unordered_set<SolverAttribute> attributes)
+{
+  std::vector<SolverConfiguration> original_result =
+      filter_solver_configurations(attributes);
+  std::vector<SolverConfiguration> result;
+  for (SolverConfiguration sc : original_result)
+  {
+    if (!sc.is_logging_solver)
+    {
+      result.push_back(sc);
+    }
+  }
+  return result;
+}
+
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc)
 {
   o << sc.solver_enum << "(logging=" << sc.is_logging_solver << ")";

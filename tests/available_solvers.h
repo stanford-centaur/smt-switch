@@ -78,5 +78,8 @@ std::vector<SolverConfiguration> filter_solver_configurations(
 std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
+std::vector<SolverConfiguration> filter_non_logging_solver_configurations(
+    const std::unordered_set<smt::SolverAttribute> attributes);
+
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
 }  // namespace smt_tests

@@ -494,6 +494,32 @@ Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
   }
 }
 
+Sort GenericSolver::make_sort(const SortKind sk,
+                              std::uint64_t exp_width,
+                              std::uint64_t sig_width) const
+{
+  // create the sort
+  // TODO: Implement Floating-Point generic sort using exp_width and sig_width
+  Sort sort = std::make_shared<GenericSort>(sk);
+  // compute the name
+  std::string name = sort->to_string();
+
+  // note that nothing needs to be communicated to the solver,
+  // as in this case the sort is built in.
+
+  // store in maps if needed and return the sort
+  if (name_sort_map->find(name) == name_sort_map->end())
+  {
+    (*name_sort_map)[name] = sort;
+    (*sort_name_map)[sort] = name;
+    return sort;
+  }
+  else
+  {
+    return name_sort_map->at(name);
+  }
+}
+
 Sort GenericSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
   return make_sort(sk, SortVec({ sort1 }));
