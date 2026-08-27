@@ -141,7 +141,7 @@ if(SMTLIB_READER)
   add_flex_bison_dependency(SmtLibScanner SmtLibParser)
 
   # putting generated header files in build dir
-  list(APPEND INCLUDE_DIRS "${CMAKE_BINARY_DIR}")
+  list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
 
   list(
     APPEND SOURCES
@@ -290,9 +290,9 @@ install(
 )
 
 if(SMTLIB_READER)
-  install(FILES "${CMAKE_BINARY_DIR}/smtlibparser.h" DESTINATION include/smt-switch)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.h" DESTINATION include/smt-switch)
 
-  install(FILES "${CMAKE_BINARY_DIR}/location.hh" DESTINATION include/smt-switch)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/location.hh" DESTINATION include/smt-switch)
 endif()
 
 # uninstall target
