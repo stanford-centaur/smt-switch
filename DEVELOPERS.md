@@ -5,7 +5,7 @@ To make a new release of `smt-switch`, simply update the version in [VERSION](./
 
 ## Style Decisions
 
-* Formatting with `git-clang-format`
+* Formatting is enforced by [pre-commit](https://pre-commit.com) (see [.pre-commit-config.yaml](./.pre-commit-config.yaml))
 * Class names are capitalized
 * Kind enums are all capitalized
 * Operator enums use smt-lib names, but with the first letter (and letters after an underscore if it exists) capitalized
@@ -13,13 +13,28 @@ To make a new release of `smt-switch`, simply update the version in [VERSION](./
 * Functions/methods are lower-cased with underscores
 * Interface matches smt-lib closely
 
+### Formatting
+
+Install the hooks once, and they run on each commit:
+
+    pip install pre-commit
+    pre-commit install
+
+To check the whole tree, run `pre-commit run --all-files`. CI runs the same hooks with
+[prek](https://github.com/j178/prek), a drop-in replacement that reads the same
+configuration, so `prek run --all-files` works too.
+
+C++ formatting (see [.clang-format](./.clang-format)) and shell formatting are configured
+but not yet enforced by a hook, because the tree does not satisfy them yet — see the
+comments at the bottom of [.pre-commit-config.yaml](./.pre-commit-config.yaml).
+
 ## Design Decisions
 
 * Everything is a pointer
   * There are `using` statements which give convenient names so things may not *look* like pointers, but they are all shared_ptr to abstract base classes
   * In the solver implementations, the abstract class pointers are statically casted to the correct type. In particular, this means that mixing terms from different solvers will result in undefined behavior
 * Modern C++
-  * This library attempts to make use of modern C++ design paradigms whenever possible. In particular, we use C++17 for the support of constexpr arrays, and variants. 
+  * This library attempts to make use of modern C++ design paradigms whenever possible. In particular, we use C++17 for the support of constexpr arrays, and variants.
   * The philosophy here is that it is better to rely on the new standard than adopt another dependency such as `boost`
 * The abstract classes provide a common interface, but they were designed to give each solver as much flexibility as possible
 

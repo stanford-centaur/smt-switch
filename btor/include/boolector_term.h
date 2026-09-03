@@ -127,4 +127,3 @@ class BoolectorTerm : public AbsTerm
 };
 
 }  // namespace smt
-

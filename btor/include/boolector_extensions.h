@@ -27,4 +27,3 @@ BoolectorNode * custom_boolector_rotate_right(Btor * btor,
                                               BoolectorNode * node,
                                               uint32_t n);
 }  // namespace smt
-

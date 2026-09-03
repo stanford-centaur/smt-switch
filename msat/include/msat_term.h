@@ -114,4 +114,3 @@ class MsatTerm : public AbsTerm
 };
 
 }  // namespace smt
-

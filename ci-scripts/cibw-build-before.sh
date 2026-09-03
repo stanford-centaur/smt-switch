@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Top contributors (to current version):
-#  Makai Mann 
+#  Makai Mann
 #
 #  This file is part of the smt-switch project.
 #

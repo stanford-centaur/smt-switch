@@ -59,4 +59,3 @@ class Yices2Sort : public AbsSort
 };
 
 }  // namespace smt
-

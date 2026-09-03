@@ -52,4 +52,3 @@ msat_term ext_msat_make_uf(msat_env e,
                            std::vector<msat_term> args);
 
 }  // namespace smt
-

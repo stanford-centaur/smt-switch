@@ -1,0 +1,93 @@
+# Run `pre-commit install` once to check staged files on every commit, or
+# `pre-commit run --all-files` to check the whole tree.
+#
+# Hook revisions are kept current by Dependabot (see .github/dependabot.yml).
+
+# contrib/memstream-0.1 is a vendored third-party drop, kept byte-identical to
+# upstream so it can be diffed against new releases. The rest of contrib/ is
+# first-party and is checked normally.
+exclude: ^contrib/memstream-0\.1/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # Whitespace and encoding hygiene.
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: fix-byte-order-marker
+      # Repository hygiene.
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-illegal-windows-names
+      - id: check-merge-conflict
+      # ci-scripts/ contains symlinks into contrib/; these guard against them
+      # being replaced by plain files, e.g. on a checkout without symlink
+      # support.
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: detect-private-key
+      # Syntax checks for configuration and Python sources.
+      - id: check-yaml
+      - id: check-toml
+      - id: check-ast
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+      # ruff-format only. ruff-check is intentionally not enabled yet: the lint
+      # rule selection and the resulting fixes are being worked out separately.
+      # See .ruff.toml.
+      - id: ruff-format
+
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.28.1
+    hooks:
+      # Uses .gersemirc. Leave `args` unset to keep the hook's default `-i`.
+      - id: gersemi
+
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      # taplo-lint is deliberately omitted: its default
+      # --default-schema-catalogs fetches a remote schema catalog, which is
+      # unreliable in CI and broken offline. check-toml covers syntax.
+      - id: taplo-format
+
+  # The hooks below are not enabled yet because the tree does not satisfy them.
+  # Each needs its own pass before it can be turned on:
+  #
+  #   clang-format  86 of 229 C/C++ files would be rewritten (~1350 lines).
+  #                 Needs a bulk-reformat commit plus a .git-blame-ignore-revs
+  #                 entry. Note .clang-format is already committed.
+  #
+  #   shfmt         6 shell files would be rewritten (~570 lines); configure.sh
+  #                 gets reindented from 4-space to 2-space. Needs the CI matrix
+  #                 as proof the reindent was semantics-preserving.
+  #
+  #   shellcheck    43 findings in 7 of 22 scripts, 27 of them SC2086 on option
+  #                 strings that configure.sh intentionally word-splits. Fixing
+  #                 those changes behavior, so each site needs review.
+  #
+  # Dependabot cannot bump commented-out repos, so re-check these revisions
+  # with `pre-commit autoupdate` when enabling them.
+  #
+  # - repo: https://github.com/pre-commit/mirrors-clang-format
+  #   rev: v23.1.0
+  #   hooks:
+  #     - id: clang-format
+  # - repo: https://github.com/scop/pre-commit-shfmt
+  #   rev: v3.13.1-1
+  #   hooks:
+  #     # -w is one of the hook's default args and must be repeated, because
+  #     # `args` replaces the defaults rather than extending them.
+  #     - id: shfmt
+  #       args: [-w, -i, "2", -ci, -s]
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: v0.11.0.1-1
+  #   hooks:
+  #     - id: shellcheck

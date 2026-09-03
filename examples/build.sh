@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # get the absolute path to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 

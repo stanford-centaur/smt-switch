@@ -40,6 +40,3 @@ else
     echo "Please see their github page for installation instructions: https://github.com/SRI-CSL/yices2"
     exit 1
 fi
-
-
-
