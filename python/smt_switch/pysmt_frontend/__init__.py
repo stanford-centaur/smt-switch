@@ -1,9 +1,9 @@
 import typing as tp
 
 from pysmt import logics
-from pysmt.solvers.solver import Solver as SolverT
-from pysmt.exceptions import NoSolverAvailableError, NoLogicAvailableError
 from pysmt.environment import get_env
+from pysmt.exceptions import NoLogicAvailableError, NoSolverAvailableError
+from pysmt.solvers.solver import Solver as SolverT
 
 from .pysmt_solver import SWITCH_SOLVERS
 

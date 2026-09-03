@@ -1,32 +1,29 @@
-from collections import ChainMap
 import fractions
 import functools as ft
 import gc
 import itertools as it
 import operator
+from collections import ChainMap
 
-import smt_switch as ss
-
-
+from pysmt import typing as pysmt_types
+from pysmt.decorators import catch_conversion_error, clear_pending_pop
 from pysmt.exceptions import (
-    UndefinedLogicError,
-    SolverReturnedUnknownResultError,
     ConvertExpressionError,
     PysmtValueError,
+    SolverReturnedUnknownResultError,
+    UndefinedLogicError,
 )
+from pysmt.logics import SMTLIB2_LOGICS, get_logic
+from pysmt.solvers.eager import EagerModel
+from pysmt.solvers.smtlib import SmtLibBasicSolver, SmtLibIgnoreMixin
 from pysmt.solvers.solver import (
-    IncrementalTrackingSolver,
-    UnsatCoreSolver,
     Converter,
+    IncrementalTrackingSolver,
     SolverOptions,
 )
-from pysmt.solvers.smtlib import SmtLibBasicSolver, SmtLibIgnoreMixin
-from pysmt.solvers.eager import EagerModel
 from pysmt.walkers import DagWalker
-from pysmt.decorators import clear_pending_pop, catch_conversion_error
-from pysmt.logics import get_logic, SMTLIB2_LOGICS
-from pysmt import typing as pysmt_types
 
+import smt_switch as ss
 
 SWITCH_SOLVERS = {}
 
@@ -53,22 +50,22 @@ def _parse_real(s):
             if c.isdigit():
                 num.append(c)
                 continue
-            elif num:
+            if num:
                 tree.append(int("".join(num)))
                 num = []
 
             if c == ")":
                 break
-            elif c == " ":
+            if c == " ":
                 continue
-            elif c == "(":
+            if c == "(":
                 tree.append(_parse(it))
             elif c == "-":
                 tree.append(operator.neg)
             elif c == "/":
                 tree.append(fractions.Fraction)
             else:
-                raise ValueError()
+                raise ValueError
 
         if num:
             tree.append(int("".join(num)))
@@ -77,8 +74,7 @@ def _parse_real(s):
         if len(tree) == 1:
             assert isinstance(tree[0], (int, fractions.Fraction))
             return tree[0]
-        else:
-            return tree[0](*tree[1:])
+        return tree[0](*tree[1:])
 
     return _parse(iter(repr(s)))
 
@@ -150,10 +146,9 @@ class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMi
 
         if res.is_sat():
             return True
-        elif res.is_unsat():
+        if res.is_unsat():
             return False
-        else:
-            raise SolverReturnedUnknownResultError()
+        raise SolverReturnedUnknownResultError()
 
     @clear_pending_pop
     def _push(self, levels=1):
@@ -363,8 +358,7 @@ class SwitchConverter(Converter, DagWalker):
 
         if sort_i.is_function_type():
             return self.declared_funs.setdefault(formula, res)
-        else:
-            return self.declared_vars.setdefault(formula, res)
+        return self.declared_vars.setdefault(formula, res)
 
     @check_args(operator.eq, 0)
     def _walk_constant(self, formula, args, **kwargs):
@@ -587,21 +581,20 @@ class BackVisitor(ss.TermDagVisitor):
                     assert op.num_idx == 1
             primop = op.primop
             if primop not in self.convertion_table:
-                raise NotImplementedError()
+                raise NotImplementedError
             return self.convertion_table[primop](*new_children, *indices)
-        elif new_children:
+        if new_children:
             assert term.get_sort().get_sort_kind() is ss.sortkinds.ARRAY
             Kt = self._convert_sort(term.get_sort().get_indexsort())
             return self.mgr.Array(Kt, *new_children, {})
-        elif term.is_value():
+        if term.is_value():
             return self._convert_value(term)
-        elif term.is_symbolic_const():
+        if term.is_symbolic_const():
             sort = self._convert_sort(term.get_sort())
             return self.mgr.Symbol(str(term), sort)
-        else:
-            assert term.get_sort().get_sort_kind() is ss.sortkinds.FUNCTION
-            sort = self._convert_sort(term.get_sort())
-            return self.mgr.Symbol(str(term), sort)
+        assert term.get_sort().get_sort_kind() is ss.sortkinds.FUNCTION
+        sort = self._convert_sort(term.get_sort())
+        return self.mgr.Symbol(str(term), sort)
 
     def _convert_sort(self, sort):
         kind = sort.get_sort_kind()
@@ -609,19 +602,18 @@ class BackVisitor(ss.TermDagVisitor):
             Kt = self._convert_sort(sort.get_indexsort())
             Vt = self._convert_sort(sort.get_elemsort())
             return pysmt_types.ArrayType(Kt, Vt)
-        elif kind is ss.sortkinds.BOOL:
+        if kind is ss.sortkinds.BOOL:
             return pysmt_types.BOOL
-        elif kind is ss.sortkinds.BV:
+        if kind is ss.sortkinds.BV:
             return pysmt_types.BVType(sort.get_width())
-        elif kind is ss.sortkinds.FUNCTION:
+        if kind is ss.sortkinds.FUNCTION:
             domain = [self._convert_sort(s) for s in sort.get_domain_sorts()]
             codomain = self._convert_sort(sort.get_codomain())
             return pysmt_types.FunctionType(codomain, domain)
-        elif kind is ss.sortkinds.INT:
+        if kind is ss.sortkinds.INT:
             return pysmt_types.INT
-        else:
-            assert kind is ss.sortkinds.REAL
-            return pysmt_types.REAL
+        assert kind is ss.sortkinds.REAL
+        return pysmt_types.REAL
 
     def _convert_value(self, term, sort=None):
         # because smt-switch backends cannot be trusted to maintain
@@ -632,19 +624,18 @@ class BackVisitor(ss.TermDagVisitor):
         if sort.is_array_type():
             args = self._convert_array_value(term, sort)
             return self.mgr.Array(*args)
-        elif sort.is_bool_type():
+        if sort.is_bool_type():
             return self.mgr.Bool(bool(term))
-        elif sort.is_bv_type():
+        if sort.is_bv_type():
             return self.mgr.BV(int(term), sort.width)
-        elif sort.is_function_type():
-            raise NotImplementedError()
-        elif sort.is_int_type():
+        if sort.is_function_type():
+            raise NotImplementedError
+        if sort.is_int_type():
             return self.mgr.Int(int(term))
-        elif sort.is_real_type():
+        if sort.is_real_type():
             r = _parse_real(term)
             return self.mgr.Real(r)
-        else:
-            raise ConvertExpressionError(f"Unsupported sort: {sort}")
+        raise ConvertExpressionError(f"Unsupported sort: {sort}")
 
     def _convert_array_value(self, arr, sort):
         assignment = {}
@@ -667,14 +658,13 @@ class BackVisitor(ss.TermDagVisitor):
             return self.mgr.Array(sort.index_type, self._make_0(sort.elem_type))
         if sort.is_bool_type():
             return self.mgr.Bool(0)
-        elif sort.is_bv_type():
+        if sort.is_bv_type():
             return self.mgr.BV(0, sort.width)
-        elif sort.is_int_type():
+        if sort.is_int_type():
             return self.mgr.Int(0)
-        elif sort.is_real_type():
+        if sort.is_real_type():
             return self.mgr.Real(0)
-        else:
-            raise TypeError(f"Unsupported sort: {sort}")
+        raise TypeError(f"Unsupported sort: {sort}")
 
     def _convert_abs(self, child):
         assert child.get_type().is_int_type()

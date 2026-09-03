@@ -14,9 +14,11 @@
 #
 #
 
-import pytest
-import smt_switch as ss
 from typing import Set
+
+import pytest
+
+import smt_switch as ss
 
 
 def get_free_vars(t: ss.Term) -> Set[ss.Term]:
@@ -31,12 +33,11 @@ def get_free_vars(t: ss.Term) -> Set[ss.Term]:
 
         if t in visited:
             continue
-        else:
-            for tt in t:
-                to_visit.append(tt)
+        for tt in t:
+            to_visit.append(tt)
 
-            if t.is_symbolic_const():
-                free_vars.add(t)
+        if t.is_symbolic_const():
+            free_vars.add(t)
 
     return free_vars
 
@@ -49,7 +50,7 @@ def test_simple_itp(itp_name):
     try:
         itp = eval(f"ss.create_{itp_name}_interpolator()")
     except:
-        raise NotImplementedError("Haven't handled interpolator {}".format(itp_name))
+        raise NotImplementedError(f"Haven't handled interpolator {itp_name}")
 
     intsort = itp.make_sort(ss.sortkinds.INT)
     x = itp.make_symbol("x", intsort)

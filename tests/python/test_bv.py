@@ -15,8 +15,9 @@
 #
 
 import pytest
-import smt_switch as ss
+
 import available_solvers
+import smt_switch as ss
 
 
 # @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -177,4 +178,4 @@ def test_bv_ops(create_solver):
     constraint = solver.make_term(ss.primops.Distinct, one, t)
     solver.assert_formula(constraint)
     r = solver.check_sat()
-    assert r.is_unsat(), "{} and {} should be identical".format(one, t)
+    assert r.is_unsat(), f"{one} and {t} should be identical"

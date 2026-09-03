@@ -15,6 +15,7 @@
 #
 
 import pytest
+
 import smt_switch as ss
 
 

@@ -15,10 +15,10 @@
 #
 
 import pytest
-import smt_switch as ss
-from smt_switch.primops import Distinct, Equal, Select, Store
 
+import smt_switch as ss
 from available_solvers import int_support_solvers
+from smt_switch.primops import Distinct, Equal, Select, Store
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

@@ -39,9 +39,14 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:
-      # ruff-format only. ruff-check is intentionally not enabled yet: the lint
-      # rule selection and the resulting fixes are being worked out separately.
-      # See .ruff.toml.
+      # ruff-check comes before ruff-format, the order ruff recommends: --fix
+      # can leave code that the formatter then rewrites.
+      #
+      # The rule selection lives in .ruff.toml, which still carries a block of
+      # temporary ignores for the rules this tree violates. Those are being
+      # removed one at a time, so this hook stays green in the meantime.
+      - id: ruff-check
+        args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
