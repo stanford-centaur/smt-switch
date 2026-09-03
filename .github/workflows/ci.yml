@@ -24,14 +24,14 @@ jobs:
     runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     steps:
       - name: Check out project source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install packages
         run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
       - name: Compute hash from setup scripts for caching solver builds
         id: compute-solver-hash
         run: ./ci-scripts/compute-solver-hash.sh ${{ matrix.solver }}
       - name: Restore solver build from cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         id: cache
         with:
           path: deps
@@ -40,7 +40,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
       - name: Save solver build to cache
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
         with:
           path: deps
