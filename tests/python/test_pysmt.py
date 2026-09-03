@@ -1,10 +1,10 @@
 import pytest
-import smt_switch as ss
 
 pysmt = pytest.importorskip("pysmt")
+from pysmt import logics as sl
 from pysmt import shortcuts as sc
 from pysmt import typing as st
-from pysmt import logics as sl
+
 import smt_switch.pysmt_frontend as fe
 
 

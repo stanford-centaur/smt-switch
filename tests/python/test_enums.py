@@ -14,8 +14,8 @@
 #
 
 import pytest
-import smt_switch as ss
 
+import smt_switch as ss
 from available_solvers import int_support_solvers
 
 

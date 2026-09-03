@@ -15,8 +15,9 @@
 #
 
 import pytest
-import smt_switch as ss
+
 import available_solvers
+import smt_switch as ss
 
 
 @pytest.mark.parametrize(
@@ -35,7 +36,7 @@ def test_unit_op(create_solver):
     try:
         null_op_x = solver.make_term(null_op, x)
         assert False, "Should get a ValueError"
-    except ValueError as e:
+    except ValueError:
         pass
     except:
         assert False, "Should have gotten a ValueError"

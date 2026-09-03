@@ -1,8 +1,3 @@
-# Minimal configuration for `ruff format`. Lint rules are added in a follow-up.
-#
-# Formatter defaults are what we want, so they are left unset: 88-column line
-# length and double quotes.
-
 # Matches requires-python = ">=3.9" in python/pyproject.toml, and the
 # find_package(Python 3.9 ...) in CMakeLists.txt.
 target-version = "py39"
@@ -12,3 +7,81 @@ extend-exclude = ["build", "deps"]
 # pre-commit passes explicit file paths, which would otherwise override the
 # excludes above.
 force-exclude = true
+
+[lint]
+select = ["ALL"]
+
+ignore = [
+  # ---------------------------------------------------------------------------
+  # Permanent: deliberate project decisions.
+  # ---------------------------------------------------------------------------
+  "ANN",    # the codebase is unannotated; revisit if mypy is enabled
+  "COM812", # trailing commas are the formatter's job
+  "CPY001", # copyright headers are a C++-side convention here
+  "D",      # no docstring convention has been adopted
+  "E501",   # the formatter owns line width; long Cython templates cannot wrap
+  "EM",     # message literals inline in `raise` are fine
+  "FBT",    # the generated solver factories take a positional `logging` bool
+  "FIX",    # TODO and HACK comments are allowed
+  "ISC001", # conflicts with the formatter
+  "T20",    # print() is intentional in examples and a few tests
+  "TD002",  # ...without an author
+  "TD003",  # ...or an issue link
+  "TRY003", # see EM
+
+  # ---------------------------------------------------------------------------
+  # Temporary: rules that the existing code still violates, so that the tip of
+  # the branch stays green. Delete each entry once its violations are resolved,
+  # either by fixing the code or by moving the rule above / into
+  # per-file-ignores with a justification.
+  # ---------------------------------------------------------------------------
+  "ARG001",  # unused-function-argument
+  "ARG002",  # unused-method-argument
+  "B011",    # assert-false
+  "B904",    # raise-without-from-inside-except
+  "C408",    # unnecessary-collection-call
+  "C416",    # unnecessary-comprehension
+  "C901",    # complex-structure
+  "E402",    # module-import-not-at-top-of-file
+  "E722",    # bare-except
+  "E741",    # ambiguous-variable-name
+  "F401",    # unused-import
+  "F841",    # unused-variable
+  "FA100",   # future-rewritable-type-annotation
+  "N802",    # invalid-function-name
+  "N803",    # invalid-argument-name
+  "N806",    # non-lowercase-variable-in-function
+  "PERF203", # try-except-in-loop
+  "PERF401", # manual-list-comprehension
+  "PLC0415", # import-outside-top-level
+  "PLR1714", # repeated-equality-comparison
+  "PLR2004", # magic-value-comparison
+  "PT006",   # pytest-parametrize-names-wrong-type
+  "PT015",   # pytest-assert-always-false
+  "PTH123",  # builtin-open
+  "RET504",  # unnecessary-assign
+  "RSE102",  # unnecessary-paren-on-raise-exception
+  "RUF005",  # collection-literal-concatenation
+  "S101",    # assert, in pysmt_frontend; tests and examples are exempt below
+  "S110",    # try-except-pass
+  "S307",    # suspicious-eval-usage
+  "SIM108",  # if-else-block-instead-of-if-exp
+  "SIM117",  # multiple-with-statements
+  "SLF001",  # private-member-access
+  "UP006",   # non-pep585-annotation
+  "UP031",   # printf-string-formatting
+  "UP035",   # deprecated-import
+]
+
+[lint.per-file-ignores]
+# Neither directory is a package: pytest inserts its rootdir on sys.path, and
+# examples/ is meant to be read and run as standalone scripts. `assert` is also
+# how these pytest tests assert.
+"examples/*" = ["INP001", "S101"]
+"tests/python/*" = ["INP001", "S101"]
+
+# `smt_switch` is built by this repository, and `available_solvers` is a helper
+# module in tests/python. Neither lives at the project root, so ruff cannot
+# infer that they are first-party.
+[lint.isort]
+known-first-party = ["available_solvers", "smt_switch"]

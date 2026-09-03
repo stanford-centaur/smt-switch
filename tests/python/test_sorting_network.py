@@ -15,6 +15,7 @@
 #
 
 from itertools import product
+
 import pytest
 
 import smt_switch as ss

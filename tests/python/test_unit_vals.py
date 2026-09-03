@@ -15,9 +15,9 @@
 #
 
 import pytest
-import smt_switch as ss
-from smt_switch.primops import Distinct, Equal, Select, Store
+
 import available_solvers
+import smt_switch as ss
 
 termiter_and_int_keys = (
     available_solvers.termiter_support_solvers.keys()

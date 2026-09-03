@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import smt_switch as ss
-from smt_switch.primops import Apply, Distinct, Equal, Extract, BVAnd, BVUge
+from smt_switch.primops import Apply, BVAnd, BVUge, Distinct, Equal, Extract
 
 if __name__ == "__main__":
     s = ss.create_btor_solver(True)

@@ -13,8 +13,9 @@
 #
 
 import pytest
+
 import smt_switch as ss
-from smt_switch.primops import Ite, Equal, BVOr, BVUlt
+from smt_switch.primops import BVOr, BVUlt, Ite
 
 
 @pytest.mark.parametrize(
