@@ -8,7 +8,7 @@
 ** in the top-level source directory) and their institutional affiliations.
 ** All rights reserved.  See the file LICENSE in the top-level source
 ** directory for licensing information.\endverbatim
-** 
+**
 ** \brief
 ** Tests for strings in the cvc5 backend.
 **/

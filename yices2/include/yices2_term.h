@@ -88,4 +88,3 @@ class Yices2Term : public AbsTerm
 };
 
 }  // namespace smt
-

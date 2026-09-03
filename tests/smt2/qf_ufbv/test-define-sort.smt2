@@ -6,4 +6,3 @@
 (assert (= ((_ extract 31 31) y) #b0))
 (assert (bvult x y))
 (check-sat)
-

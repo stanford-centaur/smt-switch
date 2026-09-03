@@ -168,4 +168,3 @@ class BoolectorSolver : public AbsSmtSolver
   }
 };
 }  // namespace smt
-

@@ -57,4 +57,3 @@ class MsatSort : public AbsSort
 };
 
 }  // namespace smt
-

@@ -1,0 +1,19 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+name: Lint
+jobs:
+  prek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # prek is a drop-in replacement for pre-commit that reads the same
+      # .pre-commit-config.yaml. It runs
+      # `prek run --show-diff-on-failure --color=always --all-files` and caches
+      # the hook environments between runs, both by default.
+      #
+      # Pin to an exact version: as of v3 this action no longer publishes
+      # moving `v3`/`v3.0` tags.
+      - uses: j178/prek-action@v3.0.0

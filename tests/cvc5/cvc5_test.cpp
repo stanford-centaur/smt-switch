@@ -68,7 +68,7 @@ int main()
   for (auto c : tw)
   {
     cout << "\t" << c << endl;
-  }  
+  }
 
   return 0;
 }

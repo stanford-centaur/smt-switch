@@ -146,4 +146,3 @@ class BoolectorUFSort : public BoolectorSortBase
   friend class BoolectorSolver;
 };
 }  // namespace smt
-

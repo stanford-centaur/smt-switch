@@ -187,4 +187,3 @@ class Yices2Solver : public AbsSmtSolver
   bool timelimit_end();
 };
 }  // namespace smt
-
