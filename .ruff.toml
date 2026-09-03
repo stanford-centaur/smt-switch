@@ -37,40 +37,26 @@ ignore = [
   # ---------------------------------------------------------------------------
   "ARG001",  # unused-function-argument
   "ARG002",  # unused-method-argument
-  "B011",    # assert-false
   "B904",    # raise-without-from-inside-except
-  "C408",    # unnecessary-collection-call
-  "C416",    # unnecessary-comprehension
   "C901",    # complex-structure
   "E402",    # module-import-not-at-top-of-file
   "E722",    # bare-except
   "E741",    # ambiguous-variable-name
   "F401",    # unused-import
-  "F841",    # unused-variable
-  "FA100",   # future-rewritable-type-annotation
   "N802",    # invalid-function-name
   "N803",    # invalid-argument-name
   "N806",    # non-lowercase-variable-in-function
   "PERF203", # try-except-in-loop
   "PERF401", # manual-list-comprehension
   "PLC0415", # import-outside-top-level
-  "PLR1714", # repeated-equality-comparison
   "PLR2004", # magic-value-comparison
-  "PT006",   # pytest-parametrize-names-wrong-type
-  "PT015",   # pytest-assert-always-false
   "PTH123",  # builtin-open
-  "RET504",  # unnecessary-assign
-  "RSE102",  # unnecessary-paren-on-raise-exception
-  "RUF005",  # collection-literal-concatenation
   "S101",    # assert, in pysmt_frontend; tests and examples are exempt below
   "S110",    # try-except-pass
   "S307",    # suspicious-eval-usage
-  "SIM108",  # if-else-block-instead-of-if-exp
   "SIM117",  # multiple-with-statements
   "SLF001",  # private-member-access
-  "UP006",   # non-pep585-annotation
   "UP031",   # printf-string-formatting
-  "UP035",   # deprecated-import
 ]
 
 [lint.per-file-ignores]

@@ -26,7 +26,7 @@ termiter_and_int_keys = (
     available_solvers.termiter_support_solvers.keys()
     & available_solvers.int_support_solvers.keys()
 )
-termiter_and_int_solvers = [f for f in {ss.solvers[n] for n in termiter_and_int_keys}]
+termiter_and_int_solvers = list({ss.solvers[n] for n in termiter_and_int_keys})
 
 
 @pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
@@ -41,7 +41,7 @@ def test_reals_simple(create_solver):
 
     c1 = solver.make_term(2, realsort)
     c2 = solver.make_term("457/32", realsort)
-    c3 = solver.make_term("1.352968", realsort)
+    solver.make_term("1.352968", realsort)
     c4 = solver.make_term("457/64", realsort)
     print(c4)
 

@@ -164,7 +164,7 @@ def test_complex_expr(create_solver):
 
     t8_sub = solver.substitute(t8, {x: x, y: y, a: a, b: b, c: c, d: d})
     # should be identical
-    assert t8 == t8_sub, "Expecting identical terms but got:\n\t%s\n\t%s" % (t8, t8_sub)
+    assert t8 == t8_sub, f"Expecting identical terms but got:\n\t{t8}\n\t{t8_sub}"
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

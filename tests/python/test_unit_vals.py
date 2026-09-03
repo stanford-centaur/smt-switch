@@ -23,7 +23,7 @@ termiter_and_int_keys = (
     available_solvers.termiter_support_solvers.keys()
     & available_solvers.int_support_solvers.keys()
 )
-termiter_and_int_solvers = [f for f in {ss.solvers[n] for n in termiter_and_int_keys}]
+termiter_and_int_solvers = list({ss.solvers[n] for n in termiter_and_int_keys})
 
 
 @pytest.mark.parametrize("create_solver", termiter_and_int_solvers)

@@ -148,7 +148,7 @@ class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMi
             return True
         if res.is_unsat():
             return False
-        raise SolverReturnedUnknownResultError()
+        raise SolverReturnedUnknownResultError
 
     @clear_pending_pop
     def _push(self, levels=1):
@@ -178,12 +178,12 @@ def _build_logics(logics_params):
 
 
 if "btor" in ss.solvers:
-    logics_params = dict(
-        quantifier_free=[True],
-        arrays=[True, False],
-        bit_vectors=[True, False],
-        uninterpreted=[True, False],
-    )
+    logics_params = {
+        "quantifier_free": [True],
+        "arrays": [True, False],
+        "bit_vectors": [True, False],
+        "uninterpreted": [True, False],
+    }
 
     class SwitchBtor(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
@@ -199,13 +199,13 @@ if "btor" in ss.solvers:
 
 
 if "bitwuzla" in ss.solvers:
-    logics_params = dict(
-        quantifier_free=[True],
-        arrays=[True, False],
-        bit_vectors=[True],
-        uninterpreted=[True, False],
-        floating_point=[True, False],
-    )
+    logics_params = {
+        "quantifier_free": [True],
+        "arrays": [True, False],
+        "bit_vectors": [True],
+        "uninterpreted": [True, False],
+        "floating_point": [True, False],
+    }
 
     class SwitchBitwuzla(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
@@ -215,17 +215,17 @@ if "bitwuzla" in ss.solvers:
 
 
 if "msat" in ss.solvers:
-    logics_params = dict(
-        quantifier_free=[True],
-        arrays=[True, False],
-        bit_vectors=[True, False],
-        uninterpreted=[True, False],
-        integer_arithmetic=[True, False],
-        integer_difference=[True, False],
-        real_arithmetic=[True, False],
-        real_difference=[True, False],
-        linear=[True],
-    )
+    logics_params = {
+        "quantifier_free": [True],
+        "arrays": [True, False],
+        "bit_vectors": [True, False],
+        "uninterpreted": [True, False],
+        "integer_arithmetic": [True, False],
+        "integer_difference": [True, False],
+        "real_arithmetic": [True, False],
+        "real_difference": [True, False],
+        "linear": [True],
+    }
 
     class SwitchMsat(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
@@ -234,17 +234,17 @@ if "msat" in ss.solvers:
     SWITCH_SOLVERS["msat"] = SwitchMsat
 
 if "cvc5" in ss.solvers:
-    logics_params = dict(
-        quantifier_free=[True],
-        arrays=[True, False],
-        bit_vectors=[True, False],
-        uninterpreted=[True, False],
-        integer_arithmetic=[True, False],
-        integer_difference=[True, False],
-        real_arithmetic=[True, False],
-        real_difference=[True, False],
-        linear=[True],
-    )
+    logics_params = {
+        "quantifier_free": [True],
+        "arrays": [True, False],
+        "bit_vectors": [True, False],
+        "uninterpreted": [True, False],
+        "integer_arithmetic": [True, False],
+        "integer_difference": [True, False],
+        "real_arithmetic": [True, False],
+        "real_difference": [True, False],
+        "linear": [True],
+    }
 
     class SwitchCvc5(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
@@ -275,8 +275,7 @@ def check_args(cmp, n):
 def make_walk_nary(n, primop):
     @check_args(operator.eq, n)
     def walk_op(self, formula, args, **kwargs):
-        res = self.make_term(primop, *args)
-        return res
+        return self.make_term(primop, *args)
 
     return walk_op
 
@@ -289,8 +288,7 @@ def make_walk_variadic(n, primop):
     @check_args(operator.ge, n)
     def walk_op(self, formula, args, **kwargs):
         builder = ft.partial(self.make_term, primop)
-        res = ft.reduce(builder, args)
-        return res
+        return ft.reduce(builder, args)
 
     return walk_op
 
@@ -390,8 +388,7 @@ class SwitchConverter(Converter, DagWalker):
     def walk_function(self, formula, args, **kwargs):
         name = formula.function_name()
         f = self.walk_symbol(name, name.args())
-        res = self.make_term(ss.primops.Apply, [f, *args])
-        return res
+        return self.make_term(ss.primops.Apply, [f, *args])
 
     # Int / real operatos
     walk_lt = make_walk_binary(ss.primops.Lt)
@@ -418,7 +415,7 @@ class SwitchConverter(Converter, DagWalker):
 
     @check_args(operator.eq, 1)
     def walk_bv_extract(self, formula, args, **kwargs):
-        res = self.make_term(
+        return self.make_term(
             ss.Op(
                 ss.primops.Extract,
                 formula.bv_extract_end(),
@@ -426,7 +423,6 @@ class SwitchConverter(Converter, DagWalker):
             ),
             *args,
         )
-        return res
 
     walk_bv_lshl = make_walk_binary(ss.primops.BVShl)
     walk_bv_lshr = make_walk_binary(ss.primops.BVLshr)
@@ -437,26 +433,23 @@ class SwitchConverter(Converter, DagWalker):
 
     @check_args(operator.eq, 1)
     def walk_bv_rol(self, formula, args, **kwargs):
-        res = self.make_term(
+        return self.make_term(
             ss.Op(ss.primops.Rotate_Left, formula.bv_rotation_step()), *args
         )
-        return res
 
     @check_args(operator.eq, 1)
     def walk_bv_ror(self, formula, args, **kwargs):
-        res = self.make_term(
+        return self.make_term(
             ss.Op(ss.primops.Rotate_Right, formula.bv_rotation_step()), *args
         )
-        return res
 
     walk_bv_sdiv = make_walk_binary(ss.primops.BVSdiv)
 
     @check_args(operator.eq, 1)
     def walk_bv_sext(self, formula, args, **kwargs):
-        res = self.make_term(
+        return self.make_term(
             ss.Op(ss.primops.Sign_Extend, formula.bv_extend_step()), *args
         )
-        return res
 
     walk_bv_sle = make_walk_binary(ss.primops.BVSle)
     walk_bv_slt = make_walk_binary(ss.primops.BVSlt)
@@ -473,10 +466,9 @@ class SwitchConverter(Converter, DagWalker):
 
     @check_args(operator.eq, 1)
     def walk_bv_zext(self, formula, args, **kwargs):
-        res = self.make_term(
+        return self.make_term(
             ss.Op(ss.primops.Zero_Extend, formula.bv_extend_step()), *args
         )
-        return res
 
     # array operators
     walk_array_select = make_walk_binary(ss.primops.Select)
@@ -640,12 +632,12 @@ class BackVisitor(ss.TermDagVisitor):
     def _convert_array_value(self, arr, sort):
         assignment = {}
         while arr.get_op():
-            arr, idx, elem = [x for x in arr]
+            arr, idx, elem = list(arr)
             idx = self._convert_value(idx, sort.index_type)
             val = self._convert_value(elem, sort.elem_type)
             assignment[idx] = val
 
-        children = [x for x in arr]
+        children = list(arr)
         if not children:
             default = self._make_0(sort.elem_type)
         else:
@@ -677,10 +669,7 @@ class BackVisitor(ss.TermDagVisitor):
     def _convert_negate(self, child):
         T = child.get_type()
         assert T.is_int_type() or T.is_real_type()
-        if T.is_int_type():
-            z = self.mgr.Int(0)
-        else:
-            z = self.mgr.Real(0)
+        z = self.mgr.Int(0) if T.is_int_type() else self.mgr.Real(0)
         return self.mgr.Minus(z, child)
 
     def _convert_extract(self, child, end, start):

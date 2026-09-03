@@ -34,12 +34,12 @@ def test_unit_op(create_solver):
     assert not null_op, "null op should return false for bool"
     assert ext, "non-null op should return true for bool"
     try:
-        null_op_x = solver.make_term(null_op, x)
-        assert False, "Should get a ValueError"
+        solver.make_term(null_op, x)
+        raise AssertionError("Should get a ValueError")
     except ValueError:
         pass
     except:
-        assert False, "Should have gotten a ValueError"
+        raise AssertionError("Should have gotten a ValueError")
 
     ext_x = solver.make_term(ext, x)
     assert ext == ext_x.get_op(), "Extraction ops should match"
@@ -70,9 +70,6 @@ def test_sort(create_solver):
 )
 def test_unit_iter(create_solver):
     solver = create_solver(False)
-
-    null_op = ss.Op()
-    ext = ss.Op(ss.primops.Extract, 2, 0)
 
     bvsort = solver.make_sort(ss.sortkinds.BV, 4)
     x = solver.make_symbol("x", bvsort)
@@ -112,8 +109,8 @@ def test_bool(create_solver):
     assert not bool(yv)
 
     try:
-        val = bool(x)
-        assert False, "Shouldn't be able to call bool on non-value"
+        bool(x)
+        raise AssertionError("Shouldn't be able to call bool on non-value")
     except:
         pass
 
@@ -134,7 +131,7 @@ def test_check_sat_assuming(create_solver):
 
     try:
         solver.check_sat_assuming([xeq0])
-        assert False, (
+        raise AssertionError(
             "Expecting a thrown exception for check_sat_assuming with a formula"
         )
     except:
@@ -159,10 +156,10 @@ def test_multi_arg_fun(create_solver):
         vs2.append(solver.make_symbol("y%i" % i, bvsort))
 
     f = solver.make_symbol("f", funsort)
-    res = solver.make_term(ss.primops.Apply, [f] + vs)
+    res = solver.make_term(ss.primops.Apply, [f, *vs])
     assert res == solver.make_term(ss.primops.Apply, f, *vs)
 
     res2 = solver.make_term(ss.primops.Apply, f, *vs2)
     assert res != res2
-    args = [f] + vs2
+    args = [f, *vs2]
     assert res2 == solver.make_term(ss.primops.Apply, args)

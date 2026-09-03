@@ -14,14 +14,12 @@
 #
 #
 
-from typing import Set
-
 import pytest
 
 import smt_switch as ss
 
 
-def get_free_vars(t: ss.Term) -> Set[ss.Term]:
+def get_free_vars(t: ss.Term) -> set[ss.Term]:
     to_visit = [t]
     visited = set()
 
