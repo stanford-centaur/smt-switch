@@ -22,30 +22,45 @@ from smt_switch.primops import Equal, Ge, Lt, Minus, Mult, Plus
 import available_solvers
 from available_solvers import int_support_solvers
 
-termiter_and_int_keys = available_solvers.termiter_support_solvers.keys() & available_solvers.int_support_solvers.keys()
+termiter_and_int_keys = (
+    available_solvers.termiter_support_solvers.keys()
+    & available_solvers.int_support_solvers.keys()
+)
 termiter_and_int_solvers = [f for f in {ss.solvers[n] for n in termiter_and_int_keys}]
+
 
 @pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
 def test_reals_simple(create_solver):
     solver = create_solver(False)
-    solver.set_logic('QF_LRA')
+    solver.set_logic("QF_LRA")
 
     realsort = solver.make_sort(REAL)
 
-    x = solver.make_symbol('x', realsort)
-    y = solver.make_symbol('y', realsort)
+    x = solver.make_symbol("x", realsort)
+    y = solver.make_symbol("y", realsort)
 
     c1 = solver.make_term(2, realsort)
-    c2 = solver.make_term('457/32', realsort)
-    c3 = solver.make_term('1.352968', realsort)
-    c4 = solver.make_term('457/64', realsort)
+    c2 = solver.make_term("457/32", realsort)
+    c3 = solver.make_term("1.352968", realsort)
+    c4 = solver.make_term("457/64", realsort)
     print(c4)
 
-    solver.assert_formula(solver.make_term(Ge, solver.make_term(Minus,
-                                                                solver.make_term(Mult, c1, x),
-                                                                solver.make_term(Mult, c2, y)), c1))
-    solver.assert_formula(solver.make_term(Lt, solver.make_term(Minus, x, solver.make_term(1, realsort)),
-                                           solver.make_term(Mult, c4, y)))
+    solver.assert_formula(
+        solver.make_term(
+            Ge,
+            solver.make_term(
+                Minus, solver.make_term(Mult, c1, x), solver.make_term(Mult, c2, y)
+            ),
+            c1,
+        )
+    )
+    solver.assert_formula(
+        solver.make_term(
+            Lt,
+            solver.make_term(Minus, x, solver.make_term(1, realsort)),
+            solver.make_term(Mult, c4, y),
+        )
+    )
     r = solver.check_sat()
     assert r.is_unsat()
 
@@ -53,29 +68,31 @@ def test_reals_simple(create_solver):
 @pytest.mark.parametrize("create_solver", [f for n, f in int_support_solvers.items()])
 def test_reals_subs_check(create_solver):
     solver = create_solver(False)
-    solver.set_logic('QF_LRA')
-    solver.set_opt('produce-models', 'true')
-    solver.set_opt('incremental', 'true')
+    solver.set_logic("QF_LRA")
+    solver.set_opt("produce-models", "true")
+    solver.set_opt("incremental", "true")
 
     realsort = solver.make_sort(REAL)
 
-    x = solver.make_symbol('x', realsort)
-    y = solver.make_symbol('y', realsort)
-    z = solver.make_symbol('z', realsort)
+    x = solver.make_symbol("x", realsort)
+    y = solver.make_symbol("y", realsort)
+    z = solver.make_symbol("z", realsort)
 
     three = solver.make_term(3, realsort)
-    ten   = solver.make_term(10, realsort)
-    c     = solver.make_term("1237/5", realsort)
+    ten = solver.make_term(10, realsort)
+    c = solver.make_term("1237/5", realsort)
 
-    constraint1 = solver.make_term(Lt, solver.make_term(Plus,
-                                                        solver.make_term(Mult, three, x),
-                                                        solver.make_term(Mult, c, y)),
-                                   ten)
+    constraint1 = solver.make_term(
+        Lt,
+        solver.make_term(
+            Plus, solver.make_term(Mult, three, x), solver.make_term(Mult, c, y)
+        ),
+        ten,
+    )
 
-    constraint2 = solver.make_term(Ge, solver.make_term(Minus,
-                                                        y,
-                                                        solver.make_term(Mult, c, z)),
-                                   three)
+    constraint2 = solver.make_term(
+        Ge, solver.make_term(Minus, y, solver.make_term(Mult, c, z)), three
+    )
 
     solver.push()
 
@@ -90,7 +107,7 @@ def test_reals_subs_check(create_solver):
 
     solver.pop()
 
-    substitution_map = {x:xv, y:yv, z:zv}
+    substitution_map = {x: xv, y: yv, z: zv}
     c1sub = solver.substitute(constraint1, substitution_map)
     c2sub = solver.substitute(constraint2, substitution_map)
 

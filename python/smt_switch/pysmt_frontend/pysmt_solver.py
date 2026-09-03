@@ -8,10 +8,18 @@ import operator
 import smt_switch as ss
 
 
-from pysmt.exceptions import (UndefinedLogicError,
-        SolverReturnedUnknownResultError, ConvertExpressionError, PysmtValueError)
-from pysmt.solvers.solver import (IncrementalTrackingSolver, UnsatCoreSolver,
-                                  Converter, SolverOptions)
+from pysmt.exceptions import (
+    UndefinedLogicError,
+    SolverReturnedUnknownResultError,
+    ConvertExpressionError,
+    PysmtValueError,
+)
+from pysmt.solvers.solver import (
+    IncrementalTrackingSolver,
+    UnsatCoreSolver,
+    Converter,
+    SolverOptions,
+)
 from pysmt.solvers.smtlib import SmtLibBasicSolver, SmtLibIgnoreMixin
 from pysmt.solvers.eager import EagerModel
 from pysmt.walkers import DagWalker
@@ -22,12 +30,13 @@ from pysmt import typing as pysmt_types
 
 SWITCH_SOLVERS = {}
 
+
 class SwitchOptions(SolverOptions):
     def __call__(self, solver):
         if self.generate_models:
-            solver.solver.set_opt('produce-models', 'true')
+            solver.solver.set_opt("produce-models", "true")
         if self.incremental:
-            solver.solver.set_opt('incremental', 'true')
+            solver.solver.set_opt("incremental", "true")
 
         for k, v in self.solver_options.items():
             try:
@@ -45,24 +54,24 @@ def _parse_real(s):
                 num.append(c)
                 continue
             elif num:
-                tree.append(int(''.join(num)))
+                tree.append(int("".join(num)))
                 num = []
 
-            if c == ')':
+            if c == ")":
                 break
-            elif c == ' ':
+            elif c == " ":
                 continue
-            elif c == '(':
+            elif c == "(":
                 tree.append(_parse(it))
-            elif c == '-':
+            elif c == "-":
                 tree.append(operator.neg)
-            elif c == '/':
+            elif c == "/":
                 tree.append(fractions.Fraction)
             else:
                 raise ValueError()
 
         if num:
-            tree.append(int(''.join(num)))
+            tree.append(int("".join(num)))
 
         assert tree
         if len(tree) == 1:
@@ -74,21 +83,18 @@ def _parse_real(s):
     return _parse(iter(repr(s)))
 
 
-class _SwitchSolver(IncrementalTrackingSolver,
-                   SmtLibBasicSolver,
-                   SmtLibIgnoreMixin):
+class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMixin):
     OptionsClass = SwitchOptions
 
     def __init__(self, environment, logic, **options):
-        IncrementalTrackingSolver.__init__(self,
-                        environment=environment,
-                        logic=logic,
-                        **options)
+        IncrementalTrackingSolver.__init__(
+            self, environment=environment, logic=logic, **options
+        )
 
         self.solver = self._create_solver()
         self.options(self)
         self.mgr = environment.formula_manager
-        self.converter = SwitchConverter(environment,  self.solver, self.mgr)
+        self.converter = SwitchConverter(environment, self.solver, self.mgr)
 
     def get_model(self):
         assignment = {}
@@ -176,14 +182,13 @@ def _build_logics(logics_params):
     return logics
 
 
-if 'btor' in  ss.solvers:
+if "btor" in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
         arrays=[True, False],
         bit_vectors=[True, False],
         uninterpreted=[True, False],
     )
-
 
     class SwitchBtor(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
@@ -192,14 +197,13 @@ if 'btor' in  ss.solvers:
         @clear_pending_pop
         def _reset_assertions(self):
             self.solver = self._create_solver()
-            self.converter = SwitchConverter(self.environment,  self.solver, self.mgr)
+            self.converter = SwitchConverter(self.environment, self.solver, self.mgr)
             self.options(self)
 
+    SWITCH_SOLVERS["btor"] = SwitchBtor
 
-    SWITCH_SOLVERS['btor'] = SwitchBtor
 
-
-if 'bitwuzla' in  ss.solvers:
+if "bitwuzla" in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
         arrays=[True, False],
@@ -212,10 +216,10 @@ if 'bitwuzla' in  ss.solvers:
         LOGICS = _build_logics(logics_params)
         _create_solver = staticmethod(ft.partial(ss.create_bitwuzla_solver, False))
 
-    SWITCH_SOLVERS['bitwuzla'] = SwitchBitwuzla
+    SWITCH_SOLVERS["bitwuzla"] = SwitchBitwuzla
 
 
-if 'msat' in ss.solvers:
+if "msat" in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
         arrays=[True, False],
@@ -232,9 +236,9 @@ if 'msat' in ss.solvers:
         LOGICS = _build_logics(logics_params)
         _create_solver = staticmethod(ft.partial(ss.create_msat_solver, False))
 
-    SWITCH_SOLVERS['msat'] = SwitchMsat
+    SWITCH_SOLVERS["msat"] = SwitchMsat
 
-if 'cvc5' in ss.solvers:
+if "cvc5" in ss.solvers:
     logics_params = dict(
         quantifier_free=[True],
         arrays=[True, False],
@@ -257,7 +261,7 @@ if 'cvc5' in ss.solvers:
             # to avoid heisenbug
             gc.collect()
 
-    SWITCH_SOLVERS['cvc5'] = SwitchCvc5
+    SWITCH_SOLVERS["cvc5"] = SwitchCvc5
 
 
 def check_args(cmp, n):
@@ -265,9 +269,11 @@ def check_args(cmp, n):
         @ft.wraps(f)
         def walk_op(self, formula, args, **kwargs):
             if not cmp(len(args), n):
-                raise ConvertExpressionError('Incorrect number of arguments')
+                raise ConvertExpressionError("Incorrect number of arguments")
             return f(self, formula, args, **kwargs)
+
         return walk_op
+
     return wrapper
 
 
@@ -276,6 +282,7 @@ def make_walk_nary(n, primop):
     def walk_op(self, formula, args, **kwargs):
         res = self.make_term(primop, *args)
         return res
+
     return walk_op
 
 
@@ -289,6 +296,7 @@ def make_walk_variadic(n, primop):
         builder = ft.partial(self.make_term, primop)
         res = ft.reduce(builder, args)
         return res
+
     return walk_op
 
 
@@ -337,10 +345,9 @@ class SwitchConverter(Converter, DagWalker):
         elif sort.is_real_type():
             c_sort = self.make_sort(ss.sortkinds.REAL)
         else:
-            raise ConvertExpressionError(f'Unsupported sort: {sort}')
+            raise ConvertExpressionError(f"Unsupported sort: {sort}")
 
         return self.declared_sorts.setdefault(sort, c_sort)
-
 
     # Declarations
     @check_args(operator.eq, 0)
@@ -366,7 +373,7 @@ class SwitchConverter(Converter, DagWalker):
             res = self.make_term(bool(formula.constant_value()))
         elif formula.constant_type().is_real_type():
             val = formula.constant_value()
-            res = self.make_term(f'{val.numerator}/{val.denominator}', sort)
+            res = self.make_term(f"{val.numerator}/{val.denominator}", sort)
         else:
             res = self.make_term(str(formula.constant_value()), sort)
         return res
@@ -423,7 +430,7 @@ class SwitchConverter(Converter, DagWalker):
                 formula.bv_extract_end(),
                 formula.bv_extract_start(),
             ),
-            *args
+            *args,
         )
         return res
 
@@ -437,16 +444,14 @@ class SwitchConverter(Converter, DagWalker):
     @check_args(operator.eq, 1)
     def walk_bv_rol(self, formula, args, **kwargs):
         res = self.make_term(
-            ss.Op(ss.primops.Rotate_Left, formula.bv_rotation_step()),
-            *args
+            ss.Op(ss.primops.Rotate_Left, formula.bv_rotation_step()), *args
         )
         return res
 
     @check_args(operator.eq, 1)
     def walk_bv_ror(self, formula, args, **kwargs):
         res = self.make_term(
-            ss.Op(ss.primops.Rotate_Right, formula.bv_rotation_step()),
-            *args
+            ss.Op(ss.primops.Rotate_Right, formula.bv_rotation_step()), *args
         )
         return res
 
@@ -455,8 +460,7 @@ class SwitchConverter(Converter, DagWalker):
     @check_args(operator.eq, 1)
     def walk_bv_sext(self, formula, args, **kwargs):
         res = self.make_term(
-            ss.Op(ss.primops.Sign_Extend, formula.bv_extend_step()),
-            *args
+            ss.Op(ss.primops.Sign_Extend, formula.bv_extend_step()), *args
         )
         return res
 
@@ -476,24 +480,25 @@ class SwitchConverter(Converter, DagWalker):
     @check_args(operator.eq, 1)
     def walk_bv_zext(self, formula, args, **kwargs):
         res = self.make_term(
-            ss.Op(ss.primops.Zero_Extend, formula.bv_extend_step()),
-            *args
+            ss.Op(ss.primops.Zero_Extend, formula.bv_extend_step()), *args
         )
         return res
 
-    #array operators
+    # array operators
     walk_array_select = make_walk_binary(ss.primops.Select)
     walk_array_store = make_walk_nary(3, ss.primops.Store)
 
 
-_INDEXED_OPERATORS = frozenset((
-    ss.primops.Extract,
-    ss.primops.Repeat,
-    ss.primops.Rotate_Left,
-    ss.primops.Rotate_Right,
-    ss.primops.Sign_Extend,
-    ss.primops.Zero_Extend,
-))
+_INDEXED_OPERATORS = frozenset(
+    (
+        ss.primops.Extract,
+        ss.primops.Repeat,
+        ss.primops.Rotate_Left,
+        ss.primops.Rotate_Right,
+        ss.primops.Sign_Extend,
+        ss.primops.Zero_Extend,
+    )
+)
 
 
 class BackVisitor(ss.TermDagVisitor):
@@ -538,19 +543,19 @@ class BackVisitor(ss.TermDagVisitor):
             ss.primops.Distinct: mgr.AllDifferent,
             ss.primops.Div: mgr.Div,
             ss.primops.Equal: mgr.EqualsOrIff,
-            #ss.primops.Exists:
+            # ss.primops.Exists:
             ss.primops.Extract: self._convert_extract,
-            #ss.primops.Forall:
+            # ss.primops.Forall:
             ss.primops.Ge: mgr.GE,
             ss.primops.Gt: mgr.GT,
             ss.primops.Implies: mgr.Implies,
-            #ss.primops.Int_To_BV: NOT SUPPORTED BY PYSMT
-            #ss.primops.Is_Int: NOT SUPPORTED BY PYSMT
+            # ss.primops.Int_To_BV: NOT SUPPORTED BY PYSMT
+            # ss.primops.Is_Int: NOT SUPPORTED BY PYSMT
             ss.primops.Ite: mgr.Ite,
             ss.primops.Le: mgr.LE,
             ss.primops.Lt: mgr.LT,
             ss.primops.Minus: mgr.Minus,
-            #ss.primops.Mod: NOT SUPPORTED BY PYSMT
+            # ss.primops.Mod: NOT SUPPORTED BY PYSMT
             ss.primops.Mult: mgr.Times,
             ss.primops.Negate: self._convert_negate,
             ss.primops.Not: mgr.Not,
@@ -563,7 +568,7 @@ class BackVisitor(ss.TermDagVisitor):
             ss.primops.Select: mgr.Select,
             ss.primops.Sign_Extend: mgr.BVSExt,
             ss.primops.Store: mgr.Store,
-            #ss.primops.To_Int: NOT SUPPORTED BY PYSMT
+            # ss.primops.To_Int: NOT SUPPORTED BY PYSMT
             ss.primops.To_Real: mgr.ToReal,
             ss.primops.Xor: mgr.Xor,
             ss.primops.Zero_Extend: mgr.BVZExt,
@@ -639,7 +644,7 @@ class BackVisitor(ss.TermDagVisitor):
             r = _parse_real(term)
             return self.mgr.Real(r)
         else:
-            raise ConvertExpressionError(f'Unsupported sort: {sort}')
+            raise ConvertExpressionError(f"Unsupported sort: {sort}")
 
     def _convert_array_value(self, arr, sort):
         assignment = {}
@@ -669,7 +674,7 @@ class BackVisitor(ss.TermDagVisitor):
         elif sort.is_real_type():
             return self.mgr.Real(0)
         else:
-            raise TypeError(f'Unsupported sort: {sort}')
+            raise TypeError(f"Unsupported sort: {sort}")
 
     def _convert_abs(self, child):
         assert child.get_type().is_int_type()

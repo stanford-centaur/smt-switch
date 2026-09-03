@@ -7,13 +7,17 @@ from pysmt import typing as st
 from pysmt import logics as sl
 import smt_switch.pysmt_frontend as fe
 
-@pytest.mark.parametrize('solver_str', fe.SWITCH_SOLVERS.keys())
-@pytest.mark.parametrize(('T', 'logic'), [
-    (st.BV8, sl.QF_BV),
-    (st.INT, sl.QF_LIA),
-    (st.REAL, sl.QF_LRA),
-    ])
-@pytest.mark.parametrize('implicit', [True, False])
+
+@pytest.mark.parametrize("solver_str", fe.SWITCH_SOLVERS.keys())
+@pytest.mark.parametrize(
+    ("T", "logic"),
+    [
+        (st.BV8, sl.QF_BV),
+        (st.INT, sl.QF_LIA),
+        (st.REAL, sl.QF_LRA),
+    ],
+)
+@pytest.mark.parametrize("implicit", [True, False])
 def test_basic(solver_str, T, logic, implicit):
     x = sc.FreshSymbol(T)
     problem = sc.And(x < 2, x > 0)
@@ -22,7 +26,6 @@ def test_basic(solver_str, T, logic, implicit):
         args = ()
     else:
         args = (logic,)
-
 
     if logic not in fe.SWITCH_SOLVERS[solver_str].LOGICS:
         with pytest.raises(RuntimeError):
