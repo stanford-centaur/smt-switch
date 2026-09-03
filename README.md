@@ -136,7 +136,8 @@ solver = pysmt_frontend.Solver("cvc5")
 solver = pysmt_frontend.Solver("cvc5", LOGIC)
 
 # Note a solver can be used as a context manager:
-with pysmt_frontend.Solver("cvc5") as solver: ...
+with pysmt_frontend.Solver("cvc5") as solver:
+    ...
 ```
 
 Please refer to the pySMT docs for further information.

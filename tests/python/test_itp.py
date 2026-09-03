@@ -19,7 +19,7 @@ import smt_switch as ss
 from typing import Set
 
 
-def get_free_vars(t:ss.Term)->Set[ss.Term]:
+def get_free_vars(t: ss.Term) -> Set[ss.Term]:
     to_visit = [t]
     visited = set()
 
@@ -40,44 +40,34 @@ def get_free_vars(t:ss.Term)->Set[ss.Term]:
 
     return free_vars
 
+
 # Note: Msat is only interpolant producing solver currently
-@pytest.mark.parametrize("itp_name", [name for name in ss.solvers if name in {'msat', 'cvc5'}])
+@pytest.mark.parametrize(
+    "itp_name", [name for name in ss.solvers if name in {"msat", "cvc5"}]
+)
 def test_simple_itp(itp_name):
     try:
-        itp = eval(f'ss.create_{itp_name}_interpolator()')
+        itp = eval(f"ss.create_{itp_name}_interpolator()")
     except:
         raise NotImplementedError("Haven't handled interpolator {}".format(itp_name))
 
     intsort = itp.make_sort(ss.sortkinds.INT)
-    x = itp.make_symbol('x', intsort)
-    y = itp.make_symbol('y', intsort)
-    z = itp.make_symbol('z', intsort)
-    w = itp.make_symbol('w', intsort)
+    x = itp.make_symbol("x", intsort)
+    y = itp.make_symbol("y", intsort)
+    z = itp.make_symbol("z", intsort)
+    w = itp.make_symbol("w", intsort)
 
     # x < y
-    A = itp.make_term(ss.primops.Lt,
-                         x,
-                         y)
+    A = itp.make_term(ss.primops.Lt, x, y)
 
     # y < w
-    A = itp.make_term(ss.primops.And,
-                         A,
-                         itp.make_term(ss.primops.Lt,
-                                           y,
-                                           w))
-
+    A = itp.make_term(ss.primops.And, A, itp.make_term(ss.primops.Lt, y, w))
 
     # z > w
-    B = itp.make_term(ss.primops.Gt,
-                         z,
-                         w)
+    B = itp.make_term(ss.primops.Gt, z, w)
 
     # z < x
-    B = itp.make_term(ss.primops.And,
-                         B,
-                         itp.make_term(ss.primops.Lt,
-                                           z,
-                                           x))
+    B = itp.make_term(ss.primops.And, B, itp.make_term(ss.primops.Lt, z, x))
 
     I = itp.get_interpolant(A, B)
     assert I is not None

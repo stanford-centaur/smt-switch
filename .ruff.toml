@@ -1,0 +1,14 @@
+# Minimal configuration for `ruff format`. Lint rules are added in a follow-up.
+#
+# Formatter defaults are what we want, so they are left unset: 88-column line
+# length and double quotes.
+
+# Matches requires-python = ">=3.9" in python/pyproject.toml, and the
+# find_package(Python 3.9 ...) in CMakeLists.txt.
+target-version = "py39"
+
+extend-exclude = ["build", "deps"]
+
+# pre-commit passes explicit file paths, which would otherwise override the
+# excludes above.
+force-exclude = true

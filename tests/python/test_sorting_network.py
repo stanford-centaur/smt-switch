@@ -19,30 +19,34 @@ import pytest
 
 import smt_switch as ss
 
-@pytest.mark.parametrize("create_solver,num_vars",
-                         product(ss.solvers.values(), [3, 6, 8]))
+
+@pytest.mark.parametrize(
+    "create_solver,num_vars", product(ss.solvers.values(), [3, 6, 8])
+)
 def test_sorting_network(create_solver, num_vars):
     solver = create_solver(False)
-    solver.set_opt('produce-models', 'true')
-    solver.set_opt('incremental', 'true')
+    solver.set_opt("produce-models", "true")
+    solver.set_opt("incremental", "true")
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
     boollist = []
     for i in range(num_vars):
-        boollist.append(solver.make_symbol('b' + str(i), boolsort))
+        boollist.append(solver.make_symbol("b" + str(i), boolsort))
 
     sn = ss.SortingNetwork(solver)
     sortedlist = sn.sorting_network(boollist)
 
     # Test each possible return value
-    for num_true in range(num_vars+1):
+    for num_true in range(num_vars + 1):
         solver.push()
         if num_true:
             # ensure there are at least num_true set to true
-            solver.assert_formula(sortedlist[num_true-1])
+            solver.assert_formula(sortedlist[num_true - 1])
         if num_true < num_vars:
             # ensure there aren't more than num_true set to true
-            solver.assert_formula(solver.make_term(ss.primops.Not, sortedlist[num_true]))
+            solver.assert_formula(
+                solver.make_term(ss.primops.Not, sortedlist[num_true])
+            )
         res = solver.check_sat()
         assert res.is_sat()
 
