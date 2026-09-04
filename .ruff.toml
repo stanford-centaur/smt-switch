@@ -18,20 +18,18 @@ ignore = [
   "COM812", # trailing commas are the formatter's job
   "CPY001", # the licence header is on most files, but is not required on all
   "D",      # no docstring convention has been adopted
-  "E501",   # the formatter owns line width; long Cython templates cannot wrap
   "EM",     # message literals inline in `raise` are fine
-  "FBT",    # the generated solver factories take a positional `logging` bool
-  "FIX",    # TODO and HACK comments are allowed
-  "ISC001", # conflicts with the formatter
-  "T20",    # print() is intentional in examples and a few tests
-  "TD002",  # ...without an author
-  "TD003",  # ...or an issue link
   "TRY003", # see EM
 ]
 
 # Only rules that a whole file violates by design belong here. One-off cases
 # carry an inline `# noqa` with the reason instead.
 [lint.per-file-ignores]
+# An example exists to show its output.
+"examples/*" = ["T20"]
+# The Cython `cdef extern` declarations this generator emits are single long
+# lines that neither the formatter nor a human can usefully wrap.
+"python/gen-smt-solver-declarations.py" = ["E501"]
 # Bare assert is how a pytest test asserts.
 "tests/python/test_*.py" = ["S101"]
 

@@ -25,7 +25,7 @@ from . import available_solvers
     "create_solver", available_solvers.termiter_support_solvers.values()
 )
 def test_unit_op(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
 
     null_op = ss.Op()
     ext = ss.Op(ss.primops.Extract, 2, 0)
@@ -44,13 +44,14 @@ def test_unit_op(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_sort(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     arrsort = solver.make_sort(ss.sortkinds.ARRAY, [bvsort, bvsort])
 
-    # TODO: test functions when boolector supports querying the sort
+    # Functions are not covered here because boolector cannot query a term's
+    # sort; see the Sorts section of issues.md.
 
     names = ["b", "bv", "a"]
     sorts = [boolsort, bvsort, arrsort]
@@ -65,7 +66,7 @@ def test_sort(create_solver):
     "create_solver", available_solvers.termiter_support_solvers.values()
 )
 def test_unit_iter(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
 
     bvsort = solver.make_sort(ss.sortkinds.BV, 4)
     x = solver.make_symbol("x", bvsort)
@@ -80,7 +81,7 @@ def test_unit_iter(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bool(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("produce-models", "true")
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
@@ -95,7 +96,6 @@ def test_bool(create_solver):
     yv = solver.get_value(y)
 
     assert bool(xv)
-    print(yv)
     assert not bool(yv)
 
     with pytest.raises(ValueError, match="Cannot call bool on"):
@@ -104,7 +104,7 @@ def test_bool(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_check_sat_assuming(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("incremental", "true")
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
     bvsort8 = solver.make_sort(ss.sortkinds.BV, 8)
@@ -126,7 +126,7 @@ def test_check_sat_assuming(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_multi_arg_fun(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     funsort = solver.make_sort(ss.sortkinds.FUNCTION, [bvsort] * 8)
 

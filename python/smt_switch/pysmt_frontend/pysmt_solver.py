@@ -116,7 +116,7 @@ class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMi
         sort = item.get_type()
         c_item = self.converter.convert(item)
         val = self.solver.get_value(c_item)
-        # HACK because smt-switch sometimes loses sorts
+        # HACK because smt-switch sometimes loses sorts  # noqa: FIX004
         # we can't use back
         # should be: `r_val = self.converter.back(val)`
         # hence the private call below
@@ -208,7 +208,7 @@ if "btor" in ss.solvers:
 
     class SwitchBtor(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = staticmethod(ft.partial(ss.create_btor_solver, False))
+        _create_solver = staticmethod(ft.partial(ss.create_btor_solver, logging=False))
 
         @clear_pending_pop
         def _reset_assertions(self):
@@ -230,7 +230,9 @@ if "bitwuzla" in ss.solvers:
 
     class SwitchBitwuzla(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = staticmethod(ft.partial(ss.create_bitwuzla_solver, False))
+        _create_solver = staticmethod(
+            ft.partial(ss.create_bitwuzla_solver, logging=False)
+        )
 
     SWITCH_SOLVERS["bitwuzla"] = SwitchBitwuzla
 
@@ -250,7 +252,7 @@ if "msat" in ss.solvers:
 
     class SwitchMsat(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = staticmethod(ft.partial(ss.create_msat_solver, False))
+        _create_solver = staticmethod(ft.partial(ss.create_msat_solver, logging=False))
 
     SWITCH_SOLVERS["msat"] = SwitchMsat
 
@@ -269,7 +271,7 @@ if "cvc5" in ss.solvers:
 
     class SwitchCvc5(_SwitchSolver):
         LOGICS = _build_logics(logics_params)
-        _create_solver = staticmethod(ft.partial(ss.create_cvc5_solver, False))
+        _create_solver = staticmethod(ft.partial(ss.create_cvc5_solver, logging=False))
 
         def _exit(self):
             super()._exit()

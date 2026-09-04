@@ -3,7 +3,7 @@ import smt_switch as ss
 from smt_switch.primops import Apply, BVAnd, BVUge, Distinct, Equal, Extract
 
 if __name__ == "__main__":
-    s = ss.create_btor_solver(True)
+    s = ss.create_btor_solver(logging=True)
     s.set_logic("QF_UFBV")
     s.set_opt("incremental", "true")
     s.set_opt("produce-models", "true")

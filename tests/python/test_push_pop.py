@@ -21,7 +21,7 @@ import smt_switch as ss
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_push_pop_levels(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("incremental", "true")
     assert solver.get_context_level() == 0
     solver.push()
@@ -40,7 +40,7 @@ def test_push_pop_levels(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_push_pop_solve(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("incremental", "true")
     bool_sort = solver.make_sort(ss.sortkinds.BOOL)
     x = solver.make_symbol("x", bool_sort)

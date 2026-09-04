@@ -25,7 +25,7 @@ from .available_solvers import int_support_solvers
     "create_solver", [f for name, f in int_support_solvers.items()]
 )
 def test_simple(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("produce-models", "true")
     solver.set_logic("QF_LIA")
 

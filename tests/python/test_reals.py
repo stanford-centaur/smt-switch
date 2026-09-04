@@ -32,7 +32,7 @@ termiter_and_int_solvers = list({ss.solvers[n] for n in termiter_and_int_keys})
 
 @pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
 def test_reals_simple(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_logic("QF_LRA")
 
     realsort = solver.make_sort(REAL)
@@ -44,7 +44,6 @@ def test_reals_simple(create_solver):
     c2 = solver.make_term("457/32", realsort)
     solver.make_term("1.352968", realsort)
     c4 = solver.make_term("457/64", realsort)
-    print(c4)
 
     solver.assert_formula(
         solver.make_term(
@@ -68,7 +67,7 @@ def test_reals_simple(create_solver):
 
 @pytest.mark.parametrize("create_solver", [f for n, f in int_support_solvers.items()])
 def test_reals_subs_check(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_logic("QF_LRA")
     solver.set_opt("produce-models", "true")
     solver.set_opt("incremental", "true")

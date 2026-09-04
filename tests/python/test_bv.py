@@ -27,7 +27,7 @@ from . import available_solvers
     "create_solver", available_solvers.termiter_support_solvers.values()
 )
 def test_bvadd(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("produce-models", "true")
     solver.set_logic("QF_BV")
 
@@ -64,7 +64,7 @@ def test_hackers_delight(create_solver):
     #
     # We want to check that these are correct
 
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_logic("QF_BV")
     solver.set_opt("produce-models", "true")
     solver.set_opt("incremental", "true")
@@ -92,7 +92,6 @@ def test_hackers_delight(create_solver):
         ss.primops.Equal, xn, solver.make_term(ss.primops.Ite, x_eq_a, b, a)
     )
 
-    print("Asserting", ite_assignment)
     solver.assert_formula(ite_assignment)
 
     # Push a context -- all assertions and check-sat calls are in a different context
@@ -126,7 +125,7 @@ def test_hackers_delight(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_complex_expr(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     bv128 = solver.make_sort(ss.sortkinds.BV, 128)
     bv32 = solver.make_sort(ss.sortkinds.BV, 32)
 
@@ -170,7 +169,7 @@ def test_complex_expr(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bv_ops(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     bvsort32 = solver.make_sort(ss.sortkinds.BV, 32)
 
     one = solver.make_term(1, bvsort32)
