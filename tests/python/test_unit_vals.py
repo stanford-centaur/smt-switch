@@ -16,8 +16,9 @@
 
 import pytest
 
-import available_solvers
 import smt_switch as ss
+
+from . import available_solvers
 
 termiter_and_int_keys = (
     available_solvers.termiter_support_solvers.keys()

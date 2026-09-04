@@ -35,48 +35,60 @@ class SwitchOptions(SolverOptions):
         if self.incremental:
             solver.solver.set_opt("incremental", "true")
 
-        for k, v in self.solver_options.items():
-            try:
+        try:
+            for k, v in self.solver_options.items():
                 solver.solver.set_opt(k, v)
-            except RuntimeError as err:
-                raise PysmtValueError(f"Error setting the option '{k}={v}'") from err
+        except RuntimeError as err:
+            raise PysmtValueError(f"Error setting the option '{k}={v}'") from err
+
+
+_REAL_OPERATORS = {"-": operator.neg, "/": fractions.Fraction}
+
+
+# Collapses [operator, operand, ...] to the value it denotes, or passes a lone
+# number through.
+def _reduce_tree(tree):
+    if not tree:
+        raise ValueError("Empty real literal")
+    if len(tree) == 1:
+        if not isinstance(tree[0], (int, fractions.Fraction)):
+            raise ValueError(f"Real literal {tree[0]!r} has no operands")
+        return tree[0]
+    return tree[0](*tree[1:])
+
+
+# Consumes one SMT-LIB real literal from a character iterator, e.g. "(/ 457 32)"
+# or "(- 5)", collecting operators and ints into a tree for _reduce_tree.
+def _parse_sexpr(it):
+    tree = []
+    num = []
+    for c in it:
+        if c.isdigit():
+            num.append(c)
+            continue
+        if num:
+            tree.append(int("".join(num)))
+            num = []
+
+        if c == ")":
+            break
+        if c == " ":
+            continue
+        if c == "(":
+            tree.append(_parse_sexpr(it))
+        elif c in _REAL_OPERATORS:
+            tree.append(_REAL_OPERATORS[c])
+        else:
+            raise ValueError(f"Unexpected character {c!r} in real literal")
+
+    if num:
+        tree.append(int("".join(num)))
+
+    return _reduce_tree(tree)
 
 
 def _parse_real(s):
-    def _parse(it):
-        tree = []
-        num = []
-        for c in it:
-            if c.isdigit():
-                num.append(c)
-                continue
-            if num:
-                tree.append(int("".join(num)))
-                num = []
-
-            if c == ")":
-                break
-            if c == " ":
-                continue
-            if c == "(":
-                tree.append(_parse(it))
-            elif c == "-":
-                tree.append(operator.neg)
-            elif c == "/":
-                tree.append(fractions.Fraction)
-            else:
-                raise ValueError
-
-        if num:
-            tree.append(int("".join(num)))
-
-        assert tree
-        if len(tree) == 1:
-            assert isinstance(tree[0], (int, fractions.Fraction))
-            return tree[0]
-        return tree[0](*tree[1:])
-
-    return _parse(iter(repr(s)))
+    return _parse_sexpr(iter(repr(s)))
 
 
 class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMixin):
@@ -107,16 +119,25 @@ class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMi
         # HACK because smt-switch sometimes loses sorts
         # we can't use back
         # should be: `r_val = self.converter.back(val)`
-        r_val = self.converter.back_walker._convert_value(val, sort)
-        assert r_val.get_type() == sort
+        # hence the private call below
+        r_val = self.converter.back_walker._convert_value(val, sort)  # noqa: SLF001
+        if r_val.get_type() != sort:
+            raise ConvertExpressionError(
+                f"Converting the value of {item} produced sort "
+                f"{r_val.get_type()} rather than {sort}"
+            )
         return r_val
 
     @clear_pending_pop
     def _reset_assertions(self):
         self.solver.reset_assertions()
 
+    # `named` goes unused: this backend does not support named assertions.
+    # pysmt's IncrementalTrackingSolver passes it by keyword, so the parameter
+    # cannot be renamed to `_named` to mark it unused the way the walker
+    # callbacks below are.
     @clear_pending_pop
-    def _add_assertion(self, formula, named=None):
+    def _add_assertion(self, formula, named=None):  # noqa: ARG002
         self._assert_is_boolean(formula)
         term = self.converter.convert(formula)
         self.solver.assert_formula(term)
@@ -274,7 +295,7 @@ def check_args(cmp, n):
 
 def make_walk_nary(n, primop):
     @check_args(operator.eq, n)
-    def walk_op(self, formula, args, **kwargs):
+    def walk_op(self, _formula, args, **_kwargs):
         return self.make_term(primop, *args)
 
     return walk_op
@@ -286,7 +307,7 @@ make_walk_binary = ft.partial(make_walk_nary, 2)
 
 def make_walk_variadic(n, primop):
     @check_args(operator.ge, n)
-    def walk_op(self, formula, args, **kwargs):
+    def walk_op(self, _formula, args, **_kwargs):
         builder = ft.partial(self.make_term, primop)
         return ft.reduce(builder, args)
 
@@ -344,7 +365,7 @@ class SwitchConverter(Converter, DagWalker):
 
     # Declarations
     @check_args(operator.eq, 0)
-    def walk_symbol(self, formula, args, **kwargs):
+    def walk_symbol(self, formula, _args, **_kwargs):
         try:
             return self.declared_syms[formula]
         except KeyError:
@@ -359,7 +380,7 @@ class SwitchConverter(Converter, DagWalker):
         return self.declared_vars.setdefault(formula, res)
 
     @check_args(operator.eq, 0)
-    def _walk_constant(self, formula, args, **kwargs):
+    def _walk_constant(self, formula, _args, **_kwargs):
         sort = self._convert_sort(formula.constant_type())
         if formula.constant_type().is_bool_type():
             res = self.make_term(bool(formula.constant_value()))
@@ -385,7 +406,7 @@ class SwitchConverter(Converter, DagWalker):
     # Polymorphic Operators
     walk_ite = make_walk_nary(3, ss.primops.Ite)
 
-    def walk_function(self, formula, args, **kwargs):
+    def walk_function(self, formula, args, **_kwargs):
         name = formula.function_name()
         f = self.walk_symbol(name, name.args())
         return self.make_term(ss.primops.Apply, [f, *args])
@@ -414,7 +435,7 @@ class SwitchConverter(Converter, DagWalker):
     walk_bv_concat = make_walk_binary(ss.primops.Concat)
 
     @check_args(operator.eq, 1)
-    def walk_bv_extract(self, formula, args, **kwargs):
+    def walk_bv_extract(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(
                 ss.primops.Extract,
@@ -432,13 +453,13 @@ class SwitchConverter(Converter, DagWalker):
     walk_bv_or = make_walk_binary(ss.primops.BVOr)
 
     @check_args(operator.eq, 1)
-    def walk_bv_rol(self, formula, args, **kwargs):
+    def walk_bv_rol(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(ss.primops.Rotate_Left, formula.bv_rotation_step()), *args
         )
 
     @check_args(operator.eq, 1)
-    def walk_bv_ror(self, formula, args, **kwargs):
+    def walk_bv_ror(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(ss.primops.Rotate_Right, formula.bv_rotation_step()), *args
         )
@@ -446,7 +467,7 @@ class SwitchConverter(Converter, DagWalker):
     walk_bv_sdiv = make_walk_binary(ss.primops.BVSdiv)
 
     @check_args(operator.eq, 1)
-    def walk_bv_sext(self, formula, args, **kwargs):
+    def walk_bv_sext(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(ss.primops.Sign_Extend, formula.bv_extend_step()), *args
         )
@@ -465,7 +486,7 @@ class SwitchConverter(Converter, DagWalker):
     walk_bv_xor = make_walk_binary(ss.primops.BVXor)
 
     @check_args(operator.eq, 1)
-    def walk_bv_zext(self, formula, args, **kwargs):
+    def walk_bv_zext(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(ss.primops.Zero_Extend, formula.bv_extend_step()), *args
         )
@@ -473,18 +494,6 @@ class SwitchConverter(Converter, DagWalker):
     # array operators
     walk_array_select = make_walk_binary(ss.primops.Select)
     walk_array_store = make_walk_nary(3, ss.primops.Store)
-
-
-_INDEXED_OPERATORS = frozenset(
-    (
-        ss.primops.Extract,
-        ss.primops.Repeat,
-        ss.primops.Rotate_Left,
-        ss.primops.Rotate_Right,
-        ss.primops.Sign_Extend,
-        ss.primops.Zero_Extend,
-    )
-)
 
 
 class BackVisitor(ss.TermDagVisitor):
@@ -565,35 +574,35 @@ class BackVisitor(ss.TermDagVisitor):
         if op:
             indices = []
             if op.num_idx:
-                assert op.primop in _INDEXED_OPERATORS
                 indices = [op.idx0]
-                if op.num_idx == 2:
+                if op.num_idx > 1:
                     indices.append(op.idx1)
-                else:
-                    assert op.num_idx == 1
             primop = op.primop
             if primop not in self.convertion_table:
-                raise NotImplementedError
+                raise NotImplementedError(f"Unsupported operator: {primop}")
             return self.convertion_table[primop](*new_children, *indices)
+
+        sort = term.get_sort()
         if new_children:
-            assert term.get_sort().get_sort_kind() is ss.sortkinds.ARRAY
-            Kt = self._convert_sort(term.get_sort().get_indexsort())
-            return self.mgr.Array(Kt, *new_children, {})
+            if sort.get_sort_kind() is not ss.sortkinds.ARRAY:
+                raise ConvertExpressionError(
+                    f"Only an array term can have children without an operator: {term}"
+                )
+            index_type = self._convert_sort(sort.get_indexsort())
+            return self.mgr.Array(index_type, *new_children, {})
         if term.is_value():
             return self._convert_value(term)
-        if term.is_symbolic_const():
-            sort = self._convert_sort(term.get_sort())
-            return self.mgr.Symbol(str(term), sort)
-        assert term.get_sort().get_sort_kind() is ss.sortkinds.FUNCTION
-        sort = self._convert_sort(term.get_sort())
-        return self.mgr.Symbol(str(term), sort)
+        # A symbolic constant, or an uninterpreted function symbol.
+        if term.is_symbolic_const() or sort.get_sort_kind() is ss.sortkinds.FUNCTION:
+            return self.mgr.Symbol(str(term), self._convert_sort(sort))
+        raise ConvertExpressionError(f"Cannot convert term: {term}")
 
     def _convert_sort(self, sort):
         kind = sort.get_sort_kind()
         if kind is ss.sortkinds.ARRAY:
-            Kt = self._convert_sort(sort.get_indexsort())
-            Vt = self._convert_sort(sort.get_elemsort())
-            return pysmt_types.ArrayType(Kt, Vt)
+            index_type = self._convert_sort(sort.get_indexsort())
+            elem_type = self._convert_sort(sort.get_elemsort())
+            return pysmt_types.ArrayType(index_type, elem_type)
         if kind is ss.sortkinds.BOOL:
             return pysmt_types.BOOL
         if kind is ss.sortkinds.BV:
@@ -604,8 +613,9 @@ class BackVisitor(ss.TermDagVisitor):
             return pysmt_types.FunctionType(codomain, domain)
         if kind is ss.sortkinds.INT:
             return pysmt_types.INT
-        assert kind is ss.sortkinds.REAL
-        return pysmt_types.REAL
+        if kind is ss.sortkinds.REAL:
+            return pysmt_types.REAL
+        raise ConvertExpressionError(f"Unsupported sort: {sort}")
 
     def _convert_value(self, term, sort=None):
         # because smt-switch backends cannot be trusted to maintain
@@ -640,9 +650,12 @@ class BackVisitor(ss.TermDagVisitor):
         children = list(arr)
         if not children:
             default = self._make_0(sort.elem_type)
-        else:
-            assert len(children) == 1
+        elif len(children) == 1:
             default = self._convert_value(children[0], sort.elem_type)
+        else:
+            raise ConvertExpressionError(
+                f"An array default takes one child, got {len(children)}"
+            )
         return sort.index_type, default, assignment
 
     def _make_0(self, sort):
@@ -659,7 +672,11 @@ class BackVisitor(ss.TermDagVisitor):
         raise TypeError(f"Unsupported sort: {sort}")
 
     def _convert_abs(self, child):
-        assert child.get_type().is_int_type()
+        child_type = child.get_type()
+        if not child_type.is_int_type():
+            raise ConvertExpressionError(
+                f"Cannot take the absolute value of a term of type {child_type}"
+            )
         z = self.mgr.Int(0)
         return self.mgr.Ite(self.mgr.GE(child, z), child, self.mgr.Minus(z, child))
 
@@ -667,9 +684,10 @@ class BackVisitor(ss.TermDagVisitor):
         return self.mgr.Function(name, args)
 
     def _convert_negate(self, child):
-        T = child.get_type()
-        assert T.is_int_type() or T.is_real_type()
-        z = self.mgr.Int(0) if T.is_int_type() else self.mgr.Real(0)
+        child_type = child.get_type()
+        if not (child_type.is_int_type() or child_type.is_real_type()):
+            raise ConvertExpressionError(f"Cannot negate a term of type {child_type}")
+        z = self.mgr.Int(0) if child_type.is_int_type() else self.mgr.Real(0)
         return self.mgr.Minus(z, child)
 
     def _convert_extract(self, child, end, start):

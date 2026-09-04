@@ -16,8 +16,9 @@
 
 import pytest
 
-import available_solvers
 import smt_switch as ss
+
+from . import available_solvers
 
 
 @pytest.mark.parametrize(
@@ -74,13 +75,7 @@ def test_unit_iter(create_solver):
 
     fx = solver.make_term(ss.primops.Apply, f, x)
 
-    cnt = 0
-    for t in fx:
-        assert cnt != 0 or t == f, "First child should be f"
-        assert cnt != 1 or t == x, "Second child should be x"
-        cnt += 1
-
-    assert cnt == 2, "Expecting two children"
+    assert list(fx) == [f, x], "Children should be f then x"
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

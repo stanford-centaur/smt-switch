@@ -28,10 +28,12 @@ def test_push_pop_levels(create_solver):
     assert solver.get_context_level() == 1
     solver.pop()
     assert solver.get_context_level() == 0
-    solver.push(5)
-    assert solver.get_context_level() == 5
-    solver.pop(2)
-    assert solver.get_context_level() == 3
+    pushed = 5
+    popped = 2
+    solver.push(pushed)
+    assert solver.get_context_level() == pushed
+    solver.pop(popped)
+    assert solver.get_context_level() == pushed - popped
     solver.pop_all()
     assert solver.get_context_level() == 0
 

@@ -36,7 +36,10 @@ except ImportError:
     pass
 
 
-def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:
+# Capitalised on purpose: this is a drop-in stand-in for pysmt.shortcuts.Solver,
+# which callers already spell with a capital S, so renaming it would break the
+# resemblance this function exists to provide.
+def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:  # noqa: N802
     """
     Convience function for building a pysmt solver object with a switch backend.
     Similar to `pysmt.shortcuts.Solver`.

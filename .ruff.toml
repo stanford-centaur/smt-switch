@@ -14,9 +14,9 @@ select = ["ALL"]
 # Deliberate project decisions. Anything the code merely happened to violate
 # has been fixed instead of being listed here.
 ignore = [
-  "ANN",    # the codebase is unannotated; revisit if mypy is enabled
+  "ANN",    # the codebase is essentially unannotated; revisit if mypy is enabled
   "COM812", # trailing commas are the formatter's job
-  "CPY001", # copyright headers are a C++-side convention here
+  "CPY001", # the licence header is on most files, but is not required on all
   "D",      # no docstring convention has been adopted
   "E501",   # the formatter owns line width; long Cython templates cannot wrap
   "EM",     # message literals inline in `raise` are fine
@@ -29,34 +29,17 @@ ignore = [
   "TRY003", # see EM
 ]
 
+# Only rules that a whole file violates by design belong here. One-off cases
+# carry an inline `# noqa` with the reason instead.
 [lint.per-file-ignores]
-"tests/python/*" = [
-  "INP001",  # not a package; pytest puts its rootdir on sys.path
-  "N803",    # sorts and terms are named as in the formulas: T, A, B, notB
-  "N806",
-  "PLR2004", # the bit widths and expected counts are what is being asserted
-  "S101",    # bare assert is how a pytest test asserts
-]
-# The imports here deliberately follow pytest.importorskip("pysmt").
-"tests/python/test_pysmt.py" = ["E402"]
+# Bare assert is how a pytest test asserts.
+"tests/python/test_*.py" = ["S101"]
 
-# This module implements pysmt's solver, converter and walker interfaces, so it
-# does not get to choose its method signatures, and it cooperates closely with
-# its own converter and walker objects.
-"python/smt_switch/pysmt_frontend/*" = [
-  "ARG001",  # pysmt's walker callbacks are passed (formula, args, **kwargs)
-  "ARG002",
-  "C901",    # _parse_real is a small character-by-character SMT-LIB parser
-  "N802",    # Solver() mirrors the name of pysmt.shortcuts.Solver
-  "N806",    # pysmt type variables are spelled Kt, Vt, T
-  "PERF203", # the per-option try/except is what produces a per-option message
-  "PLR2004", # an indexed SMT operator takes either one index or two
-  "S101",    # internal invariant checks
-  "SLF001",  # reaches into its own converter's walker; see the HACK comment
-]
-
-# `smt_switch` is built by this repository, and `available_solvers` is a helper
-# module in tests/python. Neither lives at the project root, so ruff cannot
-# infer that they are first-party.
+# Ruff classifies an import as first-party by finding the module under `src`,
+# and nothing in python/smt_switch is importable from the source tree: the
+# modules are Cython .pyx files and __init__.py is generated from
+# __init__.py.in at build time. Adding python/ to `src` does not help, because
+# ruff would then see the directory and call `smt_switch` first-party while
+# leaving `smt_switch.primops` third-party, splitting the package in two.
 [lint.isort]
-known-first-party = ["available_solvers", "smt_switch"]
+known-first-party = ["smt_switch"]

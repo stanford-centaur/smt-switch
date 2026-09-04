@@ -17,8 +17,9 @@
 import pytest
 
 import smt_switch as ss
-from available_solvers import int_support_solvers
 from smt_switch.primops import Distinct, Equal, Select, Store
+
+from .available_solvers import int_support_solvers
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

@@ -58,18 +58,18 @@ def test_simple_itp(itp_name):
     w = itp.make_symbol("w", intsort)
 
     # x < y
-    A = itp.make_term(ss.primops.Lt, x, y)
+    a = itp.make_term(ss.primops.Lt, x, y)
 
     # y < w
-    A = itp.make_term(ss.primops.And, A, itp.make_term(ss.primops.Lt, y, w))
+    a = itp.make_term(ss.primops.And, a, itp.make_term(ss.primops.Lt, y, w))
 
     # z > w
-    B = itp.make_term(ss.primops.Gt, z, w)
+    b = itp.make_term(ss.primops.Gt, z, w)
 
     # z < x
-    B = itp.make_term(ss.primops.And, B, itp.make_term(ss.primops.Lt, z, x))
+    b = itp.make_term(ss.primops.And, b, itp.make_term(ss.primops.Lt, z, x))
 
-    interpolant = itp.get_interpolant(A, B)
+    interpolant = itp.get_interpolant(a, b)
     assert interpolant is not None
 
     free_vars = get_free_vars(interpolant)
