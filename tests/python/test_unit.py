@@ -116,11 +116,10 @@ def test_check_sat_assuming(create_solver):
     solver.assert_formula(solver.make_term(ss.primops.Not, xeq0))
     solver.assert_formula(solver.make_term(ss.primops.Implies, b, xeq0))
 
-    # Assumptions have to be literals. The backend rejects a formula by
-    # throwing IncorrectUsageException, which Cython surfaces as RuntimeError.
-    with pytest.raises(RuntimeError):
-        solver.check_sat_assuming([xeq0])
-
+    # Passing the formula xeq0 rather than a literal would violate
+    # check_sat_assuming's documented precondition, but only mathsat enforces
+    # it, so there is nothing portable to assert here. The backend-specific
+    # behaviour is covered by tests/unit/unit-solving-interface.cpp.
     r = solver.check_sat_assuming([b])
     assert r.is_unsat()
 
