@@ -18,6 +18,7 @@ import pytest
 
 import available_solvers
 import smt_switch as ss
+from smt_switch import Op
 
 
 # @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -123,8 +124,6 @@ def test_hackers_delight(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_complex_expr(create_solver):
-    from smt_switch import Op
-
     solver = create_solver(False)
     bv128 = solver.make_sort(ss.sortkinds.BV, 128)
     bv32 = solver.make_sort(ss.sortkinds.BV, 32)

@@ -33,13 +33,8 @@ def test_unit_op(create_solver):
 
     assert not null_op, "null op should return false for bool"
     assert ext, "non-null op should return true for bool"
-    try:
+    with pytest.raises(ValueError, match="Got a null Op in make_term"):
         solver.make_term(null_op, x)
-        raise AssertionError("Should get a ValueError")
-    except ValueError:
-        pass
-    except:
-        raise AssertionError("Should have gotten a ValueError")
 
     ext_x = solver.make_term(ext, x)
     assert ext == ext_x.get_op(), "Extraction ops should match"
@@ -108,11 +103,8 @@ def test_bool(create_solver):
     print(yv)
     assert not bool(yv)
 
-    try:
+    with pytest.raises(ValueError, match="Cannot call bool on"):
         bool(x)
-        raise AssertionError("Shouldn't be able to call bool on non-value")
-    except:
-        pass
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -129,13 +121,10 @@ def test_check_sat_assuming(create_solver):
     solver.assert_formula(solver.make_term(ss.primops.Not, xeq0))
     solver.assert_formula(solver.make_term(ss.primops.Implies, b, xeq0))
 
-    try:
+    # Assumptions have to be literals. The backend rejects a formula by
+    # throwing IncorrectUsageException, which Cython surfaces as RuntimeError.
+    with pytest.raises(RuntimeError):
         solver.check_sat_assuming([xeq0])
-        raise AssertionError(
-            "Expecting a thrown exception for check_sat_assuming with a formula"
-        )
-    except:
-        pass
 
     r = solver.check_sat_assuming([b])
     assert r.is_unsat()
@@ -147,13 +136,8 @@ def test_multi_arg_fun(create_solver):
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     funsort = solver.make_sort(ss.sortkinds.FUNCTION, [bvsort] * 8)
 
-    vs = []
-    for i in range(7):
-        vs.append(solver.make_symbol("x%i" % i, bvsort))
-
-    vs2 = []
-    for i in range(7):
-        vs2.append(solver.make_symbol("y%i" % i, bvsort))
+    vs = [solver.make_symbol(f"x{i}", bvsort) for i in range(7)]
+    vs2 = [solver.make_symbol(f"y{i}", bvsort) for i in range(7)]
 
     f = solver.make_symbol("f", funsort)
     res = solver.make_term(ss.primops.Apply, [f, *vs])

@@ -25,9 +25,8 @@ def test_basic(solver_str, T, logic, implicit):
     args = () if implicit else (logic,)
 
     if logic not in fe.SWITCH_SOLVERS[solver_str].LOGICS:
-        with pytest.raises(RuntimeError):
-            with fe.Solver(solver_str, *args) as solver:
-                solver.add_assertion(problem)
+        with pytest.raises(RuntimeError), fe.Solver(solver_str, *args) as solver:
+            solver.add_assertion(problem)
     else:
         with fe.Solver(solver_str, *args) as solver:
             solver.add_assertion(problem)

@@ -11,10 +11,9 @@ force-exclude = true
 [lint]
 select = ["ALL"]
 
+# Deliberate project decisions. Anything the code merely happened to violate
+# has been fixed instead of being listed here.
 ignore = [
-  # ---------------------------------------------------------------------------
-  # Permanent: deliberate project decisions.
-  # ---------------------------------------------------------------------------
   "ANN",    # the codebase is unannotated; revisit if mypy is enabled
   "COM812", # trailing commas are the formatter's job
   "CPY001", # copyright headers are a C++-side convention here
@@ -28,24 +27,6 @@ ignore = [
   "TD002",  # ...without an author
   "TD003",  # ...or an issue link
   "TRY003", # see EM
-
-  # ---------------------------------------------------------------------------
-  # Temporary: rules that the existing code still violates, so that the tip of
-  # the branch stays green. Delete each entry once its violations are resolved,
-  # either by fixing the code or by moving the rule above / into
-  # per-file-ignores with a justification.
-  # ---------------------------------------------------------------------------
-  "B904",    # raise-without-from-inside-except
-  "E722",    # bare-except
-  "E741",    # ambiguous-variable-name
-  "F401",    # unused-import
-  "PERF401", # manual-list-comprehension
-  "PLC0415", # import-outside-top-level
-  "PTH123",  # builtin-open
-  "S110",    # try-except-pass
-  "S307",    # suspicious-eval-usage
-  "SIM117",  # multiple-with-statements
-  "UP031",   # printf-string-formatting
 ]
 
 [lint.per-file-ignores]

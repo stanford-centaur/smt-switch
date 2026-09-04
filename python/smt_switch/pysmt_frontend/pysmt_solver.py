@@ -38,8 +38,8 @@ class SwitchOptions(SolverOptions):
         for k, v in self.solver_options.items():
             try:
                 solver.solver.set_opt(k, v)
-            except:
-                raise PysmtValueError(f"Error setting the option '{k}={v}'")
+            except RuntimeError as err:
+                raise PysmtValueError(f"Error setting the option '{k}={v}'") from err
 
 
 def _parse_real(s):
