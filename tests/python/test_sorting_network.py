@@ -1,18 +1,11 @@
-###############################################################
-# \file test_sorting_network.py
-# \verbatim
-# Top contributors (to current version):
-#   Makai Mann
-# This file is part of the smt-switch project.
-# Copyright (c) 2020 by the authors listed in the file AUTHORS
-# in the top-level source directory) and their institutional affiliations.
-# All rights reserved.  See the file LICENSE in the top-level source
-# directory for licensing information.\endverbatim
-#
-# \brief Test SortingNetwork through Python bindings
-#        see include/sorting_network.h for more information on the
-#        SortingNetwork class
-#
+# SPDX-FileCopyrightText: 2021 the smt-switch authors
+# SPDX-FileContributor: Makai Mann
+# SPDX-License-Identifier: BSD-3-Clause
+
+"""Test SortingNetwork through Python bindings.
+
+See include/sorting_network.h for more information on the SortingNetwork class.
+"""
 
 from itertools import product
 

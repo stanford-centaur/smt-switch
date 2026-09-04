@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-
+# SPDX-FileCopyrightText: 2020 the smt-switch authors
+# SPDX-FileContributor: Makai Mann
+# SPDX-License-Identifier: BSD-3-Clause
 
 # This file generates the declarations and python implementation for creating solvers
 # It needs to be auto-generated because they depend on which solvers it

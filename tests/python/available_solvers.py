@@ -1,18 +1,6 @@
-###############################################################
-# \file available_solvers.py
-# \verbatim
-# Top contributors (to current version):
-#   Makai Mann
-# This file is part of the smt-switch project.
-# Copyright (c) 2020 by the authors listed in the file AUTHORS
-# in the top-level source directory) and their institutional affiliations.
-# All rights reserved.  See the file LICENSE in the top-level source
-# directory for licensing information.\endverbatim
-#
-# \brief
-#
-#
-#
+# SPDX-FileCopyrightText: 2020 the smt-switch authors
+# SPDX-FileContributor: Amalee Wilson
+# SPDX-License-Identifier: BSD-3-Clause
 
 import smt_switch as ss
 

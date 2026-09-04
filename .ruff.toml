@@ -16,7 +16,6 @@ select = ["ALL"]
 ignore = [
   "ANN",    # the codebase is essentially unannotated; revisit if mypy is enabled
   "COM812", # trailing commas are the formatter's job
-  "CPY001", # the licence header is on most files, but is not required on all
   "D",      # no docstring convention has been adopted
   "EM",     # message literals inline in `raise` are fine
   "TRY003", # see EM
@@ -32,6 +31,13 @@ ignore = [
 "python/gen-smt-solver-declarations.py" = ["E501"]
 # Bare assert is how a pytest test asserts.
 "tests/python/test_*.py" = ["S101"]
+
+# Every Python file carries SPDX tags. Ruff's default pattern wants `Copyright`
+# adjacent to the year, which `SPDX-FileCopyrightText:` does not satisfy, so
+# spell out the one line we accept: only the four-digit year varies. (?m) makes
+# ^ and $ line anchors, since the notice sits below the shebang in some files.
+[lint.flake8-copyright]
+notice-rgx = '(?m)^# SPDX-FileCopyrightText: \d{4} the smt-switch authors$'
 
 # Ruff classifies an import as first-party by finding the module under `src`,
 # and nothing in python/smt_switch is importable from the source tree: the

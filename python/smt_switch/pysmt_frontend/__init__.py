@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 the smt-switch authors
+# SPDX-FileContributor: Caleb Donovick
+# SPDX-License-Identifier: BSD-3-Clause
+
 from __future__ import annotations
 
 import typing as tp

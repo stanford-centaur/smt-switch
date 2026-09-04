@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2021 the smt-switch authors
+# SPDX-FileContributor: Makai Mann
+# SPDX-License-Identifier: BSD-3-Clause
+
 import smt_switch as ss
 from smt_switch.primops import Apply, BVAnd, BVUge, Distinct, Equal, Extract
 
