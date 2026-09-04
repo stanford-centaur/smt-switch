@@ -22,7 +22,7 @@ from smt_switch.primops import BVOr, BVUlt, Ite
     "create_solver", [f for name, f in ss.solvers.items() if name != "yices2"]
 )
 def test_identity_visit_basic(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
 
     bv32 = solver.make_sort(ss.sortkinds.BV, 32)
 

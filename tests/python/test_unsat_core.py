@@ -21,7 +21,7 @@ import smt_switch as ss
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_unsat_assumptions_simple(create_solver):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("produce-unsat-assumptions", "true")
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)

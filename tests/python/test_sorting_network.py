@@ -25,7 +25,7 @@ import smt_switch as ss
     ("create_solver", "num_vars"), list(product(ss.solvers.values(), [3, 6, 8]))
 )
 def test_sorting_network(create_solver, num_vars):
-    solver = create_solver(False)
+    solver = create_solver(logging=False)
     solver.set_opt("produce-models", "true")
     solver.set_opt("incremental", "true")
 
@@ -49,7 +49,9 @@ def test_sorting_network(create_solver, num_vars):
         res = solver.check_sat()
         assert res.is_sat()
 
-        true_ = solver.make_term(True)
+        # The boolean here is the term's value, not a flag, so there is no
+        # keyword form that would read better.
+        true_ = solver.make_term(True)  # noqa: FBT003
         counted_true = 0
         for bb in boollist:
             val = solver.get_value(bb)
