@@ -22,7 +22,7 @@ import smt_switch as ss
 
 
 @pytest.mark.parametrize(
-    ("create_solver", "num_vars"), product(ss.solvers.values(), [3, 6, 8])
+    ("create_solver", "num_vars"), list(product(ss.solvers.values(), [3, 6, 8]))
 )
 def test_sorting_network(create_solver, num_vars):
     solver = create_solver(False)
@@ -30,9 +30,7 @@ def test_sorting_network(create_solver, num_vars):
     solver.set_opt("incremental", "true")
 
     boolsort = solver.make_sort(ss.sortkinds.BOOL)
-    boollist = []
-    for i in range(num_vars):
-        boollist.append(solver.make_symbol("b" + str(i), boolsort))
+    boollist = [solver.make_symbol("b" + str(i), boolsort) for i in range(num_vars)]
 
     sn = ss.SortingNetwork(solver)
     sortedlist = sn.sorting_network(boollist)

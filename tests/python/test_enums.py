@@ -16,7 +16,8 @@
 import pytest
 
 import smt_switch as ss
-from available_solvers import int_support_solvers
+
+from .available_solvers import int_support_solvers
 
 
 @pytest.mark.parametrize(

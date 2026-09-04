@@ -1,16 +1,17 @@
 import pytest
 
-pysmt = pytest.importorskip("pysmt")
-from pysmt import logics as sl
-from pysmt import shortcuts as sc
-from pysmt import typing as st
-
-import smt_switch.pysmt_frontend as fe
+# pysmt is an optional dependency, so each module is bound through
+# importorskip. Plain imports would have to sit below the skip, out of import
+# order.
+sl = pytest.importorskip("pysmt.logics")
+sc = pytest.importorskip("pysmt.shortcuts")
+st = pytest.importorskip("pysmt.typing")
+fe = pytest.importorskip("smt_switch.pysmt_frontend")
 
 
 @pytest.mark.parametrize("solver_str", fe.SWITCH_SOLVERS.keys())
 @pytest.mark.parametrize(
-    ("T", "logic"),
+    ("sort", "logic"),
     [
         (st.BV8, sl.QF_BV),
         (st.INT, sl.QF_LIA),
@@ -18,21 +19,22 @@ import smt_switch.pysmt_frontend as fe
     ],
 )
 @pytest.mark.parametrize("implicit", [True, False])
-def test_basic(solver_str, T, logic, implicit):
-    x = sc.FreshSymbol(T)
-    problem = sc.And(x < 2, x > 0)
+def test_basic(solver_str, sort, logic, implicit):
+    x = sc.FreshSymbol(sort)
+    # `<` builds a pysmt formula here rather than comparing at runtime, so the
+    # bound is part of the problem statement, not a magic value.
+    problem = sc.And(x < 2, x > 0)  # noqa: PLR2004
     x_val = None
     args = () if implicit else (logic,)
 
     if logic not in fe.SWITCH_SOLVERS[solver_str].LOGICS:
-        with pytest.raises(RuntimeError):
-            with fe.Solver(solver_str, *args) as solver:
-                solver.add_assertion(problem)
+        with pytest.raises(RuntimeError), fe.Solver(solver_str, *args) as solver:
+            solver.add_assertion(problem)
     else:
         with fe.Solver(solver_str, *args) as solver:
             solver.add_assertion(problem)
             assert solver.solve()
-            if T is not st.REAL:
+            if sort is not st.REAL:
                 x_val = solver.get_py_value(x)
                 assert x_val == 1
             else:

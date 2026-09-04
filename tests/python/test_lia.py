@@ -17,7 +17,8 @@
 import pytest
 
 import smt_switch as ss
-from available_solvers import int_support_solvers
+
+from .available_solvers import int_support_solvers
 
 
 @pytest.mark.parametrize(
@@ -61,5 +62,7 @@ def test_simple(create_solver):
     yv = int(solver.get_value(y))
     zv = int(solver.get_value(z))
 
-    assert 2 * xv + 3 * yv < 5
-    assert 5 * yv - 3 * zv >= 2
+    # Transcriptions of f1 and f2 above; naming the coefficients and bounds
+    # would hide the correspondence with the terms built from them.
+    assert 2 * xv + 3 * yv < 5  # noqa: PLR2004
+    assert 5 * yv - 3 * zv >= 2  # noqa: PLR2004

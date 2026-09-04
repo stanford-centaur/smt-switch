@@ -16,8 +16,10 @@
 
 import pytest
 
-import available_solvers
 import smt_switch as ss
+from smt_switch import Op
+
+from . import available_solvers
 
 
 # @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -32,16 +34,17 @@ def test_bvadd(create_solver):
     bvsort8 = solver.make_sort(ss.sortkinds.BV, 8)
     x = solver.make_symbol("x", bvsort8)
     y = solver.make_symbol("y", bvsort8)
+    expected_sum = 6
     xpy = solver.make_term(ss.primops.BVAdd, x, y)
     solver.assert_formula(
-        solver.make_term(ss.primops.Equal, xpy, solver.make_term(6, bvsort8))
+        solver.make_term(ss.primops.Equal, xpy, solver.make_term(expected_sum, bvsort8))
     )
 
     solver.check_sat()
 
     xv = solver.get_value(x)
     yv = solver.get_value(y)
-    assert (int(xv) + int(yv)) % (2**8) == 6
+    assert (int(xv) + int(yv)) % (2**8) == expected_sum
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -123,8 +126,6 @@ def test_hackers_delight(create_solver):
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_complex_expr(create_solver):
-    from smt_switch import Op
-
     solver = create_solver(False)
     bv128 = solver.make_sort(ss.sortkinds.BV, 128)
     bv32 = solver.make_sort(ss.sortkinds.BV, 32)

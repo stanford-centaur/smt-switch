@@ -16,11 +16,12 @@
 
 import pytest
 
-import available_solvers
 import smt_switch as ss
-from available_solvers import int_support_solvers
 from smt_switch.primops import Ge, Lt, Minus, Mult, Plus
 from smt_switch.sortkinds import REAL
+
+from . import available_solvers
+from .available_solvers import int_support_solvers
 
 termiter_and_int_keys = (
     available_solvers.termiter_support_solvers.keys()

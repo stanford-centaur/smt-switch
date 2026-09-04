@@ -46,9 +46,10 @@ def get_free_vars(t: ss.Term) -> set[ss.Term]:
 )
 def test_simple_itp(itp_name):
     try:
-        itp = eval(f"ss.create_{itp_name}_interpolator()")
-    except:
-        raise NotImplementedError(f"Haven't handled interpolator {itp_name}")
+        create_interpolator = getattr(ss, f"create_{itp_name}_interpolator")
+    except AttributeError as err:
+        raise NotImplementedError(f"Haven't handled interpolator {itp_name}") from err
+    itp = create_interpolator()
 
     intsort = itp.make_sort(ss.sortkinds.INT)
     x = itp.make_symbol("x", intsort)
@@ -57,20 +58,20 @@ def test_simple_itp(itp_name):
     w = itp.make_symbol("w", intsort)
 
     # x < y
-    A = itp.make_term(ss.primops.Lt, x, y)
+    a = itp.make_term(ss.primops.Lt, x, y)
 
     # y < w
-    A = itp.make_term(ss.primops.And, A, itp.make_term(ss.primops.Lt, y, w))
+    a = itp.make_term(ss.primops.And, a, itp.make_term(ss.primops.Lt, y, w))
 
     # z > w
-    B = itp.make_term(ss.primops.Gt, z, w)
+    b = itp.make_term(ss.primops.Gt, z, w)
 
     # z < x
-    B = itp.make_term(ss.primops.And, B, itp.make_term(ss.primops.Lt, z, x))
+    b = itp.make_term(ss.primops.And, b, itp.make_term(ss.primops.Lt, z, x))
 
-    I = itp.get_interpolant(A, B)
-    assert I is not None
+    interpolant = itp.get_interpolant(a, b)
+    assert interpolant is not None
 
-    free_vars = get_free_vars(I)
+    free_vars = get_free_vars(interpolant)
     assert y not in free_vars
     assert z not in free_vars

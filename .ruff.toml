@@ -11,13 +11,12 @@ force-exclude = true
 [lint]
 select = ["ALL"]
 
+# Deliberate project decisions. Anything the code merely happened to violate
+# has been fixed instead of being listed here.
 ignore = [
-  # ---------------------------------------------------------------------------
-  # Permanent: deliberate project decisions.
-  # ---------------------------------------------------------------------------
-  "ANN",    # the codebase is unannotated; revisit if mypy is enabled
+  "ANN",    # the codebase is essentially unannotated; revisit if mypy is enabled
   "COM812", # trailing commas are the formatter's job
-  "CPY001", # copyright headers are a C++-side convention here
+  "CPY001", # the licence header is on most files, but is not required on all
   "D",      # no docstring convention has been adopted
   "E501",   # the formatter owns line width; long Cython templates cannot wrap
   "EM",     # message literals inline in `raise` are fine
@@ -28,46 +27,19 @@ ignore = [
   "TD002",  # ...without an author
   "TD003",  # ...or an issue link
   "TRY003", # see EM
-
-  # ---------------------------------------------------------------------------
-  # Temporary: rules that the existing code still violates, so that the tip of
-  # the branch stays green. Delete each entry once its violations are resolved,
-  # either by fixing the code or by moving the rule above / into
-  # per-file-ignores with a justification.
-  # ---------------------------------------------------------------------------
-  "ARG001",  # unused-function-argument
-  "ARG002",  # unused-method-argument
-  "B904",    # raise-without-from-inside-except
-  "C901",    # complex-structure
-  "E402",    # module-import-not-at-top-of-file
-  "E722",    # bare-except
-  "E741",    # ambiguous-variable-name
-  "F401",    # unused-import
-  "N802",    # invalid-function-name
-  "N803",    # invalid-argument-name
-  "N806",    # non-lowercase-variable-in-function
-  "PERF203", # try-except-in-loop
-  "PERF401", # manual-list-comprehension
-  "PLC0415", # import-outside-top-level
-  "PLR2004", # magic-value-comparison
-  "PTH123",  # builtin-open
-  "S101",    # assert, in pysmt_frontend; tests and examples are exempt below
-  "S110",    # try-except-pass
-  "S307",    # suspicious-eval-usage
-  "SIM117",  # multiple-with-statements
-  "SLF001",  # private-member-access
-  "UP031",   # printf-string-formatting
 ]
 
+# Only rules that a whole file violates by design belong here. One-off cases
+# carry an inline `# noqa` with the reason instead.
 [lint.per-file-ignores]
-# Neither directory is a package: pytest inserts its rootdir on sys.path, and
-# examples/ is meant to be read and run as standalone scripts. `assert` is also
-# how these pytest tests assert.
-"examples/*" = ["INP001", "S101"]
-"tests/python/*" = ["INP001", "S101"]
+# Bare assert is how a pytest test asserts.
+"tests/python/test_*.py" = ["S101"]
 
-# `smt_switch` is built by this repository, and `available_solvers` is a helper
-# module in tests/python. Neither lives at the project root, so ruff cannot
-# infer that they are first-party.
+# Ruff classifies an import as first-party by finding the module under `src`,
+# and nothing in python/smt_switch is importable from the source tree: the
+# modules are Cython .pyx files and __init__.py is generated from
+# __init__.py.in at build time. Adding python/ to `src` does not help, because
+# ruff would then see the directory and call `smt_switch` first-party while
+# leaving `smt_switch.primops` third-party, splitting the package in two.
 [lint.isort]
-known-first-party = ["available_solvers", "smt_switch"]
+known-first-party = ["smt_switch"]

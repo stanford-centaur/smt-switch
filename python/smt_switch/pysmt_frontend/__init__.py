@@ -11,32 +11,35 @@ from .pysmt_solver import SWITCH_SOLVERS
 if tp.TYPE_CHECKING:
     from pysmt.solvers.solver import Solver as SolverT
 
-__ALL__ = ["SWITCH_SOLVERS", "Solver"]
+__all__ = ["SWITCH_SOLVERS", "Solver"]
 
 
 try:
     from .pysmt_solver import SwitchBtor
 
-    __ALL__.append("SwitchBtor")
+    __all__ += ["SwitchBtor"]
 except ImportError:
     pass
 
 try:
     from .pysmt_solver import SwitchCvc5
 
-    __ALL__.append("SwitchCvc5")
+    __all__ += ["SwitchCvc5"]
 except ImportError:
     pass
 
 try:
     from .pysmt_solver import SwitchMsat
 
-    __ALL__.append("SwitchMsat")
+    __all__ += ["SwitchMsat"]
 except ImportError:
     pass
 
 
-def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:
+# Capitalised on purpose: this is a drop-in stand-in for pysmt.shortcuts.Solver,
+# which callers already spell with a capital S, so renaming it would break the
+# resemblance this function exists to provide.
+def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:  # noqa: N802
     """
     Convience function for building a pysmt solver object with a switch backend.
     Similar to `pysmt.shortcuts.Solver`.

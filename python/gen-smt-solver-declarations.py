@@ -6,6 +6,7 @@
 # is being compiled with
 
 import argparse
+from pathlib import Path
 
 CREATE_BTOR = """
 def create_btor_solver(logging):
@@ -163,8 +164,10 @@ if __name__ == "__main__":
     else:
         CREATE_IMPORTS = "# Built with no solvers..."
 
-    with open(dest_dir + "/smt_solvers.pxd", "w") as f:
+    dest = Path(dest_dir)
+
+    with (dest / "smt_solvers.pxd").open("w") as f:
         f.write(pxd)
 
-    with open(dest_dir + "/smt_solvers.pyx", "w") as f:
+    with (dest / "smt_solvers.pyx").open("w") as f:
         f.write(pyx % CREATE_IMPORTS)
