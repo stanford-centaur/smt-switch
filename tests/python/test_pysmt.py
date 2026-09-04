@@ -22,10 +22,7 @@ def test_basic(solver_str, T, logic, implicit):
     x = sc.FreshSymbol(T)
     problem = sc.And(x < 2, x > 0)
     x_val = None
-    if implicit:
-        args = ()
-    else:
-        args = (logic,)
+    args = () if implicit else (logic,)
 
     if logic not in fe.SWITCH_SOLVERS[solver_str].LOGICS:
         with pytest.raises(RuntimeError):

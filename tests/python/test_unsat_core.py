@@ -28,7 +28,7 @@ def test_unsat_assumptions_simple(create_solver):
     a = solver.make_symbol("a", boolsort)
     b = solver.make_symbol("b", boolsort)
     notB = solver.make_term(ss.primops.Not, b)
-    r = solver.check_sat_assuming([a, b, notB])
+    solver.check_sat_assuming([a, b, notB])
     core = solver.get_unsat_assumptions()
     assert b in core, "expecting b to be in core"
     assert notB in core, "expecting (not b) to be in core"

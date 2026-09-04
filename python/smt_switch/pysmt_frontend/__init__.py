@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import typing as tp
 
 from pysmt import logics
 from pysmt.environment import get_env
 from pysmt.exceptions import NoLogicAvailableError, NoSolverAvailableError
-from pysmt.solvers.solver import Solver as SolverT
 
 from .pysmt_solver import SWITCH_SOLVERS
+
+if tp.TYPE_CHECKING:
+    from pysmt.solvers.solver import Solver as SolverT
 
 __ALL__ = ["SWITCH_SOLVERS", "Solver"]
 
@@ -32,7 +36,7 @@ except ImportError:
     pass
 
 
-def Solver(name: str, logic: tp.Optional[logics.Logic] = None) -> SolverT:
+def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:
     """
     Convience function for building a pysmt solver object with a switch backend.
     Similar to `pysmt.shortcuts.Solver`.

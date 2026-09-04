@@ -22,7 +22,7 @@ import smt_switch as ss
 
 
 @pytest.mark.parametrize(
-    "create_solver,num_vars", product(ss.solvers.values(), [3, 6, 8])
+    ("create_solver", "num_vars"), product(ss.solvers.values(), [3, 6, 8])
 )
 def test_sorting_network(create_solver, num_vars):
     solver = create_solver(False)
