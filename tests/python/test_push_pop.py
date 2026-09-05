@@ -1,18 +1,6 @@
-###############################################################
-# \file test_push_pop.py
-# \verbatim
-# Top contributors (to current version):
-#   Po-Chun Chien
-# This file is part of the smt-switch project.
-# Copyright (c) 2020 by the authors listed in the file AUTHORS
-# in the top-level source directory) and their institutional affiliations.
-# All rights reserved.  See the file LICENSE in the top-level source
-# directory for licensing information.\endverbatim
-#
-# \brief
-#
-#
-#
+# SPDX-FileCopyrightText: 2026 the smt-switch authors
+# SPDX-FileContributor: Po-Chun Chien
+# SPDX-License-Identifier: BSD-3-Clause
 
 import pytest
 

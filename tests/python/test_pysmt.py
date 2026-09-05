@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 the smt-switch authors
+# SPDX-FileContributor: Caleb Donovick
+# SPDX-License-Identifier: BSD-3-Clause
+
 import pytest
 
 # pysmt is an optional dependency, so each module is bound through
