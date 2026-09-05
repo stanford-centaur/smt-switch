@@ -21,5 +21,6 @@ install_step() {
   cmake --install build
 }
 
+_setup_script_path=$(realpath "$0")
 # shellcheck source=contrib/common-setup.sh
-source "$(dirname "$(realpath "$0")")/common-setup.sh"
+source "$(dirname "$_setup_script_path")/common-setup.sh"

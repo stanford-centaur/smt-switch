@@ -9,5 +9,6 @@ configure_step() {
   ./configure.py --prefix "$install_dir"
 }
 
+_setup_script_path=$(realpath "$0")
 # shellcheck source=contrib/meson-setup.sh
-source "$(dirname "$(realpath "$0")")/meson-setup.sh"
+source "$(dirname "$_setup_script_path")/meson-setup.sh"

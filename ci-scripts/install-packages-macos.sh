@@ -9,9 +9,12 @@ brew install \
   meson \
   python-packaging
 
+brew_prefix=$(brew --prefix)
+bison_prefix=$(brew --prefix bison)
+
 {
-  echo "CPATH=$(brew --prefix)/include"
-  echo "LIBRARY_PATH=$(brew --prefix)/lib"
-  echo "PKG_CONFIG_PATH=$(brew --prefix)/lib/pkgconfig"
-  echo "PATH=$(brew --prefix bison)/bin:$(brew --prefix)/bin:$PATH"
-} >>"$GITHUB_ENV"
+  echo "CPATH=$brew_prefix/include"
+  echo "LIBRARY_PATH=$brew_prefix/lib"
+  echo "PKG_CONFIG_PATH=$brew_prefix/lib/pkgconfig"
+  echo "PATH=$bison_prefix/bin:$brew_prefix/bin:$PATH"
+} >>"${GITHUB_ENV:?}"

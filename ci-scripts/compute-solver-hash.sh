@@ -21,4 +21,5 @@ fi
 if [[ $solver == btor ]]; then
   solver_hash+=$(gethash contrib/setup-btor2tools.sh)
 fi
-echo "result=$(gethash <(echo "$solver_hash"))" >>"$GITHUB_OUTPUT"
+result=$(gethash <(echo "$solver_hash"))
+echo "result=$result" >>"${GITHUB_OUTPUT:?}"
