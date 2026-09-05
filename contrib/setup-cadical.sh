@@ -20,7 +20,9 @@ install_step() {
   export install_dir _version
   mkdir -p "$install_pkgconfigdir"
   # shellcheck disable=SC2016
-  envsubst '$install_dir $_version' <"$pkg_config_dir/cadical.pc.in" >"$install_pkgconfigdir/cadical.pc"
+  envsubst '$install_dir $_version' \
+    <"$pkg_config_dir/cadical.pc.in" \
+    >"$install_pkgconfigdir/cadical.pc"
   export -n install_dir _version
 }
 
