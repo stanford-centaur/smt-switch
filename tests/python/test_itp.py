@@ -28,15 +28,16 @@ def get_free_vars(t: ss.Term) -> set[ss.Term]:
     return free_vars
 
 
-# Note: Msat is only interpolant producing solver currently
-@pytest.mark.parametrize(
-    "itp_name", [name for name in ss.solvers if name in {"msat", "cvc5"}]
-)
+# Only cvc5 and msat expose an interpolator to Python. Bitwuzla implements one
+# in C++ (BitwuzlaSolverFactory::create_interpolating_solver) but the bindings
+# do not declare it; btor, yices2 and z3 have no interpolation support at all.
+# Every solver is parametrized so the report names the ones it skipped.
+@pytest.mark.parametrize("itp_name", sorted(ss.solvers))
 def test_simple_itp(itp_name):
     try:
         create_interpolator = getattr(ss, f"create_{itp_name}_interpolator")
-    except AttributeError as err:
-        raise NotImplementedError(f"Haven't handled interpolator {itp_name}") from err
+    except AttributeError:
+        pytest.skip(f"{itp_name} exposes no interpolator to Python")
     itp = create_interpolator()
 
     intsort = itp.make_sort(ss.sortkinds.INT)

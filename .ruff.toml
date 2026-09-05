@@ -17,8 +17,6 @@ ignore = [
   "ANN",    # the codebase is essentially unannotated; revisit if mypy is enabled
   "COM812", # trailing commas are the formatter's job
   "D",      # no docstring convention has been adopted
-  "EM",     # message literals inline in `raise` are fine
-  "TRY003", # see EM
 ]
 
 # Only rules that a whole file violates by design belong here. One-off cases
@@ -29,6 +27,11 @@ ignore = [
 # The Cython `cdef extern` declarations this generator emits are single long
 # lines that neither the formatter nor a human can usefully wrap.
 "python/gen-smt-solver-declarations.py" = ["E501"]
+# This module raises pysmt's own exception types with a message describing the
+# term or sort at fault, across 17 sites. Bespoke subclasses would not suit
+# borrowed exception types, and hoisting each message to a variable would add a
+# line per raise.
+"python/smt_switch/pysmt_frontend/*" = ["EM", "TRY003"]
 # Bare assert is how a pytest test asserts.
 "tests/python/test_*.py" = ["S101"]
 
