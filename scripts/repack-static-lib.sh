@@ -13,17 +13,17 @@ if [[ $OSTYPE == linux* || $OSTYPE == cygwin* ]]; then
     exit
   fi
 
-  TARGET=$1
-  MRI_COMMAND="create $TARGET"
+  target=$1
+  mri_command="create $target"
   for lib in "${@:2}"; do
-    MRI_COMMAND="${MRI_COMMAND}\naddlib $lib"
+    mri_command="${mri_command}\naddlib $lib"
   done
 
-  MRI_COMMAND="${MRI_COMMAND}\nsave\nend"
-  echo -e "$MRI_COMMAND" | ar -M
+  mri_command="${mri_command}\nsave\nend"
+  echo -e "$mri_command" | ar -M
 
-  if [ ! -f "${TARGET}" ]; then
-    echo "It appears ar failed to create ${TARGET}"
+  if [ ! -f "${target}" ]; then
+    echo "It appears ar failed to create ${target}"
     exit 1
   fi
 elif [[ $OSTYPE == darwin* ]]; then
