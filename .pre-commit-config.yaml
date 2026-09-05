@@ -77,26 +77,24 @@ repos:
       - id: shfmt
         args: [-w, -i, "2", -ci, -s]
 
-  # The hooks below are not enabled yet because the tree does not satisfy them.
-  # Each needs its own pass before it can be turned on:
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      # Configured by .shellcheckrc, which turns on external-sources so that
+      # the `# shellcheck source=` directives in contrib/setup-*.sh resolve
+      # no matter which files a given commit stages.
+      - id: shellcheck
+
+  # The hook below is not enabled yet because the tree does not satisfy it:
   #
   #   clang-format  86 of 229 C/C++ files would be rewritten (~1350 lines).
   #                 Needs a bulk-reformat commit plus a .git-blame-ignore-revs
   #                 entry. Note .clang-format is already committed.
   #
-  #   shellcheck    43 findings in 7 of 22 scripts. Most are missing quotes
-  #                 that can simply be added, but configure.sh accumulates its
-  #                 CMake options in one string that has to word-split, so it
-  #                 needs a rewrite onto positional parameters first.
-  #
-  # Dependabot cannot bump commented-out repos, so re-check these revisions
-  # with `pre-commit autoupdate` when enabling them.
+  # Dependabot cannot bump commented-out repos, so re-check this revision
+  # with `pre-commit autoupdate` when enabling it.
   #
   # - repo: https://github.com/pre-commit/mirrors-clang-format
   #   rev: v23.1.0
   #   hooks:
   #     - id: clang-format
-  # - repo: https://github.com/shellcheck-py/shellcheck-py
-  #   rev: v0.11.0.1-1
-  #   hooks:
-  #     - id: shellcheck

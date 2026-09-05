@@ -34,7 +34,7 @@ elif [[ $OSTYPE == darwin* ]]; then
     exit
   fi
 
-  libtool -static -o $@
+  libtool -static -o "$@"
 elif [[ $OSTYPE == msys* ]]; then
   echo "$0 does not support repacking static libs on Windows yet"
 else

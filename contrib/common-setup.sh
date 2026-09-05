@@ -1,4 +1,9 @@
 # shellcheck shell=bash
+#
+# Several of the variables set below are not read here but by the
+# contrib/setup-*.sh front-ends that source this file. shellcheck only looks
+# forward from a `source` directive, so it cannot see those uses.
+# shellcheck disable=SC2034
 set -e          # exit on error
 set -u          # unset variable raises error
 set -o pipefail # exit if an intermediate command in a pipe fails

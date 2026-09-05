@@ -1,0 +1,6 @@
+# Follow `# shellcheck source=` directives into the sourced contrib/ libraries.
+#
+# Without this, shellcheck only resolves a sourced file when that file also
+# happens to be one of the paths on the command line, so the findings for
+# contrib/setup-*.sh would depend on which files a given commit staged.
+external-sources=true
