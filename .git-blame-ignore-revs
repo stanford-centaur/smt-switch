@@ -1,0 +1,17 @@
+# Commits that only reformat code, listed so that `git blame` can skip them.
+#
+# GitHub reads this file automatically. To use it locally, run:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Add a full commit hash plus its subject line for every bulk-reformat commit,
+# oldest first. Only add a commit whose diff is purely a reformatting: one that
+# changes how the code is laid out but not what it does. Automated lint fixes
+# do not belong here, because they rewrite the code itself and blame should
+# point at them.
+
+# style: Add minimal ruff config and autoformat Python sources (#510)
+dc378fda402df6a068ef267965a1e7d0898ab02d
+
+# style: Apply shfmt and enable the hook (#521)
+f8935125f9812bd70592991629692f2b71f952e6
