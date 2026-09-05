@@ -27,7 +27,8 @@ cd "$script_dir/.."
 # configure and build smt-switch with boolector and cvc5 backends
 # set it up to be installed in a directory called example-install in the examples directory
 # also use a build directory in the examples directory
-./configure.sh --btor --cvc5 --prefix=./examples/example-install --build-dir="$script_dir/example-build" "$@"
+./configure.sh --btor --cvc5 --prefix=./examples/example-install \
+  --build-dir="$script_dir/example-build" "$@"
 cd "$script_dir/example-build"
 make
 make test

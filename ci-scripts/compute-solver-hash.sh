@@ -5,7 +5,7 @@ gethash() {
 }
 solver="$1"
 solver_hash="$(gethash ci-scripts/setup-"$1".sh)"
-if [[ $solver == bitwuzla || $solver == btor || $solver == cvc5 || $solver == z3 ]]; then
+if [[ $solver =~ ^(bitwuzla|btor|cvc5|z3)$ ]]; then
   solver_hash+="$(gethash contrib/common-setup.sh)"
   if [[ $solver == bitwuzla ]]; then
     solver_hash+="$(gethash contrib/meson-setup.sh)"

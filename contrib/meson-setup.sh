@@ -12,7 +12,8 @@ if ! declare -F configure_step >/dev/null; then
 fi
 
 build_step() {
-  meson compile -C build ${meson_compile_options[@]+"${meson_compile_options[@]}"}
+  meson compile -C build \
+    ${meson_compile_options[@]+"${meson_compile_options[@]}"}
 }
 
 install_step() {

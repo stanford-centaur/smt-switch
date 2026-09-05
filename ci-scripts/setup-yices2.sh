@@ -28,15 +28,18 @@ if [ ! -d "$deps_dir/yices2" ]; then
   make build_dir=build BUILD=build -j"$num_cores"
   cd "$script_dir" || exit 1
 else
-  echo "$deps_dir/yices2 already exists. If you want to rebuild, please remove it manually."
+  echo "$deps_dir/yices2 already exists." \
+    "If you want to rebuild, please remove it manually."
 fi
 
 if [ -f "$deps_dir/yices2/build/lib/libyices.a" ]; then
   echo "It appears yices2 was setup successfully into $deps_dir/yices2."
-  echo "You may now install it with make ./configure.sh --yices2 && cd build && make"
+  echo "You may now install it with" \
+    "./configure.sh --yices2 && cd build && make"
 else
   echo "Building yices2 failed."
   echo "You might be missing some dependencies."
-  echo "Please see their github page for installation instructions: https://github.com/SRI-CSL/yices2"
+  echo "Please see their github page for installation instructions:" \
+    "https://github.com/SRI-CSL/yices2"
   exit 1
 fi

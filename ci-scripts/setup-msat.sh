@@ -26,8 +26,10 @@ while (($# > 0)); do
 done
 
 if [[ $get_msat == default ]]; then
-  printf "%s\n" "MathSAT is distributed under a custom (non-BSD-compliant) license." \
-    "By continuing, you acknowledge this and assume responsibility for meeting the license conditions."
+  printf "%s\n" \
+    "MathSAT is distributed under a custom (non-BSD-compliant) license." \
+    "By continuing, you acknowledge this and assume responsibility for" \
+    "meeting the license conditions."
   read -rp "Continue? [y]es/[n]o: " get_msat
 fi
 
@@ -40,11 +42,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 mkdir -p deps && cd deps
 
 if [[ -d mathsat ]]; then
-  echo "$(pwd)/mathsat already exists. If you want to re-download, please remove it manually."
+  echo "$(pwd)/mathsat already exists." \
+    "If you want to re-download, please remove it manually."
 else
   release_url="https://mathsat.fbk.eu/release"
   if [[ $OSTYPE =~ linux* ]]; then
-    wget -O mathsat.tar.gz "${release_url}/mathsat-${version}-linux-x86_64.tar.gz"
+    wget -O mathsat.tar.gz \
+      "${release_url}/mathsat-${version}-linux-x86_64.tar.gz"
   elif [[ $OSTYPE =~ darwin* ]]; then
     wget -O mathsat.tar.gz "${release_url}/mathsat-${version}-macos.tar.gz"
   else

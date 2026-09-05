@@ -40,7 +40,8 @@ fi
 # Check if dependency has already been downloaded.
 mkdir -p "$deps_dir" && cd "$deps_dir"
 if [[ -d $dep_name ]]; then
-  echo "$deps_dir/$dep_name already exists, remove it manually if you want to rebuild $dep_name"
+  echo "$deps_dir/$dep_name already exists," \
+    "remove it manually if you want to rebuild $dep_name"
   exit
 fi
 

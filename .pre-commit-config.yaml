@@ -85,6 +85,21 @@ repos:
       # no matter which files a given commit stages.
       - id: shellcheck
 
+  - repo: https://github.com/openstack/bashate
+    rev: 2.1.1
+    hooks:
+      # -i E003 drops "indent not a multiple of 4": bashate hardcodes a
+      # 4-space rule with no way to configure the width, which contradicts the
+      # `shfmt -i 2` above.
+      #
+      # -e E promotes every remaining rule to an error. Some of them, E006
+      # among them, are warnings by default, and bashate exits 0 on a warning;
+      # pre-commit hides the output of a hook that passes, so those would
+      # never be seen. The ignore above still wins, since bashate applies it
+      # before the error/warning split.
+      - id: bashate
+        args: [-i, E003, -e, E]
+
   # The hook below is not enabled yet because the tree does not satisfy it:
   #
   #   clang-format  86 of 229 C/C++ files would be rewritten (~1350 lines).
