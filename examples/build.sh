@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 # get the absolute path to this directory
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 set -e
 
-help_message()
-{
-    echo "usage: $0 [--python]"
-    echo "this script builds smt-switch and the C++ examples"
-    echo "it also builds and installs the python bindings if run with --python"
-    exit 0
+help_message() {
+  echo "usage: $0 [--python]"
+  echo "this script builds smt-switch and the C++ examples"
+  echo "it also builds and installs the python bindings if run with --python"
+  exit 0
 }
 
-if [[ "$1" == "--help" ]]; then
-    help_message
+if [[ $1 == "--help" ]]; then
+  help_message
 fi
 
 if [ $# -gt 2 ]; then
-    help_message
-elif [[ $# -eq 1 && "$1" != "--python" ]]; then
-    help_message
+  help_message
+elif [[ $# -eq 1 && $1 != "--python" ]]; then
+  help_message
 fi
-
 
 # go to main repo directory
 cd $DIR/..
