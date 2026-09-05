@@ -20,10 +20,10 @@ set -e
 # Find the Python root directory for the current Python version
 # This is important for the manylinux infrastructure, which is in
 # a nonstandard location that CMake has trouble finding
-PYTHON_EXECUTABLE=$(which python3)
-echo "Using Python_EXECUTABLE: ${PYTHON_EXECUTABLE}"
+python_executable=$(command -v python3)
+echo "Using Python_EXECUTABLE: ${python_executable}"
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${PYTHON_EXECUTABLE}
+./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable=${python_executable}
 cd build
 make -j

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # get the absolute path to this directory
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 set -e
 
@@ -22,21 +22,21 @@ elif [[ $# -eq 1 && $1 != "--python" ]]; then
 fi
 
 # go to main repo directory
-cd $DIR/..
+cd $script_dir/..
 
 # configure and build smt-switch with boolector and cvc5 backends
 # set it up to be installed in a directory called example-install in the examples directory
 # also use a build directory in the examples directory
-./configure.sh --btor --cvc5 --prefix=./examples/example-install --build-dir=$DIR/example-build $1
-cd $DIR/example-build
+./configure.sh --btor --cvc5 --prefix=./examples/example-install --build-dir=$script_dir/example-build $1
+cd $script_dir/example-build
 make
 make test
 make install
 
-cd $DIR
+cd $script_dir
 # now make the examples
 make
 
 # install python bindings with pip
 # this line might need to be adjusted depending on your current python environment
-python3 -m pip install -e $DIR/example-build/python
+python3 -m pip install -e $script_dir/example-build/python
