@@ -63,6 +63,20 @@ repos:
       # unreliable in CI and broken offline. check-toml covers syntax.
       - id: taplo-format
 
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+      # -w is one of the hook's default args and must be repeated, because
+      # `args` replaces the defaults rather than extending them.
+      #
+      # -i 2 matches the indentation the majority of these scripts already
+      # use. Deliberately no -ln: the contrib/*-setup.sh libraries have no
+      # shebang, and shfmt's default language detection already parses them
+      # as bash. Deliberately no .editorconfig either, since shfmt would then
+      # take its indentation from that file and ignore these flags.
+      - id: shfmt
+        args: [-w, -i, "2", -ci, -s]
+
   # The hooks below are not enabled yet because the tree does not satisfy them.
   # Each needs its own pass before it can be turned on:
   #
@@ -70,13 +84,10 @@ repos:
   #                 Needs a bulk-reformat commit plus a .git-blame-ignore-revs
   #                 entry. Note .clang-format is already committed.
   #
-  #   shfmt         6 shell files would be rewritten (~570 lines); configure.sh
-  #                 gets reindented from 4-space to 2-space. Needs the CI matrix
-  #                 as proof the reindent was semantics-preserving.
-  #
-  #   shellcheck    43 findings in 7 of 22 scripts, 27 of them SC2086 on option
-  #                 strings that configure.sh intentionally word-splits. Fixing
-  #                 those changes behavior, so each site needs review.
+  #   shellcheck    43 findings in 7 of 22 scripts. Most are missing quotes
+  #                 that can simply be added, but configure.sh accumulates its
+  #                 CMake options in one string that has to word-split, so it
+  #                 needs a rewrite onto positional parameters first.
   #
   # Dependabot cannot bump commented-out repos, so re-check these revisions
   # with `pre-commit autoupdate` when enabling them.
@@ -85,13 +96,6 @@ repos:
   #   rev: v23.1.0
   #   hooks:
   #     - id: clang-format
-  # - repo: https://github.com/scop/pre-commit-shfmt
-  #   rev: v3.13.1-1
-  #   hooks:
-  #     # -w is one of the hook's default args and must be repeated, because
-  #     # `args` replaces the defaults rather than extending them.
-  #     - id: shfmt
-  #       args: [-w, -i, "2", -ci, -s]
   # - repo: https://github.com/shellcheck-py/shellcheck-py
   #   rev: v0.11.0.1-1
   #   hooks:
