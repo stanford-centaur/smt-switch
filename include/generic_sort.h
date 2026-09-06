@@ -63,6 +63,18 @@ class GenericSort : public AbsSort
     throw NotImplementedException("get_width not implemented by GenericSort");
   }
 
+  std::uint64_t get_exponent_width() const override
+  {
+    throw NotImplementedException(
+        "get_exponent_width not implemented by GenericSort");
+  }
+
+  std::uint64_t get_significand_width() const override
+  {
+    throw NotImplementedException(
+        "get_significand_width not implemented by GenericSort");
+  }
+
   std::size_t get_arity() const override
   {
     throw NotImplementedException("get_width not implemented by GenericSort");

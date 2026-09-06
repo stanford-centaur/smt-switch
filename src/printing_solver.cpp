@@ -68,6 +68,13 @@ Sort PrintingSolver::make_sort(const SortKind sk, std::uint64_t size) const
   return wrapped_solver->make_sort(sk, size);
 }
 
+Sort PrintingSolver::make_sort(const SortKind sk,
+                               std::uint64_t exp_width,
+                               std::uint64_t sig_width) const
+{
+  return wrapped_solver->make_sort(sk, exp_width, sig_width);
+}
+
 Sort PrintingSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
   return wrapped_solver->make_sort(sk, sort1);

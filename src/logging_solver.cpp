@@ -74,6 +74,14 @@ Sort LoggingSolver::make_sort(const SortKind sk, std::uint64_t size) const
   return make_logging_sort(sk, sort, size);
 }
 
+Sort LoggingSolver::make_sort(const SortKind sk,
+                              std::uint64_t exp_width,
+                              std::uint64_t sig_width) const
+{
+  Sort sort = wrapped_solver->make_sort(sk, exp_width, sig_width);
+  return std::make_shared<LoggingSort>(sk, sort);
+}
+
 Sort LoggingSolver::make_sort(const SortKind sk, const Sort & sort1) const
 {
   std::shared_ptr<LoggingSort> ls1 =

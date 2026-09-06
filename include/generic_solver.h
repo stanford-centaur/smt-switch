@@ -81,6 +81,9 @@ class GenericSolver : public AbsSmtSolver
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
+  Sort make_sort(const SortKind sk,
+                 std::uint64_t exp_width,
+                 std::uint64_t sig_width) const override;
   Sort make_sort(const SortKind sk, const Sort & sort1) const override;
   Sort make_sort(const SortKind sk,
                  const Sort & sort1,

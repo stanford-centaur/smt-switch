@@ -35,6 +35,19 @@ class BzlaSort : public AbsSort
   virtual ~BzlaSort();
   std::size_t hash() const override;
   std::uint64_t get_width() const override;
+
+  std::uint64_t get_exponent_width() const override
+  {
+    throw NotImplementedException(
+        "get_exponent_width not implemented by BzlaSort");
+  }
+
+  std::uint64_t get_significand_width() const override
+  {
+    throw NotImplementedException(
+        "get_significand_width not implemented by BzlaSort");
+  }
+
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;

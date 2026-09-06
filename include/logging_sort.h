@@ -65,6 +65,18 @@ class LoggingSort : public AbsSort
         "get_width not implemented by generic LoggingSort");
   }
 
+  std::uint64_t get_exponent_width() const override
+  {
+    throw NotImplementedException(
+        "get_exponent_width not implemented by generic LoggingSort");
+  }
+
+  std::uint64_t get_significand_width() const override
+  {
+    throw NotImplementedException(
+        "get_significand_width not implemented by generic LoggingSort");
+  }
+
   Sort get_indexsort() const override
   {
     throw NotImplementedException(
