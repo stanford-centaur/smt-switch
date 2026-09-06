@@ -1,4 +1,16 @@
 # shellcheck shell=bash
+#
+# Several of the variables set below are not read here but by the
+# contrib/setup-*.sh front-ends that source this file. shellcheck only looks
+# forward from a `source` directive, so it cannot see those uses.
+# shellcheck disable=SC2034
+#
+# Every script in this directory resolves $0 through realpath before taking
+# its dirname, both here and in the front-ends that source their library that
+# way. That is because ci-scripts/setup-{bitwuzla,btor,cvc5,z3}.sh are symlinks
+# into this directory: `dirname "$0"` on its own yields ci-scripts/ and would
+# not find the library. realpath is assigned to a variable rather than nested
+# inside the source command so that a failure is not swallowed (SC2312).
 set -e          # exit on error
 set -u          # unset variable raises error
 set -o pipefail # exit if an intermediate command in a pipe fails
@@ -24,9 +36,10 @@ else
 fi
 
 # Get the number of CPUs for parallel builds.
-if [[ $(uname) == Darwin ]]; then
+kernel_name=$(uname -s)
+if [[ $kernel_name == Darwin ]]; then
   num_cores=$(sysctl -n hw.logicalcpu)
-elif [[ $(uname -s) =~ Linux* ]]; then
+elif [[ $kernel_name =~ Linux* ]]; then
   num_cores=$(nproc)
 else
   num_cores=1

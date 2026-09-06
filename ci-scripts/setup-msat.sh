@@ -40,7 +40,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 mkdir -p deps && cd deps
 
 if [[ -d mathsat ]]; then
-  echo "$(pwd)/mathsat already exists. If you want to re-download, please remove it manually."
+  echo "$PWD/mathsat already exists. If you want to re-download, please remove it manually."
 else
   release_url=https://mathsat.fbk.eu/release
   if [[ $OSTYPE =~ linux* ]]; then

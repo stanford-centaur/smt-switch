@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -lt 2 ]; then
+if [[ $# -lt 2 ]]; then
   echo "usage: $0 <libname> [...libs to combine]"
   exit 1
 fi
@@ -22,7 +22,7 @@ if [[ $OSTYPE == linux* || $OSTYPE == cygwin* ]]; then
   mri_command="${mri_command}\nsave\nend"
   echo -e "$mri_command" | ar -M
 
-  if [ ! -f "${target}" ]; then
+  if [[ ! -f ${target} ]]; then
     echo "It appears ar failed to create ${target}"
     exit 1
   fi
@@ -34,7 +34,7 @@ elif [[ $OSTYPE == darwin* ]]; then
     exit
   fi
 
-  libtool -static -o $@
+  libtool -static -o "$@"
 elif [[ $OSTYPE == msys* ]]; then
   echo "$0 does not support repacking static libs on Windows yet"
 else

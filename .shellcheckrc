@@ -1,0 +1,16 @@
+# Follow `# shellcheck source=` directives into the sourced contrib/ libraries.
+#
+# Without this, shellcheck only resolves a sourced file when that file also
+# happens to be one of the paths on the command line, so the findings for
+# contrib/setup-*.sh would depend on which files a given commit staged.
+external-sources=true
+
+# Turn on every optional check, then switch off the ones we do not want. New
+# optional checks introduced by a shellcheck upgrade are therefore opt-out
+# rather than opt-in.
+enable=all
+
+# SC2250, from require-variable-braces, asks for ${var} in place of $var
+# everywhere. That is 182 rewrites across 17 files with no correctness benefit,
+# and the tree is consistent in not using braces unless they are needed.
+disable=SC2250
