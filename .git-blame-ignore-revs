@@ -15,3 +15,6 @@ dc378fda402df6a068ef267965a1e7d0898ab02d
 
 # style: Apply shfmt and enable the hook (#521)
 f8935125f9812bd70592991629692f2b71f952e6
+
+# style: Apply clang-format and enable the hook (#528)
+7cbd83717b504ed5be87c018510cbd4e522e15c0
