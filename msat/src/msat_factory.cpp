@@ -15,9 +15,9 @@
 **/
 
 #include "msat_factory.h"
-#include "msat_solver.h"
 
 #include "logging_solver.h"
+#include "msat_solver.h"
 
 namespace smt {
 

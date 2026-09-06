@@ -51,11 +51,11 @@ TEST_P(IntTests, Mult)
   Term mult;
   try
   {
-    mult = s->make_term(Mult, {two, three, four});
+    mult = s->make_term(Mult, { two, three, four });
   }
-  catch (const IncorrectUsageException &e)
+  catch (const IncorrectUsageException & e)
   {
-    FAIL() <<  "creating mult-term failed: " << e.what();
+    FAIL() << "creating mult-term failed: " << e.what();
   }
   s->assert_formula(s->make_term(Equal, twentyfour, mult));
   auto res = s->check_sat();
@@ -116,10 +116,12 @@ TEST_P(IntTests, Bv2Int)
 
   ASSERT_TRUE(intz);
   EXPECT_EQ(intz->get_sort(), intsort);
-  if (intz->get_op() != SBV_To_Int) {
+  if (intz->get_op() != SBV_To_Int)
+  {
     // Some solvers (e.g., Z3) have different implementations that predate
     // SMT-LIB support for this operation.
-    std::cout << "Got " << intz->get_op().to_string() << " when checking SBV_To_Int" << std::endl;
+    std::cout << "Got " << intz->get_op().to_string()
+              << " when checking SBV_To_Int" << std::endl;
   }
 }
 

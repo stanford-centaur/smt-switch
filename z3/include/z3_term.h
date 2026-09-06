@@ -32,12 +32,12 @@ class Z3TermIter : public TermIterBase
 {
  public:
   Z3TermIter(expr t, uint32_t p, bool nt = false)
-      : term(t), pos(p), null_term(nt){};
+      : term(t), pos(p), null_term(nt) {};
   Z3TermIter(const Z3TermIter & it)
       : term(it.term), pos(it.pos), null_term(it.null_term)
   {
   }
-  ~Z3TermIter(){};
+  ~Z3TermIter() {};
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -77,7 +77,7 @@ class Z3Term : public AbsTerm
   {
     ctx = &c;
   };
-  ~Z3Term(){};
+  ~Z3Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

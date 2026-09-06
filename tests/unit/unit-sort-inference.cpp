@@ -25,8 +25,9 @@ using namespace std;
 namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortInferenceTests);
-class UnitSortInferenceTests : public ::testing::Test,
-                               public ::testing::WithParamInterface<SolverConfiguration>
+class UnitSortInferenceTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -135,13 +136,13 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_FALSE(check_sortedness(Distinct, { p, w }));
 
   /********* Arrays ********/
-  EXPECT_TRUE(check_sortedness(Select, {arr, p}));
-  EXPECT_TRUE(check_sortedness(Store, {arr, p, q}));
+  EXPECT_TRUE(check_sortedness(Select, { arr, p }));
+  EXPECT_TRUE(check_sortedness(Store, { arr, p, q }));
   EXPECT_TRUE(check_sortedness(Equal, { arr, s->make_term(Store, arr, p, q) }));
   // wrong bit-width
-  EXPECT_FALSE(check_sortedness(Select, {arr, w}));
-  EXPECT_FALSE(check_sortedness(Store, {arr, p, w}));
-  EXPECT_FALSE(check_sortedness(Store, {arr, w, p}));
+  EXPECT_FALSE(check_sortedness(Select, { arr, w }));
+  EXPECT_FALSE(check_sortedness(Store, { arr, p, w }));
+  EXPECT_FALSE(check_sortedness(Store, { arr, w, p }));
 
   // BTOR doesn't support getting the sort of a function yet
   if (s->get_solver_enum() != BTOR)
@@ -152,9 +153,9 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
     EXPECT_FALSE(check_sortedness(Apply, { f, p, w }));
     EXPECT_FALSE(check_sortedness(Apply, { f, arr, q }));
     // wrong number of arguments
-    EXPECT_FALSE(check_sortedness(Apply, {f}));
-    EXPECT_FALSE(check_sortedness(Apply, {f, p}));
-    EXPECT_FALSE(check_sortedness(Apply, {f, arr}));
+    EXPECT_FALSE(check_sortedness(Apply, { f }));
+    EXPECT_FALSE(check_sortedness(Apply, { f, p }));
+    EXPECT_FALSE(check_sortedness(Apply, { f, arr }));
   }
 
   /************** Quantifiers (if supported) ******************/
@@ -167,12 +168,13 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
     // e.g. BTOR also returns the type as BV1
     if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
     {
-      EXPECT_TRUE(check_sortedness(Exists, {param, body}));
+      EXPECT_TRUE(check_sortedness(Exists, { param, body }));
     }
     // not a parameter
-    EXPECT_FALSE(check_sortedness(Exists, {q, body}));
+    EXPECT_FALSE(check_sortedness(Exists, { q, body }));
     // not a formula for the body
-    EXPECT_FALSE(check_sortedness(Exists, {param, s->make_term(BVAdd, param, q)}));
+    EXPECT_FALSE(
+        check_sortedness(Exists, { param, s->make_term(BVAdd, param, q) }));
 
     // bind param
     Term forallparam = s->make_term(Forall, param, body);
@@ -225,31 +227,31 @@ TEST_P(UnitSortInferenceTests, SortComputation)
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
 {
-  EXPECT_TRUE(check_sortedness(Gt, {x, y}));
-  EXPECT_TRUE(check_sortedness(Ge, {xint, yint}));
-  EXPECT_TRUE(check_sortedness(Lt, {x, y}));
-  EXPECT_TRUE(check_sortedness(Le, {xint, yint}));
+  EXPECT_TRUE(check_sortedness(Gt, { x, y }));
+  EXPECT_TRUE(check_sortedness(Ge, { xint, yint }));
+  EXPECT_TRUE(check_sortedness(Lt, { x, y }));
+  EXPECT_TRUE(check_sortedness(Le, { xint, yint }));
 
-  EXPECT_TRUE(check_sortedness(Plus, {x, y}));
-  EXPECT_TRUE(check_sortedness(Plus, {xint, yint}));
-  EXPECT_TRUE(check_sortedness(Minus, {x, y}));
-  EXPECT_TRUE(check_sortedness(Minus, {xint, yint}));
-  EXPECT_TRUE(check_sortedness(Negate, {xint}));
+  EXPECT_TRUE(check_sortedness(Plus, { x, y }));
+  EXPECT_TRUE(check_sortedness(Plus, { xint, yint }));
+  EXPECT_TRUE(check_sortedness(Minus, { x, y }));
+  EXPECT_TRUE(check_sortedness(Minus, { xint, yint }));
+  EXPECT_TRUE(check_sortedness(Negate, { xint }));
 
-  EXPECT_TRUE(check_sortedness(To_Int, {x}));
-  EXPECT_TRUE(check_sortedness(To_Real, {xint}));
+  EXPECT_TRUE(check_sortedness(To_Int, { x }));
+  EXPECT_TRUE(check_sortedness(To_Real, { xint }));
 
   // wrong operators
-  EXPECT_FALSE(check_sortedness(To_Real, {x}));
-  EXPECT_FALSE(check_sortedness(To_Int, {xint}));
-  EXPECT_FALSE(check_sortedness(BVUgt, {x, y}));
-  EXPECT_FALSE(check_sortedness(BVSgt, {xint, yint}));
-  EXPECT_FALSE(check_sortedness(BVUlt, {x, y}));
-  EXPECT_FALSE(check_sortedness(BVSge, {xint, yint}));
-  EXPECT_FALSE(check_sortedness(BVAdd, {xint, yint}));
+  EXPECT_FALSE(check_sortedness(To_Real, { x }));
+  EXPECT_FALSE(check_sortedness(To_Int, { xint }));
+  EXPECT_FALSE(check_sortedness(BVUgt, { x, y }));
+  EXPECT_FALSE(check_sortedness(BVSgt, { xint, yint }));
+  EXPECT_FALSE(check_sortedness(BVUlt, { x, y }));
+  EXPECT_FALSE(check_sortedness(BVSge, { xint, yint }));
+  EXPECT_FALSE(check_sortedness(BVAdd, { xint, yint }));
 
   // wrong number of arguments
-  EXPECT_FALSE(check_sortedness(Negate, {xint, yint}));
+  EXPECT_FALSE(check_sortedness(Negate, { xint, yint }));
 }
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
@@ -283,6 +285,7 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArithmeticSortInference,
                          UnitArithmeticSortInferenceTests,
-                         testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_REAL })));
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_REAL })));
 
 }  // namespace smt_tests

@@ -17,8 +17,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "msat_factory.h"
 #include "smt.h"
 // after a full installation
@@ -28,8 +28,8 @@
 using namespace smt;
 using namespace std;
 
-
-void transfer_int_test() {
+void transfer_int_test()
+{
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort realsort = s->make_sort(REAL);
@@ -67,8 +67,8 @@ void transfer_int_test() {
   assert(s2->check_sat().is_sat());
 }
 
-
-void transfer_bv_test() {
+void transfer_bv_test()
+{
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);

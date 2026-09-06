@@ -28,7 +28,7 @@ namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BVTests);
 class BVTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+                public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

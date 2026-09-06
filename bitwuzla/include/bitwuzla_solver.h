@@ -41,7 +41,7 @@ class BzlaSolver : public AbsSmtSolver
         options(),
         tm(new bitwuzla::TermManager()),
         bzla(nullptr),
-        context_level(0){};
+        context_level(0) {};
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
   ~BzlaSolver()

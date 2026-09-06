@@ -100,16 +100,16 @@ repos:
       - id: bashate
         args: [-i, E003, -e, E]
 
-  # The hook below is not enabled yet because the tree does not satisfy it:
-  #
-  #   clang-format  86 of 229 C/C++ files would be rewritten (~1350 lines).
-  #                 Needs a bulk-reformat commit plus a .git-blame-ignore-revs
-  #                 entry. Note .clang-format is already committed.
-  #
-  # Dependabot cannot bump commented-out repos, so re-check this revision
-  # with `pre-commit autoupdate` when enabling it.
-  #
-  # - repo: https://github.com/pre-commit/mirrors-clang-format
-  #   rev: v23.1.0
-  #   hooks:
-  #     - id: clang-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v23.1.0
+    hooks:
+      # Uses .clang-format: the Google style, with braces on their own line for
+      # functions, classes and control statements, and `Type * name` pointer
+      # alignment. Leave `args` unset to keep the hook's default `-i
+      # -style=file`.
+      #
+      # The mirror's revision is the clang-format version, and its output is
+      # not stable across versions: a bump can reformat files that the
+      # previous version left alone. Reformat the tree in the same commit that
+      # bumps this rev.
+      - id: clang-format

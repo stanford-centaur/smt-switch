@@ -44,10 +44,10 @@ class Z3Solver : public AbsSmtSolver
         ctx(),
         slv(ctx),
         context_level(0),
-        last_query_assuming(false){};
+        last_query_assuming(false) {};
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
-  ~Z3Solver(){};
+  ~Z3Solver() {};
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -156,6 +156,8 @@ class Z3Solver : public AbsSmtSolver
       throw NotImplementedException("Unimplemented result type from Z3");
     }
   }
-  void add_constructor(z3::sort, z3::constructors*, const DatatypeConstructorDecl&) const;
+  void add_constructor(z3::sort,
+                       z3::constructors *,
+                       const DatatypeConstructorDecl &) const;
 };
 }  // namespace smt

@@ -60,46 +60,61 @@ int main()
 
   s->assert_formula(s->make_term(Equal, lenempty, zero));
 
-  //StrLt
+  // StrLt
   s->assert_formula(s->make_term(StrLt, x, y));
   s->assert_formula(s->make_term(StrLt, yx, xy));
-  //StrLeq StrConcat
+  // StrLeq StrConcat
   s->assert_formula(s->make_term(StrLeq, z, xy));
-  //StrLen
+  // StrLen
   s->assert_formula(s->make_term(Lt, zero, lenz));
-  //StrConcat
+  // StrConcat
   s->assert_formula(s->make_term(Not, s->make_term(Equal, xy, yx)));
-  //StrSubstr
+  // StrSubstr
   s->assert_formula(s->make_term(Equal, x, substryx));
   s->assert_formula(s->make_term(Not, s->make_term(Equal, y, substryx)));
-  s->assert_formula(s->make_term(Equal, empty, s->make_term(StrSubstr, x, lenx, lenx)));
-  s->assert_formula(s->make_term(Equal, empty, s->make_term(StrSubstr, x, minusone, lenx)));
-  //StrAt
-  s->assert_formula(s->make_term(Equal, s->make_term(StrLen, s->make_term(StrAt, y, zero)), one));
+  s->assert_formula(
+      s->make_term(Equal, empty, s->make_term(StrSubstr, x, lenx, lenx)));
+  s->assert_formula(
+      s->make_term(Equal, empty, s->make_term(StrSubstr, x, minusone, lenx)));
+  // StrAt
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(StrLen, s->make_term(StrAt, y, zero)), one));
   s->assert_formula(s->make_term(Equal, empty, s->make_term(StrAt, x, lenx)));
-  s->assert_formula(s->make_term(Equal, empty, s->make_term(StrAt, x, minusone)));
-  //StrContains
+  s->assert_formula(
+      s->make_term(Equal, empty, s->make_term(StrAt, x, minusone)));
+  // StrContains
   s->assert_formula(s->make_term(Not, s->make_term(StrContains, x, y)));
   s->assert_formula(s->make_term(StrContains, xy, y));
-  //StrIndexof
-  s->assert_formula(s->make_term(Equal, lenx, s->make_term(StrIndexof, xyy, y, s->make_term(Minus, lenx, one))));
-  s->assert_formula(s->make_term(Equal, zero, s->make_term(StrIndexof, xy, empty, zero)));
-  s->assert_formula(s->make_term(Equal, minusone, s->make_term(StrIndexof, xy, x, minusone)));
-  s->assert_formula(s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, lenx)));
-  s->assert_formula(s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, zero)));
-  //StrReplace
-  s->assert_formula(s->make_term(Equal, xx, s->make_term(StrReplace, xy, y, x)));
-  s->assert_formula(s->make_term(Equal, xy, s->make_term(StrReplace, y, empty, x)));
-  //StrReplaceAll
-  s->assert_formula(s->make_term(Equal, xxx, s->make_term(StrReplaceAll, xyy, y, x)));
-  s->assert_formula(s->make_term(Equal, xyy, s->make_term(StrReplaceAll, xyy, empty, x)));
-  //StrPrefixof
+  // StrIndexof
+  s->assert_formula(s->make_term(
+      Equal,
+      lenx,
+      s->make_term(StrIndexof, xyy, y, s->make_term(Minus, lenx, one))));
+  s->assert_formula(
+      s->make_term(Equal, zero, s->make_term(StrIndexof, xy, empty, zero)));
+  s->assert_formula(
+      s->make_term(Equal, minusone, s->make_term(StrIndexof, xy, x, minusone)));
+  s->assert_formula(
+      s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, lenx)));
+  s->assert_formula(
+      s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, zero)));
+  // StrReplace
+  s->assert_formula(
+      s->make_term(Equal, xx, s->make_term(StrReplace, xy, y, x)));
+  s->assert_formula(
+      s->make_term(Equal, xy, s->make_term(StrReplace, y, empty, x)));
+  // StrReplaceAll
+  s->assert_formula(
+      s->make_term(Equal, xxx, s->make_term(StrReplaceAll, xyy, y, x)));
+  s->assert_formula(
+      s->make_term(Equal, xyy, s->make_term(StrReplaceAll, xyy, empty, x)));
+  // StrPrefixof
   s->assert_formula(s->make_term(StrPrefixof, x, xyy));
   s->assert_formula(s->make_term(Not, s->make_term(StrPrefixof, str1, A)));
-  //StrSuffixof
+  // StrSuffixof
   s->assert_formula(s->make_term(StrSuffixof, y, xyy));
   s->assert_formula(s->make_term(Not, s->make_term(StrSuffixof, str1, A)));
-  //StrIsDigit
+  // StrIsDigit
   s->assert_formula(s->make_term(StrIsDigit, str1));
   s->assert_formula(s->make_term(Not, s->make_term(StrIsDigit, A)));
   s->assert_formula(s->make_term(Not, s->make_term(StrIsDigit, str10)));
@@ -108,7 +123,7 @@ int main()
   assert(r.is_sat());
 
   cout << "Model Values:" << endl;
-  for (auto t : TermVec({ x, y, z}))
+  for (auto t : TermVec({ x, y, z }))
   {
     cout << "\t" << t << " = " << s->get_value(t) << endl;
   }

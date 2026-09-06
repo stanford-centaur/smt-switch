@@ -150,9 +150,8 @@ TEST_P(LoggingTests, Compare)
   EXPECT_EQ(fxv, fyv);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverLoggingTests,
-    LoggingTests,
-    testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverLoggingTests,
+                         LoggingTests,
+                         testing::ValuesIn(available_solver_configurations()));
 
 }  // namespace smt_tests

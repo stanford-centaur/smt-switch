@@ -19,7 +19,6 @@
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
-
 #include "yices.h"
 
 namespace smt {
@@ -31,10 +30,10 @@ class Yices2Sort : public AbsSort
 {
  public:
   // Non-functions
-  Yices2Sort(type_t y_type) : type(y_type), is_function(false){};
+  Yices2Sort(type_t y_type) : type(y_type), is_function(false) {};
 
   // Functions
-  Yices2Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun){};
+  Yices2Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun) {};
 
   ~Yices2Sort() = default;
   std::size_t hash() const override;

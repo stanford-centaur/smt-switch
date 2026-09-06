@@ -58,7 +58,7 @@ TEST_P(VariadicOpsTests, AND)
   Term reduce_and = s->make_term(And, args);
   s->assert_formula(reduce_and);
   // check that we can pass 3 (and doesn't go to a ternary call)
-  Term reduce_and3 = s->make_term(And, {args[0], args[1], args[2]});
+  Term reduce_and3 = s->make_term(And, { args[0], args[1], args[2] });
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
@@ -90,8 +90,9 @@ TEST_P(VariadicOpsTests, BVADD)
   ASSERT_EQ(s->get_value(term_sum)->to_int(), sum);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
-                         VariadicOpsTests,
-                         testing::ValuesIn(available_non_generic_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverVariadicOpsTests,
+    VariadicOpsTests,
+    testing::ValuesIn(available_non_generic_solver_configurations()));
 
 }  // namespace smt_tests

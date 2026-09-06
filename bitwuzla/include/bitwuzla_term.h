@@ -40,7 +40,7 @@ class BzlaTermIter : public TermIterBase
     terms = it.terms;
     idx = it.idx;
   };
-  ~BzlaTermIter(){};
+  ~BzlaTermIter() {};
   BzlaTermIter & operator=(const BzlaTermIter & it);
   void operator++() override;
   const Term operator*() override;

@@ -22,12 +22,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "exceptions.h"
+#include "mathsat.h"
 #include "msat_sort.h"
 #include "msat_term.h"
-
-#include "mathsat.h"
-
-#include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt.h"
@@ -48,7 +46,7 @@ class MsatSolver : public AbsSmtSolver
         logic(""),
         num_assump_clauses_(0),
         max_assump_clauses_(10000),
-        last_query_assuming(true){};
+        last_query_assuming(true) {};
   MsatSolver(msat_config c, msat_env e)
       : AbsSmtSolver(MSAT),
         cfg(c),
@@ -57,9 +55,7 @@ class MsatSolver : public AbsSmtSolver
         valid_model(false),
         logic(""),
         num_assump_clauses_(0),
-        max_assump_clauses_(10000)
-    {
-    };
+        max_assump_clauses_(10000) {};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver()
@@ -107,12 +103,18 @@ class MsatSolver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
@@ -151,7 +153,8 @@ class MsatSolver : public AbsSmtSolver
   msat_config cfg;
   // marked mutable because want to stick with const interface for functions
   // but the environment cannot be created before setting options
-  // it will be lazily created when first used (which might be in a const function)
+  // it will be lazily created when first used (which might be in a const
+  // function)
   mutable msat_env env;
   mutable bool env_uninitialized;
   bool valid_model;
@@ -162,9 +165,9 @@ class MsatSolver : public AbsSmtSolver
   std::unordered_map<size_t, msat_term>
       assumption_map_;  ///< maps msat_term labels to assumptions
   std::vector<msat_term>
-      base_assertions_;  ///< assertions at context level 0
-                         ///< to be re-added after resetting to clear old
-                         ///< clauses added for assumptions
+      base_assertions_;        ///< assertions at context level 0
+                               ///< to be re-added after resetting to clear old
+                               ///< clauses added for assumptions
   size_t num_assump_clauses_;  ///< counts how many assumption clauses are added
   size_t max_assump_clauses_;  ///< number of assumption clauses before clearing
                                ///< them

@@ -107,9 +107,9 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
   TermVec red, rem;
 
   uscr.linear_reduce_assump_unsatcore(formula, assump, red, &rem);
-  EXPECT_EQ(red.size() , 1);
-  EXPECT_EQ(rem.size() , 1);
-  EXPECT_NE(rem[0] , red[0]);
+  EXPECT_EQ(red.size(), 1);
+  EXPECT_EQ(rem.size(), 1);
+  EXPECT_NE(rem[0], red[0]);
 }
 
 // The unsat cores reducer module requires the

@@ -35,7 +35,6 @@ int main()
   Result r = s->check_sat();
   cout << r << endl;
 
-
   Term xlt = s->make_term(Op(Lt), x, val1);
   s->assert_formula(xlt);
   r = s->check_sat();

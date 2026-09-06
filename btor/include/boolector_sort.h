@@ -16,11 +16,10 @@
 
 #pragma once
 
+#include "boolector.h"
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
-
-#include "boolector.h"
 
 namespace smt {
 
@@ -31,7 +30,7 @@ class BoolectorSortBase : public AbsSort
 {
  public:
   BoolectorSortBase(SortKind sk, Btor * b, BoolectorSort s)
-      : btor(b), sort(s), sk(sk){};
+      : btor(b), sort(s), sk(sk) {};
   virtual ~BoolectorSortBase();
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -70,7 +69,7 @@ class BoolectorBVSort : public BoolectorSortBase
 {
  public:
   BoolectorBVSort(Btor * b, BoolectorSort s, uint64_t w)
-      : BoolectorSortBase(BV, b, s), width(w){};
+      : BoolectorSortBase(BV, b, s), width(w) {};
   uint64_t get_width() const override { return width; };
 
  protected:
@@ -86,7 +85,7 @@ class BoolectorArraySort : public BoolectorSortBase
 {
  public:
   BoolectorArraySort(Btor * b, BoolectorSort s, Sort is, Sort es)
-    : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
+      : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
   Sort get_indexsort() const override { return indexsort; };
   Sort get_elemsort() const override { return elemsort; };
 
@@ -104,7 +103,7 @@ class BoolectorUFSort : public BoolectorSortBase
       : BoolectorSortBase(FUNCTION, b, s),
         domain_sorts(sorts),
         codomain_sort(sort),
-        complete(true){};
+        complete(true) {};
 
   // this constructor is used by BoolectorTerm::get_sort()
   // more info for flag complete below

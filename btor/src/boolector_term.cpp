@@ -18,28 +18,27 @@
 
 // include standard version of open_memstream
 // for compatability with FreeBSD / Darwin which doesn't support it natively
-extern "C"
-{
+extern "C" {
 #include "memstream.h"
 }
 
-#include "assert.h"
 #include <unordered_map>
+
+#include "assert.h"
 #include "stdio.h"
 
 // defining hash for old compilers
-namespace std
+namespace std {
+// specializing template
+template <>
+struct hash<BtorNodeKind>
 {
-  // specializing template
-  template<>
-  struct hash<BtorNodeKind>
+  size_t operator()(const BtorNodeKind k) const
   {
-    size_t operator()(const BtorNodeKind k) const
-    {
-      return static_cast<size_t>(k);
-    }
-  };
-}
+    return static_cast<size_t>(k);
+  }
+};
+}  // namespace std
 
 namespace smt {
 
@@ -145,7 +144,7 @@ const Term BoolectorTermIter::operator*()
   btor_node_inc_ext_ref_counter(btor, res);
 
   BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
-  return std::make_shared<BoolectorTerm> (btor, node);
+  return std::make_shared<BoolectorTerm>(btor, node);
 };
 
 TermIterBase * BoolectorTermIter::clone() const
@@ -174,9 +173,7 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 /* BoolectorTerm implementation */
 
 BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
-    : btor(b),
-      node(n),
-      bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
+    : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
   // BTOR_PARAM_NODE is not a symbol
   //  because it's not a symbolic constant, it's a free variable
@@ -190,10 +187,7 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
 }
 
-BoolectorTerm::~BoolectorTerm()
-{
-  boolector_release(btor, node);
-}
+BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
 
 // BoolectorNode * -> id
 

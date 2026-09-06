@@ -16,10 +16,9 @@
 
 #pragma once
 
+#include "mathsat.h"
 #include "term.h"
 #include "utils.h"
-
-#include "mathsat.h"
 
 namespace smt {
 
@@ -32,9 +31,9 @@ class MsatTermIter : public TermIterBase
  public:
   // TODO: consider making env const everywhere
   MsatTermIter(msat_env e, const msat_term t, uint32_t p)
-      : env(e), term(t), pos(p){};
+      : env(e), term(t), pos(p) {};
   MsatTermIter(const MsatTermIter & it);
-  ~MsatTermIter(){};
+  ~MsatTermIter() {};
   MsatTermIter & operator=(const MsatTermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -64,7 +63,7 @@ class MsatTerm : public AbsTerm
     // should know that term is invalid
     MSAT_MAKE_ERROR_TERM(term);
   };
-  ~MsatTerm(){};
+  ~MsatTerm() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

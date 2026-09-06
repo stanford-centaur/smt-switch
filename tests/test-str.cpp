@@ -20,7 +20,6 @@
 #include "gtest/gtest.h"
 #include "smt.h"
 
-
 using namespace smt;
 using namespace std;
 
@@ -100,7 +99,6 @@ TEST_P(StrTests, EqualStrConsts)
   ASSERT_EQ(strx1, strx2);
 }
 
-
 TEST_P(StrTests, UseEscSequences)
 {
   Sort str_sort = s->make_sort(STRING);
@@ -112,7 +110,8 @@ TEST_P(StrTests, UseEscSequences)
 
   s->check_sat();
 
-  std:wstring wchar_u = L"u";
+std:
+  wstring wchar_u = L"u";
   std::wstring wstrx1 = s->get_value(x1)->getStringValue();
   std::wstring wstrx2 = s->get_value(x2)->getStringValue();
   std::wstring wstrx3 = s->get_value(x3)->getStringValue();
@@ -123,9 +122,6 @@ TEST_P(StrTests, UseEscSequences)
   assert(wstrx3.find(wchar_u) != std::wstring::npos);
   assert(wstrx4.find(wchar_u) != std::wstring::npos);
 }
-
-
-
 
 TEST_P(StrTests, EqualVarStrVals)
 {
@@ -166,9 +162,9 @@ TEST_P(StrTests, EqualVarWStrVals)
   ASSERT_EQ(strx1, strx2);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverStrTests,
-    StrTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_STR })));
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverStrTests,
+                         StrTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_STR })));
 
 }  // namespace smt_tests

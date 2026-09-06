@@ -1,26 +1,26 @@
 #pragma once
-#include "z3++.h"
 #include "datatype.h"
 #include "exceptions.h"
+#include "z3++.h"
 
 namespace smt {
 
 class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  Z3DatatypeDecl(std::string name) : name(name){};
+  Z3DatatypeDecl(std::string name) : name(name) {};
 
  protected:
   friend class Z3Solver;
   std::string name;
-  std::vector<DatatypeConstructorDecl> consvec {};
+  std::vector<DatatypeConstructorDecl> consvec{};
 };
 
 class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   Z3DatatypeConstructorDecl(z3::context & c, std::string name)
-      : c(c), constructorname(name){};
+      : c(c), constructorname(name) {};
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
@@ -28,8 +28,8 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
   z3::context & c;
   std::string constructorname, datatypename;
-  std::vector<z3::symbol> fieldnames {};
-  std::vector<z3::sort> sorts {};
+  std::vector<z3::symbol> fieldnames{};
+  std::vector<z3::sort> sorts{};
 };
 
 class Z3Datatype : public AbsDatatype

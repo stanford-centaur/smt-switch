@@ -17,11 +17,10 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+
 #include "assert.h"
-
-#include "gtest/gtest.h"
-
 #include "boolector_factory.h"
+#include "gtest/gtest.h"
 #include "smt.h"
 
 using namespace smt;

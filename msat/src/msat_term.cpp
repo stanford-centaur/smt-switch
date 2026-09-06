@@ -14,28 +14,26 @@
 **
 **/
 
-#include "assert.h"
-
 #include "msat_term.h"
-#include "msat_sort.h"
-
-#include "exceptions.h"
-#include "ops.h"
 
 #include <unordered_map>
 
-namespace std
+#include "assert.h"
+#include "exceptions.h"
+#include "msat_sort.h"
+#include "ops.h"
+
+namespace std {
+// defining hash for old compilers
+template <>
+struct hash<msat_symbol_tag>
 {
-  // defining hash for old compilers
-  template<>
-  struct hash<msat_symbol_tag>
+  size_t operator()(const msat_symbol_tag t) const
   {
-    size_t operator()(const msat_symbol_tag t) const
-    {
-      return static_cast<size_t>(t);
-    }
-  };
-}
+    return static_cast<size_t>(t);
+  }
+};
+}  // namespace std
 
 using namespace std;
 
@@ -139,7 +137,7 @@ const Term MsatTermIter::operator*()
 {
   if (!pos && msat_term_is_uf(env, term))
   {
-    return std::make_shared<MsatTerm> (env, msat_term_get_decl(term));
+    return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
   }
   else
   {
@@ -466,7 +464,7 @@ Sort MsatTerm::get_sort() const
 {
   if (!is_uf)
   {
-    return std::make_shared<MsatSort> (env, msat_term_get_type(term));
+    return std::make_shared<MsatSort>(env, msat_term_get_type(term));
   }
   else
   {
@@ -489,7 +487,7 @@ Sort MsatTerm::get_sort() const
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
 
-    return std::make_shared<MsatSort> (env, funtype, decl);
+    return std::make_shared<MsatSort>(env, funtype, decl);
   }
 }
 

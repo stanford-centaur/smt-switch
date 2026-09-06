@@ -17,21 +17,20 @@
 #pragma once
 
 #include <gmp.h>
+#include <yices.h>
+
 #include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-#include <yices.h>
-
-#include "yices2_extensions.h"
-#include "yices2_sort.h"
-#include "yices2_term.h"
-
 #include "exceptions.h"
 #include "result.h"
 #include "smt.h"
 #include "sort.h"
+#include "yices2_extensions.h"
+#include "yices2_sort.h"
+#include "yices2_term.h"
 
 namespace smt {
 
@@ -98,12 +97,18 @@ class Yices2Solver : public AbsSmtSolver
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
-  void add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s, std::string con, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;

@@ -39,7 +39,7 @@ class Z3Sort : public AbsSort
 
   // Functions
   Z3Sort(func_decl zfunc, context & c)
-      : type(c), is_function(true), z_func(zfunc){};
+      : type(c), is_function(true), z_func(zfunc) {};
 
   ~Z3Sort() = default;
   std::size_t hash() const override;

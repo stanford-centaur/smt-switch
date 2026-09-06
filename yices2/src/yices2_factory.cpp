@@ -16,9 +16,8 @@
 
 #include "yices2_factory.h"
 
-#include "yices2_solver.h"
-
 #include "logging_solver.h"
+#include "yices2_solver.h"
 
 namespace smt {
 

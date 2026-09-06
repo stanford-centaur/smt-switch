@@ -15,15 +15,15 @@
 **/
 
 #include "msat_solver.h"
-#include "msat_extensions.h"
-#include "msat_sort.h"
-#include "msat_term.h"
 
 #include <sstream>
 #include <unordered_map>
 #include <vector>
 
 #include "exceptions.h"
+#include "msat_extensions.h"
+#include "msat_sort.h"
+#include "msat_term.h"
 #include "result.h"
 #include "solver_utils.h"
 
@@ -31,9 +31,8 @@ using namespace std;
 
 namespace smt {
 
-const unordered_map<string, string> msat_option_map({
-         {"produce-models", "model_generation"}
-  });
+const unordered_map<string, string> msat_option_map({ { "produce-models",
+                                                        "model_generation" } });
 
 /* MathSAT op mappings */
 typedef msat_term (*msat_un_fun)(msat_env, msat_term);
@@ -140,9 +139,9 @@ void MsatSolver::set_opt(const string option, const string value)
   {
     if (value == "false")
     {
-      cout << "Warning: Option "
-           << option
-           << " is always enabled in MathSAT backend -- cannot be disabled" << endl;
+      cout << "Warning: Option " << option
+           << " is always enabled in MathSAT backend -- cannot be disabled"
+           << endl;
     }
     return;
   }
@@ -162,7 +161,8 @@ void MsatSolver::set_opt(const string option, const string value)
   // returns zero on success
   if (msat_set_option(cfg, msat_option.c_str(), value.c_str()))
   {
-    throw InternalSolverException("Option " + msat_option + " unsupported in mathsat.");
+    throw InternalSolverException("Option " + msat_option
+                                  + " unsupported in mathsat.");
   }
 }
 
@@ -340,7 +340,7 @@ Term MsatSolver::get_value(const Term & t) const
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<MsatTerm> (env, val);
+  return std::make_shared<MsatTerm>(env, val);
 }
 
 UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
@@ -391,7 +391,8 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
     {
       throw InternalSolverException("got an error term in the unsat core");
     }
-    out.insert(std::make_shared<MsatTerm>(env, assumption_map_.at(msat_term_id(*mcore_iter))));
+    out.insert(std::make_shared<MsatTerm>(
+        env, assumption_map_.at(msat_term_id(*mcore_iter))));
     ++mcore_iter;
   }
   msat_free(mcore);
@@ -402,8 +403,8 @@ Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
   initialize_env();
   if (!arity)
   {
-    return std::make_shared<MsatSort> (env,
-                                       msat_get_simple_type(env, name.c_str()));
+    return std::make_shared<MsatSort>(env,
+                                      msat_get_simple_type(env, name.c_str()));
   }
   else
   {
@@ -418,15 +419,15 @@ Sort MsatSolver::make_sort(SortKind sk) const
   initialize_env();
   if (sk == BOOL)
   {
-    return std::make_shared<MsatSort> (env, msat_get_bool_type(env));
+    return std::make_shared<MsatSort>(env, msat_get_bool_type(env));
   }
   else if (sk == INT)
   {
-    return std::make_shared<MsatSort> (env, msat_get_integer_type(env));
+    return std::make_shared<MsatSort>(env, msat_get_integer_type(env));
   }
   else if (sk == REAL)
   {
-    return std::make_shared<MsatSort> (env, msat_get_rational_type(env));
+    return std::make_shared<MsatSort>(env, msat_get_rational_type(env));
   }
   else
   {
@@ -442,7 +443,7 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
   initialize_env();
   if (sk == BV)
   {
-    return std::make_shared<MsatSort> (env, msat_get_bv_type(env, size));
+    return std::make_shared<MsatSort>(env, msat_get_bv_type(env, size));
   }
   else
   {
@@ -471,8 +472,8 @@ Sort MsatSolver::make_sort(SortKind sk,
         std::static_pointer_cast<MsatSort>(sort1);
     std::shared_ptr<MsatSort> melemsort =
         std::static_pointer_cast<MsatSort>(sort2);
-    return std::make_shared<MsatSort>
-        (env, msat_get_array_type(env, midxsort->type, melemsort->type));
+    return std::make_shared<MsatSort>(
+        env, msat_get_array_type(env, midxsort->type, melemsort->type));
   }
   else
   {
@@ -534,7 +535,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     msat_decl ref_fun_decl =
         msat_declare_function(env, decl_name.c_str(), mfunsort);
 
-    return std::make_shared<MsatSort> (env, mfunsort, ref_fun_decl);
+    return std::make_shared<MsatSort>(env, mfunsort, ref_fun_decl);
   }
   else if (sorts.size() == 1)
   {
@@ -563,12 +564,14 @@ Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
       "MathSAT does not support uninterpreted sort constructors");
 }
 
-Sort MsatSolver::make_sort(const DatatypeDecl & d) const {
+Sort MsatSolver::make_sort(const DatatypeDecl & d) const
+{
   throw NotImplementedException("MsatSolver::make_sort");
 };
 
-DatatypeDecl MsatSolver::make_datatype_decl(const std::string & s)  {
-    throw NotImplementedException("MsatSolver::make_datatype_decl");
+DatatypeDecl MsatSolver::make_datatype_decl(const std::string & s)
+{
+  throw NotImplementedException("MsatSolver::make_datatype_decl");
 }
 
 DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(
@@ -577,27 +580,39 @@ DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(
   throw NotImplementedException("MsatSolver::make_datatype_constructor_decl");
 }
 
-void MsatSolver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+void MsatSolver::add_constructor(DatatypeDecl & dt,
+                                 const DatatypeConstructorDecl & con) const
+{
   throw NotImplementedException("MsatSolver::add_constructor");
 }
 
-void MsatSolver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+void MsatSolver::add_selector(DatatypeConstructorDecl & dt,
+                              const std::string & name,
+                              const Sort & s) const
+{
   throw NotImplementedException("MsatSolver::add_selector");
 }
 
-void MsatSolver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+void MsatSolver::add_selector_self(DatatypeConstructorDecl & dt,
+                                   const std::string & name) const
+{
   throw NotImplementedException("MsatSolver::add_selector_self");
 }
 
-Term MsatSolver::get_constructor(const Sort & s, std::string name) const  {
+Term MsatSolver::get_constructor(const Sort & s, std::string name) const
+{
   throw NotImplementedException("MsatSolver::get_constructor");
 }
 
-Term MsatSolver::get_tester(const Sort & s, std::string name) const  {
+Term MsatSolver::get_tester(const Sort & s, std::string name) const
+{
   throw NotImplementedException("MsatSolver::get_testeer");
 }
 
-Term MsatSolver::get_selector(const Sort & s, std::string con, std::string name) const  {
+Term MsatSolver::get_selector(const Sort & s,
+                              std::string con,
+                              std::string name) const
+{
   throw NotImplementedException("MsatSolver::get_selector");
 }
 
@@ -606,11 +621,11 @@ Term MsatSolver::make_term(bool b) const
   initialize_env();
   if (b)
   {
-    return std::make_shared<MsatTerm> (env, msat_make_true(env));
+    return std::make_shared<MsatTerm>(env, msat_make_true(env));
   }
   else
   {
-    return std::make_shared<MsatTerm> (env, msat_make_false(env));
+    return std::make_shared<MsatTerm>(env, msat_make_false(env));
   }
 }
 
@@ -624,12 +639,13 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
     {
       // always use string version for consistency
       std::string sval = std::to_string(i);
-      msat_term mval = ext_msat_make_bv_number(env, sval.c_str(), sort->get_width(), 10);
+      msat_term mval =
+          ext_msat_make_bv_number(env, sval.c_str(), sort->get_width(), 10);
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
       }
-      return std::make_shared<MsatTerm> (env, mval);
+      return std::make_shared<MsatTerm>(env, mval);
     }
     else if (sk == REAL || sk == INT)
     {
@@ -638,14 +654,14 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
       {
         throw IncorrectUsageException("");
       }
-      return std::make_shared<MsatTerm> (env, mval);
+      return std::make_shared<MsatTerm>(env, mval);
     }
     else
     {
       throw IncorrectUsageException("");
     }
   }
-  catch(IncorrectUsageException & e)
+  catch (IncorrectUsageException & e)
   {
     string msg("Can't create value ");
     msg += i;
@@ -665,19 +681,20 @@ Term MsatSolver::make_term(const std::string val,
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      msat_term mval = ext_msat_make_bv_number(env, val.c_str(), sort->get_width(), base);
+      msat_term mval =
+          ext_msat_make_bv_number(env, val.c_str(), sort->get_width(), base);
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
       }
-      return std::make_shared<MsatTerm> (env, mval);
+      return std::make_shared<MsatTerm>(env, mval);
     }
     else if (sk == REAL || sk == INT)
     {
       if (base != 10)
       {
         throw NotImplementedException(
-                                      "MathSAT only supports base 10 for real and integer values");
+            "MathSAT only supports base 10 for real and integer values");
       }
 
       msat_term mval = msat_make_number(env, val.c_str());
@@ -685,14 +702,14 @@ Term MsatSolver::make_term(const std::string val,
       {
         throw IncorrectUsageException("");
       }
-      return std::make_shared<MsatTerm> (env, mval);
+      return std::make_shared<MsatTerm>(env, mval);
     }
     else
     {
       throw IncorrectUsageException("");
     }
   }
-  catch(IncorrectUsageException & e)
+  catch (IncorrectUsageException & e)
   {
     string msg("Can't create value ");
     msg += val;
@@ -712,8 +729,8 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
   }
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
   shared_ptr<MsatTerm> mval = static_pointer_cast<MsatTerm>(val);
-  return std::make_shared<MsatTerm>
-      (env, msat_make_array_const(env, msort->type, mval->term));
+  return std::make_shared<MsatTerm>(
+      env, msat_make_array_const(env, msort->type, mval->term));
 }
 
 Term MsatSolver::make_symbol(const string name, const Sort & sort)
@@ -743,13 +760,13 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
   else if (MSAT_ERROR_DECL(decl))
   {
-    throw SmtException("Got msat error decl when creating " +
-                       name + " of sort " + sort->to_string());
+    throw SmtException("Got msat error decl when creating " + name + " of sort "
+                       + sort->to_string());
   }
 
   if (sort->get_sort_kind() == FUNCTION)
   {
-    return std::make_shared<MsatTerm> (env, decl);
+    return std::make_shared<MsatTerm>(env, decl);
   }
   else
   {
@@ -758,7 +775,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     {
       throw InternalSolverException("Got error term.");
     }
-    return std::make_shared<MsatTerm> (env, res);
+    return std::make_shared<MsatTerm>(env, res);
   }
 }
 
@@ -890,7 +907,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else
   {
-    return std::make_shared<MsatTerm> (env, res);
+    return std::make_shared<MsatTerm>(env, res);
   }
 }
 
@@ -910,9 +927,10 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
     {
       if (!mterm0->is_uf)
       {
-        throw IncorrectUsageException("Expecting UF as first argument to Apply");
+        throw IncorrectUsageException(
+            "Expecting UF as first argument to Apply");
       }
-      vector<msat_term> v({mterm1->term});
+      vector<msat_term> v({ mterm1->term });
       res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else
@@ -940,7 +958,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   }
   else
   {
-    return std::make_shared<MsatTerm> (env, res);
+    return std::make_shared<MsatTerm>(env, res);
   }
 }
 
@@ -959,15 +977,16 @@ Term MsatSolver::make_term(Op op,
     if (msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
     {
       res = msat_ternary_ops.at(op.prim_op)(
-                                            env, mterm0->term, mterm1->term, mterm2->term);
+          env, mterm0->term, mterm1->term, mterm2->term);
     }
     else if (op.prim_op == Apply)
     {
       if (!mterm0->is_uf)
       {
-        throw IncorrectUsageException("Expecting UF as first argument to Apply");
+        throw IncorrectUsageException(
+            "Expecting UF as first argument to Apply");
       }
-      vector<msat_term> v({mterm1->term, mterm2->term});
+      vector<msat_term> v({ mterm1->term, mterm2->term });
       res = ext_msat_make_uf(env, mterm0->decl, v);
     }
     else if (op.prim_op == Forall)
@@ -1005,7 +1024,7 @@ Term MsatSolver::make_term(Op op,
   }
   else
   {
-    return std::make_shared<MsatTerm> (env, res);
+    return std::make_shared<MsatTerm>(env, res);
   }
 }
 
@@ -1153,7 +1172,8 @@ void MsatSolver::reset_assertions()
 Term MsatSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
 {
-  if (substitution_map.size() == 0) {
+  if (substitution_map.size() == 0)
+  {
     return term;
   }
 
@@ -1219,8 +1239,9 @@ msat_term MsatSolver::label(msat_term p) const
 {
   initialize_env();
 
-  if (msat_term_is_boolean_constant(env, p) ||
-      (msat_term_is_not(env, p) && msat_term_is_boolean_constant(env, msat_term_get_arg(p, 0))))
+  if (msat_term_is_boolean_constant(env, p)
+      || (msat_term_is_not(env, p)
+          && msat_term_is_boolean_constant(env, msat_term_get_arg(p, 0))))
   {
     // if a (negated) boolean constant, don't need a fresh label
     return p;
