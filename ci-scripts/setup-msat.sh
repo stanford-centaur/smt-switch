@@ -20,7 +20,7 @@ while (($# > 0)); do
   case "$1" in
     -h | --help) usage ;;
     -y | --auto-yes) get_msat=y ;;
-    *) die "unexpected argument: $1" ;;
+    *) echo "unexpected argument: $1" && exit 1 ;;
   esac
   shift
 done
