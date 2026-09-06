@@ -71,7 +71,7 @@ z3_install_dir=default
 
 build_type=Release
 
-cmake_opts=""
+cmake_opts=
 
 while [ $# -gt 0 ]; do
   case $1 in
@@ -201,15 +201,15 @@ while [ $# -gt 0 ]; do
       ;;
     --bitwuzla-dir) die "missing argument to $1 (see -h)" ;;
     --bitwuzla-dir=*)
-      bitwuzla_dir="${1##*=}"
+      bitwuzla_dir=${1##*=}
       # Make relative paths absolute
-      bitwuzla_dir="$(cd -- "$bitwuzla_dir" && pwd)"
+      bitwuzla_dir=$(cd -- "$bitwuzla_dir" && pwd)
       ;;
     --z3-install-dir) die "missing argument to $1 (see -h)" ;;
     --z3-install-dir=*)
       z3_install_dir=${1##*=}
       # Make relative paths absolute
-      z3_install_dir="$(cd -- "$z3_install_dir" && pwd)"
+      z3_install_dir=$(cd -- "$z3_install_dir" && pwd)
       ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
     *) die "unexpected argument: $1" ;;
