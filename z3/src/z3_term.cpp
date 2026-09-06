@@ -193,8 +193,7 @@ Op Z3Term::get_op() const
         return Op(Select);
         // ternary
       case Z3_OP_ITE: return Op(Ite);
-      case Z3_OP_STORE:
-        return Op(Store);
+      case Z3_OP_STORE: return Op(Store);
       case Z3_OP_CONST_ARRAY:
         return Op();
         // variadic
@@ -228,10 +227,8 @@ Op Z3Term::get_op() const
         size_t out_width = range.bv_size();
         return Op(Int_To_BV, out_width);
       }
-      case Z3_OP_BV2INT:
-        return Op(UBV_To_Int);
-      case Z3_OP_SBV2INT:
-        return Op(SBV_To_Int);
+      case Z3_OP_BV2INT: return Op(UBV_To_Int);
+      case Z3_OP_SBV2INT: return Op(SBV_To_Int);
       case Z3_OP_UNINTERPRETED: return Op(Apply);
 
       default: {

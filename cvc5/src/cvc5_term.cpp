@@ -18,8 +18,8 @@
 
 #include <string>
 
-#include "cvc5/cvc5.h"
 #include "assert.h"
+#include "cvc5/cvc5.h"
 #include "cvc5_sort.h"
 #include "exceptions.h"
 
@@ -274,11 +274,15 @@ bool Cvc5Term::is_symbol() const
   return (k == ::cvc5::Kind::CONSTANT || k == ::cvc5::Kind::VARIABLE);
 }
 
-bool Cvc5Term::is_param() const { return (term.getKind() == ::cvc5::Kind::VARIABLE); }
+bool Cvc5Term::is_param() const
+{
+  return (term.getKind() == ::cvc5::Kind::VARIABLE);
+}
 
 bool Cvc5Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::cvc5::Kind::CONSTANT && !term.getSort().isFunction());
+  return (term.getKind() == ::cvc5::Kind::CONSTANT
+          && !term.getSort().isFunction());
 }
 
 bool Cvc5Term::is_value() const

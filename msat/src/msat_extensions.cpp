@@ -19,9 +19,8 @@
 
 #include <vector>
 
-#include "mathsat.h"
-
 #include "exceptions.h"
+#include "mathsat.h"
 
 using namespace std;
 

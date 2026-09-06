@@ -15,11 +15,12 @@
 **/
 
 #include "yices2_term.h"
+
+#include <unordered_map>
+
 #include "exceptions.h"
 #include "ops.h"
 #include "yices2_sort.h"
-
-#include <unordered_map>
 
 using namespace std;
 
@@ -376,12 +377,13 @@ bool Yices2Term::is_symbol() const
 
   term_constructor_t tc = yices_term_constructor(term);
   return (
-          (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
+      (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
 }
 
 bool Yices2Term::is_param() const
 {
-  throw NotImplementedException("Yices2 backend does not support parameters yet.");
+  throw NotImplementedException(
+      "Yices2 backend does not support parameters yet.");
 }
 
 bool Yices2Term::is_symbolic_const() const
@@ -500,7 +502,7 @@ string Yices2Term::const_to_string() const
     string repr = yices_term_to_string(term, 120, 1, 0);
     if (repr.substr(0, 2) == "0b")
     {
-      repr = "#b" + repr.substr(2, repr.length()-2);
+      repr = "#b" + repr.substr(2, repr.length() - 2);
     }
     return repr;
   }

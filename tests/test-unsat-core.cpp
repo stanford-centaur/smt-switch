@@ -28,7 +28,7 @@ namespace smt_tests {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnsatCoreTests);
 class UnsatCoreTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+                       public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -81,10 +81,10 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
   Result r = s->check_sat_assuming({ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
 
-  r = s->check_sat_assuming({x_lt_y});
+  r = s->check_sat_assuming({ x_lt_y });
   ASSERT_TRUE(r.is_sat());
 
-  r = s->check_sat_assuming({x_lt_y, x_ge_y});
+  r = s->check_sat_assuming({ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;

@@ -14,9 +14,9 @@
 **
 **/
 
-#include <sstream>
-
 #include "boolector_sort.h"
+
+#include <sstream>
 
 namespace smt {
 
@@ -29,18 +29,17 @@ std::size_t BoolectorSortBase::hash() const
   // TODO: come up with better hash function
   std::size_t hash = sk;
 
-  if(sk == BV)
+  if (sk == BV)
   {
     hash ^= get_width();
   }
-  else if(sk == ARRAY)
+  else if (sk == ARRAY)
   {
     hash ^= get_indexsort()->hash();
     hash ^= get_elemsort()->hash();
   }
   return hash;
 }
-
 
 // by default the following get_* methods don't work
 // overloaded in derived classes

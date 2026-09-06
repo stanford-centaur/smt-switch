@@ -25,10 +25,9 @@ extern "C" {
 #include "utils/btornodeiter.h"
 }
 
+#include "boolector_sort.h"
 #include "term.h"
 #include "utils.h"
-
-#include "boolector_sort.h"
 
 namespace smt {
 
@@ -41,7 +40,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n);
 class BoolectorTermIter : public TermIterBase
 {
  public:
-  // IMPORTANT: The correctness of this code depends on the array e being of size 3
+  // IMPORTANT: The correctness of this code depends on the array e being of
+  // size 3
   BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int64_t idx)
       : btor(btor), children(c), idx(idx)
   {
@@ -52,7 +52,7 @@ class BoolectorTermIter : public TermIterBase
     children = it.children;
     idx = it.idx;
   };
-  ~BoolectorTermIter(){};
+  ~BoolectorTermIter() {};
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   const Term operator*() override;

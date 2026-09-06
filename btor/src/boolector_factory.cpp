@@ -15,6 +15,7 @@
 **/
 
 #include "boolector_factory.h"
+
 #include "boolector_solver.h"
 #include "logging_solver.h"
 

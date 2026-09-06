@@ -15,7 +15,9 @@
 **/
 
 #include "yices2_sort.h"
+
 #include <sstream>
+
 #include "exceptions.h"
 
 using namespace std;

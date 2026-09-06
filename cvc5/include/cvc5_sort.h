@@ -30,7 +30,7 @@ class Cvc5Solver;
 class Cvc5Sort : public AbsSort
 {
  public:
-  Cvc5Sort(::cvc5::Sort s) : sort(s){};
+  Cvc5Sort(::cvc5::Sort s) : sort(s) {};
   ~Cvc5Sort() = default;
   std::string to_string() const override;
   std::size_t hash() const override;

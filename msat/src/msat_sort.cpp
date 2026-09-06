@@ -50,7 +50,7 @@ Sort MsatSort::get_indexsort() const
   msat_type idx_type;
   if (msat_is_array_type(env, type, &idx_type, nullptr))
   {
-    return std::make_shared<MsatSort> (env, idx_type);
+    return std::make_shared<MsatSort>(env, idx_type);
   }
   else
   {
@@ -63,7 +63,7 @@ Sort MsatSort::get_elemsort() const
   msat_type elem_type;
   if (msat_is_array_type(env, type, nullptr, &elem_type))
   {
-    return std::make_shared<MsatSort> (env, elem_type);
+    return std::make_shared<MsatSort>(env, elem_type);
   }
   else
   {
@@ -75,7 +75,8 @@ SortVec MsatSort::get_domain_sorts() const
 {
   if (!is_uf_type)
   {
-    throw IncorrectUsageException("Can't get domain sorts from non-function sort.");
+    throw IncorrectUsageException(
+        "Can't get domain sorts from non-function sort.");
   }
 
   size_t arity = msat_decl_get_arity(uf_decl);
@@ -90,7 +91,7 @@ SortVec MsatSort::get_domain_sorts() const
       throw InternalSolverException("Got error type");
     }
     // Note: assuming first-order, function can't take function arguments
-    sorts.push_back(std::make_shared<MsatSort> (env, tmp_type));
+    sorts.push_back(std::make_shared<MsatSort>(env, tmp_type));
   }
   return sorts;
 }
@@ -99,7 +100,8 @@ Sort MsatSort::get_codomain_sort() const
 {
   if (!is_uf_type)
   {
-    throw IncorrectUsageException("Can't get codomain sort from non-function sort.");
+    throw IncorrectUsageException(
+        "Can't get codomain sort from non-function sort.");
   }
   msat_type t = msat_decl_get_return_type(uf_decl);
   // Note: assuming first-order, e.g. functions can't return functions
@@ -107,7 +109,7 @@ Sort MsatSort::get_codomain_sort() const
   {
     throw InternalSolverException("Got error type");
   }
-  return std::make_shared<MsatSort> (env, t);
+  return std::make_shared<MsatSort>(env, t);
 }
 
 string MsatSort::get_uninterpreted_name() const

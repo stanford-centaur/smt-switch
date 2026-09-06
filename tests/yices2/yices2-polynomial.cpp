@@ -17,15 +17,14 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "gmp.h"
+#include "smt.h"
 #include "yices.h"
+#include "yices2_factory.h"
 #include "yices2_sort.h"
 #include "yices2_term.h"
-
-#include "smt.h"
-#include "yices2_factory.h"
 // after a full installation
 // #include "smt-switch/msat_factory.h"
 // #include "smt-switch/smt.h"

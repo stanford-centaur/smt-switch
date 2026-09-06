@@ -24,9 +24,10 @@ To check the whole tree, run `pre-commit run --all-files`. CI runs the same hook
 [prek](https://github.com/j178/prek), a drop-in replacement that reads the same
 configuration, so `prek run --all-files` works too.
 
-C++ formatting (see [.clang-format](./.clang-format)) and shell formatting are configured
-but not yet enforced by a hook, because the tree does not satisfy them yet — see the
-comments at the bottom of [.pre-commit-config.yaml](./.pre-commit-config.yaml).
+C++ formatting follows [.clang-format](./.clang-format) and is enforced by the
+clang-format hook. Note that clang-format's output changes between releases, so the
+version pinned in [.pre-commit-config.yaml](./.pre-commit-config.yaml) is what decides
+the layout; bumping it may reformat files it previously left alone.
 
 ## Design Decisions
 

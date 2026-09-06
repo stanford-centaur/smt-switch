@@ -181,42 +181,54 @@ Term Yices2Solver::make_term(bool b) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (y_term);
+  return std::make_shared<Yices2Term>(y_term);
 }
 
-
-Sort Yices2Solver::make_sort(const DatatypeDecl & d) const {
+Sort Yices2Solver::make_sort(const DatatypeDecl & d) const
+{
   throw NotImplementedException("Yices2Solver::make_sort");
 };
-DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s)  {
-    throw NotImplementedException("Yices2Solver::make_datatype_decl");
+DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s)
+{
+  throw NotImplementedException("Yices2Solver::make_datatype_decl");
 }
 DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(
     const std::string s)
 {
   throw NotImplementedException("Yices2Solver::make_datatype_constructor_decl");
 };
-void Yices2Solver::add_constructor(DatatypeDecl & dt, const DatatypeConstructorDecl & con) const {
+void Yices2Solver::add_constructor(DatatypeDecl & dt,
+                                   const DatatypeConstructorDecl & con) const
+{
   throw NotImplementedException("Yices2Solver::add_constructor");
 };
-void Yices2Solver::add_selector(DatatypeConstructorDecl & dt, const std::string & name, const Sort & s) const {
+void Yices2Solver::add_selector(DatatypeConstructorDecl & dt,
+                                const std::string & name,
+                                const Sort & s) const
+{
   throw NotImplementedException("Yices2Solver::add_selector");
 };
-void Yices2Solver::add_selector_self(DatatypeConstructorDecl & dt, const std::string & name) const {
+void Yices2Solver::add_selector_self(DatatypeConstructorDecl & dt,
+                                     const std::string & name) const
+{
   throw NotImplementedException("Yices2Solver::add_selector_self");
 };
 
-Term Yices2Solver::get_constructor(const Sort & s, std::string name) const  {
+Term Yices2Solver::get_constructor(const Sort & s, std::string name) const
+{
   throw NotImplementedException("Yices2Solver::get_constructor");
 };
-Term Yices2Solver::get_tester(const Sort & s, std::string name) const  {
+Term Yices2Solver::get_tester(const Sort & s, std::string name) const
+{
   throw NotImplementedException("Yices2Solver::get_testeer");
 };
 
-Term Yices2Solver::get_selector(const Sort & s, std::string con, std::string name) const  {
+Term Yices2Solver::get_selector(const Sort & s,
+                                std::string con,
+                                std::string name) const
+{
   throw NotImplementedException("Yices2Solver::get_selector");
 };
-
 
 Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
 {
@@ -245,7 +257,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (y_term);
+  return std::make_shared<Yices2Term>(y_term);
 }
 
 Term Yices2Solver::make_term(const std::string val,
@@ -288,7 +300,7 @@ Term Yices2Solver::make_term(const std::string val,
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (y_term);
+  return std::make_shared<Yices2Term>(y_term);
 }
 
 Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
@@ -430,8 +442,8 @@ Term Yices2Solver::get_value(const Term & t) const
 
   if (!yices_term_is_function(yterm->term))
   {
-    return std::make_shared<Yices2Term>
-        (yices_get_value_as_term(model, yterm->term));
+    return std::make_shared<Yices2Term>(
+        yices_get_value_as_term(model, yterm->term));
   }
   else
   {
@@ -494,7 +506,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Sort> (y_sort);
+  return std::make_shared<Yices2Sort>(y_sort);
 }
 
 Sort Yices2Solver::make_sort(SortKind sk) const
@@ -527,7 +539,7 @@ Sort Yices2Solver::make_sort(SortKind sk) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Sort> (y_sort);
+  return std::make_shared<Yices2Sort>(y_sort);
 }
 
 Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
@@ -571,13 +583,13 @@ Sort Yices2Solver::make_sort(SortKind sk,
 
   if (sk == ARRAY)
   {
-    ret_sort = std::make_shared<Yices2Sort>
-        (yices_function_type1(s1->type, s2->type));
+    ret_sort =
+        std::make_shared<Yices2Sort>(yices_function_type1(s1->type, s2->type));
   }
   else if (sk == FUNCTION)
   {
-    ret_sort = std::make_shared<Yices2Sort>
-        (yices_function_type1(s1->type, s2->type), true);
+    ret_sort = std::make_shared<Yices2Sort>(
+        yices_function_type1(s1->type, s2->type), true);
   }
   else
   {
@@ -663,7 +675,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Sort> (y_sort, true);
+  return std::make_shared<Yices2Sort>(y_sort, true);
 }
 
 Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
@@ -801,7 +813,7 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (res);
+  return std::make_shared<Yices2Term>(res);
 }
 
 Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
@@ -848,11 +860,11 @@ Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
 
   if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
   {
-    return std::make_shared<Yices2Term> (res, true);
+    return std::make_shared<Yices2Term>(res, true);
   }
   else
   {
-    return std::make_shared<Yices2Term> (res);
+    return std::make_shared<Yices2Term>(res);
   }
 }
 
@@ -906,11 +918,11 @@ Term Yices2Solver::make_term(Op op,
 
   if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
   {
-    return std::make_shared<Yices2Term> (res, true);
+    return std::make_shared<Yices2Term>(res, true);
   }
   else
   {
-    return std::make_shared<Yices2Term> (res);
+    return std::make_shared<Yices2Term>(res);
   }
 }
 
@@ -1006,7 +1018,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (res);
+  return std::make_shared<Yices2Term>(res);
 }
 
 void Yices2Solver::reset()
@@ -1049,7 +1061,7 @@ Term Yices2Solver::substitute(const Term term,
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term> (res);
+  return std::make_shared<Yices2Term>(res);
 }
 
 void Yices2Solver::dump_smt2(std::string filename) const

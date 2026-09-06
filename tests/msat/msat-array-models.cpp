@@ -17,8 +17,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "msat_factory.h"
 #include "smt.h"
 // after a full installation

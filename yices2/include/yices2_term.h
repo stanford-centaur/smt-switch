@@ -22,7 +22,6 @@
 #include "term.h"
 #include "utils.h"
 #include "yices.h"
-
 #include "yices2_sort.h"
 
 namespace smt {
@@ -33,9 +32,9 @@ class Yices2Solver;
 class Yices2TermIter : public TermIterBase
 {
  public:
-  Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p){};
+  Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p) {};
   Yices2TermIter(const Yices2TermIter & it);
-  ~Yices2TermIter(){};
+  ~Yices2TermIter() {};
   Yices2TermIter & operator=(const Yices2TermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -55,9 +54,9 @@ class Yices2Term : public AbsTerm
 {
  public:
   // assumes that term is not a function if flag is not passed
-  Yices2Term(term_t t) : term(t), is_function(false){};
-  Yices2Term(term_t t, bool is_fun) : term(t), is_function(is_fun){};
-  ~Yices2Term(){};
+  Yices2Term(term_t t) : term(t), is_function(false) {};
+  Yices2Term(term_t t, bool is_fun) : term(t), is_function(is_fun) {};
+  ~Yices2Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

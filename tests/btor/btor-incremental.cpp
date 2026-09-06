@@ -17,8 +17,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "assert.h"
 
+#include "assert.h"
 #include "boolector_factory.h"
 #include "smt.h"
 // after full installation

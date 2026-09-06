@@ -16,9 +16,8 @@
 
 #pragma once
 
-#include "sort.h"
-
 #include "mathsat.h"
+#include "sort.h"
 
 namespace smt {
 // forward declaration
@@ -28,7 +27,8 @@ class MsatSort : public AbsSort
 {
  public:
   MsatSort(msat_env e, msat_type t) : env(e), type(t), is_uf_type(false) {};
-  MsatSort(msat_env e, msat_type t, msat_decl d) : env(e), type(t), uf_decl(d), is_uf_type(true) {};
+  MsatSort(msat_env e, msat_type t, msat_decl d)
+      : env(e), type(t), uf_decl(d), is_uf_type(true) {};
   ~MsatSort() = default;
   std::size_t hash() const override;
   uint64_t get_width() const override;
