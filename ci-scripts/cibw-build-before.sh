@@ -24,6 +24,7 @@ python_executable=$(command -v python3)
 echo "Using Python_EXECUTABLE: ${python_executable}"
 
 # configure for all solvers with permissive licenses (BSD, MIT, etc..)
-./configure.sh --bitwuzla --cvc5 --z3 --python --python-executable="${python_executable}"
+./configure.sh --bitwuzla --cvc5 --z3 --python \
+  --python-executable="${python_executable}"
 cd build
 make -j
