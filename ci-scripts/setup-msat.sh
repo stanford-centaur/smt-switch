@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-version="5.6.12"
+version=5.6.12
 
 usage() {
   cat <<EOF
@@ -42,7 +42,7 @@ mkdir -p deps && cd deps
 if [[ -d mathsat ]]; then
   echo "$(pwd)/mathsat already exists. If you want to re-download, please remove it manually."
 else
-  release_url="https://mathsat.fbk.eu/release"
+  release_url=https://mathsat.fbk.eu/release
   if [[ $OSTYPE =~ linux* ]]; then
     wget -O mathsat.tar.gz "${release_url}/mathsat-${version}-linux-x86_64.tar.gz"
   elif [[ $OSTYPE =~ darwin* ]]; then

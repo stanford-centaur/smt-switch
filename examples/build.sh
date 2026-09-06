@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # get the absolute path to this directory
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
 set -e
 

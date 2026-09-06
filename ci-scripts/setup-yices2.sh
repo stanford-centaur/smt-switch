@@ -4,7 +4,7 @@
 
 yices2_version=98fa2d882d83d32a07d3b8b2c562819e0e0babd0
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 deps_dir=$script_dir/../deps
 
 mkdir -p $deps_dir
