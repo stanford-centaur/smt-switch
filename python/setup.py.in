@@ -13,6 +13,10 @@ SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
 SOLVER_BACKEND_LIBS = "@SOLVER_BACKEND_LIBS@".split(";")
 BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")
 Z3_LIBRARY_LOCATION = "@Z3_LIBRARY_LOCATION@"
+# Resolved by cmake/FindGMP.cmake, and empty unless a backend needs GMP. The
+# libraries are already in the order they have to be linked in.
+GMP_LINK_LIBRARIES = [lib for lib in "@GMP_LINK_LIBRARIES@".split(";") if lib]
+GMP_LIBRARY_DIRS = [path for path in "@GMP_LIBRARY_DIRS@".split(";") if path]
 
 # Get the platform-specific library extension
 if sys.platform == "darwin":
@@ -95,11 +99,8 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
         extra_link_args.append(f"-Wl,-rpath,{path}")
     if SMT_SWITCH_LIB_TYPE == "STATIC":
         # When smt-switch is compiled as a static library, we need to link dependencies manually.
-        for gmp_solver in ["cvc5", "msat", "yices2", "z3"]:
-            # Some solver implementations need GMP.
-            if gmp_solver in built_solvers:
-                solver_libraries += ["gmp", "gmpxx"]
-                break
+        # Some solver implementations need GMP, in which case CMake has found it for us.
+        solver_libraries += GMP_LINK_LIBRARIES
         # Some solvers have their own linking flags.
         if "bitwuzla" in built_solvers:
             extra_link_args += BITWUZLA_LDFLAGS
@@ -110,7 +111,11 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
             name="smt_switch.smt_solvers",
             sources=["smt_switch/smt_solvers.pyx"],
             libraries=solver_libraries,
-            library_dirs=solver_library_dirs,
+            # GMP is only added to the link-time search path: it is a system
+            # library, and putting its directory on the run-time path as well
+            # would change where the extension module looks for its other
+            # dependencies.
+            library_dirs=solver_library_dirs + GMP_LIBRARY_DIRS,
             runtime_library_dirs=solver_library_dirs,
             include_dirs=solver_include_dirs,
             language="c++",
