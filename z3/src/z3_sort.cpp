@@ -1,5 +1,6 @@
 #include "z3_sort.h"
 
+#include <cstdint>
 #include <sstream>
 
 #include "exceptions.h"

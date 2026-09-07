@@ -16,9 +16,11 @@
 
 #include "yices2_solver.h"
 
-#include <inttypes.h>
 #include <signal.h>
 #include <unistd.h>
+
+#include <cassert>
+#include <cstdint>
 
 #include "solver_utils.h"
 #include "yices.h"

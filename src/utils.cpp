@@ -17,6 +17,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <map>
 #include <random>

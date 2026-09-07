@@ -14,10 +14,10 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <string>
 
-#include "assert.h"
 #include "boolector_factory.h"
 #include "smt.h"
 // after a full installation

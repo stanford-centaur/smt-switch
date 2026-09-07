@@ -16,6 +16,7 @@
 
 #include "boolector_sort.h"
 
+#include <cstdint>
 #include <sstream>
 
 namespace smt {

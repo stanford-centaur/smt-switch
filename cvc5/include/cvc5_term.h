@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "cvc5/cvc5.h"
 #include "term.h"
 #include "utils.h"

@@ -22,10 +22,11 @@ extern "C" {
 #include "memstream.h"
 }
 
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <unordered_map>
-
-#include "assert.h"
-#include "stdio.h"
 
 // defining hash for old compilers
 namespace std {

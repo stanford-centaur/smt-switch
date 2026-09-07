@@ -1,6 +1,6 @@
+#include <cassert>
 #include <iostream>
 
-#include "assert.h"
 #include "smt.h"
 #include "z3_factory.h"
 #include "z3_sort.h"

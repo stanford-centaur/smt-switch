@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "boolector.h"
 
 namespace smt {

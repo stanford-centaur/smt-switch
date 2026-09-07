@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "boolector.h"
 #include "exceptions.h"
 #include "sort.h"

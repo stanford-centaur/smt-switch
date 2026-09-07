@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "mathsat.h"
 #include "term.h"
 #include "utils.h"

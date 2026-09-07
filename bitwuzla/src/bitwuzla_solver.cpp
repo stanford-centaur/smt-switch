@@ -16,6 +16,7 @@
 
 #include "bitwuzla_solver.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <exception>

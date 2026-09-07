@@ -16,6 +16,9 @@
 
 #include "msat_solver.h"
 
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
 #include <sstream>
 #include <unordered_map>
 #include <vector>

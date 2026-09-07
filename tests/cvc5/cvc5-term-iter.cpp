@@ -14,9 +14,9 @@
 **
 **/
 
+#include <cassert>
 #include <vector>
 
-#include "assert.h"
 #include "cvc5/cvc5.h"
 #include "cvc5_term.h"
 #include "gtest/gtest.h"

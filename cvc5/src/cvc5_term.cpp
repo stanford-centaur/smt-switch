@@ -16,9 +16,10 @@
 
 #include "cvc5_term.h"
 
+#include <cassert>
+#include <cstdint>
 #include <string>
 
-#include "assert.h"
 #include "cvc5/cvc5.h"
 #include "cvc5_sort.h"
 #include "exceptions.h"

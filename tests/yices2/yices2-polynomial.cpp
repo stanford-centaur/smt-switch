@@ -14,11 +14,11 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "assert.h"
 #include "gmp.h"
 #include "smt.h"
 #include "yices.h"

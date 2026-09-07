@@ -17,6 +17,7 @@
 #include "logging_sort.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 

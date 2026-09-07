@@ -16,6 +16,7 @@
 
 #include "yices2_term.h"
 
+#include <cstdint>
 #include <unordered_map>
 
 #include "exceptions.h"
