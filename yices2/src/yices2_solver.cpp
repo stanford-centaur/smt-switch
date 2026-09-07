@@ -19,6 +19,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <cstdint>
 
 #include "solver_utils.h"

@@ -16,6 +16,8 @@
 
 #include "boolector_extensions.h"
 
+#include <cstdint>
+
 namespace smt {
 BoolectorNode * custom_boolector_rotate_left(Btor * btor,
                                              BoolectorNode * node,

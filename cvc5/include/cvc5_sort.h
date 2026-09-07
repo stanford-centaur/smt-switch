@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <unordered_map>
 
 #include "cvc5/cvc5.h"

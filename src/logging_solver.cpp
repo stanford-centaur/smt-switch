@@ -17,6 +17,7 @@
 #include "logging_solver.h"
 
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <unordered_set>
 

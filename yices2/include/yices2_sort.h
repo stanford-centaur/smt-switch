@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"

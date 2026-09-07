@@ -18,6 +18,7 @@
 
 #include <z3++.h>
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
 #include <vector>

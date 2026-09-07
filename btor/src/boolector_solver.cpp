@@ -16,6 +16,10 @@
 
 #include "boolector_solver.h"
 
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+
 #include "solver_utils.h"
 
 extern "C" {

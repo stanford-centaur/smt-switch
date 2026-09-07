@@ -23,7 +23,9 @@ extern "C" {
 }
 
 #include <cassert>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <unordered_map>
 
 // defining hash for old compilers

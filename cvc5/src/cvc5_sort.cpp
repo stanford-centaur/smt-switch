@@ -16,6 +16,8 @@
 
 #include "cvc5_sort.h"
 
+#include <cstdint>
+
 #include "cvc5_datatype.h"
 #include "exceptions.h"
 

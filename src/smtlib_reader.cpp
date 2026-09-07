@@ -16,7 +16,9 @@
 
 #include "smtlib_reader.h"
 
+#include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <unordered_map>

@@ -15,6 +15,8 @@
 **
 **/
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include "smtlib_reader.h"
 #include "smtlibparser.h"

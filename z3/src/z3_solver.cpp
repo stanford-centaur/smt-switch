@@ -2,6 +2,7 @@
 
 #include <z3++.h>
 
+#include <cassert>
 #include <cstdint>
 #include <exception>
 #include <iostream>

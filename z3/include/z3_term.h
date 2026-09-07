@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include "term.h"

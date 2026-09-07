@@ -16,6 +16,8 @@
 
 #include "msat_sort.h"
 
+#include <cstdint>
+
 #include "exceptions.h"
 
 using namespace std;

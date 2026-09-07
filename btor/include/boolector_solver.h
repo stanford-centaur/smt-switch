@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cassert>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_set>

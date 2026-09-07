@@ -17,6 +17,7 @@
 #include "msat_term.h"
 
 #include <cassert>
+#include <cstdint>
 #include <unordered_map>
 
 #include "exceptions.h"

@@ -13,6 +13,7 @@
 ** Tests for theory of strings.
 **/
 
+#include <cassert>
 #include <utility>
 #include <vector>
 

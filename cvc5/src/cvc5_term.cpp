@@ -17,6 +17,7 @@
 #include "cvc5_term.h"
 
 #include <cassert>
+#include <cstdint>
 #include <string>
 
 #include "cvc5/cvc5.h"
