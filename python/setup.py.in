@@ -1,22 +1,32 @@
-from Cython.Build import cythonize
+# SPDX-FileCopyrightText: 2020 the smt-switch authors
+# SPDX-FileContributor: Makai Mann
+# SPDX-License-Identifier: BSD-3-Clause
+
 import os
+import platform
 import sys
 import sysconfig
-import platform
+from pathlib import Path
+
+from Cython.Build import cythonize
 from setuptools import setup
 from setuptools.extension import Extension
 
-# These variables will be substituted in by CMake during configuration.
+# These variables will be substituted in by CMake during configuration. Where
+# it substitutes a semicolon-separated list, the split is what turns that into
+# a list. Ruff sees only the placeholder, a string with no semicolon in it, and
+# so reads every one of those splits as redundant; its fix would collapse the
+# whole list into a single element, hence the suppression on each.
 PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
 PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
-SOLVER_BACKEND_LIBS = "@SOLVER_BACKEND_LIBS@".split(";")
-BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")
+SOLVER_BACKEND_LIBS = "@SOLVER_BACKEND_LIBS@".split(";")  # noqa: SIM905
+BITWUZLA_LDFLAGS = "@BITWUZLA_LDFLAGS@".split(";")  # noqa: SIM905
 Z3_LIBRARY_LOCATION = "@Z3_LIBRARY_LOCATION@"
 # Resolved by cmake/FindGMP.cmake, and empty unless a backend needs GMP. The
 # libraries are already in the order they have to be linked in.
-GMP_LINK_LIBRARIES = [lib for lib in "@GMP_LINK_LIBRARIES@".split(";") if lib]
-GMP_LIBRARY_DIRS = [path for path in "@GMP_LIBRARY_DIRS@".split(";") if path]
+GMP_LINK_LIBRARIES = [lib for lib in "@GMP_LINK_LIBRARIES@".split(";") if lib]  # noqa: SIM905
+GMP_LIBRARY_DIRS = [path for path in "@GMP_LIBRARY_DIRS@".split(";") if path]  # noqa: SIM905
 
 # Get the platform-specific library extension
 if sys.platform == "darwin":
@@ -33,7 +43,7 @@ else:  # linux
 ext_filename = "smt_switch" + sysconfig.get_config_var("EXT_SUFFIX")
 
 # Handle Cython compilation if the extension hasn't been built yet
-if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
+if not (Path("smt_switch") / ext_filename).is_file():
     # Add flags and directories for compilation.
     libraries = []
     library_dirs = [PROJECT_BINARY_DIR]
@@ -95,10 +105,10 @@ if not os.path.isfile(os.path.join("smt_switch", ext_filename)):
         solver_library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
         solver_include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
     solver_libraries.extend(libraries)
-    for path in library_dirs:
-        extra_link_args.append(f"-Wl,-rpath,{path}")
+    extra_link_args.extend(f"-Wl,-rpath,{path}" for path in library_dirs)
     if SMT_SWITCH_LIB_TYPE == "STATIC":
-        # When smt-switch is compiled as a static library, we need to link dependencies manually.
+        # When smt-switch is compiled as a static library, we need to link
+        # dependencies manually.
         # Some solver implementations need GMP, in which case CMake has found it for us.
         solver_libraries += GMP_LINK_LIBRARIES
         # Some solvers have their own linking flags.

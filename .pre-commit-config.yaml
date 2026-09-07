@@ -45,9 +45,21 @@ repos:
       # The rule selection lives in .ruff.toml, which still carries a block of
       # temporary ignores for the rules this tree violates. Those are being
       # removed one at a time, so this hook stays green in the meantime.
+      #
+      # Both hooks also cover the .py.in templates that CMake configures into
+      # the build tree. Reaching them needs `files` *and* a `types_or`
+      # override: identify tags .py.in as plain text, never as python, so the
+      # manifest's `types_or` can never match it and the two are ANDed. That
+      # makes `files` the real filter, which is why it has to spell out the
+      # extensions the manifest would otherwise have handled -- .md included,
+      # since ruff formats the Python in Markdown code blocks.
       - id: ruff-check
         args: [--fix]
+        types_or: [text]
+        files: '\.i?py(i|nb|\.in)?$'
       - id: ruff-format
+        types_or: [text]
+        files: '\.i?py(i|nb|\.in)?$|\.md$'
 
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
     rev: 0.28.1
