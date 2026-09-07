@@ -11,6 +11,17 @@ include(CheckPythonModule)
 # Verify required Python packages are installed
 check_python_module("packaging")
 
+# setup.py links the extension module itself rather than through a CMake
+# target, so it needs the GMP flags of whichever backends were enabled.
+if(BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
+  if(BUILD_MSAT OR BUILD_Z3)
+    # The MathSAT and Z3 backends use the C++ bindings as well.
+    find_package(GMP REQUIRED COMPONENTS gmpxx)
+  else()
+    find_package(GMP REQUIRED)
+  endif()
+endif()
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
   "${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py"

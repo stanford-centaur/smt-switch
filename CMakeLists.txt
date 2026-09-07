@@ -183,10 +183,6 @@ if(BUILD_PYTHON_BINDINGS)
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
-if(BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
-  find_package(GMP REQUIRED)
-endif()
-
 # should we build boolector?
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)

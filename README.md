@@ -65,7 +65,8 @@ Smt-Switch depends on the following libraries. Dependencies needed only for cert
   * MathSAT (must be obtained independently; user responsible for meeting license conditions)
   * Yices2 (must be obtained independently; user responsible for meeting license conditions)
 * pthread [optional: Bitwuzla]
-* gmp [optional: cvc5, MathSAT, Yices2]
+* gmp [optional: cvc5, MathSAT, Yices2, Z3]
+* gmpxx, the gmp C++ bindings [optional: MathSAT, Z3]
 * autoconf [optional: Yices2 setup script]
 * Flex >= 2.6.4 [optional: SMT-LIB parser]
 * Bison >= 3.7 [optional: SMT-LIB parser]
@@ -102,6 +103,9 @@ If you'd like to try your own version of a solver, you can use the `configure.sh
 `./configure.sh --prefix=<your desired install location> --cvc5-home ./custom-cvc5`
 
 where `./custom-cvc5/build/src/libcvc5.a` and `./custom-cvc5/build/src/parser/libcvc5parser.a` already exist. `build` is the default build directory for `cvc5`, and thus that's where `cmake` is configured to look.
+
+## Static Linking
+GMP is linked by name (`-lgmp`) rather than by path, so a fully static link (`-static`) picks up `libgmp.a` and an ordinary one keeps using the shared library, with nothing to configure either way. GMP is not bundled into the installed `libsmt-switch-<solver>.a`, so a consumer still has to name it on its own link line. If that link is fully static and mixes a backend needing the C++ bindings (MathSAT, Z3) with one needing only the C library (cvc5, Yices2), put `-lgmpxx` before `-lgmp`: `libgmpxx` references symbols from `libgmp`, and an archive only resolves what is still undefined by the time the linker reaches it.
 
 # Building Tests
 You can run all tests for the currently built solvers with `make test` from the build directory. To run a single test, run the binary `./tests/<test name>`. After you have a full installation, you can build the tests yourself by updating the includes to include the `smt-switch` directory. For example: `#include "cvc5_factory.h"` -> `#include "smt-switch/cvc5_factory.h"`.
