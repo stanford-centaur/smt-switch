@@ -1,5 +1,7 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+find_package(GMP REQUIRED)
+
 find_library(LIBRT rt)
 
 add_library(
@@ -18,7 +20,6 @@ target_include_directories(smt-switch-cvc5 PUBLIC "${CVC5_HOME}/src")
 target_include_directories(smt-switch-cvc5 PUBLIC "${CVC5_HOME}/include")
 # TEMP only until the internal kinds are no longer part of public API
 target_include_directories(smt-switch-cvc5 PUBLIC "${CVC5_HOME}/build/include")
-target_include_directories(smt-switch-cvc5 PUBLIC ${GMP_INCLUDE_DIR})
 
 if(LIBRT)
   target_link_libraries(smt-switch-cvc5 ${LIBRT})
@@ -36,7 +37,7 @@ target_link_libraries(smt-switch-cvc5 "${POLYLIBXX}")
 target_link_libraries(smt-switch-cvc5 "${POLYLIB}")
 target_link_libraries(smt-switch-cvc5 "${CADICAL}")
 target_link_libraries(smt-switch-cvc5 smt-switch)
-target_link_libraries(smt-switch-cvc5 ${GMP_LIBRARIES})
+target_link_libraries(smt-switch-cvc5 GMP::gmp)
 
 if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   # we want the static library to include the cvc5 source and dependencies (except GMP)

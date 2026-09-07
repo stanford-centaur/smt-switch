@@ -4,6 +4,8 @@ if(DEFINED Z3_INSTALL_DIR)
 endif()
 find_package(Z3 REQUIRED)
 
+find_package(GMP REQUIRED COMPONENTS gmpxx)
+
 # Variables needed in setup.py
 # TODO: move all compilation commands into CMake
 get_target_property(Z3_CONFIGURATIONS z3::libz3 IMPORTED_CONFIGURATIONS)
@@ -23,11 +25,9 @@ add_library(
 
 target_include_directories(smt-switch-z3 PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(smt-switch-z3 PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 target_link_libraries(smt-switch-z3 PUBLIC z3::libz3)
-target_link_libraries(smt-switch-z3 PRIVATE ${GMP_LIBRARIES})
-target_link_libraries(smt-switch-z3 PRIVATE ${GMPXX_LIBRARIES})
+target_link_libraries(smt-switch-z3 PRIVATE GMP::gmpxx)
 
 install(TARGETS smt-switch-z3 DESTINATION lib)
 # install headers -- for expert use only
