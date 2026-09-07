@@ -27,6 +27,12 @@ ignore = [
 # The Cython `cdef extern` declarations this generator emits are single long
 # lines that neither the formatter nor a human can usefully wrap.
 "python/gen-smt-solver-declarations.py" = ["E501"]
+# This template generates the package __init__, whose job is to re-export the
+# public API, so every name it imports is unused by design. Declaring __all__
+# would silence this instead, but it would also drop the solver factories that
+# the trailing `import *` provides from `from smt_switch import *`, and those
+# cannot be listed because which ones exist depends on the build.
+"python/smt_switch/__init__.py.in" = ["F401"]
 # This module raises pysmt's own exception types with a message describing the
 # term or sort at fault, across 17 sites. Bespoke subclasses would not suit
 # borrowed exception types, and hoisting each message to a variable would add a

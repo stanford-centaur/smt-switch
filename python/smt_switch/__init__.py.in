@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 the smt-switch authors
+# SPDX-FileContributor: Makai Mann
+# SPDX-License-Identifier: BSD-3-Clause
+
 from .api import (
     IdentityVisitor,
     Op,
@@ -13,6 +17,9 @@ from .api import (
     op_partition,
 )
 from .enums import PrimOp, SolverAttribute, SolverEnum, SortKind
-from .smt_solvers import *
+
+# Which solver factories this module defines depends on which backends CMake
+# built, so they cannot be imported by name.
+from .smt_solvers import *  # noqa: F403
 
 __version__ = "@PROJECT_VERSION@"
