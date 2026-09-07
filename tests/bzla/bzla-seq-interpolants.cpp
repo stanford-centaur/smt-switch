@@ -14,11 +14,11 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "assert.h"
 #include "bitwuzla_factory.h"
 #include "smt.h"
 // after a full installation

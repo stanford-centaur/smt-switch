@@ -22,9 +22,9 @@ extern "C" {
 #include "memstream.h"
 }
 
+#include <cassert>
 #include <unordered_map>
 
-#include "assert.h"
 #include "stdio.h"
 
 // defining hash for old compilers

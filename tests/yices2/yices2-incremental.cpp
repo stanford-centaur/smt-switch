@@ -14,11 +14,11 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "assert.h"
 #include "smt.h"
 #include "yices2_factory.h"
 // after full installation

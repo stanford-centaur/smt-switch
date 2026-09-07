@@ -14,11 +14,11 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "assert.h"
 #include "msat_factory.h"
 #include "msat_solver.h"  // only needed for the static_pointer_cast for testing
 #include "smt.h"

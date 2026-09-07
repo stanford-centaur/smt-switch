@@ -14,10 +14,10 @@
 **
 **/
 
+#include <cassert>
 #include <iostream>
 #include <string>
 
-#include "assert.h"
 #include "cvc5_factory.h"
 #include "smt.h"
 // after full installation
