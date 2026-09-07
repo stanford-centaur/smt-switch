@@ -14,8 +14,8 @@
 **
 **
 **/
+#include <cstdio>
 #include <iostream>
-#include "stdio.h"
 #include "smtlib_reader.h"
 #include "smtlibparser.h"
 using namespace std;

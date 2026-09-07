@@ -14,9 +14,8 @@
 **
 **/
 
-#include <math.h>
-
 #include <chrono>
+#include <cmath>
 #include <utility>
 #include <vector>
 
@@ -55,7 +54,7 @@ TEST_P(TimeLimitTests, TestTimeLimit)
 
   s->assert_formula(s->make_symbol("b", s->make_sort(BOOL)));
 
-  size_t num_vars = (size_t)pow(2, width) + 1;
+  size_t num_vars = (size_t)std::pow(2, width) + 1;
   TermVec vars;
   vars.reserve(num_vars);
   for (size_t i = 0; i < num_vars; ++i)

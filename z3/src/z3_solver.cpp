@@ -1,8 +1,8 @@
 #include "z3_solver.h"
 
-#include <inttypes.h>
 #include <z3++.h>
 
+#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <iterator>

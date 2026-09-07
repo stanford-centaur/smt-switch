@@ -16,8 +16,6 @@
 
 #include "boolector_extensions.h"
 
-#include "math.h"
-
 namespace smt {
 BoolectorNode * custom_boolector_rotate_left(Btor * btor,
                                              BoolectorNode * node,

@@ -23,9 +23,8 @@ extern "C" {
 }
 
 #include <cassert>
+#include <cstdio>
 #include <unordered_map>
-
-#include "stdio.h"
 
 // defining hash for old compilers
 namespace std {
