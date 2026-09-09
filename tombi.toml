@@ -1,0 +1,7 @@
+# Used by the tombi hooks in .pre-commit-config.yaml.
+#
+# tombi's default is to put a fixed two spaces before a trailing comment, which
+# would undo the alignment .ruff.toml uses for the comments on its ignore list.
+[format.rules]
+trailing-comment-alignment = true
+trailing-comment-space-width = 1
