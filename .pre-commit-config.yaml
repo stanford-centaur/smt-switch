@@ -7,7 +7,6 @@
 # upstream so it can be diffed against new releases. The rest of contrib/ is
 # first-party and is checked normally.
 exclude: ^contrib/memstream-0\.1/
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -35,7 +34,6 @@ repos:
       - id: check-toml
       - id: check-ast
       - id: debug-statements
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:
@@ -60,13 +58,11 @@ repos:
       - id: ruff-format
         types_or: [text]
         files: '\.i?py(i|nb|\.in)?$|\.md$'
-
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
     rev: 0.28.1
     hooks:
       # Uses .gersemirc. Leave `args` unset to keep the hook's default `-i`.
       - id: gersemi
-
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
     hooks:
@@ -74,7 +70,6 @@ repos:
       # --default-schema-catalogs fetches a remote schema catalog, which is
       # unreliable in CI and broken offline. check-toml covers syntax.
       - id: taplo-format
-
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:
@@ -88,7 +83,6 @@ repos:
       # take its indentation from that file and ignore these flags.
       - id: shfmt
         args: [-w, -i, "2", -ci, -s]
-
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1-1
     hooks:
@@ -96,7 +90,6 @@ repos:
       # the `# shellcheck source=` directives in contrib/setup-*.sh resolve
       # no matter which files a given commit stages.
       - id: shellcheck
-
   - repo: https://github.com/openstack/bashate
     rev: 2.1.1
     hooks:
@@ -111,7 +104,6 @@ repos:
       # before the error/warning split.
       - id: bashate
         args: [-i, E003, -e, E]
-
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v23.1.0
     hooks:
