@@ -82,11 +82,14 @@ jobs:
           brew install gperf
           brew install SRI-CSL/sri-csl/libpoly
           bash {project}/ci-scripts/cibw-build-deps.sh
-        CIBW_BEFORE_BUILD: >
+        CIBW_BEFORE_BUILD: |
           python3 -m pip install \
             Cython>=3.0.0 \
             setuptools
           bash {project}/ci-scripts/cibw-build-before.sh
+        # `>` folds the lines below into one space-separated line, which is the
+        # only form cibuildwheel accepts here. With `|` each would keep its
+        # newline and cibuildwheel would read just the first assignment.
         CIBW_ENVIRONMENT_MACOS: >
           CPATH="$(brew --prefix)/include"
           LIBRARY_PATH="$(brew --prefix)/lib"
@@ -100,10 +103,7 @@ jobs:
           python3 -m pytest {project}/tests
 
     - name: Upload wheels to PyPI
-      if: >
-        github.event_name == 'release' ||
-        (github.event_name == 'workflow_dispatch' &&
-          github.event.inputs.deploy_target == 'PyPI')
+      if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'PyPI')
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -114,9 +114,7 @@ jobs:
         python3 -m twine upload --skip-existing wheelhouse/*.whl
 
     - name: Upload wheels to TestPyPI
-      if: >
-        github.event_name == 'workflow_dispatch' &&
-        github.event.inputs.deploy_target == 'Test PyPI'
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'Test PyPI'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}

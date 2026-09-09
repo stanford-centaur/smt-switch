@@ -2,7 +2,7 @@
 # `pre-commit run --all-files` to check the whole tree.
 #
 # Hook revisions are kept current by Dependabot (see .github/dependabot.yml).
-
+#
 # contrib/memstream-0.1 is a vendored third-party drop, kept byte-identical to
 # upstream so it can be diffed against new releases. The rest of contrib/ is
 # first-party and is checked normally.
