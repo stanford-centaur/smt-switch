@@ -7,6 +7,12 @@ name: Lint
 jobs:
   prek:
     runs-on: ubuntu-latest
+    # Run tombi against pinned schemas rather than whatever schemastore serves
+    # today, so a schema change cannot alter a result here on its own.
+    # TOMBI_OFFLINE only takes true or false; anything else is an error.
+    env:
+      TOMBI_OFFLINE: "true"
+      TOMBI_CACHE_HOME: ${{ github.workspace }}/.tombi-cache
     steps:
       - uses: actions/checkout@v7
       # prek is a drop-in replacement for pre-commit that reads the same
