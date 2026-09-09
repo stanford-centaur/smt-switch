@@ -44,6 +44,11 @@ YAML formatting is enforced by the yamlfmt hook and configured by
 [.yamlfmt](./.yamlfmt). It covers [.clang-format](./.clang-format) too, since
 that file is YAML.
 
+Markdown formatting is enforced by the mdformat hook and configured by
+[.mdformat.toml](./.mdformat.toml), which wraps prose at 80 columns. Because the
+width lives in that file rather than in the hook's arguments, running `mdformat`
+by hand gives the same result as the hook does.
+
 Commits that only reformat are listed in
 [.git-blame-ignore-revs](./.git-blame-ignore-revs) so that `git blame` can skip
 them. GitHub uses that file automatically; locally it needs

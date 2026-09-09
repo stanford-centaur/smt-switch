@@ -75,6 +75,15 @@ repos:
       # --default-schema-catalogs fetches a remote schema catalog, which is
       # unreliable in CI and broken offline. check-toml covers syntax.
       - id: taplo-format
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      # Uses .mdformat.toml. mdformat-gfm is required to support the GitHub
+      # extensions: mdformat targets CommonMark, which has no tables, so
+      # without it a table reads as an ordinary paragraph and the configured
+      # wrap reflows it into prose.
+      - id: mdformat
+        additional_dependencies: [mdformat-gfm==1.0.0]
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:

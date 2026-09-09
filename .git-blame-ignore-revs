@@ -21,3 +21,9 @@ f8935125f9812bd70592991629692f2b71f952e6
 
 # style: Reformat the YAML files with yamlfmt (#538)
 ea1664d973f43040669734cb5922879302efb9c5
+
+# style: Apply mdformat's structural fixes to the Markdown files (#540)
+52a1324ea0fdc4d841d4ee77dd75f6ea8b474331
+
+# style: Re-wrap the Markdown prose at 80 columns (#541)
+8fe931dafb31417033a689fd91e84a90a2f981e9
