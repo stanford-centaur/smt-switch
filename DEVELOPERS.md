@@ -29,6 +29,15 @@ clang-format hook. Note that clang-format's output changes between releases, so 
 version pinned in [.pre-commit-config.yaml](./.pre-commit-config.yaml) is what decides
 the layout; bumping it may reformat files it previously left alone.
 
+YAML formatting is enforced by the yamlfmt hook and configured by
+[.yamlfmt](./.yamlfmt). It covers [.clang-format](./.clang-format) too, since that
+file is YAML.
+
+Commits that only reformat are listed in
+[.git-blame-ignore-revs](./.git-blame-ignore-revs) so that `git blame` can skip
+them. GitHub uses that file automatically; locally it needs
+`git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 ## Design Decisions
 
 * Everything is a pointer
