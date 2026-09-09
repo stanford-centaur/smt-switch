@@ -68,13 +68,14 @@ repos:
     hooks:
       # Uses .yamlfmt. Also covers .clang-format, which is YAML despite its name.
       - id: yamlfmt
-  - repo: https://github.com/ComPWA/taplo-pre-commit
-    rev: v0.9.3
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v1.5.2
     hooks:
-      # taplo-lint is deliberately omitted: its default
-      # --default-schema-catalogs fetches a remote schema catalog, which is
-      # unreliable in CI and broken offline. check-toml covers syntax.
-      - id: taplo-format
+      # Uses tombi.toml. tombi orders tables and keys as its bundled schema
+      # defines, and sorts only the arrays that schema declares unordered.
+      - id: tombi-format
+        # Skip the remote schema catalog, unreliable in CI.
+        args: [--offline]
   - repo: https://github.com/hukkin/mdformat
     rev: 1.0.0
     hooks:

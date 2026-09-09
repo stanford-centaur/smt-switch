@@ -49,6 +49,10 @@ Markdown formatting is enforced by the mdformat hook and configured by
 width lives in that file rather than in the hook's arguments, running `mdformat`
 by hand gives the same result as the hook does.
 
+TOML formatting is enforced by the tombi-format hook and configured by
+[tombi.toml](./tombi.toml). tombi puts tables and keys in the order its bundled
+schema defines, so adding a table to a file it has a schema for may move it.
+
 Commits that only reformat are listed in
 [.git-blame-ignore-revs](./.git-blame-ignore-revs) so that `git blame` can skip
 them. GitHub uses that file automatically; locally it needs
