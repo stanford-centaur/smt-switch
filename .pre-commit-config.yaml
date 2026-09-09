@@ -63,6 +63,11 @@ repos:
     hooks:
       # Uses .gersemirc. Leave `args` unset to keep the hook's default `-i`.
       - id: gersemi
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      # Uses .yamlfmt. Also covers .clang-format, which is YAML despite its name.
+      - id: yamlfmt
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
     hooks:

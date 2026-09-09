@@ -1,0 +1,7 @@
+# Used by the yamlfmt hook in .pre-commit-config.yaml.
+#
+# Without scan_folded_as_literal, yamlfmt joins a `>` scalar written over
+# several lines onto one line, however long that leaves it. Where such a
+# scalar has to stay folded, the reason is recorded next to it.
+formatter:
+  scan_folded_as_literal: true
