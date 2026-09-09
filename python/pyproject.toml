@@ -1,14 +1,9 @@
-[build-system]
-requires = ["setuptools>=61.0.0", "Cython>=3.0.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "smt-switch"
 description = "Python bindings for the smt-switch C++ SMT solving library"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9"
 license = "BSD-3-Clause"
-dynamic = ["version"]
 authors = [
   { name = "Yoni Zohar", email = "yoni.zohar@biu.ac.il" },
   { name = "Áron Ricardo Perez-Lopez", email = "arpl@cs.stanford.edu" },
@@ -16,15 +11,20 @@ authors = [
   { name = "Clark Barrett", email = "barrett@cs.stanford.edu" },
 ]
 dependencies = []
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/stanford-centaur/smt-switch"
+Issues = "https://github.com/stanford-centaur/smt-switch/issues"
+Repository = "https://github.com/stanford-centaur/smt-switch.git"
 
 [project.optional-dependencies]
 pysmt = ["pysmt"]
 test = ["pytest"]
 
-[project.urls]
-Homepage = "https://github.com/stanford-centaur/smt-switch"
-Repository = "https://github.com/stanford-centaur/smt-switch.git"
-Issues = "https://github.com/stanford-centaur/smt-switch/issues"
+[build-system]
+requires = ["Cython>=3.0.0", "setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["smt_switch", "smt_switch.pysmt_frontend"]
