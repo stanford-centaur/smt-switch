@@ -7,9 +7,9 @@ external contributions are subject to the following terms:
   must be signed using `git commit -s`
 - By submitting a signed contribution, you agree to all the terms of the
   3-clause BSD license (see [LICENSE](./LICENSE))
-- But submitting a signed contribution, you agree that the [Developer
-  Certificate of Origin](https://developercertificate.org/) (reproduced below)
-  applies to your contribution.
+- But submitting a signed contribution, you agree that the
+  [Developer Certificate of Origin](https://developercertificate.org/)
+  (reproduced below) applies to your contribution.
 
 ```
 Developer Certificate of Origin
