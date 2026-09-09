@@ -3,6 +3,7 @@
 This directory contains example usage of smt-switch.
 
 ## QF_UFBV
+
 `QF_UFBV` stands for quantifier-free uninterpreted functions and bit-vectors.
 The files [cvc5_qf_ufbv.cpp](cvc5_qf_ufbv.cpp) and
 [btor_qf_ufbv.cpp](btor_qf_ufbv.cpp) demonstrate some common usage of the API
@@ -31,6 +32,7 @@ To remove the built binaries, run `make clean`. To clean up all the build and
 install files for `smt-switch` in this directory, run `make clean-all`.
 
 ## Python bindings
+
 You can also run the same example through the Python bindings with the file,
 [python_qf_ufbv.py](python_qf_ufbv.py). This requires building the Python
 bindings, which can be done by running `./build.sh --python`. If you have
