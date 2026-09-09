@@ -180,7 +180,7 @@ if(BUILD_PYTHON_BINDINGS)
   find_python_in_virtualenv()
   # Want python for building a module, so use Development.Module. See:
   # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
+  find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
 # should we build boolector?

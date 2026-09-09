@@ -47,7 +47,9 @@ jobs:
           # Where the setup.py and pyproject.toml build infrastructure is
           package-dir: build/python
         env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          # Every released CPython that is not yet end-of-life
+          # Keep in sync with requires-python in python/pyproject.toml
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_ARCHS_LINUX: ${{ matrix.arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
