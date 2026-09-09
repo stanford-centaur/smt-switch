@@ -8,6 +8,10 @@ extend-exclude = ["build", "deps"]
 # excludes above.
 force-exclude = true
 
+# ruff discovers *.py and *.pyi; the templates CMake configures need naming
+# here, or a run outside pre-commit skips them.
+extend-include = ["*.py.in"]
+
 [lint]
 select = ["ALL"]
 
