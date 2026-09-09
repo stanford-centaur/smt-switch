@@ -45,9 +45,7 @@ YAML formatting is enforced by the yamlfmt hook and configured by
 that file is YAML.
 
 Markdown formatting is enforced by the mdformat hook and configured by
-[.mdformat.toml](./.mdformat.toml), which wraps prose at 80 columns. Because the
-width lives in that file rather than in the hook's arguments, running `mdformat`
-by hand gives the same result as the hook does.
+[.mdformat.toml](./.mdformat.toml), which wraps prose at 80 columns.
 
 TOML formatting is enforced by the tombi-format hook and configured by
 [tombi.toml](./tombi.toml). tombi puts tables and keys in the order its bundled

@@ -1,6 +1,3 @@
-# Used by the mdformat hook in .pre-commit-config.yaml.
-#
-# mdformat does not wrap at all unless given a width: its default is `keep`,
-# which leaves existing line breaks alone. Keeping the width here rather than
-# in the hook's `args` means a manual `mdformat` run matches what the hook does.
+# mdformat does not wrap at all unless given a width; its default is `keep`,
+# which leaves existing line breaks alone.
 wrap = 80
