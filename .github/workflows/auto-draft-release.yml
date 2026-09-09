@@ -1,23 +1,19 @@
 name: Automatically Draft a Release on Version Bump
-
 on:
   push:
     branches:
       - main
-
 jobs:
   create-tag:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed to create tags
-
+      contents: write # Needed to create tags
     steps:
       # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0  # Fetch all history to ensure we can check if tag exists
-
+          fetch-depth: 0 # Fetch all history to ensure we can check if tag exists
       - name: Read VERSION file
         id: version
         run: |
@@ -25,7 +21,6 @@ jobs:
           VERSION_VALUE=$(grep -v '^#' VERSION | head -n 1 | tr -d '[:space:]')
           echo "Detected version: $VERSION_VALUE"
           echo "version=$VERSION_VALUE" >> $GITHUB_OUTPUT
-
       - name: Check if tag exists
         id: check_tag
         run: |
@@ -34,7 +29,6 @@ jobs:
           else
             echo "tag_exists=false" >> $GITHUB_OUTPUT
           fi
-
       # Create and push the tag if it doesn't already exist
       - name: Create and push tag
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -43,7 +37,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a v${{ steps.version.outputs.version }} -m "Version ${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
-
       - name: Create draft GitHub Release
         if: steps.check_tag.outputs.tag_exists == 'false'
         uses: softprops/action-gh-release@v3

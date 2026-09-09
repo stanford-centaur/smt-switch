@@ -1,5 +1,4 @@
 name: Build and Upload Wheels
-
 on:
   release:
     types: [published]
@@ -11,10 +10,9 @@ on:
         type: choice
         description: "Choose the deployment target"
         options:
-        - None
-        - PyPI
-        - Test PyPI
-
+          - None
+          - PyPI
+          - Test PyPI
 jobs:
   build_wheels:
     name: ${{ matrix.name }}
@@ -36,90 +34,85 @@ jobs:
           - name: macos-arm64
             os: macos-15
             macos-target: 15
-
     steps:
-    - uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
-
-    # cibuildwheel requires the pyproject.toml to be present from the beginning
-    - name: Place pyproject.toml
-      run: |
-        mkdir -p ./build/python
-        cp ./python/pyproject.toml ./build/python/
-
-    - name: Build wheels
-      uses: pypa/cibuildwheel@v4.2.1
-      with:
-        # Where the setup.py and pyproject.toml build infrastructure is
-        package-dir: ./build/python
-      env:
-        CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
-        CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
-        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
-        CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
-        CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_28_aarch64
-        CIBW_BEFORE_ALL_LINUX: |
-          dnf install -y \
-            cmake \
-            gettext \
-            glibc-static \
-            gperf \
-            libstdc++-static \
-            ninja-build \
-            wget
-          # Build GMP and MPFR manually, which are too old in the repos
-          mkdir -p {project}/deps && pushd {project}/deps
-          wget https://ftpmirror.gnu.org/gmp/gmp-6.3.0.tar.xz
-          tar -xf gmp-6.3.0.tar.xz && mv gmp-6.3.0 gmp && rm -f gmp-6.3.0.tar.xz
-          pushd gmp && ./configure --enable-cxx && make install && popd
-          wget https://ftpmirror.gnu.org/mpfr/mpfr-4.2.2.tar.xz
-          tar -xf mpfr-4.2.2.tar.xz && mv mpfr-4.2.2 mpfr && rm -f mpfr-4.2.2.tar.xz
-          cd mpfr && ./configure && make install && popd
-          bash {project}/ci-scripts/cibw-build-deps.sh
-        CIBW_BEFORE_ALL_MACOS: |
-          brew update
-          brew install gperf
-          brew install SRI-CSL/sri-csl/libpoly
-          bash {project}/ci-scripts/cibw-build-deps.sh
-        CIBW_BEFORE_BUILD: |
-          python3 -m pip install \
-            Cython>=3.0.0 \
-            setuptools
-          bash {project}/ci-scripts/cibw-build-before.sh
-        # `>` folds the lines below into one space-separated line, which is the
-        # only form cibuildwheel accepts here. With `|` each would keep its
-        # newline and cibuildwheel would read just the first assignment.
-        CIBW_ENVIRONMENT_MACOS: >
-          CPATH="$(brew --prefix)/include"
-          LIBRARY_PATH="$(brew --prefix)/lib"
-          PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
-          DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
-          MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
-        CIBW_TEST_COMMAND: |
-          # cibuildwheel creates a dedicated virtualenv for the test
-          # make sure to use that python (just calling pytest may use system pytest)
-          python3 -m pip install pytest
-          python3 -m pytest {project}/tests
-
-    - name: Upload wheels to PyPI
-      if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'PyPI')
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        python3 -m venv ./upload-env
-        source ./upload-env/bin/activate
-        python3 -m pip install twine
-        python3 -m twine upload --skip-existing wheelhouse/*.whl
-
-    - name: Upload wheels to TestPyPI
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'Test PyPI'
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-      run: |
-        python3 -m venv ./upload-env
-        source ./upload-env/bin/activate
-        python3 -m pip install twine
-        python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # cibuildwheel requires the pyproject.toml to be present from the beginning
+      - name: Place pyproject.toml
+        run: |
+          mkdir -p ./build/python
+          cp ./python/pyproject.toml ./build/python/
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v4.2.1
+        with:
+          # Where the setup.py and pyproject.toml build infrastructure is
+          package-dir: ./build/python
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
+          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
+          CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_28_aarch64
+          CIBW_BEFORE_ALL_LINUX: |
+            dnf install -y \
+              cmake \
+              gettext \
+              glibc-static \
+              gperf \
+              libstdc++-static \
+              ninja-build \
+              wget
+            # Build GMP and MPFR manually, which are too old in the repos
+            mkdir -p {project}/deps && pushd {project}/deps
+            wget https://ftpmirror.gnu.org/gmp/gmp-6.3.0.tar.xz
+            tar -xf gmp-6.3.0.tar.xz && mv gmp-6.3.0 gmp && rm -f gmp-6.3.0.tar.xz
+            pushd gmp && ./configure --enable-cxx && make install && popd
+            wget https://ftpmirror.gnu.org/mpfr/mpfr-4.2.2.tar.xz
+            tar -xf mpfr-4.2.2.tar.xz && mv mpfr-4.2.2 mpfr && rm -f mpfr-4.2.2.tar.xz
+            cd mpfr && ./configure && make install && popd
+            bash {project}/ci-scripts/cibw-build-deps.sh
+          CIBW_BEFORE_ALL_MACOS: |
+            brew update
+            brew install gperf
+            brew install SRI-CSL/sri-csl/libpoly
+            bash {project}/ci-scripts/cibw-build-deps.sh
+          CIBW_BEFORE_BUILD: |
+            python3 -m pip install \
+              Cython>=3.0.0 \
+              setuptools
+            bash {project}/ci-scripts/cibw-build-before.sh
+          # `>` folds the lines below into one space-separated line, which is the
+          # only form cibuildwheel accepts here. With `|` each would keep its
+          # newline and cibuildwheel would read just the first assignment.
+          CIBW_ENVIRONMENT_MACOS: >
+            CPATH="$(brew --prefix)/include"
+            LIBRARY_PATH="$(brew --prefix)/lib"
+            PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
+            DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+          CIBW_TEST_COMMAND: |
+            # cibuildwheel creates a dedicated virtualenv for the test
+            # make sure to use that python (just calling pytest may use system pytest)
+            python3 -m pip install pytest
+            python3 -m pytest {project}/tests
+      - name: Upload wheels to PyPI
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'PyPI')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python3 -m venv ./upload-env
+          source ./upload-env/bin/activate
+          python3 -m pip install twine
+          python3 -m twine upload --skip-existing wheelhouse/*.whl
+      - name: Upload wheels to TestPyPI
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'Test PyPI'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: |
+          python3 -m venv ./upload-env
+          source ./upload-env/bin/activate
+          python3 -m pip install twine
+          python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl

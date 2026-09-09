@@ -1,6 +1,5 @@
----
-Language:        Cpp
-BasedOnStyle:  Google
+Language: Cpp
+BasedOnStyle: Google
 AlignTrailingComments: true
 AllowShortCaseLabelsOnASingleLine: true
 BinPackArguments: false
@@ -20,4 +19,3 @@ BreakConstructorInitializers: BeforeColon
 Cpp11BracedListStyle: false
 DerivePointerAlignment: false
 PointerAlignment: Middle
-...
