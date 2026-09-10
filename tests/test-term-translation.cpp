@@ -136,7 +136,7 @@ TEST_P(SelfTranslationTests, BVTransfer)
   ASSERT_EQ(T2, s2->make_term(true));
   Term two_2 = tt.transfer_term(two);
   ASSERT_EQ(two_2, s2->make_term(2, s2->make_sort(BV, 8)));
-  // ensure it can handle transfering again (even though it already built the
+  // ensure it can handle transferring again (even though it already built the
   // node)
   Term cached_constraint2 = constraint2;
   constraint2 = tt.transfer_term(constraint);

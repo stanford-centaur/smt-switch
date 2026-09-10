@@ -22,7 +22,7 @@ Configures the CMAKE build environment.
 --yices2-home=STR       custom YICES2 location  (default: deps/yices2)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
---static                create static libaries (default: off)
+--static                create static libraries (default: off)
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)

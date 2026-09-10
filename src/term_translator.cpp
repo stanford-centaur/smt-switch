@@ -588,7 +588,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
   {
     // assuming the array itself doesn't need to be casted
     // only the index
-    // we have no suport for or issue with that
+    // we have no support for or issue with that
     return solver->make_term(
         Select,
         terms[0],
@@ -599,7 +599,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
   {
     // assuming the array itself doesn't need to be casted
     // only the index
-    // we have no suport for or issue with that
+    // we have no support for or issue with that
     Sort arrsort = terms[0]->get_sort();
     return solver->make_term(Store,
                              terms[0],

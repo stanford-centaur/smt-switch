@@ -353,7 +353,7 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
 {
   if (global_symbols_.get_symbol(name))
   {
-    throw SmtException("Re-declaring symbol: " + name);
+    throw SmtException("Redeclaring symbol: " + name);
   }
 
   auto it = all_symbols_.find(name);
@@ -361,7 +361,7 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
   {
     if (it->second->get_sort() != sort)
     {
-      throw SmtException("Current Limitation: cannot re-declare symbol " + name
+      throw SmtException("Current Limitation: cannot redeclare symbol " + name
                          + " with a different sort");
     }
     global_symbols_.add_mapping(name, it->second);
@@ -516,7 +516,7 @@ Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
 {
   assert(current_scope());
   Term param;
-  // some solvers don't allow re-using parameter names
+  // some solvers don't allow reusing parameter names
   // need to find a fresh one
   std::size_t id = 0;
   while (!param)

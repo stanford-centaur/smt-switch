@@ -130,7 +130,7 @@ that some methods have default implementations in `*.cpp` files under the `src`
 directory. These default implementations can be replaced with solver-specific
 implementations for performance improvements. For example, `substitute` takes a
 map and a term and performs sub-term substitution. This has a default
-implementation but is overriden in the `boolector` implementation to rely on
+implementation but is overridden in the `boolector` implementation to rely on
 `boolector's` underlying substitution map infrastructure.
 
 All your solver header and source files should be put in `<solver name>/include`

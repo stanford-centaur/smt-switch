@@ -26,7 +26,7 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   }
 
   // out is meant to store the result of querying the query cache
-  // by default, out gives topmost node's occurence with which to query cache
+  // by default, out gives topmost node's occurrence with which to query cache
   // before continuing
   std::pair<Term, std::vector<int>> out;
   out.first = node;

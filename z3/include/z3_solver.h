@@ -128,7 +128,7 @@ class Z3Solver : public AbsSmtSolver
   mutable z3::solver slv;
   std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
-  ///< re-declaring
+  ///< redeclaring
 
   uint64_t context_level;  ///< context level for incremental solving
 

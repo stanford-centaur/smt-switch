@@ -132,7 +132,7 @@ inline bool operator>=(const Term & t1, const Term & t2)
 std::ostream & operator<<(std::ostream & output, const Term t);
 
 // term iterators
-// impelementation based on
+// implementation based on
 // https://www.codeproject.com/Articles/92671/How-to-write-abstract-iterators-in-Cplusplus
 class TermIterBase
 {

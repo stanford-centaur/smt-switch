@@ -55,7 +55,7 @@ void transfer_int_test()
 
   Term constraint2 = tt.transfer_term(constraint);
   Term T2 = tt.transfer_term(T);
-  // ensure it can handle transfering again (even though it already built the
+  // ensure it can handle transferring again (even though it already built the
   // node)
   constraint2 = tt.transfer_term(constraint);
   s2->assert_formula(constraint2);
@@ -92,7 +92,7 @@ void transfer_bv_test()
 
   Term constraint2 = tt.transfer_term(constraint);
   Term T2 = tt.transfer_term(T);
-  // ensure it can handle transfering again (even though it already built the
+  // ensure it can handle transferring again (even though it already built the
   // node)
   constraint2 = tt.transfer_term(constraint);
   s2->assert_formula(constraint2);

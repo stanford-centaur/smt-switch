@@ -120,7 +120,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
 
   // READ PLEASE
   // The easiest handling of Z3's set function's param requirements is to have
-  // vectors with the names of different options in the list correspoinding with
+  // vectors with the names of different options in the list corresponding with
   // which param the z3 api expects, it's worth discussing what options we think
   // should go in these lists to start and obviously it is very easy to add more
   // down the line

@@ -50,7 +50,7 @@ class SmtException : public std::exception
 
   /** Returns a pointer to the (constant) error description.
    *  @return A pointer to a const char*. The underlying memory
-   *          is in posession of the Exception object. Callers must
+   *          is in possession of the Exception object. Callers must
    *          not attempt to free the memory.
    */
   virtual const char * what() const throw() { return msg.c_str(); }

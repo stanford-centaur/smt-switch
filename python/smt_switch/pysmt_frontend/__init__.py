@@ -45,7 +45,7 @@ except ImportError:
 # resemblance this function exists to provide.
 def Solver(name: str, logic: logics.Logic | None = None) -> SolverT:  # noqa: N802
     """
-    Convience function for building a pysmt solver object with a switch backend.
+    Convenience function for building a pysmt solver object with a switch backend.
     Similar to `pysmt.shortcuts.Solver`.
     """
     try:
