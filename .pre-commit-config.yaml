@@ -9,8 +9,9 @@
 #
 # contrib/memstream-0.1 is a vendored third-party drop, kept byte-identical to
 # upstream so it can be diffed against new releases. The rest of contrib/ is
-# first-party and is checked normally.
-exclude: ^contrib/memstream-0\.1/
+# first-party and is checked normally. The JSON schemas in .tombi-cache are
+# vendored for the same reason; the README there is ours, so it is checked.
+exclude: ^(contrib/memstream-0\.1/|\.tombi-cache/.*\.json$)
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -62,9 +63,12 @@ repos:
   - repo: https://github.com/tombi-toml/tombi-pre-commit
     rev: v1.5.2
     hooks:
+      # No --offline here, so a local run resolves schemas over the network.
+      # CI instead sets TOMBI_OFFLINE and points TOMBI_CACHE_HOME at
+      # .tombi-cache, which pins the schemas it cannot bundle. Both routes
+      # validate the same thing; see DEVELOPERS.md to reproduce CI locally.
       - id: tombi-format
-        # Skip the remote schema catalog, unreliable in CI.
-        args: [--offline]
+      - id: tombi-lint
   - repo: https://github.com/hukkin/mdformat
     rev: 1.0.0
     hooks:

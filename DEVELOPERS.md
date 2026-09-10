@@ -51,6 +51,23 @@ TOML formatting is enforced by the tombi-format hook and configured by
 [tombi.toml](./tombi.toml). tombi puts tables and keys in the order its bundled
 schema defines, so adding a table to a file it has a schema for may move it.
 
+Some of those schemas are not bundled, and tombi fetches them from schemastore,
+which serves no versioned URLs and has had outages in the past. Either a schema
+change or an outage could then decide a CI result, an outage failing the run
+outright, since tombi exits non-zero when it cannot fetch. So CI runs tombi
+offline against the copies vendored in `.tombi-cache`, by setting:
+
+```sh
+TOMBI_OFFLINE=true
+TOMBI_CACHE_HOME=<repository root>/.tombi-cache
+```
+
+Locally the hooks run without those, fetching the current schemas instead, which
+validates the same thing as long as schemastore has not changed. Export both to
+reproduce a CI run exactly. `TOMBI_OFFLINE` accepts only `true` or `false`; any
+other value is an error. See [.tombi-cache/README.md](./.tombi-cache/README.md)
+for how to refresh the vendored copies.
+
 Commits that only reformat are listed in
 [.git-blame-ignore-revs](./.git-blame-ignore-revs) so that `git blame` can skip
 them. GitHub uses that file automatically; locally it needs
