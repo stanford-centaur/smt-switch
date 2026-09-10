@@ -10,28 +10,23 @@ Usage: $0 [<option> ...]
 Downloads the MathSAT SMT Solver. Note that this solver is under a custom (non-BSD-compliant) license.
 
 -h, --help              display this message and exit
--y, --auto-yes          automatically agree to conditions (default: off)
 EOF
   exit 0
 }
 
-get_msat=default
 while (($# > 0)); do
   case "$1" in
     -h | --help) usage ;;
-    -y | --auto-yes) get_msat=y ;;
     *) echo "unexpected argument: $1" && exit 1 ;;
   esac
   shift
 done
 
-if [[ $get_msat == default ]]; then
-  printf "%s\n" \
-    "MathSAT is distributed under a custom (non-BSD-compliant) license." \
-    "By continuing, you acknowledge this and assume responsibility for" \
-    "meeting the license conditions."
-  read -rp "Continue? [y]es/[n]o: " get_msat
-fi
+printf "%s\n" \
+  "MathSAT is distributed under a custom (non-BSD-compliant) license." \
+  "By continuing, you acknowledge this and assume responsibility for" \
+  "meeting the license conditions."
+read -rp "Continue? [y]es/[n]o: " get_msat
 
 if [[ $get_msat != y ]]; then
   echo "Not downloading MathSAT"
