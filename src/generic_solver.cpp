@@ -177,7 +177,7 @@ void GenericSolver::start_solver()
     argv[cmd_line_args.size() + 1] = NULL;
     execv(path.c_str(), (char **)argv);
     // Nothing below this line should be executed by child process. If so,
-    // it means that the execl function wasn't successfull, so lets exit:
+    // it means that the execl function wasn't successful, so lets exit:
     std::string msg("failure to run binary: ");
     msg += path;
     throw IncorrectUsageException(msg);
@@ -192,7 +192,7 @@ void GenericSolver::start_solver()
 
 void GenericSolver::write_internal(std::string str) const
 {
-  // track how many charas were written so far
+  // track how many chars were written so far
   unsigned int written_chars = 0;
   // continue writing  until entire str was written
   while (written_chars < str.size())
@@ -279,7 +279,7 @@ std::string GenericSolver::read_internal() const
       read_buf[i] = 0;
     }
   }
-  // normalize outout of solver:
+  // normalize output of solver:
   // - no newlines in the middle of the content
   // - no double spaces
   while (result.find("\n") != std::string::npos)
@@ -969,7 +969,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   // always put pipes around name in case there
   // are special symbols / spaces
   std::string piped_name = "|" + name + "|";
-  // make sure that the symbol name is not aready taken.
+  // make sure that the symbol name is not already taken.
   if (name_term_map->find(piped_name) != name_term_map->end())
   {
     throw IncorrectUsageException(
@@ -984,7 +984,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   (*term_name_map)[term] = piped_name;
 
   // communicate the creation of the symbol to the binary of the solver.
-  // When the sort is not a fucntion, we specify an empty domain.
+  // When the sort is not a function, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
   run_command("(" + DECLARE_FUN_STR + " " + piped_name
               + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
@@ -1085,7 +1085,7 @@ Term GenericSolver::get_value(const Term & t) const
   {
     if (value.substr(0, 2) == "#b")
     {
-      // bianry representation
+      // binary representation
       resulting_term = make_value(value.substr(2, value.size() - 2), sort, 2);
     }
     else if (value.substr(0, 2) == "#x")
@@ -1275,7 +1275,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
   throw NotImplementedException(
-      "Generic solvers do not support get-value for arryas");
+      "Generic solvers do not support get-value for arrays");
 }
 
 void GenericSolver::reset()

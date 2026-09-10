@@ -197,10 +197,10 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   cnf_to_dimacs(cnf, y);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
                           // a))
   string ret = y.str();
-  string ans = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
-  ASSERT_TRUE(ret == ans) << ret << " " << ans << endl
-                          << cnf << endl
-                          << s->get_solver_enum() << endl;
+  string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
+  ASSERT_TRUE(ret == expected) << ret << " " << expected << endl
+                               << cnf << endl
+                               << s->get_solver_enum() << endl;
 
   // Test 2
   Term clause4 = a;
@@ -210,16 +210,16 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   ostringstream y2;
   cnf_to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
   string ret2 = y2.str();
-  string ans2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
-  ASSERT_TRUE(ret2 == ans2);
+  string expected2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
+  ASSERT_TRUE(ret2 == expected2);
 
   // Testing an empty cnf
   Term cnf3 = s->make_term(true);
   ostringstream y3;
   cnf_to_dimacs(cnf3, y3);  // cnf3 = True
   string ret3 = y3.str();
-  string ans3 = "p cnf 0 0\n";
-  ASSERT_TRUE(ret3 == ans3) << ret3 << endl << ans3 << endl;
+  string expected3 = "p cnf 0 0\n";
+  ASSERT_TRUE(ret3 == expected3) << ret3 << endl << expected3 << endl;
 
   // Testing empty clause
   Term clause7 = s->make_term(false);
@@ -227,8 +227,8 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   ostringstream y4;
   cnf_to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
   string ret4 = y4.str();
-  string ans4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
-  ASSERT_TRUE(ret4 == ans4) << ret4 << endl << cnf4 << endl;
+  string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
+  ASSERT_TRUE(ret4 == expected4) << ret4 << endl << cnf4 << endl;
 }
 
 TEST_P(UnitUtilDimacsTests, tseitin)
@@ -256,7 +256,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   s->pop(1);
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
   string st = cnf1->to_string();
-  string ans =
+  string expected =
       "(and tseitin_to_cnf_4 (and (or (not t) (not tseitin_to_cnf_1)) (or t "
       "tseitin_to_cnf_1) (or (not tseitin_to_cnf_2) p q) (and (or "
       "tseitin_to_cnf_2 (not p)) (or tseitin_to_cnf_2 (not q))) (or "
@@ -265,7 +265,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "(or (or (not tseitin_to_cnf_3) tseitin_to_cnf_1) (not "
       "tseitin_to_cnf_4)) (or tseitin_to_cnf_3 tseitin_to_cnf_4) (or (not "
       "tseitin_to_cnf_1) tseitin_to_cnf_4)))";
-  ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl;
+  ASSERT_TRUE(st == expected) << st << endl << endl << expected << endl;
 
   // b=Not(p xor q)
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
@@ -282,13 +282,13 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf2->to_string();
-  ans =
+  expected =
       "(and tseitin_to_cnf_6 (and (or (or (not p) (not q)) (not "
       "tseitin_to_cnf_5)) (or (or p q) (not tseitin_to_cnf_5)) (or (or "
       "tseitin_to_cnf_5 q) (not p)) (or (or tseitin_to_cnf_5 p) (not q)) (or "
       "(not tseitin_to_cnf_5) (not tseitin_to_cnf_6)) (or tseitin_to_cnf_5 "
       "tseitin_to_cnf_6)))";
-  ASSERT_TRUE(st == ans) << st << endl << endl << ans << endl << endl;
+  ASSERT_TRUE(st == expected) << st << endl << endl << expected << endl << endl;
 
   // c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
@@ -305,8 +305,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf3->to_string();
-  ans = "(and (not p) p)";
-  ASSERT_TRUE(st == ans);
+  expected = "(and (not p) p)";
+  ASSERT_TRUE(st == expected);
 
   Term d1 = s->make_term(Or, p, q);
   Term d2 = s->make_term(Or, r, t);
@@ -327,8 +327,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf4->to_string();
-  ans = "(and (or p q) (or r t))";
-  ASSERT_TRUE(st == ans);
+  expected = "(and (or p q) (or r t))";
+  ASSERT_TRUE(st == expected);
   // e=false
   Term e = s->make_term(false);
   Term cnf5 = to_cnf(e, s);
@@ -344,8 +344,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf5->to_string();
-  ans = "false";
-  ASSERT_TRUE(st == ans);
+  expected = "false";
+  ASSERT_TRUE(st == expected);
 
   // f=true
   Term f = s->make_term(true);
@@ -362,8 +362,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf6->to_string();
-  ans = "true";
-  ASSERT_TRUE(st == ans);
+  expected = "true";
+  ASSERT_TRUE(st == expected);
 
   TermVec vec;
   vec.push_back(p);
@@ -387,13 +387,13 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf7->to_string();
-  ans = "(or p q r t)";
-  ASSERT_TRUE(st == ans);
+  expected = "(or p q r t)";
+  ASSERT_TRUE(st == expected);
 
   Term fa = s->make_term(false);
   Term tr = s->make_term(true);
 
-  // cheking function is_cnf
+  // checking function is_cnf
 
   TermVec vecs;
   vecs.push_back(p);
@@ -420,17 +420,17 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_FALSE(check);
 
   // checking elimination of true and false
-  Term tru = s->make_term(true);
-  Term fal = s->make_term(false);
+  Term true_term = s->make_term(true);
+  Term false_term = s->make_term(false);
 
   // formula=and(true, p)
-  Term formula = s->make_term(And, tru, p);
+  Term formula = s->make_term(And, true_term, p);
   Term as = to_cnf(formula, s);
   ASSERT_TRUE(as == p);
 
   // formula=and(or(p, true), or(q, false))
-  formula =
-      s->make_term(And, s->make_term(Or, p, tru), s->make_term(Or, q, fal));
+  formula = s->make_term(
+      And, s->make_term(Or, p, true_term), s->make_term(Or, q, false_term));
   as = to_cnf(formula, s);
   ASSERT_TRUE(as == q);
 
@@ -451,12 +451,12 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
 
   st = cnf8->to_string();
-  ans =
+  expected =
       "(and tseitin_to_cnf_8 (and (or (not tseitin_to_cnf_7) p q) (and (or "
       "tseitin_to_cnf_7 (not p)) (or tseitin_to_cnf_7 (not q))) (or (not "
       "tseitin_to_cnf_7) (not tseitin_to_cnf_8)) (or tseitin_to_cnf_7 "
       "tseitin_to_cnf_8)))";
-  ASSERT_TRUE(st == ans);
+  ASSERT_TRUE(st == expected);
 }
 
 INSTANTIATE_TEST_SUITE_P(

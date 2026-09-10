@@ -238,7 +238,7 @@ the helper function `Solver`:
 ```Python
 from smt_switch import pysmt_frontend
 
-# direct instantiation must pass an enviroment and a logic
+# direct instantiation must pass an environment and a logic
 solver = pysmt_frontend.SwitchCvc5(ENV, LOGIC)
 
 # with the helper function will try to use a general logic

@@ -47,8 +47,8 @@ SortVec AbsSmtSolver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & decls) const
 {
   throw NotImplementedException(
-      "make_datatype_sorts for mutually recursive datatypes not yet implementd "
-      "by "
+      "make_datatype_sorts for mutually recursive datatypes not yet "
+      "implemented by "
       + to_string(solver_enum));
 }
 

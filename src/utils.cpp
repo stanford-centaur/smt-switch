@@ -481,13 +481,13 @@ class EliminateBooleanConstants : public IdentityWalker
   }
   WalkerStepResult visit_term(Term & term)
   {
-    Term tru = solver_->make_term(true);
-    Term fal = solver_->make_term(false);
+    Term true_term = solver_->make_term(true);
+    Term false_term = solver_->make_term(false);
     auto is_true = [&](Term t) {  // If the term is "true"
-      return (t == tru);
+      return (t == true_term);
     };
     auto is_false = [&](Term t) {  // If the term is "false"
-      return (t == fal);
+      return (t == false_term);
     };
     if (!preorder_)
     {

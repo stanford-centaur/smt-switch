@@ -197,7 +197,7 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
   EXPECT_EQ(realsort, realsort_2);
 }
 
-// One of the tests requries parsing values
+// One of the tests requires parsing values
 // of uninterpreted sorts.
 // This is not supported by the generic solver, and hence
 // it is excluded.

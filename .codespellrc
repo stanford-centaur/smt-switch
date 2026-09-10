@@ -1,0 +1,4 @@
+# StrAt is the SMT-LIB str.at operator, and appears too widely to annotate.
+# Matched case-sensitively, so a lowercase typo of the same shape still counts.
+[codespell]
+ignore-regex = \bStrAt\b

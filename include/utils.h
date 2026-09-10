@@ -123,7 +123,7 @@ bool is_cnf(Term formula);
 
 /** \class
  * UnsatcoreReducer class.
- * Implements an interative unsatcore reducer procedure.
+ * Implements an iterative unsatcore reducer procedure.
  *
  * reducer_solver is the solver that will be used for unsatcore extraction in
  * the procedure. It is different from the ext_solver (external solver used to

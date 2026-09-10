@@ -1331,7 +1331,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 // otherwise, the function backtracks the solver to the point where the match
 // ends and asserts the remaining formulas from that point onward.
 //
-// The folllowing invariant should hold before and after the call:
+// The following invariant should hold before and after the call:
 // `#backtrack-points == last_itp_query_assertions_.size() == itp_grps_.size()`
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const

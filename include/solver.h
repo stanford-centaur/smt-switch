@@ -70,7 +70,7 @@ class AbsSmtSolver
 
   /* Check satisfiability of the current assertions under the given assumptions
    * Note: the assumptions must be boolean literals, not arbitrary formulas
-   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with asssumption literals =
+   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with assumption literals =
    * [t1,...,tn]
    * @param assumptions a vector of boolean literals
    * @return a result object - see result.h

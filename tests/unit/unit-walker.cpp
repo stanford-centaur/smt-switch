@@ -245,7 +245,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
 
 TEST_P(UnitWalkerTests, PathDecomp)
 {
-  // using TreeWalker to traverse slightly more comlicated formula
+  // using TreeWalker to traverse slightly more complicated formula
 
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver)

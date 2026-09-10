@@ -417,7 +417,7 @@ class SwitchConverter(Converter, DagWalker):
         f = self.walk_symbol(name, name.args())
         return self.make_term(ss.primops.Apply, [f, *args])
 
-    # Int / real operatos
+    # Int / real operators
     walk_lt = make_walk_binary(ss.primops.Lt)
     walk_le = make_walk_binary(ss.primops.Le)
     walk_equals = make_walk_binary(ss.primops.Equal)
