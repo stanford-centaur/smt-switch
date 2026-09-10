@@ -5,8 +5,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
-        os_version: [latest]
+        runner: [ubuntu-latest, macos-latest]
         build_type: [release, debug]
         solver:
           - bitwuzla
@@ -15,19 +14,17 @@ jobs:
           - msat
           - yices2
           - z3
-        include:
-          - build_type: debug
-            config_opts: --debug
-          - solver: msat
-            setup_opts: --auto-yes
-    name: ${{ matrix.os }}:${{ matrix.solver }}-${{ matrix.build_type }}
-    runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
+    name: ${{ matrix.solver }} on ${{ matrix.runner }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.runner }}
+    env:
+      # The install-packages scripts are named after the label's first element
+      RUNNER_LABEL: ${{ matrix.runner }}
     steps:
       - name: Check out project source
         uses: actions/checkout@v7
       - name: Install packages
-        run: ./ci-scripts/install-packages-${{ matrix.os }}.sh
-      - name: Compute hash from setup scripts for caching solver builds
+        run: ./ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+      - name: Compute the cache key for the solver build
         id: compute-solver-hash
         run: ./ci-scripts/compute-solver-hash.sh ${{ matrix.solver }}
       - name: Restore solver build from cache
@@ -35,10 +32,11 @@ jobs:
         id: cache
         with:
           path: deps
-          key: deps-${{ hashFiles(format('ci-scripts/install-packages-{0}.sh', matrix.os)) }}-${{ steps.compute-solver-hash.outputs.result }}
+          key: deps-${{ steps.compute-solver-hash.outputs.result }}
       - name: Set up underlying solver
         if: steps.cache.outputs.cache-hit != 'true'
-        run: ./ci-scripts/setup-${{ matrix.solver }}.sh ${{ matrix.setup_opts }}
+        # setup-msat.sh asks to accept a licence; the others read no input
+        run: yes | ./ci-scripts/setup-${{ matrix.solver }}.sh
       - name: Save solver build to cache
         uses: actions/cache/save@v6
         if: steps.cache.outputs.cache-hit != 'true' && matrix.build_type == 'release'
@@ -50,7 +48,7 @@ jobs:
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
-        run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.config_opts }}
+        run: ./configure.sh --${{ matrix.solver }} --python --smtlib-reader --static ${{ matrix.build_type == 'debug' && '--debug' || '' }}
       - name: Build
         run: ninja -C build
       - name: Install Python bindings
@@ -65,7 +63,7 @@ jobs:
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.os }}-${{ matrix.solver }}-${{ matrix.build_type }}-test-log-${{ github.run_id }}
+          name: test-log-${{ matrix.runner }}-${{ matrix.solver }}-${{ matrix.build_type }}
           path: build/Testing/Temporary/LastTest.log
       - name: Fail pipeline due to C++ test failure
         if: steps.test-cpp.outcome == 'failure'

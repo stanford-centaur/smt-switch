@@ -5,6 +5,9 @@ gethash() {
 }
 solver=$1
 solver_hash=$(gethash ci-scripts/setup-"$1".sh)
+# The installed packages decide what the solver builds against
+# shellcheck disable=SC2154 # RUNNER_LABEL is set by the workflow
+solver_hash+=$(gethash ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh)
 if [[ $solver =~ ^(bitwuzla|btor|cvc5|z3)$ ]]; then
   solver_hash+=$(gethash contrib/common-setup.sh)
   if [[ $solver == bitwuzla ]]; then
