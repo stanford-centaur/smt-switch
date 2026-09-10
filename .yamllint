@@ -1,0 +1,10 @@
+extends: default
+rules:
+  # yamlfmt writes one space before a trailing comment, yamllint wants two
+  comments:
+    min-spaces-from-content: 1
+  # `on:` in a workflow is the GitHub Actions key, not a boolean
+  truthy:
+    check-keys: false
+  # Nothing in the tree opens with `---`
+  document-start: disable

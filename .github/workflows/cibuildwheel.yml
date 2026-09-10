@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      # cibuildwheel requires the pyproject.toml to be present from the beginning
+      # cibuildwheel needs pyproject.toml present from the start
       - name: Place pyproject.toml
         run: |
           mkdir -p ./build/python
@@ -64,12 +64,15 @@ jobs:
               ninja-build \
               wget
             # Build GMP and MPFR manually, which are too old in the repos
+            gnu_mirror=https://mirror.us-midwest-1.nexcess.net/gnu
+            gmp=gmp-6.3.0
+            mpfr=mpfr-4.2.2
             mkdir -p {project}/deps && pushd {project}/deps
-            wget -4 https://mirror.us-midwest-1.nexcess.net/gnu/gmp/gmp-6.3.0.tar.xz
-            tar -xf gmp-6.3.0.tar.xz && mv gmp-6.3.0 gmp && rm -f gmp-6.3.0.tar.xz
+            wget -4 "$gnu_mirror/gmp/$gmp.tar.xz"
+            tar -xf "$gmp.tar.xz" && mv "$gmp" gmp && rm -f "$gmp.tar.xz"
             pushd gmp && ./configure --enable-cxx && make install && popd
-            wget -4 https://mirror.us-midwest-1.nexcess.net/gnu/mpfr/mpfr-4.2.2.tar.xz
-            tar -xf mpfr-4.2.2.tar.xz && mv mpfr-4.2.2 mpfr && rm -f mpfr-4.2.2.tar.xz
+            wget -4 "$gnu_mirror/mpfr/$mpfr.tar.xz"
+            tar -xf "$mpfr.tar.xz" && mv "$mpfr" mpfr && rm -f "$mpfr.tar.xz"
             cd mpfr && ./configure && make install && popd
             bash {project}/ci-scripts/cibw-build-deps.sh
           CIBW_BEFORE_ALL_MACOS: |
@@ -82,10 +85,8 @@ jobs:
               Cython>=3.0.0 \
               setuptools
             bash {project}/ci-scripts/cibw-build-before.sh
-          # `>` folds the lines below into one space-separated line, which is the
-          # only form cibuildwheel accepts here. With `|` each would keep its
-          # newline and cibuildwheel would read just the first assignment.
-          CIBW_ENVIRONMENT_MACOS: >
+          # cibuildwheel reads only the first assignment if this is `|`
+          CIBW_ENVIRONMENT_MACOS: >-
             CPATH="$(brew --prefix)/include"
             LIBRARY_PATH="$(brew --prefix)/lib"
             PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
@@ -93,11 +94,14 @@ jobs:
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
           CIBW_TEST_COMMAND: |
             # cibuildwheel creates a dedicated virtualenv for the test
-            # make sure to use that python (just calling pytest may use system pytest)
+            # use that python; plain pytest may be the system one
             python3 -m pip install pytest
             python3 -m pytest {project}/tests
       - name: Upload wheels to PyPI
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'PyPI')
+        if: >-
+          github.event_name == 'release'
+          || (github.event_name == 'workflow_dispatch'
+          && github.event.inputs.deploy_target == 'PyPI')
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -107,7 +111,9 @@ jobs:
           python3 -m pip install twine
           python3 -m twine upload --skip-existing wheelhouse/*.whl
       - name: Upload wheels to TestPyPI
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_target == 'Test PyPI'
+        if: >-
+          github.event_name == 'workflow_dispatch'
+          && github.event.inputs.deploy_target == 'Test PyPI'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
@@ -115,4 +121,5 @@ jobs:
           python3 -m venv ./upload-env
           source ./upload-env/bin/activate
           python3 -m pip install twine
-          python3 -m twine upload --skip-existing --repository testpypi wheelhouse/*.whl
+          python3 -m twine upload --skip-existing --repository testpypi \
+            wheelhouse/*.whl
