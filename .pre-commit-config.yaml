@@ -69,6 +69,8 @@ repos:
       # validate the same thing; see DEVELOPERS.md to reproduce CI locally.
       - id: tombi-format
       - id: tombi-lint
+        # Without this a warning exits 0 and the hook passes.
+        args: [--error-on-warnings]
   - repo: https://github.com/hukkin/mdformat
     rev: 1.0.0
     hooks:

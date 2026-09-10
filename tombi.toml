@@ -1,14 +1,4 @@
-# Used by the tombi hooks in .pre-commit-config.yaml.
-#
-# tombi's default is to put a fixed two spaces before a trailing comment, which
-# would undo the alignment .ruff.toml uses for the comments on its ignore list.
+# tombi's default is to put a fixed two spaces before a trailing comment
 [format.rules]
 trailing-comment-alignment = true
 trailing-comment-space-width = 1
-
-# Every lint rule defaults to a warning, and tombi exits 0 on a warning, so a
-# finding would sit behind a passing hook where pre-commit hides its output.
-[lint.rules]
-dotted-keys-out-of-order = "error"
-key-empty = "error"
-tables-out-of-order = "error"
