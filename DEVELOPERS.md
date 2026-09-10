@@ -26,7 +26,7 @@ wheels and upload them to PyPi.
 
 Install the hooks once, and they run on each commit:
 
-```
+```sh
 pip install pre-commit
 pre-commit install
 ```
@@ -113,7 +113,7 @@ There is an implementation of assertions and logging commands using `constexpr`
 functions in `include/utils.h`, these should be the only assertions/logging
 functions used throughout the codebase.
 
-# Implementing New Solvers
+## Implementing New Solvers
 
 As a general principle, smt-switch is meant to be as lightweight as possible. In
 other words, it should query the underlying solver for information (e.g. the

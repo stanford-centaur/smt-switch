@@ -84,6 +84,10 @@ repos:
         # mdformat targets CommonMark, which has no tables; without the plugin
         # a table reads as a paragraph and the configured wrap reflows it.
         additional_dependencies: [mdformat-gfm==1.0.0]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:

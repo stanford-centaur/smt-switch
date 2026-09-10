@@ -3,16 +3,16 @@
 A generic C++ API for SMT solving. It provides abstract classes which can be
 implemented by different SMT solvers.
 
-# Quick Start
+## Quick Start
 
-```
-$ git clone git@github.com:stanford-centaur/smt-switch.git
-$ cd smt-switch
-$ ./contrib/setup-<solver>.sh
-$ ./configure.sh --<solver>
-$ cd build
-$ make
-$ make test
+```sh
+git clone git@github.com:stanford-centaur/smt-switch.git
+cd smt-switch
+./contrib/setup-<solver>.sh
+./configure.sh --<solver>
+cd build
+make
+make test
 ```
 
 More details are in the Solvers section of this README.
@@ -20,7 +20,7 @@ More details are in the Solvers section of this README.
 For an example of how to link and use `smt-switch`, please see the
 [examples directory](./examples).
 
-# Architecture Overview
+## Architecture Overview
 
 There are three abstract classes:
 
@@ -55,7 +55,7 @@ letter. Some examples include:
 Please see this [extended abstract](https://arxiv.org/abs/2007.01374) for more
 documentation or the `tests` directory for some example usage.
 
-# Creating a Smt-Switch Solver
+## Creating a Smt-Switch Solver
 
 To create a Smt-Switch solver through the API, first include the relevant
 factory header and then use the static `create` method. It takes a single
@@ -79,7 +79,7 @@ solver, but this is hidden at the Smt-Switch level. Some solvers, such as
 
 Here is an example that creates a solver interface to cvc5:
 
-```
+```cpp
 #include "smt-switch/cvc5_factory.h"
 
 int main()
@@ -91,10 +91,10 @@ int main()
 
 ```
 
-# Dependencies
+## Dependencies
 
 Smt-Switch depends on the following libraries. Dependencies needed only for
-certain backends and/or optional features are marked \["optional" : _reason_\].
+certain backends and/or optional features are marked \["optional" : *reason*\].
 
 - CMake >= 3.10
 - GNU Make or Ninja
@@ -119,14 +119,14 @@ certain backends and/or optional features are marked \["optional" : _reason_\].
 - Python [optional: Python bindings]
 - packaging [optional: Python bindings]
 
-# Operating Systems
+## Operating Systems
 
 Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX
 with XCode 12 but should work for other sufficiently modern (e.g. has C++11
 support and CMake >= 3.1) Unix-based operating systems. Please file a GitHub
 issue if you have any problems!
 
-# Solvers
+## Solvers
 
 To setup and install different solvers, first run the
 `./contrib/setup-<solver>.sh` script which builds position-independent static
@@ -148,21 +148,21 @@ these libraries and the public header files into the configured prefix
 (`/usr/local` by default). Note that the header files are put in a directory,
 e.g. `/usr/local/include/smt-switch`.
 
-## Currently Supported Solvers
+### Currently Supported Solvers
 
-### BSD compatible
+#### BSD compatible
 
 - Bitwuzla
 - Boolector
 - cvc5
 - Z3
 
-### Non-BSD compatible
+#### Non-BSD compatible
 
 - MathSAT
 - Yices2
 
-## Custom Solver Location
+### Custom Solver Location
 
 If you'd like to try your own version of a solver, you can use the
 `configure.sh` script to point to your custom location with `--<solver>-home`.
@@ -176,7 +176,7 @@ where `./custom-cvc5/build/src/libcvc5.a` and
 default build directory for `cvc5`, and thus that's where `cmake` is configured
 to look.
 
-## Static Linking
+### Static Linking
 
 GMP is linked by name (`-lgmp`) rather than by path, so a fully static link
 (`-static`) picks up `libgmp.a` and an ordinary one keeps using the shared
@@ -187,7 +187,7 @@ bindings (MathSAT, Z3) with one needing only the C library (cvc5, Yices2), put
 `-lgmpxx` before `-lgmp`: `libgmpxx` references symbols from `libgmp`, and an
 archive only resolves what is still undefined by the time the linker reaches it.
 
-# Building Tests
+## Building Tests
 
 You can run all tests for the currently built solvers with `make test` from the
 build directory. To run a single test, run the binary `./tests/<test name>`.
@@ -195,13 +195,13 @@ After you have a full installation, you can build the tests yourself by updating
 the includes to include the `smt-switch` directory. For example:
 `#include "cvc5_factory.h"` -> `#include "smt-switch/cvc5_factory.h"`.
 
-## Debug
+### Debug
 
 The tests currently use C-style assertions which are compiled out in Release
 mode (the default). To build tests with assertions, please add the `--debug`
 flag when using `./configure.sh`.
 
-# Python bindings
+## Python bindings
 
 It is highly recommended to use a Python
 [virtual environment](https://docs.python.org/3/library/venv.html) or
@@ -210,7 +210,7 @@ bindings. Note: only Python 3.5 or later is supported.
 
 First, install the required packages:
 
-```
+```sh
 python3 -m pip install packaging
 ```
 
@@ -222,7 +222,7 @@ version of Python you have installed and your operating system. To install this
 in your Python environment, you can run
 `python3 -m pip install build/python/<filename>.whl`.
 
-## PySMT front end
+### PySMT front end
 
 Optionally, smt-switch can be used with a
 [pySMT](https://pysmt.readthedocs.io/en/latest/) front-end . To install the
@@ -254,7 +254,7 @@ with pysmt_frontend.Solver("cvc5") as solver:
 
 Please refer to the pySMT docs for further information.
 
-## Testing python bindings
+### Testing python bindings
 
 Python bindings can be tested with [pytest](https://docs.pytest.org/en/latest/),
 which can be installed by running `python3 -m pip install pytest` or by
@@ -267,7 +267,7 @@ front-end will only be run if it is installed. Note, multiple extras may be
 installed by passing them as a comma separated list:
 `python3 -m pip install build/python/<filename>.whl[test,pysmt]`.
 
-# Current Limitations and Gotchas
+## Current Limitations and Gotchas
 
 While we try to guarantee that all solver backends are fully compliant with the
 abstract interface, and exhibit the exact same behavior given the same API
@@ -293,9 +293,9 @@ current limitations along with recommended usage.
   that should be added soon.
 - Datatypes are currently only supported in cvc5
 
-## Recommended usage
+### Recommended usage
 
-### Logging solvers
+#### Logging solvers
 
 A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of
 Term DAGs at the smt-switch level. This guarantees that if you create a term and
@@ -320,7 +320,7 @@ the `create` function when instantiating a solver.
 - MathSAT
   - Use a `LoggingSolver` only if you want to guarantee that a term's Op and
     children are exactly what you used to create it. Without a `LoggingSolver`,
-    MathSAT will perform _very_ light rewriting.
+    MathSAT will perform *very* light rewriting.
 - Yices2
   - Use a `LoggingSolver` if you need term iteration
   - Yices2 has a different term representation under the hood which cannot

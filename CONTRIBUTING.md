@@ -11,7 +11,7 @@ external contributions are subject to the following terms:
   [Developer Certificate of Origin](https://developercertificate.org/)
   (reproduced below) applies to your contribution.
 
-```
+```text
 Developer Certificate of Origin
 Version 1.1
 
