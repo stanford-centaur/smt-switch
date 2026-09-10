@@ -70,7 +70,7 @@ if ! declare -F download_step >/dev/null; then
       version=$git_branch
     fi
     dep_filename=$dep_name-$version
-    wget -O "$dep_filename.tar.gz" "$source_url"
+    wget -4 -O "$dep_filename.tar.gz" "$source_url"
     tar -xf "$dep_filename.tar.gz"
     rm "$dep_filename.tar.gz"
     mv "$dep_filename" "$dep_name"
