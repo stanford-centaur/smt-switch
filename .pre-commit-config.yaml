@@ -60,6 +60,12 @@ repos:
     rev: v0.21.0
     hooks:
       - id: yamlfmt # also covers .clang-format, which is YAML
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        # Without this a warning exits 0 and the hook passes.
+        args: [--strict]
   - repo: https://github.com/tombi-toml/tombi-pre-commit
     rev: v1.5.2
     hooks:
