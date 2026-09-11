@@ -2,21 +2,16 @@ from abc import ABC, abstractmethod
 
 from cython.operator cimport dereference as dref
 from libcpp.string cimport string
-from libcpp.unordered_map cimport unordered_map
-from libcpp.vector cimport vector
 
 from .primops import int2primop
 from .sortkinds import BV, INT, int2sortkind
 
 from .cppapi cimport (
     c_Op,
-    c_Result,
-    c_SmtSolver,
     c_Sort,
     c_SortVec,
     c_SortingNetwork,
     c_Term,
-    c_TermIter,
     c_TermVec,
     c_UnorderedTermMap,
     c_UnorderedTermSet
@@ -27,16 +22,7 @@ from .cpputils cimport (
     get_free_symbols as c_get_free_symbols,
     op_partition as c_op_partition,
 )
-from .cppenums cimport (
-    c_PrimOp,
-    c_SortKind,
-    c_ARRAY,
-    c_BOOL,
-    c_BV,
-    c_INT,
-    c_REAL,
-    c_FUNCTION,
-)
+from .cppenums cimport c_SortKind, c_BOOL
 from .enums cimport PrimOp, SortKind
 
 
@@ -84,7 +70,9 @@ cdef class Op:
         elif isinstance(other, PrimOp):
             return self == Op(other)
         else:
-            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
+            raise ValueError(
+                "Unexpected comparison between Op and {}".format(type(other))
+            )
 
     def __ne__(self, other):
         if isinstance(other, Op):
@@ -92,7 +80,9 @@ cdef class Op:
         elif isinstance(other, PrimOp):
             return self != Op(other)
         else:
-            raise ValueError("Unexpected comparison between Op and {}".format(type(other)))
+            raise ValueError(
+                "Unexpected comparison between Op and {}".format(type(other))
+            )
 
 cdef class Result:
     def is_sat(self):
@@ -225,17 +215,16 @@ cdef class Term:
                     val = val[:val.find(" ")]
                     return int(val)
                 else:
-                    raise ValueError("Unable to interpret % as int"%self)
+                    raise ValueError("Unable to interpret %s as int" % self)
             elif sk == INT:
                 if val[:2] == '(-':
                     val = val[3:-1]
                     val = "-" + val
                 return int(val)
             else:
-                raise ValueError("Unable to interpret % as int"%self)
-        except:
-            raise ValueError("Unable to interpret % as int"%self)
-
+                raise ValueError("Unable to interpret %s as int" % self)
+        except Exception:
+            raise ValueError("Unable to interpret %s as int" % self)
 
     def __str__(self):
         return dref(self.ct).to_string().decode()
@@ -316,9 +305,9 @@ cdef class SmtSolver:
         unsat_assumptions = set()
         cdef c_UnorderedTermSet cts
         dref(self.css).get_unsat_assumptions(cts)
-        for l in cts:
+        for ct in cts:
             term = Term(self)
-            term.ct = l
+            term.ct = ct
             unsat_assumptions.add(term)
         return unsat_assumptions
 
@@ -342,19 +331,25 @@ cdef class SmtSolver:
                     csv.push_back((<Sort?> a).cs)
                 s.cs = dref(self.css).make_sort(sk, csv)
             elif arg3 is None:
-                s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs)
+                s.cs = dref(self.css).make_sort(
+                    sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs
+                )
             elif arg3 is not None:
                 s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs,
                                                     (<Sort?> arg2).cs,
                                                     (<Sort?> arg3).cs)
             else:
-                raise ValueError("Cannot find matching function for {}".format([type(a)
-                                                                                for a in
-                                                                                [arg0, arg1, arg2, arg3]]))
+                raise ValueError(
+                    "Cannot find matching function for {}".format(
+                        [type(a) for a in [arg0, arg1, arg2, arg3]]
+                    )
+                )
         else:
-            raise ValueError("Cannot find matching function for {}".format([type(a)
-                                                                            for a in
-                                                                            [arg0, arg1, arg2, arg3]]))
+            raise ValueError(
+                "Cannot find matching function for {}".format(
+                    [type(a) for a in [arg0, arg1, arg2, arg3]]
+                )
+            )
         return s
 
     def make_term(self, op_or_val, *args):
@@ -368,7 +363,11 @@ cdef class SmtSolver:
         if len(args) > 0:
             if (isinstance(args[0], list) and len(args) > 1) or \
                any([isinstance(a, list) for a in args[1:]]):
-                raise ValueError("Cannot call make_term with signature {}".format([type(a) for a in args]))
+                raise ValueError(
+                    "Cannot call make_term with signature {}".format(
+                        [type(a) for a in args]
+                    )
+                )
             elif isinstance(args[0], list):
                 # expand arguments in list to be args
                 args = args[0]
@@ -378,28 +377,44 @@ cdef class SmtSolver:
                 raise ValueError("Got a null Op in make_term")
 
             if not args:
-                raise ValueError("Can't call make_term with an Op ({}) and no arguments".format(op_or_val))
+                raise ValueError(
+                    "Can't call make_term with an Op ({}) and no arguments"
+                    .format(op_or_val)
+                )
 
             for a in args:
                 ctv.push_back((<Term?> a).ct)
             term.ct = dref(self.css).make_term((<Op> op_or_val).op, ctv)
         elif isinstance(op_or_val, bool) and len(args) == 0:
             term.ct = dref(self.css).make_term(<bint> op_or_val)
-        elif isinstance(op_or_val, str) and len(args) == 1 and isinstance(args[0], Sort):
-            term.ct = dref(self.css).make_term(<const string> op_or_val.encode(), (<Sort> args[0]).cs)
-        elif isinstance(op_or_val, str) and len(args) == 2 and isinstance(args[0], Sort):
+        elif (isinstance(op_or_val, str) and len(args) == 1
+              and isinstance(args[0], Sort)):
+            term.ct = dref(self.css).make_term(
+                <const string> op_or_val.encode(), (<Sort> args[0]).cs
+            )
+        elif (isinstance(op_or_val, str) and len(args) == 2
+              and isinstance(args[0], Sort)):
             term.ct = dref(self.css).make_term(<const string> op_or_val.encode(),
                                                (<Sort> args[0]).cs,
                                                <int?> args[1])
-        elif isinstance(op_or_val, int) and len(args) == 1 and isinstance(args[0], Sort):
+        elif (isinstance(op_or_val, int) and len(args) == 1
+              and isinstance(args[0], Sort)):
             # always use the string representation of integers (to handle large ints)
-            term.ct = dref(self.css).make_term((<const string?> str(op_or_val).encode()), (<Sort> args[0]).cs)
-        elif isinstance(op_or_val, Term) and len(args) == 1 and isinstance(args[0], Sort):
+            term.ct = dref(self.css).make_term(
+                (<const string?> str(op_or_val).encode()), (<Sort> args[0]).cs
+            )
+        elif (isinstance(op_or_val, Term) and len(args) == 1
+              and isinstance(args[0], Sort)):
             # this is for creating a constant array
-            term.ct = dref(self.css).make_term((<Term?> op_or_val).ct, (<Sort?> args[0]).cs)
+            term.ct = dref(self.css).make_term(
+                (<Term?> op_or_val).ct, (<Sort?> args[0]).cs
+            )
         else:
-            raise ValueError("Couldn't find matching function for {}".format([type(a)
-                                                                              for a in [op_or_val] + args]))
+            raise ValueError(
+                "Couldn't find matching function for {}".format(
+                    [type(a) for a in [op_or_val] + args]
+                )
+            )
         return term
 
     def make_symbol(self, str name, Sort sort):
@@ -429,7 +444,7 @@ cdef class SmtSolver:
         return term
 
     def dump_smt2(self, str filename):
-        dref(self.css).dump_smt2(filename.encode());
+        dref(self.css).dump_smt2(filename.encode())
 
     def get_interpolant(self, Term A, Term B):
         '''
@@ -440,14 +455,14 @@ cdef class SmtSolver:
                 was satisfiable
         '''
         cdef c_Term cI
-        cdef Term I = Term(self)
+        cdef Term interpolant = Term(self)
 
         res = dref(self.css).get_interpolant(A.ct, B.ct, cI)
         if not res.is_unsat():
             return None
         else:
-            I.ct = cI
-            return I
+            interpolant.ct = cI
+            return interpolant
 
 
 cdef class SortingNetwork:
@@ -475,7 +490,8 @@ cdef class SortingNetwork:
 
 def get_free_symbolic_consts(Term term):
     '''
-    Return a set of all the free symbolic constants (e.g. excludes function symbols) in the provided term.
+    Return a set of all the free symbolic constants in the provided term.
+    Function symbols are excluded.
     '''
 
     cdef c_UnorderedTermSet out_symbols
@@ -506,6 +522,7 @@ def get_free_symbols(Term term):
 
     return python_out_set
 
+
 def op_partition(PrimOp po, Term term):
     '''
     Returns a list of nested terms partition by operator po
@@ -526,6 +543,7 @@ def op_partition(PrimOp po, Term term):
 
     return python_out_list
 
+
 def conjunctive_partition(Term term, bint include_bvand=False):
     '''
     Calls op_partition for And. Also has an option to include BVAnd.
@@ -542,6 +560,7 @@ def conjunctive_partition(Term term, bint include_bvand=False):
 
     return python_out_list
 
+
 class TermDagVisitor(ABC):
     def __init__(self):
         pass
@@ -552,8 +571,8 @@ class TermDagVisitor(ABC):
         '''
 
         to_visit = [term]
-        visited  = set()
-        cache    = dict()
+        visited = set()
+        cache = dict()
 
         while to_visit:
             t = to_visit.pop()

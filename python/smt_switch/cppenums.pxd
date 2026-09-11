@@ -25,7 +25,7 @@ cdef extern from "sort.h" namespace "smt":
 
 cdef extern from "solver_enums.h" namespace "smt":
     cdef cppclass c_SolverEnum "smt::SolverEnum":
-            pass
+        pass
 
     cdef c_SolverEnum c_BTOR "smt::BTOR"
     cdef c_SolverEnum c_CVC5 "smt::CVC5"

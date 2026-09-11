@@ -35,5 +35,5 @@ globals()["FUNCTION"] = FUNCTION
 
 attrs = {attr: pysk for attr, pysk in globals().items() if not attr.startswith("_")}
 int2sortkind = dict()
-for attr, pysk in attrs.items():
+for pysk in attrs.values():
     int2sortkind[(<int> (<SortKind?> pysk).sk)] = pysk

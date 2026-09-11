@@ -56,6 +56,11 @@ repos:
       - id: ruff-format
         types_or: [text]
         files: '\.i?py(i|nb|\.in)?$|\.md$'
+  - repo: https://github.com/MarcoGorelli/cython-lint
+    rev: v0.21.1
+    hooks:
+      # ruff cannot parse Cython, so .pyx and .pxd reach no other linter.
+      - id: cython-lint
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
     rev: 0.28.1
     hooks:
