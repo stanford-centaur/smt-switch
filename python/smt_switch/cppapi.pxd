@@ -108,8 +108,13 @@ cdef extern from "solver.h" namespace "smt":
         c_Sort make_sort(const c_SortKind sk) except +
         c_Sort make_sort(const c_SortKind sk, uint64_t size) except +
         c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1) except +
-        c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2) except +
-        c_Sort make_sort(const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2, const c_Sort & sort3) except +
+        c_Sort make_sort(
+            const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2
+        ) except +
+        c_Sort make_sort(
+            const c_SortKind sk, const c_Sort & sort1, const c_Sort & sort2,
+            const c_Sort & sort3
+        ) except +
         c_Sort make_sort(const c_SortKind sk, const c_SortVec & sorts) except +
         c_Term make_term(bint b) except +
         c_Term make_term(const string val, const c_Sort & sort) except +
@@ -120,9 +125,13 @@ cdef extern from "solver.h" namespace "smt":
         c_Term make_term(const c_Op op, const c_TermVec & terms) except +
         void reset() except +
         void reset_assertions() except +
-        c_Term substitute(const c_Term term, const c_UnorderedTermMap & substitution_map) except +
+        c_Term substitute(
+            const c_Term term, const c_UnorderedTermMap & substitution_map
+        ) except +
         void dump_smt2(string filename) except +
-        c_Result get_interpolant(const c_Term & A, const c_Term & B, c_Term & out_I) except +
+        c_Result get_interpolant(
+            const c_Term & A, const c_Term & B, c_Term & out_I
+        ) except +
 
 
 cdef extern from "sorting_network.h" namespace "smt":

@@ -350,5 +350,5 @@ globals()["Exists"] = Exists
 
 attrs = {attr: pypo for attr, pypo in globals().items() if not attr.startswith("_")}
 int2primop = dict()
-for attr, pypo in attrs.items():
+for pypo in attrs.values():
     int2primop[(<int> (<PrimOp?> pypo).po)] = pypo
