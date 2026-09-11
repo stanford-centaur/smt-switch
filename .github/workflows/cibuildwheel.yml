@@ -40,63 +40,31 @@ jobs:
           fetch-depth: 0
       # cibuildwheel needs pyproject.toml present from the start
       - name: Place pyproject.toml
-        run: |
-          mkdir -p ./build/python
-          cp ./python/pyproject.toml ./build/python/
+        run: mkdir -p build/python && cp python/pyproject.toml build/python
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.2.1
         with:
           # Where the setup.py and pyproject.toml build infrastructure is
-          package-dir: ./build/python
+          package-dir: build/python
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
-          CIBW_SKIP: "*-win32 *-win_amd64 *-win_arm64 *-musllinux_*"
+          CIBW_SKIP: "*-musllinux_*"
           CIBW_ARCHS_LINUX: ${{ matrix.arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
           CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux_2_28_aarch64
           CIBW_BEFORE_ALL_LINUX: |
-            dnf install -y \
-              cmake \
-              gettext \
-              glibc-static \
-              gperf \
-              libstdc++-static \
-              ninja-build \
-              wget
-            # Build GMP and MPFR manually, which are too old in the repos
-            gnu_mirror=https://mirror.us-midwest-1.nexcess.net/gnu
-            gmp=gmp-6.3.0
-            mpfr=mpfr-4.2.2
-            mkdir -p {project}/deps && pushd {project}/deps
-            wget -4 "$gnu_mirror/gmp/$gmp.tar.xz"
-            tar -xf "$gmp.tar.xz" && mv "$gmp" gmp && rm -f "$gmp.tar.xz"
-            pushd gmp && ./configure --enable-cxx && make install && popd
-            wget -4 "$gnu_mirror/mpfr/$mpfr.tar.xz"
-            tar -xf "$mpfr.tar.xz" && mv "$mpfr" mpfr && rm -f "$mpfr.tar.xz"
-            cd mpfr && ./configure && make install && popd
-            bash {project}/ci-scripts/cibw-build-deps.sh
+            ci-scripts/cibw-install-linux.sh && ci-scripts/cibw-build-deps.sh
           CIBW_BEFORE_ALL_MACOS: |
-            brew update
-            brew install gperf
-            brew install SRI-CSL/sri-csl/libpoly
-            bash {project}/ci-scripts/cibw-build-deps.sh
-          CIBW_BEFORE_BUILD: |
-            python3 -m pip install \
-              Cython>=3.0.0 \
-              setuptools
-            bash {project}/ci-scripts/cibw-build-before.sh
-          # cibuildwheel reads only the first assignment if this is `|`
+            ci-scripts/cibw-install-macos.sh && ci-scripts/cibw-build-deps.sh
+          CIBW_BEFORE_BUILD: ci-scripts/cibw-build-cpp.sh
           CIBW_ENVIRONMENT_MACOS: >-
             CPATH="$(brew --prefix)/include"
             LIBRARY_PATH="$(brew --prefix)/lib"
             PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
             DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
-          CIBW_TEST_COMMAND: |
-            # cibuildwheel creates a dedicated virtualenv for the test
-            # use that python; plain pytest may be the system one
-            python3 -m pip install pytest
-            python3 -m pytest {project}/tests
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest {project}/tests
       - name: Upload wheels to PyPI
         if: >-
           github.event_name == 'release'
@@ -105,11 +73,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python3 -m venv ./upload-env
-          source ./upload-env/bin/activate
-          python3 -m pip install twine
-          python3 -m twine upload --skip-existing wheelhouse/*.whl
+        run: ci-scripts/upload-wheel.sh
       - name: Upload wheels to TestPyPI
         if: >-
           github.event_name == 'workflow_dispatch'
@@ -117,9 +81,5 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-        run: |
-          python3 -m venv ./upload-env
-          source ./upload-env/bin/activate
-          python3 -m pip install twine
-          python3 -m twine upload --skip-existing --repository testpypi \
-            wheelhouse/*.whl
+          TWINE_REPOSITORY: testpypi
+        run: ci-scripts/upload-wheel.sh

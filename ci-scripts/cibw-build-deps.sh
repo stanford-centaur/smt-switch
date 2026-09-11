@@ -1,30 +1,13 @@
 #!/usr/bin/env bash
-###############################################################################
-# Top contributors (to current version):
-#  Makai Mann
-#
-#  This file is part of the smt-switch project.
-#
-#  Copyright (c) 2025 by the authors listed in the file AUTHORS
-#  in the top-level source directory) and their institutional affiliations.
-#  All rights reserved.  See the file LICENSE in the top-level source
-#  directory for licensing information.\endverbatim
-###############################################################################
-#
-# This script builds all the permissive-license solvers that can be included
-# in the PyPi release.
-
-set -e
-
-python3 -m venv ./build-deps-env
-# shellcheck source=/dev/null  # created by the venv above, absent at lint time
-source ./build-deps-env/bin/activate
-python3 -m pip install meson pyparsing tomli
-
-./contrib/setup-bitwuzla.sh
-# the version of ld.gold is too old in manylinux_2_28, remove it so cvc5 falls back on bfd
-rm -f /usr/bin/ld.gold
-# shellcheck source=/dev/null  # created by the venv above, absent at lint time
-source ./build-deps-env/bin/activate
-./contrib/setup-cvc5.sh
-./contrib/setup-z3.sh
+# Build all permissively licensed solvers for the PyPi release
+set -euo pipefail
+python -m venv buildenv
+# shellcheck source=/dev/null  # activate script created by the command above
+source buildenv/bin/activate
+pip install \
+  meson \
+  pyparsing \
+  tomli
+contrib/setup-bitwuzla.sh
+contrib/setup-cvc5.sh
+contrib/setup-z3.sh
