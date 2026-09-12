@@ -3,7 +3,7 @@
 ## Cutting a New Release
 
 To make a new release of `smt-switch`, simply update the version in
-[VERSION](./VERSION). Once this is committed to master it will trigger the
+[VERSION](./VERSION). Once this is committed to `main`, it will trigger the
 [auto release workflow](./.github/workflows/auto-draft-release.yml) which will
 create a new version tag and open a draft release. Once you submit the release
 that will then trigger the
