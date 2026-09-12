@@ -199,25 +199,25 @@ cdef class Term:
 
         try:
             if sk == BV:
-                if val[-1] == 's':
+                if val[-1] == "s":
                     # notation from z3 for signed bv
                     # we're choosing to always interpret
                     # the bitvector as unsigned
                     # users can convert if needed
                     val = val[:-1]
 
-                if val[:2] == '#b':
+                if val[:2] == "#b":
                     return int(val[2:], 2)
-                elif val[:2] == '#x':
+                elif val[:2] == "#x":
                     return int(val[2:], 16)
-                elif val[:5] == '(_ bv':
+                elif val[:5] == "(_ bv":
                     val = val[5:]
                     val = val[:val.find(" ")]
                     return int(val)
                 else:
                     raise ValueError("Unable to interpret %s as int" % self)
             elif sk == INT:
-                if val[:2] == '(-':
+                if val[:2] == "(-":
                     val = val[3:-1]
                     val = "-" + val
                 return int(val)
