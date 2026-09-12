@@ -77,6 +77,14 @@ repos:
       - id: yamllint
         # Without this a warning exits 0 and the hook passes.
         args: [--strict]
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      # Also runs shellcheck over every `run:` block, but only if shellcheck is
+      # on PATH: the runner image ships it, a local machine may not, and it is
+      # skipped silently when missing. The shellcheck hook below does not help,
+      # as that copy lives in its own environment.
+      - id: actionlint
   - repo: https://github.com/tombi-toml/tombi-pre-commit
     rev: v1.5.2
     hooks:
