@@ -1,9 +1,11 @@
-# First, ensure we have Python 3.9 or newer with all required components
+# First, ensure we have Python 3.10 or newer with all required components. The
+# floor has to match requires-python in pyproject.toml: building against an
+# older interpreter would produce a wheel that pip then refuses to install.
 # Check for a virtualenv python first
 find_python_in_virtualenv()
 # Want python for building a module, so use Development.Module. See:
 # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
-find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
 
 # Include helper function to check for required Python packages
 include(CheckPythonModule)
@@ -41,6 +43,17 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml"
   COPYONLY
 )
+
+# The wheel is built from the binary directory, so the readme and the license
+# that the package metadata references have to be copied there as well.
+# Otherwise setuptools only warns and falls back to an empty long description,
+# and the wheel ends up shipping no license text at all.
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
+  COPYONLY
+)
+configure_file("${PROJECT_SOURCE_DIR}/LICENSE" "${CMAKE_CURRENT_BINARY_DIR}/LICENSE" COPYONLY)
 
 # Add Python package directory containing Cython files.
 add_subdirectory(smt_switch)

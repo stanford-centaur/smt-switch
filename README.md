@@ -206,7 +206,7 @@ flag when using `./configure.sh`.
 It is highly recommended to use a Python
 [virtual environment](https://docs.python.org/3/library/venv.html) or
 [Conda environment](https://docs.conda.io/en/latest/) when building Python
-bindings. Note: only Python 3.5 or later is supported.
+bindings. Note: only Python 3.10 or later is supported.
 
 First, install the required packages:
 
