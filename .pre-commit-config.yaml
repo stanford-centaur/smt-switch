@@ -110,7 +110,7 @@ repos:
         # -s    simplify redundant syntax
         args: [-w, -i, "2", -ci, -s]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1-1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
   - repo: https://github.com/openstack/bashate
