@@ -30,3 +30,6 @@ ea1664d973f43040669734cb5922879302efb9c5
 
 # style: Reformat pyproject.toml with tombi (#543)
 f7ecf8531b4439fa73e0ae6df2df952739055888
+
+# style: Double-quote the strings in the Cython sources (#559)
+d370e8876eeb9c16a1e53746733a9f1ce330afd9

@@ -61,6 +61,8 @@ repos:
     hooks:
       # ruff cannot parse Cython, so .pyx and .pxd reach no other linter.
       - id: cython-lint
+      # Single-line strings only; docstrings keep their triple single quotes.
+      - id: double-quote-cython-strings
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
     rev: 0.28.1
     hooks:
