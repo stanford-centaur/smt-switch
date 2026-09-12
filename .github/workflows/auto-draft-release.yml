@@ -20,16 +20,16 @@ jobs:
           # Drop comment lines and take the first line that remains
           VERSION_VALUE=$(grep -v '^#' VERSION | head -n 1 | tr -d '[:space:]')
           echo "Detected version: $VERSION_VALUE"
-          echo "version=$VERSION_VALUE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION_VALUE" >> "$GITHUB_OUTPUT"
       - name: Check if tag exists
         id: check_tag
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           if git tag -l "v$VERSION" | grep -q .; then
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
           fi
       # Create and push the tag if it doesn't already exist
       - name: Create and push tag
