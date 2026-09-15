@@ -48,6 +48,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             THEORY_STR,
             THEORY_BV,
             THEORY_REAL,
+            THEORY_FP,
             ARRAY_MODELS,
             ARRAY_FUN_BOOLS,
             CONSTARR,

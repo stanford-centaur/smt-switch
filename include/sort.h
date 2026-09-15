@@ -51,11 +51,50 @@ enum SortKind
   CONSTRUCTOR,
   SELECTOR,
   TESTER,
+  FLOAT,
+  ROUNDINGMODE,
 
   /** IMPORTANT: This must stay at the bottom.
       It's only use is for sizing the kind2str array
   */
   NUM_SORT_KINDS
+};
+
+template <std::uint64_t>
+struct FPSizes;
+
+template <>
+struct FPSizes<32>
+{
+  static constexpr uint32_t exp = 8;
+  static constexpr uint32_t sig = 24;
+  static constexpr uint32_t size = exp + sig;
+};
+
+template <>
+struct FPSizes<64>
+{
+  static constexpr uint32_t exp = 11;
+  static constexpr uint32_t sig = 53;
+  static constexpr uint32_t size = exp + sig;
+};
+
+enum class FPRoundingMode
+{
+  ROUND_NEAREST_TIES_TO_EVEN,
+  ROUND_TOWARD_POSITIVE,
+  ROUND_TOWARD_NEGATIVE,
+  ROUND_TOWARD_ZERO,
+  ROUND_NEAREST_TIES_TO_AWAY,
+};
+
+enum class FPSpecialValue
+{
+  POS_INFINITY,
+  NEG_INFINITY,
+  NOT_A_NUMBER,
+  POS_ZERO,
+  NEG_ZERO,
 };
 
 std::string to_string(SortKind);
@@ -76,6 +115,8 @@ class AbsSort
   virtual std::size_t hash() const = 0;
   // TODO: decide on exception or special value for incorrect usage
   virtual std::uint64_t get_width() const = 0;
+  virtual std::uint64_t get_exponent_width() const = 0;
+  virtual std::uint64_t get_significand_width() const = 0;
   virtual Sort get_indexsort() const = 0;
   virtual Sort get_elemsort() const = 0;
   virtual std::vector<Sort> get_domain_sorts() const = 0;

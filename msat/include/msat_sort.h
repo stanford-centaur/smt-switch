@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "exceptions.h"
 #include "mathsat.h"
 #include "sort.h"
 
@@ -34,6 +35,19 @@ class MsatSort : public AbsSort
   ~MsatSort() = default;
   std::size_t hash() const override;
   uint64_t get_width() const override;
+
+  std::uint64_t get_exponent_width() const override
+  {
+    throw NotImplementedException(
+        "get_exponent_width not implemented by MsatSort");
+  }
+
+  std::uint64_t get_significand_width() const override
+  {
+    throw NotImplementedException(
+        "get_significand_width not implemented by MsatSort");
+  }
+
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
