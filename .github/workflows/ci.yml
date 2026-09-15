@@ -53,7 +53,7 @@ jobs:
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
-          echo "$(pwd)/.venv/bin" >> $GITHUB_PATH
+          echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja
@@ -63,7 +63,7 @@ jobs:
       - name: Build
         run: ninja -C build
       - name: Install Python bindings
-        run: pip install $(ls build/python/*.whl)[pysmt,test]
+        run: pip install "$(ls build/python/*.whl)[pysmt,test]"
       - name: Test C++
         id: test-cpp
         continue-on-error: true
