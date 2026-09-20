@@ -1,4 +1,8 @@
 (set-logic QF_S)
+; The string theory supplies the Int-valued operators used below, but
+; integer literals belong to the Ints theory, which QF_S does not include.
+; 0 and 1 are therefore spelled (str.len "") and (str.len "A").
+; test-ops-SLIA.smt2 covers the same operators with Ints available.
 
 (declare-const x String)
 (declare-const y String)
@@ -35,14 +39,14 @@
 (assert (not (= y substryx)))
 (assert (= empty (str.substr x (str.len x) (str.len x))))
 ;StrAt
-(assert (= (str.len (str.at y 0)) 1))
+(assert (= (str.len (str.at y (str.len ""))) (str.len "A")))
 (assert (= empty (str.at x (str.len x))))
 ;StrContains
 (assert (not (str.contains x y)))
 (assert (str.contains xy y))
 ;StrIndexof
-(assert (= (str.len x) (str.indexof xyy y 0)))
-(assert (= 0 (str.indexof xy empty 0)))
+(assert (= (str.len x) (str.indexof xyy y (str.len ""))))
+(assert (= (str.len "") (str.indexof xy empty (str.len ""))))
 ;StrReplace
 (assert (= xx (str.replace xy y x)))
 (assert (= xy (str.replace y empty x)))
