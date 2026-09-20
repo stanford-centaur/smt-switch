@@ -580,8 +580,8 @@ void init_solver(SmtSolver gs)
 void new_btor(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(BTOR_HOME));
-  path += "/build/bin/boolector";
+  string path = (STRFY(BOOLECTOR_ROOT));
+  path += "/bin/boolector";
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
@@ -591,7 +591,7 @@ void new_btor(SmtSolver & gs, int buffer_size)
 void new_msat(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(MSAT_HOME));
+  string path = (STRFY(MATHSAT_ROOT));
   path += "/bin/mathsat";
   vector<string> args = { "" };
   gs = std::make_shared<GenericSolver>(
@@ -602,8 +602,8 @@ void new_msat(SmtSolver & gs, int buffer_size)
 void new_yices2(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(YICES2_HOME));
-  path += "/build/bin/yices_smt2";
+  string path = (STRFY(YICES2_ROOT));
+  path += "/bin/yices-smt2";
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
@@ -613,8 +613,8 @@ void new_yices2(SmtSolver & gs, int buffer_size)
 void new_cvc5(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(CVC5_HOME));
-  path += "/build/bin/cvc5";
+  string path = (STRFY(CVC5_ROOT));
+  path += "/bin/cvc5";
   vector<string> args = {
     "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
   };

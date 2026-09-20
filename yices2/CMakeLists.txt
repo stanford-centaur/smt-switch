@@ -1,4 +1,5 @@
 find_package(GMP REQUIRED)
+find_package(Yices2 REQUIRED)
 
 add_library(
   smt-switch-yices2
@@ -10,12 +11,9 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_term.cpp"
 )
 
-target_include_directories(smt-switch-yices2 PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(smt-switch-yices2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(smt-switch-yices2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/yices2/include")
-target_include_directories(smt-switch-yices2 PUBLIC "${YICES2_HOME}/src/include")
 target_link_libraries(smt-switch-yices2 GMP::gmp)
-target_link_libraries(smt-switch-yices2 "${YICES2_HOME}/build/lib/libyices.a")
+target_link_libraries(smt-switch-yices2 Yices2::yices)
 target_link_libraries(smt-switch-yices2 smt-switch)
 target_link_libraries(smt-switch-yices2 pthread)
 
@@ -26,7 +24,7 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
     OUTPUT static-smt-switch-yices2.stamp
     COMMAND
       mkdir ssy-working && cd ssy-working && ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh
-      "$<TARGET_FILE_NAME:smt-switch-yices2>" "${YICES2_HOME}/build/lib/libyices.a"
+      "$<TARGET_FILE_NAME:smt-switch-yices2>" "${Yices2_LIBRARY}"
       "../$<TARGET_FILE_NAME:smt-switch-yices2>" && mv "$<TARGET_FILE_NAME:smt-switch-yices2>"
       "../$<TARGET_FILE_NAME:smt-switch-yices2>" && cd .. && rm -rf ssy-working
     COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-yices2.stamp

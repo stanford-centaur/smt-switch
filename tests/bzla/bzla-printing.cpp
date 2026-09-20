@@ -26,7 +26,7 @@ class BitwuzlaPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_results,
       std::string extra_opts = "")
   {
-    std::string bitwuzla_path = STRFY(BITWUZLA_DIR);
+    std::string bitwuzla_path = STRFY(BITWUZLA_ROOT);
     bitwuzla_path += "/bin/bitwuzla";
     dump_and_run(bitwuzla_path, strbuf, expected_results, extra_opts);
   }

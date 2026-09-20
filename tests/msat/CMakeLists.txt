@@ -1,8 +1,5 @@
 macro(switch_add_msat_legacy_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/msat/${name}.cpp")
-  target_include_directories(${name} PRIVATE "${PROJECT_SOURCE_DIR}/msat/include")
-  target_include_directories(${name} PRIVATE "${MSAT_HOME}/include")
-  target_include_directories(${name} PRIVATE "${GMP_INCLUDE_DIR}")
   target_link_libraries(${name} smt-switch-msat)
   target_link_libraries(${name} exec-utils)
   add_test(NAME ${name} COMMAND ${name})

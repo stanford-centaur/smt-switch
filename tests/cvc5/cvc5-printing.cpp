@@ -41,8 +41,8 @@ class Cvc5PrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    std::string cvc5_path = STRFY(CVC5_HOME);
-    cvc5_path += "/build/bin/cvc5";
+    std::string cvc5_path = STRFY(CVC5_ROOT);
+    cvc5_path += "/bin/cvc5";
     dump_and_run(cvc5_path, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;

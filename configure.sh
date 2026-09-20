@@ -16,10 +16,11 @@ Configures the CMAKE build environment.
 --msat                  build MathSAT           (default: off)
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
---btor-home=STR         custom BTOR location    (default: deps/boolector/src/boolector)
---cvc5-home=STR         custom cvc5 location    (default: deps/cvc5/src/cvc5)
---msat-home=STR         custom MathSAT location (default: deps/mathsat)
---yices2-home=STR       custom YICES2 location  (default: deps/yices2/src/yices2)
+--btor-dir=STR          custom Boolector install prefix (default: deps/boolector)
+--btor-src-dir=STR      custom Boolector source tree    (default: <btor-dir>/src/boolector)
+--cvc5-dir=STR          custom cvc5 install prefix      (default: deps/cvc5)
+--msat-dir=STR          custom MathSAT install prefix   (default: deps/mathsat)
+--yices2-dir=STR        custom Yices2 install prefix    (default: deps/yices2)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libraries (default: off)
@@ -28,10 +29,10 @@ Configures the CMAKE build environment.
 --python                compile with python bindings (default: off)
 --python-executabe      point to a particular Python interpreter - will look around this for include and lib dirs
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
---bison-dir=STR         custom bison installation directory
---flex-dir=STR          custom flex installation directory
---bitwuzla-dir=STR      custom Bitwuzla installation directory
---z3-install-dir=STR    custom Z3 installation directory (default: deps/z3)
+--bison-dir=STR         custom bison install prefix     (default: deps/bison)
+--flex-dir=STR          custom flex install prefix      (default: deps/flex)
+--bitwuzla-dir=STR      custom Bitwuzla install prefix  (default: deps/bitwuzla)
+--z3-dir=STR            custom Z3 install prefix        (default: deps/z3)
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -52,10 +53,11 @@ build_cvc5=default
 build_msat=default
 build_yices2=default
 build_z3=default
-btor_home=default
-cvc5_home=default
-msat_home=default
-yices2_home=default
+btor_dir=default
+btor_src_dir=default
+cvc5_dir=default
+msat_dir=default
+yices2_dir=default
 static=default
 build_tests=default
 system_gtest=default
@@ -65,7 +67,7 @@ smtlib_reader=default
 bison_dir=default
 flex_dir=default
 bitwuzla_dir=default
-z3_install_dir=default
+z3_dir=default
 
 build_type=Release
 
@@ -108,44 +110,76 @@ while [ "$i" -lt "$argc" ]; do
     --z3)
       build_z3=ON
       ;;
-    --btor-home) die "missing argument to $arg (see -h)" ;;
-    --btor-home=*)
-      btor_home=${arg##*=}
-      # Check if btor_home is an absolute path and if not, make it
+    # The --*-home flags named a source tree with the build inside it. Their
+    # replacements name an install prefix, so silently accepting the old
+    # spelling would point CMake at the wrong directory.
+    --btor-home | --btor-home=*)
+      die "$arg was replaced by --btor-dir, which takes an install prefix;" \
+        "the source tree is --btor-src-dir (see -h)"
+      ;;
+    --cvc5-home | --cvc5-home=*)
+      die "$arg was replaced by --cvc5-dir," \
+        "which takes an install prefix (see -h)"
+      ;;
+    --msat-home | --msat-home=*)
+      die "$arg was replaced by --msat-dir," \
+        "which takes an install prefix (see -h)"
+      ;;
+    --yices2-home | --yices2-home=*)
+      die "$arg was replaced by --yices2-dir," \
+        "which takes an install prefix (see -h)"
+      ;;
+    --z3-install-dir | --z3-install-dir=*)
+      die "$arg was replaced by --z3-dir (see -h)"
+      ;;
+    --btor-dir) die "missing argument to $arg (see -h)" ;;
+    --btor-dir=*)
+      btor_dir=${arg##*=}
+      # Check if btor_dir is an absolute path and if not, make it
       # absolute.
-      case $btor_home in
-        /*) ;;                            # absolute path
-        *) btor_home=$(pwd)/$btor_home ;; # make absolute path
+      case $btor_dir in
+        /*) ;;                          # absolute path
+        *) btor_dir=$(pwd)/$btor_dir ;; # make absolute path
       esac
       ;;
-    --cvc5-home) die "missing argument to $arg (see -h)" ;;
-    --cvc5-home=*)
-      cvc5_home=${arg##*=}
-      # Check if cvc5_home is an absolute path and if not, make it
+    --btor-src-dir) die "missing argument to $arg (see -h)" ;;
+    --btor-src-dir=*)
+      btor_src_dir=${arg##*=}
+      # Check if btor_src_dir is an absolute path and if not, make it
       # absolute.
-      case $cvc5_home in
-        /*) ;;                            # absolute path
-        *) cvc5_home=$(pwd)/$cvc5_home ;; # make absolute path
+      case $btor_src_dir in
+        /*) ;;                                  # absolute path
+        *) btor_src_dir=$(pwd)/$btor_src_dir ;; # make absolute path
       esac
       ;;
-    --msat-home) die "missing argument to $arg (see -h)" ;;
-    --msat-home=*)
-      msat_home=${arg##*=}
-      # Check if msat_home is an absolute path and if not, make it
+    --cvc5-dir) die "missing argument to $arg (see -h)" ;;
+    --cvc5-dir=*)
+      cvc5_dir=${arg##*=}
+      # Check if cvc5_dir is an absolute path and if not, make it
       # absolute.
-      case $msat_home in
-        /*) ;;                            # absolute path
-        *) msat_home=$(pwd)/$msat_home ;; # make absolute path
+      case $cvc5_dir in
+        /*) ;;                          # absolute path
+        *) cvc5_dir=$(pwd)/$cvc5_dir ;; # make absolute path
       esac
       ;;
-    --yices2-home) die "missing argument to $arg (see -h)" ;;
-    --yices2-home=*)
-      yices2_home=${arg##*=}
-      # Check if yices2_home is an absolute path and if not, make it
+    --msat-dir) die "missing argument to $arg (see -h)" ;;
+    --msat-dir=*)
+      msat_dir=${arg##*=}
+      # Check if msat_dir is an absolute path and if not, make it
       # absolute.
-      case $yices2_home in
-        /*) ;;                                # absolute path
-        *) yices2_home=$(pwd)/$yices2_home ;; # make absolute path
+      case $msat_dir in
+        /*) ;;                          # absolute path
+        *) msat_dir=$(pwd)/$msat_dir ;; # make absolute path
+      esac
+      ;;
+    --yices2-dir) die "missing argument to $arg (see -h)" ;;
+    --yices2-dir=*)
+      yices2_dir=${arg##*=}
+      # Check if yices2_dir is an absolute path and if not, make it
+      # absolute.
+      case $yices2_dir in
+        /*) ;;                              # absolute path
+        *) yices2_dir=$(pwd)/$yices2_dir ;; # make absolute path
       esac
       ;;
     --build-dir) die "missing argument to $arg (see -h)" ;;
@@ -209,32 +243,42 @@ while [ "$i" -lt "$argc" ]; do
       # Make relative paths absolute
       bitwuzla_dir=$(cd -- "$bitwuzla_dir" && pwd)
       ;;
-    --z3-install-dir) die "missing argument to $arg (see -h)" ;;
-    --z3-install-dir=*)
-      z3_install_dir=${arg##*=}
+    --z3-dir) die "missing argument to $arg (see -h)" ;;
+    --z3-dir=*)
+      z3_dir=${arg##*=}
       # Make relative paths absolute
-      z3_install_dir=$(cd -- "$z3_install_dir" && pwd)
+      z3_dir=$(cd -- "$z3_dir" && pwd)
       ;;
     -D*) set -- "$@" "$arg" ;;
     *) die "unexpected argument: $arg" ;;
   esac
 done
 
-# enable solvers automatically if a custom home is provided
-if [ "$btor_home" != default ] && [ "$build_btor" = default ]; then
-  build_btor=ON
+# enable solvers automatically if a custom directory is provided
+if [ "$btor_dir" != default ] || [ "$btor_src_dir" != default ]; then
+  if [ "$build_btor" = default ]; then
+    build_btor=ON
+  fi
 fi
 
-if [ "$cvc5_home" != default ] && [ "$build_cvc5" = default ]; then
+if [ "$bitwuzla_dir" != default ] && [ "$build_bitwuzla" = default ]; then
+  build_bitwuzla=ON
+fi
+
+if [ "$cvc5_dir" != default ] && [ "$build_cvc5" = default ]; then
   build_cvc5=ON
 fi
 
-if [ "$msat_home" != default ] && [ "$build_msat" = default ]; then
+if [ "$msat_dir" != default ] && [ "$build_msat" = default ]; then
   build_msat=ON
 fi
 
-if [ "$yices2_home" != default ] && [ "$build_yices2" = default ]; then
+if [ "$yices2_dir" != default ] && [ "$build_yices2" = default ]; then
   build_yices2=ON
+fi
+
+if [ "$z3_dir" != default ] && [ "$build_z3" = default ]; then
+  build_z3=ON
 fi
 
 # "$@" already holds any -D options given on the command line. Append the
@@ -263,17 +307,20 @@ set -- "$@" "-DCMAKE_BUILD_TYPE=$build_type"
 [ "$build_z3" != default ] &&
   set -- "$@" "-DBUILD_Z3=$build_z3"
 
-[ "$btor_home" != default ] &&
-  set -- "$@" "-DBTOR_HOME=$btor_home"
+[ "$btor_dir" != default ] &&
+  set -- "$@" "-DBoolector_ROOT=$btor_dir"
 
-[ "$cvc5_home" != default ] &&
-  set -- "$@" "-DCVC5_HOME=$cvc5_home"
+[ "$btor_src_dir" != default ] &&
+  set -- "$@" "-DBoolector_SOURCE_DIR=$btor_src_dir"
 
-[ "$msat_home" != default ] &&
-  set -- "$@" "-DMSAT_HOME=$msat_home"
+[ "$cvc5_dir" != default ] &&
+  set -- "$@" "-Dcvc5_ROOT=$cvc5_dir"
 
-[ "$yices2_home" != default ] &&
-  set -- "$@" "-DYICES2_HOME=$yices2_home"
+[ "$msat_dir" != default ] &&
+  set -- "$@" "-DMathSAT_ROOT=$msat_dir"
+
+[ "$yices2_dir" != default ] &&
+  set -- "$@" "-DYices2_ROOT=$yices2_dir"
 
 [ "$static" != default ] &&
   set -- "$@" "-DSMT_SWITCH_LIB_TYPE=STATIC"
@@ -294,16 +341,16 @@ set -- "$@" "-DCMAKE_BUILD_TYPE=$build_type"
   set -- "$@" "-DSMTLIB_READER=ON"
 
 [ "$bison_dir" != default ] &&
-  set -- "$@" "-DBISON_DIR=$bison_dir"
+  set -- "$@" "-DBISON_ROOT=$bison_dir"
 
 [ "$flex_dir" != default ] &&
-  set -- "$@" "-DFLEX_DIR=$flex_dir"
+  set -- "$@" "-DFLEX_ROOT=$flex_dir"
 
 [ "$bitwuzla_dir" != default ] &&
-  set -- "$@" "-DBITWUZLA_DIR=$bitwuzla_dir"
+  set -- "$@" "-DBitwuzla_ROOT=$bitwuzla_dir"
 
-[ "$z3_install_dir" != default ] &&
-  set -- "$@" "-DZ3_INSTALL_DIR=$z3_install_dir"
+[ "$z3_dir" != default ] &&
+  set -- "$@" "-DZ3_ROOT=$z3_dir"
 
 mkdir -p "$build_dir"
 cd "$build_dir" || exit 1

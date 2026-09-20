@@ -105,8 +105,8 @@ SmtSolver create_solver(SolverConfiguration sc)
     }
 #ifndef __APPLE__
     case GENERIC_SOLVER: {
-      std::string path = (STRFY(CVC5_HOME));
-      path += "/build/bin/cvc5";
+      std::string path = (STRFY(CVC5_ROOT));
+      path += "/bin/cvc5";
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };

@@ -47,8 +47,8 @@ TEST(BtorPrintingTest, SymbolName)
   EXPECT_TRUE(result.is_sat());
 
   std::string witness_filename = "btor-printing-test.witness";
-  std::string command = STRFY(BTOR_HOME);
-  command += "/build/bin/boolector ";
+  std::string command = STRFY(BOOLECTOR_ROOT);
+  command += "/bin/boolector ";
   command += smt_filename;
   command += " >";
   command += witness_filename;

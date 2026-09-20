@@ -41,7 +41,7 @@ class MsatPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    std::string msat_path = STRFY(MSAT_HOME);
+    std::string msat_path = STRFY(MATHSAT_ROOT);
     msat_path += "/bin/mathsat";
     dump_and_run(msat_path, strbuf, expected_result, extra_opts);
   }

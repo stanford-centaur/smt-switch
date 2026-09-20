@@ -166,16 +166,21 @@ e.g. `/usr/local/include/smt-switch`.
 ### Custom Solver Location
 
 If you'd like to try your own version of a solver, you can use the
-`configure.sh` script to point to your custom location with `--<solver>-home`.
-You will need to build static libraries (.a) and have them be accessible in the
-standard location for that solver. For example, you would point to a custom
-location of cvc5 like so:
-`./configure.sh --prefix=<your desired install location> --cvc5-home ./custom-cvc5`
+`configure.sh` script to point to your custom location with `--<solver>-dir`.
+Each of these takes an **install prefix**, not a source tree: the directory a
+solver was installed into, holding `include/` and `lib/`. For example, you would
+point to a custom build of cvc5 like so:
+`./configure.sh --prefix=<your desired install location> --cvc5-dir=./custom-cvc5`
 
-where `./custom-cvc5/build/src/libcvc5.a` and
-`./custom-cvc5/build/src/parser/libcvc5parser.a` already exist. `build` is the
-default build directory for `cvc5`, and thus that's where `cmake` is configured
-to look.
+where `./custom-cvc5/lib/libcvc5.a` and `./custom-cvc5/lib/cmake/cvc5/` already
+exist, which is what `cmake --install` produces. Each solver is located with
+`find_package`, so a solver installed somewhere `cmake` already searches — a
+distribution package, for instance — is picked up without any flag at all.
+
+Boolector is the exception that also needs its sources. We need access to
+Boolector's private headers to support term iteration, so `--btor-src-dir`
+points at the source tree alongside `--btor-dir`. It defaults to
+`<btor-dir>/src/boolector`, which is where `contrib/setup-boolector.sh` puts it.
 
 ### Static Linking
 
