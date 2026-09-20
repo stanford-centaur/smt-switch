@@ -1,9 +1,11 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Find Bitwuzla installation
-list(PREPEND CMAKE_PREFIX_PATH "${BITWUZLA_DIR}")
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(BITWUZLA REQUIRED bitwuzla)
+find_package(Bitwuzla REQUIRED)
+
+# Variables needed in setup.py
+# TODO: move all compilation commands into CMake
+set(Bitwuzla_LINK_LIBRARIES "${Bitwuzla_LINK_LIBRARIES}" PARENT_SCOPE)
+set(Bitwuzla_LIBRARY_DIRS "${Bitwuzla_LIBRARY_DIRS}" PARENT_SCOPE)
 
 add_library(
   smt-switch-bitwuzla
@@ -14,12 +16,9 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
 )
 
-target_include_directories(smt-switch-bitwuzla PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(smt-switch-bitwuzla PUBLIC ${BITWUZLA_INCLUDE_DIRS})
-
 target_link_libraries(smt-switch-bitwuzla smt-switch)
-target_link_libraries(smt-switch-bitwuzla ${BITWUZLA_LDFLAGS})
+target_link_libraries(smt-switch-bitwuzla Bitwuzla::bitwuzla)
 
 install(TARGETS smt-switch-bitwuzla DESTINATION lib)
 # install headers -- for expert use only

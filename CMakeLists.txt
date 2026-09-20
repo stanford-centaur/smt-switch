@@ -64,22 +64,27 @@ endif()
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
 # Each dependency set up by contrib/setup-*.sh installs into its own prefix
-# under deps/, so the search path gets one entry per dependency rather than a
-# single shared one. Prefixes that were never populated cost nothing.
-set(
-  DEP_NAMES
-  bison
-  bitwuzla
-  boolector
-  btor2tools
-  cadical
-  cvc5
-  flex
-  z3
-)
-foreach(dep IN LISTS DEP_NAMES)
-  list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/${dep}")
-endforeach()
+# under deps/. Point each package at its own prefix rather than putting them
+# all on CMAKE_PREFIX_PATH: a root is scoped to one package, so a dependency
+# can no longer shadow an unrelated system library.
+#
+# These are only defaults. A root passed on the command line wins, and so does
+# a package installed where find_package would look anyway.
+function(smt_switch_default_root package directory)
+  if(NOT DEFINED ${package}_ROOT)
+    set(${package}_ROOT "${PROJECT_SOURCE_DIR}/deps/${directory}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+smt_switch_default_root(BISON bison)
+smt_switch_default_root(Bitwuzla bitwuzla)
+smt_switch_default_root(Boolector boolector)
+smt_switch_default_root(CaDiCaL cadical)
+smt_switch_default_root(FLEX flex)
+smt_switch_default_root(MathSAT mathsat)
+smt_switch_default_root(Yices2 yices2)
+smt_switch_default_root(Z3 z3)
+smt_switch_default_root(cvc5 cvc5)
 
 if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
@@ -118,16 +123,6 @@ set(
 )
 
 if(SMTLIB_READER)
-  # The deps/bison and deps/flex prefixes are already on the search path; only
-  # an explicitly given directory has to be added here.
-  if(BISON_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${BISON_DIR}")
-  endif()
-
-  if(FLEX_DIR)
-    list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
-  endif()
-
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
 
@@ -198,68 +193,57 @@ endif()
 # should we build boolector?
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)
-  if(NOT DEFINED BTOR_HOME)
-    set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector/src/boolector")
+  # Boolector installs only boolector.h and btortypes.h, but boolector_term.h
+  # needs btorcore.h, btornode.h and utils/btornodeiter.h, so the backend
+  # needs the source tree in addition to the installed package.
+  if(NOT DEFINED Boolector_SOURCE_DIR)
+    set(Boolector_SOURCE_DIR "${Boolector_ROOT}/src/boolector")
   endif()
   add_subdirectory(btor)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
 
   add_definitions(-DBUILD_BTOR)
-  add_definitions(-DBTOR_HOME=${BTOR_HOME})
+  add_definitions(-DBOOLECTOR_ROOT=${Boolector_ROOT})
 endif()
 
 # should we build bitwuzla?
 option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
 if(BUILD_BITWUZLA)
-  if(NOT DEFINED BITWUZLA_DIR)
-    # default location if using contrib/setup-bitwuzla.sh
-    # will also search global paths
-    set(BITWUZLA_DIR "${PROJECT_SOURCE_DIR}/deps/bitwuzla")
-  endif()
   add_subdirectory(bitwuzla)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
 
   add_definitions(-DBUILD_BITWUZLA)
-  add_definitions(-DBITWUZLA_DIR=${BITWUZLA_DIR})
+  add_definitions(-DBITWUZLA_ROOT=${Bitwuzla_ROOT})
 endif()
 
 # should we build cvc5?
 option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
-  if(NOT DEFINED CVC5_HOME)
-    set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5/src/cvc5")
-  endif()
   add_subdirectory(cvc5)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
 
   add_definitions(-DBUILD_CVC5)
-  add_definitions(-DCVC5_HOME=${CVC5_HOME})
+  add_definitions(-DCVC5_ROOT=${cvc5_ROOT})
 endif()
 
 # should we build msat?
 option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 if(BUILD_MSAT)
-  if(NOT DEFINED MSAT_HOME)
-    set(MSAT_HOME "${PROJECT_SOURCE_DIR}/deps/mathsat")
-  endif()
   add_subdirectory(msat)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
 
   add_definitions(-DBUILD_MSAT)
-  add_definitions(-DMSAT_HOME=${MSAT_HOME})
+  add_definitions(-DMATHSAT_ROOT=${MathSAT_ROOT})
 endif()
 
 # should we build yices2?
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
-  if(NOT DEFINED YICES2_HOME)
-    set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2/src/yices2")
-  endif()
   add_subdirectory(yices2)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
 
   add_definitions(-DBUILD_YICES2)
-  add_definitions(-DYICES2_HOME=${YICES2_HOME})
+  add_definitions(-DYICES2_ROOT=${Yices2_ROOT})
 endif()
 
 # should we build z3?
