@@ -1,5 +1,5 @@
 #!/bin/bash
-git_commit=122f27f9518269cd9c1ebf0efced37dfd7f845e6
+git_commit=8d1eb01093ae54d9b4586456b69c3bf31000a4c2 # 0.9.1
 dependencies=(cadical)
 
 configure_step() {
