@@ -260,11 +260,11 @@ class GenericSolver : public AbsSmtSolver
   // command line arguments for the binary
   std::vector<std::string> cmd_line_args;
 
-  // variables used for running processes
-  int inpipefd[2];
-  int outpipefd[2];
-  pid_t pid;
-  int status;
+  // variables used for running processes; the fds and pid are -1 when unset
+  int inpipefd[2] = { -1, -1 };
+  int outpipefd[2] = { -1, -1 };
+  pid_t pid = -1;
+  int status = 0;
   char * read_buf;
 
   // buffer size
