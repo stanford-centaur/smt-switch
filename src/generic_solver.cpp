@@ -23,6 +23,7 @@
 
 #include "generic_solver.h"
 
+#include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/prctl.h>
@@ -274,6 +275,33 @@ void GenericSolver::start_solver()
         "Failed to create a pipe to the solver binary at " + path + ": "
         + strerror(pipe_errno));
   }
+  // a third pipe tells the parent how execv() went: a successful exec
+  // closes the write end, so end-of-file means started, an errno means not
+  int execpipefd[2] = { -1, -1 };
+  if (pipe(execpipefd) != 0)
+  {
+    int pipe_errno = errno;
+    close_fd(inpipefd[0]);
+    close_fd(inpipefd[1]);
+    close_fd(outpipefd[0]);
+    close_fd(outpipefd[1]);
+    throw InternalSolverException(
+        "Failed to create a startup pipe for the solver binary at " + path
+        + ": " + strerror(pipe_errno));
+  }
+  if (fcntl(execpipefd[1], F_SETFD, FD_CLOEXEC) != 0)
+  {
+    int fcntl_errno = errno;
+    close_fd(inpipefd[0]);
+    close_fd(inpipefd[1]);
+    close_fd(outpipefd[0]);
+    close_fd(outpipefd[1]);
+    close_fd(execpipefd[0]);
+    close_fd(execpipefd[1]);
+    throw InternalSolverException(
+        "Failed to prepare a startup pipe for the solver binary at " + path
+        + ": " + strerror(fcntl_errno));
+  }
   pid = fork();
   if (pid < 0)
   {
@@ -282,6 +310,8 @@ void GenericSolver::start_solver()
     close_fd(inpipefd[1]);
     close_fd(outpipefd[0]);
     close_fd(outpipefd[1]);
+    close_fd(execpipefd[0]);
+    close_fd(execpipefd[1]);
     throw InternalSolverException("Failed to start the solver binary at " + path
                                   + ": " + strerror(fork_errno));
   }
@@ -307,6 +337,9 @@ void GenericSolver::start_solver()
         *fd = -1;
       }
     }
+    // the startup pipe is exempt: its write end has to outlive the exec,
+    // which closes it through FD_CLOEXEC only if it succeeds
+    close_fd(execpipefd[0]);
 
     // ask kernel to deliver SIGTERM in case the parent dies
     prctl(PR_SET_PDEATHSIG, SIGTERM);
@@ -325,16 +358,61 @@ void GenericSolver::start_solver()
     }
     argv[cmd_line_args.size() + 1] = NULL;
     execv(path.c_str(), (char **)argv);
-    // Nothing below this line should be executed by child process. If so,
-    // it means that the execl function wasn't successful, so lets exit:
-    std::string msg("failure to run binary: ");
-    msg += path;
-    throw IncorrectUsageException(msg);
-    exit(1);
+    // this is a forked copy of the parent, so it must not throw: report
+    // the errno and _exit(), exit() flushing its stdio into the pipe
+    int exec_errno = errno;
+    const char * reason = reinterpret_cast<const char *>(&exec_errno);
+    size_t left = sizeof(exec_errno);
+    while (left > 0)
+    {
+      ssize_t just_written = write(execpipefd[1], reason, left);
+      if (just_written < 0)
+      {
+        if (errno == EINTR)
+        {
+          continue;
+        }
+        // the parent still sees a short read, and still reports a failure
+        break;
+      }
+      reason += just_written;
+      left -= just_written;
+    }
+    _exit(EXIT_FAILURE);
   }
   // close unused pipe ends
   close(outpipefd[0]);
   close(inpipefd[1]);
+  // the read below only sees end-of-file once no one holds the write end
+  close_fd(execpipefd[1]);
+  // no deadline needed: the child gets to execv() within a few syscalls
+  int exec_errno = 0;
+  ssize_t reported;
+  do
+  {
+    reported = read(execpipefd[0], &exec_errno, sizeof(exec_errno));
+  } while (reported < 0 && errno == EINTR);
+  int read_errno = errno;
+  close_fd(execpipefd[0]);
+  if (reported != 0)
+  {
+    std::string reason;
+    if (reported == static_cast<ssize_t>(sizeof(exec_errno)))
+    {
+      reason = strerror(exec_errno);
+    }
+    else if (reported < 0)
+    {
+      reason = std::string("could not be determined: ") + strerror(read_errno);
+    }
+    else
+    {
+      reason = "could not be determined: the process died before reporting it";
+    }
+    // the child and the pipes are left to the constructor's close_solver()
+    throw IncorrectUsageException("failure to run binary: " + path + ": "
+                                  + reason);
+  }
   set_opt("print-success", "true");
   set_opt("global-declarations", "true");
 }
