@@ -75,6 +75,8 @@ class TreeWalker
              UnorderedTermPairMap * ext_cache = nullptr)
       : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
 
+  virtual ~TreeWalker() = default;
+
   /** Visit a term and all its subterms in a post-order traversal
    *  @param term the term to visit
    *  @return the value of cache[term]

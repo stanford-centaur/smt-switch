@@ -127,6 +127,8 @@ class SmtLibReader
    */
   SmtLibReader(SmtSolver & solver, bool strict = false);
 
+  virtual ~SmtLibReader() = default;
+
   int parse(const std::string & f);
   // The name of the file being parsed.
   std::string file;
