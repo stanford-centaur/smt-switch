@@ -222,7 +222,8 @@ std::string GenericSort::compute_string() const
   }
   else
   {
-    assert(false);
+    throw NotImplementedException("Can't print sort kind "
+                                  + smt::to_string(get_sort_kind()));
   }
 }
 
