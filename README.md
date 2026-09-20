@@ -129,11 +129,12 @@ issue if you have any problems!
 ## Solvers
 
 To setup and install different solvers, first run the
-`./contrib/setup-<solver>.sh` script which builds position-independent static
-libraries in the `<solver>` directory. Then you can configure your `cmake` build
-with the `configure.sh` script. Enable a solver with
-`./configure.sh --<solver>`. By default only `libsmt-switch.so` is built without
-any solvers.
+`./contrib/setup-<solver>.sh` script. It builds position-independent static
+libraries, giving each solver its own prefix under `deps/`: the sources are
+unpacked into `deps/<solver>/src/<solver>` and the build is installed into
+`deps/<solver>`. Then you can configure your `cmake` build with the
+`configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By
+default only `libsmt-switch.so` is built without any solvers.
 
 Some of the backend solvers have non-BSD compatible licenses. There are no
 provided setup scripts for these solvers. However, there are instructions for

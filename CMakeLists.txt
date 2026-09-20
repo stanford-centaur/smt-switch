@@ -60,8 +60,23 @@ endif()
 # - PROJECT_VERSION_PATCH: Patch version component
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
-# add to search path for find_package
-list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
+# Each dependency set up by contrib/setup-*.sh installs into its own prefix
+# under deps/, so the search path gets one entry per dependency rather than a
+# single shared one. Prefixes that were never populated cost nothing.
+set(
+  DEP_NAMES
+  bison
+  bitwuzla
+  boolector
+  btor2tools
+  cadical
+  cvc5
+  flex
+  z3
+)
+foreach(dep IN LISTS DEP_NAMES)
+  list(PREPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/${dep}")
+endforeach()
 
 if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
@@ -100,20 +115,14 @@ set(
 )
 
 if(SMTLIB_READER)
+  # The deps/bison and deps/flex prefixes are already on the search path; only
+  # an explicitly given directory has to be added here.
   if(BISON_DIR)
     list(APPEND CMAKE_PREFIX_PATH "${BISON_DIR}")
-  else()
-    # default location if using contrib/setup-bison.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/bison/bison-install")
   endif()
 
   if(FLEX_DIR)
     list(APPEND CMAKE_PREFIX_PATH "${FLEX_DIR}")
-  else()
-    # default location if using contrib/setup-flex.sh
-    # will also search global paths
-    list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/flex/flex-install")
   endif()
 
   find_package(BISON 3.7.0 REQUIRED)
@@ -187,7 +196,7 @@ endif()
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)
   if(NOT DEFINED BTOR_HOME)
-    set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector")
+    set(BTOR_HOME "${PROJECT_SOURCE_DIR}/deps/boolector/src/boolector")
   endif()
   add_subdirectory(btor)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
@@ -202,7 +211,7 @@ if(BUILD_BITWUZLA)
   if(NOT DEFINED BITWUZLA_DIR)
     # default location if using contrib/setup-bitwuzla.sh
     # will also search global paths
-    set(BITWUZLA_DIR "${PROJECT_SOURCE_DIR}/deps/install")
+    set(BITWUZLA_DIR "${PROJECT_SOURCE_DIR}/deps/bitwuzla")
   endif()
   add_subdirectory(bitwuzla)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
@@ -215,7 +224,7 @@ endif()
 option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
   if(NOT DEFINED CVC5_HOME)
-    set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5")
+    set(CVC5_HOME "${PROJECT_SOURCE_DIR}/deps/cvc5/src/cvc5")
   endif()
   add_subdirectory(cvc5)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
@@ -241,7 +250,7 @@ endif()
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
   if(NOT DEFINED YICES2_HOME)
-    set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2")
+    set(YICES2_HOME "${PROJECT_SOURCE_DIR}/deps/yices2/src/yices2")
   endif()
   add_subdirectory(yices2)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
