@@ -54,6 +54,8 @@ class IdentityWalker
                  UnorderedTermMap * ext_cache = nullptr)
       : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
 
+  virtual ~IdentityWalker() = default;
+
   /** Visit a term and all its subterms in a post-order traversal
    *  the member variable preorder_ is true if it's the first time seeing
    *  a subterm and false if the traversal is in post-order already

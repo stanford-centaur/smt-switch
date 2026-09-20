@@ -9,6 +9,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Restricted to C++ because btor/ compiles a C file.
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Werror=non-virtual-dtor>")
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # defines find_python_in_virtualenv()
