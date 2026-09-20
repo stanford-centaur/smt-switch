@@ -1,5 +1,5 @@
 #!/bin/bash
-git_tag=cvc5-1.3.4
+git_commit=b432cd77ebeb41091de42637ca8523f8437a1db1 # cvc5-1.4.0
 cmake_options=(-DENABLE_AUTO_DOWNLOAD=ON -DUSE_POLY=ON)
 dependencies=(cadical)
 
