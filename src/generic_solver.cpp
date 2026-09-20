@@ -62,22 +62,17 @@ static bool is_white_space(char c)
   return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 }
 
-/* Length of the first complete response in `buf`, including any whitespace
-** in front of it, or std::string::npos if `buf` does not hold a whole
-** response yet.
-**
-** The length has to be exact. Stop one byte early and the tail of a
-** response is mistaken for the answer to the next command; take one byte
-** too many and an answer is swallowed that a later command then waits for
-** in vain. Either way the command and response streams slip by one and
-** some subsequent command never gets its reply.
-**
-** A response is one s-expression: a bare atom (`sat`, `success`, ...) or a
-** parenthesised list. Counting parentheses alone is not enough, since
-** string literals ("..."), quoted symbols (|...|) and comments (;...) may
-** contain unmatched ones -- an error message quoting a stray ')' back at
-** us is the obvious way to meet that.
-*/
+/** Length of the first complete response in `buf`, including any leading
+ * whitespace, or std::string::npos if `buf` does not hold a whole one
+ * yet. Exactness matters: over- or under-reading by a byte slips the
+ * command and response streams out of step for good.
+ *
+ * A response is one s-expression: a bare atom (`sat`, `success`) or a
+ * parenthesised list. Parentheses cannot simply be counted, since string
+ * literals ("..."), quoted symbols (|...|) and comments (;...) may hold
+ * unmatched ones -- an error message quoting a stray ')' back at us is
+ * the obvious way to meet that.
+ */
 static std::size_t response_length(const std::string & buf)
 {
   std::size_t i = 0;
@@ -92,8 +87,7 @@ static std::size_t response_length(const std::string & buf)
 
   if (buf[i] != '(')
   {
-    // A bare atom, which we only know has ended once something that cannot
-    // be part of it arrives.
+    // an atom is only known to have ended once a delimiter turns up
     while (i < buf.size() && !is_white_space(buf[i]) && buf[i] != '('
            && buf[i] != ')' && buf[i] != ';')
     {
@@ -132,8 +126,7 @@ static std::size_t response_length(const std::string & buf)
           return std::string::npos;
         }
         i++;
-        // in SMT-LIB a doubled quote is an escaped quote, so the literal
-        // only ends at a quote that is not followed by another one
+        // a doubled quote is SMT-LIB's escape, so the literal runs on
         if (i == buf.size())
         {
           return std::string::npos;
@@ -294,13 +287,10 @@ void GenericSolver::start_solver()
 
 void GenericSolver::write_internal(std::string str) const
 {
-  /* Hand the command over in as few write() calls as the pipe allows.
-  ** Splitting it into small pieces gains nothing and risks a great deal:
-  ** MathSAT intermittently drops a character -- in practice the closing
-  ** parenthesis -- out of a command that reaches it one byte at a time,
-  ** and then sits waiting for the rest of a command it already has while
-  ** we wait for its answer.
-  */
+  // MathSAT intermittently drops a character -- in practice the closing
+  // parenthesis -- out of a command that reaches it one byte at a time,
+  // and then waits for the rest of a command it already has, so hand the
+  // command over in as few write() calls as the pipe allows.
   std::string::size_type written_chars = 0;
   while (written_chars < str.size())
   {
@@ -338,8 +328,7 @@ void GenericSolver::await_response(
 {
   while (true)
   {
-    // a negative timeout makes poll() wait forever, which is what an
-    // absent deadline asks for
+    // -1 makes poll() wait forever, which is what no deadline asks for
     int timeout_ms = -1;
     if (deadline)
     {
@@ -367,8 +356,7 @@ void GenericSolver::await_response(
     {
       return;
     }
-    // a slice running out, or an interrupted wait, just sends us back to
-    // the deadline check above
+    // a finished slice or an interrupted wait just retries the loop
     if (ready < 0 && errno != EINTR)
     {
       throw InternalSolverException("Failed to wait for the solver binary at "
@@ -379,12 +367,6 @@ void GenericSolver::await_response(
 
 std::string GenericSolver::read_internal(const std::string & cmd) const
 {
-  /* Take exactly one response, waiting for more input only while the
-  ** buffered bytes do not add up to one. The wait is bounded, so that a
-  ** solver that stops answering surfaces as an error rather than leaving
-  ** this process blocked in read() while the solver blocks on its own
-  ** stdin, with neither side able to notice.
-  */
   std::optional<std::chrono::steady_clock::time_point> deadline;
   if (response_timeout)
   {
@@ -407,8 +389,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
     }
     if (just_read == 0)
     {
-      // the solver closed its output, so whatever we have is all we will
-      // ever get for this command
+      // the solver is gone, so what arrived is all there will ever be
       if (response_buffer.empty())
       {
         throw InternalSolverException(
@@ -438,8 +419,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
 std::string GenericSolver::run_command(std::string cmd,
                                        bool verify_success_flag) const
 {
-  // writing the cmd string to the process,
-  // with a newline to simulate an "enter" hit.
+  // send the cmd string, with a newline to simulate an "enter" hit
   write_internal(cmd + "\n");
   // reading the result
   std::string result = read_internal(cmd);
