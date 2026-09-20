@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-version=5.6.12
+version=5.6.18
 
 usage() {
   cat <<EOF

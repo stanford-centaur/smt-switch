@@ -33,6 +33,15 @@
 #include "yices2_sort.h"
 #include "yices2_term.h"
 
+// Yices2 2.7.0 renamed the smt_status_t enumerators to YICES_STATUS_*, and
+// aliases only STATUS_INTERRUPTED back to its old spelling. Give the two
+// names used here the same treatment, so this backend keeps building
+// against 2.6. Drop this once 2.6 is no longer supported.
+#if __YICES_VERSION == 2 && __YICES_VERSION_MAJOR < 7
+#define YICES_STATUS_SAT STATUS_SAT
+#define YICES_STATUS_UNSAT STATUS_UNSAT
+#endif
+
 namespace smt {
 
 /**
@@ -167,11 +176,11 @@ class Yices2Solver : public AbsSmtSolver
       throw InternalSolverException(msg.c_str());
     }
 
-    if (res == STATUS_SAT)
+    if (res == YICES_STATUS_SAT)
     {
       return Result(SAT);
     }
-    else if (res == STATUS_UNSAT)
+    else if (res == YICES_STATUS_UNSAT)
     {
       return Result(UNSAT);
     }

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # requires autoconf, gperf
 
-yices2_version=98fa2d882d83d32a07d3b8b2c562819e0e0babd0
+yices2_version=85cf17e44eac76b5d14b297c09fc9bfecf47ef65 # yices-2.7.0
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 deps_dir=$script_dir/../deps

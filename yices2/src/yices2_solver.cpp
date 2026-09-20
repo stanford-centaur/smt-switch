@@ -340,11 +340,11 @@ Result Yices2Solver::check_sat()
     throw InternalSolverException(msg.c_str());
   }
 
-  if (res == STATUS_SAT)
+  if (res == YICES_STATUS_SAT)
   {
     return Result(SAT);
   }
-  else if (res == STATUS_UNSAT)
+  else if (res == YICES_STATUS_UNSAT)
   {
     return Result(UNSAT);
   }
@@ -406,7 +406,7 @@ Result Yices2Solver::check_sat_assuming_set(
 
 void Yices2Solver::push(uint64_t num)
 {
-  if (yices_context_status(ctx) == STATUS_UNSAT)
+  if (yices_context_status(ctx) == YICES_STATUS_UNSAT)
   {
     pushes_after_unsat += num;
     return;
