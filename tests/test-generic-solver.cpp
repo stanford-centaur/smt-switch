@@ -18,6 +18,7 @@
 #ifndef __APPLE__
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -29,6 +30,13 @@
 
 using namespace smt;
 using namespace std;
+
+// No command below asks a solver to do any real work, and none has been
+// measured taking as much as a tenth of a second even once, so a solver
+// silent for this long has stopped answering. The library default is a
+// deadlock backstop sized for genuine solving; a bound this much tighter
+// costs nothing here and keeps a wedged run from occupying a CI job.
+const std::chrono::seconds solver_response_timeout(2);
 
 void test_bad_cmd(SmtSolver gs)
 {
@@ -575,7 +583,8 @@ void new_btor(SmtSolver & gs, int buffer_size)
   string path = (STRFY(BTOR_HOME));
   path += "/build/bin/boolector";
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
   init_solver(gs);
 }
 
@@ -585,7 +594,8 @@ void new_msat(SmtSolver & gs, int buffer_size)
   string path = (STRFY(MSAT_HOME));
   path += "/bin/mathsat";
   vector<string> args = { "" };
-  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
   init_solver(gs);
 }
 
@@ -595,7 +605,8 @@ void new_yices2(SmtSolver & gs, int buffer_size)
   string path = (STRFY(YICES2_HOME));
   path += "/build/bin/yices_smt2";
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
   init_solver(gs);
 }
 
@@ -607,7 +618,8 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
   vector<string> args = {
     "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
   };
-  gs = std::make_shared<GenericSolver>(path, args, buffer_size, buffer_size);
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
   init_solver(gs);
 }
 
@@ -880,7 +892,8 @@ void test_binary(string path, vector<string> args)
 {
   std::cout << "testing binary: " << path << std::endl;
   std::cout << "constructing solver" << std::endl;
-  SmtSolver gs = std::make_shared<GenericSolver>(path, args, 5, 5);
+  SmtSolver gs =
+      std::make_shared<GenericSolver>(path, args, solver_response_timeout, 5);
   std::cout << "setting an option" << std::endl;
   gs->set_opt("produce-models", "true");
 }

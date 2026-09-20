@@ -16,6 +16,7 @@
 
 #include "available_solvers.h"
 
+#include <chrono>
 #include <ostream>
 #include <string>
 #include <unordered_set>
@@ -109,15 +110,21 @@ SmtSolver create_solver(SolverConfiguration sc)
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };
+      // The queries the tests put to this solver are small enough that
+      // cvc5 answers each one, start-up included, in single-digit
+      // milliseconds. The library default is a deadlock backstop sized
+      // for genuine solving, which would leave a wedged test sitting in
+      // CI for an hour; this is still hundreds of times the slack needed.
+      const std::chrono::seconds response_timeout(2);
       SmtSolver generic_solver =
-          std::make_shared<GenericSolver>(path, args, 5, 5);
+          std::make_shared<GenericSolver>(path, args, response_timeout, 5);
       if (logging)
       {
         return std::make_shared<LoggingSolver>(generic_solver);
       }
       else
       {
-        return std::make_shared<GenericSolver>(path, args, 5, 5);
+        return std::make_shared<GenericSolver>(path, args, response_timeout, 5);
       }
       break;
     }
