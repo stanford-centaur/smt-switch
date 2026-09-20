@@ -16,10 +16,10 @@ Configures the CMAKE build environment.
 --msat                  build MathSAT           (default: off)
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
---btor-home=STR         custom BTOR location    (default: deps/boolector)
---cvc5-home=STR         custom cvc5 location    (default: deps/cvc5)
+--btor-home=STR         custom BTOR location    (default: deps/boolector/src/boolector)
+--cvc5-home=STR         custom cvc5 location    (default: deps/cvc5/src/cvc5)
 --msat-home=STR         custom MathSAT location (default: deps/mathsat)
---yices2-home=STR       custom YICES2 location  (default: deps/yices2)
+--yices2-home=STR       custom YICES2 location  (default: deps/yices2/src/yices2)
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libraries (default: off)
@@ -31,7 +31,7 @@ Configures the CMAKE build environment.
 --bison-dir=STR         custom bison installation directory
 --flex-dir=STR          custom flex installation directory
 --bitwuzla-dir=STR      custom Bitwuzla installation directory
---z3-install-dir=STR    custom Z3 installation directory (default: deps/install)
+--z3-install-dir=STR    custom Z3 installation directory (default: deps/z3)
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options

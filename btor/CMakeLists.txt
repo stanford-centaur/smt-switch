@@ -17,8 +17,8 @@ target_include_directories(smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/b
 target_include_directories(smt-switch-btor PUBLIC "${BTOR_HOME}/src")
 
 target_link_libraries(smt-switch-btor "${BTOR_HOME}/build/lib/libboolector.a")
-target_link_libraries(smt-switch-btor "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a")
-target_link_libraries(smt-switch-btor "${PROJECT_SOURCE_DIR}/deps/install/lib/libbtor2parser.a")
+target_link_libraries(smt-switch-btor "${PROJECT_SOURCE_DIR}/deps/cadical/lib/libcadical.a")
+target_link_libraries(smt-switch-btor "${PROJECT_SOURCE_DIR}/deps/btor2tools/lib/libbtor2parser.a")
 target_link_libraries(smt-switch-btor smt-switch)
 target_link_libraries(smt-switch-btor pthread)
 target_link_libraries(smt-switch-btor m)
@@ -32,8 +32,8 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
       mkdir smt-switch-btor-working && cd smt-switch-btor-working &&
       # create new static library that combines them all
       ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-btor>"
-      "${BTOR_HOME}/build/lib/libboolector.a" "${PROJECT_SOURCE_DIR}/deps/install/lib/libcadical.a"
-      "${PROJECT_SOURCE_DIR}/deps/install/lib/libbtor2parser.a"
+      "${BTOR_HOME}/build/lib/libboolector.a" "${PROJECT_SOURCE_DIR}/deps/cadical/lib/libcadical.a"
+      "${PROJECT_SOURCE_DIR}/deps/btor2tools/lib/libbtor2parser.a"
       "../$<TARGET_FILE_NAME:smt-switch-btor>" &&
       # replace the original one
       mv "$<TARGET_FILE_NAME:smt-switch-btor>" "../$<TARGET_FILE_NAME:smt-switch-btor>" &&

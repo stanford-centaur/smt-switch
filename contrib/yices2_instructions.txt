@@ -5,10 +5,11 @@ If you choose to link against Yices2, you must obtain the Yices2 library yoursel
 ensure you meet all the license requirements.
 
 To link against the Yices2 library, download Yices2 from
-https://github.com/SRI-CSL/yices2 and place the directory in ./deps.
+https://github.com/SRI-CSL/yices2 and place the directory in
+./deps/yices2/src/yices2.
 
 Then, build the yices2 library:
-cd deps/yices2
+cd deps/yices2/src/yices2
 autoconf
 ./configure --enable-thread-safety
 make build_dir=build BUILD=build

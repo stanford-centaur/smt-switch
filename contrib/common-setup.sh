@@ -23,17 +23,36 @@ this_script_path=$(realpath "${BASH_SOURCE[0]}")
 contrib_dir=$(dirname "$this_script_path")
 pkg_config_dir=$contrib_dir/pkgconfig
 deps_dir=$(dirname "$contrib_dir")/deps
-install_dir=$deps_dir/install
+
+# Each dependency gets its own prefix, laid out the way ExternalProject does it
+# for a given PREFIX: the tree is installed into <prefix> and the sources sit
+# in <prefix>/src/<name>. Keeping to that layout means the eventual move to
+# ExternalProject needs no path changes. It also stops a dependency that fails
+# halfway from leaving artefacts where the next one's build would find them.
+install_dir=$deps_dir/$dep_name
 install_includedir=$install_dir/include
 install_libdir=$install_dir/lib
 install_pkgconfigdir=$install_libdir/pkgconfig
+download_dir=$install_dir/src
+source_dir=$download_dir/$dep_name
 
-# Tell CMake/Meson where the pkg-config files are.
-if [[ -z ${PKG_CONFIG_PATH-} ]]; then
-  export PKG_CONFIG_PATH=$install_pkgconfigdir
-else
-  export PKG_CONFIG_PATH=$install_pkgconfigdir:$PKG_CONFIG_PATH
-fi
+# The front-ends declare what they build against in `dependencies`. Stating the
+# edges as data rather than as a hand-written prepare_step is what keeps the
+# search paths below from drifting away from them. Declaring the array here
+# does not disturb a front-end that already filled it in, the same way
+# cmake-setup.sh declares cmake_options.
+declare -a dependencies
+dep_prefixes=()
+dep_pkgconfigdirs=()
+for dep in ${dependencies[@]+"${dependencies[@]}"}; do
+  dep_prefixes+=("$deps_dir/$dep")
+  dep_pkgconfigdirs+=("$deps_dir/$dep/lib/pkgconfig")
+done
+
+# Tell CMake/Meson where the dependencies' pkg-config files are.
+for pkgconfigdir in ${dep_pkgconfigdirs[@]+"${dep_pkgconfigdirs[@]}"}; do
+  export PKG_CONFIG_PATH=$pkgconfigdir${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}
+done
 
 # Get the number of CPUs for parallel builds.
 kernel_name=$(uname -s)
@@ -45,15 +64,23 @@ else
   num_cores=1
 fi
 
+# Build whatever this dependency is built against first. The setup scripts exit
+# early when their source tree is already present, so a dependency shared by
+# several solvers is built only once.
+for dep in ${dependencies[@]+"${dependencies[@]}"}; do
+  "$contrib_dir/setup-$dep.sh"
+done
+
 # Check if dependency has already been downloaded.
-mkdir -p "$deps_dir" && cd "$deps_dir"
-if [[ -d $dep_name ]]; then
-  echo "$deps_dir/$dep_name already exists," \
+if [[ -d $source_dir ]]; then
+  echo "$source_dir already exists," \
     "remove it manually if you want to rebuild $dep_name"
   exit
 fi
 
 # Download and unpack archive.
+mkdir -p "$download_dir"
+cd "$download_dir"
 if ! declare -F download_step >/dev/null; then
   download_step() {
     # Set download URL to GitHub by default.
@@ -79,7 +106,7 @@ fi
 download_step
 
 # Build and install dependency.
-cd "$dep_name"
+cd "$source_dir"
 if declare -F prepare_step >/dev/null; then
   prepare_step
 fi

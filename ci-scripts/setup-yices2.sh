@@ -7,8 +7,9 @@ yices2_version=98fa2d882d83d32a07d3b8b2c562819e0e0babd0
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 deps_dir=$script_dir/../deps
-
-mkdir -p "$deps_dir"
+# Yices2 is built in its source tree and never installed, so only the source
+# half of the prefix layout is populated. See contrib/common-setup.sh.
+source_dir=$deps_dir/yices2/src/yices2
 
 kernel_name=$(uname -s)
 if [[ $kernel_name == "Darwin" ]]; then
@@ -19,23 +20,23 @@ else
   num_cores=1
 fi
 
-if [[ ! -d "$deps_dir/yices2" ]]; then
-  cd "$deps_dir"
-  git clone https://github.com/SRI-CSL/yices2.git
-  chmod -R 777 yices2
-  cd yices2
+if [[ ! -d $source_dir ]]; then
+  mkdir -p "$(dirname "$source_dir")"
+  git clone https://github.com/SRI-CSL/yices2.git "$source_dir"
+  chmod -R 777 "$source_dir"
+  cd "$source_dir"
   git checkout -f "$yices2_version"
   autoconf
   ./configure --enable-thread-safety
   make build_dir=build BUILD=build -j"$num_cores"
   cd "$script_dir"
 else
-  echo "$deps_dir/yices2 already exists." \
+  echo "$source_dir already exists." \
     "If you want to rebuild, please remove it manually."
 fi
 
-if [[ -f "$deps_dir/yices2/build/lib/libyices.a" ]]; then
-  echo "It appears yices2 was setup successfully into $deps_dir/yices2."
+if [[ -f "$source_dir/build/lib/libyices.a" ]]; then
+  echo "It appears yices2 was setup successfully into $source_dir."
   echo "You may now install it with" \
     "./configure.sh --yices2 && cd build && make"
 else
