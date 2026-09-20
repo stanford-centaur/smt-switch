@@ -21,11 +21,10 @@ version. You can try deleting them from `deps` and rebuilding them.
 
 You can look at the `Makefile` to understand how to link smt-switch to a binary.
 If the script succeeds in building everything, you can run each of the files
-with `./cvc5_qf_ufbv.out` and `./btor_qf_ufbv.out`, respectively. Note that
-there may be a delay for looking up the shared libraries on some systems the
-first time they are run. Importantly, notice that the files differ by only two
-lines of code (excluding comments), demonstrating that changing the solver is
-straightforward.
+with `./cvc5_qf_ufbv` and `./btor_qf_ufbv`, respectively. Note that there may be
+a delay for looking up the shared libraries on some systems the first time they
+are run. Importantly, notice that the files differ by only two lines of code
+(excluding comments), demonstrating that changing the solver is straightforward.
 
 To explore the API, you can change either of those files and run `make` again.
 To remove the built binaries, run `make clean`. To clean up all the build and
