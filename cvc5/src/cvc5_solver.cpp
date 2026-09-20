@@ -256,7 +256,7 @@ Term Cvc5Solver::make_term(const std::wstring & s, const Sort & sort) const
 
     if (sk == STRING)
     {
-      c = term_manager->mkString(s);
+      c = term_manager->mkString(std::u32string(s.begin(), s.end()));
     }
     else
     {
