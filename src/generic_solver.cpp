@@ -23,17 +23,22 @@
 
 #include "generic_solver.h"
 
+#include <poll.h>
 #include <signal.h>
 #include <sys/prctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <cassert>
+#include <cerrno>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -52,7 +57,113 @@
 namespace smt {
 
 // helper functions
-bool is_new_line(char c) { return (c == '\n' || c == '\r' || c == 0); }
+static bool is_white_space(char c)
+{
+  return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}
+
+/* Length of the first complete response in `buf`, including any whitespace
+** in front of it, or std::string::npos if `buf` does not hold a whole
+** response yet.
+**
+** The length has to be exact. Stop one byte early and the tail of a
+** response is mistaken for the answer to the next command; take one byte
+** too many and an answer is swallowed that a later command then waits for
+** in vain. Either way the command and response streams slip by one and
+** some subsequent command never gets its reply.
+**
+** A response is one s-expression: a bare atom (`sat`, `success`, ...) or a
+** parenthesised list. Counting parentheses alone is not enough, since
+** string literals ("..."), quoted symbols (|...|) and comments (;...) may
+** contain unmatched ones -- an error message quoting a stray ')' back at
+** us is the obvious way to meet that.
+*/
+static std::size_t response_length(const std::string & buf)
+{
+  std::size_t i = 0;
+  while (i < buf.size() && is_white_space(buf[i]))
+  {
+    i++;
+  }
+  if (i == buf.size())
+  {
+    return std::string::npos;
+  }
+
+  if (buf[i] != '(')
+  {
+    // A bare atom, which we only know has ended once something that cannot
+    // be part of it arrives.
+    while (i < buf.size() && !is_white_space(buf[i]) && buf[i] != '('
+           && buf[i] != ')' && buf[i] != ';')
+    {
+      i++;
+    }
+    return (i < buf.size()) ? i : std::string::npos;
+  }
+
+  int depth = 0;
+  while (i < buf.size())
+  {
+    if (buf[i] == ';')
+    {
+      while (i < buf.size() && buf[i] != '\n')
+      {
+        i++;
+      }
+    }
+    else if (buf[i] == '|')
+    {
+      i = buf.find('|', i + 1);
+      if (i == std::string::npos)
+      {
+        return std::string::npos;
+      }
+      i++;
+    }
+    else if (buf[i] == '"')
+    {
+      i++;
+      while (true)
+      {
+        i = buf.find('"', i);
+        if (i == std::string::npos)
+        {
+          return std::string::npos;
+        }
+        i++;
+        // in SMT-LIB a doubled quote is an escaped quote, so the literal
+        // only ends at a quote that is not followed by another one
+        if (i == buf.size())
+        {
+          return std::string::npos;
+        }
+        if (buf[i] != '"')
+        {
+          break;
+        }
+        i++;
+      }
+    }
+    else
+    {
+      if (buf[i] == '(')
+      {
+        depth++;
+      }
+      else if (buf[i] == ')')
+      {
+        depth--;
+        if (depth == 0)
+        {
+          return i + 1;
+        }
+      }
+      i++;
+    }
+  }
+  return std::string::npos;
+}
 
 // from: https://stackoverflow.com/a/36000453/1364765
 std::string & trim(std::string & str)
@@ -71,15 +182,16 @@ std::string & trim(std::string & str)
 }
 
 // class methods implementation
-GenericSolver::GenericSolver(std::string path,
-                             std::vector<std::string> cmd_line_args,
-                             unsigned int write_buf_size,
-                             unsigned int read_buf_size)
+GenericSolver::GenericSolver(
+    std::string path,
+    std::vector<std::string> cmd_line_args,
+    std::optional<std::chrono::milliseconds> response_timeout,
+    unsigned int read_buf_size)
     : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
       path(path),
       cmd_line_args(cmd_line_args),
-      write_buf_size(write_buf_size),
       read_buf_size(read_buf_size),
+      response_timeout(response_timeout),
       context_level_(0),
       name_sort_map(new std::unordered_map<std::string, Sort>()),
       sort_name_map(new std::unordered_map<Sort, std::string>()),
@@ -95,26 +207,18 @@ GenericSolver::GenericSolver(std::string path,
   // Until this is investigated, we support a conservative
   // limit of 256.
   // Similarly for buffers of size 1.
-  if (write_buf_size < 2 || write_buf_size > 256 || read_buf_size < 2
-      || read_buf_size > 256)
+  if (read_buf_size < 2 || read_buf_size > 256)
   {
     std::string msg(
         "Generic Solvers require a buffer size of at least 2 and at most 256.");
     throw IncorrectUsageException(msg);
   }
   term_counter = new unsigned int;
-  // allocate memory for the buffers
-  write_buf = new char[write_buf_size];
+  // allocate memory for the read buffer
   read_buf = new char[read_buf_size];
 
   // make sure allocation was successful
-  assert(write_buf != NULL);
   assert(read_buf != NULL);
-  // initialize write_buf
-  for (int i = 0; i < write_buf_size; i++)
-  {
-    write_buf[i] = 0;
-  }
   // initialize read_buf
   for (int i = 0; i < read_buf_size; i++)
   {
@@ -128,7 +232,6 @@ GenericSolver::GenericSolver(std::string path,
   catch (IncorrectUsageException &)
   {
     // deallocate memory manually, since destructor won't be called
-    delete[] write_buf;
     delete[] read_buf;
     delete term_counter;
     throw;
@@ -137,8 +240,7 @@ GenericSolver::GenericSolver(std::string path,
 
 GenericSolver::~GenericSolver()
 {
-  // deallocate the buffers memory
-  delete[] write_buf;
+  // deallocate the buffer memory
   delete[] read_buf;
   delete term_counter;
   // close the solver process
@@ -192,92 +294,132 @@ void GenericSolver::start_solver()
 
 void GenericSolver::write_internal(std::string str) const
 {
-  // track how many chars were written so far
-  unsigned int written_chars = 0;
-  // continue writing  until entire str was written
+  /* Hand the command over in as few write() calls as the pipe allows.
+  ** Splitting it into small pieces gains nothing and risks a great deal:
+  ** MathSAT intermittently drops a character -- in practice the closing
+  ** parenthesis -- out of a command that reaches it one byte at a time,
+  ** and then sits waiting for the rest of a command it already has while
+  ** we wait for its answer.
+  */
+  std::string::size_type written_chars = 0;
   while (written_chars < str.size())
   {
-    // how many characters are there left to write
-    unsigned int remaining = str.size() - written_chars;
-    // how many characters are we writing in this iteration
-    unsigned int substr_size;
-    if (remaining < write_buf_size)
+    ssize_t just_written = write(
+        outpipefd[1], str.data() + written_chars, str.size() - written_chars);
+    if (just_written < 0)
     {
-      substr_size = remaining;
+      if (errno == EINTR)
+      {
+        continue;
+      }
+      throw InternalSolverException(
+          "Failed to send a command to the solver binary at " + path + ": "
+          + strerror(errno));
     }
-    else
-    {
-      substr_size = write_buf_size - 1;
-    }
-    // write
-    strcpy(write_buf, str.substr(written_chars, substr_size).c_str());
-    write(outpipefd[1], write_buf, substr_size);
-    written_chars += substr_size;
+    written_chars += just_written;
   }
 }
 
-bool GenericSolver::is_done(int just_read, std::string result) const
+bool GenericSolver::take_response(std::string & response) const
 {
-  bool done = false;
-  int count = 0;
-  // if we didn't read anything now, the command is done executing
-  if (just_read == 0)
+  std::string::size_type length = response_length(response_buffer);
+  if (length == std::string::npos)
   {
-    done = true;
+    return false;
   }
-  else if (result[0] == '(')
-  {
-    // if the output of the solver starts with '('
-    // we will be done only when we see the matching ')'
-    for (int i = 0; i < result.size(); i++)
-    {
-      if (result[i] == '(')
-      {
-        count++;
-      }
-      else if (result[i] == ')')
-      {
-        count--;
-      }
-    }
-    done = (count == 0) && is_new_line(result[result.size() - 1]);
-  }
-  else
-  {
-    // if the output of the solver does not start with '('
-    // we will be done when we reach a newline character
-    assert(just_read <= read_buf_size);
-    for (int i = 0; i < just_read; i++)
-    {
-      if (is_new_line(read_buf[i]))
-      {
-        done = true;
-      }
-    }
-  }
-  return done;
+  response = response_buffer.substr(0, length);
+  response_buffer.erase(0, length);
+  return true;
 }
 
-std::string GenericSolver::read_internal() const
+void GenericSolver::await_response(
+    const std::optional<std::chrono::steady_clock::time_point> & deadline,
+    const std::string & cmd) const
 {
-  std::string result = "";
-  bool done = false;
-  // read to the buffer until no more output to read
-  while (!done)
+  while (true)
   {
-    // read command and how many chars were read
-    // the very last character must be left as the null terminator
-    int just_read = read(inpipefd[0], read_buf, read_buf_size - 1);
-    // store the content and trim it
-    std::string read_buf_str(read_buf);
-    read_buf_str = read_buf_str.substr(0, read_buf_size);
-    result = result.append(read_buf_str);
-    done = is_done(just_read, result);
-    // clear buffer
-    for (int i = 0; i < read_buf_size; i++)
+    // a negative timeout makes poll() wait forever, which is what an
+    // absent deadline asks for
+    int timeout_ms = -1;
+    if (deadline)
     {
-      read_buf[i] = 0;
+      auto left = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      *deadline - std::chrono::steady_clock::now())
+                      .count();
+      if (left <= 0)
+      {
+        throw InternalSolverException(
+            "The solver binary at " + path + " did not respond within "
+            + std::to_string(response_timeout->count())
+            + " ms to the command: " + cmd);
+      }
+      // poll() takes an int, so a distant deadline is waited out in slices
+      timeout_ms = (left > std::numeric_limits<int>::max())
+                       ? std::numeric_limits<int>::max()
+                       : static_cast<int>(left);
     }
+    struct pollfd pfd;
+    pfd.fd = inpipefd[0];
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    int ready = poll(&pfd, 1, timeout_ms);
+    if (ready > 0)
+    {
+      return;
+    }
+    // a slice running out, or an interrupted wait, just sends us back to
+    // the deadline check above
+    if (ready < 0 && errno != EINTR)
+    {
+      throw InternalSolverException("Failed to wait for the solver binary at "
+                                    + path + " to respond: " + strerror(errno));
+    }
+  }
+}
+
+std::string GenericSolver::read_internal(const std::string & cmd) const
+{
+  /* Take exactly one response, waiting for more input only while the
+  ** buffered bytes do not add up to one. The wait is bounded, so that a
+  ** solver that stops answering surfaces as an error rather than leaving
+  ** this process blocked in read() while the solver blocks on its own
+  ** stdin, with neither side able to notice.
+  */
+  std::optional<std::chrono::steady_clock::time_point> deadline;
+  if (response_timeout)
+  {
+    deadline = std::chrono::steady_clock::now() + *response_timeout;
+  }
+  std::string result;
+  while (!take_response(result))
+  {
+    await_response(deadline, cmd);
+    ssize_t just_read = read(inpipefd[0], read_buf, read_buf_size);
+    if (just_read < 0)
+    {
+      if (errno == EINTR)
+      {
+        continue;
+      }
+      throw InternalSolverException(
+          "Failed to read a response from the solver binary at " + path + ": "
+          + strerror(errno));
+    }
+    if (just_read == 0)
+    {
+      // the solver closed its output, so whatever we have is all we will
+      // ever get for this command
+      if (response_buffer.empty())
+      {
+        throw InternalSolverException(
+            "The solver binary at " + path
+            + " exited without responding to the command: " + cmd);
+      }
+      result = response_buffer;
+      response_buffer.clear();
+      break;
+    }
+    response_buffer.append(read_buf, just_read);
   }
   // normalize output of solver:
   // - no newlines in the middle of the content
@@ -296,12 +438,11 @@ std::string GenericSolver::read_internal() const
 std::string GenericSolver::run_command(std::string cmd,
                                        bool verify_success_flag) const
 {
-  // adding a newline to simulate an "enter" hit.
-  cmd = cmd + "\n";
-  // writing the cmd string to the process
-  write_internal(cmd);
+  // writing the cmd string to the process,
+  // with a newline to simulate an "enter" hit.
+  write_internal(cmd + "\n");
   // reading the result
-  std::string result = read_internal();
+  std::string result = read_internal(cmd);
   result = trim(result);
   // verify success if needed
   if (verify_success_flag)
