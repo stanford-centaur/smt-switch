@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <initializer_list>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -60,6 +61,19 @@ namespace smt {
 static bool is_white_space(char c)
 {
   return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}
+
+// Close a descriptor and mark it unset: teardown can run twice, and a
+// second close would land on whatever the kernel has since reused the
+// number for. EINTR is not retried, the descriptor being gone by then.
+static void close_fd(int & fd)
+{
+  if (fd < 0)
+  {
+    return;
+  }
+  close(fd);
+  fd = -1;
 }
 
 /** Length of the first complete response in `buf`, including any leading
@@ -222,8 +236,11 @@ GenericSolver::GenericSolver(
   {
     start_solver();
   }
-  catch (IncorrectUsageException &)
+  catch (...)
   {
+    // a throwing constructor gets no destructor, so clean up here; catch
+    // everything, as a slow solver leaves by InternalSolverException
+    close_solver();
     // deallocate memory manually, since destructor won't be called
     delete[] read_buf;
     delete term_counter;
@@ -242,17 +259,54 @@ GenericSolver::~GenericSolver()
 
 void GenericSolver::start_solver()
 {
-  pid = 0;
-
-  pipe(inpipefd);
-  pipe(outpipefd);
+  if (pipe(inpipefd) != 0)
+  {
+    throw InternalSolverException(
+        "Failed to create a pipe from the solver binary at " + path + ": "
+        + strerror(errno));
+  }
+  if (pipe(outpipefd) != 0)
+  {
+    int pipe_errno = errno;
+    close_fd(inpipefd[0]);
+    close_fd(inpipefd[1]);
+    throw InternalSolverException(
+        "Failed to create a pipe to the solver binary at " + path + ": "
+        + strerror(pipe_errno));
+  }
   pid = fork();
+  if (pid < 0)
+  {
+    int fork_errno = errno;
+    close_fd(inpipefd[0]);
+    close_fd(inpipefd[1]);
+    close_fd(outpipefd[0]);
+    close_fd(outpipefd[1]);
+    throw InternalSolverException("Failed to start the solver binary at " + path
+                                  + ": " + strerror(fork_errno));
+  }
   if (pid == 0)
   {
     // Child
     dup2(outpipefd[0], STDIN_FILENO);
     dup2(inpipefd[1], STDOUT_FILENO);
     dup2(inpipefd[1], STDERR_FILENO);
+
+    // drop the spare copies before the exec: a solver still holding the
+    // write end of its own stdin never sees the EOF close_solver() sends
+    // it. An end dup2() copied onto itself is a stream, so only forget it.
+    for (int * fd :
+         { &outpipefd[0], &outpipefd[1], &inpipefd[0], &inpipefd[1] })
+    {
+      if (*fd > STDERR_FILENO)
+      {
+        close_fd(*fd);
+      }
+      else
+      {
+        *fd = -1;
+      }
+    }
 
     // ask kernel to deliver SIGTERM in case the parent dies
     prctl(PR_SET_PDEATHSIG, SIGTERM);
@@ -449,8 +503,18 @@ void GenericSolver::verify_success(std::string result) const
 
 void GenericSolver::close_solver()
 {
-  kill(pid, SIGKILL);
-  waitpid(pid, &status, 0);
+  // closing our end of the solver's stdin first lets a well-behaved binary
+  // see the end of its input and exit; the SIGKILL is the backstop, and is
+  // what keeps waitpid() from blocking behind a solver deep in a search
+  close_fd(outpipefd[1]);
+  // kill() would read a pid of 0 or -1 as a whole group of processes
+  if (pid > 0)
+  {
+    kill(pid, SIGKILL);
+    waitpid(pid, &status, 0);
+    pid = -1;
+  }
+  close_fd(inpipefd[0]);
 }
 
 void GenericSolver::define_fun(std::string name,
