@@ -47,17 +47,15 @@ namespace smt {
 class GenericSolver : public AbsSmtSolver
 {
  public:
-  /** How long a solver is given, by default, to answer a single command.
-   * Far longer than any command needs, so that a genuinely hard
-   * `check-sat` is never cut short: this is a backstop against a solver
-   * that has stopped talking to us, not a solving budget.
+  /** How long a solver is given, by default, to answer one command: a
+   * backstop against a solver that has stopped talking to us rather than
+   * a solving budget, so far longer than any command needs.
    */
   static constexpr std::chrono::milliseconds default_response_timeout =
       std::chrono::hours(1);
 
-  /** `response_timeout` bounds how long a single command may go
-   * unanswered. std::nullopt waits for as long as it takes, which gives
-   * up the protection against deadlocking with the solver process.
+  /** `response_timeout` bounds how long one command may go unanswered;
+   * std::nullopt waits indefinitely, giving up the deadlock protection.
    */
   GenericSolver(std::string path,
                 std::vector<std::string> cmd_line_args,
@@ -231,21 +229,16 @@ class GenericSolver : public AbsSmtSolver
   // get the name of a term
   std::string get_name(Term t) const;
 
-  // internal function to read solver's response.
-  // `cmd` is only used to say which command went unanswered if the solver
-  // does not reply in time.
+  // internal function to read solver's response; `cmd` names it in errors
   std::string read_internal(const std::string & cmd) const;
 
   // internal function to write to the solver's process
   void write_internal(std::string str) const;
 
-  // Move the first complete response out of `response_buffer` into
-  // `response`, leaving anything that follows it in place.
-  // Returns false if `response_buffer` does not hold a whole response yet.
+  // take the first whole response out of `response_buffer`, if there is one
   bool take_response(std::string & response) const;
 
-  // Block until the solver has output for us, or, if there is a deadline,
-  // until it passes, in which case throw an exception naming `cmd`.
+  // block until the solver has output, or throw when `deadline` passes
   void await_response(
       const std::optional<std::chrono::steady_clock::time_point> & deadline,
       const std::string & cmd) const;
@@ -277,14 +270,10 @@ class GenericSolver : public AbsSmtSolver
   // buffer size
   unsigned int read_buf_size;
 
-  // how long a single command may go unanswered before we give up on the
-  // solver, or no value to wait for as long as it takes
   std::optional<std::chrono::milliseconds> response_timeout;
 
-  // Bytes read from the solver that no caller has taken yet. A read can
-  // return more than the response it was waiting for; what is left over
-  // belongs to the next command, and holding on to it here is what keeps
-  // the command and response streams aligned.
+  // bytes read from the solver that no caller has taken yet: a read can
+  // overshoot one response, and the rest belongs to the next command
   mutable std::string response_buffer;
 
   // tracks the context level of the solver
