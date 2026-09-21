@@ -8,7 +8,6 @@ implemented by different SMT solvers.
 ```sh
 git clone git@github.com:stanford-centaur/smt-switch.git
 cd smt-switch
-./contrib/setup-<solver>.sh
 ./configure.sh --<solver>
 cd build
 make
@@ -102,23 +101,35 @@ certain backends and/or optional features are marked \["optional" : *reason*\].
 - C++ compiler supporting C++11; C++14 ["optional" : the Z3 backend]; C++17
   ["optional" : the cvc5 and Bitwuzla backends, and the tests]
 - git
-- curl \[optional : setup scripts in `contrib`\]
-- Solver libraries
-  - Bitwuzla (has setup script in `contrib`)
-  - Boolector (has setup script in `contrib`)
-  - cvc5 (has setup script in `contrib`)
-  - MathSAT (must be obtained independently; user responsible for meeting
-    license conditions)
-  - Yices2 (must be obtained independently; user responsible for meeting license
-    conditions)
+- Solver libraries. All but MathSAT are downloaded and built for you if they
+  cannot be found.
+  - Bitwuzla
+  - Boolector
+  - cvc5
+  - Z3
+  - Yices2 (GPLv3, so only with `--allow-gpl`; you are responsible for meeting
+    the license conditions)
+  - MathSAT (must be obtained independently, see below)
 - pthread [optional: Bitwuzla]
 - gmp [optional: cvc5, MathSAT, Yices2, Z3]
 - gmpxx, the gmp C++ bindings [optional: MathSAT, Z3]
-- autoconf [optional: Yices2 setup script]
+- autoconf, gperf [optional: building Yices2]
+- meson [optional: building Bitwuzla]
 - Flex >= 2.6.4 [optional: SMT-LIB parser]
 - Bison >= 3.7 [optional: SMT-LIB parser]
 - Python [optional: Python bindings]
 - packaging [optional: Python bindings]
+
+### MathSAT
+
+MathSAT is under a custom license, and linking smt-switch against it changes the
+license of smt-switch. We therefore never download it for you: you must obtain
+it yourself and ensure you meet the license conditions.
+
+Download it from <https://mathsat.fbk.eu/download.html> and unpack it into
+`deps/mathsat`, so that the headers are at `deps/mathsat/include`, which is
+where smt-switch looks by default. To keep it elsewhere, point smt-switch at it
+instead with `./configure.sh --msat --msat-dir=/path/to/mathsat`.
 
 ## Operating Systems
 
@@ -129,18 +140,21 @@ issue if you have any problems!
 
 ## Solvers
 
-To setup and install different solvers, first run the
-`./contrib/setup-<solver>.sh` script. It builds position-independent static
-libraries, giving each solver its own prefix under `deps/`: the sources are
-unpacked into `deps/<solver>/src/<solver>` and the build is installed into
-`deps/<solver>`. Then you can configure your `cmake` build with the
-`configure.sh` script. Enable a solver with `./configure.sh --<solver>`. By
-default only `libsmt-switch.so` is built without any solvers.
+Enable a solver with `./configure.sh --<solver>`. By default only
+`libsmt-switch.so` is built without any solvers.
 
-Some of the backend solvers have non-BSD compatible licenses. There are no
-provided setup scripts for these solvers. However, there are instructions for
-setting up these solvers in `./contrib`. Should you choose to link against these
-solver libraries, you assume all responsibility for meeting the license
+A solver that cannot be found is downloaded and built for you, as a
+position-independent static library with its own prefix under `deps/`: the
+sources are unpacked into `deps/<solver>/src/<solver>` and the build is
+installed into `deps/<solver>`. Pass `--no-auto-deps` to turn that off and be
+told what is missing instead. Nothing is downloaded for a solver that is already
+installed, so the `--<solver>-dir` flags below take precedence.
+
+Two of the backend solvers have non-BSD compatible licenses, and linking against
+either changes the license of what you build. Yices2 is under the GPLv3, so it
+is only downloaded if you ask for it with `--allow-gpl`. MathSAT is under a
+custom license and is never downloaded; see the MathSAT section above for how to
+obtain it. Either way, you assume all responsibility for meeting the license
 requirements of those libraries.
 
 Once you've configured the build system, simply enter the build directory
@@ -181,7 +195,7 @@ distribution package, for instance — is picked up without any flag at all.
 Boolector is the exception that also needs its sources. We need access to
 Boolector's private headers to support term iteration, so `--btor-src-dir`
 points at the source tree alongside `--btor-dir`. It defaults to
-`<btor-dir>/src/boolector`, which is where `contrib/setup-boolector.sh` puts it.
+`<btor-dir>/src/boolector`, which is where the sources are unpacked.
 
 ### Static Linking
 

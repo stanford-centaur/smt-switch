@@ -75,9 +75,9 @@ endif()
 # were actually set are passed on, or an empty one would override a default
 # the sub-build would otherwise pick for itself.
 #
-# CMAKE_BUILD_TYPE is deliberately absent, matching what contrib/cmake-setup.sh
-# passed, which was nothing. cvc5 declares its own build types and fails on
-# anything outside them, so a blanket Release would break it.
+# CMAKE_BUILD_TYPE is deliberately absent: cvc5 declares its own build types
+# and fails on anything outside them, so a blanket Release would break it.
+# Each dependency picks its own default instead.
 set(
   _forwarded_variables
   CMAKE_C_COMPILER
@@ -96,7 +96,7 @@ foreach(_variable IN LISTS _forwarded_variables)
   endif()
 endforeach()
 
-# The options contrib/cmake-setup.sh passed to every CMake dependency.
+# Passed to every CMake dependency.
 # CMAKE_INSTALL_LIBDIR keeps libraries out of a lib64 subdirectory, which the
 # find modules do not look in; the policy minimum lets projects whose
 # cmake_minimum_required predates 3.10 still configure.

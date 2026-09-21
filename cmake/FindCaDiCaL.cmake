@@ -4,8 +4,8 @@ FindCaDiCaL
 
 Finds the CaDiCaL SAT solver.
 
-CaDiCaL has no install target of its own; ``contrib/setup-cadical.sh`` lays out
-the headers and the archive.  This module looks for that layout, and for a
+CaDiCaL has no install target of its own, so ``cmake/provision/`` lays out the
+headers and the archive itself.  This module looks for that layout, and for a
 CaDiCaL installed anywhere else the same way.
 
 Imported Targets

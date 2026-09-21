@@ -1,10 +1,3 @@
-# Follow `# shellcheck source=` directives into the sourced contrib/ libraries.
-#
-# Without this, shellcheck only resolves a sourced file when that file also
-# happens to be one of the paths on the command line, so the findings for
-# contrib/setup-*.sh would depend on which files a given commit staged.
-external-sources=true
-
 # Turn on every optional check, then switch off the ones we do not want. New
 # optional checks introduced by a shellcheck upgrade are therefore opt-out
 # rather than opt-in.
