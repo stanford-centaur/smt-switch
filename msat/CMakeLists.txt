@@ -22,28 +22,10 @@ target_link_libraries(smt-switch-msat MathSAT::mathsat)
 target_link_libraries(smt-switch-msat smt-switch)
 target_link_libraries(smt-switch-msat GMP::gmpxx)
 
-if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the mathsat source
-  # we need to unpack and repack the libraries
-  add_custom_command(
-    OUTPUT static-smt-switch-msat.stamp
-    COMMAND
-      mkdir smt-switch-msat-working && cd smt-switch-msat-working &&
-      # create new static library that combines them all
-      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-msat>"
-      "${MathSAT_LIBRARY}" "../$<TARGET_FILE_NAME:smt-switch-msat>" &&
-      # replace the original one
-      mv "$<TARGET_FILE_NAME:smt-switch-msat>" "../$<TARGET_FILE_NAME:smt-switch-msat>" &&
-      # now clean up the temporary directory
-      cd .. && rm -rf smt-switch-msat-working
-    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-msat.stamp
-    DEPENDS smt-switch-msat
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-  )
-
-  add_custom_target(repack-msat-static-lib ALL DEPENDS static-smt-switch-msat.stamp)
-endif()
+# setup.py links the extension module by hand rather than through a CMake
+# target, so a static build has to be told which archive sits behind this
+# backend. See python/setup.py.in.
+set(MSAT_STATIC_LINK_ARGS "${MathSAT_LIBRARY}" PARENT_SCOPE)
 
 install(TARGETS smt-switch-msat EXPORT SmtSwitchBackendTargets-msat DESTINATION lib)
 install(

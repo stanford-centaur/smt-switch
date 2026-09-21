@@ -23,21 +23,10 @@ target_link_libraries(smt-switch-yices2 Yices2::yices)
 target_link_libraries(smt-switch-yices2 smt-switch)
 target_link_libraries(smt-switch-yices2 Threads::Threads)
 
-if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the yices2 source
-  # we need to unpack and repack the libraries
-  add_custom_command(
-    OUTPUT static-smt-switch-yices2.stamp
-    COMMAND
-      mkdir ssy-working && cd ssy-working && ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh
-      "$<TARGET_FILE_NAME:smt-switch-yices2>" "${Yices2_LIBRARY}"
-      "../$<TARGET_FILE_NAME:smt-switch-yices2>" && mv "$<TARGET_FILE_NAME:smt-switch-yices2>"
-      "../$<TARGET_FILE_NAME:smt-switch-yices2>" && cd .. && rm -rf ssy-working
-    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-yices2.stamp
-    DEPENDS smt-switch-yices2
-  )
-  add_custom_target(repack-yices2-static-lib ALL DEPENDS static-smt-switch-yices2.stamp)
-endif()
+# setup.py links the extension module by hand rather than through a CMake
+# target, so a static build has to be told which archive sits behind this
+# backend. See python/setup.py.in.
+set(YICES2_STATIC_LINK_ARGS "${Yices2_LIBRARY}" PARENT_SCOPE)
 
 install(TARGETS smt-switch-yices2 EXPORT SmtSwitchBackendTargets-yices2 DESTINATION lib)
 install(

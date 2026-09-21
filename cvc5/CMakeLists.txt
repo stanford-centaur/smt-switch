@@ -55,34 +55,25 @@ target_link_libraries(smt-switch-cvc5 CaDiCaL::cadical)
 target_link_libraries(smt-switch-cvc5 smt-switch)
 target_link_libraries(smt-switch-cvc5 GMP::gmp)
 
+# setup.py links the extension module by hand rather than through a CMake
+# target, so a static build has to be told which archives sit behind this
+# backend. See python/setup.py.in. cvc5's link interface names picpoly and
+# picpolyxx as plain library names, which does not say where they are, hence
+# the lookup. GMP is left out; setup.py adds it for whichever backends need
+# it.
 if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # Repacking needs the archives themselves, which the plain library names in
-  # cvc5's link interface do not give us.
   find_library(cvc5_POLY_LIBRARY REQUIRED NAMES picpoly HINTS "${cvc5_LIBRARY_DIR}")
   find_library(cvc5_POLYXX_LIBRARY REQUIRED NAMES picpolyxx HINTS "${cvc5_LIBRARY_DIR}")
   mark_as_advanced(cvc5_POLY_LIBRARY cvc5_POLYXX_LIBRARY)
 
-  # we want the static library to include the cvc5 source and dependencies (except GMP)
-  # use libtool to combine
-  add_custom_command(
-    OUTPUT static-smt-switch-cvc5.stamp
-    COMMAND
-      mkdir ssc-working && cd ssc-working &&
-      # create new static library that combines them all
-      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-cvc5>"
-      "${cvc5_LIBRARY}" "${cvc5_POLYXX_LIBRARY}" "${cvc5_POLY_LIBRARY}" "${CaDiCaL_LIBRARY}"
-      "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # replace the original one
-      mv "$<TARGET_FILE_NAME:smt-switch-cvc5>" "../$<TARGET_FILE_NAME:smt-switch-cvc5>" &&
-      # now clean up the temporary directory
-      cd ../ && rm -rf ssc-working
-    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-cvc5.stamp
-    DEPENDS smt-switch-cvc5
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
+  set(
+    CVC5_STATIC_LINK_ARGS
+    "${cvc5_LIBRARY}"
+    "${cvc5_POLYXX_LIBRARY}"
+    "${cvc5_POLY_LIBRARY}"
+    "${CaDiCaL_LIBRARY}"
+    PARENT_SCOPE
   )
-
-  add_custom_target(repack-cvc5-static-lib ALL DEPENDS static-smt-switch-cvc5.stamp)
 endif()
 
 install(TARGETS smt-switch-cvc5 EXPORT SmtSwitchBackendTargets-cvc5 DESTINATION lib)
