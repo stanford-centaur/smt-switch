@@ -19,10 +19,50 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Restricted to C++ because btor/ compiles a C file.
-add_compile_options(
-  "$<$<COMPILE_LANGUAGE:CXX>:-Werror=non-virtual-dtor;-Werror=return-type;-Werror=type-limits>"
+# Named one at a time rather than -Wall, -Wextra or -Wpedantic: what those
+# cover changes between compiler releases, so an upgrade could fail the build
+# over a diagnostic nobody chose. Everything here is either always a mistake
+# or a smell worth fixing, and all of it reports nothing today.
+set(
+  cxx_error_warnings
+  address # comparing a function or array address to null
+  delete-non-virtual-dtor # delete via a base whose dtor is not virtual
+  free-nonheap-object # freeing something that was never allocated
+  ignored-qualifiers # const on a by-value return, which means nothing
+  infinite-recursion # a function whose every path calls itself
+  memset-transposed-args # memset(p, n, 0), the last two swapped
+  mismatched-new-delete # new[] freed with delete, or the reverse
+  non-virtual-dtor # a polymorphic base with a non-virtual dtor
+  nonnull # passing null where nonnull is declared
+  overloaded-virtual # a derived declaration hiding a base overload
+  parentheses # a | b == c, which groups as a | (b == c)
+  pessimizing-move # return std::move(local), defeating elision
+  range-loop-construct # for (auto x : v), copying every element
+  reorder # an initialiser list out of declaration order
+  return-local-addr # returning the address of a local
+  return-type # falling off the end of a non-void function
+  sequence-point # a[i] = i++, which is undefined
+  sign-compare # comparing a signed value with an unsigned one
+  sizeof-array-argument # sizeof an array parameter, which is a pointer
+  sizeof-pointer-div # sizeof(p) / sizeof(*p) where p is a pointer
+  sizeof-pointer-memaccess # memcpy(p, q, sizeof(p)) where p is a pointer
+  switch # an enum case that no label and no default covers
+  type-limits # a comparison the value range makes constant
+  undef # an #if on a macro that was never defined
+  unused-but-set-variable # written to and never read
+  unused-label # a label nothing jumps to
+  unused-result # discarding a warn_unused_result return
+  unused-variable # declared and never used
+  variadic-macros # a GNU named variadic macro, which is not ISO
 )
+list(TRANSFORM cxx_error_warnings PREPEND -Werror=)
+
+# Restricted to C++ because btor/ compiles a C file.
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_error_warnings}>")
+
+# Catching a polymorphic exception by value slices it. clang has no such
+# option name and would report that once per file, so ask gcc alone.
+add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:GNU>>:-Werror=catch-value>")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
