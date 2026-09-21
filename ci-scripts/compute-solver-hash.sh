@@ -13,8 +13,8 @@ solver_hash=$solver
 # shellcheck disable=SC2154 # RUNNER_LABEL is set by the workflow
 solver_hash+=$(gethash ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh)
 if [[ $solver == msat ]]; then
-  # The one solver still installed by a script of its own.
-  solver_hash+=$(gethash ci-scripts/setup-msat.sh)
+  # Not provisioned by the build at all; the workflow fetches this release.
+  solver_hash+=${MSAT_VERSION:?}
 else
   # Everything else is provisioned by the CMake driver. Hashing all of it
   # rather than working out which recipes a given solver pulls in costs an
