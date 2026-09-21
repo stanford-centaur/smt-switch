@@ -24,6 +24,8 @@ Configures the CMAKE build environment.
 --build-dir=STR         custom build directory  (default: build)
 --debug                 build debug with debug symbols (default: off)
 --static                create static libraries (default: off)
+--no-auto-deps          do not build dependencies that cannot be found (default: off)
+--allow-gpl             permit downloading GPL dependencies, i.e. yices2 (default: off)
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
@@ -59,6 +61,8 @@ cvc5_dir=default
 msat_dir=default
 yices2_dir=default
 static=default
+auto_deps=default
+allow_gpl=default
 build_tests=default
 system_gtest=default
 python=default
@@ -198,6 +202,12 @@ while [ "$i" -lt "$argc" ]; do
     --static)
       static=yes
       ;;
+    --no-auto-deps)
+      auto_deps=no
+      ;;
+    --allow-gpl)
+      allow_gpl=yes
+      ;;
     --without-tests)
       build_tests=no
       ;;
@@ -330,6 +340,10 @@ set -- "$@" "-DCMAKE_BUILD_TYPE=$build_type"
 
 [ "$system_gtest" != default ] &&
   set -- "$@" "-DSYSTEM_GTEST=$system_gtest"
+[ "$auto_deps" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_AUTO_DEPS=OFF"
+[ "$allow_gpl" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_ALLOW_GPL=ON"
 
 [ "$python" != default ] &&
   set -- "$@" "-DBUILD_PYTHON_BINDINGS=ON"

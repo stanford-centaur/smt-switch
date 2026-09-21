@@ -2,12 +2,19 @@ MathSAT5 is covered under a custom license. Linking smt-switch against the MathS
 library alters the license of smt-switch.
 
 If you choose to link against MathSAT5, you must obtain the MathSAT5 library yourself
-and ensure you meet all the license requirements.
+and ensure you meet all the license requirements. This is the one solver smt-switch
+will not download for you, because that license does not let us accept it on your
+behalf.
 
-To link against the MathSAT5 library, download mathsat from
-https://mathsat.fbk.eu/download.html. Place the compressed files in ./deps and unpack
-it. Then rename the toplevel directory to mathsat. smt-switch will look for the files
-in ./deps/mathsat.
+Download MathSAT from https://mathsat.fbk.eu/download.html. Unpack the archive into
+./deps and rename the resulting toplevel directory to mathsat, so that the headers
+are at ./deps/mathsat/include and the library at ./deps/mathsat/lib, which is where
+smt-switch looks by default.
 
-Now you should be able to build smt-switch with MathSAT5 as a backend solver by
-configuring smt-switch with the --msat flag.
+If you would rather keep it somewhere else, leave it where it is and point
+smt-switch at it instead:
+
+./configure.sh --msat --msat-dir=/path/to/mathsat
+
+Either way you should now be able to build smt-switch with MathSAT5 as a backend
+solver by configuring smt-switch with the --msat flag.
