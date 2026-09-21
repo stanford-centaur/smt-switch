@@ -123,9 +123,9 @@ if not (Path("smt_switch") / ext_filename).is_file():
         extra_link_args += SOLVER_STATIC_LINK_ARGS
         # Some solver implementations need GMP, in which case CMake has found it for us.
         extra_link_args += [f"-l{lib}" for lib in GMP_LINK_LIBRARIES]
-        # Bitwuzla is the exception: pkg-config gives names and directories
-        # rather than the archives themselves, and lists its own GMP in the
-        # right place already.
+        # Bitwuzla is the exception: FindBitwuzla reports names and
+        # directories rather than the archives themselves, and already lists
+        # its own GMP in the right place.
         if "bitwuzla" in built_solvers:
             solver_libraries += BITWUZLA_LINK_LIBRARIES
             solver_library_dirs += BITWUZLA_LIBRARY_DIRS

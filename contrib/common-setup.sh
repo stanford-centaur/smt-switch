@@ -21,7 +21,6 @@ setup_script_name=$(basename "$setup_script_path" .sh)
 dep_name="${setup_script_name##*setup-}" # remove "setup-" from script name
 this_script_path=$(realpath "${BASH_SOURCE[0]}")
 contrib_dir=$(dirname "$this_script_path")
-pkg_config_dir=$contrib_dir/pkgconfig
 deps_dir=$(dirname "$contrib_dir")/deps
 
 # Each dependency gets its own prefix, laid out the way ExternalProject does it
@@ -32,7 +31,6 @@ deps_dir=$(dirname "$contrib_dir")/deps
 install_dir=$deps_dir/$dep_name
 install_includedir=$install_dir/include
 install_libdir=$install_dir/lib
-install_pkgconfigdir=$install_libdir/pkgconfig
 download_dir=$install_dir/src
 source_dir=$download_dir/$dep_name
 
@@ -43,15 +41,8 @@ source_dir=$download_dir/$dep_name
 # cmake-setup.sh declares cmake_options.
 declare -a dependencies
 dep_prefixes=()
-dep_pkgconfigdirs=()
 for dep in ${dependencies[@]+"${dependencies[@]}"}; do
   dep_prefixes+=("$deps_dir/$dep")
-  dep_pkgconfigdirs+=("$deps_dir/$dep/lib/pkgconfig")
-done
-
-# Tell CMake/Meson where the dependencies' pkg-config files are.
-for pkgconfigdir in ${dep_pkgconfigdirs[@]+"${dep_pkgconfigdirs[@]}"}; do
-  export PKG_CONFIG_PATH=$pkgconfigdir${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}
 done
 
 # Get the number of CPUs for parallel builds.

@@ -364,6 +364,7 @@ install(
     "${PROJECT_SOURCE_DIR}/cmake/FindCaDiCaL.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindGMP.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindMathSAT.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/FindMPFR.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindYices2.cmake"
   DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
 )
