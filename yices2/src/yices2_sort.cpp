@@ -35,7 +35,6 @@ std::size_t Yices2Sort::hash() const
 
 uint64_t Yices2Sort::get_width() const
 {
-  size_t out_width;
   if (yices_type_is_bitvector(type))
   {
     return (unsigned int)yices_bvtype_size(type);

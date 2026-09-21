@@ -421,7 +421,8 @@ Op MsatTerm::get_op() const
   {
     // need to include the width
     size_t out_width;
-    bool ok = msat_is_bv_type(env, msat_term_get_type(term), &out_width);
+    [[maybe_unused]] bool ok =
+        msat_is_bv_type(env, msat_term_get_type(term), &out_width);
     assert(ok);
     return Op(Int_To_BV, out_width);
   }

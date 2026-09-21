@@ -1162,9 +1162,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     }
     expr quantified_body = zterms.back();
     zterms.pop_back();
-    unsigned num_var = zterms.size();  // this will always be one when only
-                                       // allowing one parameter
-
+    // zterms holds one variable, since only one parameter is allowed
     z3::expr quant_res(ctx);
     if (op.prim_op == Forall)
     {

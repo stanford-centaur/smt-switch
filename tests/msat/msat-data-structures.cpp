@@ -86,7 +86,7 @@ int main()
     s->assert_formula(s->make_term(Equal, x, y));
   }
 
-  bool res = s->check_sat().is_sat();
+  [[maybe_unused]] bool res = s->check_sat().is_sat();
   assert(res);
 
   assert(v[0]->is_symbolic_const());
