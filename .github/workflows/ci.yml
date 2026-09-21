@@ -21,6 +21,8 @@ jobs:
     env:
       # The install-packages scripts are named after the label's first element
       RUNNER_LABEL: ${{ matrix.runner }}
+      # Read by the MathSAT step below and by compute-solver-hash.sh
+      MSAT_VERSION: 5.6.18
       # Names the artifact; a fold here would put a space in it
       BUILD_ID: >-
         ${{ matrix.runner }}-${{ matrix.solver }}-${{ matrix.build_type }}
@@ -39,11 +41,19 @@ jobs:
           path: deps
           key: deps-${{ steps.compute-solver-hash.outputs.result }}
       # Every other solver is provisioned by the Configure step below. MathSAT
-      # cannot be: its licence has to be accepted, which is what the prompt
-      # this answers is for.
+      # cannot be: its licence does not let the build download it on a user's
+      # behalf. Running this workflow accepts that licence.
       - name: Set up MathSAT
         if: matrix.solver == 'msat' && steps.cache.outputs.cache-hit != 'true'
-        run: yes | ./ci-scripts/setup-msat.sh
+        shell: bash
+        env:
+          MSAT_PLATFORM: >-
+            ${{ runner.os == 'macOS' && 'macos' || 'linux-x86_64' }}
+        run: |
+          archive=mathsat-$MSAT_VERSION-$MSAT_PLATFORM.tar.gz
+          mkdir -p deps/mathsat
+          curl -fLsS "https://mathsat.fbk.eu/release/$archive" |
+            tar -xz -C deps/mathsat --strip-components 1
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
