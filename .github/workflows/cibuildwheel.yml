@@ -59,12 +59,17 @@ jobs:
           CIBW_BEFORE_ALL_MACOS: |
             ci-scripts/cibw-install-macos.sh && ci-scripts/cibw-build-deps.sh
           CIBW_BEFORE_BUILD: ci-scripts/cibw-build-cpp.sh
+          # Strip the symbols nothing needs at runtime; the wheels are a
+          # fraction of the size for it.
+          CIBW_ENVIRONMENT_LINUX: >-
+            LDFLAGS="-Wl,--strip-all $LDFLAGS"
           CIBW_ENVIRONMENT_MACOS: >-
             CPATH="$(brew --prefix)/include"
             LIBRARY_PATH="$(brew --prefix)/lib"
             PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
             DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+            LDFLAGS="-Wl,-S,-x $LDFLAGS"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest {project}/tests
       - name: Upload wheels to PyPI
