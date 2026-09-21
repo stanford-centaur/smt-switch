@@ -108,6 +108,11 @@ class GenericSolver : public AbsSmtSolver
 
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
 
+  // AbsSmtSolver's string-value overloads are not declared here, and a
+  // declaration of the name would otherwise hide them from lookup on a
+  // generic solver. Their default throws NotImplementedException.
+  using AbsSmtSolver::make_term;
+
   Term make_term(bool b) const override;
   Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
