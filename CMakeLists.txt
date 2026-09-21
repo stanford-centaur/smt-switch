@@ -287,8 +287,8 @@ if(BUILD_MSAT)
     message(
       FATAL_ERROR
       "MathSAT was not found, and its licence does not permit downloading it "
-      "for you. See contrib/msat_instructions.txt for how to obtain it, or "
-      "point --msat-dir at an existing installation."
+      "for you. See the MathSAT section of the README for how to obtain it, "
+      "or point --msat-dir at an existing installation."
     )
   endif()
   add_subdirectory(msat)

@@ -12,7 +12,7 @@ if(cvc5_VERSION VERSION_LESS CVC5_MINIMUM_VERSION)
     FATAL_ERROR
     "cvc5 ${CVC5_MINIMUM_VERSION} or later is required, but ${cvc5_VERSION} "
     "was found in ${cvc5_DIR}. Point --cvc5-dir at a newer install prefix, or "
-    "rebuild the bundled one with contrib/setup-cvc5.sh."
+    "delete deps/cvc5 to have the pinned version built instead."
   )
 endif()
 # cvc5's package lists cadical, picpoly and picpolyxx in its link interface as

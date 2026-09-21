@@ -38,18 +38,12 @@ jobs:
         with:
           path: deps
           key: deps-${{ steps.compute-solver-hash.outputs.result }}
-      - name: Set up underlying solver
-        if: steps.cache.outputs.cache-hit != 'true'
-        # setup-msat.sh asks to accept a licence; the others read no input
-        run: yes | ./ci-scripts/setup-${{ matrix.solver }}.sh
-      - name: Save solver build to cache
-        uses: actions/cache/save@v6
-        if: >-
-          steps.cache.outputs.cache-hit != 'true'
-          && matrix.build_type == 'release'
-        with:
-          path: deps
-          key: ${{ steps.cache.outputs.cache-primary-key }}
+      # Every other solver is provisioned by the Configure step below. MathSAT
+      # cannot be: its licence has to be accepted, which is what the prompt
+      # this answers is for.
+      - name: Set up MathSAT
+        if: matrix.solver == 'msat' && steps.cache.outputs.cache-hit != 'true'
+        run: yes | ./ci-scripts/setup-msat.sh
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
@@ -59,7 +53,17 @@ jobs:
           CMAKE_GENERATOR: Ninja
         run: |
           ./configure.sh --${{ matrix.solver }} --python --smtlib-reader \
-            --static ${{ matrix.build_type == 'debug' && '--debug' || '' }}
+            --static ${{ matrix.build_type == 'debug' && '--debug' || '' }} \
+            ${{ matrix.solver == 'yices2' && '--allow-gpl' || '' }}
+      # After Configure, not before it: that is what builds the solver now.
+      - name: Save solver build to cache
+        uses: actions/cache/save@v6
+        if: >-
+          steps.cache.outputs.cache-hit != 'true'
+          && matrix.build_type == 'release'
+        with:
+          path: deps
+          key: ${{ steps.cache.outputs.cache-primary-key }}
       - name: Build
         run: ninja -C build
       - name: Install Python bindings

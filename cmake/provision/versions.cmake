@@ -1,7 +1,7 @@
 # Pinned versions of the dependencies this project can build for itself.
 #
-# These were the pins in the contrib/setup-*.sh script headers. Bumping one
-# here rebuilds that dependency and everything that depends on it: the URL is
+# Bumping one here rebuilds that dependency and everything that depends on it:
+# the URL is
 # baked into the download script ExternalProject generates, and that script is
 # a dependency of the download step.
 #
