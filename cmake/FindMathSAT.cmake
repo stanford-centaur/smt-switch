@@ -6,8 +6,8 @@ Finds the MathSAT5 SMT solver.
 
 MathSAT is distributed as a prebuilt archive with no CMake package and no
 pkg-config file, so this module looks for the header and the library
-directly.  It is never downloaded automatically: see
-``contrib/msat_instructions.txt``.
+directly.  It is never downloaded automatically; the MathSAT section of the
+README says how to obtain it.
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
