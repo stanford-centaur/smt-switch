@@ -699,7 +699,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     throw IncorrectUsageException(
         "Expecting exactly one parameter and a body formula for quantifier op");
   }
-  if (op.num_idx == 0)
+  if (op.indices.empty())
   {
     return apply_prim_op(op.prim_op, t);
   }
@@ -710,30 +710,35 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     BoolectorNode * btor_res;
     if (op.prim_op == Extract)
     {
-      btor_res = boolector_slice(
-          btor, bt->node, narrow_index(op, op.idx0), narrow_index(op, op.idx1));
+      btor_res = boolector_slice(btor,
+                                 bt->node,
+                                 narrow_index(op, op.indices.at(0)),
+                                 narrow_index(op, op.indices.at(1)));
     }
     else if (op.prim_op == Zero_Extend)
     {
-      btor_res = boolector_uext(btor, bt->node, narrow_index(op, op.idx0));
+      btor_res =
+          boolector_uext(btor, bt->node, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Sign_Extend)
     {
-      btor_res = boolector_sext(btor, bt->node, narrow_index(op, op.idx0));
+      btor_res =
+          boolector_sext(btor, bt->node, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Repeat)
     {
-      btor_res = boolector_repeat(btor, bt->node, narrow_index(op, op.idx0));
+      btor_res =
+          boolector_repeat(btor, bt->node, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Left)
     {
       btor_res = custom_boolector_rotate_left(
-          btor, bt->node, narrow_index(op, op.idx0));
+          btor, bt->node, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Right)
     {
       btor_res = custom_boolector_rotate_right(
-          btor, bt->node, narrow_index(op, op.idx0));
+          btor, bt->node, narrow_index(op, op.indices.at(0)));
     }
     else
     {
@@ -747,7 +752,7 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
 
 Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  if (op.num_idx == 0)
+  if (op.indices.empty())
   {
     return apply_prim_op(op.prim_op, t0, t1);
   }
@@ -764,7 +769,7 @@ Term BoolectorSolver::make_term(Op op,
                                 const Term & t1,
                                 const Term & t2) const
 {
-  if (op.num_idx == 0)
+  if (op.indices.empty())
   {
     return apply_prim_op(op.prim_op, t0, t1, t2);
   }
@@ -778,7 +783,7 @@ Term BoolectorSolver::make_term(Op op,
 
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (op.num_idx == 0)
+  if (op.indices.empty())
   {
     return apply_prim_op(op.prim_op, terms);
   }
