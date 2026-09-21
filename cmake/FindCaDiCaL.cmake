@@ -5,8 +5,8 @@ FindCaDiCaL
 Finds the CaDiCaL SAT solver.
 
 CaDiCaL has no install target of its own; ``contrib/setup-cadical.sh`` lays out
-the headers and the archive and synthesises a pkg-config file.  This module
-looks for that layout, and for a CaDiCaL installed anywhere else the same way.
+the headers and the archive.  This module looks for that layout, and for a
+CaDiCaL installed anywhere else the same way.
 
 Imported Targets
 ^^^^^^^^^^^^^^^^

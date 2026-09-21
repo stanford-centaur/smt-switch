@@ -18,7 +18,6 @@ if [[ $solver =~ ^(bitwuzla|btor|cvc5|z3)$ ]]; then
   if [[ $solver != z3 ]]; then
     solver_hash+=$(gethash contrib/setup-cadical.sh)
     solver_hash+=$(gethash contrib/make-setup.sh)
-    solver_hash+=$(gethash contrib/pkgconfig/cadical.pc.in)
   fi
 fi
 if [[ $solver == btor ]]; then

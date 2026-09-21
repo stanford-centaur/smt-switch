@@ -2,7 +2,6 @@
 set -euo pipefail
 dnf install -y \
   cmake \
-  gettext \
   glibc-static \
   gperf \
   libstdc++-static \
