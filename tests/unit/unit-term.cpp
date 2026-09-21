@@ -55,7 +55,6 @@ TEST_P(UnitTermTests, FunOp)
 
 TEST_P(UnitTermTests, Array)
 {
-  SolverConfiguration sc = GetParam();
   Term arr = s->make_symbol("arr", arrsort);
   ASSERT_TRUE(arr->is_symbol());
   ASSERT_TRUE(arr->is_symbolic_const());

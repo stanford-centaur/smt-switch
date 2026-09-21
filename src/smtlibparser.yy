@@ -320,7 +320,7 @@ term_s_expr:
     // but print a warning to standard error.
     // it is possible to implement the function in derived class
     // to use the attribute
-    for (const auto attr : $4) {
+    for (const auto & attr : $4) {
       drv.term_attribute($3, attr.first, attr.second);
     }
     $$ = $3;

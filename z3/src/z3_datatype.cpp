@@ -1,11 +1,11 @@
 #include "z3_datatype.h"
 
 namespace z3 {
-const bool operator==(const z3::sort & lhs, const z3::sort & rhs)
+bool operator==(const z3::sort & lhs, const z3::sort & rhs)
 {
   return z3::eq(lhs, rhs);
 }
-const bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
+bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
 {
   return lhs.str() == rhs.str();
 }

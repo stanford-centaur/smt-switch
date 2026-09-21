@@ -61,7 +61,8 @@ int main()
   UnorderedTermSet visited;
   TermVec to_visit({ constraint });
   Term t;
-  int num_consts = 0;
+  // only read by the asserts below, which NDEBUG compiles out
+  [[maybe_unused]] int num_consts = 0;
   while (to_visit.size())
   {
     t = to_visit.back();
