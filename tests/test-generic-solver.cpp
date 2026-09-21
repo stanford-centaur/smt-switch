@@ -923,25 +923,25 @@ int main()
   {
     std::cout << "buffer size: " << buffer_size << std::endl;
 // testing with cvc5 binary
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
     std::cout << "testing cvc5" << std::endl;
     test_cvc5(buffer_size);
 #endif
 
 // testing with msat binary
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
     std::cout << "testing msat" << std::endl;
     test_msat(buffer_size);
 #endif
 
     // testing with yices2binary
-#if BUILD_YICES2
+#ifdef BUILD_YICES2
     std::cout << "testing yices2" << std::endl;
     test_yices2(buffer_size);
 #endif
 
     // testing with btorbinary
-#if BUILD_BTOR
+#ifdef BUILD_BTOR
     std::cout << "testing btor" << std::endl;
     test_btor(buffer_size);
 #endif
