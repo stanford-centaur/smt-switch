@@ -40,7 +40,12 @@ target_include_directories(
 # Boolector's own headers, boolector.h among them, which its install puts
 # under include/boolector rather than where these expect. Including one of
 # them downstream means putting Boolector's headers on the include path.
-target_include_directories(smt-switch-btor PUBLIC $<BUILD_INTERFACE:${Boolector_SOURCE_DIR}/src>)
+# SYSTEM because these are Boolector's headers, not ours.
+target_include_directories(
+  smt-switch-btor
+  SYSTEM
+  PUBLIC $<BUILD_INTERFACE:${Boolector_SOURCE_DIR}/src>
+)
 
 target_link_libraries(smt-switch-btor Boolector::boolector)
 target_link_libraries(smt-switch-btor smt-switch)
