@@ -100,6 +100,11 @@ if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
+# Where the exported package goes. Each backend installs its own export set
+# there, so that a consumer asking for one solver does not have to have the
+# others installed as well.
+set(SMT_SWITCH_CMAKE_DIR lib/cmake/SmtSwitch)
+
 add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
 
 set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
@@ -181,7 +186,15 @@ else()
 endif()
 
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
-target_include_directories(smt-switch PUBLIC ${INCLUDE_DIRS})
+add_library(SmtSwitch::smt-switch ALIAS smt-switch)
+
+# Headers install into include/smt-switch, and consumers spell the prefix:
+# #include "smt-switch/smt.h". In the build tree they are found unprefixed,
+# hence the two interfaces.
+target_include_directories(
+  smt-switch
+  PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIRS}>" $<INSTALL_INTERFACE:include>
+)
 # States the floor for the targets in this tree that consume these headers
 target_compile_features(smt-switch PUBLIC cxx_std_11)
 
@@ -284,7 +297,7 @@ if(BUILD_TESTS)
 endif()
 
 # install smt-switch
-install(TARGETS smt-switch DESTINATION lib)
+install(TARGETS smt-switch EXPORT SmtSwitchTargets DESTINATION lib)
 
 # install public headers
 install(
@@ -298,6 +311,55 @@ if(SMTLIB_READER)
 
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/location.hh" DESTINATION include/smt-switch)
 endif()
+
+######################### Install the CMake package ############################
+include(CMakePackageConfigHelpers)
+
+# The component names are the backend suffixes, so that a consumer writes
+# find_package(SmtSwitch COMPONENTS cvc5) rather than naming a library. Each
+# backend installed its own export set; this is the list of the ones that
+# exist, so that asking for a backend this build did not produce fails in
+# find_package rather than at link time.
+set(SMT_SWITCH_AVAILABLE_COMPONENTS "")
+foreach(lib IN LISTS SOLVER_BACKEND_LIBS)
+  string(REPLACE "smt-switch-" "" component "${lib}")
+  list(APPEND SMT_SWITCH_AVAILABLE_COMPONENTS "${component}")
+endforeach()
+
+install(EXPORT SmtSwitchTargets NAMESPACE SmtSwitch:: DESTINATION "${SMT_SWITCH_CMAKE_DIR}")
+
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/SmtSwitchConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/SmtSwitchConfig.cmake"
+  INSTALL_DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
+
+# SameMinorVersion because a minor bump is what this project uses to signal an
+# interface change; a patch release stays compatible.
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/SmtSwitchConfigVersion.cmake"
+  COMPATIBILITY SameMinorVersion
+)
+
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/SmtSwitchConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/SmtSwitchConfigVersion.cmake"
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
+
+# find_dependency runs on the consumer's machine, so the modules that locate
+# the solvers have to travel with the package. The remaining modules in cmake/
+# are only used while building smt-switch itself.
+install(
+  FILES
+    "${PROJECT_SOURCE_DIR}/cmake/FindBitwuzla.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/FindCaDiCaL.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/FindGMP.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/FindMathSAT.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/FindYices2.cmake"
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
 
 # uninstall target
 # copied from https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake

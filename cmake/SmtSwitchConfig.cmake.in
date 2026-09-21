@@ -1,0 +1,88 @@
+@PACKAGE_INIT@
+
+#[=======================================================================[.rst:
+SmtSwitchConfig
+---------------
+
+Package configuration for smt-switch.
+
+Provides ``SmtSwitch::smt-switch`` and, for each solver backend that was
+built, ``SmtSwitch::smt-switch-<backend>``.  The available backends are listed
+in ``SmtSwitch_AVAILABLE_COMPONENTS``; asking for one that was not built is an
+error, so::
+
+    find_package(SmtSwitch REQUIRED COMPONENTS cvc5 btor)
+    target_link_libraries(myprog SmtSwitch::smt-switch-cvc5)
+
+Each backend pulls in its solver, so linking the backend alone is enough.
+
+The backends are linked against the solver libraries this build found.  A
+consumer therefore needs those solvers present, and the find modules that
+locate them are installed next to this file.
+
+One limitation.  The Boolector backend's own headers —
+``smt-switch/boolector_solver.h`` and the three beside it, installed for
+expert use — include Boolector's headers unqualified, and two of them reach
+for internals that Boolector never installs at all.  Reaching the solver
+through ``smt-switch/boolector_factory.h`` works as it should and is the
+usual way; including one of the backend headers additionally requires
+Boolector's own headers on the include path.
+
+#]=======================================================================]
+
+include(CMakeFindDependencyMacro)
+
+set(SmtSwitch_AVAILABLE_COMPONENTS @SMT_SWITCH_AVAILABLE_COMPONENTS@)
+
+# The find modules shipped alongside this file are what locate the solvers.
+# Put them within reach of find_dependency, and take them back off afterwards
+# so that a consumer's own module path is left as it was.
+set(_smt_switch_saved_module_path "${CMAKE_MODULE_PATH}")
+list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_LIST_DIR}")
+
+# smt-switch links Threads privately, which a static consumer still has to
+# satisfy.
+find_dependency(Threads)
+
+include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchTargets.cmake")
+
+# Each backend is a separate export set, loaded only when asked for. A build
+# with every backend enabled would otherwise oblige a consumer who wants one
+# solver to have all six installed.
+foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
+  if(NOT _smt_switch_component IN_LIST SmtSwitch_AVAILABLE_COMPONENTS)
+    set(SmtSwitch_${_smt_switch_component}_FOUND FALSE)
+    continue()
+  endif()
+
+  if(_smt_switch_component STREQUAL "btor")
+    find_dependency(Boolector)
+  elseif(_smt_switch_component STREQUAL "bitwuzla")
+    find_dependency(Bitwuzla)
+  elseif(_smt_switch_component STREQUAL "cvc5")
+    find_dependency(cvc5)
+    find_dependency(CaDiCaL)
+    find_dependency(GMP)
+  elseif(_smt_switch_component STREQUAL "msat")
+    find_dependency(MathSAT)
+    find_dependency(GMP COMPONENTS gmpxx)
+  elseif(_smt_switch_component STREQUAL "yices2")
+    find_dependency(Yices2)
+    find_dependency(GMP)
+  elseif(_smt_switch_component STREQUAL "z3")
+    find_dependency(Z3)
+    find_dependency(GMP COMPONENTS gmpxx)
+  endif()
+
+  # Named apart from SmtSwitchTargets-*.cmake on purpose: the core targets
+  # file globs that pattern to pick up its own per-configuration files, and
+  # would drag every backend in with it.
+  include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchBackendTargets-${_smt_switch_component}.cmake")
+  set(SmtSwitch_${_smt_switch_component}_FOUND TRUE)
+endforeach()
+unset(_smt_switch_component)
+
+set(CMAKE_MODULE_PATH "${_smt_switch_saved_module_path}")
+unset(_smt_switch_saved_module_path)
+
+check_required_components(SmtSwitch)

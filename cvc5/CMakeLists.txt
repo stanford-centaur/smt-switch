@@ -25,8 +25,6 @@ include(ImportedLocation)
 smt_switch_imported_location(cvc5::cvc5 cvc5_LIBRARY)
 get_filename_component(cvc5_LIBRARY_DIR "${cvc5_LIBRARY}" DIRECTORY)
 
-find_library(LIBRT rt)
-
 add_library(
   smt-switch-cvc5
   "${SMT_SWITCH_LIB_TYPE}"
@@ -36,18 +34,21 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_term.cpp"
 )
+add_library(SmtSwitch::smt-switch-cvc5 ALIAS smt-switch-cvc5)
 
 # cvc5's API takes std::optional and returns std::variant, so this backend and
 # the cvc5_*.h headers it installs need C++17 even though smt-switch does not.
 target_compile_features(smt-switch-cvc5 PUBLIC cxx_std_17)
 
-target_include_directories(smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(
+  smt-switch-cvc5
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
 
-if(LIBRT)
-  target_link_libraries(smt-switch-cvc5 ${LIBRT})
-endif()
-
-target_link_directories(smt-switch-cvc5 PUBLIC "${cvc5_LIBRARY_DIR}")
+# Build-only: the directory is where this machine's cvc5 happens to live, and
+# an installed package must not hand a consumer that path. Downstream gets it
+# from its own find_package(cvc5) instead.
+target_link_directories(smt-switch-cvc5 PUBLIC $<BUILD_INTERFACE:${cvc5_LIBRARY_DIR}>)
 target_link_libraries(smt-switch-cvc5 cvc5::cvc5parser)
 target_link_libraries(smt-switch-cvc5 cvc5::cvc5)
 target_link_libraries(smt-switch-cvc5 CaDiCaL::cadical)
@@ -84,7 +85,12 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   add_custom_target(repack-cvc5-static-lib ALL DEPENDS static-smt-switch-cvc5.stamp)
 endif()
 
-install(TARGETS smt-switch-cvc5 DESTINATION lib)
+install(TARGETS smt-switch-cvc5 EXPORT SmtSwitchBackendTargets-cvc5 DESTINATION lib)
+install(
+  EXPORT SmtSwitchBackendTargets-cvc5
+  NAMESPACE SmtSwitch::
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
 # install headers -- for expert use only
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
