@@ -16,15 +16,25 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
 )
 
+add_library(SmtSwitch::smt-switch-bitwuzla ALIAS smt-switch-bitwuzla)
+
 # Bitwuzla's C++ API takes std::optional and holds a std::variant, so this
 # backend and the headers it installs need C++17 even though smt-switch does not.
 target_compile_features(smt-switch-bitwuzla PUBLIC cxx_std_17)
 
-target_include_directories(smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(
+  smt-switch-bitwuzla
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(smt-switch-bitwuzla smt-switch)
 target_link_libraries(smt-switch-bitwuzla Bitwuzla::bitwuzla)
 
-install(TARGETS smt-switch-bitwuzla DESTINATION lib)
+install(TARGETS smt-switch-bitwuzla EXPORT SmtSwitchBackendTargets-bitwuzla DESTINATION lib)
+install(
+  EXPORT SmtSwitchBackendTargets-bitwuzla
+  NAMESPACE SmtSwitch::
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
 # install headers -- for expert use only
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"

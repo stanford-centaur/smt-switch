@@ -1,5 +1,6 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+find_package(Threads REQUIRED)
 find_package(Boolector REQUIRED)
 
 # Boolector's package declares libbtor2parser.a and libcadical.a in the link
@@ -18,16 +19,32 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_term.cpp"
   "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/memstream.c"
 )
-target_include_directories(smt-switch-btor PUBLIC "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
-target_include_directories(smt-switch-btor PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+add_library(SmtSwitch::smt-switch-btor ALIAS smt-switch-btor)
+
+# memstream.c is compiled into this library, so its header is only needed
+# while building it.
+target_include_directories(smt-switch-btor PRIVATE "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
+
+target_include_directories(
+  smt-switch-btor
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
 # boolector_term.h needs btorcore.h, btornode.h and utils/btornodeiter.h,
 # which Boolector does not install: only boolector.h and btortypes.h are part
 # of its public API. Hence the source tree in addition to the package.
-target_include_directories(smt-switch-btor PUBLIC "${Boolector_SOURCE_DIR}/src")
+#
+# This is deliberately build-only. An installed smt-switch cannot promise a
+# consumer a Boolector source tree, so the exported target does not claim to.
+# Consumers reaching the solver through boolector_factory.h are unaffected.
+# The headers installed here for expert use are another matter: they include
+# Boolector's own headers, boolector.h among them, which its install puts
+# under include/boolector rather than where these expect. Including one of
+# them downstream means putting Boolector's headers on the include path.
+target_include_directories(smt-switch-btor PUBLIC $<BUILD_INTERFACE:${Boolector_SOURCE_DIR}/src>)
 
 target_link_libraries(smt-switch-btor Boolector::boolector)
 target_link_libraries(smt-switch-btor smt-switch)
-target_link_libraries(smt-switch-btor pthread)
+target_link_libraries(smt-switch-btor Threads::Threads)
 target_link_libraries(smt-switch-btor m)
 
 if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
@@ -54,7 +71,12 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   add_custom_target(repack-btor-static-lib ALL DEPENDS static-smt-switch-btor.stamp)
 endif()
 
-install(TARGETS smt-switch-btor DESTINATION lib)
+install(TARGETS smt-switch-btor EXPORT SmtSwitchBackendTargets-btor DESTINATION lib)
+install(
+  EXPORT SmtSwitchBackendTargets-btor
+  NAMESPACE SmtSwitch::
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
 # install headers -- for expert use only
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"

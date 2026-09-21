@@ -12,7 +12,12 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_term.cpp"
 )
-target_include_directories(smt-switch-msat PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+add_library(SmtSwitch::smt-switch-msat ALIAS smt-switch-msat)
+
+target_include_directories(
+  smt-switch-msat
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(smt-switch-msat MathSAT::mathsat)
 target_link_libraries(smt-switch-msat smt-switch)
 target_link_libraries(smt-switch-msat GMP::gmpxx)
@@ -40,7 +45,12 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   add_custom_target(repack-msat-static-lib ALL DEPENDS static-smt-switch-msat.stamp)
 endif()
 
-install(TARGETS smt-switch-msat DESTINATION lib)
+install(TARGETS smt-switch-msat EXPORT SmtSwitchBackendTargets-msat DESTINATION lib)
+install(
+  EXPORT SmtSwitchBackendTargets-msat
+  NAMESPACE SmtSwitch::
+  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
+)
 # install headers -- for expert use only
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
