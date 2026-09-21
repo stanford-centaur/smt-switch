@@ -21,6 +21,7 @@
 #include <string>
 
 #include "smt.h"
+#include "solver_utils.h"
 #include "utils.h"
 
 namespace smt {
@@ -1065,7 +1066,7 @@ void Cvc5Solver::dump_smt2(std::string filename) const
 */
 ::cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
 {
-  if (op.num_idx < 0 || primop2kind.find(op.prim_op) == primop2kind.end())
+  if (primop2kind.find(op.prim_op) == primop2kind.end())
   {
     throw IncorrectUsageException(
         smt::to_string(op.prim_op)
@@ -1073,29 +1074,14 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   }
   if (op.num_idx == 1)
   {
-    if (op.idx0 > std::numeric_limits<uint32_t>::max())
-    {
-      throw SmtException("Op index (" + std::to_string(op.idx0)
-                         + ") is too large for cvc5 backend.");
-    }
     return term_manager->mkOp(primop2kind.at(op.prim_op),
-                              { static_cast<uint32_t>(op.idx0) });
+                              { narrow_index(op, op.idx0) });
   }
   else if (op.num_idx == 2)
   {
-    if (op.idx0 > std::numeric_limits<uint32_t>::max())
-    {
-      throw SmtException("Op index 0 (" + std::to_string(op.idx0)
-                         + ") is too large for cvc5 backend.");
-    }
-    if (op.idx1 > std::numeric_limits<uint32_t>::max())
-    {
-      throw SmtException("Op index 1 (" + std::to_string(op.idx1)
-                         + ") is too large for cvc5 backend.");
-    }
     return term_manager->mkOp(
         primop2kind.at(op.prim_op),
-        { static_cast<uint32_t>(op.idx0), static_cast<uint32_t>(op.idx1) });
+        { narrow_index(op, op.idx0), narrow_index(op, op.idx1) });
   }
   else
   {

@@ -154,8 +154,11 @@ struct Op
   bool is_null() const;
   PrimOp prim_op;
   std::uint64_t num_idx;
-  std::uint64_t idx0;
-  std::uint64_t idx1;
+  // Zeroed so that the constructors leaving one or both unset still produce a
+  // readable Op: the public Python properties read them without consulting
+  // num_idx.
+  std::uint64_t idx0 = 0;
+  std::uint64_t idx1 = 0;
 };
 using UnorderedOpSet = std::unordered_set<Op>;
 

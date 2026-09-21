@@ -15,6 +15,9 @@
 **/
 #pragma once
 
+#include <cstdint>
+
+#include "ops.h"
 #include "smt_defs.h"
 #include "term.h"
 
@@ -25,5 +28,15 @@ namespace smt {
  *  @return the distinctness constraint
  */
 Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms);
+
+/** Narrow an operator index to the 32 bits that most solver APIs take.
+ *  Op stores indices as 64-bit, so without this the conversion is silent and
+ *  a too-large index reaches the solver as an unrelated value.
+ *  @param op the operator the index belongs to, used in the error message
+ *  @param idx the index to narrow
+ *  @return idx as a 32-bit value
+ *  @throws IncorrectUsageException if idx does not fit
+ */
+std::uint32_t narrow_index(const Op & op, std::uint64_t idx);
 
 }  // namespace smt

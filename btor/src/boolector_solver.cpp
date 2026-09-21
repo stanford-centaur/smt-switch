@@ -710,27 +710,30 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     BoolectorNode * btor_res;
     if (op.prim_op == Extract)
     {
-      btor_res = boolector_slice(btor, bt->node, op.idx0, op.idx1);
+      btor_res = boolector_slice(
+          btor, bt->node, narrow_index(op, op.idx0), narrow_index(op, op.idx1));
     }
     else if (op.prim_op == Zero_Extend)
     {
-      btor_res = boolector_uext(btor, bt->node, op.idx0);
+      btor_res = boolector_uext(btor, bt->node, narrow_index(op, op.idx0));
     }
     else if (op.prim_op == Sign_Extend)
     {
-      btor_res = boolector_sext(btor, bt->node, op.idx0);
+      btor_res = boolector_sext(btor, bt->node, narrow_index(op, op.idx0));
     }
     else if (op.prim_op == Repeat)
     {
-      btor_res = boolector_repeat(btor, bt->node, op.idx0);
+      btor_res = boolector_repeat(btor, bt->node, narrow_index(op, op.idx0));
     }
     else if (op.prim_op == Rotate_Left)
     {
-      btor_res = custom_boolector_rotate_left(btor, bt->node, op.idx0);
+      btor_res = custom_boolector_rotate_left(
+          btor, bt->node, narrow_index(op, op.idx0));
     }
     else if (op.prim_op == Rotate_Right)
     {
-      btor_res = custom_boolector_rotate_right(btor, bt->node, op.idx0);
+      btor_res = custom_boolector_rotate_right(
+          btor, bt->node, narrow_index(op, op.idx0));
     }
     else
     {

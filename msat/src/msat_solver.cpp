@@ -832,26 +832,14 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Extract)
   {
-    if (op.idx0 < 0 || op.idx1 < 0)
-    {
-      throw IncorrectUsageException("Can't have negative number in extract");
-    }
     res = msat_make_bv_extract(env, op.idx0, op.idx1, mterm->term);
   }
   else if (op.prim_op == Zero_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't zero extend by negative number");
-    }
     res = msat_make_bv_zext(env, op.idx0, mterm->term);
   }
   else if (op.prim_op == Sign_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't sign extend by negative number");
-    }
     res = msat_make_bv_sext(env, op.idx0, mterm->term);
   }
   else if (op.prim_op == Repeat)
@@ -868,27 +856,14 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Rotate_Left)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
     res = msat_make_bv_rol(env, op.idx0, mterm->term);
   }
   else if (op.prim_op == Rotate_Right)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
     res = msat_make_bv_ror(env, op.idx0, mterm->term);
   }
   else if (op.prim_op == Int_To_BV)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException(
-          "Can't have negative width in Int_To_BV op");
-    }
     res = msat_make_int_to_bv(env, op.idx0, mterm->term);
   }
   else

@@ -14,9 +14,13 @@
 **
 **/
 
+#include <cstdint>
+#include <limits>
+
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
+#include "solver_utils.h"
 
 using namespace smt;
 using namespace std;
@@ -92,6 +96,29 @@ TEST_P(UnitTests, IndexedOps1)
   }
   Term se_x_rebuilt = s->make_term(op, children);
   ASSERT_EQ(se_x_rebuilt, se_x);
+}
+
+// Not parameterized: neither case involves a solver. The narrowing itself is
+// only reached by the backends whose API takes 32-bit indices, so testing it
+// through make_term would exercise nothing on mathsat or bitwuzla.
+TEST(UnitOpIndexTests, UnsetIndicesReadAsZero)
+{
+  ASSERT_EQ(Op().idx0, 0);
+  ASSERT_EQ(Op().idx1, 0);
+  ASSERT_EQ(Op(Extract).idx0, 0);
+  ASSERT_EQ(Op(Extract).idx1, 0);
+  // the one-index constructor leaves idx1 out of its initializer list
+  ASSERT_EQ(Op(Zero_Extend, 5).idx1, 0);
+}
+
+TEST(UnitOpIndexTests, NarrowIndexRejectsTooLarge)
+{
+  constexpr std::uint64_t max32 = std::numeric_limits<std::uint32_t>::max();
+  Op op = Op(Extract, 2, 0);
+
+  ASSERT_EQ(narrow_index(op, 0), 0);
+  ASSERT_EQ(narrow_index(op, max32), max32);
+  ASSERT_THROW(narrow_index(op, max32 + 1), IncorrectUsageException);
 }
 
 TEST_P(UnitTests, RotateOps)
