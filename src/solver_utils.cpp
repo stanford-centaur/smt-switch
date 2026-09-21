@@ -31,8 +31,7 @@ namespace smt {
 
 Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms)
 {
-  std::size_t size = terms.size();
-  assert(size);
+  assert(!terms.empty());
 
   TermVec pairs;
   for (std::size_t i = 0; i < terms.size(); ++i)

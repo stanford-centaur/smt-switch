@@ -294,7 +294,6 @@ term_s_expr:
     }
     sorted_param_list RP term_s_expr RP
   {
-    smt::SmtSolver & solver = drv.solver();
     smt::PrimOp po = drv.lookup_primop($2);
     // smt-switch takes all the parameters followed by the body
     $5->push_back($7);

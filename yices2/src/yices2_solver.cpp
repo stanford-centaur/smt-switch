@@ -320,7 +320,7 @@ void Yices2Solver::assert_formula(const Term & t)
                                   + t->to_string());
   }
 
-  int32_t my_error = yices_assert_formula(ctx, yterm->term);
+  yices_assert_formula(ctx, yterm->term);
   if (yices_error_code() != 0)
   {
     std::string msg(yices_error_string());
