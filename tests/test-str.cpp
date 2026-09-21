@@ -111,8 +111,7 @@ TEST_P(StrTests, UseEscSequences)
 
   s->check_sat();
 
-std:
-  wstring wchar_u = L"u";
+  std::wstring wchar_u = L"u";
   std::wstring wstrx1 = s->get_value(x1)->getStringValue();
   std::wstring wstrx2 = s->get_value(x2)->getStringValue();
   std::wstring wstrx3 = s->get_value(x3)->getStringValue();
