@@ -1172,7 +1172,7 @@ Term GenericSolver::make_value(const std::string val,
 {
   SortKind sk = sort->get_sort_kind();
   assert(sk == BV || sk == INT || sk == REAL);
-  assert(base == 2 || base == 10 | base == 16);
+  assert(base == 2 || base == 10 || base == 16);
   std::string repr;
   if (sk == INT || sk == REAL)
   {
