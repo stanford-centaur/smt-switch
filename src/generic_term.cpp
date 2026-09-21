@@ -37,13 +37,7 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
 }
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym)
-    : sort(s),
-      op(o),
-      children(c),
-      repr(r),
-      is_sym(is_sym),
-      is_par(!is_sym),
-      ground(true)
+    : sort(s), op(o), children(c), repr(r), is_sym(is_sym), is_par(!is_sym)
 {
   ground = compute_ground();
 }

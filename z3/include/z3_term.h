@@ -60,7 +60,7 @@ class Z3Term : public AbsTerm
  public:
   // Non-functions
   Z3Term(expr t, context & c)
-      : term(t), is_function(false), is_parameter(false), z_func(c)
+      : term(t), z_func(c), is_function(false), is_parameter(false)
   {
     ctx = &c;
   };
@@ -68,13 +68,13 @@ class Z3Term : public AbsTerm
   // so we have to keep track of this extra info
   // if no bool is passed, assume it's not a parameter
   Z3Term(expr t, context & c, bool param)
-      : term(t), is_function(false), is_parameter(param), z_func(c)
+      : term(t), z_func(c), is_function(false), is_parameter(param)
   {
     ctx = &c;
   };
   // Functions
   Z3Term(func_decl zfunc, context & c)
-      : term(c), is_function(true), is_parameter(false), z_func(zfunc)
+      : term(c), z_func(zfunc), is_function(true), is_parameter(false)
   {
     ctx = &c;
   };
