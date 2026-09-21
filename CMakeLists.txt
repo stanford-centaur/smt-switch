@@ -20,7 +20,9 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Restricted to C++ because btor/ compiles a C file.
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Werror=non-virtual-dtor;-Werror=return-type>")
+add_compile_options(
+  "$<$<COMPILE_LANGUAGE:CXX>:-Werror=non-virtual-dtor;-Werror=return-type;-Werror=type-limits>"
+)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
