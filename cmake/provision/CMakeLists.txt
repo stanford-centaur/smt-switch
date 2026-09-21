@@ -216,16 +216,32 @@ smt_switch_dependency(
 # pkg-config file and Bitwuzla looks for it with the compiler before falling
 # back to pkg-config, so its prefix goes on the compiler's search path. See
 # cmake/FindBitwuzla.cmake for the whole story.
+#
+# Prepended to whatever the environment already holds rather than replacing
+# it, because `cmake -E env VAR=...` hands the child only what it is given.
+# On macOS these are how Homebrew's headers and libraries are reachable at
+# all, so overwriting them loses GMP and MPFR and the link fails.
+function(smt_switch_prepend_path variable directory output)
+  set(value "${directory}")
+  if(NOT "$ENV{${variable}}" STREQUAL "")
+    set(value "${value}:$ENV{${variable}}")
+  endif()
+  set(${output} "${variable}=${value}" PARENT_SCOPE)
+endfunction()
+
+smt_switch_prepend_path(CPATH "${CADICAL_PREFIX}/include" BITWUZLA_CPATH)
+smt_switch_prepend_path(LIBRARY_PATH "${CADICAL_PREFIX}/lib" BITWUZLA_LIBRARY_PATH)
+
 smt_switch_dependency(
   bitwuzla
   URL "${BITWUZLA_URL}"
   DEPENDS cadical
   CONFIGURE_COMMAND
-    "${CMAKE_COMMAND}" -E env "CPATH=${CADICAL_PREFIX}/include" "LIBRARY_PATH=${CADICAL_PREFIX}/lib"
+    "${CMAKE_COMMAND}" -E env "${BITWUZLA_CPATH}" "${BITWUZLA_LIBRARY_PATH}"
     "${Python_EXECUTABLE}" <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
   BUILD_COMMAND
-    "${CMAKE_COMMAND}" -E env "CPATH=${CADICAL_PREFIX}/include" "LIBRARY_PATH=${CADICAL_PREFIX}/lib"
-    meson compile -C <SOURCE_DIR>/build
+    "${CMAKE_COMMAND}" -E env "${BITWUZLA_CPATH}" "${BITWUZLA_LIBRARY_PATH}" meson compile -C
+    <SOURCE_DIR>/build
   INSTALL_COMMAND meson install -C <SOURCE_DIR>/build
   BUILD_IN_SOURCE TRUE
 )
