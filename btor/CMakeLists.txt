@@ -47,29 +47,10 @@ target_link_libraries(smt-switch-btor smt-switch)
 target_link_libraries(smt-switch-btor Threads::Threads)
 target_link_libraries(smt-switch-btor m)
 
-if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  # we want the static library to include the boolector source
-  # we need to unpack and repack the libraries
-  add_custom_command(
-    OUTPUT static-smt-switch-btor.stamp
-    COMMAND
-      mkdir smt-switch-btor-working && cd smt-switch-btor-working &&
-      # create new static library that combines them all
-      ${PROJECT_SOURCE_DIR}/scripts/repack-static-lib.sh "$<TARGET_FILE_NAME:smt-switch-btor>"
-      "${Boolector_LIBRARY}" ${Boolector_LINK_LIBRARIES} "../$<TARGET_FILE_NAME:smt-switch-btor>"
-      &&
-      # replace the original one
-      mv "$<TARGET_FILE_NAME:smt-switch-btor>" "../$<TARGET_FILE_NAME:smt-switch-btor>" &&
-      # now clean up
-      cd .. && rm -rf smt-switch-btor-working
-    COMMAND ${CMAKE_COMMAND} -E touch static-smt-switch-btor.stamp
-    DEPENDS smt-switch-btor
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-  )
-
-  add_custom_target(repack-btor-static-lib ALL DEPENDS static-smt-switch-btor.stamp)
-endif()
+# setup.py links the extension module by hand rather than through a CMake
+# target, so a static build has to be told which archives sit behind this
+# backend. See python/setup.py.in.
+set(BTOR_STATIC_LINK_ARGS "${Boolector_LIBRARY}" ${Boolector_LINK_LIBRARIES} PARENT_SCOPE)
 
 install(TARGETS smt-switch-btor EXPORT SmtSwitchBackendTargets-btor DESTINATION lib)
 install(
