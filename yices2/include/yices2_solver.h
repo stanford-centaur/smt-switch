@@ -184,6 +184,10 @@ class Yices2Solver : public AbsSmtSolver
     {
       return Result(UNSAT);
     }
+    else if (tl_triggered)
+    {
+      return Result(UNKNOWN, "Time limit reached.");
+    }
     else
     {
       return Result(UNKNOWN);
