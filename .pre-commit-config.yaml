@@ -70,13 +70,24 @@ repos:
   - repo: https://github.com/google/yamlfmt
     rev: v0.21.0
     hooks:
-      - id: yamlfmt # also covers .clang-format, which is YAML
+      # identify tags .clangd, .gersemirc and .yamlfmt as text but not as
+      # YAML, which they are, so the hook's own types: [yaml] never sees them.
+      # A file has to satisfy both files and types, so naming them in files
+      # only works once types stops demanding the tag they lack.
+      - id: yamlfmt
+        types: [text]
+        files: &yaml_files >-
+          \.ya?ml$|(^|/)\.(clang-format|clangd|gersemirc|yamlfmt|yamllint)$
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
       - id: yamllint
         # Without this a warning exits 0 and the hook passes.
         args: [--strict]
+        # Anchored to yamlfmt's list, so formatting and linting cannot drift
+        # apart and leave a file formatted but unchecked.
+        types: [text]
+        files: *yaml_files
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
