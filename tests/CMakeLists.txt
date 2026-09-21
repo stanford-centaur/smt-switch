@@ -1,5 +1,8 @@
 enable_testing()
 
+# GoogleTest 1.14 and newer stop the build with an #error below C++17
+set(CMAKE_CXX_STANDARD 17)
+
 option(SYSTEM_GTEST "Should we try to use the system GTest" ON)
 if(SYSTEM_GTEST)
   find_package(GTest 1.14 CONFIG)

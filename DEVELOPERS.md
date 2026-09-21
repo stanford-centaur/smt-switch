@@ -83,10 +83,21 @@ them. GitHub uses that file automatically; locally it needs
     different solvers will result in undefined behavior
 - Modern C++
   - This library attempts to make use of modern C++ design paradigms whenever
-    possible. In particular, we use C++17 for the support of constexpr arrays,
-    and variants.
-  - The philosophy here is that it is better to rely on the new standard than
-    adopt another dependency such as `boost`
+    possible. The philosophy here is that it is better to rely on the standard
+    library than to adopt another dependency such as `boost`.
+  - The library and its public headers are C++11, so a consumer needs nothing
+    newer. Keep it that way: the top-level `CMakeLists.txt` pins that standard
+    and `examples/Makefile` builds against it with `-std=c++11`. Note the pin is
+    what enforces the floor; a bare `target_compile_features(... cxx_std_11)`
+    only records a minimum, and adds no `-std` flag when the compiler already
+    defaults higher, so a newer feature would compile here and break someone
+    else.
+  - Three parts of the tree ask for more, each on its own target and none of
+    them reachable from `smt.h`. The cvc5 and bitwuzla backends need C++17,
+    because their solver APIs take `std::optional` and `std::variant`; `tests/`
+    needs C++17, because GoogleTest 1.14 and newer refuse to build below it; and
+    the z3 backend needs C++14 for `std::make_unique` and the `s` string literal
+    suffix in `z3_solver.cpp`.
 - The abstract classes provide a common interface, but they were designed to
   give each solver as much flexibility as possible
 
@@ -109,8 +120,8 @@ could have workded by only taking an `Op`, but that would require constructing
 
 ## Utils
 
-There is an implementation of assertions and logging commands using `constexpr`
-functions in `include/utils.h`, these should be the only assertions/logging
+`include/utils.h` implements assertions as macros and logging as a template
+parameterised on the log level, and these should be the only assertions/logging
 functions used throughout the codebase.
 
 ## Implementing New Solvers

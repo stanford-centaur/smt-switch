@@ -40,7 +40,6 @@
 #include <initializer_list>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -189,12 +188,16 @@ std::string & trim(std::string & str)
   return str;
 }
 
+const std::chrono::milliseconds GenericSolver::default_response_timeout =
+    std::chrono::hours(1);
+const std::chrono::milliseconds GenericSolver::no_response_timeout =
+    std::chrono::milliseconds(-1);
+
 // class methods implementation
-GenericSolver::GenericSolver(
-    std::string path,
-    std::vector<std::string> cmd_line_args,
-    std::optional<std::chrono::milliseconds> response_timeout,
-    unsigned int read_buf_size)
+GenericSolver::GenericSolver(std::string path,
+                             std::vector<std::string> cmd_line_args,
+                             std::chrono::milliseconds response_timeout,
+                             unsigned int read_buf_size)
     : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
       path(path),
       cmd_line_args(cmd_line_args),
@@ -455,24 +458,24 @@ bool GenericSolver::take_response(std::string & response) const
 }
 
 void GenericSolver::await_response(
-    const std::optional<std::chrono::steady_clock::time_point> & deadline,
+    const std::chrono::steady_clock::time_point & deadline,
     const std::string & cmd) const
 {
   while (true)
   {
     // -1 makes poll() wait forever, which is what no deadline asks for
     int timeout_ms = -1;
-    if (deadline)
+    if (deadline != std::chrono::steady_clock::time_point::max())
     {
       auto left = std::chrono::duration_cast<std::chrono::milliseconds>(
-                      *deadline - std::chrono::steady_clock::now())
+                      deadline - std::chrono::steady_clock::now())
                       .count();
       if (left <= 0)
       {
-        throw InternalSolverException(
-            "The solver binary at " + path + " did not respond within "
-            + std::to_string(response_timeout->count())
-            + " ms to the command: " + cmd);
+        throw InternalSolverException("The solver binary at " + path
+                                      + " did not respond within "
+                                      + std::to_string(response_timeout.count())
+                                      + " ms to the command: " + cmd);
       }
       // poll() takes an int, so a distant deadline is waited out in slices
       timeout_ms = (left > std::numeric_limits<int>::max())
@@ -499,10 +502,11 @@ void GenericSolver::await_response(
 
 std::string GenericSolver::read_internal(const std::string & cmd) const
 {
-  std::optional<std::chrono::steady_clock::time_point> deadline;
-  if (response_timeout)
+  std::chrono::steady_clock::time_point deadline =
+      std::chrono::steady_clock::time_point::max();
+  if (response_timeout >= std::chrono::milliseconds::zero())
   {
-    deadline = std::chrono::steady_clock::now() + *response_timeout;
+    deadline = std::chrono::steady_clock::now() + response_timeout;
   }
   std::string result;
   while (!take_response(result))

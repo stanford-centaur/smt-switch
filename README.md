@@ -99,7 +99,8 @@ certain backends and/or optional features are marked \["optional" : *reason*\].
 - CMake >= 3.10
 - GNU Make or Ninja
 - C compiler
-- C++ compiler supporting C++11
+- C++ compiler supporting C++11; C++14 ["optional" : the Z3 backend]; C++17
+  ["optional" : the cvc5 and Bitwuzla backends, and the tests]
 - git
 - curl \[optional : setup scripts in `contrib`\]
 - Solver libraries

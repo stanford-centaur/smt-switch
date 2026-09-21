@@ -30,7 +30,6 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -51,17 +50,21 @@ class GenericSolver : public AbsSmtSolver
    * backstop against a solver that has stopped talking to us rather than
    * a solving budget, so far longer than any command needs.
    */
-  static constexpr std::chrono::milliseconds default_response_timeout =
-      std::chrono::hours(1);
+  static const std::chrono::milliseconds default_response_timeout;
+
+  /** Passed as `response_timeout` to wait indefinitely, giving up the
+   * deadlock protection. Negative, because no real timeout can be.
+   */
+  static const std::chrono::milliseconds no_response_timeout;
 
   /** `response_timeout` bounds how long one command may go unanswered;
-   * std::nullopt waits indefinitely, giving up the deadlock protection.
+   * `no_response_timeout` waits forever.
    */
-  GenericSolver(std::string path,
-                std::vector<std::string> cmd_line_args,
-                std::optional<std::chrono::milliseconds> response_timeout =
-                    default_response_timeout,
-                unsigned int read_buf_size = 256);
+  GenericSolver(
+      std::string path,
+      std::vector<std::string> cmd_line_args,
+      std::chrono::milliseconds response_timeout = default_response_timeout,
+      unsigned int read_buf_size = 256);
   ~GenericSolver() override;
 
   /***************************************************************/
@@ -238,10 +241,10 @@ class GenericSolver : public AbsSmtSolver
   // take the first whole response out of `response_buffer`, if there is one
   bool take_response(std::string & response) const;
 
-  // block until the solver has output, or throw when `deadline` passes
-  void await_response(
-      const std::optional<std::chrono::steady_clock::time_point> & deadline,
-      const std::string & cmd) const;
+  // block until the solver has output, or throw when `deadline` passes;
+  // `time_point::max()` never passes, so it waits forever
+  void await_response(const std::chrono::steady_clock::time_point & deadline,
+                      const std::string & cmd) const;
 
   // run a command with the binary
   std::string run_command(std::string cmd,
@@ -270,7 +273,7 @@ class GenericSolver : public AbsSmtSolver
   // buffer size
   unsigned int read_buf_size;
 
-  std::optional<std::chrono::milliseconds> response_timeout;
+  std::chrono::milliseconds response_timeout;
 
   // bytes read from the solver that no caller has taken yet: a read can
   // overshoot one response, and the rest belongs to the next command

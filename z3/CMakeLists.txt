@@ -18,6 +18,11 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_term.cpp"
 )
 
+# z3_solver.cpp has used std::make_unique and the `s` string literal suffix,
+# both C++14, since long before this floor was written, and the headers it
+# installs stay C++11. PRIVATE, so a consumer inherits nothing from it.
+target_compile_features(smt-switch-z3 PRIVATE cxx_std_14)
+
 target_include_directories(smt-switch-z3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 target_link_libraries(smt-switch-z3 PUBLIC z3::libz3)

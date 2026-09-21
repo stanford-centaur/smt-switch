@@ -16,6 +16,10 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
 )
 
+# Bitwuzla's C++ API takes std::optional and holds a std::variant, so this
+# backend and the headers it installs need C++17 even though smt-switch does not.
+target_compile_features(smt-switch-bitwuzla PUBLIC cxx_std_17)
+
 target_include_directories(smt-switch-bitwuzla PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(smt-switch-bitwuzla smt-switch)
 target_link_libraries(smt-switch-bitwuzla Bitwuzla::bitwuzla)

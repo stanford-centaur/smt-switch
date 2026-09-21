@@ -36,6 +36,11 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_term.cpp"
 )
+
+# cvc5's API takes std::optional and returns std::variant, so this backend and
+# the cvc5_*.h headers it installs need C++17 even though smt-switch does not.
+target_compile_features(smt-switch-cvc5 PUBLIC cxx_std_17)
+
 target_include_directories(smt-switch-cvc5 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(LIBRT)
