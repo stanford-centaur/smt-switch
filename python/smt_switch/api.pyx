@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from cython.operator cimport dereference as dref
+from libc.stdint cimport uint64_t
 from libcpp.string cimport string
 
 from .primops import int2primop
@@ -32,9 +33,11 @@ cdef class Op:
             if idx0 is None:
                 self.op = c_Op((<PrimOp?> prim_op).po)
             elif idx1 is None:
-                self.op = c_Op((<PrimOp?> prim_op).po, <int?> idx0)
+                self.op = c_Op((<PrimOp?> prim_op).po, <uint64_t?> idx0)
             else:
-                self.op = c_Op((<PrimOp?> prim_op).po, <int?> idx0, <int?> idx1)
+                self.op = c_Op(
+                    (<PrimOp?> prim_op).po, <uint64_t?> idx0, <uint64_t?> idx1
+                )
         else:
             self.op = c_Op()
 
@@ -49,11 +52,13 @@ cdef class Op:
 
     @property
     def idx0(self):
-        return self.op.idx0
+        # None rather than 0, so that an op carrying no index is
+        # distinguishable from one whose index happens to be zero
+        return self.op.idx0 if self.op.num_idx >= 1 else None
 
     @property
     def idx1(self):
-        return self.op.idx1
+        return self.op.idx1 if self.op.num_idx >= 2 else None
 
     def __bool__(self):
         return not self.op.is_null()

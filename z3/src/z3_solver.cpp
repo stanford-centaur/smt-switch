@@ -895,27 +895,16 @@ Term Z3Solver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Extract)
   {
-    if (op.idx0 < 0 || op.idx1 < 0)
-    {
-      throw IncorrectUsageException("Can't have negative number in extract");
-    }
-    res = Z3_mk_extract(ctx, op.idx0, op.idx1, zterm->term);
+    res = Z3_mk_extract(
+        ctx, narrow_index(op, op.idx0), narrow_index(op, op.idx1), zterm->term);
   }
   else if (op.prim_op == Zero_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't zero extend by negative number");
-    }
-    res = Z3_mk_zero_ext(ctx, op.idx0, zterm->term);
+    res = Z3_mk_zero_ext(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Sign_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't sign extend by negative number");
-    }
-    res = Z3_mk_sign_ext(ctx, op.idx0, zterm->term);
+    res = Z3_mk_sign_ext(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Repeat)
   {
@@ -923,32 +912,19 @@ Term Z3Solver::make_term(Op op, const Term & t) const
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
-    res = Z3_mk_repeat(ctx, op.idx0, zterm->term);
+    res = Z3_mk_repeat(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Rotate_Left)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
-    res = Z3_mk_rotate_left(ctx, op.idx0, zterm->term);
+    res = Z3_mk_rotate_left(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Rotate_Right)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
-    res = Z3_mk_rotate_right(ctx, op.idx0, zterm->term);
+    res = Z3_mk_rotate_right(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Int_To_BV)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException(
-          "Can't have negative width in Int_To_BV op");
-    }
-    res = Z3_mk_int2bv(ctx, op.idx0, zterm->term);
+    res = Z3_mk_int2bv(ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == BV_To_Nat)
   {

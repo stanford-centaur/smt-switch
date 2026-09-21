@@ -30,6 +30,27 @@ def test_unit_op(create_solver):
     assert ext != null_op, "Extract op should not be equivalent to a null op"
 
 
+def test_unit_op_indices():
+    # An op carrying no index reports None rather than a value that was never
+    # set, and a negative index is rejected instead of wrapping around.
+    null_op = ss.Op()
+    assert null_op.num_idx == 0
+    assert null_op.idx0 is None
+    assert null_op.idx1 is None
+
+    extend_by = 5
+    one = ss.Op(ss.primops.Zero_Extend, extend_by)
+    assert one.num_idx == 1
+    assert one.idx0 == extend_by
+    assert one.idx1 is None
+
+    two = ss.Op(ss.primops.Extract, 2, 0)
+    assert (two.idx0, two.idx1) == (2, 0)
+
+    with pytest.raises(OverflowError):
+        ss.Op(ss.primops.Extract, -1, 0)
+
+
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_sort(create_solver):
     solver = create_solver(logging=False)

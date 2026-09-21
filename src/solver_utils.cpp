@@ -18,7 +18,11 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
 
+#include "exceptions.h"
 #include "ops.h"
 #include "solver.h"
 #include "term.h"
@@ -46,6 +50,18 @@ Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms)
 
   Term res = solver->make_term(And, pairs);
   return res;
+}
+
+std::uint32_t narrow_index(const Op & op, std::uint64_t idx)
+{
+  if (idx > std::numeric_limits<std::uint32_t>::max())
+  {
+    throw IncorrectUsageException("Index " + std::to_string(idx) + " of "
+                                  + op.to_string()
+                                  + " does not fit in the 32 bits this solver "
+                                    "accepts");
+  }
+  return static_cast<std::uint32_t>(idx);
 }
 
 }  // namespace smt

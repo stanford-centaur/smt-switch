@@ -733,27 +733,16 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
 
   if (op.prim_op == Extract)
   {
-    if (op.idx0 < 0 || op.idx1 < 0)
-    {
-      throw IncorrectUsageException("Can't have negative number in extract");
-    }
-    res = yices_bvextract(yterm->term, op.idx1, op.idx0);
+    res = yices_bvextract(
+        yterm->term, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Zero_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't zero extend by negative number");
-    }
-    res = yices_zero_extend(yterm->term, op.idx0);
+    res = yices_zero_extend(yterm->term, narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Sign_Extend)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't sign extend by negative number");
-    }
-    res = yices_sign_extend(yterm->term, op.idx0);
+    res = yices_sign_extend(yterm->term, narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Repeat)
   {
@@ -761,31 +750,18 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
-    res = yices_bvrepeat(yterm->term, op.idx0);
+    res = yices_bvrepeat(yterm->term, narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Rotate_Left)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
-    res = yices_rotate_left(yterm->term, op.idx0);
+    res = yices_rotate_left(yterm->term, narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Rotate_Right)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException("Can't rotate by negative number");
-    }
-    res = yices_rotate_right(yterm->term, op.idx0);
+    res = yices_rotate_right(yterm->term, narrow_index(op, op.idx0));
   }
   else if (op.prim_op == Int_To_BV)
   {
-    if (op.idx0 < 0)
-    {
-      throw IncorrectUsageException(
-          "Can't have negative width in Int_To_BV op");
-    }
     res = yices_bvconst_int64(yterm->term, op.idx0);
   }
   else if (!op.num_idx)
