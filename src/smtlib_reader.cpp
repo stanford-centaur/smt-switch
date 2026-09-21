@@ -74,11 +74,11 @@ SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
       strict_(strict),
       logic_("UNSET"),
       allow_ufs_(false),
-      def_arg_prefix_("__defvar_"),
       // logic always includes core theory
       primops_(strict_theory2opmap.at("Core")),
       // always have sort Bool available
-      sortkinds_({ { "Bool", BOOL } })
+      sortkinds_({ { "Bool", BOOL } }),
+      def_arg_prefix_("__defvar_")
 {
   // dedicated true/false symbols
   // done this way because true/false can be used in other places
