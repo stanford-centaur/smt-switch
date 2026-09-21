@@ -132,7 +132,7 @@ void BoolectorTermIter::operator++() { idx++; };
 
 const Term BoolectorTermIter::operator*()
 {
-  assert(idx < children.size());
+  assert(idx >= 0 && static_cast<size_t>(idx) < children.size());
   BtorNode * res = children[idx];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {

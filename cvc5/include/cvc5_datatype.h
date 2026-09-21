@@ -56,7 +56,7 @@ class Cvc5Datatype : public AbsDatatype
   }
   int get_num_selectors(std::string cons) const override
   {
-    for (int i = 0; i != datatype.getNumConstructors(); i++)
+    for (size_t i = 0; i != datatype.getNumConstructors(); i++)
     {
       cvc5::DatatypeConstructor ct = datatype[i];
       if (ct.getName() == cons)

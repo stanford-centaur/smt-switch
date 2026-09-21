@@ -391,7 +391,7 @@ Term Z3Solver::get_tester(const Sort & s, std::string name) const
 {
   auto z3sort = std::static_pointer_cast<Z3Sort>(s);
   auto dt = std::static_pointer_cast<Z3Datatype>(z3sort->get_datatype());
-  for (size_t i = 0; i < dt->get_num_constructors(); i++)
+  for (int i = 0; i < dt->get_num_constructors(); i++)
   {
     z3::func_decl cons{
       ctx, Z3_get_datatype_sort_constructor(ctx, dt->datatype, i)
@@ -611,7 +611,7 @@ Result Z3Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 
 void Z3Solver::push(uint64_t num)
 {
-  for (int i = 0; i < num; i++)
+  for (uint64_t i = 0; i < num; i++)
   {
     slv.push();
   }
@@ -833,7 +833,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
     func_decl sort_func = zsort->z_func;
 
     sort_vector domain(ctx);
-    for (int i = 0; i < sort_func.arity(); i++)
+    for (unsigned i = 0; i < sort_func.arity(); i++)
     {
       domain.push_back(sort_func.domain(i));
     }

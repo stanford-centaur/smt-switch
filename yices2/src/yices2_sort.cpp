@@ -81,7 +81,7 @@ SortVec Yices2Sort::get_domain_sorts() const
     SortVec sorts;
     sorts.reserve(s_arity);
 
-    for (size_t i = 0; i < s_arity; i++)
+    for (int32_t i = 0; i < s_arity; i++)
     {
       sorts.push_back(Sort(new Yices2Sort(yices_type_child(type, i))));
     }

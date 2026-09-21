@@ -231,7 +231,7 @@ GenericSolver::GenericSolver(std::string path,
   // make sure allocation was successful
   assert(read_buf != NULL);
   // initialize read_buf
-  for (int i = 0; i < read_buf_size; i++)
+  for (unsigned int i = 0; i < read_buf_size; i++)
   {
     read_buf[i] = 0;
   }
@@ -355,7 +355,7 @@ void GenericSolver::start_solver()
     // path.
     const char ** argv = new const char *[cmd_line_args.size() + 2];
     argv[0] = path.c_str();
-    for (int i = 1; i <= cmd_line_args.size(); i++)
+    for (size_t i = 1; i <= cmd_line_args.size(); i++)
     {
       argv[i] = cmd_line_args[i - 1].c_str();
     }
@@ -1312,7 +1312,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
   Sort sort = compute_sort(op, this, terms);
   std::string repr = "(" + op.to_string();
-  for (int i = 0; i < terms.size(); i++)
+  for (size_t i = 0; i < terms.size(); i++)
   {
     assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
     repr += " " + (*term_name_map)[terms[i]];
@@ -1392,14 +1392,14 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
   result = trim(result);
 
   // value string ends at first ")" or end of string.
-  int end_of_value = result.size() - 1;
+  std::string::size_type end_of_value = result.size() - 1;
   while (result.at(end_of_value) == ')' || result.at(end_of_value) == ' ')
   {
     end_of_value--;
   }
 
   // value string begins at the first non-space after '('
-  int start_of_value = end_of_value;
+  std::string::size_type start_of_value = end_of_value;
   while (result.at(start_of_value) != '(')
   {
     start_of_value--;
@@ -1466,7 +1466,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
   strip = trim(strip);
 
   // position in the string
-  int index = 0;
+  std::string::size_type index = 0;
   // if true, current literal is positive.
   // otherwise, it has the form (not <var>)
   bool positive;
@@ -1475,15 +1475,16 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
   while (index < strip.size())
   {
     // beginning and end of literal
-    int begin;
-    int end;
+    std::string::size_type begin;
+    std::string::size_type end;
 
     // negative literal
     if (strip.substr(index, 5) == "(not ")
     {
       begin = index + 5;
-      end = strip.find(")", begin + 1) - 1;
-      assert(end != std::string::npos);
+      std::string::size_type close = strip.find(")", begin + 1);
+      assert(close != std::string::npos);
+      end = close - 1;
       positive = false;
     }
     else
