@@ -355,7 +355,7 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   // smtlib: (/ up down)
   // ind -- index
   std::string op;
-  int ind_of_up_start = smtlib.find_first_of("/");
+  std::string::size_type ind_of_up_start = smtlib.find_first_of("/");
   if (ind_of_up_start == std::string::npos)
   {
     return smtlib;
@@ -363,7 +363,7 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   ind_of_up_start += 2;
   op = "/";
   std::string new_up;
-  int ind_of_up_end;
+  std::string::size_type ind_of_up_end;
   if (smtlib.substr(ind_of_up_start, 2) == "(-")
   {
     ind_of_up_end = smtlib.find_first_of(')', ind_of_up_start);
@@ -379,8 +379,9 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
     new_up =
         smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start + 1);
   }
-  int ind_of_down_start = ind_of_up_end + 2;
-  int ind_of_down_end = smtlib.find_first_of(')', ind_of_down_start);
+  std::string::size_type ind_of_down_start = ind_of_up_end + 2;
+  std::string::size_type ind_of_down_end =
+      smtlib.find_first_of(')', ind_of_down_start);
   assert(ind_of_down_end != std::string::npos);
   ind_of_down_end -= 1;
   std::string new_down =

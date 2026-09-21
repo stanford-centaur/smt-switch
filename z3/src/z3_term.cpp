@@ -251,7 +251,7 @@ Sort Z3Term::get_sort() const
   }
 
   z3::sort_vector domain(*ctx);
-  for (int i = 0; i < z_func.arity(); i++)
+  for (unsigned i = 0; i < z_func.arity(); i++)
   {
     domain.push_back(z_func.domain(i));
   }

@@ -62,7 +62,7 @@ int main()
   TermVec to_visit({ constraint });
   Term t;
   // only read by the asserts below, which NDEBUG compiles out
-  [[maybe_unused]] int num_consts = 0;
+  [[maybe_unused]] size_t num_consts = 0;
   while (to_visit.size())
   {
     t = to_visit.back();

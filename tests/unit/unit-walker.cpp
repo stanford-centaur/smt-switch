@@ -189,7 +189,7 @@ void mapEqual(map<Term, pair<Term, vector<int>>> & expected_map,
     EXPECT_EQ(x.second.first, expected_map[x.first].first);
     ASSERT_EQ(x.second.second.size(), expected_map[x.first].second.size());
     // testing path equivalence
-    for (int i = 0; i < x.second.second.size(); i++)
+    for (size_t i = 0; i < x.second.second.size(); i++)
     {
       EXPECT_EQ(x.second.second[i], expected_map[x.first].second[i]);
     }
@@ -779,7 +779,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -789,7 +789,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -799,7 +799,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1, 1 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -809,7 +809,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1, 0 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -819,7 +819,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -829,7 +829,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0, 1 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -839,7 +839,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0, 0 };
         ASSERT_EQ(p.second.second.size(), 4);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -849,7 +849,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -859,7 +859,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0, 1 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -869,7 +869,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0, 0 };
         ASSERT_EQ(p.second.second.size(), 3);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -879,7 +879,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0 };
         ASSERT_EQ(p.second.second.size(), 1);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -889,7 +889,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0, 1 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
@@ -899,7 +899,7 @@ TEST_P(UnitWalkerTests, FreshVars)
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0, 0 };
         ASSERT_EQ(p.second.second.size(), 2);
-        for (int i = 0; i < p.second.second.size(); i++)
+        for (size_t i = 0; i < p.second.second.size(); i++)
         {
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }

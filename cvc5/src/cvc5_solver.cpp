@@ -900,7 +900,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->sort.getDatatype();
-    for (int i = 0; i != dt.getNumConstructors(); i++)
+    for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
       cvc5::DatatypeConstructor ct = dt[i];
       if (ct.getName() == name)
