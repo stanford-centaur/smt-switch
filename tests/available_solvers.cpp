@@ -26,28 +26,28 @@
 #include "logging_solver.h"
 #include "utils.h"
 
-#if BUILD_BTOR
+#ifdef BUILD_BTOR
 #include "boolector_factory.h"
 #endif
 
-#if BUILD_BITWUZLA
+#ifdef BUILD_BITWUZLA
 #include "bitwuzla_factory.h"
 #endif
 
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
 #include "cvc5_factory.h"
 #include "generic_solver.h"
 #endif
 
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
 #include "msat_factory.h"
 #endif
 
-#if BUILD_YICES2
+#ifdef BUILD_YICES2
 #include "yices2_factory.h"
 #endif
 
-#if BUILD_Z3
+#ifdef BUILD_Z3
 #include "z3_factory.h"
 #endif
 
@@ -57,25 +57,25 @@ namespace smt_tests {
 
 // list of regular (non-interpolator) solver enums
 const std::vector<SolverEnum> solver_enums({
-#if BUILD_BTOR
+#ifdef BUILD_BTOR
     BTOR,
 #endif
-#if BUILD_BITWUZLA
+#ifdef BUILD_BITWUZLA
     BZLA,
 #endif
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
     CVC5,
 #ifndef __APPLE__
     GENERIC_SOLVER,
 #endif
 #endif
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
     MSAT,
 #endif
-#if BUILD_YICES2
+#ifdef BUILD_YICES2
     YICES2,
 #endif
-#if BUILD_Z3
+#ifdef BUILD_Z3
     Z3,
 #endif
 });
@@ -86,19 +86,19 @@ SmtSolver create_solver(SolverConfiguration sc)
   bool logging = sc.is_logging_solver;
   switch (se)
   {
-#if BUILD_BTOR
+#ifdef BUILD_BTOR
     case BTOR: {
       return BoolectorSolverFactory::create(logging);
       break;
     }
 #endif
-#if BUILD_BITWUZLA
+#ifdef BUILD_BITWUZLA
     case BZLA: {
       return BitwuzlaSolverFactory::create(logging);
       break;
     }
 #endif
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
     case CVC5: {
       return Cvc5SolverFactory::create(logging);
       break;
@@ -130,19 +130,19 @@ SmtSolver create_solver(SolverConfiguration sc)
     }
 #endif
 #endif
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
     case MSAT: {
       return MsatSolverFactory::create(logging);
       break;
     }
 #endif
-#if BUILD_YICES2
+#ifdef BUILD_YICES2
     case YICES2: {
       return Yices2SolverFactory::create(logging);
       break;
     }
 #endif
-#if BUILD_Z3
+#ifdef BUILD_Z3
     case Z3: {
       return Z3SolverFactory::create(logging);
       break;
@@ -159,13 +159,13 @@ SmtSolver create_interpolating_solver(SolverConfiguration sc)
   SolverEnum se = sc.solver_enum;
   switch (se)
   {
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
     case CVC5_INTERPOLATOR: {
       return Cvc5SolverFactory::create_interpolating_solver();
       break;
     }
 #endif
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
     case MSAT_INTERPOLATOR: {
       return MsatSolverFactory::create_interpolating_solver();
       break;
@@ -222,10 +222,10 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
 std::vector<SolverEnum> available_interpolator_enums()
 {
   std::vector<SolverEnum> result;
-#if BUILD_CVC5
+#ifdef BUILD_CVC5
   result.push_back(CVC5_INTERPOLATOR);
 #endif
-#if BUILD_MSAT
+#ifdef BUILD_MSAT
   result.push_back(MSAT_INTERPOLATOR);
 #endif
   return result;
