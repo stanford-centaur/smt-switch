@@ -173,6 +173,15 @@ if(SMTLIB_READER)
 
   add_flex_bison_dependency(SmtLibScanner SmtLibParser)
 
+  # bison's skeleton sets yynerrs_ without reading it. Only that one warning
+  # is turned off, rather than all of them with -w, because smtlibparser.yy's
+  # actions compile into these generated files too and their warnings are ours.
+  set_source_files_properties(
+    ${BISON_SmtLibParser_OUTPUTS}
+    ${FLEX_SmtLibScanner_OUTPUTS}
+    PROPERTIES COMPILE_OPTIONS -Wno-unused-but-set-variable
+  )
+
   # putting generated header files in build dir
   list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
 
