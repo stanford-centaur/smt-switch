@@ -816,7 +816,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   initialize_env();
   shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
   msat_term res;
-  if (!op.num_idx)
+  if (op.indices.empty())
   {
     if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
     {
@@ -832,39 +832,40 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Extract)
   {
-    res = msat_make_bv_extract(env, op.idx0, op.idx1, mterm->term);
+    res = msat_make_bv_extract(
+        env, op.indices.at(0), op.indices.at(1), mterm->term);
   }
   else if (op.prim_op == Zero_Extend)
   {
-    res = msat_make_bv_zext(env, op.idx0, mterm->term);
+    res = msat_make_bv_zext(env, op.indices.at(0), mterm->term);
   }
   else if (op.prim_op == Sign_Extend)
   {
-    res = msat_make_bv_sext(env, op.idx0, mterm->term);
+    res = msat_make_bv_sext(env, op.indices.at(0), mterm->term);
   }
   else if (op.prim_op == Repeat)
   {
-    if (op.num_idx < 1)
+    if (op.indices.empty())
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
     res = mterm->term;
-    for (size_t i = 1; i < op.idx0; i++)
+    for (size_t i = 1; i < op.indices.at(0); i++)
     {
       res = msat_make_bv_concat(env, mterm->term, res);
     }
   }
   else if (op.prim_op == Rotate_Left)
   {
-    res = msat_make_bv_rol(env, op.idx0, mterm->term);
+    res = msat_make_bv_rol(env, op.indices.at(0), mterm->term);
   }
   else if (op.prim_op == Rotate_Right)
   {
-    res = msat_make_bv_ror(env, op.idx0, mterm->term);
+    res = msat_make_bv_ror(env, op.indices.at(0), mterm->term);
   }
   else if (op.prim_op == Int_To_BV)
   {
-    res = msat_make_int_to_bv(env, op.idx0, mterm->term);
+    res = msat_make_int_to_bv(env, op.indices.at(0), mterm->term);
   }
   else
   {
@@ -895,7 +896,7 @@ Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
   shared_ptr<MsatTerm> mterm0 = static_pointer_cast<MsatTerm>(t0);
   shared_ptr<MsatTerm> mterm1 = static_pointer_cast<MsatTerm>(t1);
   msat_term res;
-  if (!op.num_idx)
+  if (op.indices.empty())
   {
     if (msat_binary_ops.find(op.prim_op) != msat_binary_ops.end())
     {
@@ -950,7 +951,7 @@ Term MsatSolver::make_term(Op op,
   shared_ptr<MsatTerm> mterm1 = static_pointer_cast<MsatTerm>(t1);
   shared_ptr<MsatTerm> mterm2 = static_pointer_cast<MsatTerm>(t2);
   msat_term res;
-  if (!op.num_idx)
+  if (op.indices.empty())
   {
     if (msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
     {

@@ -47,6 +47,11 @@ def test_unit_op_indices():
     two = ss.Op(ss.primops.Extract, 2, 0)
     assert (two.idx0, two.idx1) == (2, 0)
 
+    # indices is the canonical accessor; the three above derive from it
+    assert null_op.indices == ()
+    assert one.indices == (extend_by,)
+    assert two.indices == (2, 0)
+
     with pytest.raises(OverflowError):
         ss.Op(ss.primops.Extract, -1, 0)
 

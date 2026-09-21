@@ -47,18 +47,24 @@ cdef class Op:
         return int2primop[(<int> self.op.prim_op)]
 
     @property
+    def indices(self):
+        return tuple(self.op.indices)
+
+    # num_idx, idx0 and idx1 mirror the fields Op used to carry. They are kept
+    # so that the binding did not have to break along with the C++ struct.
+    @property
     def num_idx(self):
-        return self.op.num_idx
+        return self.op.indices.size()
 
     @property
     def idx0(self):
         # None rather than 0, so that an op carrying no index is
         # distinguishable from one whose index happens to be zero
-        return self.op.idx0 if self.op.num_idx >= 1 else None
+        return self.op.indices[0] if self.op.indices.size() >= 1 else None
 
     @property
     def idx1(self):
-        return self.op.idx1 if self.op.num_idx >= 2 else None
+        return self.op.indices[1] if self.op.indices.size() >= 2 else None
 
     def __bool__(self):
         return not self.op.is_null()
