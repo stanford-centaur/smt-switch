@@ -75,16 +75,21 @@ endif()
 # - PROJECT_VERSION_PATCH: Patch version component
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
-# Each dependency set up by contrib/setup-*.sh installs into its own prefix
-# under deps/. Point each package at its own prefix rather than putting them
-# all on CMAKE_PREFIX_PATH: a root is scoped to one package, so a dependency
-# can no longer shadow an unrelated system library.
+# Defines SMT_SWITCH_DEPS_DIR, which the roots below are relative to, and
+# smt_switch_provision_if_missing(), used further down. Included before the
+# roots so that moving the dependency tree moves both together.
+include(ProvisionDeps)
+
+# Each dependency installs into its own prefix under SMT_SWITCH_DEPS_DIR.
+# Point each package at its own prefix rather than putting them all on
+# CMAKE_PREFIX_PATH: a root is scoped to one package, so a dependency can no
+# longer shadow an unrelated system library.
 #
 # These are only defaults. A root passed on the command line wins, and so does
 # a package installed where find_package would look anyway.
 function(smt_switch_default_root package directory)
   if(NOT DEFINED ${package}_ROOT)
-    set(${package}_ROOT "${PROJECT_SOURCE_DIR}/deps/${directory}" PARENT_SCOPE)
+    set(${package}_ROOT "${SMT_SWITCH_DEPS_DIR}/${directory}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -140,6 +145,10 @@ set(
 )
 
 if(SMTLIB_READER)
+  # macOS ships a bison far older than this, so this is the one non-solver
+  # dependency worth provisioning. flex is not: its 2.6.4 requirement is met
+  # by every system copy that is not ancient.
+  smt_switch_provision_if_missing(BISON bison 3.7.0)
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
 
@@ -220,6 +229,7 @@ endif()
 # should we build boolector?
 option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)
+  smt_switch_provision_if_missing(Boolector boolector)
   # Boolector installs only boolector.h and btortypes.h, but boolector_term.h
   # needs btorcore.h, btornode.h and utils/btornodeiter.h, so the backend
   # needs the source tree in addition to the installed package.
@@ -237,6 +247,7 @@ endif()
 # should we build bitwuzla?
 option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
 if(BUILD_BITWUZLA)
+  smt_switch_provision_if_missing(Bitwuzla bitwuzla)
   add_subdirectory(bitwuzla)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
 
@@ -247,6 +258,7 @@ endif()
 # should we build cvc5?
 option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
+  smt_switch_provision_if_missing(cvc5 cvc5)
   add_subdirectory(cvc5)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${CVC5_STATIC_LINK_ARGS})
@@ -258,6 +270,18 @@ endif()
 # should we build msat?
 option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 if(BUILD_MSAT)
+  # Never provisioned. MathSAT is under a custom licence that does not let us
+  # fetch it on a user's behalf, so it is the one solver that still has to be
+  # installed by hand.
+  find_package(MathSAT QUIET)
+  if(NOT MathSAT_FOUND)
+    message(
+      FATAL_ERROR
+      "MathSAT was not found, and its licence does not permit downloading it "
+      "for you. See contrib/msat_instructions.txt for how to obtain it, or "
+      "point --msat-dir at an existing installation."
+    )
+  endif()
   add_subdirectory(msat)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${MSAT_STATIC_LINK_ARGS})
@@ -269,6 +293,7 @@ endif()
 # should we build yices2?
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
+  smt_switch_provision_if_missing(Yices2 yices2)
   add_subdirectory(yices2)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${YICES2_STATIC_LINK_ARGS})
@@ -280,6 +305,7 @@ endif()
 # should we build z3?
 option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 if(BUILD_Z3)
+  smt_switch_provision_if_missing(Z3 z3)
   add_definitions(-DBUILD_Z3)
   add_subdirectory(z3)
   set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
