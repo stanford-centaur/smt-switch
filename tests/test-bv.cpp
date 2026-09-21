@@ -51,8 +51,8 @@ TEST_P(BVTests, to_int)
   s->check_sat();
   uint64_t i1 = s->get_value(x1)->to_int();
   uint64_t i2 = s->get_value(x2)->to_int();
-  ASSERT_TRUE(0 <= i1 && i1 <= 1);
-  ASSERT_TRUE(0 <= i2 && i2 <= 3);
+  ASSERT_LE(i1, 1);
+  ASSERT_LE(i2, 3);
 
   Sort bv3 = s->make_sort(BV, 3);
   Term minus_one = s->make_term(-1, bv3);
