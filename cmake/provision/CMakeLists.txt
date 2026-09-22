@@ -215,7 +215,8 @@ smt_switch_dependency(
 # Meson, driven through Bitwuzla's own configure.py. CaDiCaL ships no
 # pkg-config file and Bitwuzla looks for it with the compiler before falling
 # back to pkg-config, so its prefix goes on the compiler's search path. See
-# cmake/FindBitwuzla.cmake for the whole story.
+# cmake/FindBitwuzla.cmake for the whole story, and the patch below for why
+# putting it there is not enough on its own.
 #
 # Prepended to whatever the environment already holds rather than replacing
 # it, because `cmake -E env VAR=...` hands the child only what it is given.
@@ -236,6 +237,12 @@ smt_switch_dependency(
   bitwuzla
   URL "${BITWUZLA_URL}"
   DEPENDS cadical
+  # patch rather than a substitution, so that a release whose text has moved
+  # on stops the build instead of silently leaving Bitwuzla to fetch and
+  # build a second CaDiCaL of its own.
+  PATCH_COMMAND
+    patch -p1 --forward -i
+    "${CMAKE_CURRENT_SOURCE_DIR}/patches/bitwuzla-search-library-path.patch"
   CONFIGURE_COMMAND
     "${CMAKE_COMMAND}" -E env "${BITWUZLA_CPATH}" "${BITWUZLA_LIBRARY_PATH}"
     "${Python_EXECUTABLE}" <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>

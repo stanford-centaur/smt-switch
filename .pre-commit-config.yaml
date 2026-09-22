@@ -11,7 +11,13 @@
 # upstream so it can be diffed against new releases. The rest of contrib/ is
 # first-party and is checked normally. The JSON schemas in .tombi-cache are
 # vendored for the same reason; the README there is ours, so it is checked.
-exclude: ^(contrib/memstream-0\.1/|\.tombi-cache/.*\.json$)
+#
+# The patches in cmake/provision are diffs against third-party sources, and
+# every byte of one is significant: a blank context line is a single space,
+# which trailing-whitespace would strip, leaving a patch that no longer
+# applies.
+exclude: >-
+  ^(contrib/memstream-0\.1/|\.tombi-cache/.*\.json$|cmake/provision/patches/)
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
