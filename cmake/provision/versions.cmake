@@ -33,8 +33,8 @@ smt_switch_pin(
 smt_switch_pin(
   BTOR2TOOLS
   GITHUB_REPO hwmcc/btor2tools
-  COMMIT d33c73ff1d173f1bfac8ba6b1c6d68ba62c55f8e
-  CHECKSUM 55c0b62d42b2dbbb14ebb9e4c405d127df1a92f7bfd3f5276ab862c9f9369e26
+  TAG 1.0.3
+  CHECKSUM 8edc9e262d1ffba16819929b2c25f32e9a5c04c84a5094d68d6d06ea059d9202
 )
 
 smt_switch_pin(
