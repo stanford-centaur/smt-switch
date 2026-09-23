@@ -152,12 +152,6 @@ if(SMTLIB_READER)
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
 
-  if(BISON_FOUND)
-    get_filename_component(BISON_PARENT_DIR "${BISON_EXECUTABLE}" DIRECTORY)
-    message("-- Adding bison lib: ${BISON_PARENT_DIR}/../lib")
-    link_directories("${BISON_PARENT_DIR}/../lib/")
-  endif()
-
   bison_target(
     SmtLibParser
     ${PROJECT_SOURCE_DIR}/src/smtlibparser.yy
