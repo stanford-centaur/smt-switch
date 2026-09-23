@@ -100,14 +100,8 @@ foreach(_variable IN LISTS _forwarded_variables)
   endif()
 endforeach()
 
-# Passed to every CMake dependency. CMAKE_INSTALL_LIBDIR keeps libraries out
-# of a lib64 subdirectory, which the find modules do not look in.
-list(
-  APPEND COMMON_CMAKE_ARGS
-  -DBUILD_SHARED_LIBS=OFF
-  -DCMAKE_INSTALL_LIBDIR=lib
-  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-)
+# Passed to every CMake dependency.
+list(APPEND COMMON_CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON)
 
 # Only for the dependencies whose cmake_minimum_required predates what CMake
 # still supports: boolector asks for 3.3 and btor2tools for 3.5. cvc5 and z3
