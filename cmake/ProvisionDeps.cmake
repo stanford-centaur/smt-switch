@@ -160,10 +160,22 @@ function(_smt_switch_run_provision_driver target)
 endfunction()
 
 function(smt_switch_provision_if_missing package target)
+  get_cmake_property(_cache_before CACHE_VARIABLES)
   find_package("${package}" QUIET ${ARGN})
   if(${package}_FOUND)
     return()
   endif()
+  get_cmake_property(_cache_after CACHE_VARIABLES)
+
+  # A rejected path stays in the cache and is never searched for again, so
+  # the copy about to be provisioned would be ignored. Only this package's
+  # own entries: what its lookup found on the way to failing is still good.
+  list(REMOVE_ITEM _cache_after ${_cache_before})
+  foreach(_entry IN LISTS _cache_after)
+    if(_entry MATCHES "^${package}_")
+      unset(${_entry} CACHE)
+    endif()
+  endforeach()
 
   _smt_switch_dir_flag("${target}" _flag)
   if(NOT SMT_SWITCH_AUTO_DEPS)
