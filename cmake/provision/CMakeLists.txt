@@ -17,6 +17,10 @@ project(smt-switch-deps LANGUAGES NONE)
 include(ExternalProject)
 include("${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake")
 
+# CMake only started verifying certificates by default in 3.31, and we support
+# 3.14, so say so rather than leave it to the version in use.
+set(CMAKE_TLS_VERIFY TRUE)
+
 if(NOT SMT_SWITCH_DEPS_DIR)
   message(FATAL_ERROR "SMT_SWITCH_DEPS_DIR must be set to the directory holding the prefixes")
 endif()
@@ -118,6 +122,7 @@ function(smt_switch_dependency name)
   if(NOT name IN_LIST _wanted)
     return()
   endif()
+  string(TOUPPER "${name}" _upper_name)
   ExternalProject_Add(
     "${name}"
     PREFIX "${SMT_SWITCH_DEPS_DIR}/${name}"
@@ -125,6 +130,9 @@ function(smt_switch_dependency name)
     # a CMAKE_PREFIX_PATH naming two prefixes -- would split it in two. The
     # recipes below write those with | and ExternalProject puts them back.
     LIST_SEPARATOR |
+    # Supplied here rather than by each recipe, so that a dependency cannot
+    # be added without one.
+    URL_HASH "SHA256=${${_upper_name}_SHA256}"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     USES_TERMINAL_DOWNLOAD TRUE
     USES_TERMINAL_CONFIGURE TRUE
@@ -135,7 +143,9 @@ function(smt_switch_dependency name)
 endfunction()
 
 # Where each dependency will be installed, for the recipes that have to name
-# a sibling's prefix.
+# a sibling's prefix, and the point at which a pin without a hash is caught.
+# Every dependency is checked, not only the ones this build wants, so that
+# adding one without a hash fails whatever is being built.
 foreach(
   _dependency
   cadical
@@ -149,6 +159,14 @@ foreach(
 )
   string(TOUPPER "${_dependency}" _upper)
   set(${_upper}_PREFIX "${SMT_SWITCH_DEPS_DIR}/${_dependency}")
+  if(NOT ${_upper}_SHA256)
+    message(
+      FATAL_ERROR
+      "${_dependency} has no ${_upper}_SHA256 in versions.cmake, so what it "
+      "downloads cannot be checked. Get one from "
+      "`cmake -P cmake/provision/refresh-hashes.cmake ${_dependency}`."
+    )
+  endif()
 endforeach()
 
 # ---------------------------------------------------------------- cadical --
