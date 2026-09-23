@@ -197,17 +197,6 @@ Boolector's private headers to support term iteration, so `--btor-src-dir`
 points at the source tree alongside `--btor-dir`. It defaults to
 `<btor-dir>/src/boolector`, which is where the sources are unpacked.
 
-### Static Linking
-
-GMP is linked by name (`-lgmp`) rather than by path, so a fully static link
-(`-static`) picks up `libgmp.a` and an ordinary one keeps using the shared
-library, with nothing to configure either way. GMP is not bundled into the
-installed `libsmt-switch-<solver>.a`, so a consumer still has to name it on its
-own link line. If that link is fully static and mixes a backend needing the C++
-bindings (MathSAT, Z3) with one needing only the C library (cvc5, Yices2), put
-`-lgmpxx` before `-lgmp`: `libgmpxx` references symbols from `libgmp`, and an
-archive only resolves what is still undefined by the time the linker reaches it.
-
 ## Building Tests
 
 You can run all tests for the currently built solvers with `make test` from the

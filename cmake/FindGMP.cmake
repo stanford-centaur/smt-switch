@@ -71,7 +71,18 @@ The following cache variables may also be set:
 ``GMP_gmpxx_LIBRARY``
   The path to the GMP C++ bindings library.
 
+Input Variables
+^^^^^^^^^^^^^^^
+
+``GMP_USE_STATIC_LIBS``
+  Look for the static archives rather than whatever the platform prefers.
+
 #]=======================================================================]
+
+if(GMP_USE_STATIC_LIBS)
+  set(_gmp_original_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
 
 # The C++ bindings cannot be used on their own: libgmpxx is built on top of
 # libgmp, and gmpxx.h includes gmp.h. Requesting them therefore implies the C
@@ -89,6 +100,11 @@ find_path(GMP_gmpxx_INCLUDE_DIR NAMES gmpxx.h)
 find_library(GMP_gmp_LIBRARY NAMES gmp)
 find_library(GMP_gmpxx_LIBRARY NAMES gmpxx)
 mark_as_advanced(GMP_INCLUDE_DIR GMP_gmpxx_INCLUDE_DIR GMP_gmp_LIBRARY GMP_gmpxx_LIBRARY)
+
+if(GMP_USE_STATIC_LIBS)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES "${_gmp_original_suffixes}")
+  unset(_gmp_original_suffixes)
+endif()
 
 set(GMP_gmp_FOUND FALSE)
 if(GMP_INCLUDE_DIR AND GMP_gmp_LIBRARY)
@@ -118,19 +134,10 @@ if(GMP_FOUND)
   set(GMP_LIBRARY_DIRS "${gmp_library_dir}")
   set(GMP_LINK_LIBRARIES gmp)
 
-  # Name the library instead of the file that was found. This is the whole
-  # point of the module: -lgmp lets a static link substitute libgmp.a, and
-  # CMake still derives the rpath from the link directory, so a GMP outside
-  # the system prefix is found at run time all the same.
   if(NOT TARGET GMP::gmp)
     add_library(GMP::gmp INTERFACE IMPORTED GLOBAL)
-    set_target_properties(
-      GMP::gmp
-      PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
-        INTERFACE_LINK_DIRECTORIES "${gmp_library_dir}"
-        INTERFACE_LINK_LIBRARIES gmp
-    )
+    target_include_directories(GMP::gmp INTERFACE "${GMP_INCLUDE_DIR}")
+    target_link_libraries(GMP::gmp INTERFACE "${GMP_gmp_LIBRARY}")
   endif()
 
   if(GMP_gmpxx_FOUND)
@@ -153,13 +160,8 @@ if(GMP_FOUND)
     # never a silent misbuild.
     if(NOT TARGET GMP::gmpxx)
       add_library(GMP::gmpxx INTERFACE IMPORTED GLOBAL)
-      set_target_properties(
-        GMP::gmpxx
-        PROPERTIES
-          INTERFACE_INCLUDE_DIRECTORIES "${GMP_gmpxx_INCLUDE_DIR}"
-          INTERFACE_LINK_DIRECTORIES "${gmpxx_library_dir}"
-          INTERFACE_LINK_LIBRARIES "gmpxx;GMP::gmp"
-      )
+      target_include_directories(GMP::gmpxx INTERFACE "${GMP_gmpxx_INCLUDE_DIR}")
+      target_link_libraries(GMP::gmpxx INTERFACE "${GMP_gmpxx_LIBRARY}" GMP::gmp)
     endif()
   endif()
 endif()
