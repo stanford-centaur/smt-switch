@@ -2,8 +2,5 @@ indent: 2
 line_length: 99
 # cmake/Helpers.cmake holds commands that take their arguments through
 # cmake_parse_arguments, which is what lets gersemi format their call sites
-# rather than leave them however they were typed. Named on its own: the
-# commands elsewhere pass their arguments on to ExternalProject
-# positionally, and gersemi, told about those, would read URL and
-# CONFIGURE_COMMAND as ordinary arguments and give each a line of its own.
+# rather than leave them however they were typed.
 definitions: [cmake/Helpers.cmake]
