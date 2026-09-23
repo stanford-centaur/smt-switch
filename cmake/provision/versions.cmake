@@ -10,10 +10,10 @@
 #
 #   cmake -P cmake/provision/refresh-hashes.cmake <name>...
 #
-# Tags are preferred to commits, being self-describing. A tag can be moved,
-# but it cannot be moved past the checksum: the archive would change and the
-# download would fail. btor2tools is pinned to a commit because that
-# repository has no tags at all.
+# Tags are preferred to commits, being self-describing. If one is ever moved
+# the checksum catches it, because the archive changes and the download
+# fails. btor2tools is pinned to a commit because that repository has no
+# tags at all.
 #
 # Note that a GitHub /archive/ URL is generated on request rather than
 # stored. GitHub guarantees the bytes only for assets a project uploads
