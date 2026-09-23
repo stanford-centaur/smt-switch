@@ -100,17 +100,19 @@ foreach(_variable IN LISTS _forwarded_variables)
   endif()
 endforeach()
 
-# Passed to every CMake dependency.
-# CMAKE_INSTALL_LIBDIR keeps libraries out of a lib64 subdirectory, which the
-# find modules do not look in; the policy minimum lets projects whose
-# cmake_minimum_required predates 3.10 still configure.
+# Passed to every CMake dependency. CMAKE_INSTALL_LIBDIR keeps libraries out
+# of a lib64 subdirectory, which the find modules do not look in.
 list(
   APPEND COMMON_CMAKE_ARGS
   -DBUILD_SHARED_LIBS=OFF
   -DCMAKE_INSTALL_LIBDIR=lib
-  -DCMAKE_POLICY_VERSION_MINIMUM=3.10
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 )
+
+# Only for the dependencies whose cmake_minimum_required predates what CMake
+# still supports: boolector asks for 3.3 and btor2tools for 3.5. cvc5 and z3
+# both ask for 3.16 and would report it as an unused variable.
+set(POLICY_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
 
 # With PREFIX set and nothing else overridden, ExternalProject puts the
 # sources at <prefix>/src/<name> and computes <prefix> as the install
@@ -188,7 +190,7 @@ smt_switch_dependency(
 smt_switch_dependency(
   btor2tools
   URL "${BTOR2TOOLS_URL}"
-  CMAKE_ARGS ${COMMON_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  CMAKE_ARGS ${COMMON_CMAKE_ARGS} ${POLICY_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
 )
 
@@ -199,6 +201,7 @@ smt_switch_dependency(
   DEPENDS cadical btor2tools
   CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
+    ${POLICY_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     "-DCMAKE_PREFIX_PATH=${CADICAL_PREFIX}|${BTOR2TOOLS_PREFIX}"
     -DUSE_CADICAL=ON
@@ -222,10 +225,22 @@ smt_switch_dependency(
 )
 
 # --------------------------------------------------------------------- z3 --
+# Z3 declares LANGUAGES CXX, so the C compiler we forward everywhere else
+# goes unused here and CMake reports it. The git options default to on and
+# warn as they turn themselves off, there being no .git in a tarball; say so
+# up front instead.
+set(Z3_CMAKE_ARGS ${COMMON_CMAKE_ARGS})
+list(FILTER Z3_CMAKE_ARGS EXCLUDE REGEX "^-DCMAKE_C_COMPILER")
+
 smt_switch_dependency(
   z3
   URL "${Z3_URL}"
-  CMAKE_ARGS ${COMMON_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DZ3_BUILD_LIBZ3_SHARED=OFF
+  CMAKE_ARGS
+    ${Z3_CMAKE_ARGS}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DZ3_BUILD_LIBZ3_SHARED=OFF
+    -DZ3_INCLUDE_GIT_DESCRIBE=OFF
+    -DZ3_INCLUDE_GIT_HASH=OFF
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
 )
 
