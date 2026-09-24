@@ -107,6 +107,11 @@ if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
+# Match GMP to the libraries being built, unless the caller has said.
+if(NOT DEFINED GMP_USE_STATIC_LIBS)
+  string(COMPARE EQUAL "${SMT_SWITCH_LIB_TYPE}" STATIC GMP_USE_STATIC_LIBS)
+endif()
+
 # Where the exported package goes. Each backend installs its own export set
 # there, so that a consumer asking for one solver does not have to have the
 # others installed as well.
