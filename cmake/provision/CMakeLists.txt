@@ -17,6 +17,10 @@ project(smt-switch-deps LANGUAGES NONE)
 include(ExternalProject)
 include("${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake")
 
+# The project's find modules live one directory up; the yices2 recipe needs
+# FindGMP.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
+
 # CMake only started verifying certificates by default in 3.31, and we support
 # 3.14, so say so rather than leave it to the version in use.
 set(CMAKE_TLS_VERIFY TRUE)
@@ -284,12 +288,34 @@ smt_switch_dependency(
 # Autotools, but the release archive carries no configure script, so autoconf
 # runs first. LDCONFIG lives in /usr/sbin, which is not always on a user's
 # PATH, and all it would do is refresh symlinks next to the staged library.
+#
+# The one dependency whose build looks for a library itself, and it does so
+# with a bare compiler: `cc -lgmp`. CMake's Darwin platform file prepends
+# `brew --prefix` to its search, so every other recipe here finds a Homebrew
+# GMP without being told; autoconf has no such notion and stops at "GMP
+# library not found". Hand it the directories that GMP was actually found
+# in, rather than leaving a macOS build to set CPATH itself.
+find_package(GMP QUIET)
+set(YICES2_ENV "")
+if(GMP_FOUND)
+  smt_switch_prepend_path(CPATH "${GMP_INCLUDE_DIRS}" YICES2_CPATH)
+  smt_switch_prepend_path(LIBRARY_PATH "${GMP_LIBRARY_DIRS}" YICES2_LIBRARY_PATH)
+  set(
+    YICES2_ENV
+    "${CMAKE_COMMAND}"
+    -E
+    env
+    "${YICES2_CPATH}"
+    "${YICES2_LIBRARY_PATH}"
+  )
+endif()
+
 smt_switch_dependency(
   yices2
   URL "${YICES2_URL}"
   CONFIGURE_COMMAND autoconf
-  COMMAND <SOURCE_DIR>/configure --enable-thread-safety --prefix=<INSTALL_DIR>
-  BUILD_COMMAND make build_dir=build BUILD=build -j${SMT_SWITCH_DEPS_JOBS}
+  COMMAND ${YICES2_ENV} <SOURCE_DIR>/configure --enable-thread-safety --prefix=<INSTALL_DIR>
+  BUILD_COMMAND ${YICES2_ENV} make build_dir=build BUILD=build -j${SMT_SWITCH_DEPS_JOBS}
   INSTALL_COMMAND make build_dir=build BUILD=build prefix=<INSTALL_DIR> LDCONFIG=true install
   BUILD_IN_SOURCE TRUE
 )
