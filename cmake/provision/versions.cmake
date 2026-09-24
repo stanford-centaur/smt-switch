@@ -12,8 +12,7 @@
 #
 # Tags are preferred to commits, being self-describing. If one is ever moved
 # the checksum catches it, because the archive changes and the download
-# fails. btor2tools is pinned to a commit because that repository has no
-# tags at all.
+# fails. CaDiCaL is the one exception, for the reason given at its pin.
 #
 # Note that a GitHub /archive/ URL is generated on request rather than
 # stored. GitHub guarantees the bytes only for assets a project uploads
@@ -23,11 +22,14 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/../Helpers.cmake")
 
+# cvc5 builds against the rel-2.1.3-elevate branch rather than the rel-2.1.3
+# tag, its one change being a fix for propagations CaDiCaL missed through
+# IPASIR-UP. Branches move, so the commit that branch points at is pinned.
 smt_switch_pin(
   CADICAL
   GITHUB_REPO arminbiere/cadical
-  TAG rel-2.1.3
-  CHECKSUM abfe890aa4ccda7b8449c7ad41acb113cfb8e7e8fbf5e49369075f9b00d70465
+  COMMIT a384d221a920d473b770df6a7221f35fc5d99e90
+  CHECKSUM 244f9f7ea2c9b870e94a44b28e903a3f79410201f5e8ac0b4eb2feb57422eeaa
 )
 
 smt_switch_pin(
