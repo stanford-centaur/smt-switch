@@ -29,6 +29,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortingNetworkTests);
 class SortingNetworkTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<tuple<SolverConfiguration, size_t>>

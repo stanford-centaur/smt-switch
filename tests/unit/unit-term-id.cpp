@@ -23,6 +23,7 @@ using namespace std;
 
 namespace smt_tests {
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTermIdTests);
 class UnitTermIdTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<SolverConfiguration>
