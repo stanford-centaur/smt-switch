@@ -83,7 +83,9 @@ const std::vector<SolverEnum> solver_enums({
 SmtSolver create_solver(SolverConfiguration sc)
 {
   SolverEnum se = sc.solver_enum;
-  bool logging = sc.is_logging_solver;
+  // Every case that reads this is behind a BUILD_<solver> guard, so a
+  // build with no backend leaves it untouched.
+  [[maybe_unused]] bool logging = sc.is_logging_solver;
   switch (se)
   {
 #ifdef BUILD_BTOR
