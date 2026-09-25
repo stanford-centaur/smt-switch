@@ -1,5 +1,11 @@
 on: [push, workflow_dispatch]
 name: CI
+# Superseded runs are pointless on branches, but main needs a run per commit:
+# giving each of its commits its own group keeps them from queueing, where a
+# pending run is cancelled as soon as the next one arrives.
+concurrency:
+  group: ci-${{ github.ref_name == 'main' && github.sha || github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     strategy:
