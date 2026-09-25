@@ -15,8 +15,8 @@ if(NOT GTest_FOUND)
   set(INSTALL_GTEST OFF)
   FetchContent_Declare(
     googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.18.0
+    URL "https://github.com/google/googletest/archive/refs/tags/v1.18.0.tar.gz"
+    URL_HASH "SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5"
   )
   FetchContent_MakeAvailable(googletest)
 endif()
