@@ -1,6 +1,6 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(GMP REQUIRED COMPONENTS gmpxx)
+find_package(GMP REQUIRED)
 find_package(MathSAT REQUIRED)
 
 add_library(
@@ -20,7 +20,7 @@ target_include_directories(
 )
 target_link_libraries(smt-switch-msat MathSAT::mathsat)
 target_link_libraries(smt-switch-msat smt-switch)
-target_link_libraries(smt-switch-msat GMP::gmpxx)
+target_link_libraries(smt-switch-msat GMP::gmp)
 
 # setup.py links the extension module by hand rather than through a CMake
 # target, so a static build has to be told which archive sits behind this

@@ -19,7 +19,7 @@ This module provides the following imported target, if found:
   can name the archive itself, which the static repacking in ``msat/`` needs.
 
 MathSAT is built against GMP but does not say so anywhere a build system can
-read, so a consumer has to link :module:`FindGMP`'s ``GMP::gmpxx`` alongside
+read, so a consumer has to link :module:`FindGMP`'s ``GMP::gmp`` alongside
 this target.
 
 Result Variables
