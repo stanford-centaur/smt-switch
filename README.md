@@ -6,15 +6,14 @@ implemented by different SMT solvers.
 ## Quick Start
 
 ```sh
-git clone git@github.com:stanford-centaur/smt-switch.git
-cd smt-switch
-./configure.sh --<solver>
+./configure.sh --<solver1> --<solver2>
 cd build
-make
-make test
+cmake --build .
+ctest
 ```
 
-More details are in the Solvers section of this README.
+The available solvers and their specific dependencies are described in the
+Solvers section below.
 
 For an example of how to link and use `smt-switch`, please see the
 [examples directory](./examples).
@@ -92,136 +91,112 @@ int main()
 
 ## Dependencies
 
-Smt-Switch depends on the following libraries. Dependencies needed only for
-certain backends and/or optional features are marked \["optional" : *reason*\].
-
-- CMake >= 3.10
+- CMake >= 3.14
 - GNU Make or Ninja
 - C compiler
-- C++ compiler supporting C++11; C++14 ["optional" : the Z3 backend]; C++17
-  ["optional" : the cvc5 and Bitwuzla backends, and the tests]
-- git
-- Solver libraries. All but MathSAT are downloaded and built for you if they
-  cannot be found.
-  - Bitwuzla
-  - Boolector
-  - cvc5
-  - Z3
-  - Yices2 (GPLv3, so only with `--allow-gpl`; you are responsible for meeting
-    the license conditions)
-  - MathSAT (must be obtained independently, see below)
-- pthread [optional: Bitwuzla]
-- gmp [optional: cvc5, MathSAT, Yices2, Z3]
-- gmpxx, the gmp C++ bindings [optional: Z3]
-- autoconf, gperf [optional: building Yices2]
-- meson [optional: building Bitwuzla]
-- Flex >= 2.6.4 [optional: SMT-LIB parser]
-- Bison >= 3.7 [optional: SMT-LIB parser]
-- Python [optional: Python bindings]
-- packaging [optional: Python bindings]
-
-### MathSAT
-
-MathSAT is under a custom license, and linking smt-switch against it changes the
-license of smt-switch. We therefore never download it for you: you must obtain
-it yourself and ensure you meet the license conditions.
-
-Download it from <https://mathsat.fbk.eu/download.html> and unpack it into
-`deps/mathsat`, so that the headers are at `deps/mathsat/include`, which is
-where smt-switch looks by default. To keep it elsewhere, point smt-switch at it
-instead with `./configure.sh --msat --msat-dir=/path/to/mathsat`.
+- C++ compiler supporting C++17
 
 ## Operating Systems
 
-Our `cmake` build system is currently only tested on Ubuntu Bionic and Mac OSX
-with XCode 12 but should work for other sufficiently modern (e.g. has C++11
-support and CMake >= 3.1) Unix-based operating systems. Please file a GitHub
-issue if you have any problems!
+We officially support the latest Ubuntu LTS on 64-bit Intel and AMD CPUs and the
+latest macOS on Apple silicon. Other Unix-like systems should work as well;
+other GNU/Linux distributions certainly do, and the BSDs ought to, although we
+do no testing on either. Please file a GitHub issue if you have any problems!
 
 ## Solvers
 
-Enable a solver with `./configure.sh --<solver>`. By default only
-`libsmt-switch.so` is built without any solvers.
+Enable a solver by passing its `--<solver>` flag to `configure.sh`. By default
+only `libsmt-switch.so` is built, with no solvers at all.
 
-A solver that cannot be found is downloaded and built for you, as a
-position-independent static library with its own prefix under `deps/`: the
-sources are unpacked into `deps/<solver>/src/<solver>` and the build is
-installed into `deps/<solver>`. Pass `--no-auto-deps` to turn that off and be
-told what is missing instead. Nothing is downloaded for a solver that is already
-installed, so the `--<solver>-dir` flags below take precedence.
+A solver that cannot be found is downloaded and built automatically (with the
+exceptions described below), as a position-independent static library with its
+own prefix under `deps/`: the sources are unpacked into
+`deps/<solver>/src/<solver>` and the build is installed into `deps/<solver>`.
+Pass `--no-auto-deps` to turn that off and be told what is missing instead.
+Nothing is downloaded for a solver that is already installed, so the
+`--<solver>-dir` flags below take precedence.
 
-Two of the backend solvers have non-BSD compatible licenses, and linking against
-either changes the license of what you build. Yices2 is under the GPLv3, so it
-is only downloaded if you ask for it with `--allow-gpl`. MathSAT is under a
-custom license and is never downloaded; see the MathSAT section above for how to
-obtain it. Either way, you assume all responsibility for meeting the license
-requirements of those libraries.
+Each enabled solver produces a `libsmt-switch-<solver>.so`.
+`cmake --install build` installs those and the public headers under the
+configured prefix (`/usr/local` by default), with the headers in a subdirectory
+of their own, e.g. `/usr/local/include/smt-switch`.
 
-Once you've configured the build system, simply enter the build directory
-(`./build` by default) and run `make`. Each solver you add produces a
-`libsmt-switch-<solver>.so` shared object file. Running `make install` installs
-these libraries and the public header files into the configured prefix
-(`/usr/local` by default). Note that the header files are put in a directory,
-e.g. `/usr/local/include/smt-switch`.
+Each solver is listed below with the libraries it needs beyond the core
+dependencies. These must be installed on the system already if the solvers are
+built automatically by smt-switch.
 
-### Currently Supported Solvers
+### Permissively Licensed (BSD Compatible)
 
-#### BSD compatible
+- **Bitwuzla** — Meson, GMP, MPFR
+- **Boolector**
+- **cvc5** — GMP
+- **Z3** — GMP and its C++ bindings
 
-- Bitwuzla
-- Boolector
-- cvc5
-- Z3
+### Licensed under the GPL
 
-#### Non-BSD compatible
+- **Yices2** — Autoconf, gperf, GMP
 
-- MathSAT
-- Yices2
+Yices2 is under the GPLv3, so linking against it puts the whole smt-switch build
+under the GPLv3 as well. Automatically downloading it needs to be explicitly
+enabled with `--allow-gpl`.
+
+### Custom License
+
+- **MathSAT** — GMP
+
+MathSAT is under a custom license, and linking against it changes the license of
+the smt-switch build. It will therefore not be automatically downloaded and must
+be obtained independently from <https://mathsat.fbk.eu/download.html> and
+unpacked into `deps/mathsat` (or specify `--msat-dir`, see below).
 
 ### Custom Solver Location
 
-If you'd like to try your own version of a solver, you can use the
-`configure.sh` script to point to your custom location with `--<solver>-dir`.
-Each of these takes an **install prefix**, not a source tree: the directory a
-solver was installed into, holding `include/` and `lib/`. For example, you would
-point to a custom build of cvc5 like so:
-`./configure.sh --prefix=<your desired install location> --cvc5-dir=./custom-cvc5`
+It is possible to use a custom (externally-provided) version of a solver by
+passing `--<solver>-dir` to `configure.sh`. These options take **install
+prefixes**, not source trees: the directory a solver was installed into, holding
+`include/` and `lib/`. For example:
 
-where `./custom-cvc5/lib/libcvc5.a` and `./custom-cvc5/lib/cmake/cvc5/` already
-exist, which is what `cmake --install` produces. Each solver is located with
-`find_package`, so a solver installed somewhere `cmake` already searches — a
-distribution package, for instance — is picked up without any flag at all.
+```sh
+./configure.sh --cvc5-dir=/home/user/local
+```
 
-Boolector is the exception that also needs its sources. We need access to
-Boolector's private headers to support term iteration, so `--btor-src-dir`
+where `/home/user/local/lib/libcvc5.a` and `/home/user/local/lib/cmake/cvc5/`
+already exist, which is what `cmake --install` produces. Each solver is located
+with `find_package`, so a solver installed somewhere `cmake` already searches —
+a distribution package, for instance — is picked up without any flag at all.
+
+Boolector is the exception that also needs its sources. Smt-switch needs access
+to Boolector's private headers to support term iteration, so `--btor-src-dir`
 points at the source tree alongside `--btor-dir`. It defaults to
-`<btor-dir>/src/boolector`, which is where the sources are unpacked.
+`<btor-dir>/src/boolector`.
 
 ### Static Linking
 
-GMP is linked by name (`-lgmp`) rather than by path, so a fully static link
-(`-static`) picks up `libgmp.a` and an ordinary one keeps using the shared
-library, with nothing to configure either way. GMP is not bundled into the
-installed `libsmt-switch-<solver>.a`, so a consumer still has to name it on its
-own link line. If that link is fully static and mixes a backend needing the C++
-bindings (MathSAT, Z3) with one needing only the C library (cvc5, Yices2), put
-`-lgmpxx` before `-lgmp`: `libgmpxx` references symbols from `libgmp`, and an
-archive only resolves what is still undefined by the time the linker reaches it.
+It is possible to produce smt-switch libraries (`libsmt-switch.a`, etc.) instead
+of the default shared objects by passing `--static` to `configure.sh`. This can
+be useful, for example, for producing self-contained binaries that need to be
+uploaded to a shared computing cluster.
+
+## SMT-LIB reader
+
+`SmtLibReader` parses an SMT-LIB 2 script and issues its commands against a
+solver, so a benchmark file can drive any backend through the same interface as
+the C++ API. Its interface is in `smt-switch/smtlib_reader.h`. It can be enabled
+by passing `--smtlib-reader` to `configure.sh`. It needs:
+
+- flex >= 2.6.4
+- Bison >= 3.7 (will be downloaded automatically if no new enough one is found)
 
 ## Building Tests
 
-You can run all tests for the currently built solvers with `make test` from the
-build directory. To run a single test, run the binary `./tests/<test name>`.
-After you have a full installation, you can build the tests yourself by updating
-the includes to include the `smt-switch` directory. For example:
-`#include "cvc5_factory.h"` -> `#include "smt-switch/cvc5_factory.h"`.
+Testing needs GTest >= 1.14, which is downloaded and built automatically if no
+appropriate installation is found. Invoking CTest as shown in Quick Start will
+run every test. Individual test suites can be run using `./build/tests/<suite>`.
 
-### Debug
-
-Some tests currently use C-style assertions which are compiled out in Release
+Some tests currently use C-style assertions which are compiled out in release
 mode (the default). To build tests with assertions, pass
 `-DCMAKE_BUILD_TYPE=Debug` to `./configure.sh`, or see
-[DEVELOPERS.md](./DEVELOPERS.md#debug-builds) for building Release and Debug
+[DEVELOPERS.md](./DEVELOPERS.md#debug-builds) for building release and debug
 side by side.
 
 ## Python bindings
@@ -231,29 +206,41 @@ It is highly recommended to use a Python
 [Conda environment](https://docs.conda.io/en/latest/) when building Python
 bindings. Note: only Python 3.10 or later is supported.
 
-First, install the required packages:
+First, install the packages the build needs:
 
 ```sh
-python3 -m pip install packaging
+python3 -m pip install Cython packaging setuptools
 ```
 
 Then, to compile Python bindings, use the `--python` flag of `configure.sh`.
 Afterwards, build `smt-switch` as usual. The Python wheel will be built inside
-`build/python` as the file `smt_switch-<version>-<tags>.whl`, where the version
-will be the current version you are building, and the tags will depend on the
-version of Python you have installed and your operating system. To install this
-in your Python environment, you can run
-`python3 -m pip install build/python/<filename>.whl`.
+`build/python` as the file `smt_switch-<version>-<tags>.whl`. This can be
+installed with `pip`:
+
+```sh
+python3 -m pip install build/python/<filename>.whl
+```
+
+The Python bindings can be tested by installing the wheel with the test extra,
+`build/python/<filename>.whl[test]`, and running `pytest` from the
+`tests/python` directory. Note that some shells, like `zsh`, require brackets to
+be escaped or the path to be quoted, i.e., `build/python/<filename>.whl\[test\]`
+or `"build/python/<filename>.whl[test]"`. To run a particular test, use the
+`-k test_name[parameter1-...-parameter_n]` format, e.g.:
+
+```sh
+pytest -k test_bvadd[create_btor_solver]
+```
 
 ### PySMT front end
 
 Optionally, smt-switch can be used with a
-[pySMT](https://pysmt.readthedocs.io/en/latest/) front-end . To install the
-pySMT front-end install `smt-switch` with the `pysmt` extra
-(`python3 -m pip install build/python/<filename>.whl[pysmt]`). Note, some
-shells, like `zsh`, require brackets to be escaped or the path to be quoted,
-i.e., `build/python/<filename>.whl\[pysmt\]` or
-`"build/python/<filename>.whl[pysmt]"`.
+[pySMT](https://pysmt.readthedocs.io/en/latest/) front end using the `pysmt`
+extra:
+
+```sh
+python3 -m pip install build/python/<filename>.whl[pysmt]
+```
 
 A pySMT solver for each switch back-end can be instantiated directly or using
 the helper function `Solver`:
@@ -277,20 +264,15 @@ with pysmt_frontend.Solver("cvc5") as solver:
 
 Please refer to the pySMT docs for further information.
 
-### Testing python bindings
+When the pySMT frontend is installed, tests specific to it will also be included
+in the Python test suites. Note, multiple extras may be installed by passing
+them as a comma-separated list:
 
-Python bindings can be tested with [pytest](https://docs.pytest.org/en/latest/),
-which can be installed by running `python3 -m pip install pytest` or by
-installing the python bindings with the `test` extra
-(`python3 -m pip install build/python/<filename>.whl[test]`). To run all tests,
-switch to the appropriate folder with `cd tests/python` and simply run `pytest`.
-To run a particular test, use the `-k test_name[parameter1-...-parameter_n]`
-format, e.g. `pytest -k test_bvadd[create_btor_solver]`. The tests for the pySMT
-front-end will only be run if it is installed. Note, multiple extras may be
-installed by passing them as a comma separated list:
-`python3 -m pip install build/python/<filename>.whl[test,pysmt]`.
+```sh
+python3 -m pip install build/python/<filename>.whl[test,pysmt]
+```
 
-## Current Limitations and Gotchas
+## Current Limitations
 
 While we try to guarantee that all solver backends are fully compliant with the
 abstract interface, and exhibit the exact same behavior given the same API
@@ -300,20 +282,20 @@ current limitations along with recommended usage.
 - **Undefined behavior.** Sharing terms between different solver instances will
   result in undefined behavior. This is because we use a static cast to recover
   the backend solver implementation from an abstract object. To move terms
-  between solver instances, you can use a `TermTranslator` which will rebuild
+  between solver instances, a `TermTranslator` can be used. This will rebuild
   the term in another solver. A given `TermTranslator` object can only translate
   terms from **one** solver to **one** new one. If some symbols have already
-  been created in the new solver, you can populate the `TermTranslator`'s cache
-  so that it knows which symbols correspond to each other
-- Bitwuzla's `substitute` implementation does not work for formulas containing
-  uninterpreted functions. To get around this, you can use a LoggingSolver. See
+  been created in the new solver, the `TermTranslator`'s cache needs to be
+  populated, so that it knows which symbols correspond to each other
+- Boolector's `substitute` implementation does not work for formulas containing
+  uninterpreted functions. To get around this, a LoggingSolver can be used, see
   below.
-- Bitwuzla does not support `reset_assertions` yet. You can however simulate
-  this by setting the option "base-context-1" to "true". Under the hood, this
-  will do all solving starting at context 1 instead of 0. This will allow you to
-  call `reset_assertions` just like for any other solver.
-- The Z3 backend has not implemented term iteration (getting children) yet, but
-  that should be added soon.
+- Boolector does not support `reset_assertions`. Smt-switch can simulate this
+  when the option "base-context-1" is set to "true". Under the hood, this will
+  do all solving starting at context 1 instead of 0. This will enable calling
+  `reset_assertions` just like for any other solver.
+- The Z3 backend does not support term iteration over quantified expressions,
+  though it does for every other kind of term.
 - Datatypes are currently only supported in cvc5
 
 ### Recommended usage
@@ -321,34 +303,31 @@ current limitations along with recommended usage.
 #### Logging solvers
 
 A `LoggingSolver` is a wrapper around another `SmtSolver` that keeps track of
-Term DAGs at the smt-switch level. This guarantees that if you create a term and
-query it for its sort, op, and children, it will give you back the exact same
-objects you built it with. Without the `LoggingSolver` wrapper, this is not
-guaranteed for all solvers. This is because some solvers perform on-the-fly
+Term DAGs at the smt-switch level. This guarantees that if a term is created, it
+will give back the exact same objects when queried for its sort, op, and
+children as it was created with. Without the `LoggingSolver` wrapper, this is
+not guaranteed for all solvers. This is because some solvers perform on-the-fly
 rewriting and/or alias sorts (e.g. treat `BOOL` and `BV` of size one
 equivalently). Below, we give some recommendations for when to use a
 `LoggingSolver` for different backends. To use a `LoggingSolver`, pass `true` to
-the `create` function when instantiating a solver.
+the `create` function when instantiating a solver. Bitwuzla, cvc5, and Z3 should
+never necessitate the use of a `LoggingSolver`.
 
-- Bitwuzla
-  - Use a `LoggingSolver` when you want to avoid issues with sort aliasing
-    between booleans and bit-vectors of size one and/or if you'd like to ensure
-    that a term's children are exactly what were used to create it. Bitwuzla
-    performs very smart on-the-fly rewriting. Additionally, use a
-    `LoggingSolver` if you will need to use the `substitute` method on formulas
-    that contain uninterpreted functions.
-- cvc5
-  - cvc5 does not alias sorts or perform on-the-fly rewriting. Thus, there
-    should never be any reason to use a `LoggingSolver`.
+- Boolector
+  - Use a `LoggingSolver` to avoid issues with sort aliasing between booleans
+    and bit-vectors of size one and to ensure that a term's children are exactly
+    what were used to create it. Boolector performs very smart on-the-fly
+    rewriting. Additionally, using the `substitute` method on formulas that
+    contain uninterpreted functions is only supported when using a
+    `LoggingSolver`.
 - MathSAT
-  - Use a `LoggingSolver` only if you want to guarantee that a term's Op and
-    children are exactly what you used to create it. Without a `LoggingSolver`,
-    MathSAT will perform *very* light rewriting.
+  - Use a `LoggingSolver` to guarantee that a term's Op and children are always
+    exactly what were used to create it. Without a `LoggingSolver`, MathSAT will
+    perform very light rewriting.
 - Yices2
-  - Use a `LoggingSolver` if you need term iteration
-  - Yices2 has a different term representation under the hood which cannot
-    easily be converted back to SMT-LIB. Thus, term traversal is currently only
-    supported through a `LoggingSolver`.
+  - Use a `LoggingSolver` for term iteration support. Yices2 has a different
+    term representation under the hood which cannot easily be converted back to
+    SMT-LIB. Thus, term traversal is only supported through a `LoggingSolver`.
 
 ## Contributions
 
