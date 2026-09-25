@@ -20,8 +20,7 @@ This module provides the following imported target, if found:
 
 MathSAT is built against GMP but does not say so anywhere a build system can
 read, so a consumer has to link :module:`FindGMP`'s ``GMP::gmp`` alongside
-this target.  The C library alone: the archive names only GMP's C entry
-points, and nothing libgmpxx defines.
+this target.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
