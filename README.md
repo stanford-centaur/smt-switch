@@ -111,7 +111,7 @@ certain backends and/or optional features are marked \["optional" : *reason*\].
     the license conditions)
   - MathSAT (must be obtained independently, see below)
 - pthread [optional: Bitwuzla]
-- gmp [optional: cvc5, MathSAT, Yices2, Z3]
+- gmp [optional: Bitwuzla, cvc5, MathSAT, Yices2, Z3]
 - gmpxx, the gmp C++ bindings [optional: Z3]
 - autoconf, gperf [optional: building Yices2]
 - meson [optional: building Bitwuzla]

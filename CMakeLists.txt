@@ -219,6 +219,15 @@ target_link_libraries(smt-switch PRIVATE Threads::Threads)
 # Should we build python bindings
 option(BUILD_PYTHON_BINDINGS "Build Python bindings")
 
+# Declared together rather than beside the blocks that build them, so that
+# the whole set is settled before any of it is acted on.
+option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
+option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
+option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
+option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
+option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
+option(BUILD_Z3 "Should we build the libraries for z3" OFF)
+
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
 if(BUILD_PYTHON_BINDINGS)
@@ -229,8 +238,48 @@ if(BUILD_PYTHON_BINDINGS)
   find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
 
-# should we build boolector?
-option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
+# Asked before any solver is provisioned, so that a build that cannot succeed
+# says so rather than spending twenty minutes first. The components are
+# whichever the enabled backends reach, which is not always visible on their
+# own link lines: bitwuzla arrives at GMP through MPFR.
+set(SMT_SWITCH_GMP_COMPONENTS "")
+if(BUILD_BITWUZLA OR BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2)
+  list(APPEND SMT_SWITCH_GMP_COMPONENTS gmp)
+endif()
+if(BUILD_Z3)
+  list(APPEND SMT_SWITCH_GMP_COMPONENTS gmpxx)
+endif()
+
+if(SMT_SWITCH_GMP_COMPONENTS)
+  include(CheckGmpSharedLink)
+  smt_switch_check_gmp_shared_link(
+    SMT_SWITCH_GMP_IN_SHARED
+    ${SMT_SWITCH_GMP_COMPONENTS}
+  )
+
+  # One at a time, so that each says which flag to change. A Python
+  # extension module is a shared object by definition, and so is a shared
+  # smt-switch; neither can be had from an archive that cannot go into one.
+  if(NOT SMT_SWITCH_GMP_IN_SHARED)
+    if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+      message(
+        FATAL_ERROR
+        "The only GMP here is an archive that cannot go into a shared "
+        "library, so neither can smt-switch. Pass --static, or install a "
+        "shared GMP or an archive built with -fPIC."
+      )
+    endif()
+    if(BUILD_PYTHON_BINDINGS)
+      message(
+        FATAL_ERROR
+        "The only GMP here is an archive that cannot go into a shared "
+        "library, and the Python module has to be one. Drop --python, or "
+        "install a shared GMP or an archive built with -fPIC."
+      )
+    endif()
+  endif()
+endif()
+
 if(BUILD_BTOR)
   smt_switch_provision_if_missing(Boolector boolector)
   # Boolector installs only boolector.h and btortypes.h, but boolector_term.h
@@ -246,9 +295,6 @@ if(BUILD_BTOR)
   add_definitions(-DBUILD_BTOR)
   add_definitions(-DBOOLECTOR_ROOT=${Boolector_ROOT})
 endif()
-
-# should we build bitwuzla?
-option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
 if(BUILD_BITWUZLA)
   smt_switch_provision_if_missing(Bitwuzla bitwuzla)
   add_subdirectory(bitwuzla)
@@ -257,9 +303,6 @@ if(BUILD_BITWUZLA)
   add_definitions(-DBUILD_BITWUZLA)
   add_definitions(-DBITWUZLA_ROOT=${Bitwuzla_ROOT})
 endif()
-
-# should we build cvc5?
-option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
   smt_switch_provision_if_missing(cvc5 cvc5)
   add_subdirectory(cvc5)
@@ -269,9 +312,6 @@ if(BUILD_CVC5)
   add_definitions(-DBUILD_CVC5)
   add_definitions(-DCVC5_ROOT=${cvc5_ROOT})
 endif()
-
-# should we build msat?
-option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 if(BUILD_MSAT)
   # Never provisioned. MathSAT is under a custom licence that does not let us
   # fetch it on a user's behalf, so it is the one solver that still has to be
@@ -292,9 +332,6 @@ if(BUILD_MSAT)
   add_definitions(-DBUILD_MSAT)
   add_definitions(-DMATHSAT_ROOT=${MathSAT_ROOT})
 endif()
-
-# should we build yices2?
-option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
   smt_switch_provision_if_missing(Yices2 yices2)
   add_subdirectory(yices2)
@@ -304,9 +341,6 @@ if(BUILD_YICES2)
   add_definitions(-DBUILD_YICES2)
   add_definitions(-DYICES2_ROOT=${Yices2_ROOT})
 endif()
-
-# should we build z3?
-option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 if(BUILD_Z3)
   smt_switch_provision_if_missing(Z3 z3)
   add_definitions(-DBUILD_Z3)
