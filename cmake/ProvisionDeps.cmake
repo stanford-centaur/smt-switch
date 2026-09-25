@@ -130,10 +130,19 @@ function(_smt_switch_run_provision_driver target)
     list(APPEND _arguments "-DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}")
   endif()
 
+  # The dependencies are built once, whichever configurations smt-switch
+  # itself is built in. A multi-config generator would build them as its
+  # first configuration, Debug, since nothing below asks for another. And
+  # as the directory outlives the build directory, switching between the two
+  # Ninja generators would otherwise fail on a generator mismatch.
+  set(_generator "${CMAKE_GENERATOR}")
+  if(_generator STREQUAL "Ninja Multi-Config")
+    set(_generator "Ninja")
+  endif()
+
   execute_process(
     COMMAND
-      "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" -S "${_source_dir}" -B "${_binary_dir}"
-      ${_arguments}
+      "${CMAKE_COMMAND}" -G "${_generator}" -S "${_source_dir}" -B "${_binary_dir}" ${_arguments}
     RESULT_VARIABLE _result
   )
   if(NOT _result EQUAL 0)
