@@ -126,10 +126,6 @@ function(smt_switch_dependency name)
   ExternalProject_Add(
     "${name}"
     PREFIX "${SMT_SWITCH_DEPS_DIR}/${name}"
-    # CMAKE_ARGS is itself a CMake list, so a semicolon inside one argument --
-    # a CMAKE_PREFIX_PATH naming two prefixes -- would split it in two. The
-    # recipes below write those with | and ExternalProject puts them back.
-    LIST_SEPARATOR |
     # Supplied here rather than by each recipe, so that a dependency cannot
     # be added without one.
     URL_HASH "SHA256=${${_upper_name}_SHA256}"
@@ -193,6 +189,7 @@ smt_switch_dependency(
 )
 
 # -------------------------------------------------------------- boolector --
+# Boolector wants CMake 3.3, older than the policy that makes roots count.
 smt_switch_dependency(
   boolector
   URL "${BOOLECTOR_URL}"
@@ -201,7 +198,9 @@ smt_switch_dependency(
     ${COMMON_CMAKE_ARGS}
     ${POLICY_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    "-DCMAKE_PREFIX_PATH=${CADICAL_PREFIX}|${BTOR2TOOLS_PREFIX}"
+    -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
+    -DCaDiCaL_ROOT=${CADICAL_PREFIX}
+    -DBtor2Tools_ROOT=${BTOR2TOOLS_PREFIX}
     -DUSE_CADICAL=ON
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
 )
