@@ -6,7 +6,6 @@ jobs:
       fail-fast: false
       matrix:
         runner: [ubuntu-latest, macos-latest]
-        build_type: [release, debug]
         solver:
           - bitwuzla
           - btor
@@ -14,9 +13,7 @@ jobs:
           - msat
           - yices2
           - z3
-    name: >-
-      ${{ matrix.solver }} on ${{ matrix.runner }}
-      (${{ matrix.build_type }})
+    name: ${{ matrix.solver }} (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     env:
       # The install-packages scripts are named after the label's first element
@@ -24,8 +21,7 @@ jobs:
       # Read by the MathSAT step below and by compute-solver-hash.sh
       MSAT_VERSION: 5.6.18
       # Names the artifact; a fold here would put a space in it
-      BUILD_ID: >-
-        ${{ matrix.runner }}-${{ matrix.solver }}-${{ matrix.build_type }}
+      BUILD_ID: ${{ matrix.runner }}-${{ matrix.solver }}
     steps:
       - name: Check out project source
         uses: actions/checkout@v7
@@ -60,31 +56,28 @@ jobs:
           echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
       - name: Configure
         env:
-          CMAKE_GENERATOR: Ninja
-        run: |
-          ./configure.sh --${{ matrix.solver }} --python --smtlib-reader \
-            --static ${{ matrix.build_type == 'debug' && '--debug' || '' }} \
-            ${{ matrix.solver == 'yices2' && '--allow-gpl' || '' }}
-      # After Configure, not before it: that is what builds the solver now.
+          OPT: --${{ matrix.solver }}
+          # Both configurations from one configure; each is built below
+          CMAKE_GENERATOR: Ninja Multi-Config
+        run: ./configure.sh --static --python --smtlib-reader --allow-gpl "$OPT"
+      # After Configure, as that is what builds the solver.
       - name: Save solver build to cache
         uses: actions/cache/save@v6
-        if: >-
-          steps.cache.outputs.cache-hit != 'true'
-          && matrix.build_type == 'release'
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           path: deps
           key: ${{ steps.cache.outputs.cache-primary-key }}
       - name: Build
-        run: ninja -C build
-      - name: Install Python bindings
-        run: pip install "$(ls build/python/*.whl)[pysmt,test]"
+        working-directory: build
+        run: cmake --build . --config Debug && cmake --build . --config Release
       - name: Test C++
         id: test-cpp
         continue-on-error: true
+        working-directory: build
         env:
           # Lets the precompiled MathSAT binary find libgmp
           DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib
-        run: ctest --test-dir build
+        run: ctest -C Debug && ctest -C Release
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -97,4 +90,8 @@ jobs:
           echo "C++ tests failed. Inspect the artifact for details."
           exit 1
       - name: Test Python bindings
-        run: pytest tests/python
+        run: |
+          pip install "$(ls build/python/Release/*.whl)[pysmt,test]"
+          pytest tests/python
+          pip install --force-reinstall --no-deps build/python/Debug/*.whl
+          pytest tests/python
