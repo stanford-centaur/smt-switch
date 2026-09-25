@@ -31,6 +31,12 @@ GMP_LINK_LIBRARIES = [lib for lib in "@GMP_LINK_LIBRARIES@".split(";") if lib]  
 GMP_LIBRARY_DIRS = [path for path in "@GMP_LIBRARY_DIRS@".split(";") if path]  # noqa: SIM905
 BITWUZLA_LINK_LIBRARIES = [lib for lib in "@Bitwuzla_LINK_LIBRARIES@".split(";") if lib]  # noqa: SIM905
 BITWUZLA_LIBRARY_DIRS = [path for path in "@Bitwuzla_LIBRARY_DIRS@".split(";") if path]  # noqa: SIM905
+# Where libsmt-switch and each libsmt-switch-<solver> were built. A
+# multi-config generator puts every configuration in a subdirectory of its
+# own, so the python_bindings target names the directories of the one being
+# built. Run any other way, as cibuildwheel does, this script falls back to
+# the layout of a single-configuration build.
+SMT_SWITCH_LIBRARY_DIR = os.environ.get("SMT_SWITCH_LIBRARY_DIR", PROJECT_BINARY_DIR)
 
 # Get the platform-specific library extension
 if sys.platform == "darwin":
@@ -50,7 +56,7 @@ ext_filename = "smt_switch" + sysconfig.get_config_var("EXT_SUFFIX")
 if not (Path("smt_switch") / ext_filename).is_file():
     # Add flags and directories for compilation.
     libraries = []
-    library_dirs = [PROJECT_BINARY_DIR]
+    library_dirs = [SMT_SWITCH_LIBRARY_DIR]
     include_dirs = [f"{PROJECT_SOURCE_DIR}/include"]
     libraries.append("smt-switch")  # needs to come after the solver-specific libraries
     extra_compile_args = ["-std=c++11"]
@@ -106,7 +112,12 @@ if not (Path("smt_switch") / ext_filename).is_file():
     solver_include_dirs = include_dirs.copy()
     for solver in built_solvers:
         solver_libraries.append(f"smt-switch-{solver}")
-        solver_library_dirs.append(f"{PROJECT_BINARY_DIR}/{solver}")
+        solver_library_dirs.append(
+            os.environ.get(
+                f"SMT_SWITCH_{solver.upper()}_LIBRARY_DIR",
+                f"{PROJECT_BINARY_DIR}/{solver}",
+            )
+        )
         solver_include_dirs.append(f"{PROJECT_SOURCE_DIR}/{solver}/include")
     solver_libraries.extend(libraries)
     extra_link_args.extend(f"-Wl,-rpath,{path}" for path in library_dirs)
