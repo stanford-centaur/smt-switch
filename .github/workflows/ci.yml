@@ -81,7 +81,7 @@ jobs:
         continue-on-error: true
         working-directory: build
         env:
-          # Lets the precompiled MathSAT binary find libgmp
+          # msat-printing runs the MathSAT executable, which needs libgmp
           DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib
         run: ctest -C Debug && ctest -C Release
       - name: Upload failing test log

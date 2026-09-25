@@ -64,10 +64,6 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: >-
             LDFLAGS="-Wl,--strip-all $LDFLAGS"
           CIBW_ENVIRONMENT_MACOS: >-
-            CPATH="$(brew --prefix)/include"
-            LIBRARY_PATH="$(brew --prefix)/lib"
-            PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig"
-            DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
             LDFLAGS="-Wl,-S,-x $LDFLAGS"
           CIBW_TEST_REQUIRES: pytest

@@ -7,10 +7,3 @@ brew install \
   gperf \
   meson \
   python-packaging
-
-brew_prefix=$(brew --prefix)
-
-{
-  echo "CPATH=$brew_prefix/include"
-  echo "LIBRARY_PATH=$brew_prefix/lib"
-} >>"${GITHUB_ENV:?}"
