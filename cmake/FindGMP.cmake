@@ -122,15 +122,16 @@ if(GMP_FOUND)
   # point of the module: -lgmp lets a static link substitute libgmp.a, and
   # CMake still derives the rpath from the link directory, so a GMP outside
   # the system prefix is found at run time all the same.
+  #
+  # A name needs its directory alongside it, and the link directories alone
+  # do not reach a consumer that takes this as the private dependency of a
+  # static library, which arrives as $<LINK_ONLY:>. So -L goes in the link
+  # interface too, where it does.
   if(NOT TARGET GMP::gmp)
     add_library(GMP::gmp INTERFACE IMPORTED GLOBAL)
-    set_target_properties(
-      GMP::gmp
-      PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
-        INTERFACE_LINK_DIRECTORIES "${gmp_library_dir}"
-        INTERFACE_LINK_LIBRARIES gmp
-    )
+    target_include_directories(GMP::gmp INTERFACE "${GMP_INCLUDE_DIR}")
+    target_link_directories(GMP::gmp INTERFACE "${gmp_library_dir}")
+    target_link_libraries(GMP::gmp INTERFACE "-L${gmp_library_dir}" gmp)
   endif()
 
   if(GMP_gmpxx_FOUND)
@@ -153,13 +154,9 @@ if(GMP_FOUND)
     # never a silent misbuild.
     if(NOT TARGET GMP::gmpxx)
       add_library(GMP::gmpxx INTERFACE IMPORTED GLOBAL)
-      set_target_properties(
-        GMP::gmpxx
-        PROPERTIES
-          INTERFACE_INCLUDE_DIRECTORIES "${GMP_gmpxx_INCLUDE_DIR}"
-          INTERFACE_LINK_DIRECTORIES "${gmpxx_library_dir}"
-          INTERFACE_LINK_LIBRARIES "gmpxx;GMP::gmp"
-      )
+      target_include_directories(GMP::gmpxx INTERFACE "${GMP_gmpxx_INCLUDE_DIR}")
+      target_link_directories(GMP::gmpxx INTERFACE "${gmpxx_library_dir}")
+      target_link_libraries(GMP::gmpxx INTERFACE "-L${gmpxx_library_dir}" gmpxx GMP::gmp)
     endif()
   endif()
 endif()
