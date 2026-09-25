@@ -70,6 +70,7 @@ class SelfTranslationIntTests
   Term x, y, z;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TranslationTests);
 class TranslationTests : public testing::Test,
                          public testing::WithParamInterface<
                              tuple<SolverConfiguration, SolverConfiguration>>
