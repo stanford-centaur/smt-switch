@@ -104,6 +104,23 @@ add_custom_target(
   COMMENT "Generate smt_solvers.{pxd,pyx}"
 )
 
+# setup.py cannot tell which configuration it is building for, and under a
+# multi-config generator each one has its libraries in a directory of its own.
+set(_library_dirs "SMT_SWITCH_LIBRARY_DIR=$<TARGET_FILE_DIR:smt-switch>")
+foreach(_lib IN LISTS SOLVER_BACKEND_LIBS)
+  string(REPLACE "smt-switch-" "" _solver "${_lib}")
+  string(TOUPPER "${_solver}" _solver)
+  list(APPEND _library_dirs "SMT_SWITCH_${_solver}_LIBRARY_DIR=$<TARGET_FILE_DIR:${_lib}>")
+endforeach()
+
+# One wheel per configuration, or building one would overwrite the other's.
+get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_multi_config)
+  set(_wheel_dir "$<CONFIG>")
+else()
+  set(_wheel_dir ".")
+endif()
+
 # Custom target for building Python bindings
 add_custom_target(
   python_bindings
@@ -111,7 +128,9 @@ add_custom_target(
   # First ensure the build directory is clean
   COMMAND ${CMAKE_COMMAND} -E remove_directory build
   # Then build the package in place
-  COMMAND ${Python_EXECUTABLE} -m pip wheel --no-deps .
+  COMMAND
+    ${CMAKE_COMMAND} -E env ${_library_dirs} ${Python_EXECUTABLE} -m pip wheel --no-deps .
+    --wheel-dir ${_wheel_dir}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS smt-switch ${SOLVER_BACKEND_LIBS}
   COMMENT "Building Python bindings"
