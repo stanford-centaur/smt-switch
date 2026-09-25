@@ -112,7 +112,7 @@ certain backends and/or optional features are marked \["optional" : *reason*\].
   - MathSAT (must be obtained independently, see below)
 - pthread [optional: Bitwuzla]
 - gmp [optional: cvc5, MathSAT, Yices2, Z3]
-- gmpxx, the gmp C++ bindings [optional: MathSAT, Z3]
+- gmpxx, the gmp C++ bindings [optional: Z3]
 - autoconf, gperf [optional: building Yices2]
 - meson [optional: building Bitwuzla]
 - Flex >= 2.6.4 [optional: SMT-LIB parser]
