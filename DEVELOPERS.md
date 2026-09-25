@@ -10,6 +10,28 @@ that will then trigger the
 [cibuildwheel workflow](./.github/workflows/cibuildwheel.yml) to generate Python
 wheels and upload them to PyPi.
 
+## Debug Builds
+
+`configure.sh` sets up a Release build. Some tests use C-style assertions, which
+Release compiles out, so running them with assertions needs a Debug build.
+
+To build both configurations from one build directory, as CI does, use the Ninja
+Multi-Config generator and pick the configuration when building:
+
+```sh
+CMAKE_GENERATOR="Ninja Multi-Config" ./configure.sh --<solver> ...
+cmake --build build --config Debug
+ctest --test-dir build -C Debug
+```
+
+Swap `Debug` for `Release` to build and test the other one. Both share a single
+configure step and the dependencies under `deps/`, which are built only once.
+Each configuration gets its own subdirectory for the libraries, and with
+`--python` the wheels go to `build/python/Debug/` and `build/python/Release/`.
+
+With a single-configuration generator such as Make or plain Ninja, pass
+`-DCMAKE_BUILD_TYPE=Debug` to `configure.sh` instead.
+
 ## Style Decisions
 
 - Formatting is enforced by [pre-commit](https://pre-commit.com) (see

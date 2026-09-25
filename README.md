@@ -218,9 +218,11 @@ the includes to include the `smt-switch` directory. For example:
 
 ### Debug
 
-The tests currently use C-style assertions which are compiled out in Release
-mode (the default). To build tests with assertions, please add the `--debug`
-flag when using `./configure.sh`.
+Some tests currently use C-style assertions which are compiled out in Release
+mode (the default). To build tests with assertions, pass
+`-DCMAKE_BUILD_TYPE=Debug` to `./configure.sh`, or see
+[DEVELOPERS.md](./DEVELOPERS.md#debug-builds) for building Release and Debug
+side by side.
 
 ## Python bindings
 

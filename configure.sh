@@ -22,7 +22,6 @@ Configures the CMAKE build environment.
 --msat-dir=STR          custom MathSAT install prefix   (default: deps/mathsat)
 --yices2-dir=STR        custom Yices2 install prefix    (default: deps/yices2)
 --build-dir=STR         custom build directory  (default: build)
---debug                 build debug with debug symbols (default: off)
 --static                create static libraries (default: off)
 --no-auto-deps          do not build dependencies that cannot be found (default: off)
 --allow-gpl             permit downloading GPL dependencies, i.e. yices2 (default: off)
@@ -72,8 +71,6 @@ bison_dir=default
 flex_dir=default
 bitwuzla_dir=default
 z3_dir=default
-
-build_type=Release
 
 # Rotate once through the arguments. Each flag is consumed here; anything that
 # has to reach CMake is pushed back onto "$@", so that after the loop "$@"
@@ -197,7 +194,8 @@ while [ "$i" -lt "$argc" ]; do
       esac
       ;;
     --debug)
-      build_type=Debug
+      die "$arg was removed; pass -DCMAKE_BUILD_TYPE=Debug instead," \
+        "or see DEVELOPERS.md for building Release and Debug side by side"
       ;;
     --static)
       static=yes
@@ -293,8 +291,10 @@ fi
 
 # "$@" already holds any -D options given on the command line. Append the
 # options derived from the flags above, so that an explicit -D comes first and
-# the derived value wins if both set the same variable.
-set -- "$@" "-DCMAKE_BUILD_TYPE=$build_type"
+# the derived value wins if both set the same variable. The build type is the
+# exception: no flag sets it, so the default goes first and an explicit
+# -DCMAKE_BUILD_TYPE overrides it.
+set -- "-DCMAKE_BUILD_TYPE=Release" "$@"
 
 [ "$install_prefix" != default ] &&
   set -- "$@" "-DCMAKE_INSTALL_PREFIX=$install_prefix"
