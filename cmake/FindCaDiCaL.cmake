@@ -17,12 +17,12 @@ This module provides the following imported target, if found:
   The CaDiCaL library.
 
 The target carries both an ``IMPORTED_LOCATION`` and an
-``INTERFACE_LINK_DIRECTORIES`` entry, on purpose.  The location is what lets a
-consumer name the archive itself, which the static repacking in ``btor/`` and
-``cvc5/`` needs.  The link directory is for the other consumer: the cvc5 CMake
-package lists ``cadical`` as a plain library name in its link interface, so
-the directory holding it has to reach the link line even when nothing mentions
-this target's file.
+``INTERFACE_LINK_DIRECTORIES`` entry, on purpose.  The location is what puts
+the archive itself on the link line of a target that links this one, such as
+``smt-switch-cvc5``.  The link directory is for the other consumer: the cvc5
+CMake package lists ``cadical`` as a plain library name in its link interface,
+so the directory holding it has to reach the link line even when nothing
+mentions this target's file.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
