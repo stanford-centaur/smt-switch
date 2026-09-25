@@ -138,6 +138,19 @@ function(smt_switch_dependency name)
   )
 endfunction()
 
+# Builds a `VAR=value` argument for `cmake -E env`, prepended to whatever the
+# environment already holds rather than replacing it, because that command
+# hands the child only what it is given. On macOS these variables are how
+# Homebrew's headers and libraries are reachable at all, so overwriting them
+# loses GMP and MPFR and the link fails.
+function(smt_switch_prepend_path variable directory output)
+  set(value "${directory}")
+  if(NOT "$ENV{${variable}}" STREQUAL "")
+    set(value "${value}:$ENV{${variable}}")
+  endif()
+  set(${output} "${variable}=${value}" PARENT_SCOPE)
+endfunction()
+
 # Where each dependency will be installed, for the recipes that have to name
 # a sibling's prefix, and the point at which a pin without a hash is caught.
 # Every dependency is checked, not only the ones this build wants, so that
@@ -247,18 +260,6 @@ smt_switch_dependency(
 # back to pkg-config, so its prefix goes on the compiler's search path. See
 # cmake/FindBitwuzla.cmake for the whole story, and the patch below for why
 # putting it there is not enough on its own.
-#
-# Prepended to whatever the environment already holds rather than replacing
-# it, because `cmake -E env VAR=...` hands the child only what it is given.
-# On macOS these are how Homebrew's headers and libraries are reachable at
-# all, so overwriting them loses GMP and MPFR and the link fails.
-function(smt_switch_prepend_path variable directory output)
-  set(value "${directory}")
-  if(NOT "$ENV{${variable}}" STREQUAL "")
-    set(value "${value}:$ENV{${variable}}")
-  endif()
-  set(${output} "${variable}=${value}" PARENT_SCOPE)
-endfunction()
 
 smt_switch_prepend_path(CPATH "${CADICAL_PREFIX}/include" BITWUZLA_CPATH)
 smt_switch_prepend_path(LIBRARY_PATH "${CADICAL_PREFIX}/lib" BITWUZLA_LIBRARY_PATH)
