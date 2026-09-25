@@ -15,8 +15,7 @@ Imported Targets
 This module provides the following imported target, if found:
 
 ``MathSAT::mathsat``
-  The MathSAT5 library.  Carries an ``IMPORTED_LOCATION`` so that a consumer
-  can name the archive itself, which the static repacking in ``msat/`` needs.
+  The MathSAT5 library.
 
 MathSAT is built against GMP but does not say so anywhere a build system can
 read, so a consumer has to link :module:`FindGMP`'s ``GMP::gmp`` alongside
