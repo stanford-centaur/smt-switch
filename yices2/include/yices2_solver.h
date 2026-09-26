@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <gmp.h>
 #include <yices.h>
 
 #include <cstdint>

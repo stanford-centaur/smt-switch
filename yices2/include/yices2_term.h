@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "gmp.h"
 #include "term.h"
 #include "utils.h"
 #include "yices.h"
