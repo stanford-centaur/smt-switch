@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,40 +28,18 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorExceptions, UnsupportedTheories)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
 
-  try
-  {
-    s->set_logic("QF_NIA");
-  }
-  catch (SmtException & e)
-  {
-    cout << e.what() << endl;
-  }
+  EXPECT_THROW(s->set_logic("QF_NIA"), IncorrectUsageException);
 
-  try
-  {
-    Sort intsort = s->make_sort(INT);
-  }
-  catch (SmtException & e)
-  {
-    cout << e.what() << endl;
-  }
+  EXPECT_THROW(s->make_sort(INT), NotImplementedException);
 
   Sort bvsort4 = s->make_sort(BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
 
-  try
-  {
-    s->assert_formula(s->make_term(Ge, x, y));
-  }
-  catch (SmtException & e)
-  {
-    cout << e.what() << endl;
-  }
-  return 0;
+  EXPECT_THROW(s->make_term(Ge, x, y), IncorrectUsageException);
 }

@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorNegNumbers, NegativeBitVectorValues)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
 
@@ -37,17 +37,9 @@ int main()
   Term four = s->make_term(4, bvsort8);
   Term neg_four = s->make_term(-4, bvsort8);
 
-  assert(neg_four == s->make_term("-4", bvsort8));
+  EXPECT_EQ(neg_four, s->make_term("-4", bvsort8));
 
-  try
-  {
-    Term impossible = s->make_term("-129", bvsort8);
-    assert(false);
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  EXPECT_THROW(s->make_term("-129", bvsort8), IncorrectUsageException);
 
   s->assert_formula(
       s->make_term(Not,
@@ -55,7 +47,5 @@ int main()
                                 s->make_term(BVAdd, four, neg_four),
                                 s->make_term(0, bvsort8))));
   Result r = s->check_sat();
-  assert(r.is_unsat());
-
-  return 0;
+  EXPECT_TRUE(r.is_unsat());
 }

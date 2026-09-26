@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorTransfer, TransferBetweenSolvers)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -50,17 +50,12 @@ int main()
   TermTranslator tt(s2);
 
   Term constraint2 = tt.transfer_term(constraint);
-  Term T2 = tt.transfer_term(T);
+  tt.transfer_term(T);
   // ensure it can handle transferring again (even though it already built the
   // node)
   tt.transfer_term(constraint);
   s2->assert_formula(constraint2);
 
-  cout << "term from solver 1: " << constraint << endl;
-  cout << "term from solver 2: " << constraint2 << endl;
-
-  assert(s->check_sat().is_sat());
-  assert(s2->check_sat().is_sat());
-
-  return 0;
+  EXPECT_TRUE(s->check_sat().is_sat());
+  EXPECT_TRUE(s2->check_sat().is_sat());
 }

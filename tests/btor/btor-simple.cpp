@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorSimple, ChildrenOfBVAdd)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -40,8 +40,6 @@ int main()
 
   for (auto c : xpy)
   {
-    assert(c == x || c == y);
+    EXPECT_TRUE(c == x || c == y);
   }
-
-  return 0;
 }

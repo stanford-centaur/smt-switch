@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorConstArrays, ConstArrays)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -43,14 +43,14 @@ int main()
   Term val = s->make_symbol("val", bvsort8);
   Term zero = s->make_term(0, bvsort8);
   Term const_arr = s->make_term(zero, arrsort);
-  assert(zero->is_value());
-  assert(!const_arr->is_symbolic_const());
-  assert(const_arr->is_value());
-  assert(const_arr->get_op().is_null());
+  EXPECT_TRUE(zero->is_value());
+  EXPECT_FALSE(const_arr->is_symbolic_const());
+  EXPECT_TRUE(const_arr->is_value());
+  EXPECT_TRUE(const_arr->get_op().is_null());
 
   for (auto c : const_arr)
   {
-    assert(c == zero);
+    EXPECT_EQ(c, zero);
   }
 
   Term wrarr = s->make_term(Store, const_arr, idx0, val);
@@ -60,8 +60,7 @@ int main()
       s->make_term(Distinct, idx0, idx1));
   s->assert_formula(constraint);
   Result r = s->check_sat();
-  cout << r << endl;
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // test transferring term to a different solver
   SmtSolver s2 = BoolectorSolverFactory::create(false);
@@ -72,17 +71,17 @@ int main()
   TermTranslator tt(s2);
 
   Term const_arr2 = tt.transfer_term(const_arr);
-  assert(!const_arr2->is_symbolic_const());
-  assert(const_arr2->is_value());
-  assert(const_arr2->get_op().is_null());
+  EXPECT_FALSE(const_arr2->is_symbolic_const());
+  EXPECT_TRUE(const_arr2->is_value());
+  EXPECT_TRUE(const_arr2->get_op().is_null());
 
   for (auto c : const_arr2)
   {
-    assert(c == tt.transfer_term(zero));
+    EXPECT_EQ(c, tt.transfer_term(zero));
   }
 
   // this solver has no assertions yet
-  assert(s2->check_sat().is_sat());
+  EXPECT_TRUE(s2->check_sat().is_sat());
   Sort bvsort4_2 = s2->make_sort(BV, 4);
   Sort bvsort8_2 = s2->make_sort(BV, 8);
   Sort arrsort_2 = s2->make_sort(ARRAY, bvsort4_2, bvsort8_2);
@@ -97,9 +96,6 @@ int main()
 
   // test substitution
   Term t = s2->substitute(constraint2, UnorderedTermMap{ { arr, arr2 } });
-  // s2->assert_formula(s2->substitute(constraint2, UnorderedTermMap{{arr,
-  // arr2}}));
-  // assert(s2->check_sat().is_unsat());
-
-  return 0;
+  s2->assert_formula(t);
+  EXPECT_TRUE(s2->check_sat().is_unsat());
 }

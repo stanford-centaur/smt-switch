@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorArrayModels, GetArrayValues)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -46,15 +46,21 @@ int main()
   s->assert_formula(constraint);
   Result r = s->check_sat();
 
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
+  Term x0_val = s->get_value(x0);
+  Term x1_val = s->get_value(x1);
+  Term y_val = s->get_value(y);
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x0)), x1_val);
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x1)), y_val);
+  EXPECT_NE(x1_val, y_val);
+
+  // x0 and x1 must differ (else x1 = arr[x1] = y), and the model reads arr
+  // at both, so the array assignment lists both indices
   Term out_const_base;
   UnorderedTermMap arr_map = s->get_array_values(arr, out_const_base);
-
-  for (auto elem : arr_map)
-  {
-    cout << elem.first << ": " << elem.second << endl;
-  }
-
-  return 0;
+  ASSERT_EQ(arr_map.count(x0_val), 1);
+  EXPECT_EQ(arr_map.at(x0_val), x1_val);
+  ASSERT_EQ(arr_map.count(x1_val), 1);
+  EXPECT_EQ(arr_map.at(x1_val), y_val);
 }

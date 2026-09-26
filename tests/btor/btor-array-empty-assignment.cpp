@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorArrayEmptyAssignment, NoStores)
 {
   // This simple test checks that memory is freed correctly
   // even if the array model has no stores
@@ -40,10 +40,9 @@ int main()
   Term arr = s->make_symbol("arr", array32_32);
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
   Term out_const_base;
   UnorderedTermMap arr_ass = s->get_array_values(arr, out_const_base);
-  assert(arr_ass.size() == 0);
-  return 0;
+  EXPECT_EQ(arr_ass.size(), 0);
 }
