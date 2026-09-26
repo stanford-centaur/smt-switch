@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(BzlaInterpolants, GetInterpolant)
 {
   SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
   Sort bv8 = s->make_sort(BV, 8);
@@ -36,14 +35,8 @@ int main()
   Term y = s->make_symbol("y", bv8);
   Term z = s->make_symbol("z", bv8);
 
-  try
-  {
-    s->assert_formula(s->make_term(Equal, x, s->make_term(0, bv8)));
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  EXPECT_THROW(s->assert_formula(s->make_term(Equal, x, s->make_term(0, bv8))),
+               IncorrectUsageException);
 
   Term A =
       s->make_term(And, s->make_term(BVUlt, x, y), s->make_term(BVUlt, y, z));
@@ -51,15 +44,7 @@ int main()
   Term I;
   Result r = s->get_interpolant(A, B, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   s->reset_assertions();
 
@@ -68,47 +53,21 @@ int main()
   B = s->make_term(BVUlt, x, z);
   r = s->get_interpolant(A, B, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // try getting an interpolant with A itself being unsat
   Term unsat_term =
       s->make_term(And, s->make_term(BVUgt, z, y), s->make_term(BVUgt, y, z));
   r = s->get_interpolant(unsat_term, B, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // try getting an interpolant with B itself being unsat
   r = s->get_interpolant(A, unsat_term, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // now try a satisfiable formula
   r = s->get_interpolant(A, s->make_term(BVUgt, x, z), I);
-  assert(r.is_sat());
-
-  return 0;
+  EXPECT_TRUE(r.is_sat());
 }

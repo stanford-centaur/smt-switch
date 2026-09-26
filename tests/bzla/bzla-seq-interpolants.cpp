@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,7 +26,6 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
 void check_itp_seq(const SmtSolver s,
                    const TermVec & formulas,
@@ -34,27 +33,10 @@ void check_itp_seq(const SmtSolver s,
 {
   TermVec itp_seq;
   Result r = s->get_sequence_interpolants(formulas, itp_seq);
-  if (expect_sat)
-  {
-    assert(r.is_sat() || r.is_unknown());
-    return;
-  }
-  if (r.is_unsat())
-  {
-    cout << "Found " << itp_seq.size() << " interpolants:" << endl;
-    for (const auto & itp : itp_seq)
-    {
-      cout << "\t" << itp << endl;
-    }
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_EQ(r.is_unsat(), !expect_sat);
 }
 
-int main()
+TEST(BzlaSeqInterpolants, GetSequenceInterpolants)
 {
   SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
   Sort bv8 = s->make_sort(BV, 8);
@@ -71,33 +53,19 @@ int main()
   Term t3 = s->make_term(BVUlt, y, w);                // y < w
   Term t4 = s->make_term(BVUlt, z, w);                // z < w
 
-  try
-  {
-    // incorrect usage with non-empty itp_seq
-    TermVec nonempty_seq = { t1 };
-    s->get_sequence_interpolants({ t1, t2 }, nonempty_seq);
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  // incorrect usage with non-empty itp_seq
+  TermVec nonempty_seq = { t1 };
+  EXPECT_THROW(s->get_sequence_interpolants({ t1, t2 }, nonempty_seq),
+               IncorrectUsageException);
 
-  try
-  {
-    // incorrect usage with only one input formula
-    TermVec itp_seq;
-    s->get_sequence_interpolants({ t1 }, itp_seq);
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  // incorrect usage with only one input formula
+  TermVec itp_seq;
+  EXPECT_THROW(s->get_sequence_interpolants({ t1 }, itp_seq),
+               IncorrectUsageException);
 
   check_itp_seq(s, { t1, t2, t3 });
   check_itp_seq(s, { t1, t2, t4 });      // pop 1, push 1
   check_itp_seq(s, { t1, t2, t4, t3 });  // push 1
   check_itp_seq(s, { t2, t1, t3 });      // pop 4, push 3
   check_itp_seq(s, { t2, t1 }, true);    // pop 2 (SAT query)
-
-  return 0;
 }
