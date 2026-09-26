@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Cvc5Interpolants, GetInterpolant)
 {
   SmtSolver s = Cvc5SolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
@@ -37,15 +36,9 @@ int main()
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
 
-  try
-  {
-    // x=0
-    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  // x=0
+  Term x_eq_0 = s->make_term(Equal, x, s->make_term(0, intsort));
+  EXPECT_THROW(s->assert_formula(x_eq_0), IncorrectUsageException);
 
   // x<y /\ y<z
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
@@ -53,38 +46,15 @@ int main()
   Term B = s->make_term(Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
-  bool got_interpolant = r.is_unsat();
-
-  if (got_interpolant)
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // try getting a second interpolant with different A and B
   A = s->make_term(And, s->make_term(Gt, x, y), s->make_term(Gt, y, z));
   B = s->make_term(Lt, x, z);
   r = s->get_interpolant(A, B, I);
-  got_interpolant = r.is_unsat();
-
-  if (got_interpolant)
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // now try a satisfiable formula
   r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
-  got_interpolant = (r.is_unsat());
-  assert(!got_interpolant);
-
-  return 0;
+  EXPECT_FALSE(r.is_unsat());
 }
