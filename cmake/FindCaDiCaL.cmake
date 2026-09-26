@@ -65,6 +65,9 @@ if(CaDiCaL_FOUND)
         INTERFACE_INCLUDE_DIRECTORIES "${CaDiCaL_INCLUDE_DIR}"
         INTERFACE_LINK_DIRECTORIES "${_cadical_library_dir}"
     )
+    # The directory again, as a flag. Without it, linking a program
+    # against a static smt-switch fails with "cannot find -lcadical".
+    target_link_libraries(CaDiCaL::cadical INTERFACE "-L${_cadical_library_dir}")
     unset(_cadical_library_dir)
   endif()
 endif()
