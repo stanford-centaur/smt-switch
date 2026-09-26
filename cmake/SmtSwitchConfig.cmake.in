@@ -78,6 +78,29 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
   # file globs that pattern to pick up its own per-configuration files, and
   # would drag every backend in with it.
   include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchBackendTargets-${_smt_switch_component}.cmake")
+
+  # cvc5 hands us picpoly and picpolyxx as plain library names, so the
+  # lookup cvc5/CMakeLists.txt does while building has to happen here too,
+  # on the machine that will do the linking. Beside libcvc5 itself first,
+  # where they sit when cvc5 built them, and where nothing else would look.
+  # The directory goes in as a flag as well, for a program linking a static
+  # smt-switch.
+  if(_smt_switch_component STREQUAL "cvc5")
+    include(ImportedLocation)
+    smt_switch_imported_location(cvc5::cvc5 _smt_switch_cvc5_library)
+    get_filename_component(_smt_switch_cvc5_libdir "${_smt_switch_cvc5_library}" DIRECTORY)
+    find_library(SmtSwitch_cvc5_POLY_LIBRARY NAMES picpoly HINTS "${_smt_switch_cvc5_libdir}")
+    mark_as_advanced(SmtSwitch_cvc5_POLY_LIBRARY)
+    if(SmtSwitch_cvc5_POLY_LIBRARY)
+      get_filename_component(_smt_switch_poly_dir "${SmtSwitch_cvc5_POLY_LIBRARY}" DIRECTORY)
+      target_link_directories(SmtSwitch::smt-switch-cvc5 INTERFACE "${_smt_switch_poly_dir}")
+      target_link_libraries(SmtSwitch::smt-switch-cvc5 INTERFACE "-L${_smt_switch_poly_dir}")
+      unset(_smt_switch_poly_dir)
+    endif()
+    unset(_smt_switch_cvc5_libdir)
+    unset(_smt_switch_cvc5_library)
+  endif()
+
   set(SmtSwitch_${_smt_switch_component}_FOUND TRUE)
 endforeach()
 unset(_smt_switch_component)

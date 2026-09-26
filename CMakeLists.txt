@@ -385,8 +385,9 @@ install(
 )
 
 # find_dependency runs on the consumer's machine, so the modules that locate
-# the solvers have to travel with the package. The remaining modules in cmake/
-# are only used while building smt-switch itself.
+# the solvers have to travel with the package, as does the one the config
+# itself calls. The remaining modules in cmake/ are only used while building
+# smt-switch.
 install(
   FILES
     "${PROJECT_SOURCE_DIR}/cmake/FindBitwuzla.cmake"
@@ -395,6 +396,7 @@ install(
     "${PROJECT_SOURCE_DIR}/cmake/FindMathSAT.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindMPFR.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindYices2.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/ImportedLocation.cmake"
   DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
 )
 

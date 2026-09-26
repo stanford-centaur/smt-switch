@@ -49,6 +49,17 @@ target_include_directories(
 # an installed package must not hand a consumer that path. Downstream gets it
 # from its own find_package(cvc5) instead.
 target_link_directories(smt-switch-cvc5 PUBLIC $<BUILD_INTERFACE:${cvc5_LIBRARY_DIR}>)
+# LibPoly is cvc5's private dependency, but its package names picpoly and
+# picpolyxx as plain libraries without saying where they are, so we have to fix
+# the link commands. cvc5's own prefix is looked in first, which is where they
+# sit when libpoly was auto-downloaded; failing that they are installed
+# somewhere of their own, and the search finds them there.
+find_library(cvc5_POLY_LIBRARY REQUIRED NAMES picpoly HINTS "${cvc5_LIBRARY_DIR}")
+find_library(cvc5_POLYXX_LIBRARY REQUIRED NAMES picpolyxx HINTS "${cvc5_LIBRARY_DIR}")
+mark_as_advanced(cvc5_POLY_LIBRARY cvc5_POLYXX_LIBRARY)
+get_filename_component(cvc5_POLY_LIBRARY_DIR "${cvc5_POLY_LIBRARY}" DIRECTORY)
+target_link_directories(smt-switch-cvc5 PUBLIC $<BUILD_INTERFACE:${cvc5_POLY_LIBRARY_DIR}>)
+
 target_link_libraries(smt-switch-cvc5 cvc5::cvc5parser)
 target_link_libraries(smt-switch-cvc5 cvc5::cvc5)
 target_link_libraries(smt-switch-cvc5 CaDiCaL::cadical)
@@ -57,15 +68,9 @@ target_link_libraries(smt-switch-cvc5 GMP::gmp)
 
 # setup.py links the extension module by hand rather than through a CMake
 # target, so a static build has to be told which archives sit behind this
-# backend. See python/setup.py.in. cvc5's link interface names picpoly and
-# picpolyxx as plain library names, which does not say where they are, hence
-# the lookup. GMP is left out; setup.py adds it for whichever backends need
-# it.
+# backend. See python/setup.py.in. GMP is left out; setup.py adds it for
+# whichever backends need it.
 if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  find_library(cvc5_POLY_LIBRARY REQUIRED NAMES picpoly HINTS "${cvc5_LIBRARY_DIR}")
-  find_library(cvc5_POLYXX_LIBRARY REQUIRED NAMES picpolyxx HINTS "${cvc5_LIBRARY_DIR}")
-  mark_as_advanced(cvc5_POLY_LIBRARY cvc5_POLYXX_LIBRARY)
-
   set(
     CVC5_STATIC_LINK_ARGS
     "${cvc5_LIBRARY}"
