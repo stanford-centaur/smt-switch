@@ -1,13 +1,13 @@
 macro(switch_add_msat_legacy_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/msat/${name}.cpp")
-  target_link_libraries(${name} smt-switch-msat)
-  target_link_libraries(${name} exec-utils)
+  target_link_libraries(${name} PRIVATE smt-switch-msat)
+  target_link_libraries(${name} PRIVATE exec-utils)
   add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
 macro(switch_add_msat_test name)
   switch_add_msat_legacy_test(${name})
-  target_link_libraries(${name} GTest::gtest_main)
+  target_link_libraries(${name} PRIVATE GTest::gtest_main)
 endmacro()
 
 # these tests don't use GoogleTest yet

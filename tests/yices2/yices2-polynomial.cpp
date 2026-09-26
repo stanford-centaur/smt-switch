@@ -19,7 +19,6 @@
 #include <memory>
 #include <vector>
 
-#include "gmp.h"
 #include "smt.h"
 #include "yices.h"
 #include "yices2_factory.h"

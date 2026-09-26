@@ -1,12 +1,12 @@
 macro(switch_add_btor_legacy_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/btor/${name}.cpp")
-  target_link_libraries(${name} smt-switch-btor)
+  target_link_libraries(${name} PRIVATE smt-switch-btor)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
 macro(switch_add_btor_test name)
   switch_add_btor_legacy_test(${name})
-  target_link_libraries(${name} GTest::gtest_main)
+  target_link_libraries(${name} PRIVATE GTest::gtest_main)
 endmacro()
 
 # these tests don't use GoogleTest yet
