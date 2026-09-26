@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <gmp.h>
-
 #include "yices.h"
 
 namespace smt {
