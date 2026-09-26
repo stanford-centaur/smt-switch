@@ -92,7 +92,11 @@ mark_as_advanced(Bitwuzla_INCLUDE_DIR)
 find_file(
   Bitwuzla_PKGCONFIG_FILE
   NAMES bitwuzla.pc
-  PATH_SUFFIXES lib/pkgconfig lib64/pkgconfig share/pkgconfig
+  PATH_SUFFIXES
+    lib/pkgconfig # the usual one
+    lib64/pkgconfig # where Fedora and SUSE put a 64-bit build
+    lib/${CMAKE_LIBRARY_ARCHITECTURE}/pkgconfig # Debian, carrying the triplet
+    share/pkgconfig # for a file that names no architecture
 )
 mark_as_advanced(Bitwuzla_PKGCONFIG_FILE)
 if(Bitwuzla_PKGCONFIG_FILE)
