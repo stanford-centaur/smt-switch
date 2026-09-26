@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Yices2ArrayModels, SelectValues)
 {
   SmtSolver s = Yices2SolverFactory::create(true);
   s->set_opt("produce-models", "true");
@@ -46,14 +45,12 @@ int main()
   s->assert_formula(constraint);
   Result r = s->check_sat();
 
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
   // Yices2 does not support getting array values directly.
-  Term arr_val_x0 = s->get_value(s->make_term(Select, arr, x0));
-  Term arr_val_x1 = s->get_value(s->make_term(Select, arr, x1));
-
-  cout << arr_val_x0 << endl;
-  cout << arr_val_x1 << endl;
-
-  return 0;
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x0))->to_int(),
+            s->get_value(x1)->to_int());
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x1))->to_int(),
+            s->get_value(y)->to_int());
+  EXPECT_NE(s->get_value(x1)->to_int(), s->get_value(y)->to_int());
 }

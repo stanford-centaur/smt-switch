@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Yices2Tests, SortsTermsAndModels)
 {
   SmtSolver s = Yices2SolverFactory::create(true);
   s->set_logic("QF_ABV");
@@ -37,26 +36,26 @@ int main()
   Term x = s->make_symbol("x", bvsort8);
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
-  Term _true = s->make_term(true);
-  assert(x != y);
+  s->make_term(true);
+  EXPECT_NE(x, y);
   Term x_copy = x;
-  assert(x == x_copy);
+  EXPECT_EQ(x, x_copy);
 
   // check sorts
   Sort xsort = x->get_sort();
   Sort ysort = y->get_sort();
-  assert(xsort == ysort);
+  EXPECT_EQ(xsort, ysort);
 
   Sort arr_sort = s->make_sort(ARRAY, s->make_sort(BV, 4), bvsort8);
-  assert(xsort != arr_sort);
-  assert(xsort != arr_sort->get_indexsort());
-  assert(xsort == arr_sort->get_elemsort());
+  EXPECT_NE(xsort, arr_sort);
+  EXPECT_NE(xsort, arr_sort->get_indexsort());
+  EXPECT_EQ(xsort, arr_sort->get_elemsort());
 
   Term xpy = s->make_term(BVAdd, x, y);
   Term z_eq_xpy = s->make_term(Equal, z, xpy);
 
-  assert(x->is_symbolic_const());
-  assert(!xpy->is_symbolic_const());
+  EXPECT_TRUE(x->is_symbolic_const());
+  EXPECT_FALSE(xpy->is_symbolic_const());
 
   Op ext30 = Op(Extract, 3, 0);
   Term x_lower = s->make_term(ext30, x);
@@ -66,9 +65,9 @@ int main()
       s->make_sort(FUNCTION, SortVec{ x_lower->get_sort(), x->get_sort() });
   Term uf = s->make_symbol("f", funsort);
   Term uf_app = s->make_term(Apply, uf, x_lower);
-  assert(uf_app->get_op() == Apply);
-  assert(uf->get_sort() == funsort);
-  assert(uf->get_sort() != uf_app->get_sort());
+  EXPECT_EQ(uf_app->get_op(), Apply);
+  EXPECT_EQ(uf->get_sort(), funsort);
+  EXPECT_NE(uf->get_sort(), uf_app->get_sort());
 
   s->assert_formula(z_eq_xpy);
   s->assert_formula(s->make_term(BVUlt, x, s->make_term(4, bvsort8)));
@@ -82,21 +81,12 @@ int main()
       s->make_term(BVUge, uf_app, s->make_term("00000011", bvsort8, 2)));
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
-  Term xc = s->get_value(x);
-  Term yc = s->get_value(y);
-  Term zc = s->get_value(z);
-  Term x_extc = s->get_value(x_ext);
-  Term x_lowerc = s->get_value(x_lower);
-  Term uf_appc = s->get_value(uf_app);
-
-  cout << "Got the following values:" << endl;
-  cout << "\t" << x << " " << xc << endl;
-  cout << "\t" << y << " " << yc->to_int() << endl;
-  cout << "\t" << z << " " << zc->to_int() << endl;
-  cout << "\t" << x_lower << " " << x_lowerc->to_int() << endl;
-  cout << "\t" << x_ext << " " << x_extc->to_int() << endl;
-  cout << "\t" << uf_app << " " << uf_appc->to_int() << endl;
-  return 0;
+  EXPECT_EQ(s->get_value(x)->to_int(), 3);
+  EXPECT_EQ(s->get_value(y)->to_int(), 3);
+  EXPECT_EQ(s->get_value(z)->to_int(), 6);
+  EXPECT_EQ(s->get_value(x_ext)->to_int(), 3);
+  EXPECT_EQ(s->get_value(x_lower)->to_int(), 3);
+  EXPECT_EQ(s->get_value(uf_app)->to_int(), 3);
 }
