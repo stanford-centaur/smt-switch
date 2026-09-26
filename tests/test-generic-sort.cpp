@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 
 #include "generic_datatype.h"
@@ -25,40 +25,39 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(GenericSort, SortProperties)
 {
   GenericSort s1(INT);
   GenericSort s2(INT);
-  std::cout << "testing basic properties of sorts" << std::endl;
-  assert(s1.hash() == s2.hash());
-  assert(s1.to_string() == s2.to_string());
-  assert(s2.to_string() == s1.to_string());
-  assert((s1.get_sort_kind()) == (s2.get_sort_kind()));
-  assert(s1.get_sort_kind() == INT);
+  EXPECT_EQ(s1.hash(), s2.hash());
+  EXPECT_EQ(s1.to_string(), s2.to_string());
+  EXPECT_EQ(s2.to_string(), s1.to_string());
+  EXPECT_EQ(s1.get_sort_kind(), s2.get_sort_kind());
+  EXPECT_EQ(s1.get_sort_kind(), INT);
 
   Sort int1 = make_generic_sort(INT);
   Sort int2 = make_generic_sort(INT);
-  assert(int1 == int2);
+  EXPECT_EQ(int1, int2);
   Sort bv4 = make_generic_sort(BV, 4);
   Sort bv5 = make_generic_sort(BV, 5);
-  assert(bv4 != bv5);
-  assert(bv4 != int1);
+  EXPECT_NE(bv4, bv5);
+  EXPECT_NE(bv4, int1);
   Sort inttobv4 = make_generic_sort(FUNCTION, int1, bv4);
   Sort inttobv4_second = make_generic_sort(FUNCTION, int2, bv4);
-  assert(inttobv4 == inttobv4_second);
+  EXPECT_EQ(inttobv4, inttobv4_second);
   Sort arr = make_generic_sort(ARRAY, int1, bv4);
-  assert(arr != inttobv4);
-  assert(arr->get_indexsort() == int1);
-  assert(arr->get_elemsort() == bv4);
-  assert(bv4->get_width() == 4);
+  EXPECT_NE(arr, inttobv4);
+  EXPECT_EQ(arr->get_indexsort(), int1);
+  EXPECT_EQ(arr->get_elemsort(), bv4);
+  EXPECT_EQ(bv4->get_width(), 4);
 
   Sort us1 = make_uninterpreted_generic_sort("sort1", 0);
   Sort us2 = make_uninterpreted_generic_sort("sort1", 0);
-  assert(us1 == us2);
+  EXPECT_EQ(us1, us2);
   Sort us3 = make_uninterpreted_generic_sort("sort3", 0);
-  assert(us1 != us3);
-  assert(us1->get_uninterpreted_name() == "sort1");
-  assert(us1->get_arity() == 0);
+  EXPECT_NE(us1, us3);
+  EXPECT_EQ(us1->get_uninterpreted_name(), "sort1");
+  EXPECT_EQ(us1->get_arity(), 0);
 
   // Creates a new datatype with one constructor
   DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>("testSort1");
@@ -83,15 +82,13 @@ int main()
       make_shared<GenericDatatypeSort>(new2_dt);
   // Asserts that the sorts are distinct from one another and that the
   // copy operator works with said sorts
-  assert(dt_sort != dt_sort2);
+  EXPECT_NE(dt_sort, dt_sort2);
   auto copy = dt_sort;
-  assert(dt_sort == copy);
+  EXPECT_EQ(dt_sort, copy);
   // Compares string names of the sorts
-  assert(dt_sort->to_string() != dt_sort2->to_string());
+  EXPECT_NE(dt_sort->to_string(), dt_sort2->to_string());
   // Checks for valid sortKinds
-  assert((dt_sort->get_sort_kind()) == (dt_sort2->get_sort_kind()));
-  assert(dt_sort->get_sort_kind() == DATATYPE);
-  assert(dt_sort2->get_sort_kind() == DATATYPE);
-
-  return 0;
+  EXPECT_EQ(dt_sort->get_sort_kind(), dt_sort2->get_sort_kind());
+  EXPECT_EQ(dt_sort->get_sort_kind(), DATATYPE);
+  EXPECT_EQ(dt_sort2->get_sort_kind(), DATATYPE);
 }
