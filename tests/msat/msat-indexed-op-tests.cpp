@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatIndexedOps, RotateExtractRepeat)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -42,14 +41,11 @@ int main()
   Op ext74 = Op(Extract, 7, 4);
   Term x_upper = s->make_term(ext74, x);
 
-  Op op = x_upper->get_op();
-  cout << "Op: " << op << endl;
-
   Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
   Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
 
-  assert(y_ror->to_string() == "((_ rotate_right 2) y)");
-  assert(y_rol->to_string() == "((_ rotate_left 2) y)");
+  EXPECT_EQ(y_ror->to_string(), "((_ rotate_right 2) y)");
+  EXPECT_EQ(y_rol->to_string(), "((_ rotate_left 2) y)");
 
   s->assert_formula(s->make_term(Equal, y_ror, y_rol));
   s->assert_formula(s->make_term(Distinct, y, s->make_term(0, bvsort9)));
@@ -57,15 +53,13 @@ int main()
       Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
-  Term xc = s->get_value(x);
-  Term x_upperc = s->get_value(x_upper);
-  Term yc = s->get_value(y);
-
-  cout << "Results:" << endl;
-  cout << x << ": " << xc->to_int() << endl;
-  cout << x_upper << ": " << x_upperc->to_int() << endl;
-  cout << y << ": " << yc->to_int() << endl;
-  return 0;
+  // ror 2 = rol 2 makes rotating by 4 the identity, which on 9 bits forces
+  // all bits of y to be equal
+  EXPECT_EQ(s->get_value(y)->to_int(), 0b1'1111'1111);
+  // x repeats one bit 9 times, so x and x_upper are all zeros or all ones
+  auto xv = s->get_value(x)->to_int();
+  EXPECT_TRUE(xv == 0 || xv == 0b1'1111'1111);
+  EXPECT_EQ(s->get_value(x_upper)->to_int(), xv == 0b1'1111'1111 ? 0b1111 : 0);
 }

@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatArrays, EqualIndicesEqualReads)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -38,9 +37,6 @@ int main()
   Term y = s->make_symbol("y", bvsort32);
   Term arr = s->make_symbol("arr", array32_32);
 
-  cout << "Sorts:" << endl;
-  cout << "\tbvsort32 : " << bvsort32 << endl;
-  cout << "\tarray32_32 : " << array32_32 << endl;
   s->assert_formula(
       s->make_term(Not,
                    s->make_term(Implies,
@@ -48,6 +44,5 @@ int main()
                                 s->make_term(Equal,
                                              s->make_term(Select, arr, x),
                                              s->make_term(Select, arr, y)))));
-  assert(!s->check_sat().is_sat());
-  return 0;
+  EXPECT_TRUE(s->check_sat().is_unsat());
 }

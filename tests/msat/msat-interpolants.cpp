@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatInterpolants, GetInterpolant)
 {
   SmtSolver s = MsatSolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
@@ -37,29 +36,15 @@ int main()
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
 
-  try
-  {
-    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  Term x_eq_0 = s->make_term(Equal, x, s->make_term(0, intsort));
+  EXPECT_THROW(s->assert_formula(x_eq_0), IncorrectUsageException);
 
   Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
   Term B = s->make_term(Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   s->reset_assertions();
 
@@ -68,19 +53,9 @@ int main()
   B = s->make_term(Lt, x, z);
   r = s->get_interpolant(A, B, I);
 
-  if (r.is_unsat())
-  {
-    cout << "Found interpolant: " << I << endl;
-  }
-  else
-  {
-    cout << "Didn't find an interpolant..." << endl;
-    assert(false);
-  }
+  EXPECT_TRUE(r.is_unsat());
 
   // now try a satisfiable formula
   r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
-  assert(r.is_sat());
-
-  return 0;
+  EXPECT_TRUE(r.is_sat());
 }

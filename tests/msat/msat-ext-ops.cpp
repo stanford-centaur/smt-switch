@@ -14,7 +14,8 @@
 **
 **/
 
-#include <cassert>
+#include <gtest/gtest.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -26,12 +27,11 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
 // Tests for ops that MathSAT doesn't support directly
 // We had to rewrite them using other primitive ops
 
-int main()
+TEST(MsatExtOps, RewrittenOpsMatchDefinitions)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -51,7 +51,7 @@ int main()
                                 s->make_term(And, s->make_term(Not, a), b))));
   Result r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // implies
   s->push();
@@ -61,7 +61,7 @@ int main()
       s->make_term(Not, s->make_term(And, a, s->make_term(Not, b)))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // distinct
   s->push();
@@ -72,10 +72,10 @@ int main()
                                 s->make_term(Not, s->make_term(Equal, a, b)))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Sort bvsort8 = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort8);
@@ -89,7 +89,7 @@ int main()
                    s->make_term(BVNot, s->make_term(BVAnd, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVNor
   s->push();
@@ -99,7 +99,7 @@ int main()
                    s->make_term(BVNot, s->make_term(BVOr, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVXnor
   s->push();
@@ -109,7 +109,7 @@ int main()
                    s->make_term(BVNot, s->make_term(BVXor, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVSmod
   size_t width = x->get_sort()->get_width();
@@ -155,7 +155,7 @@ int main()
   s->assert_formula(
       s->make_term(Distinct, s->make_term(BVSmod, x, y), smod_def));
   r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
 
   // BVUgt
@@ -165,7 +165,7 @@ int main()
       s->make_term(Or, s->make_term(BVUle, x, y), s->make_term(BVUgt, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVUge
   s->push();
@@ -174,7 +174,7 @@ int main()
       s->make_term(Or, s->make_term(BVUlt, x, y), s->make_term(BVUge, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVSgt
   s->push();
@@ -183,7 +183,7 @@ int main()
       s->make_term(Or, s->make_term(BVSle, x, y), s->make_term(BVSgt, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // BVSge
   s->push();
@@ -192,11 +192,11 @@ int main()
       s->make_term(Or, s->make_term(BVSlt, x, y), s->make_term(BVSge, x, y))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Integer tests
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Sort intsort = s->make_sort(INT);
   Term w = s->make_symbol("w", intsort);
@@ -209,7 +209,7 @@ int main()
       Distinct, s->make_term(Plus, w, s->make_term(Negate, w)), zero));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Abs
   s->push();
@@ -217,7 +217,7 @@ int main()
       s->make_term(Not, s->make_term(Ge, s->make_term(Abs, v), zero)));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Is_Int
   Term onep3 = s->make_symbol("onep3", s->make_sort(REAL));
@@ -227,14 +227,14 @@ int main()
   s->assert_formula(s->make_term(Is_Int, onep3));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Minus
   s->push();
   s->assert_formula(s->make_term(Distinct, s->make_term(Minus, v, v), zero));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Lt
   s->push();
@@ -242,7 +242,7 @@ int main()
       Not, s->make_term(Or, s->make_term(Lt, w, v), s->make_term(Ge, w, v))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Gt
   s->push();
@@ -250,7 +250,7 @@ int main()
       Not, s->make_term(Or, s->make_term(Gt, w, v), s->make_term(Le, w, v))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   // Ge
   s->push();
@@ -258,7 +258,5 @@ int main()
       Not, s->make_term(Or, s->make_term(Ge, w, v), s->make_term(Lt, w, v))));
   r = s->check_sat();
   s->pop();
-  assert(r.is_unsat());
-
-  return 0;
+  EXPECT_TRUE(r.is_unsat());
 }

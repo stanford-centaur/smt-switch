@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,78 +26,87 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatTraversal, ChildrenAndGrandchildren)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
   Sort bvsort8 = s->make_sort(BV, 8);
-  cout << "making x" << endl;
   Term x = s->make_symbol("x", bvsort8);
-  cout << "making y" << endl;
   Term y = s->make_symbol("y", bvsort8);
-  cout << "making z" << endl;
   Term z = s->make_symbol("z", bvsort8);
 
-  // cout << "making a" << endl;
-  // Term a = s->make_term(BVAdd, x, y);
-  cout << "making constraint" << endl;
-  // Term constraint = s->make_term(Equal, z, a);
-  Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
-  std::cout << "right after making constraint" << std::endl;
+  Term a = s->make_term(BVAdd, x, y);
+  Term constraint = s->make_term(Equal, z, a);
   s->assert_formula(constraint);
 
+  EXPECT_EQ(constraint->get_op(), Equal);
+
+  // z has no children and x + y has two, so this visits x and y once each
+  TermVec children;
+  TermVec grandchildren;
   for (auto c : constraint)
   {
+    children.push_back(c);
     for (auto t : c)
     {
-      cout << c->hash() << endl;
+      grandchildren.push_back(t);
+      c->hash();
     }
   }
 
-  // Identity traversal
-  // UnorderedTermMap cache;
-  // TermVec to_visit{constraint};
-  // Term t;
-  // while(to_visit.size())
-  // {
+  EXPECT_EQ(UnorderedTermSet(children.begin(), children.end()),
+            UnorderedTermSet({ z, a }));
+  EXPECT_EQ(children.size(), 2);
+  EXPECT_EQ(UnorderedTermSet(grandchildren.begin(), grandchildren.end()),
+            UnorderedTermSet({ x, y }));
+  EXPECT_EQ(grandchildren.size(), 2);
 
-  //   t = to_visit.back();
-  //   to_visit.pop_back();
+  // Identity traversal: rebuild every term from its op and its rebuilt
+  // children, which must give back the same term
+  UnorderedTermMap cache;
+  UnorderedTermSet visited;
+  TermVec to_visit{ constraint };
+  Term t;
+  while (to_visit.size())
+  {
+    t = to_visit.back();
+    to_visit.pop_back();
 
-  //   cout << "in visitor with " << t << " and visited = ";
+    if (cache.find(t) != cache.end())
+    {
+      continue;
+    }
 
-  //   if (cache.find(t) == cache.end())
-  //   {
-  //     cout << "0" << endl;
-  //     to_visit.push_back(t);
-  //     for (auto c : t)
-  //     {
-  //       to_visit.push_back(c);
-  //     }
-  //   }
-  //   else
-  //   {
-  //     cout << "1" << endl;
-  //     TermVec cached_children;
-  //     for (auto c : t)
-  //     {
-  //       cached_children.push_back(cache.at(c));
-  //     }
+    if (visited.find(t) == visited.end())
+    {
+      // first visit: come back to t after its children
+      visited.insert(t);
+      to_visit.push_back(t);
+      for (auto c : t)
+      {
+        to_visit.push_back(c);
+      }
+    }
+    else
+    {
+      TermVec cached_children;
+      for (auto c : t)
+      {
+        cached_children.push_back(cache.at(c));
+      }
 
-  //     if (cached_children.size())
-  //     {
-  //       // rebuild
-  //       cache[t] = s->make_term(t->get_op(), cached_children);
-  //     }
-  //     else
-  //     {
-  //       cache[t] = t;
-  //     }
-  //   }
-  // }
-
-  return 0;
+      if (cached_children.size())
+      {
+        // rebuild
+        cache[t] = s->make_term(t->get_op(), cached_children);
+      }
+      else
+      {
+        cache[t] = t;
+      }
+    }
+  }
+  EXPECT_EQ(cache.at(constraint), constraint);
 }
