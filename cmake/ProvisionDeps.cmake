@@ -45,10 +45,6 @@ Cache Variables
 
 #]=======================================================================]
 
-# For CMAKE_INSTALL_LIBDIR, which needs a language enabled to be worked out
-# and so has to come from here rather than from the provisioner.
-include(GNUInstallDirs)
-
 option(SMT_SWITCH_AUTO_DEPS "Download and build dependencies that cannot be found" ON)
 option(SMT_SWITCH_ALLOW_GPL "Permit automatic download of GPL-licensed dependencies (Yices2)" OFF)
 
@@ -125,9 +121,6 @@ function(_smt_switch_run_provision_driver target)
       CMAKE_OSX_DEPLOYMENT_TARGET
       CMAKE_OSX_SYSROOT
       Python_EXECUTABLE
-      # Where this platform keeps libraries. Worked out here rather than by
-      # the provisioner, which enables no language and so cannot tell.
-      CMAKE_INSTALL_LIBDIR
   )
     if(DEFINED ${_variable})
       list(APPEND _arguments "-D${_variable}=${${_variable}}")

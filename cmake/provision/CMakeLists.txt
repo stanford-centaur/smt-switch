@@ -255,31 +255,33 @@ smt_switch_dependency(
 )
 
 # --------------------------------------------------------------- bitwuzla --
-# Meson, driven through Bitwuzla's own configure.py. CaDiCaL ships no
-# pkg-config file and Bitwuzla looks for it with the compiler before falling
-# back to pkg-config, so its prefix goes on the compiler's search path. See
-# cmake/FindBitwuzla.cmake for the whole story, and the patch below for why
-# putting it there is not enough on its own.
+# Builds its own version of CaDiCaL, which would collide with the copies used by
+# boolector and cvc5, so we rename its namespace while compiling. Reap is an
+# internal data structure that CaDiCaL oddly puts in the global namespace, so we
+# also need to rename it.
+set(BITWUZLA_CADICAL "-DCaDiCaL=smt_switch_bzla_CaDiCaL -DReap=smt_switch_bzla_Reap")
 
-smt_switch_prepend_path(CPATH "${CADICAL_PREFIX}/include" BITWUZLA_CPATH)
-smt_switch_prepend_path(LIBRARY_PATH "${CADICAL_PREFIX}/lib" BITWUZLA_LIBRARY_PATH)
-
+# The plain COMMAND options are run after the step they follow.
 smt_switch_dependency(
   bitwuzla
   URL "${BITWUZLA_URL}"
-  DEPENDS cadical
-  # patch rather than a substitution, so that a release whose text has moved
-  # on stops the build instead of silently leaving Bitwuzla to fetch and
-  # build a second CaDiCaL of its own.
+  # Ask for a library name nothing provides, so that the lookup fails and
+  # Bitwuzla falls through to its wrap instead of linking a CaDiCaL from the
+  # machine, which would carry none of the patches the wrap applies.
   PATCH_COMMAND
-    patch -p1 --forward -i
-    "${CMAKE_CURRENT_SOURCE_DIR}/patches/bitwuzla-search-library-path.patch"
+    sed -i.orig "s/find_library('cadical',/find_library('cadical-not-installed',/"
+    <SOURCE_DIR>/src/meson.build
+  # Drop the C API from the CaDiCaL build. It is not namespaced, so the renaming
+  # fix does not apply, but bitwuzla does not use any of it.
+  COMMAND
+    sed -i.orig -e "/'ccadical.cpp',/d" -e "/'ipasir.cpp',/d"
+    <SOURCE_DIR>/subprojects/packagefiles/cadical/src/meson.build
   CONFIGURE_COMMAND
-    "${CMAKE_COMMAND}" -E env "${BITWUZLA_CPATH}" "${BITWUZLA_LIBRARY_PATH}"
     "${Python_EXECUTABLE}" <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
-  BUILD_COMMAND
-    "${CMAKE_COMMAND}" -E env "${BITWUZLA_CPATH}" "${BITWUZLA_LIBRARY_PATH}" meson compile -C
-    <SOURCE_DIR>/build
+  COMMAND
+    meson configure <SOURCE_DIR>/build "-Dcpp_args=${BITWUZLA_CADICAL}"
+    "-Dcadical:cpp_args=${BITWUZLA_CADICAL}"
+  BUILD_COMMAND meson compile -C <SOURCE_DIR>/build
   INSTALL_COMMAND meson install -C <SOURCE_DIR>/build
   BUILD_IN_SOURCE TRUE
 )
