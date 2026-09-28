@@ -2,16 +2,12 @@ cmake_minimum_required(VERSION 3.14)
 
 project(smt-switch)
 
-# The library and its public headers are C++11. Three places raise it, each
-# saying so on its own target: the cvc5 and bitwuzla backends, whose solver
-# APIs are C++17; tests/, for GoogleTest; and the z3 backend, at C++14.
-#
-# Pinned rather than merely requested, so that reaching for a newer feature
-# fails here instead of compiling against whatever the compiler defaults to.
-# The guard leaves -DCMAKE_CXX_STANDARD= able to override it; a plain set()
-# shadows the cache entry that creates, and the flag would not change.
+# C++17 unless -DCMAKE_CXX_STANDARD= asks for more, older is refused.
+set(cxx_standards_too_old 98 11 14)
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(CMAKE_CXX_STANDARD IN_LIST cxx_standards_too_old)
+  message(FATAL_ERROR "smt-switch is C++17; CMAKE_CXX_STANDARD is ${CMAKE_CXX_STANDARD}")
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -208,7 +204,7 @@ target_include_directories(
   PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIRS}>" $<INSTALL_INTERFACE:include>
 )
 # States the floor for the targets in this tree that consume these headers
-target_compile_features(smt-switch PUBLIC cxx_std_11)
+target_compile_features(smt-switch PUBLIC cxx_std_17)
 
 set(THREADS_PREFER_PTHREAD_FLAG True)
 find_package(Threads)

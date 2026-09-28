@@ -6,10 +6,10 @@ all: cvc5_qf_ufbv btor_qf_ufbv
 # example-install in this directory, which is automated by build.sh
 
 cvc5_qf_ufbv: cvc5_qf_ufbv.cpp
-	$(CXX) -std=c++11 -I./example-install/include -L./example-install/lib -Wl,-rpath,./example-install/lib $< -o $@ -lsmt-switch-cvc5 -lsmt-switch
+	$(CXX) -std=c++17 -I./example-install/include -L./example-install/lib -Wl,-rpath,./example-install/lib $< -o $@ -lsmt-switch-cvc5 -lsmt-switch
 
 btor_qf_ufbv: btor_qf_ufbv.cpp
-	$(CXX) -std=c++11 -I./example-install/include -L./example-install/lib -Wl,-rpath,./example-install/lib $< -o $@ -lsmt-switch-btor -lsmt-switch
+	$(CXX) -std=c++17 -I./example-install/include -L./example-install/lib -Wl,-rpath,./example-install/lib $< -o $@ -lsmt-switch-btor -lsmt-switch
 
 clean:
 	rm -rf cvc5_qf_ufbv btor_qf_ufbv
