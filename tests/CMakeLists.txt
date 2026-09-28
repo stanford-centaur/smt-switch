@@ -28,7 +28,10 @@ if(NOT GTest_FOUND)
   FetchContent_MakeAvailable(googletest)
 endif()
 
-add_library(exec-utils SHARED "${PROJECT_SOURCE_DIR}/tests/exec_utils.cpp")
+# Static, because a shared library would carry its own copy of a static
+# GTest, and the tests would work only while the linker happens to resolve
+# their GTest symbols to that copy rather than to a second one.
+add_library(exec-utils STATIC "${PROJECT_SOURCE_DIR}/tests/exec_utils.cpp")
 target_include_directories(exec-utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(exec-utils PRIVATE GTest::gmock)
 
