@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(smt-switch)
 
-# C++17 unless -DCMAKE_CXX_STANDARD= asks for more; older is refused rather
-# than silently raised by the cxx_std_17 below. CMake cannot compare
-# standards and 98 sorts above 17, so the old ones are named. REQUIRED makes
-# a compiler that cannot manage the result say so rather than fall back.
+# C++17 unless -DCMAKE_CXX_STANDARD= asks for more, older is refused.
 set(cxx_standards_too_old 98 11 14)
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
