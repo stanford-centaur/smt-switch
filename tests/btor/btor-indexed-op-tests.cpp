@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorIndexedOps, RotateExtractRepeat)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -42,9 +42,6 @@ int main()
   Op ext74 = Op(Extract, 7, 4);
   Term x_upper = s->make_term(ext74, x);
 
-  Op op = x_upper->get_op();
-  cout << "Op: " << op << endl;
-
   Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
   Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
 
@@ -54,15 +51,10 @@ int main()
       Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
-  Term xc = s->get_value(x);
-  Term x_upperc = s->get_value(x_upper);
-  Term yc = s->get_value(y);
-
-  cout << "Results:" << endl;
-  cout << x << ": " << xc->to_int() << endl;
-  cout << x_upper << ": " << x_upperc->to_int() << endl;
-  cout << y << ": " << yc->to_int() << endl;
-  return 0;
+  EXPECT_EQ(s->get_value(y)->to_int(), 511);
+  auto x_val = s->get_value(x)->to_int();
+  EXPECT_TRUE(x_val == 0 || x_val == 511);
+  EXPECT_EQ(s->get_value(x_upper)->to_int(), x_val == 511 ? 15 : 0);
 }

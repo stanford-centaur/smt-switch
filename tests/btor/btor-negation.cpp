@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-void lite_solver_test()
+TEST(BtorNegation, LiteSolver)
 {
   // Boolector doesn't have a NOT node
   // instead they just set the LSB of the id/pointer
@@ -46,16 +46,16 @@ void lite_solver_test()
   Term nult5 = s->make_term(Not, ult5);
 
   // Boolector turns everything into bv ops
-  assert(nult5->get_op() == BVNot);
+  EXPECT_EQ(nult5->get_op(), BVNot);
   for (auto c : nult5)
   {
-    assert(c == ult5);
+    EXPECT_EQ(c, ult5);
   }
-  assert(s->make_term(Not, nult5) == ult5);
-  assert(s->make_term(Not, nult5)->get_op() == BVUlt);
+  EXPECT_EQ(s->make_term(Not, nult5), ult5);
+  EXPECT_EQ(s->make_term(Not, nult5)->get_op(), BVUlt);
 }
 
-void logging_solver_test()
+TEST(BtorNegation, LoggingSolver)
 {
   // creating a solver WITH smt-switch level logging of terms
   SmtSolver s = BoolectorSolverFactory::create(true);
@@ -67,20 +67,13 @@ void logging_solver_test()
   Term ult5 = s->make_term(BVUlt, x, five);
   Term nult5 = s->make_term(Not, ult5);
 
-  assert(nult5->get_op() == Not);
+  EXPECT_EQ(nult5->get_op(), Not);
   for (auto c : nult5)
   {
-    assert(c == ult5);
+    EXPECT_EQ(c, ult5);
   }
 
   // terms no longer rewritten on the fly
-  assert(s->make_term(Not, nult5) != ult5);
-  assert(s->make_term(Not, nult5)->get_op() == Not);
-}
-
-int main()
-{
-  lite_solver_test();
-  logging_solver_test();
-  return 0;
+  EXPECT_NE(s->make_term(Not, nult5), ult5);
+  EXPECT_EQ(s->make_term(Not, nult5)->get_op(), Not);
 }

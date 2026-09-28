@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +28,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(BtorSubstitute, SubstituteAllSymbols)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -61,8 +61,7 @@ int main()
   UnorderedTermSet visited;
   TermVec to_visit({ constraint });
   Term t;
-  // only read by the asserts below, which NDEBUG compiles out
-  [[maybe_unused]] size_t num_symbols = 0;
+  size_t num_symbols = 0;
   while (to_visit.size())
   {
     t = to_visit.back();
@@ -78,14 +77,11 @@ int main()
       if (t->is_symbol())
       {
         ++num_symbols;
-        cout << "checking " << t << endl;
-        assert(orig_set.find(t) != orig_set.end());
+        EXPECT_NE(orig_set.find(t), orig_set.end());
       }
     }
   }
-  assert(num_symbols == orig_set.size());
-
-  cout << endl;
+  EXPECT_EQ(num_symbols, orig_set.size());
 
   Term timed_constraint = s->substitute(
       constraint,
@@ -111,12 +107,9 @@ int main()
       if (t->is_symbol())
       {
         ++num_symbols;
-        cout << "checking " << t << endl;
-        assert(timed_set.find(t) != timed_set.end());
+        EXPECT_NE(timed_set.find(t), timed_set.end());
       }
     }
   }
-  assert(num_symbols == timed_set.size());
-
-  return 0;
+  EXPECT_EQ(num_symbols, timed_set.size());
 }
