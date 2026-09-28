@@ -14,6 +14,12 @@ endif()
 if(NOT GTest_FOUND)
   include(FetchContent)
   set(INSTALL_GTEST OFF)
+  # Give extracted files the time of extraction, so that changing the URL
+  # rebuilds GoogleTest. CMake before 3.24 has neither the policy nor the
+  # DOWNLOAD_EXTRACT_TIMESTAMP option.
+  if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+  endif()
   FetchContent_Declare(
     googletest
     URL "https://github.com/google/googletest/archive/refs/tags/v1.18.0.tar.gz"
