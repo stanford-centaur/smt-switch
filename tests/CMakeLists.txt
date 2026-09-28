@@ -35,6 +35,28 @@ add_library(exec-utils STATIC "${PROJECT_SOURCE_DIR}/tests/exec_utils.cpp")
 target_include_directories(exec-utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(exec-utils PRIVATE GTest::gmock)
 
+# Gives the tests smt-switch and the backends to link. When those are
+# static, this is a shared library holding them whole, so that the solvers
+# are linked once rather than into every test. Linking the archives instead
+# would pull in only what something in the library uses, and each test
+# would then need a second copy for the rest. Otherwise it only links them.
+get_target_property(_smt_switch_type smt-switch TYPE)
+if(_smt_switch_type STREQUAL "STATIC_LIBRARY")
+  add_library(test-solvers SHARED $<TARGET_OBJECTS:smt-switch>)
+  foreach(_backend IN LISTS SOLVER_BACKEND_LIBS)
+    target_sources(test-solvers PRIVATE $<TARGET_OBJECTS:${_backend}>)
+  endforeach()
+  target_link_libraries(test-solvers PRIVATE ${SOLVER_BACKEND_LIBS} Threads::Threads)
+  target_include_directories(
+    test-solvers
+    PUBLIC $<TARGET_PROPERTY:smt-switch,INTERFACE_INCLUDE_DIRECTORIES>
+  )
+  target_compile_features(test-solvers PUBLIC cxx_std_17)
+else()
+  add_library(test-solvers INTERFACE)
+  target_link_libraries(test-solvers INTERFACE smt-switch ${SOLVER_BACKEND_LIBS})
+endif()
+
 # add solver-specific test directories
 
 if(BUILD_BITWUZLA)
@@ -67,15 +89,13 @@ endif()
 
 # general tests
 
-add_library(available-solvers SHARED "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
+add_library(available-solvers STATIC "${PROJECT_SOURCE_DIR}/tests/available_solvers.cpp")
 target_include_directories(available-solvers PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(available-solvers PUBLIC smt-switch)
-target_link_libraries(available-solvers PRIVATE ${SOLVER_BACKEND_LIBS})
+target_link_libraries(available-solvers PUBLIC test-solvers)
 
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")
   target_link_libraries(${name} PRIVATE available-solvers)
-  target_link_libraries(${name} PRIVATE smt-switch)
   target_link_libraries(${name} PRIVATE GTest::gtest_main)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()

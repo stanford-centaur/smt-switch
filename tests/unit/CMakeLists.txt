@@ -1,7 +1,6 @@
 macro(switch_add_unit_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/unit/${name}.cpp")
   target_link_libraries(${name} PRIVATE available-solvers)
-  target_link_libraries(${name} PRIVATE smt-switch)
   target_link_libraries(${name} PRIVATE GTest::gtest_main)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()

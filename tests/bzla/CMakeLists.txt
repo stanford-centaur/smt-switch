@@ -1,6 +1,6 @@
 macro(switch_add_bzla_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/bzla/${name}.cpp")
-  target_link_libraries(${name} PRIVATE smt-switch-bitwuzla)
+  target_link_libraries(${name} PRIVATE test-solvers)
   target_link_libraries(${name} PRIVATE exec-utils)
   target_link_libraries(${name} PRIVATE GTest::gtest_main)
   add_test(NAME ${name} COMMAND ${name})
