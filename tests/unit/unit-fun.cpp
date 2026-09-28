@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
   Op f1(And);
-  assert(f1.num_idx == 0);
+  assert(f1.indices.empty());
   assert(f1.prim_op == And);
   Op f2(And);
   Op f3(Or);

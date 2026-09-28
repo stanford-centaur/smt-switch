@@ -733,38 +733,39 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
 
   if (op.prim_op == Extract)
   {
-    res = yices_bvextract(
-        yterm->term, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
+    res = yices_bvextract(yterm->term,
+                          narrow_index(op, op.indices.at(1)),
+                          narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Zero_Extend)
   {
-    res = yices_zero_extend(yterm->term, narrow_index(op, op.idx0));
+    res = yices_zero_extend(yterm->term, narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Sign_Extend)
   {
-    res = yices_sign_extend(yterm->term, narrow_index(op, op.idx0));
+    res = yices_sign_extend(yterm->term, narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Repeat)
   {
-    if (op.num_idx < 1)
+    if (op.indices.empty())
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
-    res = yices_bvrepeat(yterm->term, narrow_index(op, op.idx0));
+    res = yices_bvrepeat(yterm->term, narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Rotate_Left)
   {
-    res = yices_rotate_left(yterm->term, narrow_index(op, op.idx0));
+    res = yices_rotate_left(yterm->term, narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Rotate_Right)
   {
-    res = yices_rotate_right(yterm->term, narrow_index(op, op.idx0));
+    res = yices_rotate_right(yterm->term, narrow_index(op, op.indices.at(0)));
   }
   else if (op.prim_op == Int_To_BV)
   {
-    res = yices_bvconst_int64(yterm->term, op.idx0);
+    res = yices_bvconst_int64(yterm->term, op.indices.at(0));
   }
-  else if (!op.num_idx)
+  else if (op.indices.empty())
   {
     if (yices_unary_ops.find(op.prim_op) != yices_unary_ops.end())
     {
@@ -799,7 +800,7 @@ Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
   shared_ptr<Yices2Term> yterm0 = static_pointer_cast<Yices2Term>(t0);
   shared_ptr<Yices2Term> yterm1 = static_pointer_cast<Yices2Term>(t1);
   term_t res;
-  if (!op.num_idx)
+  if (op.indices.empty())
   {
     if (yices_binary_ops.find(op.prim_op) != yices_binary_ops.end())
     {
@@ -855,7 +856,7 @@ Term Yices2Solver::make_term(Op op,
   shared_ptr<Yices2Term> yterm1 = static_pointer_cast<Yices2Term>(t1);
   shared_ptr<Yices2Term> yterm2 = static_pointer_cast<Yices2Term>(t2);
   term_t res;
-  if (!op.num_idx)
+  if (op.indices.empty())
   {
     if (yices_ternary_ops.find(op.prim_op) != yices_ternary_ops.end())
     {

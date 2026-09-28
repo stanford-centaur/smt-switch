@@ -219,26 +219,17 @@ std::string to_string(PrimOp op)
 
 std::string Op::to_string() const
 {
-  std::string res;
-  if (num_idx)
+  if (indices.empty())
   {
-    res += "(_ ";
+    return smt::to_string(prim_op);
   }
 
-  res += smt::to_string(prim_op);
-
-  if (num_idx >= 1)
+  std::string res = "(_ " + smt::to_string(prim_op);
+  for (std::uint64_t index : indices)
   {
-    res += " " + std::to_string(idx0);
+    res += " " + std::to_string(index);
   }
-  if (num_idx >= 2)
-  {
-    res += " " + std::to_string(idx1);
-  }
-  if (num_idx)
-  {
-    res += ")";
-  }
+  res += ")";
   return res;
 }
 
@@ -249,27 +240,14 @@ std::pair<std::size_t, std::size_t> get_arity(PrimOp po)
   return primop2arity.at(po);
 }
 
-bool operator==(Op o1, Op o2)
+bool operator==(const Op & o1, const Op & o2)
 {
-  if (o1.prim_op != o2.prim_op)
-  {
-    return false;
-  }
-  else if (o1.num_idx != o2.num_idx)
-  {
-    return false;
-  }
-  else
-  {
-    return (o1.num_idx == 0) || ((o1.num_idx == 1) && (o1.idx0 == o2.idx0))
-           || ((o1.num_idx == 2) && (o1.idx0 == o2.idx0)
-               && (o1.idx1 == o2.idx1));
-  }
+  return o1.prim_op == o2.prim_op && o1.indices == o2.indices;
 }
 
-bool operator!=(Op o1, Op o2) { return !(o1 == o2); }
+bool operator!=(const Op & o1, const Op & o2) { return !(o1 == o2); }
 
-std::ostream & operator<<(std::ostream & output, const Op o)
+std::ostream & operator<<(std::ostream & output, const Op & o)
 {
   output << o.to_string();
   return output;

@@ -639,7 +639,7 @@ Sort ite_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 
 Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.idx0 - op.idx1 + 1);
+  return solver->make_sort(BV, op.indices.at(0) - op.indices.at(1) + 1);
 }
 
 Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
@@ -649,17 +649,17 @@ Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 
 Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.idx0 + sorts[0]->get_width());
+  return solver->make_sort(BV, op.indices.at(0) + sorts[0]->get_width());
 }
 
 Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.idx0 * sorts[0]->get_width());
+  return solver->make_sort(BV, op.indices.at(0) * sorts[0]->get_width());
 }
 
 Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.idx0);
+  return solver->make_sort(BV, op.indices.at(0));
 }
 
 Sort apply_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)

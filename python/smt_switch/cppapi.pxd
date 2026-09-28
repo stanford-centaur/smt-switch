@@ -45,9 +45,7 @@ cdef extern from "ops.h" namespace "smt":
         string to_string() except +
         bint is_null() except +
         c_PrimOp prim_op
-        uint64_t num_idx
-        uint64_t idx0
-        uint64_t idx1
+        vector[uint64_t] indices
 
     bint operator==(c_Op op1, c_Op op2) except +
     bint operator!=(c_Op op1, c_Op op2) except +

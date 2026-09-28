@@ -16,6 +16,8 @@
 
 #include <cstdint>
 #include <limits>
+#include <stdexcept>
+#include <vector>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -101,14 +103,18 @@ TEST_P(UnitTests, IndexedOps1)
 // Not parameterized: neither case involves a solver. The narrowing itself is
 // only reached by the backends whose API takes 32-bit indices, so testing it
 // through make_term would exercise nothing on mathsat or bitwuzla.
-TEST(UnitOpIndexTests, UnsetIndicesReadAsZero)
+TEST(UnitOpIndexTests, IndicesFollowTheConstructor)
 {
-  ASSERT_EQ(Op().idx0, 0);
-  ASSERT_EQ(Op().idx1, 0);
-  ASSERT_EQ(Op(Extract).idx0, 0);
-  ASSERT_EQ(Op(Extract).idx1, 0);
-  // the one-index constructor leaves idx1 out of its initializer list
-  ASSERT_EQ(Op(Zero_Extend, 5).idx1, 0);
+  using Indices = std::vector<std::uint64_t>;
+
+  ASSERT_EQ(Op().indices, Indices{});
+  ASSERT_EQ(Op(Extract).indices, Indices{});
+  ASSERT_EQ(Op(Zero_Extend, 5).indices, Indices({ 5 }));
+  ASSERT_EQ(Op(Extract, 2, 0).indices, Indices({ 2, 0 }));
+
+  // an index that was never given is now absent rather than zero
+  ASSERT_THROW((void)Op(Extract).indices.at(0), std::out_of_range);
+  ASSERT_THROW((void)Op(Zero_Extend, 5).indices.at(1), std::out_of_range);
 }
 
 TEST(UnitOpIndexTests, NarrowIndexRejectsTooLarge)

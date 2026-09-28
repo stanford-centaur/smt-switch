@@ -25,6 +25,7 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 namespace smt {
 
@@ -141,24 +142,21 @@ enum PrimOp
 
 /**
    Represents operators
-   If num_idx > 0 then it's an indexed operator
+   A non-empty indices makes it an indexed operator
  */
 struct Op
 {
-  Op() : prim_op(NUM_OPS_AND_NULL), num_idx(0) {};
-  Op(PrimOp o) : prim_op(o), num_idx(0) {};
-  Op(PrimOp o, std::uint64_t idx0) : prim_op(o), num_idx(1), idx0(idx0) {};
+  Op() = default;
+  Op(PrimOp o) : prim_op(o) {};
+  Op(PrimOp o, std::uint64_t idx0) : prim_op(o), indices{ idx0 } {};
   Op(PrimOp o, std::uint64_t idx0, std::uint64_t idx1)
-      : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1) {};
+      : prim_op(o), indices{ idx0, idx1 } {};
   std::string to_string() const;
   bool is_null() const;
-  PrimOp prim_op;
-  std::uint64_t num_idx;
-  // Zeroed so that the constructors leaving one or both unset still produce a
-  // readable Op: the public Python properties read them without consulting
-  // num_idx.
-  std::uint64_t idx0 = 0;
-  std::uint64_t idx1 = 0;
+  PrimOp prim_op = NUM_OPS_AND_NULL;
+  // One element per index, so that the count cannot disagree with the values
+  // and neither can be read before it is set. SMT-LIB indices are naturals.
+  std::vector<std::uint64_t> indices;
 };
 using UnorderedOpSet = std::unordered_set<Op>;
 
@@ -169,9 +167,11 @@ using UnorderedOpSet = std::unordered_set<Op>;
 std::pair<std::size_t, std::size_t> get_arity(PrimOp po);
 
 std::string to_string(PrimOp op);
-bool operator==(Op o1, Op o2);
-bool operator!=(Op o1, Op o2);
-std::ostream & operator<<(std::ostream & output, const Op o);
+// By reference: Op owns a vector, so taking it by value would copy on every
+// comparison, and UnorderedOpSet compares on every lookup.
+bool operator==(const Op & o1, const Op & o2);
+bool operator!=(const Op & o1, const Op & o2);
+std::ostream & operator<<(std::ostream & output, const Op & o);
 
 }  // namespace smt
 
@@ -191,7 +191,7 @@ struct hash<smt::PrimOp>
 template <>
 struct hash<smt::Op>
 {
-  size_t operator()(const smt::Op o) const
+  size_t operator()(const smt::Op & o) const
   {
     // The hash function for op computes the string hash
     hash<string> str_hash;

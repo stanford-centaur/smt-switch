@@ -543,21 +543,8 @@ Term BzlaSolver::make_term(Op op, const Term & t) const
   }
   bitwuzla::Kind bkind = it->second;
 
-  if (!op.num_idx)
-  {
-    return std::make_shared<BzlaTerm>(tm->mk_term(bkind, { bterm->term }));
-  }
-  else if (op.num_idx == 1)
-  {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm->term }, { op.idx0 }));
-  }
-  else
-  {
-    Assert(op.num_idx == 2);
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm->term }, { op.idx0, op.idx1 }));
-  }
+  return std::make_shared<BzlaTerm>(
+      tm->mk_term(bkind, { bterm->term }, op.indices));
 }
 
 Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
@@ -573,22 +560,8 @@ Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
   }
   bitwuzla::Kind bkind = it->second;
 
-  if (!op.num_idx)
-  {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term }));
-  }
-  else if (op.num_idx == 1)
-  {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term }, { op.idx0 }));
-  }
-  else
-  {
-    Assert(op.num_idx == 2);
-    return std::make_shared<BzlaTerm>(tm->mk_term(
-        bkind, { bterm0->term, bterm1->term }, { op.idx0, op.idx1 }));
-  }
+  return std::make_shared<BzlaTerm>(
+      tm->mk_term(bkind, { bterm0->term, bterm1->term }, op.indices));
 }
 
 Term BzlaSolver::make_term(Op op,
@@ -615,25 +588,8 @@ Term BzlaSolver::make_term(Op op,
   }
   bitwuzla::Kind bkind = it->second;
 
-  if (!op.num_idx)
-  {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term, bterm2->term }));
-  }
-  else
-  {
-    Assert(op.num_idx > 0 && op.num_idx <= 1);
-    const std::vector<bitwuzla::Term> bitwuzla_terms(
-        { bterm0->term, bterm1->term, bterm2->term });
-    std::vector<uint64_t> indices({ op.idx0 });
-    if (op.num_idx == 2)
-    {
-      indices.push_back(op.idx1);
-    }
-
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, bitwuzla_terms, indices));
-  }
+  return std::make_shared<BzlaTerm>(tm->mk_term(
+      bkind, { bterm0->term, bterm1->term, bterm2->term }, op.indices));
 }
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
@@ -652,21 +608,8 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   }
   bitwuzla::Kind bkind = it->second;
 
-  if (!op.num_idx)
-  {
-    return std::make_shared<BzlaTerm>(tm->mk_term(bkind, bitwuzla_terms));
-  }
-  else
-  {
-    Assert(op.num_idx > 0 && op.num_idx <= 2);
-    std::vector<uint64_t> indices({ op.idx0 });
-    if (op.num_idx == 2)
-    {
-      indices.push_back(op.idx1);
-    }
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, bitwuzla_terms, indices));
-  }
+  return std::make_shared<BzlaTerm>(
+      tm->mk_term(bkind, bitwuzla_terms, op.indices));
 }
 
 void BzlaSolver::reset()
