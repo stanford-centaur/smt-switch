@@ -112,8 +112,6 @@ endif()
 # others installed as well.
 set(SMT_SWITCH_CMAKE_DIR lib/cmake/SmtSwitch)
 
-add_definitions(-DSMT_SWITCH_DIR=${PROJECT_SOURCE_DIR})
-
 set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 set(
   SOURCES
@@ -216,8 +214,16 @@ set(THREADS_PREFER_PTHREAD_FLAG True)
 find_package(Threads)
 target_link_libraries(smt-switch PRIVATE Threads::Threads)
 
-# Should we build python bindings
+# Declared together rather than beside the blocks that build them, so that
+# the whole set is settled before any of it is acted on.
 option(BUILD_PYTHON_BINDINGS "Build Python bindings")
+option(BUILD_TESTS "Should we build the test suite" ON)
+option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
+option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
+option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
+option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
+option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
+option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 
 # Decide on Python version before setting up googletest
 # Otherwise might use wrong version
@@ -228,9 +234,6 @@ if(BUILD_PYTHON_BINDINGS)
   # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
   find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
-
-# should we build boolector?
-option(BUILD_BTOR "Should we build the libraries for boolector" OFF)
 if(BUILD_BTOR)
   smt_switch_provision_if_missing(Boolector boolector)
   # Boolector installs only boolector.h and btortypes.h, but boolector_term.h
@@ -240,38 +243,23 @@ if(BUILD_BTOR)
     set(Boolector_SOURCE_DIR "${Boolector_ROOT}/src/boolector")
   endif()
   add_subdirectory(btor)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-btor)
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-btor)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${BTOR_STATIC_LINK_ARGS})
-
-  add_definitions(-DBUILD_BTOR)
-  add_definitions(-DBOOLECTOR_ROOT=${Boolector_ROOT})
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_BTOR BOOLECTOR_ROOT=${Boolector_ROOT})
 endif()
-
-# should we build bitwuzla?
-option(BUILD_BITWUZLA "Should we build the libraries for bitwuzla" OFF)
 if(BUILD_BITWUZLA)
   smt_switch_provision_if_missing(Bitwuzla bitwuzla)
   add_subdirectory(bitwuzla)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-bitwuzla)
-
-  add_definitions(-DBUILD_BITWUZLA)
-  add_definitions(-DBITWUZLA_ROOT=${Bitwuzla_ROOT})
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-bitwuzla)
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_BITWUZLA BITWUZLA_ROOT=${Bitwuzla_ROOT})
 endif()
-
-# should we build cvc5?
-option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 if(BUILD_CVC5)
   smt_switch_provision_if_missing(cvc5 cvc5)
   add_subdirectory(cvc5)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-cvc5)
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-cvc5)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${CVC5_STATIC_LINK_ARGS})
-
-  add_definitions(-DBUILD_CVC5)
-  add_definitions(-DCVC5_ROOT=${cvc5_ROOT})
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_CVC5 CVC5_ROOT=${cvc5_ROOT})
 endif()
-
-# should we build msat?
-option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 if(BUILD_MSAT)
   # Never provisioned. MathSAT is under a custom licence that does not let us
   # fetch it on a user's behalf, so it is the one solver that still has to be
@@ -286,46 +274,30 @@ if(BUILD_MSAT)
     )
   endif()
   add_subdirectory(msat)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-msat)
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-msat)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${MSAT_STATIC_LINK_ARGS})
-
-  add_definitions(-DBUILD_MSAT)
-  add_definitions(-DMATHSAT_ROOT=${MathSAT_ROOT})
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_MSAT MATHSAT_ROOT=${MathSAT_ROOT})
 endif()
-
-# should we build yices2?
-option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 if(BUILD_YICES2)
   smt_switch_provision_if_missing(Yices2 yices2)
   add_subdirectory(yices2)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-yices2)
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-yices2)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${YICES2_STATIC_LINK_ARGS})
-
-  add_definitions(-DBUILD_YICES2)
-  add_definitions(-DYICES2_ROOT=${Yices2_ROOT})
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_YICES2 YICES2_ROOT=${Yices2_ROOT})
 endif()
-
-# should we build z3?
-option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 if(BUILD_Z3)
   smt_switch_provision_if_missing(Z3 z3)
-  add_definitions(-DBUILD_Z3)
+  list(APPEND SOLVER_COMPILE_DEFINITIONS BUILD_Z3)
   add_subdirectory(z3)
-  set(SOLVER_BACKEND_LIBS ${SOLVER_BACKEND_LIBS} smt-switch-z3)
+  list(APPEND SOLVER_BACKEND_LIBS smt-switch-z3)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${Z3_LIBRARY_LOCATION})
 endif()
-
 if(BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
 endif()
-
-# should we build the tests
-option(BUILD_TESTS "Should we build the test suite" ON)
-
 if(BUILD_TESTS)
   # build testing infrastructure
   enable_testing()
-
   # Add tests subdirectory
   # The CMakeLists.txt file there sets up googletest
   # and builds all the parametrized tests
@@ -334,17 +306,14 @@ endif()
 
 # install smt-switch
 install(TARGETS smt-switch EXPORT SmtSwitchTargets DESTINATION lib)
-
 # install public headers
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
   DESTINATION include/smt-switch
   ${EXCLUDE_HEADERS_INSTALL}
 )
-
 if(SMTLIB_READER)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.h" DESTINATION include/smt-switch)
-
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/location.hh" DESTINATION include/smt-switch)
 endif()
 

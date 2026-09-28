@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.14)
 project(smt-switch-deps LANGUAGES NONE)
 
 include(ExternalProject)
-include("${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
 
 # The project's find modules live one directory up; the yices2 recipe needs
 # FindGMP.
@@ -190,7 +190,7 @@ smt_switch_dependency(
   BUILD_IN_SOURCE TRUE
   INSTALL_COMMAND
     "${CMAKE_COMMAND}" -DSOURCE_DIR=<SOURCE_DIR> -DINSTALL_DIR=<INSTALL_DIR> -P
-    "${CMAKE_CURRENT_SOURCE_DIR}/install-cadical.cmake"
+    "${CMAKE_CURRENT_LIST_DIR}/install-cadical.cmake"
 )
 
 # ------------------------------------------------------------- btor2tools --

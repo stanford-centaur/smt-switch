@@ -27,6 +27,10 @@ take whichever the linker would normally prefer.
 Yices2 is built against GMP, so a consumer has to link :module:`FindGMP`'s
 ``GMP::gmp`` alongside this target.
 
+Threads the target carries itself.  We configure Yices2 with
+``--enable-thread-safety``, so the library we install wants pthreads, and
+nothing in what Yices2 installs records that.
+
 Result Variables
 ^^^^^^^^^^^^^^^^
 
@@ -68,6 +72,7 @@ if(Yices2_FOUND)
   set(Yices2_LIBRARIES "${Yices2_LIBRARY}")
 
   if(NOT TARGET Yices2::yices)
+    find_package(Threads REQUIRED)
     add_library(Yices2::yices UNKNOWN IMPORTED GLOBAL)
     set_target_properties(
       Yices2::yices
@@ -75,5 +80,6 @@ if(Yices2_FOUND)
         IMPORTED_LOCATION "${Yices2_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${Yices2_INCLUDE_DIR}"
     )
+    target_link_libraries(Yices2::yices INTERFACE Threads::Threads)
   endif()
 endif()

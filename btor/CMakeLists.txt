@@ -1,14 +1,3 @@
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-find_package(Threads REQUIRED)
-find_package(Boolector REQUIRED)
-
-# Boolector's package declares libbtor2parser.a and libcadical.a in the link
-# interface of Boolector::boolector, so linking that one target is enough.
-include(ImportedLocation)
-smt_switch_imported_location(Boolector::boolector Boolector_LIBRARY)
-get_target_property(Boolector_LINK_LIBRARIES Boolector::boolector INTERFACE_LINK_LIBRARIES)
-
 add_library(
   smt-switch-btor
   "${SMT_SWITCH_LIB_TYPE}"
@@ -19,16 +8,26 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_term.cpp"
   "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/memstream.c"
 )
-add_library(SmtSwitch::smt-switch-btor ALIAS smt-switch-btor)
+target_include_directories(
+  smt-switch-btor
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(smt-switch-btor PUBLIC smt-switch)
 
 # memstream.c is compiled into this library, so its header is only needed
 # while building it.
 target_include_directories(smt-switch-btor PRIVATE "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 
-target_include_directories(
-  smt-switch-btor
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-)
+find_package(Boolector REQUIRED)
+target_link_libraries(smt-switch-btor PUBLIC Boolector::boolector)
+
+# Boolector's quantifier solver uses pthreads, which its package omits.
+find_package(Threads REQUIRED)
+target_link_libraries(smt-switch-btor PRIVATE Threads::Threads)
+
+# Some systems keep the math functions outside libc, and boolector uses them.
+target_link_libraries(smt-switch-btor PRIVATE m)
+
 # boolector_term.h needs btorcore.h, btornode.h and utils/btornodeiter.h,
 # which Boolector does not install: only boolector.h and btortypes.h are part
 # of its public API. Hence the source tree in addition to the package.
@@ -47,23 +46,22 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${Boolector_SOURCE_DIR}/src>
 )
 
-target_link_libraries(smt-switch-btor Boolector::boolector)
-target_link_libraries(smt-switch-btor smt-switch)
-target_link_libraries(smt-switch-btor Threads::Threads)
-target_link_libraries(smt-switch-btor m)
+include(ImportedLocation)
+smt_switch_imported_location(Boolector::boolector Boolector_LIBRARY)
+get_target_property(Boolector_LINK_LIBRARIES Boolector::boolector INTERFACE_LINK_LIBRARIES)
 
 # setup.py links the extension module by hand rather than through a CMake
 # target, so a static build has to be told which archives sit behind this
 # backend. See python/setup.py.in.
 set(BTOR_STATIC_LINK_ARGS "${Boolector_LIBRARY}" ${Boolector_LINK_LIBRARIES} PARENT_SCOPE)
 
+add_library(SmtSwitch::smt-switch-btor ALIAS smt-switch-btor)
 install(TARGETS smt-switch-btor EXPORT SmtSwitchBackendTargets-btor DESTINATION lib)
 install(
   EXPORT SmtSwitchBackendTargets-btor
   NAMESPACE SmtSwitch::
   DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
 )
-# install headers -- for expert use only
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   DESTINATION include/smt-switch

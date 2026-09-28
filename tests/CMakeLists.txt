@@ -3,6 +3,10 @@ enable_testing()
 # GoogleTest 1.14 and newer stop the build with an #error below C++17
 set(CMAKE_CXX_STANDARD 17)
 
+# Which solvers were built, and where. Read only by the tests, so
+# defined only for them rather than for the whole project.
+add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
+
 option(SYSTEM_GTEST "Should we try to use the system GTest" ON)
 if(SYSTEM_GTEST)
   find_package(GTest 1.14 CONFIG)
@@ -64,9 +68,9 @@ target_link_libraries(available-solvers PRIVATE ${SOLVER_BACKEND_LIBS})
 
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")
-  target_link_libraries(${name} available-solvers)
-  target_link_libraries(${name} smt-switch)
-  target_link_libraries(${name} GTest::gtest_main)
+  target_link_libraries(${name} PRIVATE available-solvers)
+  target_link_libraries(${name} PRIVATE smt-switch)
+  target_link_libraries(${name} PRIVATE GTest::gtest_main)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
