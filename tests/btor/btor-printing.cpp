@@ -53,7 +53,8 @@ TEST(BtorPrintingTest, SymbolName)
   command += " >";
   command += witness_filename;
   command += " 2>&1";
-  std::system(command.c_str());
+  int status = std::system(command.c_str());
+  ASSERT_NE(status, -1) << "could not run " << command;
   std::remove(smt_filename.c_str());
   std::ifstream witness_file(witness_filename);
   std::stringstream output;

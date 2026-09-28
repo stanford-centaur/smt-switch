@@ -82,25 +82,23 @@ const std::vector<SolverEnum> solver_enums({
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
-  SolverEnum se = sc.solver_enum;
-  bool logging = sc.is_logging_solver;
-  switch (se)
+  switch (sc.solver_enum)
   {
 #ifdef BUILD_BTOR
     case BTOR: {
-      return BoolectorSolverFactory::create(logging);
+      return BoolectorSolverFactory::create(sc.is_logging_solver);
       break;
     }
 #endif
 #ifdef BUILD_BITWUZLA
     case BZLA: {
-      return BitwuzlaSolverFactory::create(logging);
+      return BitwuzlaSolverFactory::create(sc.is_logging_solver);
       break;
     }
 #endif
 #ifdef BUILD_CVC5
     case CVC5: {
-      return Cvc5SolverFactory::create(logging);
+      return Cvc5SolverFactory::create(sc.is_logging_solver);
       break;
     }
 #ifndef __APPLE__
@@ -118,7 +116,7 @@ SmtSolver create_solver(SolverConfiguration sc)
       const std::chrono::seconds response_timeout(2);
       SmtSolver generic_solver =
           std::make_shared<GenericSolver>(path, args, response_timeout, 5);
-      if (logging)
+      if (sc.is_logging_solver)
       {
         return std::make_shared<LoggingSolver>(generic_solver);
       }
@@ -132,19 +130,19 @@ SmtSolver create_solver(SolverConfiguration sc)
 #endif
 #ifdef BUILD_MSAT
     case MSAT: {
-      return MsatSolverFactory::create(logging);
+      return MsatSolverFactory::create(sc.is_logging_solver);
       break;
     }
 #endif
 #ifdef BUILD_YICES2
     case YICES2: {
-      return Yices2SolverFactory::create(logging);
+      return Yices2SolverFactory::create(sc.is_logging_solver);
       break;
     }
 #endif
 #ifdef BUILD_Z3
     case Z3: {
-      return Z3SolverFactory::create(logging);
+      return Z3SolverFactory::create(sc.is_logging_solver);
       break;
     }
 #endif
@@ -156,8 +154,7 @@ SmtSolver create_solver(SolverConfiguration sc)
 
 SmtSolver create_interpolating_solver(SolverConfiguration sc)
 {
-  SolverEnum se = sc.solver_enum;
-  switch (se)
+  switch (sc.solver_enum)
   {
 #ifdef BUILD_CVC5
     case CVC5_INTERPOLATOR: {
