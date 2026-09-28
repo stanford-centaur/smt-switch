@@ -15,10 +15,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Restricted to C++ because btor/ compiles a C file.
-add_compile_options(
-  "$<$<COMPILE_LANGUAGE:CXX>:-Werror=non-virtual-dtor;-Werror=return-type;-Werror=type-limits>"
+set(
+  cxx_warnings
+  -Wall # questionable constructions that are easy to avoid
+  -Wextra # more of them, a few of which can be deliberate
+  -Wpedantic # whatever the standard the tree is built to does not allow
+  -Wnon-virtual-dtor # a polymorphic base with a non-virtual dtor
+  -Woverloaded-virtual # a derived declaration hiding a base overload
+  -Wundef # an #if on a macro that was never defined
 )
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -161,13 +167,17 @@ if(SMTLIB_READER)
 
   add_flex_bison_dependency(SmtLibScanner SmtLibParser)
 
-  # bison's skeleton sets yynerrs_ without reading it. Only that one warning
-  # is turned off, rather than all of them with -w, because smtlibparser.yy's
-  # actions compile into these generated files too and their warnings are ours.
+  # bison's skeleton sets yynerrs_ without reading it.
   set_source_files_properties(
     ${BISON_SmtLibParser_OUTPUTS}
-    ${FLEX_SmtLibScanner_OUTPUTS}
     PROPERTIES COMPILE_OPTIONS -Wno-unused-but-set-variable
+  )
+  # Apple's flex reports 2.6.4 and is not the 2.6.4 everyone else builds: its
+  # skeleton declares yy_n_chars a yy_size_t where upstream has an int, so on
+  # macOS alone it is compared against the int yy_buf_size.
+  set_source_files_properties(
+    ${FLEX_SmtLibScanner_OUTPUTS}
+    PROPERTIES COMPILE_OPTIONS -Wno-sign-compare
   )
 
   # putting generated header files in build dir
