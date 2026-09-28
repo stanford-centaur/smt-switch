@@ -293,8 +293,13 @@ fi
 # options derived from the flags above, so that an explicit -D comes first and
 # the derived value wins if both set the same variable. The build type is the
 # exception: no flag sets it, so the default goes first and an explicit
-# -DCMAKE_BUILD_TYPE overrides it.
-set -- "-DCMAKE_BUILD_TYPE=Release" "$@"
+# -DCMAKE_BUILD_TYPE overrides it. A multi-config generator ignores the build
+# type and picks the configuration at build time, so passing one triggers an
+# "unused variable" warning.
+case ${CMAKE_GENERATOR:-} in
+  "Ninja Multi-Config" | Xcode | "Visual Studio "*) ;;
+  *) set -- "-DCMAKE_BUILD_TYPE=Release" "$@" ;;
+esac
 
 [ "$install_prefix" != default ] &&
   set -- "$@" "-DCMAKE_INSTALL_PREFIX=$install_prefix"
