@@ -38,10 +38,6 @@ target_link_libraries(smt-switch-cvc5 PUBLIC GMP::gmp)
 # Some systems keep the math functions outside libc, and cvc5 uses them.
 target_link_libraries(smt-switch-cvc5 PRIVATE m)
 
-# cvc5's API takes std::optional and returns std::variant, so this backend and
-# the cvc5_*.h headers it installs need C++17 even though smt-switch does not.
-target_compile_features(smt-switch-cvc5 PUBLIC cxx_std_17)
-
 include(ImportedLocation)
 smt_switch_imported_location(cvc5::cvc5 cvc5_LIBRARY)
 get_filename_component(cvc5_LIBRARY_DIR "${cvc5_LIBRARY}" DIRECTORY)

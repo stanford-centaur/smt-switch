@@ -107,19 +107,10 @@ them. GitHub uses that file automatically; locally it needs
   - This library attempts to make use of modern C++ design paradigms whenever
     possible. The philosophy here is that it is better to rely on the standard
     library than to adopt another dependency such as `boost`.
-  - The library and its public headers are C++11, so a consumer needs nothing
-    newer. Keep it that way: the top-level `CMakeLists.txt` pins that standard
-    and `examples/Makefile` builds against it with `-std=c++11`. Note the pin is
-    what enforces the floor; a bare `target_compile_features(... cxx_std_11)`
-    only records a minimum, and adds no `-std` flag when the compiler already
-    defaults higher, so a newer feature would compile here and break someone
-    else.
-  - Three parts of the tree ask for more, each on its own target and none of
-    them reachable from `smt.h`. The cvc5 and bitwuzla backends need C++17,
-    because their solver APIs take `std::optional` and `std::variant`; `tests/`
-    needs C++17, because GoogleTest 1.14 and newer refuse to build below it; and
-    the z3 backend needs C++14 for `std::make_unique` and the `s` string literal
-    suffix in `z3_solver.cpp`.
+  - The whole tree is C++17, which is what the README asks of a compiler and
+    what cvc5, Bitwuzla and GoogleTest each require regardless. The top-level
+    `CMakeLists.txt` pins it and `examples/Makefile` builds against it with
+    `-std=c++17`.
 - The abstract classes provide a common interface, but they were designed to
   give each solver as much flexibility as possible
 

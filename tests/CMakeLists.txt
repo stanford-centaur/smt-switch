@@ -1,8 +1,5 @@
 enable_testing()
 
-# GoogleTest 1.14 and newer stop the build with an #error below C++17
-set(CMAKE_CXX_STANDARD 17)
-
 # Which solvers were built, and where. Read only by the tests, so
 # defined only for them rather than for the whole project.
 add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
