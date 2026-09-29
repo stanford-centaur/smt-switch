@@ -620,8 +620,8 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
   for (auto elem : wrapped_assignments)
   {
     // expecting values in assignment map
-    Assert(elem.first->is_value());
-    Assert(elem.second->is_value());
+    assert(elem.first->is_value());
+    assert(elem.second->is_value());
 
     idx = std::make_shared<LoggingTerm>(
         elem.first, idxsort, Op(), TermVec{}, next_term_id);

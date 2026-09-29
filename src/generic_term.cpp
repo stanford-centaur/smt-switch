@@ -16,6 +16,7 @@
 
 #include "generic_term.h"
 
+#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -98,7 +99,7 @@ std::string GenericTerm::compute_string() const
   {
     return repr;
   }
-  Assert(!op.is_null());
+  assert(!op.is_null());
   std::string result = "(";
   result += op.to_string();
   for (auto c : children)
@@ -154,8 +155,8 @@ bool GenericTerm::is_ground() const { return ground; }
 
 std::uint64_t GenericTerm::to_int() const
 {
-  Assert(repr.at(0) == '#');
-  Assert(repr.at(1) == 'b');
+  assert(repr.at(0) == '#');
+  assert(repr.at(1) == 'b');
   std::string bit_string = repr.substr(2, repr.size() - 1);
   std::uint64_t result = std::stoi(bit_string, 0, 2);
   return result;

@@ -33,19 +33,6 @@
 #define STRHELPER(A) #A
 #define STRFY(A) STRHELPER(A)
 
-#ifndef NDEBUG
-#define _ASSERTIONS
-#endif
-
-#if !defined(NDEBUG) || defined(_ASSERTIONS)
-#define Assert(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
-#define Unreachable() \
-  (void)((__assert("location should be unreachable", __FILE__, __LINE__), 0))
-#else
-#define Assert(EX)
-#define Unreachable()
-#endif
-
 #ifdef _LOGGING_LEVEL
 const std::size_t global_log_level = _LOGGING_LEVEL;
 #else

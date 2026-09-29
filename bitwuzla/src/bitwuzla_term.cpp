@@ -16,6 +16,7 @@
 
 #include "bitwuzla_term.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -116,7 +117,7 @@ void BzlaTermIter::operator++() { idx++; }
 
 const Term BzlaTermIter::operator*()
 {
-  Assert(idx < terms.num_children());
+  assert(idx < terms.num_children());
   return std::make_shared<BzlaTerm>(terms[idx]);
 }
 
@@ -182,8 +183,8 @@ Op BzlaTerm::get_op() const
   if (indexed_ops.find(po) != indexed_ops.end())
   {
     std::size_t num_indices = term.num_indices();
-    Assert(num_indices > 0);
-    Assert(num_indices <= 2);
+    assert(num_indices > 0);
+    assert(num_indices <= 2);
     std::vector<std::uint64_t> indices = term.indices();
     std::uint64_t idx0 = indices[0];
     if (num_indices == 1)
@@ -253,7 +254,7 @@ std::uint64_t BzlaTerm::to_int() const
   {
     return 0;
   }
-  Assert(bits.substr(0, 2) == "#b");
+  assert(bits.substr(0, 2) == "#b");
   bits = bits.substr(2, bits.length());
   std::string::size_type sz = 0;
   return std::stoull(bits, &sz, 2);

@@ -16,6 +16,7 @@
 
 #include "logging_term.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -155,7 +156,7 @@ std::string LoggingTerm::to_string()
   {
     // Op should not be null because handled values above
     //     and symbols already have the repr set
-    Assert(!op.is_null());
+    assert(!op.is_null());
     repr = "(";
     repr += op.to_string();
     for (auto c : children)
