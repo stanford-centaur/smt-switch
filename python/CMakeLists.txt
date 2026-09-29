@@ -6,7 +6,14 @@ find_package(PythonVirtualEnv)
 find_python_in_virtualenv()
 # Want python for building a module, so use Development.Module. See:
 # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
-find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
+# CMake before 3.18 has only Development, which also wants the library
+# that manylinux leaves out; the wheels there are built with a newer CMake.
+if(CMAKE_VERSION VERSION_LESS 3.18)
+  set(_python_development Development)
+else()
+  set(_python_development Development.Module)
+endif()
+find_package(Python 3.10 REQUIRED COMPONENTS Interpreter ${_python_development})
 
 # Include helper function to check for required Python packages
 include(CheckPythonModule)

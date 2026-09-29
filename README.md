@@ -91,7 +91,7 @@ int main()
 
 ## Dependencies
 
-- CMake >= 3.14
+- CMake >= 3.16
 - GNU Make or Ninja
 - C compiler
 - C++ compiler supporting C++17
