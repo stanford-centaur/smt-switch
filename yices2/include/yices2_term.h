@@ -29,27 +29,6 @@ namespace smt {
 // forward declaration
 class Yices2Solver;
 
-class Yices2TermIter : public TermIterBase
-{
- public:
-  Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p) {};
-  Yices2TermIter(const Yices2TermIter & it);
-  ~Yices2TermIter() {};
-  Yices2TermIter & operator=(const Yices2TermIter & it);
-  void operator++() override;
-  const Term operator*() override;
-  TermIterBase * clone() const override;
-  bool operator==(const Yices2TermIter & it);
-  bool operator!=(const Yices2TermIter & it);
-
- protected:
-  bool equal(const TermIterBase & other) const override;
-
- private:
-  term_t term;
-  uint32_t pos;
-};
-
 class Yices2Term : public AbsTerm
 {
  public:
@@ -83,7 +62,6 @@ class Yices2Term : public AbsTerm
   std::string const_to_string() const;
 
   friend class Yices2Solver;
-  friend class Yices2TermIter;
 };
 
 }  // namespace smt
