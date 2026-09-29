@@ -120,7 +120,6 @@ function(_smt_switch_run_provision_driver target)
       CMAKE_OSX_ARCHITECTURES
       CMAKE_OSX_DEPLOYMENT_TARGET
       CMAKE_OSX_SYSROOT
-      Python_EXECUTABLE
   )
     if(DEFINED ${_variable})
       list(APPEND _arguments "-D${_variable}=${${_variable}}")

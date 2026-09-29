@@ -277,7 +277,7 @@ smt_switch_dependency(
     sed -i.orig -e "/'ccadical.cpp',/d" -e "/'ipasir.cpp',/d"
     <SOURCE_DIR>/subprojects/packagefiles/cadical/src/meson.build
   CONFIGURE_COMMAND
-    "${Python_EXECUTABLE}" <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
+    <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
   COMMAND
     meson configure <SOURCE_DIR>/build "-Dcpp_args=${BITWUZLA_CADICAL}"
     "-Dcadical:cpp_args=${BITWUZLA_CADICAL}"

@@ -28,10 +28,6 @@ add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# defines find_python_in_virtualenv()
-# a helper to find Python in a virtualenv
-find_package(PythonVirtualEnv)
-
 ########################### Identify the current version ########################
 # Function to parse and validate a version string
 # Returns TRUE if valid, FALSE otherwise
@@ -231,15 +227,6 @@ option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 option(BUILD_Z3 "Should we build the libraries for z3" OFF)
 
-# Decide on Python version before setting up googletest
-# Otherwise might use wrong version
-if(BUILD_PYTHON_BINDINGS)
-  # Check for a virtualenv python first
-  find_python_in_virtualenv()
-  # Want python for building a module, so use Development.Module. See:
-  # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
-  find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
-endif()
 if(BUILD_BTOR)
   smt_switch_provision_if_missing(Boolector boolector)
   # Boolector installs only boolector.h and btortypes.h, but boolector_term.h

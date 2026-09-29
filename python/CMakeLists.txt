@@ -2,6 +2,7 @@
 # floor has to match requires-python in pyproject.toml: building against an
 # older interpreter would produce a wheel that pip then refuses to install.
 # Check for a virtualenv python first
+find_package(PythonVirtualEnv)
 find_python_in_virtualenv()
 # Want python for building a module, so use Development.Module. See:
 # https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
