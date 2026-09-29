@@ -459,7 +459,6 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 
 Sort MsatSolver::make_sort(SortKind sk, const Sort & sort1) const
 {
-  initialize_env();
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take one sort parameter yet.");
 }
