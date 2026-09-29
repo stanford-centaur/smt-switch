@@ -10,11 +10,10 @@ target_include_directories(
   smt-switch-bitwuzla
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smt-switch-bitwuzla PUBLIC smt-switch)
 
+target_link_libraries(smt-switch-bitwuzla PUBLIC smt-switch)
 find_package(Bitwuzla REQUIRED)
 target_link_libraries(smt-switch-bitwuzla PUBLIC Bitwuzla::bitwuzla)
-
 # Some systems keep the math functions outside libc, and bitwuzla uses them.
 target_link_libraries(smt-switch-bitwuzla PRIVATE m)
 

@@ -11,11 +11,10 @@ target_include_directories(
   smt-switch-yices2
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smt-switch-yices2 PUBLIC smt-switch)
 
+target_link_libraries(smt-switch-yices2 PUBLIC smt-switch)
 find_package(Yices2 REQUIRED)
 target_link_libraries(smt-switch-yices2 PUBLIC Yices2::yices)
-
 # Yices2 depends on libgmp, but there is no interface that exposes this to us.
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-yices2 PRIVATE GMP::gmp)

@@ -11,20 +11,18 @@ target_include_directories(
   smt-switch-z3
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 
+target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 find_package(Z3 REQUIRED)
 target_link_libraries(smt-switch-z3 PUBLIC z3::libz3)
-
 # z3_solver.cpp uses GMP
 find_package(GMP REQUIRED COMPONENTS gmpxx)
 target_link_libraries(smt-switch-z3 PRIVATE GMP::gmpxx)
 
-include(ImportedLocation)
-smt_switch_imported_location(z3::libz3 Z3_LIBRARY_LOCATION)
-
 # Variables needed in setup.py
 # TODO: move all compilation commands into CMake
+include(ImportedLocation)
+smt_switch_imported_location(z3::libz3 Z3_LIBRARY_LOCATION)
 set(Z3_LIBRARY_LOCATION "${Z3_LIBRARY_LOCATION}" PARENT_SCOPE)
 
 add_library(SmtSwitch::smt-switch-z3 ALIAS smt-switch-z3)

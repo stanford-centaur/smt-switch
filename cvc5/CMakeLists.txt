@@ -11,12 +11,12 @@ target_include_directories(
   smt-switch-cvc5
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smt-switch-cvc5 PUBLIC smt-switch)
 
-find_package(cvc5 REQUIRED)
+target_link_libraries(smt-switch-cvc5 PUBLIC smt-switch)
 # The version is checked here rather than passed to find_package, because
 # cvc5's config package treats a requested version as an exact match and
 # would reject every later release.
+find_package(cvc5 REQUIRED)
 set(CVC5_MINIMUM_VERSION 1.3.1)
 if(cvc5_VERSION VERSION_LESS CVC5_MINIMUM_VERSION)
   message(
@@ -27,26 +27,23 @@ if(cvc5_VERSION VERSION_LESS CVC5_MINIMUM_VERSION)
   )
 endif()
 target_link_libraries(smt-switch-cvc5 PUBLIC cvc5::cvc5)
-
 # cvc5's package names cadical and gmp in its link interface as plain
 # libraries too, and finds neither, so saying where they are falls to us.
 find_package(CaDiCaL REQUIRED)
 target_link_libraries(smt-switch-cvc5 PUBLIC CaDiCaL::cadical)
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-cvc5 PUBLIC GMP::gmp)
-
 # Some systems keep the math functions outside libc, and cvc5 uses them.
 target_link_libraries(smt-switch-cvc5 PRIVATE m)
-
-include(ImportedLocation)
-smt_switch_imported_location(cvc5::cvc5 cvc5_LIBRARY)
-get_filename_component(cvc5_LIBRARY_DIR "${cvc5_LIBRARY}" DIRECTORY)
 
 # LibPoly is cvc5's private dependency, but its package names picpoly and
 # picpolyxx as plain libraries without saying where they are, so we have to fix
 # the link commands. cvc5's own prefix is looked in first, which is where they
 # sit when libpoly was auto-downloaded; failing that they are installed
 # somewhere of their own, and the search finds them there.
+include(ImportedLocation)
+smt_switch_imported_location(cvc5::cvc5 cvc5_LIBRARY)
+get_filename_component(cvc5_LIBRARY_DIR "${cvc5_LIBRARY}" DIRECTORY)
 find_library(cvc5_POLY_LIBRARY REQUIRED NAMES picpoly HINTS "${cvc5_LIBRARY_DIR}")
 find_library(cvc5_POLYXX_LIBRARY REQUIRED NAMES picpolyxx HINTS "${cvc5_LIBRARY_DIR}")
 mark_as_advanced(cvc5_POLY_LIBRARY cvc5_POLYXX_LIBRARY)
