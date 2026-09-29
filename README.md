@@ -296,7 +296,7 @@ current limitations along with recommended usage.
   `reset_assertions` just like for any other solver.
 - The Z3 backend does not support term iteration over quantified expressions,
   though it does for every other kind of term.
-- Datatypes are currently only supported in cvc5
+- Datatypes are supported only by cvc5 and Z3
 
 ### Recommended usage
 
