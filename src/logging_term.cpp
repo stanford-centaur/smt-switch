@@ -209,6 +209,11 @@ bool LoggingTerm::is_value() const
 
 std::uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 
+std::int64_t LoggingTerm::to_signed_int() const
+{
+  return wrapped_term->to_signed_int();
+}
+
 std::string LoggingTerm::print_value_as(SortKind sk)
 {
   return wrapped_term->print_value_as(sk);

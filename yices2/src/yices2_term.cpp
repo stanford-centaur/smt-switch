@@ -17,10 +17,13 @@
 #include "yices2_term.h"
 
 #include <cstdint>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "exceptions.h"
 #include "ops.h"
+#include "utils.h"
 #include "yices2_sort.h"
 
 using namespace std;
@@ -220,44 +223,66 @@ bool Yices2Term::is_value() const
 
 string Yices2Term::to_string() { return const_to_string(); }
 
+/** Returns the text of an arithmetic constant, e.g. -5 or 1/2 */
+static string arith_constant_to_string(term_t term)
+{
+  char * s = yices_term_to_string(term, UINT32_MAX, 1, 0);
+  string val = s;
+  yices_free_string(s);
+  return val;
+}
+
+/** Returns the bits of a bit-vector constant, most significant first */
+static string bv_constant_to_bits(term_t term)
+{
+  const uint32_t width = yices_term_bitsize(term);
+  // yices gives the bits least significant first
+  vector<int32_t> bits(width);
+  yices_bv_const_value(term, bits.data());
+  string res;
+  for (uint32_t i = width; i > 0; --i)
+  {
+    res += bits[i - 1] ? '1' : '0';
+  }
+  return res;
+}
+
 uint64_t Yices2Term::to_int() const
 {
-  std::string val = yices_term_to_string(term, 120, 1, 0);
+  if (!is_function)
+  {
+    term_constructor_t tc = yices_term_constructor(term);
+    if (tc == YICES_BV_CONSTANT)
+    {
+      return bits_to_uint64(bv_constant_to_bits(term));
+    }
+    else if (tc == YICES_ARITH_CONSTANT)
+    {
+      return smtlib_int_to_uint64(arith_constant_to_string(term));
+    }
+  }
+  throw IncorrectUsageException(
+      "Can't convert a term that is not a bit-vector or arithmetic constant "
+      "to an integer");
+}
 
-  // Process bit-vector format.
-  if (yices_term_is_bitvector(term))
+int64_t Yices2Term::to_signed_int() const
+{
+  if (!is_function)
   {
-    if (val.find("0b") == std::string::npos)
+    term_constructor_t tc = yices_term_constructor(term);
+    if (tc == YICES_BV_CONSTANT)
     {
-      std::string msg = val;
-      msg += " is not a constant term, can't convert to int.";
-      throw IncorrectUsageException(msg.c_str());
+      return bits_to_int64(bv_constant_to_bits(term));
     }
-    try
+    else if (tc == YICES_ARITH_CONSTANT)
     {
-      return std::stoi(val.substr(val.find("b") + 1, val.length()), 0, 2);
-    }
-    catch (std::exception const & e)
-    {
-      std::string msg("Term ");
-      msg += val;
-      msg += " does not contain an integer representable by a machine int.";
-      throw IncorrectUsageException(msg.c_str());
+      return smtlib_int_to_int64(arith_constant_to_string(term));
     }
   }
-
-  // If not bit-vector, try parsing an int from the term.
-  try
-  {
-    return std::stoi(val);
-  }
-  catch (std::exception const & e)
-  {
-    std::string msg("Term ");
-    msg += val;
-    msg += " does not contain an integer representable by a machine int.";
-    throw IncorrectUsageException(msg.c_str());
-  }
+  throw IncorrectUsageException(
+      "Can't convert a term that is not a bit-vector or arithmetic constant "
+      "to an integer");
 }
 
 TermIter Yices2Term::begin()

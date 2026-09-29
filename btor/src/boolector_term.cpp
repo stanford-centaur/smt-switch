@@ -26,7 +26,10 @@ extern "C" {
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 #include <unordered_map>
+
+#include "utils.h"
 
 // defining hash for old compilers
 namespace std {
@@ -366,7 +369,8 @@ std::string BoolectorTerm::to_string()
   }
 }
 
-uint64_t BoolectorTerm::to_int() const
+/** Returns the bits of a constant, most significant first */
+static std::string const_to_bits(Btor * btor, BoolectorNode * node)
 {
   if (!boolector_is_const(btor, node))
   {
@@ -376,16 +380,17 @@ uint64_t BoolectorTerm::to_int() const
   const char * assignment = boolector_bv_assignment(btor, node);
   std::string s(assignment);
   boolector_free_bv_assignment(btor, assignment);
-  uint32_t width = boolector_get_width(btor, node);
-  if (width > 64)
-  {
-    std::string msg("Can't represent a bit-vector of size ");
-    msg += std::to_string(width);
-    msg += " in a uint64_t";
-    throw IncorrectUsageException(msg.c_str());
-  }
-  std::string::size_type sz = 0;
-  return std::stoull(s, &sz, 2);
+  return s;
+}
+
+uint64_t BoolectorTerm::to_int() const
+{
+  return bits_to_uint64(const_to_bits(btor, node));
+}
+
+int64_t BoolectorTerm::to_signed_int() const
+{
+  return bits_to_int64(const_to_bits(btor, node));
 }
 
 /** Iterators for traversing the children

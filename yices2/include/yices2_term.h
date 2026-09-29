@@ -47,6 +47,7 @@ class Yices2Term : public AbsTerm
   bool is_value() const override;
   virtual std::string to_string() override;
   uint64_t to_int() const override;
+  int64_t to_signed_int() const override;
   /* Iterators for traversing the children */
   TermIter begin() override;
   TermIter end() override;

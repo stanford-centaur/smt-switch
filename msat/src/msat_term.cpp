@@ -23,6 +23,7 @@
 #include "exceptions.h"
 #include "msat_sort.h"
 #include "ops.h"
+#include "utils.h"
 
 namespace std {
 // defining hash for old compilers
@@ -565,37 +566,48 @@ string MsatTerm::to_string()
   }
 }
 
+/** Returns the text of a MathSAT number term, and whether it is a
+ *  bit-vector, or throws if the term is not a number.
+ *  Bit-vectors are printed in SMT-LIB, as (_ bvN W). Other numbers are
+ *  printed as, e.g., -5 or 1/2, because MathSAT's SMT-LIB printer writes
+ *  the minimum int64_t as (- -9223372036854775808).
+ */
+static string number_to_text(msat_env env,
+                             msat_term term,
+                             bool is_uf,
+                             bool & is_bv)
+{
+  if (is_uf)
+  {
+    throw IncorrectUsageException(
+        "Can't convert a function symbol to an integer");
+  }
+  is_bv = msat_is_bv_type(env, msat_term_get_type(term), nullptr);
+  const bool is_number = msat_term_is_number(env, term);
+  char * s = (is_bv || !is_number) ? msat_to_smtlib2_term(env, term)
+                                   : msat_term_repr(term);
+  string val = s;
+  msat_free(s);
+  if (!is_number)
+  {
+    throw IncorrectUsageException("Can't convert " + val
+                                  + " to an integer: it is not a number");
+  }
+  return val;
+}
+
 uint64_t MsatTerm::to_int() const
 {
-  char * s = msat_to_smtlib2_term(env, term);
-  std::string val = s;
-  msat_free(s);
-  bool is_bv = msat_is_bv_type(env, msat_term_get_type(term), nullptr);
+  bool is_bv;
+  const string val = number_to_text(env, term, is_uf, is_bv);
+  return is_bv ? smtlib_bv_to_uint64(val) : smtlib_int_to_uint64(val);
+}
 
-  // process smt-lib bit-vector format
-  if (is_bv)
-  {
-    if (val.find("(_ bv") == std::string::npos)
-    {
-      std::string msg = val;
-      msg += " is not a constant term, can't convert to int.";
-      throw IncorrectUsageException(msg.c_str());
-    }
-    val = val.substr(5, val.length());
-    val = val.substr(0, val.find(" "));
-  }
-
-  try
-  {
-    return std::stoi(val);
-  }
-  catch (std::exception const & e)
-  {
-    std::string msg("Term ");
-    msg += val;
-    msg += " does not contain an integer representable by a machine int.";
-    throw IncorrectUsageException(msg.c_str());
-  }
+int64_t MsatTerm::to_signed_int() const
+{
+  bool is_bv;
+  const string val = number_to_text(env, term, is_uf, is_bv);
+  return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
 }
 
 TermIter MsatTerm::begin() { return TermIter(new MsatTermIter(env, term, 0)); }

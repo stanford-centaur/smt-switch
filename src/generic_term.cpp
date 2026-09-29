@@ -153,13 +153,32 @@ bool GenericTerm::is_value() const
 
 bool GenericTerm::is_ground() const { return ground; }
 
+/** Returns the kind of a term's sort if to_int can handle it */
+static SortKind int_convertible_sort_kind(const GenericTerm & term,
+                                          const std::string & repr)
+{
+  SortKind sk = term.get_sort()->get_sort_kind();
+  if (!term.is_value() || (sk != BV && sk != INT && sk != REAL))
+  {
+    throw IncorrectUsageException(
+        "Can't convert " + repr
+        + " to an integer: it is not a bit-vector or arithmetic value");
+  }
+  return sk;
+}
+
 std::uint64_t GenericTerm::to_int() const
 {
-  assert(repr.at(0) == '#');
-  assert(repr.at(1) == 'b');
-  std::string bit_string = repr.substr(2, repr.size() - 1);
-  std::uint64_t result = std::stoi(bit_string, 0, 2);
-  return result;
+  return int_convertible_sort_kind(*this, repr) == BV
+             ? smtlib_bv_to_uint64(repr)
+             : smtlib_int_to_uint64(repr);
+}
+
+std::int64_t GenericTerm::to_signed_int() const
+{
+  return int_convertible_sort_kind(*this, repr) == BV
+             ? smtlib_bv_to_int64(repr)
+             : smtlib_int_to_int64(repr);
 }
 
 std::string GenericTerm::print_value_as(SortKind sk)

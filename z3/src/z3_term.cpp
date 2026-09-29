@@ -6,6 +6,7 @@
 
 #include "exceptions.h"
 #include "ops.h"
+#include "utils.h"
 #include "z3_sort.h"
 
 using namespace std;
@@ -312,42 +313,46 @@ string Z3Term::to_string()
 
 uint64_t Z3Term::to_int() const
 {
-  std::string val = term.to_string();
-  int base = 10;
+  if (!is_function && term.is_numeral())
+  {
+    if (term.is_bv())
+    {
+      // printed as #b... or #x...
+      return smtlib_bv_to_uint64(term.to_string());
+    }
+    // succeeds for integer values and for real values with an integral
+    // value, if they fit
+    uint64_t res;
+    if (term.is_arith() && term.is_numeral_u64(res))
+    {
+      return res;
+    }
+  }
+  throw IncorrectUsageException(
+      "Can't convert " + (is_function ? z_func.name().str() : term.to_string())
+      + " to an unsigned integer: it is not a value that fits in 64 bits");
+}
 
-  // Process bit-vector format.
-  if (term.is_bv())
+int64_t Z3Term::to_signed_int() const
+{
+  if (!is_function && term.is_numeral())
   {
-    if (val.substr(0, 2) == "#x")
+    if (term.is_bv())
     {
-      base = 16;
+      // printed as #b... or #x...
+      return smtlib_bv_to_int64(term.to_string());
     }
-    else if (val.substr(0, 2) == "#b")
+    // succeeds for integer values and for real values with an integral
+    // value, if they fit
+    int64_t res;
+    if (term.is_arith() && term.is_numeral_i64(res))
     {
-      base = 2;
+      return res;
     }
-    else
-    {
-      std::string msg = val;
-      msg += " is not a value term, can't convert to int.";
-      throw IncorrectUsageException(msg.c_str());
-    }
-    val = val.substr(2, val.length());
-    val = val.substr(0, val.find(" "));
   }
-
-  // If not bit-vector, try parsing an int from the term.
-  try
-  {
-    return std::stoi(val, nullptr, base);
-  }
-  catch (std::exception const & e)
-  {
-    std::string msg("Term ");
-    msg += val;
-    msg += " does not contain an integer representable by a machine int.";
-    throw IncorrectUsageException(msg.c_str());
-  }
+  throw IncorrectUsageException(
+      "Can't convert " + (is_function ? z_func.name().str() : term.to_string())
+      + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
 TermIter Z3Term::begin()
