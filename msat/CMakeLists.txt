@@ -11,11 +11,10 @@ target_include_directories(
   smt-switch-msat
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smt-switch-msat PUBLIC smt-switch)
 
+target_link_libraries(smt-switch-msat PUBLIC smt-switch)
 find_package(MathSAT REQUIRED)
 target_link_libraries(smt-switch-msat PUBLIC MathSAT::mathsat)
-
 # MathSAT depends on libgmp, but there is no interface that exposes this to
 # us. Public because mathsat.h includes <gmp.h>, so anyone who compiles
 # against this backend's headers needs GMP's as well.
