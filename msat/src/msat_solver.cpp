@@ -457,7 +457,7 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort MsatSolver::make_sort(SortKind sk, const Sort & sort1) const
+Sort MsatSolver::make_sort(SortKind /* sk */, const Sort & /* sort1 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take one sort parameter yet.");
@@ -486,10 +486,10 @@ Sort MsatSolver::make_sort(SortKind sk,
   }
 }
 
-Sort MsatSolver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2,
-                           const Sort & sort3) const
+Sort MsatSolver::make_sort(SortKind /* sk */,
+                           const Sort & /* sort1 */,
+                           const Sort & /* sort2 */,
+                           const Sort & /* sort3 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take three sort parameters "
@@ -560,60 +560,62 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+Sort MsatSolver::make_sort(const Sort & /* sort_con */,
+                           const SortVec & /* sorts */) const
 {
   throw NotImplementedException(
       "MathSAT does not support uninterpreted sort constructors");
 }
 
-Sort MsatSolver::make_sort(const DatatypeDecl & d) const
+Sort MsatSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("MsatSolver::make_sort");
 };
 
-DatatypeDecl MsatSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl MsatSolver::make_datatype_decl(const std::string & /* s */)
 {
   throw NotImplementedException("MsatSolver::make_datatype_decl");
 }
 
 DatatypeConstructorDecl MsatSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string /* s */)
 {
   throw NotImplementedException("MsatSolver::make_datatype_constructor_decl");
 }
 
-void MsatSolver::add_constructor(DatatypeDecl & dt,
-                                 const DatatypeConstructorDecl & con) const
+void MsatSolver::add_constructor(
+    DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw NotImplementedException("MsatSolver::add_constructor");
 }
 
-void MsatSolver::add_selector(DatatypeConstructorDecl & dt,
-                              const std::string & name,
-                              const Sort & s) const
+void MsatSolver::add_selector(DatatypeConstructorDecl & /* dt */,
+                              const std::string & /* name */,
+                              const Sort & /* s */) const
 {
   throw NotImplementedException("MsatSolver::add_selector");
 }
 
-void MsatSolver::add_selector_self(DatatypeConstructorDecl & dt,
-                                   const std::string & name) const
+void MsatSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                   const std::string & /* name */) const
 {
   throw NotImplementedException("MsatSolver::add_selector_self");
 }
 
-Term MsatSolver::get_constructor(const Sort & s, std::string name) const
+Term MsatSolver::get_constructor(const Sort & /* s */,
+                                 std::string /* name */) const
 {
   throw NotImplementedException("MsatSolver::get_constructor");
 }
 
-Term MsatSolver::get_tester(const Sort & s, std::string name) const
+Term MsatSolver::get_tester(const Sort & /* s */, std::string /* name */) const
 {
   throw NotImplementedException("MsatSolver::get_testeer");
 }
 
-Term MsatSolver::get_selector(const Sort & s,
-                              std::string con,
-                              std::string name) const
+Term MsatSolver::get_selector(const Sort & /* s */,
+                              std::string /* con */,
+                              std::string /* name */) const
 {
   throw NotImplementedException("MsatSolver::get_selector");
 }
@@ -1238,22 +1240,23 @@ msat_term MsatSolver::label(msat_term p) const
 
 // begin MsatInterpolatingSolver implementation
 
-void MsatInterpolatingSolver::set_opt(const string option, const string value)
+void MsatInterpolatingSolver::set_opt(const string /* option */,
+                                      const string /* value */)
 {
   throw IncorrectUsageException("Can't set options of interpolating solver.");
 }
 
-void MsatInterpolatingSolver::push(uint64_t num)
+void MsatInterpolatingSolver::push(uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call push from interpolating solver");
 }
 
-void MsatInterpolatingSolver::pop(uint64_t num)
+void MsatInterpolatingSolver::pop(uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call pop from interpolating solver");
 }
 
-void MsatInterpolatingSolver::assert_formula(const Term & t)
+void MsatInterpolatingSolver::assert_formula(const Term & /* t */)
 {
   throw IncorrectUsageException(
       "Can't assert formulas in interpolating solver");
@@ -1265,13 +1268,14 @@ Result MsatInterpolatingSolver::check_sat()
       "Can't call check_sat from interpolating solver");
 }
 
-Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
+Result MsatInterpolatingSolver::check_sat_assuming(
+    const TermVec & /* assumptions */)
 {
   throw IncorrectUsageException(
       "Can't call check_sat_assuming from interpolating solver");
 }
 
-Term MsatInterpolatingSolver::get_value(const Term & t) const
+Term MsatInterpolatingSolver::get_value(const Term & /* t */) const
 {
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }

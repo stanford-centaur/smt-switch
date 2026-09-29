@@ -357,7 +357,7 @@ TermIter Cvc5Term::end()
   return TermIter(new Cvc5TermIter(term, num_children));
 }
 
-std::string Cvc5Term::print_value_as(SortKind sk)
+std::string Cvc5Term::print_value_as(SortKind /* sk */)
 {
   if (!is_value())
   {

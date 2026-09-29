@@ -686,8 +686,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
   }
 }
 
-Sort GenericSolver::make_sort(const Sort & sort_con,
-                              const SortVec & sorts) const
+Sort GenericSolver::make_sort(const Sort & /* sort_con */,
+                              const SortVec & /* sorts */) const
 {
   throw NotImplementedException(
       "Sort constructor are not supported by generic solvers");
@@ -1539,8 +1539,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
   return literals;
 }
 
-UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
-                                                 Term & out_const_base) const
+UnorderedTermMap GenericSolver::get_array_values(
+    const Term & /* arr */, Term & /* out_const_base */) const
 {
   throw NotImplementedException(
       "Generic solvers do not support get-value for arrays");

@@ -638,8 +638,8 @@ Term Z3Solver::get_value(const Term & t) const
   return std::make_shared<Z3Term>(eval, ctx);
 }
 
-UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
-                                            Term & out_const_base) const
+UnorderedTermMap Z3Solver::get_array_values(const Term & /* arr */,
+                                            Term & /* out_const_base */) const
 {
   throw NotImplementedException(
       "Get array values not implemented for Z3 backend.");
@@ -720,7 +720,7 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort Z3Solver::make_sort(SortKind sk, const Sort & sort1) const
+Sort Z3Solver::make_sort(SortKind /* sk */, const Sort & /* sort1 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take one sort parameter yet.");
@@ -746,10 +746,10 @@ Sort Z3Solver::make_sort(SortKind sk,
   }
 }
 
-Sort Z3Solver::make_sort(SortKind sk,
-                         const Sort & sort1,
-                         const Sort & sort2,
-                         const Sort & sort3) const
+Sort Z3Solver::make_sort(SortKind /* sk */,
+                         const Sort & /* sort1 */,
+                         const Sort & /* sort2 */,
+                         const Sort & /* sort3 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take three sort parameters "
@@ -809,7 +809,8 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+Sort Z3Solver::make_sort(const Sort & /* sort_con */,
+                         const SortVec & /* sorts */) const
 {
   throw NotImplementedException(
       "Z3 does not support uninterpreted sort constructors");
@@ -1262,7 +1263,7 @@ Term Z3Solver::substitute(const Term term,
   return std::make_shared<Z3Term>(result, ctx);
 }
 
-void Z3Solver::dump_smt2(std::string filename) const
+void Z3Solver::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Dumping smt2 not supported by Z3 backend.");
 }

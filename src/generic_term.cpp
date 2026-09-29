@@ -161,7 +161,7 @@ std::uint64_t GenericTerm::to_int() const
   return result;
 }
 
-std::string GenericTerm::print_value_as(SortKind sk)
+std::string GenericTerm::print_value_as(SortKind /* sk */)
 {
   if (is_value())
   {

@@ -618,7 +618,7 @@ TermIter MsatTerm::end()
   return TermIter(new MsatTermIter(env, term, arity));
 }
 
-std::string MsatTerm::print_value_as(SortKind sk)
+std::string MsatTerm::print_value_as(SortKind /* sk */)
 {
   if (!is_value())
   {

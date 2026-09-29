@@ -59,7 +59,7 @@ Sort make_generic_sort(SortKind sk, std::uint64_t width)
   return std::make_shared<BVGenericSort>(width);
 }
 
-Sort make_generic_sort(SortKind sk, Sort sort1)
+Sort make_generic_sort(SortKind /* sk */, Sort /* sort1 */)
 {
   throw IncorrectUsageException(
       "No currently supported sort is created with a single sort argument");

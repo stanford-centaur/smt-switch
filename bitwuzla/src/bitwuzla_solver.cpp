@@ -128,7 +128,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void BzlaSolver::set_logic(const std::string logic)
+void BzlaSolver::set_logic(const std::string /* logic */)
 {
   // no need to set logic in bitwuzla
   return;
@@ -202,8 +202,8 @@ Term BzlaSolver::get_value(const Term & t) const
   return std::make_shared<BzlaTerm>(get_bitwuzla()->get_value(bterm->term));
 }
 
-UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
-                                              Term & out_const_base) const
+UnorderedTermMap BzlaSolver::get_array_values(const Term & /* arr */,
+                                              Term & /* out_const_base */) const
 {
   throw NotImplementedException(
       "Bitwuzla backend doesn't support get_array_values yet");
@@ -271,7 +271,7 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort BzlaSolver::make_sort(SortKind sk, const Sort & sort1) const
+Sort BzlaSolver::make_sort(SortKind /* sk */, const Sort & /* sort1 */) const
 {
   throw IncorrectUsageException(
       "Bitwuzla has no sort that takes a single sort argument.");
@@ -375,61 +375,63 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+Sort BzlaSolver::make_sort(const Sort & /* sort_con */,
+                           const SortVec & /* sorts */) const
 
 {
   throw IncorrectUsageException(
       "Bitwuzla does not support uninterpreted sort construction");
 }
 
-Sort BzlaSolver::make_sort(const DatatypeDecl & d) const
+Sort BzlaSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-DatatypeDecl BzlaSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl BzlaSolver::make_datatype_decl(const std::string & /* s */)
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
 DatatypeConstructorDecl BzlaSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string /* s */)
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-void BzlaSolver::add_constructor(DatatypeDecl & dt,
-                                 const DatatypeConstructorDecl & con) const
+void BzlaSolver::add_constructor(
+    DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-void BzlaSolver::add_selector(DatatypeConstructorDecl & dt,
-                              const std::string & name,
-                              const Sort & s) const
+void BzlaSolver::add_selector(DatatypeConstructorDecl & /* dt */,
+                              const std::string & /* name */,
+                              const Sort & /* s */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-void BzlaSolver::add_selector_self(DatatypeConstructorDecl & dt,
-                                   const std::string & name) const
+void BzlaSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                   const std::string & /* name */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-Term BzlaSolver::get_constructor(const Sort & s, std::string name) const
+Term BzlaSolver::get_constructor(const Sort & /* s */,
+                                 std::string /* name */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-Term BzlaSolver::get_tester(const Sort & s, std::string name) const
+Term BzlaSolver::get_tester(const Sort & /* s */, std::string /* name */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
 
-Term BzlaSolver::get_selector(const Sort & s,
-                              std::string con,
-                              std::string name) const
+Term BzlaSolver::get_selector(const Sort & /* s */,
+                              std::string /* con */,
+                              std::string /* name */) const
 {
   throw IncorrectUsageException("Bitwuzla does not support datatypes.");
 }
@@ -793,17 +795,17 @@ void BzlaInterpolatingSolver::set_opt(const std::string option,
   super::set_opt(option, value);
 }
 
-void BzlaInterpolatingSolver::push(uint64_t num)
+void BzlaInterpolatingSolver::push(uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call push from interpolating solver");
 }
 
-void BzlaInterpolatingSolver::pop(uint64_t num)
+void BzlaInterpolatingSolver::pop(uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call pop from interpolating solver");
 }
 
-void BzlaInterpolatingSolver::assert_formula(const Term & t)
+void BzlaInterpolatingSolver::assert_formula(const Term & /* t */)
 {
   throw IncorrectUsageException(
       "Can't assert formulas in interpolating solver");
@@ -815,13 +817,14 @@ Result BzlaInterpolatingSolver::check_sat()
       "Can't call check_sat from interpolating solver");
 }
 
-Result BzlaInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
+Result BzlaInterpolatingSolver::check_sat_assuming(
+    const TermVec & /* assumptions */)
 {
   throw IncorrectUsageException(
       "Can't call check_sat_assuming from interpolating solver");
 }
 
-Term BzlaInterpolatingSolver::get_value(const Term & t) const
+Term BzlaInterpolatingSolver::get_value(const Term & /* t */) const
 {
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }

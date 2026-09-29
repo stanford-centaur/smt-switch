@@ -77,7 +77,7 @@ class IndicatorTreeWalker : public TreeWalker
    * correspond to a fresh variable mapping to its occurrence in the formula
    */
   TreeWalkerStepResult visit_term(smt::Term & formula,
-                                  smt::Term & term,
+                                  smt::Term & /* term */,
                                   std::vector<int> & path) override
   {
     Sort boolsort = solver_->make_sort(BOOL);

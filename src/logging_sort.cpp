@@ -62,7 +62,7 @@ Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width)
   return std::make_shared<BVLoggingSort>(s, width);
 }
 
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1)
+Sort make_logging_sort(SortKind /* sk */, Sort /* s */, Sort /* sort1 */)
 {
   throw IncorrectUsageException(
       "No currently supported sort is created with a single sort argument");

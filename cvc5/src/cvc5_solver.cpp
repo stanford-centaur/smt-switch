@@ -605,7 +605,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort Cvc5Solver::make_sort(SortKind sk, const Sort & sort1) const
+Sort Cvc5Solver::make_sort(SortKind /* sk */, const Sort & /* sort1 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take one sort parameter yet.");
@@ -640,10 +640,10 @@ Sort Cvc5Solver::make_sort(SortKind sk,
   }
 }
 
-Sort Cvc5Solver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2,
-                           const Sort & sort3) const
+Sort Cvc5Solver::make_sort(SortKind /* sk */,
+                           const Sort & /* sort1 */,
+                           const Sort & /* sort2 */,
+                           const Sort & /* sort3 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take three sort parameters "
@@ -1055,7 +1055,7 @@ Term Cvc5Solver::substitute(const Term term,
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
 }
 
-void Cvc5Solver::dump_smt2(std::string filename) const
+void Cvc5Solver::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Not yet implemented dumping smt2");
 }

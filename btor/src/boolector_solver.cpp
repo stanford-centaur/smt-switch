@@ -173,49 +173,51 @@ void BoolectorSolver::set_logic(const std::string logic)
   }
 }
 
-Sort BoolectorSolver::make_sort(const DatatypeDecl & d) const
+Sort BoolectorSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("BoolectorSolver::make_sort");
 };
-DatatypeDecl BoolectorSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl BoolectorSolver::make_datatype_decl(const std::string & /* s */)
 {
   throw NotImplementedException("BoolectorSolver::make_datatype_decl");
 }
 DatatypeConstructorDecl BoolectorSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string /* s */)
 {
   throw NotImplementedException(
       "BoolectorSolver::make_datatype_constructor_decl");
 };
-void BoolectorSolver::add_constructor(DatatypeDecl & dt,
-                                      const DatatypeConstructorDecl & con) const
+void BoolectorSolver::add_constructor(
+    DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw NotImplementedException("BoolectorSolver::add_constructor");
 };
-void BoolectorSolver::add_selector(DatatypeConstructorDecl & dt,
-                                   const std::string & name,
-                                   const Sort & s) const
+void BoolectorSolver::add_selector(DatatypeConstructorDecl & /* dt */,
+                                   const std::string & /* name */,
+                                   const Sort & /* s */) const
 {
   throw NotImplementedException("BoolectorSolver::add_selector");
 };
-void BoolectorSolver::add_selector_self(DatatypeConstructorDecl & dt,
-                                        const std::string & name) const
+void BoolectorSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                        const std::string & /* name */) const
 {
   throw NotImplementedException("BoolectorSolver::add_selector_self");
 };
 
-Term BoolectorSolver::get_constructor(const Sort & s, std::string name) const
+Term BoolectorSolver::get_constructor(const Sort & /* s */,
+                                      std::string /* name */) const
 {
   throw NotImplementedException("BoolectorSolver::get_constructor");
 };
-Term BoolectorSolver::get_tester(const Sort & s, std::string name) const
+Term BoolectorSolver::get_tester(const Sort & /* s */,
+                                 std::string /* name */) const
 {
   throw NotImplementedException("BoolectorSolver::get_testeer");
 };
 
-Term BoolectorSolver::get_selector(const Sort & s,
-                                   std::string con,
-                                   std::string name) const
+Term BoolectorSolver::get_selector(const Sort & /* s */,
+                                   std::string /* con */,
+                                   std::string /* name */) const
 {
   throw NotImplementedException("BoolectorSolver::get_selector");
 };
@@ -507,7 +509,8 @@ void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out)
   }
 }
 
-Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
+Sort BoolectorSolver::make_sort(const std::string /* name */,
+                                uint64_t /* arity */) const
 {
   throw IncorrectUsageException("Can't declare sorts with Boolector");
 }
@@ -543,7 +546,8 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk, const Sort & sort1) const
+Sort BoolectorSolver::make_sort(SortKind /* sk */,
+                                const Sort & /* sort1 */) const
 {
   throw IncorrectUsageException(
       "Boolector has no sort that takes a single sort argument.");
@@ -572,10 +576,10 @@ Sort BoolectorSolver::make_sort(SortKind sk,
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk,
-                                const Sort & sort1,
-                                const Sort & sort2,
-                                const Sort & sort3) const
+Sort BoolectorSolver::make_sort(SortKind /* sk */,
+                                const Sort & /* sort1 */,
+                                const Sort & /* sort2 */,
+                                const Sort & /* sort3 */) const
 {
   throw IncorrectUsageException(
       "Boolector does not have a non-function sort that takes three sort "
@@ -633,8 +637,8 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort BoolectorSolver::make_sort(const Sort & sort_con,
-                                const SortVec & sorts) const
+Sort BoolectorSolver::make_sort(const Sort & /* sort_con */,
+                                const SortVec & /* sorts */) const
 
 {
   throw IncorrectUsageException(

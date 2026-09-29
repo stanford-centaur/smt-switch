@@ -227,9 +227,9 @@ class AbsSmtSolver
    * @return a value term with Sort sort and value s
    */
 
-  virtual Term make_term(const std::string & s,
-                         bool useEscSequences,
-                         const Sort & sort) const
+  virtual Term make_term(const std::string & /* s */,
+                         bool /* useEscSequences */,
+                         const Sort & /* sort */) const
   {
     throw NotImplementedException("Strings not supported for this solver.");
   }
@@ -239,7 +239,8 @@ class AbsSmtSolver
    * @param sort the sort to create
    * @return a value term with Sort sort and value s
    */
-  virtual Term make_term(const std::wstring & s, const Sort & sort) const
+  virtual Term make_term(const std::wstring & /* s */,
+                         const Sort & /* sort */) const
   {
     throw NotImplementedException("Strings not supported for this solver.");
   }
@@ -436,7 +437,7 @@ class AbsSmtSolver
   // extra methods -- not required
 
   /* Dumps full smt-lib representation of current context to a file */
-  virtual void dump_smt2(std::string filename) const
+  virtual void dump_smt2(std::string /* filename */) const
   {
     throw NotImplementedException(
         "Dumping to FILE not supported for this solver.");
@@ -453,9 +454,9 @@ class AbsSmtSolver
    *         unknown  iff interpolation failed
    *
    */
-  virtual Result get_interpolant(const Term & A,
-                                 const Term & B,
-                                 Term & out_I) const
+  virtual Result get_interpolant(const Term & /* A */,
+                                 const Term & /* B */,
+                                 Term & /* out_I */) const
   {
     throw NotImplementedException(
         "Interpolants are not supported by this solver.");

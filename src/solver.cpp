@@ -30,21 +30,21 @@ namespace smt {
 
 // TODO: Implement a generic visitor
 
-Result AbsSmtSolver::check_sat_assuming_list(const TermList & assumptions)
+Result AbsSmtSolver::check_sat_assuming_list(const TermList & /* assumptions */)
 {
   throw NotImplementedException(
       "check_sat_assuming_list not implemented by default");
 }
 
 Result AbsSmtSolver::check_sat_assuming_set(
-    const UnorderedTermSet & assumptions)
+    const UnorderedTermSet & /* assumptions */)
 {
   throw NotImplementedException(
       "check_sat_assuming_set not implemented by default");
 }
 
 SortVec AbsSmtSolver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls) const
+    const std::vector<DatatypeDecl> & /* decls */) const
 {
   throw NotImplementedException(
       "make_datatype_sorts for mutually recursive datatypes not yet "

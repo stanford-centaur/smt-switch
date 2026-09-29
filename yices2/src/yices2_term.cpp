@@ -272,7 +272,7 @@ TermIter Yices2Term::end()
       "Term iteration not implemented for Yices backend.");
 }
 
-std::string Yices2Term::print_value_as(SortKind sk)
+std::string Yices2Term::print_value_as(SortKind /* sk */)
 {
   if (!is_value())
   {

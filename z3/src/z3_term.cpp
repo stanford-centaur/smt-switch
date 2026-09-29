@@ -393,7 +393,7 @@ TermIter Z3Term::end()
   return TermIter(new Z3TermIter(term, num_args));
 }
 
-std::string Z3Term::print_value_as(SortKind sk)
+std::string Z3Term::print_value_as(SortKind /* sk */)
 {
   if (!is_value())
   {

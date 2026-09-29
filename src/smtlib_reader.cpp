@@ -257,7 +257,8 @@ void SmtLibReader::set_opt(const std::string & key, const std::string & val)
   solver_->set_opt(key, val);
 }
 
-void SmtLibReader::set_info(const std::string & key, const std::string & val)
+void SmtLibReader::set_info(const std::string & /* key */,
+                            const std::string & /* val */)
 {
   // No-Op for set-info by default
 }
@@ -299,7 +300,7 @@ void SmtLibReader::pop(std::uint64_t num)
   solver_->pop(num);
 }
 
-void SmtLibReader::term_attribute(const Term & term,
+void SmtLibReader::term_attribute(const Term & /* term */,
                                   const std::string & keyword,
                                   const std::string & value)
 {

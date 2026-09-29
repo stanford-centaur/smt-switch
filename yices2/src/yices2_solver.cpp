@@ -35,7 +35,7 @@ namespace smt {
 context_t * running_ctx = nullptr;
 bool yices2_terminated = false;
 
-void yices2_timelimit_handler(int signum)
+void yices2_timelimit_handler(int /* signum */)
 {
   assert(running_ctx != nullptr);
   yices_stop_search(running_ctx);
@@ -186,48 +186,50 @@ Term Yices2Solver::make_term(bool b) const
   return std::make_shared<Yices2Term>(y_term);
 }
 
-Sort Yices2Solver::make_sort(const DatatypeDecl & d) const
+Sort Yices2Solver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("Yices2Solver::make_sort");
 };
-DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s)
+DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & /* s */)
 {
   throw NotImplementedException("Yices2Solver::make_datatype_decl");
 }
 DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string /* s */)
 {
   throw NotImplementedException("Yices2Solver::make_datatype_constructor_decl");
 };
-void Yices2Solver::add_constructor(DatatypeDecl & dt,
-                                   const DatatypeConstructorDecl & con) const
+void Yices2Solver::add_constructor(
+    DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw NotImplementedException("Yices2Solver::add_constructor");
 };
-void Yices2Solver::add_selector(DatatypeConstructorDecl & dt,
-                                const std::string & name,
-                                const Sort & s) const
+void Yices2Solver::add_selector(DatatypeConstructorDecl & /* dt */,
+                                const std::string & /* name */,
+                                const Sort & /* s */) const
 {
   throw NotImplementedException("Yices2Solver::add_selector");
 };
-void Yices2Solver::add_selector_self(DatatypeConstructorDecl & dt,
-                                     const std::string & name) const
+void Yices2Solver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                     const std::string & /* name */) const
 {
   throw NotImplementedException("Yices2Solver::add_selector_self");
 };
 
-Term Yices2Solver::get_constructor(const Sort & s, std::string name) const
+Term Yices2Solver::get_constructor(const Sort & /* s */,
+                                   std::string /* name */) const
 {
   throw NotImplementedException("Yices2Solver::get_constructor");
 };
-Term Yices2Solver::get_tester(const Sort & s, std::string name) const
+Term Yices2Solver::get_tester(const Sort & /* s */,
+                              std::string /* name */) const
 {
   throw NotImplementedException("Yices2Solver::get_testeer");
 };
 
-Term Yices2Solver::get_selector(const Sort & s,
-                                std::string con,
-                                std::string name) const
+Term Yices2Solver::get_selector(const Sort & /* s */,
+                                std::string /* con */,
+                                std::string /* name */) const
 {
   throw NotImplementedException("Yices2Solver::get_selector");
 };
@@ -305,7 +307,8 @@ Term Yices2Solver::make_term(const std::string val,
   return std::make_shared<Yices2Term>(y_term);
 }
 
-Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
+Term Yices2Solver::make_term(const Term & /* val */,
+                             const Sort & /* sort */) const
 {
   throw NotImplementedException(
       "Constant arrays not supported for Yices2 backend.");
@@ -454,8 +457,8 @@ Term Yices2Solver::get_value(const Term & t) const
   }
 }
 
-UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
-                                                Term & out_const_base) const
+UnorderedTermMap Yices2Solver::get_array_values(
+    const Term & /* arr */, Term & /* out_const_base */) const
 {
   throw NotImplementedException(
       "Yices does not support getting array values. Please use get_value on a "
@@ -569,7 +572,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
   return std::make_shared<Yices2Sort>(y_sort);
 }
 
-Sort Yices2Solver::make_sort(SortKind sk, const Sort & sort1) const
+Sort Yices2Solver::make_sort(SortKind /* sk */, const Sort & /* sort1 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take one sort parameter yet.");
@@ -610,10 +613,10 @@ Sort Yices2Solver::make_sort(SortKind sk,
   return ret_sort;
 }
 
-Sort Yices2Solver::make_sort(SortKind sk,
-                             const Sort & sort1,
-                             const Sort & sort2,
-                             const Sort & sort3) const
+Sort Yices2Solver::make_sort(SortKind /* sk */,
+                             const Sort & /* sort1 */,
+                             const Sort & /* sort2 */,
+                             const Sort & /* sort3 */) const
 {
   throw NotImplementedException(
       "Smt-switch does not have any sorts that take three sort parameters "
@@ -680,7 +683,8 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   return std::make_shared<Yices2Sort>(y_sort, true);
 }
 
-Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+Sort Yices2Solver::make_sort(const Sort & /* sort_con */,
+                             const SortVec & /* sorts */) const
 {
   throw NotImplementedException(
       "Yices2 does not support uninterpreted sort constructors");
@@ -721,7 +725,8 @@ Term Yices2Solver::get_symbol(const std::string & name)
   return it->second;
 }
 
-Term Yices2Solver::make_param(const std::string name, const Sort & sort)
+Term Yices2Solver::make_param(const std::string /* name */,
+                              const Sort & /* sort */)
 {
   throw NotImplementedException("make_param not supported by Yices2 yet.");
 }
@@ -1042,7 +1047,7 @@ Term Yices2Solver::substitute(const Term term,
   return std::make_shared<Yices2Term>(res);
 }
 
-void Yices2Solver::dump_smt2(std::string filename) const
+void Yices2Solver::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException(
       "Dumping smt2 not supported by Yices2 backend.");
