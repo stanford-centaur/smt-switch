@@ -14,6 +14,8 @@
 **
 **/
 
+#include <set>
+
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -67,14 +69,14 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
     EXPECT_TRUE(r.is_unsat());
   }
 
-  if (s->get_solver_enum() != GENERIC_SOLVER)
-  {
-    r = s->check_sat_assuming_list(TermList{ b1, nb2 });
-    EXPECT_TRUE(r.is_unsat());
+  r = s->check_sat_assuming(TermList{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
 
-    r = s->check_sat_assuming_set(UnorderedTermSet{ b1, nb2 });
-    EXPECT_TRUE(r.is_unsat());
-  }
+  r = s->check_sat_assuming(UnorderedTermSet{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming(std::set<Term>{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
 }
 
 INSTANTIATE_TEST_SUITE_P(

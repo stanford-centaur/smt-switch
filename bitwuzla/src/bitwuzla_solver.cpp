@@ -172,16 +172,6 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   return check_sat_assuming_internal(assumptions);
 }
 
-Result BzlaSolver::check_sat_assuming_list(const TermList & assumptions)
-{
-  return check_sat_assuming_internal(assumptions);
-}
-
-Result BzlaSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
-{
-  return check_sat_assuming_internal(assumptions);
-}
-
 void BzlaSolver::push(std::uint64_t num)
 {
   get_bitwuzla()->push(num);

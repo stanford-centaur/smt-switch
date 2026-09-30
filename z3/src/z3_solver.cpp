@@ -571,44 +571,6 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
   return check_sat_assuming(z3assumps);
 }
 
-Result Z3Solver::check_sat_assuming_list(const TermList & assumptions)
-{
-  z3::expr_vector z3assumps(ctx);
-
-  shared_ptr<Z3Term> za;
-  for (auto a : assumptions)
-  {
-    za = static_pointer_cast<Z3Term>(a);
-    if (za->is_function)
-    {
-      throw IncorrectUsageException(
-          "Functions cannot be used directly as assumptions.");
-    }
-    z3assumps.push_back(za->term);
-  }
-
-  return check_sat_assuming(z3assumps);
-}
-
-Result Z3Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
-{
-  z3::expr_vector z3assumps(ctx);
-
-  shared_ptr<Z3Term> za;
-  for (auto a : assumptions)
-  {
-    za = static_pointer_cast<Z3Term>(a);
-    if (za->is_function)
-    {
-      throw IncorrectUsageException(
-          "Functions cannot be used directly as assumptions.");
-    }
-    z3assumps.push_back(za->term);
-  }
-
-  return check_sat_assuming(z3assumps);
-}
-
 void Z3Solver::push(uint64_t num)
 {
   for (uint64_t i = 0; i < num; i++)

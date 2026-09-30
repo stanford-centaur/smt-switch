@@ -235,16 +235,6 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   return check_sat_assuming_msatvec(m_assumps);
 }
 
-Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
-{
-  return check_sat_assuming(TermVec(assumptions.begin(), assumptions.end()));
-}
-
-Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
-{
-  return check_sat_assuming(TermVec(assumptions.begin(), assumptions.end()));
-}
-
 void MsatSolver::push(uint64_t num)
 {
   initialize_env();
