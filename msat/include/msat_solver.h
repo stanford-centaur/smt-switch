@@ -60,18 +60,7 @@ class MsatSolver : public AbsSmtSolver
         max_assump_clauses_(10000) {};
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
-  ~MsatSolver()
-  {
-    // Note: even with this, mathsat leaks
-    // a program that just creates a msat_env leaks
-    //  -- be careful, valgrind won't report leaks on statically compiled
-    //  binaries
-    if (!env_uninitialized)
-    {
-      msat_destroy_env(env);
-    }
-    msat_destroy_config(cfg);
-  }
+  ~MsatSolver();
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string log) override;
   void assert_formula(const Term & t) override;
@@ -175,71 +164,15 @@ class MsatSolver : public AbsSmtSolver
   // clears assumption clauses
   // needed to simulate the same check_sat_assuming interface as other solvers
   // called before a check-sat or check-sat-assuming call
-  void clear_assumption_clauses()
-  {
-    // can only reset at context 0, and only do so if
-    // there's a "magic large number" of assumption clauses
-    if (!msat_num_backtrack_points(env)
-        && num_assump_clauses_ >= max_assump_clauses_)
-    {
-      num_assump_clauses_ = 0;
-      msat_reset_env(env);
-      // re-add actual assertions
-      for (const auto & ba : base_assertions_)
-      {
-        msat_assert_formula(env, ba);
-      }
-    }
-  }
+  void clear_assumption_clauses();
 
   // initializes the env (if not already done)
-  virtual void initialize_env() const
-  {
-    if (env_uninitialized)
-    {
-      env = msat_create_env(cfg);
-      env_uninitialized = false;
-    }
-  }
+  virtual void initialize_env() const;
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
 
-  inline Result check_sat_assuming_msatvec(std::vector<msat_term> & m_assumps)
-  {
-    msat_term lbl;
-    assumption_map_.clear();
-    std::vector<msat_term> lbls;
-    lbls.reserve(m_assumps.size());
-    for (const auto & ma : m_assumps)
-    {
-      lbl = label(ma);
-      // check that label is cached correctly
-      assert(msat_term_id(lbl) == msat_term_id(label(ma)));
-      msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
-      num_assump_clauses_++;
-      assumption_map_[msat_term_id(lbl)] = ma;
-      lbls.push_back(lbl);
-    }
-
-    assert(lbls.size() == m_assumps.size());
-
-    msat_result mres =
-        msat_solve_with_assumptions(env, lbls.data(), lbls.size());
-
-    if (mres == MSAT_SAT)
-    {
-      return Result(SAT);
-    }
-    else if (mres == MSAT_UNSAT)
-    {
-      return Result(UNSAT);
-    }
-    else
-    {
-      return Result(UNKNOWN);
-    }
-  }
+  Result check_sat_assuming_msatvec(std::vector<msat_term> & m_assumps);
 };
 
 // Interpolating Solver
@@ -248,12 +181,7 @@ class MsatInterpolatingSolver : public MsatSolver
  public:
   typedef MsatSolver super;
   MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
-  MsatInterpolatingSolver(msat_config c, msat_env e)
-  {
-    cfg = c;
-    env = e;
-    solver_enum = MSAT_INTERPOLATOR;
-  };
+  MsatInterpolatingSolver(msat_config c, msat_env e);
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
@@ -273,20 +201,7 @@ class MsatInterpolatingSolver : public MsatSolver
   void reset_assertions() override;
 
  protected:
-  virtual void initialize_env() const override
-  {
-    if (env_uninitialized)
-    {
-      msat_set_option(cfg, "theory.bv.eager", "false");
-      msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
-      msat_set_option(cfg, "interpolation", "true");
-      msat_set_option(cfg, "incremental", "true");
-      // TODO: decide if we should add this
-      // msat_set_option(cfg, "theory.eq_propagation", "false");
-      env = msat_create_env(cfg);
-      env_uninitialized = false;
-    }
-  }
+  virtual void initialize_env() const override;
 
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,

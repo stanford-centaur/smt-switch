@@ -128,6 +128,19 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 
 // MsatSolver implementation
 
+MsatSolver::~MsatSolver()
+{
+  // Note: even with this, mathsat leaks
+  // a program that just creates a msat_env leaks
+  //  -- be careful, valgrind won't report leaks on statically compiled
+  //  binaries
+  if (!env_uninitialized)
+  {
+    msat_destroy_env(env);
+  }
+  msat_destroy_config(cfg);
+}
+
 void MsatSolver::set_opt(const string option, const string value)
 {
   // Note: mathsat needs options to be set on a configuration before creating an
@@ -1121,9 +1134,93 @@ msat_term MsatSolver::label(msat_term p) const
   return msat_make_constant(env, d);
 }
 
+void MsatSolver::clear_assumption_clauses()
+{
+  // can only reset at context 0, and only do so if
+  // there's a "magic large number" of assumption clauses
+  if (!msat_num_backtrack_points(env)
+      && num_assump_clauses_ >= max_assump_clauses_)
+  {
+    num_assump_clauses_ = 0;
+    msat_reset_env(env);
+    // re-add actual assertions
+    for (const auto & ba : base_assertions_)
+    {
+      msat_assert_formula(env, ba);
+    }
+  }
+}
+
+void MsatSolver::initialize_env() const
+{
+  if (env_uninitialized)
+  {
+    env = msat_create_env(cfg);
+    env_uninitialized = false;
+  }
+}
+
+Result MsatSolver::check_sat_assuming_msatvec(
+    std::vector<msat_term> & m_assumps)
+{
+  msat_term lbl;
+  assumption_map_.clear();
+  std::vector<msat_term> lbls;
+  lbls.reserve(m_assumps.size());
+  for (const auto & ma : m_assumps)
+  {
+    lbl = label(ma);
+    // check that label is cached correctly
+    assert(msat_term_id(lbl) == msat_term_id(label(ma)));
+    msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
+    num_assump_clauses_++;
+    assumption_map_[msat_term_id(lbl)] = ma;
+    lbls.push_back(lbl);
+  }
+
+  assert(lbls.size() == m_assumps.size());
+
+  msat_result mres = msat_solve_with_assumptions(env, lbls.data(), lbls.size());
+
+  if (mres == MSAT_SAT)
+  {
+    return Result(SAT);
+  }
+  else if (mres == MSAT_UNSAT)
+  {
+    return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
+  }
+}
+
 // end MsatSolver implementation
 
 // begin MsatInterpolatingSolver implementation
+
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
+{
+  cfg = c;
+  env = e;
+  solver_enum = MSAT_INTERPOLATOR;
+}
+
+void MsatInterpolatingSolver::initialize_env() const
+{
+  if (env_uninitialized)
+  {
+    msat_set_option(cfg, "theory.bv.eager", "false");
+    msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
+    msat_set_option(cfg, "interpolation", "true");
+    msat_set_option(cfg, "incremental", "true");
+    // TODO: decide if we should add this
+    // msat_set_option(cfg, "theory.eq_propagation", "false");
+    env = msat_create_env(cfg);
+    env_uninitialized = false;
+  }
+}
 
 void MsatInterpolatingSolver::set_opt(const string option, const string value)
 {
