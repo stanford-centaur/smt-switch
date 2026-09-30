@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -105,6 +106,34 @@ Term to_cnf(Term formula, SmtSolver s);
 
 // Returns true if the formula is in cnf form, else false
 bool is_cnf(Term formula);
+
+// Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
+// Each throws an IncorrectUsageException if its input is malformed or its
+// value does not fit in the result type.
+
+/** Parses the text of an integer value: `n`, `-n` or `(- n)`, where `n` is
+ *  a decimal numeral, optionally followed by a fractional part of zeros
+ *  (as in `5.0`) so that real values with an integral value are accepted.
+ *  SMT-LIB numerals are never negative, and its negative integer values
+ *  are `(- n)`; `-n` is an SMT-LIB symbol, but Yices2 and MathSAT print
+ *  values that way outside SMT-LIB, and cvc5 and Z3 print integral reals
+ *  as `n.0`.
+ */
+std::uint64_t smtlib_int_to_uint64(const std::string & s);
+std::int64_t smtlib_int_to_int64(const std::string & s);
+
+/** Interprets a string of 0s and 1s, most significant bit first, as a
+ *  bit-vector of the string's length: unsigned, or in two's complement.
+ *  Throws for bit-vectors wider than 64 bits, whatever their value.
+ */
+std::uint64_t bits_to_uint64(const std::string & bits);
+std::int64_t bits_to_int64(const std::string & bits);
+
+/** Like bits_to_uint64 and bits_to_int64, for an SMT-LIB bit-vector value:
+ *  `#b...`, `#x...` or `(_ bvN W)`.
+ */
+std::uint64_t smtlib_bv_to_uint64(const std::string & s);
+std::int64_t smtlib_bv_to_int64(const std::string & s);
 
 // -----------------------------------------------------------------------------
 

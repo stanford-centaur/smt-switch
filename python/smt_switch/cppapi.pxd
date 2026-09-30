@@ -72,6 +72,7 @@ cdef extern from "term.h" namespace "smt":
         bint is_symbolic_const() except +
         bint is_value() except +
         uint64_t to_int() except +
+        int64_t to_signed_int() except +
         c_TermIter begin() except +
         c_TermIter end() except +
 

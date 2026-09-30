@@ -18,7 +18,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <map>
 #include <random>
 #include <sstream>
@@ -1335,6 +1338,261 @@ void DisjointSet::clear()
 {
   leader_.clear();
   group_.clear();
+}
+
+// -----------------------------------------------------------------------------
+
+namespace {
+
+std::string trim_spaces(const std::string & s)
+{
+  const std::string::size_type begin = s.find_first_not_of(" \t\n\r");
+  if (begin == std::string::npos)
+  {
+    return "";
+  }
+  const std::string::size_type end = s.find_last_not_of(" \t\n\r");
+  return s.substr(begin, end - begin + 1);
+}
+
+/** Accumulates the decimal numeral `digits` into `value`.
+ *  Returns false if it is empty, has a non-digit or overflows.
+ */
+bool decimal_to_uint64(const std::string & digits, std::uint64_t & value)
+{
+  if (digits.empty())
+  {
+    return false;
+  }
+  const std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  value = 0;
+  for (char c : digits)
+  {
+    if (c < '0' || c > '9')
+    {
+      return false;
+    }
+    const std::uint64_t d = static_cast<std::uint64_t>(c - '0');
+    if (value > (max - d) / 10)
+    {
+      return false;
+    }
+    value = value * 10 + d;
+  }
+  return true;
+}
+
+/** Parses an integer value into its sign and magnitude.
+ *  See smtlib_int_to_uint64 for the accepted syntax.
+ */
+void parse_smtlib_int(const std::string & s,
+                      bool & negative,
+                      std::uint64_t & magnitude)
+{
+  std::string text = trim_spaces(s);
+  negative = false;
+  if (text.size() > 2 && text.substr(0, 2) == "(-" && text.back() == ')')
+  {
+    negative = true;
+    text = trim_spaces(text.substr(2, text.size() - 3));
+  }
+  else if (!text.empty() && text[0] == '-')
+  {
+    negative = true;
+    text = text.substr(1);
+  }
+
+  const std::string::size_type point = text.find('.');
+  if (point != std::string::npos)
+  {
+    const std::string fraction = text.substr(point + 1);
+    if (fraction.empty()
+        || fraction.find_first_not_of('0') != std::string::npos)
+    {
+      throw IncorrectUsageException(
+          "Can't convert " + s + " to an integer: it is not an integer value");
+    }
+    text = text.substr(0, point);
+  }
+
+  if (!decimal_to_uint64(text, magnitude))
+  {
+    if (!text.empty()
+        && text.find_first_not_of("0123456789") == std::string::npos)
+    {
+      throw IncorrectUsageException("Can't convert " + s
+                                    + " to an integer: it does not fit in 64 "
+                                      "bits");
+    }
+    throw IncorrectUsageException(
+        "Can't convert " + s + " to an integer: it is not an integer value");
+  }
+}
+
+/** Interprets the low `width` bits of `value` in two's complement. */
+std::int64_t to_twos_complement(std::uint64_t value, std::uint64_t width)
+{
+  const std::uint64_t sign_bit = std::uint64_t(1) << (width - 1);
+  if ((value & sign_bit) == 0)
+  {
+    return static_cast<std::int64_t>(value);
+  }
+  // the value is 2^width - magnitude; 2^64 wraps around to 0
+  const std::uint64_t two_to_width =
+      width == 64 ? 0 : (std::uint64_t(1) << width);
+  const std::uint64_t magnitude = two_to_width - value;
+  if (magnitude == sign_bit)
+  {
+    // the minimum value, whose magnitude does not fit in the result type
+    return -static_cast<std::int64_t>(sign_bit - 1) - 1;
+  }
+  return -static_cast<std::int64_t>(magnitude);
+}
+
+void check_bv_width(std::uint64_t width, const std::string & s)
+{
+  if (width == 0)
+  {
+    throw IncorrectUsageException("Can't convert " + s
+                                  + " to an integer: it is not a bit-vector "
+                                    "value");
+  }
+  if (width > 64)
+  {
+    throw IncorrectUsageException(
+        "Can't convert " + s + " to an integer: a bit-vector of width "
+        + std::to_string(width) + " does not fit in 64 bits");
+  }
+}
+
+/** Parses an SMT-LIB bit-vector value into its value and width. */
+void parse_smtlib_bv(const std::string & s,
+                     std::uint64_t & value,
+                     std::uint64_t & width)
+{
+  const std::string text = trim_spaces(s);
+  const std::string not_bv =
+      "Can't convert " + s + " to an integer: it is not a bit-vector value";
+  if (text.substr(0, 2) == "#b")
+  {
+    const std::string bits = text.substr(2);
+    width = bits.size();
+    value = bits_to_uint64(bits);
+  }
+  else if (text.substr(0, 2) == "#x")
+  {
+    const std::string hex = text.substr(2);
+    width = 4 * hex.size();
+    check_bv_width(width, s);
+    value = 0;
+    for (char c : hex)
+    {
+      const std::string::size_type d = std::string("0123456789abcdef")
+                                           .find(static_cast<char>(std::tolower(
+                                               static_cast<unsigned char>(c))));
+      if (d == std::string::npos)
+      {
+        throw IncorrectUsageException(not_bv);
+      }
+      value = (value << 4) | d;
+    }
+  }
+  else if (text.substr(0, 5) == "(_ bv" && text.back() == ')')
+  {
+    const std::string body = text.substr(5, text.size() - 6);
+    const std::string::size_type space = body.find(' ');
+    if (space == std::string::npos
+        || !decimal_to_uint64(trim_spaces(body.substr(space + 1)), width))
+    {
+      throw IncorrectUsageException(not_bv);
+    }
+    check_bv_width(width, s);
+    if (!decimal_to_uint64(body.substr(0, space), value)
+        || (width < 64 && (value >> width) != 0))
+    {
+      throw IncorrectUsageException(not_bv);
+    }
+  }
+  else
+  {
+    throw IncorrectUsageException(not_bv);
+  }
+}
+
+}  // namespace
+
+std::uint64_t smtlib_int_to_uint64(const std::string & s)
+{
+  bool negative;
+  std::uint64_t magnitude;
+  parse_smtlib_int(s, negative, magnitude);
+  if (negative && magnitude != 0)
+  {
+    throw IncorrectUsageException("Can't convert " + s
+                                  + " to an unsigned integer: it is negative");
+  }
+  return magnitude;
+}
+
+std::int64_t smtlib_int_to_int64(const std::string & s)
+{
+  bool negative;
+  std::uint64_t magnitude;
+  parse_smtlib_int(s, negative, magnitude);
+  const std::uint64_t max =
+      static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+  if (!negative && magnitude <= max)
+  {
+    return static_cast<std::int64_t>(magnitude);
+  }
+  if (negative && magnitude <= max)
+  {
+    return -static_cast<std::int64_t>(magnitude);
+  }
+  if (negative && magnitude == max + 1)
+  {
+    return std::numeric_limits<std::int64_t>::min();
+  }
+  throw IncorrectUsageException(
+      "Can't convert " + s
+      + " to a signed integer: it does not fit in 64 bits");
+}
+
+std::uint64_t bits_to_uint64(const std::string & bits)
+{
+  if (bits.find_first_not_of("01") != std::string::npos)
+  {
+    throw IncorrectUsageException("Can't convert " + bits
+                                  + " to an integer: it is not a bit string");
+  }
+  check_bv_width(bits.size(), bits);
+  std::uint64_t value = 0;
+  for (char c : bits)
+  {
+    value = (value << 1) | static_cast<std::uint64_t>(c - '0');
+  }
+  return value;
+}
+
+std::int64_t bits_to_int64(const std::string & bits)
+{
+  return to_twos_complement(bits_to_uint64(bits), bits.size());
+}
+
+std::uint64_t smtlib_bv_to_uint64(const std::string & s)
+{
+  std::uint64_t value;
+  std::uint64_t width;
+  parse_smtlib_bv(s, value, width);
+  return value;
+}
+
+std::int64_t smtlib_bv_to_int64(const std::string & s)
+{
+  std::uint64_t value;
+  std::uint64_t width;
+  parse_smtlib_bv(s, value, width);
+  return to_twos_complement(value, width);
 }
 
 }  // namespace smt

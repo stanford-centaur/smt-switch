@@ -228,36 +228,25 @@ bool BzlaTerm::is_value() const
 
 std::string BzlaTerm::to_string() { return term.str(); }
 
-std::uint64_t BzlaTerm::to_int() const
+/** Returns the bits of a bit-vector value, most significant first */
+static std::string bv_value_to_bits(const bitwuzla::Term & term)
 {
-  if (!term.sort().is_bv())
+  if (!term.is_value() || !term.sort().is_bv())
   {
     throw IncorrectUsageException(
-        "Can't get bitstring from a non-bitvector value term.");
+        "Can't get bitstring from a term that is not a bit-vector value.");
   }
-  std::uint64_t width = term.sort().bv_size();
-  if (width > 64)
-  {
-    std::string msg("Can't represent a bit-vector of size ");
-    msg += std::to_string(width);
-    msg += " in a uint64_t";
-    throw IncorrectUsageException(msg.c_str());
-  }
-  std::string bits = term.str();
-  // special case -- 1-bit bit-vectors are
-  // printed as Booleans in bitwuzla.
-  if (bits == "true")
-  {
-    return 1;
-  }
-  else if (bits == "false")
-  {
-    return 0;
-  }
-  assert(bits.substr(0, 2) == "#b");
-  bits = bits.substr(2, bits.length());
-  std::string::size_type sz = 0;
-  return std::stoull(bits, &sz, 2);
+  return term.value<std::string>(2);
+}
+
+std::uint64_t BzlaTerm::to_int() const
+{
+  return bits_to_uint64(bv_value_to_bits(term));
+}
+
+std::int64_t BzlaTerm::to_signed_int() const
+{
+  return bits_to_int64(bv_value_to_bits(term));
 }
 
 TermIter BzlaTerm::begin() { return TermIter(new BzlaTermIter(term, 0)); }

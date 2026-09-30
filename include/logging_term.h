@@ -65,6 +65,7 @@ class LoggingTerm : public AbsTerm
   std::size_t hash() const override;
   bool is_value() const override;
   std::uint64_t to_int() const override;
+  std::int64_t to_signed_int() const override;
   std::string print_value_as(SortKind sk) override;
 
  protected:

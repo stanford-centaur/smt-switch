@@ -16,9 +16,38 @@
 
 #include "term.h"
 
+#include <cstdint>
 #include <memory>
+#include <string>
+
+#include "exceptions.h"
+#include "sort.h"
+#include "utils.h"
 
 namespace smt {
+
+std::int64_t AbsTerm::to_signed_int() const
+{
+  // to_string is not const only because a backend may cache the string
+  const std::string repr = const_cast<AbsTerm *>(this)->to_string();
+  if (!is_value())
+  {
+    throw IncorrectUsageException("Can't convert non-value " + repr
+                                  + " to an integer");
+  }
+  SortKind sk = get_sort()->get_sort_kind();
+  if (sk == BV)
+  {
+    return smtlib_bv_to_int64(repr);
+  }
+  if (sk == INT || sk == REAL)
+  {
+    return smtlib_int_to_int64(repr);
+  }
+  throw IncorrectUsageException("Can't convert " + repr
+                                + " to an integer: it has sort "
+                                + get_sort()->to_string());
+}
 
 std::ostream & operator<<(std::ostream & output, const Term t)
 {

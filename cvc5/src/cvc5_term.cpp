@@ -23,6 +23,7 @@
 #include "cvc5/cvc5.h"
 #include "cvc5_sort.h"
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -313,33 +314,34 @@ std::wstring Cvc5Term::getStringValue() const
 
 uint64_t Cvc5Term::to_int() const
 {
-  std::string val = term.toString();
-  ::cvc5::Sort sort = term.getSort();
+  if (term.isBitVectorValue())
+  {
+    return bits_to_uint64(term.getBitVectorValue(2));
+  }
+  // true for integer values and for real values with an integral value
+  if (term.isUInt64Value())
+  {
+    return term.getUInt64Value();
+  }
+  throw IncorrectUsageException(
+      "Can't convert " + term.toString()
+      + " to an unsigned integer: it is not a value that fits in 64 bits");
+}
 
-  // process smt-lib bit-vector format
-  if (sort.isBitVector())
+int64_t Cvc5Term::to_signed_int() const
+{
+  if (term.isBitVectorValue())
   {
-    if (val.find("(_ bv") == std::string::npos)
-    {
-      std::string msg = val;
-      msg += " is not a constant term, can't convert to int.";
-      throw IncorrectUsageException(msg.c_str());
-    }
-    val = val.substr(5, val.length());
-    val = val.substr(0, val.find(" "));
+    return bits_to_int64(term.getBitVectorValue(2));
   }
-
-  try
+  // true for integer values and for real values with an integral value
+  if (term.isInt64Value())
   {
-    return std::stoi(val);
+    return term.getInt64Value();
   }
-  catch (std::exception const & e)
-  {
-    std::string msg("Term ");
-    msg += val;
-    msg += " does not contain an integer representable by a machine int.";
-    throw IncorrectUsageException(msg.c_str());
-  }
+  throw IncorrectUsageException(
+      "Can't convert " + term.toString()
+      + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
 /** Iterators for traversing the children
