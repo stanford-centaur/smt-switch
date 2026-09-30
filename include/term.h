@@ -177,8 +177,17 @@ class TermIter
   TermIter() : iter_(0) {}
   TermIter(TermIterBase * tib) : iter_(tib) {}
   ~TermIter() { delete iter_; }
-  TermIter(const TermIter & other) : iter_(other.iter_->clone()) {}
+  // a default-constructed iterator holds no iter_, so copy it as null
+  TermIter(const TermIter & other)
+      : iter_(other.iter_ ? other.iter_->clone() : nullptr)
+  {
+  }
+  TermIter(TermIter && other) noexcept : iter_(other.iter_)
+  {
+    other.iter_ = nullptr;
+  }
   TermIter & operator=(const TermIter & other);
+  TermIter & operator=(TermIter && other) noexcept;
   TermIter & operator++();
   TermIter operator++(int junk);
   Term operator*() const { return *(*iter_); }
