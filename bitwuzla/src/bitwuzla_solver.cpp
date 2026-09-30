@@ -382,58 +382,6 @@ Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
       "Bitwuzla does not support uninterpreted sort construction");
 }
 
-Sort BzlaSolver::make_sort(const DatatypeDecl & d) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-DatatypeDecl BzlaSolver::make_datatype_decl(const std::string & s)
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-DatatypeConstructorDecl BzlaSolver::make_datatype_constructor_decl(
-    const std::string s)
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-void BzlaSolver::add_constructor(DatatypeDecl & dt,
-                                 const DatatypeConstructorDecl & con) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-void BzlaSolver::add_selector(DatatypeConstructorDecl & dt,
-                              const std::string & name,
-                              const Sort & s) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-void BzlaSolver::add_selector_self(DatatypeConstructorDecl & dt,
-                                   const std::string & name) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-Term BzlaSolver::get_constructor(const Sort & s, std::string name) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-Term BzlaSolver::get_tester(const Sort & s, std::string name) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
-Term BzlaSolver::get_selector(const Sort & s,
-                              std::string con,
-                              std::string name) const
-{
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
-}
-
 Term BzlaSolver::make_term(bool b) const
 {
   if (b)

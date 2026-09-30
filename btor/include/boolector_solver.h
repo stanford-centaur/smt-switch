@@ -69,6 +69,11 @@ class BoolectorSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
+
+  // The datatype methods are left to AbsSmtSolver, whose defaults throw.
+  // Declaring make_sort here at all would hide its DatatypeDecl overload
+  // from lookup on this type, so name it back in.
+  using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -82,29 +87,11 @@ class BoolectorSolver : public AbsSmtSolver
                  const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
-  Sort make_sort(const DatatypeDecl & d) const override;
-
-  DatatypeDecl make_datatype_decl(const std::string & s) override;
-  DatatypeConstructorDecl make_datatype_constructor_decl(
-      const std::string s) override;
-  void add_constructor(DatatypeDecl & dt,
-                       const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt,
-                    const std::string & name,
-                    const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt,
-                         const std::string & name) const override;
-  Term get_constructor(const Sort & s, std::string name) const override;
-  Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s,
-                    std::string con,
-                    std::string name) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a
   // Boolector solver. Their default throws NotImplementedException.
   using AbsSmtSolver::make_term;
-
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
