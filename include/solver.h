@@ -176,23 +176,24 @@ class AbsSmtSolver
    * @param sorts for ARRAY, the index sort then the element sort; for
    * FUNCTION, the domain sorts then the codomain sort
    * @return a Sort object
-   * This is the overload a backend implements; the ones taking one, two or
-   * three sorts below are shorthands for it.
+   * This is the overload a backend implements; the one taking the sorts as
+   * separate arguments below is a shorthand for it.
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
 
-  /* Shorthands for make_sort(sk, SortVec{ ... })
-   * e.g. make_sort(ARRAY, index, element) or make_sort(FUNCTION, dom, codom)
+  /* Shorthand for make_sort(sk, SortVec{ sort1, sorts... })
+   * e.g. make_sort(ARRAY, index, element) or make_sort(FUNCTION, d1, d2, cod)
    * No SortKind takes a single sort parameter yet.
    */
-  Sort make_sort(const SortKind sk, const Sort & sort1) const;
+  template <typename... Sorts,
+            typename = std::enable_if_t<std::conjunction_v<
+                std::is_convertible<const Sorts &, Sort>...>>>
   Sort make_sort(const SortKind sk,
                  const Sort & sort1,
-                 const Sort & sort2) const;
-  Sort make_sort(const SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2,
-                 const Sort & sort3) const;
+                 const Sorts &... sorts) const
+  {
+    return make_sort(sk, SortVec{ sort1, sorts... });
+  }
 
   /* Create an uninterpreted sort
    * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
