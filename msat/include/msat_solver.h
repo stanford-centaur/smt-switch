@@ -171,8 +171,10 @@ class MsatInterpolatingSolver : public MsatSolver
   typedef MsatSolver super;
   MsatInterpolatingSolver();
   /** Creates an interpolating solver from a configuration and takes
-   *  ownership of it: the solver destroys c. On first use it sets the
-   *  options interpolation needs on c, then creates the environment.
+   *  ownership of it: the solver destroys c. On first use it sets the two
+   *  options MathSAT cannot interpolate without, interpolation=true and
+   *  theory.bv.eager=false, then creates the environment. Every other
+   *  option on c is left as given.
    */
   explicit MsatInterpolatingSolver(msat_config c);
   /** Deprecated: use MsatInterpolatingSolver(msat_config). Takes ownership
@@ -212,6 +214,8 @@ class MsatInterpolatingSolver : public MsatSolver
   mutable TermVec last_itp_query_assertions_;
   // interpolation group for each assertion level
   mutable std::vector<int> itp_grps_;
+  // true if the solver created cfg itself, so its own defaults may be set
+  bool default_config_ = false;
 };
 
 }  // namespace smt
