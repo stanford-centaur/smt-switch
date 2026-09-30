@@ -211,33 +211,6 @@ class AbsSmtSolver
    */
   virtual Term make_term(std::int64_t i, const Sort & sort) const = 0;
 
-  /* Make a string value term from an `std::string` which may contain SMT-LIB
-   * compatible escape sequences like `\u1000` or `\u{20}` to encode unicode
-   * characters.
-   * @param s is the value
-   * @param useEscSequences determines whether escape sequence in `s` should
-   * be converted to the corresponding unicode character
-   * @param sort the sort to create
-   * @return a value term with Sort sort and value s
-   */
-
-  virtual Term make_term(const std::string & s,
-                         bool useEscSequences,
-                         const Sort & sort) const
-  {
-    throw NotImplementedException("Strings not supported for this solver.");
-  }
-
-  /* Make a string value term
-   * @param s is the value
-   * @param sort the sort to create
-   * @return a value term with Sort sort and value s
-   */
-  virtual Term make_term(const std::wstring & s, const Sort & sort) const
-  {
-    throw NotImplementedException("Strings not supported for this solver.");
-  }
-
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
    * @param sort the sort to create
@@ -336,6 +309,32 @@ class AbsSmtSolver
    * SMTLIB: (reset-assertions)
    */
   virtual void reset_assertions() = 0;
+
+  // ---------------------------- Strings ------------------------------------
+  // Of the backends here only cvc5 wires up the string theory, so neither of
+  // these is pure virtual. Each default lives in solver.cpp and throws
+  // NotImplementedException naming the solver. `AbsTerm::getStringValue`
+  // reads a string value back and is defaulted the same way, in term.cpp.
+
+  /* Make a string value term from an `std::string` which may contain SMT-LIB
+   * compatible escape sequences like `\u1000` or `\u{20}` to encode unicode
+   * characters.
+   * @param s is the value
+   * @param useEscSequences determines whether escape sequence in `s` should
+   * be converted to the corresponding unicode character
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */
+  virtual Term make_term(const std::string & s,
+                         bool useEscSequences,
+                         const Sort & sort) const;
+
+  /* Make a string value term
+   * @param s is the value
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */
+  virtual Term make_term(const std::wstring & s, const Sort & sort) const;
 
   // --------------------------- Datatypes ----------------------------------
   // Algebraic datatypes have been standard SMT-LIB since 2.6, but only cvc5

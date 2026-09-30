@@ -26,6 +26,11 @@
 
 namespace smt {
 
+std::wstring AbsTerm::getStringValue() const
+{
+  throw NotImplementedException("Strings not supported for this solver.");
+}
+
 std::int64_t AbsTerm::to_signed_int() const
 {
   // to_string is not const only because a backend may cache the string

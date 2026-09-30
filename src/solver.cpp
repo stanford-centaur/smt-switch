@@ -43,6 +43,21 @@ Result AbsSmtSolver::check_sat_assuming_set(
       "check_sat_assuming_set not implemented by default");
 }
 
+Term AbsSmtSolver::make_term(const std::string & /* s */,
+                             bool /* useEscSequences */,
+                             const Sort & /* sort */) const
+{
+  throw NotImplementedException("Strings are not supported by "
+                                + to_string(solver_enum));
+}
+
+Term AbsSmtSolver::make_term(const std::wstring & /* s */,
+                             const Sort & /* sort */) const
+{
+  throw NotImplementedException("Strings are not supported by "
+                                + to_string(solver_enum));
+}
+
 Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
