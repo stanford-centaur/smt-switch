@@ -237,70 +237,12 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
 
 Result MsatSolver::check_sat_assuming_list(const TermList & assumptions)
 {
-  initialize_env();
-  clear_assumption_clauses();
-  // expecting (possibly negated) boolean literals
-  for (const auto & a : assumptions)
-  {
-    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-    {
-      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-      {
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
-
-  vector<msat_term> m_assumps;
-  m_assumps.reserve(assumptions.size());
-
-  shared_ptr<MsatTerm> ma;
-  for (const auto & a : assumptions)
-  {
-    ma = static_pointer_cast<MsatTerm>(a);
-    m_assumps.push_back(ma->term);
-  }
-
-  return check_sat_assuming_msatvec(m_assumps);
+  return check_sat_assuming(TermVec(assumptions.begin(), assumptions.end()));
 }
 
 Result MsatSolver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
 {
-  initialize_env();
-  clear_assumption_clauses();
-  // expecting (possibly negated) boolean literals
-  for (const auto & a : assumptions)
-  {
-    if (!a->is_symbolic_const() || a->get_sort()->get_sort_kind() != BOOL)
-    {
-      if (a->get_op() == Not && (*a->begin())->is_symbolic_const())
-      {
-        continue;
-      }
-      else
-      {
-        throw IncorrectUsageException(
-            "Expecting boolean indicator literals but got: " + a->to_string());
-      }
-    }
-  }
-
-  vector<msat_term> m_assumps;
-  m_assumps.reserve(assumptions.size());
-
-  shared_ptr<MsatTerm> ma;
-  for (const auto & a : assumptions)
-  {
-    ma = static_pointer_cast<MsatTerm>(a);
-    m_assumps.push_back(ma->term);
-  }
-
-  return check_sat_assuming_msatvec(m_assumps);
+  return check_sat_assuming(TermVec(assumptions.begin(), assumptions.end()));
 }
 
 void MsatSolver::push(uint64_t num)
