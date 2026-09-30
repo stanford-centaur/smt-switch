@@ -26,10 +26,9 @@ class BitwuzlaSolverFactory
    *  @param logging if true creates a LoggingSolver wrapper
    *         around the solver that keeps a shadow DAG at
    *         the smt-switch level.
-   *         For bitwuzla, this is not required but will
-   *         but makes it easier to transfer terms to other
-   *         solvers because it avoids the bool / width one
-   *         bitvector sort aliasing
+   *         For bitwuzla this should not be needed: it has a
+   *         distinct Bool sort, so unlike Boolector it does not
+   *         alias Bool with a width one bit-vector.
    *  @return a Bitwuzla SmtSolver
    */
   static SmtSolver create(bool logging);

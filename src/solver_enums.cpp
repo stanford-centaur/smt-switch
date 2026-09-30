@@ -40,7 +40,6 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             UNSAT_CORE,
             THEORY_BV,
             QUANTIFIERS,
-            BOOL_BV1_ALIASING,
             TIMELIMIT } },
         { CVC5,
           { TERMITER,
