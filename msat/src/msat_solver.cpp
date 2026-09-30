@@ -1180,6 +1180,7 @@ Result MsatSolver::check_sat_assuming_msatvec(
 MsatInterpolatingSolver::MsatInterpolatingSolver()
     : MsatInterpolatingSolver(msat_create_config())
 {
+  default_config_ = true;
 }
 
 MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c) : MsatSolver(c)
@@ -1199,10 +1200,19 @@ void MsatInterpolatingSolver::initialize_env() const
 {
   if (env_uninitialized)
   {
-    msat_set_option(cfg, "theory.bv.eager", "false");
-    msat_set_option(cfg, "theory.bv.bit_blast_mode", "0");
-    msat_set_option(cfg, "interpolation", "true");
-    msat_set_option(cfg, "incremental", "true");
+    // required even on a caller's configuration: without interpolation
+    // there are no interpolants, and the eager BV solver produces no proofs
+    if (msat_set_option(cfg, "interpolation", "true")
+        || msat_set_option(cfg, "theory.bv.eager", "false"))
+    {
+      throw InternalSolverException("Failed to enable MathSAT interpolation");
+    }
+    // only a preference, so a caller's configuration keeps its own
+    if (default_config_
+        && msat_set_option(cfg, "theory.bv.bit_blast_mode", "0"))
+    {
+      throw InternalSolverException("Failed to set MathSAT bit_blast_mode");
+    }
     // TODO: decide if we should add this
     // msat_set_option(cfg, "theory.eq_propagation", "false");
     env = msat_create_env(cfg);

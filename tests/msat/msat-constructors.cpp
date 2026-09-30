@@ -39,6 +39,23 @@ static void expect_interpolant(const SmtSolver & s)
   EXPECT_TRUE(I);
 }
 
+// x + y = 3 and y = 1 against x = 5, over bit-vectors: MathSAT's default
+// eager BV solver cannot produce the proofs interpolation needs
+static void expect_bv_interpolant(const SmtSolver & s)
+{
+  Sort bvsort = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term A = s->make_term(
+      And,
+      s->make_term(Equal, s->make_term(BVAdd, x, y), s->make_term(3, bvsort)),
+      s->make_term(Equal, y, s->make_term(1, bvsort)));
+  Term B = s->make_term(Equal, x, s->make_term(5, bvsort));
+  Term I;
+  EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat());
+  EXPECT_TRUE(I);
+}
+
 TEST(MsatConstructors, ConfigAcceptsOptionsUntilFirstUse)
 {
   SmtSolver s = std::make_shared<MsatSolver>(msat_create_config());
@@ -66,6 +83,21 @@ TEST(MsatConstructors, InterpolatingFromConfig)
   msat_config cfg = msat_create_config();
   msat_set_option(cfg, "dpll.ghost_filtering", "true");
   expect_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg));
+}
+
+TEST(MsatConstructors, InterpolatingDefaultConfigOnBitVectors)
+{
+  expect_bv_interpolant(std::make_shared<MsatInterpolatingSolver>());
+}
+
+TEST(MsatConstructors, InterpolatingForcesRequiredOptions)
+{
+  // the two options interpolation cannot do without are overridden
+  msat_config cfg = msat_create_config();
+  msat_set_option(cfg, "interpolation", "false");
+  msat_set_option(cfg, "theory.bv.eager", "true");
+  msat_set_option(cfg, "theory.bv.bit_blast_mode", "1");
+  expect_bv_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg));
 }
 
 #pragma GCC diagnostic push
