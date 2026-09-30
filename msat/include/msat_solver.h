@@ -41,23 +41,18 @@ namespace smt {
 class MsatSolver : public AbsSmtSolver
 {
  public:
-  MsatSolver()
-      : AbsSmtSolver(MSAT),
-        cfg(msat_create_config()),
-        env_uninitialized(true),
-        logic(""),
-        num_assump_clauses_(0),
-        max_assump_clauses_(10000),
-        last_query_assuming(true) {};
-  MsatSolver(msat_config c, msat_env e)
-      : AbsSmtSolver(MSAT),
-        cfg(c),
-        env(e),
-        env_uninitialized(false),
-        valid_model(false),
-        logic(""),
-        num_assump_clauses_(0),
-        max_assump_clauses_(10000) {};
+  MsatSolver();
+  /** Creates a solver from a configuration and takes ownership of it: the
+   *  solver destroys c. The environment is created from c on first use, so
+   *  options can still be set until then.
+   */
+  explicit MsatSolver(msat_config c);
+  /** Deprecated: create the environment from the configuration with
+   *  MsatSolver(msat_config) instead. Takes ownership of both c and e, and
+   *  uses e as the environment, so no options can be set.
+   */
+  [[deprecated("use MsatSolver(msat_config), which creates the env")]]
+  MsatSolver(msat_config c, msat_env e);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver();
@@ -124,7 +119,8 @@ class MsatSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party MathSAT-specific software
-  msat_env get_msat_env() const { return env; };
+  // creates the environment if it does not exist yet
+  msat_env get_msat_env() const;
 
   // getters and setters for advanced use / testing
   size_t max_assump_clauses() const { return max_assump_clauses_; }
@@ -180,7 +176,18 @@ class MsatInterpolatingSolver : public MsatSolver
 {
  public:
   typedef MsatSolver super;
-  MsatInterpolatingSolver() { solver_enum = MSAT_INTERPOLATOR; };
+  MsatInterpolatingSolver();
+  /** Creates an interpolating solver from a configuration and takes
+   *  ownership of it: the solver destroys c. On first use it sets the
+   *  options interpolation needs on c, then creates the environment.
+   */
+  explicit MsatInterpolatingSolver(msat_config c);
+  /** Deprecated: use MsatInterpolatingSolver(msat_config). Takes ownership
+   *  of both c and e, like MsatSolver(msat_config, msat_env), but destroys
+   *  e at once: interpolation has to be enabled on the configuration before
+   *  the environment is created, so the solver creates its own.
+   */
+  [[deprecated("use MsatInterpolatingSolver(msat_config); e is destroyed")]]
   MsatInterpolatingSolver(msat_config c, msat_env e);
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;

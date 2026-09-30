@@ -30,4 +30,5 @@ switch_add_msat_legacy_test(msat-tests)
 switch_add_msat_legacy_test(msat-transfer)
 switch_add_msat_legacy_test(msat-traversal)
 
+switch_add_msat_test(msat-constructors)
 switch_add_msat_test(msat-printing)
