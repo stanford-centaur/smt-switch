@@ -268,36 +268,13 @@ TermIter BzlaTerm::end()
   return TermIter(new BzlaTermIter(term, num_children));
 }
 
-std::string BzlaTerm::print_value_as(SortKind sk)
+std::string BzlaTerm::print_value_as(SortKind /* sk */)
 {
   if (!is_value())
   {
     throw IncorrectUsageException(
         "Cannot use print_value_as on a non-value term.");
   }
-
-  if (term.sort().is_bv())
-  {
-    std::uint64_t width = term.sort().bv_size();
-    if (width == 1 && sk == BV)
-    {
-      if (term.is_bv_value_one())
-      {
-        return "#b1";
-      }
-      else
-      {
-        return "#b0";
-      }
-    }
-    else
-    {
-      return to_string();
-    }
-  }
-  else
-  {
-    return to_string();
-  }
+  return to_string();
 }
 }  // namespace smt
