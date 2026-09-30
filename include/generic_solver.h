@@ -216,13 +216,6 @@ class GenericSolver : public AbsSmtSolver
   Term make_negative_bv_const(std::string abs_decimal,
                               unsigned int width) const;
 
-  /** helper function for bv constant
-   * abs_decimal is the absolute value of the desired bit-vector.
-   * width is the bit-width
-   * returns a bv term of width `width` whose value is (-1) * abs_value.
-   * */
-  Term make_negative_bv_const(std::int64_t abs_value, unsigned int width) const;
-
   // open a connection to the binary via a pipe
   void start_solver();
   // close the connection to the binary
