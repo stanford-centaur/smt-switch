@@ -4,8 +4,7 @@
 # Check for a virtualenv python first
 find_package(PythonVirtualEnv)
 find_python_in_virtualenv()
-# Want python for building a module, so use Development.Module. See:
-# https://stackoverflow.com/questions/78495429/attempting-to-build-python-binary-modules-on-manylinux-find-packagepython3-on
+# Want python for building a module, so use Development.Module.
 # CMake before 3.18 has only Development, which also wants the library
 # that manylinux leaves out; the wheels there are built with a newer CMake.
 if(CMAKE_VERSION VERSION_LESS 3.18)
