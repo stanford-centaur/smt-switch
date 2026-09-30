@@ -24,6 +24,17 @@ set(
   -Woverloaded-virtual # a derived declaration hiding a base overload
   -Wundef # an #if on a macro that was never defined
 )
+
+# Everyone is told, only a build that asks is stopped. What an umbrella covers
+# changes between compiler releases, so a warning arriving with a newer
+# compiler should leave an ordinary source build compiling and merely a little
+# noisier; it takes configure.sh --strict to turn the same warning into an
+# error.
+option(SMT_SWITCH_STRICT "Treat compiler warnings as errors" OFF)
+if(SMT_SWITCH_STRICT)
+  list(APPEND cxx_warnings -Werror)
+endif()
+
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
