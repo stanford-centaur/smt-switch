@@ -128,7 +128,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void BzlaSolver::set_logic(const std::string logic)
+void BzlaSolver::set_logic(const std::string /* logic */)
 {
   // no need to set logic in bitwuzla
   return;
