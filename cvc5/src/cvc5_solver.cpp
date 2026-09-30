@@ -679,23 +679,20 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       ::cvc5::Sort cfunsort = term_manager->mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
-    else if (sorts.size() == 1)
+    else if (sk == ARRAY && sorts.size() == 2)
     {
-      return make_sort(sk, sorts[0]);
-    }
-    else if (sorts.size() == 2)
-    {
-      return make_sort(sk, sorts[0], sorts[1]);
-    }
-    else if (sorts.size() == 3)
-    {
-      return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+      std::shared_ptr<Cvc5Sort> cidxsort =
+          std::static_pointer_cast<Cvc5Sort>(sorts[0]);
+      std::shared_ptr<Cvc5Sort> celemsort =
+          std::static_pointer_cast<Cvc5Sort>(sorts[1]);
+      return std::make_shared<Cvc5Sort>(
+          term_manager->mkArraySort(cidxsort->sort, celemsort->sort));
     }
     else
     {
       std::string msg("Can't create sort from sort constructor ");
       msg += to_string(sk);
-      msg += " with a vector of sorts";
+      msg += " with a vector of sorts of size " + std::to_string(sorts.size());
       throw IncorrectUsageException(msg.c_str());
     }
   }

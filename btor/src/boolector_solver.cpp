@@ -565,23 +565,21 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     return std::make_shared<BoolectorUFSort>(
         btor, btor_fun_sort, sorts, returnsort);
   }
-  else if (sorts.size() == 1)
+  else if (sk == ARRAY && sorts.size() == 2)
   {
-    return make_sort(sk, sorts[0]);
-  }
-  else if (sorts.size() == 2)
-  {
-    return make_sort(sk, sorts[0], sorts[1]);
-  }
-  else if (sorts.size() == 3)
-  {
-    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+    std::shared_ptr<BoolectorSortBase> btor_idxsort =
+        std::static_pointer_cast<BoolectorSortBase>(sorts[0]);
+    std::shared_ptr<BoolectorSortBase> btor_elemsort =
+        std::static_pointer_cast<BoolectorSortBase>(sorts[1]);
+    BoolectorSort bs =
+        boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
+    return std::make_shared<BoolectorArraySort>(btor, bs, sorts[0], sorts[1]);
   }
   else
   {
     std::string msg("Can't create sort from sort constructor ");
     msg += to_string(sk);
-    msg += " with a vector of sorts";
+    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
     throw IncorrectUsageException(msg);
   }
 }
