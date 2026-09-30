@@ -162,7 +162,7 @@ Result BzlaSolver::check_sat()
   }
   else
   {
-    Assert(r == bitwuzla::Result::UNKNOWN);
+    assert(r == bitwuzla::Result::UNKNOWN);
     return Result(UNKNOWN);
   }
 }
@@ -554,7 +554,7 @@ Term BzlaSolver::make_term(Op op, const Term & t) const
   }
   else
   {
-    Assert(op.num_idx == 2);
+    assert(op.num_idx == 2);
     return std::make_shared<BzlaTerm>(
         tm->mk_term(bkind, { bterm->term }, { op.idx0, op.idx1 }));
   }
@@ -585,7 +585,7 @@ Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
   }
   else
   {
-    Assert(op.num_idx == 2);
+    assert(op.num_idx == 2);
     return std::make_shared<BzlaTerm>(tm->mk_term(
         bkind, { bterm0->term, bterm1->term }, { op.idx0, op.idx1 }));
   }
@@ -622,7 +622,7 @@ Term BzlaSolver::make_term(Op op,
   }
   else
   {
-    Assert(op.num_idx > 0 && op.num_idx <= 1);
+    assert(op.num_idx > 0 && op.num_idx <= 1);
     const std::vector<bitwuzla::Term> bitwuzla_terms(
         { bterm0->term, bterm1->term, bterm2->term });
     std::vector<uint64_t> indices({ op.idx0 });
@@ -658,7 +658,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    Assert(op.num_idx > 0 && op.num_idx <= 2);
+    assert(op.num_idx > 0 && op.num_idx <= 2);
     std::vector<uint64_t> indices({ op.idx0 });
     if (op.num_idx == 2)
     {

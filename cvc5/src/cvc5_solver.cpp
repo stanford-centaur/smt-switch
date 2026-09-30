@@ -15,6 +15,7 @@
 **/
 #include "cvc5_solver.h"
 
+#include <cassert>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -503,7 +504,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
     }
 
     // now populate the map in reverse order
-    Assert(indices.size() == values.size());
+    assert(indices.size() == values.size());
 
     while (indices.size())
     {

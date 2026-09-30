@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -178,7 +179,7 @@ class BzlaSolver : public AbsSmtSolver
     }
     else
     {
-      Assert(res == bitwuzla::Result::UNKNOWN);
+      assert(res == bitwuzla::Result::UNKNOWN);
       return Result(UNKNOWN);
     }
   }

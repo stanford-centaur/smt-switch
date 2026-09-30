@@ -1375,7 +1375,7 @@ Term GenericSolver::get_value(const Term & t) const
   }
   else if (sort->get_sort_kind() == BOOL)
   {
-    Assert(value == "true" || value == "false");
+    assert(value == "true" || value == "false");
     bool b = (value == "true");
     resulting_term = make_value(b);
   }
