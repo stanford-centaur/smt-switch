@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "generic_solver.h"
+#include "generic_term.h"
 #include "smt.h"
 #include "utils.h"
 
@@ -594,6 +595,25 @@ TEST_P(GenericSolverTests, NonNumericSortValue)
   Sort bool_sort = gs->make_sort(BOOL);
   EXPECT_THROW(gs->make_term(1, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_term("1", bool_sort), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, GetValueUnsupportedSort)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term arr = gs->make_symbol("arr", gs->make_sort(ARRAY, bv_sort, bv_sort));
+  Term f = gs->make_symbol("f", gs->make_sort(FUNCTION, bv_sort, bv_sort));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_THROW(gs->get_value(arr), NotImplementedException);
+  EXPECT_THROW(gs->get_value(f), NotImplementedException);
+}
+
+TEST_P(GenericSolverTests, GetValueForeignTerm)
+{
+  // a symbol made outside this solver, which never declared it
+  Term foreign = std::make_shared<GenericTerm>(
+      gs->make_sort(BV, 4), Op(), TermVec{}, "|foreign|", true);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_THROW(gs->get_value(foreign), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, CheckSatAssuming1)
