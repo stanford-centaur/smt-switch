@@ -761,26 +761,6 @@ Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
   }
 }
 
-Sort GenericSolver::make_sort(const SortKind sk, const Sort & sort1) const
-{
-  return make_sort(sk, SortVec({ sort1 }));
-}
-
-Sort GenericSolver::make_sort(const SortKind sk,
-                              const Sort & sort1,
-                              const Sort & sort2) const
-{
-  return make_sort(sk, SortVec({ sort1, sort2 }));
-}
-
-Sort GenericSolver::make_sort(const SortKind sk,
-                              const Sort & sort1,
-                              const Sort & sort2,
-                              const Sort & sort3) const
-{
-  return make_sort(sk, SortVec({ sort1, sort2, sort3 }));
-}
-
 Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   // create the sort

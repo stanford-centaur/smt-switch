@@ -606,51 +606,6 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort Cvc5Solver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take one sort parameter yet.");
-}
-
-Sort Cvc5Solver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2) const
-{
-  try
-  {
-    if (sk == ARRAY)
-    {
-      std::shared_ptr<Cvc5Sort> cidxsort =
-          std::static_pointer_cast<Cvc5Sort>(sort1);
-      std::shared_ptr<Cvc5Sort> celemsort =
-          std::static_pointer_cast<Cvc5Sort>(sort2);
-      return std::make_shared<Cvc5Sort>(
-          term_manager->mkArraySort(cidxsort->sort, celemsort->sort));
-    }
-    else
-    {
-      std::string msg("Can't create sort with sort constructor ");
-      msg += to_string(sk);
-      msg += " and two Sort arguments";
-      throw IncorrectUsageException(msg.c_str());
-    }
-  }
-  catch (::cvc5::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
-Sort Cvc5Solver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2,
-                           const Sort & sort3) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take three sort parameters "
-      "yet.");
-}
-
 Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   try

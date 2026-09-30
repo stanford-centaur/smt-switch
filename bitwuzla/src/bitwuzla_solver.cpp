@@ -271,61 +271,6 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort BzlaSolver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw IncorrectUsageException(
-      "Bitwuzla has no sort that takes a single sort argument.");
-}
-
-Sort BzlaSolver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2) const
-{
-  std::shared_ptr<BzlaSort> bsort1 = std::static_pointer_cast<BzlaSort>(sort1);
-  std::shared_ptr<BzlaSort> bsort2 = std::static_pointer_cast<BzlaSort>(sort2);
-
-  if (sk == ARRAY)
-  {
-    return std::make_shared<BzlaSort>(
-        tm->mk_array_sort(bsort1->sort, bsort2->sort));
-  }
-  else if (sk == FUNCTION)
-  {
-    std::vector<bitwuzla::Sort> domain_sorts({ bsort1->sort });
-    return std::make_shared<BzlaSort>(
-        tm->mk_fun_sort(domain_sorts, bsort2->sort));
-  }
-  else
-  {
-    std::string msg("Can't create sort from sort kind ");
-    msg += to_string(sk);
-    msg += " with two sort arguments.";
-    throw IncorrectUsageException(msg);
-  }
-}
-
-Sort BzlaSolver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2,
-                           const Sort & sort3) const
-{
-  std::shared_ptr<BzlaSort> bsort1 = std::static_pointer_cast<BzlaSort>(sort1);
-  std::shared_ptr<BzlaSort> bsort2 = std::static_pointer_cast<BzlaSort>(sort2);
-  std::shared_ptr<BzlaSort> bsort3 = std::static_pointer_cast<BzlaSort>(sort3);
-
-  if (sk == FUNCTION)
-  {
-    return std::make_shared<BzlaSort>(
-        tm->mk_fun_sort({ bsort1->sort, bsort2->sort }, bsort3->sort));
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "Bitwuzla does not have a non-function sort that takes three sort "
-        "arguments");
-  }
-}
-
 Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   if (sk == FUNCTION)

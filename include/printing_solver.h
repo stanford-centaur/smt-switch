@@ -55,8 +55,8 @@ class PrintingSolver : public AbsSmtSolver
 
   /* Operators that are printed */
   // The datatype methods are left to AbsSmtSolver, whose defaults throw.
-  // Declaring make_sort here at all would hide its DatatypeDecl overload
-  // from lookup on this type, so name it back in.
+  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
+  // from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
@@ -86,14 +86,6 @@ class PrintingSolver : public AbsSmtSolver
   Term get_symbol(const std::string & name) override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
-  Sort make_sort(const SortKind sk, const Sort & sort1) const override;
-  Sort make_sort(const SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2) const override;
-  Sort make_sort(const SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2,
-                 const Sort & sort3) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 

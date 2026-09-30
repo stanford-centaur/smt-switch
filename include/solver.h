@@ -149,45 +149,28 @@ class AbsSmtSolver
    */
   virtual Sort make_sort(const SortKind sk, std::uint64_t size) const = 0;
 
-  /* Create a sort
-   * @param sk the SortKind
-   * @param sort1 first sort
+  /* Create a sort from sort parameters
+   * @param sk the SortKind (ARRAY, FUNCTION)
+   * @param sorts for ARRAY, the index sort then the element sort; for
+   * FUNCTION, the domain sorts then the codomain sort
    * @return a Sort object
-   * this method is currently unused but kept for API consistency
-   */
-  virtual Sort make_sort(const SortKind sk, const Sort & sort1) const = 0;
-
-  /* Create a sort
-   * @param sk the SortKind
-   * @param sort1 first sort
-   * @param sort2 second sort
-   * @return a Sort object
-   * When sk == ARRAY, sort1 is the index sort and sort2 is the element sort
-   */
-  virtual Sort make_sort(const SortKind sk,
-                         const Sort & sort1,
-                         const Sort & sort2) const = 0;
-
-  /* Create a sort
-   * @param sk the SortKind
-   * @param sort1 first sort
-   * @param sort2 second sort
-   * @param sort3 third sort
-   * @return a Sort object
-   */
-  virtual Sort make_sort(const SortKind sk,
-                         const Sort & sort1,
-                         const Sort & sort2,
-                         const Sort & sort3) const = 0;
-
-  /* Create a sort
-   * @param sk the SortKind (FUNCTION)
-   * @param sorts a vector of sorts (for function SortKind, last sort is return
-   * type)
-   * @return a Sort object
-   * Note: This is the only way to make a function sort
+   * This is the overload a backend implements; the ones taking one, two or
+   * three sorts below are shorthands for it.
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
+
+  /* Shorthands for make_sort(sk, SortVec{ ... })
+   * e.g. make_sort(ARRAY, index, element) or make_sort(FUNCTION, dom, codom)
+   * No SortKind takes a single sort parameter yet.
+   */
+  Sort make_sort(const SortKind sk, const Sort & sort1) const;
+  Sort make_sort(const SortKind sk,
+                 const Sort & sort1,
+                 const Sort & sort2) const;
+  Sort make_sort(const SortKind sk,
+                 const Sort & sort1,
+                 const Sort & sort2,
+                 const Sort & sort3) const;
 
   /* Create an uninterpreted sort
    * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have

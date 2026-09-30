@@ -75,43 +75,6 @@ Sort LoggingSolver::make_sort(const SortKind sk, std::uint64_t size) const
   return make_logging_sort(sk, sort, size);
 }
 
-Sort LoggingSolver::make_sort(const SortKind sk, const Sort & sort1) const
-{
-  std::shared_ptr<LoggingSort> ls1 =
-      std::static_pointer_cast<LoggingSort>(sort1);
-  Sort sort = wrapped_solver->make_sort(sk, ls1->wrapped_sort);
-  return make_logging_sort(sk, sort, sort1);
-}
-
-Sort LoggingSolver::make_sort(const SortKind sk,
-                              const Sort & sort1,
-                              const Sort & sort2) const
-{
-  std::shared_ptr<LoggingSort> ls1 =
-      std::static_pointer_cast<LoggingSort>(sort1);
-  std::shared_ptr<LoggingSort> ls2 =
-      std::static_pointer_cast<LoggingSort>(sort2);
-  Sort sort =
-      wrapped_solver->make_sort(sk, ls1->wrapped_sort, ls2->wrapped_sort);
-  return make_logging_sort(sk, sort, sort1, sort2);
-}
-
-Sort LoggingSolver::make_sort(const SortKind sk,
-                              const Sort & sort1,
-                              const Sort & sort2,
-                              const Sort & sort3) const
-{
-  std::shared_ptr<LoggingSort> ls1 =
-      std::static_pointer_cast<LoggingSort>(sort1);
-  std::shared_ptr<LoggingSort> ls2 =
-      std::static_pointer_cast<LoggingSort>(sort2);
-  std::shared_ptr<LoggingSort> ls3 =
-      std::static_pointer_cast<LoggingSort>(sort3);
-  Sort sort = wrapped_solver->make_sort(
-      sk, ls1->wrapped_sort, ls2->wrapped_sort, ls3->wrapped_sort);
-  return make_logging_sort(sk, sort, sort1, sort2, sort3);
-}
-
 Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   // convert to sorts stored by LoggingSorts
