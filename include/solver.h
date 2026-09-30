@@ -33,6 +33,9 @@ namespace smt {
 
 /**
    Abstract solver class to be implemented by each supported solver.
+
+   Terms and sorts do not keep their solver alive, and must be destroyed
+   before it: with some backends, destroying one afterwards crashes.
  */
 class AbsSmtSolver
 {
