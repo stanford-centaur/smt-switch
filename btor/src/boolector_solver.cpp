@@ -496,45 +496,6 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort BoolectorSolver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw IncorrectUsageException(
-      "Boolector has no sort that takes a single sort argument.");
-}
-
-Sort BoolectorSolver::make_sort(SortKind sk,
-                                const Sort & sort1,
-                                const Sort & sort2) const
-{
-  if (sk == ARRAY)
-  {
-    std::shared_ptr<BoolectorSortBase> btor_idxsort =
-        std::static_pointer_cast<BoolectorSortBase>(sort1);
-    std::shared_ptr<BoolectorSortBase> btor_elemsort =
-        std::static_pointer_cast<BoolectorSortBase>(sort2);
-    BoolectorSort bs =
-        boolector_array_sort(btor, btor_idxsort->sort, btor_elemsort->sort);
-    return std::make_shared<BoolectorArraySort>(btor, bs, sort1, sort2);
-  }
-  else
-  {
-    std::string msg("Can't create sort from sort kind ");
-    msg += to_string(sk);
-    msg += " with two sort arguments.";
-    throw IncorrectUsageException(msg);
-  }
-}
-
-Sort BoolectorSolver::make_sort(SortKind sk,
-                                const Sort & sort1,
-                                const Sort & sort2,
-                                const Sort & sort3) const
-{
-  throw IncorrectUsageException(
-      "Boolector does not have a non-function sort that takes three sort "
-      "arguments");
-}
-
 Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   if (sk == FUNCTION)

@@ -62,48 +62,6 @@ Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width)
   return std::make_shared<BVLoggingSort>(s, width);
 }
 
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1)
-{
-  throw IncorrectUsageException(
-      "No currently supported sort is created with a single sort argument");
-}
-
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2)
-{
-  Sort loggingsort;
-  if (sk == ARRAY)
-  {
-    loggingsort = std::make_shared<ArrayLoggingSort>(s, sort1, sort2);
-  }
-  else if (sk == FUNCTION)
-  {
-    loggingsort =
-        std::make_shared<FunctionLoggingSort>(s, SortVec{ sort1 }, sort2);
-  }
-  else
-  {
-    throw IncorrectUsageException("Can't make sort from " + to_string(sk) + " "
-                                  + sort1->to_string() + " "
-                                  + sort2->to_string());
-  }
-  return loggingsort;
-}
-
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3)
-{
-  if (sk == FUNCTION)
-  {
-    return std::make_shared<FunctionLoggingSort>(
-        s, SortVec{ sort1, sort2 }, sort3);
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "Can't make sort from " + to_string(sk) + " " + sort1->to_string() + " "
-        + sort2->to_string() + " " + sort3->to_string());
-  }
-}
-
 Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
 {
   if (sk == FUNCTION)

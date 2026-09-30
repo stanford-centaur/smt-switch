@@ -523,57 +523,6 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
   return std::make_shared<Yices2Sort>(y_sort);
 }
 
-Sort Yices2Solver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take one sort parameter yet.");
-}
-
-Sort Yices2Solver::make_sort(SortKind sk,
-                             const Sort & sort1,
-                             const Sort & sort2) const
-{
-  std::shared_ptr<Yices2Sort> s1 = std::static_pointer_cast<Yices2Sort>(sort1);
-  std::shared_ptr<Yices2Sort> s2 = std::static_pointer_cast<Yices2Sort>(sort2);
-  Sort ret_sort;
-
-  if (sk == ARRAY)
-  {
-    ret_sort =
-        std::make_shared<Yices2Sort>(yices_function_type1(s1->type, s2->type));
-  }
-  else if (sk == FUNCTION)
-  {
-    ret_sort = std::make_shared<Yices2Sort>(
-        yices_function_type1(s1->type, s2->type), true);
-  }
-  else
-  {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and two Sort arguments";
-    throw IncorrectUsageException(msg.c_str());
-  }
-
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return ret_sort;
-}
-
-Sort Yices2Solver::make_sort(SortKind sk,
-                             const Sort & sort1,
-                             const Sort & sort2,
-                             const Sort & sort3) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take three sort parameters "
-      "yet.");
-}
-
 Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   type_t y_sort;

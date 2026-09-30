@@ -63,17 +63,12 @@ class Z3Solver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
+  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
+  // from lookup on this type, so name them back in.
+  using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
-  Sort make_sort(SortKind sk, const Sort & sort1) const override;
-  Sort make_sort(SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2) const override;
-  Sort make_sort(SortKind sk,
-                 const Sort & sort1,
-                 const Sort & sort2,
-                 const Sort & sort3) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;

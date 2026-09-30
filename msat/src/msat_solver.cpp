@@ -412,45 +412,6 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort MsatSolver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take one sort parameter yet.");
-}
-
-Sort MsatSolver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2) const
-{
-  initialize_env();
-  if (sk == ARRAY)
-  {
-    std::shared_ptr<MsatSort> midxsort =
-        std::static_pointer_cast<MsatSort>(sort1);
-    std::shared_ptr<MsatSort> melemsort =
-        std::static_pointer_cast<MsatSort>(sort2);
-    return std::make_shared<MsatSort>(
-        env, msat_get_array_type(env, midxsort->type, melemsort->type));
-  }
-  else
-  {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and two Sort arguments";
-    throw IncorrectUsageException(msg.c_str());
-  }
-}
-
-Sort MsatSolver::make_sort(SortKind sk,
-                           const Sort & sort1,
-                           const Sort & sort2,
-                           const Sort & sort3) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take three sort parameters "
-      "yet.");
-}
-
 Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   initialize_env();

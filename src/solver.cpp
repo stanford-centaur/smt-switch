@@ -43,6 +43,26 @@ Result AbsSmtSolver::check_sat_assuming_set(
       "check_sat_assuming_set not implemented by default");
 }
 
+Sort AbsSmtSolver::make_sort(const SortKind sk, const Sort & sort1) const
+{
+  return make_sort(sk, SortVec{ sort1 });
+}
+
+Sort AbsSmtSolver::make_sort(const SortKind sk,
+                             const Sort & sort1,
+                             const Sort & sort2) const
+{
+  return make_sort(sk, SortVec{ sort1, sort2 });
+}
+
+Sort AbsSmtSolver::make_sort(const SortKind sk,
+                             const Sort & sort1,
+                             const Sort & sort2,
+                             const Sort & sort3) const
+{
+  return make_sort(sk, SortVec{ sort1, sort2, sort3 });
+}
+
 Term AbsSmtSolver::make_term(const std::string & /* s */,
                              bool /* useEscSequences */,
                              const Sort & /* sort */) const

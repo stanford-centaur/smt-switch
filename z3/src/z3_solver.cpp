@@ -720,42 +720,6 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
   }
 }
 
-Sort Z3Solver::make_sort(SortKind sk, const Sort & sort1) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take one sort parameter yet.");
-}
-
-Sort Z3Solver::make_sort(SortKind sk,
-                         const Sort & sort1,
-                         const Sort & sort2) const
-{
-  if (sk == ARRAY)
-  {
-    std::shared_ptr<Z3Sort> cidxsort = std::static_pointer_cast<Z3Sort>(sort1);
-    std::shared_ptr<Z3Sort> celemsort = std::static_pointer_cast<Z3Sort>(sort2);
-    return std::make_shared<Z3Sort>(
-        ctx.array_sort(cidxsort->type, celemsort->type), ctx);
-  }
-  else
-  {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and two Sort arguments";
-    throw IncorrectUsageException(msg.c_str());
-  }
-}
-
-Sort Z3Solver::make_sort(SortKind sk,
-                         const Sort & sort1,
-                         const Sort & sort2,
-                         const Sort & sort3) const
-{
-  throw NotImplementedException(
-      "Smt-switch does not have any sorts that take three sort parameters "
-      "yet.");
-}
-
 Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   if (sk == FUNCTION)

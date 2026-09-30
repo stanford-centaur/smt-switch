@@ -37,9 +37,6 @@ Sort make_uninterpreted_logging_sort(Sort s,
                                      const SortVec & sorts);
 Sort make_logging_sort(SortKind sk, Sort s);
 Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width);
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1);
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2);
-Sort make_logging_sort(SortKind sk, Sort s, Sort sort1, Sort sort2, Sort sort3);
 Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts);
 
 /** \class LoggingSort
