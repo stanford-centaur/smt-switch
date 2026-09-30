@@ -34,6 +34,9 @@ class BoolectorSortBase : public AbsSort
   BoolectorSortBase(SortKind sk, Btor * b, BoolectorSort s)
       : btor(b), sort(s), sk(sk) {};
   virtual ~BoolectorSortBase();
+  // the destructor releases sort, so a copy would release it twice
+  BoolectorSortBase(const BoolectorSortBase &) = delete;
+  BoolectorSortBase & operator=(const BoolectorSortBase &) = delete;
   std::size_t hash() const override;
   uint64_t get_width() const override;
   Sort get_indexsort() const override;
