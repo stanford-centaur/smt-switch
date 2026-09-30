@@ -17,6 +17,7 @@
 #include "boolector_solver.h"
 
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 
@@ -94,6 +95,27 @@ const std::unordered_set<std::string> supported_logics(
 
 /* BoolectorSolver implementation */
 
+BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(boolector_new())
+{
+  // Boolector exits the process on an abort condition unless given an abort
+  // callback, so throw instead. The callback is global, not per instance.
+  auto throw_exception = [](const char * msg) -> void {
+    throw InternalSolverException(msg);
+  };
+  boolector_set_abort(throw_exception);
+  boolector_set_term(btor, reached_deadline, this);
+}
+
+int32_t BoolectorSolver::reached_deadline(void * solver)
+{
+  const BoolectorSolver * s = static_cast<const BoolectorSolver *>(solver);
+  if (s->time_limit == std::chrono::duration<double>::zero())
+  {
+    return 0;
+  }
+  return std::chrono::steady_clock::now() >= s->deadline;
+}
+
 void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
@@ -122,6 +144,15 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   {
     base_context_1 = true;
     push(1);
+  }
+  else if (option == "time-limit")
+  {
+    double seconds = std::stod(value);
+    if (seconds < 0)
+    {
+      throw IncorrectUsageException("time-limit cannot be negative");
+    }
+    time_limit = std::chrono::duration<double>(seconds);
   }
   else
   {
@@ -266,8 +297,26 @@ void BoolectorSolver::assert_formula(const Term & t)
   boolector_assert(btor, bt->node);
 }
 
-Result BoolectorSolver::check_sat()
+Result BoolectorSolver::check_sat() { return solve(); }
+
+Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  return check_sat_assuming(assumptions.begin(), assumptions.end());
+}
+
+Result BoolectorSolver::solve()
+{
+  if (time_limit != std::chrono::duration<double>::zero())
+  {
+    deadline =
+        std::chrono::steady_clock::now()
+        + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+            time_limit);
+    // Boolector latches termination and has no API to clear it, so without
+    // this every query after the first timeout would answer unknown.
+    btor->cbs.term.done = 0;
+  }
+
   int32_t res = boolector_sat(btor);
   if (res == BOOLECTOR_SAT)
   {
@@ -277,15 +326,14 @@ Result BoolectorSolver::check_sat()
   {
     return Result(UNSAT);
   }
+  else if (btor->cbs.term.done)
+  {
+    return Result(UNKNOWN, "Time limit reached.");
+  }
   else
   {
     return Result(UNKNOWN);
   }
-};
-
-Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
-{
-  return check_sat_assuming(assumptions.begin(), assumptions.end());
 }
 
 void BoolectorSolver::push(uint64_t num)
@@ -706,10 +754,12 @@ void BoolectorSolver::reset()
   boolector_release_all(btor);
   boolector_delete(btor);
   btor = boolector_new();
+  boolector_set_term(btor, reached_deadline, this);
   // the new instance starts at context 0 with default options, so the
   // bookkeeping for the old one goes too
   base_context_1 = false;
   context_level = 0;
+  time_limit = std::chrono::duration<double>::zero();
 }
 
 void BoolectorSolver::reset_assertions()

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -39,14 +40,7 @@ class BoolectorSolver : public AbsSmtSolver
 {
  public:
   // might have to use std::unique_ptr<Btor>(boolector_new) and move it?
-  BoolectorSolver() : AbsSmtSolver(BTOR), btor(boolector_new())
-  {
-    // set termination function -- throw an exception
-    auto throw_exception = [](const char * msg) -> void {
-      throw InternalSolverException(msg);
-    };
-    boolector_set_abort(throw_exception);
-  };
+  BoolectorSolver();
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
   ~BoolectorSolver()
@@ -131,6 +125,19 @@ class BoolectorSolver : public AbsSmtSolver
   ///< set this flag with set_opt("base-context-1", "true")
   size_t context_level = 0;  ///< tracks the current solving context level
 
+  std::chrono::duration<double> time_limit{ 0 };   ///< zero means no limit
+  std::chrono::steady_clock::time_point deadline;  ///< of the running query
+
+  /** Termination callback: tells Boolector to stop once the deadline
+   *  passes. Registered for the solver's whole life, because Boolector
+   *  hands it to the SAT solver only when that is first created.
+   *  @param solver the BoolectorSolver whose deadline to check
+   */
+  static int32_t reached_deadline(void * solver);
+
+  /** Runs a query under the time limit, if one is set */
+  Result solve();
+
   // helper functions
   template <class I>
   inline Result check_sat_assuming(I it, const I & end)
@@ -144,19 +151,7 @@ class BoolectorSolver : public AbsSmtSolver
       ++it;
     }
 
-    int32_t res = boolector_sat(btor);
-    if (res == BOOLECTOR_SAT)
-    {
-      return Result(SAT);
-    }
-    else if (res == BOOLECTOR_UNSAT)
-    {
-      return Result(UNSAT);
-    }
-    else
-    {
-      return Result(UNKNOWN);
-    }
+    return solve();
   }
 };
 }  // namespace smt
