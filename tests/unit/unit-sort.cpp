@@ -107,6 +107,9 @@ TEST_P(UnitSortTests, SortShorthands)
             s->make_sort(FUNCTION, SortVec{ bvsort, boolsort }));
   EXPECT_EQ(s->make_sort(FUNCTION, bvsort, bvsort, boolsort),
             s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
+  EXPECT_EQ(
+      s->make_sort(FUNCTION, bvsort, bvsort, bvsort, boolsort),
+      s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort, boolsort }));
   EXPECT_THROW(s->make_sort(ARRAY, bvsort), IncorrectUsageException);
 }
 
