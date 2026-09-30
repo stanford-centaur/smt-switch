@@ -58,7 +58,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
 
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
-  ASSERT_TRUE(core.size() > 1);
+  EXPECT_GT(core.size(), 1u);
 
   // for solvers using assumptions under the hood,
   // make sure they are re-added correctly
@@ -89,7 +89,7 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
 
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
-  ASSERT_TRUE(core.size() > 1);
+  EXPECT_GT(core.size(), 1u);
 }
 
 TEST_P(UnsatCoreTests, UnsatCoreFromList)
@@ -138,8 +138,8 @@ TEST_P(UnsatCoreTests, NoAssumptionsNeeded)
   s->get_unsat_assumptions(core);
   // a and not(a) were not in assumptions
   // so shouldn't show up in unsat assumptions
-  ASSERT_TRUE(core.find(a) == core.end());
-  ASSERT_TRUE(core.find(nota) == core.end());
+  EXPECT_EQ(core.count(a), 0u);
+  EXPECT_EQ(core.count(nota), 0u);
 }
 
 INSTANTIATE_TEST_SUITE_P(
