@@ -63,10 +63,10 @@ TEST_P(UnsatCoreTests, UnsatCore)
   // for solvers using assumptions under the hood,
   // make sure they are re-added correctly
   r = s->check_sat();
-  ASSERT_TRUE(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
   // unsat core is only available after a call to check-sat-assuming, not
   // check-sat
-  ASSERT_THROW(s->get_unsat_assumptions(core), SmtException);
+  EXPECT_THROW(s->get_unsat_assumptions(core), SmtException);
 }
 
 TEST_P(UnsatCoreTests, UnsatCoreNonLit)
@@ -79,10 +79,10 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
   Term x_ge_y = s->make_term(BVUge, x, y);
 
   Result r = s->check_sat_assuming({ x_lt_y, x_ge_y });
-  ASSERT_TRUE(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   r = s->check_sat_assuming({ x_lt_y });
-  ASSERT_TRUE(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   r = s->check_sat_assuming({ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
@@ -98,7 +98,7 @@ TEST_P(UnsatCoreTests, UnsatCoreFromList)
   Term b = s->make_symbol("b", boolsort);
   // a plain check-sat first, so the core can only come from the list query
   Result r = s->check_sat();
-  ASSERT_TRUE(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   r = s->check_sat_assuming(TermList{ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
@@ -134,6 +134,8 @@ TEST_P(UnsatCoreTests, NoAssumptionsNeeded)
   s->assert_formula(nota);
 
   Result r = s->check_sat_assuming({ b });
+  ASSERT_TRUE(r.is_unsat());
+
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
   // a and not(a) were not in assumptions
