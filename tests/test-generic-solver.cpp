@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -60,6 +61,18 @@ void new_btor(SmtSolver & gs, int buffer_size)
   init_solver(gs);
 }
 
+void new_bitwuzla(SmtSolver & gs, int buffer_size)
+{
+  gs.reset();
+  string path = (STRFY(BITWUZLA_ROOT));
+  path += "/bin/bitwuzla";
+  // Bitwuzla is always incremental, so it has no flag for it
+  vector<string> args = { "--lang", "smt2" };
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
+  init_solver(gs);
+}
+
 void new_msat(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
@@ -95,12 +108,27 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
   init_solver(gs);
 }
 
+void new_z3(SmtSolver & gs, int buffer_size)
+{
+  gs.reset();
+  string path = (STRFY(Z3_ROOT));
+  path += "/bin/z3";
+  // Z3 reads SMT-LIB 2 from standard input only when told to, and is
+  // incremental without a flag
+  vector<string> args = { "-smt2", "-in" };
+  gs = std::make_shared<GenericSolver>(
+      path, args, solver_response_timeout, buffer_size);
+  init_solver(gs);
+}
+
 enum class GenericBinary
 {
   Cvc5,
   Msat,
   Yices2,
-  Btor
+  Btor,
+  Bitwuzla,
+  Z3
 };
 
 string binary_name(GenericBinary b)
@@ -111,6 +139,8 @@ string binary_name(GenericBinary b)
     case GenericBinary::Msat: return "Msat";
     case GenericBinary::Yices2: return "Yices2";
     case GenericBinary::Btor: return "Btor";
+    case GenericBinary::Bitwuzla: return "Bitwuzla";
+    case GenericBinary::Z3: return "Z3";
   }
   return "Unknown";
 }
@@ -120,9 +150,131 @@ ostream & operator<<(ostream & o, GenericBinary b)
   return o << binary_name(b);
 }
 
+/** The native backend built on the same solver, whose attributes describe
+ *  what the binary accepts unless has_attribute says otherwise.
+ */
+SolverEnum native_backend(GenericBinary b)
+{
+  switch (b)
+  {
+    case GenericBinary::Cvc5: return CVC5;
+    case GenericBinary::Msat: return MSAT;
+    case GenericBinary::Yices2: return YICES2;
+    case GenericBinary::Btor: return BTOR;
+    case GenericBinary::Bitwuzla: return BZLA;
+    case GenericBinary::Z3: return Z3;
+  }
+  throw NotImplementedException("Unhandled generic binary");
+}
+
+/** Whether the binary accepts what the attribute describes: its native
+ *  backend's attribute, except where the binary was seen to differ.
+ */
+bool has_attribute(GenericBinary b, SolverAttribute a)
+{
+  // The mathsat binary answers every check-sat over a quantified assertion
+  // with (error "The CNF conversion does not support quantifiers"), though
+  // the backend built on its API claims quantifiers.
+  if (b == GenericBinary::Msat && a == QUANTIFIERS)
+  {
+    return false;
+  }
+  // The bitwuzla binary accepts declare-sort, and the native backend makes
+  // uninterpreted sorts too, but does not claim the attribute.
+  if (b == GenericBinary::Bitwuzla && a == UNINTERP_SORT)
+  {
+    return true;
+  }
+  // With produce-unsat-assumptions on, as init_solver sets it for every
+  // binary, Bitwuzla 0.9.1 answers unknown to an equality with a constant
+  // array, warning "Equality over constant arrays not fully supported yet".
+  // Without that option it answers sat.
+  if (b == GenericBinary::Bitwuzla && a == CONSTARR)
+  {
+    return false;
+  }
+  return solver_has_attribute(native_backend(b), a);
+}
+
+/** Whether the binary accepts a function returning an array, which no
+ *  SolverAttribute covers. Boolector does not: "only bit-vector sorts
+ *  supported as return sort for arity > 0".
+ */
+bool has_array_returning_functions(GenericBinary b)
+{
+  return b != GenericBinary::Btor;
+}
+
+/** Whether the binary refuses a set-option it does not know, as SMT-LIB
+ *  requires, which is what reaches the caller as an error. No
+ *  SolverAttribute covers it. Bitwuzla 0.9.1 answers success instead.
+ */
+bool rejects_unknown_options(GenericBinary b)
+{
+  return b != GenericBinary::Bitwuzla;
+}
+
+const vector<GenericBinary> generic_binaries = {
+#ifdef BUILD_CVC5
+  GenericBinary::Cvc5,
+#endif
+#ifdef BUILD_MSAT
+  GenericBinary::Msat,
+#endif
+#ifdef BUILD_YICES2
+  GenericBinary::Yices2,
+#endif
+#ifdef BUILD_BTOR
+  GenericBinary::Btor,
+#endif
+#ifdef BUILD_BITWUZLA
+  GenericBinary::Bitwuzla,
+#endif
+#ifdef BUILD_Z3
+  GenericBinary::Z3,
+#endif
+};
+
+// We test a representative set of buffer sizes, including the smallest and
+// biggest supported, and a mixture of powers of two and non-powers of two.
+const vector<int> buffer_sizes = { 2, 10, 64, 100, 256 };
+
 // (solver binary, buffer size)
 typedef tuple<GenericBinary, int> GenericSolverParam;
 
+/** Every buffer size for each available binary that passes the filter */
+vector<GenericSolverParam> params_where(
+    const function<bool(GenericBinary)> & filter)
+{
+  vector<GenericSolverParam> params;
+  for (GenericBinary b : generic_binaries)
+  {
+    if (!filter(b))
+    {
+      continue;
+    }
+    for (int size : buffer_sizes)
+    {
+      params.emplace_back(b, size);
+    }
+  }
+  return params;
+}
+
+vector<GenericSolverParam> params_with(SolverAttribute a)
+{
+  return params_where([a](GenericBinary b) { return has_attribute(b, a); });
+}
+
+string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
+{
+  return binary_name(get<0>(info.param)) + "_Buf"
+         + std::to_string(get<1>(info.param));
+}
+
+// The suites below share this fixture and differ only in what the binaries
+// they are instantiated with must support. A build without such a binary
+// leaves a suite uninstantiated.
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverTests);
 class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
 {
@@ -137,6 +289,8 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
       case GenericBinary::Msat: new_msat(gs, buffer_size); break;
       case GenericBinary::Yices2: new_yices2(gs, buffer_size); break;
       case GenericBinary::Btor: new_btor(gs, buffer_size); break;
+      case GenericBinary::Bitwuzla: new_bitwuzla(gs, buffer_size); break;
+      case GenericBinary::Z3: new_z3(gs, buffer_size); break;
     }
   }
 
@@ -144,17 +298,49 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   SmtSolver gs;
 };
 
-TEST_P(GenericSolverTests, BadCmd)
+// binaries refusing an unknown option
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverOptionTests);
+class GenericSolverOptionTests : public GenericSolverTests
+{
+};
+
+// binaries accepting declare-sort
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverUfTests);
+class GenericSolverUfTests : public GenericSolverTests
+{
+};
+
+// binaries with integers
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverIntTests);
+class GenericSolverIntTests : public GenericSolverTests
+{
+};
+
+// binaries accepting a function that returns an array
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverArrayFunTests);
+class GenericSolverArrayFunTests : public GenericSolverTests
+{
+};
+
+// binaries with integers and quantifiers
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverIntQuantifierTests);
+class GenericSolverIntQuantifierTests : public GenericSolverTests
+{
+};
+
+// binaries with constant arrays
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverConstArrayTests);
+class GenericSolverConstArrayTests : public GenericSolverTests
+{
+};
+
+TEST_P(GenericSolverOptionTests, BadCmd)
 {
   EXPECT_THROW(gs->set_opt("iiiaaaaiiiiaaaa", "aaa"), IncorrectUsageException);
 }
 
-TEST_P(GenericSolverTests, Uf1)
+TEST_P(GenericSolverUfTests, Uf1)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector rejects declare-sort";
-  }
   Sort s = gs->make_sort("S", 0);
   EXPECT_EQ(s->get_sort_kind(), UNINTERPRETED);
   EXPECT_THROW(gs->make_sort("S", 1), IncorrectUsageException);
@@ -217,12 +403,8 @@ TEST_P(GenericSolverTests, Bool2)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, Int1)
+TEST_P(GenericSolverIntTests, Int1)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector has no integers";
-  }
   Sort int_sort = gs->make_sort(INT);
 
   Sort int_sort2 = gs->make_sort(INT);
@@ -248,24 +430,16 @@ TEST_P(GenericSolverTests, Bv2)
   EXPECT_THROW(gs->make_sort(INT, 4), IncorrectUsageException);
 }
 
-TEST_P(GenericSolverTests, Uf2)
+TEST_P(GenericSolverUfTests, Uf2)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector rejects declare-sort";
-  }
   Sort s = gs->make_sort("S", 0);
   Term svar1 = gs->make_symbol("x_s1", s);
   EXPECT_EQ(svar1->get_sort(), s);
   EXPECT_THROW(gs->make_symbol("x_s1", s), IncorrectUsageException);
 }
 
-TEST_P(GenericSolverTests, Int2)
+TEST_P(GenericSolverIntTests, Int2)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector has no integers";
-  }
   Sort int_sort = gs->make_sort(INT);
   Term int_zero = gs->make_term(0, int_sort);
   Term int_one = gs->make_term(1, int_sort);
@@ -288,41 +462,26 @@ TEST_P(GenericSolverTests, Int2)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, BadTerm1)
+TEST_P(GenericSolverIntTests, BadTermEqual)
 {
-  // Boolector has no integers, so there the setup throws before the
-  // badly-sorted term is reached
-  EXPECT_THROW(
-      {
-        Sort int_sort = gs->make_sort(INT);
-        gs->make_term(0, int_sort);
-        Term int_one = gs->make_term(1, int_sort);
+  Sort int_sort = gs->make_sort(INT);
+  Term int_one = gs->make_term(1, int_sort);
 
-        Sort bv_sort = gs->make_sort(BV, 4);
-        gs->make_term(0, bv_sort);
-        Term bv_one = gs->make_term(1, bv_sort);
-        gs->make_term(Equal, TermVec({ bv_one, int_one }));
-      },
-      IncorrectUsageException);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv_one = gs->make_term(1, bv_sort);
+  EXPECT_THROW(gs->make_term(Equal, TermVec({ bv_one, int_one })),
+               IncorrectUsageException);
 }
 
-TEST_P(GenericSolverTests, BadTerm2)
+TEST_P(GenericSolverIntTests, BadTermBVAdd)
 {
-  // Boolector has no integers, so there the setup throws before the
-  // badly-sorted term is reached
-  EXPECT_THROW(
-      {
-        Sort int_sort = gs->make_sort(INT);
-        gs->make_term(0, int_sort);
-        Term int_one = gs->make_term(1, int_sort);
+  Sort int_sort = gs->make_sort(INT);
+  Term int_one = gs->make_term(1, int_sort);
 
-        Sort bv_sort = gs->make_sort(BV, 4);
-        gs->make_term(0, bv_sort);
-        Term bv_one = gs->make_term(1, bv_sort);
-
-        gs->make_term(Equal, TermVec({ bv_one, int_one }));
-      },
-      IncorrectUsageException);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term bv_one = gs->make_term(1, bv_sort);
+  EXPECT_THROW(gs->make_term(BVAdd, TermVec({ bv_one, int_one })),
+               IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, Bv3)
@@ -439,12 +598,8 @@ TEST_P(GenericSolverTests, Bool)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, Abv2)
+TEST_P(GenericSolverArrayFunTests, Abv2)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector rejects a function returning an array";
-  }
   gs->push(1);
   Sort bv_sort1 = gs->make_sort(BV, 4);
   Sort bv_sort2 = gs->make_sort(BV, 5);
@@ -478,12 +633,8 @@ TEST_P(GenericSolverTests, Abv2)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, Quantifiers)
+TEST_P(GenericSolverIntQuantifierTests, Quantifiers)
 {
-  if (binary != GenericBinary::Cvc5)
-  {
-    GTEST_SKIP() << "only cvc5 accepts these quantified integer formulas";
-  }
   gs->push(1);
   Sort int_sort = gs->make_sort(INT);
   Term par1 = gs->make_param("par1", int_sort);
@@ -504,16 +655,8 @@ TEST_P(GenericSolverTests, Quantifiers)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, ConstantArrays)
+TEST_P(GenericSolverConstArrayTests, ConstantArrays)
 {
-  if (binary == GenericBinary::Yices2)
-  {
-    GTEST_SKIP() << "Yices2 does not parse constant arrays";
-  }
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "not run against Boolector";
-  }
   // Testing constant arrays
   gs->push(1);
   Sort bvsort = gs->make_sort(BV, 4);
@@ -528,12 +671,8 @@ TEST_P(GenericSolverTests, ConstantArrays)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, IntModels)
+TEST_P(GenericSolverIntTests, IntModels)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector has no integers";
-  }
   // Testing models
   gs->push(1);
   Sort int_sort = gs->make_sort(INT);
@@ -548,12 +687,8 @@ TEST_P(GenericSolverTests, IntModels)
   gs->pop(1);
 }
 
-TEST_P(GenericSolverTests, NegativeIntModels)
+TEST_P(GenericSolverIntTests, NegativeIntModels)
 {
-  if (binary == GenericBinary::Btor)
-  {
-    GTEST_SKIP() << "Boolector has no integers";
-  }
   gs->push(1);
   Sort int_sort = gs->make_sort(INT);
   Term minus_five = gs->make_term(-5, int_sort);
@@ -656,46 +791,54 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
   gs->pop(1);
 }
 
-const vector<GenericBinary> generic_binaries = {
-#ifdef BUILD_CVC5
-  GenericBinary::Cvc5,
-#endif
-#ifdef BUILD_MSAT
-  GenericBinary::Msat,
-#endif
-#ifdef BUILD_YICES2
-  GenericBinary::Yices2,
-#endif
-#ifdef BUILD_BTOR
-  GenericBinary::Btor,
-#endif
-};
+INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverTests,
+                         GenericSolverTests,
+                         testing::ValuesIn(params_where([](GenericBinary) {
+                           return true;
+                         })),
+                         param_name);
 
-// general tests for all supported functions
-// we test a representative set of buffer sizes,
-// including smallest and biggest supported,
-// and a mixture of powers of two and non-powers
-// of two.
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedGenericSolverTests,
-    GenericSolverTests,
-    testing::Combine(testing::ValuesIn(generic_binaries),
-                     testing::Values(2, 10, 64, 100, 256)),
-    [](const testing::TestParamInfo<GenericSolverParam> & info) {
-      return binary_name(get<0>(info.param)) + "_Buf"
-             + std::to_string(get<1>(info.param));
-    });
+    ParameterizedGenericSolverOptionTests,
+    GenericSolverOptionTests,
+    testing::ValuesIn(params_where(rejects_unknown_options)),
+    param_name);
 
-void test_binary(string path, vector<string> args)
-{
-  SmtSolver gs =
-      std::make_shared<GenericSolver>(path, args, solver_response_timeout, 5);
-  gs->set_opt("produce-models", "true");
-}
+INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverUfTests,
+                         GenericSolverUfTests,
+                         testing::ValuesIn(params_with(UNINTERP_SORT)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntTests,
+                         GenericSolverIntTests,
+                         testing::ValuesIn(params_with(THEORY_INT)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedGenericSolverArrayFunTests,
+    GenericSolverArrayFunTests,
+    testing::ValuesIn(params_where(has_array_returning_functions)),
+    param_name);
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntQuantifierTests,
+                         GenericSolverIntQuantifierTests,
+                         testing::ValuesIn(params_where([](GenericBinary b) {
+                           return has_attribute(b, THEORY_INT)
+                                  && has_attribute(b, QUANTIFIERS);
+                         })),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverConstArrayTests,
+                         GenericSolverConstArrayTests,
+                         testing::ValuesIn(params_with(CONSTARR)),
+                         param_name);
 
 TEST(GenericSolver, NonExistingBinary)
 {
-  EXPECT_THROW(test_binary("/non/existing/path", {}), IncorrectUsageException);
+  EXPECT_THROW(
+      std::make_shared<GenericSolver>(
+          "/non/existing/path", vector<string>{}, solver_response_timeout, 5),
+      IncorrectUsageException);
 }
 
 }  // namespace smt_tests
