@@ -1377,12 +1377,17 @@ Term GenericSolver::get_value(const Term & t) const
     {
       // decimal representation.
       // parse strings of the form (_ bv<decimal> <bitwidth>)
-      std::size_t index_of__ = value.find("_ ");
-      assert(index_of__ != std::string::npos);
-      int start_of_decimal = index_of__ + 4;
-      int end_of_decimal = value.find(' ', start_of_decimal);
+      const std::string prefix = "(_ bv";
+      std::size_t end_of_decimal =
+          value.find_first_not_of("0123456789", prefix.size());
+      if (value.compare(0, prefix.size(), prefix) != 0
+          || end_of_decimal == prefix.size()
+          || end_of_decimal == std::string::npos)
+      {
+        throw InternalSolverException("Unexpected bit-vector value: " + value);
+      }
       std::string decimal =
-          value.substr(start_of_decimal, end_of_decimal - start_of_decimal + 1);
+          value.substr(prefix.size(), end_of_decimal - prefix.size());
       resulting_term = make_value(decimal, sort, 10);
     }
   }
@@ -1401,41 +1406,46 @@ Term GenericSolver::get_value(const Term & t) const
 
 std::string GenericSolver::strip_value_from_result(std::string result) const
 {
-  // trim spaces
-  result = trim(result);
-
-  // value string ends at first ")" or end of string.
-  std::string::size_type end_of_value = result.size() - 1;
-  while (result.at(end_of_value) == ')' || result.at(end_of_value) == ' ')
+  // the response is ((<name> <value>)), where <name> is a symbol, possibly
+  // |quoted|, and <value> is any term, such as (- 5) or (_ bv5 4). Solvers
+  // differ in the spacing between the parentheses.
+  const std::string unexpected = "Unexpected get-value response: " + result;
+  std::string inner = trim(result);
+  for (int depth = 0; depth < 2; depth++)
   {
-    end_of_value--;
+    if (inner.size() < 2 || inner.front() != '(' || inner.back() != ')')
+    {
+      throw InternalSolverException(unexpected);
+    }
+    inner = inner.substr(1, inner.size() - 2);
+    trim(inner);
   }
 
-  // value string begins at the first non-space after '('
-  std::string::size_type start_of_value = end_of_value;
-  while (result.at(start_of_value) != '(')
+  std::string::size_type end_of_name = 0;
+  if (!inner.empty() && inner[0] == '|')
   {
-    start_of_value--;
+    end_of_name = inner.find('|', 1);
+    if (end_of_name == std::string::npos)
+    {
+      throw InternalSolverException(unexpected);
+    }
+    end_of_name++;
   }
-  while (result.at(start_of_value) != ' ')
+  else
   {
-    start_of_value++;
-  }
-  start_of_value++;
-
-  // special case for bit-vectors with smt-lib style
-  // (_ bv<value> <bitwidth>)
-  // in this case we only take <value>
-  if (result.find("bv", start_of_value) == start_of_value)
-  {
-    start_of_value -= 3;
-    end_of_value++;
+    while (end_of_name < inner.size() && !is_white_space(inner[end_of_name]))
+    {
+      end_of_name++;
+    }
   }
 
-  // crop the relevant substring
-  std::string strip =
-      result.substr(start_of_value, end_of_value - start_of_value + 1);
-  return strip;
+  std::string value = inner.substr(end_of_name);
+  trim(value);
+  if (value.empty())
+  {
+    throw InternalSolverException(unexpected);
+  }
+  return value;
 }
 
 void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)

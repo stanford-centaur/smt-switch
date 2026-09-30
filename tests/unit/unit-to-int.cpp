@@ -68,19 +68,6 @@ class ToIntTests : public ::testing::Test,
   /** Returns the value t, followed by the same value from a model */
   TermVec with_model_value(const Term & t) { return { t, model_value(t) }; }
 
-  /** Like with_model_value, for a negative t. The generic solver drops the
-   *  sign when it reads back a negative value such as (- 5) from a model,
-   *  so it only gets the constant.
-   */
-  TermVec with_negative_model_value(const Term & t)
-  {
-    if (GetParam().solver_enum == GENERIC_SOLVER)
-    {
-      return { t };
-    }
-    return with_model_value(t);
-  }
-
   SmtSolver s;
   size_t num_symbols = 0;
 };
@@ -111,8 +98,7 @@ class ToIntIntTests : public ToIntTests
   /** Returns the integer n, outside the int64_t range, and equal to the
    *  sum of the addends: as a constant made from the string n, then as a
    *  model value of the sum. Yices2 gets no constant, having no way to make
-   *  one outside the int64_t range (see make_int64), and the generic solver
-   *  no model value for a negative n (see with_negative_model_value).
+   *  one outside the int64_t range (see make_int64).
    */
   TermVec big_int_values(const std::string & n,
                          std::initializer_list<int64_t> addends)
@@ -122,15 +108,12 @@ class ToIntIntTests : public ToIntTests
     {
       res.push_back(s->make_term(n, s->make_sort(INT)));
     }
-    if (n[0] != '-' || GetParam().solver_enum != GENERIC_SOLVER)
+    Term sum;
+    for (int64_t a : addends)
     {
-      Term sum;
-      for (int64_t a : addends)
-      {
-        sum = sum ? s->make_term(Plus, sum, make_int64(a)) : make_int64(a);
-      }
-      res.push_back(model_value(sum));
+      sum = sum ? s->make_term(Plus, sum, make_int64(a)) : make_int64(a);
     }
+    res.push_back(model_value(sum));
     return res;
   }
 };
@@ -201,6 +184,21 @@ TEST_P(ToIntBVTests, MadeFromInt64Min)
   EXPECT_EQ(v->to_signed_int(), int64_min);
 }
 
+TEST_P(ToIntBVTests, GenericIndexedModelValue)
+{
+  // only the generic solver, which reads the value back from cvc5's output,
+  // here in the (_ bv5 4) form that MathSAT uses
+  if (GetParam().solver_enum != GENERIC_SOLVER)
+  {
+    return;
+  }
+  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
+  Term t = s->make_term(5, s->make_sort(BV, 4));
+  Term v = model_value(t);
+  EXPECT_EQ(v->to_string(), t->to_string());
+  EXPECT_EQ(v->to_int(), uint64_t(5));
+}
+
 TEST_P(ToIntBVTests, WiderThan64Bits)
 {
   // no bit-vector wider than 64 bits converts, whatever its value
@@ -240,7 +238,7 @@ TEST_P(ToIntIntTests, Negative)
 {
   for (int64_t i : { int64_t(-5), int64_min })
   {
-    for (const Term & v : with_negative_model_value(make_int64(i)))
+    for (const Term & v : with_model_value(make_int64(i)))
     {
       SCOPED_TRACE(v->to_string());
       EXPECT_THROW(v->to_int(), IncorrectUsageException);
@@ -259,7 +257,7 @@ TEST_P(ToIntIntTests, NegativeMadeFromInt64)
     // accepts it
     EXPECT_EQ(t->to_string(), "(- 5)");
   }
-  for (const Term & v : with_negative_model_value(t))
+  for (const Term & v : with_model_value(t))
   {
     SCOPED_TRACE(v->to_string());
     EXPECT_EQ(v->to_signed_int(), -5);
@@ -330,7 +328,7 @@ TEST_P(ToIntRealTests, IntegralValue)
   }
   // not -2: Z3 terms compare by hash, and the hashes of 2.0 and -2.0 collide,
   // so the logging solver would hand back the 2.0 it already has
-  for (const Term & v : with_negative_model_value(s->make_term(-3, realsort)))
+  for (const Term & v : with_model_value(s->make_term(-3, realsort)))
   {
     SCOPED_TRACE(v->to_string());
     EXPECT_THROW(v->to_int(), IncorrectUsageException);
