@@ -75,6 +75,9 @@ class BoolectorTerm : public AbsTerm
  public:
   BoolectorTerm(Btor * b, BoolectorNode * n);
   ~BoolectorTerm();
+  // the destructor releases node, so a copy would release it twice
+  BoolectorTerm(const BoolectorTerm &) = delete;
+  BoolectorTerm & operator=(const BoolectorTerm &) = delete;
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
