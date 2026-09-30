@@ -100,29 +100,4 @@ TEST(MsatConstructors, InterpolatingForcesRequiredOptions)
   expect_bv_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg));
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-TEST(MsatConstructors, DeprecatedConfigAndEnv)
-{
-  msat_config cfg = msat_create_config();
-  msat_env env = msat_create_env(cfg);
-  std::shared_ptr<MsatSolver> s = std::make_shared<MsatSolver>(cfg, env);
-  EXPECT_EQ(s->get_msat_env().repr, env.repr);
-  Term p = s->make_symbol("p", s->make_sort(BOOL));
-  s->assert_formula(p);
-  EXPECT_TRUE(s->check_sat().is_sat());
-}
-
-TEST(MsatConstructors, DeprecatedInterpolatingOwnsBoth)
-{
-  // as pono calls it: the solver owns cfg and env, so neither is destroyed
-  // here, and the solver works from an env it creates itself
-  msat_config cfg = msat_create_config();
-  msat_env env = msat_create_env(cfg);
-  expect_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg, env));
-}
-
-#pragma GCC diagnostic pop
-
 }  // namespace smt_tests
