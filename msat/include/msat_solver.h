@@ -86,11 +86,11 @@ class MsatSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
+
   // The datatype methods are left to AbsSmtSolver, whose defaults throw.
   // Declaring make_sort here at all would hide its DatatypeDecl overload
   // from lookup on this type, so name it back in.
   using AbsSmtSolver::make_sort;
-
   Sort make_sort(const std::string name, uint64_t arity) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
@@ -109,7 +109,6 @@ class MsatSolver : public AbsSmtSolver
   // declaration of the name would otherwise hide them from lookup on a
   // MathSAT solver. Their default throws NotImplementedException.
   using AbsSmtSolver::make_term;
-
   Term make_term(bool b) const override;
   Term make_term(int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
