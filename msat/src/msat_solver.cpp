@@ -128,6 +128,26 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 
 // MsatSolver implementation
 
+MsatSolver::MsatSolver() : MsatSolver(msat_create_config()) {}
+
+MsatSolver::MsatSolver(msat_config c)
+    : AbsSmtSolver(MSAT),
+      cfg(c),
+      env_uninitialized(true),
+      valid_model(false),
+      logic(""),
+      num_assump_clauses_(0),
+      max_assump_clauses_(10000),
+      last_query_assuming(true)
+{
+}
+
+MsatSolver::MsatSolver(msat_config c, msat_env e) : MsatSolver(c)
+{
+  env = e;
+  env_uninitialized = false;
+}
+
 MsatSolver::~MsatSolver()
 {
   // Note: even with this, mathsat leaks
@@ -1102,6 +1122,12 @@ void MsatSolver::clear_assumption_clauses()
   }
 }
 
+msat_env MsatSolver::get_msat_env() const
+{
+  initialize_env();
+  return env;
+}
+
 void MsatSolver::initialize_env() const
 {
   if (env_uninitialized)
@@ -1151,11 +1177,22 @@ Result MsatSolver::check_sat_assuming_msatvec(
 
 // begin MsatInterpolatingSolver implementation
 
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
+MsatInterpolatingSolver::MsatInterpolatingSolver()
+    : MsatInterpolatingSolver(msat_create_config())
 {
-  cfg = c;
-  env = e;
+}
+
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c) : MsatSolver(c)
+{
   solver_enum = MSAT_INTERPOLATOR;
+}
+
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
+    : MsatInterpolatingSolver(c)
+{
+  // e was created before interpolation could be enabled on c, so it is
+  // never used; the caller handed it over, so destroy it before c goes
+  msat_destroy_env(e);
 }
 
 void MsatInterpolatingSolver::initialize_env() const
