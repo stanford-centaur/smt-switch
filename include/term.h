@@ -57,10 +57,7 @@ class AbsTerm
   /* to_string in smt2 format */
   virtual std::string to_string() = 0;
   /* returns the string term as a native string value */
-  virtual std::wstring getStringValue() const
-  {
-    throw NotImplementedException("Strings not supported for this solver.");
-  }
+  virtual std::wstring getStringValue() const;
   /* returns true iff this term is a symbol */
   virtual bool is_symbol() const = 0;
   /* returns true iff this term is a parameter (to be bound by a quantifier) */
