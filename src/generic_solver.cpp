@@ -1373,7 +1373,10 @@ Term GenericSolver::get_value(const Term & t) const
   }
   else if (sort->get_sort_kind() == BOOL)
   {
-    assert(value == "true" || value == "false");
+    if (value != "true" && value != "false")
+    {
+      throw InternalSolverException("Unexpected Boolean value: " + value);
+    }
     bool b = (value == "true");
     resulting_term = make_value(b);
   }
