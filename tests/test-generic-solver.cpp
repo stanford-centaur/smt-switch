@@ -548,6 +548,26 @@ TEST_P(GenericSolverTests, IntModels)
   gs->pop(1);
 }
 
+TEST_P(GenericSolverTests, NegativeIntModels)
+{
+  if (binary == GenericBinary::Btor)
+  {
+    GTEST_SKIP() << "Boolector has no integers";
+  }
+  gs->push(1);
+  Sort int_sort = gs->make_sort(INT);
+  Term minus_five = gs->make_term(-5, int_sort);
+  // SMT-LIB has no negative numerals, so -5 would be a symbol, though
+  // cvc5 accepts it
+  EXPECT_EQ(minus_five->to_string(), "(- 5)");
+  Term i1 = gs->make_symbol("i", int_sort);
+  gs->assert_formula(gs->make_term(Equal, i1, minus_five));
+  Result result = gs->check_sat();
+  ASSERT_TRUE(result.is_sat());
+  EXPECT_EQ(gs->get_value(i1)->to_string(), minus_five->to_string());
+  gs->pop(1);
+}
+
 TEST_P(GenericSolverTests, BvModels)
 {
   // Testing models
@@ -560,7 +580,20 @@ TEST_P(GenericSolverTests, BvModels)
   Result result = gs->check_sat();
   ASSERT_TRUE(result.is_sat());
   EXPECT_EQ(gs->get_value(i1)->to_int(), 0u);
+  // MathSAT answers in the (_ bv0 4) notation make_term uses, so there
+  // the value read back must be the same term
+  if (binary == GenericBinary::Msat)
+  {
+    EXPECT_EQ(gs->get_value(i1)->to_string(), bv_zero->to_string());
+  }
   gs->pop(1);
+}
+
+TEST_P(GenericSolverTests, NonNumericSortValue)
+{
+  Sort bool_sort = gs->make_sort(BOOL);
+  EXPECT_THROW(gs->make_term(1, bool_sort), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("1", bool_sort), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, CheckSatAssuming1)
