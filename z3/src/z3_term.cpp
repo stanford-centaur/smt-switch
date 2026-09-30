@@ -408,6 +408,24 @@ std::string Z3Term::print_value_as(SortKind /* sk */)
   return term.to_string();
 }
 
+expr Z3Term::get_z3_expr()
+{
+  if (is_function)
+  {
+    throw IncorrectUsageException("Cannot get expression from function term.");
+  }
+  return term;
+}
+
+func_decl Z3Term::get_z3_func_decl()
+{
+  if (!is_function)
+  {
+    throw IncorrectUsageException("Cannot get function from expression term.");
+  }
+  return z_func;
+}
+
 // string Z3Term::const_to_string() const {
 //	return term.to_string();
 //}

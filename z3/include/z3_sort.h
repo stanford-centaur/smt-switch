@@ -58,14 +58,7 @@ class Z3Sort : public AbsSort
   SortKind get_sort_kind() const override;
 
   // getters for solver-specific objects (EXPERTS only)
-  z3::sort get_z3_type()
-  {
-    if (is_function)
-    {
-      throw IncorrectUsageException("Cannot get Z3 type from function term.");
-    }
-    return type;
-  }
+  z3::sort get_z3_type();
 
  protected:
   z3::sort type;

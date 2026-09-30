@@ -121,8 +121,8 @@ class Z3Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects (EXPERTS ONLY)
-  z3::context * get_z3_context() { return &ctx; }
-  z3::solver * get_z3_solver() { return &slv; }
+  z3::context * get_z3_context();
+  z3::solver * get_z3_solver();
 
  protected:
   mutable z3::context ctx;
@@ -137,27 +137,6 @@ class Z3Solver : public AbsSmtSolver
                              ///< check_sat_assuming (vs just check_sat)
 
   // helper function
-  inline Result check_sat_assuming(expr_vector & z3assumps)
-  {
-    last_query_assuming = true;
-    check_result r = slv.check(z3assumps);
-    if (r == unsat)
-    {
-      return Result(UNSAT);
-    }
-    else if (r == sat)
-    {
-      return Result(SAT);
-    }
-    else if (r == unknown)
-    {
-      return Result(UNKNOWN, slv.reason_unknown());
-    }
-    else
-    {
-      throw NotImplementedException("Unimplemented result type from Z3");
-    }
-  }
   void add_constructor(z3::sort,
                        z3::constructors *,
                        const DatatypeConstructorDecl &) const;

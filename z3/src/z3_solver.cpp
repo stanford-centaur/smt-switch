@@ -568,7 +568,24 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
     z3assumps.push_back(za->term);
   }
 
-  return check_sat_assuming(z3assumps);
+  last_query_assuming = true;
+  check_result r = slv.check(z3assumps);
+  if (r == unsat)
+  {
+    return Result(UNSAT);
+  }
+  else if (r == sat)
+  {
+    return Result(SAT);
+  }
+  else if (r == unknown)
+  {
+    return Result(UNKNOWN, slv.reason_unknown());
+  }
+  else
+  {
+    throw NotImplementedException("Unimplemented result type from Z3");
+  }
 }
 
 void Z3Solver::push(uint64_t num)
@@ -1189,6 +1206,10 @@ void Z3Solver::dump_smt2(std::string filename) const
 {
   throw NotImplementedException("Dumping smt2 not supported by Z3 backend.");
 }
+
+z3::context * Z3Solver::get_z3_context() { return &ctx; }
+
+z3::solver * Z3Solver::get_z3_solver() { return &slv; }
 
 /* end Z3Solver implementation */
 

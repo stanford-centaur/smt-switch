@@ -36,21 +36,9 @@ class Z3Datatype : public AbsDatatype
 {
  public:
   Z3Datatype(z3::context & c, z3::sort s) : c(c), datatype(s) {}
-  std::string get_name() const override { return datatype.name().str(); }
-  int get_num_constructors() const override
-  {
-    return Z3_get_datatype_sort_num_constructors(c, datatype);
-  }
-  int get_num_selectors(std::string name) const override
-  {
-    for (int i = 0; i < get_num_constructors(); i++)
-    {
-      z3::func_decl cons{ c, Z3_get_datatype_sort_constructor(c, datatype, i) };
-      if (cons.name().str() == name) return cons.arity();
-    }
-    throw InternalSolverException(datatype.name().str() + "." + name
-                                  + " not found");
-  }
+  std::string get_name() const override;
+  int get_num_constructors() const override;
+  int get_num_selectors(std::string name) const override;
 
  private:
   z3::context & c;
