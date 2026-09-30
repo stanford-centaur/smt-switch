@@ -1318,15 +1318,24 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 
 Term GenericSolver::get_value(const Term & t) const
 {
-  // we do not support getting array values, function values, and uninterpreted
-  // values.
+  // only values of these sorts can be read back
   Sort sort = t->get_sort();
-  assert(sort->get_sort_kind() != ARRAY && sort->get_sort_kind() != FUNCTION
-         && sort->get_sort_kind() != UNINTERPRETED);
+  SortKind sk = sort->get_sort_kind();
+  if (sk != BOOL && sk != BV && sk != INT && sk != REAL)
+  {
+    throw NotImplementedException(
+        "The generic solver cannot get the value of a term of sort kind "
+        + to_string(sk));
+  }
 
   // get the name of the term (the way the term is defined in the solver)
-  assert(term_name_map->find(t) != term_name_map->end());
-  std::string name = (*term_name_map)[t];
+  auto name_it = term_name_map->find(t);
+  if (name_it == term_name_map->end())
+  {
+    throw IncorrectUsageException("Can't get the value of " + t->to_string()
+                                  + ": it was not made by this solver");
+  }
+  std::string name = name_it->second;
 
   // ask the binary for the value and parse it
   std::string result =
