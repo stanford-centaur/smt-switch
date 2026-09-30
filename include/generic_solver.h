@@ -100,7 +100,6 @@ class GenericSolver : public AbsSmtSolver
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
-
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
