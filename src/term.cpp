@@ -71,8 +71,21 @@ bool TermIterBase::operator==(const TermIterBase & other) const
 /* TermIter implementation */
 TermIter & TermIter::operator=(const TermIter & other)
 {
+  // clone before deleting: on self-assignment, other.iter_ is iter_
+  TermIterBase * copy = other.iter_ ? other.iter_->clone() : nullptr;
   delete iter_;
-  iter_ = other.iter_->clone();
+  iter_ = copy;
+  return *this;
+}
+
+TermIter & TermIter::operator=(TermIter && other) noexcept
+{
+  if (this != &other)
+  {
+    delete iter_;
+    iter_ = other.iter_;
+    other.iter_ = nullptr;
+  }
   return *this;
 }
 
@@ -91,7 +104,16 @@ TermIter TermIter::operator++(int)
 
 bool TermIter::operator==(const TermIter & other) const
 {
-  return (iter_ == other.iter_) || (*iter_ == *other.iter_);
+  if (iter_ == other.iter_)
+  {
+    return true;
+  }
+  // a default-constructed iterator equals only another one
+  if (!iter_ || !other.iter_)
+  {
+    return false;
+  }
+  return *iter_ == *other.iter_;
 }
 
 bool TermIter::operator!=(const TermIter & other) const

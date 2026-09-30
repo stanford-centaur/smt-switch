@@ -14,6 +14,9 @@
 **
 **/
 
+#include <type_traits>
+#include <utility>
+
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "identity_walker.h"
@@ -120,6 +123,59 @@ TEST_P(UnitTests, CopyIter)
   EXPECT_NE(it1, it3);
   it2 = it3;
   EXPECT_NE(it1, it2);
+}
+
+TEST_P(UnitTests, CopyDefaultConstructedIter)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+
+  TermIter empty;
+  TermIter copy(empty);
+  EXPECT_EQ(copy, empty);
+
+  TermIter it = fx->begin();
+  EXPECT_NE(it, empty);
+  EXPECT_NE(empty, it);
+  it = empty;
+  EXPECT_EQ(it, empty);
+}
+
+TEST_P(UnitTests, SelfAssignIter)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+
+  TermIter it = fx->begin();
+  ++it;
+  // through a reference, so the compiler does not warn about self-assignment
+  TermIter & same = it;
+  it = same;
+  EXPECT_EQ(*it, x);
+}
+
+TEST_P(UnitTests, MoveIter)
+{
+  static_assert(std::is_nothrow_move_constructible<TermIter>::value,
+                "TermIter moves without cloning");
+  static_assert(std::is_nothrow_move_assignable<TermIter>::value,
+                "TermIter moves without cloning");
+
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+
+  TermIter it = fx->begin();
+  TermIter moved(std::move(it));
+  EXPECT_EQ(*moved, f);
+
+  TermIter assigned;
+  assigned = std::move(moved);
+  EXPECT_EQ(*assigned, f);
+  ++assigned;
+  EXPECT_EQ(*assigned, x);
 }
 
 INSTANTIATE_TEST_SUITE_P(
