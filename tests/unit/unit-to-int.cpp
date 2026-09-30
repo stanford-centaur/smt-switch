@@ -189,6 +189,18 @@ TEST_P(ToIntBVTests, Signed)
   EXPECT_EQ(s->make_term("1000", bv4, 2)->to_int(), uint64_t(8));
 }
 
+TEST_P(ToIntBVTests, MadeFromInt64Min)
+{
+  // Boolector's make_term from an int64_t keeps only the low 32 bits
+  if (GetParam().solver_enum == BTOR)
+  {
+    return;
+  }
+  Term v = model_value(s->make_term(int64_min, s->make_sort(BV, 64)));
+  SCOPED_TRACE(v->to_string());
+  EXPECT_EQ(v->to_signed_int(), int64_min);
+}
+
 TEST_P(ToIntBVTests, WiderThan64Bits)
 {
   // no bit-vector wider than 64 bits converts, whatever its value
@@ -235,6 +247,35 @@ TEST_P(ToIntIntTests, Negative)
       EXPECT_EQ(v->to_signed_int(), i);
     }
   }
+}
+
+TEST_P(ToIntIntTests, NegativeMadeFromInt64)
+{
+  // not the minimum int64_t, which MathSAT truncates (see make_int64)
+  Term t = s->make_term(-5, s->make_sort(INT));
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    // SMT-LIB has no negative numerals, so -5 is a symbol, though cvc5
+    // accepts it
+    EXPECT_EQ(t->to_string(), "(- 5)");
+  }
+  for (const Term & v : with_negative_model_value(t))
+  {
+    SCOPED_TRACE(v->to_string());
+    EXPECT_EQ(v->to_signed_int(), -5);
+  }
+}
+
+TEST_P(ToIntIntTests, GenericRejectsNonNumericSort)
+{
+  // only the generic solver: each backend treats this in its own way
+  if (GetParam().solver_enum != GENERIC_SOLVER)
+  {
+    return;
+  }
+  Sort boolsort = s->make_sort(BOOL);
+  EXPECT_THROW(s->make_term(1, boolsort), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("1", boolsort), IncorrectUsageException);
 }
 
 TEST_P(ToIntIntTests, AboveInt64Max)
@@ -289,7 +330,7 @@ TEST_P(ToIntRealTests, IntegralValue)
   }
   // not -2: Z3 terms compare by hash, and the hashes of 2.0 and -2.0 collide,
   // so the logging solver would hand back the 2.0 it already has
-  for (const Term & v : with_model_value(s->make_term(-3, realsort)))
+  for (const Term & v : with_negative_model_value(s->make_term(-3, realsort)))
   {
     SCOPED_TRACE(v->to_string());
     EXPECT_THROW(v->to_int(), IncorrectUsageException);
@@ -318,13 +359,10 @@ INSTANTIATE_TEST_SUITE_P(
     ToIntIntTests,
     testing::ValuesIn(filter_solver_configurations({ THEORY_INT })));
 
-// not the generic solver, which declares a real value made from an integer,
-// such as 2, with an integer literal that cvc5 rejects as a Real
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntRealTests,
     ToIntRealTests,
-    testing::ValuesIn(
-        filter_non_generic_solver_configurations({ THEORY_REAL })));
+    testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })));
 
 // SMT-LIB numerals are never negative: a negative integer value is (- n)
 TEST(ToIntParsing, SmtlibNegativeInt)

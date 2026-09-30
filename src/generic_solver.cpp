@@ -1103,13 +1103,6 @@ Term GenericSolver::make_negative_bv_const(std::string abs_decimal,
   return result;
 }
 
-Term GenericSolver::make_negative_bv_const(std::int64_t abs_value,
-                                           unsigned int width) const
-{
-  assert(abs_value >= 0);
-  return make_negative_bv_const(std::to_string(abs_value), width);
-}
-
 Term GenericSolver::make_term(bool b) const
 {
   Term value_term = make_value(b);
@@ -1125,6 +1118,16 @@ Term GenericSolver::make_value(bool b) const
   return term;
 }
 
+/** Throws unless a value of sort kind sk can be made from a number */
+static void check_value_sort_kind(SortKind sk)
+{
+  if (sk != BV && sk != INT && sk != REAL)
+  {
+    throw IncorrectUsageException("Can't make a value of sort kind "
+                                  + to_string(sk) + " from a number");
+  }
+}
+
 Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   Term value_term = make_value(i, sort);
@@ -1134,10 +1137,21 @@ Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
-  assert(sk == BV || sk == INT || sk == REAL);
+  check_value_sort_kind(sk);
+  // the magnitude of i, computed without negating i, which overflows for
+  // the minimum int64_t
+  std::string abs_decimal =
+      i < 0 ? std::to_string(static_cast<std::uint64_t>(-(i + 1)) + 1)
+            : std::to_string(i);
   if (sk == INT || sk == REAL)
   {
-    std::string repr = std::to_string(i);
+    // SMT-LIB numerals are never negative, and a REAL value needs a
+    // decimal point for solvers that do not convert an integer literal
+    std::string repr = sk == REAL ? abs_decimal + ".0" : abs_decimal;
+    if (i < 0)
+    {
+      repr = "(- " + repr + ")";
+    }
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1146,8 +1160,7 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
     // sk == BV
     if (i < 0)
     {
-      std::int64_t abs_value = i * (-1);
-      Term term = make_negative_bv_const(abs_value, sort->get_width());
+      Term term = make_negative_bv_const(abs_decimal, sort->get_width());
       return term;
     }
     else
@@ -1171,7 +1184,7 @@ Term GenericSolver::make_value(const std::string val,
                                std::uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
-  assert(sk == BV || sk == INT || sk == REAL);
+  check_value_sort_kind(sk);
   assert(base == 2 || base == 10 || base == 16);
   std::string repr;
   if (sk == INT || sk == REAL)
