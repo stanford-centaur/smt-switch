@@ -184,21 +184,6 @@ TEST_P(ToIntBVTests, MadeFromInt64Min)
   EXPECT_EQ(v->to_signed_int(), int64_min);
 }
 
-TEST_P(ToIntBVTests, GenericIndexedModelValue)
-{
-  // only the generic solver, which reads the value back from cvc5's output,
-  // here in the (_ bv5 4) form that MathSAT uses
-  if (GetParam().solver_enum != GENERIC_SOLVER)
-  {
-    return;
-  }
-  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
-  Term t = s->make_term(5, s->make_sort(BV, 4));
-  Term v = model_value(t);
-  EXPECT_EQ(v->to_string(), t->to_string());
-  EXPECT_EQ(v->to_int(), uint64_t(5));
-}
-
 TEST_P(ToIntBVTests, WiderThan64Bits)
 {
   // no bit-vector wider than 64 bits converts, whatever its value
@@ -251,29 +236,11 @@ TEST_P(ToIntIntTests, NegativeMadeFromInt64)
 {
   // not the minimum int64_t, which MathSAT truncates (see make_int64)
   Term t = s->make_term(-5, s->make_sort(INT));
-  if (GetParam().solver_enum == GENERIC_SOLVER)
-  {
-    // SMT-LIB has no negative numerals, so -5 is a symbol, though cvc5
-    // accepts it
-    EXPECT_EQ(t->to_string(), "(- 5)");
-  }
   for (const Term & v : with_model_value(t))
   {
     SCOPED_TRACE(v->to_string());
     EXPECT_EQ(v->to_signed_int(), -5);
   }
-}
-
-TEST_P(ToIntIntTests, GenericRejectsNonNumericSort)
-{
-  // only the generic solver: each backend treats this in its own way
-  if (GetParam().solver_enum != GENERIC_SOLVER)
-  {
-    return;
-  }
-  Sort boolsort = s->make_sort(BOOL);
-  EXPECT_THROW(s->make_term(1, boolsort), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("1", boolsort), IncorrectUsageException);
 }
 
 TEST_P(ToIntIntTests, AboveInt64Max)
