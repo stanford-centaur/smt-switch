@@ -186,8 +186,8 @@ class AbsSmtSolver
    * No SortKind takes a single sort parameter yet.
    */
   template <typename... Sorts,
-            typename = std::enable_if_t<std::conjunction_v<
-                std::is_convertible<const Sorts &, Sort>...>>>
+            typename = std::enable_if_t<
+                (std::is_convertible_v<const Sorts &, Sort> && ...)>>
   Sort make_sort(const SortKind sk,
                  const Sort & sort1,
                  const Sorts &... sorts) const
