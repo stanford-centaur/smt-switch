@@ -257,7 +257,8 @@ void SmtLibReader::set_opt(const std::string & key, const std::string & val)
   solver_->set_opt(key, val);
 }
 
-void SmtLibReader::set_info(const std::string & key, const std::string & val)
+void SmtLibReader::set_info(const std::string & /* key */,
+                            const std::string & /* val */)
 {
   // No-Op for set-info by default
 }
