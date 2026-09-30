@@ -11,7 +11,7 @@
 # LANGUAGES NONE: nothing is compiled here, only sub-builds are driven, and
 # the compiler each of those uses is forwarded in rather than detected twice.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 project(smt-switch-deps LANGUAGES NONE)
 
 include(ExternalProject)
@@ -22,7 +22,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 
 # CMake only started verifying certificates by default in 3.31, and we support
-# 3.14, so say so rather than leave it to the version in use.
+# 3.16, so say so rather than leave it to the version in use.
 set(CMAKE_TLS_VERIFY TRUE)
 
 if(NOT SMT_SWITCH_DEPS_DIR)
@@ -49,27 +49,20 @@ set(_yices2_needs "")
 set(_bison_needs "")
 
 # Close over dependencies, so that asking for boolector also declares the two
-# it is built against. Iterated to a fixed point rather than expanded once,
+# it is built against. Worked through as a queue rather than expanded once,
 # so that it keeps working if a dependency ever gains one of its own.
-# list(POP_FRONT) would be tidier but wants CMake 3.15.
-set(_wanted ${_requested})
-foreach(_target IN LISTS _wanted)
+set(_wanted "")
+set(_pending ${_requested})
+while(_pending)
+  list(POP_FRONT _pending _target)
+  if(_target IN_LIST _wanted)
+    continue()
+  endif()
   if(NOT DEFINED _${_target}_needs)
     message(FATAL_ERROR "There is no provisioning recipe for '${_target}'")
   endif()
-endforeach()
-
-set(_growing TRUE)
-while(_growing)
-  set(_growing FALSE)
-  foreach(_target IN LISTS _wanted)
-    foreach(_need IN LISTS _${_target}_needs)
-      if(NOT _need IN_LIST _wanted)
-        list(APPEND _wanted "${_need}")
-        set(_growing TRUE)
-      endif()
-    endforeach()
-  endforeach()
+  list(APPEND _wanted "${_target}")
+  list(APPEND _pending ${_${_target}_needs})
 endwhile()
 
 include(ProcessorCount)
@@ -112,6 +105,13 @@ list(APPEND COMMON_CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDE
 # both ask for 3.16 and would report it as an unused variable.
 set(POLICY_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
 
+# Keeps the archives' timestamps, which CMake before 3.24 always does and
+# has no option to ask for.
+set(_extract_timestamp_option "")
+if(NOT CMAKE_VERSION VERSION_LESS 3.24)
+  set(_extract_timestamp_option DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+endif()
+
 # With PREFIX set and nothing else overridden, ExternalProject puts the
 # sources at <prefix>/src/<name> and computes <prefix> as the install
 # directory. That is the layout the find modules already expect. Two traps:
@@ -129,7 +129,7 @@ function(smt_switch_dependency name)
     # Supplied here rather than by each recipe, so that a dependency cannot
     # be added without one.
     URL_HASH "SHA256=${${_upper_name}_SHA256}"
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    ${_extract_timestamp_option}
     USES_TERMINAL_DOWNLOAD TRUE
     USES_TERMINAL_CONFIGURE TRUE
     USES_TERMINAL_BUILD TRUE

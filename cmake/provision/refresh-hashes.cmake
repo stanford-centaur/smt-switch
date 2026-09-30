@@ -7,7 +7,7 @@
 # Run it after bumping a pin, and to answer the question of whether a
 # verification failure is a bumped URL or something worse.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 
 # The downloads this script makes deserve the same treatment as the ones the
 # driver makes; see the note on CMAKE_TLS_VERIFY in CMakeLists.txt.
