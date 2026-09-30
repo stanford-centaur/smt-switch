@@ -43,6 +43,69 @@ Result AbsSmtSolver::check_sat_assuming_set(
       "check_sat_assuming_set not implemented by default");
 }
 
+Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+DatatypeDecl AbsSmtSolver::make_datatype_decl(const std::string & /* s */)
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+DatatypeConstructorDecl AbsSmtSolver::make_datatype_constructor_decl(
+    const std::string /* s */)
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+void AbsSmtSolver::add_constructor(
+    DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+void AbsSmtSolver::add_selector(DatatypeConstructorDecl & /* dt */,
+                                const std::string & /* name */,
+                                const Sort & /* s */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+void AbsSmtSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                     const std::string & /* name */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+Term AbsSmtSolver::get_constructor(const Sort & /* s */,
+                                   std::string /* name */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+Term AbsSmtSolver::get_tester(const Sort & /* s */,
+                              std::string /* name */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
+Term AbsSmtSolver::get_selector(const Sort & /* s */,
+                                std::string /* con */,
+                                std::string /* name */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(solver_enum));
+}
+
 SortVec AbsSmtSolver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & decls) const
 {

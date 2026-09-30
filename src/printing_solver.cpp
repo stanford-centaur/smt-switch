@@ -99,59 +99,6 @@ Sort PrintingSolver::make_sort(const Sort & sort_con,
   return wrapped_solver->make_sort(sort_con, sorts);
 }
 
-Sort PrintingSolver::make_sort(const DatatypeDecl & d) const
-{
-  throw NotImplementedException("PrintingSolver::make_sort");
-}
-
-DatatypeDecl PrintingSolver::make_datatype_decl(const std::string & s)
-{
-  throw NotImplementedException("PrintingSolver::make_datatype_decl");
-}
-
-DatatypeConstructorDecl PrintingSolver::make_datatype_constructor_decl(
-    const std::string s)
-{
-  throw NotImplementedException(
-      "PrintingSolver::make_datatype_constructor_decl");
-}
-
-void PrintingSolver::add_constructor(DatatypeDecl & dt,
-                                     const DatatypeConstructorDecl & con) const
-{
-  throw NotImplementedException("PrintingSolver::add_constructor");
-}
-
-void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
-                                  const std::string & name,
-                                  const Sort & s) const
-{
-  throw NotImplementedException("PrintingSolver::add_selector");
-}
-
-void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
-                                       const std::string & name) const
-{
-  throw NotImplementedException("PrintingSolver::add_selector_self");
-}
-
-Term PrintingSolver::get_constructor(const Sort & s, std::string name) const
-{
-  throw NotImplementedException("PrintingSolver::get_constructor");
-}
-
-Term PrintingSolver::get_tester(const Sort & s, std::string name) const
-{
-  throw NotImplementedException("PrintingSolver::get_testeer");
-}
-
-Term PrintingSolver::get_selector(const Sort & s,
-                                  std::string con,
-                                  std::string name) const
-{
-  throw NotImplementedException("PrintingSolver::get_selector");
-}
-
 Term PrintingSolver::make_term(bool b) const
 {
   return wrapped_solver->make_term(b);
