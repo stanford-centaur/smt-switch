@@ -65,9 +65,10 @@ class MsatSolver : public AbsSmtSolver
   void set_logic(const std::string log) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
+  // Overriding check_sat_assuming hides the AbsSmtSolver template that
+  // takes any range of Terms, so name it back in.
+  using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  Result check_sat_assuming_list(const TermList & assumptions) override;
-  Result check_sat_assuming_set(const UnorderedTermSet & assumptions) override;
   void push(uint64_t num = 1) override;
   void pop(uint64_t num = 1) override;
   uint64_t get_context_level() const override;
@@ -182,6 +183,9 @@ class MsatInterpolatingSolver : public MsatSolver
   void pop(uint64_t num = 1) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
+  // Overriding check_sat_assuming hides the AbsSmtSolver template that
+  // takes any range of Terms, so name it back in.
+  using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
   Term get_value(const Term & t) const override;
   Result get_interpolant(const Term & A,

@@ -392,46 +392,6 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-Result Cvc5Solver::check_sat_assuming_list(const TermList & assumptions)
-{
-  try
-  {
-    std::vector<::cvc5::Term> cvc5assumps;
-    cvc5assumps.reserve(assumptions.size());
-
-    std::shared_ptr<Cvc5Term> cterm;
-    for (auto a : assumptions)
-    {
-      cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
-    }
-    return check_sat_assuming(cvc5assumps);
-  }
-  catch (::cvc5::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
-Result Cvc5Solver::check_sat_assuming_set(const UnorderedTermSet & assumptions)
-{
-  try
-  {
-    std::vector<::cvc5::Term> cvc5assumps;
-    cvc5assumps.reserve(assumptions.size());
-
-    std::shared_ptr<Cvc5Term> cterm;
-    for (auto a : assumptions)
-    {
-      cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
-    }
-    return check_sat_assuming(cvc5assumps);
-  }
-  catch (::cvc5::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
-}
-
 void Cvc5Solver::push(uint64_t num)
 {
   try

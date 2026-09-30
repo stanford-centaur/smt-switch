@@ -94,17 +94,13 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
 
 TEST_P(UnsatCoreTests, UnsatCoreFromList)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver has no list or set variant";
-  }
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
   // a plain check-sat first, so the core can only come from the list query
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
-  r = s->check_sat_assuming_list(TermList{ a, b, s->make_term(Not, b) });
+  r = s->check_sat_assuming(TermList{ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;
@@ -114,17 +110,13 @@ TEST_P(UnsatCoreTests, UnsatCoreFromList)
 
 TEST_P(UnsatCoreTests, UnsatCoreNonLitFromSet)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver has no list or set variant";
-  }
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
   Term x_lt_y = s->make_term(BVUlt, x, y);
   Term x_ge_y = s->make_term(BVUge, x, y);
 
-  Result r = s->check_sat_assuming_set(UnorderedTermSet{ x_lt_y, x_ge_y });
+  Result r = s->check_sat_assuming(UnorderedTermSet{ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;

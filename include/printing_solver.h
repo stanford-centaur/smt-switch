@@ -70,6 +70,9 @@ class PrintingSolver : public AbsSmtSolver
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
+  // Overriding check_sat_assuming hides the AbsSmtSolver template that
+  // takes any range of Terms, so name it back in.
+  using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
   void push(std::uint64_t num = 1) override;
   void pop(std::uint64_t num = 1) override;

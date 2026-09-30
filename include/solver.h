@@ -19,7 +19,10 @@
 #pragma once
 
 #include <cstdint>
+#include <iterator>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -80,9 +83,25 @@ class AbsSmtSolver
    */
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
 
-  virtual Result check_sat_assuming_list(const TermList & assumptions);
+  /* Check satisfiability under the assumptions in any other range of Terms,
+   * such as a TermList or an UnorderedTermSet. They are copied into a
+   * TermVec, so solvers only override the TermVec version.
+   */
+  template <class Range,
+            class = std::enable_if_t<std::is_convertible<
+                decltype(*std::begin(std::declval<const Range &>())),
+                Term>::value>>
+  Result check_sat_assuming(const Range & assumptions)
+  {
+    return check_sat_assuming(
+        TermVec(std::begin(assumptions), std::end(assumptions)));
+  }
 
-  virtual Result check_sat_assuming_set(const UnorderedTermSet & assumptions);
+  [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_list(
+      const TermList & assumptions);
+
+  [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_set(
+      const UnorderedTermSet & assumptions);
 
   /* Push contexts
    * SMTLIB: (push <num>)
