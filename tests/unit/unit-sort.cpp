@@ -88,6 +88,19 @@ TEST_P(UnitSortTests, SortParams)
   // not every solver supports querying function types for domain/codomain yet
 }
 
+TEST_P(UnitSortTests, SortVecArgs)
+{
+  Sort arrsort_2 = s->make_sort(ARRAY, SortVec{ bvsort, bvsort });
+  EXPECT_EQ(arrsort, arrsort_2);
+
+  EXPECT_THROW(s->make_sort(BV, SortVec{ bvsort }), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(ARRAY, SortVec{ bvsort }), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(ARRAY, SortVec{ bvsort, bvsort, bvsort }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ bvsort }),
+               IncorrectUsageException);
+}
+
 TEST_P(UnitSortTests, UninterpretedSort)
 {
   Sort uninterp_sort;

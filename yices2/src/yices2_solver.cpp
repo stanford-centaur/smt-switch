@@ -605,23 +605,19 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     y_sort = yices_function_type(arity, &ysorts[0], ys);
   }
-  else if (sorts.size() == 1)
+  else if (sk == ARRAY && sorts.size() == 2)
   {
-    return make_sort(sk, sorts[0]);
-  }
-  else if (sorts.size() == 2)
-  {
-    return make_sort(sk, sorts[0], sorts[1]);
-  }
-  else if (sorts.size() == 3)
-  {
-    return make_sort(sk, sorts[0], sorts[1], sorts[2]);
+    std::shared_ptr<Yices2Sort> s1 =
+        std::static_pointer_cast<Yices2Sort>(sorts[0]);
+    std::shared_ptr<Yices2Sort> s2 =
+        std::static_pointer_cast<Yices2Sort>(sorts[1]);
+    y_sort = yices_function_type1(s1->type, s2->type);
   }
   else
   {
     std::string msg("Can't create sort from sort constructor ");
     msg += to_string(sk);
-    msg += " with a vector of sorts";
+    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
     throw IncorrectUsageException(msg.c_str());
   }
 
@@ -631,7 +627,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Sort>(y_sort, true);
+  return std::make_shared<Yices2Sort>(y_sort, sk == FUNCTION);
 }
 
 Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
