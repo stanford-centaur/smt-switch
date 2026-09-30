@@ -30,16 +30,26 @@ using namespace std;
 
 namespace smt {
 
-// global variables for signal handling
-// (used to support time limit)
-context_t * running_ctx = nullptr;
-bool yices2_terminated = false;
+// Shared with yices2_timelimit_handler, which runs on a signal. Both are
+// volatile so the compiler cannot hold either in a register across the search,
+// and the flag is a sig_atomic_t because that is the only type whose write
+// from a handler the standard promises will be visible here.
+context_t * volatile running_ctx = nullptr;
+volatile sig_atomic_t yices2_terminated = 0;
 
-void yices2_timelimit_handler(int signum)
+// Registered for SIGALRM alone, so the argument cannot be anything else and is
+// not worth naming. Only async-signal-safe work belongs here: a comparison,
+// yices_stop_search, which Yices documents as the way to interrupt a search,
+// and a flag store. An assert would not qualify -- it reaches fprintf -- and
+// would be compiled out of a release build besides, leaving the null context
+// it was meant to catch to reach Yices.
+void yices2_timelimit_handler(int /* signum */)
 {
-  assert(running_ctx != nullptr);
-  yices_stop_search(running_ctx);
-  yices2_terminated = true;
+  if (running_ctx != nullptr)
+  {
+    yices_stop_search(running_ctx);
+    yices2_terminated = 1;
+  }
 }
 
 /* Yices2 Op mappings */
@@ -934,10 +944,12 @@ bool Yices2Solver::timelimit_end()
   bool res = false;
   if (time_limit)
   {
-    res |= yices2_terminated;
-    yices2_terminated = false;
-    running_ctx = nullptr;
+    // Cancel first: clearing running_ctx before the alarm is off leaves a
+    // window where the handler runs against a null context.
     alarm(0);
+    res |= yices2_terminated != 0;
+    yices2_terminated = 0;
+    running_ctx = nullptr;
   }
   return res;
 }
