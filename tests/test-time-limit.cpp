@@ -81,12 +81,17 @@ TEST_P(TimeLimitTests, TestTimeLimit)
 {
   set_up_hard_problem(s);
 
-  auto start = std::chrono::high_resolution_clock::now();
+  // A steady clock, since the system clock can jump backwards and fail the
+  // lower bound.
+  auto start = std::chrono::steady_clock::now();
   Result r = s->check_sat();
-  auto stop = std::chrono::high_resolution_clock::now();
+  auto stop = std::chrono::steady_clock::now();
   std::chrono::duration<double> duration = stop - start;
   ASSERT_TRUE(r.is_unknown());
-  EXPECT_LT(duration.count(), time_limit + 1);
+  EXPECT_GE(duration.count(), time_limit);
+  // Idle, every solver stops within a few milliseconds of the limit, but on
+  // a loaded machine the overshoot reaches a few hundred.
+  EXPECT_LT(duration.count(), time_limit + 0.5);
   s->pop();
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
