@@ -228,8 +228,8 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverParamUninterpReaderTests,
     UninterpReaderTests,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { PARAM_UNINTERP_SORT })),
+    testing::Combine(testing::ValuesIn(
+                         filter_solver_configurations({ PARAM_UNINTERP_SORT })),
                      testing::ValuesIn(qf_uf_param_sorts_tests.begin(),
                                        qf_uf_param_sorts_tests.end())));
 

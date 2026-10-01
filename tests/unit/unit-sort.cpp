@@ -104,6 +104,13 @@ TEST_P(UnitSortTests, SortParams)
 
 TEST_P(UnitSortTests, SortVecArgs)
 {
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "The generic solver takes the last sort of a FUNCTION "
+                    "SortVec as the return sort without checking that any "
+                    "remain, so a one-element vector gives a function of no "
+                    "arguments instead of throwing";
+  }
   Sort arrsort_2 = s->make_sort(ARRAY, SortVec{ bvsort, bvsort });
   EXPECT_EQ(arrsort, arrsort_2);
 
@@ -179,6 +186,12 @@ TEST_P(UnitSortTests, UninterpretedSort)
 
 TEST_P(UnitSortTests, UninterpSortEquality)
 {
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "The generic solver cannot get the value of a term whose "
+                    "sort kind is Uninterpreted";
+  }
+
   if (GetParam().is_logging_solver)
   {
     // need some additional fixes for is_value in LoggingSolver to handle
@@ -236,14 +249,9 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
   EXPECT_EQ(realsort, realsort_2);
 }
 
-// One of the tests requires parsing values
-// of uninterpreted sorts.
-// This is not supported by the generic solver, and hence
-// it is excluded.
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedUnitSortTests,
-    UnitSortTests,
-    testing::ValuesIn(available_non_generic_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
+                         UnitSortTests,
+                         testing::ValuesIn(available_solver_configurations()));
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
                          UnitSortArithTests,
