@@ -204,7 +204,7 @@ std::string GenericSort::compute_string() const
       {
         result += " " + s->to_string();
       }
-      return result;
+      return result + ")";
     }
   }
   else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS)
@@ -365,9 +365,21 @@ UninterpretedGenericSort::UninterpretedGenericSort(std::string n,
 
 UninterpretedGenericSort::UninterpretedGenericSort(Sort sort_cons,
                                                    const SortVec & sorts)
-    : GenericSort(UNINTERPRETED), name(""), arity(0), param_sorts(sorts)
+    : GenericSort(UNINTERPRETED),
+      name(sort_cons->get_uninterpreted_name()),
+      arity(sorts.size()),
+      param_sorts(sorts)
 {
-  assert(sort_cons->get_arity() == sorts.size());
+  // compute_string prints the parameters only when the arity is non-zero, so
+  // an applied sort keeps the count it was applied with, not the zero that
+  // would hide both the name and the parameters.
+  if (sort_cons->get_arity() != sorts.size())
+  {
+    throw IncorrectUsageException("Sort constructor " + name + " has arity "
+                                  + std::to_string(sort_cons->get_arity())
+                                  + " but was applied to "
+                                  + std::to_string(sorts.size()) + " sorts");
+  }
 }
 
 UninterpretedGenericSort::~UninterpretedGenericSort() {}
