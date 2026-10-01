@@ -40,7 +40,6 @@ TEST(BtorTests, SortsTermsAndModels)
 
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
-  s->make_term(true);
   EXPECT_NE(x, y);
   Term x_copy = x;
   EXPECT_EQ(x, x_copy);
