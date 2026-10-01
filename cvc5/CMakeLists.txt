@@ -27,24 +27,28 @@ if(cvc5_VERSION VERSION_LESS CVC5_MINIMUM_VERSION)
   )
 endif()
 target_link_libraries(smt-switch-cvc5 PUBLIC cvc5::cvc5)
-# cvc5's package names cadical and gmp in its link interface as plain
-# libraries too, and finds neither, so saying where they are falls to us.
-find_package(CaDiCaL REQUIRED)
-target_link_libraries(smt-switch-cvc5 PUBLIC CaDiCaL::cadical)
+# cvc5's package names gmp in its link interface as a plain library too, and
+# does not find it, so saying where it is falls to us.
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-cvc5 PUBLIC GMP::gmp)
 # Some systems keep the math functions outside libc, and cvc5 uses them.
 target_link_libraries(smt-switch-cvc5 PRIVATE m)
 
-# LibPoly is cvc5's private dependency, but its package names picpoly and
-# picpolyxx as plain libraries without saying where they are, so we have to fix
-# the link commands. cvc5's own prefix is looked in first, which is where they
-# sit when libpoly was auto-downloaded; failing that they are installed
-# somewhere of their own, and the search finds them there.
+# Cadical and Libpoly (picpoly and picpolyxx) are also plain library names
+# on the cvc5 link line, so we need to find them. They are in cvc5's own
+# install prefix when auto-downloaded, so we look there first, otherwise
+# they were provided by the system. find_library only learned REQUIRED in
+# CMake 3.18, hence the checks.
 include(ImportedLocation)
 smt_switch_imported_location(cvc5::cvc5 cvc5_LIBRARY)
 get_filename_component(cvc5_LIBRARY_DIR "${cvc5_LIBRARY}" DIRECTORY)
-# find_library only learned REQUIRED in CMake 3.18, hence the checks.
+find_library(cvc5_CADICAL_LIBRARY NAMES cadical HINTS "${cvc5_LIBRARY_DIR}")
+mark_as_advanced(cvc5_CADICAL_LIBRARY)
+if(NOT cvc5_CADICAL_LIBRARY)
+  message(FATAL_ERROR "Could not find cadical, required by cvc5")
+endif()
+get_filename_component(cvc5_CADICAL_LIBRARY_DIR "${cvc5_CADICAL_LIBRARY}" DIRECTORY)
+target_link_directories(smt-switch-cvc5 PUBLIC $<BUILD_INTERFACE:${cvc5_CADICAL_LIBRARY_DIR}>)
 find_library(cvc5_POLY_LIBRARY NAMES picpoly HINTS "${cvc5_LIBRARY_DIR}")
 find_library(cvc5_POLYXX_LIBRARY NAMES picpolyxx HINTS "${cvc5_LIBRARY_DIR}")
 mark_as_advanced(cvc5_POLY_LIBRARY cvc5_POLYXX_LIBRARY)
@@ -62,9 +66,9 @@ if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
   set(
     CVC5_STATIC_LINK_ARGS
     "${cvc5_LIBRARY}"
+    "${cvc5_CADICAL_LIBRARY}"
     "${cvc5_POLYXX_LIBRARY}"
     "${cvc5_POLY_LIBRARY}"
-    "${CaDiCaL_LIBRARY}"
     PARENT_SCOPE
   )
 endif()

@@ -12,7 +12,7 @@
 #
 # Tags are preferred to commits, being self-describing. If one is ever moved
 # the checksum catches it, because the archive changes and the download
-# fails. CaDiCaL is the one exception, for the reason given at its pin.
+# fails.
 #
 # Note that a GitHub /archive/ URL is generated on request rather than
 # stored. GitHub guarantees the bytes only for assets a project uploads
@@ -22,14 +22,15 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/../Helpers.cmake")
 
-# cvc5 builds against the rel-2.1.3-elevate branch rather than the rel-2.1.3
-# tag, its one change being a fix for propagations CaDiCaL missed through
-# IPASIR-UP. Branches move, so the commit that branch points at is pinned.
+# For Boolector alone, and frozen there: Boolector is no longer developed,
+# and this is the CaDiCaL its own setup-cadical.sh pins at 3.2.4. cvc5 is not
+# built against it and downloads the CaDiCaL it wants itself, so bumping cvc5
+# never means moving this.
 smt_switch_pin(
   CADICAL
   GITHUB_REPO arminbiere/cadical
-  COMMIT a384d221a920d473b770df6a7221f35fc5d99e90
-  CHECKSUM 244f9f7ea2c9b870e94a44b28e903a3f79410201f5e8ac0b4eb2feb57422eeaa
+  TAG rel-1.0.3
+  CHECKSUM 6a2dc4b25ca397fcdfda6e08743b56d8eb8385682a8f50685cbfb10835587e87
 )
 
 smt_switch_pin(
