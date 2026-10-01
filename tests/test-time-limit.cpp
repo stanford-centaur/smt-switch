@@ -88,7 +88,10 @@ TEST_P(TimeLimitTests, TestTimeLimit)
   auto stop = std::chrono::steady_clock::now();
   std::chrono::duration<double> duration = stop - start;
   ASSERT_TRUE(r.is_unknown());
-  EXPECT_GE(duration.count(), time_limit);
+  // cvc5 times the limit with the system clock, which NTP may run slightly
+  // fast, so allow a shortfall of 1%: far above any slew rate, and far below
+  // a mistake in the units.
+  EXPECT_GE(duration.count(), time_limit * 0.99);
   // Idle, every solver stops within a few milliseconds of the limit, but on
   // a loaded machine the overshoot reaches a few hundred.
   EXPECT_LT(duration.count(), time_limit + 0.5);
