@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Cvc5IndexedOps, RotateExtractRepeat)
 {
   SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -51,15 +50,14 @@ int main()
       Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
-  Term xc = s->get_value(x);
-  Term x_upperc = s->get_value(x_upper);
-  Term yc = s->get_value(y);
-
-  cout << "Results:" << endl;
-  cout << "\tx = " << xc->to_int() << endl;
-  cout << "\tx[7:4] = " << x_upperc->to_int() << endl;
-  cout << "\ty = " << yc->to_int() << endl;
-  return 0;
+  // ror 2 = rol 2 makes rotating by 4 the identity, which on 9 bits forces
+  // all bits of y to be equal
+  EXPECT_EQ(s->get_value(y)->to_int(), 0b1'1111'1111);
+  // x repeats one bit 9 times, so x and x_upper are all zeros or all ones
+  auto x_val = s->get_value(x)->to_int();
+  EXPECT_TRUE(x_val == 0 || x_val == 0b1'1111'1111);
+  EXPECT_EQ(s->get_value(x_upper)->to_int(),
+            x_val == 0b1'1111'1111 ? 0b1111 : 0);
 }

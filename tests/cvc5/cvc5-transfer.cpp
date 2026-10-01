@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Cvc5Transfer, TransferBetweenSolvers)
 {
   SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -56,11 +55,6 @@ int main()
   constraint2 = tt.transfer_term(constraint);
   s2->assert_formula(constraint2);
 
-  cout << "term from solver 1: " << constraint << endl;
-  cout << "term from solver 2: " << constraint2 << endl;
-
-  assert(s->check_sat().is_sat());
-  assert(s2->check_sat().is_sat());
-
-  return 0;
+  EXPECT_TRUE(s->check_sat().is_sat());
+  EXPECT_TRUE(s2->check_sat().is_sat());
 }

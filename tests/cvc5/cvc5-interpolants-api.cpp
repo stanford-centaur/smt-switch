@@ -1,24 +1,19 @@
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <vector>
 
 #include "cvc5/cvc5.h"
 
-using namespace std;
 using namespace cvc5;
 
-int main()
+TEST(Cvc5InterpolantsApi, InterpolantOfConjunction)
 {
   TermManager tm;
   Sort boolsort = tm.getBooleanSort();
   Term b1 = tm.mkConst(boolsort, "b1");
   Term b2 = tm.mkConst(boolsort, "b2");
 
-  cout << (b2.getKind() == Kind::CONSTANT) << std::endl;
-
-  if (b2.getKind() != Kind::CONSTANT)
-  {
-    throw std::exception();
-  }
+  EXPECT_EQ(b2.getKind(), Kind::CONSTANT);
 
   Solver s(tm);
   s.setOption("produce-interpolants", "true");
@@ -26,18 +21,13 @@ int main()
   s.assertFormula(tm.mkTerm(Kind::AND, { b1, b2 }));
   Term I = s.getInterpolant(b2);
 
-  if (!I.isNull())
-  {
-    cout << "got an interpolant: " << I << endl;
-  }
+  ASSERT_FALSE(I.isNull());
 
-  cout << (I == b2) << endl;
-
-  if (I.getKind() != Kind::CONSTANT)
-  {
-    cout << "ERROR The interpolant should have kind CONSTANT but has kind: "
-         << to_string(I.getKind()) << endl;
-  }
-
-  return 0;
+  // (and b1 b2) implies I, I implies b2, and b2 is the only symbol the two
+  // sides share, so I must be equivalent to b2, though not necessarily b2
+  // itself: its kind need not be CONSTANT
+  EXPECT_TRUE(I.getSort().isBoolean());
+  Solver checker(tm);
+  checker.assertFormula(tm.mkTerm(Kind::DISTINCT, { I, b2 }));
+  EXPECT_TRUE(checker.checkSat().isUnsat());
 }

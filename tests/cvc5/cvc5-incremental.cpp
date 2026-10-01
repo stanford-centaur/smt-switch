@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Cvc5Incremental, AssumptionsPushPopAndReset)
 {
   SmtSolver s = Cvc5SolverFactory::create(false);
   s->set_logic("QF_BV");
@@ -46,7 +45,7 @@ int main()
   s->assert_formula(b);
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Term assumption0 =
       s->make_term(And,
@@ -62,22 +61,20 @@ int main()
   Term il1 = s->make_symbol("il1", boolsort);
   s->assert_formula(s->make_term(Implies, il1, assumption1));
   r = s->check_sat_assuming({ il1 });
-  assert(r.is_sat());
-  assert(s->get_value(x)->to_int() == 1);
+  ASSERT_TRUE(r.is_sat());
+  EXPECT_EQ(s->get_value(x)->to_int(), 1);
 
   s->push();
   s->assert_formula(assumption0);
   r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
 
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   s->reset_assertions();
   s->assert_formula(assumption0);
   r = s->check_sat();
-  assert(r.is_sat());
-
-  return 0;
+  EXPECT_TRUE(r.is_sat());
 }
