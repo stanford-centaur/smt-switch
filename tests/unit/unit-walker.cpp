@@ -14,7 +14,6 @@
 **
 **/
 
-#include <cassert>
 #include <utility>
 #include <vector>
 
@@ -908,7 +907,7 @@ TEST_P(UnitWalkerTests, FreshVars)
       else
       {
         // no other keys should exist
-        assert(false);
+        ADD_FAILURE() << "unexpected key " << s;
       }
     }
   }

@@ -14,7 +14,6 @@
 **
 **/
 
-#include <cassert>
 #include <vector>
 
 #include "cvc5/cvc5.h"

@@ -14,7 +14,6 @@
 **
 **/
 
-#include <cassert>
 #include <utility>
 #include <vector>
 
@@ -84,7 +83,7 @@ TEST_P(DTTests, DatatypeDecl)
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver)
   {
-    return;
+    GTEST_SKIP() << "not run on logging solvers";
   }
 
   // Make datatype sort
@@ -94,15 +93,15 @@ TEST_P(DTTests, DatatypeDecl)
 
   std::shared_ptr<GenericDatatype> gdt =
       make_shared<GenericDatatype>(dt_decltest);
-  assert(gdt->get_num_constructors() == 0);
+  EXPECT_EQ(gdt->get_num_constructors(), 0);
 
   shared_ptr<GenericDatatypeConstructorDecl> cons2test =
       shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl("constest"));
   gdt->add_constructor(cons2test);
-  assert(gdt->get_num_constructors() == 1);
-  assert(gdt->get_num_selectors("constest") == 0);
-  assert(gdt->get_name() == "secondtestdt");
+  EXPECT_EQ(gdt->get_num_constructors(), 1);
+  EXPECT_EQ(gdt->get_num_selectors("constest"), 0);
+  EXPECT_EQ(gdt->get_name(), "secondtestdt");
 
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
@@ -137,16 +136,16 @@ TEST_P(DTTests, DatatypeDecl)
 
   Sort countersort = s->make_sort(counterdecl);
 
-  assert(countersort->get_sort_kind() == DATATYPE);
-  assert(listsort->get_sort_kind() == DATATYPE);
-  assert(countersort != listsort);
+  EXPECT_EQ(countersort->get_sort_kind(), DATATYPE);
+  EXPECT_EQ(listsort->get_sort_kind(), DATATYPE);
+  EXPECT_NE(countersort, listsort);
 
   Datatype listdt = listsort->get_datatype();
 
   Term five = s->make_term(5, intsort);
   // Make datatype terms
   Term cons = s->get_constructor(listsort, "cons");
-  assert("cons" == cons->to_string());
+  EXPECT_EQ(cons->to_string(), "cons");
   Term nil = s->get_constructor(listsort, "nil");
 
   Term head = s->get_selector(listsort, "cons", "head");
@@ -171,12 +170,12 @@ TEST_P(DTTests, DatatypeDecl)
 
   Result res = s->check_sat();
 
-  ASSERT_TRUE(listdt->get_name() == "list");
-  ASSERT_TRUE(listdt->get_num_constructors() == 2);
-  ASSERT_TRUE(listdt->get_num_selectors("cons") == 2);
-  ASSERT_TRUE(listdt->get_num_selectors("nil") == 0);
+  EXPECT_EQ(listdt->get_name(), "list");
+  EXPECT_EQ(listdt->get_num_constructors(), 2);
+  EXPECT_EQ(listdt->get_num_selectors("cons"), 2);
+  EXPECT_EQ(listdt->get_num_selectors("nil"), 0);
 
-  ASSERT_TRUE(res.is_sat());
+  EXPECT_TRUE(res.is_sat());
   // Expected exceptions
 
   EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);

@@ -15,7 +15,6 @@
 **/
 #include <gtest/gtest.h>
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -67,13 +66,13 @@ TEST_F(MsatPrintingTest, Interpolation)
   Term B = s->make_term(Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
-  assert(r.is_unsat());
+  ASSERT_TRUE(r.is_unsat());
 
   Term A1 = s->make_term(And, s->make_term(Lt, z, y), s->make_term(Lt, y, x));
   Term B1 = s->make_term(Gt, z, x);
   Term I1;
   Result r1 = s->get_interpolant(A1, B1, I1);
-  assert(r1.is_unsat());
+  ASSERT_TRUE(r1.is_unsat());
 
   check_result(
       {
