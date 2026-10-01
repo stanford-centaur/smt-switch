@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test-generic-solver.cpp
+/*! \file test-portfolio-solver.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Amalee Wilson
@@ -14,8 +14,7 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
 
 #include "boolector_factory.h"
 #include "cvc5_factory.h"
@@ -27,9 +26,8 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(PortfolioSolver, TwoPortfoliosFindSat)
 {
-  cout << "testing portfolio solver" << endl;
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   Sort bvsort = s->make_sort(BV, 10);
@@ -87,9 +85,8 @@ int main()
 
   PortfolioSolver p(solvers, test_term);
   smt::Result res = p.portfolio_solve();
-  cout << "portfolio_solve " << res.is_sat() << endl;
 
-  assert(res.is_sat());
+  EXPECT_TRUE(res.is_sat());
 
   SmtSolver s1_2 = MsatSolverFactory::create(false);
   SmtSolver s2_2 = MsatSolverFactory::create(false);
@@ -112,9 +109,6 @@ int main()
   solvers2.push_back(s9_2);
   PortfolioSolver p2(solvers2, test_term);
   smt::Result res2 = p2.portfolio_solve();
-  cout << "portfolio_solve2 " << res2.is_sat() << endl;
 
-  assert(res2.is_sat());
-
-  return 0;
+  EXPECT_TRUE(res2.is_sat());
 }
