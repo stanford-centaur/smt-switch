@@ -224,17 +224,7 @@ GenericSolver::GenericSolver(std::string path,
         "Generic Solvers require a buffer size of at least 2 and at most 256.");
     throw IncorrectUsageException(msg);
   }
-  term_counter = new unsigned int;
-  // allocate memory for the read buffer
-  read_buf = new char[read_buf_size];
-
-  // make sure allocation was successful
-  assert(read_buf != NULL);
-  // initialize read_buf
-  for (unsigned int i = 0; i < read_buf_size; i++)
-  {
-    read_buf[i] = 0;
-  }
+  read_buf.resize(read_buf_size);
   // start the process with the solver binary
   try
   {
@@ -245,18 +235,12 @@ GenericSolver::GenericSolver(std::string path,
     // a throwing constructor gets no destructor, so clean up here; catch
     // everything, as a slow solver leaves by InternalSolverException
     close_solver();
-    // deallocate memory manually, since destructor won't be called
-    delete[] read_buf;
-    delete term_counter;
     throw;
   }
 }
 
 GenericSolver::~GenericSolver()
 {
-  // deallocate the buffer memory
-  delete[] read_buf;
-  delete term_counter;
   // close the solver process
   close_solver();
 }
@@ -512,7 +496,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
   while (!take_response(result))
   {
     await_response(deadline, cmd);
-    ssize_t just_read = read(inpipefd[0], read_buf, read_buf_size);
+    ssize_t just_read = read(inpipefd[0], read_buf.data(), read_buf_size);
     if (just_read < 0)
     {
       if (errno == EINTR)
@@ -536,7 +520,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
       response_buffer.clear();
       break;
     }
-    response_buffer.append(read_buf, just_read);
+    response_buffer.append(read_buf.data(), just_read);
   }
   // normalize output of solver:
   // - no newlines in the middle of the content
@@ -1014,8 +998,8 @@ std::string GenericSolver::get_name(Term term) const
 {
   // the names of the terms are `t_i` with a running `i`.
   // These names are used for `define-fun` commands.
-  *term_counter = (*term_counter) + 1;
-  return "t_" + std::to_string((*term_counter));
+  term_counter++;
+  return "t_" + std::to_string(term_counter);
 }
 
 Term GenericSolver::store_term(Term term) const

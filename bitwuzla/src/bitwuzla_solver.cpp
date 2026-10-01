@@ -92,6 +92,29 @@ const std::unordered_map<PrimOp, bitwuzla::Kind> op2bkind(
 
 const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
+BzlaSolver::BzlaSolver()
+    : AbsSmtSolver(BZLA),
+      options(),
+      tm(std::make_unique<bitwuzla::TermManager>()),
+      context_level(0)
+{
+}
+
+BzlaSolver::~BzlaSolver()
+{
+  // the terms in symbol_table belong to tm, so release them before it
+  symbol_table.clear();
+}
+
+bitwuzla::Bitwuzla * BzlaSolver::get_bitwuzla() const
+{
+  if (!bzla)
+  {
+    bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
+  }
+  return bzla.get();
+}
+
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
@@ -553,18 +576,17 @@ void BzlaSolver::reset()
 {
   // the terms in symbol_table belong to tm, so release them before it
   symbol_table.clear();
-  delete bzla;
-  delete tm;
+  bzla.reset();
   options = {};
-  tm = new bitwuzla::TermManager();
-  bzla = new bitwuzla::Bitwuzla(*tm, options);
+  tm = std::make_unique<bitwuzla::TermManager>();
+  bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
   context_level = 0;
 }
 
 void BzlaSolver::reset_assertions()
 {
-  delete bzla;
-  bzla = new bitwuzla::Bitwuzla(*tm, options);
+  bzla.reset();
+  bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
   context_level = 0;
 }
 

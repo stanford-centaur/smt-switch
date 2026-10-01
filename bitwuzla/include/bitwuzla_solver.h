@@ -37,21 +37,10 @@ namespace smt {
 class BzlaSolver : public AbsSmtSolver
 {
  public:
-  BzlaSolver()
-      : AbsSmtSolver(BZLA),
-        options(),
-        tm(new bitwuzla::TermManager()),
-        bzla(nullptr),
-        context_level(0) {};
+  BzlaSolver();
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
-  ~BzlaSolver()
-  {
-    // need to destruct all stored terms in symbol_table
-    symbol_table.clear();
-    delete bzla;
-    delete tm;
-  };
+  ~BzlaSolver();
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -110,19 +99,14 @@ class BzlaSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
-  bitwuzla::Bitwuzla * get_bitwuzla() const
-  {
-    if (bzla == nullptr)
-    {
-      bzla = new bitwuzla::Bitwuzla(*tm, options);
-    }
-    return bzla;
-  }
+  // creates the Bitwuzla instance if it does not exist yet
+  bitwuzla::Bitwuzla * get_bitwuzla() const;
 
  protected:
   bitwuzla::Options options;
-  bitwuzla::TermManager * tm;
-  mutable bitwuzla::Bitwuzla * bzla;
+  // bzla uses tm, so tm is declared first and outlives it
+  std::unique_ptr<bitwuzla::TermManager> tm;
+  mutable std::unique_ptr<bitwuzla::Bitwuzla> bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
   std::uint64_t context_level;

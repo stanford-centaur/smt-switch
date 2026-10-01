@@ -263,7 +263,8 @@ class GenericSolver : public AbsSmtSolver
   int outpipefd[2] = { -1, -1 };
   pid_t pid = -1;
   int status = 0;
-  char * read_buf;
+  // filled by reads in const methods
+  mutable std::vector<char> read_buf;
 
   // buffer size
   unsigned int read_buf_size;
@@ -283,7 +284,7 @@ class GenericSolver : public AbsSmtSolver
   std::unique_ptr<std::unordered_map<Sort, std::string>> sort_name_map;
 
   // internal counter for naming terms
-  unsigned int * term_counter;
+  mutable unsigned int term_counter = 0;
 
   // maps between Term name and actual Term and vice versa
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
