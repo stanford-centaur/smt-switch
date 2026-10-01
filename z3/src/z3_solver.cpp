@@ -154,7 +154,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    unsigned milliseconds = stoi(value) * 1000;
+    unsigned milliseconds = std::stod(value) * 1000;
     slv.set("timeout", milliseconds);
   }
   else if (option == "produce-unsat-assumptions")

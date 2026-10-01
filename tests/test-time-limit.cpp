@@ -73,7 +73,8 @@ class TimeLimitTests : public ::testing::Test,
 
   SmtSolver s;
   uint64_t bv_width = 6;
-  int time_limit = 1;
+  // Each hard check waits out the whole limit, so keep it short.
+  double time_limit = 0.1;
 };
 
 TEST_P(TimeLimitTests, TestTimeLimit)
@@ -83,10 +84,9 @@ TEST_P(TimeLimitTests, TestTimeLimit)
   auto start = std::chrono::high_resolution_clock::now();
   Result r = s->check_sat();
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+  std::chrono::duration<double> duration = stop - start;
   ASSERT_TRUE(r.is_unknown());
-  ASSERT_TRUE((duration.count() - time_limit) < 1);
+  EXPECT_LT(duration.count(), time_limit + 1);
   s->pop();
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());

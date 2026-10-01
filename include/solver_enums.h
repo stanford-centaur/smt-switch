@@ -80,7 +80,7 @@ enum SolverAttribute
   PARAM_UNINTERP_SORT,
   // aliases booleans and bit-vectors of size one
   BOOL_BV1_ALIASING,
-  // supports setting a time limit
+  // supports setting a time limit, in seconds (fractions allowed)
   TIMELIMIT
 
   // TODO: when adding a new enum, also add to python interface in enums_dec.pxi

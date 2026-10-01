@@ -17,7 +17,7 @@
 #include "yices2_solver.h"
 
 #include <signal.h>
-#include <unistd.h>
+#include <sys/time.h>
 
 #include <cassert>
 #include <cstdint>
@@ -148,7 +148,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    time_limit = stoi(value);
+    time_limit = stod(value);
   }
   else if (option == "produce-unsat-assumptions")
   {
@@ -935,7 +935,11 @@ void Yices2Solver::timelimit_start()
     assert(running_ctx == nullptr);
     assert(!yices2_terminated);
     running_ctx = ctx;
-    alarm(time_limit);
+    itimerval timer{};
+    timer.it_value.tv_sec = static_cast<time_t>(time_limit);
+    timer.it_value.tv_usec =
+        static_cast<suseconds_t>((time_limit - timer.it_value.tv_sec) * 1e6);
+    setitimer(ITIMER_REAL, &timer, nullptr);
   }
 }
 
@@ -944,9 +948,10 @@ bool Yices2Solver::timelimit_end()
   bool res = false;
   if (time_limit)
   {
-    // Cancel first: clearing running_ctx before the alarm is off leaves a
+    // Cancel first: clearing running_ctx before the timer is off leaves a
     // window where the handler runs against a null context.
-    alarm(0);
+    itimerval disarm{};
+    setitimer(ITIMER_REAL, &disarm, nullptr);
     res |= yices2_terminated != 0;
     yices2_terminated = 0;
     running_ctx = nullptr;

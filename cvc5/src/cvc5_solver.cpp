@@ -146,7 +146,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
   {
     cvc5option = "tlimit-per";
     // convert to milliseconds
-    cvc5value = std::to_string(stoi(value) * 1000);
+    cvc5value = std::to_string(static_cast<uint64_t>(std::stod(value) * 1000));
   }
 
   try
