@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Yices2Incremental, AssumptionsAndPushPop)
 {
   SmtSolver s = Yices2SolverFactory::create(true);
   s->set_logic("QF_BV");
@@ -43,7 +42,7 @@ int main()
   s->assert_formula(s->make_term(Equal, z, s->make_term(BVAdd, y, z)));
   s->assert_formula(s->make_term(Equal, z, s->make_term(BVSub, y, z)));
   Result r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Term assumption0 =
       s->make_term(And,
@@ -54,29 +53,26 @@ int main()
   Term il0 = s->make_symbol("il0", boolsort);
   s->assert_formula(s->make_term(Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
 
   Term il1 = s->make_symbol("il1", boolsort);
   Term assumption1 = s->make_term(Equal, x, s->make_term(1, bvsort8));
   s->assert_formula(s->make_term(Implies, il1, assumption1));
   r = s->check_sat_assuming({ il1 });
-  assert(r.is_sat());
-  assert(s->get_value(x)->to_int() == 1);
+  ASSERT_TRUE(r.is_sat());
+  EXPECT_EQ(s->get_value(x)->to_int(), 1);
 
   s->push();
   s->assert_formula(assumption0);
   r = s->check_sat();
-  // TODO: Not sure if Yices problem or implementation problem.
-  // assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
 
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   s->reset_assertions();
   s->assert_formula(assumption0);
   r = s->check_sat();
-  assert(r.is_sat());
-
-  return 0;
+  EXPECT_TRUE(r.is_sat());
 }

@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -29,9 +29,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Yices2Polynomial, PolynomialConstraints)
 {
   SmtSolver s = Yices2SolverFactory::create(true);
   s->set_opt("produce-models", "true");
@@ -44,21 +43,34 @@ int main()
   Term b = s->make_symbol("b", s->make_sort(INT));
   Term c = s->make_symbol("c", s->make_sort(INT));
 
+  // every constraint below is satisfiable: the bit-vectors and b can be
+  // zero with a = -1 or 0, or b = 12 and d = 88; the last one forces b = 45
+  auto expect_sat = [&s](const Term & constraint) {
+    s->push();
+    s->assert_formula(constraint);
+    EXPECT_TRUE(s->check_sat().is_sat()) << constraint;
+    s->pop();
+  };
+
   Term constraint;
 
   constraint = s->make_term(
       Equal, c, s->make_term(Pow, b, s->make_term("4", s->make_sort(INT))));
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
+  expect_sat(constraint);
 
   constraint = s->make_term(Equal, z, s->make_term(BVMul, x, y));
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
+  expect_sat(constraint);
 
   constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
+  expect_sat(constraint);
 
   constraint =
       s->make_term(Equal, z, s->make_term(BVAdd, x, s->make_term(BVMul, y, z)));
   constraint = s->make_term(And, constraint, s->make_term(Lt, a, b));
+  expect_sat(constraint);
 
   constraint =
       s->make_term(Equal, z, s->make_term(BVAdd, x, s->make_term(BVMul, y, z)));
@@ -68,15 +80,18 @@ int main()
       s->make_term(Equal,
                    a,
                    s->make_term(Pow, b, s->make_term("4", s->make_sort(INT)))));
+  expect_sat(constraint);
 
   Term bv_sum = s->make_term(BVAdd, x, s->make_term(BVMul, y, z));
-  // cout << "bv sum : " << bv_sum << endl;
+  EXPECT_EQ(bv_sum->get_sort(), bvsort8);
+  EXPECT_EQ(bv_sum->get_op(), BVAdd);
   constraint = s->make_term(Equal, z, bv_sum);
 
   c = s->make_term("3", s->make_sort(INT));
 
   constraint = s->make_term(
       And, constraint, s->make_term(Equal, a, s->make_term(Pow, b, c)));
+  expect_sat(constraint);
 
   Term d = s->make_symbol("d", s->make_sort(INT));
 
@@ -87,6 +102,7 @@ int main()
       s->make_term(And,
                    constraint,
                    s->make_term(Ge, b, s->make_term("12", s->make_sort(INT))));
+  expect_sat(constraint);
 
   constraint = s->make_term(
       Equal,
@@ -98,5 +114,7 @@ int main()
                    constraint,
                    s->make_term(Ge, b, s->make_term("12", s->make_sort(INT))));
 
-  return 0;
+  s->assert_formula(constraint);
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(b)->to_int(), 45);
 }

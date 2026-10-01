@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(Yices2NegNumbers, NegativeValues)
 {
   SmtSolver s = Yices2SolverFactory::create(true);
 
@@ -38,20 +37,9 @@ int main()
   Term four = s->make_term(4, bvsort8);
   Term neg_four = s->make_term(-4, bvsort8);
 
-  std::cout << neg_four << std::endl;
+  EXPECT_EQ(neg_four, s->make_term("-4", bvsort8));
 
-  assert(neg_four == s->make_term("-4", bvsort8));
-
-  try
-  {
-    Term impossible = s->make_term("-129", bvsort8);
-    cout << impossible << endl;
-    assert(false);
-  }
-  catch (IncorrectUsageException & e)
-  {
-    cout << e.what() << endl;
-  }
+  EXPECT_THROW(s->make_term("-129", bvsort8), IncorrectUsageException);
 
   s->push();
   s->assert_formula(
@@ -60,18 +48,18 @@ int main()
                                 s->make_term(BVAdd, four, neg_four),
                                 s->make_term(0, bvsort8))));
   Result r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
 
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   // Integer cases
   Sort intsort = s->make_sort(INT);
   Term five = s->make_term(5, intsort);
   Term neg_five = s->make_term(-5, intsort);
 
-  assert(neg_five == s->make_term("-5", intsort));
+  EXPECT_EQ(neg_five, s->make_term("-5", intsort));
 
   s->push();
   s->assert_formula(
@@ -80,8 +68,6 @@ int main()
                                 s->make_term(Plus, five, neg_five),
                                 s->make_term("0", intsort))));
   r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
-
-  return 0;
 }
