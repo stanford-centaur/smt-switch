@@ -97,25 +97,8 @@ class Z3Term : public AbsTerm
   std::string print_value_as(SortKind sk) override;
 
   // getters for solver-specific objects (EXPERTS only)
-  expr get_z3_expr()
-  {
-    if (is_function)
-    {
-      throw IncorrectUsageException(
-          "Cannot get expression from function term.");
-    }
-    return term;
-  }
-
-  func_decl get_z3_func_decl()
-  {
-    if (!is_function)
-    {
-      throw IncorrectUsageException(
-          "Cannot get function from expression term.");
-    }
-    return z_func;
-  }
+  expr get_z3_expr();
+  func_decl get_z3_func_decl();
 
  protected:
   expr term;

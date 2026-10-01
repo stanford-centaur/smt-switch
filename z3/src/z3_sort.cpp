@@ -186,4 +186,13 @@ SortKind Z3Sort::get_sort_kind() const
   }
 }
 
+z3::sort Z3Sort::get_z3_type()
+{
+  if (is_function)
+  {
+    throw IncorrectUsageException("Cannot get Z3 type from function term.");
+  }
+  return type;
+}
+
 }  // namespace smt
