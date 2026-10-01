@@ -29,6 +29,16 @@ if(NOT SMT_SWITCH_DEPS_DIR)
   message(FATAL_ERROR "SMT_SWITCH_DEPS_DIR must be set to the directory holding the prefixes")
 endif()
 
+# The library directory a dependency using GNUInstallDirs picks for itself,
+# for the recipes that have to find something in it afterwards. Worked out
+# from the CMAKE_SIZEOF_VOID_P and CMAKE_LIBRARY_ARCHITECTURE the main project
+# forwards, since nothing here enables a language. The prefix matters too:
+# Debian's multiarch directory is used only for /usr, so it is judged against
+# the prefixes the dependencies actually install into. Nothing here installs
+# anything itself.
+set(CMAKE_INSTALL_PREFIX "${SMT_SWITCH_DEPS_DIR}")
+include(GNUInstallDirs)
+
 # Only the dependencies that were asked for are declared. ExternalProject
 # creates a prefix skeleton for every target at configure time, so declaring
 # all of them would leave empty deps/<name> directories for solvers this
@@ -43,7 +53,7 @@ set(_cadical_needs "")
 set(_btor2tools_needs "")
 set(_boolector_needs cadical btor2tools)
 set(_bitwuzla_needs cadical)
-set(_cvc5_needs cadical)
+set(_cvc5_needs "")
 set(_z3_needs "")
 set(_yices2_needs "")
 set(_bison_needs "")
@@ -179,13 +189,20 @@ foreach(
 endforeach()
 
 # ---------------------------------------------------------------- cadical --
-# No install target and no build system beyond a hand-written configure
-# script, so the install is a cmake -P step. Built with -fPIC because it ends
-# up inside shared libraries.
+# Boolector's CaDiCaL. No install target and no build system beyond a
+# hand-written configure script, so the install is a cmake -P step. Built
+# with -fPIC because it ends up inside shared libraries.
+#
+# cvc5 links a CaDiCaL of its own, a different version under the same C++
+# names, so the link would quietly give one solver the other's. Boolector
+# calls only the C API, which cvc5's copy has removed, so renaming the
+# namespace here leaves no name the two define alike.
+set(BOOLECTOR_CADICAL "-DCaDiCaL=smt_switch_btor_CaDiCaL")
+
 smt_switch_dependency(
   cadical
   URL "${CADICAL_URL}"
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure "CXXFLAGS=-fPIC"
+  CONFIGURE_COMMAND <SOURCE_DIR>/configure "CXXFLAGS=-fPIC ${BOOLECTOR_CADICAL}"
   BUILD_COMMAND make -j${SMT_SWITCH_DEPS_JOBS}
   BUILD_IN_SOURCE TRUE
   INSTALL_COMMAND
@@ -219,19 +236,30 @@ smt_switch_dependency(
 )
 
 # ------------------------------------------------------------------- cvc5 --
-# ENABLE_AUTO_DOWNLOAD lets cvc5 fetch the dependencies of its own that we do
-# not provision; USE_POLY brings in libpoly for nonlinear arithmetic.
+# ENABLE_AUTO_DOWNLOAD lets cvc5 fetch the dependencies we do not provision,
+# CaDiCaL among them, so that the version it gets is the one it pins; USE_POLY
+# brings in libpoly for nonlinear arithmetic.
 smt_switch_dependency(
   cvc5
   URL "${CVC5_URL}"
-  DEPENDS cadical
+  # Ask for a library name nothing provides, so that the lookup fails and cvc5
+  # downloads its CaDiCaL instead of linking one from the machine, which it
+  # would then not install.
+  PATCH_COMMAND
+    sed -i.orig "s/find_library(CaDiCaL_LIBRARIES NAMES cadical)/find_library(CaDiCaL_LIBRARIES NAMES cadical-not-installed)/"
+    <SOURCE_DIR>/cmake/FindCaDiCaL.cmake
   CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    "-DCMAKE_PREFIX_PATH=${CADICAL_PREFIX}"
     -DENABLE_AUTO_DOWNLOAD=ON
     -DUSE_POLY=ON
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
+  INSTALL_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> --target install
+  # Drop the C API from the CaDiCaL a static cvc5 installs beside itself. It
+  # is not namespaced, Boolector's copy defines the same names, and cvc5 does
+  # not use any of it. cvc5 picks its library directory with GNUInstallDirs,
+  # as we did above, so the two agree.
+  COMMAND ar d <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcadical.a ccadical.o ipasir.o
 )
 
 # --------------------------------------------------------------------- z3 --

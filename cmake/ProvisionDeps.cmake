@@ -120,6 +120,12 @@ function(_smt_switch_run_provision_driver target)
       CMAKE_OSX_ARCHITECTURES
       CMAKE_OSX_DEPLOYMENT_TARGET
       CMAKE_OSX_SYSROOT
+      # What GNUInstallDirs needs to pick a dependency's library directory,
+      # which the provisioner, enabling no language, cannot work out. The
+      # target is described rather than our CMAKE_INSTALL_LIBDIR handed
+      # over, which is where smt-switch installs, not where they do.
+      CMAKE_SIZEOF_VOID_P
+      CMAKE_LIBRARY_ARCHITECTURE
   )
     if(DEFINED ${_variable})
       list(APPEND _arguments "-D${_variable}=${${_variable}}")

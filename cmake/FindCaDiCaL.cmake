@@ -18,11 +18,14 @@ This module provides the following imported target, if found:
 
 The target carries both an ``IMPORTED_LOCATION`` and an
 ``INTERFACE_LINK_DIRECTORIES`` entry, on purpose.  The location is what puts
-the archive itself on the link line of a target that links this one, such as
-``smt-switch-cvc5``.  The link directory is for the other consumer: the cvc5
-CMake package lists ``cadical`` as a plain library name in its link interface,
-so the directory holding it has to reach the link line even when nothing
-mentions this target's file.
+the archive itself on the link line of a target that links this one.  The
+link directory is for consumers that name ``cadical`` as a plain library,
+such as ``FindBitwuzla``, so the directory holding it has to reach the link
+line even when nothing mentions this target's file.
+
+cvc5 does not use this module: the provisioned CaDiCaL is Boolector's, built
+with its C++ names renamed, and ``cvc5/CMakeLists.txt`` finds cvc5's own copy
+beside ``libcvc5`` instead.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
