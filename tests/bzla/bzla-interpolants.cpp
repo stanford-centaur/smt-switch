@@ -71,3 +71,22 @@ TEST(BzlaInterpolants, GetInterpolant)
   r = s->get_interpolant(A, s->make_term(BVUgt, x, z), I);
   EXPECT_TRUE(r.is_sat());
 }
+
+TEST(BzlaInterpolants, ResetAfterInterpolant)
+{
+  SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
+  {
+    // after this block only the solver holds the query's terms
+    Sort bv8 = s->make_sort(BV, 8);
+    Term x = s->make_symbol("x", bv8);
+    Term I;
+    ASSERT_TRUE(s->get_interpolant(s->make_term(Equal, x, s->make_term(1, bv8)),
+                                   s->make_term(Equal, x, s->make_term(2, bv8)),
+                                   I)
+                    .is_unsat());
+  }
+  s->reset();
+
+  // x is gone, so its name can be declared again
+  EXPECT_NO_THROW(s->make_symbol("x", s->make_sort(BOOL)));
+}

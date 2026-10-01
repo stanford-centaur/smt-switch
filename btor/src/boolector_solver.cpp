@@ -700,10 +700,12 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 
 void BoolectorSolver::reset()
 {
+  // the terms in symbol_table release their nodes into btor, so they go
+  // before it
+  symbol_table.clear();
   boolector_release_all(btor);
   boolector_delete(btor);
   btor = boolector_new();
-  symbol_table.clear();
 }
 
 void BoolectorSolver::reset_assertions()
