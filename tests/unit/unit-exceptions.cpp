@@ -17,7 +17,10 @@ using ExceptionTypes = ::testing::Types<SmtException,
                                         IncorrectUsageException,
                                         NotImplementedException,
                                         InternalSolverException>;
-TYPED_TEST_SUITE(UnitExceptions, ExceptionTypes);
+// GTest takes the name generator as a variadic third parameter, and leaving
+// it out altogether is a C++20 extension. The trailing comma passes it empty
+// instead, which selects the same default generator.
+TYPED_TEST_SUITE(UnitExceptions, ExceptionTypes, );
 
 TYPED_TEST(UnitExceptions, CaughtAsSmtException)
 {
