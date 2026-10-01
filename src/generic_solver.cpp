@@ -890,12 +890,11 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
   newSelector->name = name;
   // Sets the sort to be a placeholder value until the self sort is
   // constructed.
-  newSelector->sort = std::make_shared<GenericSort>(name);
+  newSelector->sort = std::make_shared<GenericSort>(dt_decl_name);
   // This indicates that the sort in this selector will eventually
   // be replaced
   newSelector->finalized = false;
   assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
-  std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
   gdt_cons->add_new_selector(*newSelector);
 }
 

@@ -123,6 +123,12 @@ class GenericSort : public AbsSort
   // The underlying SortKind of the GenericSort
   SortKind sk;
 
+  // Set only by GenericSort(std::string), which builds a DATATYPE sort
+  // standing in for a datatype whose own sort does not exist yet. Empty for
+  // every other sort, including GenericDatatypeSort, which has a real
+  // datatype to ask.
+  std::string datatype_name;
+
   // strings hash function, to be used for hash()
   std::hash<std::string> str_hash;
 
