@@ -706,6 +706,10 @@ void BoolectorSolver::reset()
   boolector_release_all(btor);
   boolector_delete(btor);
   btor = boolector_new();
+  // the new instance starts at context 0 with default options, so the
+  // bookkeeping for the old one goes too
+  base_context_1 = false;
+  context_level = 0;
 }
 
 void BoolectorSolver::reset_assertions()
