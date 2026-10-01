@@ -53,8 +53,12 @@ TEST(BtorIndexedOps, RotateExtractRepeat)
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
-  EXPECT_EQ(s->get_value(y)->to_int(), 511);
+  // ror 2 = rol 2 makes rotating by 4 the identity, which on 9 bits forces
+  // all bits of y to be equal
+  EXPECT_EQ(s->get_value(y)->to_int(), 0b1'1111'1111);
+  // x repeats one bit 9 times, so x and x_upper are all zeros or all ones
   auto x_val = s->get_value(x)->to_int();
-  EXPECT_TRUE(x_val == 0 || x_val == 511);
-  EXPECT_EQ(s->get_value(x_upper)->to_int(), x_val == 511 ? 15 : 0);
+  EXPECT_TRUE(x_val == 0 || x_val == 0b1'1111'1111);
+  EXPECT_EQ(s->get_value(x_upper)->to_int(),
+            x_val == 0b1'1111'1111 ? 0b1111 : 0);
 }
