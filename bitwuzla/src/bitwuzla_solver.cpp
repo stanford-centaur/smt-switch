@@ -551,12 +551,13 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
 void BzlaSolver::reset()
 {
+  // the terms in symbol_table belong to tm, so release them before it
+  symbol_table.clear();
   delete bzla;
   delete tm;
   options = {};
   tm = new bitwuzla::TermManager();
   bzla = new bitwuzla::Bitwuzla(*tm, options);
-  symbol_table.clear();
   context_level = 0;
 }
 
@@ -838,8 +839,9 @@ void BzlaInterpolatingSolver::reset_assertions()
 
 void BzlaInterpolatingSolver::reset()
 {
-  super::reset();
+  // these terms belong to the term manager super::reset() destroys
   last_itp_query_assertions.clear();
+  super::reset();
 }
 
 }  // namespace smt

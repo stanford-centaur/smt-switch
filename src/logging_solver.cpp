@@ -559,8 +559,12 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
 
 void LoggingSolver::reset()
 {
-  wrapped_solver->reset();
+  // these hold wrapped terms, which may not outlive the wrapped solver's
+  // reset
   hashtable->clear();
+  symbol_table.clear();
+  assumption_cache->clear();
+  wrapped_solver->reset();
 }
 
 // dispatched to underlying solver
