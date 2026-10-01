@@ -137,7 +137,7 @@ class Yices2Solver : public AbsSmtSolver
 
   uint64_t context_level;  ///< incremental solving context
 
-  uint64_t time_limit;
+  double time_limit;  ///< in seconds, 0 for none
 
   std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration
