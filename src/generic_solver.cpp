@@ -588,14 +588,24 @@ void GenericSolver::define_fun(std::string name,
                                Sort res_sort,
                                Term defining_term) const
 {
-  // we only use functions without parameters
-  // (like define-const)
-  assert(args_sorts.size() == 0);
-  assert(sort_name_map->find(res_sort) != sort_name_map->end());
+  // The command below writes an empty parameter list, so arguments would be
+  // dropped rather than declared: only define-const style definitions work.
+  if (!args_sorts.empty())
+  {
+    throw NotImplementedException(
+        "The generic solver can only define functions without parameters");
+  }
+  // Looking the name up rather than indexing: operator[] would insert an
+  // empty one and send a define-fun with no sort.
+  auto res_name = sort_name_map->find(res_sort);
+  if (res_name == sort_name_map->end())
+  {
+    throw IncorrectUsageException("Sort " + res_sort->to_string()
+                                  + " was not created by this solver");
+  }
   // send a define-fun to the binary
-  run_command("(" + DEFINE_FUN_STR + " " + name + " () "
-              + (*sort_name_map)[res_sort] + " " + to_smtlib_def(defining_term)
-              + ")");
+  run_command("(" + DEFINE_FUN_STR + " " + name + " () " + res_name->second
+              + " " + to_smtlib_def(defining_term) + ")");
 }
 
 std::string GenericSolver::to_smtlib_def(Term term) const
