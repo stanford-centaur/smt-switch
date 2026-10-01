@@ -293,13 +293,11 @@ TEST_P(ToIntRealTests, IntegralValue)
     EXPECT_EQ(v->to_int(), uint64_t(2));
     EXPECT_EQ(v->to_signed_int(), 2);
   }
-  // not -2: Z3 terms compare by hash, and the hashes of 2.0 and -2.0 collide,
-  // so the logging solver would hand back the 2.0 it already has
-  for (const Term & v : with_model_value(s->make_term(-3, realsort)))
+  for (const Term & v : with_model_value(s->make_term(-2, realsort)))
   {
     SCOPED_TRACE(v->to_string());
     EXPECT_THROW(v->to_int(), IncorrectUsageException);
-    EXPECT_EQ(v->to_signed_int(), -3);
+    EXPECT_EQ(v->to_signed_int(), -2);
   }
 }
 

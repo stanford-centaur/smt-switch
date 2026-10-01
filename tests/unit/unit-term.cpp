@@ -41,6 +41,19 @@ class UnitTermTests : public ::testing::Test,
   Sort boolsort, bvsort, funsort, arrsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTermArithTests);
+class UnitTermArithTests : public UnitTermTests
+{
+ protected:
+  void SetUp() override
+  {
+    UnitTermTests::SetUp();
+    intsort = s->make_sort(INT);
+    realsort = s->make_sort(REAL);
+  }
+  Sort intsort, realsort;
+};
+
 TEST_P(UnitTermTests, FunOp)
 {
   Term x = s->make_symbol("x", bvsort);
@@ -60,8 +73,19 @@ TEST_P(UnitTermTests, Array)
   ASSERT_TRUE(arr->is_symbolic_const());
 }
 
+TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
+{
+  EXPECT_NE(s->make_term(2, intsort), s->make_term(-2, intsort));
+  EXPECT_NE(s->make_term(2, realsort), s->make_term(-2, realsort));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
                          UnitTermTests,
                          testing::ValuesIn(available_solver_configurations()));
+
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTermArith,
+                         UnitTermArithTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_REAL })));
 
 }  // namespace smt_tests

@@ -108,11 +108,11 @@ bool Z3Term::compare(const Term & absterm) const
   std::shared_ptr<Z3Term> zs = std::static_pointer_cast<Z3Term>(absterm);
   if (is_function && zs->is_function)
   {
-    return z_func.hash() == (zs->z_func).hash();
+    return z3::eq(z_func, zs->z_func);
   }
   else if (!is_function && !zs->is_function)
   {
-    return term.hash() == (zs->term).hash();
+    return z3::eq(term, zs->term);
   }
   return false;
 }
@@ -250,16 +250,7 @@ Sort Z3Term::get_sort() const
   {
     return std::make_shared<Z3Sort>(term.get_sort(), *ctx);
   }
-
-  z3::sort_vector domain(*ctx);
-  for (unsigned i = 0; i < z_func.arity(); i++)
-  {
-    domain.push_back(z_func.domain(i));
-  }
-
-  z3::func_decl func = ctx->function(z_func.name(), domain, z_func.range());
-
-  return std::make_shared<Z3Sort>(func, *ctx);
+  return std::make_shared<Z3Sort>(z_func, *ctx);
 }
 
 bool Z3Term::is_symbol() const
