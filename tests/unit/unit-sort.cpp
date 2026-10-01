@@ -78,6 +78,20 @@ TEST_P(UnitSortTests, SameSortDiffObj)
   Sort arrsort_2 = s->make_sort(ARRAY, bvsort, bvsort_2);
   EXPECT_EQ(arrsort->hash(), arrsort_2->hash());
   EXPECT_EQ(arrsort, arrsort_2);
+
+  EXPECT_NE(funsort, bvsort);
+}
+
+TEST_P(UnitSortTests, FunctionSymbolSort)
+{
+  if (s->get_solver_enum() == BTOR)
+  {
+    GTEST_SKIP() << "Boolector gives a unary function the sort of an array, "
+                    "and get_sort then asks it for an index width";
+  }
+  Term f = s->make_symbol("f", funsort);
+  EXPECT_EQ(f->get_sort()->hash(), funsort->hash());
+  EXPECT_EQ(f->get_sort(), funsort);
 }
 
 TEST_P(UnitSortTests, SortParams)

@@ -16,7 +16,17 @@ std::size_t Z3Sort::hash() const
 {
   if (is_function)
   {
-    return z_func.hash();
+    // a function sort is held as a func_decl, but its name is not part of
+    // the sort, so hash only the signature, to agree with compare
+    std::size_t h = z_func.range().hash();
+    for (unsigned i = 0; i < z_func.arity(); i++)
+    {
+      // Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
+      // irregular bits spread the value; the shifts mix in the hash so
+      // far, so argument order matters and equal sorts don't cancel out
+      h ^= z_func.domain(i).hash() + 0x9e3779b9 + (h << 6) + (h >> 2);
+    }
+    return h;
   }
   return type.hash();
 }
@@ -137,12 +147,30 @@ Datatype Z3Sort::get_datatype() const
 bool Z3Sort::compare(const Sort & s) const
 {
   std::shared_ptr<Z3Sort> zs = std::static_pointer_cast<Z3Sort>(s);
-  return hash() == zs->hash();
-  //	if (zs->is_function) {
-  //		cout << "FUNCTOIN" << endl;
-  //		return hash() == (zs->z_func).hash()
-  //	}
-  //	return hash() == (zs->type).hash();
+  if (is_function != zs->is_function)
+  {
+    return false;
+  }
+  if (!is_function)
+  {
+    return z3::eq(type, zs->type);
+  }
+
+  // compare function sorts by signature: the func_decls have different
+  // names when one comes from make_sort and the other from a symbol
+  const func_decl & other = zs->z_func;
+  if (z_func.arity() != other.arity() || !z3::eq(z_func.range(), other.range()))
+  {
+    return false;
+  }
+  for (unsigned i = 0; i < z_func.arity(); i++)
+  {
+    if (!z3::eq(z_func.domain(i), other.domain(i)))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 SortKind Z3Sort::get_sort_kind() const
