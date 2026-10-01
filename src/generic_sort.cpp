@@ -141,7 +141,9 @@ GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 // Only used to make placeholder sorts for datatypes when the
 // sort is the datatype itself but the sort hasn't been constructed.
-GenericSort::GenericSort(std::string name) : sk(DATATYPE) {}
+GenericSort::GenericSort(std::string name) : sk(DATATYPE), datatype_name(name)
+{
+}
 
 GenericSort::~GenericSort() {}
 
@@ -211,6 +213,13 @@ std::string GenericSort::compute_string() const
   }
   else if (get_sort_kind() == SortKind::DATATYPE)
   {
+    // A placeholder from GenericSort(std::string) knows only the name it was
+    // given: get_datatype throws for it, since only GenericDatatypeSort has
+    // a datatype to return.
+    if (!datatype_name.empty())
+    {
+      return datatype_name;
+    }
     return std::static_pointer_cast<GenericDatatype>(get_datatype())
         ->get_name();
   }
