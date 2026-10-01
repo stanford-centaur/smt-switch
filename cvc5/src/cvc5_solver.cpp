@@ -1032,6 +1032,40 @@ Result Cvc5Solver::check_sat_assuming(
 
 /* end Cvc5Solver implementation */
 
+void cvc5InterpolatingSolver::push(std::uint64_t /* num */)
+{
+  throw IncorrectUsageException("Can't call push from interpolating solver");
+}
+
+void cvc5InterpolatingSolver::pop(std::uint64_t /* num */)
+{
+  throw IncorrectUsageException("Can't call pop from interpolating solver");
+}
+
+void cvc5InterpolatingSolver::assert_formula(const Term & /* t */)
+{
+  throw IncorrectUsageException(
+      "Can't assert formulas in interpolating solver");
+}
+
+Result cvc5InterpolatingSolver::check_sat()
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat from interpolating solver");
+}
+
+Result cvc5InterpolatingSolver::check_sat_assuming(
+    const TermVec & /* assumptions */)
+{
+  throw IncorrectUsageException(
+      "Can't call check_sat_assuming from interpolating solver");
+}
+
+Term cvc5InterpolatingSolver::get_value(const Term & /* t */) const
+{
+  throw IncorrectUsageException("Can't get values from interpolating solver");
+}
+
 Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
