@@ -683,8 +683,21 @@ std::string GenericSolver::to_smtlib_def(Term term) const
 Sort GenericSolver::make_sort(const Sort & sort_con,
                               const SortVec & sorts) const
 {
-  throw NotImplementedException(
-      "Sort constructor are not supported by generic solvers");
+  // Nothing is sent to the binary: (declare-sort List 1) went out when the
+  // constructor itself was made, and an application like (List Int) is a sort
+  // term, not a declaration. Mismatched arity throws from the sort.
+  Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
+  const std::string name = sort->to_string();
+  // Applying the same constructor to the same sorts twice names the same
+  // sort, so unlike declare-sort this is not a clash.
+  auto known = name_sort_map->find(name);
+  if (known != name_sort_map->end())
+  {
+    return known->second;
+  }
+  (*name_sort_map)[name] = sort;
+  (*sort_name_map)[sort] = name;
+  return sort;
 }
 
 Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
