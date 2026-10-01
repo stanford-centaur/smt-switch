@@ -14,8 +14,9 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -26,9 +27,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatIntArithmetic, NonlinearConstraints)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -46,12 +46,14 @@ int main()
       s->make_term(Gt, s->make_term(Minus, x, y), s->make_term(Mult, x, y)));
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  ASSERT_TRUE(r.is_sat());
 
-  cout << "Model Values:" << endl;
-  for (auto t : TermVec({ x, y, z }))
-  {
-    cout << "\t" << t << " = " << s->get_value(t) << endl;
-  }
-  return 0;
+  // the model is not unique, so check that it satisfies the constraints
+  int64_t xv = s->get_value(x)->to_signed_int();
+  int64_t yv = s->get_value(y)->to_signed_int();
+  int64_t zv = s->get_value(z)->to_signed_int();
+  EXPECT_GE(xv, yv);
+  EXPECT_LE(zv, xv + yv);
+  EXPECT_LT(-zv, xv - yv);
+  EXPECT_GT(xv - yv, xv * yv);
 }

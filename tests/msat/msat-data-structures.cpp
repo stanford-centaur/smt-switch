@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <string>
 
 #include "msat_factory.h"
@@ -27,7 +27,7 @@
 using namespace smt;
 using namespace std;
 
-int main()
+TEST(MsatDataStructures, TermAndSortContainers)
 {
   unsigned int NUM_TERMS = 20;
 
@@ -59,52 +59,36 @@ int main()
   }
 
   Term zero = s->make_term(0, bvsort8);
-  cout << zero->to_string() << endl;
 
-  assert(zero->is_value());
-  assert(!v[0]->is_value());
-  assert(v[0]->is_symbolic_const());
+  EXPECT_TRUE(zero->is_value());
+  EXPECT_FALSE(v[0]->is_value());
+  EXPECT_TRUE(v[0]->is_symbolic_const());
 
   Term v0_eq_0 = s->make_term(Equal, v[0], zero);
   s->assert_formula(v0_eq_0);
-
-  cout << "Children of term:" << endl;
-  // Could use iterators directly:
-  //   for (TermIter it = v0_eq_0->begin(); it != v0_eq_0->end(); ++it)
-  // Or use a range-based loop
-  for (auto c : v0_eq_0)
-  {
-    cout << "got: " << c << endl;
-  }
 
   // just assign all ys to x counterparts
   for (auto it = uts.begin(); it != uts.end(); ++it)
   {
     x = *it;
     y = utm.at(*it);
-    std::cout << "assert: " << x << " = " << y << std::endl;
     s->assert_formula(s->make_term(Equal, x, y));
   }
 
-  [[maybe_unused]] bool res = s->check_sat().is_sat();
-  assert(res);
+  ASSERT_TRUE(s->check_sat().is_sat());
 
-  assert(v[0]->is_symbolic_const());
+  EXPECT_TRUE(v[0]->is_symbolic_const());
 
-  cout << "Testing substitution:" << endl;
   for (size_t i = 0; i < v.size(); ++i)
   {
-    cout << "\t" << v[i]->to_string() << " => "
-         << s->substitute(v[i], utm)->to_string() << endl;
+    s->substitute(v[i], utm);
   }
 
-  cout << "Assignments:" << std::endl;
+  // x0 = 0 and each x(i) = x(i-1) + 1, and each y(i) = x(i)
   for (size_t i = 0; i < NUM_TERMS; ++i)
   {
-    cout << "\t " << v[i]->to_string() << " = " << s->get_value(v[i])->to_int()
-         << endl;
-    cout << "\t " << utm.at(v[i])->to_string() << " = "
-         << s->get_value(utm.at(v[i]))->to_int() << endl;
+    EXPECT_EQ(s->get_value(v[i])->to_int(), i);
+    EXPECT_EQ(s->get_value(utm.at(v[i]))->to_int(), i);
   }
 
   // create sets of sorts
@@ -119,8 +103,5 @@ int main()
   sset.insert(s2);
   sset.insert(s3);
 
-  cout << "sset size is: " << sset.size() << endl;
-  assert(sset.size() == 4);
-
-  return 0;
+  EXPECT_EQ(sset.size(), 4);
 }

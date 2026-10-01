@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatSubstitute, SubstituteAllSymbols)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -61,8 +60,7 @@ int main()
   UnorderedTermSet visited;
   TermVec to_visit({ constraint });
   Term t;
-  // only read by the asserts below, which NDEBUG compiles out
-  [[maybe_unused]] size_t num_consts = 0;
+  size_t num_consts = 0;
   while (to_visit.size())
   {
     t = to_visit.back();
@@ -78,14 +76,11 @@ int main()
       if (t->is_symbolic_const())
       {
         num_consts++;
-        cout << "checking " << t << endl;
-        assert(orig_set.find(t) != orig_set.end());
+        EXPECT_NE(orig_set.find(t), orig_set.end());
       }
     }
   }
-  assert(num_consts == orig_set.size());
-
-  cout << endl;
+  EXPECT_EQ(num_consts, orig_set.size());
 
   Term timed_constraint = s->substitute(
       constraint,
@@ -111,12 +106,9 @@ int main()
       if (t->is_symbolic_const())
       {
         num_consts++;
-        cout << "checking " << t << endl;
-        assert(timed_set.find(t) != timed_set.end());
+        EXPECT_NE(timed_set.find(t), timed_set.end());
       }
     }
   }
-  assert(num_consts == timed_set.size());
-
-  return 0;
+  EXPECT_EQ(num_consts, timed_set.size());
 }

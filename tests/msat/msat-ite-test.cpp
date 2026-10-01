@@ -14,7 +14,8 @@
 **
 **/
 
-#include <cassert>
+#include <gtest/gtest.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -26,9 +27,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatIteTest, IteAxioms)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_ABV");
@@ -52,11 +52,11 @@ int main()
   s->push();
   s->assert_formula(s->make_term(Not, ite_axiom));
   Result r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
 
   r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Term ite_int = s->make_term(Ite, a, x, y);
   Term ite_axiom_int = s->make_term(
@@ -68,8 +68,6 @@ int main()
   s->push();
   s->assert_formula(s->make_term(Not, ite_axiom_int));
   r = s->check_sat();
-  assert(r.is_unsat());
+  EXPECT_TRUE(r.is_unsat());
   s->pop();
-
-  return 0;
 }

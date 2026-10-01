@@ -14,8 +14,8 @@
 **
 **/
 
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,9 +26,8 @@
 // #include "smt-switch/smt.h"
 
 using namespace smt;
-using namespace std;
 
-int main()
+TEST(MsatArrays2, StoreOp)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
@@ -40,12 +39,5 @@ int main()
   Term mem = s->make_symbol("mem", array4_8);
 
   Term new_array = s->make_term(Store, mem, x, elem);
-  assert(new_array->get_op() == Store);
-
-  for (auto c : new_array)
-  {
-    cout << c << endl;
-  }
-
-  return 0;
+  EXPECT_EQ(new_array->get_op(), Store);
 }
