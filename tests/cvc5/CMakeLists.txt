@@ -1,6 +1,14 @@
+# These use the cvc5 API, of which test-solvers holds only the part
+# smt-switch uses, so they link the backend directly.
+set(cvc5_direct_tests cvc5-interpolants-api cvc5-term-iter)
+
 macro(switch_add_cvc5_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/cvc5/${name}.cpp")
-  target_link_libraries(${name} PRIVATE smt-switch-cvc5)
+  if("${name}" IN_LIST cvc5_direct_tests)
+    target_link_libraries(${name} PRIVATE smt-switch-cvc5)
+  else()
+    target_link_libraries(${name} PRIVATE test-solvers)
+  endif()
   target_link_libraries(${name} PRIVATE exec-utils)
   target_link_libraries(${name} PRIVATE GTest::gtest_main)
   add_test(NAME ${name} COMMAND ${name})
