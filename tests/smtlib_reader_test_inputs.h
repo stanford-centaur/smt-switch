@@ -40,6 +40,8 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_s_tests({
 
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_ufbv_tests(
     { { "test-attr.smt2", { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } },
+      { "test-bv-symbols.smt2",
+        { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } },
       { "test-define-sort.smt2", { smt::Result(smt::UNSAT) } },
       { "test-define-sort-edge-case.smt2", { smt::Result(smt::UNSAT) } } });
 
