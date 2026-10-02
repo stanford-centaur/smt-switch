@@ -14,7 +14,6 @@
 **
 **/
 
-#include <cassert>
 #include <utility>
 #include <vector>
 
@@ -60,7 +59,7 @@ TEST_P(IntTests, Mult)
   }
   s->assert_formula(s->make_term(Equal, twentyfour, mult));
   auto res = s->check_sat();
-  assert(res.is_sat());
+  EXPECT_TRUE(res.is_sat());
 }
 
 TEST_P(IntTests, IntDiv)

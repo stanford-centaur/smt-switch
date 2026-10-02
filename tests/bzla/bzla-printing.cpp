@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -68,7 +67,7 @@ TEST_F(BitwuzlaPrintingTest, Solving)
                                           solver->make_term(Select, arr, x),
                                           solver->make_term(Select, arr, y)))));
   Result r = solver->check_sat_assuming(TermVec{ ind1 });
-  assert(r.is_unsat());
+  ASSERT_TRUE(r.is_unsat());
   UnorderedTermSet usc;
   solver->get_unsat_assumptions(usc);
   solver->pop(1);

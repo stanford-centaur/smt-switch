@@ -13,7 +13,6 @@
 ** Tests for theory of strings.
 **/
 
-#include <cassert>
 #include <utility>
 #include <vector>
 
@@ -117,10 +116,10 @@ TEST_P(StrTests, UseEscSequences)
   std::wstring wstrx3 = s->get_value(x3)->getStringValue();
   std::wstring wstrx4 = s->get_value(x4)->getStringValue();
 
-  assert(wstrx1.find(wchar_u) == std::wstring::npos);
-  assert(wstrx2.find(wchar_u) == std::wstring::npos);
-  assert(wstrx3.find(wchar_u) != std::wstring::npos);
-  assert(wstrx4.find(wchar_u) != std::wstring::npos);
+  EXPECT_EQ(wstrx1.find(wchar_u), std::wstring::npos);
+  EXPECT_EQ(wstrx2.find(wchar_u), std::wstring::npos);
+  EXPECT_NE(wstrx3.find(wchar_u), std::wstring::npos);
+  EXPECT_NE(wstrx4.find(wchar_u), std::wstring::npos);
 }
 
 TEST_P(StrTests, EqualVarStrVals)

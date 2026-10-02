@@ -18,8 +18,6 @@
 **
 **/
 
-#include <cassert>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -67,7 +65,7 @@ TEST_P(UnitResetAssertionsTests, ResetAssertions)
   s->assert_formula(constraint);
 
   Result r = s->check_sat();
-  assert(r.is_sat());
+  EXPECT_TRUE(r.is_sat());
 
   Term zero = s->make_term(0, bvsort);
   Term make_unsat = s->make_term(

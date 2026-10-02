@@ -15,7 +15,6 @@
 **/
 #include <gtest/gtest.h>
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -129,7 +128,7 @@ TEST_F(Cvc5PrintingTest, Solving)
                                              s->make_term(Select, arr, x),
                                              s->make_term(Select, arr, y)))));
   Result r = s->check_sat_assuming(TermVec{ ind1 });
-  assert(r.is_unsat());
+  ASSERT_TRUE(r.is_unsat());
   UnorderedTermSet usc;
   s->get_unsat_assumptions(usc);
   s->pop(1);

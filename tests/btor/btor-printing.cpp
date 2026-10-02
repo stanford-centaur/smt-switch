@@ -16,7 +16,6 @@
 **/
 #include <gtest/gtest.h>
 
-#include <cassert>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
