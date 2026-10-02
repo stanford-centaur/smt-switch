@@ -32,9 +32,9 @@ SmtSolver Cvc5SolverFactory::create(bool logging)
   return solver;
 }
 
-SmtSolver Cvc5SolverFactory::create_interpolating_solver()
+SmtInterpolator Cvc5SolverFactory::create_interpolating_solver()
 {
-  SmtSolver solver = std::make_shared<cvc5InterpolatingSolver>();
+  SmtInterpolator solver = std::make_shared<cvc5InterpolatingSolver>();
   /*
    * Enable interpolant generation.
    * */

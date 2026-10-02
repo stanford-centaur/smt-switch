@@ -25,6 +25,7 @@
 
 #include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_term.h"
+#include "interpolating_solver.h"
 #include "result.h"
 #include "smt.h"
 #include "utils.h"
@@ -149,29 +150,14 @@ class BzlaSolver : public AbsSmtSolver
   }
 };
 
-class BzlaInterpolatingSolver : public BzlaSolver
+class BzlaInterpolatingSolver : public AbsSmtInterpolator
 {
  public:
-  typedef BzlaSolver super;
-  BzlaInterpolatingSolver()
-  {
-    solver_enum = BZLA_INTERPOLATOR;
-    options.set(bitwuzla::Option::PRODUCE_INTERPOLANTS, true);
-    incremental_mode = true;
-  };
+  BzlaInterpolatingSolver();
   BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
   BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
 
   void set_opt(const std::string option, const std::string value) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  void assert_formula(const Term & t) override;
-  Result check_sat() override;
-  // Overriding check_sat_assuming hides the AbsSmtSolver template that
-  // takes any range of Terms, so name it back in.
-  using AbsSmtSolver::check_sat_assuming;
-  Result check_sat_assuming(const TermVec & assumptions) override;
-  Term get_value(const Term & t) const override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
@@ -181,6 +167,9 @@ class BzlaInterpolatingSolver : public BzlaSolver
   void reset_assertions() override;
 
  protected:
+  // the regular solver that builds this solver's terms
+  std::shared_ptr<BzlaSolver> bzla_solver;
+
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `bzla->get_assertions()`,
   // the method does not guarantee that the assertions are in the correct order)
@@ -189,7 +178,7 @@ class BzlaInterpolatingSolver : public BzlaSolver
   inline static const std::unordered_set<std::string> disallowed_options = {
     "produce-interpolants"
   };
-  bool incremental_mode;
+  bool incremental_mode = true;
   std::string dump_queries_prefix = "";
   mutable uint32_t itp_query_count = 0;
 };

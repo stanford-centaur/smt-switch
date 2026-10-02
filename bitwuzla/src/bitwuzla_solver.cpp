@@ -651,6 +651,13 @@ void BzlaSolver::dump_smt2(std::string filename) const
   get_bitwuzla()->print_formula(out, "smt2");
 }
 
+BzlaInterpolatingSolver::BzlaInterpolatingSolver()
+    : AbsSmtInterpolator(BZLA_INTERPOLATOR, std::make_shared<BzlaSolver>()),
+      bzla_solver(std::static_pointer_cast<BzlaSolver>(backend_solver))
+{
+  bzla_solver->set_opt("produce-interpolants", "true");
+}
+
 void BzlaInterpolatingSolver::set_opt(const std::string option,
                                       const std::string value)
 {
@@ -693,40 +700,7 @@ void BzlaInterpolatingSolver::set_opt(const std::string option,
     dump_queries_prefix = value;
     return;
   }
-  super::set_opt(option, value);
-}
-
-void BzlaInterpolatingSolver::push(uint64_t num)
-{
-  throw IncorrectUsageException("Can't call push from interpolating solver");
-}
-
-void BzlaInterpolatingSolver::pop(uint64_t num)
-{
-  throw IncorrectUsageException("Can't call pop from interpolating solver");
-}
-
-void BzlaInterpolatingSolver::assert_formula(const Term & t)
-{
-  throw IncorrectUsageException(
-      "Can't assert formulas in interpolating solver");
-}
-
-Result BzlaInterpolatingSolver::check_sat()
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat from interpolating solver");
-}
-
-Result BzlaInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat_assuming from interpolating solver");
-}
-
-Term BzlaInterpolatingSolver::get_value(const Term & t) const
-{
-  throw IncorrectUsageException("Can't get values from interpolating solver");
+  bzla_solver->set_opt(option, value);
 }
 
 // delegate the interpolation procedure to `get_sequence_interpolants`
@@ -734,15 +708,7 @@ Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
 {
-  TermVec formulas{ A, B };
-  TermVec itp_seq;
-  Result res = get_sequence_interpolants(formulas, itp_seq);
-  assert(itp_seq.size() <= 1);
-  if (itp_seq.size() == 1)
-  {
-    out_I = itp_seq.front();
-  }
-  return res;
+  return interpolant_from_sequence(A, B, out_I);
 }
 
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
@@ -774,7 +740,8 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   }
 
   // pop formulas that cannot be reused
-  get_bitwuzla()->pop(last_itp_query_assertions.size() - num_reused);
+  bzla_solver->get_bitwuzla()->pop(last_itp_query_assertions.size()
+                                   - num_reused);
 
   // update the interpolation groups and assertions
   last_itp_query_assertions.resize(num_reused);
@@ -784,8 +751,8 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   for (size_t k = num_reused; k < formulae.size(); ++k)
   {
     // Add a new backtrack point and push the formula.
-    get_bitwuzla()->push(1);
-    get_bitwuzla()->assert_formula(
+    bzla_solver->get_bitwuzla()->push(1);
+    bzla_solver->get_bitwuzla()->assert_formula(
         std::static_pointer_cast<BzlaTerm>(formulae.at(k))->term);
     last_itp_query_assertions.push_back(formulae.at(k));
   }
@@ -796,7 +763,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     // Note: the dumped query will only include the current assertions
     std::ofstream out(dump_queries_prefix + "."
                       + std::to_string(itp_query_count) + ".smt2");
-    get_bitwuzla()->print_formula(out, "smt2");
+    bzla_solver->get_bitwuzla()->print_formula(out, "smt2");
     out.close();
   }
   itp_query_count++;
@@ -805,7 +772,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   bitwuzla::Result bzla_res;
   try
   {
-    bzla_res = get_bitwuzla()->check_sat();
+    bzla_res = bzla_solver->get_bitwuzla()->check_sat();
   }
   catch (std::exception & e)
   {
@@ -832,7 +799,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         { std::static_pointer_cast<BzlaTerm>(formulae.at(i))->term });
   }
   const std::vector<bitwuzla::Term> itps =
-      get_bitwuzla()->get_interpolants(partitions);
+      bzla_solver->get_bitwuzla()->get_interpolants(partitions);
   for (const auto & itp : itps)
   {
     if (itp.is_null())
@@ -855,15 +822,15 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
 
 void BzlaInterpolatingSolver::reset_assertions()
 {
-  super::reset_assertions();
+  bzla_solver->reset_assertions();
   last_itp_query_assertions.clear();
 }
 
 void BzlaInterpolatingSolver::reset()
 {
-  // these terms belong to the term manager super::reset() destroys
+  // these terms belong to the term manager bzla_solver->reset() destroys
   last_itp_query_assertions.clear();
-  super::reset();
+  bzla_solver->reset();
 }
 
 }  // namespace smt

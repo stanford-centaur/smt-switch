@@ -125,6 +125,11 @@ TEST_P(ItpTests, SequenceInterpolants)
   EXPECT_EQ(interpolants.size(), formulae.size() - 1);
 }
 
+TEST_P(ItpTests, ReportsItsSolverEnum)
+{
+  EXPECT_EQ(itp->get_solver_enum(), GetParam().config.solver_enum);
+}
+
 // each interpolator runs the tests in every theory it supports
 vector<ItpParam> itp_params()
 {
