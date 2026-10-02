@@ -65,7 +65,7 @@ const std::vector<SolverEnum> solver_enums({
 #endif
 #ifdef BUILD_CVC5
     CVC5,
-#ifndef __APPLE__
+#if !defined(__APPLE__) && defined(CVC5_BINARY)
     GENERIC_SOLVER,
 #endif
 #endif
@@ -101,10 +101,9 @@ SmtSolver create_solver(SolverConfiguration sc)
       return Cvc5SolverFactory::create(sc.is_logging_solver);
       break;
     }
-#ifndef __APPLE__
+#if !defined(__APPLE__) && defined(CVC5_BINARY)
     case GENERIC_SOLVER: {
-      std::string path = (STRFY(CVC5_ROOT));
-      path += "/bin/cvc5";
+      std::string path = CVC5_BINARY;
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };

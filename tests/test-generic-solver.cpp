@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <functional>
+#include <map>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -44,6 +45,41 @@ namespace smt_tests {
 // costs nothing here and keeps a wedged run from occupying a CI job.
 const std::chrono::seconds solver_response_timeout(2);
 
+enum class GenericBinary
+{
+  Cvc5,
+  Msat,
+  Yices2,
+  Btor,
+  Bitwuzla,
+  Z3
+};
+
+// The binaries whose executable configure found, and where. It looks only
+// for the solvers being built: under the solver's root first, which is where
+// a provisioned copy lives, then on the PATH, which is where a system one
+// does. A built solver without an executable is left out of every suite.
+const map<GenericBinary, string> binary_paths = {
+#ifdef CVC5_BINARY
+  { GenericBinary::Cvc5, CVC5_BINARY },
+#endif
+#ifdef MATHSAT_BINARY
+  { GenericBinary::Msat, MATHSAT_BINARY },
+#endif
+#ifdef YICES2_BINARY
+  { GenericBinary::Yices2, YICES2_BINARY },
+#endif
+#ifdef BOOLECTOR_BINARY
+  { GenericBinary::Btor, BOOLECTOR_BINARY },
+#endif
+#ifdef BITWUZLA_BINARY
+  { GenericBinary::Bitwuzla, BITWUZLA_BINARY },
+#endif
+#ifdef Z3_BINARY
+  { GenericBinary::Z3, Z3_BINARY },
+#endif
+};
+
 void init_solver(SmtSolver gs)
 {
   gs->set_opt("produce-models", "true");
@@ -54,8 +90,7 @@ void init_solver(SmtSolver gs)
 void new_btor(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(BOOLECTOR_ROOT));
-  path += "/bin/boolector";
+  string path = binary_paths.at(GenericBinary::Btor);
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
@@ -65,8 +100,7 @@ void new_btor(SmtSolver & gs, int buffer_size)
 void new_bitwuzla(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(BITWUZLA_ROOT));
-  path += "/bin/bitwuzla";
+  string path = binary_paths.at(GenericBinary::Bitwuzla);
   // Bitwuzla is always incremental, so it has no flag for it
   vector<string> args = { "--lang", "smt2" };
   gs = std::make_shared<GenericSolver>(
@@ -77,8 +111,7 @@ void new_bitwuzla(SmtSolver & gs, int buffer_size)
 void new_msat(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(MATHSAT_ROOT));
-  path += "/bin/mathsat";
+  string path = binary_paths.at(GenericBinary::Msat);
   vector<string> args = { "" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
@@ -88,8 +121,7 @@ void new_msat(SmtSolver & gs, int buffer_size)
 void new_yices2(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(YICES2_ROOT));
-  path += "/bin/yices-smt2";
+  string path = binary_paths.at(GenericBinary::Yices2);
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
@@ -99,8 +131,7 @@ void new_yices2(SmtSolver & gs, int buffer_size)
 void new_cvc5(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(CVC5_ROOT));
-  path += "/bin/cvc5";
+  string path = binary_paths.at(GenericBinary::Cvc5);
   vector<string> args = {
     "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
   };
@@ -112,8 +143,7 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
 void new_z3(SmtSolver & gs, int buffer_size)
 {
   gs.reset();
-  string path = (STRFY(Z3_ROOT));
-  path += "/bin/z3";
+  string path = binary_paths.at(GenericBinary::Z3);
   // Z3 reads SMT-LIB 2 from standard input only when told to, and is
   // incremental without a flag
   vector<string> args = { "-smt2", "-in" };
@@ -121,16 +151,6 @@ void new_z3(SmtSolver & gs, int buffer_size)
       path, args, solver_response_timeout, buffer_size);
   init_solver(gs);
 }
-
-enum class GenericBinary
-{
-  Cvc5,
-  Msat,
-  Yices2,
-  Btor,
-  Bitwuzla,
-  Z3
-};
 
 string binary_name(GenericBinary b)
 {
@@ -215,27 +235,6 @@ bool rejects_unknown_options(GenericBinary b)
   return b != GenericBinary::Bitwuzla;
 }
 
-const vector<GenericBinary> generic_binaries = {
-#ifdef BUILD_CVC5
-  GenericBinary::Cvc5,
-#endif
-#ifdef BUILD_MSAT
-  GenericBinary::Msat,
-#endif
-#ifdef BUILD_YICES2
-  GenericBinary::Yices2,
-#endif
-#ifdef BUILD_BTOR
-  GenericBinary::Btor,
-#endif
-#ifdef BUILD_BITWUZLA
-  GenericBinary::Bitwuzla,
-#endif
-#ifdef BUILD_Z3
-  GenericBinary::Z3,
-#endif
-};
-
 // We test a representative set of buffer sizes, including the smallest and
 // biggest supported, and a mixture of powers of two and non-powers of two.
 const vector<int> buffer_sizes = { 2, 10, 64, 100, 256 };
@@ -248,8 +247,9 @@ vector<GenericSolverParam> params_where(
     const function<bool(GenericBinary)> & filter)
 {
   vector<GenericSolverParam> params;
-  for (GenericBinary b : generic_binaries)
+  for (const auto & entry : binary_paths)
   {
+    GenericBinary b = entry.first;
     if (!filter(b))
     {
       continue;

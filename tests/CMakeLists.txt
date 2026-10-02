@@ -4,6 +4,31 @@ enable_testing()
 # defined only for them rather than for the whole project.
 add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
 
+# The generic solver drives a solver's executable rather than the library the
+# rest of the suite links, so it has to be found separately. A provisioned
+# copy, or one given with --<solver>-dir, keeps it under the solver's root; a
+# system-installed one has it on the PATH, which find_program searches after
+# the hint. Defined only when found, so that the tests can leave the solver
+# out instead of failing; a path set with -D<VARIABLE> is used as given.
+function(smt_switch_find_solver_binary enabled package name variable)
+  if(NOT ${enabled})
+    return()
+  endif()
+  find_program(${variable} NAMES ${name} HINTS "${${package}_ROOT}/bin")
+  if(${variable})
+    add_compile_definitions("${variable}=\"${${variable}}\"")
+  else()
+    message(STATUS "No ${name} executable found, so the generic solver tests skip it")
+  endif()
+endfunction()
+
+smt_switch_find_solver_binary(BUILD_BITWUZLA Bitwuzla bitwuzla BITWUZLA_BINARY)
+smt_switch_find_solver_binary(BUILD_BTOR Boolector boolector BOOLECTOR_BINARY)
+smt_switch_find_solver_binary(BUILD_CVC5 cvc5 cvc5 CVC5_BINARY)
+smt_switch_find_solver_binary(BUILD_MSAT MathSAT mathsat MATHSAT_BINARY)
+smt_switch_find_solver_binary(BUILD_YICES2 Yices2 yices-smt2 YICES2_BINARY)
+smt_switch_find_solver_binary(BUILD_Z3 Z3 z3 Z3_BINARY)
+
 option(SYSTEM_GTEST "Should we try to use the system GTest" ON)
 if(SYSTEM_GTEST)
   find_package(GTest 1.14 CONFIG)
