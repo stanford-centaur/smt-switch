@@ -56,6 +56,7 @@ TEST(Cvc5Incremental, AssumptionsPushPopAndReset)
   Term il0 = s->make_symbol("il0", boolsort);
   s->assert_formula(s->make_term(Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });
+  EXPECT_TRUE(r.is_unsat());
 
   Term assumption1 = s->make_term(Equal, x, s->make_term(1, bvsort8));
   Term il1 = s->make_symbol("il1", boolsort);
