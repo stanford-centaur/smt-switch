@@ -18,27 +18,9 @@
 # stored. GitHub guarantees the bytes only for assets a project uploads
 # itself, which none of these publish, and has promised six months' notice
 # before changing the archive format again. So if every GitHub pin fails
-# verification at once, suspect that rather than seven bad downloads.
+# verification at once, suspect that rather than five bad downloads.
 
 include("${CMAKE_CURRENT_LIST_DIR}/../Helpers.cmake")
-
-# For Boolector alone, and frozen there: Boolector is no longer developed,
-# and this is the CaDiCaL its own setup-cadical.sh pins at 3.2.4. cvc5 is not
-# built against it and downloads the CaDiCaL it wants itself, so bumping cvc5
-# never means moving this.
-smt_switch_pin(
-  CADICAL
-  GITHUB_REPO arminbiere/cadical
-  TAG rel-1.0.3
-  CHECKSUM 6a2dc4b25ca397fcdfda6e08743b56d8eb8385682a8f50685cbfb10835587e87
-)
-
-smt_switch_pin(
-  BTOR2TOOLS
-  GITHUB_REPO hwmcc/btor2tools
-  TAG 1.0.3
-  CHECKSUM 8edc9e262d1ffba16819929b2c25f32e9a5c04c84a5094d68d6d06ea059d9202
-)
 
 smt_switch_pin(
   BOOLECTOR

@@ -49,9 +49,7 @@ include(GNUInstallDirs)
 set(SMT_SWITCH_PROVISION_TARGETS "" CACHE STRING "Comma-separated dependencies to declare")
 string(REPLACE "," ";" _requested "${SMT_SWITCH_PROVISION_TARGETS}")
 
-set(_cadical_needs "")
-set(_btor2tools_needs "")
-set(_boolector_needs cadical btor2tools)
+set(_boolector_needs "")
 set(_bitwuzla_needs "")
 set(_cvc5_needs "")
 set(_z3_needs "")
@@ -111,9 +109,10 @@ endforeach()
 list(APPEND COMMON_CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON)
 
 # Only for the dependencies whose cmake_minimum_required predates what CMake
-# still supports: boolector asks for 3.3 and btor2tools for 3.5. cvc5 and z3
-# both ask for 3.16 and would report it as an unused variable.
-set(POLICY_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
+# still supports: Boolector and the btor2tools it builds both ask for 3.3.
+# cvc5 and z3 both ask for 3.16 and would report it as an unused variable.
+set(POLICY_VERSION_MINIMUM 3.10)
+set(POLICY_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=${POLICY_VERSION_MINIMUM})
 
 # Keeps the archives' timestamps, which CMake before 3.24 always does and
 # has no option to ask for.
@@ -167,8 +166,6 @@ endfunction()
 # adding one without a hash fails whatever is being built.
 foreach(
   _dependency
-  cadical
-  btor2tools
   boolector
   bitwuzla
   cvc5
@@ -188,49 +185,38 @@ foreach(
   endif()
 endforeach()
 
-# ---------------------------------------------------------------- cadical --
-# Boolector's CaDiCaL. No install target and no build system beyond a
-# hand-written configure script, so the install is a cmake -P step. Built
-# with -fPIC because it ends up inside shared libraries.
+# -------------------------------------------------------------- boolector --
+# CaDiCaL and btor2tools are built by Boolector's own setup scripts, at the
+# commits Boolector pins, into <SOURCE_DIR>/deps/install, which Boolector's
+# CMake adds to its search path itself. The scripts download without a
+# checksum; only HTTPS vouches for those two archives.
 #
 # cvc5 links a CaDiCaL of its own, a different version under the same C++
 # names, so the link would quietly give one solver the other's. Boolector
 # calls only the C API, which cvc5's copy has removed, so renaming the
-# namespace here leaves no name the two define alike.
-set(BOOLECTOR_CADICAL "-DCaDiCaL=smt_switch_btor_CaDiCaL")
-
-smt_switch_dependency(
-  cadical
-  URL "${CADICAL_URL}"
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure "CXXFLAGS=-fPIC ${BOOLECTOR_CADICAL}"
-  BUILD_COMMAND make -j${SMT_SWITCH_DEPS_JOBS}
-  BUILD_IN_SOURCE TRUE
-  INSTALL_COMMAND
-    "${CMAKE_COMMAND}" -DSOURCE_DIR=<SOURCE_DIR> -DINSTALL_DIR=<INSTALL_DIR> -P
-    "${CMAKE_CURRENT_LIST_DIR}/install-cadical.cmake"
-)
-
-# ------------------------------------------------------------- btor2tools --
-smt_switch_dependency(
-  btor2tools
-  URL "${BTOR2TOOLS_URL}"
-  CMAKE_ARGS ${COMMON_CMAKE_ARGS} ${POLICY_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
-)
-
-# -------------------------------------------------------------- boolector --
-# Boolector wants CMake 3.3, older than the policy that makes roots count.
+# namespace in Boolector's copy leaves no name the two define alike. The
+# script sets CXXFLAGS itself rather than taking them from outside, so the
+# rename is edited into it.
+#
+# btor2tools wants CMake 3.3 too, and its script runs CMake without letting
+# us add arguments, so the policy floor goes in through the environment. The
+# script then runs make, so a CMAKE_GENERATOR in the environment, such as the
+# Ninja one CI sets, is taken out for it.
 smt_switch_dependency(
   boolector
   URL "${BOOLECTOR_URL}"
-  DEPENDS cadical btor2tools
+  PATCH_COMMAND
+    sed -i.orig "s/CXXFLAGS=\"-fPIC\"/CXXFLAGS=\"-fPIC -DCaDiCaL=smt_switch_btor_CaDiCaL\"/"
+    <SOURCE_DIR>/contrib/setup-cadical.sh
+  COMMAND <SOURCE_DIR>/contrib/setup-cadical.sh
+  COMMAND
+    "${CMAKE_COMMAND}" -E env --unset=CMAKE_GENERATOR
+    CMAKE_POLICY_VERSION_MINIMUM=${POLICY_VERSION_MINIMUM}
+    <SOURCE_DIR>/contrib/setup-btor2tools.sh
   CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
     ${POLICY_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
-    -DCaDiCaL_ROOT=${CADICAL_PREFIX}
-    -DBtor2Tools_ROOT=${BTOR2TOOLS_PREFIX}
     -DUSE_CADICAL=ON
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
 )
