@@ -16,9 +16,10 @@ extract: the version, and the names of the SAT backends this Bitwuzla was
 built against.  Which of those are present is a build-time choice rather than
 a property of the version — CaDiCaL is on by default but can be turned off,
 and Kissat, CryptoMiniSat and Gimsatul can be turned on — so the names are
-taken from the file rather than assumed.  Anything named but unrecognised is
-looked for and linked, and warned about if it cannot be found, which turns an
-unexplained pile of undefined symbols into one line at configure time.
+taken from the file rather than assumed.  Each one named is looked for and
+linked after Bitwuzla's own libraries, and warned about if it cannot be found,
+which turns an unexplained pile of undefined symbols into one line at
+configure time.
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
@@ -65,10 +66,9 @@ Cache Variables
 #]=======================================================================]
 
 # GMP and MPFR are not optional in Bitwuzla, so both are always required
-# below. CaDiCaL is, and whether it is required is decided further down from
-# what the pkg-config file says. Both are reported through REQUIRED_VARS
-# rather than as separate failures.
-find_package(CaDiCaL QUIET)
+# below, and reported through REQUIRED_VARS rather than as separate failures.
+# The SAT backends are optional, and are worked out further down from what
+# the pkg-config file says.
 find_package(MPFR QUIET)
 
 find_path(Bitwuzla_INCLUDE_DIR NAMES bitwuzla/cpp/bitwuzla.h)
@@ -146,21 +146,16 @@ if(Bitwuzla_PKGCONFIG_FILE)
   list(REMOVE_ITEM _bitwuzla_stated_deps ${_bitwuzla_libraries} gmp mpfr symfpu)
 endif()
 
-# CaDiCaL is only required if this Bitwuzla was built against it. Absent a
-# pkg-config file there is nothing to go on, so assume the default, which is
-# also what this project builds.
-set(_bitwuzla_needs_cadical TRUE)
-if(Bitwuzla_PKGCONFIG_FILE AND NOT "cadical" IN_LIST _bitwuzla_stated_deps)
-  set(_bitwuzla_needs_cadical FALSE)
-endif()
-list(REMOVE_ITEM _bitwuzla_stated_deps cadical)
-if(_bitwuzla_needs_cadical)
-  list(APPEND _bitwuzla_required_vars CaDiCaL_FOUND)
+# Absent a pkg-config file there is nothing to go on, so assume Bitwuzla's
+# default, which is to be built against CaDiCaL. Only for a Bitwuzla that was
+# found, though: with none there is no file either, and nothing to link.
+if(NOT Bitwuzla_PKGCONFIG_FILE AND Bitwuzla_bitwuzla_LIBRARY)
+  list(APPEND _bitwuzla_stated_deps cadical)
 endif()
 
-# Anything left is a SAT backend this module does not know about. Link it if
-# it can be found, and say so plainly if it cannot, because the alternative is
-# a wall of undefined symbols at link time with nothing pointing here.
+# Anything left is a SAT backend. Link it if it can be found, and say so
+# plainly if it cannot, because the alternative is a wall of undefined symbols
+# at link time with nothing pointing here.
 set(_bitwuzla_extra_libraries "")
 set(_bitwuzla_extra_library_dirs "")
 foreach(_bitwuzla_dep IN LISTS _bitwuzla_stated_deps)
@@ -196,14 +191,6 @@ if(Bitwuzla_FOUND)
   # libraries above call into them. This is the order bitwuzla.pc listed.
   set(Bitwuzla_LINK_LIBRARIES ${_bitwuzla_libraries} ${MPFR_LINK_LIBRARIES})
 
-  if(_bitwuzla_needs_cadical)
-    get_filename_component(_cadical_library_dir "${CaDiCaL_LIBRARY}" DIRECTORY)
-    list(APPEND Bitwuzla_INCLUDE_DIRS ${CaDiCaL_INCLUDE_DIRS})
-    list(APPEND Bitwuzla_LIBRARY_DIRS "${_cadical_library_dir}")
-    list(APPEND Bitwuzla_LINK_LIBRARIES cadical)
-    unset(_cadical_library_dir)
-  endif()
-
   list(APPEND Bitwuzla_LIBRARY_DIRS ${_bitwuzla_extra_library_dirs})
   list(APPEND Bitwuzla_LINK_LIBRARIES ${_bitwuzla_extra_libraries})
 
@@ -231,7 +218,6 @@ unset(_bitwuzla_libs)
 unset(_bitwuzla_libraries)
 unset(_bitwuzla_library)
 unset(_bitwuzla_line)
-unset(_bitwuzla_needs_cadical)
 unset(_bitwuzla_required_vars)
 unset(_bitwuzla_requires)
 unset(_bitwuzla_stated_deps)

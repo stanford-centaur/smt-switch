@@ -363,7 +363,6 @@ install(
 install(
   FILES
     "${PROJECT_SOURCE_DIR}/cmake/FindBitwuzla.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindCaDiCaL.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindGMP.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindMathSAT.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/FindMPFR.cmake"
