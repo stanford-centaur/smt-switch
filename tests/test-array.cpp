@@ -36,16 +36,18 @@ class ArrayModelTests
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    bvsort = s->make_sort(BV, 8);
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+    // distinct index and element sorts, so a check cannot mix them up
+    idxsort = s->make_sort(BV, 4);
+    elemsort = s->make_sort(BV, 8);
+    arrsort = s->make_sort(ARRAY, idxsort, elemsort);
     arr = s->make_symbol("arr", arrsort);
-    i = s->make_symbol("i", bvsort);
-    j = s->make_symbol("j", bvsort);
-    one = s->make_term(1, bvsort);
-    two = s->make_term(2, bvsort);
+    i = s->make_symbol("i", idxsort);
+    j = s->make_symbol("j", idxsort);
+    one = s->make_term(1, elemsort);
+    two = s->make_term(2, elemsort);
   }
   SmtSolver s;
-  Sort bvsort, arrsort;
+  Sort idxsort, elemsort, arrsort;
   Term arr, i, j, one, two;
 };
 
@@ -71,8 +73,8 @@ TEST_P(ArrayModelTests, TestArrayModel)
   if (const_base)
   {
     // if the solver provided a const array base
-    // check that the sort matches
-    ASSERT_EQ(const_base->get_sort(), arr->get_sort()->get_indexsort());
+    // check that it has the element sort
+    EXPECT_EQ(const_base->get_sort(), arr->get_sort()->get_elemsort());
   }
 }
 
