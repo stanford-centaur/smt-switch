@@ -1,5 +1,5 @@
 __pycache__/
 .ruff_cache/
 /build*/
-/deps/
+/deps
 /examples/*_qf_ufbv
