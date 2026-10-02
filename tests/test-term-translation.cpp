@@ -313,17 +313,34 @@ TEST_P(TranslationTests, UninterpretedSort)
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
   Term f = s1->make_term(false);
-  Term t = s1->make_term(false);
+  Term t = s1->make_term(true);
   Term const_arr = s1->make_term(f, arrsort);
-  Term stores = s1->make_term(Store, arr, x, t);
+  Term stores = s1->make_term(Store, const_arr, x, t);
   stores = s1->make_term(Store, stores, y, t);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
 
+  Term const_arr_2 = to_s2.transfer_term(const_arr);
+  EXPECT_EQ(const_arr_2->get_sort(),
+            s2->make_sort(ARRAY, s2->make_sort(BV, 8), s2->make_sort(BOOL)));
+  EXPECT_TRUE(const_arr_2->is_value());
+  EXPECT_EQ(to_s1.transfer_term(const_arr_2), const_arr);
+
   Term stores_2 = to_s2.transfer_term(stores);
   Term stores_1 = to_s1.transfer_term(stores_2);
-  ASSERT_EQ(stores, stores_1);
+  EXPECT_EQ(stores, stores_1);
+
+  // stores is false everywhere except at x and y
+  Term constraint = s1->make_term(And,
+                                  { s1->make_term(Equal, arr, stores),
+                                    s1->make_term(Distinct, z, x),
+                                    s1->make_term(Distinct, z, y),
+                                    s1->make_term(Select, arr, z) });
+  s1->assert_formula(constraint);
+  EXPECT_TRUE(s1->check_sat().is_unsat());
+  s2->assert_formula(to_s2.transfer_term(constraint));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
 TEST_P(StringTranslationTests, Strings)
