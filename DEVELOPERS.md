@@ -12,8 +12,9 @@ wheels and upload them to PyPi.
 
 ## Debug Builds
 
-`configure.sh` sets up a Release build. Some tests use C-style assertions, which
-Release compiles out, so running them with assertions needs a Debug build.
+`configure.sh` sets up a Release build. Release compiles out the library's
+internal `assert()` checks, so running the tests with them enabled needs a Debug
+build.
 
 To build both configurations from one build directory, as CI does, use the Ninja
 Multi-Config generator and pick the configuration when building:
