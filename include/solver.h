@@ -487,7 +487,8 @@ class AbsSmtSolver
   virtual Result get_sequence_interpolants(const TermVec & formulae,
                                            TermVec & out_I) const;
 
-  SolverEnum get_solver_enum() { return solver_enum; };
+  /** @return an enum identifying the underlying solver */
+  SolverEnum get_solver_enum() const;
 
  protected:
   SolverEnum solver_enum;  ///< an enum identifying the underlying solver
