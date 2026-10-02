@@ -17,8 +17,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
 
 set(
   _all_dependencies
-  cadical
-  btor2tools
   boolector
   bitwuzla
   cvc5
