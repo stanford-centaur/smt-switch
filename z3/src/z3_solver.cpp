@@ -1202,11 +1202,6 @@ Term Z3Solver::substitute(const Term term,
   return std::make_shared<Z3Term>(result, ctx);
 }
 
-void Z3Solver::dump_smt2(std::string filename) const
-{
-  throw NotImplementedException("Dumping smt2 not supported by Z3 backend.");
-}
-
 z3::context * Z3Solver::get_z3_context() { return &ctx; }
 
 z3::solver * Z3Solver::get_z3_solver() { return &slv; }

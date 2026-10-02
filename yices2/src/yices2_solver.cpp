@@ -920,12 +920,6 @@ Term Yices2Solver::substitute(const Term term,
   return std::make_shared<Yices2Term>(res);
 }
 
-void Yices2Solver::dump_smt2(std::string filename) const
-{
-  throw NotImplementedException(
-      "Dumping smt2 not supported by Yices2 backend.");
-}
-
 // helpers
 void Yices2Solver::timelimit_start()
 {
