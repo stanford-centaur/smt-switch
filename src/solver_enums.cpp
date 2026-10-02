@@ -136,25 +136,21 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
 {
+  // no default, so that -Wswitch reports an enumerator without a case
   switch (e)
   {
-    case BTOR: o << "BTOR"; break;
-    case BZLA: o << "BZLA"; break;
-    case CVC5: o << "CVC5"; break;
-    case GENERIC_SOLVER: o << "GENERIC_SOLVER"; break;
-    case MSAT: o << "MSAT"; break;
-    case YICES2: o << "YICES2"; break;
-    case Z3: o << "Z3"; break;
-    case BZLA_INTERPOLATOR: o << "BZLA_INTERPOLATOR"; break;
-    case CVC5_INTERPOLATOR: o << "CVC5_INTERPOLATOR"; break;
-    case MSAT_INTERPOLATOR: o << "MSAT_INTERPOLATOR"; break;
-    default:
-      // should print the integer representation
-      throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
-      break;
+    case BTOR: return o << "BTOR";
+    case BZLA: return o << "BZLA";
+    case CVC5: return o << "CVC5";
+    case GENERIC_SOLVER: return o << "GENERIC_SOLVER";
+    case MSAT: return o << "MSAT";
+    case YICES2: return o << "YICES2";
+    case Z3: return o << "Z3";
+    case BZLA_INTERPOLATOR: return o << "BZLA_INTERPOLATOR";
+    case CVC5_INTERPOLATOR: return o << "CVC5_INTERPOLATOR";
+    case MSAT_INTERPOLATOR: return o << "MSAT_INTERPOLATOR";
   }
-
-  return o;
+  throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
 }
 
 std::string to_string(SolverEnum e)
@@ -166,28 +162,29 @@ std::string to_string(SolverEnum e)
 
 std::ostream & operator<<(std::ostream & o, SolverAttribute a)
 {
+  // no default, so that -Wswitch reports an enumerator without a case
   switch (a)
   {
-    case TERMITER: o << "TERMITER"; break;
-    case THEORY_INT: o << "THEORY_INT"; break;
-    case THEORY_REAL: o << "THEORY_REAL"; break;
-    case THEORY_STR: o << "THEORY_STR"; break;
-    case ARRAY_MODELS: o << "ARRAY_MODELS"; break;
-    case CONSTARR: o << "CONSTARR"; break;
-    case FULL_TRANSFER: o << "FULL_TRANSFER"; break;
-    case ARRAY_FUN_BOOLS: o << "ARRAY_FUN_BOOLS"; break;
-    case UNSAT_CORE: o << "UNSAT_CORE"; break;
-    case THEORY_DATATYPE: o << "THEORY_DATATYPE"; break;
-    case QUANTIFIERS: o << "QUANTIFIERS"; break;
-    case BOOL_BV1_ALIASING: o << "BOOL_BV1_ALIASING"; break;
-    default:
-      // should print the integer representation
-      throw NotImplementedException("Unknown SolverAttribute: "
-                                    + std::to_string(a));
-      break;
+    case LOGGING: return o << "LOGGING";
+    case TERMITER: return o << "TERMITER";
+    case THEORY_BV: return o << "THEORY_BV";
+    case THEORY_INT: return o << "THEORY_INT";
+    case THEORY_REAL: return o << "THEORY_REAL";
+    case THEORY_STR: return o << "THEORY_STR";
+    case ARRAY_MODELS: return o << "ARRAY_MODELS";
+    case CONSTARR: return o << "CONSTARR";
+    case FULL_TRANSFER: return o << "FULL_TRANSFER";
+    case ARRAY_FUN_BOOLS: return o << "ARRAY_FUN_BOOLS";
+    case UNSAT_CORE: return o << "UNSAT_CORE";
+    case THEORY_DATATYPE: return o << "THEORY_DATATYPE";
+    case QUANTIFIERS: return o << "QUANTIFIERS";
+    case UNINTERP_SORT: return o << "UNINTERP_SORT";
+    case PARAM_UNINTERP_SORT: return o << "PARAM_UNINTERP_SORT";
+    case BOOL_BV1_ALIASING: return o << "BOOL_BV1_ALIASING";
+    case TIMELIMIT: return o << "TIMELIMIT";
   }
-
-  return o;
+  throw NotImplementedException("Unknown SolverAttribute: "
+                                + std::to_string(a));
 }
 
 std::string to_string(SolverAttribute a)
