@@ -267,4 +267,6 @@ Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
   }
 }
 
+SolverEnum AbsSmtSolver::get_solver_enum() const { return solver_enum; }
+
 }  // namespace smt
