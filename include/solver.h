@@ -446,11 +446,7 @@ class AbsSmtSolver
   // extra methods -- not required
 
   /* Dumps full smt-lib representation of current context to a file */
-  virtual void dump_smt2(std::string filename) const
-  {
-    throw NotImplementedException(
-        "Dumping to FILE not supported for this solver.");
-  }
+  virtual void dump_smt2(std::string filename) const;
 
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
    *   i.e. an I such that: A -> I  and  I ^ B is unsat

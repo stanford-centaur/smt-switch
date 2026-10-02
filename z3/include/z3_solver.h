@@ -118,7 +118,6 @@ class Z3Solver : public AbsSmtSolver
   void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
-  void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects (EXPERTS ONLY)
   z3::context * get_z3_context();

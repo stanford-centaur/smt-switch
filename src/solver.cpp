@@ -189,6 +189,12 @@ TermVec AbsSmtSolver::substitute_terms(
   return res;
 }
 
+void AbsSmtSolver::dump_smt2(std::string /* filename */) const
+{
+  throw NotImplementedException("Dumping to a file is not supported by "
+                                + to_string(solver_enum));
+}
+
 Result AbsSmtSolver::get_sequence_interpolants(const TermVec & formulae,
                                                TermVec & out_I) const
 {

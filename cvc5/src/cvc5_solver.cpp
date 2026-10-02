@@ -968,11 +968,6 @@ Term Cvc5Solver::substitute(const Term term,
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
 }
 
-void Cvc5Solver::dump_smt2(std::string filename) const
-{
-  throw NotImplementedException("Not yet implemented dumping smt2");
-}
-
 /**
    Helper function for creating a cvc5 Op from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
