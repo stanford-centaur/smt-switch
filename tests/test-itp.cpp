@@ -14,8 +14,13 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
+
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "smt.h"
 #include "utils.h"
 
@@ -24,33 +29,60 @@ using namespace std;
 
 namespace smt_tests {
 
+// an interpolator, and the theory it interpolates in: THEORY_INT or
+// THEORY_BV
+struct ItpParam
+{
+  SolverConfiguration config;
+  SolverAttribute theory;
+};
+
+ostream & operator<<(ostream & o, const ItpParam & p)
+{
+  return o << p.config << " over " << p.theory;
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ItpTests);
 class ItpTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+                 public ::testing::WithParamInterface<ItpParam>
 {
  protected:
   void SetUp() override
   {
-    itp = create_interpolating_solver(GetParam());
+    itp = create_interpolating_solver(GetParam().config);
 
-    intsort = itp->make_sort(INT);
-    x = itp->make_symbol("x", intsort);
-    y = itp->make_symbol("y", intsort);
-    z = itp->make_symbol("z", intsort);
-    w = itp->make_symbol("w", intsort);
+    // the queries order the symbols, so unsigned bit-vector comparisons
+    // keep them unsatisfiable
+    if (GetParam().theory == THEORY_INT)
+    {
+      sort = itp->make_sort(INT);
+      lt = Lt;
+      gt = Gt;
+    }
+    else
+    {
+      sort = itp->make_sort(BV, 8);
+      lt = BVUlt;
+      gt = BVUgt;
+    }
+    x = itp->make_symbol("x", sort);
+    y = itp->make_symbol("y", sort);
+    z = itp->make_symbol("z", sort);
+    w = itp->make_symbol("w", sort);
   }
   SmtSolver itp;
-  Sort intsort;
+  Sort sort;
+  PrimOp lt, gt;
   Term x, y, z, w;
 };
 
-TEST_P(ItpTests, Test_ITP)
+TEST_P(ItpTests, Interpolant)
 {
-  Term A = itp->make_term(Lt, x, y);
-  A = itp->make_term(And, A, itp->make_term(Lt, y, w));
+  Term A = itp->make_term(lt, x, y);
+  A = itp->make_term(And, A, itp->make_term(lt, y, w));
 
-  Term B = itp->make_term(Gt, z, w);
-  B = itp->make_term(And, B, itp->make_term(Lt, z, x));
+  Term B = itp->make_term(gt, z, w);
+  B = itp->make_term(And, B, itp->make_term(lt, z, x));
 
   Term I;
   Result r = itp->get_interpolant(A, B, I);
@@ -59,12 +91,11 @@ TEST_P(ItpTests, Test_ITP)
   UnorderedTermSet free_symbols;
   get_free_symbolic_consts(I, free_symbols);
 
-  ASSERT_TRUE(free_symbols.find(y) == free_symbols.end());
-  ASSERT_TRUE(free_symbols.find(z) == free_symbols.end());
-  std::cout << "the interpolant is: " << I << endl;
+  EXPECT_EQ(free_symbols.count(y), 0);
+  EXPECT_EQ(free_symbols.count(z), 0);
 }
 
-TEST_P(ItpTests, TEST_SEQITP)
+TEST_P(ItpTests, SequenceInterpolants)
 {
   // NOTE: there's a default implementation of
   //       get_sequence_interpolants that should work for
@@ -75,31 +106,57 @@ TEST_P(ItpTests, TEST_SEQITP)
   //       e.g. using interpolation groups in mathsat
 
   // A1 : x < y /\ y < w
-  Term A1 = itp->make_term(Lt, x, y);
-  A1 = itp->make_term(And, A1, itp->make_term(Lt, y, w));
+  Term A1 = itp->make_term(lt, x, y);
+  A1 = itp->make_term(And, A1, itp->make_term(lt, y, w));
 
   // A2 : z > w /\ z < x
-  Term A2 = itp->make_term(Gt, z, w);
-  A2 = itp->make_term(And, A2, itp->make_term(Lt, z, x));
+  Term A2 = itp->make_term(gt, z, w);
+  A2 = itp->make_term(And, A2, itp->make_term(lt, z, x));
 
   // A3 : y > z /\ y < w
-  Term A3 = itp->make_term(Gt, y, z);
-  A3 = itp->make_term(And, A3, itp->make_term(Lt, y, w));
+  Term A3 = itp->make_term(gt, y, z);
+  A3 = itp->make_term(And, A3, itp->make_term(lt, y, w));
 
   TermVec formulae({ A1, A2, A3 });
   TermVec interpolants;
 
   Result r = itp->get_sequence_interpolants(formulae, interpolants);
   ASSERT_TRUE(r.is_unsat());
-
-  for (auto I : interpolants)
-  {
-    std::cout << "got seq-itp: " << I << std::endl;
-  }
+  EXPECT_EQ(interpolants.size(), formulae.size() - 1);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedItpTests,
-    ItpTests,
-    testing::ValuesIn(available_interpolator_configurations()));
+// each interpolator runs the tests in every theory it supports
+vector<ItpParam> itp_params()
+{
+  vector<ItpParam> params;
+  for (SolverAttribute theory : { THEORY_INT, THEORY_BV })
+  {
+    for (SolverConfiguration sc :
+         filter_interpolator_configurations({ theory }))
+    {
+      params.push_back({ sc, theory });
+    }
+  }
+  return params;
+}
+
+// names a case after its solver and theory, e.g. CVC5_INT or BZLA_BV
+string itp_param_name(const testing::TestParamInfo<ItpParam> & info)
+{
+  string solver = to_string(info.param.config.solver_enum);
+  solver = solver.substr(0, solver.find("_INTERPOLATOR"));
+  string theory = to_string(info.param.theory);
+  theory = theory.substr(theory.find("THEORY_") + 7);
+  string name = solver + "_" + theory;
+  if (info.param.config.is_logging_solver)
+  {
+    name += "_LOGGING";
+  }
+  return name;
+}
+
+INSTANTIATE_TEST_SUITE_P(,
+                         ItpTests,
+                         testing::ValuesIn(itp_params()),
+                         itp_param_name);
 }  // namespace smt_tests

@@ -63,6 +63,13 @@ std::vector<smt::SolverEnum> available_interpolator_enums();
 // collect all the available interpolating solvers
 std::vector<SolverConfiguration> available_interpolator_configurations();
 
+/** Filter the available interpolating solvers by a set of attributes
+ * @return all available interpolating solvers built on a solver that has
+ *         *all* the attributes
+ */
+std::vector<SolverConfiguration> filter_interpolator_configurations(
+    const std::unordered_set<smt::SolverAttribute> attributes);
+
 /** Filter the available solvers by a set of attributes
  * @return all available solvers that have *all* the attributes
  */

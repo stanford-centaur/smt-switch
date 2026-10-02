@@ -156,6 +156,12 @@ SmtSolver create_interpolating_solver(SolverConfiguration sc)
 {
   switch (sc.solver_enum)
   {
+#ifdef BUILD_BITWUZLA
+    case BZLA_INTERPOLATOR: {
+      return BitwuzlaSolverFactory::create_interpolating_solver();
+      break;
+    }
+#endif
 #ifdef BUILD_CVC5
     case CVC5_INTERPOLATOR: {
       return Cvc5SolverFactory::create_interpolating_solver();
@@ -219,6 +225,9 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
 std::vector<SolverEnum> available_interpolator_enums()
 {
   std::vector<SolverEnum> result;
+#ifdef BUILD_BITWUZLA
+  result.push_back(BZLA_INTERPOLATOR);
+#endif
 #ifdef BUILD_CVC5
   result.push_back(CVC5_INTERPOLATOR);
 #endif
@@ -235,6 +244,45 @@ std::vector<SolverConfiguration> available_interpolator_configurations()
   {
     SolverConfiguration sc(e, false);
     result.push_back(sc);
+  }
+  return result;
+}
+
+// the solver an interpolator is built on, whose theories it shares
+static SolverEnum interpolator_base_solver(SolverEnum se)
+{
+  switch (se)
+  {
+    case BZLA_INTERPOLATOR: return BZLA;
+    case CVC5_INTERPOLATOR: return CVC5;
+    case MSAT_INTERPOLATOR: return MSAT;
+    default: {
+      throw SmtException("Unhandled interpolator solver enum");
+    }
+  }
+}
+
+std::vector<SolverConfiguration> filter_interpolator_configurations(
+    const std::unordered_set<SolverAttribute> attributes)
+{
+  std::vector<SolverConfiguration> result;
+  for (SolverConfiguration sc : available_interpolator_configurations())
+  {
+    const std::unordered_set<SolverAttribute> base_attrs =
+        get_solver_attributes(interpolator_base_solver(sc.solver_enum));
+    bool all_attrs = true;
+    for (auto a : attributes)
+    {
+      if (base_attrs.find(a) == base_attrs.end())
+      {
+        all_attrs = false;
+        break;
+      }
+    }
+    if (all_attrs)
+    {
+      result.push_back(sc);
+    }
   }
   return result;
 }
