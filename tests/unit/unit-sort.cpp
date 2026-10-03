@@ -94,6 +94,16 @@ TEST_P(UnitSortTests, FunctionSymbolSort)
   EXPECT_EQ(f->get_sort(), funsort);
 }
 
+TEST_P(UnitSortTests, FunctionSortDomainAndCodomain)
+{
+  // no Bool argument: MathSAT does not take one, so its backend makes it a
+  // bit-vector of width one, which the domain then reports
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort binsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort8, bvsort });
+  EXPECT_EQ(binsort->get_domain_sorts(), (SortVec{ bvsort, bvsort8 }));
+  EXPECT_EQ(binsort->get_codomain_sort(), bvsort);
+}
+
 TEST_P(UnitSortTests, SortParams)
 {
   EXPECT_EQ(bvsort->get_width(), 4);

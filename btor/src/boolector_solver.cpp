@@ -562,8 +562,9 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     BoolectorSort btor_fun_sort = boolector_fun_sort(
         btor, btor_sorts.data(), arity, btor_return_sort->sort);
+    SortVec domain_sorts(sorts.begin(), sorts.end() - 1);
     return std::make_shared<BoolectorUFSort>(
-        btor, btor_fun_sort, sorts, returnsort);
+        btor, btor_fun_sort, domain_sorts, returnsort);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
