@@ -44,7 +44,7 @@ struct SolverConfiguration
 smt::SmtSolver create_solver(SolverConfiguration sc);
 
 /** Creates an interpolating SmtSolver of the provided type */
-smt::SmtSolver create_interpolating_solver(SolverConfiguration sc);
+smt::SmtInterpolator create_interpolating_solver(SolverConfiguration sc);
 
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();

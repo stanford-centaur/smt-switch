@@ -29,7 +29,7 @@ using namespace smt;
 
 TEST(Cvc5Interpolants, GetInterpolant)
 {
-  SmtSolver s = Cvc5SolverFactory::create_interpolating_solver();
+  SmtInterpolator s = Cvc5SolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_symbol("x", intsort);

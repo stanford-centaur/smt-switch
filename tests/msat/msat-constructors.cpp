@@ -26,7 +26,7 @@ using namespace smt;
 namespace smt_tests {
 
 // x < y < z and x > z have the interpolant x < z (or an equivalent)
-static void expect_interpolant(const SmtSolver & s)
+static void expect_interpolant(const SmtInterpolator & s)
 {
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -41,7 +41,7 @@ static void expect_interpolant(const SmtSolver & s)
 
 // x + y = 3 and y = 1 against x = 5, over bit-vectors: MathSAT's default
 // eager BV solver cannot produce the proofs interpolation needs
-static void expect_bv_interpolant(const SmtSolver & s)
+static void expect_bv_interpolant(const SmtInterpolator & s)
 {
   Sort bvsort = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort);

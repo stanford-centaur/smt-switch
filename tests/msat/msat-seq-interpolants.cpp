@@ -27,7 +27,7 @@
 
 using namespace smt;
 
-void check_itp_seq(const SmtSolver s,
+void check_itp_seq(const SmtInterpolator s,
                    const TermVec & formulas,
                    const bool expect_sat = false)
 {
@@ -38,7 +38,7 @@ void check_itp_seq(const SmtSolver s,
 
 TEST(MsatSeqInterpolants, GetSequenceInterpolants)
 {
-  SmtSolver s = MsatSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term w = s->make_symbol("w", intsort);

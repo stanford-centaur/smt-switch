@@ -36,8 +36,8 @@ def create_cvc5_solver(logging):
 solvers["cvc5"] = create_cvc5_solver
 
 def create_cvc5_interpolator():
-    cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_cvc5_interpolator()
+    cdef SmtInterpolator solver = SmtInterpolator()
+    solver.set_interpolator(cpp_create_cvc5_interpolator())
     return solver
 """
 
@@ -50,8 +50,8 @@ def create_msat_solver(logging):
 solvers["msat"] = create_msat_solver
 
 def create_msat_interpolator():
-    cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_msat_interpolator()
+    cdef SmtInterpolator solver = SmtInterpolator()
+    solver.set_interpolator(cpp_create_msat_interpolator())
     return solver
 """
 
@@ -87,14 +87,14 @@ cdef extern from "bitwuzla_factory.h":
 DECLARE_CVC5 = """
 cdef extern from "cvc5_factory.h":
     c_SmtSolver cpp_create_cvc5_solver "smt::Cvc5SolverFactory::create" (bint logging) except +
-    c_SmtSolver cpp_create_cvc5_interpolator "smt::Cvc5SolverFactory::create_interpolating_solver" () except +
+    c_SmtInterpolator cpp_create_cvc5_interpolator "smt::Cvc5SolverFactory::create_interpolating_solver" () except +
 """
 
 
 DECLARE_MSAT = """
 cdef extern from "msat_factory.h":
     c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" (bint logging) except +
-    c_SmtSolver cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
+    c_SmtInterpolator cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 """
 
 DECLARE_YICES2 = """
@@ -127,8 +127,8 @@ if __name__ == "__main__":
 
     imports = []
 
-    pxd = "from .cppapi cimport c_SmtSolver"
-    pyx = "from .api cimport SmtSolver\n\n# collect available solvers here\nsolvers = {}\n\n%s"
+    pxd = "from .cppapi cimport c_SmtInterpolator, c_SmtSolver"
+    pyx = "from .api cimport SmtInterpolator, SmtSolver\n\n# collect available solvers here\nsolvers = {}\n\n%s"
     if args.btor:
         pxd += "\n" + DECLARE_BTOR
         pyx += "\n" + CREATE_BTOR

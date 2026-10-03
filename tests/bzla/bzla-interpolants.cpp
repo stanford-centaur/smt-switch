@@ -29,7 +29,7 @@ using namespace smt;
 
 TEST(BzlaInterpolants, GetInterpolant)
 {
-  SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = BitwuzlaSolverFactory::create_interpolating_solver();
   Sort bv8 = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bv8);
   Term y = s->make_symbol("y", bv8);
@@ -74,7 +74,7 @@ TEST(BzlaInterpolants, GetInterpolant)
 
 TEST(BzlaInterpolants, ResetAfterInterpolant)
 {
-  SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = BitwuzlaSolverFactory::create_interpolating_solver();
   {
     // after this block only the solver holds the query's terms
     Sort bv8 = s->make_sort(BV, 8);

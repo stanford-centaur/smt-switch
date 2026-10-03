@@ -27,7 +27,7 @@
 
 using namespace smt;
 
-void check_itp_seq(const SmtSolver s,
+void check_itp_seq(const SmtInterpolator s,
                    const TermVec & formulas,
                    const bool expect_sat = false)
 {
@@ -38,7 +38,7 @@ void check_itp_seq(const SmtSolver s,
 
 TEST(BzlaSeqInterpolants, GetSequenceInterpolants)
 {
-  SmtSolver s = BitwuzlaSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = BitwuzlaSolverFactory::create_interpolating_solver();
   Sort bv8 = s->make_sort(BV, 8);
 
   Term w = s->make_symbol("w", bv8);

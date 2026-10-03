@@ -2,13 +2,17 @@ from abc import ABC, abstractmethod
 
 from cython.operator cimport dereference as dref
 from libc.stdint cimport uint64_t
+from libcpp.memory cimport static_pointer_cast
 from libcpp.string cimport string
 
 from .primops import int2primop
 from .sortkinds import BV, INT, int2sortkind
 
 from .cppapi cimport (
+    AbsSmtInterpolator,
+    AbsSmtSolver,
     c_Op,
+    c_SmtInterpolator,
     c_Sort,
     c_SortVec,
     c_SortingNetwork,
@@ -451,10 +455,15 @@ cdef class SmtSolver:
     def dump_smt2(self, str filename):
         dref(self.css).dump_smt2(filename.encode())
 
+
+cdef class SmtInterpolator(SmtSolver):
+    cdef void set_interpolator(self, c_SmtInterpolator csi):
+        self.csi = csi
+        self.css = static_pointer_cast[AbsSmtSolver, AbsSmtInterpolator](csi)
+
     def get_interpolant(self, Term A, Term B):
         '''
-        Get an interpolant for A, and B. Note: this will throw an exception if called
-        on a solver that was not created with create_<solver>_interpolator
+        Get an interpolant for A, and B.
 
         returns None if the interpolant could not be computed or the query
                 was satisfiable
@@ -462,7 +471,7 @@ cdef class SmtSolver:
         cdef c_Term cI
         cdef Term interpolant = Term(self)
 
-        res = dref(self.css).get_interpolant(A.ct, B.ct, cI)
+        res = dref(self.csi).get_interpolant(A.ct, B.ct, cI)
         if not res.is_unsat():
             return None
         else:
