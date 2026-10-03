@@ -154,6 +154,22 @@ if(SMTLIB_READER)
   # macOS ships a bison far older than this, so this is the one non-solver
   # dependency worth provisioning. flex is not: its 2.6.4 requirement is met
   # by every system copy that is not ancient.
+  #
+  # Homebrew's bison is keg-only, because macOS has its own, so it is on
+  # neither PATH nor the prefixes CMake searches. Look in its keg after the
+  # provisioned copy and before the system one.
+  if(APPLE)
+    execute_process(
+      COMMAND brew --prefix
+      OUTPUT_VARIABLE _homebrew_prefix
+      RESULT_VARIABLE _brew_result
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
+    )
+    if(_brew_result EQUAL 0)
+      list(APPEND BISON_ROOT "${_homebrew_prefix}/opt/bison")
+    endif()
+  endif()
   smt_switch_provision_if_missing(BISON bison 3.7.0)
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)

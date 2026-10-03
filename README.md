@@ -191,7 +191,8 @@ the C++ API. Its interface is in `smt-switch/smtlib_reader.h`. It can be enabled
 by passing `--smtlib-reader` to `configure.sh`. It needs:
 
 - flex >= 2.6.4
-- Bison >= 3.7 (will be downloaded automatically if no new enough one is found)
+- Bison >= 3.7 (will be downloaded automatically if no new enough one is found;
+  on macOS, `brew install bison` is enough)
 
 ## Building Tests
 
