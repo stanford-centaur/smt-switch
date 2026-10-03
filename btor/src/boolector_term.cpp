@@ -16,12 +16,6 @@
 
 #include "boolector_term.h"
 
-// include standard version of open_memstream
-// for compatibility with FreeBSD / Darwin which doesn't support it natively
-extern "C" {
-#include "memstream.h"
-}
-
 #include <cassert>
 #include <cstdint>
 #include <cstdio>

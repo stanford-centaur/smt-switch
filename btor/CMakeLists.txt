@@ -6,7 +6,6 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/boolector_term.cpp"
-  "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/memstream.c"
 )
 target_include_directories(
   smt-switch-btor
@@ -22,9 +21,6 @@ target_link_libraries(smt-switch-btor PRIVATE Threads::Threads)
 # Some systems keep the math functions outside libc, and boolector uses them.
 target_link_libraries(smt-switch-btor PRIVATE m)
 
-# memstream.c is compiled into this library, so its header is only needed
-# while building it.
-target_include_directories(smt-switch-btor PRIVATE "${PROJECT_SOURCE_DIR}/contrib/memstream-0.1/")
 # boolector_term.h needs btorcore.h, btornode.h and utils/btornodeiter.h,
 # which Boolector does not install: only boolector.h and btortypes.h are part
 # of its public API. Hence the source tree in addition to the package.
