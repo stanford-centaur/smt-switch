@@ -29,7 +29,7 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
       - id: detect-private-key
-      # ci-scripts/ symlinks into contrib/; these keep those links intact.
+      # These catch a symlink that dangles or was flattened into a file.
       - id: check-symlinks
       - id: destroyed-symlinks
       # Configuration syntax.

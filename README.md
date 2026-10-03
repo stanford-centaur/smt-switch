@@ -105,9 +105,11 @@ int main()
 ## Operating Systems
 
 We officially support the latest Ubuntu LTS on 64-bit Intel and AMD CPUs and the
-latest macOS on Apple silicon. Other Unix-like systems should work as well;
-other GNU/Linux distributions certainly do, and the BSDs ought to, although we
-do no testing on either. Please file a GitHub issue if you have any problems!
+latest macOS on Apple silicon. Other GNU/Linux distributions should work as
+well, although we do no testing on them. The BSDs and other Unix-like systems
+are not supported yet: several of the solver builds run `make` and need GNU
+make, which those systems install under another name. Please file a GitHub issue
+if you have any problems!
 
 ## Solvers
 
