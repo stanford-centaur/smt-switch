@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "datatype.h"
-#include "generic_sort.h"
 #include "smt_defs.h"
 
 namespace smt {
