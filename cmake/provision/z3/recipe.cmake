@@ -8,8 +8,6 @@ smt_switch_dependency(
   URL "${Z3_URL}"
   CMAKE_ARGS
     ${Z3_CMAKE_ARGS}
-    # z3 defaults to RelWithDebInfo, which makes the build artifacts very large.
-    -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DZ3_BUILD_LIBZ3_SHARED=OFF
     # The git options default to on but there is no .git in a release tarball.

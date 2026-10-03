@@ -12,6 +12,8 @@ smt_switch_dependency(
     <SOURCE_DIR>/cmake/FindCaDiCaL.cmake
   CMAKE_ARGS
     ${COMMON_CMAKE_ARGS}
+    # cvc5 calls its release build Production and rejects Release.
+    -DCMAKE_BUILD_TYPE=Production
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DENABLE_AUTO_DOWNLOAD=ON
     -DUSE_POLY=ON
