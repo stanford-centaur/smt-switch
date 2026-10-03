@@ -150,13 +150,25 @@ class AbsSmtSolver
    */
   virtual void get_unsat_assumptions(UnorderedTermSet & out) = 0;
 
-  /* Make an uninterpreted sort
+  /* Declare an uninterpreted sort, or a sort constructor if arity is nonzero
    * SMTLIB: (declare-sort <name> <arity>)
    * @param name the name of the sort
    * @param arity the arity of the sort
    * @return a Sort object
    */
   virtual Sort make_sort(const std::string name, std::uint64_t arity) const = 0;
+
+  /* Apply a sort constructor to sorts
+   * SMTLIB: ( <identifier> <sort>+ ), for instance (List Int)
+   * Only reachable where the declaration above accepts a nonzero arity,
+   * which is the only source of a sort constructor, so this is not pure
+   * virtual: the default in solver.cpp throws for the rest.
+   * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
+   * nonzero arity)
+   * @param sorts a vector of sorts of size matching sort_con->get_arity()
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const Sort & sort_con, const SortVec & sorts) const;
 
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
@@ -194,14 +206,6 @@ class AbsSmtSolver
   {
     return make_sort(sk, SortVec{ sort1, sorts... });
   }
-
-  /* Create an uninterpreted sort
-   * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
-   * nonzero arity)
-   * @param sorts a vector of sorts of size matching sort_con->get_arity()
-   * @return a Sort object
-   */
-  virtual Sort make_sort(const Sort & sort_con, const SortVec & sorts) const;
 
   /* Make a boolean value term
    * @param b boolean value
