@@ -14,9 +14,6 @@
 **
 **/
 
-// generic solvers are not supported on macos
-#ifndef __APPLE__
-
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -864,5 +861,3 @@ TEST(GenericSolver, NonExistingBinary)
 }
 
 }  // namespace smt_tests
-
-#endif  // __APPLE_

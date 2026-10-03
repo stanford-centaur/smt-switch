@@ -17,7 +17,7 @@
 ** 2. The buffer size used to read the output of the solver binary
 **    is limited to values between 2 and 256.
 ** 3. Generic solvers cannot be used in term transfer/translation.
-** 4. This feature is currently linux only -- no support for macOS.
+** 4. Only on Linux is the solver process signalled when its parent dies.
 ** 5. All declarations made in the solver are global and permanent
 **    (set-option :global-declarations true), meaning that popping
 **    assertion levels does not remove them.

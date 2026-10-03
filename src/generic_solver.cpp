@@ -18,15 +18,14 @@
 ** https://stackoverflow.com/a/6172578/1364765
 */
 
-// generic solvers are not supported on macos
-#ifndef __APPLE__
-
 #include "generic_solver.h"
 
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
+#ifdef __linux__
 #include <sys/prctl.h>
+#endif
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -328,8 +327,11 @@ void GenericSolver::start_solver()
     // which closes it through FD_CLOEXEC only if it succeeds
     close_fd(execpipefd[0]);
 
-    // ask kernel to deliver SIGTERM in case the parent dies
+#ifdef __linux__
+    // ask kernel to deliver SIGTERM in case the parent dies; other
+    // systems have no such request, so there the child is not signalled
     prctl(PR_SET_PDEATHSIG, SIGTERM);
+#endif
     //    fcntl(inpipefd[1], F_SETFL, O_NONBLOCK);
     // The following part is based on:
     // https://stackoverflow.com/a/5797901/1364765 The execv command expects an
@@ -1673,5 +1675,3 @@ void GenericSolver::reset_assertions()
 }
 
 }  // namespace smt
-
-#endif  // __APPLE__
