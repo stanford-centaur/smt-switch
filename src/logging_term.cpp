@@ -158,10 +158,19 @@ std::string LoggingTerm::to_string()
     //     and symbols already have the repr set
     assert(!op.is_null());
     repr = "(";
-    repr += op.to_string();
-    for (auto c : children)
+    // SMT-LIB has no operator for applying a function: the function, which
+    // is the first child, stands in its place
+    if (op.prim_op != Apply)
     {
-      repr += " " + c->to_string();
+      repr += op.to_string() + " ";
+    }
+    for (size_t i = 0; i < children.size(); ++i)
+    {
+      if (i > 0)
+      {
+        repr += " ";
+      }
+      repr += children[i]->to_string();
     }
     repr += ")";
     return repr;
