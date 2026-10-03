@@ -7,12 +7,11 @@
 # them. Before adding or editing one, read the hook's .pre-commit-hooks.yaml
 # and repeat any default that is still wanted.
 #
-# contrib/memstream-0.1 is a vendored third-party drop, kept byte-identical to
-# upstream so it can be diffed against new releases. The rest of contrib/ is
-# first-party and is checked normally. The JSON schemas in .tombi-cache are
-# vendored for the same reason; the README there is ours, so it is checked.
+# The JSON schemas in .tombi-cache are vendored, kept byte-identical to
+# upstream so they can be diffed against new releases. The README there is
+# ours, so it is checked.
 exclude: >-
-  ^(contrib/memstream-0\.1/|\.tombi-cache/.*\.json$)
+  ^\.tombi-cache/.*\.json$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
