@@ -1,0 +1,6 @@
+smt_switch_pin(
+  Z3
+  GITHUB_REPO Z3Prover/z3
+  TAG z3-5.1.0
+  CHECKSUM c433e1add0431c5edf1644bd9951c40588024d2d288f0e4215e5fcb6e3b4277d
+)

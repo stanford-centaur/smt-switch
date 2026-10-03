@@ -19,7 +19,8 @@ else
   # Everything else is provisioned by the CMake driver. Hashing all of it
   # rather than working out which recipes a given solver pulls in costs an
   # occasional unnecessary rebuild and cannot miss one.
-  for file in cmake/ProvisionDeps.cmake cmake/provision/*; do
+  for file in cmake/ProvisionDeps.cmake cmake/provision/* \
+    cmake/provision/*/*; do
     if [[ -f $file ]]; then
       solver_hash+=$(gethash "$file")
     fi

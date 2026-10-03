@@ -1,0 +1,6 @@
+smt_switch_pin(
+  CVC5
+  GITHUB_REPO cvc5/cvc5
+  TAG cvc5-1.4.0
+  CHECKSUM 06c65b30693d1abf7c1393b497c799950de2833457920b9433da8e418bce9113
+)

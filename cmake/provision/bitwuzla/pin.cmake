@@ -1,0 +1,6 @@
+smt_switch_pin(
+  BITWUZLA
+  GITHUB_REPO bitwuzla/bitwuzla
+  TAG 0.9.1
+  CHECKSUM 42707f38900a20bb18108e426ba667560d1fd2ccce0d4f75aa60439b546488b4
+)
