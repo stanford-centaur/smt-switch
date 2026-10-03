@@ -89,10 +89,6 @@ endif()
 # the same toolchain as the project that will link it. Only variables that
 # were actually set are passed on, or an empty one would override a default
 # the sub-build would otherwise pick for itself.
-#
-# CMAKE_BUILD_TYPE is deliberately absent: cvc5 declares its own build types
-# and fails on anything outside them, so a blanket Release would break it.
-# Each dependency picks its own default instead, except z3 in z3/recipe.cmake.
 set(
   _forwarded_variables
   CMAKE_C_COMPILER
@@ -112,7 +108,12 @@ foreach(_variable IN LISTS _forwarded_variables)
 endforeach()
 
 # Passed to every CMake dependency.
-list(APPEND COMMON_CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON)
+list(
+  APPEND COMMON_CMAKE_ARGS
+  -DBUILD_SHARED_LIBS=OFF
+  -DCMAKE_BUILD_TYPE=Release
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+)
 
 # Only for the dependencies whose cmake_minimum_required predates what CMake
 # still supports: Boolector and the btor2tools it builds both ask for 3.3.
