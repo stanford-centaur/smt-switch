@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <stdexcept>
 
 #include "exceptions.h"
 #include "ops.h"
@@ -461,25 +462,30 @@ Term Z3Solver::make_term(const std::string val,
 
   if (sk == BV)
   {
-    if (base == 10)
-    {
-      z_term = ctx.bv_val(val.c_str(), sort->get_width());
-    }
-    else if (base == 2)
-    {
-      assert(val.length() == sort->get_width());
-      mpz_class value(val, 2);
-      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
-    }
-    else if (base == 16)
-    {
-      mpz_class value(val, 16);
-      z_term = ctx.bv_val(value.get_str(10).c_str(), sort->get_width());
-    }
-    else
+    if (base != 2 && base != 10 && base != 16)
     {
       throw IncorrectUsageException("Unsupported base " + std::to_string(base));
     }
+    mpz_class value;
+    try
+    {
+      value = mpz_class(val, base);
+    }
+    catch (std::invalid_argument & e)
+    {
+      throw IncorrectUsageException("Can't create value " + val + " with sort "
+                                    + sort->to_string());
+    }
+    // Z3 reduces a value modulo 2^width, so reject anything below the
+    // smallest signed value or above the largest unsigned value
+    uint64_t width = sort->get_width();
+    mpz_class limit = mpz_class(1) << width;
+    if (value >= limit || value < -(limit >> 1))
+    {
+      throw IncorrectUsageException("Value " + val + " does not fit in sort "
+                                    + sort->to_string());
+    }
+    z_term = ctx.bv_val(value.get_str(10).c_str(), width);
   }
   else if (sk == REAL)
   {
