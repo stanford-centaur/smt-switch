@@ -497,9 +497,11 @@ void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out)
   }
 }
 
-Sort BoolectorSolver::make_sort(const std::string name, uint64_t arity) const
+Sort BoolectorSolver::make_sort(const std::string /* name */,
+                                uint64_t /* arity */) const
 {
-  throw IncorrectUsageException("Can't declare sorts with Boolector");
+  throw NotImplementedException("Uninterpreted sorts are not supported by "
+                                + to_string(solver_enum));
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk) const
@@ -580,14 +582,6 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     msg += " with a vector of sorts of size " + std::to_string(sorts.size());
     throw IncorrectUsageException(msg);
   }
-}
-
-Sort BoolectorSolver::make_sort(const Sort & sort_con,
-                                const SortVec & sorts) const
-
-{
-  throw IncorrectUsageException(
-      "Boolector does not support uninterpreted sort construction");
 }
 
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)

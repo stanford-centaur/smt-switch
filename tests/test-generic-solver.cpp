@@ -200,8 +200,10 @@ bool has_attribute(GenericBinary b, SolverAttribute a)
   {
     return false;
   }
-  // The bitwuzla binary accepts declare-sort, and the native backend makes
-  // uninterpreted sorts too, but does not claim the attribute.
+  // The bitwuzla binary accepts declare-sort, which is all these tests
+  // ask of it: they declare a sort and never solve over it. The native
+  // backend declares them too but cannot reason about them, which is why
+  // BZLA does not claim the attribute -- see src/solver_enums.cpp.
   if (b == GenericBinary::Bitwuzla && a == UNINTERP_SORT)
   {
     return true;

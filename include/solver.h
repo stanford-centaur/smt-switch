@@ -201,8 +201,7 @@ class AbsSmtSolver
    * @param sorts a vector of sorts of size matching sort_con->get_arity()
    * @return a Sort object
    */
-  virtual Sort make_sort(const Sort & sort_con,
-                         const SortVec & sorts) const = 0;
+  virtual Sort make_sort(const Sort & sort_con, const SortVec & sorts) const;
 
   /* Make a boolean value term
    * @param b boolean value
