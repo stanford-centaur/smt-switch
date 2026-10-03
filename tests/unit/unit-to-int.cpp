@@ -158,6 +158,9 @@ TEST_P(ToIntBVTests, Signed)
     { s->make_term("18446744073709551615", bv64, 10), -1 },
     { s->make_term("9223372036854775807", bv64, 10), int64_max },
     { s->make_term("9223372036854775808", bv64, 10), int64_min },
+    { s->make_term(-8, bv4), -8 },
+    { s->make_term("-1", bv4, 10), -1 },
+    { s->make_term("-1099511627776", bv64, 10), -1099511627776 },
   };
   for (const auto & c : cases)
   {

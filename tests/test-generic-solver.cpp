@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -316,6 +317,12 @@ class GenericSolverIntTests : public GenericSolverTests
 {
 };
 
+// binaries with reals
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverRealTests);
+class GenericSolverRealTests : public GenericSolverTests
+{
+};
+
 // binaries accepting a function that returns an array
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverArrayFunTests);
 class GenericSolverArrayFunTests : public GenericSolverTests
@@ -494,9 +501,8 @@ TEST_P(GenericSolverTests, Bv3)
   Term bv_minus_one_bin = gs->make_term("1111", bv_sort, 2);
   Term bv_minus_one_hex = gs->make_term("F", bv_sort, 16);
   EXPECT_EQ(bv_minus_one_int, bv_minus_one_dec);
-  EXPECT_NE(bv_minus_one_int, bv_minus_one_bin);
-  EXPECT_NE(bv_minus_one_int, bv_minus_one_hex);
-  EXPECT_NE(bv_minus_one_bin, bv_minus_one_hex);
+  EXPECT_EQ(bv_minus_one_int, bv_minus_one_bin);
+  EXPECT_EQ(bv_minus_one_int, bv_minus_one_hex);
   gs->push(1);
   Term eq1 = gs->make_term(Equal, bv_minus_one_dec, bv_minus_one_bin);
   Term eq2 = gs->make_term(Equal, bv_minus_one_int, bv_minus_one_bin);
@@ -715,13 +721,154 @@ TEST_P(GenericSolverTests, BvModels)
   Result result = gs->check_sat();
   ASSERT_TRUE(result.is_sat());
   EXPECT_EQ(gs->get_value(i1)->to_int(), 0u);
-  // MathSAT answers in the (_ bv0 4) notation make_term uses, so there
-  // the value read back must be the same term
-  if (binary == GenericBinary::Msat)
-  {
-    EXPECT_EQ(gs->get_value(i1)->to_string(), bv_zero->to_string());
-  }
+  // whichever notation the binary answers in, the value read back is
+  // the same literal make_term writes
+  EXPECT_EQ(gs->get_value(i1), bv_zero);
   gs->pop(1);
+}
+
+TEST_P(GenericSolverRealTests, RealStringModels)
+{
+  Sort real_sort = gs->make_sort(REAL);
+  EXPECT_EQ(gs->make_term("5", real_sort), gs->make_term(5, real_sort));
+  EXPECT_EQ(gs->make_term("-5", real_sort), gs->make_term(-5, real_sort));
+  Term minus_half = gs->make_term("-2.5", real_sort);
+  EXPECT_EQ(minus_half->to_string(), "(- 2.5)");
+  Term r = gs->make_symbol("r", real_sort);
+  Term sum = gs->make_term(Plus, minus_half, gs->make_term("5", real_sort));
+  gs->assert_formula(gs->make_term(Equal, r, sum));
+  gs->assert_formula(gs->make_term(
+      Not, gs->make_term(Equal, r, gs->make_term("2.5", real_sort))));
+  EXPECT_TRUE(gs->check_sat().is_unsat());
+}
+
+TEST_P(GenericSolverRealTests, RealStringNotANumber)
+{
+  Sort real_sort = gs->make_sort(REAL);
+  gs->make_symbol("x", real_sort);
+  for (const char * val : { "x", "-x", ".5", "1.", "1/", "" })
+  {
+    EXPECT_THROW(gs->make_term(val, real_sort), IncorrectUsageException)
+        << "for \"" << val << "\"";
+  }
+}
+
+TEST_P(GenericSolverTests, BvValueLiterals)
+{
+  Sort bv_sort = gs->make_sort(BV, 8);
+  // every way of making the same value gives one literal of the width
+  Term value = gs->make_term(-0b100, bv_sort);
+  EXPECT_EQ(value->to_string(), "#b11111100");
+  EXPECT_EQ(gs->make_term(0b1111'1100, bv_sort), value);
+  EXPECT_EQ(gs->make_term(std::to_string(-0b100), bv_sort), value);
+  EXPECT_EQ(gs->make_term(std::to_string(0b1111'1100), bv_sort), value);
+  EXPECT_EQ(gs->make_term("11111100", bv_sort, 2), value);
+  EXPECT_EQ(gs->make_term("-100", bv_sort, 2), value);
+  EXPECT_EQ(gs->make_term("FC", bv_sort, 16), value);
+  EXPECT_EQ(gs->make_term("-4", bv_sort, 16), value);
+  EXPECT_EQ(gs->make_term("1", bv_sort, 2)->to_string(), "#b00000001");
+  // a negative value is a value too, and reads back as itself
+  EXPECT_TRUE(value->is_value());
+  EXPECT_EQ(value->to_signed_int(), -0b100);
+  Term b = gs->make_symbol("b", bv_sort);
+  gs->assert_formula(gs->make_term(Equal, b, value));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(b), value);
+}
+
+TEST_P(GenericSolverTests, BvStringOutOfRange)
+{
+  Sort bv_sort = gs->make_sort(BV, 8);
+  EXPECT_EQ(gs->make_term(std::to_string(0b1111'1111), bv_sort)->to_string(),
+            "#b11111111");
+  EXPECT_EQ(gs->make_term(std::to_string(-0b1000'0000), bv_sort)->to_string(),
+            "#b10000000");
+  EXPECT_EQ(gs->make_term("-10000000", bv_sort, 2)->to_string(), "#b10000000");
+  EXPECT_EQ(gs->make_term("-80", bv_sort, 16)->to_string(), "#b10000000");
+  EXPECT_THROW(gs->make_term(std::to_string(0b1'0000'0000), bv_sort),
+               IncorrectUsageException);
+  EXPECT_THROW(gs->make_term(std::to_string(-0b1000'0001), bv_sort),
+               IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("100000000", bv_sort, 2), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("-10000001", bv_sort, 2), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("100", bv_sort, 16), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("-81", bv_sort, 16), IncorrectUsageException);
+  // the rejected values never reach the binary, which still answers
+  Term b = gs->make_symbol("b", bv_sort);
+  gs->assert_formula(gs->make_term(
+      Equal, b, gs->make_term(std::to_string(0b1111'1111), bv_sort)));
+  EXPECT_TRUE(gs->check_sat().is_sat());
+}
+
+TEST_P(GenericSolverTests, BvStringNotANumeral)
+{
+  Sort bv_sort = gs->make_sort(BV, 8);
+  for (const char * val : { "", "-", "+5", "--5", " 5", "5 ", "1a", "abc" })
+  {
+    EXPECT_THROW(gs->make_term(val, bv_sort), IncorrectUsageException)
+        << "for \"" << val << "\"";
+  }
+  EXPECT_THROW(gs->make_term("", bv_sort, 2), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("102", bv_sort, 2), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term("fg", bv_sort, 16), IncorrectUsageException);
+  // the rejected strings never reach the binary, which still answers
+  Term b = gs->make_symbol("b", bv_sort);
+  gs->assert_formula(
+      gs->make_term(Equal, b, gs->make_term(std::to_string(0b101), bv_sort)));
+  EXPECT_TRUE(gs->check_sat().is_sat());
+}
+
+TEST_P(GenericSolverTests, BvStringWideBounds)
+{
+  Sort bv64 = gs->make_sort(BV, 64);
+  EXPECT_EQ(gs->make_term(std::to_string(UINT64_MAX), bv64)->to_string(),
+            "#b" + string(64, '1'));
+  EXPECT_EQ(gs->make_term(std::to_string(INT64_MIN), bv64)->to_string(),
+            "#b1" + string(63, '0'));
+  // the values from here on are too wide for C++ literals
+  // 2^64
+  EXPECT_THROW(gs->make_term("18446744073709551616", bv64),
+               IncorrectUsageException);
+  // -(2^63 + 1)
+  EXPECT_THROW(gs->make_term("-9223372036854775809", bv64),
+               IncorrectUsageException);
+  Sort bv65 = gs->make_sort(BV, 65);
+  // 2^65 - 1
+  EXPECT_EQ(gs->make_term("36893488147419103231", bv65)->to_string(),
+            "#b" + string(65, '1'));
+  // -2^64
+  EXPECT_EQ(gs->make_term("-18446744073709551616", bv65)->to_string(),
+            "#b1" + string(64, '0'));
+  // 2^65
+  EXPECT_THROW(gs->make_term("36893488147419103232", bv65),
+               IncorrectUsageException);
+  // -(2^64 + 1)
+  EXPECT_THROW(gs->make_term("-18446744073709551617", bv65),
+               IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, BvIntOutOfRange)
+{
+  Sort bv_sort = gs->make_sort(BV, 8);
+  EXPECT_THROW(gs->make_term(0b1'0000'0000, bv_sort), IncorrectUsageException);
+  EXPECT_THROW(gs->make_term(-0b1000'0001, bv_sort), IncorrectUsageException);
+  Sort bv64 = gs->make_sort(BV, 64);
+  EXPECT_EQ(gs->make_term(INT64_MIN, bv64)->to_string(),
+            "#b1" + string(63, '0'));
+  EXPECT_EQ(gs->make_term(INT64_MAX, bv64)->to_string(),
+            "#b0" + string(63, '1'));
+}
+
+TEST_P(GenericSolverIntTests, IntStringNotANumber)
+{
+  Sort int_sort = gs->make_sort(INT);
+  gs->make_symbol("x", int_sort);
+  // each would reach the binary as the symbol x, or as a decimal
+  for (const char * val : { "x", "-x", "1.5", "" })
+  {
+    EXPECT_THROW(gs->make_term(val, int_sort), IncorrectUsageException)
+        << "for \"" << val << "\"";
+  }
 }
 
 TEST_P(GenericSolverTests, NonNumericSortValue)
@@ -831,6 +978,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverUfTests,
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntTests,
                          GenericSolverIntTests,
                          testing::ValuesIn(params_with(THEORY_INT)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         GenericSolverRealTests,
+                         testing::ValuesIn(params_with(THEORY_REAL)),
                          param_name);
 
 INSTANTIATE_TEST_SUITE_P(
