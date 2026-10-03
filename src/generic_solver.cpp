@@ -412,6 +412,23 @@ void GenericSolver::write_internal(std::string str) const
   // parenthesis -- out of a command that reaches it one byte at a time,
   // and then waits for the rest of a command it already has, so hand the
   // command over in as few write() calls as the pipe allows.
+  //
+  // Writing to a binary that has exited or closed its input raises
+  // SIGPIPE, which kills the whole process unless it is handled. Blocking
+  // it in this thread makes write() fail with EPIPE instead, and leaves the
+  // signal handling of the program using the library alone.
+  sigset_t sigpipe_set;
+  sigemptyset(&sigpipe_set);
+  sigaddset(&sigpipe_set, SIGPIPE);
+  // a SIGPIPE can only be pending here if the caller already blocks it,
+  // and then it is the caller's, not one of ours to discard
+  sigset_t pending;
+  sigpending(&pending);
+  bool sigpipe_was_pending = sigismember(&pending, SIGPIPE);
+  sigset_t old_mask;
+  pthread_sigmask(SIG_BLOCK, &sigpipe_set, &old_mask);
+
+  int write_errno = 0;
   std::string::size_type written_chars = 0;
   while (written_chars < str.size())
   {
@@ -423,11 +440,30 @@ void GenericSolver::write_internal(std::string str) const
       {
         continue;
       }
-      throw InternalSolverException(
-          "Failed to send a command to the solver binary at " + path + ": "
-          + strerror(errno));
+      write_errno = errno;
+      break;
     }
     written_chars += just_written;
+  }
+
+  if (write_errno == EPIPE && !sigpipe_was_pending)
+  {
+    // discard the SIGPIPE the failed write raised, which unblocking would
+    // otherwise deliver; sigwait() blocks until one is pending, so only
+    // call it once sigpending() has found one
+    sigpending(&pending);
+    if (sigismember(&pending, SIGPIPE))
+    {
+      int discarded;
+      sigwait(&sigpipe_set, &discarded);
+    }
+  }
+  pthread_sigmask(SIG_SETMASK, &old_mask, nullptr);
+  if (write_errno != 0)
+  {
+    throw InternalSolverException(
+        "Failed to send a command to the solver binary at " + path + ": "
+        + strerror(write_errno));
   }
 }
 
