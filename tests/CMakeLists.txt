@@ -135,6 +135,7 @@ switch_add_test(test-generic-term)
 switch_add_test(test-int)
 switch_add_test(test-itp)
 switch_add_test(test-logging-solver)
+switch_add_test(test-printing)
 switch_add_test(test-sorting-network)
 switch_add_test(test-str)
 switch_add_test(test-term-translation)
@@ -142,6 +143,9 @@ switch_add_test(test-time-limit)
 switch_add_test(test-unsat-core)
 switch_add_test(test-unsat-core-reducer)
 switch_add_test(test-variadic-ops)
+
+# replays what it prints through each solver's executable
+target_link_libraries(test-printing PRIVATE exec-utils)
 
 if(SMTLIB_READER)
   switch_add_test(test-smtlib-reader)

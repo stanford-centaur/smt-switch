@@ -40,9 +40,11 @@ class MsatPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    std::string msat_path = STRFY(MATHSAT_ROOT);
-    msat_path += "/bin/mathsat";
-    dump_and_run(msat_path, strbuf, expected_result, extra_opts);
+#ifdef MATHSAT_BINARY
+    dump_and_run(MATHSAT_BINARY, strbuf, expected_result, extra_opts);
+#else
+    GTEST_SKIP() << "configure found no mathsat executable";
+#endif
   }
   std::stringbuf strbuf;
   std::ostream * os;

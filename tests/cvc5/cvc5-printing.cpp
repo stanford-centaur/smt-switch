@@ -40,9 +40,11 @@ class Cvc5PrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    std::string cvc5_path = STRFY(CVC5_ROOT);
-    cvc5_path += "/bin/cvc5";
-    dump_and_run(cvc5_path, strbuf, expected_result, extra_opts);
+#ifdef CVC5_BINARY
+    dump_and_run(CVC5_BINARY, strbuf, expected_result, extra_opts);
+#else
+    GTEST_SKIP() << "configure found no cvc5 executable";
+#endif
   }
   std::stringbuf strbuf;
   std::ostream * os;
@@ -92,54 +94,6 @@ TEST_F(Cvc5PrintingTest, Interpolation)
           { "(define-fun I () Bool (<= z x))" },
       },
       "--produce-interpolants --incremental");
-}
-
-TEST_F(Cvc5PrintingTest, Solving)
-{
-  SmtSolver s = create_printing_solver(
-      Cvc5SolverFactory::create(false), os, PrintingStyleEnum::CVC5_STYLE);
-  s->set_logic("QF_AUFBV");
-  s->set_opt("produce-models", "true");
-  s->set_opt("produce-unsat-assumptions", "true");
-  s->set_opt("incremental", "true");
-  s->set_opt("bv-print-consts-as-indexed-symbols", "true");
-  Sort us = s->make_sort("S", 0);
-  Sort bvsort32 = s->make_sort(BV, 32);
-  Sort fun_sort = s->make_sort(FUNCTION, SortVec{ bvsort32, us });
-  Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
-  Term x = s->make_symbol("x", bvsort32);
-  Term y = s->make_symbol("y", bvsort32);
-  Term arr = s->make_symbol("arr", array32_32);
-  Term fun = s->make_symbol("f", fun_sort);
-
-  Term S0 = s->make_symbol("s", us);
-
-  Term ind1 = s->make_symbol("ind1", s->make_sort(BOOL));
-  Term f = s->make_term(Equal, s->make_term(Apply, fun, x), S0);
-  s->push(1);
-  s->assert_formula(ind1);
-  s->assert_formula(s->make_term(Equal, ind1, f));
-  s->assert_formula(f);
-  s->assert_formula(
-      s->make_term(Not,
-                   s->make_term(Implies,
-                                s->make_term(Equal, x, y),
-                                s->make_term(Equal,
-                                             s->make_term(Select, arr, x),
-                                             s->make_term(Select, arr, y)))));
-  Result r = s->check_sat_assuming(TermVec{ ind1 });
-  ASSERT_TRUE(r.is_unsat());
-  UnorderedTermSet usc;
-  s->get_unsat_assumptions(usc);
-  s->pop(1);
-  s->check_sat();
-  s->get_value(x);
-  check_result({
-      { "unsat" },
-      { "(ind1)" },
-      { "sat" },
-      { "((x (_ bv0 32)))" },
-  });
 }
 
 }  // namespace smt_tests
