@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 
 // note: this file depends on the CMake build infrastructure
@@ -29,7 +30,7 @@ using namespace smt;
 
 TEST(GenericTerm, IdsAndProperties)
 {
-  Sort int_sort = make_generic_sort(INT);
+  Sort int_sort = std::make_shared<GenericSort>(INT);
   GenericTerm one(int_sort, Op(), {}, "1");
   GenericTerm one_prime(int_sort, Op(), {}, "1");
   EXPECT_EQ(one.get_id(), one_prime.get_id());

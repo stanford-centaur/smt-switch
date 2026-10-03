@@ -28,18 +28,6 @@
 
 namespace smt {
 
-/* Helper functions for creating generic sorts */
-Sort make_uninterpreted_generic_sort(std::string name, std::uint64_t arity);
-Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec & sorts);
-Sort make_generic_sort(SortKind sk);
-Sort make_generic_sort(SortKind sk, std::uint64_t width);
-Sort make_generic_sort(SortKind sk, Sort sort1);
-Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2);
-Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3);
-Sort make_generic_sort(SortKind sk, SortVec sorts);
-Sort make_generic_sort(Datatype dt);
-Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt);
-
 /** \class GenericSort
  *  An abstract class for generic Sorts
  */

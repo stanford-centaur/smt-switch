@@ -688,7 +688,7 @@ Sort GenericSolver::make_sort(const Sort & sort_con,
   // Nothing is sent to the binary: (declare-sort List 1) went out when the
   // constructor itself was made, and an application like (List Int) is a sort
   // term, not a declaration. Mismatched arity throws from the sort.
-  Sort sort = make_uninterpreted_generic_sort(sort_con, sorts);
+  Sort sort = std::make_shared<UninterpretedGenericSort>(sort_con, sorts);
   const std::string name = sort->to_string();
   // Applying the same constructor to the same sorts twice names the same
   // sort, so unlike declare-sort this is not a clash.
@@ -709,7 +709,7 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
   if (name_sort_map->find(name) == name_sort_map->end())
   {
     // create the sort
-    Sort sort = make_uninterpreted_generic_sort(name, arity);
+    Sort sort = std::make_shared<UninterpretedGenericSort>(name, arity);
     // store the sort and the name in the maps
     (*name_sort_map)[name] = sort;
     (*sort_name_map)[sort] = name;
@@ -726,8 +726,12 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
 
 Sort GenericSolver::make_sort(const SortKind sk) const
 {
+  if (sk != BOOL && sk != INT && sk != REAL)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk));
+  }
   // create the sort
-  Sort sort = make_generic_sort(sk);
+  Sort sort = std::make_shared<GenericSort>(sk);
   // compute the name of the sort
   std::string name = sort->to_string();
 
@@ -749,8 +753,13 @@ Sort GenericSolver::make_sort(const SortKind sk) const
 
 Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
 {
+  if (sk != BV)
+  {
+    throw IncorrectUsageException("Can't create sort from " + to_string(sk)
+                                  + " and " + std::to_string(size));
+  }
   // create the sort
-  Sort sort = make_generic_sort(sk, size);
+  Sort sort = std::make_shared<BVGenericSort>(size);
   // compute the name
   std::string name = sort->to_string();
 
@@ -773,7 +782,28 @@ Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
 Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   // create the sort
-  Sort sort = make_generic_sort(sk, sorts);
+  Sort sort;
+  if (sk == FUNCTION)
+  {
+    SortVec domain(sorts);
+    Sort codomain = domain.back();
+    domain.pop_back();
+    sort = std::make_shared<FunctionGenericSort>(domain, codomain);
+  }
+  else if (sk == ARRAY && sorts.size() == 2)
+  {
+    sort = std::make_shared<ArrayGenericSort>(sorts[0], sorts[1]);
+  }
+  else
+  {
+    std::string msg("Can't make sort from ");
+    msg += to_string(sk);
+    for (auto ss : sorts)
+    {
+      msg += " " + ss->to_string();
+    }
+    throw IncorrectUsageException(msg);
+  }
   // compute the name
   std::string name = sort->to_string();
 
@@ -803,7 +833,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
-    Sort dt_sort = make_generic_sort(curr_dt);
+    Sort dt_sort = std::make_shared<GenericDatatypeSort>(curr_dt);
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
@@ -943,7 +973,8 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
   {
     throw InternalSolverException("Constructor not in datatype");
   }
-  Sort cons_sort = make_generic_sort(CONSTRUCTOR, name, s);
+  Sort cons_sort =
+      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
@@ -972,7 +1003,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
     throw InternalSolverException("Constructor not in datatype");
   }
 
-  Sort cons_sort = make_generic_sort(TESTER, name, s);
+  Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
   (*name_term_map)[name] = new_term;
@@ -987,7 +1018,7 @@ Term GenericSolver::get_selector(const Sort & s,
   std::shared_ptr<GenericDatatype> dt =
       std::static_pointer_cast<GenericDatatype>(s->get_datatype());
   bool found = false;
-  Sort cons_sort = make_generic_sort(SELECTOR, name, s);
+  Sort cons_sort = std::make_shared<DatatypeComponentSort>(SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
     std::shared_ptr<GenericDatatypeConstructorDecl> curr_con =
