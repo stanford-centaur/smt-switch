@@ -73,6 +73,12 @@ TEST_P(LoggingTests, Children)
   EXPECT_EQ(children[1], one);
 }
 
+TEST_P(LoggingTests, PrintsApplicationAsSmtlib)
+{
+  Term f = s->make_symbol("f", funsort);
+  EXPECT_EQ(s->make_term(Apply, f, x)->to_string(), "(f x)");
+}
+
 TEST_P(LoggingTests, HashConsing)
 {
   Term xp1 = s->make_term(BVAdd, x, one);
