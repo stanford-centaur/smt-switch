@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "interpolating_solver.h"
 #include "smt_defs.h"
 
 namespace smt {
@@ -37,10 +38,10 @@ class MsatSolverFactory
    */
   static SmtSolver create(bool logging);
 
-  /** Create an interpolating MathSAT SmtSolver
-   *  @return an interpolating MathSAT SmtSolver
+  /** Create an interpolating MathSAT solver
+   *  @return an interpolating MathSAT SmtInterpolator
    */
-  static SmtSolver create_interpolating_solver();
+  static SmtInterpolator create_interpolating_solver();
 };
 
 }  // namespace smt

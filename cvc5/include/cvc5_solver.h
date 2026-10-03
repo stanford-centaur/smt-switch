@@ -26,6 +26,7 @@
 #include "cvc5_datatype.h"
 #include "cvc5_sort.h"
 #include "cvc5_term.h"
+#include "interpolating_solver.h"
 #include "smt.h"
 
 namespace smt {
@@ -128,26 +129,25 @@ class Cvc5Solver : public AbsSmtSolver
 };
 
 // Interpolating Solver
-class cvc5InterpolatingSolver : public Cvc5Solver
+class cvc5InterpolatingSolver : public AbsSmtInterpolator
 {
  public:
-  cvc5InterpolatingSolver() {}
+  cvc5InterpolatingSolver();
   cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
   cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
   ~cvc5InterpolatingSolver() {}
 
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
-  void assert_formula(const Term & t) override;
-  Result check_sat() override;
-  // Overriding check_sat_assuming hides the AbsSmtSolver template that
-  // takes any range of Terms, so name it back in.
-  using AbsSmtSolver::check_sat_assuming;
-  Result check_sat_assuming(const TermVec & assumptions) override;
-  Term get_value(const Term & t) const override;
+  void set_opt(const std::string option, const std::string value) override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
+  Result get_sequence_interpolants(const TermVec & formulae,
+                                   TermVec & out_I) const override;
+  void reset_assertions() override;
+
+ protected:
+  // the regular solver that builds this solver's terms
+  std::shared_ptr<Cvc5Solver> cvc5_solver;
 };
 
 }  // namespace smt

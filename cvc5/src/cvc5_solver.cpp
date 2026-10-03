@@ -1027,44 +1027,23 @@ Result Cvc5Solver::check_sat_assuming(
 
 /* end Cvc5Solver implementation */
 
-void cvc5InterpolatingSolver::push(std::uint64_t /* num */)
+cvc5InterpolatingSolver::cvc5InterpolatingSolver()
+    : AbsSmtInterpolator(CVC5_INTERPOLATOR, std::make_shared<Cvc5Solver>()),
+      cvc5_solver(std::static_pointer_cast<Cvc5Solver>(backend_solver))
 {
-  throw IncorrectUsageException("Can't call push from interpolating solver");
 }
 
-void cvc5InterpolatingSolver::pop(std::uint64_t /* num */)
+void cvc5InterpolatingSolver::set_opt(const std::string option,
+                                      const std::string value)
 {
-  throw IncorrectUsageException("Can't call pop from interpolating solver");
-}
-
-void cvc5InterpolatingSolver::assert_formula(const Term & /* t */)
-{
-  throw IncorrectUsageException(
-      "Can't assert formulas in interpolating solver");
-}
-
-Result cvc5InterpolatingSolver::check_sat()
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat from interpolating solver");
-}
-
-Result cvc5InterpolatingSolver::check_sat_assuming(
-    const TermVec & /* assumptions */)
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat_assuming from interpolating solver");
-}
-
-Term cvc5InterpolatingSolver::get_value(const Term & /* t */) const
-{
-  throw IncorrectUsageException("Can't get values from interpolating solver");
+  cvc5_solver->set_opt(option, value);
 }
 
 Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
 {
+  ::cvc5::Solver & solver = cvc5_solver->get_cvc5_solver();
   solver.resetAssertions();
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
@@ -1085,6 +1064,17 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   {
     return UNKNOWN;
   }
+}
+
+Result cvc5InterpolatingSolver::get_sequence_interpolants(
+    const TermVec & formulae, TermVec & out_I) const
+{
+  return sequence_from_interpolants(formulae, out_I);
+}
+
+void cvc5InterpolatingSolver::reset_assertions()
+{
+  cvc5_solver->reset_assertions();
 }
 
 }  // namespace smt

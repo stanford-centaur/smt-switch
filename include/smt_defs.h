@@ -34,6 +34,9 @@ using Term = std::shared_ptr<AbsTerm>;
 class AbsSmtSolver;
 using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 
+class AbsSmtInterpolator;
+using SmtInterpolator = std::shared_ptr<AbsSmtInterpolator>;
+
 // Datatype theory related
 class AbsDatatypeDecl;
 using DatatypeDecl = std::shared_ptr<AbsDatatypeDecl>;

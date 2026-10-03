@@ -37,5 +37,8 @@
 // Main solver interface.
 #include "solver.h"  // IWYU pragma: export
 
+// Interpolating solver interface.
+#include "interpolating_solver.h"  // IWYU pragma: export
+
 // Solver enums for identifying solver
 #include "solver_enums.h"  // IWYU pragma: export

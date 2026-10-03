@@ -1174,12 +1174,20 @@ Result MsatSolver::check_sat_assuming_msatvec(
 MsatInterpolatingSolver::MsatInterpolatingSolver()
     : MsatInterpolatingSolver(msat_create_config())
 {
-  default_config_ = true;
+  // only a preference, so a caller's configuration keeps its own
+  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
 }
 
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c) : MsatSolver(c)
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c)
+    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
+      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
 {
-  solver_enum = MSAT_INTERPOLATOR;
+  // required even on a caller's configuration: without interpolation
+  // there are no interpolants, and the eager BV solver produces no proofs
+  msat_solver_->set_opt("interpolation", "true");
+  msat_solver_->set_opt("theory.bv.eager", "false");
+  // TODO: decide if we should add this
+  // msat_solver_->set_opt("theory.eq_propagation", "false");
 }
 
 MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
@@ -1190,66 +1198,9 @@ MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
   msat_destroy_env(e);
 }
 
-void MsatInterpolatingSolver::initialize_env() const
-{
-  if (env_uninitialized)
-  {
-    // required even on a caller's configuration: without interpolation
-    // there are no interpolants, and the eager BV solver produces no proofs
-    if (msat_set_option(cfg, "interpolation", "true")
-        || msat_set_option(cfg, "theory.bv.eager", "false"))
-    {
-      throw InternalSolverException("Failed to enable MathSAT interpolation");
-    }
-    // only a preference, so a caller's configuration keeps its own
-    if (default_config_
-        && msat_set_option(cfg, "theory.bv.bit_blast_mode", "0"))
-    {
-      throw InternalSolverException("Failed to set MathSAT bit_blast_mode");
-    }
-    // TODO: decide if we should add this
-    // msat_set_option(cfg, "theory.eq_propagation", "false");
-    env = msat_create_env(cfg);
-    env_uninitialized = false;
-  }
-}
-
 void MsatInterpolatingSolver::set_opt(const string option, const string value)
 {
   throw IncorrectUsageException("Can't set options of interpolating solver.");
-}
-
-void MsatInterpolatingSolver::push(uint64_t num)
-{
-  throw IncorrectUsageException("Can't call push from interpolating solver");
-}
-
-void MsatInterpolatingSolver::pop(uint64_t num)
-{
-  throw IncorrectUsageException("Can't call pop from interpolating solver");
-}
-
-void MsatInterpolatingSolver::assert_formula(const Term & t)
-{
-  throw IncorrectUsageException(
-      "Can't assert formulas in interpolating solver");
-}
-
-Result MsatInterpolatingSolver::check_sat()
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat from interpolating solver");
-}
-
-Result MsatInterpolatingSolver::check_sat_assuming(const TermVec & assumptions)
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat_assuming from interpolating solver");
-}
-
-Term MsatInterpolatingSolver::get_value(const Term & t) const
-{
-  throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
 // delegate the interpolation procedure to `get_sequence_interpolants`
@@ -1257,15 +1208,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
 {
-  TermVec formulas{ A, B };
-  TermVec itp_seq;
-  Result res = get_sequence_interpolants(formulas, itp_seq);
-  assert(itp_seq.size() <= 1);
-  if (itp_seq.size() == 1)
-  {
-    out_I = itp_seq.front();
-  }
-  return res;
+  return interpolant_from_sequence(A, B, out_I);
 }
 
 // Compute interpolation sequence with incremental solving.
@@ -1286,7 +1229,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
-  initialize_env();
+  msat_env env = msat_solver_->get_msat_env();
   assert(msat_num_backtrack_points(env) == last_itp_query_assertions_.size());
   assert(itp_grps_.size() == last_itp_query_assertions_.size());
 
@@ -1389,14 +1332,14 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 
 void MsatInterpolatingSolver::reset_assertions()
 {
-  super::reset_assertions();
+  msat_solver_->reset_assertions();
   last_itp_query_assertions_.clear();
   itp_grps_.clear();
 }
 
 void MsatInterpolatingSolver::reset()
 {
-  super::reset();
+  msat_solver_->reset();
   last_itp_query_assertions_.clear();
   itp_grps_.clear();
 }

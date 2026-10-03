@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "interpolating_solver.h"
 #include "smt_defs.h"
 
 namespace smt {
@@ -33,9 +34,9 @@ class BitwuzlaSolverFactory
    */
   static SmtSolver create(bool logging);
 
-  /** Create an interpolating Bitwuzla SmtSolver
-   *  @return an interpolating Bitwuzla SmtSolver
+  /** Create an interpolating Bitwuzla solver
+   *  @return an interpolating Bitwuzla SmtInterpolator
    */
-  static SmtSolver create_interpolating_solver();
+  static SmtInterpolator create_interpolating_solver();
 };
 }  // namespace smt

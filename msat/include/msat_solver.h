@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "interpolating_solver.h"
 #include "mathsat.h"
 #include "msat_sort.h"
 #include "msat_term.h"
@@ -164,16 +165,15 @@ class MsatSolver : public AbsSmtSolver
 };
 
 // Interpolating Solver
-class MsatInterpolatingSolver : public MsatSolver
+class MsatInterpolatingSolver : public AbsSmtInterpolator
 {
  public:
-  typedef MsatSolver super;
   MsatInterpolatingSolver();
   /** Creates an interpolating solver from a configuration and takes
-   *  ownership of it: the solver destroys c. On first use it sets the two
-   *  options MathSAT cannot interpolate without, interpolation=true and
-   *  theory.bv.eager=false, then creates the environment. Every other
-   *  option on c is left as given.
+   *  ownership of it: the solver destroys c. It sets the two options
+   *  MathSAT cannot interpolate without, interpolation=true and
+   *  theory.bv.eager=false, and the environment is created from c on
+   *  first use. Every other option on c is left as given.
    */
   explicit MsatInterpolatingSolver(msat_config c);
   /** Deprecated: use MsatInterpolatingSolver(msat_config). Takes ownership
@@ -187,15 +187,6 @@ class MsatInterpolatingSolver : public MsatSolver
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
   void set_opt(const std::string option, const std::string value) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  void assert_formula(const Term & t) override;
-  Result check_sat() override;
-  // Overriding check_sat_assuming hides the AbsSmtSolver template that
-  // takes any range of Terms, so name it back in.
-  using AbsSmtSolver::check_sat_assuming;
-  Result check_sat_assuming(const TermVec & assumptions) override;
-  Term get_value(const Term & t) const override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
@@ -205,7 +196,8 @@ class MsatInterpolatingSolver : public MsatSolver
   void reset_assertions() override;
 
  protected:
-  virtual void initialize_env() const override;
+  // the regular solver that builds this solver's terms
+  std::shared_ptr<MsatSolver> msat_solver_;
 
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
@@ -213,8 +205,6 @@ class MsatInterpolatingSolver : public MsatSolver
   mutable TermVec last_itp_query_assertions_;
   // interpolation group for each assertion level
   mutable std::vector<int> itp_grps_;
-  // true if the solver created cfg itself, so its own defaults may be set
-  bool default_config_ = false;
 };
 
 }  // namespace smt

@@ -129,6 +129,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/identity_walker.cpp"
+  "${PROJECT_SOURCE_DIR}/src/interpolating_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/tree_walker.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
