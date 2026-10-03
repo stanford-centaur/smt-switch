@@ -330,13 +330,6 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
-
-{
-  throw IncorrectUsageException(
-      "Bitwuzla does not support uninterpreted sort construction");
-}
-
 Term BzlaSolver::make_term(bool b) const
 {
   if (b)

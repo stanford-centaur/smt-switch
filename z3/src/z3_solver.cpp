@@ -749,12 +749,6 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
-Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
-{
-  throw NotImplementedException(
-      "Z3 does not support uninterpreted sort constructors");
-}
-
 Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 {
   if (symbol_table.find(name) != symbol_table.end())

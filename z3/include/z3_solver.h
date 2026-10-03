@@ -71,7 +71,6 @@ class Z3Solver : public AbsSmtSolver
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
-  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(const DatatypeDecl & d) const override;
   SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls) const override;
