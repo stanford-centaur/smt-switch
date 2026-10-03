@@ -130,6 +130,41 @@ TEST_P(ItpTests, ReportsItsSolverEnum)
   EXPECT_EQ(itp->get_solver_enum(), GetParam().config.solver_enum);
 }
 
+TEST_P(ItpTests, RefusesSolvingCalls)
+{
+  Term t = itp->make_term(lt, x, y);
+  EXPECT_THROW(itp->push(), IncorrectUsageException);
+  EXPECT_THROW(itp->pop(), IncorrectUsageException);
+  EXPECT_THROW(itp->pop_all(), IncorrectUsageException);
+  EXPECT_THROW(itp->assert_formula(t), IncorrectUsageException);
+  EXPECT_THROW(itp->check_sat(), IncorrectUsageException);
+  EXPECT_THROW(itp->check_sat_assuming(TermVec{ t }), IncorrectUsageException);
+  EXPECT_THROW(itp->get_value(x), IncorrectUsageException);
+  Term const_base;
+  EXPECT_THROW(itp->get_array_values(x, const_base), IncorrectUsageException);
+  UnorderedTermSet assumptions;
+  EXPECT_THROW(itp->get_unsat_assumptions(assumptions),
+               IncorrectUsageException);
+}
+
+// an interpolation query uses the backend's own context levels, which must
+// not show through
+TEST_P(ItpTests, ContextLevelStaysZero)
+{
+  Term A =
+      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term B = itp->make_term(gt, x, z);
+  Term I;
+  ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
+  EXPECT_EQ(itp->get_context_level(), 0);
+}
+
+TEST_P(ItpTests, DumpIsNotImplemented)
+{
+  EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),
+               NotImplementedException);
+}
+
 // each interpolator runs the tests in every theory it supports
 vector<ItpParam> itp_params()
 {
