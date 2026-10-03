@@ -17,6 +17,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -86,4 +87,23 @@ std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
+
+/** A name for a configuration that can go in a test name, e.g. CVC5 or
+ *  CVC5_LOGGING
+ */
+std::string config_name(SolverConfiguration sc);
+
+/** Names the cases of a suite parameterized by SolverConfiguration
+ *  after their configuration, e.g.
+ *    INSTANTIATE_TEST_SUITE_P(, Suite, ValuesIn(...), ConfigName());
+ *  gives Suite.Test/CVC5 rather than Suite.Test/4
+ */
+struct ConfigName
+{
+  template <typename ParamInfo>
+  std::string operator()(const ParamInfo & info) const
+  {
+    return config_name(info.param);
+  }
+};
 }  // namespace smt_tests

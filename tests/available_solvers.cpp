@@ -373,4 +373,14 @@ std::ostream & operator<<(std::ostream & o, SolverConfiguration sc)
   return o;
 }
 
+std::string config_name(SolverConfiguration sc)
+{
+  std::string name = to_string(sc.solver_enum);
+  if (sc.is_logging_solver)
+  {
+    name += "_LOGGING";
+  }
+  return name;
+}
+
 }  // namespace smt_tests
