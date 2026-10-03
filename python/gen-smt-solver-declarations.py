@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2020 the smt-switch authors
 # SPDX-FileContributor: Makai Mann
 # SPDX-License-Identifier: BSD-3-Clause

@@ -1,9 +1,7 @@
 # First, ensure we have Python 3.10 or newer with all required components. The
 # floor has to match requires-python in pyproject.toml: building against an
 # older interpreter would produce a wheel that pip then refuses to install.
-# Check for a virtualenv python first
-find_package(PythonVirtualEnv)
-find_python_in_virtualenv()
+# An active virtualenv or conda environment is preferred by FindPython itself.
 # Want python for building a module, so use Development.Module.
 # CMake before 3.18 has only Development, which also wants the library
 # that manylinux leaves out; the wheels there are built with a newer CMake.
@@ -106,7 +104,7 @@ add_custom_target(
   gen-smt-solver-declarations
   ALL
   COMMAND
-    ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py ${GEN_OPTIONS}
+    ${Python_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py ${GEN_OPTIONS}
   DEPENDS gen-smt-solver-declarations.py
   COMMENT "Generate smt_solvers.{pxd,pyx}"
 )
