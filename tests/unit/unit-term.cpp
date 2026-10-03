@@ -88,4 +88,82 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTermArith,
                          testing::ValuesIn(filter_solver_configurations(
                              { THEORY_INT, THEORY_REAL })));
 
+class NegativeValueTests
+    : public ::testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override { s = create_solver(GetParam()); }
+  SmtSolver s;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NegativeBVTests);
+class NegativeBVTests : public NegativeValueTests
+{
+ protected:
+  void SetUp() override
+  {
+    NegativeValueTests::SetUp();
+    bvsort = s->make_sort(BV, 8);
+  }
+  Sort bvsort;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NegativeIntTests);
+class NegativeIntTests : public NegativeValueTests
+{
+ protected:
+  void SetUp() override
+  {
+    NegativeValueTests::SetUp();
+    intsort = s->make_sort(INT);
+  }
+  Sort intsort;
+};
+
+TEST_P(NegativeBVTests, IntAndStringAgree)
+{
+  EXPECT_EQ(s->make_term(-4, bvsort), s->make_term("-4", bvsort));
+}
+
+TEST_P(NegativeBVTests, OutOfRangeThrows)
+{
+  EXPECT_THROW(s->make_term("-129", bvsort), IncorrectUsageException);
+}
+
+TEST_P(NegativeBVTests, CancelsItsPositive)
+{
+  Term sum =
+      s->make_term(BVAdd, s->make_term(4, bvsort), s->make_term(-4, bvsort));
+  s->assert_formula(
+      s->make_term(Not, s->make_term(Equal, sum, s->make_term(0, bvsort))));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(NegativeIntTests, IntAndStringAgree)
+{
+  EXPECT_EQ(s->make_term(-5, intsort), s->make_term("-5", intsort));
+}
+
+TEST_P(NegativeIntTests, CancelsItsPositive)
+{
+  Term sum =
+      s->make_term(Plus, s->make_term(5, intsort), s->make_term(-5, intsort));
+  s->assert_formula(
+      s->make_term(Not, s->make_term(Equal, sum, s->make_term(0, intsort))));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    NegativeBVTests,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    NegativeIntTests,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    ConfigName());
+
 }  // namespace smt_tests
