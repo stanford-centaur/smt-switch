@@ -14,7 +14,6 @@ macro(switch_add_cvc5_test name)
   add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
-switch_add_cvc5_test(cvc5-arrays)
 switch_add_cvc5_test(cvc5-data-structures)
 switch_add_cvc5_test(cvc5-incremental)
 switch_add_cvc5_test(cvc5-indexed-op-tests)

@@ -7,7 +7,6 @@ endmacro()
 
 switch_add_btor_test(btor-array-empty-assignment)
 switch_add_btor_test(btor-array-models)
-switch_add_btor_test(btor-arrays)
 switch_add_btor_test(btor-const-arrays)
 switch_add_btor_test(btor-data-structures)
 switch_add_btor_test(btor-exceptions)

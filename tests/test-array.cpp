@@ -83,4 +83,36 @@ INSTANTIATE_TEST_SUITE_P(
     ArrayModelTests,
     testing::ValuesIn(filter_solver_configurations({ ARRAY_MODELS })));
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ArrayTests);
+class ArrayTests : public ::testing::Test,
+                   public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override { s = create_solver(GetParam()); }
+  SmtSolver s;
+};
+
+TEST_P(ArrayTests, EqualIndicesEqualReads)
+{
+  Sort bvsort32 = s->make_sort(BV, 32);
+  Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
+  Term x = s->make_symbol("x", bvsort32);
+  Term y = s->make_symbol("y", bvsort32);
+  Term arr = s->make_symbol("arr", array32_32);
+
+  s->assert_formula(
+      s->make_term(Not,
+                   s->make_term(Implies,
+                                s->make_term(Equal, x, y),
+                                s->make_term(Equal,
+                                             s->make_term(Select, arr, x),
+                                             s->make_term(Select, arr, y)))));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(,
+                         ArrayTests,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
+
 }  // namespace smt_tests
