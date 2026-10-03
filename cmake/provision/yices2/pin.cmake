@@ -1,0 +1,6 @@
+smt_switch_pin(
+  YICES2
+  GITHUB_REPO SRI-CSL/yices2
+  TAG yices-2.7.0
+  CHECKSUM 584db72abf6643927b2c3ba98ff793f602216b452b8ff2f34a8851d35904804a
+)

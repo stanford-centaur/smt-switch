@@ -15,7 +15,13 @@ cmake_minimum_required(VERSION 3.16)
 project(smt-switch-deps LANGUAGES NONE)
 
 include(ExternalProject)
-include("${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/Helpers.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/boolector/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cvc5/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/z3/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/yices2/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bison/pin.cmake")
 
 # The project's find modules live one directory up; the yices2 recipe needs
 # FindGMP.
@@ -86,7 +92,7 @@ endif()
 #
 # CMAKE_BUILD_TYPE is deliberately absent: cvc5 declares its own build types
 # and fails on anything outside them, so a blanket Release would break it.
-# Each dependency picks its own default instead, except z3 below.
+# Each dependency picks its own default instead, except z3 in z3/recipe.cmake.
 set(
   _forwarded_variables
   CMAKE_C_COMPILER
@@ -178,172 +184,17 @@ foreach(
   if(NOT ${_upper}_SHA256)
     message(
       FATAL_ERROR
-      "${_dependency} has no ${_upper}_SHA256 in versions.cmake, so what it "
+      "${_dependency} has no ${_upper}_SHA256 in "
+      "cmake/provision/${_dependency}/pin.cmake, so what it "
       "downloads cannot be checked. Get one from "
       "`cmake -P cmake/provision/refresh-hashes.cmake ${_dependency}`."
     )
   endif()
 endforeach()
 
-# -------------------------------------------------------------- boolector --
-# CaDiCaL and btor2tools are built by Boolector's own setup scripts, at the
-# commits Boolector pins, into <SOURCE_DIR>/deps/install, which Boolector's
-# CMake adds to its search path itself. The scripts download without a
-# checksum; only HTTPS vouches for those two archives.
-#
-# cvc5 links a CaDiCaL of its own, a different version under the same C++
-# names, so the link would quietly give one solver the other's. Boolector
-# calls only the C API, which cvc5's copy has removed, so renaming the
-# namespace in Boolector's copy leaves no name the two define alike. The
-# script sets CXXFLAGS itself rather than taking them from outside, so the
-# rename is edited into it.
-#
-# btor2tools wants CMake 3.3 too, and its script runs CMake without letting
-# us add arguments, so the policy floor goes in through the environment. The
-# script then runs make, so a CMAKE_GENERATOR in the environment, such as the
-# Ninja one CI sets, is taken out for it.
-smt_switch_dependency(
-  boolector
-  URL "${BOOLECTOR_URL}"
-  PATCH_COMMAND
-    sed -i.orig "s/CXXFLAGS=\"-fPIC\"/CXXFLAGS=\"-fPIC -DCaDiCaL=smt_switch_btor_CaDiCaL\"/"
-    <SOURCE_DIR>/contrib/setup-cadical.sh
-  COMMAND <SOURCE_DIR>/contrib/setup-cadical.sh
-  COMMAND
-    "${CMAKE_COMMAND}" -E env --unset=CMAKE_GENERATOR
-    CMAKE_POLICY_VERSION_MINIMUM=${POLICY_VERSION_MINIMUM}
-    <SOURCE_DIR>/contrib/setup-btor2tools.sh
-  CMAKE_ARGS
-    ${COMMON_CMAKE_ARGS}
-    ${POLICY_CMAKE_ARGS}
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DUSE_CADICAL=ON
-  BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
-)
-
-# ------------------------------------------------------------------- cvc5 --
-# ENABLE_AUTO_DOWNLOAD lets cvc5 fetch the dependencies we do not provision,
-# CaDiCaL among them, so that the version it gets is the one it pins; USE_POLY
-# brings in libpoly for nonlinear arithmetic.
-smt_switch_dependency(
-  cvc5
-  URL "${CVC5_URL}"
-  # Ask for a library name nothing provides, so that the lookup fails and cvc5
-  # downloads its CaDiCaL instead of linking one from the machine, which it
-  # would then not install.
-  PATCH_COMMAND
-    sed -i.orig "s/find_library(CaDiCaL_LIBRARIES NAMES cadical)/find_library(CaDiCaL_LIBRARIES NAMES cadical-not-installed)/"
-    <SOURCE_DIR>/cmake/FindCaDiCaL.cmake
-  CMAKE_ARGS
-    ${COMMON_CMAKE_ARGS}
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DENABLE_AUTO_DOWNLOAD=ON
-    -DUSE_POLY=ON
-  BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
-  INSTALL_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> --target install
-  # Drop the C API from the CaDiCaL a static cvc5 installs beside itself. It
-  # is not namespaced, Boolector's copy defines the same names, and cvc5 does
-  # not use any of it. cvc5 picks its library directory with GNUInstallDirs,
-  # as we did above, so the two agree.
-  COMMAND ar d <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcadical.a ccadical.o ipasir.o
-)
-
-# --------------------------------------------------------------------- z3 --
-# Z3 declares LANGUAGES CXX, so the C compiler we forward everywhere else
-# goes unused here and CMake reports it. The git options default to on and
-# warn as they turn themselves off, there being no .git in a tarball; say so
-# up front instead. Left to itself Z3 builds RelWithDebInfo, whose debug
-# info makes the installed library and binary many times larger.
-set(Z3_CMAKE_ARGS ${COMMON_CMAKE_ARGS})
-list(FILTER Z3_CMAKE_ARGS EXCLUDE REGEX "^-DCMAKE_C_COMPILER")
-
-smt_switch_dependency(
-  z3
-  URL "${Z3_URL}"
-  CMAKE_ARGS
-    ${Z3_CMAKE_ARGS}
-    -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DZ3_BUILD_LIBZ3_SHARED=OFF
-    -DZ3_INCLUDE_GIT_DESCRIBE=OFF
-    -DZ3_INCLUDE_GIT_HASH=OFF
-  BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
-)
-
-# --------------------------------------------------------------- bitwuzla --
-# Builds its own version of CaDiCaL, which would collide with the copies used by
-# boolector and cvc5, so we rename its namespace while compiling. Reap is an
-# internal data structure that CaDiCaL oddly puts in the global namespace, so we
-# also need to rename it.
-set(BITWUZLA_CADICAL "-DCaDiCaL=smt_switch_bzla_CaDiCaL -DReap=smt_switch_bzla_Reap")
-
-# The plain COMMAND options are run after the step they follow.
-smt_switch_dependency(
-  bitwuzla
-  URL "${BITWUZLA_URL}"
-  # Ask for a library name nothing provides, so that the lookup fails and
-  # Bitwuzla falls through to its wrap instead of linking a CaDiCaL from the
-  # machine, which would carry none of the patches the wrap applies.
-  PATCH_COMMAND
-    sed -i.orig "s/find_library('cadical',/find_library('cadical-not-installed',/"
-    <SOURCE_DIR>/src/meson.build
-  # Drop the C API from the CaDiCaL build. It is not namespaced, so the renaming
-  # fix does not apply, but bitwuzla does not use any of it.
-  COMMAND
-    sed -i.orig -e "/'ccadical.cpp',/d" -e "/'ipasir.cpp',/d"
-    <SOURCE_DIR>/subprojects/packagefiles/cadical/src/meson.build
-  CONFIGURE_COMMAND
-    <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
-  COMMAND
-    meson configure <SOURCE_DIR>/build "-Dcpp_args=${BITWUZLA_CADICAL}"
-    "-Dcadical:cpp_args=${BITWUZLA_CADICAL}"
-  BUILD_COMMAND meson compile -C <SOURCE_DIR>/build
-  INSTALL_COMMAND meson install -C <SOURCE_DIR>/build
-  BUILD_IN_SOURCE TRUE
-)
-
-# ----------------------------------------------------------------- yices2 --
-# Autotools, but the release archive carries no configure script, so autoconf
-# runs first. LDCONFIG lives in /usr/sbin, which is not always on a user's
-# PATH, and all it would do is refresh symlinks next to the staged library.
-#
-# The one dependency whose build looks for a library itself, and it does so
-# with a bare compiler: `cc -lgmp`. CMake's Darwin platform file prepends
-# `brew --prefix` to its search, so every other recipe here finds a Homebrew
-# GMP without being told; autoconf has no such notion and stops at "GMP
-# library not found". Hand it the directories that GMP was actually found
-# in, rather than leaving a macOS build to set CPATH itself.
-find_package(GMP QUIET)
-set(YICES2_ENV "")
-if(GMP_FOUND)
-  smt_switch_prepend_path(CPATH "${GMP_INCLUDE_DIRS}" YICES2_CPATH)
-  smt_switch_prepend_path(LIBRARY_PATH "${GMP_LIBRARY_DIRS}" YICES2_LIBRARY_PATH)
-  set(
-    YICES2_ENV
-    "${CMAKE_COMMAND}"
-    -E
-    env
-    "${YICES2_CPATH}"
-    "${YICES2_LIBRARY_PATH}"
-  )
-endif()
-
-smt_switch_dependency(
-  yices2
-  URL "${YICES2_URL}"
-  CONFIGURE_COMMAND autoconf
-  COMMAND ${YICES2_ENV} <SOURCE_DIR>/configure --enable-thread-safety --prefix=<INSTALL_DIR>
-  BUILD_COMMAND ${YICES2_ENV} make build_dir=build BUILD=build -j${SMT_SWITCH_DEPS_JOBS}
-  INSTALL_COMMAND make build_dir=build BUILD=build prefix=<INSTALL_DIR> LDCONFIG=true install
-  BUILD_IN_SOURCE TRUE
-)
-
-# ------------------------------------------------------------------ bison --
-smt_switch_dependency(
-  bison
-  URL "${BISON_URL}"
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-  BUILD_COMMAND make -j${SMT_SWITCH_DEPS_JOBS}
-  INSTALL_COMMAND make install
-  BUILD_IN_SOURCE TRUE
-)
+include("${CMAKE_CURRENT_LIST_DIR}/boolector/recipe.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cvc5/recipe.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/z3/recipe.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/recipe.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/yices2/recipe.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bison/recipe.cmake")

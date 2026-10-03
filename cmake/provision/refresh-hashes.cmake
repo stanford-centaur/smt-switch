@@ -1,5 +1,6 @@
-# Prints the SHA-256 of every pinned download, ready to paste into
-# versions.cmake, and says which ones no longer match what is recorded there.
+# Prints the SHA-256 of every pinned download, ready to paste into a
+# dependency's pin.cmake, and says which ones no longer match what is
+# recorded there.
 #
 #   cmake -P cmake/provision/refresh-hashes.cmake            # every pin
 #   cmake -P cmake/provision/refresh-hashes.cmake z3 cvc5    # just these
@@ -13,7 +14,13 @@ cmake_minimum_required(VERSION 3.16)
 # driver makes; see the note on CMAKE_TLS_VERIFY in CMakeLists.txt.
 set(CMAKE_TLS_VERIFY TRUE)
 
-include("${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/Helpers.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/boolector/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cvc5/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/z3/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/yices2/pin.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/bison/pin.cmake")
 
 set(
   _all_dependencies
