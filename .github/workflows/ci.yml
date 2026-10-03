@@ -6,17 +6,24 @@ name: CI
 concurrency:
   group: ci-${{ github.ref_name == 'main' && github.sha || github.ref }}
   cancel-in-progress: true
+env:
+  # Part of every solver's cache key. Bump it to rebuild every cached solver,
+  # e.g. after a runner image or system package update breaks a cached build.
+  DEPS_CACHE_EPOCH: 1
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-latest, macos-latest]
+        # Pinned rather than -latest, so that an OS upgrade is an edit here,
+        # which changes the cache keys, and not reuse of an old OS's builds
+        runner: [ubuntu-24.04, macos-26]
+        # Each is both a configure.sh option and the deps/ directory it fills
         solver:
           - bitwuzla
-          - btor
+          - boolector
           - cvc5
-          - msat
+          - mathsat
           - yices2
           - z3
     name: ${{ matrix.solver }} (${{ matrix.runner }})
@@ -24,7 +31,7 @@ jobs:
     env:
       # The install-packages scripts are named after the label's first element
       RUNNER_LABEL: ${{ matrix.runner }}
-      # Read by the MathSAT step below and by compute-solver-hash.sh
+      # Read by the MathSAT step below and by compute-dep-key.sh
       MSAT_VERSION: 5.6.18
       # Names the artifact; a fold here would put a space in it
       BUILD_ID: ${{ matrix.runner }}-${{ matrix.solver }}
@@ -34,19 +41,25 @@ jobs:
       - name: Install packages
         run: ./ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
       - name: Compute the cache key for the solver build
-        id: compute-solver-hash
-        run: ./ci-scripts/compute-solver-hash.sh ${{ matrix.solver }}
+        id: dep-key
+        env:
+          PREFIX: ${{ matrix.solver }}
+        run: |
+          key=$(./ci-scripts/compute-dep-key.sh "$RUNNER_LABEL" "$PREFIX")
+          echo "key=$key" >>"$GITHUB_OUTPUT"
       - name: Restore solver build from cache
         uses: actions/cache/restore@v6
         id: cache
         with:
           path: deps
-          key: deps-${{ steps.compute-solver-hash.outputs.result }}
+          key: ${{ steps.dep-key.outputs.key }}
       # Every other solver is provisioned by the Configure step below. MathSAT
       # cannot be: its licence does not let the build download it on a user's
       # behalf. Running this workflow accepts that licence.
       - name: Set up MathSAT
-        if: matrix.solver == 'msat' && steps.cache.outputs.cache-hit != 'true'
+        if: >-
+          matrix.solver == 'mathsat' &&
+          steps.cache.outputs.cache-hit != 'true'
         shell: bash
         env:
           MSAT_PLATFORM: >-
