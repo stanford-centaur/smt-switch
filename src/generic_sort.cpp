@@ -30,6 +30,9 @@
 
 namespace smt {
 
+/* smtlib representation of sort kinds, used only below */
+static std::string to_smtlib(SortKind sk);
+
 Sort make_uninterpreted_generic_sort(std::string name, std::uint64_t arity)
 {
   return std::make_shared<UninterpretedGenericSort>(name, arity);
@@ -312,7 +315,7 @@ const std::unordered_map<SortKind, std::string> sortkind2smtlib({
     { REAL, "Real" },
 });
 
-std::string to_smtlib(SortKind sk)
+static std::string to_smtlib(SortKind sk)
 {
   assert(sortkind2smtlib.find(sk) != sortkind2smtlib.end());
   return sortkind2smtlib.at(sk);
