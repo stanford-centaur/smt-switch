@@ -86,7 +86,7 @@ endif()
 #
 # CMAKE_BUILD_TYPE is deliberately absent: cvc5 declares its own build types
 # and fails on anything outside them, so a blanket Release would break it.
-# Each dependency picks its own default instead.
+# Each dependency picks its own default instead, except z3 below.
 set(
   _forwarded_variables
   CMAKE_C_COMPILER
@@ -252,7 +252,8 @@ smt_switch_dependency(
 # Z3 declares LANGUAGES CXX, so the C compiler we forward everywhere else
 # goes unused here and CMake reports it. The git options default to on and
 # warn as they turn themselves off, there being no .git in a tarball; say so
-# up front instead.
+# up front instead. Left to itself Z3 builds RelWithDebInfo, whose debug
+# info makes the installed library and binary many times larger.
 set(Z3_CMAKE_ARGS ${COMMON_CMAKE_ARGS})
 list(FILTER Z3_CMAKE_ARGS EXCLUDE REGEX "^-DCMAKE_C_COMPILER")
 
@@ -261,6 +262,7 @@ smt_switch_dependency(
   URL "${Z3_URL}"
   CMAKE_ARGS
     ${Z3_CMAKE_ARGS}
+    -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DZ3_BUILD_LIBZ3_SHARED=OFF
     -DZ3_INCLUDE_GIT_DESCRIBE=OFF
