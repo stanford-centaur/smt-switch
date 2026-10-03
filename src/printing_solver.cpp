@@ -256,9 +256,29 @@ void PrintingSolver::reset_assertions()
   wrapped_solver->reset_assertions();
 }
 
-Result PrintingSolver::get_interpolant(const Term & A,
-                                       const Term & B,
-                                       Term & out_I) const
+SmtSolver create_printing_solver(SmtSolver wrapped_solver,
+                                 std::ostream * out_stream,
+                                 PrintingStyleEnum style)
+{
+  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream, style);
+}
+
+/* PrintingInterpolator */
+
+PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
+                                           std::ostream * os,
+                                           PrintingStyleEnum pse)
+    : AbsSmtInterpolator(s->get_solver_enum(),
+                         std::make_shared<PrintingSolver>(s, os, pse)),
+      wrapped_interpolator(s),
+      out_stream(os),
+      style(pse)
+{
+}
+
+Result PrintingInterpolator::get_interpolant(const Term & A,
+                                             const Term & B,
+                                             Term & out_I) const
 {
   if (style == PrintingStyleEnum::MSAT_STYLE)
   {
@@ -296,14 +316,35 @@ Result PrintingSolver::get_interpolant(const Term & A,
                   << std::endl;
     (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
   }
-  return wrapped_solver->get_interpolant(A, B, out_I);
+  return wrapped_interpolator->get_interpolant(A, B, out_I);
 }
 
-SmtSolver create_printing_solver(SmtSolver wrapped_solver,
-                                 std::ostream * out_stream,
-                                 PrintingStyleEnum style)
+Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
+                                                       TermVec & out_I) const
 {
-  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream, style);
+  return sequence_from_interpolants(formulae, out_I);
+}
+
+void PrintingInterpolator::set_opt(const std::string option,
+                                   const std::string value)
+{
+  backend_solver->set_opt(option, value);
+}
+
+void PrintingInterpolator::reset() { backend_solver->reset(); }
+
+void PrintingInterpolator::reset_assertions()
+{
+  backend_solver->reset_assertions();
+}
+
+SmtInterpolator create_printing_interpolator(
+    SmtInterpolator wrapped_interpolator,
+    std::ostream * out_stream,
+    PrintingStyleEnum style)
+{
+  return std::make_shared<PrintingInterpolator>(
+      wrapped_interpolator, out_stream, style);
 }
 
 }  // namespace smt

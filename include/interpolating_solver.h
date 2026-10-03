@@ -69,11 +69,36 @@ class AbsSmtInterpolator : public AbsSmtSolver
   Term get_value(const Term & t) const final;
 
   // ------------------------- Required -------------------------------------
-  Result get_interpolant(const Term & A,
-                         const Term & B,
-                         Term & out_I) const override = 0;
-  Result get_sequence_interpolants(const TermVec & formulae,
-                                   TermVec & out_I) const override = 0;
+  /* Compute a Craig interpolant given A and B such that A ^ B is unsat
+   *   i.e. an I such that: A -> I  and  I ^ B is unsat
+   *        and I only contains constants that are in both A and B
+   * @param A the A term for a craig interpolant
+   * @param B the B term for a craig interpolant
+   * @param out_I the term to store the computed interpolant in
+   * @return unsat    iff an interpolant was computed,
+   *         sat      iff the query was satisfiable,
+   *         unknown  iff interpolation failed
+   *
+   */
+  virtual Result get_interpolant(const Term & A,
+                                 const Term & B,
+                                 Term & out_I) const = 0;
+
+  /** Compute a sequence interpolants given formulae
+   *  such that there is an interpolant between each adjacent formula in
+   *  the vector formulae
+   * @param formulae the formula terms to get sequence interpolants for
+   * @param out_I the vector to store sequence interpolants in
+   *              NOTE out_I can have null terms in it -- see below
+   * @return unsat    iff the interpolants were computed,
+   *         sat      iff the query was satisfiable,
+   *         unknown  iff any step of the interpolation failed
+   *                  in this case, out_I is still populated but any
+   *                  failed steps have null terms
+   *
+   */
+  virtual Result get_sequence_interpolants(const TermVec & formulae,
+                                           TermVec & out_I) const = 0;
 
   // ------------------------- Optional -------------------------------------
   void set_opt(const std::string option, const std::string value) override;

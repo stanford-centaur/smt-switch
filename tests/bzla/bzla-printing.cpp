@@ -84,7 +84,7 @@ TEST_F(BitwuzlaPrintingTest, Solving)
 
 TEST_F(BitwuzlaPrintingTest, Interpolation)
 {
-  SmtSolver solver = create_printing_solver(
+  SmtInterpolator solver = create_printing_interpolator(
       BitwuzlaSolverFactory::create_interpolating_solver(),
       os,
       PrintingStyleEnum::BZLA_STYLE);

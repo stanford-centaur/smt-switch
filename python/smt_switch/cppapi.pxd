@@ -10,6 +10,7 @@ from .cppenums cimport c_PrimOp, c_SortKind
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
 ctypedef shared_ptr[AbsSmtSolver] c_SmtSolver
+ctypedef shared_ptr[AbsSmtInterpolator] c_SmtInterpolator
 ctypedef vector[c_Sort] c_SortVec
 ctypedef vector[c_Term] c_TermVec
 ctypedef unordered_set[c_Term] c_UnorderedTermSet
@@ -130,6 +131,10 @@ cdef extern from "solver.h" namespace "smt":
             const c_Term term, const c_UnorderedTermMap & substitution_map
         ) except +
         void dump_smt2(string filename) except +
+
+
+cdef extern from "interpolating_solver.h" namespace "smt":
+    cdef cppclass AbsSmtInterpolator(AbsSmtSolver):
         c_Result get_interpolant(
             const c_Term & A, const c_Term & B, c_Term & out_I
         ) except +

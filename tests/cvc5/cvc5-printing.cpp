@@ -50,10 +50,10 @@ class Cvc5PrintingTest : public testing::Test
 
 TEST_F(Cvc5PrintingTest, Interpolation)
 {
-  SmtSolver s =
-      create_printing_solver(Cvc5SolverFactory::create_interpolating_solver(),
-                             os,
-                             PrintingStyleEnum::CVC5_STYLE);
+  SmtInterpolator s = create_printing_interpolator(
+      Cvc5SolverFactory::create_interpolating_solver(),
+      os,
+      PrintingStyleEnum::CVC5_STYLE);
   s->set_logic("QF_LIA");
   s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort intsort = s->make_sort(INT);

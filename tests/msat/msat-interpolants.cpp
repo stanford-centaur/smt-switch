@@ -29,7 +29,7 @@ using namespace smt;
 
 TEST(MsatInterpolants, GetInterpolant)
 {
-  SmtSolver s = MsatSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
   Sort intsort = s->make_sort(INT);
 
   Term x = s->make_symbol("x", intsort);

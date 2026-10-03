@@ -70,7 +70,7 @@ class ItpTests : public ::testing::Test,
     z = itp->make_symbol("z", sort);
     w = itp->make_symbol("w", sort);
   }
-  SmtSolver itp;
+  SmtInterpolator itp;
   Sort sort;
   PrimOp lt, gt;
   Term x, y, z, w;

@@ -151,7 +151,7 @@ SmtSolver create_solver(SolverConfiguration sc)
   }
 }
 
-SmtSolver create_interpolating_solver(SolverConfiguration sc)
+SmtInterpolator create_interpolating_solver(SolverConfiguration sc)
 {
   switch (sc.solver_enum)
   {

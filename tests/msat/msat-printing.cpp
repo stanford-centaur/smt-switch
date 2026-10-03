@@ -50,10 +50,10 @@ class MsatPrintingTest : public testing::Test
 
 TEST_F(MsatPrintingTest, Interpolation)
 {
-  SmtSolver s =
-      create_printing_solver(MsatSolverFactory::create_interpolating_solver(),
-                             os,
-                             PrintingStyleEnum::MSAT_STYLE);
+  SmtInterpolator s = create_printing_interpolator(
+      MsatSolverFactory::create_interpolating_solver(),
+      os,
+      PrintingStyleEnum::MSAT_STYLE);
   s->set_logic("QF_LIA");
 
   Sort intsort = s->make_sort(INT);
