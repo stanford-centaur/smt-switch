@@ -38,13 +38,15 @@ namespace smt {
    which it holds and forwards those calls to.
 
    The contract:
-   - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming
-     and get_value throw IncorrectUsageException, and are final so that
-     no interpolator can re-enable solving.
+   - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming,
+     get_value, get_array_values and get_unsat_assumptions throw
+     IncorrectUsageException, and are final so that no interpolator can
+     re-enable solving. get_context_level is final too, and returns 0,
+     since no context can be pushed.
    - Required: get_interpolant and get_sequence_interpolants. A backend
      usually computes only one of them natively, and can implement the
      other with interpolant_from_sequence or sequence_from_interpolants.
-   - Optional: set_opt, reset and reset_assertions throw
+   - Optional: set_opt, reset, reset_assertions and dump_smt2 throw
      NotImplementedException unless overridden.
    - Everything else is forwarded to the regular solver.
  */
@@ -67,6 +69,10 @@ class AbsSmtInterpolator : public AbsSmtSolver
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) final;
   Term get_value(const Term & t) const final;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const final;
+  void get_unsat_assumptions(UnorderedTermSet & out) final;
+  std::uint64_t get_context_level() const final;
 
   // ------------------------- Required -------------------------------------
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
@@ -104,13 +110,10 @@ class AbsSmtInterpolator : public AbsSmtSolver
   void set_opt(const std::string option, const std::string value) override;
   void reset() override;
   void reset_assertions() override;
+  void dump_smt2(std::string filename) const override;
 
   // ------------------------- Forwarded ------------------------------------
   void set_logic(const std::string logic) override;
-  std::uint64_t get_context_level() const override;
-  UnorderedTermMap get_array_values(const Term & arr,
-                                    Term & out_const_base) const override;
-  void get_unsat_assumptions(UnorderedTermSet & out) override;
 
   // Declaring make_sort here hides the AbsSmtSolver template that takes
   // the sorts as separate arguments, so name it back in.
@@ -167,7 +170,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
   TermVec substitute_terms(
       const TermVec & terms,
       const UnorderedTermMap & substitution_map) const override;
-  void dump_smt2(std::string filename) const override;
 
  protected:
   /** Computes the interpolant of A and B as the sequence interpolant of

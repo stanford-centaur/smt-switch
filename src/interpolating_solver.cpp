@@ -65,6 +65,21 @@ Term AbsSmtInterpolator::get_value(const Term & /* t */) const
   throw IncorrectUsageException("Can't get values from interpolating solver");
 }
 
+UnorderedTermMap AbsSmtInterpolator::get_array_values(
+    const Term & /* arr */, Term & /* out_const_base */) const
+{
+  throw IncorrectUsageException(
+      "Can't get array values from interpolating solver");
+}
+
+void AbsSmtInterpolator::get_unsat_assumptions(UnorderedTermSet & /* out */)
+{
+  throw IncorrectUsageException(
+      "Can't get unsat assumptions from interpolating solver");
+}
+
+std::uint64_t AbsSmtInterpolator::get_context_level() const { return 0; }
+
 // ------------------------- Optional ----------------------------------------
 
 void AbsSmtInterpolator::set_opt(const std::string /* option */,
@@ -86,27 +101,17 @@ void AbsSmtInterpolator::reset_assertions()
                                 + to_string(solver_enum));
 }
 
+void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
+{
+  throw NotImplementedException("Dumping to a file is not supported by "
+                                + to_string(solver_enum));
+}
+
 // ------------------------- Forwarded ---------------------------------------
 
 void AbsSmtInterpolator::set_logic(const std::string logic)
 {
   backend_solver->set_logic(logic);
-}
-
-std::uint64_t AbsSmtInterpolator::get_context_level() const
-{
-  return backend_solver->get_context_level();
-}
-
-UnorderedTermMap AbsSmtInterpolator::get_array_values(
-    const Term & arr, Term & out_const_base) const
-{
-  return backend_solver->get_array_values(arr, out_const_base);
-}
-
-void AbsSmtInterpolator::get_unsat_assumptions(UnorderedTermSet & out)
-{
-  backend_solver->get_unsat_assumptions(out);
 }
 
 Sort AbsSmtInterpolator::make_sort(const std::string name,
@@ -280,11 +285,6 @@ TermVec AbsSmtInterpolator::substitute_terms(
     const TermVec & terms, const UnorderedTermMap & substitution_map) const
 {
   return backend_solver->substitute_terms(terms, substitution_map);
-}
-
-void AbsSmtInterpolator::dump_smt2(std::string filename) const
-{
-  backend_solver->dump_smt2(filename);
 }
 
 // ------------------------- Helpers -----------------------------------------
