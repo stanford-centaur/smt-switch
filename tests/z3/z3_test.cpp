@@ -136,3 +136,23 @@ TEST(Z3Test, SortsAndTerms)
   EXPECT_EQ(eterm->get_op(), Op(Exists));
   EXPECT_EQ(qterm->get_sort(), boolsort1);
 }
+
+TEST(Z3Test, BvStringOutOfRange)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Sort bvsort = s->make_sort(BV, 8);
+
+  EXPECT_EQ(s->make_term("255", bvsort, 10), s->make_term(255, bvsort));
+  EXPECT_EQ(s->make_term("-128", bvsort, 10), s->make_term(-128, bvsort));
+  EXPECT_EQ(s->make_term("11111111", bvsort, 2), s->make_term(255, bvsort));
+  EXPECT_EQ(s->make_term("-10000000", bvsort, 2), s->make_term(-128, bvsort));
+  EXPECT_EQ(s->make_term("ff", bvsort, 16), s->make_term(255, bvsort));
+  EXPECT_EQ(s->make_term("-80", bvsort, 16), s->make_term(-128, bvsort));
+
+  EXPECT_THROW(s->make_term("256", bvsort, 10), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("-129", bvsort, 10), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("100000000", bvsort, 2), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("-10000001", bvsort, 2), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("100", bvsort, 16), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("-81", bvsort, 16), IncorrectUsageException);
+}
