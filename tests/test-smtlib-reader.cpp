@@ -213,7 +213,7 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverArrayIntReaderTests,
     ArrayIntReaderTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { THEORY_INT, ARRAY_MODELS })),
+                         { THEORY_INT, ARRAY_MODELS, CONSTARR })),
                      testing::ValuesIn(qf_alia_tests.begin(),
                                        qf_alia_tests.end())));
 
