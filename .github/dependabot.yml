@@ -16,3 +16,12 @@ updates:
       pre-commit:
         patterns:
           - "*"
+  # ci-scripts/requirements.txt, which the CI workflow installs from
+  - package-ecosystem: "pip"
+    directory: "/ci-scripts"
+    schedule:
+      interval: "daily"
+    groups:
+      pip:
+        patterns:
+          - "*"

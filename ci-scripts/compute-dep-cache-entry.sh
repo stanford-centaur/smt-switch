@@ -46,6 +46,10 @@ elif [[ -d cmake/provision/$prefix ]]; then
     cmake/FindGMP.cmake
     cmake/provision/"$prefix"/*
   )
+  # Bitwuzla is built with the meson that the requirements pin
+  if [[ $prefix == bitwuzla ]]; then
+    inputs+=(ci-scripts/requirements.txt)
+  fi
   # The sources and build trees under src/ are most of a prefix's size, and
   # nothing reads them once the dependency is installed. Boolector is the
   # exception: its backend includes Boolector's private headers from there,
