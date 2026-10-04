@@ -1,0 +1,65 @@
+name: Restore the solver builds
+description: >-
+  Restores every cache entry in a list from the CI workflow's plan job, and
+  fails on any that is missing.
+inputs:
+  entries:
+    description: >-
+      A JSON array of {solver, key, path} objects, as the plan job outputs for
+      one runner
+    required: true
+runs:
+  using: composite
+  # A step cannot loop, so each of these restores the entry at its index and
+  # is skipped when there is none. The action thereby knows how many solvers
+  # there can be, but not which; the last step catches a list that outgrows
+  # it.
+  steps:
+    - name: Restore ${{ fromJSON(inputs.entries)[0].solver }}
+      if: fromJSON(inputs.entries)[0]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[0].key }}
+        path: ${{ fromJSON(inputs.entries)[0].path }}
+        fail-on-cache-miss: true
+    - name: Restore ${{ fromJSON(inputs.entries)[1].solver }}
+      if: fromJSON(inputs.entries)[1]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[1].key }}
+        path: ${{ fromJSON(inputs.entries)[1].path }}
+        fail-on-cache-miss: true
+    - name: Restore ${{ fromJSON(inputs.entries)[2].solver }}
+      if: fromJSON(inputs.entries)[2]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[2].key }}
+        path: ${{ fromJSON(inputs.entries)[2].path }}
+        fail-on-cache-miss: true
+    - name: Restore ${{ fromJSON(inputs.entries)[3].solver }}
+      if: fromJSON(inputs.entries)[3]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[3].key }}
+        path: ${{ fromJSON(inputs.entries)[3].path }}
+        fail-on-cache-miss: true
+    - name: Restore ${{ fromJSON(inputs.entries)[4].solver }}
+      if: fromJSON(inputs.entries)[4]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[4].key }}
+        path: ${{ fromJSON(inputs.entries)[4].path }}
+        fail-on-cache-miss: true
+    - name: Restore ${{ fromJSON(inputs.entries)[5].solver }}
+      if: fromJSON(inputs.entries)[5]
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ fromJSON(inputs.entries)[5].key }}
+        path: ${{ fromJSON(inputs.entries)[5].path }}
+        fail-on-cache-miss: true
+    - name: Check that every entry had a slot
+      if: fromJSON(inputs.entries)[6]
+      shell: bash
+      run: |
+        echo "More solvers than restore-deps has slots; add some." >&2
+        exit 1
