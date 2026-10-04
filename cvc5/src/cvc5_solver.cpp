@@ -1031,11 +1031,19 @@ cvc5InterpolatingSolver::cvc5InterpolatingSolver()
     : AbsSmtInterpolator(CVC5_INTERPOLATOR, std::make_shared<Cvc5Solver>()),
       cvc5_solver(std::static_pointer_cast<Cvc5Solver>(backend_solver))
 {
+  // set_opt refuses produce-interpolants, so this is the only place it is set
+  cvc5_solver->set_opt("produce-interpolants", "true");
+  cvc5_solver->set_opt("incremental", "false");
 }
 
 void cvc5InterpolatingSolver::set_opt(const std::string option,
                                       const std::string value)
 {
+  if (option == "produce-interpolants")
+  {
+    throw IncorrectUsageException("cvc5 interpolator does not allow option: "
+                                  + option);
+  }
   cvc5_solver->set_opt(option, value);
 }
 

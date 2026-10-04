@@ -58,3 +58,25 @@ TEST(Cvc5Interpolants, GetInterpolant)
   r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
   EXPECT_FALSE(r.is_unsat());
 }
+
+// x < y < z against x > z has an interpolant
+static void expect_interpolant(const SmtInterpolator & s)
+{
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  Term B = s->make_term(Gt, x, z);
+  Term I;
+  EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat());
+  EXPECT_TRUE(I);
+}
+
+TEST(Cvc5Interpolants, RefusesTurningInterpolationOff)
+{
+  SmtInterpolator s = Cvc5SolverFactory::create_interpolating_solver();
+  EXPECT_THROW(s->set_opt("produce-interpolants", "false"),
+               IncorrectUsageException);
+  expect_interpolant(s);
+}

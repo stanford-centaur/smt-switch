@@ -34,13 +34,7 @@ SmtSolver Cvc5SolverFactory::create(bool logging)
 
 SmtInterpolator Cvc5SolverFactory::create_interpolating_solver()
 {
-  SmtInterpolator solver = std::make_shared<cvc5InterpolatingSolver>();
-  /*
-   * Enable interpolant generation.
-   * */
-  solver->set_opt("produce-interpolants", "true");
-  solver->set_opt("incremental", "false");
-  return solver;
+  return std::make_shared<cvc5InterpolatingSolver>();
 }
 /* end Cvc5SolverFactory implementation */
 
