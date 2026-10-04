@@ -20,7 +20,7 @@ from setuptools.extension import Extension
 PROJECT_SOURCE_DIR = "@PROJECT_SOURCE_DIR@"
 PROJECT_BINARY_DIR = "@PROJECT_BINARY_DIR@"
 SMT_SWITCH_LIB_TYPE = "@SMT_SWITCH_LIB_TYPE@"
-SOLVER_BACKEND_LIBS = "@SOLVER_BACKEND_LIBS@".split(";")  # noqa: SIM905
+SOLVER_BACKEND_LIBS = [lib for lib in "@SOLVER_BACKEND_LIBS@".split(";") if lib]  # noqa: SIM905
 # The solver archives behind the enabled backends, named by the backends
 # themselves. A shared build resolves these through libsmt-switch-<solver>.so
 # and does not need them; a static one has nothing else to go on.
