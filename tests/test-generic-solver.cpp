@@ -860,4 +860,18 @@ TEST(GenericSolver, NonExistingBinary)
       IncorrectUsageException);
 }
 
+TEST(GenericSolver, BinaryClosedItsInput)
+{
+  // the binary closes its input before answering the first command, so
+  // the constructor's next command at the latest goes to a pipe nobody
+  // reads
+  EXPECT_THROW(
+      std::make_shared<GenericSolver>(
+          "/bin/sh",
+          vector<string>{ "-c", "exec 0<&-; echo success; exec sleep 10" },
+          solver_response_timeout,
+          5),
+      InternalSolverException);
+}
+
 }  // namespace smt_tests
