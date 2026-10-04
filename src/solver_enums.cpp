@@ -104,6 +104,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             THEORY_BV,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
+            ARRAY_MODELS,
             CONSTARR,
             UNSAT_CORE,
             THEORY_DATATYPE,
