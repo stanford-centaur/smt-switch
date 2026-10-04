@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <cstdio>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -29,12 +27,3 @@ void dump_and_run(const std::string & executable_path,
                   std::vector<std::unordered_set<std::string>> expected_results,
                   std::string extra_opts = "");
 }  // namespace smt_tests
-
-namespace std {
-template <>
-struct default_delete<FILE>
-{
- public:
-  void operator()(FILE * f) const { pclose(f); }
-};
-}  // namespace std

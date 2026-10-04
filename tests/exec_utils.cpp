@@ -30,6 +30,16 @@
 
 namespace smt_tests {
 
+namespace {
+
+// A stream from popen has to be closed with pclose, not fclose.
+struct PipeCloser
+{
+  void operator()(FILE * f) const { pclose(f); }
+};
+
+}  // namespace
+
 /**
  * A function for running a process
  * Taken from:
@@ -39,7 +49,7 @@ std::string exec(const char * cmd)
 {
   std::array<char, 128> buffer;
   std::string result;
-  std::unique_ptr<FILE> pipe(popen(cmd, "r"));
+  std::unique_ptr<FILE, PipeCloser> pipe(popen(cmd, "r"));
   if (!pipe)
   {
     throw std::runtime_error("popen() failed!");
