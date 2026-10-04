@@ -626,8 +626,45 @@ Term Z3Solver::get_value(const Term & t) const
 UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
                                             Term & out_const_base) const
 {
-  throw NotImplementedException(
-      "Get array values not implemented for Z3 backend.");
+  out_const_base = nullptr;
+  shared_ptr<Z3Term> zarr = static_pointer_cast<Z3Term>(arr);
+  z3::model model = slv.get_model();
+  // Z3 gives an array model as a chain of stores over a constant base,
+  // outermost store first.
+  expr zval = model.eval(zarr->term, true);
+
+  TermVec indices;
+  TermVec values;
+  while (zval.is_app() && zval.decl().decl_kind() == Z3_OP_STORE)
+  {
+    indices.push_back(std::make_shared<Z3Term>(zval.arg(1), ctx));
+    values.push_back(std::make_shared<Z3Term>(zval.arg(2), ctx));
+    zval = zval.arg(0);
+  }
+
+  if (zval.is_app() && zval.decl().decl_kind() == Z3_OP_CONST_ARRAY)
+  {
+    out_const_base = std::make_shared<Z3Term>(zval.arg(0), ctx);
+  }
+  else
+  {
+    // Nothing else is expected under the stores. Say which head turned up
+    // rather than return a map that quietly omits it.
+    throw NotImplementedException("Z3 gave an array model headed by "
+                                  + zval.to_string()
+                                  + ", which has no constant base");
+  }
+
+  // An outer store shadows an inner one at the same index, so fill the map
+  // from the inside out and let the outer assignment win.
+  UnorderedTermMap assignments;
+  while (indices.size())
+  {
+    assignments[indices.back()] = values.back();
+    indices.pop_back();
+    values.pop_back();
+  }
+  return assignments;
 }
 
 void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)
