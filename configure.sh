@@ -29,7 +29,6 @@ Configures the CMAKE build environment.
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
 --python                compile with python bindings (default: off)
---python-executabe      point to a particular Python interpreter - will look around this for include and lib dirs
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison install prefix     (default: deps/bison)
 --flex-dir=STR          custom flex install prefix      (default: deps/flex)
@@ -67,7 +66,6 @@ strict=default
 build_tests=default
 system_gtest=default
 python=default
-python_executable=default
 smtlib_reader=default
 bison_dir=default
 flex_dir=default
@@ -222,14 +220,9 @@ while [ "$i" -lt "$argc" ]; do
     --python)
       python=yes
       ;;
-    --python-executable=*)
-      python_executable=${arg##*=}
-      # Check if python_executable is an absolute path and if not, make it
-      # absolute.
-      case $python_executable in
-        /*) ;;                                            # absolute path
-        *) python_executable=$(pwd)/$python_executable ;; # make absolute path
-      esac
+    --python-executable | --python-executable=*)
+      die "$arg was removed; pass -DPython_EXECUTABLE=<interpreter> instead," \
+        "or activate the virtual environment it belongs to"
       ;;
     --smtlib-reader)
       smtlib_reader=yes
@@ -364,9 +357,6 @@ esac
 
 [ "$python" != default ] &&
   set -- "$@" "-DBUILD_PYTHON_BINDINGS=ON"
-
-[ "$python_executable" != default ] &&
-  set -- "$@" "-DPython_EXECUTABLE=$python_executable"
 
 [ "$smtlib_reader" != default ] &&
   set -- "$@" "-DSMTLIB_READER=ON"
