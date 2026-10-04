@@ -173,16 +173,16 @@ TEST_P(ToIntBVTests, Signed)
   EXPECT_EQ(s->make_term("1000", bv4, 2)->to_int(), uint64_t(8));
 }
 
-TEST_P(ToIntBVTests, MadeFromInt64Min)
+TEST_P(ToIntBVTests, MadeFromInt64)
 {
-  // Boolector's make_term from an int64_t keeps only the low 32 bits
-  if (GetParam().solver_enum == BTOR)
+  // values that need more than 32 bits
+  Sort bv64 = s->make_sort(BV, 64);
+  for (int64_t i : { int64_min, int64_t(1) << 40, -(int64_t(1) << 40) })
   {
-    return;
+    Term v = model_value(s->make_term(i, bv64));
+    SCOPED_TRACE(v->to_string());
+    EXPECT_EQ(v->to_signed_int(), i);
   }
-  Term v = model_value(s->make_term(int64_min, s->make_sort(BV, 64)));
-  SCOPED_TRACE(v->to_string());
-  EXPECT_EQ(v->to_signed_int(), int64_min);
 }
 
 TEST_P(ToIntBVTests, WiderThan64Bits)
