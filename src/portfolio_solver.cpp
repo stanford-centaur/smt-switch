@@ -16,81 +16,169 @@
 
 #include "portfolio_solver.h"
 
-#include <pthread.h>
-#include <sys/resource.h>
+#include <poll.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
-#include <algorithm>
-#include <cstddef>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
 #include <cstring>
-#include <functional>
-#include <memory>
-#include <mutex>
+#include <exception>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "exceptions.h"
 #include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
 #include "sort.h"
 #include "term_translator.h"
 
 namespace {
 
-// The stack each solver thread gets: the larger of 8 MB, what a main thread
-// usually has, and the stack limit. std::thread leaves it to the platform,
-// and macOS gives a thread only 512 KB, which a solver that walks a deep term
-// recursively runs out of. A thread's stack is not bound by the limit.
-std::size_t solver_stack_size()
-{
-  std::size_t size = 8 * 1024 * 1024;
-  rlimit limit;
-  if (getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
-  {
-    size = std::max(size, static_cast<std::size_t>(limit.rlim_cur));
-  }
-  // macOS rejects a size that is not a whole number of pages.
-  const auto page = static_cast<std::size_t>(sysconf(_SC_PAGESIZE));
-  return (size + page - 1) / page * page;
-}
+using smt::Result;
+using smt::ResultType;
+using smt::SmtSolver;
+using smt::Term;
 
-void * run_job(void * arg)
-{
-  std::unique_ptr<std::function<void()>> job(
-      static_cast<std::function<void()> *>(arg));
-  (*job)();
-  return nullptr;
-}
+// What a child writes before closing its pipe: this tag, then for an answer
+// the ResultType as one byte, and the explanation or error message.
+constexpr char answer_tag = 'a';
+constexpr char error_tag = 'e';
 
-// Throws if a pthread call reports an error.
-void check(int error, const std::string & what)
+// Writes all of data to fd, as far as the pipe lets it.
+void write_all(int fd, const std::string & data)
 {
-  if (error != 0)
+  const char * next = data.data();
+  std::size_t left = data.size();
+  while (left > 0)
   {
-    throw SmtException(what + ": " + std::strerror(error));
+    ssize_t written = write(fd, next, left);
+    if (written < 0)
+    {
+      if (errno == EINTR)
+      {
+        continue;
+      }
+      return;
+    }
+    next += written;
+    left -= static_cast<std::size_t>(written);
   }
 }
 
-// Runs job on a detached thread with solver_stack_size() of stack.
-void start_detached(std::function<void()> job)
+// Runs in a child: solves term with solver and reports on fd. Never returns.
+[[noreturn]] void solve_and_report(SmtSolver solver, Term term, int fd)
 {
-  pthread_attr_t attr;
-  check(pthread_attr_init(&attr), "Could not set up a solver thread");
-  // Destroys the attributes however this function is left.
-  std::unique_ptr<pthread_attr_t, int (*)(pthread_attr_t *)> attr_guard(
-      &attr, pthread_attr_destroy);
-  check(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED),
-        "Could not make a solver thread detached");
-  const std::size_t stack_size = solver_stack_size();
-  check(pthread_attr_setstacksize(&attr, stack_size),
-        "Could not give a solver thread a stack of "
-            + std::to_string(stack_size) + " bytes");
+  std::string report;
+  try
+  {
+    smt::TermTranslator to_solver(solver);
+    solver->assert_formula(to_solver.transfer_term(term, smt::BOOL));
+    Result result = solver->check_sat();
+    report = answer_tag;
+    report += static_cast<char>(result.result);
+    report += result.explanation;
+  }
+  catch (const std::exception & e)
+  {
+    report = error_tag;
+    report += e.what();
+  }
+  catch (...)
+  {
+    report = error_tag;
+    report += "unknown exception";
+  }
+  write_all(fd, report);
+  // Not exit(): the caller's exit handlers and static destructors, and any
+  // output it had buffered, belong to the parent.
+  _exit(0);
+}
 
-  auto owned = std::make_unique<std::function<void()>>(std::move(job));
-  pthread_t thread;
-  check(pthread_create(&thread, &attr, run_job, owned.get()),
-        "Could not start a solver thread");
-  // The thread owns it now, and run_job frees it.
-  owned.release();
+struct Child
+{
+  Child(pid_t pid, int fd, std::string label)
+      : pid(pid), fd(fd), label(std::move(label))
+  {
+  }
+
+  pid_t pid;
+  int fd;
+  std::string label;
+  std::string report;
+  bool reaped = false;
+  int status = 0;
+};
+
+// The children of one portfolio_solve call. Kills and reaps every one of
+// them however the call ends, so that none outlives it.
+class Children
+{
+ public:
+  Children() = default;
+  Children(const Children &) = delete;
+  Children & operator=(const Children &) = delete;
+  ~Children() { kill_and_reap(); }
+
+  void add(Child child) { children_.push_back(std::move(child)); }
+  std::vector<Child> & all() { return children_; }
+
+  void kill_and_reap()
+  {
+    // Each child leads its own process group, so this also ends whatever it
+    // started itself, such as the generic solver's binary.
+    for (const Child & child : children_)
+    {
+      if (!child.reaped)
+      {
+        kill(-child.pid, SIGKILL);
+      }
+    }
+    for (Child & child : children_)
+    {
+      if (child.fd >= 0)
+      {
+        close(child.fd);
+        child.fd = -1;
+      }
+      while (!child.reaped)
+      {
+        if (waitpid(child.pid, &child.status, 0) >= 0 || errno != EINTR)
+        {
+          child.reaped = true;
+        }
+      }
+    }
+  }
+
+ private:
+  std::vector<Child> children_;
+};
+
+// Why a child gave no answer, once it has been reaped.
+std::string failure(const Child & child)
+{
+  std::string reason;
+  if (!child.report.empty() && child.report[0] == error_tag)
+  {
+    reason = child.report.substr(1);
+  }
+  else if (WIFSIGNALED(child.status))
+  {
+    reason = "terminated by signal " + std::to_string(WTERMSIG(child.status))
+             + " (" + strsignal(WTERMSIG(child.status)) + ")";
+  }
+  else
+  {
+    reason = "exited without an answer";
+  }
+  return child.label + ": " + reason;
 }
 
 }  // namespace
@@ -102,44 +190,107 @@ PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
 {
 }
 
-/** Translate the term t to the solver s, and check_sat.
- *  @param s The solver to translate the term t to.
- *  @param t The term being translated to solver s.
- */
-void PortfolioSolver::run_solver(SmtSolver s)
-{
-  TermTranslator to_s(s);
-  Term a = to_s.transfer_term(portfolio_term, BOOL);
-  s->assert_formula(a);
-  result = s->check_sat();
-  std::lock_guard<std::mutex> lk(m);
-  a_solver_is_done = true;
-
-  cv.notify_all();
-}
-
-/** Launch many solvers and return whether the term is satisfiable when one of
- *  them has finished.
- *  @param solvers The solvers to run.
- *  @param t The term to be checked.
- */
 Result PortfolioSolver::portfolio_solve()
 {
-  // We must maintain a vector of pthreads in order to stop the threads that are
-  // still running once one of the solvers finish because pthreads is assumed to
-  // be the underlying implementation.
-  for (auto s : solvers)
+  // Otherwise each child would inherit, and later print, a copy of anything
+  // the caller has buffered.
+  std::cout.flush();
+  std::cerr.flush();
+  std::fflush(nullptr);
+
+  Children children;
+  for (const SmtSolver & solver : solvers)
   {
-    // Detached, because we are not interested in waiting for all of them to
-    // finish.
-    start_detached([this, s] { run_solver(s); });
+    int fds[2];
+    if (pipe(fds) != 0)
+    {
+      throw SmtException(std::string("Could not create a pipe for a solver: ")
+                         + std::strerror(errno));
+    }
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+      const int error = errno;
+      close(fds[0]);
+      close(fds[1]);
+      throw SmtException(std::string("Could not start a solver process: ")
+                         + std::strerror(error));
+    }
+    if (pid == 0)
+    {
+      setpgid(0, 0);
+      close(fds[0]);
+      solve_and_report(solver, portfolio_term, fds[1]);
+    }
+    // Also here, so that the group exists even if the child has not run yet.
+    setpgid(pid, pid);
+    close(fds[1]);
+    std::ostringstream label;
+    label << solver->get_solver_enum();
+    children.add(Child(pid, fds[0], label.str()));
   }
 
-  // Wait until a solver is done to cancel the threads that are still running.
-  std::unique_lock<std::mutex> lk(m);
-  while (!a_solver_is_done) cv.wait(lk);
+  // Read the reports as they come; a child's pipe closes when it exits.
+  std::size_t running = children.all().size();
+  while (running > 0)
+  {
+    std::vector<pollfd> polled;
+    std::vector<Child *> polled_children;
+    for (Child & child : children.all())
+    {
+      if (child.fd >= 0)
+      {
+        polled.push_back({ child.fd, POLLIN, 0 });
+        polled_children.push_back(&child);
+      }
+    }
+    if (poll(polled.data(), polled.size(), -1) < 0)
+    {
+      if (errno == EINTR)
+      {
+        continue;
+      }
+      throw SmtException(std::string("Could not wait for the solvers: ")
+                         + std::strerror(errno));
+    }
+    for (std::size_t i = 0; i < polled.size(); ++i)
+    {
+      if (polled[i].revents == 0)
+      {
+        continue;
+      }
+      Child & child = *polled_children[i];
+      char buffer[4096];
+      ssize_t got = read(child.fd, buffer, sizeof buffer);
+      if (got < 0 && errno == EINTR)
+      {
+        continue;
+      }
+      if (got > 0)
+      {
+        child.report.append(buffer, static_cast<std::size_t>(got));
+        continue;
+      }
+      // The child is done, with or without a report.
+      close(child.fd);
+      child.fd = -1;
+      --running;
+      if (child.report.size() >= 2 && child.report[0] == answer_tag)
+      {
+        return Result(static_cast<ResultType>(child.report[1]),
+                      child.report.substr(2));
+      }
+    }
+  }
 
-  return result;
+  // No child answered; reap them all to say why.
+  children.kill_and_reap();
+  std::string message = "No solver in the portfolio gave an answer:";
+  for (const Child & child : children.all())
+  {
+    message += "\n  " + failure(child);
+  }
+  throw SmtException(message);
 }
 
 }  // namespace smt
