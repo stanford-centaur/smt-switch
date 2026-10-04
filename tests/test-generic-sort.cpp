@@ -35,26 +35,27 @@ TEST(GenericSort, SortProperties)
   EXPECT_EQ(s1.get_sort_kind(), s2.get_sort_kind());
   EXPECT_EQ(s1.get_sort_kind(), INT);
 
-  Sort int1 = make_generic_sort(INT);
-  Sort int2 = make_generic_sort(INT);
+  Sort int1 = std::make_shared<GenericSort>(INT);
+  Sort int2 = std::make_shared<GenericSort>(INT);
   EXPECT_EQ(int1, int2);
-  Sort bv4 = make_generic_sort(BV, 4);
-  Sort bv5 = make_generic_sort(BV, 5);
+  Sort bv4 = std::make_shared<BVGenericSort>(4);
+  Sort bv5 = std::make_shared<BVGenericSort>(5);
   EXPECT_NE(bv4, bv5);
   EXPECT_NE(bv4, int1);
-  Sort inttobv4 = make_generic_sort(FUNCTION, int1, bv4);
-  Sort inttobv4_second = make_generic_sort(FUNCTION, int2, bv4);
+  Sort inttobv4 = std::make_shared<FunctionGenericSort>(SortVec{ int1 }, bv4);
+  Sort inttobv4_second =
+      std::make_shared<FunctionGenericSort>(SortVec{ int2 }, bv4);
   EXPECT_EQ(inttobv4, inttobv4_second);
-  Sort arr = make_generic_sort(ARRAY, int1, bv4);
+  Sort arr = std::make_shared<ArrayGenericSort>(int1, bv4);
   EXPECT_NE(arr, inttobv4);
   EXPECT_EQ(arr->get_indexsort(), int1);
   EXPECT_EQ(arr->get_elemsort(), bv4);
   EXPECT_EQ(bv4->get_width(), 4);
 
-  Sort us1 = make_uninterpreted_generic_sort("sort1", 0);
-  Sort us2 = make_uninterpreted_generic_sort("sort1", 0);
+  Sort us1 = std::make_shared<UninterpretedGenericSort>("sort1", 0);
+  Sort us2 = std::make_shared<UninterpretedGenericSort>("sort1", 0);
   EXPECT_EQ(us1, us2);
-  Sort us3 = make_uninterpreted_generic_sort("sort3", 0);
+  Sort us3 = std::make_shared<UninterpretedGenericSort>("sort3", 0);
   EXPECT_NE(us1, us3);
   EXPECT_EQ(us1->get_uninterpreted_name(), "sort1");
   EXPECT_EQ(us1->get_arity(), 0);

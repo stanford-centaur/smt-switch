@@ -33,111 +33,6 @@ namespace smt {
 /* smtlib representation of sort kinds, used only below */
 static std::string to_smtlib(SortKind sk);
 
-Sort make_uninterpreted_generic_sort(std::string name, std::uint64_t arity)
-{
-  return std::make_shared<UninterpretedGenericSort>(name, arity);
-}
-
-Sort make_uninterpreted_generic_sort(Sort sort_cons, const SortVec & sorts)
-{
-  return std::make_shared<UninterpretedGenericSort>(sort_cons, sorts);
-}
-
-Sort make_generic_sort(SortKind sk)
-{
-  if (sk != BOOL && sk != INT && sk != REAL)
-  {
-    throw IncorrectUsageException("Can't create sort from " + to_string(sk));
-  }
-  return std::make_shared<GenericSort>(sk);
-}
-
-Sort make_generic_sort(SortKind sk, std::uint64_t width)
-{
-  if (sk != BV)
-  {
-    throw IncorrectUsageException("Can't create sort from " + to_string(sk)
-                                  + " and " + std::to_string(width));
-  }
-  return std::make_shared<BVGenericSort>(width);
-}
-
-Sort make_generic_sort(SortKind sk, Sort sort1)
-{
-  throw IncorrectUsageException(
-      "No currently supported sort is created with a single sort argument");
-}
-
-Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2)
-{
-  Sort genericsort;
-  if (sk == ARRAY)
-  {
-    genericsort = std::make_shared<ArrayGenericSort>(sort1, sort2);
-  }
-  else if (sk == FUNCTION)
-  {
-    genericsort =
-        std::make_shared<FunctionGenericSort>(SortVec{ sort1 }, sort2);
-  }
-  else
-  {
-    throw IncorrectUsageException("Can't make sort from " + to_string(sk) + " "
-                                  + sort1->to_string() + " "
-                                  + sort2->to_string());
-  }
-  return genericsort;
-}
-
-Sort make_generic_sort(SortKind sk, Sort sort1, Sort sort2, Sort sort3)
-{
-  if (sk == FUNCTION)
-  {
-    return std::make_shared<FunctionGenericSort>(SortVec{ sort1, sort2 },
-                                                 sort3);
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "Can't make sort from " + to_string(sk) + " " + sort1->to_string() + " "
-        + sort2->to_string() + " " + sort3->to_string());
-  }
-}
-
-Sort make_generic_sort(SortKind sk, SortVec sorts)
-{
-  if (sk == FUNCTION)
-  {
-    Sort return_sort = sorts.back();
-    sorts.pop_back();
-    return std::make_shared<FunctionGenericSort>(sorts, return_sort);
-  }
-  else if (sk == ARRAY && sorts.size() == 2)
-  {
-    return std::make_shared<ArrayGenericSort>(sorts[0], sorts[1]);
-  }
-  else
-  {
-    std::string msg("Can't make sort from ");
-    msg += to_string(sk);
-    for (auto ss : sorts)
-    {
-      msg += " " + ss->to_string();
-    }
-    throw IncorrectUsageException(msg);
-  }
-}
-
-Sort make_generic_sort(Datatype dt)
-{
-  return std::make_shared<GenericDatatypeSort>(dt);
-}
-
-Sort make_generic_sort(SortKind sk, std::string cons_name, Sort dt)
-{
-  return std::make_shared<DatatypeComponentSort>(sk, cons_name, dt);
-}
-
 // implementations
 
 GenericSort::GenericSort(SortKind sk) : sk(sk) {}
@@ -488,7 +383,7 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   }
   else if (sk == TESTER)
   {
-    return make_generic_sort(BOOL);
+    return std::make_shared<GenericSort>(BOOL);
   }
   else if (sk == SELECTOR)
   {

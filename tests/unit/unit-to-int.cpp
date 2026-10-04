@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -359,18 +360,18 @@ TEST(ToIntParsing, IndexedBVOutOfRange)
 // smt-switch; call it on a GenericTerm, whose repr is exactly what it reads
 TEST(ToIntParsing, DefaultToSignedInt)
 {
-  GenericTerm neg(make_generic_sort(INT), Op(), {}, "(- 5)");
+  GenericTerm neg(std::make_shared<GenericSort>(INT), Op(), {}, "(- 5)");
   EXPECT_EQ(neg.AbsTerm::to_signed_int(), -5);
   EXPECT_EQ(neg.to_signed_int(), -5);
   EXPECT_THROW(neg.to_int(), IncorrectUsageException);
 
-  GenericTerm bv(make_generic_sort(BV, 4), Op(), {}, "#b1111");
+  GenericTerm bv(std::make_shared<BVGenericSort>(4), Op(), {}, "#b1111");
   EXPECT_EQ(bv.AbsTerm::to_signed_int(), -1);
 
-  GenericTerm x(make_generic_sort(INT), Op(), {}, "x", true);
+  GenericTerm x(std::make_shared<GenericSort>(INT), Op(), {}, "x", true);
   EXPECT_THROW(x.AbsTerm::to_signed_int(), IncorrectUsageException);
 
-  GenericTerm b(make_generic_sort(BOOL), Op(), {}, "true");
+  GenericTerm b(std::make_shared<GenericSort>(BOOL), Op(), {}, "true");
   EXPECT_THROW(b.AbsTerm::to_signed_int(), IncorrectUsageException);
 }
 
