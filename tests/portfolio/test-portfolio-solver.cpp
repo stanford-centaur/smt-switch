@@ -112,3 +112,37 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
 
   EXPECT_TRUE(res2.is_sat());
 }
+
+// x > 0 over the integers, which Boolector does not support.
+static Term make_int_term()
+{
+  SmtSolver s = Cvc5SolverFactory::create(false);
+  Sort int_sort = s->make_sort(INT);
+  Term x = s->make_symbol("x", int_sort);
+  return s->make_term(Gt, x, s->make_term(0, int_sort));
+}
+
+TEST(PortfolioSolver, FailingSolverDropsOut)
+{
+  PortfolioSolver p({ BoolectorSolverFactory::create(false),
+                      Cvc5SolverFactory::create(false) },
+                    make_int_term());
+  EXPECT_TRUE(p.portfolio_solve().is_sat());
+}
+
+TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
+{
+  PortfolioSolver p({ BoolectorSolverFactory::create(false),
+                      BoolectorSolverFactory::create(false) },
+                    make_int_term());
+  EXPECT_THROW(p.portfolio_solve(), SmtException);
+}
+
+TEST(PortfolioSolver, CanBeUsedAgain)
+{
+  PortfolioSolver p(
+      { Cvc5SolverFactory::create(false), Yices2SolverFactory::create(false) },
+      make_int_term());
+  EXPECT_TRUE(p.portfolio_solve().is_sat());
+  EXPECT_TRUE(p.portfolio_solve().is_sat());
+}

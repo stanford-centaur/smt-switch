@@ -15,8 +15,6 @@
 **/
 #pragma once
 
-#include <condition_variable>
-#include <mutex>
 #include <vector>
 
 #include "result.h"
@@ -29,29 +27,23 @@ class PortfolioSolver
  public:
   PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm);
 
-  /** Launch many solvers and return whether the term is satisfiable when one of
-   *  them has finished.
-   *  @param solvers The solvers to run.
-   *  @param t The term to be checked.
+  /** Checks the term with every solver at once, and returns the answer of
+   *  whichever finishes first.
+   *
+   *  Each solver runs in a child process of its own, which is killed once
+   *  another has answered. So the solvers passed in are left as they were:
+   *  the term is asserted in the children's copies of them. A solver that
+   *  throws or crashes only drops out. Should all of them, this throws an
+   *  SmtException that says why each one failed.
+   *
+   *  The children are forked from the calling thread alone. Do not call this
+   *  while another thread is using a solver, as a lock that thread holds
+   *  would stay held in the children.
    */
   Result portfolio_solve();
 
  private:
-  Result result;
   std::vector<SmtSolver> solvers;
   Term portfolio_term;
-  // Once a solver is done, result has been set,
-  // and the main thread can terminate the others.
-  bool a_solver_is_done = false;
-
-  // Used for synchronization.
-  std::mutex m;
-  std::condition_variable cv;
-
-  /** Translate the term t to the solver s, and check_sat.
-   *  @param s The solver to translate the term t to.
-   *  @param t The term being translated to solver s.
-   */
-  void run_solver(SmtSolver s);
 };
 }  // namespace smt
