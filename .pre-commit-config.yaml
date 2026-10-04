@@ -97,7 +97,7 @@ repos:
       # as that copy lives in its own environment.
       - id: actionlint
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v1.5.5
+    rev: v1.6.1
     hooks:
       # No --offline here, so a local run resolves schemas over the network.
       # CI instead sets TOMBI_OFFLINE and points TOMBI_CACHE_HOME at
@@ -129,7 +129,7 @@ repos:
         # -s    simplify redundant syntax
         args: [-w, -i, "2", -ci, -s]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1-1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
   - repo: https://github.com/openstack/bashate
