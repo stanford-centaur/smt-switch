@@ -10,16 +10,16 @@ Configures the CMAKE build environment.
 
 -h, --help              display this message and exit
 --prefix=STR            install directory       (default: /usr/local/)
---btor                  build boolector         (default: off)
+--boolector             build Boolector         (default: off)
 --bitwuzla              build bitwuzla            (default: off)
 --cvc5                  build cvc5              (default: off)
---msat                  build MathSAT           (default: off)
+--mathsat               build MathSAT           (default: off)
 --yices2                build yices2            (default: off)
 --z3                    build z3                (default: off)
---btor-dir=STR          custom Boolector install prefix (default: deps/boolector)
---btor-src-dir=STR      custom Boolector source tree    (default: <btor-dir>/src/boolector)
+--boolector-dir=STR     custom Boolector install prefix (default: deps/boolector)
+--boolector-src-dir=STR custom Boolector source tree    (default: <boolector-dir>/src/boolector)
 --cvc5-dir=STR          custom cvc5 install prefix      (default: deps/cvc5)
---msat-dir=STR          custom MathSAT install prefix   (default: deps/mathsat)
+--mathsat-dir=STR       custom MathSAT install prefix   (default: deps/mathsat)
 --yices2-dir=STR        custom Yices2 install prefix    (default: deps/yices2)
 --build-dir=STR         custom build directory  (default: build)
 --static                create static libraries (default: off)
@@ -95,7 +95,9 @@ while [ "$i" -lt "$argc" ]; do
         *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
       esac
       ;;
-    --btor)
+    # --btor and --msat are the old spellings, still accepted so that existing
+    # scripts keep working.
+    --boolector | --btor)
       build_btor=ON
       ;;
     --bitwuzla)
@@ -107,7 +109,7 @@ while [ "$i" -lt "$argc" ]; do
     --cvc5)
       build_cvc5=ON
       ;;
-    --msat)
+    --mathsat | --msat)
       build_msat=ON
       ;;
     --z3)
@@ -117,15 +119,15 @@ while [ "$i" -lt "$argc" ]; do
     # replacements name an install prefix, so silently accepting the old
     # spelling would point CMake at the wrong directory.
     --btor-home | --btor-home=*)
-      die "$arg was replaced by --btor-dir, which takes an install prefix;" \
-        "the source tree is --btor-src-dir (see -h)"
+      die "$arg was replaced by --boolector-dir, which takes an install" \
+        "prefix; the source tree is --boolector-src-dir (see -h)"
       ;;
     --cvc5-home | --cvc5-home=*)
       die "$arg was replaced by --cvc5-dir," \
         "which takes an install prefix (see -h)"
       ;;
     --msat-home | --msat-home=*)
-      die "$arg was replaced by --msat-dir," \
+      die "$arg was replaced by --mathsat-dir," \
         "which takes an install prefix (see -h)"
       ;;
     --yices2-home | --yices2-home=*)
@@ -135,8 +137,8 @@ while [ "$i" -lt "$argc" ]; do
     --z3-install-dir | --z3-install-dir=*)
       die "$arg was replaced by --z3-dir (see -h)"
       ;;
-    --btor-dir) die "missing argument to $arg (see -h)" ;;
-    --btor-dir=*)
+    --boolector-dir) die "missing argument to $arg (see -h)" ;;
+    --boolector-dir=*)
       btor_dir=${arg##*=}
       # Check if btor_dir is an absolute path and if not, make it
       # absolute.
@@ -145,8 +147,8 @@ while [ "$i" -lt "$argc" ]; do
         *) btor_dir=$(pwd)/$btor_dir ;; # make absolute path
       esac
       ;;
-    --btor-src-dir) die "missing argument to $arg (see -h)" ;;
-    --btor-src-dir=*)
+    --boolector-src-dir) die "missing argument to $arg (see -h)" ;;
+    --boolector-src-dir=*)
       btor_src_dir=${arg##*=}
       # Check if btor_src_dir is an absolute path and if not, make it
       # absolute.
@@ -165,8 +167,8 @@ while [ "$i" -lt "$argc" ]; do
         *) cvc5_dir=$(pwd)/$cvc5_dir ;; # make absolute path
       esac
       ;;
-    --msat-dir) die "missing argument to $arg (see -h)" ;;
-    --msat-dir=*)
+    --mathsat-dir) die "missing argument to $arg (see -h)" ;;
+    --mathsat-dir=*)
       msat_dir=${arg##*=}
       # Check if msat_dir is an absolute path and if not, make it
       # absolute.

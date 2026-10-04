@@ -155,7 +155,7 @@ enabled with `--allow-gpl`.
 MathSAT is under a custom license, and linking against it changes the license of
 the smt-switch build. It will therefore not be automatically downloaded and must
 be obtained independently from <https://mathsat.fbk.eu/download.html> and
-unpacked into `deps/mathsat` (or specify `--msat-dir`, see below).
+unpacked into `deps/mathsat` (or specify `--mathsat-dir`, see below).
 
 ### Custom Solver Location
 
@@ -174,9 +174,9 @@ with `find_package`, so a solver installed somewhere `cmake` already searches â€
 a distribution package, for instance â€” is picked up without any flag at all.
 
 Boolector is the exception that also needs its sources. Smt-switch needs access
-to Boolector's private headers to support term iteration, so `--btor-src-dir`
-points at the source tree alongside `--btor-dir`. It defaults to
-`<btor-dir>/src/boolector`.
+to Boolector's private headers to support term iteration, so
+`--boolector-src-dir` points at the source tree alongside `--boolector-dir`. It
+defaults to `<boolector-dir>/src/boolector`.
 
 ### Static Linking
 

@@ -70,17 +70,6 @@ define_property(
   FULL_DOCS "Accumulated so that each run of the driver declares all of them"
 )
 
-# configure.sh names the Boolector options after the backend directory rather
-# than the solver, so --btor-dir and not --boolector-dir. Every other target
-# is spelled the same way in both places.
-function(_smt_switch_dir_flag target output)
-  if(target STREQUAL "boolector")
-    set(${output} "btor" PARENT_SCOPE)
-  else()
-    set(${output} "${target}" PARENT_SCOPE)
-  endif()
-endfunction()
-
 function(_smt_switch_run_provision_driver target)
   set(_source_dir "${PROJECT_SOURCE_DIR}/cmake/provision")
   # Beside the prefixes it manages, not under the build directory. The stamps
@@ -162,12 +151,11 @@ function(_smt_switch_run_provision_driver target)
     RESULT_VARIABLE _result
   )
   if(NOT _result EQUAL 0)
-    _smt_switch_dir_flag("${target}" _flag)
     message(
       FATAL_ERROR
       "Could not build ${target}. Its log is under "
       "${SMT_SWITCH_DEPS_DIR}/${target}/src/${target}-stamp. Build it "
-      "yourself and point --${_flag}-dir at it, or pass --no-auto-deps to "
+      "yourself and point --${target}-dir at it, or pass --no-auto-deps to "
       "turn provisioning off."
     )
   endif()
@@ -191,12 +179,11 @@ function(smt_switch_provision_if_missing package target)
     endif()
   endforeach()
 
-  _smt_switch_dir_flag("${target}" _flag)
   if(NOT SMT_SWITCH_AUTO_DEPS)
     message(
       FATAL_ERROR
       "${package} was not found and automatic provisioning is off. Point "
-      "--${_flag}-dir at an existing installation, or drop --no-auto-deps."
+      "--${target}-dir at an existing installation, or drop --no-auto-deps."
     )
   endif()
 
