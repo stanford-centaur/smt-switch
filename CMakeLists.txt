@@ -94,22 +94,19 @@ include(ProvisionDeps)
 # CMAKE_PREFIX_PATH: a root is scoped to one package, so a dependency can no
 # longer shadow an unrelated system library.
 #
-# These are only defaults. A root passed on the command line wins, and so does
-# a package installed where find_package would look anyway.
-function(smt_switch_default_root package directory)
-  if(NOT DEFINED ${package}_ROOT)
-    set(${package}_ROOT "${SMT_SWITCH_DEPS_DIR}/${directory}" PARENT_SCOPE)
-  endif()
-endfunction()
-
-smt_switch_default_root(BISON bison)
-smt_switch_default_root(Bitwuzla bitwuzla)
-smt_switch_default_root(Boolector boolector)
-smt_switch_default_root(FLEX flex)
-smt_switch_default_root(MathSAT mathsat)
-smt_switch_default_root(Yices2 yices2)
-smt_switch_default_root(Z3 z3)
-smt_switch_default_root(cvc5 cvc5)
+# These are only defaults, and a package installed where find_package would
+# look anyway wins over them. A root passed on the command line replaces the
+# default, and then the package has to be there. The third argument names
+# the variable that records where each package was found, and the fourth
+# the configure.sh flag that sets the root; flex has none.
+smt_switch_dependency_root(BISON bison BISON_EXECUTABLE --bison-dir)
+smt_switch_dependency_root(Bitwuzla bitwuzla Bitwuzla_bitwuzla_LIBRARY --bitwuzla-dir)
+smt_switch_dependency_root(Boolector boolector Boolector_DIR --boolector-dir)
+smt_switch_dependency_root(FLEX flex FLEX_EXECUTABLE)
+smt_switch_dependency_root(MathSAT mathsat MathSAT_LIBRARY --mathsat-dir)
+smt_switch_dependency_root(Yices2 yices2 Yices2_LIBRARY --yices2-dir)
+smt_switch_dependency_root(Z3 z3 Z3_DIR --z3-dir)
+smt_switch_dependency_root(cvc5 cvc5 cvc5_DIR --cvc5-dir)
 
 if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
@@ -158,8 +155,10 @@ if(SMTLIB_READER)
   #
   # Homebrew's bison is keg-only, because macOS has its own, so it is on
   # neither PATH nor the prefixes CMake searches. Look in its keg after the
-  # provisioned copy and before the system one.
-  if(APPLE)
+  # provisioned copy and before the system one, unless BISON_ROOT was given,
+  # which is then the only place bison may come from.
+  get_property(_explicit_roots GLOBAL PROPERTY SMT_SWITCH_EXPLICIT_ROOTS)
+  if(APPLE AND NOT BISON IN_LIST _explicit_roots)
     execute_process(
       COMMAND brew --prefix
       OUTPUT_VARIABLE _homebrew_prefix
@@ -174,6 +173,7 @@ if(SMTLIB_READER)
   smt_switch_provision_if_missing(BISON bison 3.7.0)
   find_package(BISON 3.7.0 REQUIRED)
   find_package(FLEX 2.6.4 REQUIRED)
+  smt_switch_check_root(FLEX)
 
   bison_target(
     SmtLibParser
@@ -259,8 +259,18 @@ if(BUILD_BTOR)
   # Boolector installs only boolector.h and btortypes.h, but boolector_term.h
   # needs btorcore.h, btornode.h and utils/btornodeiter.h, so the backend
   # needs the source tree in addition to the installed package.
-  if(NOT DEFINED Boolector_SOURCE_DIR)
+  if(DEFINED CACHE{Boolector_SOURCE_DIR})
+    # A PATH, so that a relative value is made absolute as a root is.
+    set(Boolector_SOURCE_DIR "" CACHE PATH "Boolector source tree")
+  elseif(NOT DEFINED Boolector_SOURCE_DIR)
     set(Boolector_SOURCE_DIR "${Boolector_ROOT}/src/boolector")
+  endif()
+  if(NOT EXISTS "${Boolector_SOURCE_DIR}/src/btorcore.h")
+    message(
+      FATAL_ERROR
+      "Boolector_SOURCE_DIR (--boolector-src-dir) is ${Boolector_SOURCE_DIR}, "
+      "which does not hold Boolector's source tree."
+    )
   endif()
   add_subdirectory(btor)
   list(APPEND SOLVER_BACKEND_LIBS smt-switch-btor)
@@ -285,6 +295,7 @@ if(BUILD_MSAT)
   # fetch it on a user's behalf, so it is the one solver that still has to be
   # installed by hand.
   find_package(MathSAT QUIET)
+  smt_switch_check_root(MathSAT)
   if(NOT MathSAT_FOUND)
     message(
       FATAL_ERROR
