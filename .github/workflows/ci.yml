@@ -10,82 +10,135 @@ env:
   # Part of every solver's cache key. Bump it to rebuild every cached solver,
   # e.g. after a runner image or system package update breaks a cached build.
   DEPS_CACHE_EPOCH: 1
+  # Read by the MathSAT step below and by compute-dep-cache-entry.sh
+  MSAT_VERSION: 5.6.18
 jobs:
-  build:
+  # Works out which solver builds are missing from the cache, so that only
+  # those are built, and lists every solver for the full build.
+  plan:
     strategy:
-      fail-fast: false
       matrix:
-        # Pinned rather than -latest, so that an OS upgrade is an edit here,
-        # which changes the cache keys, and not reuse of an old OS's builds
-        runner: [ubuntu-24.04, macos-26]
-        # Each is both a configure.sh option and the deps/ directory it fills
-        solver:
-          - bitwuzla
-          - boolector
-          - cvc5
-          - mathsat
-          - yices2
-          - z3
-    name: ${{ matrix.solver }} (${{ matrix.runner }})
-    runs-on: ${{ matrix.runner }}
-    env:
-      # The install-packages scripts are named after the label's first element
-      RUNNER_LABEL: ${{ matrix.runner }}
-      # Read by the MathSAT step below and by compute-dep-key.sh
-      MSAT_VERSION: 5.6.18
-      # Names the artifact; a fold here would put a space in it
-      BUILD_ID: ${{ matrix.runner }}-${{ matrix.solver }}
+        # Hack: not a real matrix, as its one value spawns a single job. It
+        # exists only to name this list, which the base and full matrices
+        # reuse through the anchor, as strategy cannot read env.
+        runners:
+          - &runners
+            - ubuntu-24.04
+            - macos-26
+    name: Plan solver builds
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read # to look up cache entries
+      contents: read
+    outputs:
+      build: ${{ steps.plan.outputs.build }}
+      entries: ${{ steps.plan.outputs.entries }}
     steps:
       - name: Check out project source
         uses: actions/checkout@v7
-      - name: Install packages
-        run: ./ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
-      - name: Compute the cache key for the solver build
-        id: dep-key
+      - name: Look up the cached solver builds
+        id: plan
         env:
-          PREFIX: ${{ matrix.solver }}
+          SOLVERS: |
+            bitwuzla
+            boolector
+            cvc5
+            mathsat
+            yices2
+            z3
+          RUNNERS: ${{ join(matrix.runners, ' ') }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: ci-scripts/plan-deps.sh
+  # Builds each solver that is missing from the cache, and saves it there.
+  deps:
+    needs: plan
+    if: needs.plan.outputs.build != '[]'
+    strategy:
+      # Whatever did build is still worth saving for the next run
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.build) }}
+    name: Build solver
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Look up the cache entry
+        id: lookup
+        env:
+          ENTRIES: ${{ needs.plan.outputs.entries }}
+          RUNNER: ${{ matrix.runner }}
+          SOLVER: ${{ matrix.solver }}
         run: |
-          key=$(./ci-scripts/compute-dep-key.sh "$RUNNER_LABEL" "$PREFIX")
-          echo "key=$key" >>"$GITHUB_OUTPUT"
-      - name: Restore solver build from cache
-        uses: actions/cache/restore@v6
-        id: cache
-        with:
-          path: deps
-          key: ${{ steps.dep-key.outputs.key }}
-      # Every other solver is provisioned by the Configure step below. MathSAT
-      # cannot be: its licence does not let the build download it on a user's
-      # behalf. Running this workflow accepts that licence.
-      - name: Set up MathSAT
-        if: >-
-          matrix.solver == 'mathsat' &&
-          steps.cache.outputs.cache-hit != 'true'
+          entry=$(
+            jq -ce --arg runner "$RUNNER" --arg solver "$SOLVER" \
+              '.[$runner][] | select(.solver == $solver)' <<<"$ENTRIES"
+          )
+          echo "entry=$entry" >>"$GITHUB_OUTPUT"
+      - name: Check out project source
+        uses: actions/checkout@v7
+      - name: Install packages
+        if: matrix.solver != 'mathsat'
+        env:
+          RUNNER_LABEL: ${{ matrix.runner }}
+        run: ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+      # Every other solver is provisioned by the Configure step below
+      - name: Download MathSAT
+        if: matrix.solver == 'mathsat'
         shell: bash
         env:
+          DIR: ${{ fromJSON(steps.lookup.outputs.entry).path }}
           MSAT_PLATFORM: >-
             ${{ runner.os == 'macOS' && 'macos' || 'linux-x86_64' }}
         run: |
           archive=mathsat-$MSAT_VERSION-$MSAT_PLATFORM.tar.gz
-          mkdir -p deps/mathsat
+          mkdir -p "$DIR"
           curl -fLsS "https://mathsat.fbk.eu/release/$archive" |
-            tar -xz -C deps/mathsat --strip-components 1
+            tar -xz -C "$DIR" --strip-components 1
+      - name: Configure smt-switch and build solver
+        if: matrix.solver != 'mathsat'
+        env:
+          CMAKE_GENERATOR: Ninja
+          SOLVER: ${{ matrix.solver }}
+        run: ./configure.sh --allow-gpl "--$SOLVER"
+      - name: Save the solver build to the cache
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ fromJSON(steps.lookup.outputs.entry).path }}
+          key: ${{ fromJSON(steps.lookup.outputs.entry).key }}
+  base:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: *runners
+    name: Test without solvers
+    runs-on: ${{ matrix.runner }}
+    env:
+      # The solvers to restore and enable, as plan lists them for full
+      DEPS_ENTRIES: "[]"
+    steps: &build-steps
+      - name: Check out project source
+        uses: actions/checkout@v7
+      - name: Install packages
+        env:
+          RUNNER_LABEL: ${{ matrix.runner }}
+        run: ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+      - name: Restore the solver builds
+        if: env.DEPS_ENTRIES != '[]'
+        uses: ./.github/actions/restore-deps
+        with:
+          entries: ${{ env.DEPS_ENTRIES }}
       - name: Set up Python virtual environment
         run: |
           python3 -m venv .venv --system-site-packages
           echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
       - name: Configure
         env:
-          OPT: --${{ matrix.solver }}
-          # Both configurations from one configure; each is built below
           CMAKE_GENERATOR: Ninja Multi-Config
-        run: ./configure.sh --static --python --smtlib-reader --allow-gpl "$OPT"
-      # After Configure, as that is what builds the solver.
-      - name: Save solver build to cache
-        uses: actions/cache/save@v6
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          path: deps
-          key: ${{ steps.cache.outputs.cache-primary-key }}
+        run: |
+          flags=$(jq -r '.[] | "--" + .solver' <<<"$DEPS_ENTRIES")
+          read -r -d '' -a flags < <(printf '%s\0' "$flags")
+          ./configure.sh --static --python --smtlib-reader --no-auto-deps \
+            "${flags[@]}"
       - name: Build
         working-directory: build
         run: cmake --build . --config Debug && cmake --build . --config Release
@@ -101,7 +154,7 @@ jobs:
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
-          name: test-log-${{ env.BUILD_ID }}
+          name: test-log-${{ matrix.runner }}-${{ github.job }}
           path: build/Testing/Temporary/LastTest.log
       - name: Fail pipeline due to C++ test failure
         if: steps.test-cpp.outcome == 'failure'
@@ -114,3 +167,18 @@ jobs:
           pytest tests/python
           pip install --force-reinstall --no-deps build/python/Debug/*.whl
           pytest tests/python
+  full:
+    needs: [plan, deps]
+    if: >-
+      !cancelled() && needs.plan.result == 'success' &&
+      contains(fromJSON('["success", "skipped"]'), needs.deps.result)
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: *runners
+    name: Test with all solvers
+    runs-on: ${{ matrix.runner }}
+    env:
+      DEPS_ENTRIES: >-
+        ${{ toJSON(fromJSON(needs.plan.outputs.entries)[matrix.runner]) }}
+    steps: *build-steps
