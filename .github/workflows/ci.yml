@@ -81,6 +81,12 @@ jobs:
         env:
           RUNNER_LABEL: ${{ matrix.runner }}
         run: ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+      - &python-setup
+        name: Set up Python virtual environment
+        run: |
+          python3 -m venv .venv --system-site-packages
+          .venv/bin/pip install --require-hashes -r ci-scripts/requirements.txt
+          echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
       # Every other solver is provisioned by the Configure step below
       - name: Download MathSAT
         if: matrix.solver == 'mathsat'
@@ -98,6 +104,7 @@ jobs:
         if: matrix.solver != 'mathsat'
         env:
           CMAKE_GENERATOR: Ninja
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
           SOLVER: ${{ matrix.solver }}
         run: ./configure.sh --allow-gpl "--$SOLVER"
       - name: Save the solver build to the cache
@@ -127,13 +134,11 @@ jobs:
         uses: ./.github/actions/restore-deps
         with:
           entries: ${{ env.DEPS_ENTRIES }}
-      - name: Set up Python virtual environment
-        run: |
-          python3 -m venv .venv --system-site-packages
-          echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
+      - *python-setup
       - name: Configure
         env:
           CMAKE_GENERATOR: Ninja Multi-Config
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           flags=$(jq -r '.[] | "--" + .solver' <<<"$DEPS_ENTRIES")
           read -r -d '' -a flags < <(printf '%s\0' "$flags")
