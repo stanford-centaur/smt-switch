@@ -1033,6 +1033,8 @@ cvc5InterpolatingSolver::cvc5InterpolatingSolver()
 {
   // set_opt refuses produce-interpolants, so this is the only place it is set
   cvc5_solver->set_opt("produce-interpolants", "true");
+  // cvc5 is incremental by default, which measurably slows down each
+  // bit-vector interpolation query (seen with cvc5 1.4.0)
   cvc5_solver->set_opt("incremental", "false");
 }
 
