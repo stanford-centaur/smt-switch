@@ -516,7 +516,9 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
     }
     else if (sk == REAL || sk == INT)
     {
-      msat_term mval = msat_make_int_number(env, i);
+      // msat_make_int_number takes an int, which would truncate i
+      std::string sval = std::to_string(i);
+      msat_term mval = msat_make_number(env, sval.c_str());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -531,7 +533,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
   catch (IncorrectUsageException & e)
   {
     string msg("Can't create value ");
-    msg += i;
+    msg += std::to_string(i);
     msg += " with sort ";
     msg += sort->to_string();
     throw IncorrectUsageException(msg);
