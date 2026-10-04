@@ -84,19 +84,13 @@ class ToIntIntTests : public ToIntTests
  protected:
   /** Returns the integer n, outside the int64_t range, and equal to the
    *  sum of the addends: as a constant made from the string n, then as a
-   *  model value of the sum. Yices2 gets no constant: its make_term from a
-   *  string parses with stoi, so it cannot make one outside the int64_t
-   *  range.
+   *  model value of the sum
    */
   TermVec big_int_values(const std::string & n,
                          std::initializer_list<int64_t> addends)
   {
     Sort intsort = s->make_sort(INT);
-    TermVec res;
-    if (GetParam().solver_enum != YICES2)
-    {
-      res.push_back(s->make_term(n, intsort));
-    }
+    TermVec res = { s->make_term(n, intsort) };
     Term sum;
     for (int64_t a : addends)
     {
