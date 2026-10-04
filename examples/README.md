@@ -14,8 +14,8 @@ then build the examples. The script has comments explaining each step for
 building smt-switch. The script assumes you already have dependencies installed
 and that boolector and cvc5 have been built in the top-level repository under
 `deps/cvc5/src/cvc5` and `deps/boolector/src/boolector`. Running
-`./configure.sh --btor --cvc5` there builds both if they are missing. If the
-build script fails and you haven't recently installed the solvers, you might
+`./configure.sh --boolector --cvc5` there builds both if they are missing. If
+the build script fails and you haven't recently installed the solvers, you might
 have an old version. You can try deleting them from `deps` and rebuilding them.
 
 You can look at the `Makefile` to understand how to link smt-switch to a binary.
