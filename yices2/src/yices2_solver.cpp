@@ -383,16 +383,130 @@ Term Yices2Solver::get_value(const Term & t) const
   else
   {
     throw NotImplementedException(
-        "Yices does not support get-value for arrays.");
+        "Yices does not convert a function or array value into a term: "
+        "yices_get_value_as_term fails for a function type. Use "
+        "get_array_values for an array, or get_value on a select of it.");
   }
+}
+
+/* Turn one model node back into a term of the given sort. Yices reports
+ * model values as yval_t nodes and has no generic node-to-term conversion,
+ * so each one goes through the string form make_term already reads.
+ */
+static Term term_from_yval(const Yices2Solver & solver,
+                           model_t * model,
+                           const yval_t & node,
+                           const Sort & sort)
+{
+  switch (node.node_tag)
+  {
+    case YVAL_BOOL: {
+      int32_t b = 0;
+      if (yices_val_get_bool(model, &node, &b) < 0)
+      {
+        throw InternalSolverException(yices_error_string());
+      }
+      return solver.make_term(b != 0);
+    }
+    case YVAL_BV: {
+      uint32_t width = yices_val_bitsize(model, &node);
+      std::vector<int32_t> bits(width);
+      if (yices_val_get_bv(model, &node, bits.data()) < 0)
+      {
+        throw InternalSolverException(yices_error_string());
+      }
+      // bits[0] is the low-order bit, so read the array back to front
+      std::string digits;
+      for (uint32_t pos = width; pos > 0; pos--)
+      {
+        digits += bits[pos - 1] ? '1' : '0';
+      }
+      return solver.make_term(digits, sort, 2);
+    }
+    case YVAL_RATIONAL: {
+      int64_t num = 0;
+      uint64_t den = 0;
+      if (yices_val_get_rational64(model, &node, &num, &den) < 0)
+      {
+        throw InternalSolverException(yices_error_string());
+      }
+      if (den != 1)
+      {
+        throw NotImplementedException(
+            "Yices gave the non-integer array model value "
+            + std::to_string(num) + "/" + std::to_string(den));
+      }
+      return solver.make_term(std::to_string(num), sort, 10);
+    }
+    case YVAL_UNKNOWN:
+    case YVAL_ALGEBRAIC:
+    case YVAL_FINITEFIELD:
+    case YVAL_SCALAR:
+    case YVAL_TUPLE:
+    case YVAL_FUNCTION:
+    case YVAL_MAPPING: break;
+  }
+  throw NotImplementedException(
+      "Yices gave an array model node of tag " + std::to_string(node.node_tag)
+      + ", which this backend cannot turn back into a term");
 }
 
 UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
 {
-  throw NotImplementedException(
-      "Yices does not support getting array values. Please use get_value on a "
-      "particular select of the array.");
+  out_const_base = nullptr;
+  shared_ptr<Yices2Term> yarr = static_pointer_cast<Yices2Term>(arr);
+  Sort arrsort = arr->get_sort();
+  Sort idxsort = arrsort->get_indexsort();
+  Sort elemsort = arrsort->get_elemsort();
+  model_t * model = yices_get_model(ctx, true);
+
+  // Yices models an array as a function: one default value, plus a mapping
+  // for each index that differs from it. The default is the constant base.
+  yval_t node;
+  if (yices_get_value(model, yarr->term, &node) < 0)
+  {
+    throw InternalSolverException(yices_error_string());
+  }
+  if (yices_val_function_arity(model, &node) != 1)
+  {
+    throw NotImplementedException(
+        "Yices gave an array model of arity other than one");
+  }
+
+  yval_t def;
+  yval_vector_t mappings;
+  yices_init_yval_vector(&mappings);
+  if (yices_val_expand_function(model, &node, &def, &mappings) < 0)
+  {
+    yices_delete_yval_vector(&mappings);
+    throw InternalSolverException(yices_error_string());
+  }
+
+  UnorderedTermMap assignments;
+  try
+  {
+    out_const_base = term_from_yval(*this, model, def, elemsort);
+    for (uint32_t m = 0; m < mappings.size; m++)
+    {
+      yval_t index;
+      yval_t value;
+      if (yices_val_expand_mapping(model, &mappings.data[m], &index, &value)
+          < 0)
+      {
+        throw InternalSolverException(yices_error_string());
+      }
+      assignments[term_from_yval(*this, model, index, idxsort)] =
+          term_from_yval(*this, model, value, elemsort);
+    }
+  }
+  catch (...)
+  {
+    yices_delete_yval_vector(&mappings);
+    throw;
+  }
+  yices_delete_yval_vector(&mappings);
+  return assignments;
 }
 
 void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out)

@@ -95,6 +95,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             THEORY_BV,
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
+            ARRAY_MODELS,
             UNINTERP_SORT,
             TIMELIMIT } },
         { Z3,
