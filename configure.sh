@@ -31,7 +31,6 @@ Configures the CMAKE build environment.
 --python                compile with python bindings (default: off)
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison install prefix     (default: deps/bison)
---flex-dir=STR          custom flex install prefix      (default: deps/flex)
 --bitwuzla-dir=STR      custom Bitwuzla install prefix  (default: deps/bitwuzla)
 --z3-dir=STR            custom Z3 install prefix        (default: deps/z3)
 
@@ -68,7 +67,6 @@ system_gtest=default
 python=default
 smtlib_reader=default
 bison_dir=default
-flex_dir=default
 bitwuzla_dir=default
 z3_dir=default
 
@@ -236,14 +234,9 @@ while [ "$i" -lt "$argc" ]; do
         *) bison_dir=$(pwd)/$bison_dir ;; # make absolute path
       esac
       ;;
-    --flex-dir=*)
-      flex_dir=${arg##*=}
-      # Check if flex_dir is an absolute path and if not, make it
-      # absolute.
-      case $flex_dir in
-        /*) ;;                          # absolute path
-        *) flex_dir=$(pwd)/$flex_dir ;; # make absolute path
-      esac
+    --flex-dir | --flex-dir=*)
+      die "$arg was removed; pass -DFLEX_ROOT=<prefix> or" \
+        "-DFLEX_EXECUTABLE=<flex> instead"
       ;;
     --bitwuzla-dir) die "missing argument to $arg (see -h)" ;;
     --bitwuzla-dir=*)
@@ -363,9 +356,6 @@ esac
 
 [ "$bison_dir" != default ] &&
   set -- "$@" "-DBISON_ROOT=$bison_dir"
-
-[ "$flex_dir" != default ] &&
-  set -- "$@" "-DFLEX_ROOT=$flex_dir"
 
 [ "$bitwuzla_dir" != default ] &&
   set -- "$@" "-DBitwuzla_ROOT=$bitwuzla_dir"
