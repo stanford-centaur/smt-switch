@@ -115,6 +115,9 @@ class MsatSolver : public AbsSmtSolver
   // creates the environment if it does not exist yet
   msat_env get_msat_env() const;
 
+  // true once the environment exists, which fixes the configuration
+  bool is_initialized() const;
+
   // getters and setters for advanced use / testing
   size_t max_assump_clauses() const { return max_assump_clauses_; }
 
@@ -196,8 +199,15 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   void reset_assertions() override;
 
  protected:
+  // sets the options interpolation needs, unless the configuration is fixed
+  // already
+  void initialize();
+
   // the regular solver that builds this solver's terms
   std::shared_ptr<MsatSolver> msat_solver_;
+  // true if the configuration was not the caller's, so its own preferences
+  // may be set
+  bool own_config_;
 
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
@@ -205,6 +215,9 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   mutable TermVec last_itp_query_assertions_;
   // interpolation group for each assertion level
   mutable std::vector<int> itp_grps_;
+
+ private:
+  MsatInterpolatingSolver(msat_config c, bool own_config);
 };
 
 }  // namespace smt

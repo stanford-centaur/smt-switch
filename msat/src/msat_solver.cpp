@@ -1002,7 +1002,9 @@ void MsatSolver::reset()
   msat_destroy_config(cfg);
 
   cfg = msat_create_config();
-  env = msat_create_env(cfg);
+  // initialize_env() creates the environment on first use, so options can
+  // be set again until then, as after construction
+  env_uninitialized = true;
   base_assertions_.clear();
 }
 
@@ -1124,6 +1126,8 @@ msat_env MsatSolver::get_msat_env() const
   return env;
 }
 
+bool MsatSolver::is_initialized() const { return !env_uninitialized; }
+
 void MsatSolver::initialize_env() const
 {
   if (env_uninitialized)
@@ -1174,22 +1178,40 @@ Result MsatSolver::check_sat_assuming_msatvec(
 // begin MsatInterpolatingSolver implementation
 
 MsatInterpolatingSolver::MsatInterpolatingSolver()
-    : MsatInterpolatingSolver(msat_create_config())
+    : MsatInterpolatingSolver(msat_create_config(), true)
 {
-  // only a preference, so a caller's configuration keeps its own
-  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
 }
 
 MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c)
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
-      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
+    : MsatInterpolatingSolver(c, false)
 {
+}
+
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, bool own_config)
+    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
+      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver)),
+      own_config_(own_config)
+{
+  initialize();
+}
+
+void MsatInterpolatingSolver::initialize()
+{
+  if (msat_solver_->is_initialized())
+  {
+    return;
+  }
   // required even on a caller's configuration: without interpolation
   // there are no interpolants, and the eager BV solver produces no proofs
   msat_solver_->set_opt("interpolation", "true");
   msat_solver_->set_opt("theory.bv.eager", "false");
-  // TODO: decide if we should add this
-  // msat_solver_->set_opt("theory.eq_propagation", "false");
+  if (own_config_)
+  {
+    // only a preference, so a caller's configuration keeps its own
+    msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
+    // TODO: decide if we should add this
+    // msat_solver_->set_opt("theory.eq_propagation", "false");
+  }
 }
 
 MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
@@ -1337,6 +1359,7 @@ void MsatInterpolatingSolver::reset_assertions()
   msat_solver_->reset_assertions();
   last_itp_query_assertions_.clear();
   itp_grps_.clear();
+  initialize();
 }
 
 void MsatInterpolatingSolver::reset()
@@ -1344,6 +1367,9 @@ void MsatInterpolatingSolver::reset()
   msat_solver_->reset();
   last_itp_query_assertions_.clear();
   itp_grps_.clear();
+  // reset() starts again from a default configuration of its own
+  own_config_ = true;
+  initialize();
 }
 
 // end MsatInterpolatingSolver implementation
