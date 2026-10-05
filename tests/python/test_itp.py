@@ -28,35 +28,44 @@ def get_free_vars(t: ss.Term) -> set[ss.Term]:
     return free_vars
 
 
-# Only cvc5 and msat expose an interpolator to Python. Bitwuzla implements one
-# in C++ (BitwuzlaSolverFactory::create_interpolating_solver) but the bindings
-# do not declare it; btor, yices2 and z3 have no interpolation support at all.
-# Every solver is parametrized so the report names the ones it skipped.
+# Only bitwuzla, cvc5 and msat expose an interpolator to Python; btor, yices2
+# and z3 have no interpolation support at all. Every solver is parametrized so
+# the report names the ones it skipped.
+@pytest.mark.parametrize("theory", ["int", "bv"])
 @pytest.mark.parametrize("itp_name", sorted(ss.solvers))
-def test_simple_itp(itp_name):
+def test_simple_itp(itp_name, theory):
     try:
         create_interpolator = getattr(ss, f"create_{itp_name}_interpolator")
     except AttributeError:
         pytest.skip(f"{itp_name} exposes no interpolator to Python")
+    if theory == "int" and itp_name == "bitwuzla":
+        pytest.skip("bitwuzla has no integers")
     itp = create_interpolator()
 
-    intsort = itp.make_sort(ss.sortkinds.INT)
-    x = itp.make_symbol("x", intsort)
-    y = itp.make_symbol("y", intsort)
-    z = itp.make_symbol("z", intsort)
-    w = itp.make_symbol("w", intsort)
+    # the queries order the symbols, so unsigned bit-vector comparisons keep
+    # them unsatisfiable
+    if theory == "int":
+        sort = itp.make_sort(ss.sortkinds.INT)
+        lt, gt = ss.primops.Lt, ss.primops.Gt
+    else:
+        sort = itp.make_sort(ss.sortkinds.BV, 8)
+        lt, gt = ss.primops.BVUlt, ss.primops.BVUgt
+    x = itp.make_symbol("x", sort)
+    y = itp.make_symbol("y", sort)
+    z = itp.make_symbol("z", sort)
+    w = itp.make_symbol("w", sort)
 
     # x < y
-    a = itp.make_term(ss.primops.Lt, x, y)
+    a = itp.make_term(lt, x, y)
 
     # y < w
-    a = itp.make_term(ss.primops.And, a, itp.make_term(ss.primops.Lt, y, w))
+    a = itp.make_term(ss.primops.And, a, itp.make_term(lt, y, w))
 
     # z > w
-    b = itp.make_term(ss.primops.Gt, z, w)
+    b = itp.make_term(gt, z, w)
 
     # z < x
-    b = itp.make_term(ss.primops.And, b, itp.make_term(ss.primops.Lt, z, x))
+    b = itp.make_term(ss.primops.And, b, itp.make_term(lt, z, x))
 
     interpolant = itp.get_interpolant(a, b)
     assert interpolant is not None

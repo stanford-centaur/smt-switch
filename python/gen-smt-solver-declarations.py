@@ -25,6 +25,11 @@ def create_bitwuzla_solver(logging):
     solver.css = cpp_create_bitwuzla_solver(logging)
     return solver
 solvers["bitwuzla"] = create_bitwuzla_solver
+
+def create_bitwuzla_interpolator():
+    cdef SmtInterpolator solver = SmtInterpolator()
+    solver.set_interpolator(cpp_create_bitwuzla_interpolator())
+    return solver
 """
 
 
@@ -81,6 +86,7 @@ cdef extern from "boolector_factory.h":
 DECLARE_BITWUZLA = """
 cdef extern from "bitwuzla_factory.h":
     c_SmtSolver cpp_create_bitwuzla_solver "smt::BitwuzlaSolverFactory::create" (bint logging) except +
+    c_SmtInterpolator cpp_create_bitwuzla_interpolator "smt::BitwuzlaSolverFactory::create_interpolating_solver" () except +
 """
 
 
@@ -138,6 +144,7 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_BITWUZLA
         pyx += "\n" + CREATE_BITWUZLA
         imports.append("cpp_create_bitwuzla_solver")
+        imports.append("cpp_create_bitwuzla_interpolator")
 
     if args.cvc5:
         pxd += "\n" + DECLARE_CVC5
