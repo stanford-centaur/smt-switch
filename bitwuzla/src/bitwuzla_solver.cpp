@@ -115,6 +115,8 @@ bitwuzla::Bitwuzla * BzlaSolver::get_bitwuzla() const
   return bzla.get();
 }
 
+bool BzlaSolver::is_initialized() const { return bzla != nullptr; }
+
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
@@ -579,7 +581,8 @@ void BzlaSolver::reset()
   bzla.reset();
   options = {};
   tm = std::make_unique<bitwuzla::TermManager>();
-  bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
+  // get_bitwuzla() creates the instance on first use, so options can be
+  // set again until then, as after construction
   context_level = 0;
 }
 
@@ -655,7 +658,15 @@ BzlaInterpolatingSolver::BzlaInterpolatingSolver()
     : AbsSmtInterpolator(BZLA_INTERPOLATOR, std::make_shared<BzlaSolver>()),
       bzla_solver(std::static_pointer_cast<BzlaSolver>(backend_solver))
 {
-  bzla_solver->set_opt("produce-interpolants", "true");
+  initialize();
+}
+
+void BzlaInterpolatingSolver::initialize()
+{
+  if (!bzla_solver->is_initialized())
+  {
+    bzla_solver->set_opt("produce-interpolants", "true");
+  }
 }
 
 void BzlaInterpolatingSolver::set_opt(const std::string option,
@@ -824,6 +835,7 @@ void BzlaInterpolatingSolver::reset_assertions()
 {
   bzla_solver->reset_assertions();
   last_itp_query_assertions.clear();
+  initialize();
 }
 
 void BzlaInterpolatingSolver::reset()
@@ -831,6 +843,7 @@ void BzlaInterpolatingSolver::reset()
   // these terms belong to the term manager bzla_solver->reset() destroys
   last_itp_query_assertions.clear();
   bzla_solver->reset();
+  initialize();
 }
 
 }  // namespace smt
