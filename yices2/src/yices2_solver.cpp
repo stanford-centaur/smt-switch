@@ -248,8 +248,14 @@ Term Yices2Solver::make_term(const std::string val,
   }
   else if (sk == INT)
   {
-    int i = stoi(val);
-    y_term = yices_int64(i);
+    // reads an integer of any size, but also a fraction, which is no Int
+    y_term = yices_parse_rational(val.c_str());
+    if (y_term == NULL_TERM || !yices_term_is_int(y_term))
+    {
+      yices_clear_error();
+      throw IncorrectUsageException("Can't create value " + val + " with sort "
+                                    + sort->to_string());
+    }
   }
   else
   {
