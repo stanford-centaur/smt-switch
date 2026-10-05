@@ -84,12 +84,6 @@ while [ "$i" -lt "$argc" ]; do
     --prefix) die "missing argument to $arg (see -h)" ;;
     --prefix=*)
       install_prefix=${arg##*=}
-      # Check if install_prefix is an absolute path and if not, make it
-      # absolute.
-      case $install_prefix in
-        /*) ;;                                      # absolute path
-        *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
-      esac
       ;;
     # --btor and --msat are the old spellings, still accepted so that existing
     # scripts keep working.
@@ -136,62 +130,26 @@ while [ "$i" -lt "$argc" ]; do
     --boolector-dir) die "missing argument to $arg (see -h)" ;;
     --boolector-dir=*)
       btor_dir=${arg##*=}
-      # Check if btor_dir is an absolute path and if not, make it
-      # absolute.
-      case $btor_dir in
-        /*) ;;                          # absolute path
-        *) btor_dir=$(pwd)/$btor_dir ;; # make absolute path
-      esac
       ;;
     --boolector-src-dir) die "missing argument to $arg (see -h)" ;;
     --boolector-src-dir=*)
       btor_src_dir=${arg##*=}
-      # Check if btor_src_dir is an absolute path and if not, make it
-      # absolute.
-      case $btor_src_dir in
-        /*) ;;                                  # absolute path
-        *) btor_src_dir=$(pwd)/$btor_src_dir ;; # make absolute path
-      esac
       ;;
     --cvc5-dir) die "missing argument to $arg (see -h)" ;;
     --cvc5-dir=*)
       cvc5_dir=${arg##*=}
-      # Check if cvc5_dir is an absolute path and if not, make it
-      # absolute.
-      case $cvc5_dir in
-        /*) ;;                          # absolute path
-        *) cvc5_dir=$(pwd)/$cvc5_dir ;; # make absolute path
-      esac
       ;;
     --mathsat-dir) die "missing argument to $arg (see -h)" ;;
     --mathsat-dir=*)
       msat_dir=${arg##*=}
-      # Check if msat_dir is an absolute path and if not, make it
-      # absolute.
-      case $msat_dir in
-        /*) ;;                          # absolute path
-        *) msat_dir=$(pwd)/$msat_dir ;; # make absolute path
-      esac
       ;;
     --yices2-dir) die "missing argument to $arg (see -h)" ;;
     --yices2-dir=*)
       yices2_dir=${arg##*=}
-      # Check if yices2_dir is an absolute path and if not, make it
-      # absolute.
-      case $yices2_dir in
-        /*) ;;                              # absolute path
-        *) yices2_dir=$(pwd)/$yices2_dir ;; # make absolute path
-      esac
       ;;
     --build-dir) die "missing argument to $arg (see -h)" ;;
     --build-dir=*)
       build_dir=${arg##*=}
-      # Check if build_dir is an absolute path and if not, make it
-      # absolute.
-      case $build_dir in
-        /*) ;;                            # absolute path
-        *) build_dir=$(pwd)/$build_dir ;; # make absolute path
-      esac
       ;;
     --debug)
       die "$arg was removed; pass -DCMAKE_BUILD_TYPE=Debug instead," \
@@ -227,12 +185,6 @@ while [ "$i" -lt "$argc" ]; do
       ;;
     --bison-dir=*)
       bison_dir=${arg##*=}
-      # Check if bison_dir is an absolute path and if not, make it
-      # absolute.
-      case $bison_dir in
-        /*) ;;                            # absolute path
-        *) bison_dir=$(pwd)/$bison_dir ;; # make absolute path
-      esac
       ;;
     --flex-dir | --flex-dir=*)
       die "$arg was removed; pass -DFLEX_ROOT=<prefix> or" \
@@ -241,14 +193,10 @@ while [ "$i" -lt "$argc" ]; do
     --bitwuzla-dir) die "missing argument to $arg (see -h)" ;;
     --bitwuzla-dir=*)
       bitwuzla_dir=${arg##*=}
-      # Make relative paths absolute
-      bitwuzla_dir=$(cd -- "$bitwuzla_dir" && pwd)
       ;;
     --z3-dir) die "missing argument to $arg (see -h)" ;;
     --z3-dir=*)
       z3_dir=${arg##*=}
-      # Make relative paths absolute
-      z3_dir=$(cd -- "$z3_dir" && pwd)
       ;;
     -D*) set -- "$@" "$arg" ;;
     *) die "unexpected argument: $arg" ;;
@@ -363,11 +311,13 @@ esac
 [ "$z3_dir" != default ] &&
   set -- "$@" "-DZ3_ROOT=$z3_dir"
 
-mkdir -p "$build_dir"
-cd "$build_dir" || exit 1
+# Paths are passed on as given. cmake is started here rather than in the
+# build directory, so CMake makes a relative one absolute against the
+# directory this script was run in.
+src_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 
 # Reset build configuration.
-[ -e CMakeCache.txt ] && rm CMakeCache.txt
+[ -e "$build_dir/CMakeCache.txt" ] && rm "$build_dir/CMakeCache.txt"
 
 echo "Running with cmake options: $*"
-cmake .. "$@" 2>&1
+cmake -S "$src_dir" -B "$build_dir" "$@" 2>&1

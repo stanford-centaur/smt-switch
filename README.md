@@ -173,6 +173,11 @@ already exist, which is what `cmake --install` produces. Each solver is located
 with `find_package`, so a solver installed somewhere `cmake` already searches —
 a distribution package, for instance — is picked up without any flag at all.
 
+A relative path is taken from the directory `configure.sh` is run in. A
+`--<solver>-dir` has to hold the solver: if the directory does not exist or the
+solver is not installed there, configuration stops rather than use another copy
+or build one. The same goes for `--bison-dir`.
+
 Boolector is the exception that also needs its sources. Smt-switch needs access
 to Boolector's private headers to support term iteration, so
 `--boolector-src-dir` points at the source tree alongside `--boolector-dir`. It
