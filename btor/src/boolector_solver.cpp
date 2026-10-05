@@ -20,6 +20,8 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <limits>
+#include <string>
 
 #include "solver_utils.h"
 
@@ -223,8 +225,23 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
     std::shared_ptr<BoolectorSortBase> bs =
         std::static_pointer_cast<BoolectorSortBase>(sort);
     // note: give the constant value a null PrimOp
+    if (i >= std::numeric_limits<int32_t>::min()
+        && i <= std::numeric_limits<int32_t>::max())
+    {
+      return std::make_shared<BoolectorTerm>(btor,
+                                             boolector_int(btor, i, bs->sort));
+    }
+    // boolector_int takes an int32_t, so write out the bits it would give a
+    // wider value: truncated to the width, or sign-extended to it
+    uint64_t width = sort->get_width();
+    std::string bits(width, '0');
+    for (uint64_t k = 0; k < width; ++k)
+    {
+      bool bit = k < 64 ? (static_cast<uint64_t>(i) >> k) & 1 : i < 0;
+      bits[width - 1 - k] = bit ? '1' : '0';
+    }
     return std::make_shared<BoolectorTerm>(btor,
-                                           boolector_int(btor, i, bs->sort));
+                                           boolector_const(btor, bits.c_str()));
   }
   catch (InternalSolverException & e)
   {
