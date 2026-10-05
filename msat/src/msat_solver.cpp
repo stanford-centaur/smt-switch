@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "exceptions.h"
@@ -36,6 +37,11 @@ namespace smt {
 
 const unordered_map<string, string> msat_option_map({ { "produce-models",
                                                         "model_generation" } });
+
+// the options MsatInterpolatingSolver cannot do without, set by its
+// constructor
+const unordered_set<string> interpolator_disallowed_options(
+    { "interpolation", "theory.bv.eager" });
 
 /* MathSAT op mappings */
 typedef msat_term (*msat_un_fun)(msat_env, msat_term);
@@ -1202,7 +1208,13 @@ MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
 
 void MsatInterpolatingSolver::set_opt(const string option, const string value)
 {
-  throw IncorrectUsageException("Can't set options of interpolating solver.");
+  if (interpolator_disallowed_options.find(option)
+      != interpolator_disallowed_options.end())
+  {
+    throw IncorrectUsageException("MathSAT interpolator does not allow option: "
+                                  + option);
+  }
+  msat_solver_->set_opt(option, value);
 }
 
 // delegate the interpolation procedure to `get_sequence_interpolants`
