@@ -16,12 +16,10 @@ project(smt-switch-deps LANGUAGES NONE)
 
 include(ExternalProject)
 include("${CMAKE_CURRENT_LIST_DIR}/Helpers.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/boolector/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cvc5/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/z3/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/yices2/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bison/pin.cmake")
+smt_switch_dependencies(_dependencies)
+foreach(_dependency IN LISTS _dependencies)
+  include("${CMAKE_CURRENT_LIST_DIR}/${_dependency}/pin.cmake")
+endforeach()
 
 # The project's find modules live one directory up; the yices2 recipe needs
 # FindGMP.
@@ -55,29 +53,11 @@ include(GNUInstallDirs)
 set(SMT_SWITCH_PROVISION_TARGETS "" CACHE STRING "Comma-separated dependencies to declare")
 string(REPLACE "," ";" _requested "${SMT_SWITCH_PROVISION_TARGETS}")
 
-set(_boolector_needs "")
-set(_bitwuzla_needs "")
-set(_cvc5_needs "")
-set(_z3_needs "")
-set(_yices2_needs "")
-set(_bison_needs "")
-
-# Close over dependencies, so that asking for boolector also declares the two
-# it is built against. Worked through as a queue rather than expanded once,
-# so that it keeps working if a dependency ever gains one of its own.
-set(_wanted "")
-set(_pending ${_requested})
-while(_pending)
-  list(POP_FRONT _pending _target)
-  if(_target IN_LIST _wanted)
-    continue()
-  endif()
-  if(NOT DEFINED _${_target}_needs)
+foreach(_target IN LISTS _requested)
+  if(NOT _target IN_LIST _dependencies)
     message(FATAL_ERROR "There is no provisioning recipe for '${_target}'")
   endif()
-  list(APPEND _wanted "${_target}")
-  list(APPEND _pending ${_${_target}_needs})
-endwhile()
+endforeach()
 
 include(ProcessorCount)
 ProcessorCount(SMT_SWITCH_DEPS_JOBS)
@@ -135,7 +115,7 @@ endif()
 # the two must match; and ExternalProject computes INSTALL_DIR but does not
 # apply it, so every CMake recipe has to pass CMAKE_INSTALL_PREFIX itself.
 function(smt_switch_dependency name)
-  if(NOT name IN_LIST _wanted)
+  if(NOT name IN_LIST _requested)
     return()
   endif()
   string(TOUPPER "${name}" _upper_name)
@@ -167,21 +147,11 @@ function(smt_switch_prepend_path variable directory output)
   set(${output} "${variable}=${value}" PARENT_SCOPE)
 endfunction()
 
-# Where each dependency will be installed, for the recipes that have to name
-# a sibling's prefix, and the point at which a pin without a hash is caught.
-# Every dependency is checked, not only the ones this build wants, so that
-# adding one without a hash fails whatever is being built.
-foreach(
-  _dependency
-  boolector
-  bitwuzla
-  cvc5
-  z3
-  yices2
-  bison
-)
+# Where a pin without a hash is caught. Every dependency is checked, not only
+# the ones this build wants, so that adding one without a hash fails whatever
+# is being built.
+foreach(_dependency IN LISTS _dependencies)
   string(TOUPPER "${_dependency}" _upper)
-  set(${_upper}_PREFIX "${SMT_SWITCH_DEPS_DIR}/${_dependency}")
   if(NOT ${_upper}_SHA256)
     message(
       FATAL_ERROR
@@ -193,9 +163,6 @@ foreach(
   endif()
 endforeach()
 
-include("${CMAKE_CURRENT_LIST_DIR}/boolector/recipe.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cvc5/recipe.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/z3/recipe.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/recipe.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/yices2/recipe.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bison/recipe.cmake")
+foreach(_dependency IN LISTS _dependencies)
+  include("${CMAKE_CURRENT_LIST_DIR}/${_dependency}/recipe.cmake")
+endforeach()
