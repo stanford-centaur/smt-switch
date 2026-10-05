@@ -7,5 +7,6 @@ macro(switch_add_bzla_test name)
 endmacro()
 
 switch_add_bzla_test(bzla-interpolants)
+switch_add_bzla_test(bzla-options)
 switch_add_bzla_test(bzla-printing)
 switch_add_bzla_test(bzla-seq-interpolants)
