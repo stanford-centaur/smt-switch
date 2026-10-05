@@ -82,37 +82,26 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToIntIntTests);
 class ToIntIntTests : public ToIntTests
 {
  protected:
-  /** Makes the integer i. MathSAT's make_term from an int64_t truncates it
-   *  to an int, and Yices2's make_term from a string parses it with stoi,
-   *  so each solver gets the one that works for it.
-   */
-  Term make_int64(int64_t i)
-  {
-    Sort intsort = s->make_sort(INT);
-    if (GetParam().solver_enum == YICES2)
-    {
-      return s->make_term(i, intsort);
-    }
-    return s->make_term(std::to_string(i), intsort);
-  }
-
   /** Returns the integer n, outside the int64_t range, and equal to the
    *  sum of the addends: as a constant made from the string n, then as a
-   *  model value of the sum. Yices2 gets no constant, having no way to make
-   *  one outside the int64_t range (see make_int64).
+   *  model value of the sum. Yices2 gets no constant: its make_term from a
+   *  string parses with stoi, so it cannot make one outside the int64_t
+   *  range.
    */
   TermVec big_int_values(const std::string & n,
                          std::initializer_list<int64_t> addends)
   {
+    Sort intsort = s->make_sort(INT);
     TermVec res;
     if (GetParam().solver_enum != YICES2)
     {
-      res.push_back(s->make_term(n, s->make_sort(INT)));
+      res.push_back(s->make_term(n, intsort));
     }
     Term sum;
     for (int64_t a : addends)
     {
-      sum = sum ? s->make_term(Plus, sum, make_int64(a)) : make_int64(a);
+      Term addend = s->make_term(a, intsort);
+      sum = sum ? s->make_term(Plus, sum, addend) : addend;
     }
     res.push_back(model_value(sum));
     return res;
@@ -212,9 +201,10 @@ TEST_P(ToIntBVTests, NotAValue)
 
 TEST_P(ToIntIntTests, InRange)
 {
+  Sort intsort = s->make_sort(INT);
   for (int64_t i : { int64_t(0), int64_t(5), int64_t(1) << 40, int64_max })
   {
-    for (const Term & v : with_model_value(make_int64(i)))
+    for (const Term & v : with_model_value(s->make_term(i, intsort)))
     {
       SCOPED_TRACE(v->to_string());
       EXPECT_EQ(v->to_int(), static_cast<uint64_t>(i));
@@ -225,25 +215,15 @@ TEST_P(ToIntIntTests, InRange)
 
 TEST_P(ToIntIntTests, Negative)
 {
+  Sort intsort = s->make_sort(INT);
   for (int64_t i : { int64_t(-5), int64_min })
   {
-    for (const Term & v : with_model_value(make_int64(i)))
+    for (const Term & v : with_model_value(s->make_term(i, intsort)))
     {
       SCOPED_TRACE(v->to_string());
       EXPECT_THROW(v->to_int(), IncorrectUsageException);
       EXPECT_EQ(v->to_signed_int(), i);
     }
-  }
-}
-
-TEST_P(ToIntIntTests, NegativeMadeFromInt64)
-{
-  // not the minimum int64_t, which MathSAT truncates (see make_int64)
-  Term t = s->make_term(-5, s->make_sort(INT));
-  for (const Term & v : with_model_value(t))
-  {
-    SCOPED_TRACE(v->to_string());
-    EXPECT_EQ(v->to_signed_int(), -5);
   }
 }
 
