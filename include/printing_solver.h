@@ -33,8 +33,8 @@ namespace smt {
  * Generally, this can include dagification, define-fun's etc.
  * Concretely, we currently only consider different syntaxes of
  * getting interpolants in SMT-LIB-like fashion.
- * Currently interpolation is only supported for mathsat, but this enum
- * will be used for other solvers as well
+ * Bitwuzla, cvc5 and MathSAT each have their own style, and a
+ * PrintingInterpolator needs one of those three.
  */
 enum PrintingStyleEnum
 {
