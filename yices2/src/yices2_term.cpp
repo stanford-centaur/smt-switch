@@ -167,14 +167,11 @@ Op Yices2Term::get_op() const
       {
         return Op(Extract, high, low);
       }
-      sres = const_to_string();
-      sres = sres.substr(sres.find("(") + 1, sres.length());
-      sres = sres.substr(0, sres.find(" "));
-      if (sres == "bv-concat")
-      {
-        return Op(Concat);
-      }
-      return Op();
+      // an array of Booleans otherwise, read as a concatenation of the
+      // width-one vectors the iterator makes of them, split so that the two
+      // children Concat takes are the top bit and the rest. One bit on its
+      // own is the Ite that widens it.
+      return yices_term_num_children(term) == 1 ? Op(Ite) : Op(Concat);
     }
     case YICES_ARITH_ROOT_ATOM: return Op();
     case YICES_CEIL: return Op();
@@ -183,7 +180,9 @@ Op Yices2Term::get_op() const
     case YICES_DIVIDES_ATOM: return Op();
     // projections
     case YICES_SELECT_TERM: return Op();
-    case YICES_BIT_TERM: return Op();
+    // a bit select is a Boolean, which no op gives for a bit-vector, so
+    // it reads as that bit compared against one
+    case YICES_BIT_TERM: return Op(Equal);
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
     case YICES_ARITH_CONSTANT: return Op();
@@ -313,16 +312,229 @@ int64_t Yices2Term::to_signed_int() const
       "to an integer");
 }
 
+/* How many children smt-switch sees, which has to agree with get_op().
+ * Yices keeps a sum or a product as a polynomial, so each component becomes
+ * one synthesised child. A one-component arithmetic sum or power product is
+ * the exception: get_op() reads those as Mult and Pow, whose children are
+ * the coefficient and the term, or the base and the exponent.
+ */
+static uint32_t smt_num_children(term_t term)
+{
+  int32_t num_children = yices_term_num_children(term);
+  if (num_children <= 0)
+  {
+    // atoms, and anything Yices does not consider composite, have none
+    return 0;
+  }
+  term_constructor_t tc = yices_term_constructor(term);
+  if (tc == YICES_BIT_TERM)
+  {
+    // the Equal reading: the width-one extract, and the one it meets
+    return 2;
+  }
+  if (yices_term_is_projection(term))
+  {
+    // a projection reports one child, reachable only through proj_arg
+    return 1;
+  }
+  uint32_t low = 0;
+  uint32_t high = 0;
+  if (tc == YICES_BV_ARRAY)
+  {
+    if (extract_argument(term, low, high) != NULL_TERM)
+    {
+      // get_op reads this as Extract, whose one child is the bitvector
+      return 1;
+    }
+    // the Ite reading for one bit, and otherwise the two Concat takes
+    return num_children == 1 ? 3 : 2;
+  }
+  if (num_children == 1
+      && (yices_term_is_sum(term) || yices_term_is_product(term)))
+  {
+    return 2;
+  }
+  return static_cast<uint32_t>(num_children);
+}
+
+Yices2TermIter::Yices2TermIter(term_t t, uint32_t p, bool f)
+    : term(t), pos(p), is_function(f)
+{
+}
+
+Yices2TermIter::Yices2TermIter(const Yices2TermIter & it)
+    : term(it.term), pos(it.pos), is_function(it.is_function)
+{
+}
+
+Yices2TermIter & Yices2TermIter::operator=(const Yices2TermIter & it)
+{
+  term = it.term;
+  pos = it.pos;
+  is_function = it.is_function;
+  return *this;
+}
+
+void Yices2TermIter::operator++() { pos++; }
+
+const Term Yices2TermIter::operator*()
+{
+  term_t ret_term;
+
+  if (yices_term_is_bvsum(term))
+  {
+    // each component is a bitvector coefficient times a term, and a constant
+    // summand has no term at all: then the coefficient is the value
+    uint32_t width = yices_term_bitsize(term);
+    std::vector<int32_t> coeff(width);
+    term_t component;
+    if (yices_bvsum_component(term, pos, coeff.data(), &component) < 0)
+    {
+      throw InternalSolverException(yices_error_string());
+    }
+    term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
+    ret_term =
+        component == NULL_TERM ? y_coeff : yices_bvmul(y_coeff, component);
+  }
+  else if (yices_term_is_sum(term))
+  {
+    mpq_t coeff;
+    mpq_init(coeff);
+    term_t component;
+    if (smt_num_children(term) == 2 && yices_term_num_children(term) == 1)
+    {
+      // the Mult reading: the coefficient, then the term it multiplies
+      if (yices_sum_component(term, 0, coeff, &component) < 0)
+      {
+        mpq_clear(coeff);
+        throw InternalSolverException(yices_error_string());
+      }
+      ret_term = pos == 0 ? yices_mpq(coeff) : component;
+    }
+    else
+    {
+      if (yices_sum_component(term, pos, coeff, &component) < 0)
+      {
+        mpq_clear(coeff);
+        throw InternalSolverException(yices_error_string());
+      }
+      ret_term = component == NULL_TERM
+                     ? yices_mpq(coeff)
+                     : yices_mul(yices_mpq(coeff), component);
+    }
+    mpq_clear(coeff);
+  }
+  else if (yices_term_is_product(term))
+  {
+    term_t component;
+    uint32_t exponent;
+    if (yices_product_component(
+            term, smt_num_children(term) == 2 ? 0 : pos, &component, &exponent)
+        < 0)
+    {
+      throw InternalSolverException(yices_error_string());
+    }
+    if (smt_num_children(term) == 2 && yices_term_num_children(term) == 1)
+    {
+      // the Pow reading: the base, then the exponent
+      ret_term = pos == 0 ? component : yices_int64(exponent);
+    }
+    else
+    {
+      // yices_power rejects an uninterpreted term, so an exponent of one is
+      // the component itself rather than a power of it
+      ret_term = exponent == 1 ? component : yices_power(component, exponent);
+    }
+  }
+  else if (yices_term_constructor(term) == YICES_BIT_TERM)
+  {
+    // the Equal reading: ((_ extract i i) x) and then #b1
+    int32_t index = yices_proj_index(term);
+    ret_term = pos == 0 ? yices_bvextract(yices_proj_arg(term), index, index)
+                        : yices_bvconst_one(1);
+  }
+  else if (yices_term_is_projection(term))
+  {
+    // yices_term_child rejects a projection
+    ret_term = yices_proj_arg(term);
+  }
+  else if (yices_term_constructor(term) == YICES_BV_ARRAY)
+  {
+    uint32_t low = 0;
+    uint32_t high = 0;
+    term_t argument = extract_argument(term, low, high);
+    int32_t num_bits = yices_term_num_children(term);
+    if (argument != NULL_TERM)
+    {
+      ret_term = argument;
+    }
+    else if (num_bits == 1)
+    {
+      // the Ite reading: the Boolean, then the one and the zero it picks
+      ret_term = pos == 0   ? yices_term_child(term, 0)
+                 : pos == 1 ? yices_bvconst_one(1)
+                            : yices_bvconst_zero(1);
+    }
+    else
+    {
+      // the Concat reading. Yices keeps the least significant bit first, so
+      // the high child is the last one, and the low child is everything
+      // below it, itself an array this iterator reads the same way.
+      std::vector<term_t> bits(num_bits);
+      for (int32_t i = 0; i < num_bits; i++)
+      {
+        bits[i] = yices_term_child(term, i);
+      }
+      ret_term = pos == 0 ? yices_bvarray(1, &bits[num_bits - 1])
+                          : yices_bvarray(num_bits - 1, bits.data());
+    }
+  }
+  else
+  {
+    ret_term = yices_term_child(term, pos);
+  }
+
+  if (ret_term == NULL_TERM)
+  {
+    throw InternalSolverException(yices_error_string());
+  }
+  // Only an application's first child is a function, and whether it is one
+  // rather than an array is what this term's own flag says. Everything else,
+  // the array a store updates included, is not a function, and asking Yices
+  // would not help: it calls an array one too.
+  return std::make_shared<Yices2Term>(ret_term, pos == 0 && is_function);
+}
+
+TermIterBase * Yices2TermIter::clone() const
+{
+  return new Yices2TermIter(term, pos, is_function);
+}
+
+bool Yices2TermIter::operator==(const Yices2TermIter & it)
+{
+  return term == it.term && pos == it.pos;
+}
+
+bool Yices2TermIter::operator!=(const Yices2TermIter & it)
+{
+  return !(*this == it);
+}
+
+bool Yices2TermIter::equal(const TermIterBase & other) const
+{
+  const Yices2TermIter & it = static_cast<const Yices2TermIter &>(other);
+  return term == it.term && pos == it.pos;
+}
+
 TermIter Yices2Term::begin()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+  return TermIter(new Yices2TermIter(term, 0, is_function));
 }
 
 TermIter Yices2Term::end()
 {
-  throw NotImplementedException(
-      "Term iteration not implemented for Yices backend.");
+  return TermIter(
+      new Yices2TermIter(term, smt_num_children(term), is_function));
 }
 
 std::string Yices2Term::print_value_as(SortKind /* sk */)

@@ -91,6 +91,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
         //       look into this more and re-enable it
         { YICES2,
           { LOGGING,
+            TERMITER,
             THEORY_INT,
             THEORY_BV,
             THEORY_REAL,

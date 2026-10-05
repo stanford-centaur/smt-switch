@@ -16,8 +16,10 @@ target_link_libraries(smt-switch-yices2 PUBLIC smt-switch)
 find_package(Yices2 REQUIRED)
 target_link_libraries(smt-switch-yices2 PUBLIC Yices2::yices)
 # Yices2 depends on libgmp, but there is no interface that exposes this to us.
+# Public because yices2_term.h, which is installed, includes gmp.h to reach
+# the entry points yices.h declares only under __GMP_H__.
 find_package(GMP REQUIRED)
-target_link_libraries(smt-switch-yices2 PRIVATE GMP::gmp)
+target_link_libraries(smt-switch-yices2 PUBLIC GMP::gmp)
 
 # setup.py links the extension module by hand rather than through a CMake
 # target, so a static build has to be told which archive sits behind this

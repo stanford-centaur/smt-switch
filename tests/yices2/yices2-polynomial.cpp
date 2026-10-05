@@ -30,6 +30,55 @@
 
 using namespace smt;
 
+/* Yices keeps a sum or a product as a polynomial rather than as an
+ * application, so several of these children do not exist as Yices terms
+ * until Yices2TermIter builds them. Rebuilding the term from the op and the
+ * children it reports is the invariant that matters, since that is what a
+ * walker or a translator does, and it does not depend on the order Yices
+ * chose for the components. The solver is deliberately not a logging one,
+ * so the backend's own iteration is what runs.
+ */
+TEST(Yices2Polynomial, RebuildFromIteratedChildren)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Sort bvsort = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term bx = s->make_symbol("bx", bvsort);
+  Term by = s->make_symbol("by", bvsort);
+  Term two = s->make_term("2", intsort);
+  Term minus_one = s->make_term("-1", intsort);
+  Term four = s->make_term("4", intsort);
+
+  TermVec cases;
+  // an arithmetic sum of two monomials, one with a coefficient
+  cases.push_back(s->make_term(Plus, s->make_term(Mult, two, x), y));
+  // a single monomial, which Yices still reports as a sum and get_op reads
+  // as Mult, so its children are the coefficient and the term
+  cases.push_back(s->make_term(Mult, minus_one, y));
+  // a constant summand, which arrives with no term of its own
+  cases.push_back(s->make_term(Plus, x, two));
+  // a power product, whose exponent is not a term either
+  cases.push_back(s->make_term(Pow, x, four));
+  // a bit-vector sum, with a bit-vector coefficient
+  cases.push_back(s->make_term(BVAdd, bx, s->make_term(BVMul, by, bx)));
+  // and an ordinary composite, whose children Yices does store
+  cases.push_back(s->make_term(Equal, x, y));
+  cases.push_back(s->make_term(Ite, s->make_term(Equal, x, y), x, y));
+
+  for (const Term & t : cases)
+  {
+    TermVec children(t->begin(), t->end());
+    EXPECT_GT(children.size(), 0u) << t;
+    for (const Term & child : children)
+    {
+      EXPECT_TRUE(child) << t;
+    }
+    EXPECT_EQ(s->make_term(t->get_op(), children), t) << t;
+  }
+}
+
 TEST(Yices2Polynomial, PolynomialConstraints)
 {
   SmtSolver s = Yices2SolverFactory::create(true);

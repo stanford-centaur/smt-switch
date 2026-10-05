@@ -16,6 +16,10 @@
 
 #pragma once
 
+// before yices.h: it declares the mpq_t entry points, among them
+// yices_sum_component, only under #ifdef __GMP_H__
+#include <gmp.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -28,6 +32,38 @@ namespace smt {
 
 // forward declaration
 class Yices2Solver;
+
+/** \class Yices2TermIter
+ *  Walks a term's children. Yices keeps sums and products as polynomials
+ *  rather than as applications, so some children do not exist as terms until
+ *  this iterator builds them; see `operator*`.
+ */
+class Yices2TermIter : public TermIterBase
+{
+ public:
+  Yices2TermIter(term_t t, uint32_t p, bool f);
+  Yices2TermIter(const Yices2TermIter & it);
+  ~Yices2TermIter() = default;
+  Yices2TermIter & operator=(const Yices2TermIter & it);
+  void operator++() override;
+  const Term operator*() override;
+  TermIterBase * clone() const override;
+  bool operator==(const Yices2TermIter & it);
+  bool operator!=(const Yices2TermIter & it);
+
+ protected:
+  bool equal(const TermIterBase & other) const override;
+
+ private:
+  term_t term;
+  uint32_t pos;
+  /* Whether `term` is about a function rather than an array, which is what
+   * Yices2Term's own is_function records. A Yices array is a function, so
+   * yices_term_is_function cannot tell a child's kind; only the term it
+   * came from can.
+   */
+  bool is_function;
+};
 
 class Yices2Term : public AbsTerm
 {
@@ -56,6 +92,8 @@ class Yices2Term : public AbsTerm
  protected:
   term_t term;
   bool is_function;
+
+  friend class Yices2TermIter;
 
   // a const version of to_string
   // the main to_string can't be const so that LoggingSolver
