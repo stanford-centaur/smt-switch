@@ -29,7 +29,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cerrno>
 #include <chrono>
 #include <cstddef>
@@ -1133,11 +1135,100 @@ Term GenericSolver::store_term(Term term) const
   return (*name_term_map)[name];
 }
 
+/** Whether s is a non-empty string of decimal digits */
+static bool is_decimal_numeral(const std::string & s)
+{
+  return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
+}
+
+/**
+ * The SMT-LIB binary literal of val that is exactly as wide as the
+ * bit-vector sort, val being a numeral in base 2, 10 or 16 with an
+ * optional leading minus. A negative value is written in two's complement.
+ * Throws unless val is such a numeral and lies between the smallest signed
+ * and the largest unsigned value of the sort.
+ */
+static std::string bv_literal(const std::string & val,
+                              std::uint64_t base,
+                              const Sort & sort)
+{
+  bool negative = val.find("-") == 0;
+  std::string digits = negative ? val.substr(1) : val;
+  const char * digit_chars = base == 2    ? "01"
+                             : base == 16 ? "0123456789abcdefABCDEF"
+                                          : "0123456789";
+  if (digits.empty()
+      || digits.find_first_not_of(digit_chars) != std::string::npos)
+  {
+    throw IncorrectUsageException("Value " + val + " is not a base-"
+                                  + std::to_string(base) + " numeral");
+  }
+  std::uint64_t width = sort->get_width();
+  // the bits of the magnitude, most significant first, without leading
+  // zeros
+  std::string bits;
+  if (base == 10)
+  {
+    // halving the decimal digits gives the bits least significant first;
+    // stop once there are more than the sort has
+    std::string::size_type start = digits.find_first_not_of('0');
+    while (start != std::string::npos && bits.size() <= width)
+    {
+      int remainder = 0;
+      for (std::string::size_type i = start; i < digits.size(); ++i)
+      {
+        int current = remainder * 10 + (digits[i] - '0');
+        digits[i] = static_cast<char>('0' + current / 2);
+        remainder = current % 2;
+      }
+      bits.push_back(static_cast<char>('0' + remainder));
+      start = digits.find_first_not_of('0', start);
+    }
+    std::reverse(bits.begin(), bits.end());
+  }
+  else
+  {
+    for (char c : digits)
+    {
+      int digit = std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
+      for (int bit = base == 2 ? 0 : 3; bit >= 0; --bit)
+      {
+        bits.push_back((digit >> bit) & 1 ? '1' : '0');
+      }
+    }
+    bits.erase(0, std::min(bits.find('1'), bits.size()));
+  }
+  // a magnitude of all width bits only fits negated, as -2^(width - 1)
+  bool fits = negative ? bits.size() < width
+                             || (bits.size() == width
+                                 && bits.find('1', 1) == std::string::npos)
+                       : bits.size() <= width;
+  if (!fits)
+  {
+    throw IncorrectUsageException("Value " + val + " does not fit in sort "
+                                  + sort->to_string());
+  }
+  std::string literal = std::string(width - bits.size(), '0') + bits;
+  if (negative)
+  {
+    // the two's complement keeps the bits up to the lowest one and flips
+    // the bits above it
+    std::string::size_type lowest_one = literal.rfind('1');
+    for (std::string::size_type i = 0;
+         lowest_one != std::string::npos && i < lowest_one;
+         ++i)
+    {
+      literal[i] = literal[i] == '0' ? '1' : '0';
+    }
+  }
+  return "#b" + literal;
+}
+
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                unsigned int width) const
 {
   Sort bvsort = make_sort(BV, width);
-  std::string repr = "(_ bv" + abs_decimal + " " + std::to_string(width) + ")";
+  std::string repr = bv_literal(abs_decimal, 10, bvsort);
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
 }
@@ -1152,10 +1243,7 @@ Term GenericSolver::make_non_negative_bv_const(std::int64_t i,
 Term GenericSolver::make_negative_bv_const(std::string abs_decimal,
                                            unsigned int width) const
 {
-  Term zero = make_non_negative_bv_const("0", width);
-  Term abs = make_non_negative_bv_const(abs_decimal, width);
-  Term result = make_term(BVSub, zero, abs);
-  return result;
+  return make_non_negative_bv_const("-" + abs_decimal, width);
 }
 
 Term GenericSolver::make_term(bool b) const
@@ -1183,6 +1271,44 @@ static void check_value_sort_kind(SortKind sk)
   }
 }
 
+/**
+ * Whether magnitude is a number of sort kind sk, INT or REAL: a numeral,
+ * or for a REAL also a decimal or a fraction of numerals. A solver binary
+ * reads some other strings, such as the name of a symbol or a decimal for
+ * an INT, without an error but not as the number meant.
+ */
+static bool is_arith_magnitude(SortKind sk, const std::string & magnitude)
+{
+  if (is_decimal_numeral(magnitude))
+  {
+    return true;
+  }
+  std::string::size_type separator = magnitude.find_first_of("./");
+  return sk == REAL && separator != std::string::npos
+         && is_decimal_numeral(magnitude.substr(0, separator))
+         && is_decimal_numeral(magnitude.substr(separator + 1));
+}
+
+/**
+ * The SMT-LIB form of a value of sort kind INT or REAL, given its sign and
+ * its magnitude
+ */
+static std::string arith_value_repr(SortKind sk,
+                                    bool negative,
+                                    const std::string & magnitude)
+{
+  // SMT-LIB numerals are never negative, and a REAL value needs a
+  // decimal point for solvers that do not convert an integer literal
+  std::string repr = sk == REAL && is_decimal_numeral(magnitude)
+                         ? magnitude + ".0"
+                         : magnitude;
+  if (negative)
+  {
+    repr = "(- " + repr + ")";
+  }
+  return repr;
+}
+
 Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   Term value_term = make_value(i, sort);
@@ -1200,29 +1326,16 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
             : std::to_string(i);
   if (sk == INT || sk == REAL)
   {
-    // SMT-LIB numerals are never negative, and a REAL value needs a
-    // decimal point for solvers that do not convert an integer literal
-    std::string repr = sk == REAL ? abs_decimal + ".0" : abs_decimal;
-    if (i < 0)
-    {
-      repr = "(- " + repr + ")";
-    }
+    std::string repr = arith_value_repr(sk, i < 0, abs_decimal);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
   else
   {
     // sk == BV
-    if (i < 0)
-    {
-      Term term = make_negative_bv_const(abs_decimal, sort->get_width());
-      return term;
-    }
-    else
-    {
-      Term term = make_non_negative_bv_const(i, sort->get_width());
-      return term;
-    }
+    std::string repr = bv_literal(std::to_string(i), 10, sort);
+    Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
+    return term;
   }
 }
 
@@ -1245,39 +1358,23 @@ Term GenericSolver::make_value(const std::string val,
   if (sk == INT || sk == REAL)
   {
     assert(base == 10);
-    repr = val;
+    bool negative = val.find("-") == 0;
+    std::string magnitude = negative ? val.substr(1) : val;
+    if (!is_arith_magnitude(sk, magnitude))
+    {
+      throw IncorrectUsageException("Value " + val + " is not a number of sort "
+                                    + sort->to_string());
+    }
+    repr = arith_value_repr(sk, negative, magnitude);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
   else
   {
     // sk == BV
-    if (base == 10)
-    {
-      if (val.find("-") == 0)
-      {
-        std::string abs_decimal = val.substr(1);
-        return make_negative_bv_const(abs_decimal, sort->get_width());
-      }
-      else
-      {
-        return make_non_negative_bv_const(val, sort->get_width());
-      }
-    }
-    else
-    {
-      // base = 2 or 16
-      if (base == 2)
-      {
-        repr = "#b" + val;
-      }
-      else if (base == 16)
-      {
-        repr = "#x" + val;
-      }
-      Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
-      return term;
-    }
+    repr = bv_literal(val, base, sort);
+    Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
+    return term;
   }
 }
 
@@ -1466,7 +1563,10 @@ Term GenericSolver::get_value(const Term & t) const
   }
   else
   {
-    resulting_term = make_value(value, t->get_sort());
+    // the binary's answer, such as (- 5), is already SMT-LIB, unlike the
+    // number strings make_value takes
+    resulting_term =
+        std::make_shared<GenericTerm>(sort, Op(), TermVec{}, value);
   }
   return resulting_term;
 }

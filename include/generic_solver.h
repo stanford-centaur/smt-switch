@@ -190,25 +190,28 @@ class GenericSolver : public AbsSmtSolver
   std::string strip_value_from_result(std::string result) const;
 
   /** helper function for bv constant
-   * abs_decimal is the string represnentation of the absolute value of the
-   * desired bv value. width is the bit-width returns a bv term of width `width`
-   * whose value is (-1) * abs_decimal.
+   * abs_decimal is the decimal string of the desired bv value.
+   * returns the stored bv value of width `width` whose value is
+   * abs_decimal, written as a binary literal of that width.
+   * throws IncorrectUsageException if the value does not fit.
    * */
   Term make_non_negative_bv_const(std::string abs_decimal,
                                   unsigned int width) const;
 
   /** helper function for bv constant
-   * abs_decimal is the absolute value of the desired bit-vector.
-   * width is the bit-width
-   * returns a bv term of width `width` whose value is abs_value.
+   * abs_value is the desired bv value, which must not be negative.
+   * returns the stored bv value of width `width` whose value is
+   * abs_value, written as a binary literal of that width.
    * */
   Term make_non_negative_bv_const(std::int64_t abs_value,
                                   unsigned int width) const;
 
   /** helper function for bv constant
-   * abs_decimal is the string represnentation of the absolute value of the
-   * desired bv value. width is the bit-width returns a bv term of width `width`
-   * whose value is abs_decimal.
+   * abs_decimal is the decimal string of the absolute value of the
+   * desired bv value.
+   * returns the stored bv value of width `width` whose value is
+   * -abs_decimal, written in two's complement as a binary literal of that
+   * width. throws IncorrectUsageException if the value does not fit.
    * */
   Term make_negative_bv_const(std::string abs_decimal,
                               unsigned int width) const;
