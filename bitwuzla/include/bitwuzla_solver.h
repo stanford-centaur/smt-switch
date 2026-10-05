@@ -102,6 +102,9 @@ class BzlaSolver : public AbsSmtSolver
   // creates the Bitwuzla instance if it does not exist yet
   bitwuzla::Bitwuzla * get_bitwuzla() const;
 
+  // true once the Bitwuzla instance exists, which fixes its options
+  bool is_initialized() const;
+
  protected:
   bitwuzla::Options options;
   // bzla uses tm, so tm is declared first and outlives it
@@ -166,6 +169,9 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
   void reset_assertions() override;
 
  protected:
+  // enables interpolation unless the backend's options are fixed already
+  void initialize();
+
   // the regular solver that builds this solver's terms
   std::shared_ptr<BzlaSolver> bzla_solver;
 

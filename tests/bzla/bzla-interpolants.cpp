@@ -90,3 +90,43 @@ TEST(BzlaInterpolants, ResetAfterInterpolant)
   // x is gone, so its name can be declared again
   EXPECT_NO_THROW(s->make_symbol("x", s->make_sort(BOOL)));
 }
+
+TEST(BzlaInterpolants, InterpolatesAfterReset)
+{
+  SmtInterpolator s = BitwuzlaSolverFactory::create_interpolating_solver();
+  for (int round = 0; round < 2; ++round)
+  {
+    // the terms must go before reset() destroys their term manager
+    Sort bv8 = s->make_sort(BV, 8);
+    Term x = s->make_symbol("x", bv8);
+    Term I;
+    EXPECT_TRUE(s->get_interpolant(s->make_term(Equal, x, s->make_term(1, bv8)),
+                                   s->make_term(Equal, x, s->make_term(2, bv8)),
+                                   I)
+                    .is_unsat())
+        << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    I = nullptr;
+    x = nullptr;
+    bv8 = nullptr;
+    s->reset();
+  }
+}
+
+TEST(BzlaInterpolants, InterpolatesAfterResetAssertions)
+{
+  SmtInterpolator s = BitwuzlaSolverFactory::create_interpolating_solver();
+  Sort bv8 = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bv8);
+  Term A = s->make_term(Equal, x, s->make_term(1, bv8));
+  Term B = s->make_term(Equal, x, s->make_term(2, bv8));
+  // a reset before first use as well as after a query
+  s->reset_assertions();
+  for (int round = 0; round < 2; ++round)
+  {
+    Term I;
+    EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat()) << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    s->reset_assertions();
+  }
+}
