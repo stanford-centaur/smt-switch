@@ -15,25 +15,13 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_TLS_VERIFY TRUE)
 
 include("${CMAKE_CURRENT_LIST_DIR}/Helpers.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/boolector/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bitwuzla/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cvc5/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/z3/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/yices2/pin.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/bison/pin.cmake")
-
-set(
-  _all_dependencies
-  boolector
-  bitwuzla
-  cvc5
-  z3
-  yices2
-  bison
-)
+smt_switch_dependencies(_all_dependencies)
+foreach(_dependency IN LISTS _all_dependencies)
+  include("${CMAKE_CURRENT_LIST_DIR}/${_dependency}/pin.cmake")
+endforeach()
 
 # Anything after the script name selects a subset, so that bumping one pin
-# does not mean downloading the other seven.
+# does not mean downloading all the others.
 set(_requested "")
 if(CMAKE_ARGC GREATER 3)
   math(EXPR _last "${CMAKE_ARGC} - 1")

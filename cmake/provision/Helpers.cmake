@@ -8,6 +8,26 @@
 
 include_guard(GLOBAL)
 
+# Captured here, as CMAKE_CURRENT_FUNCTION_LIST_DIR needs CMake 3.17
+set(_smt_switch_provision_dir "${CMAKE_CURRENT_LIST_DIR}")
+
+# Sets <output> to every pinned dependency, in order of name: the
+# directories of cmake/provision that hold a pin.cmake. Each of them also
+# needs a recipe.cmake, which the provisioning driver includes.
+function(smt_switch_dependencies output)
+  file(
+    GLOB pins
+    RELATIVE "${_smt_switch_provision_dir}"
+    "${_smt_switch_provision_dir}/*/pin.cmake"
+  )
+  set(dependencies "")
+  foreach(pin IN LISTS pins)
+    get_filename_component(dependency "${pin}" DIRECTORY)
+    list(APPEND dependencies "${dependency}")
+  endforeach()
+  set(${output} "${dependencies}" PARENT_SCOPE)
+endfunction()
+
 # Pinned versions of the dependencies this project can build for itself.
 #
 # Bumping one in a dependency's pin.cmake rebuilds that dependency and
