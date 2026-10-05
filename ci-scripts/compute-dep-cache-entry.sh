@@ -25,14 +25,14 @@ epoch=${DEPS_CACHE_EPOCH:?must be set, as it is by the workflow}
 cd "$(dirname "$0")/.."
 
 # The installed packages decide what a dependency builds or links against.
-packages=ci-scripts/install-packages-${label%%-*}.sh
-if [[ ! -f $packages ]]; then
-  echo "error: there is no $packages for runner label '$label'" >&2
-  exit 2
-fi
+case $label in
+  ubuntu-*) packages=${APT_PACKAGES:?must be set, as it is by the workflow} ;;
+  macos-*) packages=${BREW_PACKAGES:?must be set, as it is by the workflow} ;;
+  *) echo "error: no package list for runner label '$label'" >&2 && exit 2 ;;
+esac
 
-inputs=(ci-scripts/compute-dep-cache-entry.sh "$packages")
-fields=("label=$label" "prefix=$prefix" "epoch=$epoch")
+inputs=(ci-scripts/compute-dep-cache-entry.sh)
+fields=("label=$label" "prefix=$prefix" "epoch=$epoch" "packages=$packages")
 path=deps/$prefix
 if [[ $prefix == mathsat ]]; then
   # Not provisioned by the build at all; the workflow fetches this release.

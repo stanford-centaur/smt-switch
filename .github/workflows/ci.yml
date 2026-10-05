@@ -12,6 +12,13 @@ env:
   DEPS_CACHE_EPOCH: 1
   # Read by the MathSAT step below and by compute-dep-cache-entry.sh
   MSAT_VERSION: 5.6.18
+  # The system packages that the Install packages steps install, part of
+  # every solver's cache key on that OS. macOS's own gperf is new enough
+  # for yices2, unlike its bison for the SMT-LIB reader.
+  APT_PACKAGES: gperf libgmp-dev libmpfr-dev
+  BREW_PACKAGES: autoconf bison
+  # Keeps brew install from updating Homebrew first
+  HOMEBREW_NO_AUTO_UPDATE: 1
 jobs:
   # Works out which solver builds are missing from the cache, so that only
   # those are built, and lists every solver for the full build.
@@ -78,9 +85,15 @@ jobs:
         uses: actions/checkout@v7
       - name: Install packages
         if: matrix.solver != 'mathsat'
-        env:
-          RUNNER_LABEL: ${{ matrix.runner }}
-        run: ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+        run: &install-packages |
+          if [[ $RUNNER_OS == Linux ]]; then
+            read -r -a packages <<<"$APT_PACKAGES"
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends "${packages[@]}"
+          else
+            read -r -a packages <<<"$BREW_PACKAGES"
+            brew install "${packages[@]}"
+          fi
       - &python-setup
         name: Set up Python virtual environment
         run: |
@@ -126,9 +139,7 @@ jobs:
       - name: Check out project source
         uses: actions/checkout@v7
       - name: Install packages
-        env:
-          RUNNER_LABEL: ${{ matrix.runner }}
-        run: ci-scripts/install-packages-"${RUNNER_LABEL%%-*}".sh
+        run: *install-packages
       - name: Restore the solver builds
         if: env.DEPS_ENTRIES != '[]'
         uses: ./.github/actions/restore-deps
