@@ -90,6 +90,19 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
   return argument;
 }
 
+/* A term no smt-switch op describes cannot be reported as one: a null op
+ * would say the term is a leaf, which whoever rebuilds it from its children
+ * would believe.
+ */
+[[noreturn]] static void no_smt_switch_op(term_t term)
+{
+  char * printed = yices_term_to_string(term, 120, 1, 0);
+  std::string message("No smt-switch op for the Yices2 term ");
+  message += printed;
+  yices_free_string(printed);
+  throw NotImplementedException(message);
+}
+
 Op Yices2Term::get_op() const
 {
   term_constructor_t tc = yices_term_constructor(term);
@@ -127,6 +140,7 @@ Op Yices2Term::get_op() const
     case YICES_IMOD: return Op(Mod);
     // // sums
     case YICES_BV_SUM: return Op(BVAdd);
+    case YICES_ARITH_FF_SUM: no_smt_switch_op(term);
     case YICES_ARITH_SUM:
       /* Arithmetic sums are represented as polynomials,
        * and something like (+ a (-b)) is actually
@@ -157,9 +171,9 @@ Op Yices2Term::get_op() const
       }
       return Op(Pow);
     case YICES_UPDATE_TERM: return Op(Store);
-    case YICES_TUPLE_TERM: return Op();
-    case YICES_FORALL_TERM: return Op();
-    case YICES_LAMBDA_TERM: return Op();
+    case YICES_TUPLE_TERM: no_smt_switch_op(term);
+    case YICES_FORALL_TERM: no_smt_switch_op(term);
+    case YICES_LAMBDA_TERM: no_smt_switch_op(term);
     case YICES_BV_ARRAY: {
       uint32_t low = 0;
       uint32_t high = 0;
@@ -173,25 +187,32 @@ Op Yices2Term::get_op() const
       // own is the Ite that widens it.
       return yices_term_num_children(term) == 1 ? Op(Ite) : Op(Concat);
     }
-    case YICES_ARITH_ROOT_ATOM: return Op();
-    case YICES_CEIL: return Op();
+    case YICES_ARITH_ROOT_ATOM: no_smt_switch_op(term);
+    case YICES_CEIL: no_smt_switch_op(term);
     case YICES_FLOOR: return Op(To_Int);
     case YICES_IS_INT_ATOM: return Op(Is_Int);
-    case YICES_DIVIDES_ATOM: return Op();
+    case YICES_DIVIDES_ATOM: no_smt_switch_op(term);
     // projections
-    case YICES_SELECT_TERM: return Op();
+    case YICES_SELECT_TERM: no_smt_switch_op(term);
     // a bit select is a Boolean, which no op gives for a bit-vector, so
     // it reads as that bit compared against one
     case YICES_BIT_TERM: return Op(Equal);
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
     case YICES_ARITH_CONSTANT: return Op();
+    case YICES_ARITH_FF_CONSTANT: no_smt_switch_op(term);
     case YICES_BV_CONSTANT: return Op();
     case YICES_SCALAR_CONSTANT: return Op();
     case YICES_VARIABLE: return Op();
     case YICES_UNINTERPRETED_TERM: return Op();
-    default: return Op();
+    // reported for a term that is not valid, which this one is
+    case YICES_CONSTRUCTOR_ERROR:
+      throw InternalSolverException(yices_error_string());
   }
+  // unreachable, and here so that a constructor Yices adds is a -Wswitch
+  // warning rather than a term silently without an op
+  throw InternalSolverException("Unknown Yices2 term constructor "
+                                + std::to_string(static_cast<int>(tc)));
 }
 
 Sort Yices2Term::get_sort() const

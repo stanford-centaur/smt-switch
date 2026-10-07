@@ -167,3 +167,18 @@ TEST(Yices2Polynomial, PolynomialConstraints)
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(b)->to_int(), 45);
 }
+
+/* A Yices term that no smt-switch op describes has to say so. A null op
+ * would make it a leaf, which whoever rebuilds the term from its children
+ * believes. Yices' ceiling is one such term, and since nothing in
+ * smt-switch reaches it, it has to be built through the Yices API here.
+ */
+TEST(Yices2Polynomial, AnUnmappedConstructorRefusesToReportAnOp)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  term_t ceiling = yices_ceil(yices_new_uninterpreted_term(yices_real_type()));
+  ASSERT_NE(ceiling, NULL_TERM);
+
+  Term unmapped = std::make_shared<Yices2Term>(ceiling);
+  EXPECT_THROW(unmapped->get_op(), NotImplementedException);
+}
