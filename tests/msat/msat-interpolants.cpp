@@ -50,6 +50,29 @@ TEST(MsatInterpolants, RefusesOnlyTheOptionsInterpolationNeeds)
                IncorrectUsageException);
 }
 
+TEST(MsatInterpolants, InterpolatesWithoutReuse)
+{
+  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
+  EXPECT_THROW(s->set_opt("incremental", "maybe"), IncorrectUsageException);
+  s->set_opt("incremental", "false");
+
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term w = s->make_symbol("w", intsort);
+  // the two queries share their first formula, which reuse would keep
+  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  Term I;
+  EXPECT_TRUE(s->get_interpolant(A, s->make_term(Gt, x, z), I).is_unsat());
+  EXPECT_TRUE(I);
+  I = nullptr;
+  EXPECT_TRUE(s->get_interpolant(A, s->make_term(Lt, z, x), I).is_unsat());
+  EXPECT_TRUE(I);
+  // and a satisfiable query still answers sat
+  EXPECT_TRUE(s->get_interpolant(A, s->make_term(Lt, x, w), I).is_sat());
+}
+
 TEST(MsatInterpolants, GetInterpolant)
 {
   SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();

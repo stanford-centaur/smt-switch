@@ -208,6 +208,9 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   // true if the configuration was not the caller's, so its own preferences
   // may be set
   bool own_config_;
+  // false if each query starts afresh instead of reusing the formulas it
+  // shares with the one before
+  bool incremental_mode_ = true;
 
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
