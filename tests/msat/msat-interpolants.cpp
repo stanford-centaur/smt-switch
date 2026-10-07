@@ -82,3 +82,53 @@ TEST(MsatInterpolants, GetInterpolant)
   r = s->get_interpolant(A, s->make_term(Gt, x, z), I);
   EXPECT_TRUE(r.is_sat());
 }
+
+TEST(MsatInterpolants, InterpolatesAfterReset)
+{
+  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
+  // a reset before first use as well as after a query
+  s->reset();
+  for (int round = 0; round < 2; ++round)
+  {
+    {
+      // the terms must go before reset() destroys their environment
+      // x + y = 3 and y = 1 against x = 5, over bit-vectors, which needs
+      // both of the options interpolation depends on
+      Sort bv8 = s->make_sort(BV, 8);
+      Term x = s->make_symbol("x", bv8);
+      Term y = s->make_symbol("y", bv8);
+      Term A = s->make_term(
+          And,
+          s->make_term(Equal, s->make_term(BVAdd, x, y), s->make_term(3, bv8)),
+          s->make_term(Equal, y, s->make_term(1, bv8)));
+      Term B = s->make_term(Equal, x, s->make_term(5, bv8));
+      Term I;
+      EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat()) << "round " << round;
+      EXPECT_TRUE(I) << "round " << round;
+    }
+    s->reset();
+  }
+}
+
+TEST(MsatInterpolants, InterpolatesAfterResetAssertions)
+{
+  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
+  // the BV query of InterpolatesAfterReset
+  Sort bv8 = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bv8);
+  Term y = s->make_symbol("y", bv8);
+  Term A = s->make_term(
+      And,
+      s->make_term(Equal, s->make_term(BVAdd, x, y), s->make_term(3, bv8)),
+      s->make_term(Equal, y, s->make_term(1, bv8)));
+  Term B = s->make_term(Equal, x, s->make_term(5, bv8));
+  // a reset before first query as well as after one
+  s->reset_assertions();
+  for (int round = 0; round < 2; ++round)
+  {
+    Term I;
+    EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat()) << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    s->reset_assertions();
+  }
+}
