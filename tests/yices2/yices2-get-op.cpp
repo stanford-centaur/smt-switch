@@ -104,4 +104,27 @@ TEST(Yices2GetOp, SymbolHasNoOp)
   EXPECT_FALSE(selected->is_symbol());
 }
 
+/* Every op Yices builds out of a constructor of its own has to report that
+ * op back. A term with children and no op is one a walker or a translator
+ * cannot rebuild, and `src/term_translator.cpp` asserts against it.
+ */
+TEST(Yices2GetOp, CompositeTermsReportTheirOp)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term a = s->make_symbol("a", s->make_sort(ARRAY, bvsort8, bvsort8));
+  // a real, since Yices folds the floor and the integrality test of a term
+  // already known to be an integer
+  Term r = s->make_symbol("r", s->make_sort(REAL));
+
+  // Yices keeps a store as a function update
+  Term stored = s->make_term(Store, a, x, s->make_term(7, bvsort8));
+  EXPECT_EQ(stored->get_op(), Op(Store));
+
+  // and reaches these two through its floor and integrality constructors
+  EXPECT_EQ(s->make_term(To_Int, r)->get_op(), Op(To_Int));
+  EXPECT_EQ(s->make_term(Is_Int, r)->get_op(), Op(Is_Int));
+}
+
 }  // namespace

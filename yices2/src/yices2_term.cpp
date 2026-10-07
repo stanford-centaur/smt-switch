@@ -156,7 +156,7 @@ Op Yices2Term::get_op() const
         return Op(Mult);
       }
       return Op(Pow);
-    case YICES_UPDATE_TERM: return Op();
+    case YICES_UPDATE_TERM: return Op(Store);
     case YICES_TUPLE_TERM: return Op();
     case YICES_FORALL_TERM: return Op();
     case YICES_LAMBDA_TERM: return Op();
@@ -178,8 +178,8 @@ Op Yices2Term::get_op() const
     }
     case YICES_ARITH_ROOT_ATOM: return Op();
     case YICES_CEIL: return Op();
-    case YICES_FLOOR: return Op();
-    case YICES_IS_INT_ATOM: return Op();
+    case YICES_FLOOR: return Op(To_Int);
+    case YICES_IS_INT_ATOM: return Op(Is_Int);
     case YICES_DIVIDES_ATOM: return Op();
     // projections
     case YICES_SELECT_TERM: return Op();
