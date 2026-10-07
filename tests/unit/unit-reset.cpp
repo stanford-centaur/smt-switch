@@ -58,8 +58,8 @@ static std::vector<SolverConfiguration> working_reset_configurations()
   std::vector<SolverConfiguration> result;
   for (const SolverConfiguration & sc : available_solver_configurations())
   {
-    // reset() times out on the generic solver and double-frees on Yices2
-    if (sc.solver_enum != GENERIC_SOLVER && sc.solver_enum != YICES2)
+    // reset() times out on the generic solver
+    if (sc.solver_enum != GENERIC_SOLVER)
     {
       result.push_back(sc);
     }

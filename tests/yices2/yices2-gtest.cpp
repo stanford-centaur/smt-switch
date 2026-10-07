@@ -14,6 +14,10 @@
 **
 **/
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "gtest/gtest.h"
 #include "smt.h"
 #include "yices2_factory.h"
@@ -428,5 +432,59 @@ TEST_F(Yices2SolverTest, TestBVCompOp)
 //   Term t = s->make_term(Const_Array, t1, t2);
 //   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 // }
+
+TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  EXPECT_THROW(s->set_logic("NOT_A_LOGIC"), IncorrectUsageException);
+  // QF_NIA needs Yices built with MCSAT, so this build may accept or
+  // reject it; either way the solver has to keep working
+  try
+  {
+    s->set_logic("QF_NIA");
+  }
+  catch (const IncorrectUsageException &)
+  {
+  }
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  s->assert_formula(s->make_term(Equal, x, s->make_term(1, intsort)));
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST(Yices2Context, OptionsKeepAssertions)
+{
+  // none of these changes the Yices configuration, so setting one after an
+  // assertion keeps it
+  const std::vector<std::pair<std::string, std::string>> options = {
+    { "produce-models", "true" },
+    { "time-limit", "10" },
+    { "produce-unsat-assumptions", "true" },
+  };
+  for (const auto & option : options)
+  {
+    SmtSolver s = Yices2SolverFactory::create(false);
+    Sort intsort = s->make_sort(INT);
+    Term y = s->make_symbol("y", intsort);
+    s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
+    s->set_opt(option.first, option.second);
+    s->assert_formula(s->make_term(Equal, y, s->make_term(4, intsort)));
+    EXPECT_TRUE(s->check_sat().is_unsat()) << "after setting " << option.first;
+  }
+}
+
+TEST(Yices2Context, ConfigurationAfterFirstAssertionThrows)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Term y = s->make_symbol("y", intsort);
+  s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
+  // Yices applies these only when it creates the context, which the
+  // assertion did, so changing them now would drop the assertion
+  EXPECT_THROW(s->set_opt("incremental", "true"), IncorrectUsageException);
+  EXPECT_THROW(s->set_logic("QF_LIA"), IncorrectUsageException);
+  s->assert_formula(s->make_term(Equal, y, s->make_term(4, intsort)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
 
 }  // namespace
