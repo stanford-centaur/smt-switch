@@ -216,13 +216,10 @@ Sort Yices2Term::get_sort() const
 
 bool Yices2Term::is_symbol() const
 {
-  // functions are symbols
-  if (is_function)
-  {
-    return true;
-  }
-
-  // a parameter is a symbol too, though not a symbolic constant
+  // is_function is no help here: make_term sets it on an application of a
+  // function as well as on the function. A declared function is an
+  // uninterpreted term with no children, so the test below covers it.
+  // A parameter is a symbol too, though not a symbolic constant.
   term_constructor_t tc = yices_term_constructor(term);
   return ((tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0)
           || tc == YICES_VARIABLE);
