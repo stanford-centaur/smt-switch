@@ -547,12 +547,39 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
   }
 }
 
-/** Whether val is a decimal numeral, with an optional leading minus */
-static bool is_int_numeral(const std::string & val)
+/** Whether s is a non-empty string of decimal digits */
+static bool is_decimal_numeral(const std::string & s)
 {
-  std::string::size_type start = val.find('-') == 0 ? 1 : 0;
-  return val.size() > start
-         && val.find_first_not_of("0123456789", start) == std::string::npos;
+  return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
+}
+
+/**
+ * Whether val is a number of sort kind sk, INT or REAL, with an optional
+ * leading minus: a decimal numeral, or for a REAL also a decimal or a
+ * fraction of numerals. The slash of a fraction may have spaces around
+ * it, as TermTranslator writes one.
+ */
+static bool is_arith_number(SortKind sk, const std::string & val)
+{
+  std::string magnitude = val.find('-') == 0 ? val.substr(1) : val;
+  if (is_decimal_numeral(magnitude))
+  {
+    return true;
+  }
+  std::string::size_type separator = magnitude.find_first_of("./");
+  if (sk != REAL || separator == std::string::npos)
+  {
+    return false;
+  }
+  std::string whole = magnitude.substr(0, separator);
+  std::string part = magnitude.substr(separator + 1);
+  if (magnitude[separator] == '/')
+  {
+    whole = whole.substr(0, whole.find_last_not_of(' ') + 1);
+    std::string::size_type start = part.find_first_not_of(' ');
+    part = start == std::string::npos ? "" : part.substr(start);
+  }
+  return is_decimal_numeral(whole) && is_decimal_numeral(part);
 }
 
 Term MsatSolver::make_term(const std::string val,
@@ -580,8 +607,9 @@ Term MsatSolver::make_term(const std::string val,
         throw NotImplementedException(
             "MathSAT only supports base 10 for real and integer values");
       }
-      // msat_make_number reads "" as 0 and "1/2" as a Real
-      if (sk == INT && !is_int_numeral(val))
+      // msat_make_number reads "" and "-" as 0, and "1/2" as a Real even
+      // for an INT
+      if (!is_arith_number(sk, val))
       {
         throw IncorrectUsageException("");
       }
