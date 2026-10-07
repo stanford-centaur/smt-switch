@@ -92,9 +92,16 @@ TEST(Yices2GetOp, SymbolHasNoOp)
     EXPECT_TRUE(symbol->is_symbol()) << symbol;
   }
 
-  // applying one of them is what carries the op
-  EXPECT_EQ(s->make_term(Apply, f, x)->get_op(), Op(Apply));
-  EXPECT_EQ(s->make_term(Select, a, x)->get_op(), Op(Select));
+  // applying one of them is what carries the op, and the application is not
+  // itself a symbol
+  Term applied = s->make_term(Apply, f, x);
+  EXPECT_EQ(applied->get_op(), Op(Apply));
+  EXPECT_FALSE(applied->is_symbol());
+  EXPECT_FALSE(applied->is_symbolic_const());
+
+  Term selected = s->make_term(Select, a, x);
+  EXPECT_EQ(selected->get_op(), Op(Select));
+  EXPECT_FALSE(selected->is_symbol());
 }
 
 }  // namespace
