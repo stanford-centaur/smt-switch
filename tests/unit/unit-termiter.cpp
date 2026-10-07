@@ -14,13 +14,15 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <type_traits>
 #include <utility>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "identity_walker.h"
 #include "smt.h"
+#include "term_utils.h"
 
 using namespace smt;
 using namespace std;
@@ -92,7 +94,7 @@ TEST_P(ConstArrUnitTests, IdentityWalker)
 
   IdentityWalker iw(s, false);  // don't clear the cache between calls
   Term id_final_term = iw.visit(final_term);
-  ASSERT_EQ(final_term, id_final_term);
+  ASSERT_TRUE(round_trip_matches(GetParam(), s, id_final_term, final_term));
 }
 
 TEST_P(UnitTests, InputIterator)

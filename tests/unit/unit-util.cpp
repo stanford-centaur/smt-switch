@@ -14,11 +14,13 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <sstream>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "smt.h"
+#include "term_utils.h"
 #include "utils.h"
 
 using namespace smt;
@@ -91,15 +93,30 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
   // if over 1-bit variables
   // then this will work for Boolector even without logging
   conjunctive_partition(conjunction, conjuncts, true);
-  ASSERT_EQ(symbols.size(), conjuncts.size());
+  ASSERT_FALSE(conjuncts.empty());
 
-  // order not necessarily maintained
-  UnorderedTermSet conjuncts_set(conjuncts.begin(), conjuncts.end());
-
-  for (size_t j = 0; j < symbols.size(); ++j)
+  if (GetParam().is_logging_solver)
   {
-    ASSERT_TRUE(conjuncts_set.find(symbols[j]) != conjuncts_set.end());
+    // a logging solver kept the conjunction it was given, so each symbol is
+    // its own conjunct, though the order is not maintained
+    ASSERT_EQ(symbols.size(), conjuncts.size());
+    UnorderedTermSet conjuncts_set(conjuncts.begin(), conjuncts.end());
+    for (size_t j = 0; j < symbols.size(); ++j)
+    {
+      ASSERT_TRUE(conjuncts_set.find(symbols[j]) != conjuncts_set.end());
+    }
+    return;
   }
+
+  // a solver that normalizes the conjunction into something else may report
+  // any partition whose conjunction is the original, down to the one
+  // conjunct that is the whole formula
+  Term rebuilt = conjuncts[0];
+  for (size_t j = 1; j < conjuncts.size(); ++j)
+  {
+    rebuilt = s->make_term(And, rebuilt, conjuncts[j]);
+  }
+  ASSERT_TRUE(round_trip_matches(GetParam(), s, rebuilt, conjunction));
 }
 
 TEST_P(UnitUtilTests, DisjunctivePartition)
