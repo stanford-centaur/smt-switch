@@ -72,4 +72,36 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
                "--produce-interpolants");
 }
 
+TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
+{
+  SmtInterpolator solver = create_printing_interpolator(
+      BitwuzlaSolverFactory::create_interpolating_solver(),
+      os,
+      PrintingStyleEnum::BZLA_STYLE);
+  solver->set_logic("QF_BV");
+  solver->set_opt("interpolants-subst", "true");
+  Sort bvsort = solver->make_sort(BV, 2);
+  Term x = solver->make_symbol("x", bvsort);
+  Term y = solver->make_symbol("y", bvsort);
+  Term z = solver->make_symbol("z", bvsort);
+
+  // x < y, y < z and z < x cannot all hold
+  TermVec formulae = { solver->make_term(BVUlt, x, y),
+                       solver->make_term(BVUlt, y, z),
+                       solver->make_term(BVUlt, z, x) };
+  TermVec interpolants;
+  ASSERT_TRUE(
+      solver->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  EXPECT_EQ(interpolants.size(), 2);
+
+  check_result({ { "unsat" },
+                 { "(" },
+                 { "(bvult x y)" },
+                 { "(and (not (and (= ((_ extract 1 1) z) #b0) (= #b1 ((_ "
+                   "extract 1 1) x)))) (not (and (= ((_ extract 0 0) z) #b0) "
+                   "(= #b1 ((_ extract 0 0) x)))))" },
+                 { ")" } },
+               "--produce-interpolants");
+}
+
 }  // namespace smt_tests
