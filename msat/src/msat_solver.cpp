@@ -1236,6 +1236,25 @@ void MsatInterpolatingSolver::set_opt(const string option, const string value)
     throw IncorrectUsageException("MathSAT interpolator does not allow option: "
                                   + option);
   }
+  if (option == "incremental")
+  {
+    // MathSAT itself is always incremental. This option decides whether a
+    // query reuses the formulas it shares with the one before.
+    if (value == "true" || value == "1")
+    {
+      incremental_mode_ = true;
+    }
+    else if (value == "false" || value == "0")
+    {
+      incremental_mode_ = false;
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "Invalid value for boolean option 'incremental'");
+    }
+    return;
+  }
   msat_solver_->set_opt(option, value);
 }
 
@@ -1281,9 +1300,9 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
         "get_sequence_interpolants.");
   }
 
-  // count how many assertions can be reused
+  // count how many assertions can be reused, unless reuse is off
   size_t num_reused = 0;
-  while (num_reused < last_itp_query_assertions_.size()
+  while (incremental_mode_ && num_reused < last_itp_query_assertions_.size()
          && num_reused < formulae.size()
          && last_itp_query_assertions_.at(num_reused)
                 == formulae.at(num_reused))
