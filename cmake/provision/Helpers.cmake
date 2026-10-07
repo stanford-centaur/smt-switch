@@ -37,9 +37,10 @@ endfunction()
 #
 # A pin says where the source comes from and what it must hash to, and
 # nothing else: cmake/provision/CMakeLists.txt refuses to configure without
-# a checksum, and recomputing one after a bump is
+# a checksum, and recording one in the pin after a bump, or for a new pin,
+# is
 #
-#   cmake -P cmake/provision/refresh-hashes.cmake <name>...
+#   cmake -P cmake/provision/update-checksums.cmake <name>...
 #
 # Tags are preferred to commits, being self-describing. If one is ever moved
 # the checksum catches it, because the archive changes and the download
@@ -52,7 +53,9 @@ endfunction()
 # verification at once, suspect that rather than five bad downloads.
 #
 # Sets <name>_URL and <name>_SHA256 from one of three kinds of source:
-# a GitHub tag, a GitHub commit, or a GNU release tarball.
+# a GitHub tag, a GitHub commit, or a GNU release tarball. A pin without a
+# CHECKSUM leaves <name>_SHA256 empty rather than failing, so that
+# update-checksums.cmake can still read it to add one.
 function(smt_switch_pin name)
   cmake_parse_arguments(PIN "" "GITHUB_REPO;TAG;COMMIT;GNU_PROJECT;VERSION;CHECKSUM" "" ${ARGN})
   if(PIN_GITHUB_REPO AND PIN_TAG)
@@ -64,9 +67,6 @@ function(smt_switch_pin name)
     set(url "${mirror}/${PIN_GNU_PROJECT}/${PIN_GNU_PROJECT}-${PIN_VERSION}.tar.gz")
   else()
     message(FATAL_ERROR "${name} names no source to download")
-  endif()
-  if(NOT PIN_CHECKSUM)
-    message(FATAL_ERROR "${name} has no CHECKSUM")
   endif()
   set(${name}_URL "${url}" PARENT_SCOPE)
   set(${name}_SHA256 "${PIN_CHECKSUM}" PARENT_SCOPE)

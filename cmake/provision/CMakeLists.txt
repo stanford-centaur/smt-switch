@@ -155,10 +155,10 @@ foreach(_dependency IN LISTS _dependencies)
   if(NOT ${_upper}_SHA256)
     message(
       FATAL_ERROR
-      "${_dependency} has no ${_upper}_SHA256 in "
+      "${_dependency} has no CHECKSUM in "
       "cmake/provision/${_dependency}/pin.cmake, so what it "
-      "downloads cannot be checked. Get one from "
-      "`cmake -P cmake/provision/refresh-hashes.cmake ${_dependency}`."
+      "downloads cannot be checked. Record one with "
+      "`cmake -P cmake/provision/update-checksums.cmake ${_dependency}`."
     )
   endif()
 endforeach()
