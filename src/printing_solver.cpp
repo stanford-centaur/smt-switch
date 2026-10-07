@@ -17,9 +17,11 @@
 
 #include "printing_solver.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "exceptions.h"
 #include "smt_defs.h"
@@ -335,7 +337,75 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
 Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
                                                        TermVec & out_I) const
 {
-  return sequence_from_interpolants(formulae, out_I);
+  // check before printing, so a query that is refused is not printed
+  if (formulae.size() < 2)
+  {
+    throw IncorrectUsageException(
+        "Sequence interpolation requires at least 2 formulae.");
+  }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
+
+  switch (style)
+  {
+    case PrintingStyleEnum::MSAT_STYLE: {
+      // one query with a group per formula, and an interpolant per prefix
+      // of the groups, as MathSAT's interpolating solver computes them
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      for (std::size_t i = 0; i < formulae.size(); ++i)
+      {
+        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[i] << " :"
+                      << INTERPOLATION_GROUP_STR << " g" << i + 1 << "))"
+                      << std::endl;
+      }
+      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+      for (std::size_t i = 1; i < formulae.size(); ++i)
+      {
+        (*out_stream) << "(" << GET_INTERPOLANT_STR << " (";
+        for (std::size_t j = 1; j <= i; ++j)
+        {
+          (*out_stream) << (j > 1 ? " " : "") << "g" << j;
+        }
+        (*out_stream) << "))" << std::endl;
+      }
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
+    }
+    case PrintingStyleEnum::BZLA_STYLE: {
+      // one query, partitioned into every formula but the last, as
+      // Bitwuzla's interpolating solver computes it
+      std::vector<std::string> names;
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      for (std::size_t i = 0; i + 1 < formulae.size(); ++i)
+      {
+        names.push_back(name_prefix + std::to_string(num_names++));
+        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[i] << " :"
+                      << NAMED_STR << " " << names.back() << "))" << std::endl;
+      }
+      (*out_stream) << "(" << ASSERT_STR << " " << formulae.back() << ")"
+                    << std::endl;
+      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+      (*out_stream) << "(" << GET_INTERPOLANTS_STR;
+      for (const std::string & name : names)
+      {
+        (*out_stream) << " (" << name << ")";
+      }
+      (*out_stream) << ")" << std::endl;
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
+    }
+    case PrintingStyleEnum::CVC5_STYLE:
+      // cvc5 has no sequence query, so its interpolating solver asks for
+      // one interpolant per prefix, and those are the queries printed
+      return sequence_from_interpolants(formulae, out_I);
+    case PrintingStyleEnum::DEFAULT_STYLE: break;
+  }
+  // the constructor refuses any other style
+  throw IncorrectUsageException(no_interpolation_style);
 }
 
 void PrintingInterpolator::set_opt(const std::string option,

@@ -86,4 +86,33 @@ TEST_F(MsatPrintingTest, Interpolation)
       "-interpolation=true");
 }
 
+TEST_F(MsatPrintingTest, SequenceInterpolation)
+{
+  SmtInterpolator s = create_printing_interpolator(
+      MsatSolverFactory::create_interpolating_solver(),
+      os,
+      PrintingStyleEnum::MSAT_STYLE);
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+
+  // x < y, y < z and z < x cannot all hold
+  TermVec formulae = { s->make_term(Lt, x, y),
+                       s->make_term(Lt, y, z),
+                       s->make_term(Lt, z, x) };
+  TermVec interpolants;
+  ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  EXPECT_EQ(interpolants.size(), 2);
+
+  check_result(
+      {
+          { "unsat" },
+          { "(<= 1 (+ y (* (- 1) x)))", "(<= (+ x (* (- 1) y)) (- 1))" },
+          { "(<= 2 (+ z (* (- 1) x)))", "(<= (+ x (* (- 1) z)) (- 2))" },
+      },
+      "-interpolation=true");
+}
+
 }  // namespace smt_tests
