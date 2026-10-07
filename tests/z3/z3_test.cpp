@@ -156,3 +156,31 @@ TEST(Z3Test, BvStringOutOfRange)
   EXPECT_THROW(s->make_term("100", bvsort, 16), IncorrectUsageException);
   EXPECT_THROW(s->make_term("-81", bvsort, 16), IncorrectUsageException);
 }
+
+TEST(Z3Test, ArithmeticOps)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Sort realsort = s->make_sort(REAL);
+
+  Term to_real = s->make_term(To_Real, s->make_term(2, intsort));
+  Term to_int = s->make_term(To_Int, s->make_term("2.5", realsort));
+  Term to_int_negative = s->make_term(To_Int, s->make_term("-2.5", realsort));
+  Term abs_int = s->make_term(Abs, s->make_term(-2, intsort));
+  Term abs_real = s->make_term(Abs, s->make_term("-2.5", realsort));
+  EXPECT_EQ(to_real->get_sort(), realsort);
+  EXPECT_EQ(to_int->get_sort(), intsort);
+  EXPECT_EQ(abs_int->get_sort(), intsort);
+  EXPECT_EQ(abs_real->get_sort(), realsort);
+
+  // To_Int rounds down, so -2.5 becomes -3
+  Term all_hold = s->make_term(
+      And,
+      TermVec{ s->make_term(Equal, to_real, s->make_term("2.0", realsort)),
+               s->make_term(Equal, to_int, s->make_term(2, intsort)),
+               s->make_term(Equal, to_int_negative, s->make_term(-3, intsort)),
+               s->make_term(Equal, abs_int, s->make_term(2, intsort)),
+               s->make_term(Equal, abs_real, s->make_term("2.5", realsort)) });
+  s->assert_formula(s->make_term(Not, all_hold));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}

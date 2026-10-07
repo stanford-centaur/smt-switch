@@ -44,12 +44,31 @@ Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
   return Z3_mk_ite(c, eq, one, zero);
 }
 
+// extension function: the absolute value of an Int or a Real, built from
+// ite as Z3's C++ API builds it. The context counts references, so each
+// new term is referenced until the ite holds it, or the next call may
+// reuse it.
+Z3_ast ext_Z3_mk_abs(Z3_context c, Z3_ast a)
+{
+  Z3_ast zero = Z3_mk_int(c, 0, Z3_get_sort(c, a));
+  Z3_inc_ref(c, zero);
+  Z3_ast nonnegative = Z3_mk_ge(c, a, zero);
+  Z3_inc_ref(c, nonnegative);
+  Z3_ast negated = Z3_mk_unary_minus(c, a);
+  Z3_inc_ref(c, negated);
+  Z3_ast result = Z3_mk_ite(c, nonnegative, a, negated);
+  Z3_dec_ref(c, negated);
+  Z3_dec_ref(c, nonnegative);
+  Z3_dec_ref(c, zero);
+  return result;
+}
+
 const std::unordered_map<PrimOp, un_fun> unary_ops(
     { { Not, Z3_mk_not },
       { Negate, Z3_mk_unary_minus },
-      { Abs, Z3_mk_fpa_abs },
-      { To_Real, Z3_mk_fpa_to_real },
-      { To_Int, Z3_mk_str_to_int },
+      { Abs, ext_Z3_mk_abs },
+      { To_Real, Z3_mk_int2real },
+      { To_Int, Z3_mk_real2int },
       { Is_Int, Z3_mk_is_int },
       { BVNot, Z3_mk_bvnot },
       { BVNeg, Z3_mk_bvneg } });
