@@ -14,6 +14,10 @@
 **
 **/
 
+#include <cstdint>
+#include <tuple>
+#include <vector>
+
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -96,12 +100,7 @@ TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 
 TEST_P(UnitTermArithTests, MalformedRealStringThrows)
 {
-  SolverEnum se = s->get_solver_enum();
-  if (se == YICES2)
-  {
-    GTEST_SKIP() << "Yices2 throws InternalSolverException for them";
-  }
-  if (se == Z3)
+  if (s->get_solver_enum() == Z3)
   {
     GTEST_SKIP() << "Z3 takes \"\", \"-\" and \"1.2.3\" as Reals and throws "
                     "z3::exception for the others";
@@ -111,6 +110,41 @@ TEST_P(UnitTermArithTests, MalformedRealStringThrows)
     SCOPED_TRACE(val);
     EXPECT_THROW(s->make_term(val, realsort), IncorrectUsageException);
   }
+}
+
+TEST_P(UnitTermArithTests, RealStringValues)
+{
+  s->set_opt("incremental", "true");
+  // each string, and the numerator and denominator of its value
+  const std::vector<std::tuple<const char *, int64_t, int64_t>> cases = {
+    { "5", 5, 1 },     { "-5", -5, 1 }, { "1.5", 3, 2 },
+    { "-1.5", -3, 2 }, { "1/2", 1, 2 }, { "-1/2", -1, 2 },
+  };
+  for (const auto & [val, num, den] : cases)
+  {
+    SCOPED_TRACE(val);
+    Term expected = s->make_term(
+        Div, s->make_term(num, realsort), s->make_term(den, realsort));
+    s->push();
+    s->assert_formula(s->make_term(
+        Not, s->make_term(Equal, s->make_term(val, realsort), expected)));
+    EXPECT_TRUE(s->check_sat().is_unsat());
+    s->pop();
+  }
+}
+
+TEST_P(UnitTermArithTests, SpacedFractionString)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "The generic solver rejects a slash with spaces around it";
+  }
+  // as TermTranslator writes a fraction
+  Term half =
+      s->make_term(Div, s->make_term(1, realsort), s->make_term(2, realsort));
+  s->assert_formula(s->make_term(
+      Not, s->make_term(Equal, s->make_term("1 / 2", realsort), half)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
