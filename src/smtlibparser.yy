@@ -496,6 +496,7 @@ indexed_op:
      if (po == smt::NUM_OPS_AND_NULL)
      {
        smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+       YYERROR;
      }
      $$ = smt::Op(po, std::stoi($3));
    }
@@ -505,6 +506,7 @@ indexed_op:
      if (po == smt::NUM_OPS_AND_NULL)
      {
        smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
+       YYERROR;
      }
      $$ = smt::Op(po, std::stoi($3), std::stoi($4));
    }
