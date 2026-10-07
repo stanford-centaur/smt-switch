@@ -28,9 +28,12 @@ cdef extern from "solver_enums.h" namespace "smt":
         pass
 
     cdef c_SolverEnum c_BTOR "smt::BTOR"
+    cdef c_SolverEnum c_BZLA "smt::BZLA"
     cdef c_SolverEnum c_CVC5 "smt::CVC5"
     cdef c_SolverEnum c_MSAT "smt::MSAT"
     cdef c_SolverEnum c_YICES2 "smt::YICES2"
+    cdef c_SolverEnum c_Z3 "smt::Z3"
+    cdef c_SolverEnum c_BZLA_INTERPOLATOR "smt::BZLA_INTERPOLATOR"
     cdef c_SolverEnum c_MSAT_INTERPOLATOR "smt::MSAT_INTERPOLATOR"
     cdef c_SolverEnum c_CVC5_INTERPOLATOR "smt::CVC5_INTERPOLATOR"
     cdef c_SolverEnum c_GENERIC_SOLVER "smt::GENERIC_SOLVER"
@@ -40,9 +43,12 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef cppclass c_SolverAttribute "smt::SolverAttribute":
         pass
 
+    cdef c_SolverAttribute c_LOGGING "smt::LOGGING"
     cdef c_SolverAttribute c_TERMITER "smt::TERMITER"
+    cdef c_SolverAttribute c_THEORY_BV "smt::THEORY_BV"
     cdef c_SolverAttribute c_THEORY_INT "smt::THEORY_INT"
     cdef c_SolverAttribute c_THEORY_REAL "smt::THEORY_REAL"
+    cdef c_SolverAttribute c_THEORY_STR "smt::THEORY_STR"
     cdef c_SolverAttribute c_ARRAY_MODELS "smt::ARRAY_MODELS"
     cdef c_SolverAttribute c_CONSTARR "smt::CONSTARR"
     cdef c_SolverAttribute c_FULL_TRANSFER "smt::FULL_TRANSFER"
@@ -50,6 +56,8 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef c_SolverAttribute c_UNSAT_CORE "smt::UNSAT_CORE"
     cdef c_SolverAttribute c_THEORY_DATATYPE "smt::THEORY_DATATYPE"
     cdef c_SolverAttribute c_QUANTIFIERS "smt::QUANTIFIERS"
+    cdef c_SolverAttribute c_UNINTERP_SORT "smt::UNINTERP_SORT"
+    cdef c_SolverAttribute c_PARAM_UNINTERP_SORT "smt::PARAM_UNINTERP_SORT"
     cdef c_SolverAttribute c_BOOL_BV1_ALIASING "smt::BOOL_BV1_ALIASING"
     cdef c_SolverAttribute c_TIMELIMIT "smt::TIMELIMIT"
 
