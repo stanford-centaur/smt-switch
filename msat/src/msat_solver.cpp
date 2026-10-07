@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -546,6 +547,14 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
   }
 }
 
+/** Whether val is a decimal numeral, with an optional leading minus */
+static bool is_int_numeral(const std::string & val)
+{
+  std::string::size_type start = val.find('-') == 0 ? 1 : 0;
+  return val.size() > start
+         && val.find_first_not_of("0123456789", start) == std::string::npos;
+}
+
 Term MsatSolver::make_term(const std::string val,
                            const Sort & sort,
                            uint64_t base) const
@@ -570,6 +579,11 @@ Term MsatSolver::make_term(const std::string val,
       {
         throw NotImplementedException(
             "MathSAT only supports base 10 for real and integer values");
+      }
+      // msat_make_number reads "" as 0 and "1/2" as a Real
+      if (sk == INT && !is_int_numeral(val))
+      {
+        throw IncorrectUsageException("");
       }
 
       msat_term mval = msat_make_number(env, val.c_str());

@@ -82,16 +82,12 @@ TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
 TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 {
   SolverEnum se = s->get_solver_enum();
-  if (se == MSAT)
-  {
-    GTEST_SKIP() << "MathSAT takes \"\", \"1/2\" and \"1.5\" as Ints";
-  }
   if (se == Z3)
   {
     GTEST_SKIP() << "Z3 takes \"\" as an Int and throws z3::exception for "
                     "the others";
   }
-  for (const char * val : { "abc", "", "1/2", "1.5" })
+  for (const char * val : { "abc", "", "-", "1/2", "1.5" })
   {
     SCOPED_TRACE(val);
     EXPECT_THROW(s->make_term(val, intsort), IncorrectUsageException);
