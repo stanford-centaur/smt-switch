@@ -14,13 +14,15 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <string>
 #include <tuple>
 #include <unordered_map>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "smt.h"
+#include "term_utils.h"
 #include "utils.h"
 
 using namespace smt;
@@ -200,7 +202,7 @@ TEST_P(TranslationTests, And)
 
   Term a_and_b_2 = to_s2.transfer_term(a_and_b);
   Term a_and_b_1 = to_s1.transfer_term(a_and_b_2);
-  ASSERT_EQ(a_and_b_1, a_and_b);
+  ASSERT_TRUE(round_trip_matches(get<1>(GetParam()), s1, a_and_b_1, a_and_b));
 }
 
 TEST_P(TranslationTests, Equal)
@@ -234,7 +236,8 @@ TEST_P(TranslationTests, Ite)
 
   Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
   Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
-  ASSERT_EQ(a_ite_x_y_1, a_ite_x_y);
+  ASSERT_TRUE(
+      round_trip_matches(get<1>(GetParam()), s1, a_ite_x_y_1, a_ite_x_y));
 }
 
 TEST_P(TranslationTests, Concat)
@@ -251,7 +254,8 @@ TEST_P(TranslationTests, Concat)
 
   Term concat_term_2 = to_s2.transfer_term(concat_term);
   Term concat_term_1 = to_s1.transfer_term(concat_term_2);
-  ASSERT_EQ(concat_term_1, concat_term);
+  ASSERT_TRUE(
+      round_trip_matches(get<1>(GetParam()), s1, concat_term_1, concat_term));
 }
 
 TEST_P(TranslationTests, Extract)
@@ -307,7 +311,7 @@ TEST_P(TranslationTests, UninterpretedSort)
   EXPECT_EQ(fv_2->get_op(), Apply);
 
   Term fv_1 = to_s1.transfer_term(fv_2);
-  EXPECT_EQ(fv, fv_1);
+  EXPECT_TRUE(round_trip_matches(get<1>(GetParam()), s1, fv_1, fv));
 }
 
 TEST_P(BoolArrayTranslationTests, Arrays)

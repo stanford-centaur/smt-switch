@@ -118,6 +118,10 @@ add_library(available-solvers STATIC "${PROJECT_SOURCE_DIR}/tests/available_solv
 target_include_directories(available-solvers PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(available-solvers PUBLIC test-solvers)
 
+add_library(term-utils STATIC "${PROJECT_SOURCE_DIR}/tests/term_utils.cpp")
+target_include_directories(term-utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(term-utils PUBLIC available-solvers GTest::gtest)
+
 macro(switch_add_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/${name}.cpp")
   target_link_libraries(${name} PRIVATE available-solvers)
@@ -144,8 +148,8 @@ switch_add_test(test-unsat-core)
 switch_add_test(test-unsat-core-reducer)
 switch_add_test(test-variadic-ops)
 
-# replays what it prints through each solver's executable
 target_link_libraries(test-printing PRIVATE exec-utils)
+target_link_libraries(test-term-translation PRIVATE term-utils)
 
 if(SMTLIB_READER)
   switch_add_test(test-smtlib-reader)
