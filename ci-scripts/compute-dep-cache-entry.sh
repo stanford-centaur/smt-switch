@@ -35,9 +35,10 @@ inputs=(ci-scripts/compute-dep-cache-entry.sh)
 fields=("label=$label" "prefix=$prefix" "epoch=$epoch" "packages=$packages")
 path=deps/$prefix
 if [[ $prefix == mathsat ]]; then
-  # Not provisioned by the build at all; the workflow fetches this release.
-  # It unpacks it into the path, which therefore has to stay one directory.
-  fields+=("msat_version=${MSAT_VERSION:?must be set for mathsat}")
+  # Not provisioned by the build at all; the workflow runs this script, which
+  # holds the version and the checksums. It unpacks the release into the
+  # path, which therefore has to stay one directory.
+  inputs+=(ci-scripts/download-mathsat.sh)
 elif [[ -d cmake/provision/$prefix ]]; then
   inputs+=(
     cmake/ProvisionDeps.cmake
