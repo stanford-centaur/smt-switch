@@ -81,7 +81,6 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
     { IntDiv, Z3_mk_div },
     { Div, Z3_mk_div },
     { Lt, Z3_mk_lt },
-    { To_Int, Z3_mk_fpa_round_to_integral },
     { Le, Z3_mk_le },
     { Gt, Z3_mk_gt },
     { Ge, Z3_mk_ge },
