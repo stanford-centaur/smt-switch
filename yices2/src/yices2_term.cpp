@@ -222,22 +222,21 @@ bool Yices2Term::is_symbol() const
     return true;
   }
 
+  // a parameter is a symbol too, though not a symbolic constant
   term_constructor_t tc = yices_term_constructor(term);
-  return (
-      (tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0));
+  return ((tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0)
+          || tc == YICES_VARIABLE);
 }
 
 bool Yices2Term::is_param() const
 {
-  throw NotImplementedException(
-      "Yices2 backend does not support parameters yet.");
+  return yices_term_constructor(term) == YICES_VARIABLE;
 }
 
 bool Yices2Term::is_symbolic_const() const
 {
   // functions and parameters are not constants
-  // don't need to check parameters because not supported yet
-  if (is_function)
+  if (is_function || is_param())
   {
     return false;
   }

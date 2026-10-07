@@ -715,7 +715,12 @@ Term Yices2Solver::get_symbol(const std::string & name)
 
 Term Yices2Solver::make_param(const std::string name, const Sort & sort)
 {
-  throw NotImplementedException("make_param not supported by Yices2 yet.");
+  shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
+  // a variable, not an uninterpreted term: this is the one a quantifier can
+  // bind, and the only one yices_forall and yices_lambda accept
+  term_t y_term = yices_new_variable(ysort->type);
+  yices_set_term_name(y_term, name.c_str());
+  return std::make_shared<Yices2Term>(y_term);
 }
 
 Term Yices2Solver::make_term(Op op, const Term & t) const
