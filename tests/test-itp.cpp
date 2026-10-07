@@ -17,10 +17,12 @@
 #include <gtest/gtest.h>
 
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "available_solvers.h"
+#include "printing_solver.h"
 #include "smt.h"
 #include "utils.h"
 
@@ -163,6 +165,18 @@ TEST_P(ItpTests, DumpIsNotImplemented)
 {
   EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),
                NotImplementedException);
+}
+
+TEST_P(ItpTests, PrintingNeedsAnInterpolationStyle)
+{
+  std::ostringstream out;
+  EXPECT_THROW(create_printing_interpolator(itp, &out, DEFAULT_STYLE),
+               IncorrectUsageException);
+  for (PrintingStyleEnum style : { BZLA_STYLE, CVC5_STYLE, MSAT_STYLE })
+  {
+    EXPECT_NO_THROW(create_printing_interpolator(itp, &out, style))
+        << "style " << style;
+  }
 }
 
 // each interpolator runs the tests in every theory it supports
