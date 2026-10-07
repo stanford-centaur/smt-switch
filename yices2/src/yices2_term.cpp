@@ -46,6 +46,50 @@ bool Yices2Term::compare(const Term & absterm) const
   return term == yterm->term;
 }
 
+/* Yices has no extract constructor. It stores (_ extract high low) as an
+ * array of the individual bits, so a BV_ARRAY whose children are the
+ * consecutive bits of one bitvector, lowest first, is an extract of it.
+ * Returns that bitvector and fills in low and high, or NULL_TERM when the
+ * array is some other shape, a concatenation for instance.
+ */
+static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
+{
+  int32_t num_bits = yices_term_num_children(term);
+  if (num_bits < 1)
+  {
+    return NULL_TERM;
+  }
+
+  term_t argument = NULL_TERM;
+  for (int32_t i = 0; i < num_bits; i++)
+  {
+    term_t bit = yices_term_child(term, i);
+    if (bit == NULL_TERM || yices_term_constructor(bit) != YICES_BIT_TERM)
+    {
+      return NULL_TERM;
+    }
+    int32_t index = yices_proj_index(bit);
+    term_t bit_argument = yices_proj_arg(bit);
+    if (index < 0 || bit_argument == NULL_TERM)
+    {
+      return NULL_TERM;
+    }
+    if (i == 0)
+    {
+      argument = bit_argument;
+      low = static_cast<uint32_t>(index);
+    }
+    else if (bit_argument != argument
+             || static_cast<uint32_t>(index) != low + i)
+    {
+      // a different bitvector, or a gap: not one contiguous extract
+      return NULL_TERM;
+    }
+  }
+  high = low + num_bits - 1;
+  return argument;
+}
+
 Op Yices2Term::get_op() const
 {
   term_constructor_t tc = yices_term_constructor(term);
@@ -116,7 +160,13 @@ Op Yices2Term::get_op() const
     case YICES_TUPLE_TERM: return Op();
     case YICES_FORALL_TERM: return Op();
     case YICES_LAMBDA_TERM: return Op();
-    case YICES_BV_ARRAY:
+    case YICES_BV_ARRAY: {
+      uint32_t low = 0;
+      uint32_t high = 0;
+      if (extract_argument(term, low, high) != NULL_TERM)
+      {
+        return Op(Extract, high, low);
+      }
       sres = const_to_string();
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
@@ -125,6 +175,7 @@ Op Yices2Term::get_op() const
         return Op(Concat);
       }
       return Op();
+    }
     case YICES_ARITH_ROOT_ATOM: return Op();
     case YICES_CEIL: return Op();
     case YICES_FLOOR: return Op();
@@ -132,33 +183,14 @@ Op Yices2Term::get_op() const
     case YICES_DIVIDES_ATOM: return Op();
     // projections
     case YICES_SELECT_TERM: return Op();
-    case YICES_BIT_TERM:
-      // TODO: Must fix this to extract coorect bit.
-      sres = const_to_string();
-      sres = sres.substr(sres.find("(") + 1, sres.length());
-      sres = sres.substr(0, sres.find(" "));
-      if (sres == "bv-extract")
-      {
-        return Op(Extract);
-      }
-      return Op();
+    case YICES_BIT_TERM: return Op();
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
     case YICES_ARITH_CONSTANT: return Op();
     case YICES_BV_CONSTANT: return Op();
     case YICES_SCALAR_CONSTANT: return Op();
     case YICES_VARIABLE: return Op();
-    case YICES_UNINTERPRETED_TERM:
-      if (yices_term_is_function(term))
-      {
-        if (!is_function)
-        {
-          return Op(Select);
-        }
-        return Op(Apply);
-      }
-
-      return Op();
+    case YICES_UNINTERPRETED_TERM: return Op();
     default: return Op();
   }
 }
