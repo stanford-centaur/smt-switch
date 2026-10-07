@@ -16,9 +16,11 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "ops.h"
 #include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
 
 namespace smt {
@@ -38,5 +40,17 @@ Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms);
  *  @throws IncorrectUsageException if idx does not fit
  */
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx);
+
+/** Whether val is a number a value of sort kind sk, INT or REAL, can be
+ *  made from, with an optional leading minus: a decimal numeral, or for a
+ *  REAL also a decimal or a fraction of numerals. The slash of a fraction
+ *  may have spaces around it, as TermTranslator writes one.
+ *  Solvers read some other strings, such as "" or "1.2.3", without an
+ *  error but not as the number meant, so check before handing one over.
+ *  @param sk the sort kind of the value, INT or REAL
+ *  @param val the string to check
+ *  @return true iff val is such a number
+ */
+bool is_arith_number(SortKind sk, const std::string & val);
 
 }  // namespace smt

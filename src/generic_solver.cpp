@@ -51,6 +51,7 @@
 #include "ops.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
+#include "solver_utils.h"
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
@@ -1135,12 +1136,6 @@ Term GenericSolver::store_term(Term term) const
   return (*name_term_map)[name];
 }
 
-/** Whether s is a non-empty string of decimal digits */
-static bool is_decimal_numeral(const std::string & s)
-{
-  return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
-}
-
 /**
  * The SMT-LIB binary literal of val that is exactly as wide as the
  * bit-vector sort, val being a numeral in base 2, 10 or 16 with an
@@ -1272,26 +1267,8 @@ static void check_value_sort_kind(SortKind sk)
 }
 
 /**
- * Whether magnitude is a number of sort kind sk, INT or REAL: a numeral,
- * or for a REAL also a decimal or a fraction of numerals. A solver binary
- * reads some other strings, such as the name of a symbol or a decimal for
- * an INT, without an error but not as the number meant.
- */
-static bool is_arith_magnitude(SortKind sk, const std::string & magnitude)
-{
-  if (is_decimal_numeral(magnitude))
-  {
-    return true;
-  }
-  std::string::size_type separator = magnitude.find_first_of("./");
-  return sk == REAL && separator != std::string::npos
-         && is_decimal_numeral(magnitude.substr(0, separator))
-         && is_decimal_numeral(magnitude.substr(separator + 1));
-}
-
-/**
  * The SMT-LIB form of a value of sort kind INT or REAL, given its sign and
- * its magnitude
+ * its magnitude, a numeral, decimal or fraction without spaces
  */
 static std::string arith_value_repr(SortKind sk,
                                     bool negative,
@@ -1299,9 +1276,10 @@ static std::string arith_value_repr(SortKind sk,
 {
   // SMT-LIB numerals are never negative, and a REAL value needs a
   // decimal point for solvers that do not convert an integer literal
-  std::string repr = sk == REAL && is_decimal_numeral(magnitude)
-                         ? magnitude + ".0"
-                         : magnitude;
+  std::string repr =
+      sk == REAL && magnitude.find_first_of("./") == std::string::npos
+          ? magnitude + ".0"
+          : magnitude;
   if (negative)
   {
     repr = "(- " + repr + ")";
@@ -1358,13 +1336,19 @@ Term GenericSolver::make_value(const std::string val,
   if (sk == INT || sk == REAL)
   {
     assert(base == 10);
-    bool negative = val.find("-") == 0;
-    std::string magnitude = negative ? val.substr(1) : val;
-    if (!is_arith_magnitude(sk, magnitude))
+    // a solver binary reads some other strings, such as the name of a
+    // symbol or a decimal for an INT, without an error but not as the
+    // number meant
+    if (!is_arith_number(sk, val))
     {
       throw IncorrectUsageException("Value " + val + " is not a number of sort "
                                     + sort->to_string());
     }
+    bool negative = val.find("-") == 0;
+    std::string magnitude = negative ? val.substr(1) : val;
+    // no binary reads a number with spaces in it
+    magnitude.erase(std::remove(magnitude.begin(), magnitude.end(), ' '),
+                    magnitude.end());
     repr = arith_value_repr(sk, negative, magnitude);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;

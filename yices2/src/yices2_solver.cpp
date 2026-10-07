@@ -278,40 +278,6 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
   return std::make_shared<Yices2Term>(y_term);
 }
 
-/** Whether s is a non-empty string of decimal digits */
-static bool is_decimal_numeral(const std::string & s)
-{
-  return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
-}
-
-/**
- * Whether val is a Real number, with an optional leading minus: a decimal
- * numeral, a decimal or a fraction of numerals. The slash of a fraction may
- * have spaces around it, as TermTranslator writes one.
- */
-static bool is_real_number(const std::string & val)
-{
-  std::string magnitude = val.find('-') == 0 ? val.substr(1) : val;
-  if (is_decimal_numeral(magnitude))
-  {
-    return true;
-  }
-  std::string::size_type separator = magnitude.find_first_of("./");
-  if (separator == std::string::npos)
-  {
-    return false;
-  }
-  std::string whole = magnitude.substr(0, separator);
-  std::string part = magnitude.substr(separator + 1);
-  if (magnitude[separator] == '/')
-  {
-    whole = whole.substr(0, whole.find_last_not_of(' ') + 1);
-    std::string::size_type start = part.find_first_not_of(' ');
-    part = start == std::string::npos ? "" : part.substr(start);
-  }
-  return is_decimal_numeral(whole) && is_decimal_numeral(part);
-}
-
 Term Yices2Solver::make_term(const std::string val,
                              const Sort & sort,
                              uint64_t base) const
@@ -332,7 +298,7 @@ Term Yices2Solver::make_term(const std::string val,
 
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!is_real_number(val))
+    if (!is_arith_number(REAL, val))
     {
       throw IncorrectUsageException(msg);
     }
