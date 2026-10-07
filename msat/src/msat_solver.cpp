@@ -1333,7 +1333,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   if (formulae.size() < 2)
   {
     throw IncorrectUsageException(
-        "Require at least 2 input formulae for sequence interpolation.");
+        "Sequence interpolation requires at least 2 formulae.");
   }
   if (!out_I.empty())
   {
