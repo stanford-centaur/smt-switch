@@ -165,9 +165,10 @@ SmtSolver create_printing_solver(SmtSolver wrapped_solver,
  * @param wrapped_interpolator the interpolating solver to wrap
  * @param out_stream the stream to dump SMT-LIB to
  * @param style the printing style, which decides how interpolation queries
- *        are written
+ *        are written: BZLA_STYLE, CVC5_STYLE or MSAT_STYLE
  * @return an SmtInterpolator that dumps to out_stream each command that is
  *         executed.
+ * @throws IncorrectUsageException for any other style
  */
 SmtInterpolator create_printing_interpolator(
     SmtInterpolator wrapped_interpolator,

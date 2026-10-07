@@ -17,11 +17,11 @@
 
 #include "printing_solver.h"
 
-#include <cassert>
 #include <cstdint>
 #include <ostream>
 #include <string>
 
+#include "exceptions.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
 #include "sort.h"
@@ -31,6 +31,9 @@ namespace smt {
 /* PrintingSolver */
 
 const char * name_prefix = "smt_switch_generated_";
+
+const char * const no_interpolation_style =
+    "A printing interpolator needs BZLA_STYLE, CVC5_STYLE or MSAT_STYLE";
 
 // implementations
 PrintingSolver::PrintingSolver(SmtSolver s,
@@ -274,49 +277,59 @@ PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
       out_stream(os),
       style(pse)
 {
+  switch (style)
+  {
+    case PrintingStyleEnum::BZLA_STYLE:
+    case PrintingStyleEnum::CVC5_STYLE:
+    case PrintingStyleEnum::MSAT_STYLE: return;
+    case PrintingStyleEnum::DEFAULT_STYLE: break;
+  }
+  throw IncorrectUsageException(no_interpolation_style);
 }
 
 Result PrintingInterpolator::get_interpolant(const Term & A,
                                              const Term & B,
                                              Term & out_I) const
 {
-  if (style == PrintingStyleEnum::MSAT_STYLE)
+  switch (style)
   {
-    /* The printing follows the internal implementation from msat_solver.h
-     * in which the assertions are labeled by interpolation groups
-     */
-    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-    (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :"
-                  << INTERPOLATION_GROUP_STR << " g1))" << std::endl;
-    (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :"
-                  << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
-    (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-    (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")" << std::endl;
-    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+    case PrintingStyleEnum::MSAT_STYLE:
+      /* The printing follows the internal implementation from msat_solver.h
+       * in which the assertions are labeled by interpolation groups
+       */
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :"
+                    << INTERPOLATION_GROUP_STR << " g1))" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :"
+                    << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
+      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+      (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")"
+                    << std::endl;
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      return wrapped_interpolator->get_interpolant(A, B, out_I);
+    case PrintingStyleEnum::BZLA_STYLE: {
+      std::string name = name_prefix + std::to_string(num_names++);
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << NAMED_STR
+                    << " " << name << "))" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
+      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+      (*out_stream) << "(" << GET_INTERPOLANT_STR << " (" << name << "))"
+                    << std::endl;
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      return wrapped_interpolator->get_interpolant(A, B, out_I);
+    }
+    case PrintingStyleEnum::CVC5_STYLE:
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
+      (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
+                    << std::endl;
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      return wrapped_interpolator->get_interpolant(A, B, out_I);
+    case PrintingStyleEnum::DEFAULT_STYLE: break;
   }
-  else if (style == PrintingStyleEnum::BZLA_STYLE)
-  {
-    std::string name = name_prefix + std::to_string(num_names++);
-    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-    (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << NAMED_STR
-                  << " " << name << "))" << std::endl;
-    (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
-    ;
-    (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-    (*out_stream) << "(" << GET_INTERPOLANT_STR << " (" << name << "))"
-                  << std::endl;
-    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-  }
-  else
-  {
-    assert(style == PrintingStyleEnum::CVC5_STYLE);
-    (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-    (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
-    (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
-                  << std::endl;
-    (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-  }
-  return wrapped_interpolator->get_interpolant(A, B, out_I);
+  // the constructor refuses any other style
+  throw IncorrectUsageException(no_interpolation_style);
 }
 
 Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
