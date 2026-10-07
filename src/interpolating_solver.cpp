@@ -95,12 +95,6 @@ void AbsSmtInterpolator::reset()
                                 + to_string(solver_enum));
 }
 
-void AbsSmtInterpolator::reset_assertions()
-{
-  throw NotImplementedException("Resetting assertions is not supported by "
-                                + to_string(solver_enum));
-}
-
 void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Dumping to a file is not supported by "

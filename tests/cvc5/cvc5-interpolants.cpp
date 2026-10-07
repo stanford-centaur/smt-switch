@@ -27,6 +27,26 @@
 
 using namespace smt;
 
+TEST(Cvc5Interpolants, InterpolatesAfterResetAssertions)
+{
+  SmtInterpolator s = Cvc5SolverFactory::create_interpolating_solver();
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  Term B = s->make_term(Gt, x, z);
+  // a reset before first query as well as after one
+  s->reset_assertions();
+  for (int round = 0; round < 2; ++round)
+  {
+    Term I;
+    EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat()) << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    s->reset_assertions();
+  }
+}
+
 TEST(Cvc5Interpolants, GetInterpolant)
 {
   SmtInterpolator s = Cvc5SolverFactory::create_interpolating_solver();

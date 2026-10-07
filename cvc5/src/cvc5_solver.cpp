@@ -1084,7 +1084,8 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
 
 void cvc5InterpolatingSolver::reset_assertions()
 {
-  cvc5_solver->reset_assertions();
+  // get_interpolant resets cvc5's assertions before every query, so
+  // nothing is kept between queries
 }
 
 }  // namespace smt

@@ -43,11 +43,19 @@ namespace smt {
      IncorrectUsageException, and are final so that no interpolator can
      re-enable solving. get_context_level is final too, and returns 0,
      since no context can be pushed.
-   - Required: get_interpolant and get_sequence_interpolants. A backend
-     usually computes only one of them natively, and can implement the
-     other with interpolant_from_sequence or sequence_from_interpolants.
-   - Optional: set_opt, reset, reset_assertions and dump_smt2 throw
-     NotImplementedException unless overridden.
+   - Required: get_interpolant, get_sequence_interpolants and
+     reset_assertions. A backend usually computes only one of the first
+     two natively, and can implement the other with
+     interpolant_from_sequence or sequence_from_interpolants.
+     An interpolating solver holds no assertions of the caller's, so its
+     reset_assertions discards what it keeps between queries instead: a
+     backend may reuse the formulas a query shares with the one before,
+     and after reset_assertions the next query starts afresh. It never
+     changes what a query answers. A backend that keeps nothing between
+     queries implements it as doing nothing, and one that reuses formulas
+     also takes incremental set to false, to start every query afresh.
+   - Optional: set_opt, reset and dump_smt2 throw NotImplementedException
+     unless overridden.
    - Everything else is forwarded to the regular solver.
  */
 class AbsSmtInterpolator : public AbsSmtSolver
@@ -106,10 +114,14 @@ class AbsSmtInterpolator : public AbsSmtSolver
   virtual Result get_sequence_interpolants(const TermVec & formulae,
                                            TermVec & out_I) const = 0;
 
+  /** Discard what the solver keeps between queries, so that the next one
+   *  starts afresh; see the contract above.
+   */
+  void reset_assertions() override = 0;
+
   // ------------------------- Optional -------------------------------------
   void set_opt(const std::string option, const std::string value) override;
   void reset() override;
-  void reset_assertions() override;
   void dump_smt2(std::string filename) const override;
 
   // ------------------------- Forwarded ------------------------------------
