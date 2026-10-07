@@ -10,6 +10,43 @@ that will then trigger the
 [cibuildwheel workflow](./.github/workflows/cibuildwheel.yml) to generate Python
 wheels and upload them to PyPi.
 
+## Updating Dependency Pins
+
+Each dependency the build can provision is pinned in
+`cmake/provision/<name>/pin.cmake`, by a tag and the SHA-256 of the archive that
+tag serves. MathSAT is not provisioned, as its licence does not let us download
+it on anyone's behalf, so its version and checksums live in
+[ci-scripts/download-mathsat.sh](./ci-scripts/download-mathsat.sh) instead.
+
+To see the edits that would bring every pin up to its latest release:
+
+```sh
+ci-scripts/update-pins.sh
+```
+
+To update the pin files, which also records the new checksums:
+
+```sh
+ci-scripts/update-pins.sh --apply            # every pin
+ci-scripts/update-pins.sh --apply --pin z3   # just one
+```
+
+`--list` reports where each pin stands rather than showing the edits, and
+`--json` gives that report in the form the workflow reads. Set `GITHUB_TOKEN` to
+lift the API rate limit from 60 requests an hour to 5000.
+
+The script uses the latest *release* instead of the latest tag, because several
+of these projects carry tags that are not releases. It leaves a pin naming a
+`COMMIT` rather than a `TAG` alone, on the grounds that a commit was chosen by
+hand for a reason. And it refuses a candidate that is not shaped like the pin it
+would replace, or that is older.
+
+Bumping any pin invalidates that dependency's build cache, since
+[compute-dep-cache-entry.sh](./ci-scripts/compute-dep-cache-entry.sh) keys each
+entry on the files that decide how it is built. Note that editing that script
+invalidates *every* dependency's cache, because it hashes itself;
+`DEPS_CACHE_EPOCH` in the CI workflow is the deliberate way to force that.
+
 ## Debug Builds
 
 `configure.sh` sets up a Release build. Release compiles out the library's
