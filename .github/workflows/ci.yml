@@ -10,8 +10,6 @@ env:
   # Part of every solver's cache key. Bump it to rebuild every cached solver,
   # e.g. after a runner image or system package update breaks a cached build.
   DEPS_CACHE_EPOCH: 1
-  # Read by the MathSAT step below and by compute-dep-cache-entry.sh
-  MSAT_VERSION: 5.6.18
   # The system packages that the Install packages steps install, part of
   # every solver's cache key on that OS. macOS's own gperf is new enough
   # for yices2, unlike its bison for the SMT-LIB reader.
@@ -103,16 +101,9 @@ jobs:
       # Every other solver is provisioned by the Configure step below
       - name: Download MathSAT
         if: matrix.solver == 'mathsat'
-        shell: bash
         env:
           DIR: ${{ fromJSON(steps.lookup.outputs.entry).path }}
-          MSAT_PLATFORM: >-
-            ${{ runner.os == 'macOS' && 'macos' || 'linux-x86_64' }}
-        run: |
-          archive=mathsat-$MSAT_VERSION-$MSAT_PLATFORM.tar.gz
-          mkdir -p "$DIR"
-          curl -fLsS "https://mathsat.fbk.eu/release/$archive" |
-            tar -xz -C "$DIR" --strip-components 1
+        run: ci-scripts/download-mathsat.sh "$DIR"
       - name: Configure smt-switch and build solver
         if: matrix.solver != 'mathsat'
         env:

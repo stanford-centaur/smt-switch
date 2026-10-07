@@ -141,6 +141,9 @@ repos:
         # -e E     make every other rule an error, since bashate exits 0 on a
         #          warning and pre-commit hides a passing hook's output
         args: [-i, E003, -e, E]
+        # Its recorded SHA-256s are longer than E006 allows, and bashate has
+        # no per-line exemption.
+        exclude: ^ci-scripts/download-mathsat\.sh$
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v23.1.2
     hooks:
