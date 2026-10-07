@@ -94,6 +94,25 @@ TEST_P(UnitTermArithTests, MalformedIntStringThrows)
   }
 }
 
+TEST_P(UnitTermArithTests, MalformedRealStringThrows)
+{
+  SolverEnum se = s->get_solver_enum();
+  if (se == YICES2)
+  {
+    GTEST_SKIP() << "Yices2 throws InternalSolverException for them";
+  }
+  if (se == Z3)
+  {
+    GTEST_SKIP() << "Z3 takes \"\", \"-\" and \"1.2.3\" as Reals and throws "
+                    "z3::exception for the others";
+  }
+  for (const char * val : { "abc", "", "-", "1/", "1.2.3" })
+  {
+    SCOPED_TRACE(val);
+    EXPECT_THROW(s->make_term(val, realsort), IncorrectUsageException);
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
                          UnitTermTests,
                          testing::ValuesIn(available_solver_configurations()));
