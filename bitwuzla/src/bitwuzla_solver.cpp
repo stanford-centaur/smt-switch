@@ -125,7 +125,12 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     // solving.
     return;
   }
-  else if (option == "time-limit")
+  if (is_initialized())
+  {
+    // the Bitwuzla instance took its options when it was created
+    throw IncorrectUsageException("Must set options before using solver.");
+  }
+  if (option == "time-limit")
   {
     // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
     options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stod(value) * 1000);
