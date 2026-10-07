@@ -9,6 +9,7 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include "exceptions.h"
 #include "ops.h"
@@ -506,13 +507,25 @@ Term Z3Solver::make_term(const std::string val,
     }
     z_term = ctx.bv_val(value.get_str(10).c_str(), width);
   }
-  else if (sk == REAL)
+  else if (sk == REAL || sk == INT)
   {
-    z_term = ctx.real_val(val.c_str());
-  }
-  else if (sk == INT)
-  {
-    z_term = ctx.int_val(val.c_str());
+    // Z3 reads "" and "-" as 0, and "1.2.3" as some Real
+    std::string msg =
+        "Can't create value " + val + " with sort " + sort->to_string();
+    if (!is_arith_number(sk, val))
+    {
+      throw IncorrectUsageException(msg);
+    }
+    try
+    {
+      z_term =
+          sk == REAL ? ctx.real_val(val.c_str()) : ctx.int_val(val.c_str());
+    }
+    catch (z3::exception & e)
+    {
+      // such as division by zero
+      throw IncorrectUsageException(msg + ": " + e.msg());
+    }
   }
   else
   {

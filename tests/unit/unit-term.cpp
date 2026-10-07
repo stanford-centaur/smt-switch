@@ -85,12 +85,6 @@ TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
 
 TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 {
-  SolverEnum se = s->get_solver_enum();
-  if (se == Z3)
-  {
-    GTEST_SKIP() << "Z3 takes \"\" as an Int and throws z3::exception for "
-                    "the others";
-  }
   for (const char * val : { "abc", "", "-", "1/2", "1.5" })
   {
     SCOPED_TRACE(val);
@@ -100,11 +94,6 @@ TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 
 TEST_P(UnitTermArithTests, MalformedRealStringThrows)
 {
-  if (s->get_solver_enum() == Z3)
-  {
-    GTEST_SKIP() << "Z3 takes \"\", \"-\" and \"1.2.3\" as Reals and throws "
-                    "z3::exception for the others";
-  }
   for (const char * val : { "abc", "", "-", "1/", "1.2.3" })
   {
     SCOPED_TRACE(val);
