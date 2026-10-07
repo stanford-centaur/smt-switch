@@ -60,8 +60,9 @@ class BoolOpDefinitionTests : public OpDefinitionTests
     Sort boolsort = s->make_sort(BOOL);
     a = s->make_symbol("a", boolsort);
     b = s->make_symbol("b", boolsort);
+    c = s->make_symbol("c", boolsort);
   }
-  Term a, b;
+  Term a, b, c;
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BVOpDefinitionTests);
@@ -117,6 +118,16 @@ TEST_P(BoolOpDefinitionTests, Distinct)
 {
   expect_equivalent(s->make_term(Distinct, a, b),
                     s->make_term(Not, s->make_term(Equal, a, b)));
+}
+
+TEST_P(BoolOpDefinitionTests, Ite)
+{
+  Term ite = s->make_term(Ite, a, b, c);
+  expect_valid(s->make_term(
+      And,
+      s->make_term(Implies, a, s->make_term(Equal, ite, b)),
+      s->make_term(
+          Implies, s->make_term(Not, a), s->make_term(Equal, ite, c))));
 }
 
 TEST_P(BVOpDefinitionTests, BVNand)
@@ -229,6 +240,17 @@ TEST_P(IntOpDefinitionTests, Ge)
 {
   expect_equivalent(s->make_term(Ge, w, v),
                     s->make_term(Not, s->make_term(Lt, w, v)));
+}
+
+TEST_P(IntOpDefinitionTests, Ite)
+{
+  Term cond = s->make_symbol("cond", s->make_sort(BOOL));
+  Term ite = s->make_term(Ite, cond, v, w);
+  expect_valid(s->make_term(
+      And,
+      s->make_term(Implies, cond, s->make_term(Equal, ite, v)),
+      s->make_term(
+          Implies, s->make_term(Not, cond), s->make_term(Equal, ite, w))));
 }
 
 TEST_P(RealOpDefinitionTests, IsInt)
