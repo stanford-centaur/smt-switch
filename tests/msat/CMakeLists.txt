@@ -15,7 +15,6 @@ macro(switch_add_msat_test name)
 endmacro()
 
 switch_add_msat_test(msat-array-models)
-switch_add_msat_test(msat-arrays2)
 switch_add_msat_test(msat-const-arrays)
 switch_add_msat_test(msat-constructors)
 switch_add_msat_test(msat-data-structures)

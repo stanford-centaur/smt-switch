@@ -130,6 +130,19 @@ TEST_P(ArrayTests, EqualIndicesEqualReads)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
+TEST_P(ArrayTests, StoreOp)
+{
+  Sort bvsort4 = s->make_sort(BV, 4);
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort array4_8 = s->make_sort(ARRAY, bvsort4, bvsort8);
+  Term x = s->make_symbol("x", bvsort4);
+  Term elem = s->make_symbol("elem", bvsort8);
+  Term mem = s->make_symbol("mem", array4_8);
+
+  Term new_array = s->make_term(Store, mem, x, elem);
+  EXPECT_EQ(new_array->get_op(), Store);
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          ArrayTests,
                          testing::ValuesIn(available_solver_configurations()),
