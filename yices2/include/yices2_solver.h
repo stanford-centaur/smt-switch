@@ -57,7 +57,7 @@ class Yices2Solver : public AbsSmtSolver
   {
     // Had to move yices_init to the Factory
     // yices_init();
-    ctx = yices_new_context(NULL);
+    ctx = nullptr;
     config = yices_new_config();
   };
   Yices2Solver(const Yices2Solver &) = delete;
@@ -68,7 +68,10 @@ class Yices2Solver : public AbsSmtSolver
     symbol_table.clear();
 
     yices_free_config(config);
-    yices_free_context(ctx);
+    if (ctx)
+    {
+      yices_free_context(ctx);
+    }
 
     // TODO: Should probably find a good place to
     // call yices_exit.
@@ -126,8 +129,17 @@ class Yices2Solver : public AbsSmtSolver
                   const UnorderedTermMap & substitution_map) const override;
 
  protected:
+  /** The context, null until get_context() creates it. Yices applies a
+   *  configuration only when it creates a context, so the logic and any
+   *  option that changes config must be set before then.
+   */
   mutable context_t * ctx;
   mutable ctx_config_t * config;
+
+  /** Returns the context, creating it from config the first time.
+   *  Throws IncorrectUsageException if Yices rejects the configuration.
+   */
+  context_t * get_context() const;
 
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
   uint64_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
@@ -149,7 +161,7 @@ class Yices2Solver : public AbsSmtSolver
   {
     timelimit_start();
     smt_status_t res = yices_check_context_with_assumptions(
-        ctx, NULL, y_assumps.size(), &y_assumps[0]);
+        get_context(), NULL, y_assumps.size(), &y_assumps[0]);
     bool tl_triggered = timelimit_end();
 
     if (yices_error_code() != 0)

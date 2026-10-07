@@ -137,6 +137,12 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "incremental")
   {
+    if (ctx)
+    {
+      throw IncorrectUsageException(
+          "Yices2 can only set incremental before the first assertion or "
+          "check");
+    }
     if (value == "false")
     {
       yices_set_config(config, "mode", "one-shot");
@@ -163,16 +169,61 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     msg += " is not yet supported for the Yices2 backend";
     throw NotImplementedException(msg);
   }
-  ctx = yices_new_context(config);
+}
+
+/**
+ * Yices' description of its last error, freeing the string it returns and
+ * clearing the error, which later calls would otherwise report again
+ */
+static std::string take_yices_error()
+{
+  char * reason = yices_error_string();
+  std::string msg(reason);
+  yices_free_string(reason);
+  yices_clear_error();
+  return msg;
 }
 
 void Yices2Solver::set_logic(const std::string logic)
 {
+  if (ctx)
+  {
+    throw IncorrectUsageException(
+        "Yices2 can only set the logic before the first assertion or check");
+  }
+  // Yices cannot copy a configuration, so try the logic on a scratch one
+  // first; a logic Yices rejects, such as one this build does not support,
+  // then leaves the configuration as it was
+  ctx_config_t * scratch_config = yices_new_config();
+  context_t * scratch_ctx = nullptr;
+  if (yices_default_config_for_logic(scratch_config, logic.c_str()) == 0)
+  {
+    scratch_ctx = yices_new_context(scratch_config);
+  }
+  yices_free_config(scratch_config);
+  if (!scratch_ctx)
+  {
+    throw IncorrectUsageException("Yices2 cannot use logic " + logic + ": "
+                                  + take_yices_error());
+  }
+  yices_free_context(scratch_ctx);
+
   yices_default_config_for_logic(config, logic.c_str());
-  ctx = yices_new_context(config);
-  // TODO: Does this enforce an ordering of calling set_logic before set_opt.
-  // Need to decide on a better place to put the context creation.
-  // yices_free_config(config);
+}
+
+context_t * Yices2Solver::get_context() const
+{
+  if (!ctx)
+  {
+    ctx = yices_new_context(config);
+    if (!ctx)
+    {
+      throw IncorrectUsageException(
+          "Yices2 cannot create a context with the logic and options set: "
+          + take_yices_error());
+    }
+  }
+  return ctx;
 }
 
 Term Yices2Solver::make_term(bool b) const
@@ -290,7 +341,7 @@ void Yices2Solver::assert_formula(const Term & t)
                                   + t->to_string());
   }
 
-  yices_assert_formula(ctx, yterm->term);
+  yices_assert_formula(get_context(), yterm->term);
   if (yices_error_code() != 0)
   {
     std::string msg(yices_error_string());
@@ -301,7 +352,7 @@ void Yices2Solver::assert_formula(const Term & t)
 Result Yices2Solver::check_sat()
 {
   timelimit_start();
-  smt_status_t res = yices_check_context(ctx, NULL);
+  smt_status_t res = yices_check_context(get_context(), NULL);
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -345,7 +396,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
 void Yices2Solver::push(uint64_t num)
 {
-  if (yices_context_status(ctx) == YICES_STATUS_UNSAT)
+  if (yices_context_status(get_context()) == YICES_STATUS_UNSAT)
   {
     pushes_after_unsat += num;
     return;
@@ -353,7 +404,7 @@ void Yices2Solver::push(uint64_t num)
 
   for (size_t i = 0; i < num; ++i)
   {
-    yices_push(ctx);
+    yices_push(get_context());
   }
 
   context_level += num;
@@ -368,7 +419,7 @@ void Yices2Solver::pop(uint64_t num)
       pushes_after_unsat--;
       continue;
     }
-    yices_pop(ctx);
+    yices_pop(get_context());
   }
 
   context_level -= num;
@@ -379,7 +430,7 @@ uint64_t Yices2Solver::get_context_level() const { return context_level; }
 Term Yices2Solver::get_value(const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
-  model_t * model = yices_get_model(ctx, true);
+  model_t * model = yices_get_model(get_context(), true);
 
   if (!yices_term_is_function(yterm->term))
   {
@@ -465,7 +516,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  model_t * model = yices_get_model(ctx, true);
+  model_t * model = yices_get_model(get_context(), true);
 
   // Yices models an array as a function: one default value, plus a mapping
   // for each index that differs from it. The default is the constant base.
@@ -519,7 +570,7 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out)
 {
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
-  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
+  int32_t err_code = yices_get_unsat_core(get_context(), &ycore);
   // yices2 documentation: returns -1 if ctx status was not UNSAT
   if (err_code == -1)
   {
@@ -998,13 +1049,26 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
 void Yices2Solver::reset()
 {
+  // yices_reset deletes every context and configuration, so free ours
+  // first rather than leave the destructor to free them again
+  if (ctx)
+  {
+    yices_free_context(ctx);
+    ctx = nullptr;
+  }
+  yices_free_config(config);
   yices_reset();
-  // call this with NULL or config?
-  ctx = yices_new_context(NULL);
+  config = yices_new_config();
   symbol_table.clear();
 }
 
-void Yices2Solver::reset_assertions() { yices_reset_context(ctx); }
+void Yices2Solver::reset_assertions()
+{
+  if (ctx)
+  {
+    yices_reset_context(ctx);
+  }
+}
 
 Term Yices2Solver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
@@ -1047,7 +1111,7 @@ void Yices2Solver::timelimit_start()
     signal(SIGALRM, yices2_timelimit_handler);
     assert(running_ctx == nullptr);
     assert(!yices2_terminated);
-    running_ctx = ctx;
+    running_ctx = get_context();
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(time_limit);
     timer.it_value.tv_usec =
