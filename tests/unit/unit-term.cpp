@@ -135,10 +135,6 @@ TEST_P(UnitTermArithTests, RealStringValues)
 
 TEST_P(UnitTermArithTests, SpacedFractionString)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "The generic solver rejects a slash with spaces around it";
-  }
   // as TermTranslator writes a fraction
   Term half =
       s->make_term(Div, s->make_term(1, realsort), s->make_term(2, realsort));
