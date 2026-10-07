@@ -1,7 +1,10 @@
 from .cppenums cimport (
+    c_LOGGING,
     c_TERMITER,
+    c_THEORY_BV,
     c_THEORY_INT,
     c_THEORY_REAL,
+    c_THEORY_STR,
     c_ARRAY_MODELS,
     c_CONSTARR,
     c_FULL_TRANSFER,
@@ -9,15 +12,25 @@ from .cppenums cimport (
     c_UNSAT_CORE,
     c_THEORY_DATATYPE,
     c_QUANTIFIERS,
+    c_UNINTERP_SORT,
+    c_PARAM_UNINTERP_SORT,
     c_BOOL_BV1_ALIASING,
     c_TIMELIMIT,
 )
 from .enums cimport SolverAttribute
 
 
+cdef SolverAttribute LOGGING = SolverAttribute()
+LOGGING.sa = c_LOGGING
+globals()["LOGGING"] = LOGGING
+
 cdef SolverAttribute TERMITER = SolverAttribute()
 TERMITER.sa = c_TERMITER
 globals()["TERMITER"] = TERMITER
+
+cdef SolverAttribute THEORY_BV = SolverAttribute()
+THEORY_BV.sa = c_THEORY_BV
+globals()["THEORY_BV"] = THEORY_BV
 
 cdef SolverAttribute THEORY_INT = SolverAttribute()
 THEORY_INT.sa = c_THEORY_INT
@@ -26,6 +39,10 @@ globals()["THEORY_INT"] = THEORY_INT
 cdef SolverAttribute THEORY_REAL = SolverAttribute()
 THEORY_REAL.sa = c_THEORY_REAL
 globals()["THEORY_REAL"] = THEORY_REAL
+
+cdef SolverAttribute THEORY_STR = SolverAttribute()
+THEORY_STR.sa = c_THEORY_STR
+globals()["THEORY_STR"] = THEORY_STR
 
 cdef SolverAttribute ARRAY_MODELS = SolverAttribute()
 ARRAY_MODELS.sa = c_ARRAY_MODELS
@@ -54,6 +71,14 @@ globals()["THEORY_DATATYPE"] = THEORY_DATATYPE
 cdef SolverAttribute QUANTIFIERS = SolverAttribute()
 QUANTIFIERS.sa = c_QUANTIFIERS
 globals()["QUANTIFIERS"] = QUANTIFIERS
+
+cdef SolverAttribute UNINTERP_SORT = SolverAttribute()
+UNINTERP_SORT.sa = c_UNINTERP_SORT
+globals()["UNINTERP_SORT"] = UNINTERP_SORT
+
+cdef SolverAttribute PARAM_UNINTERP_SORT = SolverAttribute()
+PARAM_UNINTERP_SORT.sa = c_PARAM_UNINTERP_SORT
+globals()["PARAM_UNINTERP_SORT"] = PARAM_UNINTERP_SORT
 
 cdef SolverAttribute BOOL_BV1_ALIASING = SolverAttribute()
 BOOL_BV1_ALIASING.sa = c_BOOL_BV1_ALIASING

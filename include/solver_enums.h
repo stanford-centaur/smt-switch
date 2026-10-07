@@ -42,8 +42,8 @@ enum SolverEnum
   CVC5_INTERPOLATOR,
   MSAT_INTERPOLATOR,
 
-  // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
-  // and enums_imp.pxi
+  // NOTE: when adding a new enum, also add it to the python interface, in
+  // python/smt_switch/cppenums.pxd and python/smt_switch/solverenums.pyx
 };
 
 enum SolverAttribute
@@ -83,8 +83,8 @@ enum SolverAttribute
   // supports setting a time limit, in seconds (fractions allowed)
   TIMELIMIT
 
-  // TODO: when adding a new enum, also add to python interface in enums_dec.pxi
-  // and enums_imp.pxi
+  // NOTE: when adding a new enum, also add it to the python interface, in
+  // python/smt_switch/cppenums.pxd and python/smt_switch/solverattr.pyx
 };
 
 /** Returns true iff the SolverEnum corresponds to an Interpolator
