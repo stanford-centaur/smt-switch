@@ -39,8 +39,15 @@ foreach(_dependency IN LISTS _requested)
   endif()
 endforeach()
 
-set(_scratch "${CMAKE_CURRENT_BINARY_DIR}/.update-checksums")
-file(MAKE_DIRECTORY "${_scratch}")
+execute_process(
+  COMMAND mktemp -t update-checksums.XXXXXX
+  OUTPUT_VARIABLE _archive
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE _mktemp_result
+)
+if(NOT _mktemp_result EQUAL 0)
+  message(FATAL_ERROR "Could not create a temporary file")
+endif()
 
 set(_changed "")
 foreach(_dependency IN LISTS _requested)
@@ -49,7 +56,6 @@ foreach(_dependency IN LISTS _requested)
   set(_recorded "${${_upper}_SHA256}")
 
   message(STATUS "Fetching ${_dependency} from ${_url}")
-  set(_archive "${_scratch}/${_dependency}")
   file(DOWNLOAD "${_url}" "${_archive}" STATUS _status)
   list(GET _status 0 _code)
   if(NOT _code EQUAL 0)
@@ -57,7 +63,6 @@ foreach(_dependency IN LISTS _requested)
     message(FATAL_ERROR "Could not fetch ${_url}: ${_reason}")
   endif()
   file(SHA256 "${_archive}" _hash)
-  file(REMOVE "${_archive}")
 
   if(_recorded STREQUAL _hash)
     message(STATUS "${_dependency}'s CHECKSUM is unchanged")
@@ -83,7 +88,7 @@ foreach(_dependency IN LISTS _requested)
   endif()
 endforeach()
 
-file(REMOVE_RECURSE "${_scratch}")
+file(REMOVE "${_archive}")
 
 if(_changed)
   list(JOIN _changed ", " _names)
