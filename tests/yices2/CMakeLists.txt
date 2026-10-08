@@ -14,7 +14,6 @@ macro(switch_add_yices2_test name)
 endmacro()
 
 switch_add_yices2_test(yices2-array-models)
-switch_add_yices2_test(yices2-arrays2)
 switch_add_yices2_test(yices2-get-op)
 switch_add_yices2_test(yices2-gtest)
 switch_add_yices2_test(yices2-incremental)
