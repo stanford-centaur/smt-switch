@@ -170,4 +170,85 @@ INSTANTIATE_TEST_SUITE_P(,
                          testing::ValuesIn(available_solver_configurations()),
                          ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ConstArrayTests);
+class ConstArrayTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    bvsort4 = s->make_sort(BV, 4);
+    bvsort8 = s->make_sort(BV, 8);
+    arrsort = s->make_sort(ARRAY, bvsort4, bvsort8);
+    idx0 = s->make_symbol("idx0", bvsort4);
+    idx1 = s->make_symbol("idx1", bvsort4);
+    zero = s->make_term(0, bvsort8);
+    const_arr = s->make_term(zero, arrsort);
+  }
+  SmtSolver s;
+  Sort bvsort4, bvsort8, arrsort;
+  Term idx0, idx1, zero, const_arr;
+};
+
+TEST_P(ConstArrayTests, IsValueWithBaseChild)
+{
+  EXPECT_TRUE(const_arr->is_value());
+  EXPECT_FALSE(const_arr->is_symbolic_const());
+  EXPECT_TRUE(const_arr->get_op().is_null());
+  for (const Term & c : const_arr)
+  {
+    EXPECT_EQ(c, zero);
+  }
+}
+
+TEST_P(ConstArrayTests, StoreOverConstArray)
+{
+  // a read at any index other than the stored one sees the base
+  Term val = s->make_symbol("val", bvsort8);
+  Term stored = s->make_term(Store, const_arr, idx0, val);
+  s->assert_formula(s->make_term(Distinct, idx0, idx1));
+  s->assert_formula(
+      s->make_term(Distinct, s->make_term(Select, stored, idx1), zero));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(ConstArrayTests, TransfersToAnotherSolver)
+{
+  SmtSolver s2 = create_solver(GetParam());
+  s2->set_opt("incremental", "true");
+  TermTranslator tt(s2);
+
+  Term const_arr2 = tt.transfer_term(const_arr);
+  EXPECT_TRUE(const_arr2->is_value());
+  EXPECT_FALSE(const_arr2->is_symbolic_const());
+  EXPECT_TRUE(const_arr2->get_op().is_null());
+  Term zero2 = tt.transfer_term(zero);
+  for (const Term & c : const_arr2)
+  {
+    EXPECT_EQ(c, zero2);
+  }
+
+  // this solver has no assertions yet
+  EXPECT_TRUE(s2->check_sat().is_sat());
+  Sort arrsort2 = tt.transfer_sort(arrsort);
+  Term arr = s2->make_symbol("arr", arrsort2);
+  Term arr2 = s2->make_symbol("arr2", arrsort2);
+  Term constraint = s2->make_term(
+      And,
+      s2->make_term(Equal, arr, const_arr2),
+      s2->make_term(
+          Distinct, s2->make_term(Select, arr, tt.transfer_term(idx0)), zero2));
+  s2->assert_formula(
+      s2->substitute(constraint, UnorderedTermMap{ { arr, arr2 } }));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    ConstArrayTests,
+    testing::ValuesIn(filter_solver_configurations({ CONSTARR })),
+    ConfigName());
+
 }  // namespace smt_tests
