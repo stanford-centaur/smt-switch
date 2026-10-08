@@ -1274,12 +1274,22 @@ static std::string arith_value_repr(SortKind sk,
                                     bool negative,
                                     const std::string & magnitude)
 {
-  // SMT-LIB numerals are never negative, and a REAL value needs a
-  // decimal point for solvers that do not convert an integer literal
-  std::string repr =
-      sk == REAL && magnitude.find_first_of("./") == std::string::npos
-          ? magnitude + ".0"
-          : magnitude;
+  // SMT-LIB numerals are never negative, a REAL value needs a decimal point
+  // for solvers that do not convert an integer literal, and SMT-LIB has no
+  // fraction literal, so a fraction is a division of two of those
+  std::string::size_type slash = magnitude.find('/');
+  std::string repr;
+  if (sk == REAL && slash != std::string::npos)
+  {
+    repr = "(/ " + magnitude.substr(0, slash) + ".0 "
+           + magnitude.substr(slash + 1) + ".0)";
+  }
+  else
+  {
+    repr = sk == REAL && magnitude.find('.') == std::string::npos
+               ? magnitude + ".0"
+               : magnitude;
+  }
   if (negative)
   {
     repr = "(- " + repr + ")";
@@ -1349,6 +1359,13 @@ Term GenericSolver::make_value(const std::string val,
     // no binary reads a number with spaces in it
     magnitude.erase(std::remove(magnitude.begin(), magnitude.end(), ' '),
                     magnitude.end());
+    // a division by zero is a legal term, but not a number
+    std::string::size_type slash = magnitude.find('/');
+    if (slash != std::string::npos
+        && magnitude.find_first_not_of('0', slash + 1) == std::string::npos)
+    {
+      throw IncorrectUsageException("Value " + val + " divides by zero");
+    }
     repr = arith_value_repr(sk, negative, magnitude);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
