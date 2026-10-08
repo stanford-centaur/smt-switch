@@ -173,7 +173,7 @@ Op Yices2Term::get_op() const
     case YICES_UPDATE_TERM: return Op(Store);
     case YICES_TUPLE_TERM: no_smt_switch_op(term);
     case YICES_FORALL_TERM: no_smt_switch_op(term);
-    case YICES_LAMBDA_TERM: no_smt_switch_op(term);
+    case YICES_LAMBDA_TERM: return Op();
     case YICES_BV_ARRAY: {
       uint32_t low = 0;
       uint32_t high = 0;
@@ -265,8 +265,10 @@ bool Yices2Term::is_value() const
 {
   term_constructor_t tc = yices_term_constructor(term);
 
+  // a lambda is how make_term writes a constant array, which is a value
   return (tc == YICES_BOOL_CONSTANT || tc == YICES_ARITH_CONSTANT
-          || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT);
+          || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT
+          || tc == YICES_LAMBDA_TERM);
 }
 
 string Yices2Term::to_string() { return const_to_string(); }
@@ -348,6 +350,11 @@ static uint32_t smt_num_children(term_t term)
     return 0;
   }
   term_constructor_t tc = yices_term_constructor(term);
+  if (tc == YICES_LAMBDA_TERM)
+  {
+    // the base value, Yices keeping the bound variable alongside it
+    return 1;
+  }
   if (tc == YICES_BIT_TERM)
   {
     // the Equal reading: the width-one extract, and the one it meets
@@ -466,6 +473,11 @@ const Term Yices2TermIter::operator*()
       // the component itself rather than a power of it
       ret_term = exponent == 1 ? component : yices_power(component, exponent);
     }
+  }
+  else if (yices_term_constructor(term) == YICES_LAMBDA_TERM)
+  {
+    // the body, after the bound variable Yices lists first
+    ret_term = yices_term_child(term, 1);
   }
   else if (yices_term_constructor(term) == YICES_BIT_TERM)
   {

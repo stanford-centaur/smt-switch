@@ -77,6 +77,12 @@ TEST_P(ConstArrUnitTests, ConstArr)
 
 TEST_P(ConstArrUnitTests, IdentityWalker)
 {
+  if (GetParam().solver_enum == YICES2)
+  {
+    GTEST_SKIP() << "Yices2 cannot read a constant array through a store at "
+                    "a symbolic index";
+  }
+
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term arr = s->make_symbol("arr", arrsort);
