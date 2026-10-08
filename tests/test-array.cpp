@@ -143,6 +143,28 @@ TEST_P(ArrayTests, StoreOp)
   EXPECT_EQ(new_array->get_op(), Store);
 }
 
+TEST_P(ArrayTests, SelectsAgreeWithModel)
+{
+  s->set_opt("produce-models", "true");
+  Sort bvsort32 = s->make_sort(BV, 32);
+  Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
+  Term x0 = s->make_symbol("x0", bvsort32);
+  Term x1 = s->make_symbol("x1", bvsort32);
+  Term y = s->make_symbol("y", bvsort32);
+  Term arr = s->make_symbol("arr", array32_32);
+
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, x0), x1));
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, x1), y));
+  s->assert_formula(s->make_term(Distinct, x1, y));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  Term x1_val = s->get_value(x1);
+  Term y_val = s->get_value(y);
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x0)), x1_val);
+  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x1)), y_val);
+  EXPECT_NE(x1_val, y_val);
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          ArrayTests,
                          testing::ValuesIn(available_solver_configurations()),

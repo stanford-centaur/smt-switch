@@ -13,7 +13,6 @@ macro(switch_add_yices2_test name)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
-switch_add_yices2_test(yices2-array-models)
 switch_add_yices2_test(yices2-get-op)
 switch_add_yices2_test(yices2-gtest)
 switch_add_yices2_test(yices2-incremental)
