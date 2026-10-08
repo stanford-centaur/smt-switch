@@ -24,6 +24,7 @@
 #include <ostream>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "generic_solver.h"
@@ -742,11 +743,33 @@ TEST_P(GenericSolverRealTests, RealStringModels)
   EXPECT_TRUE(gs->check_sat().is_unsat());
 }
 
+TEST_P(GenericSolverRealTests, RealStringFractions)
+{
+  Sort real_sort = gs->make_sort(REAL);
+  Term half = gs->make_term(
+      Div, gs->make_term(1, real_sort), gs->make_term(2, real_sort));
+  Term minus_half = gs->make_term(
+      Div, gs->make_term(-1, real_sort), gs->make_term(2, real_sort));
+  // the second as TermTranslator writes a fraction
+  for (const auto & [val, expected] :
+       { std::pair<const char *, Term>{ "1/2", half },
+         { "1 / 2", half },
+         { "-1/2", minus_half } })
+  {
+    SCOPED_TRACE(val);
+    gs->push(1);
+    gs->assert_formula(gs->make_term(
+        Not, gs->make_term(Equal, gs->make_term(val, real_sort), expected)));
+    EXPECT_TRUE(gs->check_sat().is_unsat());
+    gs->pop(1);
+  }
+}
+
 TEST_P(GenericSolverRealTests, RealStringNotANumber)
 {
   Sort real_sort = gs->make_sort(REAL);
   gs->make_symbol("x", real_sort);
-  for (const char * val : { "x", "-x", ".5", "1.", "1/", "" })
+  for (const char * val : { "x", "-x", ".5", "1.", "1/", "", "1/0" })
   {
     EXPECT_THROW(gs->make_term(val, real_sort), IncorrectUsageException)
         << "for \"" << val << "\"";
