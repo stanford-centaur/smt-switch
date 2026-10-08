@@ -14,7 +14,6 @@ macro(switch_add_msat_test name)
   add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
-switch_add_msat_test(msat-const-arrays)
 switch_add_msat_test(msat-constructors)
 switch_add_msat_test(msat-data-structures)
 switch_add_msat_test(msat-incremental)

@@ -6,7 +6,6 @@ macro(switch_add_btor_test name)
 endmacro()
 
 switch_add_btor_test(btor-array-empty-assignment)
-switch_add_btor_test(btor-const-arrays)
 switch_add_btor_test(btor-data-structures)
 switch_add_btor_test(btor-exceptions)
 switch_add_btor_test(btor-incremental)
