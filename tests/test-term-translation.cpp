@@ -87,26 +87,39 @@ class TranslationTests : public testing::Test,
     s2->set_opt("produce-models", "true");
 
     boolsort = s1->make_sort(BOOL);
-    bvsort8 = s1->make_sort(BV, 8);
 
     a = s1->make_symbol("a", boolsort);
     b = s1->make_symbol("b", boolsort);
-    x = s1->make_symbol("x", bvsort8);
-    y = s1->make_symbol("y", bvsort8);
-    z = s1->make_symbol("z", bvsort8);
   }
   SmtSolver s1, s2;
-  Sort boolsort, bvsort8;
-  Term a, b, x, y, z;
+  Sort boolsort;
+  Term a, b;
 };
 
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BoolArrayTranslationTests);
-class BoolArrayTranslationTests : public TranslationTests
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BVTranslationTests);
+class BVTranslationTests : public TranslationTests
 {
  protected:
   void SetUp() override
   {
     TranslationTests::SetUp();
+    bvsort8 = s1->make_sort(BV, 8);
+
+    x = s1->make_symbol("x", bvsort8);
+    y = s1->make_symbol("y", bvsort8);
+    z = s1->make_symbol("z", bvsort8);
+  }
+  Sort bvsort8;
+  Term x, y, z;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BoolArrayTranslationTests);
+class BoolArrayTranslationTests : public BVTranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    BVTranslationTests::SetUp();
     arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
     arr = s1->make_symbol("arr", arrsort);
   }
@@ -124,6 +137,22 @@ class StringTranslationTests : public TranslationTests
     strsort = s1->make_sort(STRING);
   }
   Sort strsort;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntTranslationTests);
+class IntTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    intsort = s1->make_sort(INT);
+    i = s1->make_symbol("i", intsort);
+    j = s1->make_symbol("j", intsort);
+    k = s1->make_symbol("k", intsort);
+  }
+  Sort intsort;
+  Term i, j, k;
 };
 
 TEST_P(SelfTranslationTests, BVTransfer)
@@ -227,7 +256,52 @@ TEST_P(TranslationTests, Equal)
   ASSERT_TRUE(r.is_unsat());
 }
 
-TEST_P(TranslationTests, Ite)
+TEST_P(BVTranslationTests, NaryApplications)
+{
+  // a source solver may keep these as applications to three arguments, of
+  // which a target solver may only take two at a time
+  TermVec bool_terms({ s1->make_term(Implies, { a, b, a }),
+                       s1->make_term(Equal, { x, y, z }),
+                       s1->make_term(Distinct, { x, y, z }) });
+  Term product = s1->make_term(BVMul, { x, y, z });
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  TermVec differences;
+  for (const Term & t : bool_terms)
+  {
+    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), BOOL);
+    differences.push_back(s1->make_term(Distinct, t, t_1));
+  }
+  Term product_1 = to_s1.transfer_term(to_s2.transfer_term(product), BV);
+  differences.push_back(s1->make_term(Distinct, product, product_1));
+  s1->assert_formula(s1->make_term(Or, differences));
+  ASSERT_TRUE(s1->check_sat().is_unsat());
+}
+
+TEST_P(IntTranslationTests, NaryApplications)
+{
+  // a source solver may keep these as applications to three arguments, as
+  // Yices2 keeps a sum
+  Term sum = s1->make_term(Plus, { i, j, k });
+  Term difference = s1->make_term(Minus, { i, j, k });
+  Term chain = s1->make_term(Lt, { i, j, k });
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  TermVec differences;
+  for (const Term & t : { sum, difference })
+  {
+    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), INT);
+    differences.push_back(s1->make_term(Distinct, t, t_1));
+  }
+  Term chain_1 = to_s1.transfer_term(to_s2.transfer_term(chain), BOOL);
+  differences.push_back(s1->make_term(Distinct, chain, chain_1));
+  s1->assert_formula(s1->make_term(Or, differences));
+  ASSERT_TRUE(s1->check_sat().is_unsat());
+}
+
+TEST_P(BVTranslationTests, Ite)
 {
   Term a_ite_x_y = s1->make_term(Ite, a, x, y);
 
@@ -240,7 +314,7 @@ TEST_P(TranslationTests, Ite)
       round_trip_matches(get<1>(GetParam()), s1, a_ite_x_y_1, a_ite_x_y));
 }
 
-TEST_P(TranslationTests, Concat)
+TEST_P(BVTranslationTests, Concat)
 {
   Sort bvsort1 = s1->make_sort(BV, 1);
   Term x_lt_y = s1->make_term(BVUlt, x, y);
@@ -258,7 +332,7 @@ TEST_P(TranslationTests, Concat)
       round_trip_matches(get<1>(GetParam()), s1, concat_term_1, concat_term));
 }
 
-TEST_P(TranslationTests, Extract)
+TEST_P(BVTranslationTests, Extract)
 {
   Sort bvsort1 = s1->make_sort(BV, 1);
   Term bv_a = s1->make_term(
@@ -390,12 +464,28 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER }))));
 
 INSTANTIATE_TEST_SUITE_P(
+    ParameterizedBVTranslationTests,
+    BVTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_BV })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_BV }))));
+
+INSTANTIATE_TEST_SUITE_P(
     ParameterizedBoolArrayTranslationTests,
     BoolArrayTranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedIntTranslationTests,
+    IntTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_INT })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_INT }))));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedStringTranslationTests,

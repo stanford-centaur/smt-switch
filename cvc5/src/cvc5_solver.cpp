@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "smt.h"
 #include "solver_utils.h"
@@ -125,6 +126,10 @@ const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
       { Apply_Selector, ::cvc5::Kind::APPLY_SELECTOR },
       { Apply_Tester, ::cvc5::Kind::APPLY_TESTER },
       { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR } });
+
+// operators that SMT-LIB applies to more than two arguments, but that cvc5
+// only applies to two
+const std::unordered_set<PrimOp> binary_only_ops({ StrLt, StrLeq });
 
 /* Cvc5Solver implementation */
 
@@ -889,6 +894,17 @@ Term Cvc5Solver::make_term(Op op,
 
 Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
 {
+  if (terms.empty())
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string()
+                                  + " to zero terms.");
+  }
+  else if (terms.size() > 2
+           && binary_only_ops.find(op.prim_op) != binary_only_ops.end())
+  {
+    return make_nary_term(this, op, terms);
+  }
+
   try
   {
     std::vector<::cvc5::Term> cterms;
@@ -929,7 +945,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw IncorrectUsageException(e.what());
   }
 }
 

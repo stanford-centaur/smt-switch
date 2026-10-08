@@ -858,10 +858,7 @@ Term MsatSolver::make_term(Op op,
     }
     else
     {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to three terms, or not supported by MathSAT backend yet.";
-      throw IncorrectUsageException(msg);
+      return make_term(op, TermVec{ t0, t1, t2 });
     }
   }
   else
@@ -945,24 +942,6 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     }
     return make_shared<MsatTerm>(env, res);
   }
-  else if (is_variadic(op.prim_op))
-  {
-    // assuming it is a binary operator extended to n arguments
-    auto msat_fun = msat_binary_ops.at(op.prim_op);
-
-    vector<msat_term> margs;
-    margs.reserve(terms.size());
-    for (const auto & tt : terms)
-    {
-      margs.push_back(static_pointer_cast<MsatTerm>(tt)->term);
-    }
-    msat_term res = msat_fun(env, margs[0], margs[1]);
-    for (size_t i = 2; i < margs.size(); ++i)
-    {
-      res = msat_fun(env, res, margs[i]);
-    }
-    return make_shared<MsatTerm>(env, res);
-  }
   else if (op == Forall || op == Exists)
   {
     vector<msat_term> mterms;
@@ -989,20 +968,9 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     }
     return make_shared<MsatTerm>(env, res);
   }
-  else if (op.prim_op == Distinct)
-  {
-    // special case for distinct
-    // need to apply to O(n^2) distinct pairs
-    return make_distinct(this, terms);
-  }
   else
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to ";
-    msg += ::std::to_string(size);
-    msg += " terms.";
-    throw IncorrectUsageException(msg);
+    return make_nary_term(this, op, terms);
   }
 }
 
