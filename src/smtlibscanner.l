@@ -91,7 +91,6 @@ echo                  { return smtlib::parser::make_ECHO(loc); }
 [0-9]+\.[0-9]+        { return smtlib::parser::make_FLOAT(yytext, loc); }
 #b[01]+               { yytext=yytext+2; return smtlib::parser::make_BITSTR(yytext, loc); }
 #x[0-9a-fA-F]+        { yytext=yytext+2; return smtlib::parser::make_HEXSTR(yytext, loc); }
-bv[0-9]+              { yytext=yytext+2; return smtlib::parser::make_BVDEC(yytext, loc); }
 as[ \t\r\n]+const     { return smtlib::parser::make_ASCONST(loc); }
 let                   { return smtlib::parser::make_LET(loc); }
 

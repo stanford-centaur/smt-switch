@@ -68,7 +68,6 @@ using namespace std;
 %token <std::string> FLOAT
 %token <std::string> BITSTR
 %token <std::string> HEXSTR
-%token <std::string> BVDEC
 %token <std::string> QUOTESTRING
 %token SETLOGIC SETOPT SETINFO DECLARECONST DECLAREFUN
        DECLARESORT DEFINEFUN DEFINESORT ASSERT CHECKSAT
@@ -379,10 +378,18 @@ bvconst:
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4*($1.length()));
      $$ = drv.solver()->make_term($1, bvsort, 16);
    }
-   | indprefix BVDEC NAT RP
+   | indprefix SYMBOL NAT RP
    {
+     // bvN is a symbol like any other unless indexed, as in (_ bv5 8)
+     const std::string & name = $2;
+     if (name.size() < 3 || name.compare(0, 2, "bv") != 0
+         || name.find_first_not_of("0123456789", 2) != std::string::npos)
+     {
+       smtlib::parser::error(@2, "Unknown indexed literal: " + name);
+       YYERROR;
+     }
      smt::Sort bvsort = drv.solver()->make_sort(smt::BV, std::stoi($3));
-     $$ = drv.solver()->make_term($2, bvsort, 10);
+     $$ = drv.solver()->make_term(name.substr(2), bvsort, 10);
    }
 ;
 
