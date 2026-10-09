@@ -97,7 +97,7 @@ repos:
       # as that copy lives in its own environment.
       - id: actionlint
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v1.7.1
+    rev: v1.7.2
     hooks:
       # No --offline here, so a local run resolves schemas over the network.
       # CI instead sets TOMBI_OFFLINE and points TOMBI_CACHE_HOME at
