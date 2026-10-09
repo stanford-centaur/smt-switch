@@ -29,26 +29,56 @@
 
 namespace smt {
 
-Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms)
+Term make_nary_term(const AbsSmtSolver * solver,
+                    const Op & op,
+                    const TermVec & terms)
 {
-  assert(!terms.empty());
-
-  TermVec pairs;
-  for (std::size_t i = 0; i < terms.size(); ++i)
+  assert(terms.size() >= 2);
+  std::size_t size = terms.size();
+  if (is_left_assoc(op.prim_op))
   {
-    for (std::size_t j = 0; j < terms.size(); ++j)
+    Term res = terms[0];
+    for (std::size_t i = 1; i < size; ++i)
     {
-      if (i != j)
+      res = solver->make_term(op, res, terms[i]);
+    }
+    return res;
+  }
+  else if (is_right_assoc(op.prim_op))
+  {
+    Term res = terms[size - 1];
+    for (std::size_t i = 1; i < size; ++i)
+    {
+      res = solver->make_term(op, terms[size - 1 - i], res);
+    }
+    return res;
+  }
+
+  TermVec conjuncts;
+  if (is_chainable(op.prim_op))
+  {
+    for (std::size_t i = 0; i + 1 < size; ++i)
+    {
+      conjuncts.push_back(solver->make_term(op, terms[i], terms[i + 1]));
+    }
+  }
+  else if (is_pairwise(op.prim_op))
+  {
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      for (std::size_t j = i + 1; j < size; ++j)
       {
-        // trivially false if same term shows up twice
-        assert(terms[i] != terms[j]);
-        pairs.push_back(solver->make_term(Distinct, terms[i], terms[j]));
+        conjuncts.push_back(solver->make_term(op, terms[i], terms[j]));
       }
     }
   }
-
-  Term res = solver->make_term(And, pairs);
-  return res;
+  else
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
+                                  + std::to_string(size) + " terms.");
+  }
+  return conjuncts.size() == 1 ? conjuncts[0]
+                               : solver->make_term(And, conjuncts);
 }
 
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx)

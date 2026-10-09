@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace smt {
@@ -126,19 +127,19 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
         // of course, to be well-sorted the number of arguments must
         // match the function domain
         { Apply, { 2, INT_MAX } },
-        { Plus, { 2, 2 } },
-        { Minus, { 2, 2 } },
+        { Plus, { 2, INT_MAX } },
+        { Minus, { 2, INT_MAX } },
         { Negate, { 1, 1 } },
-        { Mult, { 2, 2 } },
-        { Div, { 2, 2 } },
-        { IntDiv, { 2, 2 } },
+        { Mult, { 2, INT_MAX } },
+        { Div, { 2, INT_MAX } },
+        { IntDiv, { 2, INT_MAX } },
         { To_Real, { 1, 1 } },
         { To_Int, { 1, 1 } },
         { Is_Int, { 1, 1 } },
-        { Lt, { 2, 2 } },
-        { Le, { 2, 2 } },
-        { Gt, { 2, 2 } },
-        { Ge, { 2, 2 } },
+        { Lt, { 2, INT_MAX } },
+        { Le, { 2, INT_MAX } },
+        { Gt, { 2, INT_MAX } },
+        { Ge, { 2, INT_MAX } },
         { Mod, { 2, 2 } },
         { Abs, { 2, 2 } },
         { Pow, { 2, 2 } },
@@ -146,16 +147,16 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
         { Extract, { 1, 1 } },
         { BVNot, { 1, 1 } },
         { BVNeg, { 1, 1 } },
-        { BVAnd, { 2, 2 } },
-        { BVOr, { 2, 2 } },
-        { BVXor, { 2, 2 } },
+        { BVAnd, { 2, INT_MAX } },
+        { BVOr, { 2, INT_MAX } },
+        { BVXor, { 2, INT_MAX } },
         { BVNand, { 2, 2 } },
         { BVNor, { 2, 2 } },
         { BVXnor, { 2, 2 } },
         { BVComp, { 2, 2 } },
-        { BVAdd, { 2, 2 } },
+        { BVAdd, { 2, INT_MAX } },
         { BVSub, { 2, 2 } },
-        { BVMul, { 2, 2 } },
+        { BVMul, { 2, INT_MAX } },
         { BVUdiv, { 2, 2 } },
         { BVSdiv, { 2, 2 } },
         { BVUrem, { 2, 2 } },
@@ -181,8 +182,8 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
         { UBV_To_Int, { 1, 1 } },
         { SBV_To_Int, { 1, 1 } },
         { Int_To_BV, { 1, 1 } },
-        { StrLt, { 2, 2 } },
-        { StrLeq, { 2, 2 } },
+        { StrLt, { 2, INT_MAX } },
+        { StrLeq, { 2, INT_MAX } },
         { StrLen, { 1, 1 } },
         { StrConcat, { 2, INT_MAX } },
         { StrSubstr, { 3, 3 } },
@@ -275,9 +276,49 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
+const std::unordered_set<PrimOp> left_assoc_ops({ And,
+                                                  Or,
+                                                  Xor,
+                                                  Plus,
+                                                  Minus,
+                                                  Mult,
+                                                  Div,
+                                                  IntDiv,
+                                                  BVAnd,
+                                                  BVOr,
+                                                  BVXor,
+                                                  BVAdd,
+                                                  BVMul,
+                                                  StrConcat });
+const std::unordered_set<PrimOp> right_assoc_ops({ Implies });
+const std::unordered_set<PrimOp> chainable_ops(
+    { Equal, Lt, Le, Gt, Ge, StrLt, StrLeq });
+const std::unordered_set<PrimOp> pairwise_ops({ Distinct });
+
+bool is_left_assoc(PrimOp po)
+{
+  return left_assoc_ops.find(po) != left_assoc_ops.end();
+}
+
+bool is_right_assoc(PrimOp po)
+{
+  return right_assoc_ops.find(po) != right_assoc_ops.end();
+}
+
+bool is_chainable(PrimOp po)
+{
+  return chainable_ops.find(po) != chainable_ops.end();
+}
+
+bool is_pairwise(PrimOp po)
+{
+  return pairwise_ops.find(po) != pairwise_ops.end();
+}
+
 bool is_variadic(PrimOp po)
 {
-  return variadic_ops.find(po) != variadic_ops.end();
+  return is_left_assoc(po) || is_right_assoc(po) || is_chainable(po)
+         || is_pairwise(po);
 }
 
 }  // namespace smt
