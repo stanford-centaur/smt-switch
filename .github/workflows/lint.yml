@@ -22,4 +22,4 @@ jobs:
       #
       # Pin to an exact version: as of v3 this action no longer publishes
       # moving `v3`/`v3.0` tags.
-      - uses: j178/prek-action@v3.0.0
+      - uses: j178/prek-action@v3.0.1
