@@ -43,8 +43,8 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.discover.outputs.behind) }}
       max-parallel: 1 # gh applies a rate limit to creating pull requests
-    name: Propose ${{ matrix.pin }}
-    runs-on: ubuntu-slim
+    name: Bump ${{ matrix.pin }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write # to push the branch
       pull-requests: write # to open the pull request
