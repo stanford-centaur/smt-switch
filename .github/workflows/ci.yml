@@ -1,4 +1,7 @@
-on: [push, workflow_dispatch]
+on:
+  - merge_group
+  - push
+  - workflow_dispatch
 name: CI
 # Superseded runs are pointless on branches, but main needs a run per commit:
 # giving each of its commits its own group keeps them from queueing, where a
