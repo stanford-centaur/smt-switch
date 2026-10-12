@@ -1092,10 +1092,7 @@ Term Z3Solver::make_term(Op op,
     }
     else
     {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to three terms, or not supported by Z3 backend yet.";
-      throw IncorrectUsageException(msg);
+      return make_term(op, TermVec{ t0, t1, t2 });
     }
   }
   else
@@ -1192,7 +1189,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   {
     return make_term(op, terms[0], terms[1], terms[2]);
   }
-  else if (is_variadic(op.prim_op))
+  else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
   {
     std::vector<Z3_ast> z3args;
     z3args.reserve(size);
@@ -1200,38 +1197,12 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     {
       z3args.push_back(std::static_pointer_cast<Z3Term>(tt)->term);
     }
-
-    Z3_ast res;
-    if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
-    {
-      res = z3_variadic_ops.at(op.prim_op)(ctx, z3args.size(), z3args.data());
-    }
-    else
-    {
-      // assume this is a binary operator extended to n arguments
-      auto z3_fun = binary_ops.at(op.prim_op);
-      res = z3_fun(ctx, z3args[0], z3args[1]);
-      for (size_t i = 2; i < size; ++i)
-      {
-        res = z3_fun(ctx, res, z3args[i]);
-      }
-    }
+    res = z3_variadic_ops.at(op.prim_op)(ctx, z3args.size(), z3args.data());
     return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
-  }
-  else if (op == Distinct)
-  {
-    // special case for distinct
-    // need to apply to O(n^2) distinct pairs
-    return make_distinct(this, terms);
   }
   else
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to ";
-    msg += ::std::to_string(size);
-    msg += " terms.";
-    throw IncorrectUsageException(msg);
+    return make_nary_term(this, op, terms);
   }
 }
 

@@ -739,7 +739,12 @@ Term BoolectorSolver::make_term(Op op,
 
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (op.num_idx == 0)
+  if (terms.empty())
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string()
+                                  + " to zero terms.");
+  }
+  else if (op.num_idx == 0)
   {
     return apply_prim_op(op.prim_op, terms);
   }
@@ -953,9 +958,13 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const
       return std::make_shared<BoolectorTerm>(
           btor, boolector_exists(btor, params.data(), 2, bt2->node));
     }
-    else
+    else if (ternary_ops.find(op) != ternary_ops.end())
     {
       result = ternary_ops.at(op)(btor, bt0->node, bt1->node, bt2->node);
+    }
+    else
+    {
+      return apply_prim_op(op, TermVec{ t0, t1, t2 });
     }
 
     return std::make_shared<BoolectorTerm>(btor, result);
@@ -1001,28 +1010,6 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
 
     return std::make_shared<BoolectorTerm>(btor, result);
   }
-  else if (is_variadic(op))
-  {
-    // assuming they are binary operators extended to n arguments
-    auto btor_fun = binary_ops.at(op);
-    // get BoolectorNodes
-    std::vector<BoolectorNode *> bargs;
-    bargs.reserve(size);
-    for (const auto & tt : terms)
-    {
-      bargs.push_back(std::static_pointer_cast<BoolectorTerm>(tt)->node);
-    }
-
-    BoolectorNode * res = btor_fun(btor, bargs[0], bargs[1]);
-    BoolectorNode * trailing_res = res;
-    for (size_t i = 2; i < size; ++i)
-    {
-      res = btor_fun(btor, res, bargs[i]);
-      boolector_release(btor, trailing_res);
-      trailing_res = res;
-    }
-    return std::make_shared<BoolectorTerm>(btor, res);
-  }
   else if (op == Forall || op == Exists)
   {
     std::vector<BoolectorNode *> bparams;
@@ -1046,19 +1033,9 @@ Term BoolectorSolver::apply_prim_op(PrimOp op, TermVec terms) const
     }
     return std::make_shared<BoolectorTerm>(btor, bres);
   }
-  else if (op == Distinct)
-  {
-    // special case for distinct
-    // need to apply to O(n^2) distinct pairs
-    return make_distinct(this, terms);
-  }
   else
   {
-    std::string msg(to_string(op));
-    msg += " cannot be applied to ";
-    msg += std::to_string(size);
-    msg += " terms.";
-    throw IncorrectUsageException(msg.c_str());
+    return make_nary_term(this, Op(op), terms);
   }
 }
 

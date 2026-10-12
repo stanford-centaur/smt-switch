@@ -201,9 +201,26 @@ struct hash<smt::Op>
 }  // namespace std
 
 namespace smt {
-// ops that can be applied to n arguments
-const std::unordered_set<PrimOp> variadic_ops(
-    { And, Or, Xor, Plus, Mult, BVAnd, BVOr, BVAdd });
+/* SMT-LIB defines the applications of some operators to more than two
+ * arguments in terms of their applications to two, by giving them one of the
+ * attributes below. Every backend takes these operators with any number of
+ * arguments, and builds the applications to two itself where its solver
+ * takes no more.
+ */
 
+/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c) */
+bool is_left_assoc(PrimOp po);
+/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c)) */
+bool is_right_assoc(PrimOp po);
+/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c)) */
+bool is_chainable(PrimOp po);
+/** Whether po is :pairwise, e.g. (distinct a b c) is
+ *  (and (distinct a b) (distinct a c) (distinct b c))
+ */
+bool is_pairwise(PrimOp po);
+
+/** Whether po can be applied to more than two arguments: whether it is
+ *  :left-assoc, :right-assoc, :chainable or :pairwise
+ */
 bool is_variadic(PrimOp po);
 }  // namespace smt

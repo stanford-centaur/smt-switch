@@ -92,6 +92,25 @@ const std::unordered_map<PrimOp, bitwuzla::Kind> op2bkind(
 
 const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
+/** Apply kind to args with Bitwuzla, throwing an IncorrectUsageException
+ *  where Bitwuzla rejects the application, e.g. for the number or the sorts
+ *  of its arguments
+ */
+static Term make_bzla_term(bitwuzla::TermManager & tm,
+                           bitwuzla::Kind kind,
+                           const std::vector<bitwuzla::Term> & args,
+                           const std::vector<std::uint64_t> & indices = {})
+{
+  try
+  {
+    return std::make_shared<BzlaTerm>(tm.mk_term(kind, args, indices));
+  }
+  catch (const bitwuzla::Exception & e)
+  {
+    throw IncorrectUsageException(e.what());
+  }
+}
+
 BzlaSolver::BzlaSolver()
     : AbsSmtSolver(BZLA),
       options(),
@@ -455,18 +474,16 @@ Term BzlaSolver::make_term(Op op, const Term & t) const
 
   if (!op.num_idx)
   {
-    return std::make_shared<BzlaTerm>(tm->mk_term(bkind, { bterm->term }));
+    return make_bzla_term(*tm, bkind, { bterm->term });
   }
   else if (op.num_idx == 1)
   {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm->term }, { op.idx0 }));
+    return make_bzla_term(*tm, bkind, { bterm->term }, { op.idx0 });
   }
   else
   {
     assert(op.num_idx == 2);
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm->term }, { op.idx0, op.idx1 }));
+    return make_bzla_term(*tm, bkind, { bterm->term }, { op.idx0, op.idx1 });
   }
 }
 
@@ -485,19 +502,18 @@ Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
 
   if (!op.num_idx)
   {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term }));
+    return make_bzla_term(*tm, bkind, { bterm0->term, bterm1->term });
   }
   else if (op.num_idx == 1)
   {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term }, { op.idx0 }));
+    return make_bzla_term(
+        *tm, bkind, { bterm0->term, bterm1->term }, { op.idx0 });
   }
   else
   {
     assert(op.num_idx == 2);
-    return std::make_shared<BzlaTerm>(tm->mk_term(
-        bkind, { bterm0->term, bterm1->term }, { op.idx0, op.idx1 }));
+    return make_bzla_term(
+        *tm, bkind, { bterm0->term, bterm1->term }, { op.idx0, op.idx1 });
   }
 }
 
@@ -506,13 +522,6 @@ Term BzlaSolver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
-  if (is_variadic(op.prim_op))
-  {
-    // rely on vector application for variadic applications
-    // binary operators applied to multiple terms with "reduce" semantics
-    return make_term(op, { t0, t1, t2 });
-  }
-
   std::shared_ptr<BzlaTerm> bterm0 = std::static_pointer_cast<BzlaTerm>(t0);
   std::shared_ptr<BzlaTerm> bterm1 = std::static_pointer_cast<BzlaTerm>(t1);
   std::shared_ptr<BzlaTerm> bterm2 = std::static_pointer_cast<BzlaTerm>(t2);
@@ -527,8 +536,8 @@ Term BzlaSolver::make_term(Op op,
 
   if (!op.num_idx)
   {
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, { bterm0->term, bterm1->term, bterm2->term }));
+    return make_bzla_term(
+        *tm, bkind, { bterm0->term, bterm1->term, bterm2->term });
   }
   else
   {
@@ -541,8 +550,7 @@ Term BzlaSolver::make_term(Op op,
       indices.push_back(op.idx1);
     }
 
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, bitwuzla_terms, indices));
+    return make_bzla_term(*tm, bkind, bitwuzla_terms, indices);
   }
 }
 
@@ -564,7 +572,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
   if (!op.num_idx)
   {
-    return std::make_shared<BzlaTerm>(tm->mk_term(bkind, bitwuzla_terms));
+    return make_bzla_term(*tm, bkind, bitwuzla_terms);
   }
   else
   {
@@ -574,8 +582,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     {
       indices.push_back(op.idx1);
     }
-    return std::make_shared<BzlaTerm>(
-        tm->mk_term(bkind, bitwuzla_terms, indices));
+    return make_bzla_term(*tm, bkind, bitwuzla_terms, indices);
   }
 }
 

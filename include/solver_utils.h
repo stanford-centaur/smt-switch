@@ -25,11 +25,20 @@
 
 namespace smt {
 
-/** Create distinctness constraint for each unique pair
- *  @param terms the vector of terms to make distinct
- *  @return the distinctness constraint
+/** Apply an operator to more than two arguments as SMT-LIB defines it in
+ *  terms of applications to two, for a solver that takes no more: fold a
+ *  :left-assoc or :right-assoc operator from that side, and conjoin the
+ *  applications to each argument and the next for a :chainable one, or to
+ *  each pair of arguments for a :pairwise one.
+ *  @param solver the solver to build the terms with
+ *  @param op the operator
+ *  @param terms the arguments, at least two
+ *  @return the application
+ *  @throws IncorrectUsageException if SMT-LIB defines no such application
  */
-Term make_distinct(const AbsSmtSolver * solver, const TermVec & terms);
+Term make_nary_term(const AbsSmtSolver * solver,
+                    const Op & op,
+                    const TermVec & terms);
 
 /** Narrow an operator index to the 32 bits that most solver APIs take.
  *  Op stores indices as 64-bit, so without this the conversion is silent and

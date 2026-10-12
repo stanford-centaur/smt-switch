@@ -14,8 +14,11 @@
 **
 **/
 
+#include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <utility>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -55,6 +58,21 @@ TEST_P(UnitPrimOpTests, GetArity)
 {
   PrimOp po = static_cast<PrimOp>(GetParam());
   ASSERT_NO_THROW(get_arity(po));
+}
+
+TEST_P(UnitPrimOpTests, NaryArity)
+{
+  PrimOp po = static_cast<PrimOp>(GetParam());
+  int attributes = is_left_assoc(po) + is_right_assoc(po) + is_chainable(po)
+                   + is_pairwise(po);
+  // SMT-LIB gives an operator at most one of these
+  EXPECT_LE(attributes, 1);
+  if (attributes)
+  {
+    // TermTranslator checks the number of arguments against get_arity
+    const std::pair<std::size_t, std::size_t> from_two(2, INT_MAX);
+    EXPECT_EQ(get_arity(po), from_two);
+  }
 }
 
 TEST_P(UnitPrimOpTests, ToString)

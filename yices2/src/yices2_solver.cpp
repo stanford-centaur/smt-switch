@@ -58,6 +58,7 @@ typedef term_t (*yices_un_fun)(term_t);
 typedef term_t (*yices_bin_fun)(term_t, term_t);
 typedef term_t (*yices_tern_fun)(term_t, term_t, term_t);
 typedef term_t (*yices_variadic_fun)(uint32_t, term_t[]);
+typedef term_t (*yices_const_variadic_fun)(uint32_t, const term_t[]);
 
 // TODO's:
 // Pretty sure not implemented in Yices.
@@ -115,13 +116,23 @@ const unordered_map<PrimOp, yices_tern_fun> yices_ternary_ops(
       { Apply, yices_application2 },
       { Store, ext_yices_store } });
 
+// these may modify the array of arguments
 const unordered_map<PrimOp, yices_variadic_fun> yices_variadic_ops({
     { And, yices_and },
     { Or, yices_or },
     { Xor, yices_xor },
-    { Distinct, yices_distinct }
-    // { BVAnd, yices_bvand } has different format.
+    { Distinct, yices_distinct },
 });
+
+// these take the array of arguments as const
+const unordered_map<PrimOp, yices_const_variadic_fun> yices_const_variadic_ops(
+    { { Plus, yices_sum },
+      { Mult, yices_product },
+      { BVAnd, yices_bvand },
+      { BVOr, yices_bvor },
+      { BVXor, yices_bvxor },
+      { BVAdd, yices_bvsum },
+      { BVMul, yices_bvproduct } });
 
 /* Yices2Solver implementation */
 
@@ -932,18 +943,9 @@ Term Yices2Solver::make_term(Op op,
       term_t terms[3] = { yterm0->term, yterm1->term, yterm2->term };
       res = yices_variadic_ops.at(op.prim_op)(3, terms);
     }
-    // TODO: Threw this is for term traversal, but it's not a fix.
-    // Need to handle all "variadic" Ops this way with proper L/R association.
-    else if (op.prim_op == Plus)
-    {
-      res = yices_add(yterm0->term, yices_add(yterm1->term, yterm2->term));
-    }
     else
     {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to three terms, or not supported by Yices2 backend yet.";
-      throw IncorrectUsageException(msg);
+      return make_term(op, TermVec{ t0, t1, t2 });
     }
   }
   else
@@ -1017,42 +1019,26 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
     res = yices_application(yterm->term, size - 1, &yargs[0]);
   }
-  else if (is_variadic(op.prim_op) || op == Distinct)
+  else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end()
+           || yices_const_variadic_ops.find(op.prim_op)
+                  != yices_const_variadic_ops.end())
   {
     vector<term_t> yargs;
     yargs.reserve(size);
-    shared_ptr<Yices2Term> yterm;
-
-    // skip the first term (that's actually a function)
     for (const auto & tt : terms)
     {
-      yterm = static_pointer_cast<Yices2Term>(tt);
-      yargs.push_back(yterm->term);
+      yargs.push_back(static_pointer_cast<Yices2Term>(tt)->term);
     }
-
-    if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
-    {
-      res = yices_variadic_ops.at(op.prim_op)(yargs.size(), yargs.data());
-    }
-    else
-    {
-      // assume it's a binary function extended to n args
-      auto yices_fun = yices_binary_ops.at(op.prim_op);
-      res = yices_fun(yargs[0], yargs[1]);
-      for (size_t i = 2; i < size; ++i)
-      {
-        res = yices_fun(res, yargs[i]);
-      }
-    }
+    bool has_const_args = yices_const_variadic_ops.find(op.prim_op)
+                          != yices_const_variadic_ops.end();
+    res = has_const_args
+              ? yices_const_variadic_ops.at(op.prim_op)(yargs.size(),
+                                                        yargs.data())
+              : yices_variadic_ops.at(op.prim_op)(yargs.size(), yargs.data());
   }
   else
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to ";
-    msg += ::std::to_string(size);
-    msg += " terms.";
-    throw IncorrectUsageException(msg);
+    return make_nary_term(this, op, terms);
   }
 
   if (yices_error_code() != 0)
