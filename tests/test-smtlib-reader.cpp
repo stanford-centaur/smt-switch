@@ -155,6 +155,12 @@ TEST_P(BitVecReaderTests, QF_UFBV_Smt2Files)
 
 TEST_P(ArrayIntReaderTests, QF_ALIA_Smt2Files)
 {
+  if (get<0>(GetParam()).solver_enum == YICES2)
+  {
+    GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
+                    "constant array, which test-array.smt2 does";
+  }
+
   string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
   test += "/qf_alia/" + testpair.first;

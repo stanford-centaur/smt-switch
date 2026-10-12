@@ -356,8 +356,26 @@ Term Yices2Solver::make_term(const std::string val,
 
 Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
 {
-  throw NotImplementedException(
-      "Constant arrays not supported for Yices2 backend.");
+  // Yices writes a constant array as (lambda (i) val) and reduces any
+  // application of one, so reading and storing work. What its context will
+  // not hold is such a lambda equated with an uninterpreted array, and its
+  // model cannot evaluate the array itself; get_array_values says so.
+  if (sort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException("Expecting an array sort but got "
+                                  + sort->to_string());
+  }
+  shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
+  shared_ptr<Yices2Term> yval = static_pointer_cast<Yices2Term>(val);
+
+  // a variable, not an uninterpreted term: yices_lambda takes only the first
+  term_t index = yices_new_variable(yices_type_child(ysort->get_ytype(), 0));
+  term_t y_term = yices_lambda(1, &index, yval->term);
+  if (y_term == NULL_TERM)
+  {
+    throw InternalSolverException(yices_error_string());
+  }
+  return std::make_shared<Yices2Term>(y_term);
 }
 
 void Yices2Solver::assert_formula(const Term & t)
@@ -462,8 +480,16 @@ Term Yices2Solver::get_value(const Term & t) const
 
   if (!yices_term_is_function(yterm->term))
   {
-    return std::make_shared<Yices2Term>(
-        yices_get_value_as_term(model, yterm->term));
+    term_t value = yices_get_value_as_term(model, yterm->term);
+    if (value == NULL_TERM)
+    {
+      // the model declines some terms, one containing a lambda among them,
+      // and a term built from NULL_TERM only fails later and further away
+      throw NotImplementedException("Yices2 cannot evaluate "
+                                    + yterm->to_string()
+                                    + " in a model: " + take_yices_error());
+    }
+    return std::make_shared<Yices2Term>(value);
   }
   else
   {
@@ -545,6 +571,18 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
   model_t * model = yices_get_model(get_context(), true);
+
+  // A constant array is a lambda, which Yices' model can apply but not
+  // evaluate on its own: asking gives "can't evaluate lambdas". Reading an
+  // index out of one does work, so get_value is the way to a constant
+  // array's contents.
+  if (arr->is_value())
+  {
+    throw NotImplementedException(
+        "Yices2 cannot give the model of a constant array, which it writes "
+        "as a lambda and will not evaluate; read an index with get_value "
+        "instead");
+  }
 
   // Yices models an array as a function: one default value, plus a mapping
   // for each index that differs from it. The default is the constant base.

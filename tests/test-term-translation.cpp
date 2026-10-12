@@ -401,6 +401,13 @@ TEST_P(TranslationTests, UninterpretedSort)
 
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
+  if (get<0>(GetParam()).solver_enum == YICES2
+      || get<1>(GetParam()).solver_enum == YICES2)
+  {
+    GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
+                    "constant array";
+  }
+
   Term f = s1->make_term(false);
   Term t = s1->make_term(true);
   Term const_arr = s1->make_term(f, arrsort);

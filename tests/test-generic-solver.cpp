@@ -215,6 +215,13 @@ bool has_attribute(GenericBinary b, SolverAttribute a)
   {
     return false;
   }
+  // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
+  // frontend has no such term: the binary answers
+  // (error "undefined term: const") to ((as const (Array ...)) ...).
+  if (b == GenericBinary::Yices2 && a == CONSTARR)
+  {
+    return false;
+  }
   return solver_has_attribute(native_backend(b), a);
 }
 
