@@ -12,6 +12,7 @@ root_dir=$(realpath "$(dirname "$0")/..")
 provision_dir=$root_dir/cmake/provision
 mathsat_script=$root_dir/ci-scripts/download-mathsat.sh
 mathsat_site=https://mathsat.fbk.eu
+gnu_cgit=https://cgit.git.savannah.gnu.org/cgit
 
 usage() {
   cat <<EOF
@@ -106,6 +107,36 @@ latest_gnu_version() {
 
 highest_version() {
   sort -V | tail -1
+}
+
+release_notes_url() {
+  local pin=$1 version=$2 repo project
+  if [[ $pin == mathsat ]]; then
+    # Every version on one page, newest first, with no anchor to aim at.
+    echo "$mathsat_site/releasenotes.html"
+    return
+  fi
+  repo=$(pin_value "$pin" GITHUB_REPO)
+  if [[ -n $repo ]]; then
+    echo "https://github.com/$repo/releases/tag/$version"
+    return
+  fi
+  project=$(pin_value "$pin" GNU_PROJECT)
+  if [[ -n $project ]]; then
+    # Release notes usually live in NEWS, at a tag named v<version>.
+    echo "$gnu_cgit/$project.git/plain/NEWS?h=v$version"
+  fi
+}
+
+changes_url() {
+  local pin=$1 current=$2 latest=$3 repo
+  if [[ $pin == mathsat ]]; then
+    return
+  fi
+  repo=$(pin_value "$pin" GITHUB_REPO)
+  if [[ -n $repo ]]; then
+    echo "https://github.com/$repo/compare/$current...$latest"
+  fi
 }
 
 newer_of() {
@@ -214,11 +245,14 @@ show_edit() {
 # Turns a verdict about a pin into whatever the mode asks for: a row of
 # JSON, a line of prose, a diff, or the edit itself.
 record() {
-  local pin=$1 status=$2 current=$3 latest=$4 file=${5-} prefix=${6-}
+  local pin=$1 status=$2 current=$3 latest=$4
+  local notes=${5-} changes=${6-} file=${7-} prefix=${8-}
   if [[ $mode == json ]]; then
     rows+=$(jq -cn --arg pin "$pin" --arg current "$current" \
-      --arg latest "$latest" --arg status "$status" \
-      '{pin: $pin, current: $current, latest: $latest, status: $status}')
+      --arg latest "$latest" --arg status "$status" --arg notes "$notes" \
+      --arg changes "$changes" \
+      '{pin: $pin, current: $current, latest: $latest, status: $status,
+        notes: $notes, changes: $changes}')
     rows+=$'\n'
     return
   fi
@@ -256,7 +290,7 @@ record() {
 # Reports one pin, and edits it when it is behind.
 handle_pin() {
   local pin=$1 file prefix keyword current latest commit tag version
-  local project repo errmsg
+  local project errmsg repo notes changes
 
   if [[ $pin == mathsat ]]; then
     file=$mathsat_script
@@ -315,7 +349,10 @@ handle_pin() {
     return
   fi
 
-  record "$pin" behind "$current" "$latest" "$file" "$prefix"
+  notes=$(release_notes_url "$pin" "$latest")
+  changes=$(changes_url "$pin" "$current" "$latest")
+  record "$pin" behind "$current" "$latest" "$notes" "$changes" \
+    "$file" "$prefix"
 }
 
 pins=()
