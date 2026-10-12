@@ -193,6 +193,17 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   ASSERT_EQ(xp2_transfer, xp2_2);
 }
 
+TEST_P(SelfTranslationIntTests, Abs)
+{
+  SmtSolver s2 = create_solver(GetParam());
+  TermTranslator tt(s2);
+
+  Term abs_x_transfer = tt.transfer_term(s->make_term(Abs, x));
+  Term abs_x_2 = s2->make_term(Abs, s2->get_symbol("x"));
+  s2->assert_formula(s2->make_term(Distinct, abs_x_transfer, abs_x_2));
+  ASSERT_TRUE(s2->check_sat().is_unsat());
+}
+
 TEST_P(TranslationTests, And)
 {
   Term a_and_b = s1->make_term(And, a, b);

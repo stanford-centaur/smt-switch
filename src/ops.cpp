@@ -140,7 +140,7 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
         { Gt, { 2, 2 } },
         { Ge, { 2, 2 } },
         { Mod, { 2, 2 } },
-        { Abs, { 2, 2 } },
+        { Abs, { 1, 1 } },
         { Pow, { 2, 2 } },
         { Concat, { 2, 2 } },
         { Extract, { 1, 1 } },
