@@ -1,7 +1,8 @@
 on:
-  - merge_group
-  - push
-  - workflow_dispatch
+  merge_group:
+  push:
+    branches-ignore: [gh-readonly-queue/**]
+  workflow_dispatch:
 name: CI
 # Superseded runs are pointless on branches, but main needs a run per commit:
 # giving each of its commits its own group keeps them from queueing, where a
@@ -21,9 +22,32 @@ env:
   # Keeps brew install from updating Homebrew first
   HOMEBREW_NO_AUTO_UPDATE: 1
 jobs:
-  # Works out which solver builds are missing from the cache, so that only
-  # those are built, and lists every solver for the full build.
+  # Skips all checks in the merge queue if they already passed on the PR.
+  queue:
+    name: Check for an earlier test
+    runs-on: ubuntu-slim
+    permissions:
+      checks: read # to look up the pull request's result
+      contents: read
+      pull-requests: read # to look up its head commit
+    outputs:
+      tested: ${{ steps.check.outputs.tested }}
+    steps:
+      - name: Check out project source
+        if: github.event_name == 'merge_group'
+        uses: actions/checkout@v7
+      - name: Compare with the pull request's head
+        id: check
+        if: github.event_name == 'merge_group'
+        env:
+          CHECK_NAME: &passed-check CI passed
+          GH_TOKEN: ${{ github.token }}
+        run: ci-scripts/check-queue-tested.sh
+  # Outputs the list of solvers that we can test here and marks the ones that
+  # have builds missing from the cache.
   plan:
+    needs: queue
+    if: needs.queue.outputs.tested != 'true'
     strategy:
       matrix:
         # Hack: not a real matrix, as its one value spawns a single job. It
@@ -58,7 +82,7 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GH_TOKEN: ${{ github.token }}
         run: ci-scripts/plan-deps.sh
-  # Builds each solver that is missing from the cache, and saves it there.
+  # Builds each solver requested by the plan job and saves it in the cache.
   deps:
     needs: plan
     if: needs.plan.outputs.build != '[]'
@@ -120,6 +144,8 @@ jobs:
           path: ${{ fromJSON(steps.lookup.outputs.entry).path }}
           key: ${{ fromJSON(steps.lookup.outputs.entry).key }}
   base:
+    needs: queue
+    if: needs.queue.outputs.tested != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -192,3 +218,21 @@ jobs:
       DEPS_ENTRIES: >-
         ${{ toJSON(fromJSON(needs.plan.outputs.entries)[matrix.runner]) }}
     steps: *build-steps
+  # Names of matrix jobs are different when skipped (no runner name), so they
+  # cannot be added to the list of required checks. This one is used instead.
+  passed:
+    needs: [queue, base, full]
+    if: ${{ !cancelled() }}
+    name: *passed-check
+    runs-on: ubuntu-slim
+    steps:
+      - name: Check the test results
+        env:
+          TESTED: ${{ needs.queue.outputs.tested }}
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          if [[ $TESTED == true ]]; then
+            echo "The queued pull request already passed with this tree."
+          else
+            jq -e 'all(. == "success")' <<<"$RESULTS"
+          fi
