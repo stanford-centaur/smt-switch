@@ -237,6 +237,7 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
   EXPECT_TRUE(check_sortedness(Minus, { x, y }));
   EXPECT_TRUE(check_sortedness(Minus, { xint, yint }));
   EXPECT_TRUE(check_sortedness(Negate, { xint }));
+  EXPECT_TRUE(check_sortedness(Abs, { xint }));
 
   EXPECT_TRUE(check_sortedness(To_Int, { x }));
   EXPECT_TRUE(check_sortedness(To_Real, { xint }));
@@ -252,6 +253,7 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
 
   // wrong number of arguments
   EXPECT_FALSE(check_sortedness(Negate, { xint, yint }));
+  EXPECT_FALSE(check_sortedness(Abs, { xint, yint }));
 }
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
