@@ -1,7 +1,7 @@
 on:
+  merge_group:
   push:
-    branches: [main]
-  pull_request:
+    branches-ignore: [gh-readonly-queue/**]
   workflow_dispatch:
 name: Lint
 jobs:
