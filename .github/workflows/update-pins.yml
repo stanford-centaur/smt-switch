@@ -1,0 +1,116 @@
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      pin:
+        description: One pin to check, or blank for all of them
+        required: false
+name: Update Dependency Pins
+concurrency:
+  group: update-pins
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  discover:
+    name: Compare the pins against upstream
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      behind: ${{ steps.report.outputs.behind }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Ask update-pins.sh where every pin stands
+        id: report
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          report=$(ci-scripts/update-pins.sh --json --pin "${{ inputs.pin }}")
+          behind=$(jq -c 'map(select(.status == "behind"))' <<<"$report")
+          echo "behind=$behind" >>"$GITHUB_OUTPUT"
+          jq -r '(.[0] | keys_unsorted) as $cols
+            | ($cols | map((.[0:1] | ascii_upcase) + .[1:])),
+              ($cols | map("---")),
+              (.[] | [.[$cols[]]])
+            | "| " + join(" | ") + " |"' <<<"$report" >>"$GITHUB_STEP_SUMMARY"
+  propose:
+    needs: discover
+    if: needs.discover.outputs.behind != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.discover.outputs.behind) }}
+      max-parallel: 1 # gh applies a rate limit to creating pull requests
+    name: Propose ${{ matrix.pin }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write # to push the branch
+      pull-requests: write # to open the pull request
+      actions: write # to start CI on the branch
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TITLE: >-
+        build: Update the ${{ matrix.pin }} pin to ${{ matrix.latest }}
+      NOTE: |-
+        Rewritten by ci-scripts/update-pins.sh, which also recorded the
+        SHA-256 of the archive the new tag serves.
+      # One branch per pin, reused, so there is a single pull request
+      # per dependency rather than one per version.
+      BRANCH: chore/update-${{ matrix.pin }}-pin
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # for the branch the guard below looks up
+      - name: Check whether we are allowed to update the branch
+        id: check
+        run: |
+          ref=refs/remotes/origin/$BRANCH
+          if git rev-parse --verify --quiet "$ref" >/dev/null; then
+            ahead=$(git rev-list --count "HEAD..$ref")
+          fi
+          if ((${ahead-0} > 1)); then
+            echo "::notice::$BRANCH carries $ahead commits; squash it back"
+            echo "allowed=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >>"$GITHUB_OUTPUT"
+          fi
+      - name: Rewrite the pin and record its checksum
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ci-scripts/update-pins.sh --apply --pin "${{ matrix.pin }}"
+      - name: Commit to the branch
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          BOT_NAME: github-actions[bot]
+          BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
+            commit -s -a -m "$TITLE" -m "$NOTE"
+          git push --force origin "HEAD:$BRANCH"
+      - name: Open or update the pull request
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          CHANGES: ${{ matrix.changes }}
+          NOTES: ${{ matrix.notes }}
+        run: |
+          body=$NOTE
+          [[ -z $NOTES ]] || body+=$'\n\n'"Release notes: $NOTES"
+          [[ -z $CHANGES ]] || body+=$'\n'"Changes: $CHANGES"
+          existing=$(gh pr list -s all -H "$BRANCH" --json id | jq length)
+          if ((existing > 0)); then
+            action=edit
+          else
+            action=create
+          fi
+          git switch "$BRANCH"
+          gh pr $action -t "$TITLE" -b "$body"
+      # A push by GITHUB_TOKEN raises no events, so nothing would run
+      # on the branch otherwise. workflow_dispatch is the exception.
+      - name: Start CI on the branch
+        if: steps.check.outputs.allowed == 'true'
+        run: |
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh workflow run lint.yml --ref "$BRANCH"
