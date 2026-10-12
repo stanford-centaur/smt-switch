@@ -24,7 +24,9 @@ upstream release. Writes nothing unless asked to.
 -l, --list      report where every pin stands, instead of the edits
 -j, --json      the same report as JSON, for the workflow
 -a, --apply     make the edits
--p, --pin NAME  restrict to one pin; may be repeated
+-p, --pin NAME  restrict to the named pin; may be repeated, blank ignored
+
+More than one of --list, --json and --apply can be passed, the last one wins.
 EOF
   exit 0
 }
@@ -338,10 +340,12 @@ while (($# > 0)); do
       if (($# < 2)); then
         die "$1 needs the name of a pin"
       fi
-      if [[ ! -v known[$2] ]]; then
-        die "there is no pin named '$2'"
+      if [[ -n $2 ]]; then
+        if [[ ! -v known[$2] ]]; then
+          die "there is no pin named '$2'"
+        fi
+        selected+=("$2")
       fi
-      selected+=("$2")
       shift
       ;;
     *) die "unexpected argument: $1" ;;
