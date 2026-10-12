@@ -31,9 +31,8 @@ ci-scripts/update-pins.sh --apply            # every pin
 ci-scripts/update-pins.sh --apply --pin z3   # just one
 ```
 
-`--list` reports where each pin stands rather than showing the edits, and
-`--json` gives that report in the form the workflow reads. Set `GITHUB_TOKEN` to
-lift the API rate limit from 60 requests an hour to 5000.
+`--list` reports where each pin stands rather than showing the edits. Set
+`GITHUB_TOKEN` to lift the API rate limit from 60 requests an hour to 5000.
 
 The script uses the latest *release* instead of the latest tag, because several
 of these projects carry tags that are not releases. It leaves a pin naming a
