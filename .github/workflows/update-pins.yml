@@ -46,9 +46,8 @@ jobs:
     name: Bump ${{ matrix.pin }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # to push the branch
+      contents: read
       pull-requests: write # to open the pull request
-      actions: write # to start CI on the branch
     env:
       GH_TOKEN: ${{ github.token }}
       TITLE: >-
@@ -63,6 +62,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # for the branch the guard below looks up
+          token: ${{ secrets.PINS_TOKEN }} # needed to trigger CI checks on push
       - name: Check whether we are allowed to update the branch
         id: check
         run: |
@@ -107,10 +107,3 @@ jobs:
           fi
           git switch "$BRANCH"
           gh pr $action -t "$TITLE" -b "$body"
-      # A push by GITHUB_TOKEN raises no events, so nothing would run
-      # on the branch otherwise. workflow_dispatch is the exception.
-      - name: Start CI on the branch
-        if: steps.check.outputs.allowed == 'true'
-        run: |
-          gh workflow run ci.yml --ref "$BRANCH"
-          gh workflow run lint.yml --ref "$BRANCH"
