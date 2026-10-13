@@ -31,6 +31,7 @@
 #include "bitwuzla_term.h"
 #include "result.h"
 #include "smt.h"
+#include "solver_utils.h"
 #include "utils.h"
 
 namespace smt {
@@ -273,8 +274,32 @@ Term BzlaSolver::get_value(const Term & t) const
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
                                               Term & out_const_base) const
 {
-  throw NotImplementedException(
-      "Bitwuzla backend doesn't support get_array_values yet");
+  out_const_base = nullptr;
+  std::shared_ptr<BzlaTerm> barr = std::static_pointer_cast<BzlaTerm>(arr);
+  // Bitwuzla gives an array model as a chain of stores over a constant
+  // base, outermost store first.
+  bitwuzla::Term bval = get_bitwuzla()->get_value(barr->term);
+
+  std::vector<std::pair<Term, Term>> stores;
+  while (bval.kind() == bitwuzla::Kind::ARRAY_STORE)
+  {
+    std::vector<bitwuzla::Term> children = bval.children();
+    stores.push_back({ std::make_shared<BzlaTerm>(children[1]),
+                       std::make_shared<BzlaTerm>(children[2]) });
+    bval = children[0];
+  }
+
+  if (bval.kind() != bitwuzla::Kind::CONST_ARRAY)
+  {
+    // Nothing else is expected under the stores. Say which head turned up
+    // rather than return a map that quietly omits it.
+    throw NotImplementedException("Bitwuzla gave an array model headed by "
+                                  + bval.str()
+                                  + ", which has no constant base");
+  }
+  out_const_base = std::make_shared<BzlaTerm>(bval.children()[0]);
+
+  return store_chain_values(stores);
 }
 
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)

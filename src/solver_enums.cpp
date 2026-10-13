@@ -42,6 +42,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
         // neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
         { BZLA,
           { TERMITER,
+            ARRAY_MODELS,
             CONSTARR,
             FULL_TRANSFER,
             UNSAT_CORE,
