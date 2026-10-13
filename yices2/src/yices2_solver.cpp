@@ -63,7 +63,6 @@ typedef term_t (*yices_const_variadic_fun)(uint32_t, const term_t[]);
 // TODO's:
 // Pretty sure not implemented in Yices.
 // Good candidates for extension.
-//  To_Real,
 //  BVComp,
 //  BV_To_Nat,
 
@@ -877,6 +876,16 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
   else if (op.prim_op == Int_To_BV)
   {
     res = yices_bvconst_int64(yterm->term, op.idx0);
+  }
+  else if (op.prim_op == To_Real)
+  {
+    if (!yices_term_is_arithmetic(yterm->term))
+    {
+      throw IncorrectUsageException(
+          "Can't apply to_real to a non-arithmetic term");
+    }
+    // Int is a subtype of Real in Yices2, which has no conversion
+    res = yterm->term;
   }
   else if (!op.num_idx)
   {
