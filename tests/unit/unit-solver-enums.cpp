@@ -91,4 +91,19 @@ TEST(UnitSolverEnumNames, EverySolverAttributePrints)
   }
 }
 
+TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
+{
+  // a backend that breaks this has to say so here, rather than let the
+  // attributes drift apart
+  for (SolverEnum se : available_non_generic_solver_enums())
+  {
+    EXPECT_EQ(solver_has_attribute(se, FULL_TRANSFER),
+              solver_has_attribute(se, TERMITER)
+                  && !solver_has_attribute(se, BOOL_BV1_ALIASING))
+        << to_string(se);
+  }
+  // TermTranslator refuses the generic solver whatever it iterates
+  EXPECT_FALSE(solver_has_attribute(GENERIC_SOLVER, FULL_TRANSFER));
+}
+
 }  // namespace smt_tests

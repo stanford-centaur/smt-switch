@@ -63,7 +63,8 @@ enum SolverAttribute
   ARRAY_MODELS,
   // supports constant arrays
   CONSTARR,
-  // supports transferring to different solvers with TermTranslator
+  // terms can be traversed with iteration, and a term's Op and children
+  // can be used to rebuild an equivalent term in another solver
   FULL_TRANSFER,
   // supports functions with boolean arguments
   // and arrays with boolean elements
