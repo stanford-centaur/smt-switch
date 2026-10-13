@@ -110,6 +110,9 @@ class TermTranslator
 
   /** translates an smtlib representation of a const rational "(/ a b)"
    *  into a infix-style representation of a const rational "a / b"
+   *  A numerator or denominator written as an integral decimal ("1.0")
+   *  loses its point. A string that is not an s-expression, such as an
+   *  infix "a/b", is returned unchanged.
    * @param smtlib is the smtlib representation
    * @return the infix-style representation
    */

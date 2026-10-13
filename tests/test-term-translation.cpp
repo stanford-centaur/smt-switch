@@ -72,6 +72,26 @@ class SelfTranslationIntTests
   Term x, y, z;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationRealTests);
+class SelfTranslationRealTests
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("produce-models", "true");
+    realsort = s->make_sort(REAL);
+
+    x = s->make_symbol("x", realsort);
+    y = s->make_symbol("y", realsort);
+  }
+  SmtSolver s;
+  Sort realsort;
+  Term x, y;
+};
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TranslationTests);
 class TranslationTests : public testing::Test,
                          public testing::WithParamInterface<
@@ -231,6 +251,46 @@ TEST_P(SelfTranslationIntTests, Abs)
   Term abs_x_2 = s2->make_term(Abs, s2->get_symbol("x"));
   s2->assert_formula(s2->make_term(Distinct, abs_x_transfer, abs_x_2));
   ASSERT_TRUE(s2->check_sat().is_unsat());
+}
+
+TEST_P(SelfTranslationRealTests, Fractions)
+{
+  SmtSolver s2 = create_solver(GetParam());
+  TermTranslator tt(s2);
+
+  Term half = s->make_term("1/2", realsort);
+  Term neg_half = s->make_term("-1/2", realsort);
+  Term constraint =
+      s->make_term(And,
+                   s->make_term(Equal, s->make_term(Plus, x, y), half),
+                   s->make_term(Lt, x, neg_half));
+
+  Term half_transfer = tt.transfer_term(half);
+  Term neg_half_transfer = tt.transfer_term(neg_half);
+  Term constraint_transfer = tt.transfer_term(constraint);
+  EXPECT_EQ(half_transfer->get_sort()->get_sort_kind(), REAL);
+  EXPECT_EQ(neg_half_transfer->get_sort()->get_sort_kind(), REAL);
+
+  Sort realsort2 = s2->make_sort(REAL);
+  Term half_2 = s2->make_term("1/2", realsort2);
+  Term neg_half_2 = s2->make_term("-1/2", realsort2);
+  Term constraint_2 = s2->make_term(
+      And,
+      s2->make_term(
+          Equal,
+          s2->make_term(Plus, s2->get_symbol("x"), s2->get_symbol("y")),
+          half_2),
+      s2->make_term(Lt, s2->get_symbol("x"), neg_half_2));
+
+  s2->assert_formula(s2->make_term(
+      Or,
+      s2->make_term(Distinct, half_transfer, half_2),
+      s2->make_term(Distinct, neg_half_transfer, neg_half_2),
+      s2->make_term(Distinct, constraint_transfer, constraint_2)));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+
+  s->assert_formula(constraint);
+  EXPECT_TRUE(s->check_sat().is_sat());
 }
 
 TEST_P(TranslationTests, And)
@@ -472,6 +532,13 @@ INSTANTIATE_TEST_SUITE_P(
     SelfTranslationIntTests,
     testing::ValuesIn(filter_non_generic_solver_configurations(
         { FULL_TRANSFER, THEORY_INT })));
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    SelfTranslationRealTests,
+    testing::ValuesIn(filter_non_generic_solver_configurations(
+        { FULL_TRANSFER, THEORY_REAL })),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTranslationTests,
