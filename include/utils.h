@@ -101,7 +101,9 @@ bool is_lit(const Term & l, const Sort & boolsort);
 void cnf_to_dimacs(Term cnf, std::ostringstream & y);
 
 // Converts any boolean formula to cnf, formula is the formula to be converted
-// to a cnf
+// to a cnf. Only the connectives not, and, or, xor, => and Boolean = are
+// encoded; any other subterm, such as an ite or (bvult x y), is kept whole as
+// an atom
 Term to_cnf(Term formula, SmtSolver s);
 
 // Returns true if the formula is in cnf form, else false
