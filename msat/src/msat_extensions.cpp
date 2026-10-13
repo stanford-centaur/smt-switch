@@ -95,22 +95,23 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
     throw IncorrectUsageException(msg + msat_to_smtlib2_term(e, i));
   }
 
-  if (!msat_type_equals(ttype, eltype))
+  // msat_make_term_ite takes no Bool branches
+  if (msat_is_bool_type(e, ttype) && msat_is_bool_type(e, eltype))
+  {
+    return msat_make_or(
+        e, msat_make_and(e, i, t), msat_make_and(e, msat_make_not(e, i), el));
+  }
+
+  // MathSAT makes an integer-valued Real an Int, and accepts an Int branch
+  // next to a Real one, so it is left to judge which branches match
+  msat_term res = msat_make_term_ite(e, i, t, el);
+  if (MSAT_ERROR_TERM(res))
   {
     string msg("Expecting matching branch terms for ITE but got\n\t");
     throw IncorrectUsageException(msg + msat_type_repr(ttype) + " "
                                   + msat_type_repr(eltype));
   }
-
-  if (msat_is_bool_type(e, ttype))
-  {
-    return msat_make_or(
-        e, msat_make_and(e, i, t), msat_make_and(e, msat_make_not(e, i), el));
-  }
-  else
-  {
-    return msat_make_term_ite(e, i, t, el);
-  }
+  return res;
 }
 
 msat_term ext_msat_make_distinct(msat_env e, msat_term t0, msat_term t1)

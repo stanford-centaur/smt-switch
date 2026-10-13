@@ -132,6 +132,35 @@ TEST_P(UnitTermArithTests, SpacedFractionString)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
+TEST_P(UnitTermArithTests, IteOverIntegerValuedReal)
+{
+  // MathSAT and Yices2 make 0.0 an Int and 1/10 a Real
+  s->set_opt("incremental", "true");
+  Term b = s->make_symbol("b", boolsort);
+  Term x = s->make_symbol("x", realsort);
+  Term zero = s->make_term("0.0", realsort);
+  Term tenth = s->make_term("1/10", realsort);
+  Term not_b = s->make_term(Not, b);
+  for (const Term & ite : { s->make_term(Ite, b, zero, tenth),
+                            s->make_term(Ite, not_b, tenth, zero) })
+  {
+    SCOPED_TRACE(ite->to_string());
+    EXPECT_EQ(ite->get_sort(), realsort);
+    s->push();
+    s->assert_formula(s->make_term(Equal, x, ite));
+    s->assert_formula(b);
+    s->assert_formula(s->make_term(Gt, x, zero));
+    EXPECT_TRUE(s->check_sat().is_unsat());
+    s->pop();
+    s->push();
+    s->assert_formula(s->make_term(Equal, x, ite));
+    s->assert_formula(not_b);
+    s->assert_formula(s->make_term(Lt, x, tenth));
+    EXPECT_TRUE(s->check_sat().is_unsat());
+    s->pop();
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
                          UnitTermTests,
                          testing::ValuesIn(available_solver_configurations()));
