@@ -69,6 +69,11 @@ TEST_P(UnitTermTests, FunOp)
   ASSERT_TRUE(x->is_symbolic_const());
   ASSERT_TRUE(f->is_symbol());
   ASSERT_FALSE(f->is_symbolic_const());
+
+  EXPECT_EQ(fx->get_op(), Apply);
+  ASSERT_NE(fx->begin(), fx->end());
+  EXPECT_EQ(*fx->begin(), f);
+  EXPECT_EQ(fx->get_sort(), bvsort);
 }
 
 TEST_P(UnitTermTests, Array)
