@@ -589,7 +589,15 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     Term ifbranch = terms[1];
     Term elsebranch = terms[2];
 
-    if (ifbranch->get_sort() != elsebranch->get_sort())
+    SortKind ifsk = ifbranch->get_sort()->get_sort_kind();
+    SortKind elsesk = elsebranch->get_sort()->get_sort_kind();
+    if (ifsk == INT && elsesk == REAL)
+    {
+      // MathSAT and Yices2 make an integer-valued Real an Int, so an Ite
+      // over Reals can have one branch of each; widen rather than truncate
+      ifbranch = cast_term(ifbranch, elsebranch->get_sort());
+    }
+    else if (ifbranch->get_sort() != elsebranch->get_sort())
     {
       // arbitrarily deciding to cast to the ifbranch sort
       elsebranch = cast_term(elsebranch, ifbranch->get_sort());
@@ -736,6 +744,10 @@ Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
       throw SmtException("Cannot interpret " + term->to_string() + " as "
                          + sort->to_string());
     }
+  }
+  else if (sk == REAL && cur_sk == INT)
+  {
+    return solver->make_term(To_Real, term);
   }
   else if (sk == ARRAY)
   {
