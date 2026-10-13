@@ -1,0 +1,3 @@
+# Keep out of the archives generated for a tag what only CI or git reads.
+.git* export-ignore
+/ci-scripts export-ignore
