@@ -35,6 +35,7 @@ class UnitTermTests : public ::testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
+    s->set_opt("produce-models", "true");
 
     boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 4);
@@ -75,6 +76,54 @@ TEST_P(UnitTermTests, Array)
   Term arr = s->make_symbol("arr", arrsort);
   ASSERT_TRUE(arr->is_symbol());
   ASSERT_TRUE(arr->is_symbolic_const());
+}
+
+TEST_P(UnitTermTests, TermContainers)
+{
+  const size_t num_terms = 20;
+  Sort bvsort8 = s->make_sort(BV, 8);
+
+  UnorderedTermSet uts;
+  UnorderedTermMap utm;
+  TermVec v;
+  v.reserve(num_terms);
+  for (size_t i = 0; i < num_terms; ++i)
+  {
+    Term x = s->make_symbol("x" + to_string(i), bvsort8);
+    Term y = s->make_symbol("y" + to_string(i), bvsort8);
+    v.push_back(x);
+    uts.insert(x);
+    utm[x] = y;
+  }
+  EXPECT_EQ(uts.size(), num_terms);
+  EXPECT_EQ(utm.size(), num_terms);
+
+  Term one = s->make_term(1, bvsort8);
+  for (size_t i = 1; i < num_terms; ++i)
+  {
+    s->assert_formula(
+        s->make_term(Equal, v[i], s->make_term(BVAdd, v[i - 1], one)));
+  }
+
+  Term zero = s->make_term(0, bvsort8);
+  EXPECT_TRUE(zero->is_value());
+  EXPECT_FALSE(v[0]->is_value());
+  EXPECT_TRUE(v[0]->is_symbolic_const());
+  s->assert_formula(s->make_term(Equal, v[0], zero));
+
+  for (const Term & x : uts)
+  {
+    s->assert_formula(s->make_term(Equal, x, utm.at(x)));
+  }
+
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  // v[0] = 0 and each v[i] = v[i-1] + 1, so v[i] = i; each y equals its x
+  for (size_t i = 0; i < num_terms; ++i)
+  {
+    EXPECT_EQ(s->get_value(v[i])->to_int(), i);
+    EXPECT_EQ(s->get_value(utm.at(v[i]))->to_int(), i);
+  }
 }
 
 TEST_P(UnitTermArithTests, NegatedValueIsDifferent)

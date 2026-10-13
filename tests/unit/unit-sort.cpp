@@ -82,6 +82,18 @@ TEST_P(UnitSortTests, SameSortDiffObj)
   EXPECT_NE(funsort, bvsort);
 }
 
+TEST_P(UnitSortTests, SortSet)
+{
+  UnorderedSortSet sset{
+    s->make_sort(BV, 1), s->make_sort(BV, 4), boolsort, s->make_sort(BV, 5)
+  };
+  // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
+  // solver keeps apart
+  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+                 && !GetParam().is_logging_solver;
+  EXPECT_EQ(sset.size(), aliased ? 3 : 4);
+}
+
 TEST_P(UnitSortTests, FunctionSymbolSort)
 {
   if (s->get_solver_enum() == BTOR)
