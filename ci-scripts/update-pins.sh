@@ -8,6 +8,9 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
+# shellcheck source=vars.sh
+source "$(dirname "$0")/vars.sh"
+
 root_dir=$(realpath "$(dirname "$0")/..")
 provision_dir=$root_dir/cmake/provision
 mathsat_script=$root_dir/ci-scripts/download-mathsat.sh
@@ -55,18 +58,6 @@ pin_file() {
   echo "$provision_dir/$pin/pin.cmake"
 }
 
-# Asks CMake for a pin's URL rather than recomputing it here, so that the
-# mirror and the archive layouts stay defined in one place.
-pin_url() {
-  local dep=$1 file
-  file=$(pin_file "$dep")
-  cmake -P /dev/stdin <<CMAKE
-include("$provision_dir/Helpers.cmake")
-include("$file")
-file(WRITE "/dev/stdout" "\${${dep^^}_URL}")
-CMAKE
-}
-
 # One keyword of a pin, or nothing when it does not carry that keyword.
 pin_value() {
   local pin=$1 keyword=$2 file
@@ -98,9 +89,8 @@ latest_release_tag() {
 
 # The newest release tarball in a GNU project's mirror directory.
 latest_gnu_version() {
-  local project=$1 url listing
-  url=$(pin_url "$project")
-  listing=$(curl --max-time 30 "${url%/*}/")
+  local project=$1 listing
+  listing=$(curl --max-time 30 "$GNU_MIRROR/$project/")
   sed -n "s|.*$project-\([^\"<> ]*\)\.tar\.gz.*|\1|p" <<<"$listing" |
     highest_version
 }

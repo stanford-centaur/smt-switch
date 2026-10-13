@@ -7,3 +7,8 @@ enable=all
 # everywhere. That is 182 rewrites across 17 files with no correctness benefit,
 # and the tree is consistent in not using braces unless they are needed.
 disable=SC2250
+
+# Follow sourced files: resolve their paths from the sourcing script's
+# directory, and open them even when they are not among the inputs.
+source-path=SCRIPTDIR
+external-sources=true

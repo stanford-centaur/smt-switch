@@ -10,17 +10,6 @@ name: CI
 concurrency:
   group: ci-${{ github.ref_name == 'main' && github.sha || github.ref }}
   cancel-in-progress: true
-env:
-  # Part of every solver's cache key. Bump it to rebuild every cached solver,
-  # e.g. after a runner image or system package update breaks a cached build.
-  DEPS_CACHE_EPOCH: 1
-  # The system packages that the Install packages steps install, part of
-  # every solver's cache key on that OS. macOS's own gperf is new enough
-  # for yices2, unlike its bison for the SMT-LIB reader.
-  APT_PACKAGES: gperf libgmp-dev libmpfr-dev
-  BREW_PACKAGES: autoconf bison
-  # Keeps brew install from updating Homebrew first
-  HOMEBREW_NO_AUTO_UPDATE: 1
 jobs:
   # Skips all checks in the merge queue if they already passed on the PR.
   queue:
@@ -111,6 +100,7 @@ jobs:
       - name: Install packages
         if: matrix.solver != 'mathsat'
         run: &install-packages |
+          source ci-scripts/vars.sh
           if [[ $RUNNER_OS == Linux ]]; then
             read -r -a packages <<<"$APT_PACKAGES"
             sudo apt-get update
