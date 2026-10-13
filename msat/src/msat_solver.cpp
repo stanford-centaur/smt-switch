@@ -261,18 +261,39 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   initialize_env();
   last_query_assuming = true;
   clear_assumption_clauses();
-  size_t num_assumps = assumptions.size();
-  vector<msat_term> m_assumps;
-  m_assumps.reserve(num_assumps);
 
-  msat_term ma;
-  for (size_t i = 0; i < num_assumps; ++i)
+  msat_term lbl;
+  assumption_map_.clear();
+  vector<msat_term> lbls;
+  lbls.reserve(assumptions.size());
+  for (const Term & a : assumptions)
   {
-    ma = static_pointer_cast<MsatTerm>(assumptions[i])->term;
-    m_assumps.push_back(ma);
+    msat_term ma = static_pointer_cast<MsatTerm>(a)->term;
+    lbl = label(ma);
+    // check that label is cached correctly
+    assert(msat_term_id(lbl) == msat_term_id(label(ma)));
+    msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
+    num_assump_clauses_++;
+    assumption_map_[msat_term_id(lbl)] = ma;
+    lbls.push_back(lbl);
   }
 
-  return check_sat_assuming_msatvec(m_assumps);
+  assert(lbls.size() == assumptions.size());
+
+  msat_result mres = msat_solve_with_assumptions(env, lbls.data(), lbls.size());
+
+  if (mres == MSAT_SAT)
+  {
+    return Result(SAT);
+  }
+  else if (mres == MSAT_UNSAT)
+  {
+    return Result(UNSAT);
+  }
+  else
+  {
+    return Result(UNKNOWN);
+  }
 }
 
 void MsatSolver::push(uint64_t num)
@@ -1115,42 +1136,6 @@ void MsatSolver::initialize_env() const
   {
     env = msat_create_env(cfg);
     env_uninitialized = false;
-  }
-}
-
-Result MsatSolver::check_sat_assuming_msatvec(
-    std::vector<msat_term> & m_assumps)
-{
-  msat_term lbl;
-  assumption_map_.clear();
-  std::vector<msat_term> lbls;
-  lbls.reserve(m_assumps.size());
-  for (const auto & ma : m_assumps)
-  {
-    lbl = label(ma);
-    // check that label is cached correctly
-    assert(msat_term_id(lbl) == msat_term_id(label(ma)));
-    msat_assert_formula(env, msat_make_or(env, msat_make_not(env, lbl), ma));
-    num_assump_clauses_++;
-    assumption_map_[msat_term_id(lbl)] = ma;
-    lbls.push_back(lbl);
-  }
-
-  assert(lbls.size() == m_assumps.size());
-
-  msat_result mres = msat_solve_with_assumptions(env, lbls.data(), lbls.size());
-
-  if (mres == MSAT_SAT)
-  {
-    return Result(SAT);
-  }
-  else if (mres == MSAT_UNSAT)
-  {
-    return Result(UNSAT);
-  }
-  else
-  {
-    return Result(UNKNOWN);
   }
 }
 

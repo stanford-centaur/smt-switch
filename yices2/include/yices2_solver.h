@@ -22,7 +22,6 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 #include "exceptions.h"
 #include "result.h"
@@ -155,38 +154,6 @@ class Yices2Solver : public AbsSmtSolver
   ///< associated with each solver instance. This is why we
   ///< can't rely on yices_get_term_by_name to see if name
   ///< has already been used.
-
-  // helper function
-  inline Result check_sat_assuming(const std::vector<term_t> & y_assumps)
-  {
-    timelimit_start();
-    smt_status_t res = yices_check_context_with_assumptions(
-        get_context(), NULL, y_assumps.size(), &y_assumps[0]);
-    bool tl_triggered = timelimit_end();
-
-    if (yices_error_code() != 0)
-    {
-      std::string msg(yices_error_string());
-      throw InternalSolverException(msg.c_str());
-    }
-
-    if (res == YICES_STATUS_SAT)
-    {
-      return Result(SAT);
-    }
-    else if (res == YICES_STATUS_UNSAT)
-    {
-      return Result(UNSAT);
-    }
-    else if (tl_triggered)
-    {
-      return Result(UNKNOWN, "Time limit reached.");
-    }
-    else
-    {
-      return Result(UNKNOWN);
-    }
-  }
 
   /** Helper function for managing time limits (if one is set)
    *  Registers a signal handler to use with alarm

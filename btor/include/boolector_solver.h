@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -136,21 +135,5 @@ class BoolectorSolver : public AbsSmtSolver
 
   /** Runs a query under the time limit, if one is set */
   Result solve();
-
-  // helper functions
-  template <class I>
-  inline Result check_sat_assuming(I it, const I & end)
-  {
-    std::shared_ptr<BoolectorTerm> bt;
-    while (it != end)
-    {
-      bt = std::static_pointer_cast<BoolectorTerm>(*it);
-      assert(boolector_get_width(bt->btor, bt->node) == 1);
-      boolector_assume(btor, bt->node);
-      ++it;
-    }
-
-    return solve();
-  }
 };
 }  // namespace smt

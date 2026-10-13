@@ -318,7 +318,15 @@ Result BoolectorSolver::check_sat() { return solve(); }
 
 Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  return check_sat_assuming(assumptions.begin(), assumptions.end());
+  for (const Term & a : assumptions)
+  {
+    std::shared_ptr<BoolectorTerm> bt =
+        std::static_pointer_cast<BoolectorTerm>(a);
+    assert(boolector_get_width(bt->btor, bt->node) == 1);
+    boolector_assume(btor, bt->node);
+  }
+
+  return solve();
 }
 
 Result BoolectorSolver::solve()

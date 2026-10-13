@@ -383,13 +383,30 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
   {
     std::vector<::cvc5::Term> cvc5assumps;
     cvc5assumps.reserve(assumptions.size());
-
-    std::shared_ptr<Cvc5Term> cterm;
-    for (auto a : assumptions)
+    for (const Term & a : assumptions)
     {
       cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
     }
-    return check_sat_assuming(cvc5assumps);
+
+    ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
+    if (r.isUnsat())
+    {
+      return Result(UNSAT);
+    }
+    else if (r.isSat())
+    {
+      return Result(SAT);
+    }
+    else if (r.isUnknown())
+    {
+      std::stringstream ss;
+      ss << r.getUnknownExplanation();
+      return Result(UNKNOWN, ss.str());
+    }
+    else
+    {
+      throw NotImplementedException("Unimplemented result type from cvc5");
+    }
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -1016,30 +1033,6 @@ Term Cvc5Solver::substitute(const Term term,
 }
 
 ::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return solver; }
-
-Result Cvc5Solver::check_sat_assuming(
-    const std::vector<cvc5::Term> & cvc5assumps)
-{
-  ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
-  if (r.isUnsat())
-  {
-    return Result(UNSAT);
-  }
-  else if (r.isSat())
-  {
-    return Result(SAT);
-  }
-  else if (r.isUnknown())
-  {
-    std::stringstream ss;
-    ss << r.getUnknownExplanation();
-    return Result(UNKNOWN, ss.str());
-  }
-  else
-  {
-    throw NotImplementedException("Unimplemented result type from cvc5");
-  }
-}
 
 /* end Cvc5Solver implementation */
 

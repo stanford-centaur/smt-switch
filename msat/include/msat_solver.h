@@ -163,8 +163,6 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
-
-  Result check_sat_assuming_msatvec(std::vector<msat_term> & m_assumps);
 };
 
 // Interpolating Solver
