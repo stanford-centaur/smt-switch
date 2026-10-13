@@ -79,6 +79,14 @@ TEST_P(LoggingTests, PrintsApplicationAsSmtlib)
   EXPECT_EQ(s->make_term(Apply, f, x)->to_string(), "(f x)");
 }
 
+TEST_P(LoggingTests, PrintsIndexedOpAsSmtlib)
+{
+  EXPECT_EQ(s->make_term(Op(Rotate_Right, 2), x)->to_string(),
+            "((_ rotate_right 2) x)");
+  EXPECT_EQ(s->make_term(Op(Rotate_Left, 2), x)->to_string(),
+            "((_ rotate_left 2) x)");
+}
+
 TEST_P(LoggingTests, HashConsing)
 {
   Term xp1 = s->make_term(BVAdd, x, one);
