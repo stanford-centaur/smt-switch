@@ -5,10 +5,10 @@
 # shellcheck disable=SC2034 # the checksums are read through a built name
 set -euo pipefail
 
-version=5.6.18
-checksum_linux_aarch64=d7072c9ddeacf3a5cf461876b8d4f544433ae8b171b0eb360c69bfcccc277056
-checksum_linux_x86_64=53f9291df410b6899ab12f24c60113a53d7d5f5dcb6e31ba904f08f15c8327f9
-checksum_macos=ea98b3cb0de7a6b747f72f468eb4844c9c5d597943a5e73462ac961f73989325
+version=5.6.19
+checksum_linux_aarch64=0bcae6ffd247736db17a7856a1fc6f3a76774a32baf86ebd33f0e778256a9af5
+checksum_linux_x86_64=c56f755851de017104e8fc7aac6677d90bf310448a750140ee9f2630a7c4f4c5
+checksum_macos=d71f93afe13d94bcfc58bedcc4fc6ff4697414df1ba951b09deb66baf1de62c7
 
 if (($# != 1)); then
   echo "usage: $0 <dir>" >&2
