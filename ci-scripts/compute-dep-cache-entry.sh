@@ -12,6 +12,11 @@
 set -euo pipefail
 # Fixes the order the recipe directory's glob expands in
 export LC_ALL=C
+# shellcheck source=vars.sh
+source "$(dirname "$0")/vars.sh"
+# Bumped by hand to rebuild every cached dependency, e.g. after a runner
+# image or system package update breaks a cached build.
+epoch=1
 
 if (($# != 2)); then
   echo "usage: $0 <runner-label> <prefix>" >&2
@@ -19,15 +24,13 @@ if (($# != 2)); then
 fi
 label=$1
 prefix=$2
-# Bumped by hand to rebuild every cached dependency
-epoch=${DEPS_CACHE_EPOCH:?must be set, as it is by the workflow}
 
 cd "$(dirname "$0")/.."
 
 # The installed packages decide what a dependency builds or links against.
 case $label in
-  ubuntu-*) packages=${APT_PACKAGES:?must be set, as it is by the workflow} ;;
-  macos-*) packages=${BREW_PACKAGES:?must be set, as it is by the workflow} ;;
+  ubuntu-*) packages=$APT_PACKAGES ;;
+  macos-*) packages=$BREW_PACKAGES ;;
   *) echo "error: no package list for runner label '$label'" >&2 && exit 2 ;;
 esac
 
