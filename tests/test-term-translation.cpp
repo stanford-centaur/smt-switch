@@ -175,6 +175,18 @@ class IntTranslationTests : public TranslationTests
   Term i, j, k;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(RealTranslationTests);
+class RealTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    realsort = s1->make_sort(REAL);
+  }
+  Sort realsort;
+};
+
 TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
@@ -499,6 +511,40 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
+{
+  // MathSAT and Yices2 make 0.0, 1.0 and an Ite over them Ints, and 1/10 a
+  // Real, so these Ites have one branch of each
+  auto make_ites = [](const SmtSolver & solver,
+                      const Term & c,
+                      const Term & d) {
+    Sort real = solver->make_sort(REAL);
+    Term zero = solver->make_term("0.0", real);
+    Term one = solver->make_term("1.0", real);
+    Term tenth = solver->make_term("1/10", real);
+    return TermVec{ solver->make_term(Ite, c, zero, tenth),
+                    solver->make_term(Ite, c, tenth, zero),
+                    solver->make_term(
+                        Ite, c, solver->make_term(Ite, d, zero, one), tenth) };
+  };
+  TermVec ites = make_ites(s1, a, b);
+  Sort boolsort2 = s2->make_sort(BOOL);
+  TermVec expected = make_ites(
+      s2, s2->make_symbol("a", boolsort2), s2->make_symbol("b", boolsort2));
+
+  TermTranslator to_s2(s2);
+  TermVec distinct;
+  for (size_t n = 0; n < ites.size(); ++n)
+  {
+    SCOPED_TRACE(ites[n]->to_string());
+    Term ite2 = to_s2.transfer_term(ites[n]);
+    EXPECT_EQ(ite2->get_sort()->get_sort_kind(), REAL);
+    distinct.push_back(s2->make_term(Distinct, ite2, expected[n]));
+  }
+  s2->assert_formula(s2->make_term(Or, distinct));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
 TEST_P(StringTranslationTests, Strings)
 {
   Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
@@ -571,6 +617,18 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, THEORY_INT })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_INT }))));
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    RealTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_REAL })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_REAL }))),
+    [](const auto & info) {
+      return config_name(get<0>(info.param)) + "_"
+             + config_name(get<1>(info.param));
+    });
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedStringTranslationTests,
