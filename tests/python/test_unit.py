@@ -132,6 +132,13 @@ def test_check_sat_assuming(create_solver):
     r = solver.check_sat_assuming([b])
     assert r.is_unsat()
 
+    r = solver.check_sat_assuming((b,))
+    assert r.is_unsat()
+
+    # a Term iterates over its children, so this would assume b
+    with pytest.raises(TypeError):
+        solver.check_sat_assuming(solver.make_term(ss.primops.Not, b))
+
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_multi_arg_fun(create_solver):
