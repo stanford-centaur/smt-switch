@@ -67,6 +67,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             TIMELIMIT } },
         { GENERIC_SOLVER,
           { TERMITER,
+            ARRAY_MODELS,
             THEORY_INT,
             THEORY_BV,
             THEORY_REAL,

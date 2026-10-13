@@ -189,6 +189,13 @@ class GenericSolver : public AbsSmtSolver
   // parse actual value from a get-value response
   std::string strip_value_from_result(std::string result) const;
 
+  /** translate one value from a get-value response into a term
+   * @param value the value as the binary wrote it
+   * @param sort the sort the value is read at
+   * @return the term the string denotes
+   */
+  Term value_from_string(const std::string & value, const Sort & sort) const;
+
   /** helper function for bv constant
    * abs_decimal is the decimal string of the desired bv value.
    * returns the stored bv value of width `width` whose value is

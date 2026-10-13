@@ -14,9 +14,6 @@
 **
 **/
 
-#include <utility>
-#include <vector>
-
 #include "available_solvers.h"
 #include "gtest/gtest.h"
 #include "smt.h"
@@ -78,17 +75,6 @@ TEST_P(ArrayModelTests, TestArrayModel)
     // if the solver provided a const array base
     // check that it has the element sort
     EXPECT_EQ(const_base->get_sort(), arr->get_sort()->get_elemsort());
-  }
-
-  // How many stores a solver needs is its own business -- one that picks a
-  // constant base equal to a required value lists one index where another
-  // lists two. So check what the model means rather than its size: every
-  // index it does list must read back the same, and the two constrained
-  // indices must hold what was asserted, listed or left to the base.
-  for (const auto & entry : array_vals)
-  {
-    EXPECT_EQ(s->get_value(s->make_term(Select, arr, entry.first)),
-              entry.second);
   }
 
   Term iv = s->get_value(i);

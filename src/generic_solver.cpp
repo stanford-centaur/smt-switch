@@ -55,7 +55,6 @@
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
 
@@ -1543,11 +1542,17 @@ Term GenericSolver::get_value(const Term & t) const
 
   std::string value = strip_value_from_result(result);
 
-  // translate the string representation of the result into a term
+  return value_from_string(value, sort);
+}
+
+Term GenericSolver::value_from_string(const std::string & value,
+                                      const Sort & sort) const
+{
+  const SortKind sk = sort->get_sort_kind();
   Term resulting_term;
   // for bit-vectors, we distinguish between the solver's way of representing
   // them. it can be either binary, hex, or decimal.
-  if (sort->get_sort_kind() == BV)
+  if (sk == BV)
   {
     if (value.substr(0, 2) == "#b")
     {
@@ -1577,7 +1582,7 @@ Term GenericSolver::get_value(const Term & t) const
       resulting_term = make_value(decimal, sort, 10);
     }
   }
-  else if (sort->get_sort_kind() == BOOL)
+  else if (sk == BOOL)
   {
     if (value != "true" && value != "false")
     {
@@ -1586,12 +1591,18 @@ Term GenericSolver::get_value(const Term & t) const
     bool b = (value == "true");
     resulting_term = make_value(b);
   }
-  else
+  else if (sk == INT || sk == REAL)
   {
     // the binary's answer, such as (- 5), is already SMT-LIB, unlike the
     // number strings make_value takes
     resulting_term =
         std::make_shared<GenericTerm>(sort, Op(), TermVec{}, value);
+  }
+  else
+  {
+    throw NotImplementedException(
+        "The generic solver cannot read back a value of sort kind "
+        + to_string(sk));
   }
   return resulting_term;
 }
@@ -1748,11 +1759,98 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
   return literals;
 }
 
+/**
+ * The top-level subexpressions of a parenthesized s-expression, so that
+ * "(store a #b01 #b10)" gives { "store", "a", "#b01", "#b10" }. Returns an
+ * empty vector for anything that is not one parenthesized expression.
+ */
+static std::vector<std::string> split_sexpr(const std::string & s)
+{
+  if (s.empty() || s.front() != '(' || sexpr_end(s, 0) != s.size())
+  {
+    return {};
+  }
+
+  std::vector<std::string> parts;
+  const std::size_t last = s.size() - 1;
+  std::size_t i = 1;
+  while (i < last)
+  {
+    if (is_white_space(s[i]))
+    {
+      i++;
+      continue;
+    }
+    // the closing parenthesis delimits the last subexpression, so every one
+    // of them ends inside `s`
+    const std::size_t end = sexpr_end(s, i);
+    if (end == std::string::npos || end <= i)
+    {
+      return {};
+    }
+    parts.push_back(s.substr(i, end - i));
+    i = end;
+  }
+  return parts;
+}
+
 UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
-  throw NotImplementedException(
-      "Generic solvers do not support get-value for arrays");
+  out_const_base = nullptr;
+
+  const Sort sort = arr->get_sort();
+  if (sort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException("Can't get the array values of "
+                                  + arr->to_string()
+                                  + ", which is not an array");
+  }
+
+  auto name_it = term_name_map->find(arr);
+  if (name_it == term_name_map->end())
+  {
+    throw IncorrectUsageException("Can't get the value of " + arr->to_string()
+                                  + ": it was not made by this solver");
+  }
+
+  std::string result =
+      run_command("(" + GET_VALUE_STR + " (" + name_it->second + "))", false);
+  check_no_error(result);
+  std::string value = strip_value_from_result(result);
+
+  // A binary writes an array value as a chain of stores over a base,
+  // outermost store first.
+  const Sort indexsort = sort->get_indexsort();
+  const Sort elemsort = sort->get_elemsort();
+  std::vector<std::pair<Term, Term>> stores;
+  std::vector<std::string> parts = split_sexpr(value);
+  while (parts.size() == 4 && parts[0] == "store")
+  {
+    // store each term, so that a caller can read the array at an index this
+    // returns: a term the binary has no name for cannot be printed to it
+    stores.push_back({ store_term(value_from_string(parts[2], indexsort)),
+                       store_term(value_from_string(parts[3], elemsort)) });
+    value = parts[1];
+    parts = split_sexpr(value);
+  }
+
+  // Under the stores stands ((as const <sort>) <base>) where the binary
+  // gives a constant base.
+  const std::vector<std::string> head =
+      parts.size() == 2 ? split_sexpr(parts[0]) : std::vector<std::string>();
+  if (head.size() != 3 || head[0] != "as" || head[1] != "const")
+  {
+    // Say which head turned up rather than return a map that quietly omits
+    // whatever it holds.
+    throw NotImplementedException(
+        "The generic solver's binary gave an array "
+        "model headed by "
+        + value + ", which has no constant base");
+  }
+  out_const_base = store_term(value_from_string(parts[1], elemsort));
+
+  return store_chain_values(stores);
 }
 
 void GenericSolver::reset()
