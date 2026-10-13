@@ -476,6 +476,133 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE(st == expected);
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToCnf);
+class ToCnf : public ::testing::Test,
+              public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("incremental", "true");
+    boolsort = s->make_sort(BOOL);
+    bvsort = s->make_sort(BV, 4);
+    p = s->make_symbol("p", boolsort);
+    q = s->make_symbol("q", boolsort);
+    r = s->make_symbol("r", boolsort);
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+  }
+
+  // checks formula and the assignment's literals, leaving no assertion
+  // behind; check_sat_assuming would do, but it hangs on Yices2
+  Result check_sat_with(const Term & formula, const TermVec & assignment = {})
+  {
+    s->push();
+    s->assert_formula(formula);
+    for (const Term & lit : assignment)
+    {
+      s->assert_formula(lit);
+    }
+    Result res = s->check_sat();
+    s->pop();
+    return res;
+  }
+
+  // Tseitin's fresh symbols are determined by the original ones, so the
+  // CNF must agree with the formula under every assignment to p, q and r
+  void expect_same_answer_per_assignment(const Term & formula, const Term & cnf)
+  {
+    for (int bits = 0; bits < 8; ++bits)
+    {
+      TermVec assignment;
+      for (int i = 0; i < 3; ++i)
+      {
+        Term v = TermVec{ p, q, r }[i];
+        assignment.push_back((bits >> i) & 1 ? v : s->make_term(Not, v));
+      }
+      EXPECT_EQ(check_sat_with(formula, assignment).is_sat(),
+                check_sat_with(cnf, assignment).is_sat())
+          << "formula: " << formula << "\ncnf: " << cnf
+          << "\nassignment: " << bits;
+    }
+  }
+
+  SmtSolver s;
+  Sort boolsort;
+  Sort bvsort;
+  Term p, q, r, x, y;
+};
+
+TEST_P(ToCnf, ConnectivesKeepEveryAssignment)
+{
+  Term formula =
+      s->make_term(And,
+                   { s->make_term(Or, p, q),
+                     s->make_term(Implies, q, s->make_term(Not, r)),
+                     s->make_term(Xor, p, r),
+                     s->make_term(Equal, p, s->make_term(Or, q, r)) });
+  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+}
+
+TEST_P(ToCnf, IteIsKeptAsAnAtom)
+{
+  Term formula = s->make_term(And,
+                              { s->make_term(Ite, p, q, r),
+                                s->make_term(Not, p),
+                                s->make_term(Not, r) });
+  Term cnf = to_cnf(formula, s);
+  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+  expect_same_answer_per_assignment(formula, cnf);
+}
+
+TEST_P(ToCnf, DistinctIsKeptAsAnAtom)
+{
+  Term formula = s->make_term(And,
+                              { s->make_term(Distinct, p, q),
+                                s->make_term(Not, p),
+                                s->make_term(Not, q) });
+  Term cnf = to_cnf(formula, s);
+  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+  expect_same_answer_per_assignment(formula, cnf);
+}
+
+TEST_P(ToCnf, BitVectorAtomsAreKept)
+{
+  Term formula = s->make_term(
+      And,
+      s->make_term(Or, s->make_term(BVUlt, x, y), s->make_term(Equal, x, y)),
+      s->make_term(BVUlt, y, x));
+  Term cnf = to_cnf(formula, s);
+  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+
+  Term sat_formula = s->make_term(Or,
+                                  s->make_term(BVUlt, x, y),
+                                  s->make_term(Not, s->make_term(Equal, x, y)));
+  Term sat_cnf = to_cnf(sat_formula, s);
+  EXPECT_TRUE(check_sat_with(sat_cnf).is_sat()) << sat_cnf;
+}
+
+TEST_P(ToCnf, TopLevelAtomIsReturned)
+{
+  Term atom = s->make_term(BVUlt, x, y);
+  Term cnf = to_cnf(atom, s);
+  EXPECT_TRUE(check_sat_with(cnf, { atom }).is_sat()) << cnf;
+  EXPECT_TRUE(check_sat_with(cnf, { s->make_term(Not, atom) }).is_unsat())
+      << cnf;
+  // a raw solver may store the atom as a connective, e.g. Yices2 builds
+  // (bvult x y) as (not (bvge x y)), so only a logging solver keeps it whole
+  if (GetParam().is_logging_solver)
+  {
+    EXPECT_EQ(cnf, atom);
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         ToCnf,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilTests,
     UnitUtilTests,
