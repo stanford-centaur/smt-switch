@@ -132,6 +132,16 @@ TEST_P(UnitTermArithTests, SpacedFractionString)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
+TEST_P(UnitTermArithTests, ToReal)
+{
+  Term i = s->make_symbol("i", intsort);
+  Term x = s->make_symbol("x", realsort);
+  s->assert_formula(s->make_term(Equal, x, s->make_term(To_Real, i)));
+  s->assert_formula(s->make_term(Equal, i, s->make_term(2, intsort)));
+  s->assert_formula(s->make_term(Distinct, x, s->make_term(2, realsort)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
 TEST_P(UnitTermArithTests, IteOverIntegerValuedReal)
 {
   // MathSAT and Yices2 make 0.0 an Int and 1/10 a Real
