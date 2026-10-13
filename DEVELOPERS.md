@@ -34,6 +34,12 @@ ci-scripts/update-pins.sh --apply --pin z3   # just one
 `--list` reports where each pin stands rather than showing the edits. Set
 `GITHUB_TOKEN` to lift the API rate limit from 60 requests an hour to 5000.
 
+The [Update Dependency Pins workflow](./.github/workflows/update-pins.yml) runs
+the script daily and opens a pull request for each pin that has moved. It pushes
+with a `PINS_TOKEN` secret, a fine-grained token with write access to contents,
+because a push authenticated with the workflow's own `GITHUB_TOKEN` raises no
+events, which would leave the pull request with no checks.
+
 The script uses the latest *release* instead of the latest tag, because several
 of these projects carry tags that are not releases. It leaves a pin naming a
 `COMMIT` rather than a `TAG` alone, on the grounds that a commit was chosen by
