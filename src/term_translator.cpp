@@ -356,7 +356,8 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   // ind -- index
   std::string op;
   std::string::size_type ind_of_up_start = smtlib.find_first_of("/");
-  if (ind_of_up_start == std::string::npos)
+  // not a fraction, or already infix, as Yices2 prints one ("a/b")
+  if (ind_of_up_start == std::string::npos || smtlib.front() != '(')
   {
     return smtlib;
   }
@@ -386,6 +387,18 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   ind_of_down_end -= 1;
   std::string new_down =
       smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start + 1);
+  // Z3 prints the numerator and denominator as integral decimals ("1.0"),
+  // which a fraction of numerals cannot have
+  auto drop_point_zeros = [](std::string & num) {
+    std::string::size_type point = num.find('.');
+    if (point != std::string::npos
+        && num.find_first_not_of('0', point + 1) == std::string::npos)
+    {
+      num.erase(point);
+    }
+  };
+  drop_point_zeros(new_up);
+  drop_point_zeros(new_down);
   std::string new_string = new_up + " " + op + " " + new_down;
   return new_string;
 }
