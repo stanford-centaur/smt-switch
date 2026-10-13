@@ -113,6 +113,20 @@ TEST_P(UnitTests, InputIterator)
   ASSERT_EQ(children[1], x);
 }
 
+TEST_P(UnitTests, ConstTermRangeFor)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  const Term fx = s->make_term(Apply, f, x);
+
+  TermVec children;
+  for (const Term & c : fx)
+  {
+    children.push_back(c);
+  }
+  EXPECT_EQ(children, TermVec(fx->begin(), fx->end()));
+}
+
 TEST_P(UnitTests, CopyIter)
 {
   Term x = s->make_symbol("x", bvsort);

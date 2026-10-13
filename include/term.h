@@ -202,8 +202,8 @@ using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
 
 // range-based iteration
-inline TermIter begin(Term & t) { return t->begin(); }
-inline TermIter end(Term & t) { return t->end(); }
+inline TermIter begin(const Term & t) { return t->begin(); }
+inline TermIter end(const Term & t) { return t->end(); }
 
 }  // namespace smt
 
