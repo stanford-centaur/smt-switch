@@ -30,7 +30,6 @@
 #include "generic_solver.h"
 #include "generic_term.h"
 #include "smt.h"
-#include "utils.h"
 
 using namespace smt;
 using namespace std;
@@ -222,6 +221,12 @@ bool has_attribute(GenericBinary b, SolverAttribute a)
   {
     return false;
   }
+  // The boolector binary answers get-value for a select, then dies of
+  // SIGSEGV on get-value for the array itself.
+  if (b == GenericBinary::Btor && a == ARRAY_MODELS)
+  {
+    return false;
+  }
   return solver_has_attribute(native_backend(b), a);
 }
 
@@ -346,6 +351,12 @@ class GenericSolverIntQuantifierTests : public GenericSolverTests
 // binaries with constant arrays
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverConstArrayTests);
 class GenericSolverConstArrayTests : public GenericSolverTests
+{
+};
+
+// binaries that answer get-value for an array
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverArrayModelTests);
+class GenericSolverArrayModelTests : public GenericSolverTests
 {
 };
 
@@ -682,6 +693,43 @@ TEST_P(GenericSolverConstArrayTests, ConstantArrays)
   gs->assert_formula(arreq);
   Result result = gs->check_sat();
   EXPECT_TRUE(result.is_sat());
+  gs->pop(1);
+}
+
+TEST_P(GenericSolverArrayModelTests, ArrayModels)
+{
+  gs->push(1);
+  Sort idxsort = gs->make_sort(BV, 4);
+  Sort elemsort = gs->make_sort(BV, 8);
+  Sort arrsort = gs->make_sort(ARRAY, idxsort, elemsort);
+  Term arr = gs->make_symbol("arr", arrsort);
+  Term one = gs->make_term(1, idxsort);
+  Term two = gs->make_term(2, idxsort);
+  Term eleven = gs->make_term(11, elemsort);
+  Term twelve = gs->make_term(12, elemsort);
+  gs->assert_formula(
+      gs->make_term(Equal, gs->make_term(Select, arr, one), eleven));
+  gs->assert_formula(
+      gs->make_term(Equal, gs->make_term(Select, arr, two), twelve));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+
+  Term const_base;
+  UnorderedTermMap array_vals = gs->get_array_values(arr, const_base);
+  if (const_base)
+  {
+    EXPECT_EQ(const_base->get_sort(), elemsort);
+  }
+
+  // How many stores a binary needs is its own business -- one that picks a
+  // constant base equal to a required value lists one index where another
+  // lists two -- so read each constrained index out of the entry the model
+  // listed, or the base standing in for every index it did not.
+  auto value_at = [&array_vals, &const_base](const Term & idx) {
+    auto entry = array_vals.find(idx);
+    return entry == array_vals.end() ? const_base : entry->second;
+  };
+  EXPECT_EQ(value_at(one), eleven);
+  EXPECT_EQ(value_at(two), twelve);
   gs->pop(1);
 }
 
@@ -1032,6 +1080,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntQuantifierTests,
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverConstArrayTests,
                          GenericSolverConstArrayTests,
                          testing::ValuesIn(params_with(CONSTARR)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         GenericSolverArrayModelTests,
+                         testing::ValuesIn(params_with(ARRAY_MODELS)),
                          param_name);
 
 TEST(GenericSolver, NonExistingBinary)
