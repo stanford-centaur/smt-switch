@@ -21,6 +21,8 @@
 #include <cstdint>
 #include <limits>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "exceptions.h"
 #include "ops.h"
@@ -120,6 +122,19 @@ bool is_arith_number(SortKind sk, const std::string & val)
     part = start == std::string::npos ? "" : part.substr(start);
   }
   return is_decimal_numeral(whole) && is_decimal_numeral(part);
+}
+
+UnorderedTermMap store_chain_values(
+    const std::vector<std::pair<Term, Term>> & stores)
+{
+  UnorderedTermMap assignments;
+  for (const auto & store : stores)
+  {
+    // insert keeps the assignment already in the map, so the outermost
+    // store, which comes first, is the one that stands
+    assignments.insert(store);
+  }
+  return assignments;
 }
 
 }  // namespace smt

@@ -17,6 +17,8 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "ops.h"
 #include "smt_defs.h"
@@ -61,5 +63,16 @@ std::uint32_t narrow_index(const Op & op, std::uint64_t idx);
  *  @return true iff val is such a number
  */
 bool is_arith_number(SortKind sk, const std::string & val);
+
+/** The index-value map that a chain of stores over a constant base stands
+ *  for, given the index and value each store along it writes. A backend
+ *  reads its model by peeling the outer store first, so that is the order
+ *  these come in, and since an outer store shadows an inner one at the same
+ *  index, an index written more than once keeps the outermost assignment.
+ *  @param stores the index and value each store writes, outermost first
+ *  @return the map from index to value
+ */
+UnorderedTermMap store_chain_values(
+    const std::vector<std::pair<Term, Term>> & stores);
 
 }  // namespace smt

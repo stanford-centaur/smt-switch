@@ -665,12 +665,11 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
   // outermost store first.
   expr zval = model.eval(zarr->term, true);
 
-  TermVec indices;
-  TermVec values;
+  std::vector<std::pair<Term, Term>> stores;
   while (zval.is_app() && zval.decl().decl_kind() == Z3_OP_STORE)
   {
-    indices.push_back(std::make_shared<Z3Term>(zval.arg(1), ctx));
-    values.push_back(std::make_shared<Z3Term>(zval.arg(2), ctx));
+    stores.push_back({ std::make_shared<Z3Term>(zval.arg(1), ctx),
+                       std::make_shared<Z3Term>(zval.arg(2), ctx) });
     zval = zval.arg(0);
   }
 
@@ -687,16 +686,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
                                   + ", which has no constant base");
   }
 
-  // An outer store shadows an inner one at the same index, so fill the map
-  // from the inside out and let the outer assignment win.
-  UnorderedTermMap assignments;
-  while (indices.size())
-  {
-    assignments[indices.back()] = values.back();
-    indices.pop_back();
-    values.pop_back();
-  }
-  return assignments;
+  return store_chain_values(stores);
 }
 
 void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)

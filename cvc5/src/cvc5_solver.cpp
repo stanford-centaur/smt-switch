@@ -460,23 +460,17 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
 {
   try
   {
-    UnorderedTermMap assignments;
     out_const_base = nullptr;
     cvc5::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
     // get the array value
     // cvc5 returns a sequence of stores
     carr = solver.getValue(carr);
 
-    TermVec indices;
-    TermVec values;
-    Term idx;
-    Term val;
+    std::vector<std::pair<Term, Term>> stores;
     while (carr.hasOp() && carr.getKind() == cvc5::Kind::STORE)
     {
-      idx = Term(new Cvc5Term(carr[1]));
-      val = Term(new Cvc5Term(carr[2]));
-      indices.push_back(idx);
-      values.push_back(val);
+      stores.push_back(
+          { Term(new Cvc5Term(carr[1])), Term(new Cvc5Term(carr[2])) });
       carr = carr[0];
     }
 
@@ -485,17 +479,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
       out_const_base = Term(new Cvc5Term(carr.getConstArrayBase()));
     }
 
-    // now populate the map in reverse order
-    assert(indices.size() == values.size());
-
-    while (indices.size())
-    {
-      assignments[indices.back()] = values.back();
-      indices.pop_back();
-      values.pop_back();
-    }
-
-    return assignments;
+    return store_chain_values(stores);
   }
   catch (cvc5::CVC5ApiException & e)
   {
