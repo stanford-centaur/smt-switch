@@ -78,27 +78,23 @@ static void close_fd(int & fd)
   fd = -1;
 }
 
-/** Length of the first complete response in `buf`, including any leading
- * whitespace, or std::string::npos if `buf` does not hold a whole one
- * yet. Exactness matters: over- or under-reading by a byte slips the
- * command and response streams out of step for good.
+/** The offset just past the s-expression that starts at `i` in `buf`, where
+ * `buf[i]` is not whitespace, or std::string::npos if `buf` holds no whole
+ * one from there on.
  *
- * A response is one s-expression: a bare atom (`sat`, `success`) or a
- * parenthesised list. Parentheses cannot simply be counted, since string
- * literals ("..."), quoted symbols (|...|) and comments (;...) may hold
- * unmatched ones -- an error message quoting a stray ')' back at us is
- * the obvious way to meet that.
+ * An s-expression is a bare atom (`sat`, `#b01`) or a parenthesised list.
+ * Parentheses cannot simply be counted, since string literals ("..."),
+ * quoted symbols (|...|) and comments (;...) may hold unmatched ones -- an
+ * error message quoting a stray ')' back at us is the obvious way to meet
+ * that.
  */
-static std::size_t response_length(const std::string & buf)
+static std::size_t sexpr_end(const std::string & buf, std::size_t i)
 {
-  std::size_t i = 0;
-  while (i < buf.size() && is_white_space(buf[i]))
+  if (buf[i] == '|')
   {
-    i++;
-  }
-  if (i == buf.size())
-  {
-    return std::string::npos;
+    // a quoted symbol, which may hold spaces and parentheses
+    i = buf.find('|', i + 1);
+    return i == std::string::npos ? std::string::npos : i + 1;
   }
 
   if (buf[i] != '(')
@@ -172,6 +168,25 @@ static std::size_t response_length(const std::string & buf)
     }
   }
   return std::string::npos;
+}
+
+/** Length of the first complete response in `buf`, including any leading
+ * whitespace, or std::string::npos if `buf` does not hold a whole one
+ * yet. Exactness matters: over- or under-reading by a byte slips the
+ * command and response streams out of step for good.
+ */
+static std::size_t response_length(const std::string & buf)
+{
+  std::size_t i = 0;
+  while (i < buf.size() && is_white_space(buf[i]))
+  {
+    i++;
+  }
+  if (i == buf.size())
+  {
+    return std::string::npos;
+  }
+  return sexpr_end(buf, i);
 }
 
 // from: https://stackoverflow.com/a/36000453/1364765
@@ -1119,7 +1134,16 @@ Term GenericSolver::store_term(Term term) const
     // a define-fun command. For them, we store
     // their actual definition.
     // In future instances, the entire definition will be used.
-    if (gterm->is_ground())
+    //
+    // A value needs no define-fun either, since its own SMT-LIB text names
+    // it. That matters beyond brevity: a definition would move the binary
+    // out of a query mode, taking with it the model a caller reading one
+    // out is in the middle of.
+    if (gterm->is_value())
+    {
+      name = gterm->to_string();
+    }
+    else if (gterm->is_ground())
     {
       name = get_name(gterm);
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
@@ -1589,22 +1613,16 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
     trim(inner);
   }
 
-  std::string::size_type end_of_name = 0;
-  if (!inner.empty() && inner[0] == '|')
+  // the term asked about, which get-value echoes back, is one
+  // s-expression: a symbol, quoted or not, or a term printed in full
+  if (inner.empty())
   {
-    end_of_name = inner.find('|', 1);
-    if (end_of_name == std::string::npos)
-    {
-      throw InternalSolverException(unexpected);
-    }
-    end_of_name++;
+    throw InternalSolverException(unexpected);
   }
-  else
+  std::string::size_type end_of_name = sexpr_end(inner, 0);
+  if (end_of_name == std::string::npos)
   {
-    while (end_of_name < inner.size() && !is_white_space(inner[end_of_name]))
-    {
-      end_of_name++;
-    }
+    throw InternalSolverException(unexpected);
   }
 
   std::string value = inner.substr(end_of_name);
