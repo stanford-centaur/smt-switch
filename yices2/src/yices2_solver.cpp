@@ -428,15 +428,38 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 {
   vector<term_t> y_assumps;
   y_assumps.reserve(assumptions.size());
-
-  shared_ptr<Yices2Term> ya;
-  for (auto a : assumptions)
+  for (const Term & a : assumptions)
   {
-    ya = static_pointer_cast<Yices2Term>(a);
-    y_assumps.push_back(ya->term);
+    y_assumps.push_back(static_pointer_cast<Yices2Term>(a)->term);
   }
 
-  return check_sat_assuming(y_assumps);
+  timelimit_start();
+  smt_status_t res = yices_check_context_with_assumptions(
+      get_context(), NULL, y_assumps.size(), &y_assumps[0]);
+  bool tl_triggered = timelimit_end();
+
+  if (yices_error_code() != 0)
+  {
+    std::string msg(yices_error_string());
+    throw InternalSolverException(msg.c_str());
+  }
+
+  if (res == YICES_STATUS_SAT)
+  {
+    return Result(SAT);
+  }
+  else if (res == YICES_STATUS_UNSAT)
+  {
+    return Result(UNSAT);
+  }
+  else if (tl_triggered)
+  {
+    return Result(UNKNOWN, "Time limit reached.");
+  }
+  else
+  {
+    return Result(UNKNOWN);
+  }
 }
 
 void Yices2Solver::push(uint64_t num)

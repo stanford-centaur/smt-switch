@@ -16,12 +16,10 @@
 
 #pragma once
 
-#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_term.h"
@@ -113,43 +111,6 @@ class BzlaSolver : public AbsSmtSolver
 
   std::unordered_map<std::string, Term> symbol_table;
   std::uint64_t context_level;
-
-  // helper functions
-  template <class T>
-  inline Result check_sat_assuming_internal(T container)
-  {
-    std::shared_ptr<BzlaTerm> bt;
-    std::vector<bitwuzla::Term> assumptions;
-    for (auto && t : container)
-    {
-      bt = std::static_pointer_cast<BzlaTerm>(t);
-      assumptions.push_back(bt->term);
-    }
-
-    bitwuzla::Result res;
-    try
-    {
-      res = get_bitwuzla()->check_sat(assumptions);
-    }
-    catch (std::exception & e)
-    {
-      throw InternalSolverException(e.what());
-    }
-
-    if (res == bitwuzla::Result::SAT)
-    {
-      return Result(SAT);
-    }
-    else if (res == bitwuzla::Result::UNSAT)
-    {
-      return Result(UNSAT);
-    }
-    else
-    {
-      assert(res == bitwuzla::Result::UNKNOWN);
-      return Result(UNKNOWN);
-    }
-  }
 };
 
 class BzlaInterpolatingSolver : public AbsSmtInterpolator

@@ -218,7 +218,36 @@ Result BzlaSolver::check_sat()
 
 Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  return check_sat_assuming_internal(assumptions);
+  std::vector<bitwuzla::Term> bzla_assumptions;
+  bzla_assumptions.reserve(assumptions.size());
+  for (const Term & a : assumptions)
+  {
+    bzla_assumptions.push_back(std::static_pointer_cast<BzlaTerm>(a)->term);
+  }
+
+  bitwuzla::Result res;
+  try
+  {
+    res = get_bitwuzla()->check_sat(bzla_assumptions);
+  }
+  catch (std::exception & e)
+  {
+    throw InternalSolverException(e.what());
+  }
+
+  if (res == bitwuzla::Result::SAT)
+  {
+    return Result(SAT);
+  }
+  else if (res == bitwuzla::Result::UNSAT)
+  {
+    return Result(UNSAT);
+  }
+  else
+  {
+    assert(res == bitwuzla::Result::UNKNOWN);
+    return Result(UNKNOWN);
+  }
 }
 
 void BzlaSolver::push(std::uint64_t num)
