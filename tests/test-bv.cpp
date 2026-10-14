@@ -69,6 +69,55 @@ TEST_P(BVTests, to_int)
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
 }
 
+TEST_P(BVTests, SortsTermsAndModels)
+{
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bvsort8);
+  Term y = s->make_symbol("y", bvsort8);
+  Term z = s->make_symbol("z", bvsort8);
+  EXPECT_NE(x, y);
+
+  Sort xsort = x->get_sort();
+  EXPECT_EQ(xsort, y->get_sort());
+
+  Sort arr_sort = s->make_sort(ARRAY, s->make_sort(BV, 4), bvsort8);
+  EXPECT_NE(xsort, arr_sort);
+  EXPECT_NE(xsort, arr_sort->get_indexsort());
+  EXPECT_EQ(xsort, arr_sort->get_elemsort());
+
+  Term xpy = s->make_term(BVAdd, x, y);
+  EXPECT_TRUE(x->is_symbolic_const());
+  EXPECT_FALSE(xpy->is_symbolic_const());
+
+  Term x_lower = s->make_term(Op(Extract, 3, 0), x);
+  Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);
+
+  Sort funsort = s->make_sort(FUNCTION, SortVec{ x_lower->get_sort(), xsort });
+  Term uf = s->make_symbol("f", funsort);
+  Term uf_app = s->make_term(Apply, uf, x_lower);
+
+  s->assert_formula(s->make_term(Equal, z, xpy));
+  s->assert_formula(s->make_term(BVUlt, x, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUlt, y, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(BVUgt, z, s->make_term("5", bvsort8)));
+  // redundant, since x < 4 fits in its lower four bits
+  s->assert_formula(s->make_term(Equal, x_ext, x));
+  s->assert_formula(s->make_term(Distinct, x, z));
+  s->assert_formula(s->make_term(BVUle, uf_app, s->make_term(3, bvsort8)));
+  s->assert_formula(
+      s->make_term(BVUge, uf_app, s->make_term("00000011", bvsort8, 2)));
+
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  // x, y < 4 and x + y > 5 leave only x = y = 3
+  EXPECT_EQ(s->get_value(x)->to_int(), 3);
+  EXPECT_EQ(s->get_value(y)->to_int(), 3);
+  EXPECT_EQ(s->get_value(z)->to_int(), 6);
+  EXPECT_EQ(s->get_value(x_ext)->to_int(), 3);
+  EXPECT_EQ(s->get_value(x_lower)->to_int(), 3);
+  EXPECT_EQ(s->get_value(uf_app)->to_int(), 3);
+}
+
 TEST_P(IndexedOpTests, RotateExtractRepeat)
 {
   Sort bvsort9 = s->make_sort(BV, 9);
