@@ -42,12 +42,6 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver();
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
-  ~BoolectorSolver()
-  {
-    // need to destruct all stored terms in the symbol_table
-    symbol_table.clear();
-    boolector_delete(btor);
-  };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -108,10 +102,12 @@ class BoolectorSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Boolector-specific software
 
-  Btor * get_btor() const { return btor; };
+  Btor * get_btor() const { return btor.get(); };
 
  protected:
-  Btor * btor;
+  // shared with every term and sort, so the instance lives until the last
+  // of them is released, even past reset() or this solver's destruction
+  std::shared_ptr<Btor> btor;
 
   std::unordered_map<std::string, Term> symbol_table;
 

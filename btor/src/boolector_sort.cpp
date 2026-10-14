@@ -23,7 +23,10 @@ namespace smt {
 
 /* BoolectorSolver implementation */
 
-BoolectorSortBase::~BoolectorSortBase() { boolector_release_sort(btor, sort); }
+BoolectorSortBase::~BoolectorSortBase()
+{
+  boolector_release_sort(btor.get(), sort);
+}
 
 std::size_t BoolectorSortBase::hash() const
 {
