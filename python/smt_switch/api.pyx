@@ -286,6 +286,12 @@ cdef class SmtSolver:
     def check_sat_assuming(self, assumptions):
         cdef c_TermVec ctv
         cdef Result r = Result()
+        if isinstance(assumptions, Term):
+            # a Term iterates over its children, which are not assumptions
+            raise TypeError(
+                "check_sat_assuming takes a collection of Terms, not a single "
+                "Term: write [t] to assume just t"
+            )
         for a in assumptions:
             if not isinstance(a, Term):
                 raise ValueError("Expecting a Term but got {}")

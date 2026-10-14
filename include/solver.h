@@ -148,21 +148,25 @@ class AbsSmtSolver
    * such as a TermList or an UnorderedTermSet: anything a range-based for
    * loop accepts, provided its begin and end have the same type. They are
    * copied into a TermVec, so solvers only override the TermVec version.
+   * A single Term is iterable over its children but is not a collection of
+   * assumptions, so it is rejected: write { t } to assume just t.
    */
   // The constraint depends on the standard the including file is compiled
   // with. Only this inline template differs, and the two forms mangle
   // differently, so code built with either standard links together.
 #if defined(__cpp_lib_ranges) && defined(__cpp_concepts)
   template <class Range>
-    requires std::ranges::input_range<const Range &>
-             && std::ranges::common_range<const Range &>
-             && std::convertible_to<
-                 std::ranges::range_reference_t<const Range &>,
-                 Term>
+    requires(!std::same_as<Range, Term>)
+            && std::ranges::input_range<const Range &>
+            && std::ranges::common_range<const Range &>
+            && std::convertible_to<
+                std::ranges::range_reference_t<const Range &>,
+                Term>
 #else
   template <
       class Range,
-      class = std::enable_if_t<detail::is_term_range<const Range &>::value>>
+      class = std::enable_if_t<!std::is_same<Range, Term>::value
+                               && detail::is_term_range<const Range &>::value>>
 #endif
   Result check_sat_assuming(const Range & assumptions)
   {

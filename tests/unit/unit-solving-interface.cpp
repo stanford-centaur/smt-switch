@@ -15,6 +15,8 @@
 **/
 
 #include <set>
+#include <type_traits>
+#include <utility>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
@@ -40,6 +42,29 @@ TermVec::const_iterator begin(const FreeBeginRange & r)
 }
 
 TermVec::const_iterator end(const FreeBeginRange & r) { return r.terms.end(); }
+
+template <class A, class = void>
+struct AcceptsAssumptions : std::false_type
+{
+};
+
+template <class A>
+struct AcceptsAssumptions<
+    A,
+    std::void_t<decltype(std::declval<AbsSmtSolver &>().check_sat_assuming(
+        std::declval<const A &>()))>> : std::true_type
+{
+};
+
+// a Term iterates over its children, which are not meant as assumptions
+static_assert(!AcceptsAssumptions<Term>::value,
+              "check_sat_assuming rejects a single Term");
+static_assert(AcceptsAssumptions<TermVec>::value
+                  && AcceptsAssumptions<TermList>::value
+                  && AcceptsAssumptions<UnorderedTermSet>::value
+                  && AcceptsAssumptions<std::set<Term>>::value
+                  && AcceptsAssumptions<FreeBeginRange>::value,
+              "check_sat_assuming accepts ranges of Terms");
 
 }  // namespace
 
