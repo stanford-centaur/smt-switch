@@ -89,12 +89,6 @@ void AbsSmtInterpolator::set_opt(const std::string /* option */,
                                 + to_string(solver_enum));
 }
 
-void AbsSmtInterpolator::reset()
-{
-  throw NotImplementedException("Resetting is not supported by "
-                                + to_string(solver_enum));
-}
-
 void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Dumping to a file is not supported by "

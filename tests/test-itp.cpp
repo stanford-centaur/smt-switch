@@ -172,6 +172,28 @@ TEST_P(ItpTests, RefusesTurningInterpolationOff)
   EXPECT_TRUE(I);
 }
 
+TEST_P(ItpTests, InterpolatesAfterReset)
+{
+  // a reset before first use as well as after a query; each round makes its
+  // own symbols, since terms from before a reset belong to the old instance
+  itp->reset();
+  for (int round = 0; round < 2; ++round)
+  {
+    Sort s = GetParam().theory == THEORY_INT ? itp->make_sort(INT)
+                                             : itp->make_sort(BV, 8);
+    Term a = itp->make_symbol("a", s);
+    Term b = itp->make_symbol("b", s);
+    Term c = itp->make_symbol("c", s);
+    Term A =
+        itp->make_term(And, itp->make_term(lt, a, b), itp->make_term(lt, b, c));
+    Term I;
+    EXPECT_TRUE(itp->get_interpolant(A, itp->make_term(gt, a, c), I).is_unsat())
+        << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    itp->reset();
+  }
+}
+
 TEST_P(ItpTests, DumpIsNotImplemented)
 {
   EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),

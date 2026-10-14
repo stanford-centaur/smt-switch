@@ -38,18 +38,22 @@ TEST_P(UnitResetTests, ResetReleasesSymbols)
 {
   // only the solver holds x, so reset() is what destroys it
   s->make_symbol("x", s->make_sort(BV, 4));
-  try
-  {
-    s->reset();
-  }
-  catch (NotImplementedException &)
-  {
-    GTEST_SKIP() << "reset is not implemented";
-  }
+  s->reset();
 
   // x is gone, so its name can be declared again
   Term x = s->make_symbol("x", s->make_sort(BOOL));
   s->assert_formula(x);
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST_P(UnitResetTests, ResetDropsAssertions)
+{
+  s->set_opt("incremental", "true");
+  s->push();
+  s->assert_formula(s->make_term(false));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+
+  s->reset();
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
