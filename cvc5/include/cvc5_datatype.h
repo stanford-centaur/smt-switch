@@ -64,7 +64,7 @@ class Cvc5Datatype : public AbsDatatype
         return ct.getNumSelectors();
       }
     }
-    throw InternalSolverException(datatype.getName() + "." + cons
+    throw IncorrectUsageException(datatype.getName() + "." + cons
                                   + " not found");
   }
 

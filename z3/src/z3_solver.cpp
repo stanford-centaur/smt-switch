@@ -399,7 +399,7 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
       z3::func_decl cons{ ctx, cons_raw };
       if (cons.name().str() == name) return std::make_shared<Z3Term>(cons, ctx);
     }
-    throw InternalSolverException("Constructor" + name + " not found");
+    throw IncorrectUsageException("Constructor " + name + " not found");
   }
   catch (z3::exception & e)
   {
@@ -422,7 +422,7 @@ Term Z3Solver::get_tester(const Sort & s, std::string name) const
               ctx, Z3_get_datatype_sort_recognizer(ctx, dt->datatype, i) },
           ctx);
   }
-  throw InternalSolverException("tester " + name + " not found");
+  throw IncorrectUsageException("Tester " + name + " not found");
 }
 
 Term Z3Solver::get_selector(const Sort & s,
@@ -435,7 +435,7 @@ Term Z3Solver::get_selector(const Sort & s,
   {
     if (field.name().str() == name) return std::make_shared<Z3Term>(field, ctx);
   }
-  throw InternalSolverException("Selector " + name + " not found");
+  throw IncorrectUsageException("Selector " + name + " not found");
 }
 
 Term Z3Solver::make_term(int64_t i, const Sort & sort) const
