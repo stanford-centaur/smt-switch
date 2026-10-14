@@ -137,9 +137,9 @@ const Term BoolectorTermIter::operator*()
   }
 
   // increment internal reference counter
-  res = btor_node_copy(btor, res);
+  res = btor_node_copy(btor.get(), res);
   // increment external reference counter
-  btor_node_inc_ext_ref_counter(btor, res);
+  btor_node_inc_ext_ref_counter(btor.get(), res);
 
   BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
   return std::make_shared<BoolectorTerm>(btor, node);
@@ -170,7 +170,7 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 
 /* BoolectorTerm implementation */
 
-BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
+BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
     : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
   // BTOR_PARAM_NODE is not a symbol
@@ -178,14 +178,12 @@ BoolectorTerm::BoolectorTerm(Btor * b, BoolectorNode * n)
   //  which will be bound by a lambda
   if (btor_node_is_proxy(bn))
   {
-    // change to this on smtcomp19 branch -- will be merged to master soon
-    // bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
-    bn = btor_node_real_addr(btor_node_get_simplified(btor, bn));
+    bn = btor_node_real_addr(btor_node_get_simplified(btor.get(), bn));
   }
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
 }
 
-BoolectorTerm::~BoolectorTerm() { boolector_release(btor, node); }
+BoolectorTerm::~BoolectorTerm() { boolector_release(btor.get(), node); }
 
 // BoolectorNode * -> id
 
@@ -210,7 +208,7 @@ Op BoolectorTerm::get_op() const
   }
   else
   {
-    op = lookup_op(btor, node);
+    op = lookup_op(btor.get(), node);
   }
 
   return op;
@@ -219,46 +217,46 @@ Op BoolectorTerm::get_op() const
 Sort BoolectorTerm::get_sort() const
 {
   Sort sort;
-  BoolectorSort s = boolector_get_sort(btor, node);
+  BoolectorSort s = boolector_get_sort(btor.get(), node);
   // increment reference counter for the sort
-  boolector_copy_sort(btor, s);
-  if (boolector_is_bitvec_sort(btor, s))
+  boolector_copy_sort(btor.get(), s);
+  if (boolector_is_bitvec_sort(btor.get(), s))
   {
-    uint64_t width = boolector_bitvec_sort_get_width(btor, s);
+    uint64_t width = boolector_bitvec_sort_get_width(btor.get(), s);
     sort = std::make_shared<BoolectorBVSort>(btor, s, width);
   }
-  else if (boolector_is_array_sort(btor, s))
+  else if (boolector_is_array_sort(btor.get(), s))
   {
-    uint64_t idxwidth = boolector_get_index_width(btor, node);
-    uint64_t elemwidth = boolector_get_width(btor, node);
+    uint64_t idxwidth = boolector_get_index_width(btor.get(), node);
+    uint64_t elemwidth = boolector_get_width(btor.get(), node);
     // Note: Boolector does not support multidimensional arrays
     std::shared_ptr<BoolectorSortBase> idxsort =
         std::make_shared<BoolectorBVSort>(
-            btor, boolector_bitvec_sort(btor, idxwidth), idxwidth);
+            btor, boolector_bitvec_sort(btor.get(), idxwidth), idxwidth);
     std::shared_ptr<BoolectorSortBase> elemsort =
         std::make_shared<BoolectorBVSort>(
-            btor, boolector_bitvec_sort(btor, elemwidth), elemwidth);
+            btor, boolector_bitvec_sort(btor.get(), elemwidth), elemwidth);
     sort = std::make_shared<BoolectorArraySort>(btor, s, idxsort, elemsort);
   }
-  else if (boolector_is_fun_sort(btor, s))
+  else if (boolector_is_fun_sort(btor.get(), s))
   {
-    BoolectorSort bcds = boolector_fun_get_codomain_sort(btor, node);
-    assert(
-        boolector_is_bitvec_sort(btor, bcds));  // no other options in boolector
-    uint64_t bcds_width = boolector_bitvec_sort_get_width(btor, bcds);
+    BoolectorSort bcds = boolector_fun_get_codomain_sort(btor.get(), node);
+    assert(boolector_is_bitvec_sort(btor.get(),
+                                    bcds));  // no other options in boolector
+    uint64_t bcds_width = boolector_bitvec_sort_get_width(btor.get(), bcds);
     // increment reference counter for the sort
-    boolector_copy_sort(btor, bcds);
+    boolector_copy_sort(btor.get(), bcds);
     Sort cds = std::make_shared<BoolectorBVSort>(btor, bcds, bcds_width);
 
     // boolector has no way of getting domain sorts when arity is not 1
     // it will return a TupleSort but there's no way to unpack them
-    if (boolector_get_fun_arity(btor, node) == 1)
+    if (boolector_get_fun_arity(btor.get(), node) == 1)
     {
-      BoolectorSort bds = boolector_fun_get_domain_sort(btor, node);
-      assert(boolector_is_bitvec_sort(btor, bds));
-      uint64_t bds_width = boolector_bitvec_sort_get_width(btor, bds);
+      BoolectorSort bds = boolector_fun_get_domain_sort(btor.get(), node);
+      assert(boolector_is_bitvec_sort(btor.get(), bds));
+      uint64_t bds_width = boolector_bitvec_sort_get_width(btor.get(), bds);
       // increment reference counter for the sort
-      boolector_copy_sort(btor, bds);
+      boolector_copy_sort(btor.get(), bds);
       Sort ds = std::make_shared<BoolectorBVSort>(btor, bds, bds_width);
       sort = std::make_shared<BoolectorUFSort>(btor, s, SortVec{ ds }, cds);
     }
@@ -300,13 +298,14 @@ bool BoolectorTerm::is_symbolic_const() const
   // Thus, we need to check whether it's a function or an array
   // because arrays should still be considered symbolic constants
   // in smt-switch
-  bool is_fun = boolector_is_fun(btor, node) && !boolector_is_array(btor, node);
+  bool is_fun = boolector_is_fun(btor.get(), node)
+                && !boolector_is_array(btor.get(), node);
   return !is_fun && !is_param() && is_symbol();
 }
 
 bool BoolectorTerm::is_value() const
 {
-  bool res = boolector_is_const(btor, node);
+  bool res = boolector_is_const(btor.get(), node);
   // constant arrays are considered values
   res |= is_const_array();
   return res;
@@ -317,7 +316,8 @@ std::string BoolectorTerm::to_string()
   std::string sres;
 
   // don't pointer chase!
-  char * sym = btor_node_get_symbol(btor, BTOR_IMPORT_BOOLECTOR_NODE(node));
+  char * sym =
+      btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
 
   if (sym)
   {
@@ -332,11 +332,11 @@ std::string BoolectorTerm::to_string()
     }
     return sres;
   }
-  else if (boolector_is_const(btor, node))
+  else if (boolector_is_const(btor.get(), node))
   {
-    const char * btor_cstr = boolector_get_bits(btor, node);
+    const char * btor_cstr = boolector_get_bits(btor.get(), node);
     sres = "#b" + std::string(btor_cstr);
-    boolector_free_bits(btor, btor_cstr);
+    boolector_free_bits(btor.get(), btor_cstr);
     return sres;
   }
   else
@@ -346,7 +346,7 @@ std::string BoolectorTerm::to_string()
     char * cres;
     size_t size;
     FILE * stream = open_memstream(&cres, &size);
-    boolector_dump_smt2_node(btor, stream, node);
+    boolector_dump_smt2_node(btor.get(), stream, node);
     int64_t status = fflush(stream);
     if (status != 0)
     {
@@ -379,12 +379,12 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
 
 uint64_t BoolectorTerm::to_int() const
 {
-  return bits_to_uint64(const_to_bits(btor, node));
+  return bits_to_uint64(const_to_bits(btor.get(), node));
 }
 
 int64_t BoolectorTerm::to_signed_int() const
 {
-  return bits_to_int64(const_to_bits(btor, node));
+  return bits_to_int64(const_to_bits(btor.get(), node));
 }
 
 /** Iterators for traversing the children
@@ -409,15 +409,15 @@ std::string BoolectorTerm::print_value_as(SortKind sk)
         "Cannot use print_value_as on a non-value term.");
   }
 
-  BoolectorSort s = boolector_get_sort(btor, node);
-  if (boolector_is_bitvec_sort(btor, s))
+  BoolectorSort s = boolector_get_sort(btor.get(), node);
+  if (boolector_is_bitvec_sort(btor.get(), s))
   {
-    uint64_t width = boolector_get_width(btor, node);
+    uint64_t width = boolector_get_width(btor.get(), node);
     if (width == 1 && sk == BOOL)
     {
-      const char * charval = boolector_get_bits(btor, node);
+      const char * charval = boolector_get_bits(btor.get(), node);
       std::string bits = charval;
-      boolector_free_bv_assignment(btor, charval);
+      boolector_free_bv_assignment(btor.get(), charval);
       if (bits == "1")
       {
         return "true";
@@ -449,7 +449,7 @@ void BoolectorTerm::collect_children()
 {
   if (btor_node_is_proxy(bn))
   {
-    bn = btor_node_get_simplified(btor, bn);
+    bn = btor_node_get_simplified(btor.get(), bn);
     bn = btor_node_real_addr(bn);
   }
   else if (children_cached_)

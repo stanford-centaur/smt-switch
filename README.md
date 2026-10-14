@@ -37,7 +37,7 @@ pointers to `AbsTerm`s.
 
 Being smart pointers does not tie their lifetimes together: a `Term` or `Sort`
 does not keep alive the `SmtSolver` that created it. Destroy every term and sort
-before the solver they came from. With some backends, such as Boolector,
+before the solver they came from. With some backends, such as MathSAT,
 destroying either one after its solver crashes. The Python bindings avoid this,
 because each `Term` and `Sort` holds a reference to its solver.
 

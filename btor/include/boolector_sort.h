@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "boolector.h"
 #include "exceptions.h"
@@ -31,7 +32,9 @@ class BoolectorSolver;
 class BoolectorSortBase : public AbsSort
 {
  public:
-  BoolectorSortBase(SortKind sk, Btor * b, BoolectorSort s)
+  BoolectorSortBase(SortKind sk,
+                    const std::shared_ptr<Btor> & b,
+                    BoolectorSort s)
       : btor(b), sort(s), sk(sk) {};
   virtual ~BoolectorSortBase();
   // the destructor releases sort, so a copy would release it twice
@@ -56,7 +59,8 @@ class BoolectorSortBase : public AbsSort
   BoolectorSort get_btor_sort() const { return sort; };
 
  protected:
-  Btor * btor;
+  // keeps the instance alive for as long as this object is
+  std::shared_ptr<Btor> btor;
   BoolectorSort sort;
   SortKind sk;
 
@@ -73,7 +77,7 @@ class BoolectorSortBase : public AbsSort
 class BoolectorBVSort : public BoolectorSortBase
 {
  public:
-  BoolectorBVSort(Btor * b, BoolectorSort s, uint64_t w)
+  BoolectorBVSort(const std::shared_ptr<Btor> & b, BoolectorSort s, uint64_t w)
       : BoolectorSortBase(BV, b, s), width(w) {};
   uint64_t get_width() const override { return width; };
 
@@ -89,7 +93,10 @@ class BoolectorBVSort : public BoolectorSortBase
 class BoolectorArraySort : public BoolectorSortBase
 {
  public:
-  BoolectorArraySort(Btor * b, BoolectorSort s, Sort is, Sort es)
+  BoolectorArraySort(const std::shared_ptr<Btor> & b,
+                     BoolectorSort s,
+                     Sort is,
+                     Sort es)
       : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
   Sort get_indexsort() const override { return indexsort; };
   Sort get_elemsort() const override { return elemsort; };
@@ -104,7 +111,10 @@ class BoolectorArraySort : public BoolectorSortBase
 class BoolectorUFSort : public BoolectorSortBase
 {
  public:
-  BoolectorUFSort(Btor * b, BoolectorSort s, SortVec sorts, Sort sort)
+  BoolectorUFSort(const std::shared_ptr<Btor> & b,
+                  BoolectorSort s,
+                  SortVec sorts,
+                  Sort sort)
       : BoolectorSortBase(FUNCTION, b, s),
         domain_sorts(sorts),
         codomain_sort(sort),
@@ -112,7 +122,9 @@ class BoolectorUFSort : public BoolectorSortBase
 
   // this constructor is used by BoolectorTerm::get_sort()
   // more info for flag complete below
-  BoolectorUFSort(Btor * b, BoolectorSort s, Sort codomain)
+  BoolectorUFSort(const std::shared_ptr<Btor> & b,
+                  BoolectorSort s,
+                  Sort codomain)
       : BoolectorSortBase(FUNCTION, b, s),
         codomain_sort(codomain),
         complete(false)

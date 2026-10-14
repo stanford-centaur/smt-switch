@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "boolector.h"
@@ -43,7 +44,9 @@ class BoolectorTermIter : public TermIterBase
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of
   // size 3
-  BoolectorTermIter(Btor * btor, std::vector<BtorNode *> c, int64_t idx)
+  BoolectorTermIter(const std::shared_ptr<Btor> & btor,
+                    std::vector<BtorNode *> c,
+                    int64_t idx)
       : btor(btor), children(c), idx(idx)
   {
   }
@@ -65,7 +68,8 @@ class BoolectorTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  Btor * btor;
+  // keeps the instance alive for as long as this object is
+  std::shared_ptr<Btor> btor;
   std::vector<BtorNode *> children;
   int64_t idx;
 };
@@ -73,7 +77,7 @@ class BoolectorTermIter : public TermIterBase
 class BoolectorTerm : public AbsTerm
 {
  public:
-  BoolectorTerm(Btor * b, BoolectorNode * n);
+  BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n);
   ~BoolectorTerm();
   // the destructor releases node, so a copy would release it twice
   BoolectorTerm(const BoolectorTerm &) = delete;
@@ -102,7 +106,8 @@ class BoolectorTerm : public AbsTerm
   BoolectorNode * get_btor_node() const { return node; };
 
  protected:
-  Btor * btor;
+  // keeps the instance alive for as long as this object is
+  std::shared_ptr<Btor> btor;
   // the actual API level node that is used
   BoolectorNode * node;
   // the real address of the boolector node
