@@ -26,8 +26,10 @@ class Yices2SolverFactory
    *  @param logging if true creates a LoggingSolver wrapper
    *         around the solver that keeps a shadow DAG at
    *         the smt-switch level.
-   *         For yices2, logging is *required* if you want
-   *         to traverse terms.
+   *         For yices2, term traversal works without it,
+   *         but reads back Yices' own representation, so
+   *         enable logging if you want to get back the
+   *         exact term you created.
    *  @return a Yices2 SmtSolver
    */
   static SmtSolver create(bool logging);

@@ -338,9 +338,12 @@ never necessitate the use of a `LoggingSolver`.
     exactly what were used to create it. Without a `LoggingSolver`, MathSAT will
     perform very light rewriting.
 - Yices2
-  - Use a `LoggingSolver` for term iteration support. Yices2 has a different
-    term representation under the hood which cannot easily be converted back to
-    SMT-LIB. Thus, term traversal is only supported through a `LoggingSolver`.
+  - Use a `LoggingSolver` to guarantee that a term's Op and children are always
+    exactly what were used to create it. Without one, iteration walks Yices2's
+    own term representation: a sum or product is read back from a polynomial,
+    and a term bridging booleans and bit-vectors of size one is read back as an
+    `Equal`, `Concat` or `Ite` over children built for the purpose. These
+    children rebuild an equivalent term, but not necessarily the same one.
 
 ## Contributions
 
