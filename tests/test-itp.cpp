@@ -161,6 +161,17 @@ TEST_P(ItpTests, ContextLevelStaysZero)
   EXPECT_EQ(itp->get_context_level(), 0);
 }
 
+TEST_P(ItpTests, RefusesTurningInterpolationOff)
+{
+  EXPECT_THROW(itp->set_opt("produce-interpolants", "false"),
+               IncorrectUsageException);
+  Term A =
+      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term I;
+  EXPECT_TRUE(itp->get_interpolant(A, itp->make_term(gt, x, z), I).is_unsat());
+  EXPECT_TRUE(I);
+}
+
 TEST_P(ItpTests, DumpIsNotImplemented)
 {
   EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),

@@ -36,8 +36,15 @@ using namespace std;
 
 namespace smt {
 
-const unordered_map<string, string> msat_option_map({ { "produce-models",
-                                                        "model_generation" } });
+const unordered_map<string, string> msat_option_map(
+    { { "produce-interpolants", "interpolation" },
+      { "produce-models", "model_generation" } });
+
+static string msat_option_name(const string & option)
+{
+  auto it = msat_option_map.find(option);
+  return it == msat_option_map.end() ? option : it->second;
+}
 
 // the options MsatInterpolatingSolver cannot do without, set by its
 // constructor
@@ -194,12 +201,7 @@ void MsatSolver::set_opt(const string option, const string value)
     throw IncorrectUsageException("Must set options before using solver.");
   }
 
-  string msat_option = option;
-  auto it = msat_option_map.find(option);
-  if (it != msat_option_map.end())
-  {
-    msat_option = it->second;
-  }
+  string msat_option = msat_option_name(option);
 
   // returns zero on success
   if (msat_set_option(cfg, msat_option.c_str(), value.c_str()))
@@ -1190,7 +1192,7 @@ MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
 
 void MsatInterpolatingSolver::set_opt(const string option, const string value)
 {
-  if (interpolator_disallowed_options.find(option)
+  if (interpolator_disallowed_options.find(msat_option_name(option))
       != interpolator_disallowed_options.end())
   {
     throw IncorrectUsageException("MathSAT interpolator does not allow option: "
