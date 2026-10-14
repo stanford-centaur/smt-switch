@@ -187,6 +187,18 @@ class RealTranslationTests : public TranslationTests
   Sort realsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntRealTranslationTests);
+class IntRealTranslationTests : public RealTranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    RealTranslationTests::SetUp();
+    intsort = s1->make_sort(INT);
+  }
+  Sort intsort;
+};
+
 TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
@@ -545,6 +557,33 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(IntRealTranslationTests, Conversions)
+{
+  const SolverConfiguration & from = get<0>(GetParam());
+  if (from.solver_enum == YICES2 && !from.is_logging_solver
+      && get<1>(GetParam()).solver_enum == CVC5)
+  {
+    GTEST_SKIP() << "Yices2 rewrites the equation into a sum equal to the "
+                    "Int 0, which the translator keeps an Int, and cvc5 "
+                    "refuses to equate a Real with an Int";
+  }
+
+  // x is i + 1/2, so i is the integer part of x
+  Term i = s1->make_symbol("i", intsort);
+  Term x = s1->make_symbol("x", realsort);
+  Term half = s1->make_term(
+      Div, s1->make_term(1, realsort), s1->make_term(2, realsort));
+  Term constraint = s1->make_term(
+      And,
+      s1->make_term(
+          Equal, x, s1->make_term(Plus, s1->make_term(To_Real, i), half)),
+      s1->make_term(Distinct, s1->make_term(To_Int, x), i));
+
+  TermTranslator to_s2(s2);
+  s2->assert_formula(to_s2.transfer_term(constraint));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
 TEST_P(StringTranslationTests, Strings)
 {
   Term t = s1->make_term("\\u{a}-\"foo\"", true, strsort);
@@ -629,6 +668,14 @@ INSTANTIATE_TEST_SUITE_P(
       return config_name(get<0>(info.param)) + "_"
              + config_name(get<1>(info.param));
     });
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    IntRealTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_INT, THEORY_REAL })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_INT, THEORY_REAL }))));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedStringTranslationTests,

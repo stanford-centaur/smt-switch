@@ -144,9 +144,8 @@ Op Z3Term::get_op() const
       // unary
       case Z3_OP_NOT: return Op(Not);
       case Z3_OP_UMINUS: return Op(Negate);
-      case Z3_OP_FPA_ABS: return Op(Abs);
-      case Z3_OP_FPA_TO_REAL: return Op(To_Real);
-      case Z3_OP_STR_TO_INT: return Op(To_Int);
+      case Z3_OP_TO_REAL: return Op(To_Real);
+      case Z3_OP_TO_INT: return Op(To_Int);
       case Z3_OP_IS_INT: return Op(Is_Int);
       case Z3_OP_BNOT: return Op(BVNot);
       case Z3_OP_BNEG:
@@ -158,7 +157,6 @@ Op Z3Term::get_op() const
       case Z3_OP_IDIV: return Op(IntDiv);
       case Z3_OP_DIV: return Op(Div);
       case Z3_OP_LT: return Op(Lt);
-      case Z3_OP_FPA_ROUND_TO_INTEGRAL: return Op(To_Int);
       case Z3_OP_LE: return Op(Le);
       case Z3_OP_GT: return Op(Gt);
       case Z3_OP_GE: return Op(Ge);
