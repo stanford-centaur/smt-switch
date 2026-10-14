@@ -28,6 +28,12 @@
 
 namespace smt {
 
+BzlaSort::BzlaSort(const bitwuzla::Sort s,
+                   const std::shared_ptr<bitwuzla::TermManager> & tm)
+    : tm(tm), sort(s)
+{
+}
+
 BzlaSort::~BzlaSort()
 {
   // TODO: figure out if sorts need to be destroyed
@@ -39,12 +45,12 @@ std::uint64_t BzlaSort::get_width() const { return sort.bv_size(); }
 
 Sort BzlaSort::get_indexsort() const
 {
-  return std::make_shared<BzlaSort>(sort.array_index());
+  return std::make_shared<BzlaSort>(sort.array_index(), tm);
 }
 
 Sort BzlaSort::get_elemsort() const
 {
-  return std::make_shared<BzlaSort>(sort.array_element());
+  return std::make_shared<BzlaSort>(sort.array_element(), tm);
 }
 
 SortVec BzlaSort::get_domain_sorts() const
@@ -55,7 +61,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
   for (auto && bsort : bsorts)
   {
-    domain_sorts.push_back(std::make_shared<BzlaSort>(bsort));
+    domain_sorts.push_back(std::make_shared<BzlaSort>(bsort, tm));
   }
 
   return domain_sorts;
@@ -63,7 +69,7 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
-  return std::make_shared<BzlaSort>(sort.fun_codomain());
+  return std::make_shared<BzlaSort>(sort.fun_codomain(), tm);
 }
 
 std::string BzlaSort::get_uninterpreted_name() const

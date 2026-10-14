@@ -106,8 +106,16 @@ const std::unordered_set<PrimOp> indexed_ops(
 
 /*  start BzlaTermIter implementation */
 
+BzlaTermIter::BzlaTermIter(bitwuzla::Term terms,
+                           std::size_t idx,
+                           const std::shared_ptr<bitwuzla::TermManager> & tm)
+    : tm(tm), terms(terms), idx(idx)
+{
+}
+
 BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
 {
+  tm = it.tm;
   terms = it.terms;
   idx = it.idx;
   return *this;
@@ -118,12 +126,12 @@ void BzlaTermIter::operator++() { idx++; }
 const Term BzlaTermIter::operator*()
 {
   assert(idx < terms.num_children());
-  return std::make_shared<BzlaTerm>(terms[idx]);
+  return std::make_shared<BzlaTerm>(terms[idx], tm);
 }
 
 TermIterBase * BzlaTermIter::clone() const
 {
-  return new BzlaTermIter(terms, idx);
+  return new BzlaTermIter(terms, idx, tm);
 }
 
 bool BzlaTermIter::operator==(const BzlaTermIter & it) { return equal(it); }
@@ -144,7 +152,11 @@ bool BzlaTermIter::equal(const TermIterBase & other) const
 
 /*  end BzlaTermIter implementation */
 
-BzlaTerm::BzlaTerm(const bitwuzla::Term t) : term(t) {}
+BzlaTerm::BzlaTerm(const bitwuzla::Term t,
+                   const std::shared_ptr<bitwuzla::TermManager> & tm)
+    : tm(tm), term(t)
+{
+}
 
 BzlaTerm::~BzlaTerm() {}
 
@@ -203,7 +215,7 @@ Op BzlaTerm::get_op() const
 
 Sort BzlaTerm::get_sort() const
 {
-  return std::make_shared<BzlaSort>(term.sort());
+  return std::make_shared<BzlaSort>(term.sort(), tm);
 }
 
 bool BzlaTerm::is_symbol() const
@@ -249,12 +261,12 @@ std::int64_t BzlaTerm::to_signed_int() const
   return bits_to_int64(bv_value_to_bits(term));
 }
 
-TermIter BzlaTerm::begin() { return TermIter(new BzlaTermIter(term, 0)); }
+TermIter BzlaTerm::begin() { return TermIter(new BzlaTermIter(term, 0, tm)); }
 
 TermIter BzlaTerm::end()
 {
   std::size_t num_children = term.num_children();
-  return TermIter(new BzlaTermIter(term, num_children));
+  return TermIter(new BzlaTermIter(term, num_children, tm));
 }
 
 std::string BzlaTerm::print_value_as(SortKind /* sk */)

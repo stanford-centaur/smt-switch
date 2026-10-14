@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include "bitwuzla/cpp/bitwuzla.h"
@@ -32,11 +33,12 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(bitwuzla::Term terms, std::size_t idx) : terms(terms), idx(idx)
-  {
-  }
+  BzlaTermIter(bitwuzla::Term terms,
+               std::size_t idx,
+               const std::shared_ptr<bitwuzla::TermManager> & tm);
   BzlaTermIter(const BzlaTermIter & it)
   {
+    tm = it.tm;
     terms = it.terms;
     idx = it.idx;
   };
@@ -52,6 +54,8 @@ class BzlaTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
+  // keeps the term manager alive for as long as terms is
+  std::shared_ptr<bitwuzla::TermManager> tm;
   bitwuzla::Term terms;  // terms to iterate over (e.g. children)
   std::size_t idx;       // current idx of iteration
 };
@@ -59,7 +63,8 @@ class BzlaTermIter : public TermIterBase
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(const bitwuzla::Term n);
+  BzlaTerm(const bitwuzla::Term n,
+           const std::shared_ptr<bitwuzla::TermManager> & tm);
   ~BzlaTerm();
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -85,6 +90,9 @@ class BzlaTerm : public AbsTerm
   const bitwuzla::Term get_bitwuzla_term() const { return term; };
 
  protected:
+  // the term manager that owns term, kept alive for as long as term is
+  // (declared first, so that term is destroyed before it)
+  const std::shared_ptr<bitwuzla::TermManager> tm;
   // the actual API level node that is used
   const bitwuzla::Term term;
 
