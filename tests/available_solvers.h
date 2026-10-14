@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 
@@ -104,6 +105,22 @@ struct ConfigName
   std::string operator()(const ParamInfo & info) const
   {
     return config_name(info.param);
+  }
+};
+
+/** Names the cases of a suite parameterized by a pair of
+ *  SolverConfigurations after both, e.g.
+ *    INSTANTIATE_TEST_SUITE_P(
+ *        , Suite, Combine(ValuesIn(...), ValuesIn(...)), ConfigPairName());
+ *  gives Suite.Test/CVC5_Z3 rather than Suite.Test/12
+ */
+struct ConfigPairName
+{
+  template <typename ParamInfo>
+  std::string operator()(const ParamInfo & info) const
+  {
+    return config_name(std::get<0>(info.param)) + "_"
+           + config_name(std::get<1>(info.param));
   }
 };
 }  // namespace smt_tests

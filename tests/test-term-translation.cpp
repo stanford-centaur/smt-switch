@@ -608,15 +608,17 @@ TEST_P(StringTranslationTests, Strings)
 // currently.
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSelfTranslationTests,
+    ,
     SelfTranslationTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_non_generic_solver_configurations({ TERMITER })),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSelfTranslationIntTests,
+    ,
     SelfTranslationIntTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations(
-        { FULL_TRANSFER, THEORY_INT })));
+    testing::ValuesIn(filter_non_generic_solver_configurations({ FULL_TRANSFER,
+                                                                 THEORY_INT })),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
@@ -626,36 +628,40 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedTranslationTests,
+    ,
     TranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER }))));
+                         { TERMITER }))),
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedBVTranslationTests,
+    ,
     BVTranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_BV })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER, THEORY_BV }))));
+                         { TERMITER, THEORY_BV }))),
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedBoolArrayTranslationTests,
+    ,
     BoolArrayTranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))));
+                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))),
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedIntTranslationTests,
+    ,
     IntTranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_INT })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER, THEORY_INT }))));
+                         { TERMITER, THEORY_INT }))),
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
@@ -664,10 +670,7 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, THEORY_REAL })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_REAL }))),
-    [](const auto & info) {
-      return config_name(get<0>(info.param)) + "_"
-             + config_name(get<1>(info.param));
-    });
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
@@ -675,14 +678,16 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_INT, THEORY_REAL })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER, THEORY_INT, THEORY_REAL }))));
+                         { TERMITER, THEORY_INT, THEORY_REAL }))),
+    ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedStringTranslationTests,
+    ,
     StringTranslationTests,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_STR })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { TERMITER, THEORY_STR }))));
+                         { TERMITER, THEORY_STR }))),
+    ConfigPairName());
 
 }  // namespace smt_tests
