@@ -81,14 +81,7 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
   Term y = s->make_symbol("y", bv);
   Term xpy = s->make_term(BVAdd, x, y);
   std::string x_text = x->to_string();
-  try
-  {
-    s->reset();
-  }
-  catch (NotImplementedException &)
-  {
-    GTEST_SKIP() << "reset is not implemented";
-  }
+  s->reset();
 
   // the solver keeps working after the reset
   Term b = s->make_symbol("b", s->make_sort(BOOL));

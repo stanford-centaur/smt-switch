@@ -118,7 +118,7 @@ class Cvc5Solver : public AbsSmtSolver
 
  protected:
   std::unique_ptr<::cvc5::TermManager> term_manager;
-  ::cvc5::Solver solver;
+  std::unique_ptr<::cvc5::Solver> solver;
 
   std::unordered_map<std::string, Term> symbol_table;
 
@@ -140,9 +140,13 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
+  void reset() override;
   void reset_assertions() override;
 
  protected:
+  // sets the options interpolation needs, on construction and after reset()
+  void initialize();
+
   // the regular solver that builds this solver's terms
   std::shared_ptr<Cvc5Solver> cvc5_solver;
 };

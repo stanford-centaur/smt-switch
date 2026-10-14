@@ -133,14 +133,20 @@ const std::unordered_set<PrimOp> binary_only_ops({ StrLt, StrLeq });
 
 /* Cvc5Solver implementation */
 
+// the options every Cvc5Solver starts from, set again by reset()
+static void set_default_options(::cvc5::Solver & s)
+{
+  s.setOption("lang", "smt2");
+  s.setOption("bv-print-consts-as-indexed-symbols", "true");
+  s.setOption("arrays-exp", "true");
+}
+
 Cvc5Solver::Cvc5Solver()
     : AbsSmtSolver(CVC5),
       term_manager(std::make_unique<cvc5::TermManager>()),
-      solver(*term_manager)
+      solver(std::make_unique<::cvc5::Solver>(*term_manager))
 {
-  solver.setOption("lang", "smt2");
-  solver.setOption("bv-print-consts-as-indexed-symbols", "true");
-  solver.setOption("arrays-exp", "true");
+  set_default_options(*solver);
 }
 
 void Cvc5Solver::set_opt(const std::string option, const std::string value)
@@ -156,7 +162,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
 
   try
   {
-    solver.setOption(cvc5option, cvc5value);
+    solver->setOption(cvc5option, cvc5value);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -168,7 +174,7 @@ void Cvc5Solver::set_logic(const std::string logic)
 {
   try
   {
-    solver.setLogic(logic);
+    solver->setLogic(logic);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -339,7 +345,7 @@ void Cvc5Solver::assert_formula(const Term & t)
   try
   {
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
-    solver.assertFormula(cterm->term);
+    solver->assertFormula(cterm->term);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -351,7 +357,7 @@ Result Cvc5Solver::check_sat()
 {
   try
   {
-    ::cvc5::Result r = solver.checkSat();
+    ::cvc5::Result r = solver->checkSat();
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -388,7 +394,7 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
       cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
     }
 
-    ::cvc5::Result r = solver.checkSatAssuming(cvc5assumps);
+    ::cvc5::Result r = solver->checkSatAssuming(cvc5assumps);
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -418,7 +424,7 @@ void Cvc5Solver::push(uint64_t num)
 {
   try
   {
-    solver.push(num);
+    solver->push(num);
     context_level += num;
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -431,7 +437,7 @@ void Cvc5Solver::pop(uint64_t num)
 {
   try
   {
-    solver.pop(num);
+    solver->pop(num);
     context_level -= num;
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -447,7 +453,7 @@ Term Cvc5Solver::get_value(const Term & t) const
   try
   {
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
-    return std::make_shared<Cvc5Term>(solver.getValue(cterm->term));
+    return std::make_shared<Cvc5Term>(solver->getValue(cterm->term));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -464,7 +470,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
     cvc5::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
     // get the array value
     // cvc5 returns a sequence of stores
-    carr = solver.getValue(carr);
+    carr = solver->getValue(carr);
 
     std::vector<std::pair<Term, Term>> stores;
     while (carr.hasOp() && carr.getKind() == cvc5::Kind::STORE)
@@ -492,7 +498,7 @@ void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out)
   Term f;
   try
   {
-    for (auto cterm : solver.getUnsatAssumptions())
+    for (auto cterm : solver->getUnsatAssumptions())
     {
       out.insert(std::make_shared<Cvc5Term>(cterm));
     }
@@ -508,7 +514,7 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
-    return std::make_shared<Cvc5Sort>(solver.declareSort(name, arity));
+    return std::make_shared<Cvc5Sort>(solver->declareSort(name, arity));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -952,14 +958,24 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
 
 void Cvc5Solver::reset()
 {
-  throw NotImplementedException("cvc5 does not support reset");
+  // cvc5 has no public reset, so start again with a new term manager and
+  // solver. The solver refers to its term manager, so it is destroyed first.
+  // Each cvc5 term and sort holds a shared pointer to the node manager that
+  // stores it, so terms still held from before stay valid after the old term
+  // manager is destroyed, but the new solver refuses them.
+  solver.reset();
+  term_manager = std::make_unique<::cvc5::TermManager>();
+  solver = std::make_unique<::cvc5::Solver>(*term_manager);
+  set_default_options(*solver);
+  symbol_table.clear();
+  context_level = 0;
 }
 
 void Cvc5Solver::reset_assertions()
 {
   try
   {
-    solver.resetAssertions();
+    solver->resetAssertions();
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -1016,7 +1032,7 @@ Term Cvc5Solver::substitute(const Term term,
   }
 }
 
-::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return solver; }
+::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return *solver; }
 
 /* end Cvc5Solver implementation */
 
@@ -1024,11 +1040,22 @@ cvc5InterpolatingSolver::cvc5InterpolatingSolver()
     : AbsSmtInterpolator(CVC5_INTERPOLATOR, std::make_shared<Cvc5Solver>()),
       cvc5_solver(std::static_pointer_cast<Cvc5Solver>(backend_solver))
 {
+  initialize();
+}
+
+void cvc5InterpolatingSolver::initialize()
+{
   // set_opt refuses produce-interpolants, so this is the only place it is set
   cvc5_solver->set_opt("produce-interpolants", "true");
   // cvc5 is incremental by default, which measurably slows down each
   // bit-vector interpolation query (seen with cvc5 1.4.0)
   cvc5_solver->set_opt("incremental", "false");
+}
+
+void cvc5InterpolatingSolver::reset()
+{
+  cvc5_solver->reset();
+  initialize();
 }
 
 void cvc5InterpolatingSolver::set_opt(const std::string option,
