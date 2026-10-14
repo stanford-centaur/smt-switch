@@ -877,6 +877,15 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+SortVec GenericSolver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & /* decls */) const
+{
+  throw NotImplementedException(
+      "The generic solver cannot declare a datatype sort before the "
+      "constructors that use it, so datatypes referring to one another are "
+      "not supported; one referring only to itself can use add_selector_self");
+}
+
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
