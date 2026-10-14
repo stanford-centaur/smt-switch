@@ -501,8 +501,7 @@ class AbsSmtSolver
   /** Create sorts for the corresponding DatatypeDecls.
    *
    *  @param decls the datatype decls
-   *  @return datatype sorts corresponding to the uninterpreted sort inputs
-   *
+   *  @return one datatype sort per declaration, in the same order
    */
   virtual SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls) const;

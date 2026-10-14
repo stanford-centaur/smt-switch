@@ -70,11 +70,25 @@ class GenericSolver : public AbsSmtSolver
   /***************************************************************/
   /* methods from AbsSmtSolver that are currently not implemented*/
   /***************************************************************/
-  UnorderedTermMap get_array_values(const Term & arr,
-                                    Term & out_const_base) const override;
+  // A datatype whose declarations refer to one another needs its sorts
+  // before the constructors that use them, which this solver cannot
+  // declare. One referring only to itself goes through add_selector_self.
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
+
+  /***************************************************************/
+  /* methods from AbsSmtSolver that are implemented              */
+  /***************************************************************/
+  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
+  // from lookup on this type, so name them back in.
+  using AbsSmtSolver::make_sort;
+  Sort make_sort(const std::string name, std::uint64_t arity) const override;
+  Sort make_sort(const SortKind sk) const override;
+  Sort make_sort(const SortKind sk, std::uint64_t size) const override;
+  Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
-  // Mutually recursive datatypes are currently not supported.
   Sort make_sort(const DatatypeDecl & d) const override;
+
   DatatypeDecl make_datatype_decl(const std::string & s) override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) override;
@@ -90,17 +104,6 @@ class GenericSolver : public AbsSmtSolver
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
-
-  /***************************************************************/
-  /* methods from AbsSmtSolver that are implemented              */
-  /***************************************************************/
-  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
-  // from lookup on this type, so name them back in.
-  using AbsSmtSolver::make_sort;
-  Sort make_sort(const std::string name, std::uint64_t arity) const override;
-  Sort make_sort(const SortKind sk) const override;
-  Sort make_sort(const SortKind sk, std::uint64_t size) const override;
-  Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a
@@ -124,6 +127,8 @@ class GenericSolver : public AbsSmtSolver
                  const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
   Term get_value(const Term & t) const override;
+  UnorderedTermMap get_array_values(const Term & arr,
+                                    Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
   // Will probably remove this eventually
   // For now, need to clear the hash table

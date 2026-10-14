@@ -16,8 +16,8 @@
 
 #include "solver.h"
 
-#include <cassert>
 #include <cstddef>
+#include <string>
 
 #include "exceptions.h"
 #include "result.h"
@@ -128,18 +128,21 @@ Term AbsSmtSolver::get_selector(const Sort & /* s */,
 }
 
 SortVec AbsSmtSolver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls) const
+    const std::vector<DatatypeDecl> & /* decls */) const
 {
-  throw NotImplementedException(
-      "make_datatype_sorts for mutually recursive datatypes not yet "
-      "implemented by "
-      + to_string(solver_enum));
+  throw NotImplementedException("make_datatype_sorts is not implemented by "
+                                + to_string(solver_enum));
 }
 
 Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
 {
   SortVec datatype_sorts = make_datatype_sorts({ decl });
-  assert(datatype_sorts.size() == 1);
+  if (datatype_sorts.size() != 1)
+  {
+    throw InternalSolverException("make_datatype_sorts gave "
+                                  + std::to_string(datatype_sorts.size())
+                                  + " sorts for one datatype declaration");
+  }
   return datatype_sorts[0];
 }
 
