@@ -25,6 +25,24 @@ using namespace std;
 
 namespace smt_tests {
 
+namespace {
+
+// a range iterated only through free begin and end, found by
+// argument-dependent lookup
+struct FreeBeginRange
+{
+  TermVec terms;
+};
+
+TermVec::const_iterator begin(const FreeBeginRange & r)
+{
+  return r.terms.begin();
+}
+
+TermVec::const_iterator end(const FreeBeginRange & r) { return r.terms.end(); }
+
+}  // namespace
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolveTests);
 class UnitSolveTests : public ::testing::Test,
                        public testing::WithParamInterface<SolverConfiguration>
@@ -76,6 +94,9 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   EXPECT_TRUE(r.is_unsat());
 
   r = s->check_sat_assuming(std::set<Term>{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming(FreeBeginRange{ { b1, nb2 } });
   EXPECT_TRUE(r.is_unsat());
 }
 

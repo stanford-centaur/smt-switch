@@ -24,6 +24,12 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#if __has_include(<version>)
+#include <version>
+#endif
+#if defined(__cpp_lib_ranges) && defined(__cpp_concepts)
+#include <ranges>
+#endif
 
 #include "exceptions.h"
 #include "result.h"
@@ -33,6 +39,61 @@
 #include "term.h"
 
 namespace smt {
+
+namespace detail {
+
+// begin and end of a range, looked up as a range-based for loop does
+#if defined(__cpp_lib_ranges) && defined(__cpp_concepts)
+template <class C>
+auto range_begin(C & c)
+{
+  return std::ranges::begin(c);
+}
+
+template <class C>
+auto range_end(C & c)
+{
+  return std::ranges::end(c);
+}
+#else
+using std::begin;
+using std::end;
+
+template <class C>
+auto range_begin(C & c) -> decltype(begin(c))
+{
+  return begin(c);
+}
+
+template <class C>
+auto range_end(C & c) -> decltype(end(c))
+{
+  return end(c);
+}
+
+// The C++17 counterpart of the C++20 constraints on check_sat_assuming: R
+// has begin and end of one input iterator type, which yields Terms.
+template <class R, class = void>
+struct is_term_range : std::false_type
+{
+};
+
+template <class R>
+struct is_term_range<
+    R,
+    std::enable_if_t<
+        std::is_same<decltype(range_begin(std::declval<R>())),
+                     decltype(range_end(std::declval<R>()))>::value
+        && std::is_base_of<std::input_iterator_tag,
+                           typename std::iterator_traits<decltype(range_begin(
+                               std::declval<R>()))>::iterator_category>::value
+        && std::is_convertible<decltype(*range_begin(std::declval<R>())),
+                               Term>::value>> : std::true_type
+{
+};
+#endif
+
+}  // namespace detail
 
 /**
    Abstract solver class to be implemented by each supported solver.
@@ -84,17 +145,32 @@ class AbsSmtSolver
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
 
   /* Check satisfiability under the assumptions in any other range of Terms,
-   * such as a TermList or an UnorderedTermSet. They are copied into a
-   * TermVec, so solvers only override the TermVec version.
+   * such as a TermList or an UnorderedTermSet: anything a range-based for
+   * loop accepts, provided its begin and end have the same type. They are
+   * copied into a TermVec, so solvers only override the TermVec version.
    */
-  template <class Range,
-            class = std::enable_if_t<std::is_convertible<
-                decltype(*std::begin(std::declval<const Range &>())),
-                Term>::value>>
+  // The constraint depends on the standard the including file is compiled
+  // with. Only this inline template differs, and the two forms mangle
+  // differently, so code built with either standard links together.
+#if defined(__cpp_lib_ranges) && defined(__cpp_concepts)
+  template <class Range>
+    requires std::ranges::input_range<const Range &>
+             && std::ranges::common_range<const Range &>
+             && std::convertible_to<
+                 std::ranges::range_reference_t<const Range &>,
+                 Term>
+#else
+  template <
+      class Range,
+      class = std::enable_if_t<detail::is_term_range<const Range &>::value>>
+#endif
   Result check_sat_assuming(const Range & assumptions)
   {
-    return check_sat_assuming(
-        TermVec(std::begin(assumptions), std::end(assumptions)));
+    // With C++23 this becomes TermVec(std::from_range, assumptions), which
+    // also takes ranges whose end is a different sentinel type, and the
+    // common-range requirement and the detail helpers can go.
+    return check_sat_assuming(TermVec(detail::range_begin(assumptions),
+                                      detail::range_end(assumptions)));
   }
 
   [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_list(
