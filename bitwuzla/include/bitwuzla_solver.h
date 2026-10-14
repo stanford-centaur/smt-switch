@@ -39,7 +39,6 @@ class BzlaSolver : public AbsSmtSolver
   BzlaSolver();
   BzlaSolver(const BzlaSolver &) = delete;
   BzlaSolver & operator=(const BzlaSolver &) = delete;
-  ~BzlaSolver();
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -106,7 +105,7 @@ class BzlaSolver : public AbsSmtSolver
  protected:
   bitwuzla::Options options;
   // bzla uses tm, so tm is declared first and outlives it
-  std::unique_ptr<bitwuzla::TermManager> tm;
+  std::shared_ptr<bitwuzla::TermManager> tm;
   mutable std::unique_ptr<bitwuzla::Bitwuzla> bzla;
 
   std::unordered_map<std::string, Term> symbol_table;

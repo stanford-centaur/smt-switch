@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include "bitwuzla/cpp/bitwuzla.h"
@@ -31,7 +32,8 @@ class BzlaSolver;
 class BzlaSort : public AbsSort
 {
  public:
-  BzlaSort(const bitwuzla::Sort s) : sort(s) {};
+  BzlaSort(const bitwuzla::Sort s,
+           const std::shared_ptr<bitwuzla::TermManager> & tm);
   virtual ~BzlaSort();
   std::size_t hash() const override;
   std::uint64_t get_width() const override;
@@ -52,6 +54,9 @@ class BzlaSort : public AbsSort
   const bitwuzla::Sort get_bitwuzla_sort() const { return sort; };
 
  protected:
+  // the term manager that owns sort, kept alive for as long as sort is
+  // (declared first, so that sort is destroyed before it)
+  const std::shared_ptr<bitwuzla::TermManager> tm;
   // objects from Bitwuzla API
   const bitwuzla::Sort sort;
 
