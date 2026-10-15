@@ -34,7 +34,7 @@ int Z3Datatype::get_num_selectors(std::string name) const
     z3::func_decl cons{ c, Z3_get_datatype_sort_constructor(c, datatype, i) };
     if (cons.name().str() == name) return cons.arity();
   }
-  throw InternalSolverException(datatype.name().str() + "." + name
+  throw IncorrectUsageException(datatype.name().str() + "." + name
                                 + " not found");
 }
 

@@ -1033,7 +1033,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
   }
   if (!found)
   {
-    throw InternalSolverException("Constructor not in datatype");
+    throw IncorrectUsageException("Constructor not in datatype");
   }
   Sort cons_sort =
       std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
@@ -1062,7 +1062,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   }
   if (!found)
   {
-    throw InternalSolverException("Constructor not in datatype");
+    throw IncorrectUsageException("Constructor not in datatype");
   }
 
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
@@ -1102,7 +1102,7 @@ Term GenericSolver::get_selector(const Sort & s,
   }
   if (!found)
   {
-    throw InternalSolverException("Selector not in datatype");
+    throw IncorrectUsageException("Selector not in datatype");
   }
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);

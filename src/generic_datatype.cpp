@@ -157,7 +157,7 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   }
   if (!found)
   {
-    throw InternalSolverException("Constructor not found");
+    throw IncorrectUsageException("Constructor not found");
   }
   return num_selectors;
 }

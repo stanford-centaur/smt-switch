@@ -60,6 +60,30 @@ TEST_P(DTTests, DeclareSimpleList)
   Sort listsort = s->make_sort(listSpec);
 }
 
+TEST_P(DTTests, SelectorBelongsToOneConstructor)
+{
+  if (GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "a logging solver has no datatypes";
+  }
+
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothing =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  s->add_constructor(maybedecl, nothing);
+  s->add_constructor(maybedecl, just);
+  Sort maybesort = s->make_sort(maybedecl);
+
+  // "value" belongs to just alone, so asking for nothing's must fail rather
+  // than hand back just's, which is what a search by selector name over the
+  // whole datatype gives whichever constructor is named.
+  EXPECT_NO_THROW(s->get_selector(maybesort, "just", "value"));
+  EXPECT_THROW(s->get_selector(maybesort, "nothing", "value"),
+               IncorrectUsageException);
+}
+
 TEST_P(DTTests, DeclareSimpleListWithForwardRef)
 {
   SolverConfiguration sc = GetParam();
@@ -178,9 +202,9 @@ TEST_P(DTTests, DatatypeDecl)
   EXPECT_TRUE(res.is_sat());
   // Expected exceptions
 
-  EXPECT_THROW(s->get_constructor(listsort, "kons"), InternalSolverException);
-  EXPECT_THROW(s->get_tester(listsort, "head"), InternalSolverException);
-  EXPECT_THROW(listdt->get_num_selectors("kons"), InternalSolverException);
+  EXPECT_THROW(s->get_constructor(listsort, "kons"), IncorrectUsageException);
+  EXPECT_THROW(s->get_tester(listsort, "head"), IncorrectUsageException);
+  EXPECT_THROW(listdt->get_num_selectors("kons"), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(

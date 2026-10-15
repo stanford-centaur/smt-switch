@@ -811,7 +811,16 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->sort.getDatatype();
-    return std::make_shared<Cvc5Term>(dt.getConstructor(name).getTerm());
+    for (size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      cvc5::DatatypeConstructor ct = dt[i];
+      if (ct.getName() == name)
+      {
+        return std::make_shared<Cvc5Term>(ct.getTerm());
+      }
+    }
+    throw IncorrectUsageException(name + " is not a constructor of "
+                                  + cs->sort.toString());
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -833,7 +842,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
         return std::make_shared<Cvc5Term>(ct.getTesterTerm());
       }
     }
-    throw InternalSolverException(name + " not found in "
+    throw IncorrectUsageException(name + " is not a constructor of "
                                   + cs->sort.toString());
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -850,7 +859,24 @@ Term Cvc5Solver::get_selector(const Sort & s,
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->sort.getDatatype();
-    return std::make_shared<Cvc5Term>(dt.getSelector(name).getTerm());
+    for (size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      cvc5::DatatypeConstructor ct = dt[i];
+      if (ct.getName() != con)
+      {
+        continue;
+      }
+      for (size_t j = 0; j != ct.getNumSelectors(); j++)
+      {
+        cvc5::DatatypeSelector sel = ct[j];
+        if (sel.getName() == name)
+        {
+          return std::make_shared<Cvc5Term>(sel.getTerm());
+        }
+      }
+    }
+    throw IncorrectUsageException(name + " is not a selector of constructor "
+                                  + con + " of " + cs->sort.toString());
   }
   catch (::cvc5::CVC5ApiException & e)
   {
