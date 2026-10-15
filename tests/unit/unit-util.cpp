@@ -545,6 +545,27 @@ TEST_P(ToCnf, ConnectivesKeepEveryAssignment)
   expect_same_answer_per_assignment(formula, to_cnf(formula, s));
 }
 
+TEST_P(ToCnf, NaryImpliesKeepsEveryAssignment)
+{
+  Term formula = s->make_term(
+      And, s->make_term(Implies, { p, q, r }), s->make_term(Or, p, q));
+  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+}
+
+TEST_P(ToCnf, NaryEqualKeepsEveryAssignment)
+{
+  Term formula = s->make_term(
+      Or, s->make_term(Equal, { p, q, r }), s->make_term(And, p, r));
+  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+}
+
+TEST_P(ToCnf, NestedNaryXorKeepsEveryAssignment)
+{
+  Term formula =
+      s->make_term(Or, s->make_term(Xor, { p, q, r }), s->make_term(And, p, q));
+  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+}
+
 TEST_P(ToCnf, IteIsKeptAsAnAtom)
 {
   Term formula = s->make_term(And,
