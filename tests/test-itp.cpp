@@ -19,6 +19,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "available_solvers.h"
@@ -262,6 +263,57 @@ TEST_P(ItpTests, IncrementalCanChangeBetweenQueries)
     Term I;
     EXPECT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << value;
   }
+}
+
+TEST_P(ItpTests, InterpolatesAfterResetAssertions)
+{
+  Term A =
+      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term B = itp->make_term(gt, x, z);
+  // a reset before the first query as well as after one
+  itp->reset_assertions();
+  for (int round = 0; round < 2; ++round)
+  {
+    Term I;
+    EXPECT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << "round " << round;
+    EXPECT_TRUE(I) << "round " << round;
+    itp->reset_assertions();
+  }
+}
+
+TEST_P(ItpTests, AnswersEachQuery)
+{
+  Term up =
+      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term down =
+      itp->make_term(And, itp->make_term(gt, x, y), itp->make_term(gt, y, z));
+  Term contradiction =
+      itp->make_term(And, itp->make_term(gt, z, y), itp->make_term(gt, y, z));
+  // unsat queries, including ones with a side unsat on its own
+  for (auto [A, B] : { std::pair{ up, itp->make_term(gt, x, z) },
+                       std::pair{ down, itp->make_term(lt, x, z) },
+                       std::pair{ contradiction, itp->make_term(lt, x, z) },
+                       std::pair{ down, contradiction } })
+  {
+    Term I;
+    EXPECT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << A << " / " << B;
+    EXPECT_TRUE(I) << A << " / " << B;
+  }
+  // a satisfiable query has no interpolant; cvc5 answers unknown
+  Term I;
+  EXPECT_FALSE(
+      itp->get_interpolant(down, itp->make_term(gt, x, z), I).is_unsat());
+}
+
+TEST_P(ItpTests, SequenceInterpolantsRefuseMisuse)
+{
+  Term t = itp->make_term(lt, x, y);
+  TermVec out{ t };
+  EXPECT_THROW(itp->get_sequence_interpolants({ t, t }, out),
+               IncorrectUsageException);
+  out.clear();
+  EXPECT_THROW(itp->get_sequence_interpolants({ t }, out),
+               IncorrectUsageException);
 }
 
 TEST_P(ItpTests, DumpIsNotImplemented)
