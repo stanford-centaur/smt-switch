@@ -66,9 +66,9 @@ Cache Variables
 
   An existing tree cannot simply be moved, though.  Installed packages record
   the prefix they were built against -- Boolector's CMake package names
-  btor2tools' and CaDiCaL's archives by absolute path, and the Bitwuzla and
-  Z3 pkg-config files carry an absolute ``prefix=`` -- so a relocated tree
-  has to be rebuilt rather than carried across.  Provisioning into a new
+  btor2tools' and CaDiCaL's archives by absolute path, and Bitwuzla's
+  pkg-config file carries an absolute ``prefix=`` -- so a relocated tree has
+  to be rebuilt rather than carried across.  Provisioning into a new
   location from scratch works as it should.
 
 #]=======================================================================]
