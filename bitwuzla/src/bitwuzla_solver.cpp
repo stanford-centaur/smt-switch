@@ -799,14 +799,10 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
-  if (!incremental_mode)
-  {
-    last_itp_query_assertions.clear();
-  }
-
-  // count how many assertions can be reused
+  // count how many assertions can be reused; none when incremental is off,
+  // so every formula the last query pushed is popped below
   size_t num_reused = 0;
-  while (num_reused < last_itp_query_assertions.size()
+  while (incremental_mode && num_reused < last_itp_query_assertions.size()
          && num_reused < formulae.size()
          && last_itp_query_assertions.at(num_reused) == formulae.at(num_reused))
   {
