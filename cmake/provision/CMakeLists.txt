@@ -97,7 +97,6 @@ list(
 
 # Only for the dependencies whose cmake_minimum_required predates what CMake
 # still supports: Boolector and the btor2tools it builds both ask for 3.3.
-# cvc5 and z3 both ask for 3.16 and would report it as an unused variable.
 set(POLICY_VERSION_MINIMUM 3.10)
 set(POLICY_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=${POLICY_VERSION_MINIMUM})
 
