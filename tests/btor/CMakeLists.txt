@@ -7,7 +7,6 @@ endmacro()
 
 switch_add_btor_test(btor-array-empty-assignment)
 switch_add_btor_test(btor-exceptions)
-switch_add_btor_test(btor-incremental)
 switch_add_btor_test(btor-negation)
 switch_add_btor_test(btor-opts)
 switch_add_btor_test(btor-reset)

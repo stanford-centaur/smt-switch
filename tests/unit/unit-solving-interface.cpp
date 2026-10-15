@@ -125,6 +125,17 @@ TEST_P(UnitSolveTests, NoAssumptions)
   EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_unsat());
 }
 
+TEST_P(UnitSolveTests, SatisfiableAssumption)
+{
+  Term b = s->make_symbol("b", boolsort);
+  Term x = s->make_symbol("x", bvsort);
+  s->assert_formula(s->make_term(
+      Implies, b, s->make_term(Equal, x, s->make_term(0, bvsort))));
+  // the model follows the assumption
+  ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_sat());
+  EXPECT_EQ(s->get_value(x)->to_int(), 0);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitSolveTests,
     UnitSolveTests,

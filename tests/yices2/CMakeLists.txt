@@ -15,6 +15,5 @@ endmacro()
 
 switch_add_yices2_test(yices2-get-op)
 switch_add_yices2_test(yices2-gtest)
-switch_add_yices2_test(yices2-incremental)
 switch_add_yices2_test(yices2-params)
 switch_add_yices2_test(yices2-polynomial)
