@@ -791,7 +791,8 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     const char * c = "throwaway name";
     z3::symbol func_name = ctx.str_symbol(c);
-    z3::func_decl z_func = ctx.function(func_name, arity, &zsorts[0], z_sort);
+    z3::func_decl z_func =
+        ctx.function(func_name, arity, zsorts.data(), z_sort);
 
     return std::make_shared<Z3Sort>(z_func, ctx);
   }
@@ -1137,7 +1138,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
 
-    res = Z3_mk_app(ctx, zterm->z_func, size - 1, &zargs[0]);
+    res = Z3_mk_app(ctx, zterm->z_func, size - 1, zargs.data());
     return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
   }
 
