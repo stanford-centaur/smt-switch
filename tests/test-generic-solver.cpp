@@ -576,6 +576,23 @@ TEST_P(GenericSolverTests, Abv1)
   EXPECT_EQ(bv_x_bv_to_array->get_sort_kind(), FUNCTION);
 }
 
+TEST_P(GenericSolverIntTests, TwoArgumentUf)
+{
+  // a domain of bare words such as Int, unlike (_ BitVec 4), runs
+  // together in the declare-fun unless the sorts are separated
+  Sort int_sort = gs->make_sort(INT);
+  Sort bool_sort = gs->make_sort(BOOL);
+  Sort int_x_int_to_bool =
+      gs->make_sort(FUNCTION, SortVec{ int_sort, int_sort, bool_sort });
+  Term f = gs->make_symbol("f", int_x_int_to_bool);
+  Term a = gs->make_symbol("a", int_sort);
+  Term b = gs->make_symbol("b", int_sort);
+  gs->assert_formula(gs->make_term(Apply, TermVec{ f, a, b }));
+  gs->assert_formula(
+      gs->make_term(Not, gs->make_term(Apply, TermVec{ f, b, a })));
+  EXPECT_TRUE(gs->check_sat().is_sat());
+}
+
 TEST_P(GenericSolverTests, Bool)
 {
   Term true_term_1 = gs->make_term(true);

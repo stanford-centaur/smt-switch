@@ -83,6 +83,10 @@ std::string GenericSort::compute_string() const
     int num_args = domain_sorts.size();
     for (int i = 0; i < num_args; i++)
     {
+      if (i > 0)
+      {
+        name += " ";
+      }
       name += domain_sorts[i]->to_string();
     }
     name += ") ";
