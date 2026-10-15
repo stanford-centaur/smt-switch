@@ -96,7 +96,7 @@ class PrintingTests : public ::testing::Test,
     // not every executable takes it as an option; they get flags instead.
     SmtSolver wrapped = create_solver(GetParam());
     wrapped->set_opt("incremental", "true");
-    s = create_printing_solver(wrapped, &os, PrintingStyleEnum::DEFAULT_STYLE);
+    s = create_printing_solver(wrapped, &os);
     s->set_opt("produce-models", "true");
   }
 

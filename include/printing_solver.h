@@ -29,19 +29,19 @@
 namespace smt {
 
 /**
- * Solvers may differ in the style of their expected SMT-LIB dumped files.
- * Generally, this can include dagification, define-fun's etc.
- * Concretely, we currently only consider different syntaxes of
- * getting interpolants in SMT-LIB-like fashion.
- * Bitwuzla, cvc5 and MathSAT each have their own style, and a
- * PrintingInterpolator needs one of those three.
+ * @deprecated Taken only by the deprecated forms of the printing
+ * constructors and factories, which ignore it: a PrintingInterpolator
+ * writes each interpolation query as the interpolator it wraps runs it, and
+ * nothing a PrintingSolver writes depends on a style.
  */
+// the enumerators rather than the type are deprecated, so that the
+// deprecated forms can still be defined without a warning
 enum PrintingStyleEnum
 {
-  DEFAULT_STYLE = 0,
-  BZLA_STYLE,
-  CVC5_STYLE,
-  MSAT_STYLE,
+  DEFAULT_STYLE [[deprecated("printing no longer takes a style")]] = 0,
+  BZLA_STYLE [[deprecated("printing no longer takes a style")]],
+  CVC5_STYLE [[deprecated("printing no longer takes a style")]],
+  MSAT_STYLE [[deprecated("printing no longer takes a style")]],
 };
 
 /**
@@ -51,7 +51,9 @@ enum PrintingStyleEnum
 class PrintingSolver : public AbsSmtSolver
 {
  public:
-  PrintingSolver(SmtSolver s, std::ostream *, PrintingStyleEnum pse);
+  PrintingSolver(SmtSolver s, std::ostream * os);
+  [[deprecated("use the constructor without a style")]] PrintingSolver(
+      SmtSolver s, std::ostream * os, PrintingStyleEnum pse);
   ~PrintingSolver();
 
   /* Operators that are printed */
@@ -114,20 +116,20 @@ class PrintingSolver : public AbsSmtSolver
   SmtSolver wrapped_solver;
   /* A stream to dump SMT-LIB commands to */
   std::ostream * out_stream;
-  /* A style to use while printing */
-  PrintingStyleEnum style;
 };
 
 /**
  * A class that wraps an interpolating solver and prints corresponding
- * SMT-LIB commands, writing each interpolation query in the given style.
+ * SMT-LIB commands, writing each interpolation query as the wrapped
+ * interpolator runs it, in its backend's syntax. It answers as the wrapped
+ * interpolator does.
  */
 class PrintingInterpolator : public AbsSmtInterpolator
 {
  public:
-  PrintingInterpolator(SmtInterpolator s,
-                       std::ostream * os,
-                       PrintingStyleEnum pse);
+  PrintingInterpolator(SmtInterpolator s, std::ostream * os);
+  [[deprecated("use the constructor without a style")]] PrintingInterpolator(
+      SmtInterpolator s, std::ostream * os, PrintingStyleEnum pse);
 
   Result get_interpolant(const Term & A,
                          const Term & B,
@@ -143,8 +145,6 @@ class PrintingInterpolator : public AbsSmtInterpolator
   SmtInterpolator wrapped_interpolator;
   /* A stream to dump SMT-LIB commands to */
   std::ostream * out_stream;
-  /* A style to use while printing */
-  PrintingStyleEnum style;
   /* Keep track of created names */
   mutable std::size_t num_names = 0;
 };
@@ -152,24 +152,33 @@ class PrintingInterpolator : public AbsSmtInterpolator
 /* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.
  * @param wrapped_solver the solver to wrap
  * @param out_stream the stream to dump SMT-LIB to
- * @param style the printing style
  * @return an SmtSolver that dumps to out_stream each command that is executed.
  */
-
 SmtSolver create_printing_solver(SmtSolver wrapped_solver,
-                                 std::ostream * out_stream,
-                                 PrintingStyleEnum style);
+                                 std::ostream * out_stream);
+
+/* As create_printing_solver(wrapped_solver, out_stream); style is ignored.
+ */
+[[deprecated("use create_printing_solver without a style")]] SmtSolver
+create_printing_solver(SmtSolver wrapped_solver,
+                       std::ostream * out_stream,
+                       PrintingStyleEnum style);
 
 /* Returns a printing SmtInterpolator by wrapping PrintingInterpolator's
  * constructor.
  * @param wrapped_interpolator the interpolating solver to wrap
  * @param out_stream the stream to dump SMT-LIB to
- * @param style the printing style, which decides how interpolation queries
- *        are written: BZLA_STYLE, CVC5_STYLE or MSAT_STYLE
  * @return an SmtInterpolator that dumps to out_stream each command that is
- *         executed.
- * @throws IncorrectUsageException for any other style
+ *         executed, writing each interpolation query as wrapped_interpolator
+ *         runs it, and answers as wrapped_interpolator does
  */
+SmtInterpolator create_printing_interpolator(
+    SmtInterpolator wrapped_interpolator, std::ostream * out_stream);
+
+/* As create_printing_interpolator(wrapped_interpolator, out_stream); style
+ * is ignored.
+ */
+[[deprecated("use create_printing_interpolator without a style")]]
 SmtInterpolator create_printing_interpolator(
     SmtInterpolator wrapped_interpolator,
     std::ostream * out_stream,

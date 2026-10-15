@@ -26,6 +26,7 @@
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
+#include "solver_enums.h"
 #include "sort.h"
 
 namespace smt {
@@ -34,17 +35,16 @@ namespace smt {
 
 const char * name_prefix = "smt_switch_generated_";
 
-const char * const no_interpolation_style =
-    "A printing interpolator needs BZLA_STYLE, CVC5_STYLE or MSAT_STYLE";
-
 // implementations
+PrintingSolver::PrintingSolver(SmtSolver s, std::ostream * os)
+    : AbsSmtSolver(s->get_solver_enum()), wrapped_solver(s), out_stream(os)
+{
+}
+
 PrintingSolver::PrintingSolver(SmtSolver s,
                                std::ostream * os,
-                               PrintingStyleEnum pse)
-    : AbsSmtSolver(s->get_solver_enum()),
-      wrapped_solver(s),
-      out_stream(os),
-      style(pse)
+                               PrintingStyleEnum /* pse */)
+    : PrintingSolver(s, os)
 {
 }
 
@@ -262,40 +262,48 @@ void PrintingSolver::reset_assertions()
 }
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver,
-                                 std::ostream * out_stream,
-                                 PrintingStyleEnum style)
+                                 std::ostream * out_stream)
 {
-  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream, style);
+  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream);
+}
+
+SmtSolver create_printing_solver(SmtSolver wrapped_solver,
+                                 std::ostream * out_stream,
+                                 PrintingStyleEnum /* style */)
+{
+  return create_printing_solver(wrapped_solver, out_stream);
 }
 
 /* PrintingInterpolator */
 
+PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
+    : AbsSmtInterpolator(s->get_solver_enum(),
+                         std::make_shared<PrintingSolver>(s, os)),
+      wrapped_interpolator(s),
+      out_stream(os)
+{
+}
+
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
                                            std::ostream * os,
-                                           PrintingStyleEnum pse)
-    : AbsSmtInterpolator(s->get_solver_enum(),
-                         std::make_shared<PrintingSolver>(s, os, pse)),
-      wrapped_interpolator(s),
-      out_stream(os),
-      style(pse)
+                                           PrintingStyleEnum /* pse */)
+    : PrintingInterpolator(s, os)
 {
-  switch (style)
-  {
-    case PrintingStyleEnum::BZLA_STYLE:
-    case PrintingStyleEnum::CVC5_STYLE:
-    case PrintingStyleEnum::MSAT_STYLE: return;
-    case PrintingStyleEnum::DEFAULT_STYLE: break;
-  }
-  throw IncorrectUsageException(no_interpolation_style);
+}
+
+// the message for an interpolator whose queries printing cannot write
+static std::string no_query_syntax(SolverEnum se)
+{
+  return "A printing interpolator cannot write the queries of " + to_string(se);
 }
 
 Result PrintingInterpolator::get_interpolant(const Term & A,
                                              const Term & B,
                                              Term & out_I) const
 {
-  switch (style)
+  switch (get_solver_enum())
   {
-    case PrintingStyleEnum::MSAT_STYLE:
+    case MSAT_INTERPOLATOR:
       /* The printing follows the internal implementation from msat_solver.h
        * in which the assertions are labeled by interpolation groups
        */
@@ -309,7 +317,7 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
                     << std::endl;
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return wrapped_interpolator->get_interpolant(A, B, out_I);
-    case PrintingStyleEnum::BZLA_STYLE: {
+    case BZLA_INTERPOLATOR: {
       std::string name = name_prefix + std::to_string(num_names++);
       (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
       (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << NAMED_STR
@@ -321,17 +329,22 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return wrapped_interpolator->get_interpolant(A, B, out_I);
     }
-    case PrintingStyleEnum::CVC5_STYLE:
+    case CVC5_INTERPOLATOR:
       (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
       (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
       (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
                     << std::endl;
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return wrapped_interpolator->get_interpolant(A, B, out_I);
-    case PrintingStyleEnum::DEFAULT_STYLE: break;
+    case BTOR:
+    case BZLA:
+    case CVC5:
+    case GENERIC_SOLVER:
+    case MSAT:
+    case YICES2:
+    case Z3: break;
   }
-  // the constructor refuses any other style
-  throw IncorrectUsageException(no_interpolation_style);
+  throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
 
 Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
@@ -350,9 +363,9 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
         "get_sequence_interpolants.");
   }
 
-  switch (style)
+  switch (get_solver_enum())
   {
-    case PrintingStyleEnum::MSAT_STYLE: {
+    case MSAT_INTERPOLATOR: {
       // one query with a group per formula, and an interpolant per prefix
       // of the groups, as MathSAT's interpolating solver computes them
       (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
@@ -375,7 +388,7 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
     }
-    case PrintingStyleEnum::BZLA_STYLE: {
+    case BZLA_INTERPOLATOR: {
       // one query, partitioned into every formula but the last, as
       // Bitwuzla's interpolating solver computes it
       std::vector<std::string> names;
@@ -398,14 +411,55 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
     }
-    case PrintingStyleEnum::CVC5_STYLE:
-      // cvc5 has no sequence query, so its interpolating solver asks for
-      // one interpolant per prefix, and those are the queries printed
-      return sequence_from_interpolants(formulae, out_I);
-    case PrintingStyleEnum::DEFAULT_STYLE: break;
+    case CVC5_INTERPOLATOR: {
+      // cvc5 has no sequence query, so its interpolating solver asks one
+      // query per split, from the interpolant of the split before; they
+      // are printed once those interpolants are known, up to the first
+      // split that fails, after which it asks no more
+      Result r =
+          wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
+      for (std::size_t i = 0; i < out_I.size(); ++i)
+      {
+        if (i > 0 && !out_I[i - 1])
+        {
+          break;
+        }
+        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+        if (i > 0)
+        {
+          (*out_stream) << "(" << ASSERT_STR << " " << out_I[i - 1] << ")"
+                        << std::endl;
+        }
+        (*out_stream) << "(" << ASSERT_STR << " " << formulae[i] << ")"
+                      << std::endl;
+        (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not ";
+        if (i + 2 == formulae.size())
+        {
+          (*out_stream) << formulae.back();
+        }
+        else
+        {
+          (*out_stream) << "(and";
+          for (std::size_t j = i + 1; j < formulae.size(); ++j)
+          {
+            (*out_stream) << " " << formulae[j];
+          }
+          (*out_stream) << ")";
+        }
+        (*out_stream) << "))" << std::endl;
+        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      }
+      return r;
+    }
+    case BTOR:
+    case BZLA:
+    case CVC5:
+    case GENERIC_SOLVER:
+    case MSAT:
+    case YICES2:
+    case Z3: break;
   }
-  // the constructor refuses any other style
-  throw IncorrectUsageException(no_interpolation_style);
+  throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
 
 void PrintingInterpolator::set_opt(const std::string option,
@@ -422,12 +476,18 @@ void PrintingInterpolator::reset_assertions()
 }
 
 SmtInterpolator create_printing_interpolator(
+    SmtInterpolator wrapped_interpolator, std::ostream * out_stream)
+{
+  return std::make_shared<PrintingInterpolator>(wrapped_interpolator,
+                                                out_stream);
+}
+
+SmtInterpolator create_printing_interpolator(
     SmtInterpolator wrapped_interpolator,
     std::ostream * out_stream,
-    PrintingStyleEnum style)
+    PrintingStyleEnum /* style */)
 {
-  return std::make_shared<PrintingInterpolator>(
-      wrapped_interpolator, out_stream, style);
+  return create_printing_interpolator(wrapped_interpolator, out_stream);
 }
 
 }  // namespace smt

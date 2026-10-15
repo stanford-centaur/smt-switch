@@ -38,9 +38,7 @@ class BitwuzlaPrintingTest : public testing::Test
 TEST_F(BitwuzlaPrintingTest, Interpolation)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(),
-      os,
-      PrintingStyleEnum::BZLA_STYLE);
+      BitwuzlaSolverFactory::create_interpolating_solver(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -75,9 +73,7 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
 TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(),
-      os,
-      PrintingStyleEnum::BZLA_STYLE);
+      BitwuzlaSolverFactory::create_interpolating_solver(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);

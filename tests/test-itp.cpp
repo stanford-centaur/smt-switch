@@ -418,16 +418,23 @@ TEST_P(ItpTests, DumpIsNotImplemented)
                NotImplementedException);
 }
 
-TEST_P(ItpTests, PrintingNeedsAnInterpolationStyle)
+// a printing interpolator leaves the answer to the one it wraps
+TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {
   std::ostringstream out;
-  EXPECT_THROW(create_printing_interpolator(itp, &out, DEFAULT_STYLE),
-               IncorrectUsageException);
-  for (PrintingStyleEnum style : { BZLA_STYLE, CVC5_STYLE, MSAT_STYLE })
-  {
-    EXPECT_NO_THROW(create_printing_interpolator(itp, &out, style))
-        << "style " << style;
-  }
+  SmtInterpolator printing = create_printing_interpolator(itp, &out);
+  Term A1 =
+      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, w));
+  Term A2 =
+      itp->make_term(And, itp->make_term(gt, z, w), itp->make_term(lt, z, x));
+  Term A3 =
+      itp->make_term(And, itp->make_term(gt, y, z), itp->make_term(lt, y, w));
+  TermVec formulae{ A1, A2, A3 };
+  TermVec interpolants;
+  ASSERT_TRUE(
+      printing->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  expect_chain(
+      GetParam().config.solver_enum, formulae, interpolants, "A1, A2, A3");
 }
 
 // each interpolator runs the tests in every theory it supports
