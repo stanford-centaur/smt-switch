@@ -1,3 +1,14 @@
+# Z3 requires a newer CMake than smt-switch does. Without this check the
+# archive is downloaded before Z3's own configure step refuses.
+if("z3" IN_LIST _requested AND CMAKE_VERSION VERSION_LESS 3.26)
+  message(
+    FATAL_ERROR
+    "Building Z3 requires CMake 3.26 or later, but this is CMake "
+    "${CMAKE_VERSION}. Upgrade CMake, or install Z3 yourself and point "
+    "--z3-dir at it."
+  )
+endif()
+
 # Z3 declares LANGUAGES CXX, so the C compiler we forward everywhere else
 # goes unused here and CMake reports it.
 set(Z3_CMAKE_ARGS ${COMMON_CMAKE_ARGS})

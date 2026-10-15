@@ -138,7 +138,7 @@ built automatically by smt-switch.
 - **Bitwuzla** — Meson, GMP, MPFR
 - **Boolector**
 - **cvc5** — GMP
-- **Z3** — GMP and its C++ bindings
+- **Z3** — CMake >= 3.26, GMP and its C++ bindings
 
 ### Licensed under the GPL
 
