@@ -177,6 +177,10 @@ class GenericSolver : public AbsSmtSolver
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
 
+  // the name to put in check-sat-assuming for an assumption: a literal's
+  // own, or for any other formula a label asserted to imply it
+  std::string assumption_name(const Term & assumption);
+
   // create an smt-lib constant array value.
   // used for make_term
   std::string cons_arr_string(const Term & val, const Sort & sort) const;
@@ -304,6 +308,10 @@ class GenericSolver : public AbsSmtSolver
   // maps between Term name and actual Term and vice versa
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
+
+  // labels standing in for assumptions that are not literals, and back
+  UnorderedTermMap assumption_labels;
+  UnorderedTermMap labelled_assumptions;
 
   // Map between names and Generic datatypes and vice versa
   std::unique_ptr<

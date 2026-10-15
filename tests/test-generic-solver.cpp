@@ -967,6 +967,14 @@ TEST_P(GenericSolverTests, GetValueForeignTerm)
   EXPECT_THROW(gs->get_value(foreign), IncorrectUsageException);
 }
 
+TEST_P(GenericSolverTests, AssumeForeignTerm)
+{
+  // a symbol made outside this solver, which never declared it
+  Term foreign = std::make_shared<GenericTerm>(
+      gs->make_sort(BOOL), Op(), TermVec{}, "|foreign|", true);
+  EXPECT_THROW(gs->check_sat_assuming({ foreign }), IncorrectUsageException);
+}
+
 TEST_P(GenericSolverTests, CheckSatAssuming1)
 {
   // Testing check-sat-assuming
@@ -1025,6 +1033,27 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
   Term culprit = binary == GenericBinary::Btor ? b1 : not_b1;
   EXPECT_NE(core.find(culprit), core.end());
   gs->pop(1);
+}
+
+TEST_P(GenericSolverTests, FormulaAssumptions)
+{
+  gs->push(1);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term y = gs->make_symbol("y", bv_sort);
+  Term x_lt_y = gs->make_term(BVUlt, x, y);
+  Term x_ge_y = gs->make_term(BVUge, x, y);
+  EXPECT_TRUE(gs->check_sat_assuming({ x_lt_y }).is_sat());
+  ASSERT_TRUE(gs->check_sat_assuming({ x_lt_y, x_ge_y }).is_unsat());
+  UnorderedTermSet core;
+  gs->get_unsat_assumptions(core);
+  // each assumption is satisfiable on its own, so the core needs both
+  EXPECT_EQ(core, (UnorderedTermSet{ x_lt_y, x_ge_y }));
+  gs->pop(1);
+  // the assumptions are still accepted once the scope they were made in
+  // is gone
+  EXPECT_TRUE(gs->check_sat_assuming({ x_lt_y }).is_sat());
+  EXPECT_TRUE(gs->check_sat_assuming({ x_lt_y, x_ge_y }).is_unsat());
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverTests,

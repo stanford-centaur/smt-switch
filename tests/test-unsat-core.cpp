@@ -89,7 +89,9 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
 
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
-  EXPECT_GT(core.size(), 1u);
+  // each assumption is satisfiable on its own, so the core needs both, as
+  // they were given
+  EXPECT_EQ(core, (UnorderedTermSet{ x_lt_y, x_ge_y }));
 }
 
 TEST_P(UnsatCoreTests, UnsatCoreFromList)
