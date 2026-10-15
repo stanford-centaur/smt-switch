@@ -9,8 +9,7 @@ smt_switch_dependency(
   CMAKE_ARGS
     ${Z3_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DZ3_BUILD_LIBZ3_SHARED=OFF
-    # The git options default to on but there is no .git in a release tarball.
+    # Z3 would run git inside our checkout and stamp our commit as its own.
     -DZ3_INCLUDE_GIT_DESCRIBE=OFF
     -DZ3_INCLUDE_GIT_HASH=OFF
   BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> -j${SMT_SWITCH_DEPS_JOBS}
