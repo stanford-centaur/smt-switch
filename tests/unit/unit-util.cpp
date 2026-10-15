@@ -494,35 +494,21 @@ class ToCnf : public ::testing::Test,
     y = s->make_symbol("y", bvsort);
   }
 
-  // checks formula and the assignment's literals, leaving no assertion
-  // behind; check_sat_assuming would do, but it hangs on Yices2
-  Result check_sat_with(const Term & formula, const TermVec & assignment = {})
-  {
-    s->push();
-    s->assert_formula(formula);
-    for (const Term & lit : assignment)
-    {
-      s->assert_formula(lit);
-    }
-    Result res = s->check_sat();
-    s->pop();
-    return res;
-  }
-
   // Tseitin's fresh symbols are determined by the original ones, so the
   // CNF must agree with the formula under every assignment to p, q and r
   void expect_same_answer_per_assignment(const Term & formula, const Term & cnf)
   {
     for (int bits = 0; bits < 8; ++bits)
     {
-      TermVec assignment;
+      TermVec assumptions{ formula };
       for (int i = 0; i < 3; ++i)
       {
         Term v = TermVec{ p, q, r }[i];
-        assignment.push_back((bits >> i) & 1 ? v : s->make_term(Not, v));
+        assumptions.push_back((bits >> i) & 1 ? v : s->make_term(Not, v));
       }
-      EXPECT_EQ(check_sat_with(formula, assignment).is_sat(),
-                check_sat_with(cnf, assignment).is_sat())
+      bool formula_is_sat = s->check_sat_assuming(assumptions).is_sat();
+      assumptions[0] = cnf;
+      EXPECT_EQ(formula_is_sat, s->check_sat_assuming(assumptions).is_sat())
           << "formula: " << formula << "\ncnf: " << cnf
           << "\nassignment: " << bits;
     }
@@ -573,7 +559,7 @@ TEST_P(ToCnf, IteIsKeptAsAnAtom)
                                 s->make_term(Not, p),
                                 s->make_term(Not, r) });
   Term cnf = to_cnf(formula, s);
-  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+  EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
 }
 
@@ -584,7 +570,7 @@ TEST_P(ToCnf, DistinctIsKeptAsAnAtom)
                                 s->make_term(Not, p),
                                 s->make_term(Not, q) });
   Term cnf = to_cnf(formula, s);
-  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+  EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
 }
 
@@ -595,21 +581,22 @@ TEST_P(ToCnf, BitVectorAtomsAreKept)
       s->make_term(Or, s->make_term(BVUlt, x, y), s->make_term(Equal, x, y)),
       s->make_term(BVUlt, y, x));
   Term cnf = to_cnf(formula, s);
-  EXPECT_TRUE(check_sat_with(cnf).is_unsat()) << cnf;
+  EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
 
   Term sat_formula = s->make_term(Or,
                                   s->make_term(BVUlt, x, y),
                                   s->make_term(Not, s->make_term(Equal, x, y)));
   Term sat_cnf = to_cnf(sat_formula, s);
-  EXPECT_TRUE(check_sat_with(sat_cnf).is_sat()) << sat_cnf;
+  EXPECT_TRUE(s->check_sat_assuming({ sat_cnf }).is_sat()) << sat_cnf;
 }
 
 TEST_P(ToCnf, TopLevelAtomIsReturned)
 {
   Term atom = s->make_term(BVUlt, x, y);
   Term cnf = to_cnf(atom, s);
-  EXPECT_TRUE(check_sat_with(cnf, { atom }).is_sat()) << cnf;
-  EXPECT_TRUE(check_sat_with(cnf, { s->make_term(Not, atom) }).is_unsat())
+  EXPECT_TRUE(s->check_sat_assuming({ cnf, atom }).is_sat()) << cnf;
+  EXPECT_TRUE(
+      s->check_sat_assuming({ cnf, s->make_term(Not, atom) }).is_unsat())
       << cnf;
   // a raw solver may store the atom as a connective, e.g. Yices2 builds
   // (bvult x y) as (not (bvge x y)), so only a logging solver keeps it whole
