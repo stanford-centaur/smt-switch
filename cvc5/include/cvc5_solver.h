@@ -149,6 +149,14 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<Cvc5Solver> cvc5_solver;
+  // whether a query may reuse the formulas it shares with the one before
+  bool incremental_mode = true;
+  // the formulas on cvc5's assertion stack, one context level each
+  mutable TermVec last_itp_query_assertions;
+  // the last sequence query and, if it was unsat with every interpolant
+  // found, its interpolants, which stay valid for a query that extends it
+  mutable TermVec last_itp_query_formulae;
+  mutable TermVec last_itp_query_interpolants;
 };
 
 }  // namespace smt

@@ -15,6 +15,7 @@
 **/
 #include "cvc5_solver.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <limits>
@@ -1073,13 +1074,15 @@ void cvc5InterpolatingSolver::initialize()
 {
   // set_opt refuses produce-interpolants, so this is the only place it is set
   cvc5_solver->set_opt("produce-interpolants", "true");
-  // cvc5 is incremental by default, which measurably slows down each
-  // bit-vector interpolation query (seen with cvc5 1.4.0)
-  cvc5_solver->set_opt("incremental", "false");
+  // queries reuse what they share through push and pop, which need it
+  cvc5_solver->set_opt("incremental", "true");
 }
 
 void cvc5InterpolatingSolver::reset()
 {
+  last_itp_query_assertions.clear();
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
   cvc5_solver->reset();
   initialize();
 }
@@ -1092,6 +1095,25 @@ void cvc5InterpolatingSolver::set_opt(const std::string option,
     throw IncorrectUsageException("cvc5 interpolator does not allow option: "
                                   + option);
   }
+  if (option == "incremental")
+  {
+    // as for the other interpolators, whether a query may reuse formulas
+    // from the one before, not cvc5's own option, which stays on
+    if (value == "true")
+    {
+      incremental_mode = true;
+    }
+    else if (value == "false")
+    {
+      incremental_mode = false;
+    }
+    else
+    {
+      throw IncorrectUsageException(
+          "Invalid value for boolean option 'incremental'");
+    }
+    return;
+  }
   cvc5_solver->set_opt(option, value);
 }
 
@@ -1099,39 +1121,126 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
 {
-  ::cvc5::Solver & solver = cvc5_solver->get_cvc5_solver();
-  solver.resetAssertions();
-  if (A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
-  {
-    throw IncorrectUsageException("get_interpolant requires two boolean terms");
-  }
-  std::shared_ptr<Cvc5Term> cA = std::static_pointer_cast<Cvc5Term>(A);
-  std::shared_ptr<Cvc5Term> cB =
-      std::static_pointer_cast<Cvc5Term>(make_term(Not, B));
-  solver.assertFormula(cA->term);
-  cvc5::Term I = solver.getInterpolant(cB->term);
-  if (!I.isNull())
-  {
-    out_I = Term(new Cvc5Term(I));
-    return UNSAT;
-  }
-  else
-  {
-    return UNKNOWN;
-  }
+  return interpolant_from_sequence(A, B, out_I);
 }
 
+// Each interpolant is between the conjunction of the formulae before a point
+// and that of the formulae after it, as in sequence_from_interpolants. cvc5
+// interpolates between all its assertions and a given formula, so the
+// formulae before the point sit on cvc5's assertion stack, one context level
+// each, pushed one at a time as the point moves on. The next query reuses
+// the first of them if it starts with the same formula.
 Result cvc5InterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
-  return sequence_from_interpolants(formulae, out_I);
+  if (formulae.size() < 2)
+  {
+    throw IncorrectUsageException(
+        "Sequence interpolation requires at least 2 formulae.");
+  }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
+  for (const Term & f : formulae)
+  {
+    if (f->get_sort()->get_sort_kind() != BOOL)
+    {
+      throw IncorrectUsageException(
+          "get_sequence_interpolants requires boolean terms");
+    }
+  }
+
+  ::cvc5::Solver & solver = cvc5_solver->get_cvc5_solver();
+  if (!incremental_mode)
+  {
+    solver.resetAssertions();
+    last_itp_query_assertions.clear();
+    last_itp_query_formulae.clear();
+    last_itp_query_interpolants.clear();
+  }
+
+  // A query that starts with all of an unsat last one only strengthens the
+  // B side of the splits they share, so their interpolants still hold, and
+  // the stack already holds what the next split needs.
+  std::size_t first_split = 0;
+  std::size_t last_size = last_itp_query_formulae.size();
+  if (!last_itp_query_interpolants.empty() && last_size <= formulae.size()
+      && last_itp_query_assertions.size() + 1 == last_size
+      && std::equal(last_itp_query_formulae.begin(),
+                    last_itp_query_formulae.end(),
+                    formulae.begin()))
+  {
+    out_I = last_itp_query_interpolants;
+    first_split = last_size - 1;
+  }
+  else
+  {
+    // the first split interpolates against the first formula alone, so
+    // only that one can be kept from the last query; each later split then
+    // pushes one more
+    std::size_t num_reused = 0;
+    if (!last_itp_query_assertions.empty()
+        && last_itp_query_assertions.front() == formulae.front())
+    {
+      num_reused = 1;
+    }
+    if (num_reused < last_itp_query_assertions.size())
+    {
+      solver.pop(last_itp_query_assertions.size() - num_reused);
+      last_itp_query_assertions.resize(num_reused);
+    }
+  }
+
+  bool any_fails = false;
+  for (std::size_t i = first_split; i + 1 < formulae.size(); ++i)
+  {
+    if (i == last_itp_query_assertions.size())
+    {
+      solver.push();
+      solver.assertFormula(
+          std::static_pointer_cast<Cvc5Term>(formulae[i])->term);
+      last_itp_query_assertions.push_back(formulae[i]);
+    }
+    Term B = formulae[i + 1];
+    for (std::size_t j = i + 2; j < formulae.size(); ++j)
+    {
+      B = make_term(And, B, formulae[j]);
+    }
+    ::cvc5::Term I = solver.getInterpolant(
+        std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term);
+    if (I.isNull())
+    {
+      any_fails = true;
+      out_I.push_back(Term());
+    }
+    else
+    {
+      out_I.push_back(std::make_shared<Cvc5Term>(I));
+    }
+  }
+
+  if (any_fails)
+  {
+    last_itp_query_formulae.clear();
+    last_itp_query_interpolants.clear();
+    return Result(
+        UNKNOWN,
+        "Had at least one interpolation failure in get_sequence_interpolants");
+  }
+  last_itp_query_formulae = formulae;
+  last_itp_query_interpolants = out_I;
+  return Result(UNSAT);
 }
 
 void cvc5InterpolatingSolver::reset_assertions()
 {
-  // get_interpolant resets cvc5's assertions before every query, so
-  // nothing is kept between queries
+  cvc5_solver->get_cvc5_solver().resetAssertions();
+  last_itp_query_assertions.clear();
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
 }
 
 }  // namespace smt
