@@ -1202,11 +1202,11 @@ void MsatInterpolatingSolver::set_opt(const string option, const string value)
   {
     // MathSAT itself is always incremental. This option decides whether a
     // query reuses the formulas it shares with the one before.
-    if (value == "true" || value == "1")
+    if (value == "true")
     {
       incremental_mode_ = true;
     }
-    else if (value == "false" || value == "0")
+    else if (value == "false")
     {
       incremental_mode_ = false;
     }
