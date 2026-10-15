@@ -206,14 +206,6 @@ bool has_attribute(GenericBinary b, SolverAttribute a)
   {
     return true;
   }
-  // With produce-unsat-assumptions on, as init_solver sets it for every
-  // binary, Bitwuzla 0.9.1 answers unknown to an equality with a constant
-  // array, warning "Equality over constant arrays not fully supported yet".
-  // Without that option it answers sat.
-  if (b == GenericBinary::Bitwuzla && a == CONSTARR)
-  {
-    return false;
-  }
   // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
   // frontend has no such term: the binary answers
   // (error "undefined term: const") to ((as const (Array ...)) ...).
