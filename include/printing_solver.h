@@ -17,8 +17,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "interpolating_solver.h"
 #include "smt_defs.h"
@@ -141,12 +143,30 @@ class PrintingInterpolator : public AbsSmtInterpolator
   void reset_assertions() override;
 
  protected:
+  /* Prints a query of formulae as the wrapped interpolator runs it, around
+   * ask, which runs it and stores its interpolants in out_I. What the
+   * wrapped interpolator keeps from the queries before is followed here, so
+   * that only what it actually asks is printed.
+   */
+  Result print_query(const TermVec & formulae,
+                     const TermVec & out_I,
+                     const std::function<Result()> & ask) const;
+
   /* The wrapped interpolator */
   SmtInterpolator wrapped_interpolator;
   /* A stream to dump SMT-LIB commands to */
   std::ostream * out_stream;
   /* Keep track of created names */
   mutable std::size_t num_names = 0;
+  /* Whether the wrapped interpolator reuses what queries share */
+  bool incremental = true;
+  /* For Bitwuzla and MathSAT, the formulae left asserted by the last query,
+   * one context level each, and the names they were printed with */
+  mutable TermVec asserted;
+  mutable std::vector<std::string> asserted_names;
+  /* For cvc5, the last query if it was unsat, whose interpolants cvc5
+   * reuses for a query that extends it */
+  mutable TermVec last_unsat_query;
 };
 
 /* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.

@@ -63,10 +63,15 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
   Term I1;
   solver->get_interpolant(A1, B1, I1);
 
+  // each is asked as a sequence of two, as the interpolator runs it
   check_result({ { "unsat" },
+                 { "(" },
                  { "(not (bvult z x))" },
+                 { ")" },
                  { "unsat" },
-                 { "(not (bvult x z))" } },
+                 { "(" },
+                 { "(not (bvult x z))" },
+                 { ")" } },
                "--produce-interpolants");
 }
 
@@ -98,6 +103,67 @@ TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
                    "(= #b1 ((_ extract 0 0) x)))))" },
                  { ")" } },
                "--produce-interpolants");
+}
+
+// a query that extends the last one keeps its formulas asserted, and one
+// that shares only a prefix with it, or nothing, pops the rest
+TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
+{
+  SmtInterpolator solver = create_printing_interpolator(
+      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+  solver->set_logic("QF_BV");
+  solver->set_opt("interpolants-subst", "true");
+  Sort bvsort = solver->make_sort(BV, 2);
+  Term x = solver->make_symbol("x", bvsort);
+  Term y = solver->make_symbol("y", bvsort);
+  Term z = solver->make_symbol("z", bvsort);
+  Term xy = solver->make_term(BVUlt, x, y);
+  Term yz = solver->make_term(BVUlt, y, z);
+  Term zx = solver->make_term(BVUlt, z, x);
+  Term xz = solver->make_term(BVUlt, x, z);
+  for (const TermVec & formulae : { TermVec{ xy, yz, zx },
+                                    TermVec{ xy, yz, zx, xz },
+                                    TermVec{ xy, zx, yz },
+                                    TermVec{ yz, zx, xy } })
+  {
+    TermVec interpolants;
+    ASSERT_TRUE(
+        solver->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  }
+
+  const std::string x_lt_z_bits =
+      "(and (not (and (= ((_ extract 1 1) z) #b0) (= #b1 ((_ extract 1 1) "
+      "x)))) (not (and (= ((_ extract 0 0) z) #b0) (= #b1 ((_ extract 0 0) "
+      "x)))))";
+  check_result(
+      { { "unsat" },
+        { "(" },
+        { "(bvult x y)" },
+        { x_lt_z_bits },
+        { ")" },
+        { "unsat" },
+        { "(" },
+        { "(bvult x y)" },
+        { x_lt_z_bits },
+        { "(and (not (and (= ((_ extract 0 0) z) #b0) (= #b1 ((_ extract 0 0) "
+          "x)))) (and (bvult z x) (not (and (= ((_ extract 1 1) z) #b0) (= "
+          "#b1 ((_ extract 1 1) x))))))" },
+        { ")" },
+        { "unsat" },
+        { "(" },
+        { "(bvult x y)" },
+        { "(and (not (and (= ((_ extract 1 1) z) #b1) (= ((_ extract 1 1) y) "
+          "#b0))) (not (and (= #b1 ((_ extract 0 0) z)) (= ((_ extract 0 0) "
+          "y) #b0))))" },
+        { ")" },
+        { "unsat" },
+        { "(" },
+        { "(bvult y z)" },
+        { "(and (not (and (= ((_ extract 1 1) x) #b0) (= #b1 ((_ extract 1 1) "
+          "y)))) (not (and (= ((_ extract 0 0) x) #b0) (= #b1 ((_ extract 0 0) "
+          "y)))))" },
+        { ")" } },
+      "--produce-interpolants");
 }
 
 }  // namespace smt_tests
