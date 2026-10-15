@@ -69,7 +69,7 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
     find_dependency(Yices2)
     find_dependency(GMP)
   elseif(_smt_switch_component STREQUAL "z3")
-    find_dependency(Z3)
+    find_dependency(Z3 @SMT_SWITCH_Z3_DEPENDENCY_ARGS@)
     find_dependency(GMP COMPONENTS gmpxx)
   endif()
 
