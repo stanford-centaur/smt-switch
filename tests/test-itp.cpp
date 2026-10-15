@@ -145,14 +145,6 @@ void expect_chain(SolverEnum interpolator,
 
 TEST_P(ItpTests, SequenceInterpolants)
 {
-  // NOTE: there's a default implementation of
-  //       get_sequence_interpolants that should work for
-  //       any interpolating solver
-  //       but it should be much more performant if
-  //       specialized with a dedicated function from the
-  //       underlying solver
-  //       e.g. using interpolation groups in mathsat
-
   // A1 : x < y /\ y < w
   Term A1 = itp->make_term(lt, x, y);
   A1 = itp->make_term(And, A1, itp->make_term(lt, y, w));
