@@ -1130,4 +1130,20 @@ TEST(GenericSolver, BinaryClosedItsInput)
       InternalSolverException);
 }
 
+TEST(GenericSolver, StderrIsNotAnAnswer)
+{
+  // the binary writes a diagnostic to stderr ahead of its answer, as
+  // Bitwuzla warns ahead of some check-sat answers
+  SmtSolver gs = std::make_shared<GenericSolver>(
+      "/bin/sh",
+      vector<string>{ "-c",
+                      "while read -r line; do case \"$line\" in"
+                      " *check-sat*) echo 'stderr is not an answer' >&2;"
+                      " echo sat ;;"
+                      " *) echo success ;; esac; done" },
+      solver_response_timeout,
+      5);
+  EXPECT_TRUE(gs->check_sat().is_sat());
+}
+
 }  // namespace smt_tests
