@@ -355,7 +355,12 @@ atom:
    }
    | NAT
    {
-     $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::INT));
+     // in a logic of reals without integers, numerals are reals
+     smt::SortKind sk = drv.lookup_sortkind("Int") == smt::NUM_SORT_KINDS
+                                && drv.lookup_sortkind("Real") == smt::REAL
+                            ? smt::REAL
+                            : smt::INT;
+     $$ = drv.solver()->make_term($1, drv.solver()->make_sort(sk));
    }
    | bvconst
    {

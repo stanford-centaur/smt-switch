@@ -45,6 +45,13 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_ufbv_tests(
       { "test-define-sort.smt2", { smt::Result(smt::UNSAT) } },
       { "test-define-sort-edge-case.smt2", { smt::Result(smt::UNSAT) } } });
 
+const std::unordered_map<std::string, std::vector<smt::Result>> qf_lra_tests({
+    { "test-numerals.smt2",
+      { smt::Result(smt::SAT),
+        smt::Result(smt::UNSAT),
+        smt::Result(smt::SAT) } },
+});
+
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_alia_tests({
     { "test-array.smt2", { smt::Result(smt::UNSAT) } },
 });
