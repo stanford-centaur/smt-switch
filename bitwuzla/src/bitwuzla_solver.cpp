@@ -746,11 +746,11 @@ void BzlaInterpolatingSolver::set_opt(const std::string option,
     // non-incremental solving. However, we use this option to determine whether
     // we want to reuse assertions on the solver stack between interpolation
     // queries.
-    if (value == "true" || value == "1")
+    if (value == "true")
     {
       incremental_mode = true;
     }
-    else if (value == "false" || value == "0")
+    else if (value == "false")
     {
       incremental_mode = false;
     }
