@@ -14,6 +14,7 @@
 **
 **/
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -79,6 +80,29 @@ class IndicatorTreeWalker : public TreeWalker
                                   smt::Term & term,
                                   std::vector<int> & path) override
   {
+    /* The walker promises that path locates term within formula. An
+     * occurrence map keyed by a fresh variable cannot say so, and the
+     * default visit_term, which keys the cache by the term, cannot say so
+     * for a term that occurs more than once. So check it on the way past.
+     */
+    Term at_path = formula;
+    bool path_fits = true;
+    for (int child_no : path)
+    {
+      TermVec children(at_path->begin(), at_path->end());
+      if (child_no < 0 || static_cast<std::size_t>(child_no) >= children.size())
+      {
+        path_fits = false;
+        break;
+      }
+      at_path = children[child_no];
+    }
+    EXPECT_TRUE(path_fits) << "path leaves " << formula;
+    if (path_fits)
+    {
+      EXPECT_EQ(at_path, term);
+    }
+
     Sort boolsort = solver_->make_sort(BOOL);
 
     /* for each node visited, create a fresh boolean variable, bn, to map to an
