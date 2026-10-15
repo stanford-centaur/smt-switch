@@ -1,7 +1,9 @@
 # Bitwuzla builds its own version of CaDiCaL, which would collide with the
 # copies used by boolector and cvc5, so we rename its namespace while compiling.
 # Reap is an internal data structure that CaDiCaL oddly puts in the global
-# namespace, so we also need to rename it.
+# namespace, so we also need to rename it. The copy of Kitten bundled with
+# CaDiCaL is C and outside the namespace too, but Bitwuzla's wrap already
+# prefixes its symbols.
 set(BITWUZLA_CADICAL "-DCaDiCaL=smt_switch_bzla_CaDiCaL -DReap=smt_switch_bzla_Reap")
 
 # The plain COMMAND options are run after the step they follow.

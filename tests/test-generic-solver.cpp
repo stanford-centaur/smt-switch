@@ -241,7 +241,7 @@ bool has_array_returning_functions(GenericBinary b)
 
 /** Whether the binary refuses a set-option it does not know, as SMT-LIB
  *  requires, which is what reaches the caller as an error. No
- *  SolverAttribute covers it. Bitwuzla 0.9.1 answers success instead.
+ *  SolverAttribute covers it. Bitwuzla answers success instead.
  */
 bool rejects_unknown_options(GenericBinary b)
 {

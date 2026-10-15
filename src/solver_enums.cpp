@@ -36,10 +36,9 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             BOOL_BV1_ALIASING,
             TIMELIMIT } },
         // Bitwuzla declares uninterpreted sorts and constants of them, but
-        // cannot reason over them: an equality warns "Equalities over
-        // uninterpreted sorts not yet supported" and answers unknown, and a
-        // distinct of three or more throws out of check_sat. So it claims
-        // neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
+        // cannot reason over them: an equality or distinct warns "Equalities
+        // over uninterpreted sorts not yet supported" and answers unknown.
+        // So it claims neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
         { BZLA,
           { TERMITER,
             ARRAY_MODELS,
