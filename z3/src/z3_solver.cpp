@@ -72,6 +72,26 @@ Z3_ast ext_Z3_mk_abs(Z3_context c, Z3_ast a)
   return result;
 }
 
+// extension function: the division of Reals. Z3_mk_div divides Ints as Ints,
+// so Int arguments are converted to Reals first, and referenced until the
+// division holds them.
+Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
+{
+  Z3_ast args[2] = { t1, t2 };
+  for (Z3_ast & arg : args)
+  {
+    if (Z3_get_sort_kind(c, Z3_get_sort(c, arg)) == Z3_INT_SORT)
+    {
+      arg = Z3_mk_int2real(c, arg);
+    }
+    Z3_inc_ref(c, arg);
+  }
+  Z3_ast result = Z3_mk_div(c, args[0], args[1]);
+  Z3_dec_ref(c, args[1]);
+  Z3_dec_ref(c, args[0]);
+  return result;
+}
+
 const std::unordered_map<PrimOp, un_fun> unary_ops(
     { { Not, Z3_mk_not },
       { Negate, Z3_mk_unary_minus },
@@ -87,7 +107,7 @@ const unordered_map<PrimOp, bin_fun> binary_ops({
     { Implies, Z3_mk_implies },
     { Pow, Z3_mk_power },
     { IntDiv, Z3_mk_div },
-    { Div, Z3_mk_div },
+    { Div, ext_Z3_mk_real_div },
     { Lt, Z3_mk_lt },
     { Le, Z3_mk_le },
     { Gt, Z3_mk_gt },

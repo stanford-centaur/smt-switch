@@ -145,7 +145,7 @@ const std::unordered_map<
         { Minus, same_sort },
         { Negate, same_sort },
         { Mult, same_sort },
-        { Div, same_sort },
+        { Div, real_sort },
         { Lt, bool_sort },
         { Le, bool_sort },
         { Gt, bool_sort },
