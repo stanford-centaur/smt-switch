@@ -1666,8 +1666,12 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
   // parse the result -- get the assumptions
   UnorderedTermSet assumptions = get_assumptions_from_string(result);
 
-  // put the result in out
-  out.insert(assumptions.begin(), assumptions.end());
+  // put the result in out, each label as the formula it stands for
+  for (const Term & a : assumptions)
+  {
+    auto it = labelled_assumptions.find(a);
+    out.insert(it == labelled_assumptions.end() ? a : it->second);
+  }
 }
 
 void GenericSolver::check_no_error(std::string str) const
@@ -1865,6 +1869,9 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 void GenericSolver::reset()
 {
   std::string result = run_command("(" + RESET_STR + ")");
+  // the binary has forgotten the labels' declarations
+  assumption_labels.clear();
+  labelled_assumptions.clear();
 }
 
 void GenericSolver::set_opt(const std::string option, const std::string value)
@@ -1924,16 +1931,12 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
   std::string names;
   for (Term t : assumptions)
   {
-    // assumptions can only be Boolean literals
     if (t->get_sort()->get_sort_kind() != BOOL)
     {
-      throw IncorrectUsageException(
-          "Expecting boolean indicator literals but got: " + t->to_string());
+      throw IncorrectUsageException("Expecting Boolean assumptions but got: "
+                                    + t->to_string());
     }
-
-    // add the name of the literal to the list of assumptions
-    assert(term_name_map->find(t) != term_name_map->end());
-    names += " " + (*term_name_map)[t];
+    names += " " + assumption_name(t);
   }
 
   // send command to the solver and parse it
@@ -1941,6 +1944,46 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
       run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
   Result r = str_to_result(result);
   return r;
+}
+
+std::string GenericSolver::assumption_name(const Term & assumption)
+{
+  auto name_it = term_name_map->find(assumption);
+  if (name_it == term_name_map->end())
+  {
+    throw IncorrectUsageException("Can't assume " + assumption->to_string()
+                                  + ": it was not made by this solver");
+  }
+  std::string name = name_it->second;
+  bool is_literal = assumption->is_symbolic_const()
+                    || (assumption->get_op() == Not
+                        && (*assumption->begin())->is_symbolic_const());
+  if (is_literal)
+  {
+    return name;
+  }
+
+  // SMT-LIB takes only literals as assumptions, and some binaries report a
+  // defined name back as its definition, rewritten. So any other formula is
+  // assumed through a label of its own, which the binary reports by name.
+  auto it = assumption_labels.find(assumption);
+  if (it == assumption_labels.end())
+  {
+    std::string label_name = get_name(assumption);
+    Term label = std::make_shared<GenericTerm>(
+        assumption->get_sort(), Op(), TermVec{}, label_name, true);
+    (*name_term_map)[label_name] = label;
+    (*term_name_map)[label] = label_name;
+    // global-declarations keeps the label once its scope is popped
+    run_command("(" + DECLARE_FUN_STR + " " + label_name + " () "
+                + (*sort_name_map)[assumption->get_sort()] + ")");
+    it = assumption_labels.emplace(assumption, label).first;
+    labelled_assumptions[label] = assumption;
+  }
+  std::string label_name = (*term_name_map)[it->second];
+  // a pop takes the implication with it, so it goes in again every time
+  run_command("(" + ASSERT_STR + " (=> " + label_name + " " + name + "))");
+  return label_name;
 }
 
 void GenericSolver::push(std::uint64_t num)

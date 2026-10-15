@@ -97,20 +97,11 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   s->assert_formula(s->make_term(Implies, b1, xeq0));
   s->assert_formula(s->make_term(Implies, nb2, nxeq0));
 
-  Result r;
-  try
-  {
-    r = s->check_sat_assuming(TermVec{ xeq0, nb2 });
-  }
-  catch (IncorrectUsageException & e)
-  {
-    // mathsat is the only solver (so far)
-    // to have the restriction that assumptions must be
-    // (negated) boolean constants
-    EXPECT_TRUE(s->get_solver_enum() == MSAT);
-    r = s->check_sat_assuming(TermVec{ b1, nb2 });
-    EXPECT_TRUE(r.is_unsat());
-  }
+  Result r = s->check_sat_assuming(TermVec{ xeq0, nb2 });
+  EXPECT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming(TermVec{ b1, nb2 });
+  EXPECT_TRUE(r.is_unsat());
 
   r = s->check_sat_assuming(TermList{ b1, nb2 });
   EXPECT_TRUE(r.is_unsat());

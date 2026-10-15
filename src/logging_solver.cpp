@@ -478,8 +478,7 @@ void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out)
   wrapped_solver->get_unsat_assumptions(underlying_core);
   for (auto c : underlying_core)
   {
-    // assumption: these should be (possible negated) Boolean literals
-    // that were used in check_sat_assuming
+    // these are the terms that were used in check_sat_assuming, and
     // assumption_cache stored a mapping so we can recover the logging term
     if (assumption_cache->find(c) == assumption_cache->end())
     {

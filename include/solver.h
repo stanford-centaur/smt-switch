@@ -136,10 +136,11 @@ class AbsSmtSolver
   virtual Result check_sat() = 0;
 
   /* Check satisfiability of the current assertions under the given assumptions
-   * Note: the assumptions must be boolean literals, not arbitrary formulas
-   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with assumption literals =
+   * Note: an assumption can be any boolean formula, not only a literal as
+   * SMT-LIB requires; a solver that needs literals labels the others itself
+   * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with assumptions =
    * [t1,...,tn]
-   * @param assumptions a vector of boolean literals
+   * @param assumptions a vector of boolean formulas
    * @return a result object - see result.h
    */
   virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
@@ -224,8 +225,8 @@ class AbsSmtSolver
 
   /** After a call to check_sat_assuming that returns an unsatisfiable result
    *  this function will populate the 'out' UnorderedTermSet with a subset
-   *  of the assumption literals that are sufficient to make the assertions
-   *  unsat.
+   *  of the assumptions, as they were given, that are sufficient to make the
+   *  assertions unsat.
    *  SMTLIB: (get-unsat-assumptions)
    */
   virtual void get_unsat_assumptions(UnorderedTermSet & out) = 0;
