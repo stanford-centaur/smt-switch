@@ -194,6 +194,46 @@ TEST_P(ItpTests, InterpolatesAfterReset)
   }
 }
 
+// The same queries with and without reusing formulas between them answer the
+// same; the queries share prefixes, then grow, shrink and reorder them.
+TEST_P(ItpTests, ReuseKeepsResults)
+{
+  for (const char * incremental : { "true", "false" })
+  {
+    SmtInterpolator s = create_interpolating_solver(GetParam().config);
+    s->set_opt("incremental", incremental);
+    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
+                                               : s->make_sort(BV, 8);
+    Term a = s->make_symbol("a", srt);
+    Term b = s->make_symbol("b", srt);
+    Term c = s->make_symbol("c", srt);
+    Term d = s->make_symbol("d", srt);
+    Term t1 = s->make_term(lt, d, a);
+    Term t2 = s->make_term(And, s->make_term(lt, a, b), s->make_term(lt, a, c));
+    Term t3 = s->make_term(lt, b, d);
+    Term t4 = s->make_term(lt, c, d);
+    // each query but the last is unsat
+    std::vector<TermVec> queries{ { t1, t2, t3 },
+                                  { t1, t2, t4 },
+                                  { t1, t2, t4, t3 },
+                                  { t2, t1, t3 },
+                                  { t2, t1 } };
+    for (std::size_t q = 0; q < queries.size(); ++q)
+    {
+      TermVec itps;
+      Result r = s->get_sequence_interpolants(queries[q], itps);
+      bool unsat_expected = q + 1 < queries.size();
+      EXPECT_EQ(r.is_unsat(), unsat_expected)
+          << "incremental " << incremental << ", query " << q;
+      if (unsat_expected)
+      {
+        EXPECT_EQ(itps.size(), queries[q].size() - 1)
+            << "incremental " << incremental << ", query " << q;
+      }
+    }
+  }
+}
+
 TEST_P(ItpTests, DumpIsNotImplemented)
 {
   EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),
