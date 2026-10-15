@@ -98,9 +98,14 @@ class AbsSmtInterpolator : public AbsSmtSolver
                                  const Term & B,
                                  Term & out_I) const = 0;
 
-  /** Compute a sequence interpolants given formulae
-   *  such that there is an interpolant between each adjacent formula in
-   *  the vector formulae
+  /** Compute a sequence interpolant given formulae F_0, ..., F_n whose
+   *  conjunction is unsat, i.e. I_0, ..., I_{n-1} such that:
+   *    F_0 -> I_0,
+   *    I_{i-1} ^ F_i -> I_i  for each 0 < i < n, and
+   *    I_{n-1} ^ F_n is unsat,
+   *  where each I_i only contains constants that are in both F_0, ..., F_i
+   *  and F_{i+1}, ..., F_n. So each I_i is also a Craig interpolant between
+   *  the conjunction of F_0, ..., F_i and that of F_{i+1}, ..., F_n.
    * @param formulae the formula terms to get sequence interpolants for
    * @param out_I the vector to store sequence interpolants in
    *              NOTE out_I can have null terms in it -- see below
@@ -108,7 +113,8 @@ class AbsSmtInterpolator : public AbsSmtSolver
    *         sat      iff the query was satisfiable,
    *         unknown  iff any step of the interpolation failed
    *                  in this case, out_I is still populated but any
-   *                  failed steps have null terms
+   *                  failed steps, and possibly the steps after them,
+   *                  have null terms
    *
    */
   virtual Result get_sequence_interpolants(const TermVec & formulae,
