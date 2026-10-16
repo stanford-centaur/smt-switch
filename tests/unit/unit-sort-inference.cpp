@@ -241,10 +241,12 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
 
   EXPECT_TRUE(check_sortedness(To_Int, { x }));
   EXPECT_TRUE(check_sortedness(To_Real, { xint }));
+  EXPECT_TRUE(check_sortedness(Is_Int, { x }));
 
   // wrong operators
   EXPECT_FALSE(check_sortedness(To_Real, { x }));
   EXPECT_FALSE(check_sortedness(To_Int, { xint }));
+  EXPECT_FALSE(check_sortedness(Is_Int, { xint }));
   EXPECT_FALSE(check_sortedness(BVUgt, { x, y }));
   EXPECT_FALSE(check_sortedness(BVSgt, { xint, yint }));
   EXPECT_FALSE(check_sortedness(BVUlt, { x, y }));
