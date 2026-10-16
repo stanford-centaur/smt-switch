@@ -137,6 +137,18 @@ std::int64_t bits_to_int64(const std::string & bits);
 std::uint64_t smtlib_bv_to_uint64(const std::string & s);
 std::int64_t smtlib_bv_to_int64(const std::string & s);
 
+/** The bits, most significant first, of the value of bit-vector sort `sort`
+ *  that `val` names: a numeral in base 2, 10 or 16 with an optional leading
+ *  minus, as passed to AbsSmtSolver::make_term. A short value is
+ *  zero-extended, and a negative one is written in two's complement.
+ *  Throws an IncorrectUsageException for another base, a malformed
+ *  numeral, a value outside the smallest signed and the largest unsigned
+ *  value of the sort, or a sort that is not a bit-vector sort.
+ */
+std::string bv_value_to_bits(const std::string & val,
+                             std::uint64_t base,
+                             const Sort & sort);
+
 /** The start of every name internal_name makes. A solver that makes such
  *  names refuses a user name with this start, so the two never meet.
  */

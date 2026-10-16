@@ -1576,6 +1576,93 @@ std::int64_t bits_to_int64(const std::string & bits)
   return to_twos_complement(bits_to_uint64(bits), bits.size());
 }
 
+std::string bv_value_to_bits(const std::string & val,
+                             std::uint64_t base,
+                             const Sort & sort)
+{
+  if (base != 2 && base != 10 && base != 16)
+  {
+    throw IncorrectUsageException(
+        "Only accepted bases are 2, 10 and 16, but got "
+        + std::to_string(base));
+  }
+  if (sort->get_sort_kind() != BV)
+  {
+    throw IncorrectUsageException("Sort " + sort->to_string()
+                                  + " is not a bit-vector sort");
+  }
+  bool negative = val.find("-") == 0;
+  std::string digits = negative ? val.substr(1) : val;
+  const char * digit_chars = base == 2    ? "01"
+                             : base == 16 ? "0123456789abcdefABCDEF"
+                                          : "0123456789";
+  if (digits.empty()
+      || digits.find_first_not_of(digit_chars) != std::string::npos)
+  {
+    throw IncorrectUsageException("Value " + val + " is not a base-"
+                                  + std::to_string(base) + " numeral");
+  }
+  std::uint64_t width = sort->get_width();
+  // the bits of the magnitude, most significant first, without leading
+  // zeros
+  std::string bits;
+  if (base == 10)
+  {
+    // halving the decimal digits gives the bits least significant first;
+    // stop once there are more than the sort has
+    std::string::size_type start = digits.find_first_not_of('0');
+    while (start != std::string::npos && bits.size() <= width)
+    {
+      int remainder = 0;
+      for (std::string::size_type i = start; i < digits.size(); ++i)
+      {
+        int current = remainder * 10 + (digits[i] - '0');
+        digits[i] = static_cast<char>('0' + current / 2);
+        remainder = current % 2;
+      }
+      bits.push_back(static_cast<char>('0' + remainder));
+      start = digits.find_first_not_of('0', start);
+    }
+    std::reverse(bits.begin(), bits.end());
+  }
+  else
+  {
+    for (char c : digits)
+    {
+      int digit = std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
+      for (int bit = base == 2 ? 0 : 3; bit >= 0; --bit)
+      {
+        bits.push_back((digit >> bit) & 1 ? '1' : '0');
+      }
+    }
+    bits.erase(0, std::min(bits.find('1'), bits.size()));
+  }
+  // a magnitude of all width bits only fits negated, as -2^(width - 1)
+  bool fits = negative ? bits.size() < width
+                             || (bits.size() == width
+                                 && bits.find('1', 1) == std::string::npos)
+                       : bits.size() <= width;
+  if (!fits)
+  {
+    throw IncorrectUsageException("Value " + val + " does not fit in sort "
+                                  + sort->to_string());
+  }
+  std::string literal = std::string(width - bits.size(), '0') + bits;
+  if (negative)
+  {
+    // the two's complement keeps the bits up to the lowest one and flips
+    // the bits above it
+    std::string::size_type lowest_one = literal.rfind('1');
+    for (std::string::size_type i = 0;
+         lowest_one != std::string::npos && i < lowest_one;
+         ++i)
+    {
+      literal[i] = literal[i] == '0' ? '1' : '0';
+    }
+  }
+  return literal;
+}
+
 std::uint64_t smtlib_bv_to_uint64(const std::string & s)
 {
   std::uint64_t value;
