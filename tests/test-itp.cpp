@@ -113,16 +113,22 @@ TEST_P(ItpTests, Interpolant)
 
 // Expects interpolants, from an interpolator of the given kind, to be a
 // sequence interpolant of formulae: a chain, as get_sequence_interpolants
-// promises. A regular solver of the same backend checks each implication.
+// promises. A regular solver of the same backend checks each implication,
+// in the logic given if one is.
 void expect_chain(SolverEnum interpolator,
                   const TermVec & formulae,
                   const TermVec & interpolants,
-                  const string & query)
+                  const string & query,
+                  const string & logic = "")
 {
   ASSERT_EQ(interpolants.size(), formulae.size() - 1) << query;
   SmtSolver checker = create_solver(
       SolverConfiguration(interpolator_base_solver(interpolator), false));
   checker->set_opt("incremental", "true");
+  if (!logic.empty())
+  {
+    checker->set_logic(logic);
+  }
   TermTranslator to_checker(checker);
   TermVec f, I;
   for (const Term & t : formulae)
@@ -374,6 +380,10 @@ TEST_P(ItpTests, IncrementalCanChangeBetweenQueries)
 // a printing interpolator writes, as it follows what the one it wraps reuses
 TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
 {
+  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
+  {
+    GTEST_SKIP() << "the Yices2 interpolator's queries cannot be printed yet";
+  }
   auto log_after_reset = [this](bool turn_off) {
     std::ostringstream out;
     SmtInterpolator s = create_printing_interpolator(
@@ -479,6 +489,10 @@ TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
 // a printing interpolator leaves the answer to the one it wraps
 TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {
+  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
+  {
+    GTEST_SKIP() << "the Yices2 interpolator's queries cannot be printed yet";
+  }
   std::ostringstream out;
   SmtInterpolator printing = create_printing_interpolator(itp, &out);
   Term A1 =
@@ -493,6 +507,72 @@ TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
       printing->get_sequence_interpolants(formulae, interpolants).is_unsat());
   expect_chain(
       GetParam().config.solver_enum, formulae, interpolants, "A1, A2, A3");
+}
+
+TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
+{
+  // a[z] = x and a[z] > y on one side, x < y on the other: a and z are not
+  // shared, so the interpolant mentions only x and y
+  Term a = itp->make_symbol("a", itp->make_sort(ARRAY, sort, sort));
+  Term read = itp->make_term(Select, a, z);
+  Term with_array = itp->make_term(
+      And, itp->make_term(Equal, read, x), itp->make_term(gt, read, y));
+  Term without_array = itp->make_term(lt, x, y);
+  UnorderedTermSet shared{ x, y };
+  for (auto [A, B] :
+       { pair{ with_array, without_array }, pair{ without_array, with_array } })
+  {
+    Term I;
+    ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << A << " / " << B;
+    UnorderedTermSet free_symbols;
+    get_free_symbolic_consts(I, free_symbols);
+    for (const Term & symbol : free_symbols)
+    {
+      EXPECT_TRUE(shared.count(symbol)) << I << " mentions " << symbol;
+    }
+    expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
+  }
+}
+
+TEST_P(ItpTests, InterpolatesOverASharedArray)
+{
+  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
+  {
+    GTEST_SKIP() << "the Yices2 interpolator fixes each shared symbol to its "
+                    "value in a model, which MCSAT cannot do for an array";
+  }
+  // a[z] = x on one side and a[z] < x on the other, which share all three
+  Term a = itp->make_symbol("a", itp->make_sort(ARRAY, sort, sort));
+  Term read = itp->make_term(Select, a, z);
+  Term A = itp->make_term(Equal, read, x);
+  Term B = itp->make_term(lt, read, x);
+  Term I;
+  ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
+  expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
+}
+
+TEST_P(ItpTests, NonlinearInterpolant)
+{
+  if (GetParam().theory != THEORY_INT)
+  {
+    GTEST_SKIP() << "a square is never negative only over the integers";
+  }
+  if (GetParam().config.solver_enum == MSAT_INTERPOLATOR)
+  {
+    GTEST_SKIP() << "MathSAT answers unknown to nonlinear integer arithmetic";
+  }
+  // x * x is never negative, so y = x * x cannot be, whatever x is
+  Term A = itp->make_term(Equal, y, itp->make_term(Mult, x, x));
+  Term B = itp->make_term(Lt, y, itp->make_term(0, sort));
+  Term I;
+  Result r = itp->get_interpolant(A, B, I);
+  ASSERT_TRUE(r.is_unsat()) << r;
+  UnorderedTermSet free_symbols;
+  get_free_symbolic_consts(I, free_symbols);
+  EXPECT_EQ(free_symbols.count(x), 0u) << I;
+  // a regular Yices2 solves nonlinear arithmetic only in a nonlinear logic
+  expect_chain(
+      GetParam().config.solver_enum, { A, B }, { I }, "A, B", "QF_NIA");
 }
 
 // each interpolator runs the tests in every theory it supports

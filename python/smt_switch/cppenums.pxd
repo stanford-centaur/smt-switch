@@ -36,6 +36,7 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef c_SolverEnum c_BZLA_INTERPOLATOR "smt::BZLA_INTERPOLATOR"
     cdef c_SolverEnum c_MSAT_INTERPOLATOR "smt::MSAT_INTERPOLATOR"
     cdef c_SolverEnum c_CVC5_INTERPOLATOR "smt::CVC5_INTERPOLATOR"
+    cdef c_SolverEnum c_YICES2_INTERPOLATOR "smt::YICES2_INTERPOLATOR"
     cdef c_SolverEnum c_GENERIC_SOLVER "smt::GENERIC_SOLVER"
 
     string to_string(c_SolverEnum se) except +

@@ -28,9 +28,10 @@ def get_free_vars(t: ss.Term) -> set[ss.Term]:
     return free_vars
 
 
-# Only bitwuzla, cvc5 and msat expose an interpolator to Python; btor, yices2
-# and z3 have no interpolation support at all. Every solver is parametrized so
-# the report names the ones it skipped.
+# Only bitwuzla, cvc5, msat and yices2 expose an interpolator to Python; btor
+# and z3 have no interpolation support at all, and yices2 interpolates only
+# when built with MCSAT. Every solver is parametrized so the report names the
+# ones it skipped.
 @pytest.mark.parametrize("theory", ["int", "bv"])
 @pytest.mark.parametrize("itp_name", sorted(ss.solvers))
 def test_simple_itp(itp_name, theory):
@@ -40,7 +41,12 @@ def test_simple_itp(itp_name, theory):
         pytest.skip(f"{itp_name} exposes no interpolator to Python")
     if theory == "int" and itp_name == "bitwuzla":
         pytest.skip("bitwuzla has no integers")
-    itp = create_interpolator()
+    try:
+        itp = create_interpolator()
+    except RuntimeError as e:
+        if "without MCSAT" not in str(e):
+            raise
+        pytest.skip(str(e))
 
     # the queries order the symbols, so unsigned bit-vector comparisons keep
     # them unsatisfiable

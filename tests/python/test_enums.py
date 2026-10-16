@@ -53,6 +53,7 @@ def test_primop(create_solver):
         "MSAT",
         "MSAT_INTERPOLATOR",
         "YICES2",
+        "YICES2_INTERPOLATOR",
         "Z3",
     ],
 )

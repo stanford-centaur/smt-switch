@@ -152,6 +152,12 @@ SmtInterpolator create_interpolating_solver(SolverConfiguration sc)
       break;
     }
 #endif
+#ifdef BUILD_YICES2
+    case YICES2_INTERPOLATOR: {
+      return Yices2SolverFactory::create_interpolating_solver();
+      break;
+    }
+#endif
     default: {
       throw SmtException("Unhandled solver enum");
     }
@@ -267,6 +273,17 @@ std::vector<SolverEnum> available_interpolator_enums()
 #ifdef BUILD_MSAT
   result.push_back(MSAT_INTERPOLATOR);
 #endif
+#ifdef BUILD_YICES2
+  // a Yices2 without MCSAT refuses to create an interpolator
+  try
+  {
+    Yices2SolverFactory::create_interpolating_solver();
+    result.push_back(YICES2_INTERPOLATOR);
+  }
+  catch (const NotImplementedException &)
+  {
+  }
+#endif
   return result;
 }
 
@@ -304,6 +321,7 @@ SolverEnum interpolator_base_solver(SolverEnum se)
     case BZLA_INTERPOLATOR: return BZLA;
     case CVC5_INTERPOLATOR: return CVC5;
     case MSAT_INTERPOLATOR: return MSAT;
+    case YICES2_INTERPOLATOR: return YICES2;
     default: {
       throw SmtException("Unhandled interpolator solver enum");
     }

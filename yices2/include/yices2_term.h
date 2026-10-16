@@ -86,6 +86,7 @@ class Yices2Term : public AbsTerm
   friend class Yices2TermIter;
 
   friend class Yices2Solver;
+  friend class Yices2InterpolatingSolver;
 };
 
 }  // namespace smt

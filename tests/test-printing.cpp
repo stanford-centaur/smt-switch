@@ -58,7 +58,8 @@ string replay_flags(SolverEnum se)
     case GENERIC_SOLVER:
     case BZLA_INTERPOLATOR:
     case CVC5_INTERPOLATOR:
-    case MSAT_INTERPOLATOR: break;
+    case MSAT_INTERPOLATOR:
+    case YICES2_INTERPOLATOR: break;
   }
   throw NotImplementedException("No executable for " + to_string(se));
 }
