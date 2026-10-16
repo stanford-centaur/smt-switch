@@ -137,6 +137,26 @@ std::int64_t bits_to_int64(const std::string & bits);
 std::uint64_t smtlib_bv_to_uint64(const std::string & s);
 std::int64_t smtlib_bv_to_int64(const std::string & s);
 
+/** The start of every name internal_name makes. A solver that makes such
+ *  names refuses a user name with this start, so the two never meet.
+ */
+const std::string INTERNAL_NAME_PREFIX = "smt_switch_internal_";
+
+/** A name smt-switch makes up for its own use, such as
+ *  `smt_switch_internal_assump_3`
+ *  @param kind what the name is for, which keeps names of different kinds
+ *  apart
+ *  @param index which name of that kind it is
+ *  @return INTERNAL_NAME_PREFIX, then `kind`, an underscore and `index`
+ */
+std::string internal_name(const std::string & kind, std::uint64_t index);
+
+/** Whether a name starts with INTERNAL_NAME_PREFIX
+ *  @param name the name to check
+ *  @return true if internal_name could have made it
+ */
+bool is_internal_name(const std::string & name);
+
 // -----------------------------------------------------------------------------
 
 /** \class
