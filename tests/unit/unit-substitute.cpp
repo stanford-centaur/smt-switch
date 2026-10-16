@@ -81,6 +81,26 @@ TEST_P(UnitSubstituteTests, CheckSubstitution3)
   EXPECT_EQ(result, expect);
 }
 
+TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
+{
+  Sort arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+  Term arr = s->make_symbol("arr", arrsort);
+  Term arr0 = s->make_symbol("arr0", arrsort);
+  Term idx = s->make_symbol("idx", bvsort);
+  Term idx0 = s->make_symbol("idx0", bvsort);
+  Term w = s->make_symbol("w", bvsort);
+  auto constraint = [&](Term array, Term index, Term u, Term v) {
+    return s->make_term(Equal,
+                        s->make_term(Select, array, index),
+                        s->make_term(BVAdd, u, s->make_term(BVMul, v, w)));
+  };
+  // w is not in the map, so it stays
+  Term result =
+      s->substitute(constraint(arr, idx, x, y),
+                    { { arr, arr0 }, { idx, idx0 }, { x, a }, { y, b } });
+  EXPECT_EQ(result, constraint(arr0, idx0, a, b));
+}
+
 TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
 {
   UnorderedTermMap subs_map({ { x, a }, { y, b } });
