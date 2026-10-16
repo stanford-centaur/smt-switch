@@ -84,7 +84,6 @@ term_t ext_yices_make_bv_number(const char * val, size_t size, int base)
     mpz_t negval;
     mpz_init(negval);
     mpz_neg(negval, yval);
-    // const mpz_t nv = negval;
     res = yices_bvconst_mpz(size, negval);
     if (res == -1)
     {

@@ -57,8 +57,6 @@ class Yices2Solver : public AbsSmtSolver
         context_level(0),
         time_limit(0)
   {
-    // Had to move yices_init to the Factory
-    // yices_init();
     ctx = nullptr;
     config = yices_new_config();
   };

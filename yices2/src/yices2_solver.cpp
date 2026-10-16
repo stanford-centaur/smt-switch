@@ -63,13 +63,7 @@ typedef term_t (*yices_const_variadic_fun)(uint32_t, const term_t[]);
 // TODO's:
 // Pretty sure not implemented in Yices.
 // Good candidates for extension.
-//  BVComp,
 //  BV_To_Nat,
-
-// Arrays are represented as functions in Yices.
-// I don't think const_array can be supported,
-// unless we use Yices lambdas.
-// Const_Array,
 
 const unordered_map<PrimOp, yices_un_fun> yices_unary_ops(
     { { Not, yices_not },
