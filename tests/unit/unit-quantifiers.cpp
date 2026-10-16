@@ -133,9 +133,47 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
   ASSERT_TRUE(r.is_sat());
 }
 
+// A bound variable named like a declared symbol is still another term, as
+// SMT-LIB lets a binder shadow a declared name. Each formula says every
+// value equals the symbol, so it is unsat; had the binder captured the
+// symbol, it would read forall x . x = x and be sat. MathSAT answers
+// unknown to it, however the variables are named.
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Binders);
+class Binders : public UnitQuantifierTests
+{
+ protected:
+  // assert forall param . param = symbol and check it is not sat
+  void expect_symbol_not_captured(const Term & param, const Term & symbol)
+  {
+    s->assert_formula(
+        s->make_term(Forall, param, s->make_term(Equal, param, symbol)));
+    EXPECT_FALSE(s->check_sat().is_sat());
+  }
+};
+
+TEST_P(Binders, ParamNamedLikeEarlierSymbol)
+{
+  Term symbol = s->make_symbol("x", bvsort);
+  Term param = s->make_param("x", bvsort);
+  expect_symbol_not_captured(param, symbol);
+}
+
+TEST_P(Binders, SymbolNamedLikeEarlierParam)
+{
+  Term param = s->make_param("x", bvsort);
+  Term symbol = s->make_symbol("x", bvsort);
+  expect_symbol_not_captured(param, symbol);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedQuantifierIterTests,
     UnitQuantifierIterTests,
     testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS, TERMITER })));
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitQuantifiers,
+    Binders,
+    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS })),
+    ConfigName());
 
 }  // namespace smt_tests

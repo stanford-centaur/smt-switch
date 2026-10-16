@@ -1729,7 +1729,10 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort)
   }
   Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, false);
   (*name_term_map)[name] = term;
-  (*term_name_map)[term] = name;
+  // SMT-LIB reads a symbol |x| as x, so a binder of x would capture it;
+  // the binary sees the param under a name no symbol can have
+  term_counter++;
+  (*term_name_map)[term] = internal_name("param", term_counter);
   return (*name_term_map)[name];
 }
 
