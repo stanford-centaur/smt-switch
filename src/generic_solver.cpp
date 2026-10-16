@@ -1355,15 +1355,6 @@ Term GenericSolver::get_selector(const Sort & s,
   return (*name_term_map)[name];
 }
 
-std::string GenericSolver::get_name(Term term) const
-{
-  // the names of the terms are internal names with a running index, used
-  // for `define-fun` commands. The binary keeps them for good, so they
-  // are names no user can take: make_symbol and make_param refuse them.
-  term_counter++;
-  return internal_name("term", term_counter);
-}
-
 Term GenericSolver::store_term(Term term) const
 {
   // cast the term to a GenericTerm
@@ -1400,7 +1391,11 @@ Term GenericSolver::store_term(Term term) const
     }
     else if (gterm->is_ground())
     {
-      name = get_name(gterm);
+      // an internal name with a running index. The binary keeps these for
+      // good, so they are names no user can take: make_symbol and
+      // make_param refuse them.
+      term_counter++;
+      name = internal_name("term", term_counter);
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
     }
     else

@@ -320,9 +320,6 @@ class GenericSolver : public AbsSmtSolver
                   Sort res_sort,
                   Term defining_term) const;
 
-  // get the name of a term
-  std::string get_name(Term t) const;
-
   // internal function to read solver's response; `cmd` names it in errors
   std::string read_internal(const std::string & cmd) const;
 
