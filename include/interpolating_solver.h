@@ -46,16 +46,21 @@ namespace smt {
      well, since an interpolator holds no assertions to dump.
      get_context_level is final too, and returns 0, since no context can
      be pushed.
-   - Required: get_interpolant, get_sequence_interpolants, set_opt, and
-     the hooks do_reset_assertions and do_reset. A backend can implement
-     get_interpolant with interpolant_from_sequence.
-     An interpolating solver holds no assertions of the caller's, so its
-     reset_assertions discards what it keeps between queries instead: a
-     backend may reuse the formulas a query shares with the one before,
-     and after reset_assertions the next query starts afresh. It never
-     changes what a query answers. A backend that keeps nothing between
-     queries implements it as doing nothing, and one that reuses formulas
-     also takes incremental set to false, to start every query afresh.
+   - Required: get_interpolant, get_sequence_interpolants and the hook
+     do_set_opt. A backend can implement get_interpolant with
+     interpolant_from_sequence.
+   - Handled here: set_opt takes incremental, which decides whether a query
+     may reuse what it shares with the one before (on by default, and read
+     from incremental_mode), and hands every other option to do_set_opt.
+     An interpolating solver holds no assertions of the caller's, so
+     reset_assertions discards what it keeps between queries instead, and
+     the next query starts afresh; it never changes what a query answers.
+     do_reset and do_reset_assertions are final: both call forget_queries
+     and then reset the regular solver, and do_reset also turns incremental
+     back on and calls initialize. A backend overrides forget_queries if
+     it keeps anything between queries, and initialize if the regular
+     solver needs setting up for interpolation, which its constructor then
+     calls too.
    - Everything else is forwarded to the regular solver.
  */
 class AbsSmtInterpolator : public AbsSmtSolver
@@ -119,7 +124,10 @@ class AbsSmtInterpolator : public AbsSmtSolver
   virtual Result get_sequence_interpolants(const TermVec & formulae,
                                            TermVec & out_I) const = 0;
 
-  void set_opt(const std::string option, const std::string value) override = 0;
+  /** Takes incremental, and hands every other option to do_set_opt
+   *  @throws IncorrectUsageException if incremental is neither true nor false
+   */
+  void set_opt(const std::string option, const std::string value) override;
 
   // ------------------------- Forwarded ------------------------------------
   void set_logic(const std::string logic) override;
@@ -186,12 +194,30 @@ class AbsSmtInterpolator : public AbsSmtSolver
   void do_pop(std::uint64_t num) final;
 
   // ------------------------- Required -------------------------------------
-  /** Discard what the solver keeps between queries, so that the next one
-   *  starts afresh; see the contract above.
-   */
-  void do_reset_assertions() override = 0;
+  /** Takes an option other than incremental, which set_opt takes itself */
+  virtual void do_set_opt(const std::string & option,
+                          const std::string & value) = 0;
 
-  void do_reset() override = 0;
+  // ------------------------- Handled here ---------------------------------
+  /** Forgets the queries and resets the regular solver; see the contract */
+  void do_reset_assertions() final;
+
+  /** As do_reset_assertions, but resets the regular solver to its startup
+   *  state, turns incremental back on and calls initialize
+   */
+  void do_reset() final;
+
+  /** Drops what the interpolator keeps between queries, before the regular
+   *  solver is reset; does nothing unless overridden
+   */
+  virtual void forget_queries();
+
+  /** Sets up the regular solver for interpolation, again after reset
+   *  returned it to its startup state; does nothing unless overridden. A
+   *  constructor that needs it calls it itself, since the base class's
+   *  constructor would only reach this one.
+   */
+  virtual void initialize();
 
   /** Computes the interpolant of A and B as the sequence interpolant of
    *  { A, B }, for a backend that computes sequences natively.
@@ -201,6 +227,9 @@ class AbsSmtInterpolator : public AbsSmtSolver
                                    Term & out_I) const;
 
   SmtSolver backend_solver;
+  // false if each query starts afresh instead of reusing what it shares
+  // with the one before
+  bool incremental_mode = true;
 };
 
 }  // namespace smt

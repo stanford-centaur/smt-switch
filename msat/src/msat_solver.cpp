@@ -1165,40 +1165,36 @@ void MsatSolver::initialize_env() const
 // begin MsatInterpolatingSolver implementation
 
 MsatInterpolatingSolver::MsatInterpolatingSolver()
-    : MsatInterpolatingSolver(msat_create_config(), true)
-{
-}
-
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c)
-    : MsatInterpolatingSolver(c, false)
-{
-}
-
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, bool own_config)
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
-      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver)),
-      own_config_(own_config)
+    : AbsSmtInterpolator(MSAT_INTERPOLATOR,
+                         std::make_shared<MsatSolver>(msat_create_config())),
+      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
 {
   initialize();
 }
 
+MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c)
+    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
+      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
+{
+  // a caller's configuration keeps its own preferences
+  set_required_options();
+}
+
 void MsatInterpolatingSolver::initialize()
 {
-  if (msat_solver_->is_initialized())
-  {
-    return;
-  }
-  // required even on a caller's configuration: without interpolation
-  // there are no interpolants, and the eager BV solver produces no proofs
+  set_required_options();
+  // only a preference, so a caller's configuration keeps its own
+  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
+  // TODO: decide if we should add this
+  // msat_solver_->set_opt("theory.eq_propagation", "false");
+}
+
+void MsatInterpolatingSolver::set_required_options()
+{
+  // without interpolation there are no interpolants, and the eager BV
+  // solver produces no proofs
   msat_solver_->set_opt("interpolation", "true");
   msat_solver_->set_opt("theory.bv.eager", "false");
-  if (own_config_)
-  {
-    // only a preference, so a caller's configuration keeps its own
-    msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
-    // TODO: decide if we should add this
-    // msat_solver_->set_opt("theory.eq_propagation", "false");
-  }
 }
 
 MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
@@ -1209,32 +1205,14 @@ MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
   msat_destroy_env(e);
 }
 
-void MsatInterpolatingSolver::set_opt(const string option, const string value)
+void MsatInterpolatingSolver::do_set_opt(const string & option,
+                                         const string & value)
 {
   if (interpolator_disallowed_options.find(msat_option_name(option))
       != interpolator_disallowed_options.end())
   {
     throw IncorrectUsageException("MathSAT interpolator does not allow option: "
                                   + option);
-  }
-  if (option == "incremental")
-  {
-    // MathSAT itself is always incremental. This option decides whether a
-    // query reuses the formulas it shares with the one before.
-    if (value == "true")
-    {
-      incremental_mode_ = true;
-    }
-    else if (value == "false")
-    {
-      incremental_mode_ = false;
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "Invalid value for boolean option 'incremental'");
-    }
-    return;
   }
   msat_solver_->set_opt(option, value);
 }
@@ -1284,7 +1262,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
 
   // count how many assertions can be reused, unless reuse is off
   size_t num_reused = 0;
-  while (incremental_mode_ && num_reused < last_itp_query_assertions_.size()
+  while (incremental_mode && num_reused < last_itp_query_assertions_.size()
          && num_reused < formulae.size()
          && last_itp_query_assertions_.at(num_reused)
                 == formulae.at(num_reused))
@@ -1367,22 +1345,10 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   return r;
 }
 
-void MsatInterpolatingSolver::do_reset_assertions()
+void MsatInterpolatingSolver::forget_queries()
 {
-  msat_solver_->reset_assertions();
   last_itp_query_assertions_.clear();
   itp_grps_.clear();
-  initialize();
-}
-
-void MsatInterpolatingSolver::do_reset()
-{
-  msat_solver_->reset();
-  last_itp_query_assertions_.clear();
-  itp_grps_.clear();
-  // reset() starts again from a default configuration of its own
-  own_config_ = true;
-  initialize();
 }
 
 // end MsatInterpolatingSolver implementation

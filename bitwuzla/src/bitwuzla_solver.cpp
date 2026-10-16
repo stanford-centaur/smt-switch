@@ -713,40 +713,16 @@ BzlaInterpolatingSolver::BzlaInterpolatingSolver()
 
 void BzlaInterpolatingSolver::initialize()
 {
-  if (!bzla_solver->is_initialized())
-  {
-    bzla_solver->set_opt("produce-interpolants", "true");
-  }
+  bzla_solver->set_opt("produce-interpolants", "true");
 }
 
-void BzlaInterpolatingSolver::set_opt(const std::string option,
-                                      const std::string value)
+void BzlaInterpolatingSolver::do_set_opt(const std::string & option,
+                                         const std::string & value)
 {
   if (disallowed_options.find(option) != disallowed_options.end())
   {
     throw IncorrectUsageException(
         "Bitwuzla interpolator does not allow option: " + option);
-  }
-  if (option == "incremental")
-  {
-    // Bitwuzla itself does not distinguish between incremental and
-    // non-incremental solving. However, we use this option to determine whether
-    // we want to reuse assertions on the solver stack between interpolation
-    // queries.
-    if (value == "true")
-    {
-      incremental_mode = true;
-    }
-    else if (value == "false")
-    {
-      incremental_mode = false;
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "Invalid value for boolean option 'incremental'");
-    }
-    return;
   }
   if (option == "dump-queries")
   {
@@ -880,19 +856,10 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   return r;
 }
 
-void BzlaInterpolatingSolver::do_reset_assertions()
+// these terms belong to the term manager a reset destroys
+void BzlaInterpolatingSolver::forget_queries()
 {
-  bzla_solver->reset_assertions();
   last_itp_query_assertions.clear();
-  initialize();
-}
-
-void BzlaInterpolatingSolver::do_reset()
-{
-  // these terms belong to the term manager bzla_solver->reset() destroys
-  last_itp_query_assertions.clear();
-  bzla_solver->reset();
-  initialize();
 }
 
 }  // namespace smt

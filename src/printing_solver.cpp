@@ -346,7 +346,7 @@ Result PrintingInterpolator::print_query(
       // environment instead of popping when it keeps none.
       bool msat = get_solver_enum() == MSAT_INTERPOLATOR;
       std::size_t num_reused = 0;
-      while (incremental && num_reused < asserted.size()
+      while (incremental_mode && num_reused < asserted.size()
              && num_reused < formulae.size()
              && asserted[num_reused] == formulae[num_reused])
       {
@@ -411,7 +411,7 @@ Result PrintingInterpolator::print_query(
       // query that this one extends, unless incremental is off, and asks no
       // more after a split that fails.
       std::size_t first_split = 0;
-      if (incremental && !last_unsat_query.empty()
+      if (incremental_mode && !last_unsat_query.empty()
           && last_unsat_query.size() <= formulae.size()
           && std::equal(last_unsat_query.begin(),
                         last_unsat_query.end(),
@@ -472,25 +472,21 @@ void PrintingInterpolator::set_opt(const std::string option,
   {
     // every interpolator takes it for itself, to decide whether a query
     // reuses what it shares with the last one, and none passes it on to
-    // its solver, so it is not printed
+    // its solver, so it goes straight to the wrapped interpolator and is
+    // not printed
     wrapped_interpolator->set_opt(option, value);
-    incremental = value == "true";
-    return;
   }
+  AbsSmtInterpolator::set_opt(option, value);
+}
+
+void PrintingInterpolator::do_set_opt(const std::string & option,
+                                      const std::string & value)
+{
   backend_solver->set_opt(option, value);
 }
 
-void PrintingInterpolator::do_reset()
+void PrintingInterpolator::forget_queries()
 {
-  backend_solver->reset();
-  asserted.clear();
-  asserted_names.clear();
-  last_unsat_query.clear();
-}
-
-void PrintingInterpolator::do_reset_assertions()
-{
-  backend_solver->reset_assertions();
   asserted.clear();
   asserted_names.clear();
   last_unsat_query.clear();

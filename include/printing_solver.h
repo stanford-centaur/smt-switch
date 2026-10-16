@@ -142,8 +142,9 @@ class PrintingInterpolator : public AbsSmtInterpolator
   void set_opt(const std::string option, const std::string value) override;
 
  protected:
-  void do_reset() override;
-  void do_reset_assertions() override;
+  void do_set_opt(const std::string & option,
+                  const std::string & value) override;
+  void forget_queries() override;
 
   /* Prints a query of formulae as the wrapped interpolator runs it, around
    * ask, which runs it and stores its interpolants in out_I. What the
@@ -160,8 +161,6 @@ class PrintingInterpolator : public AbsSmtInterpolator
   std::ostream * out_stream;
   /* Keep track of created names */
   mutable std::size_t num_names = 0;
-  /* Whether the wrapped interpolator reuses what queries share */
-  bool incremental = true;
   /* For Bitwuzla and MathSAT, the formulae left asserted by the last query,
    * one context level each, and the names they were printed with */
   mutable TermVec asserted;

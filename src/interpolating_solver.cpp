@@ -85,6 +85,51 @@ void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
 
 std::uint64_t AbsSmtInterpolator::get_context_level() const { return 0; }
 
+// ------------------------- Handled here ------------------------------------
+
+void AbsSmtInterpolator::set_opt(const std::string option,
+                                 const std::string value)
+{
+  if (option != "incremental")
+  {
+    do_set_opt(option, value);
+    return;
+  }
+  // no interpolator passes it on to its regular solver
+  if (value == "true")
+  {
+    incremental_mode = true;
+  }
+  else if (value == "false")
+  {
+    incremental_mode = false;
+  }
+  else
+  {
+    throw IncorrectUsageException(
+        "Invalid value for boolean option 'incremental'");
+  }
+}
+
+void AbsSmtInterpolator::do_reset_assertions()
+{
+  forget_queries();
+  backend_solver->reset_assertions();
+}
+
+void AbsSmtInterpolator::do_reset()
+{
+  // first, as what is kept can be terms that the reset destroys
+  forget_queries();
+  backend_solver->reset();
+  incremental_mode = true;
+  initialize();
+}
+
+void AbsSmtInterpolator::forget_queries() {}
+
+void AbsSmtInterpolator::initialize() {}
+
 // ------------------------- Forwarded ---------------------------------------
 
 void AbsSmtInterpolator::set_logic(const std::string logic)

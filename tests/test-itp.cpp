@@ -353,6 +353,42 @@ TEST_P(ItpTests, IncrementalCanChangeBetweenQueries)
   }
 }
 
+// reset turns incremental back on, as it is at startup; that shows in what
+// a printing interpolator writes, as it follows what the one it wraps reuses
+TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
+{
+  auto log_after_reset = [this](bool turn_off) {
+    std::ostringstream out;
+    SmtInterpolator s = create_printing_interpolator(
+        create_interpolating_solver(GetParam().config), &out);
+    if (turn_off)
+    {
+      s->set_opt("incremental", "false");
+    }
+    s->reset();
+    std::size_t start = out.str().size();
+    // the terms made before the reset are gone, so these come after it
+    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
+                                               : s->make_sort(BV, 8);
+    Term a = s->make_symbol("a", srt);
+    Term b = s->make_symbol("b", srt);
+    Term c = s->make_symbol("c", srt);
+    TermVec query{ s->make_term(lt, a, b),
+                   s->make_term(lt, b, c),
+                   s->make_term(lt, c, a) };
+    // the second query extends the first, so it may reuse what that kept
+    for (int round = 0; round < 2; ++round)
+    {
+      TermVec itps;
+      EXPECT_TRUE(s->get_sequence_interpolants(query, itps).is_unsat())
+          << "round " << round;
+      query.push_back(s->make_term(lt, a, c));
+    }
+    return out.str().substr(start);
+  };
+  EXPECT_EQ(log_after_reset(true), log_after_reset(false));
+}
+
 TEST_P(ItpTests, InterpolatesAfterResetAssertions)
 {
   Term A =

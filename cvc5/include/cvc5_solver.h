@@ -132,7 +132,6 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
   cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
   ~cvc5InterpolatingSolver() {}
 
-  void set_opt(const std::string option, const std::string value) override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
@@ -140,16 +139,14 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
                                    TermVec & out_I) const override;
 
  protected:
-  void do_reset() override;
-  void do_reset_assertions() override;
-
+  void do_set_opt(const std::string & option,
+                  const std::string & value) override;
+  void forget_queries() override;
   // sets the options interpolation needs, on construction and after reset()
-  void initialize();
+  void initialize() override;
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<Cvc5Solver> cvc5_solver;
-  // whether a query may reuse the interpolants of the one before
-  bool incremental_mode = true;
   // the last sequence query and, if it was unsat with every interpolant
   // found, its interpolants, which stay valid for a query that extends it
   mutable TermVec last_itp_query_formulae;

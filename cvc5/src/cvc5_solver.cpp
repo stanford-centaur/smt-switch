@@ -1073,40 +1073,20 @@ void cvc5InterpolatingSolver::initialize()
   cvc5_solver->set_opt("incremental", "true");
 }
 
-void cvc5InterpolatingSolver::do_reset()
+void cvc5InterpolatingSolver::forget_queries()
 {
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
-  cvc5_solver->reset();
-  initialize();
 }
 
-void cvc5InterpolatingSolver::set_opt(const std::string option,
-                                      const std::string value)
+// incremental never gets here, so cvc5's own option stays on
+void cvc5InterpolatingSolver::do_set_opt(const std::string & option,
+                                         const std::string & value)
 {
   if (option == "produce-interpolants")
   {
     throw IncorrectUsageException("cvc5 interpolator does not allow option: "
                                   + option);
-  }
-  if (option == "incremental")
-  {
-    // as for the other interpolators, whether a query may reuse formulas
-    // from the one before, not cvc5's own option, which stays on
-    if (value == "true")
-    {
-      incremental_mode = true;
-    }
-    else if (value == "false")
-    {
-      incremental_mode = false;
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "Invalid value for boolean option 'incremental'");
-    }
-    return;
   }
   cvc5_solver->set_opt(option, value);
 }
@@ -1222,13 +1202,6 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
   last_itp_query_formulae = formulae;
   last_itp_query_interpolants = out_I;
   return Result(UNSAT);
-}
-
-void cvc5InterpolatingSolver::do_reset_assertions()
-{
-  cvc5_solver->get_cvc5_solver().resetAssertions();
-  last_itp_query_formulae.clear();
-  last_itp_query_interpolants.clear();
 }
 
 }  // namespace smt
