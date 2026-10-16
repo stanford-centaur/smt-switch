@@ -99,7 +99,8 @@ jobs:
           body=$NOTE
           [[ -z $NOTES ]] || body+=$'\n\n'"Release notes: $NOTES"
           [[ -z $CHANGES ]] || body+=$'\n'"Changes: $CHANGES"
-          existing=$(gh pr list -s all -H "$BRANCH" --json id | jq length)
+          existing=$(gh pr list -s all -H "$BRANCH" --json state \
+            -q 'map(select(.state != "MERGED")) | length')
           if ((existing > 0)); then
             action=edit
           else
