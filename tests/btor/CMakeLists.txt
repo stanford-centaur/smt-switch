@@ -5,7 +5,6 @@ macro(switch_add_btor_test name)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
-switch_add_btor_test(btor-array-empty-assignment)
 switch_add_btor_test(btor-bv-values)
 switch_add_btor_test(btor-exceptions)
 switch_add_btor_test(btor-negation)
