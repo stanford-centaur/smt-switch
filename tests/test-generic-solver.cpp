@@ -92,7 +92,6 @@ void new_btor(SmtSolver & gs, int buffer_size)
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 void new_bitwuzla(SmtSolver & gs, int buffer_size)
@@ -103,7 +102,6 @@ void new_bitwuzla(SmtSolver & gs, int buffer_size)
   vector<string> args = { "--lang", "smt2" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 void new_msat(SmtSolver & gs, int buffer_size)
@@ -113,7 +111,6 @@ void new_msat(SmtSolver & gs, int buffer_size)
   vector<string> args = { "" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 void new_yices2(SmtSolver & gs, int buffer_size)
@@ -123,7 +120,6 @@ void new_yices2(SmtSolver & gs, int buffer_size)
   vector<string> args = { "--incremental" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 void new_cvc5(SmtSolver & gs, int buffer_size)
@@ -135,7 +131,6 @@ void new_cvc5(SmtSolver & gs, int buffer_size)
   };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 void new_z3(SmtSolver & gs, int buffer_size)
@@ -147,7 +142,6 @@ void new_z3(SmtSolver & gs, int buffer_size)
   vector<string> args = { "-smt2", "-in" };
   gs = std::make_shared<GenericSolver>(
       path, args, solver_response_timeout, buffer_size);
-  init_solver(gs);
 }
 
 string binary_name(GenericBinary b)
@@ -288,6 +282,13 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   void SetUp() override
   {
     binary = get<0>(GetParam());
+    start_binary();
+    init_solver(gs);
+  }
+
+  // replace gs with a fresh solver, in start mode with no options set
+  void start_binary()
+  {
     int buffer_size = get<1>(GetParam());
     switch (binary)
     {
@@ -349,6 +350,12 @@ class GenericSolverConstArrayTests : public GenericSolverTests
 // binaries that answer get-value for an array
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverArrayModelTests);
 class GenericSolverArrayModelTests : public GenericSolverTests
+{
+};
+
+// binaries with datatypes
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverDatatypeTests);
+class GenericSolverDatatypeTests : public GenericSolverTests
 {
 };
 
@@ -742,6 +749,64 @@ TEST_P(GenericSolverArrayModelTests, ArrayModels)
   gs->pop(1);
 }
 
+TEST_P(GenericSolverArrayModelTests, SelectMadeAfterCheckSat)
+{
+  Sort idxsort = gs->make_sort(BV, 4);
+  Sort elemsort = gs->make_sort(BV, 8);
+  Term arr = gs->make_symbol("arr", gs->make_sort(ARRAY, idxsort, elemsort));
+  Term one = gs->make_term(1, idxsort);
+  Term eleven = gs->make_term(11, elemsort);
+  gs->assert_formula(
+      gs->make_term(Equal, gs->make_term(Select, arr, one), eleven));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+
+  Term const_base;
+  UnorderedTermMap array_vals = gs->get_array_values(arr, const_base);
+  // a select made after the check, at an index nothing constrains, reads
+  // what the model gives there: an entry it lists, or else its base
+  Term two = gs->make_term(2, idxsort);
+  auto entry = array_vals.find(two);
+  EXPECT_EQ(gs->get_value(gs->make_term(Select, arr, two)),
+            entry == array_vals.end() ? const_base : entry->second);
+}
+
+TEST_P(GenericSolverUfTests, SortMadeAfterCheckSat)
+{
+  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  gs->assert_formula(b);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  Sort u_sort = gs->make_sort("U", 0);
+  Term u = gs->make_symbol("u", u_sort);
+  // the model is still the one the check found
+  EXPECT_EQ(gs->get_value(b), gs->make_term(true));
+  // the sort goes to the binary ahead of the symbol, as both do ahead of
+  // the next assertion
+  gs->assert_formula(gs->make_term(Equal, u, u));
+}
+
+TEST_P(GenericSolverDatatypeTests, DatatypeMadeAfterCheckSat)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term three = gs->make_term(3, bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  DatatypeDecl box_decl = gs->make_datatype_decl("box");
+  DatatypeConstructorDecl mkbox = gs->make_datatype_constructor_decl("mkbox");
+  gs->add_selector(mkbox, "content", bv_sort);
+  gs->add_constructor(box_decl, mkbox);
+  Sort box_sort = gs->make_sort(box_decl);
+  Term boxed = gs->make_term(
+      Apply_Constructor, gs->get_constructor(box_sort, "mkbox"), three);
+  Term content = gs->make_term(
+      Apply_Selector, gs->get_selector(box_sort, "mkbox", "content"), boxed);
+  EXPECT_EQ(gs->get_value(x), three);
+  // content has a sort the model knows, but goes through one it does not
+  EXPECT_THROW(gs->get_value(content), IncorrectUsageException);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(content), three);
+}
+
 TEST_P(GenericSolverIntTests, IntModels)
 {
   // Testing models
@@ -790,6 +855,118 @@ TEST_P(GenericSolverTests, BvModels)
   // the same literal make_term writes
   EXPECT_EQ(gs->get_value(i1), bv_zero);
   gs->pop(1);
+}
+
+TEST_P(GenericSolverTests, ValueOfTermMadeAfterCheckSat)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term y = gs->make_symbol("y", bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, gs->make_term(3, bv_sort)));
+  gs->assert_formula(gs->make_term(Equal, y, gs->make_term(4, bv_sort)));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  // made after the check, as is the term built on it
+  Term sum = gs->make_term(BVAdd, x, y);
+  Term doubled = gs->make_term(BVAdd, sum, sum);
+  EXPECT_EQ(gs->get_value(sum), gs->make_term(7, bv_sort));
+  EXPECT_EQ(gs->get_value(doubled), gs->make_term(14, bv_sort));
+  // the model read is still the one the check found
+  EXPECT_EQ(gs->get_value(x), gs->make_term(3, bv_sort));
+}
+
+TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAsserted)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term three = gs->make_term(3, bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  Term x_is_not_three = gs->make_term(Not, gs->make_term(Equal, x, three));
+  EXPECT_EQ(gs->get_value(x_is_not_three), gs->make_term(false));
+  gs->assert_formula(x_is_not_three);
+  EXPECT_TRUE(gs->check_sat().is_unsat());
+}
+
+TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAssumed)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term three = gs->make_term(3, bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  Term x_is_not_three = gs->make_term(Not, gs->make_term(Equal, x, three));
+  EXPECT_TRUE(gs->check_sat_assuming({ x_is_not_three }).is_unsat());
+}
+
+TEST_P(GenericSolverTests, GetValueOutsideSatModeThrows)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  // no check yet
+  EXPECT_THROW(gs->get_value(x), IncorrectUsageException);
+  gs->assert_formula(gs->make_term(Equal, x, gs->make_term(3, bv_sort)));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  // a push leaves the sat mode
+  gs->push(1);
+  EXPECT_THROW(gs->get_value(x), IncorrectUsageException);
+  gs->assert_formula(gs->make_term(Not, gs->make_term(Equal, x, x)));
+  ASSERT_TRUE(gs->check_sat().is_unsat());
+  EXPECT_THROW(gs->get_value(x), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, SymbolMadeAfterCheckSat)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term three = gs->make_term(3, bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  Term y = gs->make_symbol("y", bv_sort);
+  // the model is still the one the check found
+  EXPECT_EQ(gs->get_value(x), three);
+  // but it has no value for a symbol declared since
+  EXPECT_THROW(gs->get_value(y), IncorrectUsageException);
+  EXPECT_THROW(gs->get_value(gs->make_term(BVAdd, x, y)),
+               IncorrectUsageException);
+  // the next assertion declares it
+  gs->assert_formula(gs->make_term(Equal, y, x));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(y), three);
+}
+
+TEST_P(GenericSolverTests, GetUnsatAssumptionsOutsideUnsatModeThrows)
+{
+  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  ASSERT_TRUE(gs->check_sat_assuming({ b }).is_sat());
+  UnorderedTermSet core;
+  EXPECT_THROW(gs->get_unsat_assumptions(core), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, StartOnlyOptionAfterLogicThrows)
+{
+  // the fixture has set the logic
+  EXPECT_THROW(gs->set_opt("produce-models", "true"), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, SetLogicTwiceThrows)
+{
+  // the fixture has set the logic
+  EXPECT_THROW(gs->set_logic("ALL"), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, DeclarationWithoutLogicSetsAll)
+{
+  start_binary();
+  // still in start mode, which this option needs
+  gs->set_opt("produce-models", "true");
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term three = gs->make_term(3, bv_sort);
+  Term x = gs->make_symbol("x", bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), three);
+  // the declaration set the logic
+  EXPECT_THROW(gs->set_logic("ALL"), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverRealTests, RealStringModels)
@@ -1123,6 +1300,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverConstArrayTests,
 INSTANTIATE_TEST_SUITE_P(,
                          GenericSolverArrayModelTests,
                          testing::ValuesIn(params_with(ARRAY_MODELS)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         GenericSolverDatatypeTests,
+                         testing::ValuesIn(params_with(THEORY_DATATYPE)),
                          param_name);
 
 TEST(GenericSolver, NonExistingBinary)

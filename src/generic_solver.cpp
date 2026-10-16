@@ -42,7 +42,9 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <utility>
 
 #include "exceptions.h"
 #include "generic_datatype.h"
@@ -57,6 +59,15 @@
 #include "term.h"
 
 namespace smt {
+
+/** The standard options that SMT-LIB 2.6, Section 4.1.7, permits only in
+ * start mode.
+ */
+constexpr std::string_view start_only_options[] = {
+  "global-declarations",       "interactive-mode",    "produce-assertions",
+  "produce-assignments",       "produce-models",      "produce-proofs",
+  "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
+};
 
 // helper functions
 static bool is_white_space(char c)
@@ -623,6 +634,207 @@ void GenericSolver::verify_success(std::string result) const
   }
 }
 
+std::string to_string(SmtLibMode mode)
+{
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (mode)
+  {
+    case SmtLibMode::START: return "start";
+    case SmtLibMode::ASSERT: return "assert";
+    case SmtLibMode::SAT: return "sat";
+    case SmtLibMode::UNSAT: return "unsat";
+  }
+  throw NotImplementedException("Unknown SmtLibMode: "
+                                + std::to_string(static_cast<int>(mode)));
+}
+
+void GenericSolver::require_mode(SmtLibMode needed,
+                                 const std::string & operation,
+                                 const std::string & reason) const
+{
+  if (mode_ != needed)
+  {
+    throw IncorrectUsageException(
+        operation + " needs " + to_string(needed) + " mode (" + reason
+        + "), but the solver is in " + to_string(mode_) + " mode");
+  }
+}
+
+void GenericSolver::prepare_assertion_command() const
+{
+  // SMT-LIB permits no declaration, definition, assertion, push, pop or
+  // check before set-logic, which callers of the other backends never
+  // need. ALL is what cvc5 assumes when no logic was set, and Yices2
+  // knows no theory at all without one.
+  if (mode_ == SmtLibMode::START)
+  {
+    run_command("(" + SET_LOGIC_STR + " ALL)");
+    mode_ = SmtLibMode::ASSERT;
+  }
+  send_pending_commands();
+}
+
+void GenericSolver::send_pending_commands() const
+{
+  // taken off the list first, so a failure part way does not leave the
+  // ones already sent to be sent again
+  std::vector<std::string> pending;
+  pending.swap(pending_commands_);
+  pending_definitions_.clear();
+  pending_symbols_.clear();
+  pending_sort_names_.clear();
+  for (const std::string & cmd : pending)
+  {
+    run_command(cmd);
+    mode_ = SmtLibMode::ASSERT;
+  }
+}
+
+bool GenericSolver::send_or_hold(const std::string & cmd) const
+{
+  if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
+  {
+    pending_commands_.push_back(cmd);
+    return true;
+  }
+  prepare_assertion_command();
+  run_command(cmd);
+  mode_ = SmtLibMode::ASSERT;
+  return false;
+}
+
+bool GenericSolver::uses_held_back_sort(const Sort & sort) const
+{
+  if (pending_sort_names_.empty())
+  {
+    return false;
+  }
+  switch (sort->get_sort_kind())
+  {
+    case ARRAY:
+      return uses_held_back_sort(sort->get_indexsort())
+             || uses_held_back_sort(sort->get_elemsort());
+    case FUNCTION:
+      for (const Sort & d : sort->get_domain_sorts())
+      {
+        if (uses_held_back_sort(d))
+        {
+          return true;
+        }
+      }
+      return uses_held_back_sort(sort->get_codomain_sort());
+    case UNINTERPRETED:
+    case UNINTERPRETED_CONS:
+      // an applied constructor keeps the constructor's name
+      if (pending_sort_names_.find(sort->get_uninterpreted_name())
+          != pending_sort_names_.end())
+      {
+        return true;
+      }
+      for (const Sort & p : sort->get_uninterpreted_param_sorts())
+      {
+        if (uses_held_back_sort(p))
+        {
+          return true;
+        }
+      }
+      return false;
+    case DATATYPE: {
+      // a datatype whose selectors use a held-back sort is declared after
+      // it, so is held back itself
+      auto name_it = sort_name_map->find(sort);
+      return name_it != sort_name_map->end()
+             && pending_sort_names_.find(name_it->second)
+                    != pending_sort_names_.end();
+    }
+    // an application of a datatype component has the datatype's sort, or
+    // takes a term of it, so the term or its child is what is caught
+    case CONSTRUCTOR:
+    case SELECTOR:
+    case TESTER:
+    case BOOL:
+    case BV:
+    case INT:
+    case REAL:
+    case STRING: return false;
+    case NUM_SORT_KINDS: break;
+  }
+  return false;
+}
+
+std::string GenericSolver::query_text(const Term & term,
+                                      const std::string & operation) const
+{
+  std::string name = (*term_name_map)[term];
+  if (pending_commands_.empty())
+  {
+    return name;
+  }
+
+  // Collect the held-back definitions `term` depends on, each after the
+  // ones it uses. A term the binary already has a name for needs nothing
+  // underneath it; a term with bound variables has no definition of its
+  // own, but its text can name held-back ones.
+  TermVec used;
+  UnorderedTermSet visited;
+  std::vector<std::pair<Term, bool>> to_visit = { { term, false } };
+  while (!to_visit.empty())
+  {
+    auto [t, children_done] = to_visit.back();
+    to_visit.pop_back();
+    bool pending = pending_definitions_.find(t) != pending_definitions_.end();
+    if (children_done)
+    {
+      if (pending)
+      {
+        used.push_back(t);
+      }
+      continue;
+    }
+    if (!visited.insert(t).second)
+    {
+      continue;
+    }
+    // The model was found before these were declared, so it has nothing
+    // to say about them; the binary does not even know them yet.
+    std::string unknown;
+    if (pending_symbols_.find(t) != pending_symbols_.end())
+    {
+      unknown = "the symbol " + t->to_string();
+    }
+    else if (uses_held_back_sort(t->get_sort()))
+    {
+      unknown = "the sort " + t->get_sort()->to_string();
+    }
+    if (!unknown.empty())
+    {
+      throw IncorrectUsageException(operation + " can't read "
+                                    + term->to_string() + ": it uses " + unknown
+                                    + ", declared since the last check");
+    }
+    std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(t);
+    if (!pending && gt->is_ground())
+    {
+      continue;
+    }
+    to_visit.push_back({ t, true });
+    for (const Term & c : gt->get_children())
+    {
+      to_visit.push_back({ c, false });
+    }
+  }
+
+  // Bind them with nested lets, the first one outermost, since a let's
+  // bindings cannot refer to one another.
+  std::string text = name;
+  for (auto it = used.rbegin(); it != used.rend(); ++it)
+  {
+    text = "(let ((" + (*term_name_map)[*it] + " " + to_smtlib_def(*it) + ")) "
+           + text + ")";
+  }
+  return text;
+}
+
 void GenericSolver::close_solver()
 {
   // closing our end of the solver's stdin first lets a well-behaved binary
@@ -660,8 +872,11 @@ void GenericSolver::define_fun(std::string name,
                                   + " was not created by this solver");
   }
   // send a define-fun to the binary
-  run_command("(" + DEFINE_FUN_STR + " " + name + " () " + res_name->second
-              + " " + to_smtlib_def(defining_term) + ")");
+  if (send_or_hold("(" + DEFINE_FUN_STR + " " + name + " () " + res_name->second
+                   + " " + to_smtlib_def(defining_term) + ")"))
+  {
+    pending_definitions_.insert(defining_term);
+  }
 }
 
 std::string GenericSolver::to_smtlib_def(Term term) const
@@ -768,8 +983,11 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
     (*name_sort_map)[name] = sort;
     (*sort_name_map)[sort] = name;
     // declare the sort to the binary of the solver
-    run_command("(" + DECLARE_SORT_STR + " " + name + " "
-                + std::to_string(arity) + ")");
+    if (send_or_hold("(" + DECLARE_SORT_STR + " " + name + " "
+                     + std::to_string(arity) + ")"))
+    {
+      pending_sort_names_.insert(name);
+    }
     return sort;
   }
   else
@@ -942,7 +1160,10 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
-    run_command(to_solver);
+    if (send_or_hold(to_solver))
+    {
+      pending_sort_names_.insert(dt_decl_name);
+    }
 
     return dt_sort;
   }
@@ -1147,7 +1368,9 @@ Term GenericSolver::store_term(Term term) const
     // A value needs no define-fun either, since its own SMT-LIB text names
     // it. That matters beyond brevity: a definition would move the binary
     // out of a query mode, taking with it the model a caller reading one
-    // out is in the middle of.
+    // out is in the middle of. For the same reason, a term made in the sat
+    // or unsat mode is defined only by the next command that leaves it,
+    // and a query before then binds it with a let (see query_text).
     if (gterm->is_value())
     {
       name = gterm->to_string();
@@ -1452,9 +1675,12 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   // communicate the creation of the symbol to the binary of the solver.
   // When the sort is not a function, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
-  run_command("(" + DECLARE_FUN_STR + " " + piped_name
-              + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
-              + (*sort_name_map)[sort] + ")");
+  if (send_or_hold("(" + DECLARE_FUN_STR + " " + piped_name
+                   + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
+                   + (*sort_name_map)[sort] + ")"))
+  {
+    pending_symbols_.insert(term);
+  }
 
   // return the created symbol as a term
   return (*name_term_map)[piped_name];
@@ -1541,11 +1767,15 @@ Term GenericSolver::get_value(const Term & t) const
     throw IncorrectUsageException("Can't get the value of " + t->to_string()
                                   + ": it was not made by this solver");
   }
-  std::string name = name_it->second;
+  require_mode(SmtLibMode::SAT,
+               "get_value",
+               "the last check must have answered sat or unknown");
 
   // ask the binary for the value and parse it
   std::string result =
-      run_command("(" + GET_VALUE_STR + " (" + name + "))", false);
+      run_command("(" + GET_VALUE_STR + " ("
+                      + query_text(name_it->first, "get_value") + "))",
+                  false);
 
   // check that there was no error
   check_no_error(result);
@@ -1657,6 +1887,9 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
 
 void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
 {
+  require_mode(SmtLibMode::UNSAT,
+               "get_unsat_assumptions",
+               "the last check must have answered unsat");
   // run get-unsat-assumptions command
   std::string result =
       run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
@@ -1828,8 +2061,14 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                   + ": it was not made by this solver");
   }
 
+  require_mode(SmtLibMode::SAT,
+               "get_array_values",
+               "the last check must have answered sat or unknown");
+
   std::string result =
-      run_command("(" + GET_VALUE_STR + " (" + name_it->second + "))", false);
+      run_command("(" + GET_VALUE_STR + " ("
+                      + query_text(name_it->first, "get_array_values") + "))",
+                  false);
   check_no_error(result);
   std::string value = strip_value_from_result(result);
 
@@ -1870,19 +2109,37 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 void GenericSolver::reset()
 {
   std::string result = run_command("(" + RESET_STR + ")");
+  mode_ = SmtLibMode::START;
   // the binary has forgotten the labels' declarations
   assumption_labels.clear();
   labelled_assumptions.clear();
+  // and has nothing left that the held-back commands could build on
+  pending_commands_.clear();
+  pending_definitions_.clear();
+  pending_symbols_.clear();
+  pending_sort_names_.clear();
 }
 
 void GenericSolver::set_opt(const std::string option, const std::string value)
 {
+  // options of a binary's own are left to the binary
+  for (std::string_view start_only : start_only_options)
+  {
+    if (option == start_only)
+    {
+      require_mode(SmtLibMode::START,
+                   "set_opt(\"" + option + "\")",
+                   "only options may precede it");
+    }
+  }
   run_command("(" + SET_OPTION_STR + " :" + option + " " + value + ")");
 }
 
 void GenericSolver::set_logic(const std::string logic)
 {
+  require_mode(SmtLibMode::START, "set_logic", "only options may precede it");
   run_command("(" + SET_LOGIC_STR + " " + logic + ")");
+  mode_ = SmtLibMode::ASSERT;
 }
 
 void GenericSolver::assert_formula(const Term & t)
@@ -1895,7 +2152,9 @@ void GenericSolver::assert_formula(const Term & t)
   std::string name = (*term_name_map)[lt];
 
   // communicate the assertion to the binary of the solver
+  prepare_assertion_command();
   run_command("(" + ASSERT_STR + " " + name + ")");
+  mode_ = SmtLibMode::ASSERT;
 }
 
 Result GenericSolver::str_to_result(std::string result) const
@@ -1922,13 +2181,17 @@ Result GenericSolver::str_to_result(std::string result) const
 
 Result GenericSolver::check_sat()
 {
+  prepare_assertion_command();
   std::string result = run_command("(" + CHECK_SAT_STR + ")", false);
   Result r = str_to_result(result);
+  // sat and unknown both leave a model to read (SMT-LIB 2.6 Section 4.2.5)
+  mode_ = r.is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
   return r;
 }
 
 Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 {
+  prepare_assertion_command();
   std::string names;
   for (Term t : assumptions)
   {
@@ -1944,6 +2207,7 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
   std::string result =
       run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
   Result r = str_to_result(result);
+  mode_ = r.is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
   return r;
 }
 
@@ -1978,26 +2242,32 @@ std::string GenericSolver::assumption_name(const Term & assumption)
     // global-declarations keeps the label once its scope is popped
     run_command("(" + DECLARE_FUN_STR + " " + label_name + " () "
                 + (*sort_name_map)[assumption->get_sort()] + ")");
+    mode_ = SmtLibMode::ASSERT;
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
   std::string label_name = (*term_name_map)[it->second];
   // a pop takes the implication with it, so it goes in again every time
   run_command("(" + ASSERT_STR + " (=> " + label_name + " " + name + "))");
+  mode_ = SmtLibMode::ASSERT;
   return label_name;
 }
 
 void GenericSolver::push(std::uint64_t num)
 {
+  prepare_assertion_command();
   std::string result =
       run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
+  mode_ = SmtLibMode::ASSERT;
   context_level_ += num;
 }
 
 void GenericSolver::pop(std::uint64_t num)
 {
+  prepare_assertion_command();
   std::string result =
       run_command("(" + POP_STR + " " + std::to_string(num) + ")");
+  mode_ = SmtLibMode::ASSERT;
   context_level_ -= num;
 }
 
@@ -2008,7 +2278,14 @@ std::uint64_t GenericSolver::get_context_level() const
 
 void GenericSolver::reset_assertions()
 {
+  // global-declarations keeps declarations and definitions through it, so
+  // the ones held back go in first
+  send_pending_commands();
   std::string result = run_command("(" + RESET_ASSERTIONS_STR + ")");
+  if (mode_ != SmtLibMode::START)
+  {
+    mode_ = SmtLibMode::ASSERT;
+  }
 }
 
 }  // namespace smt
