@@ -139,7 +139,10 @@ Op Yices2Term::get_op() const
     case YICES_IDIV: return Op(IntDiv);
     case YICES_IMOD: return Op(Mod);
     // // sums
-    case YICES_BV_SUM: return Op(BVAdd);
+    // a single bit-vector monomial, (bv-mul c x), is still a sum, and reads
+    // as BVMul over the coefficient and the term, as the arithmetic one does
+    case YICES_BV_SUM:
+      return yices_term_num_children(term) == 1 ? Op(BVMul) : Op(BVAdd);
     case YICES_ARITH_FF_SUM: no_smt_switch_op(term);
     case YICES_ARITH_SUM:
       /* Arithmetic sums are represented as polynomials,
@@ -337,9 +340,9 @@ int64_t Yices2Term::to_signed_int() const
 
 /* How many children smt-switch sees, which has to agree with get_op().
  * Yices keeps a sum or a product as a polynomial, so each component becomes
- * one synthesised child. A one-component arithmetic sum or power product is
- * the exception: get_op() reads those as Mult and Pow, whose children are
- * the coefficient and the term, or the base and the exponent.
+ * one synthesised child. A one-component sum or power product is the
+ * exception: get_op() reads those as Mult or BVMul and Pow, whose children
+ * are the coefficient and the term, or the base and the exponent.
  */
 static uint32_t smt_num_children(term_t term)
 {
@@ -378,7 +381,8 @@ static uint32_t smt_num_children(term_t term)
     return num_children == 1 ? 3 : 2;
   }
   if (num_children == 1
-      && (yices_term_is_sum(term) || yices_term_is_product(term)))
+      && (yices_term_is_sum(term) || yices_term_is_bvsum(term)
+          || yices_term_is_product(term)))
   {
     return 2;
   }
@@ -416,13 +420,25 @@ const Term Yices2TermIter::operator*()
     uint32_t width = yices_term_bitsize(term);
     std::vector<int32_t> coeff(width);
     term_t component;
-    if (yices_bvsum_component(term, pos, coeff.data(), &component) < 0)
+    // the BVMul reading has the one component's coefficient and term as its
+    // children; rebuilding the product would give back this very term
+    bool one_component = yices_term_num_children(term) == 1;
+    if (yices_bvsum_component(
+            term, one_component ? 0 : pos, coeff.data(), &component)
+        < 0)
     {
       throw InternalSolverException(yices_error_string());
     }
     term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
-    ret_term =
-        component == NULL_TERM ? y_coeff : yices_bvmul(y_coeff, component);
+    if (one_component)
+    {
+      ret_term = pos == 0 ? y_coeff : component;
+    }
+    else
+    {
+      ret_term =
+          component == NULL_TERM ? y_coeff : yices_bvmul(y_coeff, component);
+    }
   }
   else if (yices_term_is_sum(term))
   {

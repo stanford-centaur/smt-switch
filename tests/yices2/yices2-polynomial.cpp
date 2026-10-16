@@ -63,6 +63,9 @@ TEST(Yices2Polynomial, RebuildFromIteratedChildren)
   cases.push_back(s->make_term(Pow, x, four));
   // a bit-vector sum, with a bit-vector coefficient
   cases.push_back(s->make_term(BVAdd, bx, s->make_term(BVMul, by, bx)));
+  // a single bit-vector monomial, (bv-mul 0b11111111 by), which get_op reads
+  // as BVMul like the arithmetic one
+  cases.push_back(s->make_term(BVNeg, by));
   // and an ordinary composite, whose children Yices does store
   cases.push_back(s->make_term(Equal, x, y));
   cases.push_back(s->make_term(Ite, s->make_term(Equal, x, y), x, y));
@@ -74,6 +77,7 @@ TEST(Yices2Polynomial, RebuildFromIteratedChildren)
     for (const Term & child : children)
     {
       EXPECT_TRUE(child) << t;
+      EXPECT_NE(child, t) << t << " is its own child";
     }
     EXPECT_EQ(s->make_term(t->get_op(), children), t) << t;
   }
