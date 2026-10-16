@@ -53,9 +53,7 @@ class MsatPrintingTest : public testing::Test
 TEST_F(MsatPrintingTest, Interpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolating_solver(),
-      os,
-      PrintingStyleEnum::MSAT_STYLE);
+      MsatSolverFactory::create_interpolating_solver(), os);
   s->set_logic("QF_LIA");
 
   Sort intsort = s->make_sort(INT);
@@ -89,9 +87,7 @@ TEST_F(MsatPrintingTest, Interpolation)
 TEST_F(MsatPrintingTest, SequenceInterpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolating_solver(),
-      os,
-      PrintingStyleEnum::MSAT_STYLE);
+      MsatSolverFactory::create_interpolating_solver(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);

@@ -53,9 +53,7 @@ class Cvc5PrintingTest : public testing::Test
 TEST_F(Cvc5PrintingTest, Interpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolating_solver(),
-      os,
-      PrintingStyleEnum::CVC5_STYLE);
+      Cvc5SolverFactory::create_interpolating_solver(), os);
   s->set_logic("QF_LIA");
   s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort intsort = s->make_sort(INT);
@@ -94,6 +92,30 @@ TEST_F(Cvc5PrintingTest, Interpolation)
           { "(define-fun I () Bool (<= z x))" },
       },
       "--produce-interpolants --incremental");
+}
+
+TEST_F(Cvc5PrintingTest, SequenceInterpolation)
+{
+  SmtInterpolator s = create_printing_interpolator(
+      Cvc5SolverFactory::create_interpolating_solver(), os);
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+
+  // x < y, y < z and z < x cannot all hold
+  TermVec formulae = { s->make_term(Lt, x, y),
+                       s->make_term(Lt, y, z),
+                       s->make_term(Lt, z, x) };
+  TermVec interpolants;
+  ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  EXPECT_EQ(interpolants.size(), 2);
+
+  // the second split asserts the first interpolant, which brings in x
+  check_result({ { "(define-fun I () Bool (<= x y))" },
+                 { "(define-fun I () Bool (<= x z))" } },
+               "--produce-interpolants --incremental");
 }
 
 }  // namespace smt_tests
