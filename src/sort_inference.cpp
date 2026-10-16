@@ -411,39 +411,33 @@ bool check_select_sorts(const SortVec & sorts)
   return true;
 }
 
+/** Whether `sort` is that of a datatype component of kind `kind`, which
+ *  Z3 reports as a FUNCTION instead
+ */
+static bool component_sort(const Sort & sort, SortKind kind)
+{
+  SortKind sk = sort->get_sort_kind();
+  return sk == kind || sk == FUNCTION;
+}
+
+// the selector, then the datatype term it reads
 bool check_selector_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
-  if (sorts.size() != 1)
-  {
-    return false;
-  }
-
-  Sort dt_sort = sorts[0];
-  return dt_sort->get_sort_kind() == DATATYPE;
+  return sorts.size() == 2 && component_sort(sorts[0], SELECTOR)
+         && sorts[1]->get_sort_kind() == DATATYPE;
 }
-// TO DO!!! DO THIS LATER
+
+// the constructor, then its arguments, which only the backend checks
 bool check_constructor_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
-  if (sorts.size() != 1)
-  {
-    return false;
-  }
-  Sort dt_sort = sorts[0];
-  return dt_sort->get_sort_kind() == DATATYPE;
+  return !sorts.empty() && component_sort(sorts[0], CONSTRUCTOR);
 }
 
-// TO DO!!! DO THIS LATER
+// the tester, then the datatype term it tests
 bool check_tester_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
-  if (sorts.size() != 1)
-  {
-    return false;
-  }
-  Sort dt_sort = sorts[0];
-  return dt_sort->get_sort_kind() == BOOL;
+  return sorts.size() == 2 && component_sort(sorts[0], TESTER)
+         && sorts[1]->get_sort_kind() == DATATYPE;
 }
 
 bool check_store_sorts(const SortVec & sorts)

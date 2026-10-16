@@ -76,6 +76,11 @@ class UnitArithmeticSortInferenceTests : public UnitSortInferenceTests
   Term x, y, z, xint, yint, zint;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DatatypeSortedness);
+class DatatypeSortedness : public UnitSortInferenceTests
+{
+};
+
 TEST_P(UnitSortInferenceTests, HelperTests)
 {
   EXPECT_TRUE(equal_sorts({ boolsort, boolsort }));
@@ -283,6 +288,45 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
   EXPECT_EQ(aritharrsort, compute_sort(Store, s, { aritharr, xint, y }));
 }
 
+TEST_P(DatatypeSortedness, ComponentApplications)
+{
+  if (GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "a logging solver has no datatypes";
+  }
+
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothingdecl =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl justdecl = s->make_datatype_constructor_decl("just");
+  s->add_selector(justdecl, "value", bvsort4);
+  s->add_constructor(maybedecl, nothingdecl);
+  s->add_constructor(maybedecl, justdecl);
+  Sort maybesort = s->make_sort(maybedecl);
+
+  Term nothing = s->get_constructor(maybesort, "nothing");
+  Term just = s->get_constructor(maybesort, "just");
+  Term is_just = s->get_tester(maybesort, "just");
+  Term value = s->get_selector(maybesort, "just", "value");
+  Term m = s->make_symbol("m", maybesort);
+
+  EXPECT_TRUE(check_sortedness(Apply_Constructor, { nothing }));
+  EXPECT_TRUE(check_sortedness(Apply_Constructor, { just, p }));
+  EXPECT_TRUE(check_sortedness(Apply_Tester, { is_just, m }));
+  EXPECT_TRUE(check_sortedness(Apply_Selector, { value, m }));
+
+  // a head that is no datatype component
+  EXPECT_FALSE(check_sortedness(Apply_Constructor, { p }));
+  EXPECT_FALSE(check_sortedness(Apply_Tester, { p, m }));
+  EXPECT_FALSE(check_sortedness(Apply_Selector, { arr, m }));
+  // an argument that is no datatype term
+  EXPECT_FALSE(check_sortedness(Apply_Tester, { is_just, p }));
+  EXPECT_FALSE(check_sortedness(Apply_Selector, { value, p }));
+  // a missing argument
+  EXPECT_FALSE(check_sortedness(Apply_Tester, { is_just }));
+  EXPECT_FALSE(check_sortedness(Apply_Selector, { value }));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
                          UnitSortInferenceTests,
                          testing::ValuesIn(available_solver_configurations()));
@@ -291,5 +335,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArithmeticSortInference,
                          UnitArithmeticSortInferenceTests,
                          testing::ValuesIn(filter_solver_configurations(
                              { THEORY_INT, THEORY_REAL })));
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitSortInference,
+    DatatypeSortedness,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    ConfigName());
 
 }  // namespace smt_tests
