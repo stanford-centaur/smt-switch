@@ -17,8 +17,10 @@
 
 #include "printing_solver.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -301,50 +303,12 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
                                              const Term & B,
                                              Term & out_I) const
 {
-  switch (get_solver_enum())
-  {
-    case MSAT_INTERPOLATOR:
-      /* The printing follows the internal implementation from msat_solver.h
-       * in which the assertions are labeled by interpolation groups
-       */
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :"
-                    << INTERPOLATION_GROUP_STR << " g1))" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " (! " << B << " :"
-                    << INTERPOLATION_GROUP_STR << " g2))" << std::endl;
-      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-      (*out_stream) << "(" << GET_INTERPOLANT_STR << " (g1)" << ")"
-                    << std::endl;
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      return wrapped_interpolator->get_interpolant(A, B, out_I);
-    case BZLA_INTERPOLATOR: {
-      std::string name = name_prefix + std::to_string(num_names++);
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " (! " << A << " :" << NAMED_STR
-                    << " " << name << "))" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
-      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-      (*out_stream) << "(" << GET_INTERPOLANT_STR << " (" << name << "))"
-                    << std::endl;
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      return wrapped_interpolator->get_interpolant(A, B, out_I);
-    }
-    case CVC5_INTERPOLATOR:
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
-      (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not " << B << "))"
-                    << std::endl;
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      return wrapped_interpolator->get_interpolant(A, B, out_I);
-    case BTOR:
-    case BZLA:
-    case CVC5:
-    case GENERIC_SOLVER:
-    case MSAT:
-    case YICES2:
-    case Z3: break;
-  }
-  throw NotImplementedException(no_query_syntax(get_solver_enum()));
+  TermVec interpolant;
+  return print_query({ A, B }, interpolant, [&]() {
+    Result r = wrapped_interpolator->get_interpolant(A, B, out_I);
+    interpolant.push_back(out_I);
+    return r;
+  });
 }
 
 Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
@@ -362,63 +326,102 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
+  return print_query(formulae, out_I, [&]() {
+    return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
+  });
+}
 
+Result PrintingInterpolator::print_query(
+    const TermVec & formulae,
+    const TermVec & out_I,
+    const std::function<Result()> & ask) const
+{
   switch (get_solver_enum())
   {
+    case BZLA_INTERPOLATOR:
     case MSAT_INTERPOLATOR: {
-      // one query with a group per formula, and an interpolant per prefix
-      // of the groups, as MathSAT's interpolating solver computes them
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      for (std::size_t i = 0; i < formulae.size(); ++i)
+      // Both keep each formula at a context level of its own, keep those of
+      // the longest prefix the query shares with the last one unless
+      // incremental is off, and push the rest. MathSAT resets its
+      // environment instead of popping when it keeps none.
+      bool msat = get_solver_enum() == MSAT_INTERPOLATOR;
+      std::size_t num_reused = 0;
+      while (incremental && num_reused < asserted.size()
+             && num_reused < formulae.size()
+             && asserted[num_reused] == formulae[num_reused])
       {
-        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[i] << " :"
-                      << INTERPOLATION_GROUP_STR << " g" << i + 1 << "))"
-                      << std::endl;
+        ++num_reused;
+      }
+      if (msat && num_reused == 0 && !asserted.empty())
+      {
+        (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << std::endl;
+      }
+      else if (num_reused < asserted.size())
+      {
+        (*out_stream) << "(" << POP_STR << " " << asserted.size() - num_reused
+                      << ")" << std::endl;
+      }
+      asserted.resize(num_reused);
+      asserted_names.resize(num_reused);
+      for (std::size_t k = num_reused; k < formulae.size(); ++k)
+      {
+        // a MathSAT interpolation group per level; Bitwuzla names every
+        // formula, since one asserted last may be reused as a partition
+        std::string name = msat ? "g" + std::to_string(k + 1)
+                                : name_prefix + std::to_string(num_names++);
+        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[k] << " :"
+                      << (msat ? INTERPOLATION_GROUP_STR : NAMED_STR) << " "
+                      << name << "))" << std::endl;
+        asserted.push_back(formulae[k]);
+        asserted_names.push_back(name);
       }
       (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-      for (std::size_t i = 1; i < formulae.size(); ++i)
+      Result r = ask();
+      // the interpolants are asked for only after an unsat answer
+      if (r.is_unsat() && msat)
       {
-        (*out_stream) << "(" << GET_INTERPOLANT_STR << " (";
-        for (std::size_t j = 1; j <= i; ++j)
+        // one per prefix of the groups
+        for (std::size_t i = 1; i < formulae.size(); ++i)
         {
-          (*out_stream) << (j > 1 ? " " : "") << "g" << j;
+          (*out_stream) << "(" << GET_INTERPOLANT_STR << " (";
+          for (std::size_t j = 0; j < i; ++j)
+          {
+            (*out_stream) << (j > 0 ? " " : "") << asserted_names[j];
+          }
+          (*out_stream) << "))" << std::endl;
         }
-        (*out_stream) << "))" << std::endl;
       }
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
-    }
-    case BZLA_INTERPOLATOR: {
-      // one query, partitioned into every formula but the last, as
-      // Bitwuzla's interpolating solver computes it
-      std::vector<std::string> names;
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      for (std::size_t i = 0; i + 1 < formulae.size(); ++i)
+      else if (r.is_unsat())
       {
-        names.push_back(name_prefix + std::to_string(num_names++));
-        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[i] << " :"
-                      << NAMED_STR << " " << names.back() << "))" << std::endl;
+        // all at once, partitioned into every formula but the last
+        (*out_stream) << "(" << GET_INTERPOLANTS_STR;
+        for (std::size_t j = 0; j + 1 < formulae.size(); ++j)
+        {
+          (*out_stream) << " (" << asserted_names[j] << ")";
+        }
+        (*out_stream) << ")" << std::endl;
       }
-      (*out_stream) << "(" << ASSERT_STR << " " << formulae.back() << ")"
-                    << std::endl;
-      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-      (*out_stream) << "(" << GET_INTERPOLANTS_STR;
-      for (const std::string & name : names)
-      {
-        (*out_stream) << " (" << name << ")";
-      }
-      (*out_stream) << ")" << std::endl;
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
+      return r;
     }
     case CVC5_INTERPOLATOR: {
-      // cvc5 has no sequence query, so its interpolating solver asks one
-      // query per split, from the interpolant of the split before; they
-      // are printed once those interpolants are known, up to the first
-      // split that fails, after which it asks no more
-      Result r =
-          wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
-      for (std::size_t i = 0; i < out_I.size(); ++i)
+      // cvc5 has no sequence query, so it asks one query per split, from
+      // the interpolant of the split before; they are printed once those
+      // interpolants are known. It reuses the interpolants of an unsat last
+      // query that this one extends, unless incremental is off, and asks no
+      // more after a split that fails.
+      std::size_t first_split = 0;
+      if (incremental && !last_unsat_query.empty()
+          && last_unsat_query.size() <= formulae.size()
+          && std::equal(last_unsat_query.begin(),
+                        last_unsat_query.end(),
+                        formulae.begin()))
+      {
+        first_split = last_unsat_query.size() - 1;
+      }
+      Result r = ask();
+      last_unsat_query = r.is_unsat() ? formulae : TermVec();
+      for (std::size_t i = first_split; i < out_I.size(); ++i)
       {
         if (i > 0 && !out_I[i - 1])
         {
@@ -465,14 +468,32 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
 void PrintingInterpolator::set_opt(const std::string option,
                                    const std::string value)
 {
+  if (option == "incremental")
+  {
+    // every interpolator takes it for itself, to decide whether a query
+    // reuses what it shares with the last one, and none passes it on to
+    // its solver, so it is not printed
+    wrapped_interpolator->set_opt(option, value);
+    incremental = value == "true";
+    return;
+  }
   backend_solver->set_opt(option, value);
 }
 
-void PrintingInterpolator::reset() { backend_solver->reset(); }
+void PrintingInterpolator::reset()
+{
+  backend_solver->reset();
+  asserted.clear();
+  asserted_names.clear();
+  last_unsat_query.clear();
+}
 
 void PrintingInterpolator::reset_assertions()
 {
   backend_solver->reset_assertions();
+  asserted.clear();
+  asserted_names.clear();
+  last_unsat_query.clear();
 }
 
 SmtInterpolator create_printing_interpolator(

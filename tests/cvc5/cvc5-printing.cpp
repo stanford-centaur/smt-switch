@@ -118,4 +118,39 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolation)
                "--produce-interpolants --incremental");
 }
 
+// a query that extends an unsat last one asks only its new splits
+TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
+{
+  SmtInterpolator s = create_printing_interpolator(
+      Cvc5SolverFactory::create_interpolating_solver(), os);
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term xy = s->make_term(Lt, x, y);
+  Term yz = s->make_term(Lt, y, z);
+  Term zx = s->make_term(Lt, z, x);
+  Term xz = s->make_term(Lt, x, z);
+  for (const TermVec & formulae : { TermVec{ xy, yz, zx },
+                                    TermVec{ xy, yz, zx, xz },
+                                    TermVec{ xy, zx, yz },
+                                    TermVec{ yz, zx, xy } })
+  {
+    TermVec interpolants;
+    ASSERT_TRUE(
+        s->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  }
+
+  // the second query asks only its last split, from the reused (<= x z)
+  check_result({ { "(define-fun I () Bool (<= x y))" },
+                 { "(define-fun I () Bool (<= x z))" },
+                 { "(define-fun I () Bool false)" },
+                 { "(define-fun I () Bool (<= x y))" },
+                 { "(define-fun I () Bool (<= z y))" },
+                 { "(define-fun I () Bool (<= y z))" },
+                 { "(define-fun I () Bool (<= y x))" } },
+               "--produce-interpolants --incremental");
+}
+
 }  // namespace smt_tests

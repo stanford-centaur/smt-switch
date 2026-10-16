@@ -418,6 +418,18 @@ TEST_P(ItpTests, DumpIsNotImplemented)
                NotImplementedException);
 }
 
+// no interpolator passes incremental on to its solver, so the log does not
+// show it, but the wrapped interpolator still takes it and checks it
+TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
+{
+  std::ostringstream out;
+  SmtInterpolator printing = create_printing_interpolator(itp, &out);
+  printing->set_opt("incremental", "false");
+  EXPECT_EQ(out.str().find("incremental"), std::string::npos) << out.str();
+  EXPECT_THROW(printing->set_opt("incremental", "maybe"),
+               IncorrectUsageException);
+}
+
 // a printing interpolator leaves the answer to the one it wraps
 TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {

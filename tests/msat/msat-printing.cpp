@@ -111,4 +111,46 @@ TEST_F(MsatPrintingTest, SequenceInterpolation)
       "-interpolation=true");
 }
 
+// a query that extends the last one keeps its formulas asserted, one that
+// shares only a prefix with it pops the rest, and one that shares nothing
+// starts afresh
+TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
+{
+  SmtInterpolator s = create_printing_interpolator(
+      MsatSolverFactory::create_interpolating_solver(), os);
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term xy = s->make_term(Lt, x, y);
+  Term yz = s->make_term(Lt, y, z);
+  Term zx = s->make_term(Lt, z, x);
+  Term xz = s->make_term(Lt, x, z);
+  for (const TermVec & formulae : { TermVec{ xy, yz, zx },
+                                    TermVec{ xy, yz, zx, xz },
+                                    TermVec{ xy, zx, yz },
+                                    TermVec{ yz, zx, xy } })
+  {
+    TermVec interpolants;
+    ASSERT_TRUE(
+        s->get_sequence_interpolants(formulae, interpolants).is_unsat());
+  }
+
+  check_result({ { "unsat" },
+                 { "(<= 1 (+ y (* (- 1) x)))" },
+                 { "(<= (+ x (* (- 1) z)) (- 2))" },
+                 { "unsat" },
+                 { "(<= 1 (+ y (* (- 1) x)))" },
+                 { "(<= (+ x (* (- 1) z)) (- 2))" },
+                 { "false" },
+                 { "unsat" },
+                 { "(<= 1 (+ y (* (- 1) x)))" },
+                 { "(<= 2 (+ y (* (- 1) z)))" },
+                 { "unsat" },
+                 { "(<= (+ y (* (- 1) z)) (- 1))" },
+                 { "(<= (+ y (* (- 1) x)) (- 2))" } },
+               "-interpolation=true");
+}
+
 }  // namespace smt_tests
