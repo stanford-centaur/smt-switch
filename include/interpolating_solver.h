@@ -44,9 +44,8 @@ namespace smt {
      re-enable solving. get_context_level is final too, and returns 0,
      since no context can be pushed.
    - Required: get_interpolant, get_sequence_interpolants,
-     reset_assertions and reset. A backend usually computes only one of
-     the first two natively, and can implement the other with
-     interpolant_from_sequence or sequence_from_interpolants.
+     reset_assertions and reset. A backend can implement get_interpolant
+     with interpolant_from_sequence.
      An interpolating solver holds no assertions of the caller's, so its
      reset_assertions discards what it keeps between queries instead: a
      backend may reuse the formulas a query shares with the one before,
@@ -197,12 +196,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
   Result interpolant_from_sequence(const Term & A,
                                    const Term & B,
                                    Term & out_I) const;
-
-  /** Computes a sequence interpolant with one get_interpolant call per
-   *  partition, for a backend that computes single interpolants natively.
-   */
-  Result sequence_from_interpolants(const TermVec & formulae,
-                                    TermVec & out_I) const;
 
   SmtSolver backend_solver;
 };
