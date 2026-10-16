@@ -1074,13 +1074,12 @@ void cvc5InterpolatingSolver::initialize()
 {
   // set_opt refuses produce-interpolants, so this is the only place it is set
   cvc5_solver->set_opt("produce-interpolants", "true");
-  // queries reuse what they share through push and pop, which need it
+  // each split of a query is asked between a push and a pop, which need it
   cvc5_solver->set_opt("incremental", "true");
 }
 
 void cvc5InterpolatingSolver::reset()
 {
-  last_itp_query_assertions.clear();
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
   cvc5_solver->reset();
@@ -1124,12 +1123,11 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   return interpolant_from_sequence(A, B, out_I);
 }
 
-// Each interpolant is between the conjunction of the formulae before a point
-// and that of the formulae after it, as in sequence_from_interpolants. cvc5
-// interpolates between all its assertions and a given formula, so the
-// formulae before the point sit on cvc5's assertion stack, one context level
-// each, pushed one at a time as the point moves on. The next query reuses
-// the first of them if it starts with the same formula.
+// cvc5 interpolates between its assertions and a given formula, and has no
+// sequence query, so each split is its own query. The first interpolates the
+// first formula against the conjunction of the rest; each later one asserts
+// the interpolant before it and the next formula instead of the whole
+// prefix, which makes the interpolants a chain.
 Result cvc5InterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
@@ -1156,19 +1154,16 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
   ::cvc5::Solver & solver = cvc5_solver->get_cvc5_solver();
   if (!incremental_mode)
   {
-    solver.resetAssertions();
-    last_itp_query_assertions.clear();
     last_itp_query_formulae.clear();
     last_itp_query_interpolants.clear();
   }
 
   // A query that starts with all of an unsat last one only strengthens the
   // B side of the splits they share, so their interpolants still hold, and
-  // the stack already holds what the next split needs.
+  // the chain goes on from the last of them.
   std::size_t first_split = 0;
   std::size_t last_size = last_itp_query_formulae.size();
   if (!last_itp_query_interpolants.empty() && last_size <= formulae.size()
-      && last_itp_query_assertions.size() + 1 == last_size
       && std::equal(last_itp_query_formulae.begin(),
                     last_itp_query_formulae.end(),
                     formulae.begin()))
@@ -1176,41 +1171,40 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
     out_I = last_itp_query_interpolants;
     first_split = last_size - 1;
   }
-  else
-  {
-    // the first split interpolates against the first formula alone, so
-    // only that one can be kept from the last query; each later split then
-    // pushes one more
-    std::size_t num_reused = 0;
-    if (!last_itp_query_assertions.empty()
-        && last_itp_query_assertions.front() == formulae.front())
-    {
-      num_reused = 1;
-    }
-    if (num_reused < last_itp_query_assertions.size())
-    {
-      solver.pop(last_itp_query_assertions.size() - num_reused);
-      last_itp_query_assertions.resize(num_reused);
-    }
-  }
 
+  // a split after a failed one has no interpolant to start from, so it
+  // fails too
   bool any_fails = false;
   for (std::size_t i = first_split; i + 1 < formulae.size(); ++i)
   {
-    if (i == last_itp_query_assertions.size())
+    if (any_fails)
     {
-      solver.push();
+      out_I.push_back(Term());
+      continue;
+    }
+    TermVec rest(formulae.begin() + i + 1, formulae.end());
+    Term B = rest.size() == 1 ? rest.front() : make_term(And, rest);
+    ::cvc5::Term notB =
+        std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
+    ::cvc5::Term I;
+    solver.push();
+    try
+    {
+      if (i > 0)
+      {
+        solver.assertFormula(
+            std::static_pointer_cast<Cvc5Term>(out_I[i - 1])->term);
+      }
       solver.assertFormula(
           std::static_pointer_cast<Cvc5Term>(formulae[i])->term);
-      last_itp_query_assertions.push_back(formulae[i]);
+      I = solver.getInterpolant(notB);
     }
-    Term B = formulae[i + 1];
-    for (std::size_t j = i + 2; j < formulae.size(); ++j)
+    catch (::cvc5::CVC5ApiException & e)
     {
-      B = make_term(And, B, formulae[j]);
+      solver.pop();
+      throw InternalSolverException(e.what());
     }
-    ::cvc5::Term I = solver.getInterpolant(
-        std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term);
+    solver.pop();
     if (I.isNull())
     {
       any_fails = true;
@@ -1238,7 +1232,6 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
 void cvc5InterpolatingSolver::reset_assertions()
 {
   cvc5_solver->get_cvc5_solver().resetAssertions();
-  last_itp_query_assertions.clear();
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
 }

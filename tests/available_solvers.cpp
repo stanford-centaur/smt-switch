@@ -247,8 +247,7 @@ std::vector<SolverConfiguration> available_interpolator_configurations()
   return result;
 }
 
-// the solver an interpolator is built on, whose theories it shares
-static SolverEnum interpolator_base_solver(SolverEnum se)
+SolverEnum interpolator_base_solver(SolverEnum se)
 {
   switch (se)
   {

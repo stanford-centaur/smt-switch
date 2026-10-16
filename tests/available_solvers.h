@@ -47,6 +47,9 @@ smt::SmtSolver create_solver(SolverConfiguration sc);
 /** Creates an interpolating SmtSolver of the provided type */
 smt::SmtInterpolator create_interpolating_solver(SolverConfiguration sc);
 
+/** The regular solver an interpolator is built on, whose theories it shares */
+smt::SolverEnum interpolator_base_solver(smt::SolverEnum se);
+
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
 

@@ -98,6 +98,51 @@ TEST_P(ItpTests, Interpolant)
   EXPECT_EQ(free_symbols.count(z), 0);
 }
 
+// Expects interpolants, from an interpolator of the given kind, to be a
+// sequence interpolant of formulae: a chain, as get_sequence_interpolants
+// promises. A regular solver of the same backend checks each implication.
+void expect_chain(SolverEnum interpolator,
+                  const TermVec & formulae,
+                  const TermVec & interpolants,
+                  const string & query)
+{
+  ASSERT_EQ(interpolants.size(), formulae.size() - 1) << query;
+  SmtSolver checker = create_solver(
+      SolverConfiguration(interpolator_base_solver(interpolator), false));
+  checker->set_opt("incremental", "true");
+  TermTranslator to_checker(checker);
+  TermVec f, I;
+  for (const Term & t : formulae)
+  {
+    f.push_back(to_checker.transfer_term(t));
+  }
+  for (size_t i = 0; i < interpolants.size(); ++i)
+  {
+    ASSERT_TRUE(interpolants[i]) << query << ", split " << i;
+    I.push_back(to_checker.transfer_term(interpolants[i]));
+  }
+  auto inconsistent = [&checker](const Term & a, const Term & b) {
+    checker->push();
+    checker->assert_formula(a);
+    checker->assert_formula(b);
+    bool unsat = checker->check_sat().is_unsat();
+    checker->pop();
+    return unsat;
+  };
+  EXPECT_TRUE(inconsistent(f.front(), checker->make_term(Not, I.front())))
+      << query << ": the first formula does not imply " << interpolants.front();
+  for (size_t i = 1; i < I.size(); ++i)
+  {
+    EXPECT_TRUE(inconsistent(checker->make_term(And, I[i - 1], f[i]),
+                             checker->make_term(Not, I[i])))
+        << query << ": " << interpolants[i - 1] << " and formula " << i
+        << " do not imply " << interpolants[i];
+  }
+  EXPECT_TRUE(inconsistent(I.back(), f.back()))
+      << query << ": " << interpolants.back()
+      << " is consistent with the last formula";
+}
+
 TEST_P(ItpTests, SequenceInterpolants)
 {
   // NOTE: there's a default implementation of
@@ -125,7 +170,53 @@ TEST_P(ItpTests, SequenceInterpolants)
 
   Result r = itp->get_sequence_interpolants(formulae, interpolants);
   ASSERT_TRUE(r.is_unsat());
-  EXPECT_EQ(interpolants.size(), formulae.size() - 1);
+  expect_chain(
+      GetParam().config.solver_enum, formulae, interpolants, "A1, A2, A3");
+}
+
+// A bounded model checking unrolling: a and b start at 0, each step
+// increments one of them, and after k steps a + b exceeds k.
+TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
+{
+  PrimOp add = GetParam().theory == THEORY_INT ? Plus : BVAdd;
+  for (int k = 2; k <= 5; ++k)
+  {
+    SmtInterpolator s = create_interpolating_solver(GetParam().config);
+    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
+                                               : s->make_sort(BV, 8);
+    Term one = s->make_term(1, srt);
+    TermVec a, b;
+    for (int i = 0; i <= k; ++i)
+    {
+      a.push_back(s->make_symbol("a" + std::to_string(i), srt));
+      b.push_back(s->make_symbol("b" + std::to_string(i), srt));
+    }
+    Term zero = s->make_term(0, srt);
+    TermVec formulae{ s->make_term(And,
+                                   s->make_term(Equal, a[0], zero),
+                                   s->make_term(Equal, b[0], zero)) };
+    for (int i = 0; i < k; ++i)
+    {
+      Term step_a = s->make_term(
+          And,
+          s->make_term(Equal, a[i + 1], s->make_term(add, a[i], one)),
+          s->make_term(Equal, b[i + 1], b[i]));
+      Term step_b = s->make_term(
+          And,
+          s->make_term(Equal, b[i + 1], s->make_term(add, b[i], one)),
+          s->make_term(Equal, a[i + 1], a[i]));
+      formulae.push_back(s->make_term(Or, step_a, step_b));
+    }
+    formulae.push_back(
+        s->make_term(gt, s->make_term(add, a[k], b[k]), s->make_term(k, srt)));
+    TermVec interpolants;
+    ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat())
+        << "k = " << k;
+    expect_chain(GetParam().config.solver_enum,
+                 formulae,
+                 interpolants,
+                 "k = " + std::to_string(k));
+  }
 }
 
 TEST_P(ItpTests, ReportsItsSolverEnum)
@@ -248,6 +339,11 @@ TEST_P(ItpTests, ReuseKeepsResults)
               << i << ": " << sym;
         }
       }
+      expect_chain(GetParam().config.solver_enum,
+                   queries[q],
+                   itps,
+                   std::string("incremental ") + incremental + ", query "
+                       + std::to_string(q));
     }
   }
 }
