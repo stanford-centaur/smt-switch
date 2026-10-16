@@ -34,7 +34,8 @@ case $label in
   *) echo "error: no package list for runner label '$label'" >&2 && exit 2 ;;
 esac
 
-inputs=(ci-scripts/compute-dep-cache-entry.sh)
+# CI builds LibPoly itself, which cvc5 and Yices2 then link
+inputs=(ci-scripts/compute-dep-cache-entry.sh ci-scripts/install-libpoly.sh)
 fields=("label=$label" "prefix=$prefix" "epoch=$epoch" "packages=$packages")
 path=deps/$prefix
 if [[ $prefix == mathsat ]]; then

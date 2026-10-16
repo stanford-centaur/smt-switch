@@ -103,12 +103,14 @@ jobs:
           source ci-scripts/vars.sh
           if [[ $RUNNER_OS == Linux ]]; then
             read -r -a packages <<<"$APT_PACKAGES"
+            sudo add-apt-repository --yes --no-update ppa:sri-csl/formal-methods
             sudo apt-get update
             sudo apt-get install --no-install-recommends "${packages[@]}"
           else
             read -r -a packages <<<"$BREW_PACKAGES"
             brew install "${packages[@]}"
           fi
+          ci-scripts/install-libpoly.sh
       - &python-setup
         name: Set up Python virtual environment
         run: |
