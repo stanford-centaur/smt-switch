@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file msat-incremental.cpp
+/*! \file msat-assumption-clauses.cpp
 ** \verbatim
 ** Top contributors (to current version):
 **   Makai Mann
@@ -27,7 +27,7 @@
 using namespace smt;
 using namespace std;
 
-TEST(MsatIncremental, AssumptionsPushPopAndReset)
+TEST(MsatAssumptionClauses, ClearedOnEveryCall)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_logic("QF_BV");
