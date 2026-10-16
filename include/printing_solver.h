@@ -70,7 +70,6 @@ class PrintingSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
-  void reset() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -79,10 +78,7 @@ class PrintingSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
   std::uint64_t get_context_level() const override;
-  void reset_assertions() override;
 
   /* Operators that are not printed
    * For example, creating terms is not printed, but the
@@ -114,6 +110,11 @@ class PrintingSolver : public AbsSmtSolver
   Term make_term(const Op op, const TermVec & terms) const override;
 
  protected:
+  void do_push(std::uint64_t num) override;
+  void do_pop(std::uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   /* The wrapped solver */
   SmtSolver wrapped_solver;
   /* A stream to dump SMT-LIB commands to */
@@ -139,10 +140,11 @@ class PrintingInterpolator : public AbsSmtInterpolator
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
   void set_opt(const std::string option, const std::string value) override;
-  void reset() override;
-  void reset_assertions() override;
 
  protected:
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   /* Prints a query of formulae as the wrapped interpolator runs it, around
    * ask, which runs it and stores its interpolants in out_I. What the
    * wrapped interpolator keeps from the queries before is followed here, so

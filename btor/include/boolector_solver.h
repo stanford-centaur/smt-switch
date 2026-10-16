@@ -50,9 +50,6 @@ class BoolectorSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -88,8 +85,6 @@ class BoolectorSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
   // helper methods for making a term with a primitive op
@@ -105,6 +100,11 @@ class BoolectorSolver : public AbsSmtSolver
   Btor * get_btor() const { return btor.get(); };
 
  protected:
+  void do_push(uint64_t num) override;
+  void do_pop(uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   // shared with every term and sort, so the instance lives until the last
   // of them is released, even past reset() or this solver's destruction
   std::shared_ptr<Btor> btor;
@@ -117,7 +117,6 @@ class BoolectorSolver : public AbsSmtSolver
   ///< the context. Without it, boolector does not support
   ///< reset_assertions yet
   ///< set this flag with set_opt("base-context-1", "true")
-  size_t context_level = 0;  ///< tracks the current solving context level
 
   std::chrono::duration<double> time_limit{ 0 };   ///< zero means no limit
   std::chrono::steady_clock::time_point deadline;  ///< of the running query

@@ -72,9 +72,6 @@ class LoggingSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
-  // Will probably remove this eventually
-  // For now, need to clear the hash table
-  void reset() override;
 
   // dispatched to underlying solver
   void set_opt(const std::string option, const std::string value) override;
@@ -85,12 +82,14 @@ class LoggingSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
   std::uint64_t get_context_level() const override;
-  void reset_assertions() override;
 
  protected:
+  void do_push(std::uint64_t num) override;
+  void do_pop(std::uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;
 

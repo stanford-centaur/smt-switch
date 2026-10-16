@@ -115,8 +115,7 @@ static Term make_bzla_term(const std::shared_ptr<bitwuzla::TermManager> & tm,
 BzlaSolver::BzlaSolver()
     : AbsSmtSolver(BZLA),
       options(),
-      tm(std::make_shared<bitwuzla::TermManager>()),
-      context_level(0)
+      tm(std::make_shared<bitwuzla::TermManager>())
 {
 }
 
@@ -245,19 +244,9 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BzlaSolver::push(std::uint64_t num)
-{
-  get_bitwuzla()->push(num);
-  context_level += num;
-}
+void BzlaSolver::do_push(std::uint64_t num) { get_bitwuzla()->push(num); }
 
-void BzlaSolver::pop(std::uint64_t num)
-{
-  get_bitwuzla()->pop(num);
-  context_level -= num;
-}
-
-uint64_t BzlaSolver::get_context_level() const { return context_level; }
+void BzlaSolver::do_pop(std::uint64_t num) { get_bitwuzla()->pop(num); }
 
 Term BzlaSolver::get_value(const Term & t) const
 {
@@ -635,7 +624,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void BzlaSolver::reset()
+void BzlaSolver::do_reset()
 {
   // forget the symbols, so that their names can be declared again
   symbol_table.clear();
@@ -646,14 +635,12 @@ void BzlaSolver::reset()
   tm = std::make_shared<bitwuzla::TermManager>();
   // get_bitwuzla() creates the instance on first use, so options can be
   // set again until then, as after construction
-  context_level = 0;
 }
 
-void BzlaSolver::reset_assertions()
+void BzlaSolver::do_reset_assertions()
 {
   bzla.reset();
   bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
-  context_level = 0;
 }
 
 Term BzlaSolver::substitute(const Term term,
@@ -893,14 +880,14 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   return r;
 }
 
-void BzlaInterpolatingSolver::reset_assertions()
+void BzlaInterpolatingSolver::do_reset_assertions()
 {
   bzla_solver->reset_assertions();
   last_itp_query_assertions.clear();
   initialize();
 }
 
-void BzlaInterpolatingSolver::reset()
+void BzlaInterpolatingSolver::do_reset()
 {
   // these terms belong to the term manager bzla_solver->reset() destroys
   last_itp_query_assertions.clear();

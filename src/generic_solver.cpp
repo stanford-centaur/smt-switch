@@ -231,7 +231,6 @@ GenericSolver::GenericSolver(std::string path,
       cmd_line_args(cmd_line_args),
       read_buf_size(read_buf_size),
       response_timeout(response_timeout),
-      context_level_(0),
       name_sort_map(new std::unordered_map<std::string, Sort>()),
       sort_name_map(new std::unordered_map<Sort, std::string>()),
       name_term_map(new std::unordered_map<std::string, Term>()),
@@ -2057,7 +2056,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   return store_chain_values(stores);
 }
 
-void GenericSolver::reset()
+void GenericSolver::do_reset()
 {
   std::string result = run_command("(" + RESET_STR + ")");
   mode_ = SmtLibMode::START;
@@ -2205,30 +2204,23 @@ std::string GenericSolver::assumption_name(const Term & assumption)
   return label_name;
 }
 
-void GenericSolver::push(std::uint64_t num)
+void GenericSolver::do_push(std::uint64_t num)
 {
   prepare_assertion_command();
   std::string result =
       run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
   mode_ = SmtLibMode::ASSERT;
-  context_level_ += num;
 }
 
-void GenericSolver::pop(std::uint64_t num)
+void GenericSolver::do_pop(std::uint64_t num)
 {
   prepare_assertion_command();
   std::string result =
       run_command("(" + POP_STR + " " + std::to_string(num) + ")");
   mode_ = SmtLibMode::ASSERT;
-  context_level_ -= num;
 }
 
-std::uint64_t GenericSolver::get_context_level() const
-{
-  return context_level_;
-}
-
-void GenericSolver::reset_assertions()
+void GenericSolver::do_reset_assertions()
 {
   // global-declarations keeps declarations and definitions through it, so
   // the ones held back go in first

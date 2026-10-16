@@ -421,12 +421,11 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void Cvc5Solver::push(uint64_t num)
+void Cvc5Solver::do_push(uint64_t num)
 {
   try
   {
     solver->push(num);
-    context_level += num;
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -434,20 +433,17 @@ void Cvc5Solver::push(uint64_t num)
   }
 }
 
-void Cvc5Solver::pop(uint64_t num)
+void Cvc5Solver::do_pop(uint64_t num)
 {
   try
   {
     solver->pop(num);
-    context_level -= num;
   }
   catch (::cvc5::CVC5ApiException & e)
   {
     throw InternalSolverException(e.what());
   }
 }
-
-uint64_t Cvc5Solver::get_context_level() const { return context_level; }
 
 Term Cvc5Solver::get_value(const Term & t) const
 {
@@ -983,7 +979,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void Cvc5Solver::reset()
+void Cvc5Solver::do_reset()
 {
   // cvc5 has no public reset, so start again with a new term manager and
   // solver. The solver refers to its term manager, so it is destroyed first.
@@ -995,10 +991,9 @@ void Cvc5Solver::reset()
   solver = std::make_unique<::cvc5::Solver>(*term_manager);
   set_default_options(*solver);
   symbol_table.clear();
-  context_level = 0;
 }
 
-void Cvc5Solver::reset_assertions()
+void Cvc5Solver::do_reset_assertions()
 {
   try
   {
@@ -1078,7 +1073,7 @@ void cvc5InterpolatingSolver::initialize()
   cvc5_solver->set_opt("incremental", "true");
 }
 
-void cvc5InterpolatingSolver::reset()
+void cvc5InterpolatingSolver::do_reset()
 {
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
@@ -1229,7 +1224,7 @@ Result cvc5InterpolatingSolver::get_sequence_interpolants(
   return Result(UNSAT);
 }
 
-void cvc5InterpolatingSolver::reset_assertions()
+void cvc5InterpolatingSolver::do_reset_assertions()
 {
   cvc5_solver->get_cvc5_solver().resetAssertions();
   last_itp_query_formulae.clear();

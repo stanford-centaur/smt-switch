@@ -31,12 +31,12 @@ AbsSmtInterpolator::AbsSmtInterpolator(SolverEnum se, SmtSolver backend_solver)
 
 // ------------------------- Forbidden ---------------------------------------
 
-void AbsSmtInterpolator::push(std::uint64_t /* num */)
+void AbsSmtInterpolator::do_push(std::uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call push from interpolating solver");
 }
 
-void AbsSmtInterpolator::pop(std::uint64_t /* num */)
+void AbsSmtInterpolator::do_pop(std::uint64_t /* num */)
 {
   throw IncorrectUsageException("Can't call pop from interpolating solver");
 }

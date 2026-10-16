@@ -59,11 +59,6 @@ TEST_P(UnitResetTests, ResetDropsAssertions)
 
 TEST_P(UnitResetTests, ResetClearsContextLevel)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == YICES2 || se == Z3)
-  {
-    GTEST_SKIP() << "Yices2 and Z3 keep counting the pushes a reset dropped";
-  }
   s->set_opt("incremental", "true");
   s->push(2);
   s->reset();

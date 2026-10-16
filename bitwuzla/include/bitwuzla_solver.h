@@ -47,9 +47,6 @@ class BzlaSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
-  std::uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -85,8 +82,6 @@ class BzlaSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
   TermVec substitute_terms(
@@ -103,13 +98,17 @@ class BzlaSolver : public AbsSmtSolver
   bool is_initialized() const;
 
  protected:
+  void do_push(std::uint64_t num) override;
+  void do_pop(std::uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   bitwuzla::Options options;
   // bzla uses tm, so tm is declared first and outlives it
   std::shared_ptr<bitwuzla::TermManager> tm;
   mutable std::unique_ptr<bitwuzla::Bitwuzla> bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
-  std::uint64_t context_level;
 };
 
 class BzlaInterpolatingSolver : public AbsSmtInterpolator
@@ -125,10 +124,11 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
-  void reset() override;
-  void reset_assertions() override;
 
  protected:
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   // enables interpolation unless the backend's options are fixed already
   void initialize();
 

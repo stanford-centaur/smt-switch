@@ -186,21 +186,26 @@ class AbsSmtSolver
 
   /* Push contexts
    * SMTLIB: (push <num>)
+   * The solver does the push in do_push, and the context level goes up by
+   * num once it succeeds.
    * @param num the number of contexts to push
    */
-  virtual void push(std::uint64_t num = 1) = 0;
+  void push(std::uint64_t num = 1);
 
   /* Pop contexts
    * SMTLIB: (pop <num>)
+   * The solver does the pop in do_pop, and the context level goes down by
+   * num once it succeeds.
    * @param num the number of contexts to pop
    */
-  virtual void pop(std::uint64_t num = 1) = 0;
+  void pop(std::uint64_t num = 1);
 
   /** Returns the current context level of the solver
-   *  based on the number of pushes/pops
+   *  based on the number of pushes/pops since the last reset or
+   *  reset_assertions
    *  @return context level
    */
-  virtual std::uint64_t get_context_level() const = 0;
+  virtual std::uint64_t get_context_level() const;
 
   /* Pop all contexts */
   virtual void pop_all() { pop(get_context_level()); }
@@ -392,13 +397,17 @@ class AbsSmtSolver
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
    * SMTLIB: (reset)
+   * The solver does the reset in do_reset, and the context level goes back
+   * to 0 once it succeeds.
    */
-  virtual void reset() = 0;
+  void reset();
 
   /* Reset all assertions
    * SMTLIB: (reset-assertions)
+   * The solver does the reset in do_reset_assertions, and the context level
+   * goes back to 0 once it succeeds.
    */
-  virtual void reset_assertions() = 0;
+  void reset_assertions();
 
   // ---------------------------- Strings ------------------------------------
   // Of the backends here only cvc5 wires up the string theory, so neither of
@@ -535,7 +544,24 @@ class AbsSmtSolver
   SolverEnum get_solver_enum() const;
 
  protected:
+  /* Push num contexts in the underlying solver; see push */
+  virtual void do_push(std::uint64_t num) = 0;
+
+  /* Pop num contexts in the underlying solver; see pop */
+  virtual void do_pop(std::uint64_t num) = 0;
+
+  /* Return the underlying solver to its startup state; see reset */
+  virtual void do_reset() = 0;
+
+  /* Drop every assertion and pushed context in the underlying solver; see
+   * reset_assertions
+   */
+  virtual void do_reset_assertions() = 0;
+
   SolverEnum solver_enum;  ///< an enum identifying the underlying solver
+
+ private:
+  std::uint64_t context_level = 0;  ///< pushes minus pops since a reset
 };
 
 }  // namespace smt

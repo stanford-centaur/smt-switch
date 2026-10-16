@@ -17,6 +17,7 @@
 #include "solver.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 #include "exceptions.h"
@@ -39,6 +40,32 @@ Result AbsSmtSolver::check_sat_assuming_set(
     const UnorderedTermSet & assumptions)
 {
   return check_sat_assuming(assumptions);
+}
+
+void AbsSmtSolver::push(std::uint64_t num)
+{
+  do_push(num);
+  context_level += num;
+}
+
+void AbsSmtSolver::pop(std::uint64_t num)
+{
+  do_pop(num);
+  context_level -= num;
+}
+
+std::uint64_t AbsSmtSolver::get_context_level() const { return context_level; }
+
+void AbsSmtSolver::reset()
+{
+  do_reset();
+  context_level = 0;
+}
+
+void AbsSmtSolver::reset_assertions()
+{
+  do_reset_assertions();
+  context_level = 0;
 }
 
 Sort AbsSmtSolver::make_sort(const Sort & /* sort_con */,

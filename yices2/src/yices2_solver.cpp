@@ -452,7 +452,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void Yices2Solver::push(uint64_t num)
+void Yices2Solver::do_push(uint64_t num)
 {
   if (yices_context_status(get_context()) == YICES_STATUS_UNSAT)
   {
@@ -464,11 +464,9 @@ void Yices2Solver::push(uint64_t num)
   {
     yices_push(get_context());
   }
-
-  context_level += num;
 }
 
-void Yices2Solver::pop(uint64_t num)
+void Yices2Solver::do_pop(uint64_t num)
 {
   for (size_t i = 0; i < num; ++i)
   {
@@ -479,11 +477,7 @@ void Yices2Solver::pop(uint64_t num)
     }
     yices_pop(get_context());
   }
-
-  context_level -= num;
 }
-
-uint64_t Yices2Solver::get_context_level() const { return context_level; }
 
 Term Yices2Solver::get_value(const Term & t) const
 {
@@ -1207,7 +1201,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   return std::make_shared<Yices2Term>(res);
 }
 
-void Yices2Solver::reset()
+void Yices2Solver::do_reset()
 {
   // yices_reset deletes every context and configuration, so free ours
   // first rather than leave the destructor to free them again
@@ -1220,14 +1214,16 @@ void Yices2Solver::reset()
   yices_reset();
   config = yices_new_config();
   symbol_table.clear();
+  pushes_after_unsat = 0;
 }
 
-void Yices2Solver::reset_assertions()
+void Yices2Solver::do_reset_assertions()
 {
   if (ctx)
   {
     yices_reset_context(ctx);
   }
+  pushes_after_unsat = 0;
 }
 
 Term Yices2Solver::substitute(const Term term,

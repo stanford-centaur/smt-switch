@@ -41,12 +41,14 @@ namespace smt {
    - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming,
      get_value, get_array_values and get_unsat_assumptions throw
      IncorrectUsageException, and are final so that no interpolator can
-     re-enable solving. dump_smt2 throws it and is final as well, since
-     an interpolator holds no assertions to dump. get_context_level is
-     final too, and returns 0, since no context can be pushed.
-   - Required: get_interpolant, get_sequence_interpolants, set_opt,
-     reset_assertions and reset. A backend can implement get_interpolant
-     with interpolant_from_sequence.
+     re-enable solving; for push and pop, it is their hooks do_push and
+     do_pop that throw and are final. dump_smt2 throws it and is final as
+     well, since an interpolator holds no assertions to dump.
+     get_context_level is final too, and returns 0, since no context can
+     be pushed.
+   - Required: get_interpolant, get_sequence_interpolants, set_opt, and
+     the hooks do_reset_assertions and do_reset. A backend can implement
+     get_interpolant with interpolant_from_sequence.
      An interpolating solver holds no assertions of the caller's, so its
      reset_assertions discards what it keeps between queries instead: a
      backend may reuse the formulas a query shares with the one before,
@@ -66,8 +68,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
   AbsSmtInterpolator(SolverEnum se, SmtSolver backend_solver);
 
   // ------------------------- Forbidden ------------------------------------
-  void push(std::uint64_t num = 1) final;
-  void pop(std::uint64_t num = 1) final;
   void assert_formula(const Term & t) final;
   Result check_sat() final;
   // Overriding check_sat_assuming hides the AbsSmtSolver template that
@@ -118,13 +118,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
    */
   virtual Result get_sequence_interpolants(const TermVec & formulae,
                                            TermVec & out_I) const = 0;
-
-  /** Discard what the solver keeps between queries, so that the next one
-   *  starts afresh; see the contract above.
-   */
-  void reset_assertions() override = 0;
-
-  void reset() override = 0;
 
   void set_opt(const std::string option, const std::string value) override = 0;
 
@@ -188,6 +181,18 @@ class AbsSmtInterpolator : public AbsSmtSolver
       const UnorderedTermMap & substitution_map) const override;
 
  protected:
+  // ------------------------- Forbidden ------------------------------------
+  void do_push(std::uint64_t num) final;
+  void do_pop(std::uint64_t num) final;
+
+  // ------------------------- Required -------------------------------------
+  /** Discard what the solver keeps between queries, so that the next one
+   *  starts afresh; see the contract above.
+   */
+  void do_reset_assertions() override = 0;
+
+  void do_reset() override = 0;
+
   /** Computes the interpolant of A and B as the sequence interpolant of
    *  { A, B }, for a backend that computes sequences natively.
    */

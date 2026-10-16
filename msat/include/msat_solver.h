@@ -65,8 +65,6 @@ class MsatSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
   uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
@@ -103,8 +101,6 @@ class MsatSolver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
 
@@ -124,6 +120,11 @@ class MsatSolver : public AbsSmtSolver
   void set_max_assump_clauses(size_t m) { max_assump_clauses_ = m; }
 
  protected:
+  void do_push(uint64_t num) override;
+  void do_pop(uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   msat_config cfg;
   // marked mutable because want to stick with const interface for functions
   // but the environment cannot be created before setting options
@@ -193,10 +194,11 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
-  void reset() override;
-  void reset_assertions() override;
 
  protected:
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   // sets the options interpolation needs, unless the configuration is fixed
   // already
   void initialize();

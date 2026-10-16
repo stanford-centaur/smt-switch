@@ -625,22 +625,15 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void Z3Solver::push(uint64_t num)
+void Z3Solver::do_push(uint64_t num)
 {
   for (uint64_t i = 0; i < num; i++)
   {
     slv.push();
   }
-  context_level += num;
 }
 
-void Z3Solver::pop(uint64_t num)
-{
-  slv.pop(num);
-  context_level -= num;
-}
-
-uint64_t Z3Solver::get_context_level() const { return context_level; }
+void Z3Solver::do_pop(uint64_t num) { slv.pop(num); }
 
 Term Z3Solver::get_value(const Term & t) const
 {
@@ -1197,13 +1190,13 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void Z3Solver::reset()
+void Z3Solver::do_reset()
 {
   slv.reset();
   symbol_table.clear();
 }
 
-void Z3Solver::reset_assertions() { slv.reset(); }
+void Z3Solver::do_reset_assertions() { slv.reset(); }
 
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
