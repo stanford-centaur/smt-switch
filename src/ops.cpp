@@ -205,7 +205,8 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
         { Exists, { 2, 2 } },
         { Apply_Selector, { 2, 2 } },
         { Apply_Tester, { 2, 2 } },
-        { Apply_Constructor, { 2, INT_MAX } },
+        // a nullary constructor is applied to nothing but itself
+        { Apply_Constructor, { 1, INT_MAX } },
     });
 
 std::string to_string(PrimOp op)
