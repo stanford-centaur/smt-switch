@@ -671,7 +671,9 @@ Term BoolectorSolver::make_param(const std::string name, const Sort & sort)
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);
-  BoolectorNode * n = boolector_param(btor.get(), bs->sort, name.c_str());
+  // Boolector keeps one table of names for params and variables, so a
+  // named param would refuse a symbol of its name, or be refused by one
+  BoolectorNode * n = boolector_param(btor.get(), bs->sort, nullptr);
   return std::make_shared<BoolectorTerm>(btor, n);
 }
 
