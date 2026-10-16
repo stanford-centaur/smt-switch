@@ -426,11 +426,6 @@ TEST_F(Yices2SolverTest, TestBVCompOp)
 //   Term t = s->make_term(Rotate_Right, t1, t2);
 //   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 // }
-// TEST_F(Yices2SolverTest, TestBVToNatOp)
-// {
-//   Term t = s->make_term(BV_To_Nat, t1, t2);
-//   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
-// }
 
 // Unwrapped, as the logging solver would work out the sort itself
 TEST(Yices2IntToBv, FoldsValueModuloWidth)
@@ -467,6 +462,44 @@ TEST(Yices2IntToBv, RefusesNonInteger)
   Term x = s->make_symbol("x", s->make_sort(BV, 8));
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), r), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), x), IncorrectUsageException);
+}
+
+// Unwrapped, as the logging solver would work out the sort itself
+TEST(Yices2BvToInt, FoldsValue)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Term ff = s->make_term(255, bvsort8);
+
+  Term unsigned_ff = s->make_term(UBV_To_Int, ff);
+  EXPECT_EQ(unsigned_ff->get_sort(), intsort);
+  EXPECT_EQ(unsigned_ff, s->make_term("255", intsort));
+  EXPECT_EQ(s->make_term(BV_To_Nat, ff), s->make_term("255", intsort));
+  EXPECT_EQ(s->make_term(SBV_To_Int, ff), s->make_term("-1", intsort));
+  EXPECT_EQ(s->make_term(SBV_To_Int, s->make_term(127, bvsort8)),
+            s->make_term("127", intsort));
+
+  Term ones100 = s->make_term(std::string(100, '1'), s->make_sort(BV, 100), 2);
+  EXPECT_EQ(s->make_term(UBV_To_Int, ones100),
+            s->make_term("1267650600228229401496703205375", intsort));
+  EXPECT_EQ(s->make_term(SBV_To_Int, ones100), s->make_term("-1", intsort));
+}
+
+TEST(Yices2BvToInt, RefusesSymbol)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  EXPECT_THROW(s->make_term(UBV_To_Int, x), NotImplementedException);
+  EXPECT_THROW(s->make_term(SBV_To_Int, x), NotImplementedException);
+}
+
+TEST(Yices2BvToInt, RefusesNonBitVector)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Term a = s->make_symbol("a", s->make_sort(INT));
+  EXPECT_THROW(s->make_term(UBV_To_Int, a), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(SBV_To_Int, a), IncorrectUsageException);
 }
 
 TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)

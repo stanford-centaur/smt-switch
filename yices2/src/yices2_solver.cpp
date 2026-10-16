@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "solver_utils.h"
 #include "yices.h"
@@ -59,11 +60,6 @@ typedef term_t (*yices_bin_fun)(term_t, term_t);
 typedef term_t (*yices_tern_fun)(term_t, term_t, term_t);
 typedef term_t (*yices_variadic_fun)(uint32_t, term_t[]);
 typedef term_t (*yices_const_variadic_fun)(uint32_t, const term_t[]);
-
-// TODO's:
-// Pretty sure not implemented in Yices.
-// Good candidates for extension.
-//  BV_To_Nat,
 
 const unordered_map<PrimOp, yices_un_fun> yices_unary_ops(
     { { Not, yices_not },
@@ -856,6 +852,38 @@ Term Yices2Solver::make_param(const std::string name, const Sort & sort)
   return std::make_shared<Yices2Term>(y_term);
 }
 
+/**
+ * The Int constant a bit-vector constant stands for, read as unsigned or as
+ * two's complement
+ */
+static term_t bv_value_to_int(term_t bv_value, bool is_signed)
+{
+  const uint32_t width = yices_term_bitsize(bv_value);
+  // yices gives the bits least significant first
+  vector<int32_t> bits(width);
+  yices_bv_const_value(bv_value, bits.data());
+  mpz_t value;
+  mpz_init(value);
+  for (uint32_t i = 0; i < width; ++i)
+  {
+    if (bits[i])
+    {
+      mpz_setbit(value, i);
+    }
+  }
+  if (is_signed && bits[width - 1])
+  {
+    mpz_t modulus;
+    mpz_init(modulus);
+    mpz_setbit(modulus, width);
+    mpz_sub(value, value, modulus);
+    mpz_clear(modulus);
+  }
+  term_t res = yices_mpz(value);
+  mpz_clear(value);
+  return res;
+}
+
 Term Yices2Solver::make_term(Op op, const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
@@ -910,6 +938,23 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
     // truncates two's complement to the width, which is the value mod 2^width
     res = yices_bvconst_mpz(width, mpq_numref(value));
     mpq_clear(value);
+  }
+  else if (op.prim_op == UBV_To_Int || op.prim_op == SBV_To_Int
+           || op.prim_op == BV_To_Nat)
+  {
+    if (!yices_term_is_bitvector(yterm->term))
+    {
+      throw IncorrectUsageException("Can't apply " + op.to_string()
+                                    + " to a non-bit-vector term");
+    }
+    // Yices2 has no conversion, so only a value can be folded into one
+    if (yices_term_constructor(yterm->term) != YICES_BV_CONSTANT)
+    {
+      throw NotImplementedException("Yices2 has no " + op.to_string()
+                                    + ", so it can only apply it to a "
+                                      "bit-vector value");
+    }
+    res = bv_value_to_int(yterm->term, op.prim_op == SBV_To_Int);
   }
   else if (op.prim_op == To_Real)
   {
