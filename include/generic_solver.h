@@ -21,6 +21,15 @@
 ** 5. All declarations made in the solver are global and permanent
 **    (set-option :global-declarations true), meaning that popping
 **    assertion levels does not remove them.
+** 6. The solver follows the binary's SMT-LIB execution mode (start,
+**    assert, sat, unsat) and refuses a command the mode does not permit,
+**    such as get_value after anything but a sat or unknown check. A
+**    command that needs a logic but arrives in start mode first sets the
+**    logic ALL. A symbol, sort or term made after a check reaches the
+**    binary only once the next command leaves the sat or unsat mode, so
+**    the model can still be read; get_value refuses a term that uses a
+**    symbol or sort declared since the check, which the model knows
+**    nothing about.
 **/
 
 #pragma once
@@ -32,6 +41,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "generic_datatype.h"
@@ -42,6 +52,25 @@
 #include "term.h"
 
 namespace smt {
+
+/** The execution modes of SMT-LIB 2.6, Section 4.1.1. SAT and UNSAT are its
+ * two query modes, entered by a check that answers sat or unknown, and
+ * unsat, respectively.
+ */
+enum class SmtLibMode
+{
+  START,
+  ASSERT,
+  SAT,
+  UNSAT
+};
+
+/** the name SMT-LIB gives a mode
+ * @param mode the mode to name
+ * @return "start", "assert", "sat" or "unsat"
+ * @throws NotImplementedException for a value that is not an enumerator
+ */
+std::string to_string(SmtLibMode mode);
 
 class GenericSolver : public AbsSmtSolver
 {
@@ -151,6 +180,54 @@ class GenericSolver : public AbsSmtSolver
   /******************
    * helper methods *
    *******************/
+
+  /** throw unless the solver is in `needed` mode
+   * @param needed the mode the operation needs
+   * @param operation the method being refused, for the message
+   * @param reason what puts the solver in `needed` mode, for the message
+   * @throws IncorrectUsageException if the solver is in another mode
+   */
+  void require_mode(SmtLibMode needed,
+                    const std::string & operation,
+                    const std::string & reason) const;
+
+  /** get the binary ready for a command that changes the assertion stack:
+   * set the logic ALL in start mode, and in the sat and unsat modes send
+   * the declarations and definitions held back since the check. The caller
+   * sets the assert mode once its own command succeeds.
+   */
+  void prepare_assertion_command() const;
+
+  /** send the declarations and definitions held back in the sat or unsat
+   * mode, in the order they were made
+   */
+  void send_pending_commands() const;
+
+  /** send a declaration or definition, or, in the sat or unsat mode, hold
+   * it back until the next command that leaves the mode
+   * @param cmd the declare-* or define-fun command
+   * @return whether it was held back
+   */
+  bool send_or_hold(const std::string & cmd) const;
+
+  /** whether a sort is, or is built from, one whose declaration is held
+   * back
+   * @param sort the sort to check
+   * @return true if the sort mentions a held-back sort
+   */
+  bool uses_held_back_sort(const Sort & sort) const;
+
+  /** the text standing for `term` in a get-value command: its name, or,
+   * if it depends on definitions that are being held back, a let that
+   * binds them first
+   * @param term the term to be queried
+   * @param operation the method asking, for the message
+   * @return the term as it is to be written in the get-value
+   * @throws IncorrectUsageException if the term uses a symbol or sort whose
+   * declaration is held back, since the model has no value for one
+   */
+  std::string query_text(const Term & term,
+                         const std::string & operation) const;
 
   /** Helper functions for the corresponding make_term
    * functions with the same arguments.
@@ -308,6 +385,18 @@ class GenericSolver : public AbsSmtSolver
   // maps between Term name and actual Term and vice versa
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
+
+  // the binary's execution mode, as of the last command that succeeded
+  mutable SmtLibMode mode_ = SmtLibMode::START;
+
+  // declarations and definitions made in the sat or unsat mode, which
+  // would leave it; in the order they were made, so each comes after
+  // whatever it uses
+  mutable std::vector<std::string> pending_commands_;
+  // the terms and sorts those commands define or declare
+  mutable UnorderedTermSet pending_definitions_;
+  mutable UnorderedTermSet pending_symbols_;
+  mutable std::unordered_set<std::string> pending_sort_names_;
 
   // labels standing in for assumptions that are not literals, and back
   UnorderedTermMap assumption_labels;
