@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Name each library once on the link line for linkers that do not need
+# repeats, such as Apple's, which warns about them.
+if(POLICY CMP0156)
+  cmake_policy(SET CMP0156 NEW)
+endif()
+# Keep the first occurrence of a static library when dropping repeats.
+if(POLICY CMP0179)
+  cmake_policy(SET CMP0179 NEW)
+endif()
+
 project(smt-switch)
 
 # C++17 unless -DCMAKE_CXX_STANDARD= asks for more, older is refused.
