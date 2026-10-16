@@ -898,7 +898,24 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Int_To_BV)
   {
-    res = yices_bvconst_int64(yterm->term, op.idx0);
+    if (!yices_term_is_int(yterm->term))
+    {
+      throw IncorrectUsageException(
+          "Can't apply int_to_bv to a non-integer term");
+    }
+    // Yices2 has no conversion, so only a value can be folded into one
+    if (yices_term_constructor(yterm->term) != YICES_ARITH_CONSTANT)
+    {
+      throw NotImplementedException(
+          "Yices2 has no int_to_bv, so it can only apply it to an Int value");
+    }
+    uint32_t width = narrow_index(op, op.idx0);
+    mpq_t value;
+    mpq_init(value);
+    yices_rational_const_value(yterm->term, value);
+    // truncates two's complement to the width, which is the value mod 2^width
+    res = yices_bvconst_mpz(width, mpq_numref(value));
+    mpq_clear(value);
   }
   else if (op.prim_op == To_Real)
   {

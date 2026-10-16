@@ -431,11 +431,6 @@ TEST_F(Yices2SolverTest, TestBVCompOp)
 //   Term t = s->make_term(BV_To_Nat, t1, t2);
 //   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 // }
-// TEST_F(Yices2SolverTest, TestIntToBVOp)
-// {
-//   Term t = s->make_term(Int_To_BV, t1, t2);
-//   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
-// }
 
 // TEST_F(Yices2SolverTest, TestStoreOp)
 // {
@@ -447,6 +442,43 @@ TEST_F(Yices2SolverTest, TestBVCompOp)
 //   Term t = s->make_term(Const_Array, t1, t2);
 //   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 // }
+
+// Unwrapped, as the logging solver would work out the sort itself
+TEST(Yices2IntToBv, FoldsValueModuloWidth)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Op int_to_bv8(Int_To_BV, 8);
+
+  Term five = s->make_term(int_to_bv8, s->make_term("5", intsort));
+  EXPECT_EQ(five->get_sort(), bvsort8);
+  EXPECT_EQ(five, s->make_term(5, bvsort8));
+  EXPECT_EQ(s->make_term(int_to_bv8, s->make_term("-1", intsort)),
+            s->make_term(255, bvsort8));
+  // 2^70 + 3
+  EXPECT_EQ(
+      s->make_term(int_to_bv8, s->make_term("1180591620717411303427", intsort)),
+      s->make_term(3, bvsort8));
+  EXPECT_EQ(s->make_term(Op(Int_To_BV, 100), s->make_term("-1", intsort)),
+            s->make_term(std::string(100, '1'), s->make_sort(BV, 100), 2));
+}
+
+TEST(Yices2IntToBv, RefusesSymbol)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Term a = s->make_symbol("a", s->make_sort(INT));
+  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), a), NotImplementedException);
+}
+
+TEST(Yices2IntToBv, RefusesNonInteger)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  Term r = s->make_symbol("r", s->make_sort(REAL));
+  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), r), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), x), IncorrectUsageException);
+}
 
 TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
 {
