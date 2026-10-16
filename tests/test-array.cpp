@@ -84,6 +84,14 @@ TEST_P(ArrayModelTests, TestArrayModel)
   EXPECT_EQ(model_value_at(array_vals, const_base, jv), two);
 }
 
+TEST_P(ArrayModelTests, UnconstrainedArray)
+{
+  ASSERT_TRUE(s->check_sat().is_sat());
+  Term const_base;
+  UnorderedTermMap array_vals = s->get_array_values(arr, const_base);
+  EXPECT_EQ(array_vals.size(), 0);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedArrayModelTests,
     ArrayModelTests,
