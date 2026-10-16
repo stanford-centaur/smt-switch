@@ -24,6 +24,7 @@
 #include <string>
 
 #include "solver_utils.h"
+#include "utils.h"
 
 extern "C" {
 #include "btornode.h"
@@ -269,30 +270,12 @@ Term BoolectorSolver::make_term(std::string val,
 {
   try
   {
-    std::shared_ptr<BoolectorSortBase> bs =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
-
-    BoolectorNode * node;
-    if (base == 10)
-    {
-      node = boolector_constd(btor.get(), bs->sort, val.c_str());
-    }
-    else if (base == 2)
-    {
-      node = boolector_const(btor.get(), val.c_str());
-    }
-    else if (base == 16)
-    {
-      node = boolector_consth(btor.get(), bs->sort, val.c_str());
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "Only accepted bases are 2, 10 and 16, but got "
-          + std::to_string(base));
-    }
-
-    return std::make_shared<BoolectorTerm>(btor, node);
+    // Boolector's own string constructors ignore the sort in base 2, read a
+    // minus differently in base 16 and accept malformed numerals, so write
+    // out the bits of the value and build that
+    std::string bits = bv_value_to_bits(val, base, sort);
+    return std::make_shared<BoolectorTerm>(
+        btor, boolector_const(btor.get(), bits.c_str()));
   }
   catch (InternalSolverException & e)
   {

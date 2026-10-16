@@ -1410,94 +1410,11 @@ Term GenericSolver::store_term(Term term) const
   return (*name_term_map)[name];
 }
 
-/**
- * The SMT-LIB binary literal of val that is exactly as wide as the
- * bit-vector sort, val being a numeral in base 2, 10 or 16 with an
- * optional leading minus. A negative value is written in two's complement.
- * Throws unless val is such a numeral and lies between the smallest signed
- * and the largest unsigned value of the sort.
- */
-static std::string bv_literal(const std::string & val,
-                              std::uint64_t base,
-                              const Sort & sort)
-{
-  bool negative = val.find("-") == 0;
-  std::string digits = negative ? val.substr(1) : val;
-  const char * digit_chars = base == 2    ? "01"
-                             : base == 16 ? "0123456789abcdefABCDEF"
-                                          : "0123456789";
-  if (digits.empty()
-      || digits.find_first_not_of(digit_chars) != std::string::npos)
-  {
-    throw IncorrectUsageException("Value " + val + " is not a base-"
-                                  + std::to_string(base) + " numeral");
-  }
-  std::uint64_t width = sort->get_width();
-  // the bits of the magnitude, most significant first, without leading
-  // zeros
-  std::string bits;
-  if (base == 10)
-  {
-    // halving the decimal digits gives the bits least significant first;
-    // stop once there are more than the sort has
-    std::string::size_type start = digits.find_first_not_of('0');
-    while (start != std::string::npos && bits.size() <= width)
-    {
-      int remainder = 0;
-      for (std::string::size_type i = start; i < digits.size(); ++i)
-      {
-        int current = remainder * 10 + (digits[i] - '0');
-        digits[i] = static_cast<char>('0' + current / 2);
-        remainder = current % 2;
-      }
-      bits.push_back(static_cast<char>('0' + remainder));
-      start = digits.find_first_not_of('0', start);
-    }
-    std::reverse(bits.begin(), bits.end());
-  }
-  else
-  {
-    for (char c : digits)
-    {
-      int digit = std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
-      for (int bit = base == 2 ? 0 : 3; bit >= 0; --bit)
-      {
-        bits.push_back((digit >> bit) & 1 ? '1' : '0');
-      }
-    }
-    bits.erase(0, std::min(bits.find('1'), bits.size()));
-  }
-  // a magnitude of all width bits only fits negated, as -2^(width - 1)
-  bool fits = negative ? bits.size() < width
-                             || (bits.size() == width
-                                 && bits.find('1', 1) == std::string::npos)
-                       : bits.size() <= width;
-  if (!fits)
-  {
-    throw IncorrectUsageException("Value " + val + " does not fit in sort "
-                                  + sort->to_string());
-  }
-  std::string literal = std::string(width - bits.size(), '0') + bits;
-  if (negative)
-  {
-    // the two's complement keeps the bits up to the lowest one and flips
-    // the bits above it
-    std::string::size_type lowest_one = literal.rfind('1');
-    for (std::string::size_type i = 0;
-         lowest_one != std::string::npos && i < lowest_one;
-         ++i)
-    {
-      literal[i] = literal[i] == '0' ? '1' : '0';
-    }
-  }
-  return "#b" + literal;
-}
-
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                unsigned int width) const
 {
   Sort bvsort = make_sort(BV, width);
-  std::string repr = bv_literal(abs_decimal, 10, bvsort);
+  std::string repr = "#b" + bv_value_to_bits(abs_decimal, 10, bvsort);
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
 }
@@ -1595,7 +1512,7 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
   else
   {
     // sk == BV
-    std::string repr = bv_literal(std::to_string(i), 10, sort);
+    std::string repr = "#b" + bv_value_to_bits(std::to_string(i), 10, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1647,7 +1564,7 @@ Term GenericSolver::make_value(const std::string val,
   else
   {
     // sk == BV
-    repr = bv_literal(val, base, sort);
+    repr = "#b" + bv_value_to_bits(val, base, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
