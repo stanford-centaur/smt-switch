@@ -696,6 +696,25 @@ TEST_P(GenericSolverIntQuantifierTests, Quantifiers)
   gs->pop(1);
 }
 
+TEST_P(GenericSolverIntQuantifierTests, MultipleBinders)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Term x = gs->make_param("x", int_sort);
+  Term y = gs->make_param("y", int_sort);
+  Term forall_xy =
+      gs->make_term(Forall, TermVec{ x, y, gs->make_term(Gt, x, y) });
+
+  // made as forall x . forall y . x > y
+  EXPECT_EQ(forall_xy->get_op(), Forall);
+  TermVec children(forall_xy->begin(), forall_xy->end());
+  ASSERT_EQ(children.size(), 2);
+  EXPECT_EQ(children[0], x);
+  EXPECT_EQ(children[1]->get_op(), Forall);
+
+  gs->assert_formula(forall_xy);
+  EXPECT_TRUE(gs->check_sat().is_unsat());
+}
+
 TEST_P(GenericSolverConstArrayTests, ConstantArrays)
 {
   // Testing constant arrays

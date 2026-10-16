@@ -1735,6 +1735,17 @@ Term GenericSolver::make_term(const Op op,
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
+  // a quantifier binds one parameter (see ops.cpp), so `forall x y . body`
+  // is made as `forall x . forall y . body`
+  if ((op.prim_op == Forall || op.prim_op == Exists) && terms.size() > 2)
+  {
+    Term body = terms.back();
+    for (auto it = std::next(terms.rbegin()); it != terms.rend(); ++it)
+    {
+      body = make_term(op, TermVec{ *it, body });
+    }
+    return body;
+  }
   Sort sort = compute_sort(op, this, terms);
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
