@@ -57,6 +57,25 @@ TEST_P(UnitResetTests, ResetDropsAssertions)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+TEST_P(UnitResetTests, ResetClearsContextLevel)
+{
+  SolverEnum se = GetParam().solver_enum;
+  if (se == YICES2 || se == Z3)
+  {
+    GTEST_SKIP() << "Yices2 and Z3 keep counting the pushes a reset dropped";
+  }
+  s->set_opt("incremental", "true");
+  s->push(2);
+  s->reset();
+  EXPECT_EQ(s->get_context_level(), 0);
+
+  // the solver after the reset agrees, or this pop goes below its base
+  s->set_opt("incremental", "true");
+  s->push();
+  s->pop();
+  EXPECT_EQ(s->get_context_level(), 0);
+}
+
 static std::vector<SolverConfiguration> working_reset_configurations()
 {
   std::vector<SolverConfiguration> result;

@@ -120,6 +120,15 @@ TEST_P(TimeLimitTests, TestTimeLimitAssuming)
   ASSERT_EQ(assuming.get_explanation(), plain.get_explanation());
 }
 
+TEST_P(TimeLimitTests, TimeLimitAfterReset)
+{
+  // the solver after the reset keeps its time limit working
+  s->set_opt("time-limit", std::to_string(time_limit));
+  s->reset();
+  set_up_hard_problem(s);
+  EXPECT_TRUE(s->check_sat().is_unknown());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTimeLimitTests,
     TimeLimitTests,
