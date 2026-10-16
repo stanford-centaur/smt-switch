@@ -300,7 +300,7 @@ void SmtLibReader::pop(std::uint64_t num)
   solver_->pop(num);
 }
 
-void SmtLibReader::term_attribute(const Term & term,
+void SmtLibReader::term_attribute(const Term & /* term */,
                                   const std::string & keyword,
                                   const std::string & value)
 {
