@@ -16,6 +16,7 @@
 
 #include "interpolating_solver.h"
 
+#include <algorithm>
 #include <cassert>
 #include <utility>
 
@@ -113,6 +114,8 @@ void AbsSmtInterpolator::set_opt(const std::string option,
 
 void AbsSmtInterpolator::do_reset_assertions()
 {
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
   forget_queries();
   backend_solver->reset_assertions();
 }
@@ -120,6 +123,8 @@ void AbsSmtInterpolator::do_reset_assertions()
 void AbsSmtInterpolator::do_reset()
 {
   // first, as what is kept can be terms that the reset destroys
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
   forget_queries();
   backend_solver->reset();
   incremental_mode = true;
@@ -325,6 +330,96 @@ Result AbsSmtInterpolator::interpolant_from_sequence(const Term & A,
     out_I = itp_seq.front();
   }
   return res;
+}
+
+Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
+                                                      TermVec & out_I) const
+{
+  if (formulae.size() < 2)
+  {
+    throw IncorrectUsageException(
+        "Sequence interpolation requires at least 2 formulae.");
+  }
+  if (!out_I.empty())
+  {
+    throw IncorrectUsageException(
+        "Argument out_I should be empty before calling "
+        "get_sequence_interpolants.");
+  }
+  for (const Term & f : formulae)
+  {
+    if (f->get_sort()->get_sort_kind() != BOOL)
+    {
+      throw IncorrectUsageException(
+          "get_sequence_interpolants requires boolean terms");
+    }
+  }
+
+  if (!incremental_mode)
+  {
+    last_itp_query_formulae.clear();
+    last_itp_query_interpolants.clear();
+  }
+
+  // A query that starts with all of an unsat last one only strengthens the
+  // B side of the splits they share, so their interpolants still hold, and
+  // the chain goes on from the last of them.
+  std::size_t first_split = 0;
+  std::size_t last_size = last_itp_query_formulae.size();
+  if (!last_itp_query_interpolants.empty() && last_size <= formulae.size()
+      && std::equal(last_itp_query_formulae.begin(),
+                    last_itp_query_formulae.end(),
+                    formulae.begin()))
+  {
+    out_I = last_itp_query_interpolants;
+    first_split = last_size - 1;
+  }
+
+  // a split after a failed one has no interpolant to start from, so it
+  // fails too
+  bool any_fails = false;
+  for (std::size_t i = first_split; i + 1 < formulae.size(); ++i)
+  {
+    if (any_fails)
+    {
+      out_I.push_back(Term());
+      continue;
+    }
+    TermVec rest(formulae.begin() + i + 1, formulae.end());
+    Term B = rest.size() == 1 ? rest.front() : make_term(And, rest);
+    Term A = i == 0 ? formulae[i] : make_term(And, out_I[i - 1], formulae[i]);
+    Term I;
+    Result r = get_interpolant(A, B, I);
+    // only the first split can be satisfiable: each later one is unsat by
+    // the interpolant before it
+    if (i == 0 && r.is_sat())
+    {
+      last_itp_query_formulae.clear();
+      last_itp_query_interpolants.clear();
+      return r;
+    }
+    if (!r.is_unsat() || !I)
+    {
+      any_fails = true;
+      out_I.push_back(Term());
+    }
+    else
+    {
+      out_I.push_back(I);
+    }
+  }
+
+  if (any_fails)
+  {
+    last_itp_query_formulae.clear();
+    last_itp_query_interpolants.clear();
+    return Result(
+        UNKNOWN,
+        "Had at least one interpolation failure in get_sequence_interpolants");
+  }
+  last_itp_query_formulae = formulae;
+  last_itp_query_interpolants = out_I;
+  return Result(UNSAT);
 }
 
 }  // namespace smt

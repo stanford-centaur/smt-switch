@@ -47,18 +47,21 @@ namespace smt {
      get_context_level is final too, and returns 0, since no context can
      be pushed.
    - Required: get_interpolant, get_sequence_interpolants and the hook
-     do_set_opt. A backend can implement get_interpolant with
-     interpolant_from_sequence.
+     do_set_opt. A backend usually computes only one of the first two
+     natively, and implements the other with interpolant_from_sequence or
+     sequence_from_interpolants; implementing both with them would recurse
+     forever.
    - Handled here: set_opt takes incremental, which decides whether a query
      may reuse what it shares with the one before (on by default, and read
      from incremental_mode), and hands every other option to do_set_opt.
      An interpolating solver holds no assertions of the caller's, so
      reset_assertions discards what it keeps between queries instead, and
      the next query starts afresh; it never changes what a query answers.
-     do_reset and do_reset_assertions are final: both call forget_queries
-     and then reset the regular solver, and do_reset also turns incremental
+     do_reset and do_reset_assertions are final: both forget the queries
+     sequence_from_interpolants keeps for reuse, call forget_queries and
+     then reset the regular solver, and do_reset also turns incremental
      back on and calls initialize. A backend overrides forget_queries if
-     it keeps anything between queries, and initialize if the regular
+     it keeps anything else between queries, and initialize if the regular
      solver needs setting up for interpolation, which its constructor then
      calls too.
    - Everything else is forwarded to the regular solver.
@@ -226,10 +229,27 @@ class AbsSmtInterpolator : public AbsSmtSolver
                                    const Term & B,
                                    Term & out_I) const;
 
+  /** Computes a sequence interpolant with one get_interpolant call per
+   *  split, for a backend that computes single interpolants natively. The
+   *  first split interpolates the first formula against the conjunction of
+   *  the rest; each later one interpolates the conjunction of the
+   *  interpolant before it and the next formula instead of the whole
+   *  prefix, which makes the interpolants a chain. Unless incremental_mode
+   *  is off, a query that starts with all of the last unsat one keeps its
+   *  interpolants and goes on from the last of them.
+   */
+  Result sequence_from_interpolants(const TermVec & formulae,
+                                    TermVec & out_I) const;
+
   SmtSolver backend_solver;
   // false if each query starts afresh instead of reusing what it shares
   // with the one before
   bool incremental_mode = true;
+  // for sequence_from_interpolants, the last sequence query and, if it was
+  // unsat with every interpolant found, its interpolants, which stay valid
+  // for a query that extends it
+  mutable TermVec last_itp_query_formulae;
+  mutable TermVec last_itp_query_interpolants;
 };
 
 }  // namespace smt
