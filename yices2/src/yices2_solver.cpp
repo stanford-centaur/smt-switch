@@ -940,6 +940,37 @@ Term Yices2Solver::make_term(Op op, const Term & t) const
   return std::make_shared<Yices2Term>(res);
 }
 
+/**
+ * The exponent of a Pow, which yices_power takes as a uint32_t, so only a
+ * constant non-negative integer that fits in one
+ */
+static uint32_t pow_exponent(term_t term)
+{
+  bool fits = false;
+  uint32_t res = 0;
+  // checked first, as yices_rational_const_value fails on anything else
+  if (yices_term_constructor(term) == YICES_ARITH_CONSTANT)
+  {
+    mpq_t value;
+    mpq_init(value);
+    yices_rational_const_value(term, value);
+    if (mpz_cmp_ui(mpq_denref(value), 1) == 0 && mpz_sgn(mpq_numref(value)) >= 0
+        && mpz_cmp_ui(mpq_numref(value), UINT32_MAX) <= 0)
+    {
+      fits = true;
+      res = static_cast<uint32_t>(mpz_get_ui(mpq_numref(value)));
+    }
+    mpq_clear(value);
+  }
+  if (!fits)
+  {
+    throw NotImplementedException(
+        "Yices2 can only raise to a constant integer exponent from 0 to "
+        + std::to_string(UINT32_MAX));
+  }
+  return res;
+}
+
 Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
   shared_ptr<Yices2Term> yterm0 = static_pointer_cast<Yices2Term>(t0);
@@ -958,7 +989,7 @@ Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
     }
     else if (op.prim_op == Pow)
     {
-      res = yices_power(yterm0->term, (t1->to_int()));
+      res = yices_power(yterm0->term, pow_exponent(yterm1->term));
     }
     else
     {

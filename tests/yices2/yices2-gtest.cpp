@@ -214,6 +214,21 @@ TEST_F(Yices2SolverTest, TestPowOp)
   Term t = s->make_term(Pow, a, s->make_term("2", int_sort));
   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 }
+TEST_F(Yices2SolverTest, PowRefusesExponentAboveUint32)
+{
+  // 2^32 + 2, which a 32-bit truncation would read as 2
+  Term exponent = s->make_term("4294967298", int_sort);
+  EXPECT_THROW(s->make_term(Pow, a, exponent), NotImplementedException);
+}
+TEST_F(Yices2SolverTest, PowRefusesNegativeExponent)
+{
+  Term exponent = s->make_term("-1", int_sort);
+  EXPECT_THROW(s->make_term(Pow, a, exponent), NotImplementedException);
+}
+TEST_F(Yices2SolverTest, PowRefusesSymbolicExponent)
+{
+  EXPECT_THROW(s->make_term(Pow, a, b), NotImplementedException);
+}
 
 TEST_F(Yices2SolverTest, TestBVNegOp)
 {

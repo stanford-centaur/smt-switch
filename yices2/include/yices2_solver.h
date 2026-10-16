@@ -16,6 +16,9 @@
 
 #pragma once
 
+// before yices.h: it declares the mpq_t and mpz_t entry points, among them
+// yices_rational_const_value, only under #ifdef __GMP_H__
+#include <gmp.h>
 #include <yices.h>
 
 #include <cstdint>
