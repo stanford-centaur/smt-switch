@@ -93,3 +93,23 @@ TEST(GenericSort, SortProperties)
   EXPECT_EQ(dt_sort->get_sort_kind(), DATATYPE);
   EXPECT_EQ(dt_sort2->get_sort_kind(), DATATYPE);
 }
+
+TEST(GenericSort, FunctionSortString)
+{
+  // the string is the sort's signature in a declare-fun, and the generic
+  // solver also looks the sort up by it
+  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort bool_sort = std::make_shared<GenericSort>(BOOL);
+  Sort int_int_to_bool = std::make_shared<FunctionGenericSort>(
+      SortVec{ int_sort, int_sort }, bool_sort);
+  EXPECT_EQ(int_int_to_bool->to_string(), "(Int Int) Bool");
+
+  Sort a = std::make_shared<UninterpretedGenericSort>("A", 0);
+  Sort b = std::make_shared<UninterpretedGenericSort>("B", 0);
+  Sort ab = std::make_shared<UninterpretedGenericSort>("AB", 0);
+  Sort a_b_to_bool =
+      std::make_shared<FunctionGenericSort>(SortVec{ a, b }, bool_sort);
+  Sort ab_to_bool =
+      std::make_shared<FunctionGenericSort>(SortVec{ ab }, bool_sort);
+  EXPECT_NE(a_b_to_bool->to_string(), ab_to_bool->to_string());
+}
