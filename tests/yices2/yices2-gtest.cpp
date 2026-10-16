@@ -432,17 +432,6 @@ TEST_F(Yices2SolverTest, TestBVCompOp)
 //   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
 // }
 
-// TEST_F(Yices2SolverTest, TestStoreOp)
-// {
-//   Term t = s->make_term(Store, t1, t2);
-//   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
-// }
-// TEST_F(Yices2SolverTest, TestConstArrayOp)
-// {
-//   Term t = s->make_term(Const_Array, t1, t2);
-//   EXPECT_FALSE(t->get_op() == NUM_OPS_AND_NULL);
-// }
-
 // Unwrapped, as the logging solver would work out the sort itself
 TEST(Yices2IntToBv, FoldsValueModuloWidth)
 {
