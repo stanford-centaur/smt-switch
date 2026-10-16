@@ -323,7 +323,8 @@ void GenericSolver::start_solver()
     // Child
     dup2(outpipefd[0], STDIN_FILENO);
     dup2(inpipefd[1], STDOUT_FILENO);
-    dup2(inpipefd[1], STDERR_FILENO);
+    // stderr stays the parent's: everything on the pipe is read as an
+    // answer, and SMT-LIB answers, errors included, all come on stdout
 
     // drop the spare copies before the exec: a solver still holding the
     // write end of its own stdin never sees the EOF close_solver() sends
