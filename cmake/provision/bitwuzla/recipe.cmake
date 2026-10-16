@@ -13,8 +13,12 @@ smt_switch_dependency(
   # Ask for a library name nothing provides, so that the lookup fails and
   # Bitwuzla falls through to its wrap instead of linking a CaDiCaL from the
   # machine, which would carry none of the patches the wrap applies.
+  # Likewise hide git: a development version appends the branch and commit
+  # of the repository its source is in, and an archive unpacked under this
+  # checkout would report smt-switch's.
   PATCH_COMMAND
-    sed -i.orig "s/find_library('cadical',/find_library('cadical-not-installed',/"
+    sed -i.orig -e "s/find_library('cadical',/find_library('cadical-not-installed',/"
+    -e "s/find_program('git',/find_program('git-not-installed',/"
     <SOURCE_DIR>/src/meson.build
   # Drop the C API from the CaDiCaL build. It is not namespaced, so the renaming
   # fix does not apply, but bitwuzla does not use any of it.
