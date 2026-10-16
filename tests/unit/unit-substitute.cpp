@@ -67,6 +67,11 @@ TEST_P(UnitSubstituteTests, CheckSubstitution2)
   EXPECT_EQ(apy, apy_expect);
 }
 
+TEST_P(UnitSubstituteTests, EmptySubstitution)
+{
+  EXPECT_EQ(s->substitute(xpy, UnorderedTermMap{}), xpy);
+}
+
 TEST_P(UnitSubstituteTests, CheckSubstitution3)
 {
   Term apb = s->make_term(BVAdd, a, b);

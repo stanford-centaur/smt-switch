@@ -372,7 +372,7 @@ msat_term ext_msat_make_uf(msat_env e,
     }
   }
 
-  msat_term res = msat_make_uf(e, func, &converted_args[0]);
+  msat_term res = msat_make_uf(e, func, converted_args.data());
   if (MSAT_ERROR_TERM(res))
   {
     throw InternalSolverException("Got an error term in function application");

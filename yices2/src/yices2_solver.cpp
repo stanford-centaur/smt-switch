@@ -435,7 +435,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
   timelimit_start();
   smt_status_t res = yices_check_context_with_assumptions(
-      get_context(), NULL, y_assumps.size(), &y_assumps[0]);
+      get_context(), NULL, y_assumps.size(), y_assumps.data());
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -790,7 +790,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     Sort sort = sorts.back();
     ys = std::static_pointer_cast<Yices2Sort>(sort)->type;
 
-    y_sort = yices_function_type(arity, &ysorts[0], ys);
+    y_sort = yices_function_type(arity, ysorts.data(), ys);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
@@ -1087,7 +1087,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
 
-    res = yices_application(yterm->term, size - 1, &yargs[0]);
+    res = yices_application(yterm->term, size - 1, yargs.data());
   }
   else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end()
            || yices_const_variadic_ops.find(op.prim_op)
@@ -1164,8 +1164,8 @@ Term Yices2Solver::substitute(const Term term,
     values.push_back(tmp_val->term);
   }
 
-  term_t res =
-      yices_subst_term(to_subst.size(), &to_subst[0], &values[0], yterm->term);
+  term_t res = yices_subst_term(
+      to_subst.size(), to_subst.data(), values.data(), yterm->term);
 
   if (yices_error_code() != 0)
   {

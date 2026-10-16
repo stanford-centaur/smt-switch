@@ -486,7 +486,7 @@ Sort MsatTerm::get_sort() const
     }
 
     msat_type funtype = msat_get_function_type(env,
-                                               &param_types[0],
+                                               param_types.data(),
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
 

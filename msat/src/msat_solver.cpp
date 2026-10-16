@@ -486,7 +486,8 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     Sort sort = sorts.back();
     msort = std::static_pointer_cast<MsatSort>(sort)->type;
     decl_name += ("_return_" + sort->to_string());
-    msat_type mfunsort = msat_get_function_type(env, &msorts[0], arity, msort);
+    msat_type mfunsort =
+        msat_get_function_type(env, msorts.data(), arity, msort);
 
     // creating a reference decl, because it's the only way to get codomain and
     // domain sorts i.e. there's no msat_is_function_type(msat_env, msat_type)
@@ -1057,7 +1058,7 @@ Term MsatSolver::substitute(const Term term,
   }
 
   msat_term res = msat_apply_substitution(
-      env, mterm->term, to_subst.size(), &to_subst[0], &values[0]);
+      env, mterm->term, to_subst.size(), to_subst.data(), values.data());
 
   return Term(new MsatTerm(env, res));
 }

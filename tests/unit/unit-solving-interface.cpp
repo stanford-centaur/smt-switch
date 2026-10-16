@@ -116,6 +116,15 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   EXPECT_TRUE(r.is_unsat());
 }
 
+TEST_P(UnitSolveTests, NoAssumptions)
+{
+  Term b = s->make_symbol("b", boolsort);
+  s->assert_formula(b);
+  EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_sat());
+  s->assert_formula(s->make_term(Not, b));
+  EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_unsat());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitSolveTests,
     UnitSolveTests,
