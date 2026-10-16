@@ -1592,4 +1592,15 @@ std::int64_t smtlib_bv_to_int64(const std::string & s)
   return to_twos_complement(value, width);
 }
 
+std::string internal_name(const std::string & kind, std::uint64_t index)
+{
+  return INTERNAL_NAME_PREFIX + kind + "_" + std::to_string(index);
+}
+
+bool is_internal_name(const std::string & name)
+{
+  return name.compare(0, INTERNAL_NAME_PREFIX.size(), INTERNAL_NAME_PREFIX)
+         == 0;
+}
+
 }  // namespace smt

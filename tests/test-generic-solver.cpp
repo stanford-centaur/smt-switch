@@ -30,6 +30,7 @@
 #include "generic_solver.h"
 #include "generic_term.h"
 #include "smt.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace std;
@@ -386,6 +387,35 @@ TEST_P(GenericSolverTests, Bool1)
   r = gs->check_sat();
   EXPECT_TRUE(r.is_sat());
   gs->pop(1);
+}
+
+TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
+{
+  // a term defined before the symbol is made must not take its name,
+  // whatever the symbol is called
+  Sort bool_sort = gs->make_sort(BOOL);
+  Term x = gs->make_symbol("x", bool_sort);
+  gs->make_term(Not, x);
+  Term t_1 = gs->make_symbol("t_1", bool_sort);
+  gs->assert_formula(t_1);
+  gs->assert_formula(gs->make_term(Not, t_1));
+  EXPECT_TRUE(gs->check_sat().is_unsat());
+}
+
+TEST_P(GenericSolverTests, InternalNamesRefused)
+{
+  Sort bool_sort = gs->make_sort(BOOL);
+  std::string name = internal_name("term", 1);
+  EXPECT_THROW(gs->make_symbol(name, bool_sort), IncorrectUsageException);
+  EXPECT_THROW(gs->make_param(name, bool_sort), IncorrectUsageException);
+  EXPECT_THROW(gs->make_datatype_constructor_decl(name),
+               IncorrectUsageException);
+  DatatypeDecl list = gs->make_datatype_decl("list");
+  DatatypeConstructorDecl cons = gs->make_datatype_constructor_decl("cons");
+  gs->add_constructor(list, cons);
+  EXPECT_THROW(gs->add_selector(cons, name, bool_sort),
+               IncorrectUsageException);
+  EXPECT_THROW(gs->add_selector_self(cons, name), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, Bool2)

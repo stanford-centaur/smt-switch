@@ -625,4 +625,13 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
                          UnitUtilDimacsTests,
                          testing::ValuesIn(available_solver_enums()));
 
+TEST(InternalName, KindAndIndex)
+{
+  EXPECT_EQ(internal_name("assump", 3), "smt_switch_internal_assump_3");
+  EXPECT_TRUE(is_internal_name(internal_name("term", 1)));
+  EXPECT_TRUE(is_internal_name(INTERNAL_NAME_PREFIX));
+  EXPECT_FALSE(is_internal_name("smt_switch"));
+  EXPECT_FALSE(is_internal_name("x_smt_switch_internal_term_1"));
+}
+
 }  // namespace smt_tests

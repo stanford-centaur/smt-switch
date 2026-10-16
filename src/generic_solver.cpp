@@ -57,6 +57,7 @@
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -1184,9 +1185,28 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
   return new_dt_decl;
 }
 
+/** throw if a name a user chose for a term or function lies where the
+ * generic solver makes up names of its own
+ * @param name the name chosen
+ * @param what what is being named, for the message
+ * @throws IncorrectUsageException if the name starts with
+ * INTERNAL_NAME_PREFIX
+ */
+static void refuse_internal_name(const std::string & name,
+                                 const std::string & what)
+{
+  if (is_internal_name(name))
+  {
+    throw IncorrectUsageException(
+        what + " name " + name + " starts with " + INTERNAL_NAME_PREFIX
+        + ", which the generic solver keeps for names of its own");
+  }
+}
+
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s)
 {
+  refuse_internal_name(s, "constructor");
   std::shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
       std::shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl(s));
@@ -1207,6 +1227,7 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
                                  const std::string & name,
                                  const Sort & s) const
 {
+  refuse_internal_name(name, "selector");
   std::shared_ptr<SelectorComponents> newSelector =
       std::make_shared<SelectorComponents>();
   newSelector->name = name;
@@ -1220,6 +1241,7 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
 void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
                                       const std::string & name) const
 {
+  refuse_internal_name(name, "selector");
   std::shared_ptr<SelectorComponents> newSelector =
       std::make_shared<SelectorComponents>();
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
@@ -1335,10 +1357,11 @@ Term GenericSolver::get_selector(const Sort & s,
 
 std::string GenericSolver::get_name(Term term) const
 {
-  // the names of the terms are `t_i` with a running `i`.
-  // These names are used for `define-fun` commands.
+  // the names of the terms are internal names with a running index, used
+  // for `define-fun` commands. The binary keeps them for good, so they
+  // are names no user can take: make_symbol and make_param refuse them.
   term_counter++;
-  return "t_" + std::to_string(term_counter);
+  return internal_name("term", term_counter);
 }
 
 Term GenericSolver::store_term(Term term) const
@@ -1655,6 +1678,7 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 
 Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 {
+  refuse_internal_name(name, "symbol");
   // always put pipes around name in case there
   // are special symbols / spaces
   std::string piped_name = "|" + name + "|";
@@ -1701,6 +1725,7 @@ Term GenericSolver::get_symbol(const std::string & name)
 
 Term GenericSolver::make_param(const std::string name, const Sort & sort)
 {
+  refuse_internal_name(name, "param");
   if (name_term_map->find(name) != name_term_map->end())
   {
     throw IncorrectUsageException(
@@ -2245,7 +2270,8 @@ std::string GenericSolver::assumption_name(const Term & assumption)
   auto it = assumption_labels.find(assumption);
   if (it == assumption_labels.end())
   {
-    std::string label_name = get_name(assumption);
+    std::string label_name =
+        internal_name("assump", assumption_labels.size() + 1);
     Term label = std::make_shared<GenericTerm>(
         assumption->get_sort(), Op(), TermVec{}, label_name, true);
     (*name_term_map)[label_name] = label;
