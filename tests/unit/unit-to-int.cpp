@@ -117,6 +117,9 @@ TEST_P(ToIntBVTests, Unsigned)
     { s->make_term("2147483648", bv64, 10), uint64_t(1) << 31 },
     { s->make_term("9223372036854775808", bv64, 10), uint64_t(1) << 63 },
     { s->make_term("18446744073709551615", bv64, 10), uint64_max },
+    { s->make_term("0F", bv32, 16), 15 },
+    { s->make_term("80000000", bv32, 16), uint64_t(1) << 31 },
+    { s->make_term("ffffffffffffffff", bv64, 16), uint64_max },
   };
   for (const auto & c : cases)
   {
