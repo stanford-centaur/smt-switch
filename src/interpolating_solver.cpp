@@ -77,22 +77,13 @@ void AbsSmtInterpolator::get_unsat_assumptions(UnorderedTermSet & /* out */)
       "Can't get unsat assumptions from interpolating solver");
 }
 
-std::uint64_t AbsSmtInterpolator::get_context_level() const { return 0; }
-
-// ------------------------- Optional ----------------------------------------
-
-void AbsSmtInterpolator::set_opt(const std::string /* option */,
-                                 const std::string /* value */)
-{
-  throw NotImplementedException("Setting options is not supported by "
-                                + to_string(solver_enum));
-}
-
 void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
 {
-  throw NotImplementedException("Dumping to a file is not supported by "
-                                + to_string(solver_enum));
+  throw IncorrectUsageException(
+      "Can't dump assertions from interpolating solver, which holds none");
 }
+
+std::uint64_t AbsSmtInterpolator::get_context_level() const { return 0; }
 
 // ------------------------- Forwarded ---------------------------------------
 
