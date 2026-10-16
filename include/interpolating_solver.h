@@ -41,9 +41,10 @@ namespace smt {
    - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming,
      get_value, get_array_values and get_unsat_assumptions throw
      IncorrectUsageException, and are final so that no interpolator can
-     re-enable solving. get_context_level is final too, and returns 0,
-     since no context can be pushed.
-   - Required: get_interpolant, get_sequence_interpolants,
+     re-enable solving. dump_smt2 throws it and is final as well, since
+     an interpolator holds no assertions to dump. get_context_level is
+     final too, and returns 0, since no context can be pushed.
+   - Required: get_interpolant, get_sequence_interpolants, set_opt,
      reset_assertions and reset. A backend can implement get_interpolant
      with interpolant_from_sequence.
      An interpolating solver holds no assertions of the caller's, so its
@@ -53,8 +54,6 @@ namespace smt {
      changes what a query answers. A backend that keeps nothing between
      queries implements it as doing nothing, and one that reuses formulas
      also takes incremental set to false, to start every query afresh.
-   - Optional: set_opt and dump_smt2 throw NotImplementedException unless
-     overridden.
    - Everything else is forwarded to the regular solver.
  */
 class AbsSmtInterpolator : public AbsSmtSolver
@@ -79,6 +78,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const final;
   void get_unsat_assumptions(UnorderedTermSet & out) final;
+  void dump_smt2(std::string filename) const final;
   std::uint64_t get_context_level() const final;
 
   // ------------------------- Required -------------------------------------
@@ -126,9 +126,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
 
   void reset() override = 0;
 
-  // ------------------------- Optional -------------------------------------
-  void set_opt(const std::string option, const std::string value) override;
-  void dump_smt2(std::string filename) const override;
+  void set_opt(const std::string option, const std::string value) override = 0;
 
   // ------------------------- Forwarded ------------------------------------
   void set_logic(const std::string logic) override;

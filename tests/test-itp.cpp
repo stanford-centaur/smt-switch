@@ -404,10 +404,11 @@ TEST_P(ItpTests, SequenceInterpolantsRefuseMisuse)
                IncorrectUsageException);
 }
 
-TEST_P(ItpTests, DumpIsNotImplemented)
+// an interpolator holds no assertions, so there is nothing to dump
+TEST_P(ItpTests, RefusesDumping)
 {
   EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),
-               NotImplementedException);
+               IncorrectUsageException);
 }
 
 // no interpolator passes incremental on to its solver, so the log does not
