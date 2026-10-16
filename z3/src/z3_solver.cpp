@@ -865,15 +865,16 @@ Term Z3Solver::get_symbol(const std::string & name)
 Term Z3Solver::make_param(const std::string name, const Sort & sort)
 {
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
-  const char * c = name.c_str();
-  z3::symbol z_name = ctx.str_symbol(c);
 
   if (zsort->is_function)
   {
     throw IncorrectUsageException("Functions cannot be parameters");
   }
 
-  expr z_term = ctx.constant(z_name, zsort->type);
+  // Z3 gives a constant of the same name and sort back as the same term,
+  // so a constant named `name` would be a symbol of that name, and a
+  // quantifier over it would bind the symbol. A fresh one never is.
+  expr z_term(ctx, Z3_mk_fresh_const(ctx, name.c_str(), zsort->type));
   // mark as a parameter by passing true
   return std::make_shared<Z3Term>(z_term, ctx, true);
 }
