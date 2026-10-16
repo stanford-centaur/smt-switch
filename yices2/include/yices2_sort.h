@@ -22,6 +22,7 @@
 #include "sort.h"
 #include "utils.h"
 #include "yices.h"
+#include "yices2_instance_ref.h"
 
 namespace smt {
 
@@ -53,6 +54,8 @@ class Yices2Sort : public AbsSort
   type_t get_ytype() { return type; };
 
  protected:
+  // keeps Yices set up while the sort can be used, even past its solver
+  Yices2InstanceRef instance;
   type_t type;
   bool is_function;
 

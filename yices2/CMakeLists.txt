@@ -3,6 +3,7 @@ add_library(
   "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_factory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_instance_ref.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_term.cpp"
