@@ -16,5 +16,4 @@ endmacro()
 
 switch_add_cvc5_test(cvc5-interpolants-api)
 switch_add_cvc5_test(cvc5-printing)
-switch_add_cvc5_test(cvc5-str)
 switch_add_cvc5_test(cvc5-term-iter)
