@@ -162,6 +162,27 @@ TEST_P(IntArithmeticTests, NonlinearConstraints)
   EXPECT_GT(xv - yv, xv * yv);
 }
 
+TEST_P(IntArithmeticTests, PowerOfSymbol)
+{
+  // as in NonlinearConstraints
+  try
+  {
+    s->set_logic("QF_NIA");
+  }
+  catch (const IncorrectUsageException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  Term u = s->make_symbol("u", intsort);
+  s->assert_formula(s->make_term(Gt, u, s->make_term(0, intsort)));
+  s->assert_formula(s->make_term(Equal,
+                                 s->make_term(Pow, u, s->make_term(4, intsort)),
+                                 s->make_term(81, intsort)));
+
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(u)->to_signed_int(), 3);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntArithmeticTests,
