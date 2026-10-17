@@ -35,14 +35,22 @@ typedef Z3_ast (*bin_fun)(Z3_context c, Z3_ast t1, Z3_ast t2);
 typedef Z3_ast (*tern_fun)(Z3_context c, Z3_ast t1, Z3_ast t2, Z3_ast t3);
 typedef Z3_ast (*variadic_fun)(Z3_context c, unsigned num, Z3_ast const args[]);
 
-// extension function
+// extension function: bvcomp as an ite over equality. Each new term is
+// referenced until the ite holds it, as in ext_Z3_mk_abs.
 Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
 {
   Z3_ast eq = Z3_mk_eq(c, t1, t2);
+  Z3_inc_ref(c, eq);
   Z3_sort bvsort1 = Z3_mk_bv_sort(c, 1);
   Z3_ast one = Z3_mk_unsigned_int(c, 1, bvsort1);
+  Z3_inc_ref(c, one);
   Z3_ast zero = Z3_mk_unsigned_int(c, 0, bvsort1);
-  return Z3_mk_ite(c, eq, one, zero);
+  Z3_inc_ref(c, zero);
+  Z3_ast result = Z3_mk_ite(c, eq, one, zero);
+  Z3_dec_ref(c, zero);
+  Z3_dec_ref(c, one);
+  Z3_dec_ref(c, eq);
+  return result;
 }
 
 // extension function: the absolute value of an Int or a Real, built from
