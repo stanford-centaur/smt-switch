@@ -556,7 +556,7 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void LoggingSolver::reset()
+void LoggingSolver::do_reset()
 {
   // these hold wrapped terms, which may not outlive the wrapped solver's
   // reset
@@ -602,15 +602,18 @@ Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
   return wrapped_solver->check_sat_assuming(lassumps);
 }
 
-void LoggingSolver::push(std::uint64_t num) { wrapped_solver->push(num); }
+void LoggingSolver::do_push(std::uint64_t num) { wrapped_solver->push(num); }
 
-void LoggingSolver::pop(std::uint64_t num) { wrapped_solver->pop(num); }
+void LoggingSolver::do_pop(std::uint64_t num) { wrapped_solver->pop(num); }
 
 std::uint64_t LoggingSolver::get_context_level() const
 {
   return wrapped_solver->get_context_level();
 }
 
-void LoggingSolver::reset_assertions() { wrapped_solver->reset_assertions(); }
+void LoggingSolver::do_reset_assertions()
+{
+  wrapped_solver->reset_assertions();
+}
 
 }  // namespace smt

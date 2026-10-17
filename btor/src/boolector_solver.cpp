@@ -156,7 +156,8 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   else if (option == "base-context-1" && value == "true")
   {
     base_context_1 = true;
-    push(1);
+    // pushed directly, so that the context level counts only the caller's
+    boolector_push(btor.get(), 1);
   }
   else if (option == "time-limit")
   {
@@ -357,19 +358,9 @@ Result BoolectorSolver::solve()
   }
 }
 
-void BoolectorSolver::push(uint64_t num)
-{
-  boolector_push(btor.get(), num);
-  context_level += num;
-}
+void BoolectorSolver::do_push(uint64_t num) { boolector_push(btor.get(), num); }
 
-void BoolectorSolver::pop(uint64_t num)
-{
-  boolector_pop(btor.get(), num);
-  context_level -= num;
-}
-
-uint64_t BoolectorSolver::get_context_level() const { return context_level; }
+void BoolectorSolver::do_pop(uint64_t num) { boolector_pop(btor.get(), num); }
 
 Term BoolectorSolver::get_value(const Term & t) const
 {
@@ -777,7 +768,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void BoolectorSolver::reset()
+void BoolectorSolver::do_reset()
 {
   // forget the symbols, so that their names can be declared again; terms
   // still held from before keep the old instance alive
@@ -787,11 +778,10 @@ void BoolectorSolver::reset()
   // the new instance starts at context 0 with default options, so the
   // bookkeeping for the old one goes too
   base_context_1 = false;
-  context_level = 0;
   time_limit = std::chrono::duration<double>::zero();
 }
 
-void BoolectorSolver::reset_assertions()
+void BoolectorSolver::do_reset_assertions()
 {
   if (!base_context_1)
   {
@@ -803,11 +793,10 @@ void BoolectorSolver::reset_assertions()
   }
   else
   {
-    // pop the contexts
-    pop(context_level);
-    // push back to context level 1
-    push(1);
-    assert(context_level == 1);
+    // pop the contexts, and the hidden base context under them
+    boolector_pop(btor.get(), get_context_level() + 1);
+    // push the base context back
+    boolector_push(btor.get(), 1);
   }
 }
 

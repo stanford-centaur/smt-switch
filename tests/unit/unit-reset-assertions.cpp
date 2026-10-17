@@ -94,6 +94,24 @@ TEST_P(UnitResetAssertionsTests, ResetAssertions)
   ASSERT_TRUE(r.is_sat());
 }
 
+TEST_P(UnitResetAssertionsTests, ResetAssertionsDropsContexts)
+{
+  Term f = s->make_term(false);
+  s->assert_formula(f);
+  ASSERT_TRUE(s->check_sat().is_unsat());
+  s->push(2);
+
+  s->reset_assertions();
+  EXPECT_EQ(s->get_context_level(), 0);
+
+  // the solver has to agree, or this pop leaves f asserted
+  s->push();
+  s->assert_formula(f);
+  s->pop();
+  EXPECT_EQ(s->get_context_level(), 0);
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
 // only run this test if built with Boolector
 #ifdef BUILD_BTOR
 TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)

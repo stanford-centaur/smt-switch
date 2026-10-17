@@ -298,7 +298,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void MsatSolver::push(uint64_t num)
+void MsatSolver::do_push(uint64_t num)
 {
   initialize_env();
   for (uint64_t i = 0; i < num; i++)
@@ -307,7 +307,7 @@ void MsatSolver::push(uint64_t num)
   }
 }
 
-void MsatSolver::pop(uint64_t num)
+void MsatSolver::do_pop(uint64_t num)
 {
   initialize_env();
   for (uint64_t i = 0; i < num; i++)
@@ -998,7 +998,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
 }
 
-void MsatSolver::reset()
+void MsatSolver::do_reset()
 {
   if (!env_uninitialized)
   {
@@ -1013,7 +1013,7 @@ void MsatSolver::reset()
   base_assertions_.clear();
 }
 
-void MsatSolver::reset_assertions()
+void MsatSolver::do_reset_assertions()
 {
   initialize_env();
   msat_reset_env(env);
@@ -1348,7 +1348,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   return r;
 }
 
-void MsatInterpolatingSolver::reset_assertions()
+void MsatInterpolatingSolver::do_reset_assertions()
 {
   msat_solver_->reset_assertions();
   last_itp_query_assertions_.clear();
@@ -1356,7 +1356,7 @@ void MsatInterpolatingSolver::reset_assertions()
   initialize();
 }
 
-void MsatInterpolatingSolver::reset()
+void MsatInterpolatingSolver::do_reset()
 {
   msat_solver_->reset();
   last_itp_query_assertions_.clear();

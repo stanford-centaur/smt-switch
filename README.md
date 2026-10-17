@@ -306,7 +306,8 @@ current limitations along with recommended usage.
 - Boolector does not support `reset_assertions`. Smt-switch can simulate this
   when the option "base-context-1" is set to "true". Under the hood, this will
   do all solving starting at context 1 instead of 0. This will enable calling
-  `reset_assertions` just like for any other solver.
+  `reset_assertions` just like for any other solver. The hidden context is not
+  counted: `get_context_level` still starts at 0.
 - The Z3 backend does not support term iteration over quantified expressions,
   though it does for every other kind of term.
 - Datatypes are supported only by cvc5 and Z3

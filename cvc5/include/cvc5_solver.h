@@ -48,9 +48,6 @@ class Cvc5Solver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -104,8 +101,6 @@ class Cvc5Solver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
 
@@ -117,12 +112,15 @@ class Cvc5Solver : public AbsSmtSolver
   ::cvc5::Solver & get_cvc5_solver();
 
  protected:
+  void do_push(std::uint64_t num) override;
+  void do_pop(std::uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   std::unique_ptr<::cvc5::TermManager> term_manager;
   std::unique_ptr<::cvc5::Solver> solver;
 
   std::unordered_map<std::string, Term> symbol_table;
-
-  std::uint64_t context_level = 0;
 };
 
 // Interpolating Solver
@@ -140,10 +138,11 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
                          Term & out_I) const override;
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
-  void reset() override;
-  void reset_assertions() override;
 
  protected:
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   // sets the options interpolation needs, on construction and after reset()
   void initialize();
 

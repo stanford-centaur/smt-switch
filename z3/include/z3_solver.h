@@ -40,12 +40,7 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver()
-      : AbsSmtSolver(Z3),
-        ctx(),
-        slv(ctx),
-        context_level(0),
-        last_query_assuming(false) {};
+  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx), last_query_assuming(false) {};
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
   ~Z3Solver() {};
@@ -57,9 +52,6 @@ class Z3Solver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -113,8 +105,6 @@ class Z3Solver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
 
@@ -123,13 +113,16 @@ class Z3Solver : public AbsSmtSolver
   z3::solver * get_z3_solver();
 
  protected:
+  void do_push(uint64_t num) override;
+  void do_pop(uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   mutable z3::context ctx;
   mutable z3::solver slv;
   std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
   ///< redeclaring
-
-  uint64_t context_level;  ///< context level for incremental solving
 
   bool last_query_assuming;  ///< used to determine if last query was
                              ///< check_sat_assuming (vs just check_sat)

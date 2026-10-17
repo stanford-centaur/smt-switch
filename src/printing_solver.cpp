@@ -194,7 +194,7 @@ UnorderedTermMap PrintingSolver::get_array_values(const Term & arr,
   return wrapped_solver->get_array_values(arr, out_const_base);
 }
 
-void PrintingSolver::reset()
+void PrintingSolver::do_reset()
 {
   (*out_stream) << "(" << RESET_STR << ")" << std::endl;
   wrapped_solver->reset();
@@ -240,13 +240,13 @@ Result PrintingSolver::check_sat_assuming(const TermVec & assumptions)
   return wrapped_solver->check_sat_assuming(assumptions);
 }
 
-void PrintingSolver::push(std::uint64_t num)
+void PrintingSolver::do_push(std::uint64_t num)
 {
   (*out_stream) << "(" << PUSH_STR << " " << num << ")" << std::endl;
   wrapped_solver->push(num);
 }
 
-void PrintingSolver::pop(std::uint64_t num)
+void PrintingSolver::do_pop(std::uint64_t num)
 {
   (*out_stream) << "(" << POP_STR << " " << num << ")" << std::endl;
   wrapped_solver->pop(num);
@@ -257,7 +257,7 @@ std::uint64_t PrintingSolver::get_context_level() const
   return wrapped_solver->get_context_level();
 }
 
-void PrintingSolver::reset_assertions()
+void PrintingSolver::do_reset_assertions()
 {
   (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << std::endl;
   wrapped_solver->reset_assertions();
@@ -480,7 +480,7 @@ void PrintingInterpolator::set_opt(const std::string option,
   backend_solver->set_opt(option, value);
 }
 
-void PrintingInterpolator::reset()
+void PrintingInterpolator::do_reset()
 {
   backend_solver->reset();
   asserted.clear();
@@ -488,7 +488,7 @@ void PrintingInterpolator::reset()
   last_unsat_query.clear();
 }
 
-void PrintingInterpolator::reset_assertions()
+void PrintingInterpolator::do_reset_assertions()
 {
   backend_solver->reset_assertions();
   asserted.clear();

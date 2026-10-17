@@ -35,3 +35,20 @@ TEST(BtorResetTest, BaseContext1AfterReset)
   s->reset_assertions();
   EXPECT_TRUE(s->check_sat().is_sat());
 }
+
+TEST(BtorResetTest, BaseContext1HidesItsLevel)
+{
+  SmtSolver s = BoolectorSolverFactory::create(false);
+  s->set_opt("incremental", "true");
+  s->set_opt("base-context-1", "true");
+  EXPECT_EQ(s->get_context_level(), 0);
+
+  // pop_all leaves the hidden context, which reset_assertions pops
+  s->push();
+  s->pop_all();
+  EXPECT_EQ(s->get_context_level(), 0);
+  s->assert_formula(s->make_term(false));
+  s->reset_assertions();
+  EXPECT_EQ(s->get_context_level(), 0);
+  EXPECT_TRUE(s->check_sat().is_sat());
+}

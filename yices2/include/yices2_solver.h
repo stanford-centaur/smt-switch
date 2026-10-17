@@ -52,11 +52,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver()
-      : AbsSmtSolver(YICES2),
-        pushes_after_unsat(0),
-        context_level(0),
-        time_limit(0)
+  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0), time_limit(0)
   {
     ctx = nullptr;
     config = yices_new_config();
@@ -82,9 +78,6 @@ class Yices2Solver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(uint64_t num = 1) override;
-  void pop(uint64_t num = 1) override;
-  uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -120,12 +113,15 @@ class Yices2Solver : public AbsSmtSolver
                  const Term & t1,
                  const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
-  void reset() override;
-  void reset_assertions() override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
 
  protected:
+  void do_push(uint64_t num) override;
+  void do_pop(uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   /** Keeps Yices set up. Declared first, so it is destroyed after the
    *  members below that still hold Yices objects.
    */
@@ -146,8 +142,6 @@ class Yices2Solver : public AbsSmtSolver
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
   uint64_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
                                 ///< status
-
-  uint64_t context_level;  ///< incremental solving context
 
   double time_limit;  ///< in seconds, 0 for none
 

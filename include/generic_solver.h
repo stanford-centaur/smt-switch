@@ -159,9 +159,6 @@ class GenericSolver : public AbsSmtSolver
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) override;
-  // Will probably remove this eventually
-  // For now, need to clear the hash table
-  void reset() override;
 
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
@@ -171,12 +168,13 @@ class GenericSolver : public AbsSmtSolver
   // takes any range of Terms, so name it back in.
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
-  void push(std::uint64_t num = 1) override;
-  void pop(std::uint64_t num = 1) override;
-  std::uint64_t get_context_level() const override;
-  void reset_assertions() override;
 
  protected:
+  void do_push(std::uint64_t num) override;
+  void do_pop(std::uint64_t num) override;
+  void do_reset() override;
+  void do_reset_assertions() override;
+
   /******************
    * helper methods *
    *******************/
@@ -367,10 +365,6 @@ class GenericSolver : public AbsSmtSolver
   // bytes read from the solver that no caller has taken yet: a read can
   // overshoot one response, and the rest belongs to the next command
   mutable std::string response_buffer;
-
-  // tracks the context level of the solver
-  // (e.g., number of pushes - number of pops)
-  std::uint64_t context_level_;
 
   // maps between sort name and actual sort and vice versa
   std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;
