@@ -77,6 +77,47 @@ TEST_P(UnitTermTests, FunOp)
   EXPECT_EQ(fx->get_sort(), bvsort);
 }
 
+TEST_P(UnitTermTests, MultiArgFunOp)
+{
+  Sort bvsort8 = s->make_sort(BV, 8);
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort8);
+  Term g = s->make_symbol(
+      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort8, bvsort8 }));
+  Term h = s->make_symbol(
+      "h",
+      s->make_sort(FUNCTION, SortVec{ bvsort, bvsort8, bvsort, boolsort }));
+
+  Term gxy = s->make_term(Apply, g, x, y);
+  EXPECT_EQ(gxy->get_op(), Apply);
+  EXPECT_EQ(gxy->get_sort(), bvsort8);
+  Term hxyx = s->make_term(Apply, TermVec{ h, x, y, x });
+  EXPECT_EQ(hxyx->get_op(), Apply);
+  EXPECT_EQ(hxyx->get_sort(), boolsort);
+}
+
+TEST_P(UnitTermTests, BoolValues)
+{
+  Term t = s->make_term(true);
+  Term f = s->make_term(false);
+  EXPECT_TRUE(t->is_value());
+  EXPECT_TRUE(f->is_value());
+  EXPECT_NE(t, f);
+  EXPECT_EQ(t->get_sort(), boolsort);
+  EXPECT_EQ(f->get_sort(), boolsort);
+}
+
+TEST_P(UnitTermTests, BVSorts)
+{
+  EXPECT_EQ(s->make_term(5, bvsort)->get_sort(), bvsort);
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_EQ(s->make_term(Concat, x, x)->get_sort(), s->make_sort(BV, 8));
+  EXPECT_EQ(s->make_term(Op(Extract, 2, 1), x)->get_sort(),
+            s->make_sort(BV, 2));
+  EXPECT_EQ(s->make_term(Op(Zero_Extend, 1), x)->get_sort(),
+            s->make_sort(BV, 5));
+}
+
 TEST_P(UnitTermTests, Array)
 {
   Term arr = s->make_symbol("arr", arrsort);
@@ -130,6 +171,15 @@ TEST_P(UnitTermTests, TermContainers)
     EXPECT_EQ(s->get_value(v[i])->to_int(), i);
     EXPECT_EQ(s->get_value(utm.at(v[i]))->to_int(), i);
   }
+}
+
+TEST_P(UnitTermArithTests, Sorts)
+{
+  EXPECT_EQ(s->make_term(1, intsort)->get_sort(), intsort);
+  // not an integer, which MathSAT and Yices2 would give sort Int
+  EXPECT_EQ(s->make_term("1/2", realsort)->get_sort(), realsort);
+  Term u = s->make_symbol("u", realsort);
+  EXPECT_EQ(s->make_term(Is_Int, u)->get_sort(), boolsort);
 }
 
 TEST_P(UnitTermArithTests, NegatedValueIsDifferent)

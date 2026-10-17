@@ -54,6 +54,22 @@ TEST_P(IntTests, IntDiv)
   ASSERT_EQ(resval, two);
 }
 
+TEST_P(IntTests, BvToNatIsInt)
+{
+  Sort bvsort = s->make_sort(BV, 8);
+  Term bvx = s->make_symbol("bvx", bvsort);
+  Term natx;
+  try
+  {
+    natx = s->make_term(BV_To_Nat, bvx);
+  }
+  catch (const SmtException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  EXPECT_EQ(natx->get_sort(), intsort);
+}
+
 TEST_P(IntTests, Bv2Int)
 {
   Sort bvsort = s->make_sort(BV, 8);
