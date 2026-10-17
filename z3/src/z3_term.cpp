@@ -188,8 +188,6 @@ Op Z3Term::get_op() const
       case Z3_OP_SLT: return Op(BVSlt);
       case Z3_OP_SGEQ: return Op(BVSge);
       case Z3_OP_SGT: return Op(BVSgt);
-      case Z3_OP_ROTATE_LEFT: return Op(Rotate_Left);
-      case Z3_OP_ROTATE_RIGHT: return Op(Rotate_Right);
       case Z3_OP_SELECT:
         return Op(Select);
         // ternary
@@ -224,6 +222,10 @@ Op Z3Term::get_op() const
         assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
         return Op(Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
+      case Z3_OP_ROTATE_LEFT:
+        return Op(Rotate_Left, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+      case Z3_OP_ROTATE_RIGHT:
+        return Op(Rotate_Right, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       case Z3_OP_INT2BV: {
         size_t out_width = range.bv_size();
         return Op(Int_To_BV, out_width);
