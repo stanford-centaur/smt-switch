@@ -556,4 +556,30 @@ TEST(Yices2Context, ConfigurationAfterFirstAssertionThrows)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
+// Yices numbers terms in the order it makes them after yices_init(), so a
+// first symbol gets the same number again only if Yices was freed and set
+// up anew in between
+TEST(Yices2InstanceRef, ExitsWhenNothingHoldsIt)
+{
+  std::size_t first_id;
+  {
+    SmtSolver s = Yices2SolverFactory::create(false);
+    first_id = s->make_symbol("x", s->make_sort(BV, 4))->get_id();
+  }
+  SmtSolver s = Yices2SolverFactory::create(false);
+  EXPECT_EQ(s->make_symbol("x", s->make_sort(BV, 4))->get_id(), first_id);
+}
+
+TEST(Yices2InstanceRef, StaysWhileATermIsHeld)
+{
+  Term held;
+  {
+    SmtSolver s = Yices2SolverFactory::create(false);
+    held = s->make_symbol("x", s->make_sort(BV, 4));
+  }
+  SmtSolver s = Yices2SolverFactory::create(false);
+  EXPECT_NE(s->make_symbol("y", s->make_sort(BV, 4))->get_id(), held->get_id());
+  EXPECT_EQ(held->to_string(), "x");
+}
+
 }  // namespace

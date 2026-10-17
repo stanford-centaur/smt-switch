@@ -31,6 +31,7 @@
 #include "smt.h"
 #include "sort.h"
 #include "yices2_extensions.h"
+#include "yices2_instance_ref.h"
 #include "yices2_sort.h"
 #include "yices2_term.h"
 
@@ -72,10 +73,6 @@ class Yices2Solver : public AbsSmtSolver
     {
       yices_free_context(ctx);
     }
-
-    // TODO: Should probably find a good place to
-    // call yices_exit.
-    // yices_exit();
   };
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
@@ -129,6 +126,11 @@ class Yices2Solver : public AbsSmtSolver
                   const UnorderedTermMap & substitution_map) const override;
 
  protected:
+  /** Keeps Yices set up. Declared first, so it is destroyed after the
+   *  members below that still hold Yices objects.
+   */
+  Yices2InstanceRef instance;
+
   /** The context, null until get_context() creates it. Yices applies a
    *  configuration only when it creates a context, so the logic and any
    *  option that changes config must be set before then.

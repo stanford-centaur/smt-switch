@@ -26,6 +26,7 @@
 #include "term.h"
 #include "utils.h"
 #include "yices.h"
+#include "yices2_instance_ref.h"
 #include "yices2_sort.h"
 
 namespace smt {
@@ -90,6 +91,8 @@ class Yices2Term : public AbsTerm
   std::string print_value_as(SortKind sk) override;
 
  protected:
+  // keeps Yices set up while the term can be used, even past its solver
+  Yices2InstanceRef instance;
   term_t term;
   bool is_function;
 
