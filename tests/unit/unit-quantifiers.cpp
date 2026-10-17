@@ -96,6 +96,19 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
   ASSERT_TRUE(!r.is_sat());
 }
 
+TEST_P(UnitQuantifierIterTests, OpAndSort)
+{
+  // a param apiece, as Boolector binds a param in one quantifier only
+  Term b = s->make_param("b", boolsort);
+  Term c = s->make_param("c", boolsort);
+  Term forallb = s->make_term(Forall, b, b);
+  Term existsc = s->make_term(Exists, c, c);
+  EXPECT_EQ(forallb->get_op(), Forall);
+  EXPECT_EQ(forallb->get_sort(), boolsort);
+  EXPECT_EQ(existsc->get_op(), Exists);
+  EXPECT_EQ(existsc->get_sort(), boolsort);
+}
+
 TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 {
   if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)

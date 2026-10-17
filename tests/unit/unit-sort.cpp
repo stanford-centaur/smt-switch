@@ -124,6 +124,18 @@ TEST_P(UnitSortTests, SortParams)
   // not every solver supports querying function types for domain/codomain yet
 }
 
+TEST_P(UnitSortTests, SortKinds)
+{
+  // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
+  // solver keeps apart
+  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+                 && !GetParam().is_logging_solver;
+  EXPECT_EQ(boolsort->get_sort_kind(), aliased ? BV : BOOL);
+  EXPECT_EQ(bvsort->get_sort_kind(), BV);
+  EXPECT_EQ(funsort->get_sort_kind(), FUNCTION);
+  EXPECT_EQ(arrsort->get_sort_kind(), ARRAY);
+}
+
 TEST_P(UnitSortTests, SortVecArgs)
 {
   if (s->get_solver_enum() == GENERIC_SOLVER)
@@ -172,6 +184,7 @@ TEST_P(UnitSortTests, UninterpretedSort)
 
   ASSERT_TRUE(uninterp_sort);
   EXPECT_EQ(uninterp_sort->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(uninterp_sort->get_uninterpreted_name(), "declared-sort");
   EXPECT_EQ(uninterp_sort->get_arity(), 0);
 
   // Now try non-zero arity (not supported by very many solvers)
@@ -269,6 +282,12 @@ TEST_P(UnitSortArithTests, SameSortDiffObj)
   Sort realsort_2 = s->make_sort(REAL);
   EXPECT_EQ(realsort->hash(), realsort_2->hash());
   EXPECT_EQ(realsort, realsort_2);
+}
+
+TEST_P(UnitSortArithTests, SortKinds)
+{
+  EXPECT_EQ(intsort->get_sort_kind(), INT);
+  EXPECT_EQ(realsort->get_sort_kind(), REAL);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
