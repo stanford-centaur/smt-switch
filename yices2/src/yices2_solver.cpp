@@ -1198,7 +1198,9 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     throw InternalSolverException(msg.c_str());
   }
 
-  return std::make_shared<Yices2Term>(res);
+  // marked as an application, as the overloads for two and three terms do,
+  // or get_op would read it as a Select
+  return std::make_shared<Yices2Term>(res, op.prim_op == Apply);
 }
 
 void Yices2Solver::do_reset()
