@@ -58,6 +58,7 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
       { ::cvc5::Kind::LEQ, Le },
       { ::cvc5::Kind::GT, Gt },
       { ::cvc5::Kind::GEQ, Ge },
+      { ::cvc5::Kind::INTS_DIVISION, IntDiv },
       { ::cvc5::Kind::INTS_MODULUS, Mod },
       { ::cvc5::Kind::ABS, Abs },
       { ::cvc5::Kind::POW, Pow },
