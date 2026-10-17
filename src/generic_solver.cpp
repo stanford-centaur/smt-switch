@@ -1672,8 +1672,48 @@ Term GenericSolver::make_term(const Op op,
   return make_term(op, TermVec({ t1, t2, t3 }));
 }
 
+/**
+ * base raised to exponent, as products found by repeated squaring, so the
+ * term grows with the number of digits of the exponent rather than with it
+ */
+static Term make_power(const GenericSolver & solver,
+                       const Term & base,
+                       std::int64_t exponent)
+{
+  if (exponent == 0)
+  {
+    return solver.make_term(1, base->get_sort());
+  }
+  if (exponent == 1)
+  {
+    return base;
+  }
+  Term half = make_power(solver, base, exponent / 2);
+  Term square = solver.make_term(Mult, half, half);
+  return exponent % 2 == 0 ? square : solver.make_term(Mult, square, base);
+}
+
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
+  // SMT-LIB has no pow, so a power is sent as the product it stands for.
+  // Pow is over Int, where a negative exponent has no product to stand for.
+  if (op.prim_op == Pow)
+  {
+    if (!check_sortedness(op, terms))
+    {
+      throw IncorrectUsageException(
+          "Pow takes an Int base and an Int exponent");
+    }
+    if (!terms[1]->is_value() || terms[1]->to_signed_int() < 0)
+    {
+      throw NotImplementedException(
+          "The generic solver can only raise to a constant non-negative "
+          "integer exponent, but got "
+          + terms[1]->to_string());
+    }
+    return make_power(*this, terms[0], terms[1]->to_signed_int());
+  }
+
   // a quantifier binds one parameter (see ops.cpp), so `forall x y . body`
   // is made as `forall x . forall y . body`
   if ((op.prim_op == Forall || op.prim_op == Exists) && terms.size() > 2)
