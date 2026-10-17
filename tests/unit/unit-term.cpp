@@ -15,6 +15,7 @@
 **/
 
 #include <cstdint>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -275,6 +276,35 @@ TEST_P(NegativeBVTests, IntAndStringAgree)
 TEST_P(NegativeBVTests, OutOfRangeThrows)
 {
   EXPECT_THROW(s->make_term("-129", bvsort), IncorrectUsageException);
+}
+
+// An 8-bit string may be read unsigned or signed, so -128..255 fit.
+TEST_P(NegativeBVTests, UnsignedStringsAtTheEndsOfTheRange)
+{
+  for (int base : { 2, 10, 16 })
+  {
+    SCOPED_TRACE("base " + std::to_string(base));
+    const char * max = base == 2 ? "11111111" : base == 10 ? "255" : "ff";
+    const char * above = base == 2 ? "100000000" : base == 10 ? "256" : "100";
+    EXPECT_EQ(s->make_term(max, bvsort, base), s->make_term(255, bvsort));
+    EXPECT_THROW(s->make_term(above, bvsort, base), IncorrectUsageException);
+  }
+}
+
+TEST_P(NegativeBVTests, SignedStringsAtTheEndsOfTheRange)
+{
+  if (GetParam().solver_enum == BZLA)
+  {
+    GTEST_SKIP() << "Bitwuzla rejects negative base 2 and 16 strings";
+  }
+  for (int base : { 2, 10, 16 })
+  {
+    SCOPED_TRACE("base " + std::to_string(base));
+    const char * min = base == 2 ? "-10000000" : base == 10 ? "-128" : "-80";
+    const char * below = base == 2 ? "-10000001" : base == 10 ? "-129" : "-81";
+    EXPECT_EQ(s->make_term(min, bvsort, base), s->make_term(-128, bvsort));
+    EXPECT_THROW(s->make_term(below, bvsort, base), IncorrectUsageException);
+  }
 }
 
 TEST_P(NegativeBVTests, CancelsItsPositive)
