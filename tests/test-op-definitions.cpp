@@ -253,6 +253,38 @@ TEST_P(IntOpDefinitionTests, Ite)
           Implies, s->make_term(Not, cond), s->make_term(Equal, ite, w))));
 }
 
+TEST_P(RealOpDefinitionTests, ToReal)
+{
+  Sort realsort = s->make_sort(REAL);
+  Term two = s->make_term(2, s->make_sort(INT));
+  // MathSAT and Yices2 give an integer-valued Real the sort Int, so only
+  // the value is checked
+  Term to_real = s->make_term(To_Real, two);
+  expect_valid(s->make_term(Equal, to_real, s->make_term("2.0", realsort)));
+}
+
+TEST_P(RealOpDefinitionTests, ToInt)
+{
+  // To_Int rounds down, so -2.5 becomes -3
+  Sort realsort = s->make_sort(REAL);
+  Sort intsort = s->make_sort(INT);
+  Term up = s->make_term(To_Int, s->make_term("2.5", realsort));
+  Term down = s->make_term(To_Int, s->make_term("-2.5", realsort));
+  EXPECT_EQ(up->get_sort(), intsort);
+  expect_valid(
+      s->make_term(And,
+                   s->make_term(Equal, up, s->make_term(2, intsort)),
+                   s->make_term(Equal, down, s->make_term(-3, intsort))));
+}
+
+TEST_P(RealOpDefinitionTests, AbsOfReal)
+{
+  Sort realsort = s->make_sort(REAL);
+  Term abs = s->make_term(Abs, s->make_term("-2.5", realsort));
+  EXPECT_EQ(abs->get_sort(), realsort);
+  expect_valid(s->make_term(Equal, abs, s->make_term("2.5", realsort)));
+}
+
 TEST_P(RealOpDefinitionTests, IsInt)
 {
   Term one_point_three = s->make_term("1.3", s->make_sort(REAL));
