@@ -219,6 +219,19 @@ TEST_P(IntOpDefinitionTests, Abs)
   expect_valid(s->make_term(Ge, s->make_term(Abs, v), zero));
 }
 
+TEST_P(IntOpDefinitionTests, Pow)
+{
+  Sort intsort = v->get_sort();
+  Term three = s->make_term(3, intsort);
+  // a constant base keeps these linear; 0^0 is left out, as Z3 leaves it
+  // undefined
+  expect_equivalent(s->make_term(Pow, s->make_term(-2, intsort), three),
+                    s->make_term(-8, intsort));
+  expect_equivalent(s->make_term(Pow, three, s->make_term(0, intsort)),
+                    s->make_term(1, intsort));
+  expect_equivalent(s->make_term(Pow, v, s->make_term(1, intsort)), v);
+}
+
 TEST_P(IntOpDefinitionTests, Minus)
 {
   expect_equivalent(s->make_term(Minus, v, v), zero);

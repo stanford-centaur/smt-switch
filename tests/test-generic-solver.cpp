@@ -539,6 +539,17 @@ TEST_P(GenericSolverIntTests, BadTermBVAdd)
                IncorrectUsageException);
 }
 
+TEST_P(GenericSolverIntTests, PowNeedsConstantNonNegativeExponent)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Term x = gs->make_symbol("x", int_sort);
+  Term y = gs->make_symbol("y", int_sort);
+  EXPECT_THROW(gs->make_term(Pow, x, y), NotImplementedException);
+  EXPECT_THROW(gs->make_term(Pow, x, gs->make_term(-1, int_sort)),
+               NotImplementedException);
+  EXPECT_THROW(gs->make_term(Pow, TermVec({ x })), IncorrectUsageException);
+}
+
 TEST_P(GenericSolverTests, Bv3)
 {
   Sort bv_sort = gs->make_sort(BV, 4);
