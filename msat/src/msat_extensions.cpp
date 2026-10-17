@@ -148,6 +148,16 @@ msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
   return ext_msat_make_minus(e, t0, msat_make_times(e, t1, t0_div_t1));
 }
 
+msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
+{
+  // msat_make_pow gives back the base for an exponent of 0, rather than 1
+  if (msat_term_id(t1) == msat_term_id(msat_make_number(e, "0")))
+  {
+    return msat_make_number(e, "1");
+  }
+  return msat_make_pow(e, t0, t1);
+}
+
 msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_bv_not(e, msat_make_bv_and(e, t0, t1));

@@ -100,7 +100,7 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { Gt, ext_msat_make_gt },
       { Ge, ext_msat_make_geq },
       { Mod, ext_msat_make_mod },
-      { Pow, msat_make_pow },
+      { Pow, ext_msat_make_pow },
       { Concat, msat_make_bv_concat },
       { BVAnd, msat_make_bv_and },
       { BVOr, msat_make_bv_or },
