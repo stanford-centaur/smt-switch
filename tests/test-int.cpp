@@ -205,4 +205,83 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
     ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntBVArithmeticTests);
+class IntBVArithmeticTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("produce-models", "true");
+    s->set_opt("incremental", "true");
+    intsort = s->make_sort(INT);
+    bvsort = s->make_sort(BV, 8);
+  }
+
+  /** Expects constraint to be satisfiable */
+  void expect_sat(const Term & constraint)
+  {
+    s->push();
+    s->assert_formula(constraint);
+    EXPECT_TRUE(s->check_sat().is_sat()) << constraint;
+    s->pop();
+  }
+
+  SmtSolver s;
+  Sort intsort, bvsort;
+};
+
+TEST_P(IntBVArithmeticTests, PolynomialConstraints)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term z = s->make_symbol("z", bvsort);
+  Term a = s->make_symbol("a", intsort);
+  Term b = s->make_symbol("b", intsort);
+  Term c = s->make_symbol("c", intsort);
+  Term d = s->make_symbol("d", intsort);
+  Term three = s->make_term(3, intsort);
+  Term four = s->make_term(4, intsort);
+  Term a_lt_b = s->make_term(Lt, a, b);
+  Term bv_sum = s->make_term(BVAdd, x, s->make_term(BVMul, y, z));
+  EXPECT_EQ(bv_sum->get_sort(), bvsort);
+
+  // every constraint is satisfiable: the bit-vectors and b can be zero with
+  // a = -1 or 0, or b = 12 and d = 88
+  expect_sat(s->make_term(
+      And, s->make_term(Equal, c, s->make_term(Pow, b, four)), a_lt_b));
+  expect_sat(s->make_term(
+      And, s->make_term(Equal, z, s->make_term(BVMul, x, y)), a_lt_b));
+  expect_sat(s->make_term(
+      And, s->make_term(Equal, z, s->make_term(BVAdd, x, y)), a_lt_b));
+  expect_sat(s->make_term(And, s->make_term(Equal, z, bv_sum), a_lt_b));
+  expect_sat(s->make_term(And,
+                          s->make_term(Equal, z, bv_sum),
+                          s->make_term(Equal, a, s->make_term(Pow, b, four))));
+  expect_sat(s->make_term(And,
+                          s->make_term(Equal, z, bv_sum),
+                          s->make_term(Equal, a, s->make_term(Pow, b, three))));
+  Term twelve = s->make_term(12, intsort);
+  Term hundred = s->make_term(100, intsort);
+  expect_sat(
+      s->make_term(And,
+                   s->make_term(Equal, hundred, s->make_term(Plus, b, d)),
+                   s->make_term(Ge, b, twelve)));
+
+  // and this one forces b = 45
+  s->assert_formula(s->make_term(
+      Equal, hundred, s->make_term(Plus, b, s->make_term(55, intsort))));
+  s->assert_formula(s->make_term(Ge, b, twelve));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(b)->to_signed_int(), 45);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    IntBVArithmeticTests,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_BV })),
+    ConfigName());
+
 }  // namespace smt_tests
