@@ -472,13 +472,14 @@ const Term Yices2TermIter::operator*()
   {
     term_t component;
     uint32_t exponent;
+    bool one_component = yices_term_num_children(term) == 1;
     if (yices_product_component(
-            term, smt_num_children(term) == 2 ? 0 : pos, &component, &exponent)
+            term, one_component ? 0 : pos, &component, &exponent)
         < 0)
     {
       throw InternalSolverException(yices_error_string());
     }
-    if (smt_num_children(term) == 2 && yices_term_num_children(term) == 1)
+    if (one_component)
     {
       // the Pow reading: the base, then the exponent
       ret_term = pos == 0 ? component : yices_int64(exponent);
