@@ -38,12 +38,6 @@ TEST_P(TermLifetimeTests, TermsOutliveTheirSolver)
     GTEST_SKIP() << "MathSAT terms point into the environment their solver "
                     "destroys, so using one afterwards crashes";
   }
-  if (sc.solver_enum == Z3)
-  {
-    // a logging term still releases the Z3 term it wraps
-    GTEST_SKIP() << "Z3 terms need the context their solver destroys, so "
-                    "using or releasing one afterwards fails";
-  }
   Sort bv;
   Term x, y, xpy;
   std::string x_text;

@@ -15,8 +15,22 @@ namespace smt {
 
 // Z3TermIter implementation
 
+Z3TermIter::Z3TermIter(const std::shared_ptr<context> & c,
+                       expr t,
+                       uint32_t p,
+                       bool nt)
+    : ctx(c), term(t), pos(p), null_term(nt)
+{
+}
+
+Z3TermIter::Z3TermIter(const Z3TermIter & it)
+    : ctx(it.ctx), term(it.term), pos(it.pos), null_term(it.null_term)
+{
+}
+
 Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 {
+  ctx = it.ctx;
   term = it.term;
   pos = it.pos;
   null_term = it.null_term;
@@ -33,19 +47,19 @@ const Term Z3TermIter::operator*()
                          && !term.is_const();
   if (!pos && is_function_app)
   {
-    return std::make_shared<Z3Term>(term.decl(), term.ctx());
+    return std::make_shared<Z3Term>(ctx, term.decl());
   }
   else
   {
     uint32_t actual_idx = is_function_app ? pos - 1 : pos;
     expr z_child = term.arg(actual_idx);
-    return std::make_shared<Z3Term>(z_child, z_child.ctx());
+    return std::make_shared<Z3Term>(ctx, z_child);
   }
 }
 
 TermIterBase * Z3TermIter::clone() const
 {
-  return new Z3TermIter(term, pos, null_term);
+  return new Z3TermIter(ctx, term, pos, null_term);
 }
 
 bool Z3TermIter::operator==(const Z3TermIter & it)
@@ -78,6 +92,20 @@ bool Z3TermIter::equal(const TermIterBase & other) const
 // end Z3TermIter implementation
 
 // Z3Term implementation
+
+Z3Term::Z3Term(const std::shared_ptr<context> & c, expr t) : Z3Term(c, t, false)
+{
+}
+
+Z3Term::Z3Term(const std::shared_ptr<context> & c, expr t, bool param)
+    : ctx(c), term(t), z_func(*c), is_function(false), is_parameter(param)
+{
+}
+
+Z3Term::Z3Term(const std::shared_ptr<context> & c, func_decl zfunc)
+    : ctx(c), term(*c), z_func(zfunc), is_function(true), is_parameter(false)
+{
+}
 
 size_t Z3Term::hash() const
 {
@@ -248,9 +276,9 @@ Sort Z3Term::get_sort() const
 {
   if (!is_function)
   {
-    return std::make_shared<Z3Sort>(term.get_sort(), *ctx);
+    return std::make_shared<Z3Sort>(ctx, term.get_sort());
   }
-  return std::make_shared<Z3Sort>(z_func, *ctx);
+  return std::make_shared<Z3Sort>(ctx, z_func);
 }
 
 bool Z3Term::is_symbol() const
@@ -352,7 +380,7 @@ TermIter Z3Term::begin()
   {
     // no iteration for a function symbol
     // cannot query term (it's null)
-    return TermIter(new Z3TermIter(term, 0, true));
+    return TermIter(new Z3TermIter(ctx, term, 0, true));
   }
 
   if (term.is_quantifier())
@@ -364,7 +392,7 @@ TermIter Z3Term::begin()
         + "support getting parameters from quantified "
         + "expression. Use logging if required.");
   }
-  return TermIter(new Z3TermIter(term, 0));
+  return TermIter(new Z3TermIter(ctx, term, 0));
 }
 
 TermIter Z3Term::end()
@@ -373,7 +401,7 @@ TermIter Z3Term::end()
   {
     // this is the actual function (not an application of a function)
     // no iteration to do
-    return TermIter(new Z3TermIter(term, 0, true));
+    return TermIter(new Z3TermIter(ctx, term, 0, true));
   }
 
   bool is_function_app = term.is_app()
@@ -386,7 +414,7 @@ TermIter Z3Term::end()
     num_args++;
   }
 
-  return TermIter(new Z3TermIter(term, num_args));
+  return TermIter(new Z3TermIter(ctx, term, num_args));
 }
 
 std::string Z3Term::print_value_as(SortKind /* sk */)

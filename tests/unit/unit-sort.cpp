@@ -116,6 +116,19 @@ TEST_P(UnitSortTests, FunctionSortDomainAndCodomain)
   EXPECT_EQ(binsort->get_codomain_sort(), bvsort);
 }
 
+TEST_P(UnitSortTests, FunctionSortArrayDomain)
+{
+  if (s->get_solver_enum() == BTOR)
+  {
+    GTEST_SKIP() << "Boolector takes only Bool and bit-vector arguments";
+  }
+  Sort arrfunsort = s->make_sort(FUNCTION, SortVec{ arrsort, bvsort });
+  Sort domain = arrfunsort->get_domain_sorts().at(0);
+  EXPECT_EQ(domain, arrsort);
+  EXPECT_EQ(domain->get_indexsort(), bvsort);
+  EXPECT_EQ(domain->get_elemsort(), bvsort);
+}
+
 TEST_P(UnitSortTests, SortParams)
 {
   EXPECT_EQ(bvsort->get_width(), 4);

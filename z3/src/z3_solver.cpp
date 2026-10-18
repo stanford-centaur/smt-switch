@@ -141,6 +141,14 @@ const unordered_map<PrimOp, variadic_fun> z3_variadic_ops({
 
 /* Z3Solver implementation */
 
+Z3Solver::Z3Solver()
+    : AbsSmtSolver(Z3),
+      ctx(std::make_shared<z3::context>()),
+      slv(*ctx),
+      last_query_assuming(false)
+{
+}
+
 void Z3Solver::set_opt(const std::string option, const std::string value)
 {
   const char * o = option.c_str();
@@ -244,18 +252,18 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
 void Z3Solver::set_logic(const std::string logic)
 {
   const char * l = logic.c_str();
-  slv = solver(ctx, l);
+  slv = solver(*ctx, l);
 }
 
 Term Z3Solver::make_term(bool b) const
 {
-  expr z_term = ctx.bool_val(false);
+  expr z_term = ctx->bool_val(false);
   if (b)
   {
-    z_term = ctx.bool_val(true);
+    z_term = ctx->bool_val(true);
   }
 
-  return std::make_shared<Z3Term>(z_term, ctx);
+  return std::make_shared<Z3Term>(ctx, z_term);
 }
 void Z3Solver::add_constructor(z3::sort dtsort,
                                z3::constructors * cs,
@@ -271,8 +279,8 @@ void Z3Solver::add_constructor(z3::sort dtsort,
       sort = dtsort;  // assignment?
     }
   }
-  cs->add(ctx.str_symbol(cname.c_str()),
-          ctx.str_symbol(recognizer.c_str()),
+  cs->add(ctx->str_symbol(cname.c_str()),
+          ctx->str_symbol(recognizer.c_str()),
           z3cons->fieldnames.size(),
           z3cons->fieldnames.data(),
           z3cons->sorts.data());
@@ -284,14 +292,14 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
   {
     std::shared_ptr<Z3DatatypeDecl> cd =
         std::static_pointer_cast<Z3DatatypeDecl>(d);
-    auto dtsort = ctx.datatype_sort(ctx.str_symbol(cd->name.c_str()));
-    z3::constructors cs{ ctx };
+    auto dtsort = ctx->datatype_sort(ctx->str_symbol(cd->name.c_str()));
+    z3::constructors cs{ *ctx };
     for (auto cons : cd->consvec)
     {
       add_constructor(dtsort, &cs, cons);
     }
-    auto sort = ctx.datatype(ctx.str_symbol(cd->name.data()), cs);
-    return std::make_shared<Z3Sort>(sort, ctx);
+    auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
+    return std::make_shared<Z3Sort>(ctx, sort);
   }
   catch (z3::exception & e)
   {
@@ -310,18 +318,18 @@ SortVec Z3Solver::make_datatype_sorts(
   {
     std::shared_ptr<Z3DatatypeDecl> decl =
         std::static_pointer_cast<Z3DatatypeDecl>(absdecl);
-    auto dt_symbol = ctx.str_symbol(decl->name.c_str());
-    auto dt_sort = ctx.datatype_sort(dt_symbol);
+    auto dt_symbol = ctx->str_symbol(decl->name.c_str());
+    auto dt_sort = ctx->datatype_sort(dt_symbol);
     syms.push_back(dt_symbol);
-    auto cs = std::make_unique<z3::constructors>(ctx);
+    auto cs = std::make_unique<z3::constructors>(*ctx);
     for (auto cons : decl->consvec) add_constructor(dt_sort, cs.get(), cons);
     clvec.emplace_back(*cs);
     clpvec.push_back(&clvec.back());
     consvec.push_back(std::move(cs));
   }
-  auto raw_sorts = ctx.datatypes(decls.size(), syms.data(), clpvec.data());
+  auto raw_sorts = ctx->datatypes(decls.size(), syms.data(), clpvec.data());
   SortVec sorts{};
-  for (auto s : raw_sorts) sorts.push_back(std::make_shared<Z3Sort>(s, ctx));
+  for (auto s : raw_sorts) sorts.push_back(std::make_shared<Z3Sort>(ctx, s));
   return sorts;
 }
 
@@ -371,7 +379,7 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = std::static_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->fieldnames.push_back(ctx.str_symbol(name.c_str()));
+    cdt->fieldnames.push_back(ctx->str_symbol(name.c_str()));
     cdt->sorts.push_back(std::static_pointer_cast<Z3Sort>(s)->get_z3_type());
   }
   catch (z3::exception & e)
@@ -386,9 +394,9 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = std::static_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->fieldnames.push_back(ctx.str_symbol(name.c_str()));
-    cdt->sorts.emplace_back(ctx);  // push back an empty sort because we don't
-                                   // know the datatype name yet
+    cdt->fieldnames.push_back(ctx->str_symbol(name.c_str()));
+    cdt->sorts.emplace_back(*ctx);  // push back an empty sort because we don't
+                                    // know the datatype name yet
   }
   catch (z3::exception & e)
   {
@@ -404,8 +412,8 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
     auto dt = std::static_pointer_cast<Z3Datatype>(z3sort->get_datatype());
     for (auto cons_raw : dt->datatype.constructors())
     {
-      z3::func_decl cons{ ctx, cons_raw };
-      if (cons.name().str() == name) return std::make_shared<Z3Term>(cons, ctx);
+      z3::func_decl cons{ *ctx, cons_raw };
+      if (cons.name().str() == name) return std::make_shared<Z3Term>(ctx, cons);
     }
     throw IncorrectUsageException("Constructor " + name + " not found");
   }
@@ -422,13 +430,13 @@ Term Z3Solver::get_tester(const Sort & s, std::string name) const
   for (int i = 0; i < dt->get_num_constructors(); i++)
   {
     z3::func_decl cons{
-      ctx, Z3_get_datatype_sort_constructor(ctx, dt->datatype, i)
+      *ctx, Z3_get_datatype_sort_constructor(*ctx, dt->datatype, i)
     };
     if (cons.name().str() == name)
       return std::make_shared<Z3Term>(
+          ctx,
           z3::func_decl{
-              ctx, Z3_get_datatype_sort_recognizer(ctx, dt->datatype, i) },
-          ctx);
+              *ctx, Z3_get_datatype_sort_recognizer(*ctx, dt->datatype, i) });
   }
   throw IncorrectUsageException("Tester " + name + " not found");
 }
@@ -441,7 +449,7 @@ Term Z3Solver::get_selector(const Sort & s,
   auto func = std::static_pointer_cast<Z3Term>(cons)->get_z3_func_decl();
   for (auto field : func.accessors())
   {
-    if (field.name().str() == name) return std::make_shared<Z3Term>(field, ctx);
+    if (field.name().str() == name) return std::make_shared<Z3Term>(ctx, field);
   }
   throw IncorrectUsageException("Selector " + name + " not found");
 }
@@ -449,18 +457,18 @@ Term Z3Solver::get_selector(const Sort & s,
 Term Z3Solver::make_term(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
-  expr z_term = expr(ctx);
+  expr z_term = expr(*ctx);
   if (sk == INT)
   {
-    z_term = ctx.int_val(i);
+    z_term = ctx->int_val(i);
   }
   else if (sk == REAL)
   {
-    z_term = ctx.real_val(i);
+    z_term = ctx->real_val(i);
   }
   else if (sk == BV)
   {
-    z_term = ctx.bv_val(i, sort->get_width());
+    z_term = ctx->bv_val(i, sort->get_width());
   }
   else
   {
@@ -471,14 +479,14 @@ Term Z3Solver::make_term(int64_t i, const Sort & sort) const
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<Z3Term>(z_term, ctx);
+  return std::make_shared<Z3Term>(ctx, z_term);
 }
 
 Term Z3Solver::make_term(const std::string val,
                          const Sort & sort,
                          uint64_t base) const
 {
-  expr z_term = expr(ctx);
+  expr z_term = expr(*ctx);
   SortKind sk = sort->get_sort_kind();
 
   if (base != 10 && sk != BV)
@@ -512,7 +520,7 @@ Term Z3Solver::make_term(const std::string val,
       throw IncorrectUsageException("Value " + val + " does not fit in sort "
                                     + sort->to_string());
     }
-    z_term = ctx.bv_val(value.get_str(10).c_str(), width);
+    z_term = ctx->bv_val(value.get_str(10).c_str(), width);
   }
   else if (sk == REAL || sk == INT)
   {
@@ -526,7 +534,7 @@ Term Z3Solver::make_term(const std::string val,
     try
     {
       z_term =
-          sk == REAL ? ctx.real_val(val.c_str()) : ctx.int_val(val.c_str());
+          sk == REAL ? ctx->real_val(val.c_str()) : ctx->int_val(val.c_str());
     }
     catch (z3::exception & e)
     {
@@ -543,7 +551,7 @@ Term Z3Solver::make_term(const std::string val,
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<Z3Term>(z_term, ctx);
+  return std::make_shared<Z3Term>(ctx, z_term);
 }
 
 Term Z3Solver::make_term(const Term & val, const Sort & sort) const
@@ -559,9 +567,9 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
   z3::sort arrtype = zsort->type;
   assert(arrtype.is_array());
 
-  Z3_ast c_array = Z3_mk_const_array(ctx, arrtype.array_domain(), zterm->term);
-  expr final = to_expr(ctx, c_array);
-  return std::make_shared<Z3Term>(final, ctx);
+  Z3_ast c_array = Z3_mk_const_array(*ctx, arrtype.array_domain(), zterm->term);
+  expr final = to_expr(*ctx, c_array);
+  return std::make_shared<Z3Term>(ctx, final);
 }
 
 void Z3Solver::assert_formula(const Term & t)
@@ -599,7 +607,7 @@ Result Z3Solver::check_sat()
 
 Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
 {
-  z3::expr_vector z3assumps(ctx);
+  z3::expr_vector z3assumps(*ctx);
 
   shared_ptr<Z3Term> za;
   for (auto a : assumptions)
@@ -652,7 +660,7 @@ Term Z3Solver::get_value(const Term & t) const
   }
   z3::model model = slv.get_model();
   expr eval = model.eval(zterm->term, true);
-  return std::make_shared<Z3Term>(eval, ctx);
+  return std::make_shared<Z3Term>(ctx, eval);
 }
 
 UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
@@ -668,14 +676,14 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
   std::vector<std::pair<Term, Term>> stores;
   while (zval.is_app() && zval.decl().decl_kind() == Z3_OP_STORE)
   {
-    stores.push_back({ std::make_shared<Z3Term>(zval.arg(1), ctx),
-                       std::make_shared<Z3Term>(zval.arg(2), ctx) });
+    stores.push_back({ std::make_shared<Z3Term>(ctx, zval.arg(1)),
+                       std::make_shared<Z3Term>(ctx, zval.arg(2)) });
     zval = zval.arg(0);
   }
 
   if (zval.is_app() && zval.decl().decl_kind() == Z3_OP_CONST_ARRAY)
   {
-    out_const_base = std::make_shared<Z3Term>(zval.arg(0), ctx);
+    out_const_base = std::make_shared<Z3Term>(ctx, zval.arg(0));
   }
   else
   {
@@ -701,7 +709,7 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)
   expr_vector core = slv.unsat_core();
   for (const auto & c : core)
   {
-    out.insert(std::make_shared<Z3Term>(c, ctx));
+    out.insert(std::make_shared<Z3Term>(ctx, c));
   }
 }
 
@@ -710,9 +718,9 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
   if (!arity)
   {
     const char * c = name.c_str();
-    z3::symbol func_name = ctx.str_symbol(c);
-    z3::sort z_sort = ctx.uninterpreted_sort(func_name);
-    return std::make_shared<Z3Sort>(z_sort, ctx);
+    z3::symbol func_name = ctx->str_symbol(c);
+    z3::sort z_sort = ctx->uninterpreted_sort(func_name);
+    return std::make_shared<Z3Sort>(ctx, z_sort);
   }
   else
   {
@@ -723,19 +731,19 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
 
 Sort Z3Solver::make_sort(SortKind sk) const
 {
-  z3::sort z_sort = z3::sort(ctx);
+  z3::sort z_sort = z3::sort(*ctx);
 
   if (sk == BOOL)
   {
-    z_sort = ctx.bool_sort();
+    z_sort = ctx->bool_sort();
   }
   else if (sk == INT)
   {
-    z_sort = ctx.int_sort();
+    z_sort = ctx->int_sort();
   }
   else if (sk == REAL)
   {
-    z_sort = ctx.real_sort();
+    z_sort = ctx->real_sort();
   }
   else
   {
@@ -745,7 +753,7 @@ Sort Z3Solver::make_sort(SortKind sk) const
     throw IncorrectUsageException(msg.c_str());
   }
 
-  Sort final_sort = std::make_shared<Z3Sort>(z_sort, ctx);
+  Sort final_sort = std::make_shared<Z3Sort>(ctx, z_sort);
   return final_sort;
 }
 
@@ -753,7 +761,7 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
-    return std::make_shared<Z3Sort>(ctx.bv_sort(size), ctx);
+    return std::make_shared<Z3Sort>(ctx, ctx->bv_sort(size));
   }
   else
   {
@@ -779,7 +787,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     std::vector<z3::sort> zsorts;
     zsorts.reserve(arity);
-    z3::sort z_sort = z3::sort(ctx);
+    z3::sort z_sort = z3::sort(*ctx);
 
     for (uint32_t i = 0; i < arity; i++)
     {
@@ -791,11 +799,11 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     z_sort = std::static_pointer_cast<Z3Sort>(sort)->type;
 
     const char * c = "throwaway name";
-    z3::symbol func_name = ctx.str_symbol(c);
+    z3::symbol func_name = ctx->str_symbol(c);
     z3::func_decl z_func =
-        ctx.function(func_name, arity, zsorts.data(), z_sort);
+        ctx->function(func_name, arity, zsorts.data(), z_sort);
 
-    return std::make_shared<Z3Sort>(z_func, ctx);
+    return std::make_shared<Z3Sort>(ctx, z_func);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
@@ -804,7 +812,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     std::shared_ptr<Z3Sort> celemsort =
         std::static_pointer_cast<Z3Sort>(sorts[1]);
     return std::make_shared<Z3Sort>(
-        ctx.array_sort(cidxsort->type, celemsort->type), ctx);
+        ctx, ctx->array_sort(cidxsort->type, celemsort->type));
   }
   else
   {
@@ -824,7 +832,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
   const char * c = name.c_str();
-  z3::symbol z_name = ctx.str_symbol(c);
+  z3::symbol z_name = ctx->str_symbol(c);
 
   Term sym;
   if (zsort->get_sort_kind() == FUNCTION)
@@ -832,21 +840,21 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
     // nb this is creating a func_decl
     func_decl sort_func = zsort->z_func;
 
-    sort_vector domain(ctx);
+    sort_vector domain(*ctx);
     for (unsigned i = 0; i < sort_func.arity(); i++)
     {
       domain.push_back(sort_func.domain(i));
     }
 
-    func_decl z_func = ctx.function(c, domain, sort_func.range());
-    sym = std::make_shared<Z3Term>(z_func, ctx);
+    func_decl z_func = ctx->function(c, domain, sort_func.range());
+    sym = std::make_shared<Z3Term>(ctx, z_func);
   }
   else
   {
     // nb this is creating an expr
-    expr z_term = ctx.constant(z_name, zsort->type);
+    expr z_term = ctx->constant(z_name, zsort->type);
 
-    sym = std::make_shared<Z3Term>(z_term, ctx);
+    sym = std::make_shared<Z3Term>(ctx, z_term);
   }
   assert(sym);
   symbol_table[name] = sym;
@@ -875,9 +883,9 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort)
   // Z3 gives a constant of the same name and sort back as the same term,
   // so a constant named `name` would be a symbol of that name, and a
   // quantifier over it would bind the symbol. A fresh one never is.
-  expr z_term(ctx, Z3_mk_fresh_const(ctx, name.c_str(), zsort->type));
+  expr z_term(*ctx, Z3_mk_fresh_const(*ctx, name.c_str(), zsort->type));
   // mark as a parameter by passing true
-  return std::make_shared<Z3Term>(z_term, ctx, true);
+  return std::make_shared<Z3Term>(ctx, z_term, true);
 }
 
 Term Z3Solver::make_term(Op op, const Term & t) const
@@ -892,20 +900,22 @@ Term Z3Solver::make_term(Op op, const Term & t) const
       throw IncorrectUsageException(
           "Cannot make a unary operator term with a function.");
     }
-    res = Z3_mk_app(ctx, zterm->get_z3_func_decl(), 0, 0);
+    res = Z3_mk_app(*ctx, zterm->get_z3_func_decl(), 0, 0);
   }
   else if (op.prim_op == Extract)
   {
-    res = Z3_mk_extract(
-        ctx, narrow_index(op, op.idx0), narrow_index(op, op.idx1), zterm->term);
+    res = Z3_mk_extract(*ctx,
+                        narrow_index(op, op.idx0),
+                        narrow_index(op, op.idx1),
+                        zterm->term);
   }
   else if (op.prim_op == Zero_Extend)
   {
-    res = Z3_mk_zero_ext(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_zero_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Sign_Extend)
   {
-    res = Z3_mk_sign_ext(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_sign_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Repeat)
   {
@@ -913,40 +923,40 @@ Term Z3Solver::make_term(Op op, const Term & t) const
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }
-    res = Z3_mk_repeat(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_repeat(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Rotate_Left)
   {
-    res = Z3_mk_rotate_left(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_rotate_left(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Rotate_Right)
   {
-    res = Z3_mk_rotate_right(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_rotate_right(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == Int_To_BV)
   {
-    res = Z3_mk_int2bv(ctx, narrow_index(op, op.idx0), zterm->term);
+    res = Z3_mk_int2bv(*ctx, narrow_index(op, op.idx0), zterm->term);
   }
   else if (op.prim_op == BV_To_Nat)
   {
     // n.b., the third parameter is a boolean is_signed, by flagging it false,
     // this becomes bv2nat
-    res = Z3_mk_bv2int(ctx, zterm->term, false);
+    res = Z3_mk_bv2int(*ctx, zterm->term, false);
   }
   else if (op.prim_op == UBV_To_Int)
   {
-    res = Z3_mk_bv2int(ctx, zterm->term, /* is_signed */ false);
+    res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ false);
   }
   else if (op.prim_op == SBV_To_Int)
   {
-    res = Z3_mk_bv2int(ctx, zterm->term, /* is_signed */ true);
+    res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ true);
   }
 
   else if (!op.num_idx)
   {
     if (unary_ops.find(op.prim_op) != unary_ops.end())
     {
-      res = unary_ops.at(op.prim_op)(ctx, zterm->term);
+      res = unary_ops.at(op.prim_op)(*ctx, zterm->term);
     }
     else
     {
@@ -963,7 +973,7 @@ Term Z3Solver::make_term(Op op, const Term & t) const
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
 
 Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
@@ -990,26 +1000,26 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
   {
     if (binary_ops.find(op.prim_op) != binary_ops.end())
     {
-      res = binary_ops.at(op.prim_op)(ctx, zterm0->term, zterm1->term);
+      res = binary_ops.at(op.prim_op)(*ctx, zterm0->term, zterm1->term);
     }
     else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
     {
       Z3_ast terms[2] = { zterm0->term, zterm1->term };
-      res = z3_variadic_ops.at(op.prim_op)(ctx, 2, terms);
+      res = z3_variadic_ops.at(op.prim_op)(*ctx, 2, terms);
     }
     else if (op == Forall || op == Exists)
     {
-      z3::expr_vector zparams(ctx);
+      z3::expr_vector zparams(*ctx);
       zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
       z3::expr zbody = static_pointer_cast<Z3Term>(t1)->term;
       if (op == Forall)
       {
-        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+        return make_shared<Z3Term>(ctx, forall(zparams, zbody));
       }
       else
       {
         assert(op == Exists);
-        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+        return make_shared<Z3Term>(ctx, exists(zparams, zbody));
       }
     }
     else
@@ -1027,7 +1037,7 @@ Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
 
 Term Z3Solver::make_term(Op op,
@@ -1059,27 +1069,27 @@ Term Z3Solver::make_term(Op op,
     if (ternary_ops.find(op.prim_op) != ternary_ops.end())
     {
       res = ternary_ops.at(op.prim_op)(
-          ctx, zterm0->term, zterm1->term, zterm2->term);
+          *ctx, zterm0->term, zterm1->term, zterm2->term);
     }
     else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
     {
       Z3_ast terms[3] = { zterm0->term, zterm1->term, zterm2->term };
-      res = z3_variadic_ops.at(op.prim_op)(ctx, 3, terms);
+      res = z3_variadic_ops.at(op.prim_op)(*ctx, 3, terms);
     }
     else if (op == Forall || op == Exists)
     {
-      z3::expr_vector zparams(ctx);
+      z3::expr_vector zparams(*ctx);
       zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
       zparams.push_back(static_pointer_cast<Z3Term>(t1)->term);
       z3::expr zbody = static_pointer_cast<Z3Term>(t2)->term;
       if (op == Forall)
       {
-        return make_shared<Z3Term>(forall(zparams, zbody), ctx);
+        return make_shared<Z3Term>(ctx, forall(zparams, zbody));
       }
       else
       {
         assert(op == Exists);
-        return make_shared<Z3Term>(exists(zparams, zbody), ctx);
+        return make_shared<Z3Term>(ctx, exists(zparams, zbody));
       }
     }
     else
@@ -1094,7 +1104,7 @@ Term Z3Solver::make_term(Op op,
     throw IncorrectUsageException(msg);
   }
 
-  return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
 
 Term Z3Solver::make_term(Op op, const TermVec & terms) const
@@ -1140,13 +1150,13 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
 
-    res = Z3_mk_app(ctx, zterm->z_func, size - 1, zargs.data());
-    return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+    res = Z3_mk_app(*ctx, zterm->z_func, size - 1, zargs.data());
+    return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
   }
 
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    z3::expr_vector zterms(ctx);
+    z3::expr_vector zterms(*ctx);
     std::shared_ptr<Z3Term> zterm;
     for (auto t : terms)
     {
@@ -1161,7 +1171,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     expr quantified_body = zterms.back();
     zterms.pop_back();
     // zterms holds one variable, since only one parameter is allowed
-    z3::expr quant_res(ctx);
+    z3::expr quant_res(*ctx);
     if (op.prim_op == Forall)
     {
       quant_res = forall(zterms, quantified_body);
@@ -1170,7 +1180,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     {
       quant_res = exists(zterms, quantified_body);
     }
-    return std::make_shared<Z3Term>(quant_res, ctx);
+    return std::make_shared<Z3Term>(ctx, quant_res);
   }
 
   if (size == 2)
@@ -1189,8 +1199,8 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     {
       z3args.push_back(std::static_pointer_cast<Z3Term>(tt)->term);
     }
-    res = z3_variadic_ops.at(op.prim_op)(ctx, z3args.size(), z3args.data());
-    return std::make_shared<Z3Term>(to_expr(ctx, res), ctx);
+    res = z3_variadic_ops.at(op.prim_op)(*ctx, z3args.size(), z3args.data());
+    return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
   }
   else
   {
@@ -1212,12 +1222,12 @@ Term Z3Solver::substitute(const Term term,
   // z3 expression vectors that represent the
   // substitution map, i.e.:
   // substitutionmap[z3sources[i]] = z3destinations[i]
-  z3::expr_vector z3sources(ctx);
-  z3::expr_vector z3destinations(ctx);
+  z3::expr_vector z3sources(*ctx);
+  z3::expr_vector z3destinations(*ctx);
 
   // z3 counterpart of `term`
   shared_ptr<Z3Term> z3term = static_pointer_cast<Z3Term>(term);
-  expr z3expr = to_expr(ctx, z3term->term);
+  expr z3expr = to_expr(*ctx, z3term->term);
   // populate the z3 expr_vectors according to the substitution map
   for (auto p : substitution_map)
   {
@@ -1231,10 +1241,10 @@ Term Z3Solver::substitute(const Term term,
 
   // perform the substitution and return the result
   expr result = z3expr.substitute(z3sources, z3destinations);
-  return std::make_shared<Z3Term>(result, ctx);
+  return std::make_shared<Z3Term>(ctx, result);
 }
 
-z3::context * Z3Solver::get_z3_context() { return &ctx; }
+z3::context * Z3Solver::get_z3_context() { return ctx.get(); }
 
 z3::solver * Z3Solver::get_z3_solver() { return &slv; }
 

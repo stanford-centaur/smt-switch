@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "term.h"
@@ -32,12 +33,11 @@ class Z3Solver;
 class Z3TermIter : public TermIterBase
 {
  public:
-  Z3TermIter(expr t, uint32_t p, bool nt = false)
-      : term(t), pos(p), null_term(nt) {};
-  Z3TermIter(const Z3TermIter & it)
-      : term(it.term), pos(it.pos), null_term(it.null_term)
-  {
-  }
+  Z3TermIter(const std::shared_ptr<context> & c,
+             expr t,
+             uint32_t p,
+             bool nt = false);
+  Z3TermIter(const Z3TermIter & it);
   ~Z3TermIter() {};
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
@@ -50,6 +50,8 @@ class Z3TermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
+  // declared before term, so that term is released while the context lives
+  std::shared_ptr<context> ctx;
   expr term;
   uint32_t pos;
   bool null_term;  ///< set to true if the term is null (no iteration)
@@ -59,25 +61,13 @@ class Z3Term : public AbsTerm
 {
  public:
   // Non-functions
-  Z3Term(expr t, context & c)
-      : term(t), z_func(c), is_function(false), is_parameter(false)
-  {
-    ctx = &c;
-  };
+  Z3Term(const std::shared_ptr<context> & c, expr t);
   // Parameter -- Z3 doesn't distinguish until it's bound
   // so we have to keep track of this extra info
   // if no bool is passed, assume it's not a parameter
-  Z3Term(expr t, context & c, bool param)
-      : term(t), z_func(c), is_function(false), is_parameter(param)
-  {
-    ctx = &c;
-  };
+  Z3Term(const std::shared_ptr<context> & c, expr t, bool param);
   // Functions
-  Z3Term(func_decl zfunc, context & c)
-      : term(c), z_func(zfunc), is_function(true), is_parameter(false)
-  {
-    ctx = &c;
-  };
+  Z3Term(const std::shared_ptr<context> & c, func_decl zfunc);
   ~Z3Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -101,11 +91,13 @@ class Z3Term : public AbsTerm
   func_decl get_z3_func_decl();
 
  protected:
+  // shared with the solver, so the context lives as long as this term, and
+  // declared first, so that term and z_func are released while it does
+  std::shared_ptr<context> ctx;
   expr term;
   func_decl z_func;
   bool is_function;
   bool is_parameter;
-  context * ctx;
 
   // a const version of to_string
   // the main to_string can't be const so that LoggingSolver
