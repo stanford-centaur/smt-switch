@@ -80,10 +80,6 @@ SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
       sortkinds_({ { "Bool", BOOL } }),
       def_arg_prefix_("__defvar_")
 {
-  // dedicated true/false symbols
-  // done this way because true/false can be used in other places
-  // for example, when setting options
-  assert(!global_symbols_.current_scope());
 }
 
 int SmtLibReader::parse(const std::string & f)
@@ -455,7 +451,10 @@ Term SmtLibReader::apply_define_fun(const std::string & defname,
 
 Term SmtLibReader::register_arg(const std::string & name, const Sort & sort)
 {
-  assert(current_scope());
+  if (!current_scope())
+  {
+    throw IncorrectUsageException("register_arg needs a scope from push_scope");
+  }
   // find the right id for this argument
   // can't associate with same variable as another argument for this define-fun
   std::size_t id = 0;
@@ -515,7 +514,10 @@ Sort SmtLibReader::lookup_sort(const std::string & name)
 
 Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
 {
-  assert(current_scope());
+  if (!current_scope())
+  {
+    throw IncorrectUsageException("create_param needs a scope from push_scope");
+  }
   Term param;
   // some solvers don't allow reusing parameter names
   // need to find a fresh one
@@ -543,7 +545,10 @@ Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
 
 void SmtLibReader::let_binding(const std::string & sym, const Term & term)
 {
-  assert(current_scope());
+  if (!current_scope())
+  {
+    throw IncorrectUsageException("let_binding needs a scope from push_scope");
+  }
   arg_param_map_.add_mapping(sym, term);
 }
 

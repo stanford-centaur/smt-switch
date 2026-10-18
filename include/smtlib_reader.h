@@ -87,7 +87,10 @@ class UnorderedScopedSymbolMap
 
   void pop_scope()
   {
-    assert(current_scope());
+    if (!current_scope())
+    {
+      throw IncorrectUsageException("Cannot pop the outermost scope");
+    }
     for (const auto & sym : symbols_.back())
     {
       symbol_map_.erase(sym);
