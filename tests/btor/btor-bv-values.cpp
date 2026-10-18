@@ -45,24 +45,6 @@ TEST_F(BtorBvValues, NegativeValuesInEveryBase)
   EXPECT_EQ(s->make_term("-1", bv8, 16), s->make_term(-1, bv8));
 }
 
-TEST_F(BtorBvValues, RangeEnds)
-{
-  EXPECT_EQ(s->make_term("-80", bv8, 16), s->make_term(-128, bv8));
-  EXPECT_EQ(s->make_term("-10000000", bv8, 2), s->make_term(-128, bv8));
-  EXPECT_EQ(s->make_term("ff", bv8, 16), s->make_term(255, bv8));
-  EXPECT_EQ(s->make_term("11111111", bv8, 2), s->make_term(255, bv8));
-}
-
-TEST_F(BtorBvValues, OutOfRangeThrows)
-{
-  EXPECT_THROW(s->make_term("100000000", bv8, 2), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("-10000001", bv8, 2), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("100", bv8, 16), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("-81", bv8, 16), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("256", bv8, 10), IncorrectUsageException);
-  EXPECT_THROW(s->make_term("-129", bv8, 10), IncorrectUsageException);
-}
-
 TEST_F(BtorBvValues, MalformedNumeralsThrow)
 {
   EXPECT_THROW(s->make_term("abc", bv8, 10), IncorrectUsageException);

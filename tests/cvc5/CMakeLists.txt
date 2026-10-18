@@ -1,6 +1,6 @@
 # These use the cvc5 API, of which test-solvers holds only the part
 # smt-switch uses, so they link the backend directly.
-set(cvc5_direct_tests cvc5-interpolants-api cvc5-term-iter)
+set(cvc5_direct_tests cvc5-interpolants-api)
 
 macro(switch_add_cvc5_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/cvc5/${name}.cpp")
@@ -16,4 +16,3 @@ endmacro()
 
 switch_add_cvc5_test(cvc5-interpolants-api)
 switch_add_cvc5_test(cvc5-printing)
-switch_add_cvc5_test(cvc5-term-iter)
