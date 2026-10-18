@@ -539,6 +539,71 @@ TEST_P(GenericSolverIntTests, BadTermBVAdd)
                IncorrectUsageException);
 }
 
+TEST_P(GenericSolverIntTests, UsableAfterIllSortedTerm)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", int_sort);
+  Term int_one = gs->make_term(1, int_sort);
+  Term bv_one = gs->make_term(1, bv_sort);
+  EXPECT_THROW(gs->make_term(Equal, x, bv_one), IncorrectUsageException);
+
+  gs->assert_formula(gs->make_term(Equal, x, int_one));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), int_one);
+}
+
+TEST_P(GenericSolverIntTests, KeepsStateAfterIllSortedTerm)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", int_sort);
+  Term int_one = gs->make_term(1, int_sort);
+  Term bv_one = gs->make_term(1, bv_sort);
+  gs->push(1);
+  gs->assert_formula(gs->make_term(Equal, x, int_one));
+  EXPECT_THROW(gs->make_term(Equal, x, bv_one), IncorrectUsageException);
+
+  gs->push(1);
+  gs->assert_formula(gs->make_term(Distinct, x, int_one));
+  EXPECT_TRUE(gs->check_sat().is_unsat());
+  gs->pop(1);
+  EXPECT_TRUE(gs->check_sat().is_sat());
+  gs->pop(1);
+}
+
+TEST_P(GenericSolverIntTests, UsableAfterIllSortedHeldBackTerm)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", int_sort);
+  Term int_one = gs->make_term(1, int_sort);
+  Term bv_one = gs->make_term(1, bv_sort);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  // made in the sat mode, so both are sent only by the next assertion,
+  // the good one after the bad one
+  gs->make_term(Equal, x, bv_one);
+  Term x_is_one = gs->make_term(Equal, x, int_one);
+  EXPECT_THROW(gs->assert_formula(x_is_one), IncorrectUsageException);
+
+  gs->assert_formula(x_is_one);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), int_one);
+}
+
+TEST_P(GenericSolverTests, UsableAfterIllSortedBvTerm)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  Term bv_one = gs->make_term(1, bv_sort);
+  EXPECT_THROW(gs->make_term(Equal, x, gs->make_term(true)),
+               IncorrectUsageException);
+
+  gs->assert_formula(gs->make_term(Equal, x, bv_one));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), bv_one);
+}
+
 TEST_P(GenericSolverIntTests, PowNeedsConstantNonNegativeExponent)
 {
   Sort int_sort = gs->make_sort(INT);

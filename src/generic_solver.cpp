@@ -38,6 +38,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <initializer_list>
 #include <limits>
 #include <memory>
@@ -87,6 +88,13 @@ static void close_fd(int & fd)
   }
   close(fd);
   fd = -1;
+}
+
+// Whether a trimmed response is the binary reporting an error.
+static bool is_error_response(const std::string & response)
+{
+  const std::string err_prefix("(error ");
+  return response.compare(0, err_prefix.size(), err_prefix) == 0;
 }
 
 /** The offset just past the s-expression that starts at `i` in `buf`, where
@@ -274,6 +282,13 @@ GenericSolver::~GenericSolver()
 
 void GenericSolver::start_solver()
 {
+  launch_binary();
+  set_opt("print-success", "true");
+  set_opt("global-declarations", "true");
+}
+
+void GenericSolver::launch_binary() const
+{
   if (pipe(inpipefd) != 0)
   {
     throw InternalSolverException(
@@ -427,12 +442,10 @@ void GenericSolver::start_solver()
     {
       reason = "could not be determined: the process died before reporting it";
     }
-    // the child and the pipes are left to the constructor's close_solver()
+    // the child and the pipes are left to the caller's close_solver()
     throw IncorrectUsageException("failure to run binary: " + path + ": "
                                   + reason);
   }
-  set_opt("print-success", "true");
-  set_opt("global-declarations", "true");
 }
 
 void GenericSolver::write_internal(std::string str) const
@@ -488,6 +501,10 @@ void GenericSolver::write_internal(std::string str) const
     }
   }
   pthread_sigmask(SIG_SETMASK, &old_mask, nullptr);
+  if (write_errno == EPIPE)
+  {
+    binary_exited_ = true;
+  }
   if (write_errno != 0)
   {
     throw InternalSolverException(
@@ -577,6 +594,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
     if (just_read == 0)
     {
       // the solver is gone, so what arrived is all there will ever be
+      binary_exited_ = true;
       if (response_buffer.empty())
       {
         throw InternalSolverException(
@@ -603,20 +621,89 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
   return result;
 }
 
-std::string GenericSolver::run_command(std::string cmd,
-                                       bool verify_success_flag) const
+std::string GenericSolver::exchange(const std::string & cmd) const
 {
   // send the cmd string, with a newline to simulate an "enter" hit
   write_internal(cmd + "\n");
-  // reading the result
   std::string result = read_internal(cmd);
-  result = trim(result);
+  return trim(result);
+}
+
+std::string GenericSolver::run_command(std::string cmd,
+                                       bool verify_success_flag) const
+{
+  std::string result;
+  try
+  {
+    result = exchange(cmd);
+  }
+  catch (InternalSolverException &)
+  {
+    // a binary that died of the command took the solver's state with it;
+    // one that is only slow is left alone
+    if (binary_exited_)
+    {
+      restore_binary();
+    }
+    throw;
+  }
+  if (binary_exited_ || is_error_response(result))
+  {
+    restore_binary();
+  }
   // verify success if needed
   if (verify_success_flag)
   {
     verify_success(result);
+    accepted_commands_.push_back(cmd);
   }
   return result;
+}
+
+void GenericSolver::restore_binary() const
+{
+  // SMT-LIB gives a command that fails no effect, so a binary that still
+  // answers is in the state it was in before the command
+  if (!binary_exited_)
+  {
+    try
+    {
+      exchange("(get-info :name)");
+      if (!binary_exited_)
+      {
+        return;
+      }
+    }
+    catch (InternalSolverException &)
+    {
+    }
+  }
+  // a fresh binary given everything the old one accepted is in that state
+  // too, but for the model, as no check-sat is sent again
+  try
+  {
+    close_solver();
+    response_buffer.clear();
+    binary_exited_ = false;
+    launch_binary();
+    for (const std::string & cmd : accepted_commands_)
+    {
+      std::string result = exchange(cmd);
+      if (result != "success")
+      {
+        throw InternalSolverException("it answered " + result + " to " + cmd);
+      }
+    }
+  }
+  catch (SmtException & e)
+  {
+    throw InternalSolverException("Could not restore the solver binary at "
+                                  + path + " after an error: " + e.what());
+  }
+  if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
+  {
+    mode_ = SmtLibMode::ASSERT;
+  }
 }
 
 void GenericSolver::verify_success(std::string result) const
@@ -683,10 +770,27 @@ void GenericSolver::send_pending_commands() const
   pending_definitions_.clear();
   pending_symbols_.clear();
   pending_sort_names_.clear();
+  // the terms of the ones after a failure are already made, and need not
+  // use the term that failed, so those are sent too
+  std::exception_ptr first_failure;
   for (const std::string & cmd : pending)
   {
-    run_command(cmd);
-    mode_ = SmtLibMode::ASSERT;
+    try
+    {
+      run_command(cmd);
+      mode_ = SmtLibMode::ASSERT;
+    }
+    catch (SmtException &)
+    {
+      if (!first_failure)
+      {
+        first_failure = std::current_exception();
+      }
+    }
+  }
+  if (first_failure)
+  {
+    std::rethrow_exception(first_failure);
   }
 }
 
@@ -835,7 +939,7 @@ std::string GenericSolver::query_text(const Term & term,
   return text;
 }
 
-void GenericSolver::close_solver()
+void GenericSolver::close_solver() const
 {
   // closing our end of the solver's stdin first lets a well-behaved binary
   // see the end of its input and exit; the SIGKILL is the backstop, and is
@@ -1886,8 +1990,7 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
 void GenericSolver::check_no_error(std::string str) const
 {
   str = trim(str);
-  std::string err_prefix("(error ");
-  if (str.compare(0, err_prefix.size(), err_prefix) == 0)
+  if (is_error_response(str))
   {
     throw SmtException("Exception from the solver: " + str);
   }
