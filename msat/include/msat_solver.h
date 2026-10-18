@@ -191,7 +191,6 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   ~MsatInterpolatingSolver() {}
-  void set_opt(const std::string option, const std::string value) override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
@@ -199,21 +198,19 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
                                    TermVec & out_I) const override;
 
  protected:
-  void do_reset() override;
-  void do_reset_assertions() override;
-
-  // sets the options interpolation needs, unless the configuration is fixed
-  // already
-  void initialize();
+  void do_set_opt(const std::string & option,
+                  const std::string & value) override;
+  void forget_queries() override;
+  // sets what set_required_options does and the preferences for a
+  // configuration of the solver's own, on construction without a
+  // configuration and after reset()
+  void initialize() override;
+  // sets the options MathSAT cannot interpolate without, which a caller's
+  // configuration needs too
+  void set_required_options();
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<MsatSolver> msat_solver_;
-  // true if the configuration was not the caller's, so its own preferences
-  // may be set
-  bool own_config_;
-  // false if each query starts afresh instead of reusing the formulas it
-  // shares with the one before
-  bool incremental_mode_ = true;
 
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
@@ -221,9 +218,6 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   mutable TermVec last_itp_query_assertions_;
   // interpolation group for each assertion level
   mutable std::vector<int> itp_grps_;
-
- private:
-  MsatInterpolatingSolver(msat_config c, bool own_config);
 };
 
 }  // namespace smt

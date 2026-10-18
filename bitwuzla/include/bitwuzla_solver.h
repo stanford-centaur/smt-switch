@@ -118,7 +118,6 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
   BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
   BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
 
-  void set_opt(const std::string option, const std::string value) override;
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;
@@ -126,11 +125,11 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
                                    TermVec & out_I) const override;
 
  protected:
-  void do_reset() override;
-  void do_reset_assertions() override;
-
-  // enables interpolation unless the backend's options are fixed already
-  void initialize();
+  void do_set_opt(const std::string & option,
+                  const std::string & value) override;
+  void forget_queries() override;
+  // enables interpolation, on construction and after reset()
+  void initialize() override;
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<BzlaSolver> bzla_solver;
@@ -143,7 +142,6 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
   inline static const std::unordered_set<std::string> disallowed_options = {
     "produce-interpolants"
   };
-  bool incremental_mode = true;
   std::string dump_queries_prefix = "";
   mutable uint32_t itp_query_count = 0;
 };
