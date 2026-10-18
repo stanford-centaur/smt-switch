@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "utils.h"
 
@@ -117,10 +118,35 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 
 /* BoolectorTermIter implementation */
 
+BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & btor,
+                                     std::vector<BtorNode *> c,
+                                     int64_t idx)
+    : btor(btor), children(std::move(c)), idx(idx)
+{
+  for (BtorNode * n : children)
+  {
+    btor_node_copy(btor.get(), n);
+  }
+}
+
+BoolectorTermIter::BoolectorTermIter(const BoolectorTermIter & it)
+    : BoolectorTermIter(it.btor, it.children, it.idx)
+{
+}
+
+BoolectorTermIter::~BoolectorTermIter()
+{
+  for (BtorNode * n : children)
+  {
+    btor_node_release(btor.get(), n);
+  }
+}
+
 BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 {
-  btor = it.btor;
-  children = it.children;
+  BoolectorTermIter copy(it);
+  std::swap(btor, copy.btor);
+  std::swap(children, copy.children);
   idx = it.idx;
   return *this;
 };
