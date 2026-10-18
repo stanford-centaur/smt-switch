@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "mathsat.h"
 #include "sort.h"
@@ -28,9 +29,8 @@ class MsatSolver;
 class MsatSort : public AbsSort
 {
  public:
-  MsatSort(msat_env e, msat_type t) : env(e), type(t), is_uf_type(false) {};
-  MsatSort(msat_env e, msat_type t, msat_decl d)
-      : env(e), type(t), uf_decl(d), is_uf_type(true) {};
+  MsatSort(const std::shared_ptr<msat_env> & e, msat_type t);
+  MsatSort(const std::shared_ptr<msat_env> & e, msat_type t, msat_decl d);
   ~MsatSort() = default;
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -50,7 +50,8 @@ class MsatSort : public AbsSort
   msat_type get_msat_type() const { return type; }
 
  protected:
-  msat_env env;
+  // shared with the solver, so the environment lives as long as this sort
+  std::shared_ptr<msat_env> env;
   msat_type type;
   msat_decl uf_decl;
   bool is_uf_type;

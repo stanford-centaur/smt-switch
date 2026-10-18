@@ -26,6 +26,18 @@ namespace smt {
 
 // MsatSort implementation
 
+MsatSort::MsatSort(const std::shared_ptr<msat_env> & e, msat_type t)
+    : env(e), type(t), is_uf_type(false)
+{
+}
+
+MsatSort::MsatSort(const std::shared_ptr<msat_env> & e,
+                   msat_type t,
+                   msat_decl d)
+    : env(e), type(t), uf_decl(d), is_uf_type(true)
+{
+}
+
 std::size_t MsatSort::hash() const
 {
   // msat_type ptr is unique
@@ -35,7 +47,7 @@ std::size_t MsatSort::hash() const
 uint64_t MsatSort::get_width() const
 {
   size_t out_width;
-  if (msat_is_bv_type(env, type, &out_width))
+  if (msat_is_bv_type(*env, type, &out_width))
   {
     // TODO: figure out if this is safe -- only for large bit-widths is this a
     // problem
@@ -50,7 +62,7 @@ uint64_t MsatSort::get_width() const
 Sort MsatSort::get_indexsort() const
 {
   msat_type idx_type;
-  if (msat_is_array_type(env, type, &idx_type, nullptr))
+  if (msat_is_array_type(*env, type, &idx_type, nullptr))
   {
     return std::make_shared<MsatSort>(env, idx_type);
   }
@@ -63,7 +75,7 @@ Sort MsatSort::get_indexsort() const
 Sort MsatSort::get_elemsort() const
 {
   msat_type elem_type;
-  if (msat_is_array_type(env, type, nullptr, &elem_type))
+  if (msat_is_array_type(*env, type, nullptr, &elem_type))
   {
     return std::make_shared<MsatSort>(env, elem_type);
   }
@@ -145,23 +157,23 @@ bool MsatSort::compare(const Sort & s) const
 
 SortKind MsatSort::get_sort_kind() const
 {
-  if (msat_is_integer_type(env, type))
+  if (msat_is_integer_type(*env, type))
   {
     return INT;
   }
-  else if (msat_is_rational_type(env, type))
+  else if (msat_is_rational_type(*env, type))
   {
     return REAL;
   }
-  else if (msat_is_bool_type(env, type))
+  else if (msat_is_bool_type(*env, type))
   {
     return BOOL;
   }
-  else if (msat_is_bv_type(env, type, nullptr))
+  else if (msat_is_bv_type(*env, type, nullptr))
   {
     return BV;
   }
-  else if (msat_is_array_type(env, type, nullptr, nullptr))
+  else if (msat_is_array_type(*env, type, nullptr, nullptr))
   {
     return ARRAY;
   }
@@ -169,12 +181,12 @@ SortKind MsatSort::get_sort_kind() const
   {
     return FUNCTION;
   }
-  else if (msat_is_fp_type(env, type, nullptr, nullptr))
+  else if (msat_is_fp_type(*env, type, nullptr, nullptr))
   {
     throw NotImplementedException(
         "Floating point not implemented for MathSAT yet.");
   }
-  else if (msat_is_fp_roundingmode_type(env, type))
+  else if (msat_is_fp_roundingmode_type(*env, type))
   {
     throw NotImplementedException(
         "Floating point not implemented for MathSAT yet.");

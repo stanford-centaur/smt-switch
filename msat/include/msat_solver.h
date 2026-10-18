@@ -129,9 +129,10 @@ class MsatSolver : public AbsSmtSolver
   // marked mutable because want to stick with const interface for functions
   // but the environment cannot be created before setting options
   // it will be lazily created when first used (which might be in a const
-  // function)
-  mutable msat_env env;
-  mutable bool env_uninitialized;
+  // function), and is null until then
+  // shared with every term and sort, so the environment lives until the last
+  // of them is released, even past reset() or this solver's destruction
+  mutable std::shared_ptr<msat_env> env;
   bool valid_model;
   std::string logic;
 
@@ -164,6 +165,8 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
+
+  friend class MsatInterpolatingSolver;
 };
 
 // Interpolating Solver

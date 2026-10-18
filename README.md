@@ -35,11 +35,8 @@ are many convenience functions which operate on these pointers, so they may not
 for commonly used data structures, for example, `TermVec` is a vector of shared
 pointers to `AbsTerm`s.
 
-Being smart pointers does not tie their lifetimes together: a `Term` or `Sort`
-does not keep alive the `SmtSolver` that created it. Destroy every term and sort
-before the solver they came from. With MathSAT, using either one after its
-solver crashes. The Python bindings avoid this, because each `Term` and `Sort`
-holds a reference to its solver.
+A `Term` or `Sort` keeps alive the backend state it points into, so it can still
+be used after the `SmtSolver` that created it is destroyed.
 
 The function names are based on SMT-LIB. The general rule is that
 functions/methods in this library can be obtained syntactically from SMT-LIB
