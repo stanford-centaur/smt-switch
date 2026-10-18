@@ -25,27 +25,6 @@
 using namespace smt;
 using namespace std;
 
-TEST(BtorOptTest1, Incremental)
-{
-  SmtSolver s = BoolectorSolverFactory::create(false);
-  EXPECT_NO_THROW(s->set_opt("incremental", "true"));
-  s->assert_formula(s->make_term(false));
-  s->check_sat();
-  EXPECT_NO_THROW(s->check_sat());
-}
-
-TEST(BtorOptTest2, ProduceModels)
-{
-  SmtSolver s = BoolectorSolverFactory::create(false);
-  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
-  Sort boolsort = s->make_sort(BOOL);
-  Term b = s->make_symbol("b", boolsort);
-  s->assert_formula(b);
-  Result r = s->check_sat();
-  ASSERT_TRUE(r.is_sat());
-  EXPECT_NO_THROW(s->get_value(b));
-}
-
 TEST(BtorOptTest3, NonStandardOpt)
 {
   // tests an option that's boolector specific

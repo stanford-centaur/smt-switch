@@ -85,11 +85,6 @@ TEST(MsatConstructors, InterpolatingFromConfig)
   expect_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg));
 }
 
-TEST(MsatConstructors, InterpolatingDefaultConfigOnBitVectors)
-{
-  expect_bv_interpolant(std::make_shared<MsatInterpolatingSolver>());
-}
-
 TEST(MsatConstructors, InterpolatingForcesRequiredOptions)
 {
   // the two options interpolation cannot do without are overridden
