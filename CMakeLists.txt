@@ -25,15 +25,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(
-  cxx_warnings
-  -Wall # questionable constructions that are easy to avoid
-  -Wextra # more of them, a few of which can be deliberate
-  -Wpedantic # whatever the standard the tree is built to does not allow
-  -Wnon-virtual-dtor # a polymorphic base with a non-virtual dtor
-  -Woverloaded-virtual # a derived declaration hiding a base overload
-  -Wundef # an #if on a macro that was never defined
-)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Everyone is told, only a build that asks is stopped. What an umbrella covers
 # changes between compiler releases, so a warning arriving with a newer
@@ -41,13 +33,7 @@ set(
 # noisier; it takes configure.sh --strict to turn the same warning into an
 # error.
 option(SMT_SWITCH_STRICT "Treat compiler warnings as errors" OFF)
-if(SMT_SWITCH_STRICT)
-  list(APPEND cxx_warnings -Werror)
-endif()
-
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
-
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+include(CompilerWarnings)
 
 ########################### Identify the current version ########################
 # Function to parse and validate a version string
