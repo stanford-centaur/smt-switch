@@ -80,6 +80,9 @@ class Cvc5Solver : public AbsSmtSolver
   SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls) const override;
 
+  // Declaring make_term here hides the AbsSmtSolver template that takes
+  // the children as separate arguments, so name it back in.
+  using AbsSmtSolver::make_term;
   Term make_term(bool b) const override;
   Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string & s,
@@ -94,12 +97,6 @@ class Cvc5Solver : public AbsSmtSolver
   Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
-  Term make_term(Op op, const Term & t) const override;
-  Term make_term(Op op, const Term & t0, const Term & t1) const override;
-  Term make_term(Op op,
-                 const Term & t0,
-                 const Term & t1,
-                 const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;

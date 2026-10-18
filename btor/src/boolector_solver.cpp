@@ -653,24 +653,6 @@ Term BoolectorSolver::make_param(const std::string /* name */,
   return std::make_shared<BoolectorTerm>(btor, n);
 }
 
-Term BoolectorSolver::make_term(Op op, const Term & t) const
-{
-  return make_term(op, TermVec{ t });
-}
-
-Term BoolectorSolver::make_term(Op op, const Term & t0, const Term & t1) const
-{
-  return make_term(op, TermVec{ t0, t1 });
-}
-
-Term BoolectorSolver::make_term(Op op,
-                                const Term & t0,
-                                const Term & t1,
-                                const Term & t2) const
-{
-  return make_term(op, TermVec{ t0, t1, t2 });
-}
-
 Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 {
   size_t size = terms.size();

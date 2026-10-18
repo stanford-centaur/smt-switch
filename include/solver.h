@@ -360,40 +360,23 @@ class AbsSmtSolver
 
   /* Make a new term
    * @param op the operator to use
-   * @param t the child term
-   * @return the created term
-   */
-  virtual Term make_term(const Op op, const Term & t) const = 0;
-
-  /* Make a new term
-   * @param op the operator to use
-   * @param t0 the first child term
-   * @param t1 the second child term
-   * @return the created term
-   */
-  virtual Term make_term(const Op op,
-                         const Term & t0,
-                         const Term & t1) const = 0;
-
-  /* Make a new term
-   * @param op the operator to use
-   * @param t0 the first child term
-   * @param t1 the second child term
-   * @param t2 the third child term
-   * @return the created term
-   */
-  virtual Term make_term(const Op op,
-                         const Term & t0,
-                         const Term & t1,
-                         const Term & t2) const = 0;
-
-  /* Make a new term
-   * @param op the operator to use
    * @param terms vector of children
    * @return the created term
+   * This is the overload a backend implements; the one taking the children
+   * as separate arguments below is a shorthand for it.
    */
   virtual Term make_term(const Op op, const TermVec & terms) const = 0;
 
+  /* Shorthand for make_term(op, TermVec{ t, ts... })
+   * e.g. make_term(Not, a), make_term(Equal, a, b) or make_term(And, a, b, c)
+   */
+  template <typename... Terms,
+            typename = std::enable_if_t<
+                (std::is_convertible_v<const Terms &, Term> && ...)>>
+  Term make_term(const Op op, const Term & t, const Terms &... ts) const
+  {
+    return make_term(op, TermVec{ t, ts... });
+  }
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
    * SMTLIB: (reset)

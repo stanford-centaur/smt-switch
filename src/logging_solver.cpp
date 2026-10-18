@@ -303,26 +303,6 @@ Term LoggingSolver::make_param(const std::string name, const Sort & sort)
   return res;
 }
 
-Term LoggingSolver::make_term(const Op op, const Term & t) const
-{
-  return make_term(op, TermVec{ t });
-}
-
-Term LoggingSolver::make_term(const Op op,
-                              const Term & t1,
-                              const Term & t2) const
-{
-  return make_term(op, TermVec{ t1, t2 });
-}
-
-Term LoggingSolver::make_term(const Op op,
-                              const Term & t1,
-                              const Term & t2,
-                              const Term & t3) const
-{
-  return make_term(op, TermVec{ t1, t2, t3 });
-}
-
 Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 {
   TermVec lterms;

@@ -107,6 +107,19 @@ TEST_P(UnitTermTests, BoolValues)
   EXPECT_EQ(f->get_sort(), boolsort);
 }
 
+TEST_P(UnitTermTests, TermShorthands)
+{
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term c = s->make_symbol("c", boolsort);
+  Term d = s->make_symbol("d", boolsort);
+  EXPECT_EQ(s->make_term(Not, a), s->make_term(Not, TermVec{ a }));
+  EXPECT_EQ(s->make_term(Xor, a, b), s->make_term(Xor, TermVec{ a, b }));
+  EXPECT_EQ(s->make_term(Ite, a, b, c), s->make_term(Ite, TermVec{ a, b, c }));
+  EXPECT_EQ(s->make_term(And, a, b, c, d),
+            s->make_term(And, TermVec{ a, b, c, d }));
+}
+
 TEST_P(UnitTermTests, BVSorts)
 {
   EXPECT_EQ(s->make_term(5, bvsort)->get_sort(), bvsort);

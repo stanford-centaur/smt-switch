@@ -498,24 +498,6 @@ Term BzlaSolver::make_param(const std::string name, const Sort & sort)
   return std::make_shared<BzlaTerm>(tm->mk_var(bsort->sort, name), tm);
 }
 
-Term BzlaSolver::make_term(Op op, const Term & t) const
-{
-  return make_term(op, TermVec{ t });
-}
-
-Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
-{
-  return make_term(op, TermVec{ t0, t1 });
-}
-
-Term BzlaSolver::make_term(Op op,
-                           const Term & t0,
-                           const Term & t1,
-                           const Term & t2) const
-{
-  return make_term(op, TermVec{ t0, t1, t2 });
-}
-
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
