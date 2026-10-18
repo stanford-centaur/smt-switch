@@ -71,6 +71,18 @@ TEST_P(UnitResetTests, ResetClearsContextLevel)
   EXPECT_EQ(s->get_context_level(), 0);
 }
 
+TEST_P(UnitResetTests, ResetLeavesOtherSolversAlone)
+{
+  SmtSolver other = create_solver(GetParam());
+  other->set_opt("produce-models", "true");
+  Term b = other->make_symbol("b", other->make_sort(BOOL));
+  other->assert_formula(b);
+  s->reset();
+
+  ASSERT_TRUE(other->check_sat().is_sat());
+  EXPECT_EQ(other->get_value(b), other->make_term(true));
+}
+
 static std::vector<SolverConfiguration> working_reset_configurations()
 {
   std::vector<SolverConfiguration> result;

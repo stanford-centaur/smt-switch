@@ -69,12 +69,6 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
     GTEST_SKIP() << "MathSAT's reset() destroys the environment its terms "
                     "point into, so using one afterwards crashes";
   }
-  if (!sc.is_logging_solver && sc.solver_enum == YICES2)
-  {
-    GTEST_SKIP() << "Yices2's reset() deletes every term, and new terms "
-                    "reuse their numbers, so one held across it silently "
-                    "becomes another";
-  }
   SmtSolver s = create_solver(GetParam());
   Sort bv = s->make_sort(BV, 4);
   Term x = s->make_symbol("x", bv);

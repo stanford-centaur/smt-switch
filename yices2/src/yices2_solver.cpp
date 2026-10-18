@@ -1205,15 +1205,14 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 
 void Yices2Solver::do_reset()
 {
-  // yices_reset deletes every context and configuration, so free ours
-  // first rather than leave the destructor to free them again
+  // only this solver's own state: yices_reset would delete the terms,
+  // contexts and configurations of every other solver too
   if (ctx)
   {
     yices_free_context(ctx);
     ctx = nullptr;
   }
   yices_free_config(config);
-  yices_reset();
   config = yices_new_config();
   symbol_table.clear();
   pushes_after_unsat = 0;
