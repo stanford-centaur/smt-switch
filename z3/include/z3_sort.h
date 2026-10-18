@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "exceptions.h"
 #include "sort.h"
@@ -33,15 +34,10 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(z3::sort z3sort, context & c)
-      : type(z3sort), z_func(c), is_function(false)
-  {
-    ctx = &c;
-  };
+  Z3Sort(const std::shared_ptr<context> & c, z3::sort z3sort);
 
   // Functions
-  Z3Sort(func_decl zfunc, context & c)
-      : type(c), z_func(zfunc), is_function(true) {};
+  Z3Sort(const std::shared_ptr<context> & c, func_decl zfunc);
 
   ~Z3Sort() = default;
   std::size_t hash() const override;
@@ -61,10 +57,12 @@ class Z3Sort : public AbsSort
   z3::sort get_z3_type();
 
  protected:
+  // shared with the solver, so the context lives as long as this sort, and
+  // declared first, so that type and z_func are released while it does
+  std::shared_ptr<context> ctx;
   z3::sort type;
   func_decl z_func;
   bool is_function;
-  context * ctx;
 
   friend class Z3Solver;
 };

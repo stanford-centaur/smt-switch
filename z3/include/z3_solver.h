@@ -19,6 +19,7 @@
 #include <z3++.h>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -40,7 +41,7 @@ namespace smt {
 class Z3Solver : public AbsSmtSolver
 {
  public:
-  Z3Solver() : AbsSmtSolver(Z3), ctx(), slv(ctx), last_query_assuming(false) {};
+  Z3Solver();
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
   ~Z3Solver() {};
@@ -118,7 +119,9 @@ class Z3Solver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
-  mutable z3::context ctx;
+  // shared with every term and sort, so the context lives until the last of
+  // them is released, even past this solver's destruction
+  std::shared_ptr<z3::context> ctx;
   mutable z3::solver slv;
   std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid

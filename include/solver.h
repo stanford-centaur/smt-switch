@@ -99,7 +99,7 @@ struct is_term_range<
    Abstract solver class to be implemented by each supported solver.
 
    Terms and sorts do not keep their solver alive, and must be destroyed
-   before it: with some backends, destroying one afterwards crashes.
+   before it: with MathSAT, using one afterwards crashes.
  */
 class AbsSmtSolver
 {

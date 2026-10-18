@@ -12,6 +12,16 @@ namespace smt {
 
 // Z3Sort implementation
 
+Z3Sort::Z3Sort(const std::shared_ptr<context> & c, z3::sort z3sort)
+    : ctx(c), type(z3sort), z_func(*c), is_function(false)
+{
+}
+
+Z3Sort::Z3Sort(const std::shared_ptr<context> & c, func_decl zfunc)
+    : ctx(c), type(*c), z_func(zfunc), is_function(true)
+{
+}
+
 std::size_t Z3Sort::hash() const
 {
   if (is_function)
@@ -47,7 +57,7 @@ Sort Z3Sort::get_indexsort() const
 {
   if (type.is_array())
   {
-    return std::make_shared<Z3Sort>(type.array_domain(), *ctx);
+    return std::make_shared<Z3Sort>(ctx, type.array_domain());
   }
   else
   {
@@ -59,7 +69,7 @@ Sort Z3Sort::get_elemsort() const
 {
   if (type.is_array())
   {
-    return std::make_shared<Z3Sort>(type.array_range(), *ctx);
+    return std::make_shared<Z3Sort>(ctx, type.array_range());
   }
   else
   {
@@ -78,7 +88,7 @@ SortVec Z3Sort::get_domain_sorts() const
 
     for (unsigned i = 0; i < s_arity; i++)
     {
-      s.reset(new Z3Sort(z_func.domain(i), *ctx));
+      s.reset(new Z3Sort(ctx, z_func.domain(i)));
       sorts.push_back(s);
     }
 
@@ -95,7 +105,7 @@ Sort Z3Sort::get_codomain_sort() const
 {
   if (is_function)
   {
-    return std::make_shared<Z3Sort>(z_func.range(), *ctx);
+    return std::make_shared<Z3Sort>(ctx, z_func.range());
   }
   else
   {
@@ -139,7 +149,7 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
 Datatype Z3Sort::get_datatype() const
 {
   if (type.is_datatype())
-    return std::make_shared<Z3Datatype>(*ctx, type);
+    return std::make_shared<Z3Datatype>(ctx, type);
   else
     throw InternalSolverException("Sort is not datatype");
 };
