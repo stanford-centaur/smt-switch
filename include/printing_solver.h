@@ -147,12 +147,14 @@ class PrintingInterpolator : public AbsSmtInterpolator
   void forget_queries() override;
 
   /* Prints a query of formulae as the wrapped interpolator runs it, around
-   * ask, which runs it and stores its interpolants in out_I. What the
-   * wrapped interpolator keeps from the queries before is followed here, so
-   * that only what it actually asks is printed.
+   * ask, which runs it and stores its interpolants in out_I; sequence is
+   * false for get_interpolant. What the wrapped interpolator keeps from the
+   * queries before is followed here, so that only what it actually asks is
+   * printed.
    */
   Result print_query(const TermVec & formulae,
                      const TermVec & out_I,
+                     bool sequence,
                      const std::function<Result()> & ask) const;
 
   /* The wrapped interpolator */
@@ -165,8 +167,8 @@ class PrintingInterpolator : public AbsSmtInterpolator
    * one context level each, and the names they were printed with */
   mutable TermVec asserted;
   mutable std::vector<std::string> asserted_names;
-  /* For cvc5, the last query if it was unsat, whose interpolants cvc5
-   * reuses for a query that extends it */
+  /* For cvc5, the last sequence query if it was unsat, whose interpolants
+   * cvc5 reuses for a sequence query that extends it */
   mutable TermVec last_unsat_query;
 };
 

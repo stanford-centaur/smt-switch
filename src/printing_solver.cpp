@@ -304,7 +304,7 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
                                              Term & out_I) const
 {
   TermVec interpolant;
-  return print_query({ A, B }, interpolant, [&]() {
+  return print_query({ A, B }, interpolant, false, [&]() {
     Result r = wrapped_interpolator->get_interpolant(A, B, out_I);
     interpolant.push_back(out_I);
     return r;
@@ -326,7 +326,7 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
-  return print_query(formulae, out_I, [&]() {
+  return print_query(formulae, out_I, true, [&]() {
     return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
   });
 }
@@ -334,6 +334,7 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
 Result PrintingInterpolator::print_query(
     const TermVec & formulae,
     const TermVec & out_I,
+    bool sequence,
     const std::function<Result()> & ask) const
 {
   switch (get_solver_enum())
@@ -405,13 +406,15 @@ Result PrintingInterpolator::print_query(
       return r;
     }
     case CVC5_INTERPOLATOR: {
-      // cvc5 has no sequence query, so it asks one query per split, from
-      // the interpolant of the split before; they are printed once those
+      // cvc5 has no sequence query, so a sequence query asks one query per
+      // split, from the interpolant of the split before, as
+      // sequence_from_interpolants does; they are printed once those
       // interpolants are known. It reuses the interpolants of an unsat last
-      // query that this one extends, unless incremental is off, and asks no
-      // more after a split that fails.
+      // sequence query that this one extends, unless incremental is off,
+      // and asks no more after a split that fails. A get_interpolant query
+      // is asked on its own and leaves the last sequence query as it was.
       std::size_t first_split = 0;
-      if (incremental_mode && !last_unsat_query.empty()
+      if (sequence && incremental_mode && !last_unsat_query.empty()
           && last_unsat_query.size() <= formulae.size()
           && std::equal(last_unsat_query.begin(),
                         last_unsat_query.end(),
@@ -420,7 +423,10 @@ Result PrintingInterpolator::print_query(
         first_split = last_unsat_query.size() - 1;
       }
       Result r = ask();
-      last_unsat_query = r.is_unsat() ? formulae : TermVec();
+      if (sequence)
+      {
+        last_unsat_query = r.is_unsat() ? formulae : TermVec();
+      }
       for (std::size_t i = first_split; i < out_I.size(); ++i)
       {
         if (i > 0 && !out_I[i - 1])
@@ -428,13 +434,18 @@ Result PrintingInterpolator::print_query(
           break;
         }
         (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+        // the split asserts the conjunction of the interpolant before it
+        // and its formula
+        (*out_stream) << "(" << ASSERT_STR << " ";
         if (i > 0)
         {
-          (*out_stream) << "(" << ASSERT_STR << " " << out_I[i - 1] << ")"
-                        << std::endl;
+          (*out_stream) << "(and " << out_I[i - 1] << " " << formulae[i] << ")";
         }
-        (*out_stream) << "(" << ASSERT_STR << " " << formulae[i] << ")"
-                      << std::endl;
+        else
+        {
+          (*out_stream) << formulae[i];
+        }
+        (*out_stream) << ")" << std::endl;
         (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not ";
         if (i + 2 == formulae.size())
         {

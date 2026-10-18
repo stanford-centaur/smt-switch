@@ -153,4 +153,31 @@ TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
                "--produce-interpolants --incremental");
 }
 
+// get_interpolant asks its pair on its own, so a sequence query that
+// extends that pair asks every split
+TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
+{
+  SmtInterpolator s = create_printing_interpolator(
+      Cvc5SolverFactory::create_interpolating_solver(), os);
+  s->set_logic("QF_LIA");
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  Term y = s->make_symbol("y", intsort);
+  Term z = s->make_symbol("z", intsort);
+  Term xy = s->make_term(Lt, x, y);
+  Term yzx = s->make_term(And, s->make_term(Lt, y, z), s->make_term(Lt, z, x));
+  Term I;
+  ASSERT_TRUE(s->get_interpolant(xy, yzx, I).is_unsat());
+  TermVec interpolants;
+  ASSERT_TRUE(s->get_sequence_interpolants({ xy, yzx, s->make_term(Lt, x, z) },
+                                           interpolants)
+                  .is_unsat());
+
+  // the rest after the first split is unsat on its own
+  check_result({ { "(define-fun I () Bool (<= x y))" },
+                 { "(define-fun I () Bool true)" },
+                 { "(define-fun I () Bool (<= z x))" } },
+               "--produce-interpolants --incremental");
+}
+
 }  // namespace smt_tests

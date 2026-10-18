@@ -141,16 +141,11 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
  protected:
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
-  void forget_queries() override;
   // sets the options interpolation needs, on construction and after reset()
   void initialize() override;
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<Cvc5Solver> cvc5_solver;
-  // the last sequence query and, if it was unsat with every interpolant
-  // found, its interpolants, which stay valid for a query that extends it
-  mutable TermVec last_itp_query_formulae;
-  mutable TermVec last_itp_query_interpolants;
 };
 
 }  // namespace smt
