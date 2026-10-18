@@ -763,6 +763,10 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
   }
+  else if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
 
   vector<msat_term> mterms;
   mterms.reserve(size);

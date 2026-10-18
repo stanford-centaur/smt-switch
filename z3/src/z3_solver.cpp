@@ -918,7 +918,12 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
   }
-  else if (size == 1)
+  else if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
+
+  if (size == 1)
   {
     shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(terms[0]);
 

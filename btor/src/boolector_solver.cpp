@@ -679,6 +679,10 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms.");
   }
+  else if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
 
   std::vector<BoolectorNode *> nodes;
   nodes.reserve(size);
@@ -690,13 +694,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   BoolectorNode * btor_res;
   if (size == 1)
   {
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      throw IncorrectUsageException(
-          "Expecting exactly one parameter and a body formula for quantifier "
-          "op");
-    }
-    else if (op.prim_op == Extract)
+    if (op.prim_op == Extract)
     {
       btor_res = boolector_slice(btor.get(),
                                  nodes[0],

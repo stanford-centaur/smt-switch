@@ -83,6 +83,23 @@ Term make_nary_term(const AbsSmtSolver * solver,
                                : solver->make_term(And, conjuncts);
 }
 
+void check_quantifier_binders(const Op & op, const TermVec & terms)
+{
+  if (terms.size() < 2)
+  {
+    throw IncorrectUsageException(op.to_string()
+                                  + " takes one or more params and a body");
+  }
+  for (std::size_t i = 0; i + 1 < terms.size(); ++i)
+  {
+    if (!terms[i]->is_param())
+    {
+      throw IncorrectUsageException(op.to_string() + " can only bind a param, "
+                                    + "but got " + terms[i]->to_string());
+    }
+  }
+}
+
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx)
 {
   if (idx > std::numeric_limits<std::uint32_t>::max())

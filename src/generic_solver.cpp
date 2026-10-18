@@ -1695,6 +1695,11 @@ static Term make_power(const GenericSolver & solver,
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
+
   // SMT-LIB has no pow, so a power is sent as the product it stands for.
   // Pow is over Int, where a negative exponent has no product to stand for.
   if (op.prim_op == Pow)
