@@ -152,6 +152,12 @@ TEST_P(IndexedOpTests, RotateExtractRepeat)
             x_val == 0b1'1111'1111 ? 0b1111 : 0);
 }
 
+TEST_P(IndexedOpTests, RepeatZeroTimes)
+{
+  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  EXPECT_THROW(s->make_term(Op(Repeat, 0), x), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverBVTests,
     BVTests,

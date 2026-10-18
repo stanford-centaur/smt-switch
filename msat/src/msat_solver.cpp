@@ -769,7 +769,7 @@ Term MsatSolver::make_term(Op op, const Term & t) const
   }
   else if (op.prim_op == Repeat)
   {
-    if (op.num_idx < 1)
+    if (op.idx0 < 1)
     {
       throw IncorrectUsageException("Can't create repeat with index < 1");
     }

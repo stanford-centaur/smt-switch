@@ -688,6 +688,10 @@ Term BoolectorSolver::make_term(Op op, const Term & t) const
     }
     else if (op.prim_op == Repeat)
     {
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
       btor_res =
           boolector_repeat(btor.get(), bt->node, narrow_index(op, op.idx0));
     }
