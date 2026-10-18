@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -238,5 +239,60 @@ INSTANTIATE_TEST_SUITE_P(
                          filter_solver_configurations({ PARAM_UNINTERP_SORT })),
                      testing::ValuesIn(qf_uf_param_sorts_tests.begin(),
                                        qf_uf_param_sorts_tests.end())));
+
+TEST(UnorderedScopedSymbolMap, PopOutermostScope)
+{
+  UnorderedScopedSymbolMap map;
+  EXPECT_THROW(map.pop_scope(), IncorrectUsageException);
+  map.push_scope();
+  EXPECT_NO_THROW(map.pop_scope());
+  EXPECT_THROW(map.pop_scope(), IncorrectUsageException);
+  EXPECT_EQ(map.current_scope(), 0u);
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Scopes);
+class Scopes : public ::testing::Test,
+               public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("incremental", "true");
+    reader = std::make_unique<SmtLibReader>(s);
+    bvsort = s->make_sort(BV, 4);
+  }
+
+  SmtSolver s;
+  std::unique_ptr<SmtLibReader> reader;
+  Sort bvsort;
+};
+
+TEST_P(Scopes, PopWithoutPush)
+{
+  EXPECT_THROW(reader->pop(), IncorrectUsageException);
+  EXPECT_THROW(reader->pop_scope(), IncorrectUsageException);
+  reader->push();
+  EXPECT_NO_THROW(reader->pop());
+  EXPECT_THROW(reader->pop(), IncorrectUsageException);
+}
+
+TEST_P(Scopes, BindOutsideScope)
+{
+  Term t = s->make_symbol("t", bvsort);
+  EXPECT_THROW(reader->register_arg("x", bvsort), IncorrectUsageException);
+  EXPECT_THROW(reader->create_param("y", bvsort), IncorrectUsageException);
+  EXPECT_THROW(reader->let_binding("z", t), IncorrectUsageException);
+  reader->push_scope();
+  EXPECT_NO_THROW(reader->register_arg("x", bvsort));
+  EXPECT_NO_THROW(reader->let_binding("z", t));
+  EXPECT_NO_THROW(reader->pop_scope());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Scopes,
+    testing::ValuesIn(available_non_generic_solver_configurations()),
+    ConfigName());
 
 }  // namespace smt_tests
