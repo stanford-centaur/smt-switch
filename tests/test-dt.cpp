@@ -84,6 +84,36 @@ TEST_P(DTTests, SelectorBelongsToOneConstructor)
                IncorrectUsageException);
 }
 
+TEST_P(DTTests, ConstructorFromTermVec)
+{
+  if (GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "a logging solver has no datatypes";
+  }
+
+  DatatypeDecl tripledecl = s->make_datatype_decl("triple");
+  DatatypeConstructorDecl mktriple =
+      s->make_datatype_constructor_decl("mktriple");
+  s->add_selector(mktriple, "first", intsort);
+  s->add_selector(mktriple, "second", intsort);
+  s->add_selector(mktriple, "third", intsort);
+  s->add_constructor(tripledecl, mktriple);
+  Sort triplesort = s->make_sort(tripledecl);
+
+  Term three = s->make_term(3, intsort);
+  Term triple =
+      s->make_term(Apply_Constructor,
+                   TermVec{ s->get_constructor(triplesort, "mktriple"),
+                            s->make_term(1, intsort),
+                            s->make_term(2, intsort),
+                            three });
+  Term third = s->make_term(
+      Apply_Selector,
+      TermVec{ s->get_selector(triplesort, "mktriple", "third"), triple });
+  s->assert_formula(s->make_term(Distinct, third, three));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
 TEST_P(DTTests, DeclareSimpleListWithForwardRef)
 {
   SolverConfiguration sc = GetParam();

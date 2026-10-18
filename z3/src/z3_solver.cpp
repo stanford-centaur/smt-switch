@@ -890,154 +890,12 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort)
 
 Term Z3Solver::make_term(Op op, const Term & t) const
 {
-  shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(t);
-  Z3_ast res;
-
-  if (zterm->is_function)
-  {
-    if (op.prim_op != Apply_Constructor)
-    {
-      throw IncorrectUsageException(
-          "Cannot make a unary operator term with a function.");
-    }
-    res = Z3_mk_app(*ctx, zterm->get_z3_func_decl(), 0, 0);
-  }
-  else if (op.prim_op == Extract)
-  {
-    res = Z3_mk_extract(*ctx,
-                        narrow_index(op, op.idx0),
-                        narrow_index(op, op.idx1),
-                        zterm->term);
-  }
-  else if (op.prim_op == Zero_Extend)
-  {
-    res = Z3_mk_zero_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == Sign_Extend)
-  {
-    res = Z3_mk_sign_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == Repeat)
-  {
-    if (op.idx0 < 1)
-    {
-      throw IncorrectUsageException("Can't create repeat with index < 1");
-    }
-    res = Z3_mk_repeat(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == Rotate_Left)
-  {
-    res = Z3_mk_rotate_left(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == Rotate_Right)
-  {
-    res = Z3_mk_rotate_right(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == Int_To_BV)
-  {
-    res = Z3_mk_int2bv(*ctx, narrow_index(op, op.idx0), zterm->term);
-  }
-  else if (op.prim_op == BV_To_Nat)
-  {
-    // n.b., the third parameter is a boolean is_signed, by flagging it false,
-    // this becomes bv2nat
-    res = Z3_mk_bv2int(*ctx, zterm->term, false);
-  }
-  else if (op.prim_op == UBV_To_Int)
-  {
-    res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ false);
-  }
-  else if (op.prim_op == SBV_To_Int)
-  {
-    res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ true);
-  }
-
-  else if (!op.num_idx)
-  {
-    if (unary_ops.find(op.prim_op) != unary_ops.end())
-    {
-      res = unary_ops.at(op.prim_op)(*ctx, zterm->term);
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to the term or not supported by Z3 backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for one term argument";
-    throw IncorrectUsageException(msg);
-  }
-
-  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+  return make_term(op, TermVec{ t });
 }
 
 Term Z3Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  shared_ptr<Z3Term> zterm0 = static_pointer_cast<Z3Term>(t0);
-  shared_ptr<Z3Term> zterm1 = static_pointer_cast<Z3Term>(t1);
-  Z3_ast res;
-
-  if (zterm0->is_function || zterm1->is_function)
-  {
-    if (op.prim_op == Apply)
-    {
-      return make_term(op, TermVec{ t0, t1 });
-    }
-    if (op == Apply_Constructor || op == Apply_Tester || op == Apply_Selector)
-      return make_term(Apply, t0, t1);
-    throw IncorrectUsageException(
-        "Cannot make a binary op term with a function.");
-  }
-
-  check_context(zterm0->term, zterm1->term);
-
-  if (!op.num_idx)
-  {
-    if (binary_ops.find(op.prim_op) != binary_ops.end())
-    {
-      res = binary_ops.at(op.prim_op)(*ctx, zterm0->term, zterm1->term);
-    }
-    else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
-    {
-      Z3_ast terms[2] = { zterm0->term, zterm1->term };
-      res = z3_variadic_ops.at(op.prim_op)(*ctx, 2, terms);
-    }
-    else if (op == Forall || op == Exists)
-    {
-      z3::expr_vector zparams(*ctx);
-      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
-      z3::expr zbody = static_pointer_cast<Z3Term>(t1)->term;
-      if (op == Forall)
-      {
-        return make_shared<Z3Term>(ctx, forall(zparams, zbody));
-      }
-      else
-      {
-        assert(op == Exists);
-        return make_shared<Z3Term>(ctx, exists(zparams, zbody));
-      }
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to the term or not supported by Z3 backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for two term argument";
-    throw IncorrectUsageException(msg);
-  }
-
-  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+  return make_term(op, TermVec{ t0, t1 });
 }
 
 Term Z3Solver::make_term(Op op,
@@ -1045,66 +903,7 @@ Term Z3Solver::make_term(Op op,
                          const Term & t1,
                          const Term & t2) const
 {
-  shared_ptr<Z3Term> zterm0 = static_pointer_cast<Z3Term>(t0);
-  shared_ptr<Z3Term> zterm1 = static_pointer_cast<Z3Term>(t1);
-  shared_ptr<Z3Term> zterm2 = static_pointer_cast<Z3Term>(t2);
-  Z3_ast res;
-
-  if (zterm0->is_function || zterm1->is_function || zterm2->is_function)
-  {
-    if (op.prim_op == Apply)
-    {
-      return make_term(op, TermVec{ t0, t1, t2 });
-    }
-    if (op == Apply_Constructor) return make_term(Apply, t0, t1, t2);
-    throw IncorrectUsageException(
-        "Cannot make a ternary op term with a function.");
-  }
-
-  check_context(zterm0->term, zterm1->term);
-  check_context(zterm0->term, zterm2->term);
-
-  if (!op.num_idx)
-  {
-    if (ternary_ops.find(op.prim_op) != ternary_ops.end())
-    {
-      res = ternary_ops.at(op.prim_op)(
-          *ctx, zterm0->term, zterm1->term, zterm2->term);
-    }
-    else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
-    {
-      Z3_ast terms[3] = { zterm0->term, zterm1->term, zterm2->term };
-      res = z3_variadic_ops.at(op.prim_op)(*ctx, 3, terms);
-    }
-    else if (op == Forall || op == Exists)
-    {
-      z3::expr_vector zparams(*ctx);
-      zparams.push_back(static_pointer_cast<Z3Term>(t0)->term);
-      zparams.push_back(static_pointer_cast<Z3Term>(t1)->term);
-      z3::expr zbody = static_pointer_cast<Z3Term>(t2)->term;
-      if (op == Forall)
-      {
-        return make_shared<Z3Term>(ctx, forall(zparams, zbody));
-      }
-      else
-      {
-        assert(op == Exists);
-        return make_shared<Z3Term>(ctx, exists(zparams, zbody));
-      }
-    }
-    else
-    {
-      return make_term(op, TermVec{ t0, t1, t2 });
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for three term arguments";
-    throw IncorrectUsageException(msg);
-  }
-
-  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+  return make_term(op, TermVec{ t0, t1, t2 });
 }
 
 Term Z3Solver::make_term(Op op, const TermVec & terms) const
@@ -1121,91 +920,173 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 1)
   {
-    return make_term(op, terms[0]);
+    shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(terms[0]);
+
+    if (zterm->is_function)
+    {
+      if (op.prim_op != Apply_Constructor)
+      {
+        throw IncorrectUsageException(
+            "Cannot make a unary operator term with a function.");
+      }
+      res = Z3_mk_app(*ctx, zterm->get_z3_func_decl(), 0, 0);
+    }
+    else if (op.prim_op == Extract)
+    {
+      res = Z3_mk_extract(*ctx,
+                          narrow_index(op, op.idx0),
+                          narrow_index(op, op.idx1),
+                          zterm->term);
+    }
+    else if (op.prim_op == Zero_Extend)
+    {
+      res = Z3_mk_zero_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (op.prim_op == Sign_Extend)
+    {
+      res = Z3_mk_sign_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (op.prim_op == Repeat)
+    {
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      res = Z3_mk_repeat(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (op.prim_op == Rotate_Left)
+    {
+      res = Z3_mk_rotate_left(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (op.prim_op == Rotate_Right)
+    {
+      res = Z3_mk_rotate_right(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (op.prim_op == BV_To_Nat)
+    {
+      // n.b., the third parameter is a boolean is_signed, by flagging it
+      // false, this becomes bv2nat
+      res = Z3_mk_bv2int(*ctx, zterm->term, false);
+    }
+    else if (op.prim_op == UBV_To_Int)
+    {
+      res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ false);
+    }
+    else if (op.prim_op == SBV_To_Int)
+    {
+      res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ true);
+    }
+    else if (op.prim_op == Int_To_BV)
+    {
+      res = Z3_mk_int2bv(*ctx, narrow_index(op, op.idx0), zterm->term);
+    }
+    else if (!op.num_idx)
+    {
+      if (unary_ops.find(op.prim_op) != unary_ops.end())
+      {
+        res = unary_ops.at(op.prim_op)(*ctx, zterm->term);
+      }
+      else
+      {
+        string msg("Can't apply ");
+        msg += op.to_string();
+        msg += " to the term or not supported by Z3 backend yet.";
+        throw IncorrectUsageException(msg);
+      }
+    }
+    else
+    {
+      string msg = op.to_string();
+      msg += " not supported for one term argument";
+      throw IncorrectUsageException(msg);
+    }
+
+    return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+  }
+
+  // Z3 represents datatype constructors, testers and selectors as functions,
+  // so applying one is an Apply
+  if ((op == Apply_Constructor || op == Apply_Tester || op == Apply_Selector)
+      && static_pointer_cast<Z3Term>(terms[0])->is_function)
+  {
+    op = Op(Apply);
+  }
+
+  if (op.num_idx)
+  {
+    string msg = op.to_string();
+    msg += " not supported for more than one term argument";
+    throw IncorrectUsageException(msg);
+  }
+
+  // the operands, leaving out the function an Apply applies
+  vector<Z3_ast> zargs;
+  zargs.reserve(size);
+  shared_ptr<Z3Term> zfirst;
+  for (size_t i = op.prim_op == Apply ? 1 : 0; i < size; ++i)
+  {
+    shared_ptr<Z3Term> zterm = static_pointer_cast<Z3Term>(terms[i]);
+    if (zterm->is_function)
+    {
+      throw IncorrectUsageException("Cannot use a function as an argument to "
+                                    + op.to_string());
+    }
+    if (!zfirst)
+    {
+      zfirst = zterm;
+    }
+    check_context(zfirst->term, zterm->term);
+    zargs.push_back(zterm->term);
   }
 
   if (op.prim_op == Apply)
   {
-    vector<Z3_ast> zargs;
-    zargs.reserve(size - 1);
-    shared_ptr<Z3Term> zterm;
-
-    // skip the first term (the function function)
-    for (size_t i = 1; i < terms.size(); i++)
-    {
-      zterm = static_pointer_cast<Z3Term>(terms[i]);
-      if (zterm->is_function)
-      {
-        throw IncorrectUsageException("Cannot use a function as an argument.");
-      }
-      zargs.push_back(zterm->term);
-    }
-
-    zterm = static_pointer_cast<Z3Term>(terms[0]);
-    if (!zterm->is_function)
+    shared_ptr<Z3Term> zfun = static_pointer_cast<Z3Term>(terms[0]);
+    if (!zfun->is_function)
     {
       string msg(
           "Expecting an uninterpreted function to be used with Apply but got ");
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
-
-    res = Z3_mk_app(*ctx, zterm->z_func, size - 1, zargs.data());
-    return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+    res = Z3_mk_app(*ctx, zfun->z_func, size - 1, zargs.data());
   }
-
-  if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    z3::expr_vector zterms(*ctx);
-    std::shared_ptr<Z3Term> zterm;
-    for (auto t : terms)
+    // the last term is the body, bound by the rest
+    z3::expr_vector params(*ctx);
+    for (size_t i = 0; i + 1 < size; ++i)
     {
-      zterm = std::static_pointer_cast<Z3Term>(t);
-      if (zterm->is_function)
-      {
-        throw IncorrectUsageException(
-            "quantifiers with functions not supported.");
-      }
-      zterms.push_back(zterm->term);
+      params.push_back(to_expr(*ctx, zargs[i]));
     }
-    expr quantified_body = zterms.back();
-    zterms.pop_back();
-    // zterms holds one variable, since only one parameter is allowed
-    z3::expr quant_res(*ctx);
-    if (op.prim_op == Forall)
-    {
-      quant_res = forall(zterms, quantified_body);
-    }
-    if (op.prim_op == Exists)
-    {
-      quant_res = exists(zterms, quantified_body);
-    }
-    return std::make_shared<Z3Term>(ctx, quant_res);
+    expr body = to_expr(*ctx, zargs.back());
+    res = op.prim_op == Forall ? forall(params, body) : exists(params, body);
   }
-
-  if (size == 2)
+  else if (size == 2 && binary_ops.find(op.prim_op) != binary_ops.end())
   {
-    return make_term(op, terms[0], terms[1]);
+    res = binary_ops.at(op.prim_op)(*ctx, zargs[0], zargs[1]);
   }
   else if (size == 3 && ternary_ops.find(op.prim_op) != ternary_ops.end())
   {
-    return make_term(op, terms[0], terms[1], terms[2]);
+    res = ternary_ops.at(op.prim_op)(*ctx, zargs[0], zargs[1], zargs[2]);
   }
   else if (z3_variadic_ops.find(op.prim_op) != z3_variadic_ops.end())
   {
-    std::vector<Z3_ast> z3args;
-    z3args.reserve(size);
-    for (const auto & tt : terms)
-    {
-      z3args.push_back(std::static_pointer_cast<Z3Term>(tt)->term);
-    }
-    res = z3_variadic_ops.at(op.prim_op)(*ctx, z3args.size(), z3args.data());
-    return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
+    res = z3_variadic_ops.at(op.prim_op)(*ctx, size, zargs.data());
+  }
+  else if (size == 2)
+  {
+    string msg("Can't apply ");
+    msg += op.to_string();
+    msg += " to the term or not supported by Z3 backend yet.";
+    throw IncorrectUsageException(msg);
   }
   else
   {
     return make_nary_term(this, op, terms);
   }
+
+  return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
 
 void Z3Solver::do_reset()
