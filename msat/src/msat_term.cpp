@@ -120,14 +120,23 @@ const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
 
 // MsatTermIter implementation
 
+MsatTermIter::MsatTermIter(const std::shared_ptr<msat_env> & e,
+                           const msat_term t,
+                           uint32_t p)
+    : env(e), term(t), pos(p)
+{
+}
+
 MsatTermIter::MsatTermIter(const MsatTermIter & it)
 {
+  env = it.env;
   term = it.term;
   pos = it.pos;
 }
 
 MsatTermIter & MsatTermIter::operator=(const MsatTermIter & it)
 {
+  env = it.env;
   term = it.term;
   pos = it.pos;
   return *this;
@@ -137,14 +146,14 @@ void MsatTermIter::operator++() { pos++; }
 
 const Term MsatTermIter::operator*()
 {
-  if (!pos && msat_term_is_uf(env, term))
+  if (!pos && msat_term_is_uf(*env, term))
   {
     return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
   }
   else
   {
     uint32_t actual_idx = pos;
-    if (msat_term_is_uf(env, term))
+    if (msat_term_is_uf(*env, term))
     {
       actual_idx--;
     }
@@ -210,6 +219,20 @@ bool MsatTermIter::equal(const TermIterBase & other) const
 
 // MsatTerm implementation
 
+MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t)
+    : env(e), term(t), is_uf(false)
+{
+  // should know that decl is invalid
+  decl.repr = nullptr;
+}
+
+MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d)
+    : env(e), decl(d), is_uf(true)
+{
+  // should know that term is invalid
+  MSAT_MAKE_ERROR_TERM(term);
+}
+
 size_t MsatTerm::hash() const { return get_id(); }
 
 size_t MsatTerm::get_id() const
@@ -249,156 +272,156 @@ Op MsatTerm::get_op() const
     // uninterpreted function has no op
     return Op();
   }
-  else if (msat_term_is_and(env, term))
+  else if (msat_term_is_and(*env, term))
   {
     return Op(And);
   }
-  else if (msat_term_is_or(env, term))
+  else if (msat_term_is_or(*env, term))
   {
     return Op(Or);
   }
-  else if (msat_term_is_not(env, term))
+  else if (msat_term_is_not(*env, term))
   {
     return Op(Not);
   }
-  else if (msat_term_is_iff(env, term))
+  else if (msat_term_is_iff(*env, term))
   {
     return Op(Equal);
   }
-  else if (msat_term_is_term_ite(env, term))
+  else if (msat_term_is_term_ite(*env, term))
   {
     return Op(Ite);
   }
-  else if (msat_term_is_constant(env, term))
+  else if (msat_term_is_constant(*env, term))
   {
     return Op();
   }
-  else if (msat_term_is_uf(env, term))
+  else if (msat_term_is_uf(*env, term))
   {
     return Op(Apply);
   }
-  else if (msat_term_is_equal(env, term))
+  else if (msat_term_is_equal(*env, term))
   {
     return Op(Equal);
   }
-  else if (msat_term_is_leq(env, term))
+  else if (msat_term_is_leq(*env, term))
   {
     return Op(Le);
   }
-  else if (msat_term_is_plus(env, term))
+  else if (msat_term_is_plus(*env, term))
   {
     return Op(Plus);
   }
-  else if (msat_term_is_times(env, term))
+  else if (msat_term_is_times(*env, term))
   {
     return Op(Mult);
   }
-  else if (msat_term_is_divide(env, term))
+  else if (msat_term_is_divide(*env, term))
   {
     return Op(Div);
   }
-  else if (msat_term_is_array_read(env, term))
+  else if (msat_term_is_array_read(*env, term))
   {
     return Op(Select);
   }
-  else if (msat_term_is_array_write(env, term))
+  else if (msat_term_is_array_write(*env, term))
   {
     return Op(Store);
   }
-  else if (msat_term_is_array_const(env, term))
+  else if (msat_term_is_array_const(*env, term))
   {
     // constant array is a value (has a null operator)
     return Op();
   }
-  else if (msat_term_is_bv_concat(env, term))
+  else if (msat_term_is_bv_concat(*env, term))
   {
     return Op(Concat);
   }
-  else if (msat_term_is_bv_or(env, term))
+  else if (msat_term_is_bv_or(*env, term))
   {
     return Op(BVOr);
   }
-  else if (msat_term_is_bv_xor(env, term))
+  else if (msat_term_is_bv_xor(*env, term))
   {
     return Op(BVXor);
   }
-  else if (msat_term_is_bv_and(env, term))
+  else if (msat_term_is_bv_and(*env, term))
   {
     return Op(BVAnd);
   }
-  else if (msat_term_is_bv_not(env, term))
+  else if (msat_term_is_bv_not(*env, term))
   {
     return Op(BVNot);
   }
-  else if (msat_term_is_bv_plus(env, term))
+  else if (msat_term_is_bv_plus(*env, term))
   {
     return Op(BVAdd);
   }
-  else if (msat_term_is_bv_minus(env, term))
+  else if (msat_term_is_bv_minus(*env, term))
   {
     return Op(BVSub);
   }
-  else if (msat_term_is_bv_times(env, term))
+  else if (msat_term_is_bv_times(*env, term))
   {
     return Op(BVMul);
   }
-  else if (msat_term_is_bv_neg(env, term))
+  else if (msat_term_is_bv_neg(*env, term))
   {
     return Op(BVNeg);
   }
-  else if (msat_term_is_bv_udiv(env, term))
+  else if (msat_term_is_bv_udiv(*env, term))
   {
     return Op(BVUdiv);
   }
-  else if (msat_term_is_bv_urem(env, term))
+  else if (msat_term_is_bv_urem(*env, term))
   {
     return Op(BVUrem);
   }
-  else if (msat_term_is_bv_sdiv(env, term))
+  else if (msat_term_is_bv_sdiv(*env, term))
   {
     return Op(BVSdiv);
   }
-  else if (msat_term_is_bv_srem(env, term))
+  else if (msat_term_is_bv_srem(*env, term))
   {
     return Op(BVSrem);
   }
-  else if (msat_term_is_bv_ult(env, term))
+  else if (msat_term_is_bv_ult(*env, term))
   {
     return Op(BVUlt);
   }
-  else if (msat_term_is_bv_uleq(env, term))
+  else if (msat_term_is_bv_uleq(*env, term))
   {
     return Op(BVUle);
   }
-  else if (msat_term_is_bv_slt(env, term))
+  else if (msat_term_is_bv_slt(*env, term))
   {
     return Op(BVSlt);
   }
-  else if (msat_term_is_bv_sleq(env, term))
+  else if (msat_term_is_bv_sleq(*env, term))
   {
     return Op(BVSle);
   }
-  else if (msat_term_is_bv_lshl(env, term))
+  else if (msat_term_is_bv_lshl(*env, term))
   {
     return Op(BVShl);
   }
-  else if (msat_term_is_bv_lshr(env, term))
+  else if (msat_term_is_bv_lshr(*env, term))
   {
     return Op(BVLshr);
   }
-  else if (msat_term_is_bv_ashr(env, term))
+  else if (msat_term_is_bv_ashr(*env, term))
   {
     return Op(BVAshr);
   }
-  else if (msat_term_is_bv_comp(env, term))
+  else if (msat_term_is_bv_comp(*env, term))
   {
     return Op(BVComp);
   }
-  else if (msat_term_is_forall(env, term))
+  else if (msat_term_is_forall(*env, term))
   {
     return Op(Forall);
   }
-  else if (msat_term_is_exists(env, term))
+  else if (msat_term_is_exists(*env, term))
   {
     return Op(Exists);
   }
@@ -406,24 +429,24 @@ Op MsatTerm::get_op() const
   {
     return Op();
   }
-  else if (msat_term_is_floor(env, term))
+  else if (msat_term_is_floor(*env, term))
   {
     return Op(To_Int);
   }
-  else if (msat_term_is_int_from_ubv(env, term))
+  else if (msat_term_is_int_from_ubv(*env, term))
   {
     return Op(UBV_To_Int);
   }
-  else if (msat_term_is_int_from_sbv(env, term))
+  else if (msat_term_is_int_from_sbv(*env, term))
   {
     return Op(SBV_To_Int);
   }
-  else if (msat_term_is_int_to_bv(env, term))
+  else if (msat_term_is_int_to_bv(*env, term))
   {
     // need to include the width
     size_t out_width;
     [[maybe_unused]] bool ok =
-        msat_is_bv_type(env, msat_term_get_type(term), &out_width);
+        msat_is_bv_type(*env, msat_term_get_type(term), &out_width);
     assert(ok);
     return Op(Int_To_BV, out_width);
   }
@@ -431,29 +454,29 @@ Op MsatTerm::get_op() const
   {
     size_t idx0;
     size_t idx1;
-    if (msat_term_is_bv_extract(env, term, &idx0, &idx1))
+    if (msat_term_is_bv_extract(*env, term, &idx0, &idx1))
     {
       return Op(Extract, idx0, idx1);
     }
-    else if (msat_term_is_bv_zext(env, term, &idx0))
+    else if (msat_term_is_bv_zext(*env, term, &idx0))
     {
       return Op(Zero_Extend, idx0);
     }
-    else if (msat_term_is_bv_sext(env, term, &idx0))
+    else if (msat_term_is_bv_sext(*env, term, &idx0))
     {
       return Op(Sign_Extend, idx0);
     }
-    else if (msat_term_is_bv_rol(env, term, &idx0))
+    else if (msat_term_is_bv_rol(*env, term, &idx0))
     {
       return Op(Rotate_Left, idx0);
     }
-    else if (msat_term_is_bv_ror(env, term, &idx0))
+    else if (msat_term_is_bv_ror(*env, term, &idx0))
     {
       return Op(Rotate_Right, idx0);
     }
     else
     {
-      char * s = msat_to_smtlib2_term(env, term);
+      char * s = msat_to_smtlib2_term(*env, term);
       std::string msg("Msat term ");
       msg += s;
       msg += " has an unknown op.";
@@ -485,7 +508,7 @@ Sort MsatTerm::get_sort() const
       throw InternalSolverException("Expecting non-zero arity for UF.");
     }
 
-    msat_type funtype = msat_get_function_type(env,
+    msat_type funtype = msat_get_function_type(*env,
                                                param_types.data(),
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
@@ -506,11 +529,11 @@ bool MsatTerm::is_symbol() const
   // interpretation
   return (
       (msat_term_arity(term) == 0)
-      && (msat_decl_get_tag(env, msat_term_get_decl(term)) == MSAT_TAG_UNKNOWN)
-      && !msat_term_is_number(env, term));
+      && (msat_decl_get_tag(*env, msat_term_get_decl(term)) == MSAT_TAG_UNKNOWN)
+      && !msat_term_is_number(*env, term));
 }
 
-bool MsatTerm::is_param() const { return msat_term_is_variable(env, term); }
+bool MsatTerm::is_param() const { return msat_term_is_variable(*env, term); }
 
 bool MsatTerm::is_symbolic_const() const
 {
@@ -531,10 +554,10 @@ bool MsatTerm::is_value() const
   }
 
   // value if it has no children and a built-in interpretation
-  return (msat_term_is_number(env, term) || msat_term_is_true(env, term)
-          || msat_term_is_false(env, term) ||
+  return (msat_term_is_number(*env, term) || msat_term_is_true(*env, term)
+          || msat_term_is_false(*env, term) ||
           // constant arrays are considered values in smt-switch
-          msat_term_is_array_const(env, term));
+          msat_term_is_array_const(*env, term));
 }
 
 string MsatTerm::to_string()
@@ -559,7 +582,7 @@ string MsatTerm::to_string()
     {
       throw SmtException("Can't get representation for MathSAT error term!");
     }
-    char * s = msat_to_smtlib2_term(env, term);
+    char * s = msat_to_smtlib2_term(*env, term);
     string res = s;
     msat_free(s);
     return res;
@@ -599,14 +622,14 @@ static string number_to_text(msat_env env,
 uint64_t MsatTerm::to_int() const
 {
   bool is_bv;
-  const string val = number_to_text(env, term, is_uf, is_bv);
+  const string val = number_to_text(*env, term, is_uf, is_bv);
   return is_bv ? smtlib_bv_to_uint64(val) : smtlib_int_to_uint64(val);
 }
 
 int64_t MsatTerm::to_signed_int() const
 {
   bool is_bv;
-  const string val = number_to_text(env, term, is_uf, is_bv);
+  const string val = number_to_text(*env, term, is_uf, is_bv);
   return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
 }
 
@@ -622,7 +645,7 @@ TermIter MsatTerm::end()
   }
 
   uint32_t arity = msat_term_arity(term);
-  if (msat_term_is_uf(env, term))
+  if (msat_term_is_uf(*env, term))
   {
     // consider the function itself a child
     arity++;

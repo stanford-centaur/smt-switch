@@ -98,8 +98,8 @@ struct is_term_range<
 /**
    Abstract solver class to be implemented by each supported solver.
 
-   Terms and sorts do not keep their solver alive, and must be destroyed
-   before it: with MathSAT, using one afterwards crashes.
+   Terms and sorts keep alive the backend state they point into, so they can
+   still be used after their solver is destroyed.
  */
 class AbsSmtSolver
 {

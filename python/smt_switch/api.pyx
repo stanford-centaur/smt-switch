@@ -118,10 +118,8 @@ cdef class Result:
 
 cdef class Sort:
     def __init__(self, SmtSolver solver):
-        # some backends require the solver to be present for destruction
-        # of sorts and terms
-        # Python doesn't know this and will garbage collect in the wrong order
-        # Keeping a reference to the solver prevents this
+        # the solver this came from, which wraps the sorts and terms that
+        # its methods return
         self._solver = solver
 
     def get_width(self):
@@ -174,10 +172,8 @@ cdef class Sort:
 
 cdef class Term:
     def __init__(self, SmtSolver solver):
-        # some backends require the solver to be present for destruction
-        # of sorts and terms
-        # Python doesn't know this and will garbage collect in the wrong order
-        # Keeping a reference to the solver prevents this
+        # the solver this came from, which wraps the sorts and terms that
+        # its methods return
         self._solver = solver
 
     def get_op(self):

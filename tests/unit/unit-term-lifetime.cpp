@@ -32,12 +32,6 @@ class TermLifetimeTests
 
 TEST_P(TermLifetimeTests, TermsOutliveTheirSolver)
 {
-  const SolverConfiguration & sc = GetParam();
-  if (!sc.is_logging_solver && sc.solver_enum == MSAT)
-  {
-    GTEST_SKIP() << "MathSAT terms point into the environment their solver "
-                    "destroys, so using one afterwards crashes";
-  }
   Sort bv;
   Term x, y, xpy;
   std::string x_text;
@@ -60,11 +54,6 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
   if (sc.solver_enum == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "reset() times out on the generic solver";
-  }
-  if (!sc.is_logging_solver && sc.solver_enum == MSAT)
-  {
-    GTEST_SKIP() << "MathSAT's reset() destroys the environment its terms "
-                    "point into, so using one afterwards crashes";
   }
   SmtSolver s = create_solver(GetParam());
   Sort bv = s->make_sort(BV, 4);

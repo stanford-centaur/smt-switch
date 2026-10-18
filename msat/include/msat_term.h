@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "mathsat.h"
 #include "term.h"
@@ -32,8 +33,9 @@ class MsatTermIter : public TermIterBase
 {
  public:
   // TODO: consider making env const everywhere
-  MsatTermIter(msat_env e, const msat_term t, uint32_t p)
-      : env(e), term(t), pos(p) {};
+  MsatTermIter(const std::shared_ptr<msat_env> & e,
+               const msat_term t,
+               uint32_t p);
   MsatTermIter(const MsatTermIter & it);
   ~MsatTermIter() {};
   MsatTermIter & operator=(const MsatTermIter & it);
@@ -47,7 +49,7 @@ class MsatTermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
-  msat_env env;
+  std::shared_ptr<msat_env> env;
   msat_term term;
   uint32_t pos;
 };
@@ -55,16 +57,8 @@ class MsatTermIter : public TermIterBase
 class MsatTerm : public AbsTerm
 {
  public:
-  MsatTerm(msat_env e, msat_term t) : env(e), term(t), is_uf(false)
-  {
-    // should know that decl is invalid
-    (decl).repr = NULL;
-  };
-  MsatTerm(msat_env e, msat_decl d) : env(e), decl(d), is_uf(true)
-  {
-    // should know that term is invalid
-    MSAT_MAKE_ERROR_TERM(term);
-  };
+  MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t);
+  MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d);
   ~MsatTerm() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -105,7 +99,8 @@ class MsatTerm : public AbsTerm
   }
 
  protected:
-  msat_env env;
+  // shared with the solver, so the environment lives as long as this term
+  std::shared_ptr<msat_env> env;
   msat_term term;
   msat_decl decl;
   bool is_uf;  ///< set to true if wrapping a msat_decl (e.g. an uninterpreted
