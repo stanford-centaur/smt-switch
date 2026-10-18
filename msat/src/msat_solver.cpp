@@ -354,8 +354,24 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   UnorderedTermMap assignments;
   out_const_base = nullptr;
 
+  if (arr->get_sort()->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException("Cannot get array values of non-array term "
+                                  + arr->to_string());
+  }
+
   shared_ptr<MsatTerm> marr = static_pointer_cast<MsatTerm>(arr);
   msat_term mval = msat_get_model_value(*env, marr->term);
+
+  if (MSAT_ERROR_TERM(mval))
+  {
+    string msg("Error getting value for ");
+    msg += arr->to_string();
+    msg +=
+        ".\nBe sure the last check-sat call was sat and the term only contains "
+        "constants in this solving environment.";
+    throw IncorrectUsageException(msg);
+  }
 
   Term idx;
   Term val;
