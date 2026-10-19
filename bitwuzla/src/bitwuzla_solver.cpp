@@ -528,20 +528,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   }
   bitwuzla::Kind bkind = it->second;
 
-  if (!op.num_idx)
-  {
-    return make_bzla_term(tm, bkind, bitwuzla_terms);
-  }
-  else
-  {
-    assert(op.num_idx > 0 && op.num_idx <= 2);
-    std::vector<uint64_t> indices({ op.idx0 });
-    if (op.num_idx == 2)
-    {
-      indices.push_back(op.idx1);
-    }
-    return make_bzla_term(tm, bkind, bitwuzla_terms, indices);
-  }
+  return make_bzla_term(tm, bkind, bitwuzla_terms, op.indices);
 }
 
 void BzlaSolver::do_reset()

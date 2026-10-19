@@ -942,32 +942,33 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     }
     else if (op.prim_op == Extract)
     {
-      res = yices_bvextract(
-          yterm, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
+      res = yices_bvextract(yterm,
+                            narrow_index(op, op.indices.at(1)),
+                            narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Zero_Extend)
     {
-      res = yices_zero_extend(yterm, narrow_index(op, op.idx0));
+      res = yices_zero_extend(yterm, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Sign_Extend)
     {
-      res = yices_sign_extend(yterm, narrow_index(op, op.idx0));
+      res = yices_sign_extend(yterm, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Repeat)
     {
-      if (op.idx0 < 1)
+      if (op.indices.at(0) < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      res = yices_bvrepeat(yterm, narrow_index(op, op.idx0));
+      res = yices_bvrepeat(yterm, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Left)
     {
-      res = yices_rotate_left(yterm, narrow_index(op, op.idx0));
+      res = yices_rotate_left(yterm, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Right)
     {
-      res = yices_rotate_right(yterm, narrow_index(op, op.idx0));
+      res = yices_rotate_right(yterm, narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == BV_To_Nat || op.prim_op == UBV_To_Int
              || op.prim_op == SBV_To_Int)
@@ -999,7 +1000,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
         throw NotImplementedException(
             "Yices2 has no int_to_bv, so it can only apply it to an Int value");
       }
-      uint32_t width = narrow_index(op, op.idx0);
+      uint32_t width = narrow_index(op, op.indices.at(0));
       mpq_t value;
       mpq_init(value);
       yices_rational_const_value(yterm, value);
@@ -1008,7 +1009,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
       res = yices_bvconst_mpz(width, mpq_numref(value));
       mpq_clear(value);
     }
-    else if (!op.num_idx)
+    else if (op.indices.empty())
     {
       if (yices_unary_ops.find(op.prim_op) != yices_unary_ops.end())
       {
@@ -1029,7 +1030,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
   }
-  else if (op.num_idx)
+  else if (!op.indices.empty())
   {
     string msg = op.to_string();
     msg += " not supported for more than one term argument";

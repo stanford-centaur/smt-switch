@@ -953,7 +953,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       }
       return std::make_shared<Cvc5Term>(quant_res);
     }
-    else if (op.num_idx == 0)
+    else if (op.indices.empty())
     {
       return std::make_shared<Cvc5Term>(
           term_manager->mkTerm(primop2kind.at(op.prim_op), cterms));
@@ -1016,7 +1016,7 @@ Term Cvc5Solver::substitute(const Term term,
 
 /**
    Helper function for creating a cvc5 Op from an Op
-   Preconditions: op must be indexed, i.e. op.num_idx > 0
+   Preconditions: op must be indexed, i.e. op.indices is not empty
 */
 ::cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
 {
@@ -1026,23 +1026,20 @@ Term Cvc5Solver::substitute(const Term term,
         smt::to_string(op.prim_op)
         + " not recognized as a PrimOp for an indexed operator.");
   }
-  if (op.num_idx == 1)
-  {
-    return term_manager->mkOp(primop2kind.at(op.prim_op),
-                              { narrow_index(op, op.idx0) });
-  }
-  else if (op.num_idx == 2)
-  {
-    return term_manager->mkOp(
-        primop2kind.at(op.prim_op),
-        { narrow_index(op, op.idx0), narrow_index(op, op.idx1) });
-  }
-  else
+  if (op.indices.empty() || op.indices.size() > 2)
   {
     throw NotImplementedException(
         "cvc5 does not have any indexed "
         "operators with more than two indices");
   }
+
+  std::vector<uint32_t> indices;
+  indices.reserve(op.indices.size());
+  for (std::uint64_t index : op.indices)
+  {
+    indices.push_back(narrow_index(op, index));
+  }
+  return term_manager->mkOp(primop2kind.at(op.prim_op), indices);
 }
 
 ::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return *solver; }
