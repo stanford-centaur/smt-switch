@@ -152,7 +152,8 @@ bool GenericSort::compare(const Sort & s) const
   {
     case BOOL:
     case INT:
-    case REAL: {
+    case REAL:
+    case STRING: {
       return true;
     }
     case BV: {
@@ -215,16 +216,21 @@ bool GenericSort::compare(const Sort & s) const
                  ->get_name()
              == other_type_cast->compute_string();
     }
+    case CONSTRUCTOR:
+    case SELECTOR:
+    case TESTER: {
+      // a component prints as its name, which is unique only within its
+      // datatype
+      return to_string() == s->to_string()
+             && get_datatype()->get_name() == s->get_datatype()->get_name();
+    }
     case NUM_SORT_KINDS: {
       // null sorts should not be equal
       return false;
     }
-    default: {
-      // this code should be unreachable
-      throw SmtException(
-          "Hit default case in GenericSort comparison -- missing a SortCon");
-    }
   }
+  throw SmtException("GenericSort comparison got an out-of-range SortKind "
+                     + std::to_string(static_cast<int>(sk)));
 }
 
 const std::unordered_map<SortKind, std::string> sortkind2smtlib({
