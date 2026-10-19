@@ -97,20 +97,46 @@ jobs:
           echo "entry=$entry" >>"$GITHUB_OUTPUT"
       - name: Check out project source
         uses: actions/checkout@v7
-      - name: Install packages
-        if: matrix.solver != 'mathsat'
-        run: &install-packages |
-          source ci-scripts/vars.sh
+      - &install-packages
+        name: Install packages
+        id: install-packages
+        env:
+          RUNNER: ${{ matrix.runner }}
+        working-directory: ci-scripts
+        run: |
+          source vars.sh
           if [[ $RUNNER_OS == Linux ]]; then
             read -r -a packages <<<"$APT_PACKAGES"
-            sudo add-apt-repository --yes --no-update ppa:sri-csl/formal-methods
             sudo apt-get update
             sudo apt-get install --no-install-recommends "${packages[@]}"
           else
             read -r -a packages <<<"$BREW_PACKAGES"
             brew install "${packages[@]}"
           fi
-          ci-scripts/install-libpoly.sh
+          extra_libs_script=install-extra-libraries-${RUNNER%%-*}.sh
+          hash=$(cat "$extra_libs_script" vars.sh | shasum -a 256 | cut -c 1-64)
+          echo "extra-libs-key=extra-libraries-$RUNNER-$hash" >>"$GITHUB_OUTPUT"
+          echo "extra-libs-dir=$EXTRA_LIBRARIES_DIR" >>"$GITHUB_OUTPUT"
+      - &restore-extra-libraries
+        name: Restore the extra libraries
+        id: restore-extra-libraries
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.install-packages.outputs.extra-libs-dir }}
+          key: ${{ steps.install-packages.outputs.extra-libs-key }}
+      - &install-extra-libraries
+        name: Install extra libraries
+        env:
+          RUNNER: ${{ matrix.runner }}
+        working-directory: ci-scripts
+        run: ./install-extra-libraries-"${RUNNER%%-*}".sh
+      - &save-extra-libraries
+        name: Save the extra libraries to the cache
+        if: steps.restore-extra-libraries.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ steps.install-packages.outputs.extra-libs-dir }}
+          key: ${{ steps.install-packages.outputs.extra-libs-key }}
       - &python-setup
         name: Set up Python virtual environment
         run: |
@@ -150,8 +176,10 @@ jobs:
     steps: &build-steps
       - name: Check out project source
         uses: actions/checkout@v7
-      - name: Install packages
-        run: *install-packages
+      - *install-packages
+      - *restore-extra-libraries
+      - *install-extra-libraries
+      - *save-extra-libraries
       - name: Restore the solver builds
         if: env.DEPS_ENTRIES != '[]'
         uses: ./.github/actions/restore-deps
