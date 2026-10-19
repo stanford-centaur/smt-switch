@@ -48,7 +48,7 @@ class SmtException : public std::exception
    *          is in possession of the Exception object. Callers must
    *          not attempt to free the memory.
    */
-  virtual const char * what() const throw() { return msg.c_str(); }
+  const char * what() const noexcept override;
 
  protected:
   /** Error message.
