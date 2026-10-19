@@ -72,7 +72,7 @@ class BVOpDefinitionTests : public OpDefinitionTests
   void SetUp() override
   {
     OpDefinitionTests::SetUp();
-    Sort bvsort = s->make_sort(BV, 8);
+    Sort bvsort = s->make_sort(BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
   }
