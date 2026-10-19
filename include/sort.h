@@ -74,7 +74,8 @@ class AbsSort
   virtual ~AbsSort() {};
   virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;
-  // TODO: decide on exception or special value for incorrect usage
+  // An accessor that does not apply to the sort's kind, e.g. get_width of
+  // an Int sort, throws IncorrectUsageException
   virtual std::uint64_t get_width() const = 0;
   virtual Sort get_indexsort() const = 0;
   virtual Sort get_elemsort() const = 0;

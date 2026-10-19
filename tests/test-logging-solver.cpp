@@ -164,6 +164,23 @@ TEST_P(LoggingTests, Compare)
   EXPECT_EQ(fxv, fyv);
 }
 
+TEST_P(LoggingTests, WrongKindAccessors)
+{
+  Sort boolsort = s->make_sort(BOOL);
+  EXPECT_THROW(boolsort->get_width(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_indexsort(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_elemsort(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_domain_sorts(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_codomain_sort(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_uninterpreted_name(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_arity(), IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_uninterpreted_param_sorts(),
+               IncorrectUsageException);
+  EXPECT_THROW(boolsort->get_datatype(), IncorrectUsageException);
+  // a subclass inherits the accessors its kind lacks
+  EXPECT_THROW(bvsort4->get_elemsort(), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverLoggingTests,
                          LoggingTests,
                          testing::ValuesIn(available_solver_configurations()));

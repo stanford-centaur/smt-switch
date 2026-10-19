@@ -14,9 +14,11 @@
 **
 **/
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
 
 #include "generic_datatype.h"
 #include "generic_sort.h"
@@ -24,6 +26,8 @@
 
 using namespace smt;
 using namespace std;
+using testing::StrEq;
+using testing::ThrowsMessage;
 
 TEST(GenericSort, SortProperties)
 {
@@ -112,4 +116,40 @@ TEST(GenericSort, FunctionSortString)
   Sort ab_to_bool =
       std::make_shared<FunctionGenericSort>(SortVec{ ab }, bool_sort);
   EXPECT_NE(a_b_to_bool->to_string(), ab_to_bool->to_string());
+}
+
+// Matches an IncorrectUsageException with exactly this message
+auto incorrect_usage(const string & message)
+{
+  return ThrowsMessage<IncorrectUsageException>(StrEq(message));
+}
+
+TEST(GenericSort, WrongKindAccessors)
+{
+  Sort int_sort = std::make_shared<GenericSort>(INT);
+  EXPECT_THAT([&] { int_sort->get_width(); },
+              incorrect_usage("Sort of kind Int has no width"));
+  EXPECT_THAT([&] { int_sort->get_arity(); },
+              incorrect_usage("Sort of kind Int has no arity"));
+  EXPECT_THAT([&] { int_sort->get_indexsort(); },
+              incorrect_usage("Sort of kind Int has no index sort"));
+  EXPECT_THAT([&] { int_sort->get_elemsort(); },
+              incorrect_usage("Sort of kind Int has no element sort"));
+  EXPECT_THAT([&] { int_sort->get_domain_sorts(); },
+              incorrect_usage("Sort of kind Int has no domain sorts"));
+  EXPECT_THAT([&] { int_sort->get_codomain_sort(); },
+              incorrect_usage("Sort of kind Int has no codomain sort"));
+  EXPECT_THAT([&] { int_sort->get_uninterpreted_name(); },
+              incorrect_usage("Sort of kind Int has no uninterpreted name"));
+  EXPECT_THAT(
+      [&] { int_sort->get_uninterpreted_param_sorts(); },
+      incorrect_usage("Sort of kind Int has no uninterpreted param sorts"));
+  EXPECT_THAT([&] { int_sort->get_datatype(); },
+              incorrect_usage("Sort of kind Int has no datatype"));
+
+  // the placeholder a self-referencing selector holds until its datatype's
+  // sort is made
+  Sort placeholder = std::make_shared<GenericSort>("list");
+  EXPECT_THAT([&] { placeholder->get_datatype(); },
+              incorrect_usage("The sort of datatype list is not made yet"));
 }

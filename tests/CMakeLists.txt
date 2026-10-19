@@ -151,6 +151,7 @@ switch_add_test(test-unsat-core)
 switch_add_test(test-unsat-core-reducer)
 switch_add_test(test-variadic-ops)
 
+target_link_libraries(test-generic-sort PRIVATE GTest::gmock)
 target_link_libraries(test-printing PRIVATE exec-utils)
 target_link_libraries(test-term-translation PRIVATE term-utils)
 
