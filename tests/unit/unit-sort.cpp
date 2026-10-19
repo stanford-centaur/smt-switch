@@ -230,6 +230,11 @@ TEST_P(UnitSortTests, UninterpretedSort)
 
   EXPECT_THROW(s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort }),
                IncorrectUsageException);
+  // only a sort constructor can be applied
+  EXPECT_THROW(s->make_sort(uninterp_sort, SortVec{ bvsort }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(bvsort, SortVec{ bvsort }),
+               IncorrectUsageException);
 
   Sort param_sort =
       s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort });

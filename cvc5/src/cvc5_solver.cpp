@@ -629,6 +629,11 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
   ::cvc5::Sort csort_con = std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
+  if (!csort_con.isUninterpretedSortConstructor())
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " is not a sort constructor");
+  }
 
   size_t numsorts = sorts.size();
   size_t arity = csort_con.getUninterpretedSortConstructorArity();
