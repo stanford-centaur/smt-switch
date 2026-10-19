@@ -680,39 +680,39 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     {
       btor_res = boolector_slice(btor.get(),
                                  nodes[0],
-                                 narrow_index(op, op.idx0),
-                                 narrow_index(op, op.idx1));
+                                 narrow_index(op, op.indices.at(0)),
+                                 narrow_index(op, op.indices.at(1)));
     }
     else if (op.prim_op == Zero_Extend)
     {
-      btor_res =
-          boolector_uext(btor.get(), nodes[0], narrow_index(op, op.idx0));
+      btor_res = boolector_uext(
+          btor.get(), nodes[0], narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Sign_Extend)
     {
-      btor_res =
-          boolector_sext(btor.get(), nodes[0], narrow_index(op, op.idx0));
+      btor_res = boolector_sext(
+          btor.get(), nodes[0], narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Repeat)
     {
-      if (op.idx0 < 1)
+      if (op.indices.at(0) < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      btor_res =
-          boolector_repeat(btor.get(), nodes[0], narrow_index(op, op.idx0));
+      btor_res = boolector_repeat(
+          btor.get(), nodes[0], narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Left)
     {
       btor_res = custom_boolector_rotate_left(
-          btor.get(), nodes[0], narrow_index(op, op.idx0));
+          btor.get(), nodes[0], narrow_index(op, op.indices.at(0)));
     }
     else if (op.prim_op == Rotate_Right)
     {
       btor_res = custom_boolector_rotate_right(
-          btor.get(), nodes[0], narrow_index(op, op.idx0));
+          btor.get(), nodes[0], narrow_index(op, op.indices.at(0)));
     }
-    else if (!op.num_idx)
+    else if (op.indices.empty())
     {
       auto it = unary_ops.find(op.prim_op);
       if (it == unary_ops.end())
@@ -730,7 +730,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
   }
-  else if (op.num_idx)
+  else if (!op.indices.empty())
   {
     throw IncorrectUsageException(
         "There are no supported indexed operators that take more than one "

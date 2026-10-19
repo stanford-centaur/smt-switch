@@ -762,41 +762,42 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   {
     if (op.prim_op == Extract)
     {
-      res = msat_make_bv_extract(*env, op.idx0, op.idx1, mterms[0]);
+      res = msat_make_bv_extract(
+          *env, op.indices.at(0), op.indices.at(1), mterms[0]);
     }
     else if (op.prim_op == Zero_Extend)
     {
-      res = msat_make_bv_zext(*env, op.idx0, mterms[0]);
+      res = msat_make_bv_zext(*env, op.indices.at(0), mterms[0]);
     }
     else if (op.prim_op == Sign_Extend)
     {
-      res = msat_make_bv_sext(*env, op.idx0, mterms[0]);
+      res = msat_make_bv_sext(*env, op.indices.at(0), mterms[0]);
     }
     else if (op.prim_op == Repeat)
     {
-      if (op.idx0 < 1)
+      if (op.indices.at(0) < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
       res = mterms[0];
-      for (size_t i = 1; i < op.idx0; i++)
+      for (size_t i = 1; i < op.indices.at(0); i++)
       {
         res = msat_make_bv_concat(*env, mterms[0], res);
       }
     }
     else if (op.prim_op == Rotate_Left)
     {
-      res = msat_make_bv_rol(*env, op.idx0, mterms[0]);
+      res = msat_make_bv_rol(*env, op.indices.at(0), mterms[0]);
     }
     else if (op.prim_op == Rotate_Right)
     {
-      res = msat_make_bv_ror(*env, op.idx0, mterms[0]);
+      res = msat_make_bv_ror(*env, op.indices.at(0), mterms[0]);
     }
     else if (op.prim_op == Int_To_BV)
     {
-      res = msat_make_int_to_bv(*env, op.idx0, mterms[0]);
+      res = msat_make_int_to_bv(*env, op.indices.at(0), mterms[0]);
     }
-    else if (!op.num_idx)
+    else if (op.indices.empty())
     {
       if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
       {
@@ -819,7 +820,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
   }
-  else if (op.num_idx)
+  else if (!op.indices.empty())
   {
     string msg = op.to_string();
     msg += " not supported for more than one term argument";

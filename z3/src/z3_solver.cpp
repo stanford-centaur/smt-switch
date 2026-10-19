@@ -921,33 +921,37 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     else if (op.prim_op == Extract)
     {
       res = Z3_mk_extract(*ctx,
-                          narrow_index(op, op.idx0),
-                          narrow_index(op, op.idx1),
+                          narrow_index(op, op.indices.at(0)),
+                          narrow_index(op, op.indices.at(1)),
                           zterm->term);
     }
     else if (op.prim_op == Zero_Extend)
     {
-      res = Z3_mk_zero_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res =
+          Z3_mk_zero_ext(*ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
     else if (op.prim_op == Sign_Extend)
     {
-      res = Z3_mk_sign_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res =
+          Z3_mk_sign_ext(*ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
     else if (op.prim_op == Repeat)
     {
-      if (op.idx0 < 1)
+      if (op.indices.at(0) < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      res = Z3_mk_repeat(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res = Z3_mk_repeat(*ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
     else if (op.prim_op == Rotate_Left)
     {
-      res = Z3_mk_rotate_left(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res = Z3_mk_rotate_left(
+          *ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
     else if (op.prim_op == Rotate_Right)
     {
-      res = Z3_mk_rotate_right(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res = Z3_mk_rotate_right(
+          *ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
     else if (op.prim_op == BV_To_Nat)
     {
@@ -965,9 +969,9 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     }
     else if (op.prim_op == Int_To_BV)
     {
-      res = Z3_mk_int2bv(*ctx, narrow_index(op, op.idx0), zterm->term);
+      res = Z3_mk_int2bv(*ctx, narrow_index(op, op.indices.at(0)), zterm->term);
     }
-    else if (!op.num_idx)
+    else if (op.indices.empty())
     {
       if (unary_ops.find(op.prim_op) != unary_ops.end())
       {
@@ -999,7 +1003,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     op = Op(Apply);
   }
 
-  if (op.num_idx)
+  if (!op.indices.empty())
   {
     string msg = op.to_string();
     msg += " not supported for more than one term argument";

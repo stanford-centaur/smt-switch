@@ -8,7 +8,7 @@ using namespace std;
 TEST(UnitFun, OpEquality)
 {
   Op f1(And);
-  EXPECT_EQ(f1.num_idx, 0);
+  EXPECT_TRUE(f1.indices.empty());
   EXPECT_EQ(f1.prim_op, And);
   Op f2(And);
   Op f3(Or);
