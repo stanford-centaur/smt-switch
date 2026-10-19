@@ -161,6 +161,20 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
   EXPECT_TRUE(p2.portfolio_solve().is_sat());
 }
 
+// A term so easy that members can answer while the portfolio is still
+// starting the others.
+TEST(PortfolioSolver, AnswersATrivialTerm)
+{
+  if (backends_with({}).empty())
+  {
+    GTEST_SKIP() << "no backend";
+  }
+  SmtSolver s = term_maker({});
+  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  PortfolioSolver p(members_with({}), b);
+  EXPECT_TRUE(p.portfolio_solve().is_sat());
+}
+
 TEST(PortfolioSolver, FailingSolverDropsOut)
 {
   vector<SmtSolver> members = members_without(THEORY_INT);
