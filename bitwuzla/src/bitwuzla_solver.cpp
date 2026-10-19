@@ -130,6 +130,28 @@ bitwuzla::Bitwuzla * BzlaSolver::get_bitwuzla() const
 
 bool BzlaSolver::is_initialized() const { return bzla != nullptr; }
 
+bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
+{
+  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
+  if (bterm->tm != tm)
+  {
+    throw IncorrectUsageException("Term " + t->to_string()
+                                  + " was made by another solver");
+  }
+  return bterm->term;
+}
+
+bitwuzla::Sort BzlaSolver::bzla_sort(const Sort & s) const
+{
+  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(s);
+  if (bsort->tm != tm)
+  {
+    throw IncorrectUsageException("Sort " + s->to_string()
+                                  + " was made by another solver");
+  }
+  return bsort->sort;
+}
+
 void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
@@ -179,8 +201,7 @@ void BzlaSolver::set_logic(const std::string /* logic */)
 
 void BzlaSolver::assert_formula(const Term & t)
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
-  get_bitwuzla()->assert_formula(bterm->term);
+  get_bitwuzla()->assert_formula(bzla_term(t));
 }
 
 Result BzlaSolver::check_sat()
@@ -216,7 +237,7 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   bzla_assumptions.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    bzla_assumptions.push_back(std::static_pointer_cast<BzlaTerm>(a)->term);
+    bzla_assumptions.push_back(bzla_term(a));
   }
 
   bitwuzla::Result res;
@@ -250,18 +271,17 @@ void BzlaSolver::do_pop(std::uint64_t num) { get_bitwuzla()->pop(num); }
 
 Term BzlaSolver::get_value(const Term & t) const
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
-  return std::make_shared<BzlaTerm>(get_bitwuzla()->get_value(bterm->term), tm);
+  return std::make_shared<BzlaTerm>(get_bitwuzla()->get_value(bzla_term(t)),
+                                    tm);
 }
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
                                               Term & out_const_base) const
 {
   out_const_base = nullptr;
-  std::shared_ptr<BzlaTerm> barr = std::static_pointer_cast<BzlaTerm>(arr);
   // Bitwuzla gives an array model as a chain of stores over a constant
   // base, outermost store first.
-  bitwuzla::Term bval = get_bitwuzla()->get_value(barr->term);
+  bitwuzla::Term bval = get_bitwuzla()->get_value(bzla_term(arr));
 
   std::vector<std::pair<Term, Term>> stores;
   while (bval.kind() == bitwuzla::Kind::ARRAY_STORE)
@@ -357,9 +377,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
           "Function sort must have >=2 sort arguments.");
     }
 
-    Sort returnsort = sorts.back();
-    std::shared_ptr<BzlaSort> bzla_return_sort =
-        std::static_pointer_cast<BzlaSort>(returnsort);
+    bitwuzla::Sort bzla_return_sort = bzla_sort(sorts.back());
 
     // arity is one less, because last sort is return sort
     std::uint32_t arity = sorts.size() - 1;
@@ -367,22 +385,16 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
     bzla_sorts.reserve(arity);
     for (std::size_t i = 0; i < arity; i++)
     {
-      std::shared_ptr<BzlaSort> bs =
-          std::static_pointer_cast<BzlaSort>(sorts[i]);
-      bzla_sorts.push_back(bs->sort);
+      bzla_sorts.push_back(bzla_sort(sorts[i]));
     }
 
     return std::make_shared<BzlaSort>(
-        tm->mk_fun_sort(bzla_sorts, { bzla_return_sort->sort }), tm);
+        tm->mk_fun_sort(bzla_sorts, { bzla_return_sort }), tm);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    std::shared_ptr<BzlaSort> bidxsort =
-        std::static_pointer_cast<BzlaSort>(sorts[0]);
-    std::shared_ptr<BzlaSort> belemsort =
-        std::static_pointer_cast<BzlaSort>(sorts[1]);
     return std::make_shared<BzlaSort>(
-        tm->mk_array_sort(bidxsort->sort, belemsort->sort), tm);
+        tm->mk_array_sort(bzla_sort(sorts[0]), bzla_sort(sorts[1])), tm);
   }
   else
   {
@@ -415,8 +427,8 @@ Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
         + to_string(sk));
   }
 
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bsort->sort, i), tm);
+  return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bzla_sort(sort), i),
+                                    tm);
 }
 
 Term BzlaSolver::make_term(const std::string val,
@@ -437,11 +449,10 @@ Term BzlaSolver::make_term(const std::string val,
                                   " Options are 2, 10, and 16");
   }
 
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
+  bitwuzla::Sort bsort = bzla_sort(sort);
   try
   {
-    return std::make_shared<BzlaTerm>(tm->mk_bv_value(bsort->sort, val, base),
-                                      tm);
+    return std::make_shared<BzlaTerm>(tm->mk_bv_value(bsort, val, base), tm);
   }
   catch (bitwuzla::Exception & e)
   {
@@ -451,6 +462,8 @@ Term BzlaSolver::make_term(const std::string val,
 
 Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
 {
+  bitwuzla::Sort bsort = bzla_sort(sort);
+  bitwuzla::Term bterm = bzla_term(val);
   SortKind sk = sort->get_sort_kind();
   if (sk != ARRAY)
   {
@@ -464,10 +477,7 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
         "Value used to create constant array must match element sort.");
   }
 
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(val);
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(
-      tm->mk_const_array(bsort->sort, bterm->term), tm);
+  return std::make_shared<BzlaTerm>(tm->mk_const_array(bsort, bterm), tm);
 }
 
 Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
@@ -476,8 +486,8 @@ Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
   {
     throw IncorrectUsageException("Symbol name " + name + " already used.");
   }
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  Term sym = std::make_shared<BzlaTerm>(tm->mk_const(bsort->sort, name), tm);
+  Term sym =
+      std::make_shared<BzlaTerm>(tm->mk_const(bzla_sort(sort), name), tm);
   symbol_table[name] = sym;
   return sym;
 }
@@ -494,8 +504,7 @@ Term BzlaSolver::get_symbol(const std::string & name)
 
 Term BzlaSolver::make_param(const std::string name, const Sort & sort)
 {
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(sort);
-  return std::make_shared<BzlaTerm>(tm->mk_var(bsort->sort, name), tm);
+  return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
 }
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
@@ -508,7 +517,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   std::vector<bitwuzla::Term> bitwuzla_terms;
   for (auto && t : terms)
   {
-    bitwuzla_terms.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
+    bitwuzla_terms.push_back(bzla_term(t));
   }
 
   auto it = op2bkind.find(op.prim_op);
@@ -557,7 +566,7 @@ void BzlaSolver::do_reset_assertions()
 Term BzlaSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(term);
+  bitwuzla::Term bterm = bzla_term(term);
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
   substitution_bterms_map.reserve(substitution_map.size());
   for (auto && elem : substitution_map)
@@ -568,11 +577,10 @@ Term BzlaSolver::substitute(const Term term,
           "Bitwuzla backend doesn't support substitution with non symbol keys");
     }
     substitution_bterms_map.insert(
-        { std::static_pointer_cast<BzlaTerm>(elem.first)->term,
-          std::static_pointer_cast<BzlaTerm>(elem.second)->term });
+        { bzla_term(elem.first), bzla_term(elem.second) });
   }
   return std::make_shared<BzlaTerm>(
-      tm->substitute_term(bterm->term, substitution_bterms_map), tm);
+      tm->substitute_term(bterm, substitution_bterms_map), tm);
 }
 
 TermVec BzlaSolver::substitute_terms(
@@ -583,7 +591,7 @@ TermVec BzlaSolver::substitute_terms(
   bterms.reserve(terms_size);
   for (auto && t : terms)
   {
-    bterms.push_back(std::static_pointer_cast<BzlaTerm>(t)->term);
+    bterms.push_back(bzla_term(t));
   }
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
   substitution_bterms_map.reserve(substitution_map.size());
@@ -595,8 +603,7 @@ TermVec BzlaSolver::substitute_terms(
           "Bitwuzla backend doesn't support substitution with non symbol keys");
     }
     substitution_bterms_map.insert(
-        { std::static_pointer_cast<BzlaTerm>(elem.first)->term,
-          std::static_pointer_cast<BzlaTerm>(elem.second)->term });
+        { bzla_term(elem.first), bzla_term(elem.second) });
   }
   tm->substitute_terms(bterms, substitution_bterms_map);
 
@@ -673,6 +680,13 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
+  // refuse a formula from another term manager before changing any state
+  std::vector<bitwuzla::Term> bformulae;
+  bformulae.reserve(formulae.size());
+  for (const Term & f : formulae)
+  {
+    bformulae.push_back(bzla_solver->bzla_term(f));
+  }
   // count how many assertions can be reused; none when incremental is off,
   // so every formula the last query pushed is popped below
   size_t num_reused = 0;
@@ -696,8 +710,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   {
     // Add a new backtrack point and push the formula.
     bzla_solver->get_bitwuzla()->push(1);
-    bzla_solver->get_bitwuzla()->assert_formula(
-        std::static_pointer_cast<BzlaTerm>(formulae.at(k))->term);
+    bzla_solver->get_bitwuzla()->assert_formula(bformulae.at(k));
     last_itp_query_assertions.push_back(formulae.at(k));
   }
   assert(formulae == last_itp_query_assertions);
@@ -739,8 +752,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   std::vector<std::vector<bitwuzla::Term>> partitions;
   for (size_t i = 0, n = formulae.size() - 1; i < n; ++i)
   {
-    partitions.push_back(
-        { std::static_pointer_cast<BzlaTerm>(formulae.at(i))->term });
+    partitions.push_back({ bformulae.at(i) });
   }
   const std::vector<bitwuzla::Term> itps =
       bzla_solver->get_bitwuzla()->get_interpolants(partitions);
