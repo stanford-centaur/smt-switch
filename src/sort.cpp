@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "datatype.h"
 #include "exceptions.h"
 
 namespace smt {
@@ -131,6 +132,10 @@ std::string AbsSort::to_string() const
   else if (sk == UNINTERPRETED_CONS)
   {
     return get_uninterpreted_name();
+  }
+  else if (sk == DATATYPE)
+  {
+    return get_datatype()->get_name();
   }
   else
   {

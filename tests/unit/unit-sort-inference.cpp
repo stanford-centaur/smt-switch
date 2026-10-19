@@ -290,11 +290,6 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
 
 TEST_P(DatatypeSortedness, ComponentApplications)
 {
-  if (GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "a logging solver has no datatypes";
-  }
-
   DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
   DatatypeConstructorDecl nothingdecl =
       s->make_datatype_constructor_decl("nothing");
@@ -325,6 +320,36 @@ TEST_P(DatatypeSortedness, ComponentApplications)
   // a missing argument
   EXPECT_FALSE(check_sortedness(Apply_Tester, { is_just }));
   EXPECT_FALSE(check_sortedness(Apply_Selector, { value }));
+}
+
+TEST_P(DatatypeSortedness, ComponentApplicationSorts)
+{
+  if (GetParam().solver_enum == CVC5 && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "cvc5 gives a constructor or selector sort no codomain";
+  }
+
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothingdecl =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl justdecl = s->make_datatype_constructor_decl("just");
+  s->add_selector(justdecl, "value", bvsort4);
+  s->add_constructor(maybedecl, nothingdecl);
+  s->add_constructor(maybedecl, justdecl);
+  Sort maybesort = s->make_sort(maybedecl);
+  Term m = s->make_symbol("m", maybesort);
+
+  EXPECT_EQ(
+      compute_sort(
+          Apply_Constructor, s, { s->get_constructor(maybesort, "just"), p }),
+      maybesort);
+  EXPECT_EQ(
+      compute_sort(Apply_Tester, s, { s->get_tester(maybesort, "just"), m }),
+      s->make_sort(BOOL));
+  EXPECT_EQ(compute_sort(Apply_Selector,
+                         s,
+                         { s->get_selector(maybesort, "just", "value"), m }),
+            bvsort4);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,

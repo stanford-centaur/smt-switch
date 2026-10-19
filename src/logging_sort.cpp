@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "exceptions.h"
 #include "sort.h"
@@ -135,28 +136,25 @@ bool LoggingSort::compare(const Sort & s) const
       return true;
     }
     case UNINTERPRETED:
-    case UNINTERPRETED_CONS: {
+    case UNINTERPRETED_CONS:
+    case DATATYPE:
+    case CONSTRUCTOR:
+    case SELECTOR:
+    case TESTER: {
       // the name does not identify the sort: every application of a
-      // constructor shares it, and a solver may declare a name twice
+      // constructor shares it, and a solver may declare a name twice. The
+      // wrapped sort does, for these and for datatypes and their components
       std::shared_ptr<LoggingSort> other =
           std::dynamic_pointer_cast<LoggingSort>(s);
       return other && wrapped_sort == other->wrapped_sort;
-    }
-    case DATATYPE: {
-      throw NotImplementedException("LoggingSort::compare");
     }
     case NUM_SORT_KINDS: {
       // null sorts should not be equal
       return false;
     }
-    default: {
-      // this code should be unreachable
-      throw SmtException(
-          "Hit default case in LoggingSort comparison -- missing case for "
-          "SortKind: "
-          + smt::to_string(sk));
-    }
   }
+  throw SmtException("LoggingSort comparison got an out-of-range SortKind "
+                     + std::to_string(static_cast<int>(sk)));
 }
 
 // dispatched to underlying sort
@@ -231,6 +229,41 @@ std::size_t UninterpretedLoggingSort::get_arity() const { return arity; }
 SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 {
   return param_sorts;
+}
+
+// DatatypeLoggingSort
+
+DatatypeLoggingSort::DatatypeLoggingSort(
+    Sort s, std::shared_ptr<LoggingDatatypeDecl> decl)
+    : super(DATATYPE, s), decl(std::move(decl))
+{
+}
+
+Datatype DatatypeLoggingSort::get_datatype() const
+{
+  return wrapped_sort->get_datatype();
+}
+
+// DatatypeComponentLoggingSort
+
+DatatypeComponentLoggingSort::DatatypeComponentLoggingSort(SortKind sk,
+                                                           Sort s,
+                                                           SortVec domain,
+                                                           Sort codomain)
+    : super(sk, s),
+      domain_sorts(std::move(domain)),
+      codomain_sort(std::move(codomain))
+{
+}
+
+SortVec DatatypeComponentLoggingSort::get_domain_sorts() const
+{
+  return domain_sorts;
+}
+
+Sort DatatypeComponentLoggingSort::get_codomain_sort() const
+{
+  return codomain_sort;
 }
 
 }  // namespace smt
