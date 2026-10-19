@@ -1,0 +1,8 @@
+# Clang warning suppression mappings, passed by CompilerWarnings.cmake through
+# --warning-suppression-mappings: each [warning] section exempts the files its
+# src: globs match from that one warning, and nothing else.
+
+# Bison's C++ skeleton declares syntax_error's destructor without override, and
+# no bison option changes that.
+[suggest-destructor-override]
+src:*/smtlibparser.h
