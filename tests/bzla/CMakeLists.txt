@@ -8,3 +8,4 @@ endmacro()
 
 switch_add_bzla_test(bzla-options)
 switch_add_bzla_test(bzla-printing)
+switch_add_bzla_test(bzla-term-manager)

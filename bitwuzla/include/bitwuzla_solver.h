@@ -97,12 +97,19 @@ class BzlaSolver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
+  // the Bitwuzla term or sort behind t or s, refusing one from another term
+  // manager: another solver's, or this one's from before a reset
+  bitwuzla::Term bzla_term(const Term & t) const;
+  bitwuzla::Sort bzla_sort(const Sort & s) const;
+
   bitwuzla::Options options;
   // bzla uses tm, so tm is declared first and outlives it
   std::shared_ptr<bitwuzla::TermManager> tm;
   mutable std::unique_ptr<bitwuzla::Bitwuzla> bzla;
 
   std::unordered_map<std::string, Term> symbol_table;
+
+  friend class BzlaInterpolatingSolver;
 };
 
 class BzlaInterpolatingSolver : public AbsSmtInterpolator
