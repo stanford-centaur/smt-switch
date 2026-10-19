@@ -324,11 +324,6 @@ TEST_P(DatatypeSortedness, ComponentApplications)
 
 TEST_P(DatatypeSortedness, ComponentApplicationSorts)
 {
-  if (GetParam().solver_enum == CVC5 && !GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "cvc5 gives a constructor or selector sort no codomain";
-  }
-
   DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
   DatatypeConstructorDecl nothingdecl =
       s->make_datatype_constructor_decl("nothing");

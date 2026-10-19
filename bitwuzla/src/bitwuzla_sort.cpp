@@ -41,20 +41,46 @@ BzlaSort::~BzlaSort()
 
 std::size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
 
-std::uint64_t BzlaSort::get_width() const { return sort.bv_size(); }
+std::uint64_t BzlaSort::get_width() const
+{
+  if (!sort.is_bv())
+  {
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
+  }
+  return sort.bv_size();
+}
 
 Sort BzlaSort::get_indexsort() const
 {
+  if (!sort.is_array())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no index sort");
+  }
   return std::make_shared<BzlaSort>(sort.array_index(), tm);
 }
 
 Sort BzlaSort::get_elemsort() const
 {
+  if (!sort.is_array())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no element sort");
+  }
   return std::make_shared<BzlaSort>(sort.array_element(), tm);
 }
 
 SortVec BzlaSort::get_domain_sorts() const
 {
+  if (!sort.is_fun())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no domain sorts");
+  }
   std::vector<bitwuzla::Sort> bsorts = sort.fun_domain();
   SortVec domain_sorts;
   domain_sorts.reserve(bsorts.size());
@@ -69,44 +95,53 @@ SortVec BzlaSort::get_domain_sorts() const
 
 Sort BzlaSort::get_codomain_sort() const
 {
+  if (!sort.is_fun())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no codomain sort");
+  }
   return std::make_shared<BzlaSort>(sort.fun_codomain(), tm);
 }
 
 std::string BzlaSort::get_uninterpreted_name() const
 {
-  if (sort.is_uninterpreted())
+  if (!sort.is_uninterpreted())
   {
-    return sort.uninterpreted_symbol().value_or("");
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted name");
   }
-  throw IncorrectUsageException("Sort of kind "
-                                + smt::to_string(get_sort_kind())
-                                + " has no uninterpreted name");
+  return sort.uninterpreted_symbol().value_or("");
 }
 
 std::size_t BzlaSort::get_arity() const
 {
-  if (sort.is_uninterpreted())
+  if (!sort.is_uninterpreted())
   {
-    return 0;
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
   }
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+  return 0;
 }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
-  // Bitwuzla has no sort constructors, so no sort has parameters
-  if (get_sort_kind() == UNINTERPRETED)
+  if (!sort.is_uninterpreted())
   {
-    return {};
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted param sorts");
   }
-  throw IncorrectUsageException(
-      "Can only get param sorts from uninterpreted sort");
+  // Bitwuzla has no sort constructors, so no sort has parameters
+  return {};
 }
 
 Datatype BzlaSort::get_datatype() const
 {
-  throw IncorrectUsageException("Bitwuzla does not support datatypes.");
+  // Bitwuzla has no datatypes, so no sort has a datatype
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
 }
 
 bool BzlaSort::compare(const Sort & s) const

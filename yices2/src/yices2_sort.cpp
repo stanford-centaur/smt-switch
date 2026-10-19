@@ -35,78 +35,71 @@ std::size_t Yices2Sort::hash() const
 
 uint64_t Yices2Sort::get_width() const
 {
-  if (yices_type_is_bitvector(type))
+  if (!yices_type_is_bitvector(type))
   {
-    return (unsigned int)yices_bvtype_size(type);
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get width from bit-vector sort");
-  }
+  return (unsigned int)yices_bvtype_size(type);
 }
 
 Sort Yices2Sort::get_indexsort() const
 {
   // Arrays are functions in Yices.
-  if (yices_type_is_function(type))
+  if (!yices_type_is_function(type))
   {
-    return Sort(new Yices2Sort(yices_type_child(type, 0)));
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no index sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get index sort from array sort");
-  }
+  return Sort(new Yices2Sort(yices_type_child(type, 0)));
 }
 
 Sort Yices2Sort::get_elemsort() const
 {
   // Arrays are functions in Yices.
-  if (yices_type_is_function(type))
+  if (!yices_type_is_function(type))
   {
-    return Sort(new Yices2Sort(yices_type_child(type, 1)));
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no element sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get element sort from array sort");
-  }
+  return Sort(new Yices2Sort(yices_type_child(type, 1)));
 }
 
 SortVec Yices2Sort::get_domain_sorts() const
 {
-  if (yices_type_is_function(type))
+  if (!yices_type_is_function(type))
   {
-    // one less because last is return sort.
-    int32_t s_arity = yices_type_num_children(type) - 1;
-    SortVec sorts;
-    sorts.reserve(s_arity);
-
-    for (int32_t i = 0; i < s_arity; i++)
-    {
-      sorts.push_back(Sort(new Yices2Sort(yices_type_child(type, i))));
-    }
-
-    return sorts;
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no domain sorts");
   }
-  else
+  // one less because last is return sort.
+  int32_t s_arity = yices_type_num_children(type) - 1;
+  SortVec sorts;
+  sorts.reserve(s_arity);
+
+  for (int32_t i = 0; i < s_arity; i++)
   {
-    throw IncorrectUsageException(
-        "Can't get domain sorts from non-function sort.");
+    sorts.push_back(Sort(new Yices2Sort(yices_type_child(type, i))));
   }
+
+  return sorts;
 }
 
 Sort Yices2Sort::get_codomain_sort() const
 {
-  if (yices_type_is_function(type))
+  if (!yices_type_is_function(type))
   {
-    // The last element of the result of num_children is the range/codomain
-    // type.
-    return Sort(new Yices2Sort(
-        yices_type_child(type, yices_type_num_children(type) - 1)));
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no codomain sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get element sort from array sort");
-  }
+  // The last element of the result of num_children is the range/codomain
+  // type.
+  return Sort(new Yices2Sort(
+      yices_type_child(type, yices_type_num_children(type) - 1)));
 }
 
 string Yices2Sort::get_uninterpreted_name() const
@@ -127,29 +120,32 @@ string Yices2Sort::get_uninterpreted_name() const
 
 size_t Yices2Sort::get_arity() const
 {
-  // yices2 does not support uninterpreted sorts with non-zero arity
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return 0;
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
   }
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+  // yices2 does not support uninterpreted sorts with non-zero arity
+  return 0;
 }
 
 SortVec Yices2Sort::get_uninterpreted_param_sorts() const
 {
-  // Yices2 has no sort constructors, so no sort has parameters
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return {};
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted param sorts");
   }
-  throw IncorrectUsageException(
-      "Can only get param sorts from uninterpreted sort");
+  // Yices2 has no sort constructors, so no sort has parameters
+  return {};
 }
 
 Datatype Yices2Sort::get_datatype() const
 {
-  throw NotImplementedException("get_datatype");
+  // Yices2 has no datatypes, so no sort has a datatype
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
 };
 
 bool Yices2Sort::compare(const Sort & s) const
