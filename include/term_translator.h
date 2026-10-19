@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -153,6 +154,16 @@ class TermTranslator
    *  the term and sort MUST belong to the same solver
    */
   Term cast_value(const Term & term, const Sort & sort) const;
+
+  /** The uninterpreted sort or sort constructor of this name in the
+   *  member variable solver, declared on first use
+   *  @param name the name of the sort
+   *  @param arity the arity of the sort, zero for an uninterpreted sort
+   *  @return the sort, the same object for every call with this name
+   *  throws an IncorrectUsageException if the name was declared with a
+   *  different arity
+   */
+  Sort uninterpreted_sort(const std::string & name, std::uint64_t arity);
 
   // Note: const meaning the solver doesn't change to a different solver
   // it can still call non-const methods of the solver

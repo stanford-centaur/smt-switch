@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -124,25 +125,51 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
   }
   else if (sk == UNINTERPRETED)
   {
-    assert(sort->get_arity() == 0);
+    // an applied sort constructor has parameters, a declared sort has none
+    SortVec param_sorts = sort->get_uninterpreted_param_sorts();
     std::string name = sort->get_uninterpreted_name();
-    auto it = uninterpreted_sorts.find(name);
-    if (it != uninterpreted_sorts.end())
+    if (param_sorts.empty())
     {
-      // cache hit
-      return it->second;
+      return uninterpreted_sort(name, 0);
     }
-    else
+    SortVec transferred;
+    for (const Sort & s : param_sorts)
     {
-      Sort sort_con = solver->make_sort(name, 0);
-      uninterpreted_sorts[name] = sort_con;
-      return sort_con;
+      transferred.push_back(transfer_sort(s));
     }
+    return solver->make_sort(uninterpreted_sort(name, param_sorts.size()),
+                             transferred);
+  }
+  else if (sk == UNINTERPRETED_CONS)
+  {
+    return uninterpreted_sort(sort->get_uninterpreted_name(),
+                              sort->get_arity());
   }
   else
   {
     throw SmtException("Failed to transfer sort: " + sort->to_string());
   }
+}
+
+Sort TermTranslator::uninterpreted_sort(const std::string & name,
+                                        std::uint64_t arity)
+{
+  auto it = uninterpreted_sorts.find(name);
+  if (it == uninterpreted_sorts.end())
+  {
+    Sort sort = solver->make_sort(name, arity);
+    uninterpreted_sorts[name] = sort;
+    return sort;
+  }
+  if (it->second->get_arity() != arity)
+  {
+    throw IncorrectUsageException("Sort " + name
+                                  + " was transferred with arity "
+                                  + std::to_string(it->second->get_arity())
+                                  + ", not " + std::to_string(arity));
+  }
+  // cache hit
+  return it->second;
 }
 
 Term TermTranslator::transfer_term(const Term & term)
