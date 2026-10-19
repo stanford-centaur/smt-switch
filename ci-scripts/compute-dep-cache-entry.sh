@@ -34,9 +34,19 @@ case $label in
   *) echo "error: no package list for runner label '$label'" >&2 && exit 2 ;;
 esac
 
-# CI builds LibPoly itself, which cvc5 and Yices2 then link
-inputs=(ci-scripts/compute-dep-cache-entry.sh ci-scripts/install-libpoly.sh)
-fields=("label=$label" "prefix=$prefix" "epoch=$epoch" "packages=$packages")
+# So do the libraries installed beside them, by the script named after the
+# label's OS
+inputs=(
+  ci-scripts/compute-dep-cache-entry.sh
+  ci-scripts/install-extra-libraries-"${label%%-*}".sh
+)
+fields=(
+  "label=$label"
+  "prefix=$prefix"
+  "epoch=$epoch"
+  "packages=$packages"
+  "libpoly=$LIBPOLY_TAG $LIBPOLY_PIC_OPTION"
+)
 path=deps/$prefix
 if [[ $prefix == mathsat ]]; then
   # Not provisioned by the build at all; the workflow runs this script, which
