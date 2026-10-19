@@ -16,19 +16,110 @@
 
 #include <gtest/gtest.h>
 
-#include "boolector_factory.h"
-#include "cvc5_factory.h"
-#include "msat_factory.h"
+#include <unordered_set>
+#include <vector>
+
+#include "available_solvers.h"
 #include "portfolio_solver.h"
 #include "smt.h"
-#include "yices2_factory.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
+
+namespace {
+
+/** The available backends that have the attributes and can take part in a
+ *  portfolio. The generic solver cannot: a portfolio hands each member its
+ *  term through a TermTranslator, which refuses the generic solver.
+ */
+vector<SolverEnum> backends_with(
+    const unordered_set<SolverAttribute> & attributes)
+{
+  vector<SolverEnum> backends;
+  for (SolverEnum se : filter_solver_enums(attributes))
+  {
+    if (se != GENERIC_SOLVER)
+    {
+      backends.push_back(se);
+    }
+  }
+  return backends;
+}
+
+/** A fresh solver from each backend that has the attributes */
+vector<SmtSolver> members_with(
+    const unordered_set<SolverAttribute> & attributes)
+{
+  vector<SmtSolver> members;
+  for (SolverEnum se : backends_with(attributes))
+  {
+    members.push_back(create_solver(SolverConfiguration(se, false)));
+  }
+  return members;
+}
+
+/** Two fresh solvers from each backend that has the attributes, made once in
+ *  order and once in reverse, so that several instances of a backend are
+ *  alive at once and are not all made back to back
+ */
+vector<SmtSolver> two_members_each_with(
+    const unordered_set<SolverAttribute> & attributes)
+{
+  vector<SolverEnum> backends = backends_with(attributes);
+  vector<SmtSolver> members;
+  for (auto it = backends.begin(); it != backends.end(); ++it)
+  {
+    members.push_back(create_solver(SolverConfiguration(*it, false)));
+  }
+  for (auto it = backends.rbegin(); it != backends.rend(); ++it)
+  {
+    members.push_back(create_solver(SolverConfiguration(*it, false)));
+  }
+  return members;
+}
+
+/** A fresh solver from each backend without the attribute */
+vector<SmtSolver> members_without(SolverAttribute attribute)
+{
+  vector<SmtSolver> members;
+  for (SolverEnum se : backends_with({}))
+  {
+    if (!solver_has_attribute(se, attribute))
+    {
+      members.push_back(create_solver(SolverConfiguration(se, false)));
+    }
+  }
+  return members;
+}
+
+/** A solver from the first backend that has the attributes, to make a term
+ *  in that no member shares
+ */
+SmtSolver term_maker(const unordered_set<SolverAttribute> & attributes)
+{
+  return create_solver(
+      SolverConfiguration(backends_with(attributes).front(), false));
+}
+
+// x > 0 over the integers, which not every backend supports.
+Term make_int_term()
+{
+  SmtSolver s = term_maker({ THEORY_INT });
+  Sort int_sort = s->make_sort(INT);
+  Term x = s->make_symbol("x", int_sort);
+  return s->make_term(Gt, x, s->make_term(0, int_sort));
+}
+
+}  // namespace
 
 TEST(PortfolioSolver, TwoPortfoliosFindSat)
 {
-  SmtSolver s = MsatSolverFactory::create(false);
+  if (backends_with({ THEORY_BV }).empty())
+  {
+    GTEST_SKIP() << "no backend with bit-vectors";
+  }
+  SmtSolver s = term_maker({ THEORY_BV });
   s->set_opt("produce-models", "true");
   Sort bvsort = s->make_sort(BV, 10);
 
@@ -63,86 +154,44 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
     test_term = s->make_term(And, t, test_term);
   }
 
-  SmtSolver s1 = MsatSolverFactory::create(false);
-  SmtSolver s2 = MsatSolverFactory::create(false);
-  SmtSolver s3 = MsatSolverFactory::create(false);
-  SmtSolver s4 = BoolectorSolverFactory::create(false);
-  SmtSolver s5 = BoolectorSolverFactory::create(false);
-  SmtSolver s6 = Yices2SolverFactory::create(false);
-  SmtSolver s7 = Cvc5SolverFactory::create(false);
-  SmtSolver s8 = Cvc5SolverFactory::create(false);
-  SmtSolver s9 = Yices2SolverFactory::create(false);
-  vector<SmtSolver> solvers;
-  solvers.push_back(s1);
-  solvers.push_back(s2);
-  solvers.push_back(s3);
-  solvers.push_back(s4);
-  solvers.push_back(s5);
-  solvers.push_back(s6);
-  solvers.push_back(s7);
-  solvers.push_back(s8);
-  solvers.push_back(s9);
+  PortfolioSolver p(two_members_each_with({ THEORY_BV }), test_term);
+  EXPECT_TRUE(p.portfolio_solve().is_sat());
 
-  PortfolioSolver p(solvers, test_term);
-  smt::Result res = p.portfolio_solve();
-
-  EXPECT_TRUE(res.is_sat());
-
-  SmtSolver s1_2 = MsatSolverFactory::create(false);
-  SmtSolver s2_2 = MsatSolverFactory::create(false);
-  SmtSolver s3_2 = MsatSolverFactory::create(false);
-  SmtSolver s4_2 = BoolectorSolverFactory::create(false);
-  SmtSolver s5_2 = BoolectorSolverFactory::create(false);
-  SmtSolver s6_2 = Yices2SolverFactory::create(false);
-  SmtSolver s7_2 = Cvc5SolverFactory::create(false);
-  SmtSolver s8_2 = Cvc5SolverFactory::create(false);
-  SmtSolver s9_2 = Yices2SolverFactory::create(false);
-  vector<SmtSolver> solvers2;
-  solvers2.push_back(s1_2);
-  solvers2.push_back(s2_2);
-  solvers2.push_back(s3_2);
-  solvers2.push_back(s4_2);
-  solvers2.push_back(s5_2);
-  solvers2.push_back(s6_2);
-  solvers2.push_back(s7_2);
-  solvers2.push_back(s8_2);
-  solvers2.push_back(s9_2);
-  PortfolioSolver p2(solvers2, test_term);
-  smt::Result res2 = p2.portfolio_solve();
-
-  EXPECT_TRUE(res2.is_sat());
-}
-
-// x > 0 over the integers, which Boolector does not support.
-static Term make_int_term()
-{
-  SmtSolver s = Cvc5SolverFactory::create(false);
-  Sort int_sort = s->make_sort(INT);
-  Term x = s->make_symbol("x", int_sort);
-  return s->make_term(Gt, x, s->make_term(0, int_sort));
+  PortfolioSolver p2(two_members_each_with({ THEORY_BV }), test_term);
+  EXPECT_TRUE(p2.portfolio_solve().is_sat());
 }
 
 TEST(PortfolioSolver, FailingSolverDropsOut)
 {
-  PortfolioSolver p({ BoolectorSolverFactory::create(false),
-                      Cvc5SolverFactory::create(false) },
-                    make_int_term());
+  vector<SmtSolver> members = members_without(THEORY_INT);
+  vector<SmtSolver> answering = members_with({ THEORY_INT });
+  if (members.empty() || answering.empty())
+  {
+    GTEST_SKIP() << "needs backends both with and without integers";
+  }
+  members.insert(members.end(), answering.begin(), answering.end());
+  PortfolioSolver p(members, make_int_term());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 }
 
 TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
 {
-  PortfolioSolver p({ BoolectorSolverFactory::create(false),
-                      BoolectorSolverFactory::create(false) },
-                    make_int_term());
+  vector<SmtSolver> members = members_without(THEORY_INT);
+  if (members.empty() || backends_with({ THEORY_INT }).empty())
+  {
+    GTEST_SKIP() << "needs backends both with and without integers";
+  }
+  PortfolioSolver p(members, make_int_term());
   EXPECT_THROW(p.portfolio_solve(), SmtException);
 }
 
 TEST(PortfolioSolver, CanBeUsedAgain)
 {
-  PortfolioSolver p(
-      { Cvc5SolverFactory::create(false), Yices2SolverFactory::create(false) },
-      make_int_term());
+  if (backends_with({ THEORY_INT }).empty())
+  {
+    GTEST_SKIP() << "no backend with integers";
+  }
+  PortfolioSolver p(members_with({ THEORY_INT }), make_int_term());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 }
