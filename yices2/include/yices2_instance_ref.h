@@ -10,9 +10,14 @@
  * term or sort can outlive the solver that made it, so every Yices2Solver,
  * Yices2Sort and Yices2Term holds a Yices2InstanceRef: the first one made
  * calls yices_init(), and the last one destroyed calls yices_exit().
+ *
+ * It also records which symbols are functions. Yices has no array type, so
+ * an array is a function to it, and a term cannot say which one it is.
  */
 
 #pragma once
+
+#include <yices.h>
 
 namespace smt {
 
@@ -24,6 +29,13 @@ class Yices2InstanceRef
   // each object is already counted, so assigning changes nothing
   Yices2InstanceRef & operator=(const Yices2InstanceRef & other) = default;
   ~Yices2InstanceRef();
+
+  /** Records that the symbol `t` was declared with a function sort. The
+   * record lasts as long as the Yices instance, as term ids do.
+   */
+  static void mark_function(term_t t);
+  /** Whether `t` is a symbol mark_function recorded */
+  static bool is_function(term_t t);
 };
 
 }  // namespace smt

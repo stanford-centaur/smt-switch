@@ -112,7 +112,8 @@ Op Yices2Term::get_op() const
     // composite terms
     case YICES_ITE_TERM: return Op(Ite);
     case YICES_APP_TERM:
-      if (!is_function)
+      // Yices applies an array the way it applies a function
+      if (!Yices2InstanceRef::is_function(yices_term_child(term, 0)))
       {
         return Op(Select);
       }
@@ -220,28 +221,14 @@ Op Yices2Term::get_op() const
 
 Sort Yices2Term::get_sort() const
 {
-  if (yices_term_is_function(term))
-  {
-    // ARRAY
-    if (!is_function)
-    {
-      return Sort(new Yices2Sort(yices_type_of_term(term)));
-    }
-    // FUNCTION
-    else
-    {
-      return Sort(new Yices2Sort(yices_type_of_term(term), true));
-    }
-  }
-
-  return Sort(new Yices2Sort(yices_type_of_term(term)));
+  return Sort(new Yices2Sort(yices_type_of_term(term),
+                             Yices2InstanceRef::is_function(term)));
 }
 
 bool Yices2Term::is_symbol() const
 {
-  // is_function is no help here: make_term sets it on an application of a
-  // function as well as on the function. A declared function is an
-  // uninterpreted term with no children, so the test below covers it.
+  // A declared function is an uninterpreted term with no children too, so
+  // the test below covers it.
   // A parameter is a symbol too, though not a symbolic constant.
   term_constructor_t tc = yices_term_constructor(term);
   return ((tc == YICES_UNINTERPRETED_TERM && yices_term_num_children(term) == 0)
@@ -256,7 +243,7 @@ bool Yices2Term::is_param() const
 bool Yices2Term::is_symbolic_const() const
 {
   // functions and parameters are not constants
-  if (is_function || is_param())
+  if (Yices2InstanceRef::is_function(term) || is_param())
   {
     return false;
   }
@@ -302,17 +289,14 @@ static string bv_constant_to_bits(term_t term)
 
 uint64_t Yices2Term::to_int() const
 {
-  if (!is_function)
+  term_constructor_t tc = yices_term_constructor(term);
+  if (tc == YICES_BV_CONSTANT)
   {
-    term_constructor_t tc = yices_term_constructor(term);
-    if (tc == YICES_BV_CONSTANT)
-    {
-      return bits_to_uint64(bv_constant_to_bits(term));
-    }
-    else if (tc == YICES_ARITH_CONSTANT)
-    {
-      return smtlib_int_to_uint64(arith_constant_to_string(term));
-    }
+    return bits_to_uint64(bv_constant_to_bits(term));
+  }
+  else if (tc == YICES_ARITH_CONSTANT)
+  {
+    return smtlib_int_to_uint64(arith_constant_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -321,17 +305,14 @@ uint64_t Yices2Term::to_int() const
 
 int64_t Yices2Term::to_signed_int() const
 {
-  if (!is_function)
+  term_constructor_t tc = yices_term_constructor(term);
+  if (tc == YICES_BV_CONSTANT)
   {
-    term_constructor_t tc = yices_term_constructor(term);
-    if (tc == YICES_BV_CONSTANT)
-    {
-      return bits_to_int64(bv_constant_to_bits(term));
-    }
-    else if (tc == YICES_ARITH_CONSTANT)
-    {
-      return smtlib_int_to_int64(arith_constant_to_string(term));
-    }
+    return bits_to_int64(bv_constant_to_bits(term));
+  }
+  else if (tc == YICES_ARITH_CONSTANT)
+  {
+    return smtlib_int_to_int64(arith_constant_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -389,13 +370,10 @@ static uint32_t smt_num_children(term_t term)
   return static_cast<uint32_t>(num_children);
 }
 
-Yices2TermIter::Yices2TermIter(term_t t, uint32_t p, bool f)
-    : term(t), pos(p), is_function(f)
-{
-}
+Yices2TermIter::Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p) {}
 
 Yices2TermIter::Yices2TermIter(const Yices2TermIter & it)
-    : term(it.term), pos(it.pos), is_function(it.is_function)
+    : term(it.term), pos(it.pos)
 {
 }
 
@@ -403,7 +381,6 @@ Yices2TermIter & Yices2TermIter::operator=(const Yices2TermIter & it)
 {
   term = it.term;
   pos = it.pos;
-  is_function = it.is_function;
   return *this;
 }
 
@@ -548,16 +525,12 @@ const Term Yices2TermIter::operator*()
   {
     throw InternalSolverException(yices_error_string());
   }
-  // Only an application's first child is a function, and whether it is one
-  // rather than an array is what this term's own flag says. Everything else,
-  // the array a store updates included, is not a function, and asking Yices
-  // would not help: it calls an array one too.
-  return std::make_shared<Yices2Term>(ret_term, pos == 0 && is_function);
+  return std::make_shared<Yices2Term>(ret_term);
 }
 
 TermIterBase * Yices2TermIter::clone() const
 {
-  return new Yices2TermIter(term, pos, is_function);
+  return new Yices2TermIter(term, pos);
 }
 
 bool Yices2TermIter::operator==(const Yices2TermIter & it)
@@ -576,15 +549,11 @@ bool Yices2TermIter::equal(const TermIterBase & other) const
   return term == it.term && pos == it.pos;
 }
 
-TermIter Yices2Term::begin()
-{
-  return TermIter(new Yices2TermIter(term, 0, is_function));
-}
+TermIter Yices2Term::begin() { return TermIter(new Yices2TermIter(term, 0)); }
 
 TermIter Yices2Term::end()
 {
-  return TermIter(
-      new Yices2TermIter(term, smt_num_children(term), is_function));
+  return TermIter(new Yices2TermIter(term, smt_num_children(term)));
 }
 
 std::string Yices2Term::print_value_as(SortKind /* sk */)

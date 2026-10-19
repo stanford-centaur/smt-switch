@@ -811,15 +811,11 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   term_t y_term = yices_new_uninterpreted_term(ysort->type);
   yices_set_term_name(y_term, name.c_str());
 
-  Term sym;
   if (ysort->get_sort_kind() == FUNCTION)
   {
-    sym = std::make_shared<Yices2Term>(y_term, true);
+    Yices2InstanceRef::mark_function(y_term);
   }
-  else
-  {
-    sym = std::make_shared<Yices2Term>(y_term);
-  }
+  Term sym = std::make_shared<Yices2Term>(y_term);
   assert(sym);
   symbol_table[name] = sym;
   return sym;
@@ -1088,8 +1084,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     throw InternalSolverException(msg.c_str());
   }
 
-  // marked as an application, or get_op would read it as a Select
-  return std::make_shared<Yices2Term>(res, op.prim_op == Apply);
+  return std::make_shared<Yices2Term>(res);
 }
 
 void Yices2Solver::do_reset()

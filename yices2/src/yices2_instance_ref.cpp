@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <mutex>
+#include <unordered_set>
 
 namespace smt {
 
@@ -22,6 +23,8 @@ namespace {
 // yices_exit() calls, so no thread sees Yices half set up
 std::mutex count_mutex;
 std::size_t count = 0;
+// the symbols declared with a function sort, also under count_mutex
+std::unordered_set<term_t> functions;
 
 void acquire()
 {
@@ -44,7 +47,20 @@ Yices2InstanceRef::~Yices2InstanceRef()
   if (--count == 0)
   {
     yices_exit();
+    functions.clear();
   }
+}
+
+void Yices2InstanceRef::mark_function(term_t t)
+{
+  std::lock_guard lock(count_mutex);
+  functions.insert(t);
+}
+
+bool Yices2InstanceRef::is_function(term_t t)
+{
+  std::lock_guard lock(count_mutex);
+  return functions.count(t) != 0;
 }
 
 }  // namespace smt

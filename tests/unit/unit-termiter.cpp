@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <type_traits>
 #include <utility>
 
@@ -63,6 +64,23 @@ TEST_P(UnitTests, TermIter)
 
   EXPECT_EQ(it, it);
   EXPECT_EQ(it, it2);
+}
+
+TEST_P(UnitTests, NestedApplication)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term g = s->make_symbol(
+      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
+  Term gxy = s->make_term(Apply, g, x, y);
+  Term eq = s->make_term(Equal, gxy, x);
+  // the solver may order the children either way
+  TermVec children(eq->begin(), eq->end());
+  auto it = std::find(children.begin(), children.end(), gxy);
+  ASSERT_NE(it, children.end());
+  EXPECT_EQ((*it)->get_op(), Apply);
+  ASSERT_NE((*it)->begin(), (*it)->end());
+  EXPECT_EQ((*(*it)->begin())->get_sort()->get_sort_kind(), FUNCTION);
 }
 
 TEST_P(ConstArrUnitTests, ConstArr)
