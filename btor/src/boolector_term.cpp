@@ -276,26 +276,21 @@ Sort BoolectorTerm::get_sort() const
     Sort cds = std::make_shared<BoolectorBVSort>(btor, bcds, bcds_width);
 
     // Boolector's domain is a tuple sort, even of one element, and its API
-    // cannot unpack one, so the single element is read internally
-    if (boolector_get_fun_arity(btor.get(), node) == 1)
+    // cannot unpack one, so the elements are read internally
+    SortVec domain_sorts;
+    BtorTupleSortIterator it;
+    btor_iter_tuple_sort_init(
+        &it,
+        btor.get(),
+        btor_sort_fun_get_domain(btor.get(), BTOR_IMPORT_BOOLECTOR_SORT(s)));
+    while (btor_iter_tuple_sort_has_next(&it))
     {
-      BtorTupleSortIterator it;
-      btor_iter_tuple_sort_init(
-          &it,
-          btor.get(),
-          btor_sort_fun_get_domain(btor.get(), BTOR_IMPORT_BOOLECTOR_SORT(s)));
       uint64_t bds_width =
           btor_sort_bv_get_width(btor.get(), btor_iter_tuple_sort_next(&it));
-      Sort ds = std::make_shared<BoolectorBVSort>(
-          btor, boolector_bitvec_sort(btor.get(), bds_width), bds_width);
-      sort = std::make_shared<BoolectorUFSort>(btor, s, SortVec{ ds }, cds);
+      domain_sorts.push_back(std::make_shared<BoolectorBVSort>(
+          btor, boolector_bitvec_sort(btor.get(), bds_width), bds_width));
     }
-    else
-    {
-      // constructor will mark this sort incomplete so it knows that it can't
-      // return the domain sorts
-      sort = std::make_shared<BoolectorUFSort>(btor, s, cds);
-    }
+    sort = std::make_shared<BoolectorUFSort>(btor, s, domain_sorts, cds);
   }
   else
   {

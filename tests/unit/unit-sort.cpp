@@ -110,6 +110,19 @@ TEST_P(UnitSortTests, FunctionSymbolSort)
   EXPECT_EQ(f->get_sort()->get_codomain_sort(), bvsort);
 }
 
+TEST_P(UnitSortTests, BinaryFunctionSymbolSort)
+{
+  Sort bv8 = s->make_sort(BV, 8);
+  Sort binsort = s->make_sort(FUNCTION, SortVec{ bvsort, bv8, bvsort });
+  Term g = s->make_symbol("g", binsort);
+  EXPECT_EQ(g->get_sort(), binsort);
+  SortVec domain_sorts = g->get_sort()->get_domain_sorts();
+  ASSERT_EQ(domain_sorts.size(), 2);
+  EXPECT_EQ(domain_sorts[0], bvsort);
+  EXPECT_EQ(domain_sorts[1], bv8);
+  EXPECT_EQ(g->get_sort()->get_codomain_sort(), bvsort);
+}
+
 TEST_P(UnitSortTests, ArrayTermSorts)
 {
   Term a = s->make_symbol("a", arrsort);
