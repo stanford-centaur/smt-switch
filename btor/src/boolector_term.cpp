@@ -251,7 +251,8 @@ Sort BoolectorTerm::get_sort() const
     uint64_t width = boolector_bitvec_sort_get_width(btor.get(), s);
     sort = std::make_shared<BoolectorBVSort>(btor, s, width);
   }
-  else if (boolector_is_array_sort(btor.get(), s))
+  // a unary function has the sort of the matching array, so ask the node
+  else if (boolector_is_array(btor.get(), node))
   {
     uint64_t idxwidth = boolector_get_index_width(btor.get(), node);
     uint64_t elemwidth = boolector_get_width(btor.get(), node);
@@ -274,16 +275,19 @@ Sort BoolectorTerm::get_sort() const
     boolector_copy_sort(btor.get(), bcds);
     Sort cds = std::make_shared<BoolectorBVSort>(btor, bcds, bcds_width);
 
-    // boolector has no way of getting domain sorts when arity is not 1
-    // it will return a TupleSort but there's no way to unpack them
+    // Boolector's domain is a tuple sort, even of one element, and its API
+    // cannot unpack one, so the single element is read internally
     if (boolector_get_fun_arity(btor.get(), node) == 1)
     {
-      BoolectorSort bds = boolector_fun_get_domain_sort(btor.get(), node);
-      assert(boolector_is_bitvec_sort(btor.get(), bds));
-      uint64_t bds_width = boolector_bitvec_sort_get_width(btor.get(), bds);
-      // increment reference counter for the sort
-      boolector_copy_sort(btor.get(), bds);
-      Sort ds = std::make_shared<BoolectorBVSort>(btor, bds, bds_width);
+      BtorTupleSortIterator it;
+      btor_iter_tuple_sort_init(
+          &it,
+          btor.get(),
+          btor_sort_fun_get_domain(btor.get(), BTOR_IMPORT_BOOLECTOR_SORT(s)));
+      uint64_t bds_width =
+          btor_sort_bv_get_width(btor.get(), btor_iter_tuple_sort_next(&it));
+      Sort ds = std::make_shared<BoolectorBVSort>(
+          btor, boolector_bitvec_sort(btor.get(), bds_width), bds_width);
       sort = std::make_shared<BoolectorUFSort>(btor, s, SortVec{ ds }, cds);
     }
     else
