@@ -134,8 +134,13 @@ bool LoggingSort::compare(const Sort & s) const
 
       return true;
     }
-    case UNINTERPRETED: {
-      return get_uninterpreted_name() == s->get_uninterpreted_name();
+    case UNINTERPRETED:
+    case UNINTERPRETED_CONS: {
+      // the name does not identify the sort: every application of a
+      // constructor shares it, and a solver may declare a name twice
+      std::shared_ptr<LoggingSort> other =
+          std::dynamic_pointer_cast<LoggingSort>(s);
+      return other && wrapped_sort == other->wrapped_sort;
     }
     case DATATYPE: {
       throw NotImplementedException("LoggingSort::compare");
