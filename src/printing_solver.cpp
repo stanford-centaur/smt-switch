@@ -237,6 +237,11 @@ std::uint64_t PrintingSolver::get_context_level() const
   return wrapped_solver->get_context_level();
 }
 
+void PrintingSolver::dump_smt2(std::string filename) const
+{
+  wrapped_solver->dump_smt2(filename);
+}
+
 void PrintingSolver::do_reset_assertions()
 {
   (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << std::endl;

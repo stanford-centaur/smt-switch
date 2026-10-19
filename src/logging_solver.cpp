@@ -522,6 +522,11 @@ std::uint64_t LoggingSolver::get_context_level() const
   return wrapped_solver->get_context_level();
 }
 
+void LoggingSolver::dump_smt2(std::string filename) const
+{
+  wrapped_solver->dump_smt2(filename);
+}
+
 void LoggingSolver::do_reset_assertions()
 {
   wrapped_solver->reset_assertions();
