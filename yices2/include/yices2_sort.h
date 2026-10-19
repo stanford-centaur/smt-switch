@@ -50,7 +50,7 @@ class Yices2Sort : public AbsSort
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override;
-  type_t get_ytype() { return type; };
+  type_t get_ytype() const { return type; };
 
  protected:
   // keeps Yices set up while the sort can be used, even past its solver

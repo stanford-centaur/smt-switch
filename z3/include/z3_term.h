@@ -85,8 +85,8 @@ class Z3Term : public AbsTerm
   std::string print_value_as(SortKind sk) const override;
 
   // getters for solver-specific objects (EXPERTS only)
-  expr get_z3_expr();
-  func_decl get_z3_func_decl();
+  expr get_z3_expr() const;
+  func_decl get_z3_func_decl() const;
 
  protected:
   // shared with the solver, so the context lives as long as this term, and

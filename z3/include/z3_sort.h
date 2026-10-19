@@ -53,7 +53,7 @@ class Z3Sort : public AbsSort
   SortKind get_sort_kind() const override;
 
   // getters for solver-specific objects (EXPERTS only)
-  z3::sort get_z3_type();
+  z3::sort get_z3_type() const;
 
  protected:
   // shared with the solver, so the context lives as long as this sort, and
