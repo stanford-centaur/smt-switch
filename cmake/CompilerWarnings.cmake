@@ -870,7 +870,7 @@ set(
   # -Wsuggest-attribute=const # functions which might be candidates for __attribute__((const))
   -Wsuggest-attribute=malloc # functions which might be candidates for __attribute__((malloc))
   # -Wsuggest-attribute=pure # functions which might be candidates for __attribute__((pure))
-  # -Wsuggest-destructor-override # X overrides a destructor but is not marked 'override'
+  -Wsuggest-destructor-override # X overrides a destructor but is not marked 'override'
   # -Wsuggest-final-methods # C++ virtual methods where adding final keyword
   # -Wsuggest-final-types # C++ polymorphic types where adding final keyword
   # -Wsuggest-override # suggest that the override keyword be used when the declaration
@@ -1119,6 +1119,23 @@ else()
     string(REGEX MATCH "-W[A-Za-z0-9+=_-]+" cxx_warning "${cxx_warning}")
     list(REMOVE_ITEM cxx_warnings "${cxx_warning}")
   endforeach()
+
+  # Exemptions of one file from one warning, for code generated here rather
+  # than written. Clang reads them from version 20; a compiler refusing the
+  # option gets none.
+  set(cxx_warnings_mappings "${CMAKE_CURRENT_LIST_DIR}/warning-suppressions.txt")
+  execute_process(
+    COMMAND
+      "${CMAKE_CXX_COMPILER}" -fsyntax-only
+      "--warning-suppression-mappings=${cxx_warnings_mappings}"
+      "${CMAKE_CURRENT_BINARY_DIR}/cxx-warnings-probe.cpp"
+    RESULT_VARIABLE cxx_warnings_mappings_result
+    OUTPUT_QUIET
+    ERROR_QUIET
+  )
+  if(cxx_warnings_mappings_result EQUAL 0)
+    list(APPEND cxx_warnings "--warning-suppression-mappings=${cxx_warnings_mappings}")
+  endif()
 
   if(SMT_SWITCH_STRICT)
     list(APPEND cxx_warnings -Werror)
