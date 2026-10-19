@@ -199,6 +199,7 @@ TEST_P(UnitSortTests, UninterpretedSort)
   EXPECT_EQ(uninterp_sort->get_sort_kind(), UNINTERPRETED);
   EXPECT_EQ(uninterp_sort->get_uninterpreted_name(), "declared-sort");
   EXPECT_EQ(uninterp_sort->get_arity(), 0);
+  EXPECT_TRUE(uninterp_sort->get_uninterpreted_param_sorts().empty());
 
   // Now try non-zero arity (not supported by very many solvers)
   std::size_t num_params = 4;

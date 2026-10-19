@@ -142,8 +142,13 @@ size_t Z3Sort::get_arity() const
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const
 {
-  throw NotImplementedException(
-      "get_uninterpreted_param_sorts not implemented for Z3 backend.");
+  // the backend makes no sort constructors, so no sort has parameters
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    return {};
+  }
+  throw IncorrectUsageException(
+      "Can only get param sorts from uninterpreted sort");
 }
 
 Datatype Z3Sort::get_datatype() const

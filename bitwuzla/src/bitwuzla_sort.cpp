@@ -95,8 +95,13 @@ std::size_t BzlaSort::get_arity() const
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
-  throw SmtException(
-      "Bitwuzla does not support parametrized uninterpreted sorts.");
+  // Bitwuzla has no sort constructors, so no sort has parameters
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    return {};
+  }
+  throw IncorrectUsageException(
+      "Can only get param sorts from uninterpreted sort");
 }
 
 Datatype BzlaSort::get_datatype() const
