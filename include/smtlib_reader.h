@@ -219,6 +219,17 @@ class SmtLibReader
    */
   PrimOp lookup_primop(const std::string & str) const;
 
+  /** Apply a primitive operator to its arguments, where unary - is the
+   *  negation. In a logic of both Ints and Reals, an operator over Reals
+   *  takes an Int argument next to a Real one as a Real, and / takes every
+   *  Int argument as one, as the SMT-LIB logic AUFLIRA defines it. Outside
+   *  strict mode, so do = and distinct.
+   *  @param po the operator
+   *  @param args its arguments
+   *  @return the application
+   */
+  Term apply_primop(PrimOp po, TermVec args) const;
+
   /** Look up a sort by string
    *  The available sorts are based on the logic
    *  @param str the string to look up

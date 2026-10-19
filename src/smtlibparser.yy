@@ -256,17 +256,7 @@ term_s_expr:
     if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
     {
        // this is an operator
-       // special-case for MINUS
-       // needs to be negate if only one argument
-       // TODO: might be a more elegant way to handle this
-       if (po == smt::Minus && $3->size() == 1)
-       {
-         $$ = drv.solver()->make_term(smt::Negate, $3->at(0));
-       }
-       else
-       {
-         $$ = drv.solver()->make_term(po, *$3);
-       }
+       $$ = drv.apply_primop(po, *$3);
     }
     else if ((uf = drv.lookup_symbol($2)))
     {
