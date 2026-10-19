@@ -87,11 +87,6 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
-  // helper methods for making a term with a primitive op
-  Term apply_prim_op(PrimOp op, Term t) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1) const;
-  Term apply_prim_op(PrimOp op, Term t0, Term t1, Term t2) const;
-  Term apply_prim_op(PrimOp op, TermVec terms) const;
   void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects
