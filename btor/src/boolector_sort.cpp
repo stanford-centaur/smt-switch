@@ -116,6 +116,20 @@ bool BoolectorSortBase::compare(const Sort & s) const
       std::static_pointer_cast<BoolectorSortBase>(s);
   return (sort == bs->sort);
 }
+
+BoolectorUFSort::BoolectorUFSort(const std::shared_ptr<Btor> & b,
+                                 BoolectorSort s,
+                                 SortVec sorts,
+                                 Sort sort)
+    : BoolectorSortBase(FUNCTION, b, s),
+      domain_sorts(sorts),
+      codomain_sort(sort)
+{
+}
+
+SortVec BoolectorUFSort::get_domain_sorts() const { return domain_sorts; }
+
+Sort BoolectorUFSort::get_codomain_sort() const { return codomain_sort; }
 /* end BoolectorSolver implementation */
 
 }  // namespace smt
