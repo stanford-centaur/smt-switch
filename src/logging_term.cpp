@@ -140,7 +140,7 @@ Op LoggingTerm::get_op() const { return op; }
 
 Sort LoggingTerm::get_sort() const { return sort; }
 
-std::string LoggingTerm::to_string()
+std::string LoggingTerm::to_string() const
 {
   if (!repr.empty())
   {
@@ -234,7 +234,7 @@ std::int64_t LoggingTerm::to_signed_int() const
   return wrapped_term->to_signed_int();
 }
 
-std::string LoggingTerm::print_value_as(SortKind sk)
+std::string LoggingTerm::print_value_as(SortKind sk) const
 {
   return wrapped_term->print_value_as(sk);
 }

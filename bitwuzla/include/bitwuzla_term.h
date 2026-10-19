@@ -73,14 +73,14 @@ class BzlaTerm : public AbsTerm
   bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
-  virtual std::string to_string() override;
+  virtual std::string to_string() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;
   /** Iterators for traversing the children
    */
   TermIter begin() override;
   TermIter end() override;
-  std::string print_value_as(SortKind sk) override;
+  std::string print_value_as(SortKind sk) const override;
 
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software

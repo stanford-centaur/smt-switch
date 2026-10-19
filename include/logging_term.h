@@ -55,7 +55,7 @@ class LoggingTerm : public AbsTerm
   bool compare(const Term & t) const override;
   Op get_op() const override;
   Sort get_sort() const override;
-  std::string to_string() override;
+  std::string to_string() const override;
   std::wstring getStringValue() const override;
   bool is_symbol() const override;
   bool is_param() const override;
@@ -68,14 +68,14 @@ class LoggingTerm : public AbsTerm
   bool is_value() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;
-  std::string print_value_as(SortKind sk) override;
+  std::string print_value_as(SortKind sk) const override;
 
  protected:
   Term wrapped_term;  ///< the term of the underlying solver
   Sort sort;          ///< a LoggingSort
   Op op;
   TermVec children;
-  std::string repr;
+  mutable std::string repr;
   bool is_sym;
   bool is_par;
   std::size_t id_;  ///< unique id for this term

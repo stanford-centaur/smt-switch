@@ -72,13 +72,13 @@ class Yices2Term : public AbsTerm
   bool is_param() const override;
   bool is_symbolic_const() const override;
   bool is_value() const override;
-  virtual std::string to_string() override;
+  virtual std::string to_string() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
   /* Iterators for traversing the children */
   TermIter begin() override;
   TermIter end() override;
-  std::string print_value_as(SortKind sk) override;
+  std::string print_value_as(SortKind sk) const override;
 
  protected:
   // keeps Yices set up while the term can be used, even past its solver
@@ -86,11 +86,6 @@ class Yices2Term : public AbsTerm
   term_t term;
 
   friend class Yices2TermIter;
-
-  // a const version of to_string
-  // the main to_string can't be const so that LoggingSolver
-  // can build its string representation lazily
-  std::string const_to_string() const;
 
   friend class Yices2Solver;
 };

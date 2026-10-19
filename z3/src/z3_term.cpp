@@ -318,7 +318,7 @@ bool Z3Term::is_value() const
   return false;
 }
 
-string Z3Term::to_string()
+string Z3Term::to_string() const
 {
   if (is_function)
   {
@@ -417,7 +417,7 @@ TermIter Z3Term::end()
   return TermIter(new Z3TermIter(ctx, term, num_args));
 }
 
-std::string Z3Term::print_value_as(SortKind /* sk */)
+std::string Z3Term::print_value_as(SortKind /* sk */) const
 {
   if (!is_value())
   {
@@ -444,10 +444,6 @@ func_decl Z3Term::get_z3_func_decl()
   }
   return z_func;
 }
-
-// string Z3Term::const_to_string() const {
-//	return term.to_string();
-//}
 
 // end Z3Term implementation
 

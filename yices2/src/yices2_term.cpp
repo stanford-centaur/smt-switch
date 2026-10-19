@@ -152,7 +152,7 @@ Op Yices2Term::get_op() const
        * (* -1 b) is still of type YICES_ARITH_SUM. To transfer this
        * term, you need to construct the multiply.
        */
-      sres = const_to_string();
+      sres = to_string();
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
       if (yices_term_num_children(term) == 1 && sres == "*")
@@ -162,7 +162,7 @@ Op Yices2Term::get_op() const
       return Op(Plus);
     // products
     case YICES_POWER_PRODUCT:
-      sres = const_to_string();
+      sres = to_string();
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
       if (sres == "bv-mul")
@@ -260,8 +260,6 @@ bool Yices2Term::is_value() const
           || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT
           || tc == YICES_LAMBDA_TERM);
 }
-
-string Yices2Term::to_string() { return const_to_string(); }
 
 /** Returns the text of an arithmetic constant, e.g. -5 or 1/2 */
 static string arith_constant_to_string(term_t term)
@@ -556,7 +554,7 @@ TermIter Yices2Term::end()
   return TermIter(new Yices2TermIter(term, smt_num_children(term)));
 }
 
-std::string Yices2Term::print_value_as(SortKind /* sk */)
+std::string Yices2Term::print_value_as(SortKind /* sk */) const
 {
   if (!is_value())
   {
@@ -566,7 +564,7 @@ std::string Yices2Term::print_value_as(SortKind /* sk */)
   return to_string();
 }
 
-string Yices2Term::const_to_string() const
+string Yices2Term::to_string() const
 {
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_ARITH_CONSTANT)

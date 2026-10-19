@@ -560,7 +560,7 @@ bool MsatTerm::is_value() const
           msat_term_is_array_const(*env, term));
 }
 
-string MsatTerm::to_string()
+string MsatTerm::to_string() const
 {
   if (is_uf)
   {
@@ -653,7 +653,7 @@ TermIter MsatTerm::end()
   return TermIter(new MsatTermIter(env, term, arity));
 }
 
-std::string MsatTerm::print_value_as(SortKind /* sk */)
+std::string MsatTerm::print_value_as(SortKind /* sk */) const
 {
   if (!is_value())
   {
