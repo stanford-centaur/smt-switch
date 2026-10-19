@@ -79,6 +79,7 @@ class PrintingSolver : public AbsSmtSolver
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
   std::uint64_t get_context_level() const override;
+  void dump_smt2(std::string filename) const override;
 
   /* Operators that are not printed
    * For example, creating terms is not printed, but the

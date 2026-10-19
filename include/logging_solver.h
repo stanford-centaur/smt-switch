@@ -80,6 +80,7 @@ class LoggingSolver : public AbsSmtSolver
   using AbsSmtSolver::check_sat_assuming;
   Result check_sat_assuming(const TermVec & assumptions) override;
   std::uint64_t get_context_level() const override;
+  void dump_smt2(std::string filename) const override;
 
  protected:
   void do_push(std::uint64_t num) override;

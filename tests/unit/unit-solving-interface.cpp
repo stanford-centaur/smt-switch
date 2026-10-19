@@ -14,12 +14,16 @@
 **
 **/
 
+#include <fstream>
 #include <set>
+#include <sstream>
+#include <string>
 #include <type_traits>
 #include <utility>
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
+#include "printing_solver.h"
 #include "smt.h"
 
 using namespace smt;
@@ -42,6 +46,27 @@ TermVec::const_iterator begin(const FreeBeginRange & r)
 }
 
 TermVec::const_iterator end(const FreeBeginRange & r) { return r.terms.end(); }
+
+// What s writes to filename for an asserted x = y, or "refused" if it does
+// not dump
+string dump_equality(SmtSolver s, const string & filename)
+{
+  Sort bvsort = s->make_sort(BV, 4);
+  s->assert_formula(s->make_term(
+      Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
+  try
+  {
+    s->dump_smt2(filename);
+  }
+  catch (NotImplementedException &)
+  {
+    return "refused";
+  }
+  ifstream in(filename);
+  stringstream contents;
+  contents << in.rdbuf();
+  return contents.str();
+}
 
 template <class A, class = void>
 struct AcceptsAssumptions : std::false_type
@@ -134,6 +159,22 @@ TEST_P(UnitSolveTests, SatisfiableAssumption)
   // the model follows the assumption
   ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_sat());
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
+}
+
+TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
+{
+  SolverEnum se = GetParam().solver_enum;
+  string prefix = testing::TempDir() + to_string(se);
+  string plain = dump_equality(create_solver(SolverConfiguration(se, false)),
+                               prefix + "-plain.smt2");
+  // a logging configuration wraps the plain solver in a LoggingSolver
+  EXPECT_EQ(dump_equality(create_solver(GetParam()), prefix + "-param.smt2"),
+            plain);
+  ostringstream printed;
+  EXPECT_EQ(
+      dump_equality(create_printing_solver(create_solver(GetParam()), &printed),
+                    prefix + "-printing.smt2"),
+      plain);
 }
 
 INSTANTIATE_TEST_SUITE_P(
