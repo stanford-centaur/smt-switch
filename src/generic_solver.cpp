@@ -1652,26 +1652,6 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort)
   return (*name_term_map)[name];
 }
 
-Term GenericSolver::make_term(const Op op, const Term & t) const
-{
-  return make_term(op, TermVec({ t }));
-}
-
-Term GenericSolver::make_term(const Op op,
-                              const Term & t1,
-                              const Term & t2) const
-{
-  return make_term(op, TermVec({ t1, t2 }));
-}
-
-Term GenericSolver::make_term(const Op op,
-                              const Term & t1,
-                              const Term & t2,
-                              const Term & t3) const
-{
-  return make_term(op, TermVec({ t1, t2, t3 }));
-}
-
 /**
  * base raised to exponent, as products found by repeated squaring, so the
  * term grows with the number of digits of the exponent rather than with it

@@ -706,11 +706,6 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
   }
 }
 
-Term Cvc5Solver::make_term(Op op, const Term & t) const
-{
-  return make_term(op, TermVec({ t }));
-}
-
 Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
 {
   try
@@ -907,19 +902,6 @@ SortVec Cvc5Solver::make_datatype_sorts(
   {
     throw InternalSolverException(e.what());
   }
-}
-
-Term Cvc5Solver::make_term(Op op, const Term & t0, const Term & t1) const
-{
-  return make_term(op, TermVec({ t0, t1 }));
-}
-
-Term Cvc5Solver::make_term(Op op,
-                           const Term & t0,
-                           const Term & t1,
-                           const Term & t2) const
-{
-  return make_term(op, TermVec({ t0, t1, t2 }));
 }
 
 Term Cvc5Solver::make_term(Op op, const TermVec & terms) const

@@ -734,24 +734,6 @@ Term MsatSolver::make_param(const std::string name, const Sort & sort)
   return std::make_shared<MsatTerm>(env, var);
 }
 
-Term MsatSolver::make_term(Op op, const Term & t) const
-{
-  return make_term(op, TermVec{ t });
-}
-
-Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
-{
-  return make_term(op, TermVec{ t0, t1 });
-}
-
-Term MsatSolver::make_term(Op op,
-                           const Term & t0,
-                           const Term & t1,
-                           const Term & t2) const
-{
-  return make_term(op, TermVec{ t0, t1, t2 });
-}
-
 Term MsatSolver::make_term(Op op, const TermVec & terms) const
 {
   initialize_env();

@@ -106,12 +106,6 @@ class Yices2Solver : public AbsSmtSolver
   Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
-  Term make_term(Op op, const Term & t) const override;
-  Term make_term(Op op, const Term & t0, const Term & t1) const override;
-  Term make_term(Op op,
-                 const Term & t0,
-                 const Term & t1,
-                 const Term & t2) const override;
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;

@@ -48,6 +48,9 @@ class LoggingSolver : public AbsSmtSolver
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 
+  // Declaring make_term here hides the AbsSmtSolver template that takes
+  // the children as separate arguments, so name it back in.
+  using AbsSmtSolver::make_term;
   Term make_term(bool b) const override;
   Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string & s,
@@ -61,12 +64,6 @@ class LoggingSolver : public AbsSmtSolver
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) override;
   Term make_param(const std::string name, const Sort & sort) override;
-  Term make_term(const Op op, const Term & t) const override;
-  Term make_term(const Op op, const Term & t0, const Term & t1) const override;
-  Term make_term(const Op op,
-                 const Term & t0,
-                 const Term & t1,
-                 const Term & t2) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,

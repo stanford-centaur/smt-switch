@@ -908,24 +908,6 @@ static uint32_t pow_exponent(term_t term)
   return res;
 }
 
-Term Yices2Solver::make_term(Op op, const Term & t) const
-{
-  return make_term(op, TermVec{ t });
-}
-
-Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
-{
-  return make_term(op, TermVec{ t0, t1 });
-}
-
-Term Yices2Solver::make_term(Op op,
-                             const Term & t0,
-                             const Term & t1,
-                             const Term & t2) const
-{
-  return make_term(op, TermVec{ t0, t1, t2 });
-}
-
 Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 {
   size_t size = terms.size();
