@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include "exceptions.h"
@@ -25,6 +26,8 @@
 #include "sort.h"
 
 namespace smt {
+
+class LoggingDatatypeDecl;
 
 /* Helper functions for creating logging sorts */
 // Sort s is the underlying sort
@@ -183,6 +186,41 @@ class UninterpretedLoggingSort : public LoggingSort
   std::string name;
   std::uint64_t arity;
   SortVec param_sorts;
+};
+
+class DatatypeLoggingSort : public LoggingSort
+{
+ public:
+  DatatypeLoggingSort(Sort s, std::shared_ptr<LoggingDatatypeDecl> decl);
+
+  typedef LoggingSort super;
+
+  Datatype get_datatype() const override;
+
+ protected:
+  /** the declaration it was made from, which names each selector's sort */
+  std::shared_ptr<LoggingDatatypeDecl> decl;
+
+  friend class LoggingSolver;
+};
+
+/** The sort of a datatype's constructor, selector or tester term */
+class DatatypeComponentLoggingSort : public LoggingSort
+{
+ public:
+  DatatypeComponentLoggingSort(SortKind sk,
+                               Sort s,
+                               SortVec domain,
+                               Sort codomain);
+
+  typedef LoggingSort super;
+
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+
+ protected:
+  SortVec domain_sorts;
+  Sort codomain_sort;
 };
 
 }  // namespace smt

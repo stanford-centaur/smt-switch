@@ -53,6 +53,11 @@ LoggingTerm::LoggingTerm(
 {
 }
 
+LoggingTerm::LoggingTerm(Term t, Sort s, std::string r, std::size_t id)
+    : wrapped_term(t), sort(s), repr(r), is_sym(false), is_par(false), id_(id)
+{
+}
+
 LoggingTerm::~LoggingTerm() {}
 
 // implemented
@@ -157,10 +162,18 @@ std::string LoggingTerm::to_string()
     // Op should not be null because handled values above
     //     and symbols already have the repr set
     assert(!op.is_null());
+    // a nullary constructor applied is an SMT-LIB constant, not a call
+    if (op.prim_op == Apply_Constructor && children.size() == 1)
+    {
+      repr = children[0]->to_string();
+      return repr;
+    }
     repr = "(";
-    // SMT-LIB has no operator for applying a function: the function, which
-    // is the first child, stands in its place
-    if (op.prim_op != Apply)
+    // SMT-LIB has no operator for applying a function, constructor,
+    // selector or tester: the one applied, which is the first child, stands
+    // in its place
+    if (op.prim_op != Apply && op.prim_op != Apply_Constructor
+        && op.prim_op != Apply_Selector && op.prim_op != Apply_Tester)
     {
       repr += op.to_string() + " ";
     }

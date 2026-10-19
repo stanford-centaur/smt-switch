@@ -41,6 +41,9 @@ class LoggingTerm : public AbsTerm
               std::string r,
               bool is_sym,
               std::size_t id);
+  // this one is for a named leaf that is neither a symbol nor a parameter,
+  // such as a datatype's constructor, selector or tester
+  LoggingTerm(Term t, Sort s, std::string r, std::size_t id);
   virtual ~LoggingTerm();
 
   // implemented

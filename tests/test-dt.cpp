@@ -44,8 +44,7 @@ class Datatypes : public ::testing::Test,
 
 TEST_P(Datatypes, DeclareSimpleList)
 {
-  SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_solver_enum() == GENERIC_SOLVER)
   {
     return;
   }
@@ -62,11 +61,6 @@ TEST_P(Datatypes, DeclareSimpleList)
 
 TEST_P(Datatypes, SelectorBelongsToOneConstructor)
 {
-  if (GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "a logging solver has no datatypes";
-  }
-
   DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
   DatatypeConstructorDecl nothing =
       s->make_datatype_constructor_decl("nothing");
@@ -86,11 +80,6 @@ TEST_P(Datatypes, SelectorBelongsToOneConstructor)
 
 TEST_P(Datatypes, ConstructorFromTermVec)
 {
-  if (GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "a logging solver has no datatypes";
-  }
-
   DatatypeDecl tripledecl = s->make_datatype_decl("triple");
   DatatypeConstructorDecl mktriple =
       s->make_datatype_constructor_decl("mktriple");
@@ -116,8 +105,7 @@ TEST_P(Datatypes, ConstructorFromTermVec)
 
 TEST_P(Datatypes, DeclareSimpleListWithForwardRef)
 {
-  SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_solver_enum() == GENERIC_SOLVER)
   {
     return;
   }
@@ -134,12 +122,6 @@ TEST_P(Datatypes, DeclareSimpleListWithForwardRef)
 
 TEST_P(Datatypes, DatatypeDecl)
 {
-  SolverConfiguration sc = GetParam();
-  if (sc.is_logging_solver)
-  {
-    GTEST_SKIP() << "not run on logging solvers";
-  }
-
   // Make datatype sort
   DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
@@ -235,6 +217,63 @@ TEST_P(Datatypes, DatatypeDecl)
   EXPECT_THROW(s->get_constructor(listsort, "kons"), IncorrectUsageException);
   EXPECT_THROW(s->get_tester(listsort, "head"), IncorrectUsageException);
   EXPECT_THROW(listdt->get_num_selectors("kons"), IncorrectUsageException);
+}
+
+TEST_P(Datatypes, ComponentsAreHashConsed)
+{
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothing =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  s->add_constructor(maybedecl, nothing);
+  s->add_constructor(maybedecl, just);
+  Sort maybesort = s->make_sort(maybedecl);
+
+  // asking twice gives the same term, which compares their sorts
+  EXPECT_EQ(s->get_constructor(maybesort, "just"),
+            s->get_constructor(maybesort, "just"));
+  EXPECT_EQ(s->get_selector(maybesort, "just", "value"),
+            s->get_selector(maybesort, "just", "value"));
+  EXPECT_EQ(s->get_tester(maybesort, "just"), s->get_tester(maybesort, "just"));
+}
+
+TEST_P(Datatypes, PrintsAsSmtlib)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "a generic term prints the defined name of each subterm, "
+                    "and datatype ops by their smt-switch names";
+  }
+
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  // after add_constructor, which the generic solver needs first (B.4)
+  s->add_selector_self(consdecl, "tail");
+  Sort listsort = s->make_sort(listdecl);
+  EXPECT_EQ(listsort->to_string(), "list");
+
+  // a nullary constructor applied is a constant
+  Term nil =
+      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+  EXPECT_EQ(nil->to_string(), "nil");
+  Term list5 = s->make_term(Apply_Constructor,
+                            s->get_constructor(listsort, "cons"),
+                            s->make_term(5, intsort),
+                            nil);
+  EXPECT_EQ(list5->to_string(), "(cons 5 nil)");
+  EXPECT_EQ(
+      s->make_term(
+           Apply_Selector, s->get_selector(listsort, "cons", "head"), list5)
+          ->to_string(),
+      "(head (cons 5 nil))");
+  EXPECT_EQ(s->make_term(Apply_Tester, s->get_tester(listsort, "nil"), nil)
+                ->to_string(),
+            "((_ is nil) nil)");
 }
 
 INSTANTIATE_TEST_SUITE_P(

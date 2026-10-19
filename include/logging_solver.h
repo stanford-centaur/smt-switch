@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "result.h"
 #include "smt_defs.h"
@@ -31,6 +32,8 @@
 
 namespace smt {
 
+class LoggingDatatypeConstructorDecl;
+
 class LoggingSolver : public AbsSmtSolver
 {
  public:
@@ -38,15 +41,34 @@ class LoggingSolver : public AbsSmtSolver
   ~LoggingSolver();
 
   // implemented
-  // The datatype methods are left to AbsSmtSolver, whose defaults throw.
-  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
-  // from lookup on this type, so name them back in.
+  // Declaring make_sort here at all would hide AbsSmtSolver's convenience
+  // overloads from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
+
+  // datatypes, recorded so that their components get logging sorts
+  Sort make_sort(const DatatypeDecl & d) const override;
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
 
   // Declaring make_term here hides the AbsSmtSolver template that takes
   // the children as separate arguments, so name it back in.
@@ -87,6 +109,28 @@ class LoggingSolver : public AbsSmtSolver
   void do_pop(std::uint64_t num) override;
   void do_reset() override;
   void do_reset_assertions() override;
+
+  /** The recorded declaration of a datatype sort's constructor
+   *  @param s a datatype sort made by this solver
+   *  @param name the name of the constructor
+   *  @return its declaration, as this solver recorded it
+   */
+  std::shared_ptr<LoggingDatatypeConstructorDecl> find_constructor(
+      const Sort & s, const std::string & name) const;
+
+  /** Wraps a constructor, selector or tester term of the underlying solver
+   *  @param wrapped the underlying term
+   *  @param sk CONSTRUCTOR, SELECTOR or TESTER
+   *  @param domain the logging sorts of its arguments
+   *  @param codomain the logging sort of its result
+   *  @param repr how it prints in SMT-LIB
+   *  @return the hash-consed logging term
+   */
+  Term make_component(const Term & wrapped,
+                      SortKind sk,
+                      const SortVec & domain,
+                      const Sort & codomain,
+                      const std::string & repr) const;
 
   SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;

@@ -24,7 +24,6 @@
 #include <unordered_map>
 
 #include "exceptions.h"
-#include "generic_sort.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"
@@ -694,9 +693,7 @@ Sort store_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
 
 Sort selector_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
 {
-  Sort parent_sort = (sorts[0])->get_domain_sorts()[0];
-  return std::static_pointer_cast<DatatypeComponentSort>(sorts[0])
-      ->get_codomain_sort();
+  return (sorts[0])->get_codomain_sort();
 }
 Sort constructor_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
 {
