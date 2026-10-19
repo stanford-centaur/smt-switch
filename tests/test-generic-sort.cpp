@@ -182,3 +182,30 @@ TEST(GenericSort, SortConstructors)
   EXPECT_EQ(list_int, list_int_again);
   EXPECT_NE(list_int, list_bool);
 }
+
+// The datatype of one constructor, with the given names
+static Sort datatype_sort(const string & name, const string & cons)
+{
+  DatatypeDecl decl = make_shared<GenericDatatypeDecl>(name);
+  shared_ptr<GenericDatatype> dt = make_shared<GenericDatatype>(decl);
+  dt->add_constructor(make_shared<GenericDatatypeConstructorDecl>(cons));
+  return make_shared<GenericDatatypeSort>(dt);
+}
+
+TEST(GenericSort, DatatypeComponents)
+{
+  Sort list = datatype_sort("list", "cons");
+  Sort pair = datatype_sort("pair", "cons");
+  Sort cons = make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
+  Sort cons_again =
+      make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
+  Sort nil = make_shared<DatatypeComponentSort>(CONSTRUCTOR, "nil", list);
+  Sort pair_cons =
+      make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", pair);
+  Sort is_cons = make_shared<DatatypeComponentSort>(TESTER, "cons", list);
+  EXPECT_EQ(cons, cons_again);
+  EXPECT_NE(cons, nil);
+  // a constructor of the same name in another datatype is another one
+  EXPECT_NE(cons, pair_cons);
+  EXPECT_NE(cons, is_cons);
+}
