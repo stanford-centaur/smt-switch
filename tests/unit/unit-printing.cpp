@@ -43,12 +43,15 @@ class UnitPrintTests : public ::testing::Test,
 
 TEST_P(UnitPrintTests, SortKind)
 {
-  ASSERT_EQ(smt::to_string(ARRAY), "Array");
-  ASSERT_EQ(smt::to_string(BOOL), "Bool");
-  ASSERT_EQ(smt::to_string(BV), "BitVec");
-  ASSERT_EQ(smt::to_string(INT), "Int");
-  ASSERT_EQ(smt::to_string(REAL), "Real");
-  ASSERT_EQ(smt::to_string(FUNCTION), "Function");
+  EXPECT_EQ(smt::to_string(ARRAY), "Array");
+  EXPECT_EQ(smt::to_string(BOOL), "Bool");
+  EXPECT_EQ(smt::to_string(BV), "BitVec");
+  EXPECT_EQ(smt::to_string(INT), "Int");
+  EXPECT_EQ(smt::to_string(REAL), "Real");
+  EXPECT_EQ(smt::to_string(FUNCTION), "Function");
+  EXPECT_EQ(smt::to_string(CONSTRUCTOR), "Constructor");
+  EXPECT_EQ(smt::to_string(SELECTOR), "Selector");
+  EXPECT_EQ(smt::to_string(TESTER), "Tester");
 }
 
 TEST_P(UnitPrintTests, Sort)
