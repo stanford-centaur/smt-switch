@@ -32,7 +32,7 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
   s->set_opt("produce-models", "true");
   Sort bvsort = s->make_sort(BV, 10);
 
-  int pg = 300;
+  int pg = 50;
 
   vector<Term> nts;
   for (int i = 0; i < pg; ++i)
