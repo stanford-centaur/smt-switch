@@ -209,14 +209,14 @@ Term AbsSmtInterpolator::make_param(const std::string name, const Sort & sort)
 
 Term AbsSmtInterpolator::make_term(const Op op, const Term & t) const
 {
-  return backend_solver->make_term(op, t);
+  return make_term(op, TermVec{ t });
 }
 
 Term AbsSmtInterpolator::make_term(const Op op,
                                    const Term & t0,
                                    const Term & t1) const
 {
-  return backend_solver->make_term(op, t0, t1);
+  return make_term(op, TermVec{ t0, t1 });
 }
 
 Term AbsSmtInterpolator::make_term(const Op op,
@@ -224,7 +224,7 @@ Term AbsSmtInterpolator::make_term(const Op op,
                                    const Term & t1,
                                    const Term & t2) const
 {
-  return backend_solver->make_term(op, t0, t1, t2);
+  return make_term(op, TermVec{ t0, t1, t2 });
 }
 
 Term AbsSmtInterpolator::make_term(const Op op, const TermVec & terms) const
