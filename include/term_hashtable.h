@@ -34,7 +34,6 @@ class TermHashTable
 {
  public:
   TermHashTable();
-  ~TermHashTable();
   void insert(const Term & t);
   /** check if a term is in the table
    *  @param the term to check

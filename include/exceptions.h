@@ -43,11 +43,6 @@ class SmtException : public std::exception
    */
   explicit SmtException(const std::string & message) : msg(message) {}
 
-  /** Destructor.
-   * Virtual to allow for subclassing.
-   */
-  virtual ~SmtException() throw() {}
-
   /** Returns a pointer to the (constant) error description.
    *  @return A pointer to a const char*. The underlying memory
    *          is in possession of the Exception object. Callers must

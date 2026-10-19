@@ -34,11 +34,6 @@ BzlaSort::BzlaSort(const bitwuzla::Sort s,
 {
 }
 
-BzlaSort::~BzlaSort()
-{
-  // TODO: figure out if sorts need to be destroyed
-}
-
 std::size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
 
 std::uint64_t BzlaSort::get_width() const

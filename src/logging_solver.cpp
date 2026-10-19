@@ -59,8 +59,6 @@ LoggingSolver::LoggingSolver(SmtSolver s)
 {
 }
 
-LoggingSolver::~LoggingSolver() {}
-
 Sort LoggingSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
   Sort wrapped_sort = wrapped_solver->make_sort(name, arity);

@@ -56,7 +56,7 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver(msat_config c, msat_env e);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
-  ~MsatSolver();
+  ~MsatSolver() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string log) override;
   void assert_formula(const Term & t) override;
@@ -184,7 +184,6 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   MsatInterpolatingSolver(msat_config c, msat_env e);
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
-  ~MsatInterpolatingSolver() {}
   Result get_interpolant(const Term & A,
                          const Term & B,
                          Term & out_I) const override;

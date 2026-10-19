@@ -71,7 +71,7 @@ class AbsSort
 {
  public:
   AbsSort() {};
-  virtual ~AbsSort() {};
+  virtual ~AbsSort() = default;
   virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;
   // An accessor that does not apply to the sort's kind, e.g. get_width of

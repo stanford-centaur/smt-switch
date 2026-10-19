@@ -58,8 +58,6 @@ LoggingTerm::LoggingTerm(Term t, Sort s, std::string r, std::size_t id)
 {
 }
 
-LoggingTerm::~LoggingTerm() {}
-
 // implemented
 
 std::size_t LoggingTerm::get_id() const { return id_; }
@@ -246,8 +244,6 @@ std::string LoggingTerm::print_value_as(SortKind sk)
 LoggingTermIter::LoggingTermIter(TermVec::iterator i) : it(i) {}
 
 LoggingTermIter::LoggingTermIter(const LoggingTermIter & lit) : it(lit.it) {}
-
-LoggingTermIter::~LoggingTermIter() {}
 
 LoggingTermIter & LoggingTermIter::operator=(const LoggingTermIter & lit)
 {

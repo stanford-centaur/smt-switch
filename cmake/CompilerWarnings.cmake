@@ -295,9 +295,9 @@ set(
   -Wdeprecated-builtins # builtin X is deprecated
   -Wdeprecated-comma-subscript # top-level comma expression in array subscript
   -Wdeprecated-copy # mark implicitly-declared copy operations as deprecated if the class
-  # -Wdeprecated-copy-dtor # mark implicitly-declared copy operations as deprecated if the class
+  -Wdeprecated-copy-dtor # mark implicitly-declared copy operations as deprecated if the class
   -Wdeprecated-copy-with-user-provided-copy # definition of implicit copy constructor for X
-  # -Wdeprecated-copy-with-user-provided-dtor # definition of implicit copy constructor for X
+  -Wdeprecated-copy-with-user-provided-dtor # definition of implicit copy constructor for X
   -Wdeprecated-coroutine # 'for co_await' belongs to CoroutineTS instead of C++20
   -Wdeprecated-declarations # uses of __attribute__((deprecated)) declarations
   -Wdeprecated-declarations-switch-case # X is deprecated
@@ -521,7 +521,7 @@ set(
   -Wincomplete-module # covers -Wincomplete-umbrella, -Wnon-modular-include-in-module
   -Wincomplete-setjmp-declaration # declaration of built-in function 'X' requires the declaration
   -Winconsistent-dllimport # X redeclared without 'dllimport' attribute: 'dllexport' attribute
-  # -Winconsistent-missing-destructor-override # X overrides a destructor
+  -Winconsistent-missing-destructor-override # X overrides a destructor
   -Winconsistent-missing-override # X overrides a member function but is not marked 'override'
   -Wincrement-bool # ISO C++17 does not allow incrementing expression of type bool
   -Winfinite-recursion # infinitely recursive calls

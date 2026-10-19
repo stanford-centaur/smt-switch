@@ -67,8 +67,6 @@ bool GenericTerm::compute_ground()
   return true;
 }
 
-GenericTerm::~GenericTerm() {}
-
 Op GenericTerm::get_op() const { return op; }
 
 TermVec GenericTerm::get_children() { return children; }
@@ -199,8 +197,6 @@ std::string GenericTerm::print_value_as(SortKind /* sk */)
 GenericTermIter::GenericTermIter(TermVec::iterator i) : it(i) {}
 
 GenericTermIter::GenericTermIter(const GenericTermIter & lit) : it(lit.it) {}
-
-GenericTermIter::~GenericTermIter() {}
 
 GenericTermIter & GenericTermIter::operator=(const GenericTermIter & lit)
 {

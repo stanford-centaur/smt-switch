@@ -26,14 +26,14 @@ class AbsDatatypeDecl
 {
  public:
   AbsDatatypeDecl() {};
-  virtual ~AbsDatatypeDecl() {};
+  virtual ~AbsDatatypeDecl() = default;
 };
 
 class AbsDatatypeConstructorDecl
 {
  public:
   AbsDatatypeConstructorDecl() {};
-  virtual ~AbsDatatypeConstructorDecl() {};
+  virtual ~AbsDatatypeConstructorDecl() = default;
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 
@@ -41,7 +41,7 @@ class AbsDatatype
 {
  public:
   AbsDatatype() {};
-  virtual ~AbsDatatype() {};
+  virtual ~AbsDatatype() = default;
   virtual std::string get_name() const = 0;
   virtual int get_num_selectors(std::string cons) const = 0;
   virtual int get_num_constructors() const = 0;

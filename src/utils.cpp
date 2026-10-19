@@ -988,8 +988,6 @@ UnsatCoreReducer::UnsatCoreReducer(SmtSolver reducer_solver)
   reducer_->set_opt("incremental", "true");
 }
 
-UnsatCoreReducer::~UnsatCoreReducer() {}
-
 bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
                                                const TermVec & assump,
                                                TermVec & out_red,
@@ -1251,8 +1249,6 @@ Term UnsatCoreReducer::label(const Term & t)
 // ----------------------------------------------------------------------------
 
 DisjointSet::DisjointSet(bool (*c)(const Term & a, const Term & b)) : comp(c) {}
-
-DisjointSet::~DisjointSet() {}
 
 void DisjointSet::add(const Term & a, const Term & b)
 {

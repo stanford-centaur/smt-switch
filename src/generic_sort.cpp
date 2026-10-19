@@ -43,8 +43,6 @@ GenericSort::GenericSort(std::string name) : sk(DATATYPE), datatype_name(name)
 {
 }
 
-GenericSort::~GenericSort() {}
-
 std::size_t GenericSort::hash() const { return str_hash(compute_string()); }
 
 std::string GenericSort::to_string() const { return compute_string(); }
@@ -251,8 +249,6 @@ BVGenericSort::BVGenericSort(std::uint64_t width)
 {
 }
 
-BVGenericSort::~BVGenericSort() {}
-
 std::uint64_t BVGenericSort::get_width() const { return width; }
 
 // ArrayGenericSort
@@ -261,8 +257,6 @@ ArrayGenericSort::ArrayGenericSort(Sort idxsort, Sort esort)
     : GenericSort(ARRAY), indexsort(idxsort), elemsort(esort)
 {
 }
-
-ArrayGenericSort::~ArrayGenericSort() {}
 
 Sort ArrayGenericSort::get_indexsort() const { return indexsort; }
 
@@ -274,8 +268,6 @@ FunctionGenericSort::FunctionGenericSort(SortVec sorts, Sort rsort)
     : GenericSort(FUNCTION), domain_sorts(sorts), codomain_sort(rsort)
 {
 }
-
-FunctionGenericSort::~FunctionGenericSort() {}
 
 SortVec FunctionGenericSort::get_domain_sorts() const { return domain_sorts; }
 
@@ -310,8 +302,6 @@ UninterpretedGenericSort::UninterpretedGenericSort(Sort sort_cons,
   }
 }
 
-UninterpretedGenericSort::~UninterpretedGenericSort() {}
-
 std::string UninterpretedGenericSort::get_uninterpreted_name() const
 {
   return name;
@@ -328,8 +318,6 @@ GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
     : GenericSort(DATATYPE), gdt(dt)
 {
 }
-
-GenericDatatypeSort::~GenericDatatypeSort() {}
 
 Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
 

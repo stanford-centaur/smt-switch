@@ -56,7 +56,6 @@ class PrintingSolver : public AbsSmtSolver
   PrintingSolver(SmtSolver s, std::ostream * os);
   [[deprecated("use the constructor without a style")]] PrintingSolver(
       SmtSolver s, std::ostream * os, PrintingStyleEnum pse);
-  ~PrintingSolver();
 
   /* Operators that are printed */
   // Declaring make_sort here at all would hide AbsSmtSolver's convenience

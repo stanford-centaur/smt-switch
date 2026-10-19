@@ -31,7 +31,6 @@ class MsatSort : public AbsSort
  public:
   MsatSort(const std::shared_ptr<msat_env> & e, msat_type t);
   MsatSort(const std::shared_ptr<msat_env> & e, msat_type t, msat_decl d);
-  ~MsatSort() = default;
   std::size_t hash() const override;
   uint64_t get_width() const override;
   Sort get_indexsort() const override;

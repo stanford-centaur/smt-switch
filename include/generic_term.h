@@ -39,7 +39,6 @@ class GenericTerm : public AbsTerm
   // symbols are "free" uninterpreted constants and functions
   // params are bound variables
   GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym);
-  virtual ~GenericTerm();
 
   /** Returns true iff the term AND sort are equivalent
    *  @param t the term to compare with (assumed to be GenericTerm)
@@ -112,7 +111,6 @@ class GenericTermIter : public TermIterBase
  public:
   GenericTermIter(TermVec::iterator i);
   GenericTermIter(const GenericTermIter & lit);
-  ~GenericTermIter();
   TermIterBase * clone() const override;
 
   GenericTermIter & operator=(const GenericTermIter & lit);
