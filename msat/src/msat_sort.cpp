@@ -47,50 +47,47 @@ std::size_t MsatSort::hash() const
 uint64_t MsatSort::get_width() const
 {
   size_t out_width;
-  if (msat_is_bv_type(*env, type, &out_width))
+  if (!msat_is_bv_type(*env, type, &out_width))
   {
-    // TODO: figure out if this is safe -- only for large bit-widths is this a
-    // problem
-    return (unsigned int)out_width;
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get width from bit-vector sort");
-  }
+  // TODO: figure out if this is safe -- only for large bit-widths is this a
+  // problem
+  return (unsigned int)out_width;
 }
 
 Sort MsatSort::get_indexsort() const
 {
   msat_type idx_type;
-  if (msat_is_array_type(*env, type, &idx_type, nullptr))
+  if (!msat_is_array_type(*env, type, &idx_type, nullptr))
   {
-    return std::make_shared<MsatSort>(env, idx_type);
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no index sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get index sort from array sort");
-  }
+  return std::make_shared<MsatSort>(env, idx_type);
 }
 
 Sort MsatSort::get_elemsort() const
 {
   msat_type elem_type;
-  if (msat_is_array_type(*env, type, nullptr, &elem_type))
+  if (!msat_is_array_type(*env, type, nullptr, &elem_type))
   {
-    return std::make_shared<MsatSort>(env, elem_type);
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no element sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get index sort from array sort");
-  }
+  return std::make_shared<MsatSort>(env, elem_type);
 }
 
 SortVec MsatSort::get_domain_sorts() const
 {
   if (!is_uf_type)
   {
-    throw IncorrectUsageException(
-        "Can't get domain sorts from non-function sort.");
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no domain sorts");
   }
 
   size_t arity = msat_decl_get_arity(uf_decl);
@@ -114,8 +111,9 @@ Sort MsatSort::get_codomain_sort() const
 {
   if (!is_uf_type)
   {
-    throw IncorrectUsageException(
-        "Can't get codomain sort from non-function sort.");
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no codomain sort");
   }
   msat_type t = msat_decl_get_return_type(uf_decl);
   // Note: assuming first-order, e.g. functions can't return functions
@@ -128,41 +126,44 @@ Sort MsatSort::get_codomain_sort() const
 
 string MsatSort::get_uninterpreted_name() const
 {
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    string res(msat_type_repr(type));
-    return res;
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted name");
   }
-  throw IncorrectUsageException("Sort of kind "
-                                + smt::to_string(get_sort_kind())
-                                + " has no uninterpreted name");
+  string res(msat_type_repr(type));
+  return res;
 }
 
 size_t MsatSort::get_arity() const
 {
-  // MathSAT does not support uninterpreted sorts with non-zero arity
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return 0;
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
   }
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+  // MathSAT does not support uninterpreted sorts with non-zero arity
+  return 0;
 }
 
 SortVec MsatSort::get_uninterpreted_param_sorts() const
 {
-  // MathSAT has no sort constructors, so no sort has parameters
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return {};
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted param sorts");
   }
-  throw IncorrectUsageException(
-      "Can only get param sorts from uninterpreted sort");
+  // MathSAT has no sort constructors, so no sort has parameters
+  return {};
 }
 
 Datatype MsatSort::get_datatype() const
 {
-  throw NotImplementedException("get_datatype");
+  // MathSAT has no datatypes, so no sort has a datatype
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
 };
 
 bool MsatSort::compare(const Sort & s) const

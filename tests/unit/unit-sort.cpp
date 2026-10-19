@@ -15,7 +15,11 @@
 **/
 
 #include <cstddef>
+#include <functional>
 #include <iostream>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 #include "available_solvers.h"
 #include "gmock/gmock.h"
@@ -269,6 +273,61 @@ TEST_P(UnitSortTests, UninterpretedNameOnlyForUninterpretedSorts)
                     "Sort of kind " + to_string(sort->get_sort_kind())
                     + " has no uninterpreted name")))
         << sort;
+  }
+}
+
+TEST_P(UnitSortTests, AccessorsOnlyForTheirKinds)
+{
+  struct Accessor
+  {
+    std::string missing;
+    std::unordered_set<SortKind> kinds;
+    std::function<void(const Sort &)> call;
+  };
+  const std::vector<Accessor> accessors{
+    { "width", { BV }, [](const Sort & sort) { sort->get_width(); } },
+    { "index sort",
+      { ARRAY },
+      [](const Sort & sort) { sort->get_indexsort(); } },
+    { "element sort",
+      { ARRAY },
+      [](const Sort & sort) { sort->get_elemsort(); } },
+    { "domain sorts",
+      { FUNCTION },
+      [](const Sort & sort) { sort->get_domain_sorts(); } },
+    { "codomain sort",
+      { FUNCTION },
+      [](const Sort & sort) { sort->get_codomain_sort(); } },
+    { "uninterpreted param sorts",
+      { UNINTERPRETED },
+      [](const Sort & sort) { sort->get_uninterpreted_param_sorts(); } },
+    { "datatype",
+      { DATATYPE },
+      [](const Sort & sort) { sort->get_datatype(); } },
+  };
+  // Yices2 arrays are functions, so its array accessors answer on a
+  // function sort and its function accessors on an array sort
+  bool arrays_are_functions =
+      GetParam().solver_enum == YICES2 && !GetParam().is_logging_solver;
+
+  for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
+  {
+    SortKind sk = sort->get_sort_kind();
+    for (const Accessor & accessor : accessors)
+    {
+      bool aliased = arrays_are_functions
+                     && ((sk == FUNCTION && accessor.kinds.count(ARRAY))
+                         || (sk == ARRAY && accessor.kinds.count(FUNCTION)));
+      if (accessor.kinds.count(sk) || aliased)
+      {
+        continue;
+      }
+      EXPECT_THAT(
+          [&] { accessor.call(sort); },
+          testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
+              "Sort of kind " + to_string(sk) + " has no " + accessor.missing)))
+          << sort;
+    }
   }
 }
 

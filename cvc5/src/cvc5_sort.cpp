@@ -30,21 +30,64 @@ std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
 std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
 
-uint64_t Cvc5Sort::get_width() const { return sort.getBitVectorSize(); }
+uint64_t Cvc5Sort::get_width() const
+{
+  if (!sort.isBitVector())
+  {
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
+  }
+  return sort.getBitVectorSize();
+}
 
 Sort Cvc5Sort::get_indexsort() const
 {
+  if (!sort.isArray())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no index sort");
+  }
   return std::make_shared<Cvc5Sort>(sort.getArrayIndexSort());
 }
 
 Sort Cvc5Sort::get_elemsort() const
 {
+  if (!sort.isArray())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no element sort");
+  }
   return std::make_shared<Cvc5Sort>(sort.getArrayElementSort());
 }
 
 SortVec Cvc5Sort::get_domain_sorts() const
 {
-  std::vector<::cvc5::Sort> cvc5_sorts = sort.getFunctionDomainSorts();
+  // cvc5 has a separate accessor for each kind of sort with a domain
+  std::vector<::cvc5::Sort> cvc5_sorts;
+  if (sort.isFunction())
+  {
+    cvc5_sorts = sort.getFunctionDomainSorts();
+  }
+  else if (sort.isDatatypeConstructor())
+  {
+    cvc5_sorts = sort.getDatatypeConstructorDomainSorts();
+  }
+  else if (sort.isDatatypeSelector())
+  {
+    cvc5_sorts = { sort.getDatatypeSelectorDomainSort() };
+  }
+  else if (sort.isDatatypeTester())
+  {
+    cvc5_sorts = { sort.getDatatypeTesterDomainSort() };
+  }
+  else
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no domain sorts");
+  }
   SortVec domain_sorts;
   domain_sorts.reserve(cvc5_sorts.size());
   Sort s;
@@ -58,7 +101,26 @@ SortVec Cvc5Sort::get_domain_sorts() const
 
 Sort Cvc5Sort::get_codomain_sort() const
 {
-  return std::make_shared<Cvc5Sort>(sort.getFunctionCodomainSort());
+  if (sort.isFunction())
+  {
+    return std::make_shared<Cvc5Sort>(sort.getFunctionCodomainSort());
+  }
+  if (sort.isDatatypeConstructor())
+  {
+    return std::make_shared<Cvc5Sort>(
+        sort.getDatatypeConstructorCodomainSort());
+  }
+  if (sort.isDatatypeSelector())
+  {
+    return std::make_shared<Cvc5Sort>(sort.getDatatypeSelectorCodomainSort());
+  }
+  if (sort.isDatatypeTester())
+  {
+    return std::make_shared<Cvc5Sort>(sort.getDatatypeTesterCodomainSort());
+  }
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no codomain sort");
 }
 
 std::string Cvc5Sort::get_uninterpreted_name() const
@@ -94,15 +156,16 @@ size_t Cvc5Sort::get_arity() const
 
 SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
+  if (!sort.isUninterpretedSort())
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted param sorts");
+  }
   // cvc5 refuses getInstantiatedParameters on a sort that was not applied
   if (!sort.isInstantiated())
   {
-    if (sort.isUninterpretedSort())
-    {
-      return {};
-    }
-    throw IncorrectUsageException(
-        "Can only get param sorts from uninterpreted sort");
+    return {};
   }
   SortVec param_sorts;
   for (auto cs : sort.getInstantiatedParameters())
@@ -120,14 +183,12 @@ bool Cvc5Sort::compare(const Sort & s) const
 
 Datatype Cvc5Sort::get_datatype() const
 {
-  try
+  if (!sort.isDatatype())
   {
-    return std::make_shared<Cvc5Datatype>(sort.getDatatype());
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
   }
-  catch (::cvc5::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  return std::make_shared<Cvc5Datatype>(sort.getDatatype());
 };
 
 SortKind Cvc5Sort::get_sort_kind() const

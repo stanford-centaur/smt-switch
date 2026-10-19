@@ -43,116 +43,111 @@ std::size_t Z3Sort::hash() const
 
 uint64_t Z3Sort::get_width() const
 {
-  if (type.is_bv())
+  if (!type.is_bv())
   {
-    return type.bv_size();
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get width from bit-vector sort");
-  }
+  return type.bv_size();
 }
 
 Sort Z3Sort::get_indexsort() const
 {
-  if (type.is_array())
+  if (!type.is_array())
   {
-    return std::make_shared<Z3Sort>(ctx, type.array_domain());
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no index sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get width from bit-vector sort");
-  }
+  return std::make_shared<Z3Sort>(ctx, type.array_domain());
 }
 
 Sort Z3Sort::get_elemsort() const
 {
-  if (type.is_array())
+  if (!type.is_array())
   {
-    return std::make_shared<Z3Sort>(ctx, type.array_range());
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no element sort");
   }
-  else
-  {
-    throw IncorrectUsageException("Can only get elemsort from array sort");
-  }
+  return std::make_shared<Z3Sort>(ctx, type.array_range());
 }
 
 SortVec Z3Sort::get_domain_sorts() const
 {
-  if (is_function)
+  if (!is_function)
   {
-    unsigned s_arity = z_func.arity();
-    SortVec sorts;
-    sorts.reserve(s_arity);
-    Sort s;
-
-    for (unsigned i = 0; i < s_arity; i++)
-    {
-      s.reset(new Z3Sort(ctx, z_func.domain(i)));
-      sorts.push_back(s);
-    }
-
-    return sorts;
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no domain sorts");
   }
-  else
+  unsigned s_arity = z_func.arity();
+  SortVec sorts;
+  sorts.reserve(s_arity);
+  Sort s;
+
+  for (unsigned i = 0; i < s_arity; i++)
   {
-    throw IncorrectUsageException(
-        "Can only get domain sorts from function sort");
+    s.reset(new Z3Sort(ctx, z_func.domain(i)));
+    sorts.push_back(s);
   }
+
+  return sorts;
 }
 
 Sort Z3Sort::get_codomain_sort() const
 {
-  if (is_function)
+  if (!is_function)
   {
-    return std::make_shared<Z3Sort>(ctx, z_func.range());
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no codomain sort");
   }
-  else
-  {
-    throw IncorrectUsageException(
-        "Can only get codomain sort from function sort");
-  }
+  return std::make_shared<Z3Sort>(ctx, z_func.range());
 }
 
 string Z3Sort::get_uninterpreted_name() const
 {
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return type.name().str();
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted name");
   }
-  throw IncorrectUsageException("Sort of kind "
-                                + smt::to_string(get_sort_kind())
-                                + " has no uninterpreted name");
+  return type.name().str();
 }
 
 size_t Z3Sort::get_arity() const
 {
-  // the backend makes no sort constructors, so every arity is zero
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return 0;
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
   }
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+  // the backend makes no sort constructors, so every arity is zero
+  return 0;
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const
 {
-  // the backend makes no sort constructors, so no sort has parameters
-  if (get_sort_kind() == UNINTERPRETED)
+  if (get_sort_kind() != UNINTERPRETED)
   {
-    return {};
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted param sorts");
   }
-  throw IncorrectUsageException(
-      "Can only get param sorts from uninterpreted sort");
+  // the backend makes no sort constructors, so no sort has parameters
+  return {};
 }
 
 Datatype Z3Sort::get_datatype() const
 {
-  if (type.is_datatype())
-    return std::make_shared<Z3Datatype>(ctx, type);
-  else
-    throw InternalSolverException("Sort is not datatype");
+  if (!type.is_datatype())
+  {
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+  }
+  return std::make_shared<Z3Datatype>(ctx, type);
 };
 
 bool Z3Sort::compare(const Sort & s) const

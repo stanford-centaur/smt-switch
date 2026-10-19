@@ -49,27 +49,35 @@ std::size_t BoolectorSortBase::hash() const
 // overloaded in derived classes
 uint64_t BoolectorSortBase::get_width() const
 {
-  throw IncorrectUsageException("Only defined for a bit-vector sort.");
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
 };
 
 Sort BoolectorSortBase::get_indexsort() const
 {
-  throw IncorrectUsageException("Only defined for an array sort.");
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no index sort");
 };
 
 Sort BoolectorSortBase::get_elemsort() const
 {
-  throw IncorrectUsageException("Only defined for an array sort.");
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no element sort");
 };
 
 SortVec BoolectorSortBase::get_domain_sorts() const
 {
-  throw IncorrectUsageException("Only defined for a function sort.");
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no domain sorts");
 };
 
 Sort BoolectorSortBase::get_codomain_sort() const
 {
-  throw IncorrectUsageException("Only defined for a function sort.");
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no codomain sort");
 };
 
 std::string BoolectorSortBase::get_uninterpreted_name() const
@@ -89,13 +97,17 @@ size_t BoolectorSortBase::get_arity() const
 
 SortVec BoolectorSortBase::get_uninterpreted_param_sorts() const
 {
-  throw NotImplementedException(
-      "Boolector does not support uninterpreted sorts.");
+  // Boolector has no uninterpreted sorts, so no sort has param sorts
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted param sorts");
 }
 
 Datatype BoolectorSortBase::get_datatype() const
 {
-  throw NotImplementedException("get_datatype");
+  // Boolector has no datatypes, so no sort has a datatype
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
 };
 
 bool BoolectorSortBase::compare(const Sort & s) const
