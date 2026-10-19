@@ -500,59 +500,12 @@ Term BzlaSolver::make_param(const std::string name, const Sort & sort)
 
 Term BzlaSolver::make_term(Op op, const Term & t) const
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
-
-  auto it = op2bkind.find(op.prim_op);
-  if (it == op2bkind.end())
-  {
-    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
-                                  + op.to_string());
-  }
-  bitwuzla::Kind bkind = it->second;
-
-  if (!op.num_idx)
-  {
-    return make_bzla_term(tm, bkind, { bterm->term });
-  }
-  else if (op.num_idx == 1)
-  {
-    return make_bzla_term(tm, bkind, { bterm->term }, { op.idx0 });
-  }
-  else
-  {
-    assert(op.num_idx == 2);
-    return make_bzla_term(tm, bkind, { bterm->term }, { op.idx0, op.idx1 });
-  }
+  return make_term(op, TermVec{ t });
 }
 
 Term BzlaSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  std::shared_ptr<BzlaTerm> bterm0 = std::static_pointer_cast<BzlaTerm>(t0);
-  std::shared_ptr<BzlaTerm> bterm1 = std::static_pointer_cast<BzlaTerm>(t1);
-
-  auto it = op2bkind.find(op.prim_op);
-  if (it == op2bkind.end())
-  {
-    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
-                                  + op.to_string());
-  }
-  bitwuzla::Kind bkind = it->second;
-
-  if (!op.num_idx)
-  {
-    return make_bzla_term(tm, bkind, { bterm0->term, bterm1->term });
-  }
-  else if (op.num_idx == 1)
-  {
-    return make_bzla_term(
-        tm, bkind, { bterm0->term, bterm1->term }, { op.idx0 });
-  }
-  else
-  {
-    assert(op.num_idx == 2);
-    return make_bzla_term(
-        tm, bkind, { bterm0->term, bterm1->term }, { op.idx0, op.idx1 });
-  }
+  return make_term(op, TermVec{ t0, t1 });
 }
 
 Term BzlaSolver::make_term(Op op,
@@ -560,36 +513,7 @@ Term BzlaSolver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
-  std::shared_ptr<BzlaTerm> bterm0 = std::static_pointer_cast<BzlaTerm>(t0);
-  std::shared_ptr<BzlaTerm> bterm1 = std::static_pointer_cast<BzlaTerm>(t1);
-  std::shared_ptr<BzlaTerm> bterm2 = std::static_pointer_cast<BzlaTerm>(t2);
-
-  auto it = op2bkind.find(op.prim_op);
-  if (it == op2bkind.end())
-  {
-    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
-                                  + op.to_string());
-  }
-  bitwuzla::Kind bkind = it->second;
-
-  if (!op.num_idx)
-  {
-    return make_bzla_term(
-        tm, bkind, { bterm0->term, bterm1->term, bterm2->term });
-  }
-  else
-  {
-    assert(op.num_idx > 0 && op.num_idx <= 1);
-    const std::vector<bitwuzla::Term> bitwuzla_terms(
-        { bterm0->term, bterm1->term, bterm2->term });
-    std::vector<uint64_t> indices({ op.idx0 });
-    if (op.num_idx == 2)
-    {
-      indices.push_back(op.idx1);
-    }
-
-    return make_bzla_term(tm, bkind, bitwuzla_terms, indices);
-  }
+  return make_term(op, TermVec{ t0, t1, t2 });
 }
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
