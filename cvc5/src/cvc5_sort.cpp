@@ -61,7 +61,16 @@ Sort Cvc5Sort::get_codomain_sort() const
   return std::make_shared<Cvc5Sort>(sort.getFunctionCodomainSort());
 }
 
-std::string Cvc5Sort::get_uninterpreted_name() const { return sort.toString(); }
+std::string Cvc5Sort::get_uninterpreted_name() const
+{
+  // an applied sort prints with its parameters, but is named after its
+  // constructor
+  if (sort.isUninterpretedSort() && sort.isInstantiated())
+  {
+    return sort.getUninterpretedSortConstructor().toString();
+  }
+  return sort.toString();
+}
 
 size_t Cvc5Sort::get_arity() const
 {

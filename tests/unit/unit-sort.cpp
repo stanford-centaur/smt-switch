@@ -230,6 +230,9 @@ TEST_P(UnitSortTests, UninterpretedSort)
   SortVec param_sorts = param_sort->get_uninterpreted_param_sorts();
   EXPECT_EQ(param_sorts.size(), num_params);
   EXPECT_EQ(param_sorts[0], bvsort);
+  // an applied sort is named after its constructor
+  EXPECT_EQ(param_sort->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(param_sort->get_uninterpreted_name(), "sort-con");
 }
 
 TEST_P(UnitSortTests, UninterpSortEquality)
