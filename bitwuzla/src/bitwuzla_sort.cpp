@@ -83,14 +83,8 @@ std::size_t BzlaSort::get_arity() const
   {
     return 0;
   }
-  try
-  {
-    return sort.fun_arity();
-  }
-  catch (bitwuzla::Exception & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
 }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const

@@ -30,5 +30,6 @@ switch_add_unit_test(unit-transfer)
 switch_add_unit_test(unit-util)
 switch_add_unit_test(unit-walker)
 
+target_link_libraries(unit-sort PRIVATE GTest::gmock)
 target_link_libraries(unit-termiter PRIVATE term-utils)
 target_link_libraries(unit-util PRIVATE term-utils)

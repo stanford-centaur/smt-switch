@@ -130,14 +130,13 @@ string Z3Sort::get_uninterpreted_name() const
 
 size_t Z3Sort::get_arity() const
 {
-  if (is_function)
-  {
-    return z_func.arity();
-  }
-  else
+  // the backend makes no sort constructors, so every arity is zero
+  if (get_sort_kind() == UNINTERPRETED)
   {
     return 0;
   }
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const

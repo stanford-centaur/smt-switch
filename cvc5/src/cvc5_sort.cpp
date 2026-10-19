@@ -74,21 +74,16 @@ std::string Cvc5Sort::get_uninterpreted_name() const
 
 size_t Cvc5Sort::get_arity() const
 {
-  try
+  if (sort.isUninterpretedSort())
   {
-    if (sort.isUninterpretedSort())
-    {
-      return 0;
-    }
-    else
-    {
-      return sort.getUninterpretedSortConstructorArity();
-    }
+    return 0;
   }
-  catch (::cvc5::CVC5ApiException & e)
+  if (sort.isUninterpretedSortConstructor())
   {
-    throw InternalSolverException(e.what());
+    return sort.getUninterpretedSortConstructorArity();
   }
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
 }
 
 SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
