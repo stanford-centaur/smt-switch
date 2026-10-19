@@ -50,7 +50,18 @@ if(NOT GTest_FOUND)
     URL "https://github.com/google/googletest/archive/refs/tags/v1.18.0.tar.gz"
     URL_HASH "SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5"
   )
+  # GoogleTest is added below as a subdirectory and would inherit this
+  # directory's warning flags, which it does not build clean under.
+  get_directory_property(options_inherited COMPILE_OPTIONS)
+  set(options_without_warnings "")
+  foreach(option IN LISTS options_inherited)
+    if(NOT option MATCHES "-W")
+      list(APPEND options_without_warnings "${option}")
+    endif()
+  endforeach()
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_without_warnings}")
   FetchContent_MakeAvailable(googletest)
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_inherited}")
 endif()
 
 # Static, because a shared library would carry its own copy of a static

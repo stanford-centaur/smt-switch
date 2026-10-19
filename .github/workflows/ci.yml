@@ -194,7 +194,7 @@ jobs:
           flags=$(jq -r '.[] | "--" + .solver' <<<"$DEPS_ENTRIES")
           read -r -d '' -a flags < <(printf '%s\0' "$flags")
           ./configure.sh --static --python --smtlib-reader --no-auto-deps \
-            "${flags[@]}"
+            --strict "${flags[@]}"
       - name: Build
         working-directory: build
         run: cmake --build . --config Debug && cmake --build . --config Release
