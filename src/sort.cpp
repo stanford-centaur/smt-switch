@@ -109,6 +109,24 @@ std::string AbsSort::to_string() const
   }
   else if (sk == UNINTERPRETED)
   {
+    // an applied sort constructor prints with its parameters
+    SortVec param_sorts = get_uninterpreted_param_sorts();
+    if (param_sorts.empty())
+    {
+      return get_uninterpreted_name();
+    }
+    std::string res("(");
+    res += get_uninterpreted_name();
+    for (const Sort & s : param_sorts)
+    {
+      res += " ";
+      res += s->to_string();
+    }
+    res += ")";
+    return res;
+  }
+  else if (sk == UNINTERPRETED_CONS)
+  {
     return get_uninterpreted_name();
   }
   else

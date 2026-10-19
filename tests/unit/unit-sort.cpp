@@ -234,6 +234,17 @@ TEST_P(UnitSortTests, UninterpretedSort)
   // an applied sort is named after its constructor
   EXPECT_EQ(param_sort->get_sort_kind(), UNINTERPRETED);
   EXPECT_EQ(param_sort->get_uninterpreted_name(), "sort-con");
+
+  // but is identified and printed by its parameters too
+  EXPECT_EQ(param_sort,
+            s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort }));
+  EXPECT_NE(param_sort,
+            s->make_sort(sort_cons,
+                         SortVec{ boolsort, boolsort, boolsort, boolsort }));
+  EXPECT_EQ(param_sort->to_string(),
+            "(sort-con (_ BitVec 4) (_ BitVec 4) (_ BitVec 4) (_ BitVec 4))");
+  EXPECT_EQ(sort_cons->to_string(), "sort-con");
+  EXPECT_EQ(sort_cons, sort_cons);
 }
 
 TEST_P(UnitSortTests, UninterpSortEquality)
