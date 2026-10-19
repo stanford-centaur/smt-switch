@@ -305,57 +305,14 @@ Term LoggingSolver::make_param(const std::string name, const Sort & sort)
 
 Term LoggingSolver::make_term(const Op op, const Term & t) const
 {
-  std::shared_ptr<LoggingTerm> lt = std::static_pointer_cast<LoggingTerm>(t);
-  Term wrapped_res = wrapped_solver->make_term(op, lt->wrapped_term);
-  Sort res_logging_sort = compute_sort(op, this, { t->get_sort() });
-
-  // check that child is already in hash table
-  assert(hashtable->contains(t));
-
-  Term res = std::make_shared<LoggingTerm>(
-      wrapped_res, res_logging_sort, op, TermVec{ t }, next_term_id);
-
-  // check hash table
-  // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
-  if (!hashtable->lookup(res))
-  {
-    // this is the first time this term was created
-    hashtable->insert(res);
-    next_term_id++;
-  }
-
-  return res;
+  return make_term(op, TermVec{ t });
 }
 
 Term LoggingSolver::make_term(const Op op,
                               const Term & t1,
                               const Term & t2) const
 {
-  std::shared_ptr<LoggingTerm> lt1 = std::static_pointer_cast<LoggingTerm>(t1);
-  std::shared_ptr<LoggingTerm> lt2 = std::static_pointer_cast<LoggingTerm>(t2);
-  Term wrapped_res =
-      wrapped_solver->make_term(op, lt1->wrapped_term, lt2->wrapped_term);
-  Sort res_logging_sort =
-      compute_sort(op, this, { t1->get_sort(), t2->get_sort() });
-
-  // check that children are already in hash table
-  assert(hashtable->contains(t1));
-  assert(hashtable->contains(t2));
-
-  Term res = std::make_shared<LoggingTerm>(
-      wrapped_res, res_logging_sort, op, TermVec({ t1, t2 }), next_term_id);
-  // check hash table
-  // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
-  if (!hashtable->lookup(res))
-  {
-    // this is the first time this term was created
-    hashtable->insert(res);
-    next_term_id++;
-  }
-
-  return res;
+  return make_term(op, TermVec{ t1, t2 });
 }
 
 Term LoggingSolver::make_term(const Op op,
@@ -363,33 +320,7 @@ Term LoggingSolver::make_term(const Op op,
                               const Term & t2,
                               const Term & t3) const
 {
-  std::shared_ptr<LoggingTerm> lt1 = std::static_pointer_cast<LoggingTerm>(t1);
-  std::shared_ptr<LoggingTerm> lt2 = std::static_pointer_cast<LoggingTerm>(t2);
-  std::shared_ptr<LoggingTerm> lt3 = std::static_pointer_cast<LoggingTerm>(t3);
-  Term wrapped_res = wrapped_solver->make_term(
-      op, lt1->wrapped_term, lt2->wrapped_term, lt3->wrapped_term);
-  Sort res_logging_sort = compute_sort(
-      op, this, { t1->get_sort(), t2->get_sort(), t3->get_sort() });
-
-  // check that children are already in hash table
-  assert(hashtable->contains(t1));
-  assert(hashtable->contains(t2));
-  assert(hashtable->contains(t3));
-
-  Term res = std::make_shared<LoggingTerm>(
-      wrapped_res, res_logging_sort, op, TermVec{ t1, t2, t3 }, next_term_id);
-
-  // check hash table
-  // lookup modifies term in place and returns true if it's a known term
-  // i.e. returns existing term and destroying the unnecessary new one
-  if (!hashtable->lookup(res))
-  {
-    // this is the first time this term was created
-    hashtable->insert(res);
-    next_term_id++;
-  }
-
-  return res;
+  return make_term(op, TermVec{ t1, t2, t3 });
 }
 
 Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
