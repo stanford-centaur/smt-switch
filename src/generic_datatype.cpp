@@ -12,7 +12,7 @@ GenericDatatypeDecl::GenericDatatypeDecl(const std::string name) : dt_name(name)
 {
 }
 
-std::string GenericDatatypeDecl::get_name() { return dt_name; }
+std::string GenericDatatypeDecl::get_name() const { return dt_name; }
 
 GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
@@ -36,7 +36,7 @@ void GenericDatatypeConstructorDecl::add_new_selector(
 }
 
 std::vector<SelectorComponents>
-GenericDatatypeConstructorDecl::get_selector_vector()
+GenericDatatypeConstructorDecl::get_selector_vector() const
 {
   return selector_vector;
 }
@@ -119,7 +119,7 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
   }
 }
 
-std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()
+std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector() const
 {
   return cons_decl_vector;
 }

@@ -44,7 +44,7 @@ class TermHashTable
    *  @param t the term to look up and modify
    *  @return true iff the term was found in the hash table
    */
-  bool lookup(Term & t);
+  bool lookup(Term & t) const;
   void erase(const Term & t);
   void clear();
 

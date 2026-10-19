@@ -316,7 +316,7 @@ void SmtLibReader::pop_scope()
   sort_arg_ids_.pop_back();
 }
 
-Term SmtLibReader::lookup_symbol(const std::string & sym)
+Term SmtLibReader::lookup_symbol(const std::string & sym) const
 {
   Term symbol_term;
   assert(!symbol_term);
@@ -376,7 +376,7 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
   all_symbols_[name] = fresh_symbol;
 }
 
-PrimOp SmtLibReader::lookup_primop(const std::string & str)
+PrimOp SmtLibReader::lookup_primop(const std::string & str) const
 {
   auto it = primops_.find(str);
   if (it != primops_.end())
@@ -391,7 +391,7 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str)
   }
 }
 
-SortKind SmtLibReader::lookup_sortkind(const std::string & str)
+SortKind SmtLibReader::lookup_sortkind(const std::string & str) const
 {
   SortKind sk = NUM_SORT_KINDS;
   auto it = sortkinds_.find(str);
@@ -502,7 +502,7 @@ void SmtLibReader::define_sort(const std::string & name, const Sort & sort)
   defined_sorts_[name] = sort;
 }
 
-Sort SmtLibReader::lookup_sort(const std::string & name)
+Sort SmtLibReader::lookup_sort(const std::string & name) const
 {
   auto it = defined_sorts_.find(name);
   if (it == defined_sorts_.end())

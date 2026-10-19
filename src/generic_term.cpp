@@ -69,7 +69,7 @@ bool GenericTerm::compute_ground()
 
 Op GenericTerm::get_op() const { return op; }
 
-TermVec GenericTerm::get_children() { return children; }
+TermVec GenericTerm::get_children() const { return children; }
 
 Sort GenericTerm::get_sort() const { return sort; }
 
