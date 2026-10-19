@@ -260,6 +260,18 @@ TEST_P(UnitSortTests, ArityOnlyForUninterpretedSorts)
   }
 }
 
+TEST_P(UnitSortTests, UninterpretedNameOnlyForUninterpretedSorts)
+{
+  for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
+  {
+    EXPECT_THAT([&] { sort->get_uninterpreted_name(); },
+                testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
+                    "Sort of kind " + to_string(sort->get_sort_kind())
+                    + " has no uninterpreted name")))
+        << sort;
+  }
+}
+
 TEST_P(UnitSortTests, UninterpSortEquality)
 {
   if (s->get_solver_enum() == GENERIC_SOLVER)

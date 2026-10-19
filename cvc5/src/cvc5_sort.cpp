@@ -69,7 +69,13 @@ std::string Cvc5Sort::get_uninterpreted_name() const
   {
     return sort.getUninterpretedSortConstructor().toString();
   }
-  return sort.toString();
+  if (sort.isUninterpretedSort() || sort.isUninterpretedSortConstructor())
+  {
+    return sort.toString();
+  }
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted name");
 }
 
 size_t Cvc5Sort::get_arity() const
