@@ -310,20 +310,12 @@ TEST_P(UnitSortTests, AccessorsOnlyForTheirKinds)
       { DATATYPE },
       [](const Sort & sort) { sort->get_datatype(); } },
   };
-  // Yices2 arrays are functions, so its array accessors answer on a
-  // function sort and its function accessors on an array sort
-  bool arrays_are_functions =
-      GetParam().solver_enum == YICES2 && !GetParam().is_logging_solver;
-
   for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
   {
     SortKind sk = sort->get_sort_kind();
     for (const Accessor & accessor : accessors)
     {
-      bool aliased = arrays_are_functions
-                     && ((sk == FUNCTION && accessor.kinds.count(ARRAY))
-                         || (sk == ARRAY && accessor.kinds.count(FUNCTION)));
-      if (accessor.kinds.count(sk) || aliased)
+      if (accessor.kinds.count(sk))
       {
         continue;
       }

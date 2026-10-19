@@ -45,8 +45,7 @@ uint64_t Yices2Sort::get_width() const
 
 Sort Yices2Sort::get_indexsort() const
 {
-  // Arrays are functions in Yices.
-  if (!yices_type_is_function(type))
+  if (get_sort_kind() != ARRAY)
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
@@ -57,8 +56,7 @@ Sort Yices2Sort::get_indexsort() const
 
 Sort Yices2Sort::get_elemsort() const
 {
-  // Arrays are functions in Yices.
-  if (!yices_type_is_function(type))
+  if (get_sort_kind() != ARRAY)
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
@@ -69,7 +67,7 @@ Sort Yices2Sort::get_elemsort() const
 
 SortVec Yices2Sort::get_domain_sorts() const
 {
-  if (!yices_type_is_function(type))
+  if (get_sort_kind() != FUNCTION)
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
@@ -90,7 +88,7 @@ SortVec Yices2Sort::get_domain_sorts() const
 
 Sort Yices2Sort::get_codomain_sort() const
 {
-  if (!yices_type_is_function(type))
+  if (get_sort_kind() != FUNCTION)
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
