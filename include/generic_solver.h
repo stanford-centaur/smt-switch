@@ -301,10 +301,20 @@ class GenericSolver : public AbsSmtSolver
   Term make_negative_bv_const(std::string abs_decimal,
                               unsigned int width) const;
 
-  // open a connection to the binary via a pipe
+  // start the binary and set the options every command relies on
   void start_solver();
+  // start the binary and connect to it by pipes, setting nothing
+  void launch_binary() const;
   // close the connection to the binary
-  void close_solver();
+  void close_solver() const;
+
+  /** after a command failed, bring back the binary's state before it:
+   * a binary that died of the failure is started again and given every
+   * command the old one accepted. The model is lost, so sat or unsat mode
+   * becomes assert mode. Throws InternalSolverException if the new binary
+   * does not accept them all.
+   */
+  void restore_binary() const;
 
   // internally defining and storing a function symbol
   void define_fun(std::string str,
@@ -326,7 +336,10 @@ class GenericSolver : public AbsSmtSolver
   void await_response(const std::chrono::steady_clock::time_point & deadline,
                       const std::string & cmd) const;
 
-  // run a command with the binary
+  // send a command and return the binary's trimmed response, as is
+  std::string exchange(const std::string & cmd) const;
+
+  // run a command with the binary, restoring it after an error
   std::string run_command(std::string cmd,
                           bool verify_success_flag = true) const;
 
@@ -343,11 +356,17 @@ class GenericSolver : public AbsSmtSolver
   // command line arguments for the binary
   std::vector<std::string> cmd_line_args;
 
-  // variables used for running processes; the fds and pid are -1 when unset
-  int inpipefd[2] = { -1, -1 };
-  int outpipefd[2] = { -1, -1 };
-  pid_t pid = -1;
-  int status = 0;
+  // variables used for running processes; the fds and pid are -1 when unset.
+  // Restoring the binary in const methods starts a new process.
+  mutable int inpipefd[2] = { -1, -1 };
+  mutable int outpipefd[2] = { -1, -1 };
+  mutable pid_t pid = -1;
+  mutable int status = 0;
+  // set once the binary has closed its output or its input
+  mutable bool binary_exited_ = false;
+  // every command the binary answered success to, in order, to bring a
+  // new binary to the same state
+  mutable std::vector<std::string> accepted_commands_;
   // filled by reads in const methods
   mutable std::vector<char> read_buf;
 
