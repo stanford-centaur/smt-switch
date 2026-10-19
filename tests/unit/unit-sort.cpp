@@ -101,14 +101,27 @@ TEST_P(UnitSortTests, SortSet)
 
 TEST_P(UnitSortTests, FunctionSymbolSort)
 {
-  if (s->get_solver_enum() == BTOR)
-  {
-    GTEST_SKIP() << "Boolector gives a unary function the sort of an array, "
-                    "and get_sort then asks it for an index width";
-  }
   Term f = s->make_symbol("f", funsort);
   EXPECT_EQ(f->get_sort()->hash(), funsort->hash());
   EXPECT_EQ(f->get_sort(), funsort);
+  SortVec domain_sorts = f->get_sort()->get_domain_sorts();
+  ASSERT_EQ(domain_sorts.size(), 1);
+  EXPECT_EQ(domain_sorts[0], bvsort);
+  EXPECT_EQ(f->get_sort()->get_codomain_sort(), bvsort);
+}
+
+TEST_P(UnitSortTests, ArrayTermSorts)
+{
+  Term a = s->make_symbol("a", arrsort);
+  Term b = s->make_symbol("b", arrsort);
+  Term i = s->make_symbol("i", bvsort);
+  Term c = s->make_symbol("c", boolsort);
+  for (const Term & t :
+       TermVec{ a, s->make_term(Store, a, i, i), s->make_term(Ite, c, a, b) })
+  {
+    EXPECT_EQ(t->get_sort()->get_sort_kind(), ARRAY) << t;
+    EXPECT_EQ(t->get_sort(), arrsort) << t;
+  }
 }
 
 TEST_P(UnitSortTests, FunctionSortDomainAndCodomain)
