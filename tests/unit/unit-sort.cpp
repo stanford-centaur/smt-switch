@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "available_solvers.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "smt.h"
 
@@ -245,6 +246,18 @@ TEST_P(UnitSortTests, UninterpretedSort)
             "(sort-con (_ BitVec 4) (_ BitVec 4) (_ BitVec 4) (_ BitVec 4))");
   EXPECT_EQ(sort_cons->to_string(), "sort-con");
   EXPECT_EQ(sort_cons, sort_cons);
+}
+
+TEST_P(UnitSortTests, ArityOnlyForUninterpretedSorts)
+{
+  for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
+  {
+    EXPECT_THAT([&] { sort->get_arity(); },
+                testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
+                    "Sort of kind " + to_string(sort->get_sort_kind())
+                    + " has no arity")))
+        << sort;
+  }
 }
 
 TEST_P(UnitSortTests, UninterpSortEquality)

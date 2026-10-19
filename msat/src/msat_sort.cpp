@@ -135,7 +135,12 @@ string MsatSort::get_uninterpreted_name() const
 size_t MsatSort::get_arity() const
 {
   // MathSAT does not support uninterpreted sorts with non-zero arity
-  return 0;
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    return 0;
+  }
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
 }
 
 SortVec MsatSort::get_uninterpreted_param_sorts() const

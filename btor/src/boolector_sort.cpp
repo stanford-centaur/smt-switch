@@ -80,8 +80,9 @@ std::string BoolectorSortBase::get_uninterpreted_name() const
 
 size_t BoolectorSortBase::get_arity() const
 {
-  throw NotImplementedException(
-      "Boolector does not support uninterpreted sorts");
+  // Boolector has no uninterpreted sorts, so no sort has an arity
+  throw IncorrectUsageException(
+      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
 }
 
 SortVec BoolectorSortBase::get_uninterpreted_param_sorts() const
