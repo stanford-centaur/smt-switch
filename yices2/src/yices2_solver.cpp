@@ -71,28 +71,28 @@ const unordered_map<PrimOp, yices_un_fun> yices_unary_ops(
       { BVNeg, yices_bvneg } });
 
 const unordered_map<PrimOp, yices_bin_fun> yices_binary_ops(
-    { { And, yices_and2 },           { Or, yices_or2 },
-      { Xor, yices_xor2 },           { Implies, yices_implies },
-      { Plus, yices_add },           { Minus, yices_sub },
-      { Mult, yices_mul },           { Div, yices_division },
-      { Lt, yices_arith_lt_atom },   { IntDiv, yices_idiv },
-      { Le, yices_arith_leq_atom },  { Gt, yices_arith_gt_atom },
-      { Ge, yices_arith_geq_atom },  { Equal, yices_eq },
-      { Mod, yices_imod },           { Concat, yices_bvconcat2 },
-      { BVAnd, yices_bvand2 },       { BVOr, yices_bvor2 },
-      { BVXor, yices_bvxor2 },       { BVNand, yices_bvnand },
-      { BVNor, yices_bvnor },        { BVXnor, yices_bvxnor },
-      { BVAdd, yices_bvadd },        { BVSub, yices_bvsub },
-      { BVMul, yices_bvmul },        { BVUdiv, yices_bvdiv },
-      { BVUrem, yices_bvrem },       { BVSdiv, yices_bvsdiv },
-      { BVSrem, yices_bvsrem },      { BVSmod, yices_bvsmod },
-      { BVShl, yices_bvshl },        { BVAshr, yices_bvashr },
-      { BVLshr, yices_bvlshr },      { BVUlt, yices_bvlt_atom },
-      { BVUle, yices_bvle_atom },    { BVUgt, yices_bvgt_atom },
-      { BVUge, yices_bvge_atom },    { BVSle, yices_bvsle_atom },
-      { BVSlt, yices_bvslt_atom },   { BVSge, yices_bvsge_atom },
-      { BVSgt, yices_bvsgt_atom },   { Select, ext_yices_select },
-      { Apply, yices_application1 }, { BVComp, ext_yices_bvcomp } });
+    { { And, yices_and2 },          { Or, yices_or2 },
+      { Xor, yices_xor2 },          { Implies, yices_implies },
+      { Plus, yices_add },          { Minus, yices_sub },
+      { Mult, yices_mul },          { Div, yices_division },
+      { Lt, yices_arith_lt_atom },  { IntDiv, yices_idiv },
+      { Le, yices_arith_leq_atom }, { Gt, yices_arith_gt_atom },
+      { Ge, yices_arith_geq_atom }, { Equal, yices_eq },
+      { Mod, yices_imod },          { Concat, yices_bvconcat2 },
+      { BVAnd, yices_bvand2 },      { BVOr, yices_bvor2 },
+      { BVXor, yices_bvxor2 },      { BVNand, yices_bvnand },
+      { BVNor, yices_bvnor },       { BVXnor, yices_bvxnor },
+      { BVAdd, yices_bvadd },       { BVSub, yices_bvsub },
+      { BVMul, yices_bvmul },       { BVUdiv, yices_bvdiv },
+      { BVUrem, yices_bvrem },      { BVSdiv, yices_bvsdiv },
+      { BVSrem, yices_bvsrem },     { BVSmod, yices_bvsmod },
+      { BVShl, yices_bvshl },       { BVAshr, yices_bvashr },
+      { BVLshr, yices_bvlshr },     { BVUlt, yices_bvlt_atom },
+      { BVUle, yices_bvle_atom },   { BVUgt, yices_bvgt_atom },
+      { BVUge, yices_bvge_atom },   { BVSle, yices_bvsle_atom },
+      { BVSlt, yices_bvslt_atom },  { BVSge, yices_bvsge_atom },
+      { BVSgt, yices_bvsgt_atom },  { Select, ext_yices_select },
+      { BVComp, ext_yices_bvcomp } });
 
 const unordered_map<PrimOp, yices_tern_fun> yices_ternary_ops(
     { { And, yices_and3 },
@@ -102,7 +102,6 @@ const unordered_map<PrimOp, yices_tern_fun> yices_ternary_ops(
       { BVAnd, yices_bvand3 },
       { BVOr, yices_bvor3 },
       { BVXor, yices_bvxor3 },
-      { Apply, yices_application2 },
       { Store, ext_yices_store } });
 
 // these may modify the array of arguments
@@ -878,118 +877,6 @@ static term_t bv_value_to_int(term_t bv_value, bool is_signed)
   return res;
 }
 
-Term Yices2Solver::make_term(Op op, const Term & t) const
-{
-  shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
-  term_t res;
-
-  if (op.prim_op == Extract)
-  {
-    res = yices_bvextract(
-        yterm->term, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Zero_Extend)
-  {
-    res = yices_zero_extend(yterm->term, narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Sign_Extend)
-  {
-    res = yices_sign_extend(yterm->term, narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Repeat)
-  {
-    if (op.idx0 < 1)
-    {
-      throw IncorrectUsageException("Can't create repeat with index < 1");
-    }
-    res = yices_bvrepeat(yterm->term, narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Rotate_Left)
-  {
-    res = yices_rotate_left(yterm->term, narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Rotate_Right)
-  {
-    res = yices_rotate_right(yterm->term, narrow_index(op, op.idx0));
-  }
-  else if (op.prim_op == Int_To_BV)
-  {
-    if (!yices_term_is_int(yterm->term))
-    {
-      throw IncorrectUsageException(
-          "Can't apply int_to_bv to a non-integer term");
-    }
-    // Yices2 has no conversion, so only a value can be folded into one
-    if (yices_term_constructor(yterm->term) != YICES_ARITH_CONSTANT)
-    {
-      throw NotImplementedException(
-          "Yices2 has no int_to_bv, so it can only apply it to an Int value");
-    }
-    uint32_t width = narrow_index(op, op.idx0);
-    mpq_t value;
-    mpq_init(value);
-    yices_rational_const_value(yterm->term, value);
-    // truncates two's complement to the width, which is the value mod 2^width
-    res = yices_bvconst_mpz(width, mpq_numref(value));
-    mpq_clear(value);
-  }
-  else if (op.prim_op == UBV_To_Int || op.prim_op == SBV_To_Int
-           || op.prim_op == BV_To_Nat)
-  {
-    if (!yices_term_is_bitvector(yterm->term))
-    {
-      throw IncorrectUsageException("Can't apply " + op.to_string()
-                                    + " to a non-bit-vector term");
-    }
-    // Yices2 has no conversion, so only a value can be folded into one
-    if (yices_term_constructor(yterm->term) != YICES_BV_CONSTANT)
-    {
-      throw NotImplementedException("Yices2 has no " + op.to_string()
-                                    + ", so it can only apply it to a "
-                                      "bit-vector value");
-    }
-    res = bv_value_to_int(yterm->term, op.prim_op == SBV_To_Int);
-  }
-  else if (op.prim_op == To_Real)
-  {
-    if (!yices_term_is_arithmetic(yterm->term))
-    {
-      throw IncorrectUsageException(
-          "Can't apply to_real to a non-arithmetic term");
-    }
-    // Int is a subtype of Real in Yices2, which has no conversion
-    res = yterm->term;
-  }
-  else if (!op.num_idx)
-  {
-    if (yices_unary_ops.find(op.prim_op) != yices_unary_ops.end())
-    {
-      res = yices_unary_ops.at(op.prim_op)(yterm->term);
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to the term or not supported by Yices2 backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for one term argument";
-    throw IncorrectUsageException(msg);
-  }
-
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(res);
-}
-
 /**
  * The exponent of a Pow, which yices_power takes as a uint32_t, so only a
  * constant non-negative integer that fits in one
@@ -1021,56 +908,14 @@ static uint32_t pow_exponent(term_t term)
   return res;
 }
 
+Term Yices2Solver::make_term(Op op, const Term & t) const
+{
+  return make_term(op, TermVec{ t });
+}
+
 Term Yices2Solver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  shared_ptr<Yices2Term> yterm0 = static_pointer_cast<Yices2Term>(t0);
-  shared_ptr<Yices2Term> yterm1 = static_pointer_cast<Yices2Term>(t1);
-  term_t res;
-  if (!op.num_idx)
-  {
-    if (yices_binary_ops.find(op.prim_op) != yices_binary_ops.end())
-    {
-      res = yices_binary_ops.at(op.prim_op)(yterm0->term, yterm1->term);
-    }
-    else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
-    {
-      term_t terms[2] = { yterm0->term, yterm1->term };
-      res = yices_variadic_ops.at(op.prim_op)(2, terms);
-    }
-    else if (op.prim_op == Pow)
-    {
-      res = yices_power(yterm0->term, pow_exponent(yterm1->term));
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to two terms, or not supported by Yices2 backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for two term arguments";
-    throw IncorrectUsageException(msg);
-  }
-
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-
-    throw InternalSolverException(msg.c_str());
-  }
-
-  if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
-  {
-    return std::make_shared<Yices2Term>(res, true);
-  }
-  else
-  {
-    return std::make_shared<Yices2Term>(res);
-  }
+  return make_term(op, TermVec{ t0, t1 });
 }
 
 Term Yices2Solver::make_term(Op op,
@@ -1078,54 +923,12 @@ Term Yices2Solver::make_term(Op op,
                              const Term & t1,
                              const Term & t2) const
 {
-  shared_ptr<Yices2Term> yterm0 = static_pointer_cast<Yices2Term>(t0);
-  shared_ptr<Yices2Term> yterm1 = static_pointer_cast<Yices2Term>(t1);
-  shared_ptr<Yices2Term> yterm2 = static_pointer_cast<Yices2Term>(t2);
-  term_t res;
-  if (!op.num_idx)
-  {
-    if (yices_ternary_ops.find(op.prim_op) != yices_ternary_ops.end())
-    {
-      res = yices_ternary_ops.at(op.prim_op)(
-          yterm0->term, yterm1->term, yterm2->term);
-    }
-    else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
-    {
-      term_t terms[3] = { yterm0->term, yterm1->term, yterm2->term };
-      res = yices_variadic_ops.at(op.prim_op)(3, terms);
-    }
-    else
-    {
-      return make_term(op, TermVec{ t0, t1, t2 });
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for three term arguments";
-    throw IncorrectUsageException(msg);
-  }
-
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  if (yices_term_is_function(yterm0->term) && op.prim_op == Apply)
-  {
-    return std::make_shared<Yices2Term>(res, true);
-  }
-  else
-  {
-    return std::make_shared<Yices2Term>(res);
-  }
+  return make_term(op, TermVec{ t0, t1, t2 });
 }
 
 Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 {
   size_t size = terms.size();
-  term_t res;
   if (!size)
   {
     string msg("Can't apply ");
@@ -1133,59 +936,164 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
   }
-  else if (size == 1)
+
+  vector<term_t> yterms;
+  yterms.reserve(size);
+  for (const auto & t : terms)
   {
-    return make_term(op, terms[0]);
+    yterms.push_back(static_pointer_cast<Yices2Term>(t)->term);
   }
-  else if (size == 2)
+
+  term_t res;
+  if (size == 1)
   {
-    return make_term(op, terms[0], terms[1]);
+    term_t yterm = yterms[0];
+    if (op.prim_op == To_Real)
+    {
+      if (!yices_term_is_arithmetic(yterm))
+      {
+        throw IncorrectUsageException(
+            "Can't apply to_real to a non-arithmetic term");
+      }
+      // Int is a subtype of Real in Yices2, which has no conversion
+      res = yterm;
+    }
+    else if (op.prim_op == Extract)
+    {
+      res = yices_bvextract(
+          yterm, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == Zero_Extend)
+    {
+      res = yices_zero_extend(yterm, narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == Sign_Extend)
+    {
+      res = yices_sign_extend(yterm, narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == Repeat)
+    {
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      res = yices_bvrepeat(yterm, narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == Rotate_Left)
+    {
+      res = yices_rotate_left(yterm, narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == Rotate_Right)
+    {
+      res = yices_rotate_right(yterm, narrow_index(op, op.idx0));
+    }
+    else if (op.prim_op == BV_To_Nat || op.prim_op == UBV_To_Int
+             || op.prim_op == SBV_To_Int)
+    {
+      if (!yices_term_is_bitvector(yterm))
+      {
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(yterm) != YICES_BV_CONSTANT)
+      {
+        throw NotImplementedException("Yices2 has no " + op.to_string()
+                                      + ", so it can only apply it to a "
+                                        "bit-vector value");
+      }
+      res = bv_value_to_int(yterm, op.prim_op == SBV_To_Int);
+    }
+    else if (op.prim_op == Int_To_BV)
+    {
+      if (!yices_term_is_int(yterm))
+      {
+        throw IncorrectUsageException(
+            "Can't apply int_to_bv to a non-integer term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(yterm) != YICES_ARITH_CONSTANT)
+      {
+        throw NotImplementedException(
+            "Yices2 has no int_to_bv, so it can only apply it to an Int value");
+      }
+      uint32_t width = narrow_index(op, op.idx0);
+      mpq_t value;
+      mpq_init(value);
+      yices_rational_const_value(yterm, value);
+      // truncates two's complement to the width, which is the value mod
+      // 2^width
+      res = yices_bvconst_mpz(width, mpq_numref(value));
+      mpq_clear(value);
+    }
+    else if (!op.num_idx)
+    {
+      if (yices_unary_ops.find(op.prim_op) != yices_unary_ops.end())
+      {
+        res = yices_unary_ops.at(op.prim_op)(yterm);
+      }
+      else
+      {
+        string msg("Can't apply ");
+        msg += op.to_string();
+        msg += " to the term or not supported by Yices2 backend yet.";
+        throw IncorrectUsageException(msg);
+      }
+    }
+    else
+    {
+      string msg = op.to_string();
+      msg += " not supported for one term argument";
+      throw IncorrectUsageException(msg);
+    }
   }
-  else if (size == 3
-           && yices_ternary_ops.find(op.prim_op) != yices_ternary_ops.end())
+  else if (op.num_idx)
   {
-    return make_term(op, terms[0], terms[1], terms[2]);
+    string msg = op.to_string();
+    msg += " not supported for more than one term argument";
+    throw IncorrectUsageException(msg);
   }
   else if (op.prim_op == Apply)
   {
-    vector<term_t> yargs;
-    yargs.reserve(size);
-    shared_ptr<Yices2Term> yterm;
-
-    // skip the first term (that's actually a function)
-    for (size_t i = 1; i < terms.size(); i++)
-    {
-      yterm = static_pointer_cast<Yices2Term>(terms[i]);
-      yargs.push_back(yterm->term);
-    }
-
-    yterm = static_pointer_cast<Yices2Term>(terms[0]);
-    if (!yices_term_is_function(yterm->term))
+    if (!yices_term_is_function(yterms[0]))
     {
       string msg(
           "Expecting an uninterpreted function to be used with Apply but got ");
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
-
-    res = yices_application(yterm->term, size - 1, yargs.data());
+    // the first term is the function, applied to the rest
+    res = yices_application(yterms[0], size - 1, yterms.data() + 1);
   }
-  else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end()
-           || yices_const_variadic_ops.find(op.prim_op)
-                  != yices_const_variadic_ops.end())
+  else if (size == 2 && op.prim_op == Pow)
   {
-    vector<term_t> yargs;
-    yargs.reserve(size);
-    for (const auto & tt : terms)
-    {
-      yargs.push_back(static_pointer_cast<Yices2Term>(tt)->term);
-    }
-    bool has_const_args = yices_const_variadic_ops.find(op.prim_op)
-                          != yices_const_variadic_ops.end();
-    res = has_const_args
-              ? yices_const_variadic_ops.at(op.prim_op)(yargs.size(),
-                                                        yargs.data())
-              : yices_variadic_ops.at(op.prim_op)(yargs.size(), yargs.data());
+    res = yices_power(yterms[0], pow_exponent(yterms[1]));
+  }
+  else if (size == 2
+           && yices_binary_ops.find(op.prim_op) != yices_binary_ops.end())
+  {
+    res = yices_binary_ops.at(op.prim_op)(yterms[0], yterms[1]);
+  }
+  else if (size == 3
+           && yices_ternary_ops.find(op.prim_op) != yices_ternary_ops.end())
+  {
+    res = yices_ternary_ops.at(op.prim_op)(yterms[0], yterms[1], yterms[2]);
+  }
+  else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
+  {
+    res = yices_variadic_ops.at(op.prim_op)(size, yterms.data());
+  }
+  else if (yices_const_variadic_ops.find(op.prim_op)
+           != yices_const_variadic_ops.end())
+  {
+    res = yices_const_variadic_ops.at(op.prim_op)(size, yterms.data());
+  }
+  else if (size == 2)
+  {
+    string msg("Can't apply ");
+    msg += op.to_string();
+    msg += " to two terms, or not supported by Yices2 backend yet.";
+    throw IncorrectUsageException(msg);
   }
   else
   {
@@ -1198,8 +1106,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     throw InternalSolverException(msg.c_str());
   }
 
-  // marked as an application, as the overloads for two and three terms do,
-  // or get_op would read it as a Select
+  // marked as an application, or get_op would read it as a Select
   return std::make_shared<Yices2Term>(res, op.prim_op == Apply);
 }
 
