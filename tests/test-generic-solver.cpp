@@ -96,63 +96,67 @@ void init_solver(SmtSolver gs)
   gs->set_logic("ALL");
 }
 
-void new_btor(SmtSolver & gs, int buffer_size)
+void new_btor(SmtSolver & gs,
+              int buffer_size,
+              std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Btor);
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
-void new_bitwuzla(SmtSolver & gs, int buffer_size)
+void new_bitwuzla(SmtSolver & gs,
+                  int buffer_size,
+                  std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Bitwuzla);
   // Bitwuzla is always incremental, so it has no flag for it
   vector<string> args = { "--lang", "smt2" };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
-void new_msat(SmtSolver & gs, int buffer_size)
+void new_msat(SmtSolver & gs,
+              int buffer_size,
+              std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Msat);
   vector<string> args = { "" };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
-void new_yices2(SmtSolver & gs, int buffer_size)
+void new_yices2(SmtSolver & gs,
+                int buffer_size,
+                std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Yices2);
   vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
-void new_cvc5(SmtSolver & gs, int buffer_size)
+void new_cvc5(SmtSolver & gs,
+              int buffer_size,
+              std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Cvc5);
   vector<string> args = {
     "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
   };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
-void new_z3(SmtSolver & gs, int buffer_size)
+void new_z3(SmtSolver & gs, int buffer_size, std::chrono::milliseconds timeout)
 {
   gs.reset();
   string path = binary_paths.at(GenericBinary::Z3);
   // Z3 reads SMT-LIB 2 from standard input only when told to, and is
   // incremental without a flag
   vector<string> args = { "-smt2", "-in" };
-  gs = std::make_shared<GenericSolver>(
-      path, args, solver_response_timeout, buffer_size);
+  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
 }
 
 string binary_name(GenericBinary b)
@@ -294,6 +298,17 @@ vector<GenericSolverParam> params_with(SolverAttribute a)
   return params_where([a](GenericBinary b) { return has_attribute(b, a); });
 }
 
+/** Each available binary at the biggest buffer size only */
+vector<GenericSolverParam> params_one_buffer_size()
+{
+  vector<GenericSolverParam> params;
+  for (const auto & entry : binary_paths)
+  {
+    params.emplace_back(entry.first, buffer_sizes.back());
+  }
+  return params;
+}
+
 string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
 {
   return binary_name(get<0>(info.param)) + "_Buf"
@@ -315,17 +330,19 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   }
 
   // replace gs with a fresh solver, in start mode with no options set
-  void start_binary()
+  void start_binary(std::chrono::milliseconds timeout = solver_response_timeout)
   {
     int buffer_size = get<1>(GetParam());
     switch (binary)
     {
-      case GenericBinary::Cvc5: new_cvc5(gs, buffer_size); break;
-      case GenericBinary::Msat: new_msat(gs, buffer_size); break;
-      case GenericBinary::Yices2: new_yices2(gs, buffer_size); break;
-      case GenericBinary::Btor: new_btor(gs, buffer_size); break;
-      case GenericBinary::Bitwuzla: new_bitwuzla(gs, buffer_size); break;
-      case GenericBinary::Z3: new_z3(gs, buffer_size); break;
+      case GenericBinary::Cvc5: new_cvc5(gs, buffer_size, timeout); break;
+      case GenericBinary::Msat: new_msat(gs, buffer_size, timeout); break;
+      case GenericBinary::Yices2: new_yices2(gs, buffer_size, timeout); break;
+      case GenericBinary::Btor: new_btor(gs, buffer_size, timeout); break;
+      case GenericBinary::Bitwuzla:
+        new_bitwuzla(gs, buffer_size, timeout);
+        break;
+      case GenericBinary::Z3: new_z3(gs, buffer_size, timeout); break;
     }
   }
 
@@ -384,6 +401,13 @@ class GenericSolverArrayModelTests : public GenericSolverTests
 // binaries with datatypes
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverDatatypeTests);
 class GenericSolverDatatypeTests : public GenericSolverTests
+{
+};
+
+// every binary, at one buffer size: waiting out a timeout is slow, and has
+// nothing to do with how the answers are read
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverTimeoutTests);
+class GenericSolverTimeoutTests : public GenericSolverTests
 {
 };
 
@@ -639,6 +663,34 @@ TEST_P(GenericSolverTests, UsableAfterIllSortedBvTerm)
   gs->assert_formula(gs->make_term(Equal, x, bv_one));
   ASSERT_TRUE(gs->check_sat().is_sat());
   EXPECT_EQ(gs->get_value(x), bv_one);
+}
+
+TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
+{
+  // plenty for every command but the factoring below, which no binary
+  // finishes within seconds
+  start_binary(std::chrono::milliseconds(500));
+  init_solver(gs);
+  Sort bv64 = gs->make_sort(BV, 64);
+  Sort bv128 = gs->make_sort(BV, 128);
+  Term x = gs->make_symbol("x", bv64);
+  Term y = gs->make_symbol("y", bv64);
+  Term one = gs->make_term(1, bv64);
+  // the product of the primes 3372332245191550997 and 4598458829013737423
+  Term product = gs->make_term("15507530987268807632907138565071860731", bv128);
+  Term wide_x = gs->make_term(Op(Zero_Extend, 64), x);
+  Term wide_y = gs->make_term(Op(Zero_Extend, 64), y);
+  gs->push(1);
+  gs->assert_formula(
+      gs->make_term(Equal, gs->make_term(BVMul, wide_x, wide_y), product));
+  gs->assert_formula(gs->make_term(BVUgt, x, one));
+  gs->assert_formula(gs->make_term(BVUgt, y, one));
+  EXPECT_THROW(gs->check_sat(), InternalSolverException);
+
+  gs->pop(1);
+  gs->assert_formula(gs->make_term(Equal, x, one));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), one);
 }
 
 TEST_P(GenericSolverIntTests, PowNeedsConstantNonNegativeExponent)
@@ -1517,6 +1569,11 @@ INSTANTIATE_TEST_SUITE_P(,
 INSTANTIATE_TEST_SUITE_P(,
                          GenericSolverDatatypeTests,
                          testing::ValuesIn(params_with(THEORY_DATATYPE)),
+                         param_name);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         GenericSolverTimeoutTests,
+                         testing::ValuesIn(params_one_buffer_size()),
                          param_name);
 
 TEST(GenericSolver, NonExistingBinary)

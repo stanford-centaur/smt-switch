@@ -302,13 +302,17 @@ class GenericSolver : public AbsSmtSolver
   // close the connection to the binary
   void close_solver() const;
 
-  /** after a command failed, bring back the binary's state before it:
-   * a binary that died of the failure is started again and given every
-   * command the old one accepted. The model is lost, so sat or unsat mode
-   * becomes assert mode. Throws InternalSolverException if the new binary
-   * does not accept them all.
+  /** after the binary answered a command with an error, bring back its
+   * state before it: a binary that died of the error is restarted.
    */
   void restore_binary() const;
+
+  /** replace the binary with a new one given every command the old one
+   * accepted. The model is lost, so sat or unsat mode becomes assert mode.
+   * Throws InternalSolverException if the new binary does not accept them
+   * all.
+   */
+  void restart_binary() const;
 
   // internally defining and storing a function symbol
   void define_fun(std::string str,
