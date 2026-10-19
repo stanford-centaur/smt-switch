@@ -108,9 +108,7 @@ if(BUILD_Z3)
   add_subdirectory(z3)
 endif()
 
-if(BUILD_BTOR AND BUILD_CVC5 AND BUILD_MSAT AND BUILD_YICES2)
-  add_subdirectory(portfolio)
-endif()
+add_subdirectory(portfolio)
 
 # general tests
 
