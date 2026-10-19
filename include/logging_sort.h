@@ -53,61 +53,60 @@ class LoggingSort : public AbsSort
   // dispatch to underlying sort
   std::size_t hash() const override;
 
-  // throw not implemented exception
-  // for specific getters (will be
-  // implemented by a subclass)
+  // the specific getters are implemented by the subclasses whose kind has
+  // them, so reaching one here means the sort's kind does not
   std::uint64_t get_width() const override
   {
-    throw NotImplementedException(
-        "get_width not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no width");
   }
 
   Sort get_indexsort() const override
   {
-    throw NotImplementedException(
-        "get_indexsort not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no index sort");
   }
 
   Sort get_elemsort() const override
   {
-    throw NotImplementedException(
-        "get_elemsort not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no element sort");
   }
 
   SortVec get_domain_sorts() const override
   {
-    throw NotImplementedException(
-        "get_domain_sorts not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no domain sorts");
   }
 
   Sort get_codomain_sort() const override
   {
-    throw NotImplementedException(
-        "get_codomain_sort not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no codomain sort");
   }
 
   std::string get_uninterpreted_name() const override
   {
-    throw NotImplementedException(
-        "get_uninterpreted_name not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no uninterpreted name");
   }
 
   std::size_t get_arity() const override
   {
-    throw NotImplementedException(
-        "get_arity not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no arity");
   }
 
   SortVec get_uninterpreted_param_sorts() const override
   {
-    throw NotImplementedException(
-        "get_uninterpreted_param_sorts not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no uninterpreted param sorts");
   }
 
   Datatype get_datatype() const override
   {
-    throw NotImplementedException(
-        "get_datatype not implemented by generic LoggingSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no datatype");
   }
 
  protected:

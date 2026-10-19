@@ -42,58 +42,66 @@ class GenericSort : public AbsSort
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
 
-  /* The following functions are implemented by sub-classes */
+  /* The following functions are implemented by the sub-classes whose kind
+   * has them, so reaching one here means the sort's kind does not */
 
   std::uint64_t get_width() const override
   {
-    throw NotImplementedException("get_width not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no width");
   }
 
   std::size_t get_arity() const override
   {
-    throw NotImplementedException("get_width not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no arity");
   }
 
   Sort get_indexsort() const override
   {
-    throw NotImplementedException(
-        "get_indexsort not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no index sort");
   }
 
   Sort get_elemsort() const override
   {
-    throw NotImplementedException(
-        "get_elemsort not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no element sort");
   }
 
   SortVec get_domain_sorts() const override
   {
-    throw NotImplementedException(
-        "get_domain_sorts not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no domain sorts");
   }
 
   Sort get_codomain_sort() const override
   {
-    throw NotImplementedException(
-        "get_codomain_sort not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no codomain sort");
   }
 
   std::string get_uninterpreted_name() const override
   {
-    throw NotImplementedException(
-        "get_uninterpreted_name not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no uninterpreted name");
   }
 
   std::vector<Sort> get_uninterpreted_param_sorts() const override
   {
-    throw NotImplementedException(
-        "get_uninterpreted_param_sorts not implemented by GenericSort");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no uninterpreted param sorts");
   }
 
   Datatype get_datatype() const override
   {
-    throw NotImplementedException(
-        "get_datatype not implemented by GenericSort");
+    if (!datatype_name.empty())
+    {
+      throw IncorrectUsageException("The sort of datatype " + datatype_name
+                                    + " is not made yet");
+    }
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                  + " has no datatype");
   }
 
   // hash computed via std::string hash
