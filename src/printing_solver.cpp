@@ -21,10 +21,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
@@ -32,6 +35,82 @@
 #include "sort.h"
 
 namespace smt {
+
+namespace {
+
+/** A selector as declared: its name, and its sort, which is null for one
+ *  declared with add_selector_self */
+struct PrintingSelectorDecl
+{
+  std::string name;
+  Sort sort;
+};
+
+/** A constructor declaration of the wrapped solver, with what it declares,
+ *  which the wrapped declaration cannot be asked for */
+class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
+{
+ public:
+  PrintingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
+                                  std::string name);
+  bool compare(const DatatypeConstructorDecl & d) const override;
+
+  DatatypeConstructorDecl wrapped_decl;
+  std::string name;
+  std::vector<PrintingSelectorDecl> selectors;
+};
+
+/** A datatype declaration of the wrapped solver, with its constructors */
+class PrintingDatatypeDecl : public AbsDatatypeDecl
+{
+ public:
+  PrintingDatatypeDecl(DatatypeDecl wrapped, std::string name);
+
+  DatatypeDecl wrapped_decl;
+  std::string name;
+  std::vector<std::shared_ptr<PrintingDatatypeConstructorDecl>> constructors;
+};
+
+PrintingDatatypeConstructorDecl::PrintingDatatypeConstructorDecl(
+    DatatypeConstructorDecl wrapped, std::string name)
+    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+{
+}
+
+bool PrintingDatatypeConstructorDecl::compare(
+    const DatatypeConstructorDecl & d) const
+{
+  std::shared_ptr<PrintingDatatypeConstructorDecl> other =
+      std::dynamic_pointer_cast<PrintingDatatypeConstructorDecl>(d);
+  return other && wrapped_decl == other->wrapped_decl;
+}
+
+PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped,
+                                           std::string name)
+    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+{
+}
+
+/** The constructor declarations of a datatype in SMT-LIB, e.g.
+ *  ((nil) (cons (head Int) (tail list))) */
+std::string constructors_to_smtlib(const PrintingDatatypeDecl & d)
+{
+  std::string res = "(";
+  for (const std::shared_ptr<PrintingDatatypeConstructorDecl> & con :
+       d.constructors)
+  {
+    res += (res.size() > 1 ? " (" : "(") + con->name;
+    for (const PrintingSelectorDecl & sel : con->selectors)
+    {
+      res += " (" + sel.name + " " + (sel.sort ? sel.sort->to_string() : d.name)
+             + ")";
+    }
+    res += ")";
+  }
+  return res + ")";
+}
+
+}  // namespace
 
 /* PrintingSolver */
 
@@ -63,6 +142,98 @@ Sort PrintingSolver::make_sort(const std::string name,
   (*out_stream) << "(" << DECLARE_SORT_STR << " " << name << " " << arity << ")"
                 << std::endl;
   return wrapped_solver->make_sort(name, arity);
+}
+
+Sort PrintingSolver::make_sort(const DatatypeDecl & d) const
+{
+  std::shared_ptr<PrintingDatatypeDecl> pd =
+      std::static_pointer_cast<PrintingDatatypeDecl>(d);
+  Sort res = wrapped_solver->make_sort(pd->wrapped_decl);
+  (*out_stream) << "(" << DECLARE_DATATYPE_STR << " ((" << pd->name << " 0)) ("
+                << constructors_to_smtlib(*pd) << "))" << std::endl;
+  return res;
+}
+
+SortVec PrintingSolver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls) const
+{
+  std::vector<DatatypeDecl> wrapped_decls;
+  wrapped_decls.reserve(decls.size());
+  std::string names;
+  std::string constructors;
+  for (const DatatypeDecl & d : decls)
+  {
+    std::shared_ptr<PrintingDatatypeDecl> pd =
+        std::static_pointer_cast<PrintingDatatypeDecl>(d);
+    wrapped_decls.push_back(pd->wrapped_decl);
+    names += (names.empty() ? "(" : " (") + pd->name + " 0)";
+    constructors +=
+        (constructors.empty() ? "" : " ") + constructors_to_smtlib(*pd);
+  }
+  SortVec res = wrapped_solver->make_datatype_sorts(wrapped_decls);
+  (*out_stream) << "(" << DECLARE_DATATYPE_STR << " (" << names << ") ("
+                << constructors << "))" << std::endl;
+  return res;
+}
+
+DatatypeDecl PrintingSolver::make_datatype_decl(const std::string & s)
+{
+  return std::make_shared<PrintingDatatypeDecl>(
+      wrapped_solver->make_datatype_decl(s), s);
+}
+
+DatatypeConstructorDecl PrintingSolver::make_datatype_constructor_decl(
+    const std::string s)
+{
+  return std::make_shared<PrintingDatatypeConstructorDecl>(
+      wrapped_solver->make_datatype_constructor_decl(s), s);
+}
+
+void PrintingSolver::add_constructor(DatatypeDecl & dt,
+                                     const DatatypeConstructorDecl & con) const
+{
+  std::shared_ptr<PrintingDatatypeDecl> pdt =
+      std::static_pointer_cast<PrintingDatatypeDecl>(dt);
+  std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
+      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(con);
+  wrapped_solver->add_constructor(pdt->wrapped_decl, pcon->wrapped_decl);
+  pdt->constructors.push_back(pcon);
+}
+
+void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
+                                  const std::string & name,
+                                  const Sort & s) const
+{
+  std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
+      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+  wrapped_solver->add_selector(pcon->wrapped_decl, name, s);
+  pcon->selectors.push_back({ name, s });
+}
+
+void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
+                                       const std::string & name) const
+{
+  std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
+      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+  wrapped_solver->add_selector_self(pcon->wrapped_decl, name);
+  pcon->selectors.push_back({ name, nullptr });
+}
+
+Term PrintingSolver::get_constructor(const Sort & s, std::string name) const
+{
+  return wrapped_solver->get_constructor(s, name);
+}
+
+Term PrintingSolver::get_tester(const Sort & s, std::string name) const
+{
+  return wrapped_solver->get_tester(s, name);
+}
+
+Term PrintingSolver::get_selector(const Sort & s,
+                                  std::string con,
+                                  std::string name) const
+{
+  return wrapped_solver->get_selector(s, con, name);
 }
 
 Sort PrintingSolver::make_sort(const SortKind sk) const

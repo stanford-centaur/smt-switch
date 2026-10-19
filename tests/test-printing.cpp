@@ -193,6 +193,41 @@ TEST_P(PrintingUninterpretedSortTests, DeclaresSorts)
   expect_replay({ { "sat" } });
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingDatatypeTests);
+class PrintingDatatypeTests : public PrintingTests
+{
+};
+
+TEST_P(PrintingDatatypeTests, DeclaresDatatypes)
+{
+  Sort intsort = s->make_sort(INT);
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+
+  // a one-element list is not nil
+  Term l = s->make_symbol("l", listsort);
+  Term nil =
+      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+  s->assert_formula(
+      s->make_term(Equal,
+                   l,
+                   s->make_term(Apply_Constructor,
+                                s->get_constructor(listsort, "cons"),
+                                s->make_term(5, intsort),
+                                nil)));
+  s->assert_formula(
+      s->make_term(Apply_Tester, s->get_tester(listsort, "nil"), l));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+
+  expect_replay({ { "unsat" } });
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          PrintingTests,
                          testing::ValuesIn(replayable({ THEORY_BV })),
@@ -202,6 +237,11 @@ INSTANTIATE_TEST_SUITE_P(,
                          PrintingUnsatCoreTests,
                          testing::ValuesIn(replayable({ THEORY_BV,
                                                         UNSAT_CORE })),
+                         ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(,
+                         PrintingDatatypeTests,
+                         testing::ValuesIn(replayable({ THEORY_DATATYPE })),
                          ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(,
