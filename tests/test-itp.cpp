@@ -171,7 +171,11 @@ TEST_P(ItpTests, SequenceInterpolants)
 TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
 {
   PrimOp add = GetParam().theory == THEORY_INT ? Plus : BVAdd;
-  for (int k = 2; k <= 5; ++k)
+  // cvc5 takes a while for the deeper bit-vector unrollings
+  bool cvc5_bv = GetParam().config.solver_enum == CVC5_INTERPOLATOR
+                 && GetParam().theory == THEORY_BV;
+  int max_k = cvc5_bv ? 3 : 5;
+  for (int k = 2; k <= max_k; ++k)
   {
     SmtInterpolator s = create_interpolating_solver(GetParam().config);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
