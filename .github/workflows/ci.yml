@@ -205,7 +205,7 @@ jobs:
         env:
           # msat-printing runs the MathSAT executable, which needs libgmp
           DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib
-        run: ctest -C Debug && ctest -C Release
+        run: ctest -C Debug --parallel && ctest -C Release --parallel
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v7
