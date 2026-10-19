@@ -141,10 +141,10 @@ const std::unordered_map<
         { Equal, bool_sort },
         { Distinct, bool_sort },
         { Apply, apply_sort },
-        { Plus, same_sort },
-        { Minus, same_sort },
+        { Plus, arithmetic_sort },
+        { Minus, arithmetic_sort },
         { Negate, same_sort },
-        { Mult, same_sort },
+        { Mult, arithmetic_sort },
         { Div, real_sort },
         { Lt, bool_sort },
         { Le, bool_sort },
@@ -591,6 +591,19 @@ bool function_sorts(const SortVec & sorts)
 
 Sort same_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
 {
+  return sorts[0];
+}
+
+Sort arithmetic_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  // over an Int and a Real, every solver of both makes the term a Real
+  for (const Sort & sort : sorts)
+  {
+    if (sort->get_sort_kind() == REAL)
+    {
+      return sort;
+    }
+  }
   return sorts[0];
 }
 

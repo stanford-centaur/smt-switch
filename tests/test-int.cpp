@@ -54,33 +54,6 @@ TEST_P(IntTests, IntDiv)
   ASSERT_EQ(resval, two);
 }
 
-TEST_P(IntTests, Div)
-{
-  // unlike IntDiv, Div (/) divides Ints as Reals, and an Int by a Real.
-  // SMT-LIB declares / only over Reals, but cvc5, MathSAT and Yices2 take
-  // Ints as well; to be strict instead, every backend would have to throw an
-  // IncorrectUsageException here
-  Sort realsort = s->make_sort(REAL);
-  Term two = s->make_term(2, realsort);
-  Term quotient =
-      s->make_term(Div, s->make_term(7, intsort), s->make_term(2, intsort));
-  EXPECT_EQ(quotient->get_sort(), realsort);
-  s->assert_formula(s->make_term(
-      Equal, s->make_term(Mult, two, quotient), s->make_term(7, realsort)));
-
-  // and an Int by a Real: (/ i 2.0) is 3/2 for i = 3
-  Term i = s->make_symbol("i", intsort);
-  s->assert_formula(s->make_term(Equal, i, s->make_term(3, intsort)));
-  s->assert_formula(
-      s->make_term(Equal,
-                   s->make_term(Mult, two, s->make_term(Div, i, two)),
-                   s->make_term(3, realsort)));
-
-  // with i fixed, nothing is left to choose, so this is sat exactly when both
-  // equations hold; dividing as Ints would make them 6 = 7 and 2 = 3
-  EXPECT_TRUE(s->check_sat().is_sat());
-}
-
 TEST_P(IntTests, BvToNatIsInt)
 {
   Sort bvsort = s->make_sort(BV, 8);
@@ -310,5 +283,67 @@ INSTANTIATE_TEST_SUITE_P(
     IntBVArithmeticTests,
     testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_BV })),
     ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntRealArithmeticTests);
+class IntRealArithmeticTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    intsort = s->make_sort(INT);
+    realsort = s->make_sort(REAL);
+  }
+  SmtSolver s;
+  Sort intsort, realsort;
+};
+
+TEST_P(IntRealArithmeticTests, Sorts)
+{
+  // every solver makes arithmetic over an Int and a Real a Real, so the
+  // logging and generic solvers must report one too
+  Term i = s->make_symbol("i", intsort);
+  Term x = s->make_symbol("x", realsort);
+  for (PrimOp po : { Plus, Minus, Mult })
+  {
+    EXPECT_EQ(s->make_term(po, i, x)->get_sort(), realsort);
+    EXPECT_EQ(s->make_term(po, x, i)->get_sort(), realsort);
+    EXPECT_EQ(s->make_term(po, i, i)->get_sort(), intsort);
+  }
+}
+
+TEST_P(IntRealArithmeticTests, Div)
+{
+  // unlike IntDiv, Div (/) divides Ints as Reals, and an Int by a Real.
+  // SMT-LIB declares / only over Reals, but cvc5, MathSAT and Yices2 take
+  // Ints as well; to be strict instead, every backend would have to throw an
+  // IncorrectUsageException here
+  Term two = s->make_term(2, realsort);
+  Term quotient =
+      s->make_term(Div, s->make_term(7, intsort), s->make_term(2, intsort));
+  EXPECT_EQ(quotient->get_sort(), realsort);
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(Mult, two, quotient), s->make_term(7, realsort)));
+
+  // and an Int by a Real: (/ i 2.0) is 3/2 for i = 3
+  Term i = s->make_symbol("i", intsort);
+  s->assert_formula(s->make_term(Equal, i, s->make_term(3, intsort)));
+  s->assert_formula(
+      s->make_term(Equal,
+                   s->make_term(Mult, two, s->make_term(Div, i, two)),
+                   s->make_term(3, realsort)));
+
+  // with i fixed, nothing is left to choose, so this is sat exactly when both
+  // equations hold; dividing as Ints would make them 6 = 7 and 2 = 3
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+INSTANTIATE_TEST_SUITE_P(,
+                         IntRealArithmeticTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_REAL })),
+                         ConfigName());
 
 }  // namespace smt_tests
