@@ -44,7 +44,6 @@ class LoggingTerm : public AbsTerm
   // this one is for a named leaf that is neither a symbol nor a parameter,
   // such as a datatype's constructor, selector or tester
   LoggingTerm(Term t, Sort s, std::string r, std::size_t id);
-  virtual ~LoggingTerm();
 
   // implemented
 
@@ -90,7 +89,6 @@ class LoggingTermIter : public TermIterBase
  public:
   LoggingTermIter(TermVec::iterator i);
   LoggingTermIter(const LoggingTermIter & lit);
-  ~LoggingTermIter();
   LoggingTermIter & operator=(const LoggingTermIter & lit);
   void operator++() override;
   const Term operator*() override;

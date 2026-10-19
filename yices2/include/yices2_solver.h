@@ -59,7 +59,7 @@ class Yices2Solver : public AbsSmtSolver
   };
   Yices2Solver(const Yices2Solver &) = delete;
   Yices2Solver & operator=(const Yices2Solver &) = delete;
-  ~Yices2Solver()
+  ~Yices2Solver() override
   {
     // need to destruct all stored terms in symbol_table
     symbol_table.clear();

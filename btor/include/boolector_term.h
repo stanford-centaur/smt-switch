@@ -48,7 +48,7 @@ class BoolectorTermIter : public TermIterBase
                     std::vector<BtorNode *> c,
                     int64_t idx);
   BoolectorTermIter(const BoolectorTermIter & it);
-  ~BoolectorTermIter();
+  ~BoolectorTermIter() override;
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -72,7 +72,7 @@ class BoolectorTerm : public AbsTerm
 {
  public:
   BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n);
-  ~BoolectorTerm();
+  ~BoolectorTerm() override;
   // the destructor releases node, so a copy would release it twice
   BoolectorTerm(const BoolectorTerm &) = delete;
   BoolectorTerm & operator=(const BoolectorTerm &) = delete;

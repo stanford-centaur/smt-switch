@@ -36,7 +36,7 @@ class BoolectorSortBase : public AbsSort
                     const std::shared_ptr<Btor> & b,
                     BoolectorSort s)
       : btor(b), sort(s), sk(sk) {};
-  virtual ~BoolectorSortBase();
+  ~BoolectorSortBase() override;
   // the destructor releases sort, so a copy would release it twice
   BoolectorSortBase(const BoolectorSortBase &) = delete;
   BoolectorSortBase & operator=(const BoolectorSortBase &) = delete;

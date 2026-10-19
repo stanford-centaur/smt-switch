@@ -158,8 +158,6 @@ BzlaTerm::BzlaTerm(const bitwuzla::Term t,
 {
 }
 
-BzlaTerm::~BzlaTerm() {}
-
 std::size_t BzlaTerm::hash() const { return std::hash<bitwuzla::Term>{}(term); }
 
 // hash is unique in bitwuzla

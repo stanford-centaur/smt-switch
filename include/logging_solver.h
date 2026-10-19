@@ -38,7 +38,6 @@ class LoggingSolver : public AbsSmtSolver
 {
  public:
   LoggingSolver(SmtSolver s);
-  ~LoggingSolver();
 
   // implemented
   // Declaring make_sort here at all would hide AbsSmtSolver's convenience

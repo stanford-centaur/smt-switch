@@ -35,7 +35,6 @@ class Cvc5TermIter : public TermIterBase
     term = it.term;
     pos = it.pos;
   };
-  ~Cvc5TermIter() {};
   Cvc5TermIter & operator=(const Cvc5TermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -55,7 +54,6 @@ class Cvc5Term : public AbsTerm
 {
  public:
   Cvc5Term(cvc5::Term t) : term(t) {};
-  ~Cvc5Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

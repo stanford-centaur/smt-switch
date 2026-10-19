@@ -184,7 +184,6 @@ class UnsatCoreReducer
 {
  public:
   UnsatCoreReducer(SmtSolver reducer_solver);
-  ~UnsatCoreReducer();
 
   /** The main method to reduce the assump (vector of assumptions). The method
    *  assumes that the conjunction of the formula and assump is unsatisfiable.
@@ -255,7 +254,6 @@ class DisjointSet
 {
  public:
   DisjointSet(bool (*c)(const Term & a, const Term & b));
-  ~DisjointSet();
 
   DisjointSet() = delete;
 

@@ -39,7 +39,6 @@ class Cvc5Solver : public AbsSmtSolver
   Cvc5Solver();
   Cvc5Solver(const Cvc5Solver &) = delete;
   Cvc5Solver & operator=(const Cvc5Solver &) = delete;
-  ~Cvc5Solver() = default;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -127,7 +126,6 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
   cvc5InterpolatingSolver();
   cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
   cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
-  ~cvc5InterpolatingSolver() {}
 
   Result get_interpolant(const Term & A,
                          const Term & B,

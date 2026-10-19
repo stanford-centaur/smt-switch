@@ -49,7 +49,6 @@ class LoggingSort : public AbsSort
 {
  public:
   LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
-  virtual ~LoggingSort() {};
   // implementations
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
@@ -124,7 +123,6 @@ class BVLoggingSort : public LoggingSort
 {
  public:
   BVLoggingSort(Sort s, std::uint64_t width);
-  ~BVLoggingSort();
 
   typedef LoggingSort super;
 
@@ -138,7 +136,6 @@ class ArrayLoggingSort : public LoggingSort
 {
  public:
   ArrayLoggingSort(Sort s, Sort idxsort, Sort esort);
-  ~ArrayLoggingSort();
 
   typedef LoggingSort super;
 
@@ -154,7 +151,6 @@ class FunctionLoggingSort : public LoggingSort
 {
  public:
   FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort);
-  ~FunctionLoggingSort();
 
   typedef LoggingSort super;
 
@@ -174,7 +170,6 @@ class UninterpretedLoggingSort : public LoggingSort
                            std::string n,
                            std::uint64_t a,
                            const SortVec & sorts);
-  ~UninterpretedLoggingSort();
 
   typedef LoggingSort super;
 

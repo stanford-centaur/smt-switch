@@ -129,8 +129,6 @@ PrintingSolver::PrintingSolver(SmtSolver s,
 {
 }
 
-PrintingSolver::~PrintingSolver() {}
-
 Term PrintingSolver::get_symbol(const std::string & name)
 {
   return wrapped_solver->get_symbol(name);

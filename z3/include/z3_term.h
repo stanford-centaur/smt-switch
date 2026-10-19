@@ -38,7 +38,6 @@ class Z3TermIter : public TermIterBase
              uint32_t p,
              bool nt = false);
   Z3TermIter(const Z3TermIter & it);
-  ~Z3TermIter() {};
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -68,7 +67,6 @@ class Z3Term : public AbsTerm
   Z3Term(const std::shared_ptr<context> & c, expr t, bool param);
   // Functions
   Z3Term(const std::shared_ptr<context> & c, func_decl zfunc);
-  ~Z3Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

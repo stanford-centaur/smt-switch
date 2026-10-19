@@ -37,7 +37,6 @@ class MsatTermIter : public TermIterBase
                const msat_term t,
                uint32_t p);
   MsatTermIter(const MsatTermIter & it);
-  ~MsatTermIter() {};
   MsatTermIter & operator=(const MsatTermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -59,7 +58,6 @@ class MsatTerm : public AbsTerm
  public:
   MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t);
   MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d);
-  ~MsatTerm() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

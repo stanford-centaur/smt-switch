@@ -38,7 +38,6 @@ class GenericSort : public AbsSort
   // Only for placeholder sorts used for datatypes. name
   // should be the name of the datatype.
   GenericSort(std::string name);
-  virtual ~GenericSort();
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;
 
@@ -138,7 +137,6 @@ class BVGenericSort : public GenericSort
 {
  public:
   BVGenericSort(std::uint64_t width);
-  ~BVGenericSort();
 
   std::uint64_t get_width() const override;
 
@@ -150,7 +148,6 @@ class ArrayGenericSort : public GenericSort
 {
  public:
   ArrayGenericSort(Sort idxsort, Sort esort);
-  ~ArrayGenericSort();
 
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
@@ -164,7 +161,6 @@ class FunctionGenericSort : public GenericSort
 {
  public:
   FunctionGenericSort(SortVec sorts, Sort rsort);
-  ~FunctionGenericSort();
 
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
@@ -179,7 +175,6 @@ class UninterpretedGenericSort : public GenericSort
  public:
   UninterpretedGenericSort(std::string n, std::uint64_t a);
   UninterpretedGenericSort(Sort sort_cons, const SortVec & sorts);
-  ~UninterpretedGenericSort();
 
   std::string get_uninterpreted_name() const override;
   std::size_t get_arity() const override;
@@ -195,7 +190,6 @@ class GenericDatatypeSort : public GenericSort
 {
  public:
   GenericDatatypeSort(const Datatype & dt);
-  ~GenericDatatypeSort();
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
   std::string compute_string() const override;
@@ -213,7 +207,6 @@ class DatatypeComponentSort : public GenericSort
 {
  public:
   DatatypeComponentSort(SortKind sk, std::string name, Sort dt);
-  ~DatatypeComponentSort() {};
   std::string compute_string() const override;
   std::string to_string() const override;
   SortVec get_domain_sorts() const override;

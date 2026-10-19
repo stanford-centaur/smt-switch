@@ -168,8 +168,6 @@ BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t width)
 {
 }
 
-BVLoggingSort::~BVLoggingSort() {}
-
 std::uint64_t BVLoggingSort::get_width() const { return width; }
 
 // ArrayLoggingSort
@@ -178,8 +176,6 @@ ArrayLoggingSort::ArrayLoggingSort(Sort s, Sort idxsort, Sort esort)
     : super(ARRAY, s), indexsort(idxsort), elemsort(esort)
 {
 }
-
-ArrayLoggingSort::~ArrayLoggingSort() {}
 
 Sort ArrayLoggingSort::get_indexsort() const { return indexsort; }
 
@@ -191,8 +187,6 @@ FunctionLoggingSort::FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort)
     : super(FUNCTION, s), domain_sorts(sorts), codomain_sort(rsort)
 {
 }
-
-FunctionLoggingSort::~FunctionLoggingSort() {}
 
 SortVec FunctionLoggingSort::get_domain_sorts() const { return domain_sorts; }
 
@@ -216,8 +210,6 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
     : super(UNINTERPRETED, s), name(n), arity(a), param_sorts(sorts)
 {
 }
-
-UninterpretedLoggingSort::~UninterpretedLoggingSort() {}
 
 std::string UninterpretedLoggingSort::get_uninterpreted_name() const
 {

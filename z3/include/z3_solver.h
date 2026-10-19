@@ -44,7 +44,6 @@ class Z3Solver : public AbsSmtSolver
   Z3Solver();
   Z3Solver(const Z3Solver &) = delete;
   Z3Solver & operator=(const Z3Solver &) = delete;
-  ~Z3Solver() {};
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;

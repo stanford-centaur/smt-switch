@@ -42,7 +42,7 @@ class AbsTerm
 {
  public:
   AbsTerm() {};
-  virtual ~AbsTerm() {};
+  virtual ~AbsTerm() = default;
   /** Returns a hash for this term */
   virtual std::size_t hash() const = 0;
   /** Returns a unique id for this term */
@@ -147,7 +147,7 @@ class TermIterBase
 {
  public:
   TermIterBase() {}
-  virtual ~TermIterBase() {}
+  virtual ~TermIterBase() = default;
   virtual void operator++() {}
   const virtual Term operator*();
   virtual TermIterBase * clone() const = 0;

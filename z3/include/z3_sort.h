@@ -39,7 +39,6 @@ class Z3Sort : public AbsSort
   // Functions
   Z3Sort(const std::shared_ptr<context> & c, func_decl zfunc);
 
-  ~Z3Sort() = default;
   std::size_t hash() const override;
   uint64_t get_width() const override;
   Sort get_indexsort() const override;

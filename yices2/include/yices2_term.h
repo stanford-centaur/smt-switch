@@ -44,7 +44,6 @@ class Yices2TermIter : public TermIterBase
  public:
   Yices2TermIter(term_t t, uint32_t p);
   Yices2TermIter(const Yices2TermIter & it);
-  ~Yices2TermIter() = default;
   Yices2TermIter & operator=(const Yices2TermIter & it);
   void operator++() override;
   const Term operator*() override;
@@ -64,7 +63,6 @@ class Yices2Term : public AbsTerm
 {
  public:
   Yices2Term(term_t t) : term(t) {};
-  ~Yices2Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
