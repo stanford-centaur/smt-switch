@@ -120,6 +120,7 @@ set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 set(
   SOURCES
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
+  "${PROJECT_SOURCE_DIR}/src/exceptions.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_sort.cpp"

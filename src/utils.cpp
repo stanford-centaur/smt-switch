@@ -411,7 +411,7 @@ class TseitinTraversal : public IdentityWalker
       : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
   {
   }
-  WalkerStepResult visit_term(Term & term)
+  WalkerStepResult visit_term(Term & term) override
   {
     auto give_symbolic_name = [&]() {  // producing a new symbol
       int pt = 1;
@@ -493,7 +493,7 @@ class EliminateBooleanConstants : public IdentityWalker
       : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
   {
   }
-  WalkerStepResult visit_term(Term & term)
+  WalkerStepResult visit_term(Term & term) override
   {
     Term true_term = solver_->make_term(true);
     Term false_term = solver_->make_term(false);

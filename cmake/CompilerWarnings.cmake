@@ -287,7 +287,7 @@ set(
   -Wdelete-non-virtual-dtor # deleting polymorphic objects with non- virtual destructors
   -Wdelimited-escape-sequence-extension # delimited escape sequences are a C++23 extension
   -Wdeprecate-lax-vec-conv-all # implicit conversion between vector types is deprecated
-  # -Wdeprecated # a deprecated compiler feature, class, method, or field is used
+  -Wdeprecated # a deprecated compiler feature, class, method, or field is used
   -Wdeprecated-altivec-src-compat # current handling of vector bool and vector pixel types
   -Wdeprecated-anon-enum-enum-conversion # arithmetic between different enumeration types
   -Wdeprecated-array-compare # comparison between two arrays is deprecated
@@ -301,7 +301,7 @@ set(
   -Wdeprecated-coroutine # 'for co_await' belongs to CoroutineTS instead of C++20
   -Wdeprecated-declarations # uses of __attribute__((deprecated)) declarations
   -Wdeprecated-declarations-switch-case # X is deprecated
-  # -Wdeprecated-dynamic-exception-spec # dynamic exception specifications are deprecated
+  -Wdeprecated-dynamic-exception-spec # dynamic exception specifications are deprecated
   -Wdeprecated-enum-compare # arithmetic between different enumeration types is deprecated
   -Wdeprecated-enum-compare-conditional # arithmetic between different enumeration types
   -Wdeprecated-enum-enum-conversion # deprecated arithmetic conversions on operands of enumeration
@@ -343,7 +343,7 @@ set(
   -Wduplicated-cond # duplicated conditions in an if-else-if chain
   -Wdxil-validation # dxv not found
   -Wdynamic-class-memaccess # destination for this X call is a pointer to class containing
-  # -Wdynamic-exception-spec # ISO C++17 does not allow dynamic exception specifications
+  -Wdynamic-exception-spec # ISO C++17 does not allow dynamic exception specifications
   -Weager-load-cxx-named-modules # the form '-fmodule-file=<BMI-path>'
   # -Weffc++ # violations of Effective C++ style rules
   -Welaborated-enum-base # an additional enum-base is used in an elaborated-type-specifier
@@ -873,7 +873,7 @@ set(
   -Wsuggest-destructor-override # X overrides a destructor but is not marked 'override'
   # -Wsuggest-final-methods # C++ virtual methods where adding final keyword
   # -Wsuggest-final-types # C++ polymorphic types where adding final keyword
-  # -Wsuggest-override # suggest that the override keyword be used when the declaration
+  -Wsuggest-override # suggest that the override keyword be used when the declaration
   -Wsuspicious-bzero # 'size' argument to bzero is '0'
   -Wsuspicious-memaccess # covers -Wsizeof-pointer-memaccess
   -Wswift-name-attribute # X attribute is missing parameter label clause
