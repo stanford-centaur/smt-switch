@@ -130,9 +130,7 @@ const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
       { BVSle, msat_make_bv_sleq },
       { BVSgt, ext_msat_make_bv_sgt },
       { BVSge, ext_msat_make_bv_sgeq },
-      { Select, msat_make_array_read },
-      { Forall, msat_make_forall },
-      { Exists, msat_make_exists } });
+      { Select, msat_make_array_read } });
 
 const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
     { { Ite, ext_msat_make_ite }, { Store, msat_make_array_write } });
@@ -738,131 +736,12 @@ Term MsatSolver::make_param(const std::string name, const Sort & sort)
 
 Term MsatSolver::make_term(Op op, const Term & t) const
 {
-  initialize_env();
-  shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
-  msat_term res;
-  if (!op.num_idx)
-  {
-    if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
-    {
-      res = msat_unary_ops.at(op.prim_op)(*env, mterm->term);
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to a single term, or not supported by MathSAT backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else if (op.prim_op == Extract)
-  {
-    res = msat_make_bv_extract(*env, op.idx0, op.idx1, mterm->term);
-  }
-  else if (op.prim_op == Zero_Extend)
-  {
-    res = msat_make_bv_zext(*env, op.idx0, mterm->term);
-  }
-  else if (op.prim_op == Sign_Extend)
-  {
-    res = msat_make_bv_sext(*env, op.idx0, mterm->term);
-  }
-  else if (op.prim_op == Repeat)
-  {
-    if (op.idx0 < 1)
-    {
-      throw IncorrectUsageException("Can't create repeat with index < 1");
-    }
-    res = mterm->term;
-    for (size_t i = 1; i < op.idx0; i++)
-    {
-      res = msat_make_bv_concat(*env, mterm->term, res);
-    }
-  }
-  else if (op.prim_op == Rotate_Left)
-  {
-    res = msat_make_bv_rol(*env, op.idx0, mterm->term);
-  }
-  else if (op.prim_op == Rotate_Right)
-  {
-    res = msat_make_bv_ror(*env, op.idx0, mterm->term);
-  }
-  else if (op.prim_op == Int_To_BV)
-  {
-    res = msat_make_int_to_bv(*env, op.idx0, mterm->term);
-  }
-  else
-  {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to ";
-    msg += t->to_string();
-    throw IncorrectUsageException(msg);
-  }
-
-  if (MSAT_ERROR_TERM(res))
-  {
-    string msg("Failed to create term given ");
-    msg += op.to_string();
-    msg += " and ";
-    msg += t->to_string();
-    throw InternalSolverException(msg);
-  }
-  else
-  {
-    return std::make_shared<MsatTerm>(env, res);
-  }
+  return make_term(op, TermVec{ t });
 }
 
 Term MsatSolver::make_term(Op op, const Term & t0, const Term & t1) const
 {
-  initialize_env();
-  shared_ptr<MsatTerm> mterm0 = static_pointer_cast<MsatTerm>(t0);
-  shared_ptr<MsatTerm> mterm1 = static_pointer_cast<MsatTerm>(t1);
-  msat_term res;
-  if (!op.num_idx)
-  {
-    if (msat_binary_ops.find(op.prim_op) != msat_binary_ops.end())
-    {
-      res = msat_binary_ops.at(op.prim_op)(*env, mterm0->term, mterm1->term);
-    }
-    else if (op.prim_op == Apply)
-    {
-      if (!mterm0->is_uf)
-      {
-        throw IncorrectUsageException(
-            "Expecting UF as first argument to Apply");
-      }
-      vector<msat_term> v({ mterm1->term });
-      res = ext_msat_make_uf(*env, mterm0->decl, v);
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to two terms, or not supported by MathSAT backend yet.";
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for two term arguments";
-    throw IncorrectUsageException(msg);
-  }
-
-  if (MSAT_ERROR_TERM(res))
-  {
-    string msg("Failed to create term given ");
-    msg += op.to_string();
-    msg += " and ";
-    msg += t0->to_string() + ", " + t1->to_string();
-    throw InternalSolverException(msg);
-  }
-  else
-  {
-    return std::make_shared<MsatTerm>(env, res);
-  }
+  return make_term(op, TermVec{ t0, t1 });
 }
 
 Term MsatSolver::make_term(Op op,
@@ -870,62 +749,7 @@ Term MsatSolver::make_term(Op op,
                            const Term & t1,
                            const Term & t2) const
 {
-  initialize_env();
-  shared_ptr<MsatTerm> mterm0 = static_pointer_cast<MsatTerm>(t0);
-  shared_ptr<MsatTerm> mterm1 = static_pointer_cast<MsatTerm>(t1);
-  shared_ptr<MsatTerm> mterm2 = static_pointer_cast<MsatTerm>(t2);
-  msat_term res;
-  if (!op.num_idx)
-  {
-    if (msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
-    {
-      res = msat_ternary_ops.at(op.prim_op)(
-          *env, mterm0->term, mterm1->term, mterm2->term);
-    }
-    else if (op.prim_op == Apply)
-    {
-      if (!mterm0->is_uf)
-      {
-        throw IncorrectUsageException(
-            "Expecting UF as first argument to Apply");
-      }
-      vector<msat_term> v({ mterm1->term, mterm2->term });
-      res = ext_msat_make_uf(*env, mterm0->decl, v);
-    }
-    else if (op.prim_op == Forall)
-    {
-      res = msat_make_forall(*env, mterm1->term, mterm2->term);
-      res = msat_make_forall(*env, mterm0->term, res);
-    }
-    else if (op.prim_op == Exists)
-    {
-      res = msat_make_exists(*env, mterm1->term, mterm2->term);
-      res = msat_make_exists(*env, mterm0->term, res);
-    }
-    else
-    {
-      return make_term(op, TermVec{ t0, t1, t2 });
-    }
-  }
-  else
-  {
-    string msg = op.to_string();
-    msg += " not supported for three term arguments";
-    throw IncorrectUsageException(msg);
-  }
-
-  if (MSAT_ERROR_TERM(res))
-  {
-    string msg("Failed to create term given ");
-    msg += op.to_string();
-    msg += " and ";
-    msg += t0->to_string() + ", " + t1->to_string() + ", " + t2->to_string();
-    throw InternalSolverException(msg);
-  }
-  else
-  {
-    return std::make_shared<MsatTerm>(env, res);
-  }
+  return make_term(op, TermVec{ t0, t1, t2 });
 }
 
 Term MsatSolver::make_term(Op op, const TermVec & terms) const
@@ -939,33 +763,85 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
   }
-  else if (size == 1)
+
+  vector<msat_term> mterms;
+  mterms.reserve(size);
+  for (const auto & t : terms)
   {
-    return make_term(op, terms[0]);
+    mterms.push_back(static_pointer_cast<MsatTerm>(t)->term);
   }
-  else if (size == 2)
+
+  msat_term res;
+  if (size == 1)
   {
-    return make_term(op, terms[0], terms[1]);
+    if (op.prim_op == Extract)
+    {
+      res = msat_make_bv_extract(*env, op.idx0, op.idx1, mterms[0]);
+    }
+    else if (op.prim_op == Zero_Extend)
+    {
+      res = msat_make_bv_zext(*env, op.idx0, mterms[0]);
+    }
+    else if (op.prim_op == Sign_Extend)
+    {
+      res = msat_make_bv_sext(*env, op.idx0, mterms[0]);
+    }
+    else if (op.prim_op == Repeat)
+    {
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      res = mterms[0];
+      for (size_t i = 1; i < op.idx0; i++)
+      {
+        res = msat_make_bv_concat(*env, mterms[0], res);
+      }
+    }
+    else if (op.prim_op == Rotate_Left)
+    {
+      res = msat_make_bv_rol(*env, op.idx0, mterms[0]);
+    }
+    else if (op.prim_op == Rotate_Right)
+    {
+      res = msat_make_bv_ror(*env, op.idx0, mterms[0]);
+    }
+    else if (op.prim_op == Int_To_BV)
+    {
+      res = msat_make_int_to_bv(*env, op.idx0, mterms[0]);
+    }
+    else if (!op.num_idx)
+    {
+      if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
+      {
+        res = msat_unary_ops.at(op.prim_op)(*env, mterms[0]);
+      }
+      else
+      {
+        string msg("Can't apply ");
+        msg += op.to_string();
+        msg += " to a single term, or not supported by MathSAT backend yet.";
+        throw IncorrectUsageException(msg);
+      }
+    }
+    else
+    {
+      string msg("Can't apply ");
+      msg += op.to_string();
+      msg += " to ";
+      msg += terms[0]->to_string();
+      throw IncorrectUsageException(msg);
+    }
   }
-  else if (size == 3
-           && msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
+  else if (op.num_idx)
   {
-    return make_term(op, terms[0], terms[1], terms[2]);
+    string msg = op.to_string();
+    msg += " not supported for more than one term argument";
+    throw IncorrectUsageException(msg);
   }
   else if (op.prim_op == Apply)
   {
-    vector<msat_term> margs;
-    margs.reserve(size);
-    shared_ptr<MsatTerm> mterm;
-
-    // skip the first term (that's actually a function)
-    for (size_t i = 1; i < terms.size(); i++)
-    {
-      mterm = static_pointer_cast<MsatTerm>(terms[i]);
-      margs.push_back(mterm->term);
-    }
-
-    mterm = static_pointer_cast<MsatTerm>(terms[0]);
+    shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(terms[0]);
     if (!mterm->is_uf)
     {
       string msg(
@@ -973,51 +849,55 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
-    msat_decl uf = mterm->decl;
-    msat_term res = ext_msat_make_uf(*env, uf, margs);
-    if (MSAT_ERROR_TERM(res))
-    {
-      string msg("Failed to create term given ");
-      msg += op.to_string();
-      msg += " and ";
-      for (auto t : terms)
-      {
-        msg += " " + t->to_string() + ",";
-      }
-      throw InternalSolverException(msg);
-    }
-    return make_shared<MsatTerm>(env, res);
+    // the first term is the function, applied to the rest
+    vector<msat_term> margs(mterms.begin() + 1, mterms.end());
+    res = ext_msat_make_uf(*env, mterm->decl, margs);
   }
-  else if (op == Forall || op == Exists)
+  else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    vector<msat_term> mterms;
-    mterms.reserve(terms.size());
-    for (const auto & tt : terms)
+    // the last term is the body, bound by the rest from the innermost out
+    res = mterms.back();
+    for (size_t i = size - 1; i-- > 0;)
     {
-      mterms.push_back(static_pointer_cast<MsatTerm>(tt)->term);
+      res = op.prim_op == Forall ? msat_make_forall(*env, mterms[i], res)
+                                 : msat_make_exists(*env, mterms[i], res);
     }
-
-    msat_term res = mterms.back();
-    mterms.pop_back();
-    while (mterms.size())
-    {
-      msat_term t = mterms.back();
-      mterms.pop_back();
-      if (op == Forall)
-      {
-        res = msat_make_forall(*env, t, res);
-      }
-      else
-      {
-        res = msat_make_exists(*env, t, res);
-      }
-    }
-    return make_shared<MsatTerm>(env, res);
+  }
+  else if (size == 2
+           && msat_binary_ops.find(op.prim_op) != msat_binary_ops.end())
+  {
+    res = msat_binary_ops.at(op.prim_op)(*env, mterms[0], mterms[1]);
+  }
+  else if (size == 3
+           && msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
+  {
+    res =
+        msat_ternary_ops.at(op.prim_op)(*env, mterms[0], mterms[1], mterms[2]);
+  }
+  else if (size == 2)
+  {
+    string msg("Can't apply ");
+    msg += op.to_string();
+    msg += " to two terms, or not supported by MathSAT backend yet.";
+    throw IncorrectUsageException(msg);
   }
   else
   {
     return make_nary_term(this, op, terms);
   }
+
+  if (MSAT_ERROR_TERM(res))
+  {
+    string msg("Failed to create term given ");
+    msg += op.to_string();
+    msg += " and";
+    for (const auto & t : terms)
+    {
+      msg += " " + t->to_string() + ",";
+    }
+    throw InternalSolverException(msg);
+  }
+  return make_shared<MsatTerm>(env, res);
 }
 
 void MsatSolver::do_reset()
