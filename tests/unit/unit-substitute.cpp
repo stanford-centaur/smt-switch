@@ -101,6 +101,20 @@ TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
   EXPECT_EQ(result, constraint(arr0, idx0, a, b));
 }
 
+TEST_P(UnitSubstituteTests, SubstitutesUnderApplication)
+{
+  if (GetParam().solver_enum == BTOR && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "Boolector substitutes under array reads only, not under "
+                    "a function application";
+  }
+  Term g = s->make_symbol(
+      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
+  Term result = s->substitute(s->make_term(Apply, g, x, y), { { x, a } });
+  EXPECT_EQ(result, s->make_term(Apply, g, a, y));
+  EXPECT_EQ(result->get_op(), Apply);
+}
+
 TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
 {
   UnorderedTermMap subs_map({ { x, a }, { y, b } });

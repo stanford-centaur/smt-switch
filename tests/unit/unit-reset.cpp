@@ -83,6 +83,62 @@ TEST_P(UnitResetTests, ResetLeavesOtherSolversAlone)
   EXPECT_EQ(other->get_value(b), other->make_term(true));
 }
 
+// One argument each, so on Yices2 the function and the array have one type
+TEST_P(UnitResetTests, FunctionNameReusedForArray)
+{
+  Sort bvsort = s->make_sort(BV, 4);
+  Term old_f =
+      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+  Term old_fx = s->make_term(Apply, old_f, s->make_symbol("x", bvsort));
+  s->reset();
+
+  // terms held from before the reset read as they did
+  EXPECT_EQ(old_f->get_sort()->get_sort_kind(), FUNCTION);
+  EXPECT_EQ(old_fx->get_op(), Apply);
+
+  bvsort = s->make_sort(BV, 4);
+  Term f = s->make_symbol("f", s->make_sort(ARRAY, bvsort, bvsort));
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_EQ(f->get_sort()->get_sort_kind(), ARRAY);
+  EXPECT_EQ(s->make_term(Select, f, x)->get_op(), Select);
+}
+
+TEST_P(UnitResetTests, ArrayNameReusedForFunction)
+{
+  Sort bvsort = s->make_sort(BV, 4);
+  Term old_f = s->make_symbol("f", s->make_sort(ARRAY, bvsort, bvsort));
+  Term old_fx = s->make_term(Select, old_f, s->make_symbol("x", bvsort));
+  s->reset();
+
+  // terms held from before the reset read as they did
+  EXPECT_EQ(old_f->get_sort()->get_sort_kind(), ARRAY);
+  EXPECT_EQ(old_fx->get_op(), Select);
+
+  bvsort = s->make_sort(BV, 4);
+  Term f =
+      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_EQ(f->get_sort()->get_sort_kind(), FUNCTION);
+  EXPECT_EQ(s->make_term(Apply, f, x)->get_op(), Apply);
+}
+
+TEST_P(UnitResetTests, FunctionNameReusedByNextSolver)
+{
+  {
+    Sort bvsort = s->make_sort(BV, 4);
+    s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+  }
+  // with nothing left using it, Yices2 frees its terms and reuses their ids
+  s = nullptr;
+  s = create_solver(GetParam());
+
+  Sort bvsort = s->make_sort(BV, 4);
+  Term f = s->make_symbol("f", s->make_sort(ARRAY, bvsort, bvsort));
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_EQ(f->get_sort()->get_sort_kind(), ARRAY);
+  EXPECT_EQ(s->make_term(Select, f, x)->get_op(), Select);
+}
+
 static std::vector<SolverConfiguration> working_reset_configurations()
 {
   std::vector<SolverConfiguration> result;

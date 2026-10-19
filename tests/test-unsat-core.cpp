@@ -69,6 +69,22 @@ TEST_P(UnsatCoreTests, UnsatCore)
   EXPECT_THROW(s->get_unsat_assumptions(core), SmtException);
 }
 
+TEST_P(UnsatCoreTests, ApplicationInCore)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term p = s->make_symbol(
+      "p", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
+  Term pxx = s->make_term(Apply, p, x, x);
+  s->assert_formula(s->make_term(Not, pxx));
+  ASSERT_TRUE(s->check_sat_assuming({ pxx }).is_unsat());
+
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  ASSERT_EQ(core.size(), 1u);
+  EXPECT_EQ(*core.begin(), pxx);
+  EXPECT_EQ((*core.begin())->get_op(), Apply);
+}
+
 TEST_P(UnsatCoreTests, UnsatCoreNonLit)
 {
   // test that everything works in a fresh context

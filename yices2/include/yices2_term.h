@@ -42,7 +42,7 @@ class Yices2Solver;
 class Yices2TermIter : public TermIterBase
 {
  public:
-  Yices2TermIter(term_t t, uint32_t p, bool f);
+  Yices2TermIter(term_t t, uint32_t p);
   Yices2TermIter(const Yices2TermIter & it);
   ~Yices2TermIter() = default;
   Yices2TermIter & operator=(const Yices2TermIter & it);
@@ -58,20 +58,12 @@ class Yices2TermIter : public TermIterBase
  private:
   term_t term;
   uint32_t pos;
-  /* Whether `term` is about a function rather than an array, which is what
-   * Yices2Term's own is_function records. A Yices array is a function, so
-   * yices_term_is_function cannot tell a child's kind; only the term it
-   * came from can.
-   */
-  bool is_function;
 };
 
 class Yices2Term : public AbsTerm
 {
  public:
-  // assumes that term is not a function if flag is not passed
-  Yices2Term(term_t t) : term(t), is_function(false) {};
-  Yices2Term(term_t t, bool is_fun) : term(t), is_function(is_fun) {};
+  Yices2Term(term_t t) : term(t) {};
   ~Yices2Term() {};
   std::size_t hash() const override;
   std::size_t get_id() const override;
@@ -94,7 +86,6 @@ class Yices2Term : public AbsTerm
   // keeps Yices set up while the term can be used, even past its solver
   Yices2InstanceRef instance;
   term_t term;
-  bool is_function;
 
   friend class Yices2TermIter;
 
