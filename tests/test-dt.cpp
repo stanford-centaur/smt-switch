@@ -27,9 +27,9 @@ using namespace std;
 
 namespace smt_tests {
 
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DTTests);
-class DTTests : public ::testing::Test,
-                public ::testing::WithParamInterface<SolverConfiguration>
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Datatypes);
+class Datatypes : public ::testing::Test,
+                  public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -42,7 +42,7 @@ class DTTests : public ::testing::Test,
   Sort intsort;
 };
 
-TEST_P(DTTests, DeclareSimpleList)
+TEST_P(Datatypes, DeclareSimpleList)
 {
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
@@ -60,7 +60,7 @@ TEST_P(DTTests, DeclareSimpleList)
   Sort listsort = s->make_sort(listSpec);
 }
 
-TEST_P(DTTests, SelectorBelongsToOneConstructor)
+TEST_P(Datatypes, SelectorBelongsToOneConstructor)
 {
   if (GetParam().is_logging_solver)
   {
@@ -84,7 +84,7 @@ TEST_P(DTTests, SelectorBelongsToOneConstructor)
                IncorrectUsageException);
 }
 
-TEST_P(DTTests, ConstructorFromTermVec)
+TEST_P(Datatypes, ConstructorFromTermVec)
 {
   if (GetParam().is_logging_solver)
   {
@@ -114,7 +114,7 @@ TEST_P(DTTests, ConstructorFromTermVec)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
-TEST_P(DTTests, DeclareSimpleListWithForwardRef)
+TEST_P(Datatypes, DeclareSimpleListWithForwardRef)
 {
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver || s->get_solver_enum() == GENERIC_SOLVER)
@@ -132,7 +132,7 @@ TEST_P(DTTests, DeclareSimpleListWithForwardRef)
   s->add_selector(consdecl, "tail", listsort);
 }
 
-TEST_P(DTTests, DatatypeDecl)
+TEST_P(Datatypes, DatatypeDecl)
 {
   SolverConfiguration sc = GetParam();
   if (sc.is_logging_solver)
@@ -238,8 +238,9 @@ TEST_P(DTTests, DatatypeDecl)
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverDTTests,
-    DTTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })));
+    ,
+    Datatypes,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    ConfigName());
 
 }  // namespace smt_tests
