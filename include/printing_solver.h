@@ -59,11 +59,13 @@ class PrintingSolver : public AbsSmtSolver
   ~PrintingSolver();
 
   /* Operators that are printed */
-  // The datatype methods are left to AbsSmtSolver, whose defaults throw.
-  // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
-  // from lookup on this type, so name them back in.
+  // Declaring make_sort here at all would hide AbsSmtSolver's convenience
+  // overloads from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
+  Sort make_sort(const DatatypeDecl & d) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term make_param(const std::string name, const Sort & sort) override;
   Term get_value(const Term & t) const override;
@@ -90,6 +92,22 @@ class PrintingSolver : public AbsSmtSolver
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
+  // datatype declarations are recorded, and printed when their sort is made
+  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
   // Declaring make_term here hides the AbsSmtSolver template that takes
   // the children as separate arguments, so name it back in.
