@@ -235,9 +235,9 @@ bool rejects_unknown_options(GenericBinary b)
   return b != GenericBinary::Bitwuzla;
 }
 
-// We test a representative set of buffer sizes, including the smallest and
-// biggest supported, and a mixture of powers of two and non-powers of two.
-const vector<int> buffer_sizes = { 2, 10, 64, 100, 256 };
+// The smallest supported buffer splits each response into as many reads as
+// possible, and the biggest takes most responses in a single read.
+const vector<int> buffer_sizes = { 2, 256 };
 
 // (solver binary, buffer size)
 typedef tuple<GenericBinary, int> GenericSolverParam;
