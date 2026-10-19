@@ -127,8 +127,13 @@ size_t Yices2Sort::get_arity() const
 
 SortVec Yices2Sort::get_uninterpreted_param_sorts() const
 {
-  throw NotImplementedException(
-      "Yices2 does not support uninterpreted sort constructors");
+  // Yices2 has no sort constructors, so no sort has parameters
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    return {};
+  }
+  throw IncorrectUsageException(
+      "Can only get param sorts from uninterpreted sort");
 }
 
 Datatype Yices2Sort::get_datatype() const

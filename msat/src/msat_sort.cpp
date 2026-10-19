@@ -140,8 +140,13 @@ size_t MsatSort::get_arity() const
 
 SortVec MsatSort::get_uninterpreted_param_sorts() const
 {
-  throw NotImplementedException(
-      "MathSAT does not support uninterpreted sort constructors");
+  // MathSAT has no sort constructors, so no sort has parameters
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    return {};
+  }
+  throw IncorrectUsageException(
+      "Can only get param sorts from uninterpreted sort");
 }
 
 Datatype MsatSort::get_datatype() const

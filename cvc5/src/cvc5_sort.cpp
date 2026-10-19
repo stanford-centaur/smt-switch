@@ -93,6 +93,16 @@ size_t Cvc5Sort::get_arity() const
 
 SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
+  // cvc5 refuses getInstantiatedParameters on a sort that was not applied
+  if (!sort.isInstantiated())
+  {
+    if (sort.isUninterpretedSort())
+    {
+      return {};
+    }
+    throw IncorrectUsageException(
+        "Can only get param sorts from uninterpreted sort");
+  }
   SortVec param_sorts;
   for (auto cs : sort.getInstantiatedParameters())
   {
