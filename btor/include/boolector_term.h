@@ -90,8 +90,8 @@ class BoolectorTerm : public AbsTerm
   int64_t to_signed_int() const override;
   /** Iterators for traversing the children
    */
-  TermIter begin() override;
-  TermIter end() override;
+  TermIter begin() const override;
+  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // getters for solver-specific objects
@@ -108,23 +108,23 @@ class BoolectorTerm : public AbsTerm
   // allows us to look up:
   //   kind: for retrieving operator
   //   e:    for getting children
-  BtorNode * bn;
+  mutable BtorNode * bn;
   // true iff the node is negated
   bool negated;
   // for iterating args nodes
-  BtorArgsIterator ait;
+  mutable BtorArgsIterator ait;
   // for storing nodes before iterating
-  std::vector<BtorNode *> children;
+  mutable std::vector<BtorNode *> children;
   // flag that's set to true if children have already been gathered
   // not straightforward to just rely on number of children / arity
   // because boolector term representation isn't a perfect match
   // for the smt-switch abstract interface
-  bool children_cached_ =
+  mutable bool children_cached_ =
       false;  ///< set to true if children have already been gathered
 
   // helpers
   bool is_const_array() const;
-  void collect_children();
+  void collect_children() const;
 
   friend class BoolectorSolver;
   friend class BoolectorTermIter;

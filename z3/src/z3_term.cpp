@@ -374,7 +374,7 @@ int64_t Z3Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
-TermIter Z3Term::begin()
+TermIter Z3Term::begin() const
 {
   if (is_function)
   {
@@ -395,7 +395,7 @@ TermIter Z3Term::begin()
   return TermIter(new Z3TermIter(ctx, term, 0));
 }
 
-TermIter Z3Term::end()
+TermIter Z3Term::end() const
 {
   if (is_function)
   {

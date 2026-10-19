@@ -633,9 +633,12 @@ int64_t MsatTerm::to_signed_int() const
   return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
 }
 
-TermIter MsatTerm::begin() { return TermIter(new MsatTermIter(env, term, 0)); }
+TermIter MsatTerm::begin() const
+{
+  return TermIter(new MsatTermIter(env, term, 0));
+}
 
-TermIter MsatTerm::end()
+TermIter MsatTerm::end() const
 {
   if (is_uf)
   {

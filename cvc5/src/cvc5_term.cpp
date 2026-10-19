@@ -347,9 +347,9 @@ int64_t Cvc5Term::to_signed_int() const
 
 /** Iterators for traversing the children
  */
-TermIter Cvc5Term::begin() { return TermIter(new Cvc5TermIter(term, 0)); }
+TermIter Cvc5Term::begin() const { return TermIter(new Cvc5TermIter(term, 0)); }
 
-TermIter Cvc5Term::end()
+TermIter Cvc5Term::end() const
 {
   uint32_t num_children = term.getNumChildren();
   if (term.getKind() == ::cvc5::Kind::CONST_ARRAY)

@@ -121,12 +121,12 @@ bool GenericTerm::is_symbolic_const() const
   return is_sym && sort->get_sort_kind() != FUNCTION;
 }
 
-TermIter GenericTerm::begin()
+TermIter GenericTerm::begin() const
 {
   return TermIter(new GenericTermIter(children.begin()));
 }
 
-TermIter GenericTerm::end()
+TermIter GenericTerm::end() const
 {
   return TermIter(new GenericTermIter(children.end()));
 }
@@ -194,7 +194,7 @@ std::string GenericTerm::print_value_as(SortKind /* sk */) const
 
 /* GenericTermIter */
 
-GenericTermIter::GenericTermIter(TermVec::iterator i) : it(i) {}
+GenericTermIter::GenericTermIter(TermVec::const_iterator i) : it(i) {}
 
 GenericTermIter::GenericTermIter(const GenericTermIter & lit) : it(lit.it) {}
 

@@ -206,12 +206,12 @@ bool LoggingTerm::is_symbolic_const() const
   return is_sym && sort->get_sort_kind() != FUNCTION;
 }
 
-TermIter LoggingTerm::begin()
+TermIter LoggingTerm::begin() const
 {
   return TermIter(new LoggingTermIter(children.begin()));
 }
 
-TermIter LoggingTerm::end()
+TermIter LoggingTerm::end() const
 {
   return TermIter(new LoggingTermIter(children.end()));
 }
@@ -241,7 +241,7 @@ std::string LoggingTerm::print_value_as(SortKind sk) const
 
 /* LoggingTermIter */
 
-LoggingTermIter::LoggingTermIter(TermVec::iterator i) : it(i) {}
+LoggingTermIter::LoggingTermIter(TermVec::const_iterator i) : it(i) {}
 
 LoggingTermIter::LoggingTermIter(const LoggingTermIter & lit) : it(lit.it) {}
 

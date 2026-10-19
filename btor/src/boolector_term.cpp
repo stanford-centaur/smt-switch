@@ -414,13 +414,13 @@ int64_t BoolectorTerm::to_signed_int() const
 
 /** Iterators for traversing the children
  */
-TermIter BoolectorTerm::begin()
+TermIter BoolectorTerm::begin() const
 {
   collect_children();
   return TermIter(new BoolectorTermIter(btor, children, 0));
 }
 
-TermIter BoolectorTerm::end()
+TermIter BoolectorTerm::end() const
 {
   collect_children();
   return TermIter(new BoolectorTermIter(btor, children, children.size()));
@@ -470,7 +470,7 @@ bool BoolectorTerm::is_const_array() const
   return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
 }
 
-void BoolectorTerm::collect_children()
+void BoolectorTerm::collect_children() const
 {
   if (btor_node_is_proxy(bn))
   {

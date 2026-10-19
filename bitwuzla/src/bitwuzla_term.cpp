@@ -259,9 +259,12 @@ std::int64_t BzlaTerm::to_signed_int() const
   return bits_to_int64(bv_value_to_bits(term));
 }
 
-TermIter BzlaTerm::begin() { return TermIter(new BzlaTermIter(term, 0, tm)); }
+TermIter BzlaTerm::begin() const
+{
+  return TermIter(new BzlaTermIter(term, 0, tm));
+}
 
-TermIter BzlaTerm::end()
+TermIter BzlaTerm::end() const
 {
   std::size_t num_children = term.num_children();
   return TermIter(new BzlaTermIter(term, num_children, tm));

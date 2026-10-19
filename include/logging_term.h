@@ -60,8 +60,8 @@ class LoggingTerm : public AbsTerm
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
-  TermIter begin() override;
-  TermIter end() override;
+  TermIter begin() const override;
+  TermIter end() const override;
 
   // dispatched to underlying term
   std::size_t hash() const override;
@@ -87,7 +87,7 @@ class LoggingTerm : public AbsTerm
 class LoggingTermIter : public TermIterBase
 {
  public:
-  LoggingTermIter(TermVec::iterator i);
+  LoggingTermIter(TermVec::const_iterator i);
   LoggingTermIter(const LoggingTermIter & lit);
   LoggingTermIter & operator=(const LoggingTermIter & lit);
   void operator++() override;
@@ -98,7 +98,7 @@ class LoggingTermIter : public TermIterBase
 
  protected:
   bool equal(const TermIterBase & other) const override;
-  TermVec::iterator it;
+  TermVec::const_iterator it;
 };
 
 }  // namespace smt
