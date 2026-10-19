@@ -185,7 +185,27 @@ bool GenericSort::compare(const Sort & s) const
       return true;
     }
     case UNINTERPRETED: {
-      return get_uninterpreted_name() == s->get_uninterpreted_name();
+      // every application of a constructor shares its name, so the
+      // parameters tell them apart
+      SortVec param_sorts = get_uninterpreted_param_sorts();
+      SortVec other_param_sorts = s->get_uninterpreted_param_sorts();
+      if (get_uninterpreted_name() != s->get_uninterpreted_name()
+          || param_sorts.size() != other_param_sorts.size())
+      {
+        return false;
+      }
+      for (std::size_t i = 0; i < param_sorts.size(); i++)
+      {
+        if (param_sorts[i] != other_param_sorts[i])
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+    case UNINTERPRETED_CONS: {
+      return get_uninterpreted_name() == s->get_uninterpreted_name()
+             && get_arity() == s->get_arity();
     }
     case DATATYPE: {
       assert(sk == DATATYPE);

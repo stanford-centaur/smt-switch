@@ -153,3 +153,24 @@ TEST(GenericSort, WrongKindAccessors)
   EXPECT_THAT([&] { placeholder->get_datatype(); },
               incorrect_usage("The sort of datatype list is not made yet"));
 }
+
+TEST(GenericSort, SortConstructors)
+{
+  Sort list = std::make_shared<UninterpretedGenericSort>("List", 1);
+  Sort list_again = std::make_shared<UninterpretedGenericSort>("List", 1);
+  Sort list2 = std::make_shared<UninterpretedGenericSort>("List", 2);
+  EXPECT_EQ(list, list_again);
+  EXPECT_NE(list, list2);
+
+  // applications of one constructor differ by their parameters
+  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort bool_sort = std::make_shared<GenericSort>(BOOL);
+  Sort list_int =
+      std::make_shared<UninterpretedGenericSort>(list, SortVec{ int_sort });
+  Sort list_int_again =
+      std::make_shared<UninterpretedGenericSort>(list, SortVec{ int_sort });
+  Sort list_bool =
+      std::make_shared<UninterpretedGenericSort>(list, SortVec{ bool_sort });
+  EXPECT_EQ(list_int, list_int_again);
+  EXPECT_NE(list_int, list_bool);
+}
