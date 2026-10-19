@@ -152,6 +152,14 @@ TEST(GenericSort, WrongKindAccessors)
   Sort placeholder = std::make_shared<GenericSort>("list");
   EXPECT_THAT([&] { placeholder->get_datatype(); },
               incorrect_usage("The sort of datatype list is not made yet"));
+
+  // a selector prints as its name, but that name is not an uninterpreted one
+  Sort selector =
+      std::make_shared<DatatypeComponentSort>(SELECTOR, "head", int_sort);
+  EXPECT_EQ(selector->to_string(), "head");
+  EXPECT_THAT(
+      [&] { selector->get_uninterpreted_name(); },
+      incorrect_usage("Sort of kind Selector has no uninterpreted name"));
 }
 
 TEST(GenericSort, SortConstructors)

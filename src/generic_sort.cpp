@@ -364,11 +364,6 @@ std::string DatatypeComponentSort::to_string() const
   return compute_string();
 }
 
-std::string DatatypeComponentSort::get_uninterpreted_name() const
-{
-  return name;
-}
-
 SortVec DatatypeComponentSort::get_domain_sorts() const
 {
   std::vector<Sort> domain_sorts;

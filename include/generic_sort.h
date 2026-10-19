@@ -216,7 +216,6 @@ class DatatypeComponentSort : public GenericSort
   ~DatatypeComponentSort() {};
   std::string compute_string() const override;
   std::string to_string() const override;
-  std::string get_uninterpreted_name() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   void set_selector_sort(Sort new_selector_sort);

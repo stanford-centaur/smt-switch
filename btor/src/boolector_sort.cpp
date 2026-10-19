@@ -74,8 +74,10 @@ Sort BoolectorSortBase::get_codomain_sort() const
 
 std::string BoolectorSortBase::get_uninterpreted_name() const
 {
-  throw IncorrectUsageException(
-      "Boolector doesn't support uninterpreted sorts.");
+  // Boolector has no uninterpreted sorts, so no sort has an uninterpreted name
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted name");
 }
 
 size_t BoolectorSortBase::get_arity() const

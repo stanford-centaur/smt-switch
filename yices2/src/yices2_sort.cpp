@@ -111,6 +111,12 @@ Sort Yices2Sort::get_codomain_sort() const
 
 string Yices2Sort::get_uninterpreted_name() const
 {
+  if (get_sort_kind() != UNINTERPRETED)
+  {
+    throw IncorrectUsageException("Sort of kind "
+                                  + smt::to_string(get_sort_kind())
+                                  + " has no uninterpreted name");
+  }
   const char * res = yices_get_type_name(type);
   if (res == NULL)
   {

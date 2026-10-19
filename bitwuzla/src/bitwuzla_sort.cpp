@@ -74,7 +74,13 @@ Sort BzlaSort::get_codomain_sort() const
 
 std::string BzlaSort::get_uninterpreted_name() const
 {
-  return sort.uninterpreted_symbol().value_or("");
+  if (sort.is_uninterpreted())
+  {
+    return sort.uninterpreted_symbol().value_or("");
+  }
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted name");
 }
 
 std::size_t BzlaSort::get_arity() const

@@ -116,16 +116,13 @@ Sort Z3Sort::get_codomain_sort() const
 
 string Z3Sort::get_uninterpreted_name() const
 {
-  if (type.sort_kind() == Z3_UNINTERPRETED_SORT)
+  if (get_sort_kind() == UNINTERPRETED)
   {
     return type.name().str();
   }
-  else
-  {
-    throw IncorrectUsageException(
-        "Can only get uninterpreted name from uninterpreted sort");
-  }
-  return type.name().str();
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted name");
 }
 
 size_t Z3Sort::get_arity() const

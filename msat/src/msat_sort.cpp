@@ -128,8 +128,14 @@ Sort MsatSort::get_codomain_sort() const
 
 string MsatSort::get_uninterpreted_name() const
 {
-  string res(msat_type_repr(type));
-  return res;
+  if (get_sort_kind() == UNINTERPRETED)
+  {
+    string res(msat_type_repr(type));
+    return res;
+  }
+  throw IncorrectUsageException("Sort of kind "
+                                + smt::to_string(get_sort_kind())
+                                + " has no uninterpreted name");
 }
 
 size_t MsatSort::get_arity() const
