@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "exceptions.h"
 #include "smt_defs.h"
@@ -165,6 +166,16 @@ class TermTranslator
    */
   Sort uninterpreted_sort(const std::string & name, std::uint64_t arity);
 
+  /** Declares a datatype in the member variable solver as the other solver
+   *  declared it, transferring the sorts of its selectors
+   *  @param sort a datatype sort of the other solver
+   *  @return the datatype sort of this name in the member variable solver,
+   *  the same object for every call with this name
+   *  throws a NotImplementedException for a datatype that another datatype
+   *  among its selectors' sorts refers back to
+   */
+  Sort transfer_datatype_sort(const Sort & sort);
+
   // Note: const meaning the solver doesn't change to a different solver
   // it can still call non-const methods of the solver
   SmtSolver solver;  ///< solver to translate terms to
@@ -173,5 +184,10 @@ class TermTranslator
   // necessary because it needs to be the same exact uninterpreted sort
   // cannot recreate it with the same name and get the same object back
   std::unordered_map<std::string, Sort> uninterpreted_sorts;
+  // map from datatype names to the sort in the destination solver, which
+  // like an uninterpreted sort cannot be declared twice and stay the same
+  std::unordered_map<std::string, Sort> datatype_sorts;
+  // the datatypes whose transfer has begun and not yet finished
+  std::unordered_set<std::string> datatypes_in_progress;
 };
 }  // namespace smt

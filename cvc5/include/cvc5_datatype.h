@@ -67,8 +67,14 @@ class Cvc5Datatype : public AbsDatatype
     throw IncorrectUsageException(datatype.getName() + "." + cons
                                   + " not found");
   }
+  std::string get_constructor_name(int i) const override;
+  std::string get_selector_name(std::string cons, int i) const override;
+  Sort get_selector_sort(std::string cons, int i) const override;
 
  protected:
+  /** A constructor's selector, by its position */
+  cvc5::DatatypeSelector selector(const std::string & cons, int i) const;
+
   cvc5::Datatype datatype;
 
   friend class Cvc5Solver;

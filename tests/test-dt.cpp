@@ -238,6 +238,34 @@ TEST_P(Datatypes, ComponentsAreHashConsed)
   EXPECT_EQ(s->get_tester(maybesort, "just"), s->get_tester(maybesort, "just"));
 }
 
+TEST_P(Datatypes, ConstructorsAndSelectors)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  // after add_constructor, which the generic solver needs first (B.4)
+  s->add_selector_self(consdecl, "tail");
+  Sort listsort = s->make_sort(listdecl);
+
+  Datatype dt = listsort->get_datatype();
+  ASSERT_EQ(dt->get_num_constructors(), 2);
+  EXPECT_EQ(dt->get_constructor_name(0), "nil");
+  EXPECT_EQ(dt->get_constructor_name(1), "cons");
+  ASSERT_EQ(dt->get_num_selectors("cons"), 2);
+  EXPECT_EQ(dt->get_selector_name("cons", 0), "head");
+  EXPECT_EQ(dt->get_selector_name("cons", 1), "tail");
+  EXPECT_EQ(dt->get_selector_sort("cons", 0), intsort);
+  // a selector of the datatype itself has the datatype's own sort
+  EXPECT_EQ(dt->get_selector_sort("cons", 1), listsort);
+
+  EXPECT_THROW(dt->get_constructor_name(2), IncorrectUsageException);
+  EXPECT_THROW(dt->get_selector_name("nil", 0), IncorrectUsageException);
+  EXPECT_THROW(dt->get_selector_sort("kons", 0), IncorrectUsageException);
+}
+
 TEST_P(Datatypes, PrintsAsSmtlib)
 {
   if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)

@@ -73,6 +73,9 @@ class GenericDatatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
+  std::string get_constructor_name(int i) const override;
+  std::string get_selector_name(std::string cons, int i) const override;
+  Sort get_selector_sort(std::string cons, int i) const override;
   // Updates the sort of any selector whose finalized field is
   // false. The not-finalized selectors have their sorts set to new_sort.
   // This function is used only as part of the process of adding a
@@ -84,6 +87,9 @@ class GenericDatatype : public AbsDatatype
   std::hash<std::string> str_hash;
 
  protected:
+  // A constructor's selector, by its position
+  SelectorComponents selector(const std::string & cons, int i) const;
+
   DatatypeDecl dt_decl;
   std::vector<DatatypeConstructorDecl> cons_decl_vector;
 

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <string>
 
 #include "exceptions.h"
 
@@ -122,6 +123,48 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
 std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector()
 {
   return cons_decl_vector;
+}
+
+std::string GenericDatatype::get_constructor_name(int i) const
+{
+  if (i < 0 || i >= get_num_constructors())
+  {
+    throw IncorrectUsageException(get_name() + " has no constructor "
+                                  + std::to_string(i));
+  }
+  return std::static_pointer_cast<GenericDatatypeConstructorDecl>(
+             cons_decl_vector[i])
+      ->get_name();
+}
+
+std::string GenericDatatype::get_selector_name(std::string cons, int i) const
+{
+  return selector(cons, i).name;
+}
+
+Sort GenericDatatype::get_selector_sort(std::string cons, int i) const
+{
+  return selector(cons, i).sort;
+}
+
+SelectorComponents GenericDatatype::selector(const std::string & cons,
+                                             int i) const
+{
+  for (const DatatypeConstructorDecl & d : cons_decl_vector)
+  {
+    std::shared_ptr<GenericDatatypeConstructorDecl> gd =
+        std::static_pointer_cast<GenericDatatypeConstructorDecl>(d);
+    if (gd->get_name() == cons)
+    {
+      if (i < 0 || i >= gd->get_selector_count())
+      {
+        break;
+      }
+      return gd->get_selector_vector()[i];
+    }
+  }
+  throw IncorrectUsageException(get_name() + "." + cons + " has no selector "
+                                + std::to_string(i));
 }
 
 std::string GenericDatatype::get_name() const

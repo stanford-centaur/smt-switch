@@ -43,8 +43,14 @@ class Z3Datatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string name) const override;
+  std::string get_constructor_name(int i) const override;
+  std::string get_selector_name(std::string cons, int i) const override;
+  Sort get_selector_sort(std::string cons, int i) const override;
 
  private:
+  /** A constructor's selector, by its position */
+  z3::func_decl accessor(const std::string & cons, int i) const;
+
   // declared before datatype, so that it is released while the context lives
   std::shared_ptr<z3::context> c;
 

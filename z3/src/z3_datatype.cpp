@@ -1,5 +1,10 @@
 #include "z3_datatype.h"
 
+#include <memory>
+#include <string>
+
+#include "z3_sort.h"
+
 namespace z3 {
 bool operator==(const z3::sort & lhs, const z3::sort & rhs)
 {
@@ -47,6 +52,47 @@ int Z3Datatype::get_num_selectors(std::string name) const
   }
   throw IncorrectUsageException(datatype.name().str() + "." + name
                                 + " not found");
+}
+
+std::string Z3Datatype::get_constructor_name(int i) const
+{
+  if (i < 0 || i >= get_num_constructors())
+  {
+    throw IncorrectUsageException(datatype.name().str() + " has no constructor "
+                                  + std::to_string(i));
+  }
+  z3::func_decl cons{ *c, Z3_get_datatype_sort_constructor(*c, datatype, i) };
+  return cons.name().str();
+}
+
+std::string Z3Datatype::get_selector_name(std::string cons, int i) const
+{
+  return accessor(cons, i).name().str();
+}
+
+Sort Z3Datatype::get_selector_sort(std::string cons, int i) const
+{
+  return std::make_shared<Z3Sort>(c, accessor(cons, i).range());
+}
+
+z3::func_decl Z3Datatype::accessor(const std::string & cons, int i) const
+{
+  for (int j = 0; j < get_num_constructors(); j++)
+  {
+    z3::func_decl con{ *c, Z3_get_datatype_sort_constructor(*c, datatype, j) };
+    if (con.name().str() == cons)
+    {
+      if (i < 0 || static_cast<unsigned>(i) >= con.arity())
+      {
+        break;
+      }
+      return z3::func_decl{
+        *c, Z3_get_datatype_sort_constructor_accessor(*c, datatype, j, i)
+      };
+    }
+  }
+  throw IncorrectUsageException(datatype.name().str() + "." + cons
+                                + " has no selector " + std::to_string(i));
 }
 
 }  // namespace smt
