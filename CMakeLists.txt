@@ -94,6 +94,9 @@ endif()
 # - PROJECT_VERSION_PATCH: Patch version component
 message(STATUS "Project version set to: ${PROJECT_VERSION}")
 
+# Defines smt_switch_check_library_versions(), used further down.
+include(Helpers)
+
 # Defines SMT_SWITCH_DEPS_DIR, which the roots below are relative to, and
 # smt_switch_provision_if_missing(), used further down. Included before the
 # roots so that moving the dependency tree moves both together.
@@ -339,6 +342,18 @@ if(BUILD_Z3)
   list(APPEND SOLVER_BACKEND_LIBS smt-switch-z3)
   list(APPEND SOLVER_STATIC_LINK_ARGS ${Z3_LIBRARY_LOCATION})
 endif()
+
+# cvc5 and Yices2 can both link LibPoly
+if(BUILD_CVC5 AND BUILD_YICES2 AND Yices2_POLY_LIBRARY)
+  smt_switch_check_library_versions(
+    Yices2_POLY_LIBRARY
+    cvc5_POLY_LIBRARY
+    NAME LibPoly
+    HEADER poly/version.h
+    VERSION_MACRO LIBPOLY_VERSION
+  )
+endif()
+
 if(BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
 endif()
