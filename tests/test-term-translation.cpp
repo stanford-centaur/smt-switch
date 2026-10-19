@@ -199,6 +199,19 @@ class IntRealTranslationTests : public RealTranslationTests
   Sort intsort;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortConstructorTranslationTests);
+class SortConstructorTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    list = s1->make_sort("List", 1);
+    list_bool = s1->make_sort(list, SortVec{ boolsort });
+  }
+  Sort list, list_bool;
+};
+
 TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
@@ -603,6 +616,51 @@ TEST_P(StringTranslationTests, Strings)
   EXPECT_EQ(nt, nt1);
 }
 
+TEST_P(SortConstructorTranslationTests, SortConstructor)
+{
+  TermTranslator to_s2(s2);
+  Sort list2 = to_s2.transfer_sort(list);
+  EXPECT_EQ(list2->get_sort_kind(), UNINTERPRETED_CONS);
+  EXPECT_EQ(list2->get_uninterpreted_name(), "List");
+  EXPECT_EQ(list2->get_arity(), 1);
+}
+
+TEST_P(SortConstructorTranslationTests, AppliedSorts)
+{
+  // (List (List Bool)) nests one application of the constructor in another
+  Sort list_list_bool = s1->make_sort(list, SortVec{ list_bool });
+  Term l = s1->make_symbol("l", list_bool);
+  Term ll = s1->make_symbol("ll", list_list_bool);
+  Term f = s1->make_symbol(
+      "f", s1->make_sort(FUNCTION, SortVec{ list_list_bool, list_bool }));
+  Term eq = s1->make_term(Equal, s1->make_term(Apply, f, ll), l);
+
+  // applying f in s2 is well sorted only if both applied sorts share one
+  // constructor there
+  TermTranslator to_s2(s2);
+  Term eq2 = to_s2.transfer_term(eq);
+  Sort list_bool2 = to_s2.transfer_term(l)->get_sort();
+  EXPECT_EQ(list_bool2->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(list_bool2->get_uninterpreted_name(), "List");
+  SortVec params = list_bool2->get_uninterpreted_param_sorts();
+  ASSERT_EQ(params.size(), 1);
+  EXPECT_EQ(params[0]->get_sort_kind(), BOOL);
+  EXPECT_EQ(to_s2.transfer_sort(list_list_bool),
+            to_s2.transfer_term(ll)->get_sort());
+
+  s2->assert_formula(eq2);
+  EXPECT_TRUE(s2->check_sat().is_sat());
+}
+
+TEST_P(SortConstructorTranslationTests, ArityClash)
+{
+  // a nullary sort with a constructor's name cannot share its declaration
+  Sort list0 = s1->make_sort("List", 0);
+  TermTranslator to_s2(s2);
+  to_s2.transfer_sort(list);
+  EXPECT_THROW(to_s2.transfer_sort(list0), IncorrectUsageException);
+}
+
 // All tests are instantiated with non-generic solvers,
 // as generic solvers do not support term translation
 // currently.
@@ -688,6 +746,15 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, THEORY_STR })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_STR }))),
+    ConfigPairName());
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    SortConstructorTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, PARAM_UNINTERP_SORT })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, PARAM_UNINTERP_SORT }))),
     ConfigPairName());
 
 }  // namespace smt_tests
