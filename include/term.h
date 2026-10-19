@@ -149,7 +149,7 @@ class TermIterBase
   TermIterBase() {}
   virtual ~TermIterBase() = default;
   virtual void operator++() {}
-  const virtual Term operator*();
+  virtual Term operator*() const;
   virtual TermIterBase * clone() const = 0;
   bool operator==(const TermIterBase & other) const;
 

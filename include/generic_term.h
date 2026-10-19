@@ -115,9 +115,9 @@ class GenericTermIter : public TermIterBase
 
   GenericTermIter & operator=(const GenericTermIter & lit);
   void operator++() override;
-  const Term operator*() override;
-  bool operator==(const GenericTermIter & lit);
-  bool operator!=(const GenericTermIter & lit);
+  Term operator*() const override;
+  bool operator==(const GenericTermIter & lit) const;
+  bool operator!=(const GenericTermIter & lit) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

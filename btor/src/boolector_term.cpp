@@ -153,7 +153,7 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
 
 void BoolectorTermIter::operator++() { idx++; };
 
-const Term BoolectorTermIter::operator*()
+Term BoolectorTermIter::operator*() const
 {
   assert(idx >= 0 && static_cast<size_t>(idx) < children.size());
   BtorNode * res = children[idx];
@@ -176,12 +176,12 @@ TermIterBase * BoolectorTermIter::clone() const
   return new BoolectorTermIter(btor, children, idx);
 }
 
-bool BoolectorTermIter::operator==(const BoolectorTermIter & it)
+bool BoolectorTermIter::operator==(const BoolectorTermIter & it) const
 {
   return equal(it);
 };
 
-bool BoolectorTermIter::operator!=(const BoolectorTermIter & it)
+bool BoolectorTermIter::operator!=(const BoolectorTermIter & it) const
 {
   return !(*this == it);
 };

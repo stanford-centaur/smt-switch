@@ -39,7 +39,7 @@ Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
 
 void Z3TermIter::operator++() { pos++; }
 
-const Term Z3TermIter::operator*()
+Term Z3TermIter::operator*() const
 {
   assert(!null_term);
   bool is_function_app = term.is_app()
@@ -62,7 +62,7 @@ TermIterBase * Z3TermIter::clone() const
   return new Z3TermIter(ctx, term, pos, null_term);
 }
 
-bool Z3TermIter::operator==(const Z3TermIter & it)
+bool Z3TermIter::operator==(const Z3TermIter & it) const
 {
   if (!null_term && !it.null_term)
   {
@@ -74,7 +74,10 @@ bool Z3TermIter::operator==(const Z3TermIter & it)
   }
 }
 
-bool Z3TermIter::operator!=(const Z3TermIter & it) { return !(*this == it); }
+bool Z3TermIter::operator!=(const Z3TermIter & it) const
+{
+  return !(*this == it);
+}
 
 bool Z3TermIter::equal(const TermIterBase & other) const
 {

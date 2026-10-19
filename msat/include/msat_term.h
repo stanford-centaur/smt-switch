@@ -39,10 +39,10 @@ class MsatTermIter : public TermIterBase
   MsatTermIter(const MsatTermIter & it);
   MsatTermIter & operator=(const MsatTermIter & it);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const MsatTermIter & it);
-  bool operator!=(const MsatTermIter & it);
+  bool operator==(const MsatTermIter & it) const;
+  bool operator!=(const MsatTermIter & it) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

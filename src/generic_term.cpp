@@ -206,19 +206,19 @@ GenericTermIter & GenericTermIter::operator=(const GenericTermIter & lit)
 
 void GenericTermIter::operator++() { it++; }
 
-const Term GenericTermIter::operator*() { return *it; }
+Term GenericTermIter::operator*() const { return *it; }
 
 TermIterBase * GenericTermIter::clone() const
 {
   return new GenericTermIter(it);
 }
 
-bool GenericTermIter::operator==(const GenericTermIter & lit)
+bool GenericTermIter::operator==(const GenericTermIter & lit) const
 {
   return it == lit.it;
 }
 
-bool GenericTermIter::operator!=(const GenericTermIter & lit)
+bool GenericTermIter::operator!=(const GenericTermIter & lit) const
 {
   return it != lit.it;
 }

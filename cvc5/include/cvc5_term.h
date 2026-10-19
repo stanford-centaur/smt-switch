@@ -37,10 +37,10 @@ class Cvc5TermIter : public TermIterBase
   };
   Cvc5TermIter & operator=(const Cvc5TermIter & it);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const Cvc5TermIter & it);
-  bool operator!=(const Cvc5TermIter & it);
+  bool operator==(const Cvc5TermIter & it) const;
+  bool operator!=(const Cvc5TermIter & it) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

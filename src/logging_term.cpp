@@ -253,19 +253,19 @@ LoggingTermIter & LoggingTermIter::operator=(const LoggingTermIter & lit)
 
 void LoggingTermIter::operator++() { it++; }
 
-const Term LoggingTermIter::operator*() { return *it; }
+Term LoggingTermIter::operator*() const { return *it; }
 
 TermIterBase * LoggingTermIter::clone() const
 {
   return new LoggingTermIter(it);
 }
 
-bool LoggingTermIter::operator==(const LoggingTermIter & lit)
+bool LoggingTermIter::operator==(const LoggingTermIter & lit) const
 {
   return it == lit.it;
 }
 
-bool LoggingTermIter::operator!=(const LoggingTermIter & lit)
+bool LoggingTermIter::operator!=(const LoggingTermIter & lit) const
 {
   return it != lit.it;
 }

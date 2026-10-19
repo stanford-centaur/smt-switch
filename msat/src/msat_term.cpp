@@ -144,7 +144,7 @@ MsatTermIter & MsatTermIter::operator=(const MsatTermIter & it)
 
 void MsatTermIter::operator++() { pos++; }
 
-const Term MsatTermIter::operator*()
+Term MsatTermIter::operator*() const
 {
   if (!pos && msat_term_is_uf(*env, term))
   {
@@ -167,7 +167,7 @@ TermIterBase * MsatTermIter::clone() const
   return new MsatTermIter(env, term, pos);
 }
 
-bool MsatTermIter::operator==(const MsatTermIter & it)
+bool MsatTermIter::operator==(const MsatTermIter & it) const
 {
   // null terms mean you're iterating over a function symbol
   // it has no children, so the two iterators should be considered equal
@@ -182,7 +182,7 @@ bool MsatTermIter::operator==(const MsatTermIter & it)
   return ((msat_term_id(term) == msat_term_id(it.term)) && (pos == it.pos));
 }
 
-bool MsatTermIter::operator!=(const MsatTermIter & it)
+bool MsatTermIter::operator!=(const MsatTermIter & it) const
 {
   // null terms mean you're iterating over a function symbol
   // it has no children, so the two iterators should be considered equal

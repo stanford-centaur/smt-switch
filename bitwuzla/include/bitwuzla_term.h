@@ -44,10 +44,10 @@ class BzlaTermIter : public TermIterBase
   };
   BzlaTermIter & operator=(const BzlaTermIter & it);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const BzlaTermIter & it);
-  bool operator!=(const BzlaTermIter & it);
+  bool operator==(const BzlaTermIter & it) const;
+  bool operator!=(const BzlaTermIter & it) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

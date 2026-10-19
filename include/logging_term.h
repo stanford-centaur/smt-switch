@@ -91,10 +91,10 @@ class LoggingTermIter : public TermIterBase
   LoggingTermIter(const LoggingTermIter & lit);
   LoggingTermIter & operator=(const LoggingTermIter & lit);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const LoggingTermIter & lit);
-  bool operator!=(const LoggingTermIter & lit);
+  bool operator==(const LoggingTermIter & lit) const;
+  bool operator!=(const LoggingTermIter & lit) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

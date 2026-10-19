@@ -384,7 +384,7 @@ Yices2TermIter & Yices2TermIter::operator=(const Yices2TermIter & it)
 
 void Yices2TermIter::operator++() { pos++; }
 
-const Term Yices2TermIter::operator*()
+Term Yices2TermIter::operator*() const
 {
   term_t ret_term;
 
@@ -531,12 +531,12 @@ TermIterBase * Yices2TermIter::clone() const
   return new Yices2TermIter(term, pos);
 }
 
-bool Yices2TermIter::operator==(const Yices2TermIter & it)
+bool Yices2TermIter::operator==(const Yices2TermIter & it) const
 {
   return term == it.term && pos == it.pos;
 }
 
-bool Yices2TermIter::operator!=(const Yices2TermIter & it)
+bool Yices2TermIter::operator!=(const Yices2TermIter & it) const
 {
   return !(*this == it);
 }
