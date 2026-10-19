@@ -518,6 +518,11 @@ Term BzlaSolver::make_term(Op op,
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
+
   std::vector<bitwuzla::Term> bitwuzla_terms;
   for (auto && t : terms)
   {

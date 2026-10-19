@@ -42,6 +42,16 @@ Term make_nary_term(const AbsSmtSolver * solver,
                     const Op & op,
                     const TermVec & terms);
 
+/** Check the arguments of a quantifier: one or more params, then the body.
+ *  A solver whose API would bind a term of another kind, crash on one, or
+ *  return the body unchanged when there are none checks with this first.
+ *  @param op the quantifier, Forall or Exists, used in the error message
+ *  @param terms the arguments
+ *  @throws IncorrectUsageException if there is no param, or a term other
+ *  than the body is not a param
+ */
+void check_quantifier_binders(const Op & op, const TermVec & terms);
+
 /** Narrow an operator index to the 32 bits that most solver APIs take.
  *  Op stores indices as 64-bit, so without this the conversion is silent and
  *  a too-large index reaches the solver as an unrelated value.

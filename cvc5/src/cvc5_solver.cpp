@@ -929,6 +929,10 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms.");
   }
+  else if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    check_quantifier_binders(op, terms);
+  }
   else if (terms.size() > 2
            && binary_only_ops.find(op.prim_op) != binary_only_ops.end())
   {

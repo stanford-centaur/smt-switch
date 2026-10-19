@@ -178,6 +178,26 @@ TEST_P(Binders, SymbolNamedLikeEarlierParam)
   expect_symbol_not_captured(param, symbol);
 }
 
+TEST_P(Binders, NoParam)
+{
+  Term body = s->make_symbol("b", boolsort);
+  EXPECT_THROW(s->make_term(Forall, body), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Exists, TermVec{ body }), IncorrectUsageException);
+}
+
+// binding a symbol would capture it, changing what the formula means
+TEST_P(Binders, SymbolAsBinder)
+{
+  Term p = s->make_param("p", bvsort);
+  Term q = s->make_param("q", bvsort);
+  Term symbol = s->make_symbol("x", bvsort);
+  Term body = s->make_term(Equal, p, symbol);
+  EXPECT_THROW(s->make_term(Forall, symbol, body), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Exists, p, symbol, body), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Forall, TermVec{ p, q, symbol, body }),
+               IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedQuantifierIterTests,
     UnitQuantifierIterTests,
