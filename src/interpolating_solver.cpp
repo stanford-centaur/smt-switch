@@ -72,7 +72,8 @@ UnorderedTermMap AbsSmtInterpolator::get_array_values(
       "Can't get array values from interpolating solver");
 }
 
-void AbsSmtInterpolator::get_unsat_assumptions(UnorderedTermSet & /* out */)
+void AbsSmtInterpolator::get_unsat_assumptions(
+    UnorderedTermSet & /* out */) const
 {
   throw IncorrectUsageException(
       "Can't get unsat assumptions from interpolating solver");
@@ -197,7 +198,7 @@ Term AbsSmtInterpolator::make_symbol(const std::string name, const Sort & sort)
   return backend_solver->make_symbol(name, sort);
 }
 
-Term AbsSmtInterpolator::get_symbol(const std::string & name)
+Term AbsSmtInterpolator::get_symbol(const std::string & name) const
 {
   return backend_solver->get_symbol(name);
 }

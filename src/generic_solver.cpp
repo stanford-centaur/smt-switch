@@ -1725,7 +1725,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   return (*name_term_map)[piped_name];
 }
 
-Term GenericSolver::get_symbol(const std::string & name)
+Term GenericSolver::get_symbol(const std::string & name) const
 {
   // GenericSolver always puts pipes around symbol names
   // in case there are special symbols / spaces
@@ -1964,7 +1964,7 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
   return value;
 }
 
-void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out)
+void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   require_mode(SmtLibMode::UNSAT,
                "get_unsat_assumptions",

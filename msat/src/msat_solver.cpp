@@ -390,7 +390,7 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out)
+void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   initialize_env();
   size_t core_size;
@@ -705,7 +705,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 }
 
-Term MsatSolver::get_symbol(const std::string & name)
+Term MsatSolver::get_symbol(const std::string & name) const
 {
   msat_decl decl = msat_find_decl(*env, name.c_str());
   if (MSAT_ERROR_DECL(decl))

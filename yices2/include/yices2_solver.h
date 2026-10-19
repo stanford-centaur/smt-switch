@@ -81,7 +81,7 @@ class Yices2Solver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_assumptions(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) const override;
 
   // The datatype methods are left to AbsSmtSolver, whose defaults throw.
   // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
@@ -103,7 +103,7 @@ class Yices2Solver : public AbsSmtSolver
                  uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
-  Term get_symbol(const std::string & name) override;
+  Term get_symbol(const std::string & name) const override;
   Term make_param(const std::string name, const Sort & sort) override;
   /* build a new term */
   Term make_term(Op op, const TermVec & terms) const override;

@@ -637,7 +637,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out)
+void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
@@ -821,7 +821,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
-Term Yices2Solver::get_symbol(const std::string & name)
+Term Yices2Solver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())

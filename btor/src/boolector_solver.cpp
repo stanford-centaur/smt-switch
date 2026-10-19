@@ -499,7 +499,7 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   return assignments;
 }
 
-void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out)
+void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor.get());
   while (*bcore)
@@ -631,7 +631,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   return term;
 }
 
-Term BoolectorSolver::get_symbol(const std::string & name)
+Term BoolectorSolver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())

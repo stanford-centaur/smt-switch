@@ -490,7 +490,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
   }
 }
 
-void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out)
+void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   Term f;
   try
@@ -687,7 +687,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   }
 }
 
-Term Cvc5Solver::get_symbol(const std::string & name)
+Term Cvc5Solver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())

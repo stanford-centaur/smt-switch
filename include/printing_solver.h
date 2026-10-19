@@ -70,7 +70,7 @@ class PrintingSolver : public AbsSmtSolver
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
-  void get_unsat_assumptions(UnorderedTermSet & out) override;
+  void get_unsat_assumptions(UnorderedTermSet & out) const override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -86,7 +86,7 @@ class PrintingSolver : public AbsSmtSolver
    * For example, creating terms is not printed, but the
    * created terms will appear in other commands (e.g., assert).
    * */
-  Term get_symbol(const std::string & name) override;
+  Term get_symbol(const std::string & name) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;

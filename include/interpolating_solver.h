@@ -85,7 +85,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
   Term get_value(const Term & t) const final;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const final;
-  void get_unsat_assumptions(UnorderedTermSet & out) final;
+  void get_unsat_assumptions(UnorderedTermSet & out) const final;
   void dump_smt2(std::string filename) const final;
   std::uint64_t get_context_level() const final;
 
@@ -154,7 +154,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
                  std::uint64_t base = 10) const override;
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
-  Term get_symbol(const std::string & name) override;
+  Term get_symbol(const std::string & name) const override;
   Term make_param(const std::string name, const Sort & sort) override;
   Term make_term(const Op op, const TermVec & terms) const override;
 
