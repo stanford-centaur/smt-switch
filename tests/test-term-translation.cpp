@@ -570,17 +570,20 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(RealTranslationTests, EqualOverIntegerValuedReal)
+{
+  // MathSAT and Yices2 make 1.0 an Int, so this = and this distinct over
+  // Reals have an Int side
+  Term x = s1->make_symbol("x", realsort);
+  Term one = s1->make_term("1.0", realsort);
+  TermTranslator to_s2(s2);
+  s2->assert_formula(to_s2.transfer_term(s1->make_term(Equal, x, one)));
+  s2->assert_formula(to_s2.transfer_term(s1->make_term(Distinct, one, x)));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
 TEST_P(IntRealTranslationTests, Conversions)
 {
-  const SolverConfiguration & from = get<0>(GetParam());
-  if (from.solver_enum == YICES2 && !from.is_logging_solver
-      && get<1>(GetParam()).solver_enum == CVC5)
-  {
-    GTEST_SKIP() << "Yices2 rewrites the equation into a sum equal to the "
-                    "Int 0, which the translator keeps an Int, and cvc5 "
-                    "refuses to equate a Real with an Int";
-  }
-
   // x is i + 1/2, so i is the integer part of x
   Term i = s1->make_symbol("i", intsort);
   Term x = s1->make_symbol("x", realsort);
