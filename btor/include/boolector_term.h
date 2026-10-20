@@ -51,10 +51,10 @@ class BoolectorTermIter : public TermIterBase
   ~BoolectorTermIter() override;
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const BoolectorTermIter & it);
-  bool operator!=(const BoolectorTermIter & it);
+  bool operator==(const BoolectorTermIter & it) const;
+  bool operator!=(const BoolectorTermIter & it) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

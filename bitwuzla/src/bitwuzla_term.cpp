@@ -123,7 +123,7 @@ BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
 
 void BzlaTermIter::operator++() { idx++; }
 
-const Term BzlaTermIter::operator*()
+Term BzlaTermIter::operator*() const
 {
   assert(idx < terms.num_children());
   return std::make_shared<BzlaTerm>(terms[idx], tm);
@@ -134,9 +134,15 @@ TermIterBase * BzlaTermIter::clone() const
   return new BzlaTermIter(terms, idx, tm);
 }
 
-bool BzlaTermIter::operator==(const BzlaTermIter & it) { return equal(it); }
+bool BzlaTermIter::operator==(const BzlaTermIter & it) const
+{
+  return equal(it);
+}
 
-bool BzlaTermIter::operator!=(const BzlaTermIter & it) { return !equal(it); }
+bool BzlaTermIter::operator!=(const BzlaTermIter & it) const
+{
+  return !equal(it);
+}
 
 bool BzlaTermIter::equal(const TermIterBase & other) const
 {

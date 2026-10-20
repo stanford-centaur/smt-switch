@@ -40,10 +40,10 @@ class Z3TermIter : public TermIterBase
   Z3TermIter(const Z3TermIter & it);
   Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
-  const Term operator*() override;
+  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const Z3TermIter & it);
-  bool operator!=(const Z3TermIter & it);
+  bool operator==(const Z3TermIter & it) const;
+  bool operator!=(const Z3TermIter & it) const;
 
  protected:
   bool equal(const TermIterBase & other) const override;

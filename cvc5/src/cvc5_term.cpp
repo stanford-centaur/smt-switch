@@ -149,7 +149,7 @@ Cvc5TermIter & Cvc5TermIter::operator=(const Cvc5TermIter & it)
 
 void Cvc5TermIter::operator++() { pos++; }
 
-const Term Cvc5TermIter::operator*()
+Term Cvc5TermIter::operator*() const
 {
   if (pos == term.getNumChildren()
       && term.getKind() == ::cvc5::Kind::CONST_ARRAY)
@@ -180,12 +180,12 @@ TermIterBase * Cvc5TermIter::clone() const
   return new Cvc5TermIter(term, pos);
 }
 
-bool Cvc5TermIter::operator==(const Cvc5TermIter & it)
+bool Cvc5TermIter::operator==(const Cvc5TermIter & it) const
 {
   return term == it.term && pos == it.pos;
 }
 
-bool Cvc5TermIter::operator!=(const Cvc5TermIter & it)
+bool Cvc5TermIter::operator!=(const Cvc5TermIter & it) const
 {
   return term != it.term || pos != it.pos;
 }

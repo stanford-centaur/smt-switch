@@ -60,7 +60,7 @@ std::ostream & operator<<(std::ostream & output, const Term t)
 }
 
 /* TermIterBase implementation */
-const Term TermIterBase::operator*()
+Term TermIterBase::operator*() const
 {
   std::shared_ptr<AbsTerm> s;
   return s;
