@@ -27,6 +27,11 @@ namespace smt {
 
 // Yices2Sort implementation
 
+Yices2Sort::Yices2Sort(type_t y_type, bool is_fun)
+    : type(y_type), is_function(is_fun)
+{
+}
+
 std::size_t Yices2Sort::hash() const
 {
   // type_t is a unique id, see Yices2 docs.

@@ -1031,8 +1031,7 @@ void MsatSolver::initialize_env() const
 // begin MsatInterpolatingSolver implementation
 
 MsatInterpolatingSolver::MsatInterpolatingSolver()
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR,
-                         std::make_shared<MsatSolver>(msat_create_config())),
+    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
       msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
 {
   initialize();

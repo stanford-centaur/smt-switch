@@ -58,11 +58,9 @@ class Z3Term : public AbsTerm
 {
  public:
   // Non-functions
-  Z3Term(const std::shared_ptr<context> & c, expr t);
   // Parameter -- Z3 doesn't distinguish until it's bound
   // so we have to keep track of this extra info
-  // if no bool is passed, assume it's not a parameter
-  Z3Term(const std::shared_ptr<context> & c, expr t, bool param);
+  Z3Term(const std::shared_ptr<context> & c, expr t, bool param = false);
   // Functions
   Z3Term(const std::shared_ptr<context> & c, func_decl zfunc);
   std::size_t hash() const override;
