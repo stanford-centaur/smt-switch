@@ -113,14 +113,6 @@ BzlaTermIter::BzlaTermIter(bitwuzla::Term terms,
 {
 }
 
-BzlaTermIter & BzlaTermIter::operator=(const BzlaTermIter & it)
-{
-  tm = it.tm;
-  terms = it.terms;
-  idx = it.idx;
-  return *this;
-}
-
 void BzlaTermIter::operator++() { idx++; }
 
 Term BzlaTermIter::operator*() const

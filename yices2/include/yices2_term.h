@@ -43,8 +43,6 @@ class Yices2TermIter : public TermIterBase
 {
  public:
   Yices2TermIter(term_t t, uint32_t p);
-  Yices2TermIter(const Yices2TermIter & it);
-  Yices2TermIter & operator=(const Yices2TermIter & it);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

@@ -30,12 +30,6 @@ class Cvc5TermIter : public TermIterBase
 {
  public:
   Cvc5TermIter(::cvc5::Term term, uint32_t p = 0) : term(term), pos(p) {};
-  Cvc5TermIter(const Cvc5TermIter & it)
-  {
-    term = it.term;
-    pos = it.pos;
-  };
-  Cvc5TermIter & operator=(const Cvc5TermIter & it);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

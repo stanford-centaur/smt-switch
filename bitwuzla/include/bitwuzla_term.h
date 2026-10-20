@@ -36,13 +36,6 @@ class BzlaTermIter : public TermIterBase
   BzlaTermIter(bitwuzla::Term terms,
                std::size_t idx,
                const std::shared_ptr<bitwuzla::TermManager> & tm);
-  BzlaTermIter(const BzlaTermIter & it)
-  {
-    tm = it.tm;
-    terms = it.terms;
-    idx = it.idx;
-  };
-  BzlaTermIter & operator=(const BzlaTermIter & it);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

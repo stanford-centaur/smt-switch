@@ -140,13 +140,6 @@ const std::unordered_map<::cvc5::Kind, PrimOp> kind2primop(
 std::hash<cvc5::Term> termhash;
 
 /* Cvc5TermIter implementation */
-Cvc5TermIter & Cvc5TermIter::operator=(const Cvc5TermIter & it)
-{
-  term = it.term;
-  pos = it.pos;
-  return *this;
-}
-
 void Cvc5TermIter::operator++() { pos++; }
 
 Term Cvc5TermIter::operator*() const

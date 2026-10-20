@@ -370,18 +370,6 @@ static uint32_t smt_num_children(term_t term)
 
 Yices2TermIter::Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p) {}
 
-Yices2TermIter::Yices2TermIter(const Yices2TermIter & it)
-    : term(it.term), pos(it.pos)
-{
-}
-
-Yices2TermIter & Yices2TermIter::operator=(const Yices2TermIter & it)
-{
-  term = it.term;
-  pos = it.pos;
-  return *this;
-}
-
 void Yices2TermIter::operator++() { pos++; }
 
 Term Yices2TermIter::operator*() const

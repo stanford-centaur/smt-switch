@@ -243,14 +243,6 @@ std::string LoggingTerm::print_value_as(SortKind sk) const
 
 LoggingTermIter::LoggingTermIter(TermVec::const_iterator i) : it(i) {}
 
-LoggingTermIter::LoggingTermIter(const LoggingTermIter & lit) : it(lit.it) {}
-
-LoggingTermIter & LoggingTermIter::operator=(const LoggingTermIter & lit)
-{
-  it = lit.it;
-  return *this;
-}
-
 void LoggingTermIter::operator++() { it++; }
 
 Term LoggingTermIter::operator*() const { return *it; }

@@ -196,14 +196,6 @@ std::string GenericTerm::print_value_as(SortKind /* sk */) const
 
 GenericTermIter::GenericTermIter(TermVec::const_iterator i) : it(i) {}
 
-GenericTermIter::GenericTermIter(const GenericTermIter & lit) : it(lit.it) {}
-
-GenericTermIter & GenericTermIter::operator=(const GenericTermIter & lit)
-{
-  it = lit.it;
-  return *this;
-}
-
 void GenericTermIter::operator++() { it++; }
 
 Term GenericTermIter::operator*() const { return *it; }
