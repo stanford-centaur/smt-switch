@@ -97,12 +97,13 @@ class NaryTests : public ::testing::Test,
   }
 
   /** Makes n new symbols of the given sort */
-  TermVec make_args(const Sort & sort, std::size_t n)
+  TermVec make_args(const Sort & arg_sort, std::size_t n)
   {
     TermVec args;
     for (std::size_t i = 0; i < n; ++i)
     {
-      args.push_back(s->make_symbol("x" + std::to_string(next_symbol++), sort));
+      args.push_back(
+          s->make_symbol("x" + std::to_string(next_symbol++), arg_sort));
     }
     return args;
   }

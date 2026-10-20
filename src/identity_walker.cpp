@@ -79,9 +79,9 @@ Term IdentityWalker::visit(Term & term)
     {
       // visit_term requested an abort
       // return the mapping if it has been cached already
-      Term out = term;
-      query_cache(term, out);
-      return out;
+      Term cached = term;
+      query_cache(term, cached);
+      return cached;
     }
 
     if (preorder_)

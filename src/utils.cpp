@@ -269,9 +269,9 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 
       if (op.prim_op == Or)
       {
-        for (auto u : t)
+        for (auto child : t)
         {
-          before_or_elimination.push_back(u);
+          before_or_elimination.push_back(child);
         }
       }
       else
@@ -407,8 +407,8 @@ class TseitinTraversal : public IdentityWalker
   };
   std::vector<Definition> reduced;
 
-  explicit TseitinTraversal(const SmtSolver & solver_)
-      : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
+  explicit TseitinTraversal(const SmtSolver & solver)
+      : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))
   {
   }
   WalkerStepResult visit_term(Term & term) override
@@ -489,8 +489,8 @@ class TseitinTraversal : public IdentityWalker
 class EliminateBooleanConstants : public IdentityWalker
 {
  public:
-  explicit EliminateBooleanConstants(const SmtSolver & solver_)
-      : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
+  explicit EliminateBooleanConstants(const SmtSolver & solver)
+      : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))
   {
   }
   WalkerStepResult visit_term(Term & term) override
@@ -808,9 +808,9 @@ bool is_cnf(Term formula)
       Op op = t->get_op();
       if (op.prim_op == Or)
       {
-        for (auto u : t)
+        for (auto child : t)
         {
-          before_or_elimination.push_back(u);
+          before_or_elimination.push_back(child);
         }
       }
       else

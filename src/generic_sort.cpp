@@ -343,12 +343,10 @@ std::string GenericDatatypeSort::to_string() const
   return this->compute_string();
 }
 
-DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
-                                             std::string n,
-                                             Sort dt)
-    : GenericSort(sk), name(std::move(n)), dt_sort(std::move(dt))
+DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
+    : GenericSort(k), name(std::move(n)), dt_sort(std::move(dt))
 {
-  if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER)
+  if (k != CONSTRUCTOR && k != SELECTOR && k != TESTER)
   {
     throw IncorrectUsageException("Wrong sortkind input");
   }
