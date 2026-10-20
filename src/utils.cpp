@@ -407,7 +407,7 @@ class TseitinTraversal : public IdentityWalker
   };
   std::vector<Definition> reduced;
 
-  TseitinTraversal(const SmtSolver & solver_)
+  explicit TseitinTraversal(const SmtSolver & solver_)
       : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
   {
   }
@@ -489,7 +489,7 @@ class TseitinTraversal : public IdentityWalker
 class EliminateBooleanConstants : public IdentityWalker
 {
  public:
-  EliminateBooleanConstants(const SmtSolver & solver_)
+  explicit EliminateBooleanConstants(const SmtSolver & solver_)
       : IdentityWalker{ solver_, false }, boolsort_(solver_->make_sort(BOOL))
   {
   }

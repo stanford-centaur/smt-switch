@@ -171,7 +171,7 @@ class TermIter
   typedef std::input_iterator_tag iterator_category;
 
   TermIter() = default;
-  TermIter(TermIterBase * tib);
+  explicit TermIter(TermIterBase * tib);
   TermIter(const TermIter & other);
   TermIter(TermIter && other) noexcept = default;
   TermIter & operator=(const TermIter & other);

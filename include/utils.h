@@ -183,7 +183,7 @@ bool is_internal_name(const std::string & name);
 class UnsatCoreReducer
 {
  public:
-  UnsatCoreReducer(SmtSolver reducer_solver);
+  explicit UnsatCoreReducer(SmtSolver reducer_solver);
 
   /** The main method to reduce the assump (vector of assumptions). The method
    *  assumes that the conjunction of the formula and assump is unsatisfiable.
@@ -253,7 +253,7 @@ class UnsatCoreReducer
 class DisjointSet
 {
  public:
-  DisjointSet(bool (*c)(const Term & a, const Term & b));
+  explicit DisjointSet(bool (*c)(const Term & a, const Term & b));
 
   /** Add two terms a and b in the same set.
    * @param Term a to be added in the same set

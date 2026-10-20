@@ -109,7 +109,7 @@ class GenericTerm : public AbsTerm
 class GenericTermIter : public TermIterBase
 {
  public:
-  GenericTermIter(TermVec::const_iterator i);
+  explicit GenericTermIter(TermVec::const_iterator i);
   TermIterBase * clone() const override;
 
   void operator++() override;

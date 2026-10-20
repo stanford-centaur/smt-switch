@@ -35,7 +35,7 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibReaderTester);
 class SmtLibReaderTester : public SmtLibReader
 {
  public:
-  SmtLibReaderTester(SmtSolver & solver) : SmtLibReader(solver) {}
+  explicit SmtLibReaderTester(SmtSolver & solver) : SmtLibReader(solver) {}
 
   Result check_sat() override
   {

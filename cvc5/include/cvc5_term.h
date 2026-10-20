@@ -29,7 +29,7 @@ class Cvc5Solver;
 class Cvc5TermIter : public TermIterBase
 {
  public:
-  Cvc5TermIter(::cvc5::Term term, uint32_t p = 0);
+  explicit Cvc5TermIter(::cvc5::Term term, uint32_t p = 0);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;
@@ -47,7 +47,7 @@ class Cvc5TermIter : public TermIterBase
 class Cvc5Term : public AbsTerm
 {
  public:
-  Cvc5Term(cvc5::Term t);
+  explicit Cvc5Term(cvc5::Term t);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

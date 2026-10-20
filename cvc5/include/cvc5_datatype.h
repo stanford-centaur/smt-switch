@@ -24,7 +24,7 @@ namespace smt {
 class Cvc5DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  Cvc5DatatypeDecl(cvc5::DatatypeDecl t);
+  explicit Cvc5DatatypeDecl(cvc5::DatatypeDecl t);
 
  protected:
   cvc5::DatatypeDecl datatypedecl;
@@ -35,7 +35,7 @@ class Cvc5DatatypeDecl : public AbsDatatypeDecl
 class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t);
+  explicit Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t);
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
@@ -47,7 +47,7 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class Cvc5Datatype : public AbsDatatype
 {
  public:
-  Cvc5Datatype(cvc5::Datatype t);
+  explicit Cvc5Datatype(cvc5::Datatype t);
   std::string get_name() const override { return datatype.getName(); }
   int get_num_constructors() const override
   {

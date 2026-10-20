@@ -23,7 +23,7 @@ struct SelectorComponents
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  GenericDatatypeDecl(const std::string name);
+  explicit GenericDatatypeDecl(const std::string name);
   std::string get_name() const;
 
  protected:
@@ -34,7 +34,7 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
 class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  GenericDatatypeConstructorDecl(const std::string & name);
+  explicit GenericDatatypeConstructorDecl(const std::string & name);
   // Stores a new selector in the constructor object. newSelector: the
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
@@ -59,7 +59,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class GenericDatatype : public AbsDatatype
 {
  public:
-  GenericDatatype(const DatatypeDecl & dt_declaration);
+  explicit GenericDatatype(const DatatypeDecl & dt_declaration);
   // Stores a constructor object (dt_cons_decl) in the datatype object.
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
   // Stores a new selector (newSelector) in the constructor object
