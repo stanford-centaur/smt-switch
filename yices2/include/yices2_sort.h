@@ -32,11 +32,7 @@ class Yices2Solver;
 class Yices2Sort : public AbsSort
 {
  public:
-  // Non-functions
-  Yices2Sort(type_t y_type) : type(y_type), is_function(false) {};
-
-  // Functions
-  Yices2Sort(type_t y_type, bool is_fun) : type(y_type), is_function(is_fun) {};
+  Yices2Sort(type_t y_type, bool is_fun = false);
 
   std::size_t hash() const override;
   uint64_t get_width() const override;

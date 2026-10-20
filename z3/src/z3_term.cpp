@@ -82,10 +82,6 @@ bool Z3TermIter::equal(const TermIterBase & other) const
 
 // Z3Term implementation
 
-Z3Term::Z3Term(const std::shared_ptr<context> & c, expr t) : Z3Term(c, t, false)
-{
-}
-
 Z3Term::Z3Term(const std::shared_ptr<context> & c, expr t, bool param)
     : ctx(c), term(t), z_func(*c), is_function(false), is_parameter(param)
 {
