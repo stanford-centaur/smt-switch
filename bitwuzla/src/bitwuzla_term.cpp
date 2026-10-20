@@ -107,10 +107,11 @@ const std::unordered_set<PrimOp> indexed_ops(
 
 /*  start BzlaTermIter implementation */
 
-BzlaTermIter::BzlaTermIter(bitwuzla::Term terms,
-                           std::size_t idx,
-                           const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), terms(std::move(terms)), idx(idx)
+BzlaTermIter::BzlaTermIter(
+    bitwuzla::Term t,
+    std::size_t i,
+    const std::shared_ptr<bitwuzla::TermManager> & manager)
+    : tm(manager), terms(std::move(t)), idx(i)
 {
 }
 
@@ -152,8 +153,8 @@ bool BzlaTermIter::equal(const TermIterBase & other) const
 /*  end BzlaTermIter implementation */
 
 BzlaTerm::BzlaTerm(bitwuzla::Term t,
-                   const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), term(std::move(t))
+                   const std::shared_ptr<bitwuzla::TermManager> & manager)
+    : tm(manager), term(std::move(t))
 {
 }
 

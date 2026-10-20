@@ -34,7 +34,7 @@ class LoggingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   LoggingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
-                                 std::string name);
+                                 std::string n);
   bool compare(const DatatypeConstructorDecl & d) const override;
 
  protected:
@@ -48,7 +48,7 @@ class LoggingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class LoggingDatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  LoggingDatatypeDecl(DatatypeDecl wrapped, std::string name);
+  LoggingDatatypeDecl(DatatypeDecl wrapped, std::string n);
 
  protected:
   DatatypeDecl wrapped_decl;  ///< the underlying declaration

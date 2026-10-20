@@ -52,7 +52,7 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   PrintingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
-                                  std::string name);
+                                  std::string n);
   bool compare(const DatatypeConstructorDecl & d) const override;
 
   DatatypeConstructorDecl wrapped_decl;
@@ -64,7 +64,7 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class PrintingDatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  PrintingDatatypeDecl(DatatypeDecl wrapped, std::string name);
+  PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n);
 
   DatatypeDecl wrapped_decl;
   std::string name;
@@ -72,8 +72,8 @@ class PrintingDatatypeDecl : public AbsDatatypeDecl
 };
 
 PrintingDatatypeConstructorDecl::PrintingDatatypeConstructorDecl(
-    DatatypeConstructorDecl wrapped, std::string name)
-    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+    DatatypeConstructorDecl wrapped, std::string n)
+    : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
 
@@ -85,9 +85,8 @@ bool PrintingDatatypeConstructorDecl::compare(
   return other && wrapped_decl == other->wrapped_decl;
 }
 
-PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped,
-                                           std::string name)
-    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n)
+    : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
 

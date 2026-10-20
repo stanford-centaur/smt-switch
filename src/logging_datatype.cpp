@@ -15,8 +15,8 @@
 namespace smt {
 
 LoggingDatatypeConstructorDecl::LoggingDatatypeConstructorDecl(
-    DatatypeConstructorDecl wrapped, std::string name)
-    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+    DatatypeConstructorDecl wrapped, std::string n)
+    : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
 
@@ -28,8 +28,8 @@ bool LoggingDatatypeConstructorDecl::compare(
   return other && wrapped_decl == other->wrapped_decl;
 }
 
-LoggingDatatypeDecl::LoggingDatatypeDecl(DatatypeDecl wrapped, std::string name)
-    : wrapped_decl(std::move(wrapped)), name(std::move(name))
+LoggingDatatypeDecl::LoggingDatatypeDecl(DatatypeDecl wrapped, std::string n)
+    : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
 

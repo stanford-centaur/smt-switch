@@ -32,7 +32,8 @@ class BzlaSolver;
 class BzlaSort : public AbsSort
 {
  public:
-  BzlaSort(bitwuzla::Sort s, const std::shared_ptr<bitwuzla::TermManager> & tm);
+  BzlaSort(bitwuzla::Sort s,
+           const std::shared_ptr<bitwuzla::TermManager> & manager);
   std::size_t hash() const override;
   std::uint64_t get_width() const override;
   Sort get_indexsort() const override;

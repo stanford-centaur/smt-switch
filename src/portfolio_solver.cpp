@@ -103,8 +103,8 @@ void write_all(int fd, const std::string & data)
 
 struct Child
 {
-  Child(pid_t pid, int fd, std::string label)
-      : pid(pid), fd(fd), label(std::move(label))
+  Child(pid_t child_pid, int child_fd, std::string child_label)
+      : pid(child_pid), fd(child_fd), label(std::move(child_label))
   {
   }
 

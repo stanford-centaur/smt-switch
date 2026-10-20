@@ -30,8 +30,8 @@
 namespace smt {
 
 BzlaSort::BzlaSort(bitwuzla::Sort s,
-                   const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), sort(std::move(s))
+                   const std::shared_ptr<bitwuzla::TermManager> & manager)
+    : tm(manager), sort(std::move(s))
 {
 }
 

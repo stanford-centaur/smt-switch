@@ -39,7 +39,7 @@ class LoggingTerm : public AbsTerm
               Op o,
               TermVec c,
               std::string r,
-              bool is_sym,
+              bool symbol,
               std::size_t id);
   // this one is for a named leaf that is neither a symbol nor a parameter,
   // such as a datatype's constructor, selector or tester

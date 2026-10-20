@@ -44,9 +44,9 @@ class BoolectorTermIter : public TermIterBase
  public:
   // IMPORTANT: The correctness of this code depends on the array e being of
   // size 3
-  BoolectorTermIter(const std::shared_ptr<Btor> & btor,
+  BoolectorTermIter(const std::shared_ptr<Btor> & b,
                     std::vector<BtorNode *> c,
-                    int64_t idx);
+                    int64_t i);
   BoolectorTermIter(const BoolectorTermIter & it);
   ~BoolectorTermIter() override;
   BoolectorTermIter & operator=(const BoolectorTermIter & it);

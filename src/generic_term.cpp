@@ -38,13 +38,13 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
   ground = compute_ground();
 }
 
-GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym)
+GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool symbol)
     : sort(std::move(s)),
       op(o),
       children(std::move(c)),
       repr(std::move(r)),
-      is_sym(is_sym),
-      is_par(!is_sym)
+      is_sym(symbol),
+      is_par(!symbol)
 {
   ground = compute_ground();
 }

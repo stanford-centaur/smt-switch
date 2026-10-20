@@ -43,8 +43,8 @@ const std::unordered_map<ResultType, std::string> result2str({
     { UNKNOWN, "unknown" },
 });
 
-Result::Result(ResultType rt, std::string explanation)
-    : result(rt), explanation(std::move(explanation))
+Result::Result(ResultType rt, std::string reason)
+    : result(rt), explanation(std::move(reason))
 {
 }
 
