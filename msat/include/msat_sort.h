@@ -52,8 +52,9 @@ class MsatSort : public AbsSort
   // shared with the solver, so the environment lives as long as this sort
   std::shared_ptr<msat_env> env;
   msat_type type;
-  msat_decl uf_decl;
-  bool is_uf_type;
+  // null (invalid) unless this is a function sort
+  msat_decl uf_decl = { nullptr };
+  bool is_uf_type = false;
 
   friend class MsatSolver;
 };

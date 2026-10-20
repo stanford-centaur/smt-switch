@@ -120,8 +120,8 @@ class Z3Solver : public AbsSmtSolver
   ///< keep track of declared symbols to avoid
   ///< redeclaring
 
-  bool last_query_assuming;  ///< used to determine if last query was
-                             ///< check_sat_assuming (vs just check_sat)
+  bool last_query_assuming = false;  ///< used to determine if last query was
+                                     ///< check_sat_assuming (vs just check_sat)
 
   // helper function
   void add_constructor(z3::sort,

@@ -13,7 +13,7 @@ namespace smt {
 // Z3Sort implementation
 
 Z3Sort::Z3Sort(const std::shared_ptr<context> & c, z3::sort z3sort)
-    : ctx(c), type(z3sort), z_func(*c), is_function(false)
+    : ctx(c), type(z3sort), z_func(*c)
 {
 }
 

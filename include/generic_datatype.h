@@ -17,7 +17,7 @@ struct SelectorComponents
   Sort sort;
   // Used to determine if the sort needs to be replaced later
   // on. Usually true if no further work needs to be done to the selector.
-  bool finalized;
+  bool finalized = false;
 };
 
 class GenericDatatypeDecl : public AbsDatatypeDecl

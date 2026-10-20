@@ -97,10 +97,11 @@ class MsatTerm : public AbsTerm
  protected:
   // shared with the solver, so the environment lives as long as this term
   std::shared_ptr<msat_env> env;
-  msat_term term;
-  msat_decl decl;
-  bool is_uf;  ///< set to true if wrapping a msat_decl (e.g. an uninterpreted
-               ///< function)
+  // whichever of term and decl is not wrapped stays null (invalid)
+  msat_term term = { nullptr };
+  msat_decl decl = { nullptr };
+  bool is_uf = false;  ///< set to true if wrapping a msat_decl (e.g. an
+                       ///< uninterpreted function)
 
   friend class MsatSolver;
   friend class MsatInterpolatingSolver;

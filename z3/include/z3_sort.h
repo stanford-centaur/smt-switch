@@ -61,7 +61,7 @@ class Z3Sort : public AbsSort
   std::shared_ptr<context> ctx;
   z3::sort type;
   func_decl z_func;
-  bool is_function;
+  bool is_function = false;
 
   friend class Z3Solver;
 };

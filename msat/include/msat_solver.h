@@ -127,7 +127,7 @@ class MsatSolver : public AbsSmtSolver
   // shared with every term and sort, so the environment lives until the last
   // of them is released, even past reset() or this solver's destruction
   mutable std::shared_ptr<msat_env> env;
-  bool valid_model;
+  bool valid_model = false;
   std::string logic;
 
   // for matching the generic check_sat_assuming interface which allows
@@ -135,19 +135,20 @@ class MsatSolver : public AbsSmtSolver
   std::unordered_map<size_t, msat_term>
       assumption_map_;  ///< maps msat_term labels to assumptions
   std::vector<msat_term>
-      base_assertions_;        ///< assertions at context level 0
-                               ///< to be re-added after resetting to clear old
-                               ///< clauses added for assumptions
-  size_t num_assump_clauses_;  ///< counts how many assumption clauses are added
-  size_t max_assump_clauses_;  ///< number of assumption clauses before clearing
-                               ///< them
-  bool last_query_assuming;    ///< set to true if last query was
-                               ///< check-sat-assuming (as opposed to
-                               ///< just check-sat).
-                               ///< This boolean is used to respect the
-                               ///< get_unsat_assumptions interface (will
-                               ///< complain if not called after
-                               ///< check-sat-assuming).
+      base_assertions_;  ///< assertions at context level 0
+                         ///< to be re-added after resetting to clear old
+                         ///< clauses added for assumptions
+  size_t num_assump_clauses_ = 0;      ///< counts how many assumption clauses
+                                       ///< are added
+  size_t max_assump_clauses_ = 10000;  ///< number of assumption clauses before
+                                       ///< clearing them
+  bool last_query_assuming = true;     ///< set to true if last query was
+                                       ///< check-sat-assuming (as opposed to
+                                       ///< just check-sat).
+                                       ///< This boolean is used to respect the
+                                       ///< get_unsat_assumptions interface
+                                       ///< (will complain if not called after
+                                       ///< check-sat-assuming).
 
   // clears assumption clauses
   // needed to simulate the same check_sat_assuming interface as other solvers

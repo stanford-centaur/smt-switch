@@ -97,10 +97,10 @@ class GenericTerm : public AbsTerm
   mutable std::string repr;
 
   // is this a symbolic constant
-  bool is_sym;
+  bool is_sym = false;
 
   // is this a variable
-  bool is_par;
+  bool is_par = false;
 
   // So GenericSolver can access protected members:
   friend class GenericSolver;

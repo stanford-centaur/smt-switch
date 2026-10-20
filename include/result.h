@@ -34,7 +34,7 @@ enum ResultType
 
 struct Result
 {
-  Result() : result(NUM_RESULTS), explanation("null") {}
+  Result() = default;
   Result(ResultType rt, std::string explanation = "no explanation")
       : result(rt), explanation(explanation)
   {
@@ -45,8 +45,8 @@ struct Result
   bool is_null() const { return result == NUM_RESULTS; };
   std::string get_explanation() const;
   std::string to_string() const;
-  ResultType result;
-  std::string explanation;
+  ResultType result = NUM_RESULTS;
+  std::string explanation = "null";
 };
 
 std::ostream & operator<<(std::ostream & output, const Result r);

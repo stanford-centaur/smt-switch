@@ -35,9 +35,8 @@ struct SolverConfiguration
 
   // constructor
   SolverConfiguration(smt::SolverEnum se, bool ils)
+      : solver_enum(se), is_logging_solver(ils)
   {
-    solver_enum = se;
-    is_logging_solver = ils;
   }
 };
 

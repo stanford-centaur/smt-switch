@@ -146,7 +146,8 @@ class LoggingSolver : public AbsSmtSolver
   // in const methods (make_term), so it is marked mutable
   // this was better than making them non-const because most solvers
   // can respect the const-ness of those make_term functions
-  mutable std::size_t next_term_id;  ///< used to give LoggingTerms a unique id
+  mutable std::size_t next_term_id = 0;  ///< used to give LoggingTerms a
+                                         ///< unique id
 };
 
 }  // namespace smt

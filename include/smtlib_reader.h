@@ -65,12 +65,6 @@ enum Command
 class UnorderedScopedSymbolMap
 {
  public:
-  UnorderedScopedSymbolMap()
-  {
-    // allow some symbols at 0
-    symbols_.push_back({});
-  }
-
   std::size_t current_scope() const { return symbols_.size() - 1; }
 
   void add_mapping(const std::string & sym, const Term & t)
@@ -114,7 +108,8 @@ class UnorderedScopedSymbolMap
   }
 
  private:
-  std::vector<std::unordered_set<std::string>> symbols_;
+  // starts with one scope, to allow some symbols at 0
+  std::vector<std::unordered_set<std::string>> symbols_ = { {} };
   std::unordered_map<std::string, Term> symbol_map_;
 };
 
@@ -302,12 +297,10 @@ class SmtLibReader
 
   bool strict_;
 
-  std::string logic_;  ///< holds the logic string
-                       ///< starts as a special UNSET
-                       ///< value before set
+  std::string logic_ = "UNSET";  ///< holds the logic string
 
-  bool allow_ufs_;  ///< set to true if declaring functions
-                    ///< is supported in the set logic
+  bool allow_ufs_ = false;  ///< set to true if declaring functions
+                            ///< is supported in the set logic
 
   std::unordered_map<std::string, PrimOp>
       primops_;  ///< available primops with set logic
@@ -350,7 +343,8 @@ class SmtLibReader
                       ///< that is currently unused in this scope
 
   // useful constants
-  std::string def_arg_prefix_;  ///< the prefix for renamed define-fun arguments
+  std::string def_arg_prefix_ = "__defvar_";  ///< the prefix for renamed
+                                              ///< define-fun arguments
 };
 
 }  // namespace smt

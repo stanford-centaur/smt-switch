@@ -76,8 +76,8 @@ class LoggingTerm : public AbsTerm
   Op op;
   TermVec children;
   mutable std::string repr;
-  bool is_sym;
-  bool is_par;
+  bool is_sym = false;
+  bool is_par = false;
   std::size_t id_;  ///< unique id for this term
 
   // So LoggingSolver can access protected members:
