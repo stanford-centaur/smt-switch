@@ -131,9 +131,6 @@ Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2)
 
 Yices2Solver::~Yices2Solver()
 {
-  // need to destruct all stored terms in symbol_table
-  symbol_table.clear();
-
   yices_free_config(config);
   if (ctx)
   {
