@@ -17,6 +17,8 @@
 
 using namespace smt;
 
+namespace {
+
 class BtorBvValues : public ::testing::Test
 {
  protected:
@@ -58,3 +60,5 @@ TEST_F(BtorBvValues, OtherBasesThrow)
 {
   EXPECT_THROW(s->make_term("7", bv8, 8), IncorrectUsageException);
 }
+
+}  // namespace

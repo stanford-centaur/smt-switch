@@ -23,9 +23,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnsatCoreReducerTests);
 class UnsatCoreReducerTests
@@ -121,4 +122,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_non_generic_solver_configurations(
         { UNSAT_CORE, FULL_TRANSFER })));
 
-}  // namespace smt_tests
+}  // namespace

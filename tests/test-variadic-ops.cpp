@@ -26,9 +26,10 @@
 #include "solver_utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(VariadicOpsTests);
 class VariadicOpsTests
@@ -251,4 +252,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_non_generic_solver_configurations({ THEORY_STR })),
     ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

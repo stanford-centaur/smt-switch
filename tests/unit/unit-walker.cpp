@@ -25,9 +25,10 @@
 #include "tree_walker.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitWalkerTests);
 class UnitWalkerTests
@@ -942,4 +943,4 @@ INSTANTIATE_TEST_SUITE_P(
     UnitWalkerTests,
     testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-}  // namespace smt_tests
+}  // namespace

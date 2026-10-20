@@ -26,9 +26,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SelfTranslationTests);
 class SelfTranslationTests
@@ -760,4 +761,4 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, PARAM_UNINTERP_SORT }))),
     ConfigPairName());
 
-}  // namespace smt_tests
+}  // namespace

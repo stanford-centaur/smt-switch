@@ -13,6 +13,8 @@
 
 using namespace smt;
 
+namespace {
+
 class MsatArrayValues : public testing::Test
 {
  protected:
@@ -45,3 +47,5 @@ TEST_F(MsatArrayValues, WithoutCheckSatRefused)
   Term const_base;
   EXPECT_THROW(s->get_array_values(arr, const_base), IncorrectUsageException);
 }
+
+}  // namespace

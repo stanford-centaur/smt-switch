@@ -19,9 +19,10 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 // Gets all bound variables, stores them in out_vars and returns the body
 Term recover_quant(const Term & quant_term, TermVec & out_vars)
@@ -209,4 +210,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS })),
     ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

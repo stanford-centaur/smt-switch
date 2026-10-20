@@ -26,9 +26,10 @@
 #include "solver_utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitPrimOpTests);
 class UnitPrimOpTests : public ::testing::Test,
@@ -191,4 +192,4 @@ INSTANTIATE_TEST_SUITE_P(
     UnitTests,
     testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
-}  // namespace smt_tests
+}  // namespace

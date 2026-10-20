@@ -23,7 +23,7 @@
 
 using namespace smt;
 
-namespace smt_tests {
+namespace {
 
 // x < y < z and x > z have the interpolant x < z (or an equivalent)
 static void expect_interpolant(const SmtInterpolator & s)
@@ -95,4 +95,4 @@ TEST(MsatConstructors, InterpolatingForcesRequiredOptions)
   expect_bv_interpolant(std::make_shared<MsatInterpolatingSolver>(cfg));
 }
 
-}  // namespace smt_tests
+}  // namespace

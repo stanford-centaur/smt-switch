@@ -24,9 +24,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilTests);
 class UnitUtilTests : public ::testing::Test,
@@ -634,4 +635,4 @@ TEST(InternalName, KindAndIndex)
   EXPECT_FALSE(is_internal_name("x_smt_switch_internal_term_1"));
 }
 
-}  // namespace smt_tests
+}  // namespace

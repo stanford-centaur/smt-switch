@@ -23,9 +23,10 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitResetAssertionsTests);
 class UnitResetAssertionsTests
@@ -159,4 +160,4 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitResetAssertions,
                          UnitResetAssertionsTests,
                          testing::ValuesIn(available_solver_configurations()));
 
-}  // namespace smt_tests
+}  // namespace

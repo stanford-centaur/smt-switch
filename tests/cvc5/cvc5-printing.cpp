@@ -28,8 +28,9 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 class Cvc5PrintingTest : public testing::Test
 {
@@ -180,4 +181,4 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
                "--produce-interpolants --incremental");
 }
 
-}  // namespace smt_tests
+}  // namespace

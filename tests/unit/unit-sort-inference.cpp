@@ -20,9 +20,10 @@
 #include "sort_inference.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortInferenceTests);
 class UnitSortInferenceTests
@@ -367,4 +368,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
     ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

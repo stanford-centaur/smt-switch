@@ -1065,7 +1065,7 @@ set(
   -Wvolatile # deprecated uses of volatile qualifier
   -Wvolatile-register-var # a register variable is declared volatile
   -Wweak-template-vtables # this warning is no longer in use
-  # -Wweak-vtables # X has no out-of-line virtual method definitions
+  -Wweak-vtables # X has no out-of-line virtual method definitions
   -Wwrite-strings # in C++
   -Wxor-used-as-pow # xor operators where it appears the user meant exponentiation
   # -Wzero-as-null-pointer-constant # a literal '0' is used as null pointer

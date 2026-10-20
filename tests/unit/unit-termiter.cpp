@@ -26,9 +26,10 @@
 #include "term_utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTests);
 class UnitTests : public ::testing::Test,
@@ -260,4 +261,4 @@ INSTANTIATE_TEST_SUITE_P(
     ConstArrUnitTests,
     testing::ValuesIn(filter_solver_configurations({ CONSTARR, TERMITER })));
 
-}  // namespace smt_tests
+}  // namespace

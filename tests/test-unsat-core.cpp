@@ -22,9 +22,10 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnsatCoreTests);
 class UnsatCoreTests : public ::testing::Test,
@@ -167,4 +168,4 @@ INSTANTIATE_TEST_SUITE_P(
     UnsatCoreTests,
     testing::ValuesIn(filter_solver_configurations({ UNSAT_CORE })));
 
-}  // namespace smt_tests
+}  // namespace

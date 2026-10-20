@@ -17,8 +17,9 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 class OpDefinitionTests
     : public ::testing::Test,
@@ -327,4 +328,4 @@ INSTANTIATE_TEST_SUITE_P(,
                              { THEORY_INT, THEORY_REAL })),
                          ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

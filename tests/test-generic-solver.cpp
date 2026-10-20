@@ -35,7 +35,7 @@
 using namespace smt;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 // No command below asks a solver to do any real work, and none has been
 // measured taking as much as a tenth of a second even once, so a solver
@@ -1514,4 +1514,4 @@ TEST(GenericSolver, StderrIsNotAnAnswer)
   EXPECT_TRUE(gs->check_sat().is_sat());
 }
 
-}  // namespace smt_tests
+}  // namespace
