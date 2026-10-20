@@ -58,7 +58,7 @@ namespace smt {
 class SortingNetwork
 {
  public:
-  SortingNetwork(const SmtSolver & solver);
+  explicit SortingNetwork(const SmtSolver & solver);
 
   /** Takes a vector of boolean terms
    *  and returns the sorting network output

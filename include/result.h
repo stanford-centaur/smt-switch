@@ -35,7 +35,7 @@ enum ResultType
 struct Result
 {
   Result() = default;
-  Result(ResultType rt, std::string explanation = "no explanation");
+  explicit Result(ResultType rt, std::string explanation = "no explanation");
   bool is_sat() const { return result == SAT; };
   bool is_unsat() const { return result == UNSAT; };
   bool is_unknown() const { return result == UNKNOWN; };

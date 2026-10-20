@@ -64,7 +64,7 @@ namespace smt {
 class TermTranslator
 {
  public:
-  TermTranslator(const SmtSolver & s);
+  explicit TermTranslator(const SmtSolver & s);
   /** Transfers a sort from the other solver to this solver
    *  @param the sort transfer
    *  @return a sort belonging to this solver

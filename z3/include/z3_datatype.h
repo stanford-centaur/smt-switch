@@ -10,7 +10,7 @@ namespace smt {
 class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  Z3DatatypeDecl(std::string name);
+  explicit Z3DatatypeDecl(std::string name);
 
  protected:
   friend class Z3Solver;

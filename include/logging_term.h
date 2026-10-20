@@ -87,7 +87,7 @@ class LoggingTerm : public AbsTerm
 class LoggingTermIter : public TermIterBase
 {
  public:
-  LoggingTermIter(TermVec::const_iterator i);
+  explicit LoggingTermIter(TermVec::const_iterator i);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

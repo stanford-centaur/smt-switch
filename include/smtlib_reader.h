@@ -123,7 +123,7 @@ class SmtLibReader
    *  @param strict if set to true strictly interprets SMT-LIB semantics
    *         otherwise allows non-standard operators
    */
-  SmtLibReader(SmtSolver & solver, bool strict = false);
+  explicit SmtLibReader(SmtSolver & solver, bool strict = false);
 
   virtual ~SmtLibReader() = default;
 
