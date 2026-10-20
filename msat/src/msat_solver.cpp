@@ -726,7 +726,7 @@ Term MsatSolver::get_symbol(const std::string & name) const
   return std::make_shared<MsatTerm>(env, res);
 }
 
-Term MsatSolver::make_param(const std::string name, const Sort & sort)
+Term MsatSolver::make_param(const std::string name, const Sort & sort) const
 {
   initialize_env();
   shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);

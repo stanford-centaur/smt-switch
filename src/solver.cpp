@@ -97,14 +97,14 @@ Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
                                 + to_string(solver_enum));
 }
 
-DatatypeDecl AbsSmtSolver::make_datatype_decl(const std::string & /* s */)
+DatatypeDecl AbsSmtSolver::make_datatype_decl(const std::string & /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
                                 + to_string(solver_enum));
 }
 
 DatatypeConstructorDecl AbsSmtSolver::make_datatype_constructor_decl(
-    const std::string /* s */)
+    const std::string /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
                                 + to_string(solver_enum));

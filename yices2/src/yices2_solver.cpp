@@ -831,7 +831,7 @@ Term Yices2Solver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term Yices2Solver::make_param(const std::string name, const Sort & sort)
+Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
 {
   shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
   // a variable, not an uninterpreted term: this is the one a quantifier can

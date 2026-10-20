@@ -356,7 +356,7 @@ class AbsSmtSolver
    * @param sort the sort of this parameter
    * @return the parameter term
    */
-  virtual Term make_param(const std::string name, const Sort & sort) = 0;
+  virtual Term make_param(const std::string name, const Sort & sort) const = 0;
 
   /* Make a new term
    * @param op the operator to use
@@ -434,14 +434,14 @@ class AbsSmtSolver
    * @param s Name of the datatype
    * @return an empty Datatype declaration
    */
-  virtual DatatypeDecl make_datatype_decl(const std::string & s);
+  virtual DatatypeDecl make_datatype_decl(const std::string & s) const;
 
   /* Initialize a datatype constructor declaration with some name
    * @param s Name of the datatype constructor
    * @return an empty Datatype declaration
    */
   virtual DatatypeConstructorDecl make_datatype_constructor_decl(
-      const std::string s);
+      const std::string s) const;
 
   /* Add a datatype constructor to a datatype declaration
    * @param dt Datatype

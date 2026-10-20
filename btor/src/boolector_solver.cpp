@@ -642,7 +642,7 @@ Term BoolectorSolver::get_symbol(const std::string & name) const
 }
 
 Term BoolectorSolver::make_param(const std::string /* name */,
-                                 const Sort & sort)
+                                 const Sort & sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(sort);

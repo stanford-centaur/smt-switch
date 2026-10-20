@@ -697,7 +697,7 @@ Term Cvc5Solver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term Cvc5Solver::make_param(const std::string name, const Sort & sort)
+Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
 {
   try
   {
@@ -727,7 +727,7 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
   }
 };
 
-DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s)
+DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
 {
   try
   {
@@ -740,7 +740,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s)
 }
 
 DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   try
   {

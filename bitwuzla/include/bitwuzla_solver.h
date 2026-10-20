@@ -73,7 +73,7 @@ class BzlaSolver : public AbsSmtSolver
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) const override;
-  Term make_param(const std::string name, const Sort & sort) override;
+  Term make_param(const std::string name, const Sort & sort) const override;
   /* build a new term */
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,

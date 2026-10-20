@@ -115,14 +115,14 @@ Sort LoggingSolver::make_sort(const DatatypeDecl & d) const
   return std::make_shared<DatatypeLoggingSort>(wrapped_sort, ld);
 }
 
-DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s) const
 {
   return std::make_shared<LoggingDatatypeDecl>(
       wrapped_solver->make_datatype_decl(s), s);
 }
 
 DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   return std::make_shared<LoggingDatatypeConstructorDecl>(
       wrapped_solver->make_datatype_constructor_decl(s), s);
@@ -435,7 +435,7 @@ Term LoggingSolver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term LoggingSolver::make_param(const std::string name, const Sort & sort)
+Term LoggingSolver::make_param(const std::string name, const Sort & sort) const
 {
   std::shared_ptr<LoggingSort> lsort =
       std::static_pointer_cast<LoggingSort>(sort);

@@ -155,7 +155,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
   Term make_term(const Term & val, const Sort & sort) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
   Term get_symbol(const std::string & name) const override;
-  Term make_param(const std::string name, const Sort & sort) override;
+  Term make_param(const std::string name, const Sort & sort) const override;
   Term make_term(const Op op, const TermVec & terms) const override;
 
   Term make_term(const std::string & s,
@@ -164,9 +164,9 @@ class AbsSmtInterpolator : public AbsSmtSolver
   Term make_term(const std::wstring & s, const Sort & sort) const override;
 
   Sort make_sort(const DatatypeDecl & d) const override;
-  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeDecl make_datatype_decl(const std::string & s) const override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
-      const std::string s) override;
+      const std::string s) const override;
   void add_constructor(DatatypeDecl & dt,
                        const DatatypeConstructorDecl & con) const override;
   void add_selector(DatatypeConstructorDecl & dt,

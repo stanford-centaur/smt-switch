@@ -333,7 +333,7 @@ SortVec Z3Solver::make_datatype_sorts(
   return sorts;
 }
 
-DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s)
+DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s) const
 {
   try
   {
@@ -346,7 +346,7 @@ DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s)
 }
 
 DatatypeConstructorDecl Z3Solver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   try
   {
@@ -871,7 +871,7 @@ Term Z3Solver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term Z3Solver::make_param(const std::string name, const Sort & sort)
+Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 {
   shared_ptr<Z3Sort> zsort = static_pointer_cast<Z3Sort>(sort);
 
