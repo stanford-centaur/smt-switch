@@ -118,14 +118,16 @@ const char * name_prefix = "smt_switch_generated_";
 
 // implementations
 PrintingSolver::PrintingSolver(SmtSolver s, std::ostream * os)
-    : AbsSmtSolver(s->get_solver_enum()), wrapped_solver(s), out_stream(os)
+    : AbsSmtSolver(s->get_solver_enum()),
+      wrapped_solver(std::move(s)),
+      out_stream(os)
 {
 }
 
 PrintingSolver::PrintingSolver(SmtSolver s,
                                std::ostream * os,
                                PrintingStyleEnum /* pse */)
-    : PrintingSolver(s, os)
+    : PrintingSolver(std::move(s), os)
 {
 }
 
@@ -420,14 +422,15 @@ void PrintingSolver::do_reset_assertions()
 SmtSolver create_printing_solver(SmtSolver wrapped_solver,
                                  std::ostream * out_stream)
 {
-  return std::make_shared<PrintingSolver>(wrapped_solver, out_stream);
+  return std::make_shared<PrintingSolver>(std::move(wrapped_solver),
+                                          out_stream);
 }
 
 SmtSolver create_printing_solver(SmtSolver wrapped_solver,
                                  std::ostream * out_stream,
                                  PrintingStyleEnum /* style */)
 {
-  return create_printing_solver(wrapped_solver, out_stream);
+  return create_printing_solver(std::move(wrapped_solver), out_stream);
 }
 
 /* PrintingInterpolator */
@@ -435,7 +438,7 @@ SmtSolver create_printing_solver(SmtSolver wrapped_solver,
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
     : AbsSmtInterpolator(s->get_solver_enum(),
                          std::make_shared<PrintingSolver>(s, os)),
-      wrapped_interpolator(s),
+      wrapped_interpolator(std::move(s)),
       out_stream(os)
 {
 }
@@ -443,7 +446,7 @@ PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
                                            std::ostream * os,
                                            PrintingStyleEnum /* pse */)
-    : PrintingInterpolator(s, os)
+    : PrintingInterpolator(std::move(s), os)
 {
 }
 
@@ -660,7 +663,7 @@ void PrintingInterpolator::forget_queries()
 SmtInterpolator create_printing_interpolator(
     SmtInterpolator wrapped_interpolator, std::ostream * out_stream)
 {
-  return std::make_shared<PrintingInterpolator>(wrapped_interpolator,
+  return std::make_shared<PrintingInterpolator>(std::move(wrapped_interpolator),
                                                 out_stream);
 }
 
@@ -669,7 +672,8 @@ SmtInterpolator create_printing_interpolator(
     std::ostream * out_stream,
     PrintingStyleEnum /* style */)
 {
-  return create_printing_interpolator(wrapped_interpolator, out_stream);
+  return create_printing_interpolator(std::move(wrapped_interpolator),
+                                      out_stream);
 }
 
 }  // namespace smt

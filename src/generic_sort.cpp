@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -39,7 +40,8 @@ GenericSort::GenericSort(SortKind sk) : sk(sk) {}
 
 // Only used to make placeholder sorts for datatypes when the
 // sort is the datatype itself but the sort hasn't been constructed.
-GenericSort::GenericSort(std::string name) : sk(DATATYPE), datatype_name(name)
+GenericSort::GenericSort(std::string name)
+    : sk(DATATYPE), datatype_name(std::move(name))
 {
 }
 
@@ -254,7 +256,9 @@ std::uint64_t BVGenericSort::get_width() const { return width; }
 // ArrayGenericSort
 
 ArrayGenericSort::ArrayGenericSort(Sort idxsort, Sort esort)
-    : GenericSort(ARRAY), indexsort(idxsort), elemsort(esort)
+    : GenericSort(ARRAY),
+      indexsort(std::move(idxsort)),
+      elemsort(std::move(esort))
 {
 }
 
@@ -265,7 +269,9 @@ Sort ArrayGenericSort::get_elemsort() const { return elemsort; }
 // FunctionGenericSort
 
 FunctionGenericSort::FunctionGenericSort(SortVec sorts, Sort rsort)
-    : GenericSort(FUNCTION), domain_sorts(sorts), codomain_sort(rsort)
+    : GenericSort(FUNCTION),
+      domain_sorts(std::move(sorts)),
+      codomain_sort(std::move(rsort))
 {
 }
 
@@ -278,7 +284,7 @@ Sort FunctionGenericSort::get_codomain_sort() const { return codomain_sort; }
 UninterpretedGenericSort::UninterpretedGenericSort(std::string n,
                                                    std::uint64_t a)
     : GenericSort(a == 0 ? UNINTERPRETED : UNINTERPRETED_CONS),
-      name(n),
+      name(std::move(n)),
       arity(a)
 {
 }
@@ -343,7 +349,7 @@ std::string GenericDatatypeSort::to_string() const
 DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
                                              std::string name,
                                              Sort dt)
-    : GenericSort(sk), name(name), dt_sort(dt)
+    : GenericSort(sk), name(std::move(name)), dt_sort(std::move(dt))
 {
   if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER)
   {

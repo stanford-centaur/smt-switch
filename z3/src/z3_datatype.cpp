@@ -1,5 +1,7 @@
 #include "z3_datatype.h"
 
+#include <utility>
+
 namespace z3 {
 bool operator==(const z3::sort & lhs, const z3::sort & rhs)
 {
@@ -12,11 +14,11 @@ bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
 }  // namespace z3
 
 namespace smt {
-Z3DatatypeDecl::Z3DatatypeDecl(std::string name) : name(name) {}
+Z3DatatypeDecl::Z3DatatypeDecl(std::string name) : name(std::move(name)) {}
 
 Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
     const std::shared_ptr<z3::context> & c, std::string name)
-    : c(c), constructorname(name)
+    : c(c), constructorname(std::move(name))
 {
 }
 

@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -52,7 +53,7 @@ const std::unordered_set<SortKind> supported_sortkinds_for_get_value(
 
 LoggingSolver::LoggingSolver(SmtSolver s)
     : AbsSmtSolver(s->get_solver_enum()),
-      wrapped_solver(s),
+      wrapped_solver(std::move(s)),
       hashtable(new TermHashTable()),
       assumption_cache(new UnorderedTermMap())
 {

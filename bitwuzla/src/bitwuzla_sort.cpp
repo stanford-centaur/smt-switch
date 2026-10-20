@@ -21,6 +21,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "bitwuzla/cpp/bitwuzla.h"
@@ -28,9 +29,9 @@
 
 namespace smt {
 
-BzlaSort::BzlaSort(const bitwuzla::Sort s,
+BzlaSort::BzlaSort(bitwuzla::Sort s,
                    const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), sort(s)
+    : tm(tm), sort(std::move(s))
 {
 }
 
