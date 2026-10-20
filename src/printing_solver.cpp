@@ -174,14 +174,14 @@ SortVec PrintingSolver::make_datatype_sorts(
   return res;
 }
 
-DatatypeDecl PrintingSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl PrintingSolver::make_datatype_decl(const std::string & s) const
 {
   return std::make_shared<PrintingDatatypeDecl>(
       wrapped_solver->make_datatype_decl(s), s);
 }
 
 DatatypeConstructorDecl PrintingSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   return std::make_shared<PrintingDatatypeConstructorDecl>(
       wrapped_solver->make_datatype_constructor_decl(s), s);
@@ -313,7 +313,7 @@ Term PrintingSolver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
-Term PrintingSolver::make_param(const std::string name, const Sort & sort)
+Term PrintingSolver::make_param(const std::string name, const Sort & sort) const
 {
   // bound parameters are not declared -- they'll show up in the printed term
   return wrapped_solver->make_param(name, sort);

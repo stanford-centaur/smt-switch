@@ -1278,7 +1278,7 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   }
 }
 
-DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s)
+DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
 {
   DatatypeDecl new_dt_decl = std::make_shared<GenericDatatypeDecl>(s);
   std::shared_ptr<GenericDatatype> new_dt =
@@ -1307,7 +1307,7 @@ static void refuse_internal_name(const std::string & name,
 }
 
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   refuse_internal_name(s, "constructor");
   std::shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
@@ -1738,7 +1738,7 @@ Term GenericSolver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term GenericSolver::make_param(const std::string name, const Sort & sort)
+Term GenericSolver::make_param(const std::string name, const Sort & sort) const
 {
   refuse_internal_name(name, "param");
   if (name_term_map->find(name) != name_term_map->end())

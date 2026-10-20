@@ -203,7 +203,8 @@ Term AbsSmtInterpolator::get_symbol(const std::string & name) const
   return backend_solver->get_symbol(name);
 }
 
-Term AbsSmtInterpolator::make_param(const std::string name, const Sort & sort)
+Term AbsSmtInterpolator::make_param(const std::string name,
+                                    const Sort & sort) const
 {
   return backend_solver->make_param(name, sort);
 }
@@ -231,13 +232,13 @@ Sort AbsSmtInterpolator::make_sort(const DatatypeDecl & d) const
   return backend_solver->make_sort(d);
 }
 
-DatatypeDecl AbsSmtInterpolator::make_datatype_decl(const std::string & s)
+DatatypeDecl AbsSmtInterpolator::make_datatype_decl(const std::string & s) const
 {
   return backend_solver->make_datatype_decl(s);
 }
 
 DatatypeConstructorDecl AbsSmtInterpolator::make_datatype_constructor_decl(
-    const std::string s)
+    const std::string s) const
 {
   return backend_solver->make_datatype_constructor_decl(s);
 }

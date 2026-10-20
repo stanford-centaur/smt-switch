@@ -66,7 +66,7 @@ class PrintingSolver : public AbsSmtSolver
   SortVec make_datatype_sorts(
       const std::vector<DatatypeDecl> & decls) const override;
   Term make_symbol(const std::string name, const Sort & sort) override;
-  Term make_param(const std::string name, const Sort & sort) override;
+  Term make_param(const std::string name, const Sort & sort) const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -92,9 +92,9 @@ class PrintingSolver : public AbsSmtSolver
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   // datatype declarations are recorded, and printed when their sort is made
-  DatatypeDecl make_datatype_decl(const std::string & s) override;
+  DatatypeDecl make_datatype_decl(const std::string & s) const override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
-      const std::string s) override;
+      const std::string s) const override;
   void add_constructor(DatatypeDecl & dt,
                        const DatatypeConstructorDecl & con) const override;
   void add_selector(DatatypeConstructorDecl & dt,

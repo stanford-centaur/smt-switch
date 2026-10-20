@@ -502,7 +502,7 @@ Term BzlaSolver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term BzlaSolver::make_param(const std::string name, const Sort & sort)
+Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
 {
   return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
 }
