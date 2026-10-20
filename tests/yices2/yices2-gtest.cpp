@@ -213,4 +213,30 @@ TEST(Yices2InstanceRef, StaysWhileATermIsHeld)
   EXPECT_EQ(held->to_string(), "x");
 }
 
+TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
+{
+  vector<string> expected;
+  TermIter it, end;
+  {
+    SmtSolver s = Yices2SolverFactory::create(false);
+    Sort bv = s->make_sort(BV, 4);
+    Term x = s->make_symbol("x", bv);
+    Term y = s->make_symbol("y", bv);
+    Term t = s->make_term(BVAnd, x, y);
+    for (TermIter i = t->begin(); i != t->end(); ++i)
+    {
+      expected.push_back((*i)->to_string());
+    }
+    it = t->begin();
+    end = t->end();
+  }
+  // no term, sort or solver is left, only the iterators
+  vector<string> children;
+  for (; it != end; ++it)
+  {
+    children.push_back((*it)->to_string());
+  }
+  EXPECT_EQ(children, expected);
+}
+
 }  // namespace
