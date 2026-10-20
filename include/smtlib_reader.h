@@ -67,45 +67,17 @@ class UnorderedScopedSymbolMap
  public:
   std::size_t current_scope() const { return symbols_.size() - 1; }
 
-  void add_mapping(const std::string & sym, const Term & t)
-  {
-    if (symbol_map_.find(sym) != symbol_map_.end())
-    {
-      throw SmtException("Repeated symbol: " + sym);
-    }
-    symbol_map_[sym] = t;
-    symbols_.back().insert(sym);
-  }
+  void add_mapping(const std::string & sym, const Term & t);
 
   void push_scope() { symbols_.push_back({}); }
 
-  void pop_scope()
-  {
-    if (!current_scope())
-    {
-      throw IncorrectUsageException("Cannot pop the outermost scope");
-    }
-    for (const auto & sym : symbols_.back())
-    {
-      symbol_map_.erase(sym);
-    }
-    symbols_.pop_back();
-  }
+  void pop_scope();
 
   /** Looks up symbol in the symbol map
    *  @param sym the symbol to look up
    *  @return the associated term or null pointer if not in map
    */
-  Term get_symbol(const std::string & sym) const
-  {
-    Term res;
-    auto it = symbol_map_.find(sym);
-    if (it != symbol_map_.end())
-    {
-      res = it->second;
-    }
-    return res;
-  }
+  Term get_symbol(const std::string & sym) const;
 
  private:
   // starts with one scope, to allow some symbols at 0
