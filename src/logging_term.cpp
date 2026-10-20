@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <utility>
 
 #include "sort.h"
 #include "term.h"
@@ -30,17 +31,21 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id)
-    : wrapped_term(t), sort(s), op(o), children(c), id_(id)
+    : wrapped_term(std::move(t)),
+      sort(std::move(s)),
+      op(o),
+      children(std::move(c)),
+      id_(id)
 {
 }
 
 LoggingTerm::LoggingTerm(
     Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym, std::size_t id)
-    : wrapped_term(t),
-      sort(s),
+    : wrapped_term(std::move(t)),
+      sort(std::move(s)),
       op(o),
-      children(c),
-      repr(r),
+      children(std::move(c)),
+      repr(std::move(r)),
       is_sym(is_sym),
       is_par(!is_sym),
       id_(id)
@@ -48,7 +53,10 @@ LoggingTerm::LoggingTerm(
 }
 
 LoggingTerm::LoggingTerm(Term t, Sort s, std::string r, std::size_t id)
-    : wrapped_term(t), sort(s), repr(r), id_(id)
+    : wrapped_term(std::move(t)),
+      sort(std::move(s)),
+      repr(std::move(r)),
+      id_(id)
 {
 }
 

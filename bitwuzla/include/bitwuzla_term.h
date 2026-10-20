@@ -55,8 +55,7 @@ class BzlaTermIter : public TermIterBase
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(const bitwuzla::Term n,
-           const std::shared_ptr<bitwuzla::TermManager> & tm);
+  BzlaTerm(bitwuzla::Term n, const std::shared_ptr<bitwuzla::TermManager> & tm);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

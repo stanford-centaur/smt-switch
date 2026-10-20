@@ -186,7 +186,7 @@ std::string failure(const Child & child)
 namespace smt {
 
 PortfolioSolver::PortfolioSolver(std::vector<SmtSolver> slvrs, Term trm)
-    : solvers(slvrs), portfolio_term(trm)
+    : solvers(std::move(slvrs)), portfolio_term(std::move(trm))
 {
 }
 

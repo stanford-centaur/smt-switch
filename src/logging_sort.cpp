@@ -88,7 +88,10 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
 }
 
 // implementations
-LoggingSort::LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
+LoggingSort::LoggingSort(SortKind sk, Sort s)
+    : sk(sk), wrapped_sort(std::move(s))
+{
+}
 
 SortKind LoggingSort::get_sort_kind() const { return sk; }
 
@@ -166,7 +169,7 @@ std::size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
 // BVLoggingSort
 
 BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t width)
-    : super(BV, s), width(width)
+    : super(BV, std::move(s)), width(width)
 {
 }
 
@@ -175,7 +178,9 @@ std::uint64_t BVLoggingSort::get_width() const { return width; }
 // ArrayLoggingSort
 
 ArrayLoggingSort::ArrayLoggingSort(Sort s, Sort idxsort, Sort esort)
-    : super(ARRAY, s), indexsort(idxsort), elemsort(esort)
+    : super(ARRAY, std::move(s)),
+      indexsort(std::move(idxsort)),
+      elemsort(std::move(esort))
 {
 }
 
@@ -186,7 +191,9 @@ Sort ArrayLoggingSort::get_elemsort() const { return elemsort; }
 // FunctionLoggingSort
 
 FunctionLoggingSort::FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort)
-    : super(FUNCTION, s), domain_sorts(sorts), codomain_sort(rsort)
+    : super(FUNCTION, std::move(s)),
+      domain_sorts(std::move(sorts)),
+      codomain_sort(std::move(rsort))
 {
 }
 
@@ -201,7 +208,9 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
                                                    std::uint64_t a)
     // non-zero arity means it's a sort constructor
     // otherwise it's just an uninterpreted sort
-    : super(a ? UNINTERPRETED_CONS : UNINTERPRETED, s), name(n), arity(a)
+    : super(a ? UNINTERPRETED_CONS : UNINTERPRETED, std::move(s)),
+      name(std::move(n)),
+      arity(a)
 {
 }
 
@@ -209,7 +218,10 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
                                                    std::string n,
                                                    std::uint64_t a,
                                                    const SortVec & sorts)
-    : super(UNINTERPRETED, s), name(n), arity(a), param_sorts(sorts)
+    : super(UNINTERPRETED, std::move(s)),
+      name(std::move(n)),
+      arity(a),
+      param_sorts(sorts)
 {
 }
 
@@ -229,7 +241,7 @@ SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 
 DatatypeLoggingSort::DatatypeLoggingSort(
     Sort s, std::shared_ptr<LoggingDatatypeDecl> decl)
-    : super(DATATYPE, s), decl(std::move(decl))
+    : super(DATATYPE, std::move(s)), decl(std::move(decl))
 {
 }
 
@@ -244,7 +256,7 @@ DatatypeComponentLoggingSort::DatatypeComponentLoggingSort(SortKind sk,
                                                            Sort s,
                                                            SortVec domain,
                                                            Sort codomain)
-    : super(sk, s),
+    : super(sk, std::move(s)),
       domain_sorts(std::move(domain)),
       codomain_sort(std::move(codomain))
 {

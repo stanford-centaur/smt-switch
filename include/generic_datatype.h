@@ -23,7 +23,7 @@ struct SelectorComponents
 class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  explicit GenericDatatypeDecl(const std::string name);
+  explicit GenericDatatypeDecl(std::string name);
   std::string get_name() const;
 
  protected:

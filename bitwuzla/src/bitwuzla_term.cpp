@@ -24,6 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "bitwuzla/cpp/bitwuzla.h"
@@ -109,7 +110,7 @@ const std::unordered_set<PrimOp> indexed_ops(
 BzlaTermIter::BzlaTermIter(bitwuzla::Term terms,
                            std::size_t idx,
                            const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), terms(terms), idx(idx)
+    : tm(tm), terms(std::move(terms)), idx(idx)
 {
 }
 
@@ -150,9 +151,9 @@ bool BzlaTermIter::equal(const TermIterBase & other) const
 
 /*  end BzlaTermIter implementation */
 
-BzlaTerm::BzlaTerm(const bitwuzla::Term t,
+BzlaTerm::BzlaTerm(bitwuzla::Term t,
                    const std::shared_ptr<bitwuzla::TermManager> & tm)
-    : tm(tm), term(t)
+    : tm(tm), term(std::move(t))
 {
 }
 

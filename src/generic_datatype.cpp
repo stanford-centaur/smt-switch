@@ -3,12 +3,14 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <utility>
 
 #include "exceptions.h"
 
 namespace smt {
 
-GenericDatatypeDecl::GenericDatatypeDecl(const std::string name) : dt_name(name)
+GenericDatatypeDecl::GenericDatatypeDecl(std::string name)
+    : dt_name(std::move(name))
 {
 }
 

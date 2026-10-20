@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "exceptions.h"
 #include "smt_defs.h"
@@ -32,13 +33,18 @@ namespace smt {
 /* GenericTerm */
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
-    : sort(s), op(o), children(c), repr(r)
+    : sort(std::move(s)), op(o), children(std::move(c)), repr(std::move(r))
 {
   ground = compute_ground();
 }
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym)
-    : sort(s), op(o), children(c), repr(r), is_sym(is_sym), is_par(!is_sym)
+    : sort(std::move(s)),
+      op(o),
+      children(std::move(c)),
+      repr(std::move(r)),
+      is_sym(is_sym),
+      is_par(!is_sym)
 {
   ground = compute_ground();
 }

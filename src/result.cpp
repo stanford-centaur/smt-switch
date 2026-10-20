@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "exceptions.h"
 
@@ -43,7 +44,7 @@ const std::unordered_map<ResultType, std::string> result2str({
 });
 
 Result::Result(ResultType rt, std::string explanation)
-    : result(rt), explanation(explanation)
+    : result(rt), explanation(std::move(explanation))
 {
 }
 

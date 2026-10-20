@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <sstream>
+#include <utility>
 
 namespace smt {
 
@@ -135,7 +136,9 @@ BoolectorArraySort::BoolectorArraySort(const std::shared_ptr<Btor> & b,
                                        BoolectorSort s,
                                        Sort is,
                                        Sort es)
-    : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es)
+    : BoolectorSortBase(ARRAY, b, s),
+      indexsort(std::move(is)),
+      elemsort(std::move(es))
 {
 }
 
@@ -144,8 +147,8 @@ BoolectorUFSort::BoolectorUFSort(const std::shared_ptr<Btor> & b,
                                  SortVec sorts,
                                  Sort sort)
     : BoolectorSortBase(FUNCTION, b, s),
-      domain_sorts(sorts),
-      codomain_sort(sort)
+      domain_sorts(std::move(sorts)),
+      codomain_sort(std::move(sort))
 {
 }
 
