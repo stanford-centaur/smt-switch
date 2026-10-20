@@ -83,6 +83,11 @@ class IntReaderTests : public ReaderTests
 {
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(RealReaderTests);
+class RealReaderTests : public ReaderTests
+{
+};
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(StrReaderTests);
 class StrReaderTests : public ReaderTests
 {
@@ -108,6 +113,23 @@ TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
   string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
   auto testpair = get<1>(GetParam());
   test += "/qf_uflia/" + testpair.first;
+  reader->parse(test);
+  auto results = reader->get_results();
+  auto expected_results = testpair.second;
+  ASSERT_EQ(results.size(), expected_results.size());
+
+  size_t size = results.size();
+  for (size_t i = 0; i < size; i++)
+  {
+    EXPECT_EQ(results[i], expected_results[i]);
+  }
+}
+
+TEST_P(RealReaderTests, QF_LRA_Smt2Files)
+{
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
+  auto testpair = get<1>(GetParam());
+  test += "/qf_lra/" + testpair.first;
   reader->parse(test);
   auto results = reader->get_results();
   auto expected_results = testpair.second;
@@ -201,6 +223,14 @@ INSTANTIATE_TEST_SUITE_P(
                          { THEORY_INT })),
                      testing::ValuesIn(qf_uflia_tests.begin(),
                                        qf_uflia_tests.end())));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverRealReaderTests,
+    RealReaderTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { THEORY_REAL })),
+                     testing::ValuesIn(qf_lra_tests.begin(),
+                                       qf_lra_tests.end())));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverStrReaderTests,
