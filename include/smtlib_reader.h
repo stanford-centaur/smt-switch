@@ -124,6 +124,8 @@ class SmtLibReader
    *         otherwise allows non-standard operators
    */
   explicit SmtLibReader(SmtSolver & solver, bool strict = false);
+  SmtLibReader(const SmtLibReader &) = delete;
+  SmtLibReader & operator=(const SmtLibReader &) = delete;
 
   virtual ~SmtLibReader() = default;
 

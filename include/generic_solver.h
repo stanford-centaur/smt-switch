@@ -94,6 +94,8 @@ class GenericSolver : public AbsSmtSolver
       std::vector<std::string> cmd_line_args,
       std::chrono::milliseconds response_timeout = default_response_timeout,
       unsigned int read_buf_size = 256);
+  GenericSolver(const GenericSolver &) = delete;
+  GenericSolver & operator=(const GenericSolver &) = delete;
   ~GenericSolver() override;
 
   /***************************************************************/
