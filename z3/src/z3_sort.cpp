@@ -220,7 +220,7 @@ SortKind Z3Sort::get_sort_kind() const
   }
 }
 
-z3::sort Z3Sort::get_z3_type()
+z3::sort Z3Sort::get_z3_type() const
 {
   if (is_function)
   {

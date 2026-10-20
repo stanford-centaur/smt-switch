@@ -430,7 +430,7 @@ std::string Z3Term::print_value_as(SortKind /* sk */) const
   return term.to_string();
 }
 
-expr Z3Term::get_z3_expr()
+expr Z3Term::get_z3_expr() const
 {
   if (is_function)
   {
@@ -439,7 +439,7 @@ expr Z3Term::get_z3_expr()
   return term;
 }
 
-func_decl Z3Term::get_z3_func_decl()
+func_decl Z3Term::get_z3_func_decl() const
 {
   if (!is_function)
   {
