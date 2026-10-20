@@ -114,26 +114,12 @@ class AbsTerm
 };
 
 // A null term equals only another null term and sorts before every term
-inline bool operator==(const Term & t1, const Term & t2)
-{
-  if (!t1 || !t2)
-  {
-    return !t1 && !t2;
-  }
-  return t1->compare(t2);
-}
-inline bool operator!=(const Term & t1, const Term & t2) { return !(t1 == t2); }
-inline bool operator<(const Term & t1, const Term & t2)
-{
-  if (!t1 || !t2)
-  {
-    return !t1 && t2;
-  }
-  return t1->get_id() < t2->get_id();
-}
-inline bool operator>(const Term & t1, const Term & t2) { return t2 < t1; }
-inline bool operator<=(const Term & t1, const Term & t2) { return !(t2 < t1); }
-inline bool operator>=(const Term & t1, const Term & t2) { return !(t1 < t2); }
+bool operator==(const Term & t1, const Term & t2);
+bool operator!=(const Term & t1, const Term & t2);
+bool operator<(const Term & t1, const Term & t2);
+bool operator>(const Term & t1, const Term & t2);
+bool operator<=(const Term & t1, const Term & t2);
+bool operator>=(const Term & t1, const Term & t2);
 
 std::ostream & operator<<(std::ostream & output, const Term t);
 
@@ -191,21 +177,7 @@ using UnorderedTermSet = std::unordered_set<Term>;
 using UnorderedTermMap = std::unordered_map<Term, Term>;
 
 // range-based iteration
-inline TermIter begin(const Term & t)
-{
-  if (!t)
-  {
-    throw IncorrectUsageException("Cannot iterate over a null term");
-  }
-  return t->begin();
-}
-inline TermIter end(const Term & t)
-{
-  if (!t)
-  {
-    throw IncorrectUsageException("Cannot iterate over a null term");
-  }
-  return t->end();
-}
+TermIter begin(const Term & t);
+TermIter end(const Term & t);
 
 }  // namespace smt

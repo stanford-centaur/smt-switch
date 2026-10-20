@@ -54,6 +54,27 @@ std::int64_t AbsTerm::to_signed_int() const
                                 + get_sort()->to_string());
 }
 
+bool operator==(const Term & t1, const Term & t2)
+{
+  if (!t1 || !t2)
+  {
+    return !t1 && !t2;
+  }
+  return t1->compare(t2);
+}
+bool operator!=(const Term & t1, const Term & t2) { return !(t1 == t2); }
+bool operator<(const Term & t1, const Term & t2)
+{
+  if (!t1 || !t2)
+  {
+    return !t1 && t2;
+  }
+  return t1->get_id() < t2->get_id();
+}
+bool operator>(const Term & t1, const Term & t2) { return t2 < t1; }
+bool operator<=(const Term & t1, const Term & t2) { return !(t2 < t1); }
+bool operator>=(const Term & t1, const Term & t2) { return !(t1 < t2); }
+
 std::ostream & operator<<(std::ostream & output, const Term t)
 {
   output << (t ? t->to_string() : "null");
@@ -134,6 +155,25 @@ bool TermIter::operator!=(const TermIter & other) const
   return !(*this == other);
 }
 /* end TermIter implementation */
+
+TermIter begin(const Term & t)
+{
+  if (!t)
+  {
+    throw IncorrectUsageException("Cannot iterate over a null term");
+  }
+  return t->begin();
+}
+
+TermIter end(const Term & t)
+{
+  if (!t)
+  {
+    throw IncorrectUsageException("Cannot iterate over a null term");
+  }
+  return t->end();
+}
+
 }  // namespace smt
 
 namespace std {
