@@ -23,20 +23,6 @@ Z3TermIter::Z3TermIter(const std::shared_ptr<context> & c,
 {
 }
 
-Z3TermIter::Z3TermIter(const Z3TermIter & it)
-    : ctx(it.ctx), term(it.term), pos(it.pos), null_term(it.null_term)
-{
-}
-
-Z3TermIter & Z3TermIter::operator=(const Z3TermIter & it)
-{
-  ctx = it.ctx;
-  term = it.term;
-  pos = it.pos;
-  null_term = it.null_term;
-  return *this;
-}
-
 void Z3TermIter::operator++() { pos++; }
 
 Term Z3TermIter::operator*() const

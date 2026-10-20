@@ -110,10 +110,8 @@ class GenericTermIter : public TermIterBase
 {
  public:
   GenericTermIter(TermVec::const_iterator i);
-  GenericTermIter(const GenericTermIter & lit);
   TermIterBase * clone() const override;
 
-  GenericTermIter & operator=(const GenericTermIter & lit);
   void operator++() override;
   Term operator*() const override;
   bool operator==(const GenericTermIter & lit) const;

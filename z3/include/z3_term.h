@@ -37,8 +37,6 @@ class Z3TermIter : public TermIterBase
              expr t,
              uint32_t p,
              bool nt = false);
-  Z3TermIter(const Z3TermIter & it);
-  Z3TermIter & operator=(const Z3TermIter & it);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

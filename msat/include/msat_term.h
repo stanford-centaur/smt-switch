@@ -36,8 +36,6 @@ class MsatTermIter : public TermIterBase
   MsatTermIter(const std::shared_ptr<msat_env> & e,
                const msat_term t,
                uint32_t p);
-  MsatTermIter(const MsatTermIter & it);
-  MsatTermIter & operator=(const MsatTermIter & it);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;

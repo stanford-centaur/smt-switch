@@ -127,21 +127,6 @@ MsatTermIter::MsatTermIter(const std::shared_ptr<msat_env> & e,
 {
 }
 
-MsatTermIter::MsatTermIter(const MsatTermIter & it)
-{
-  env = it.env;
-  term = it.term;
-  pos = it.pos;
-}
-
-MsatTermIter & MsatTermIter::operator=(const MsatTermIter & it)
-{
-  env = it.env;
-  term = it.term;
-  pos = it.pos;
-  return *this;
-}
-
 void MsatTermIter::operator++() { pos++; }
 
 Term MsatTermIter::operator*() const

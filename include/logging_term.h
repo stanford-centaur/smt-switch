@@ -88,8 +88,6 @@ class LoggingTermIter : public TermIterBase
 {
  public:
   LoggingTermIter(TermVec::const_iterator i);
-  LoggingTermIter(const LoggingTermIter & lit);
-  LoggingTermIter & operator=(const LoggingTermIter & lit);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;
