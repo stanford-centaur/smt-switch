@@ -55,6 +55,9 @@ class Yices2TermIter : public TermIterBase
   bool equal(const TermIterBase & other) const override;
 
  private:
+  // keeps Yices set up while the iterator can be used, even past its term
+  // and solver
+  Yices2InstanceRef instance;
   term_t term;
   uint32_t pos;
 };
