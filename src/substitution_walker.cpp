@@ -37,4 +37,6 @@ SubstitutionWalker::SubstitutionWalker(
     save_in_cache(elem.first, elem.second);
   }
 }
+
+SubstitutionWalker::~SubstitutionWalker() = default;
 }  // namespace smt

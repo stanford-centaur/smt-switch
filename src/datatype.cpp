@@ -1,6 +1,13 @@
 #include "datatype.h"
 
 namespace smt {
+
+AbsDatatypeDecl::~AbsDatatypeDecl() = default;
+
+AbsDatatypeConstructorDecl::~AbsDatatypeConstructorDecl() = default;
+
+AbsDatatype::~AbsDatatype() = default;
+
 // Overloaded operators call the constructors' comparison functions; a null
 // declaration equals only another null declaration
 bool operator==(const DatatypeConstructorDecl & d1,
