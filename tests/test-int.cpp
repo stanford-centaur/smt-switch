@@ -54,6 +54,33 @@ TEST_P(IntTests, IntDiv)
   ASSERT_EQ(resval, two);
 }
 
+TEST_P(IntTests, Div)
+{
+  // unlike IntDiv, Div (/) divides Ints as Reals, and an Int by a Real.
+  // SMT-LIB declares / only over Reals, but cvc5, MathSAT and Yices2 take
+  // Ints as well; to be strict instead, every backend would have to throw an
+  // IncorrectUsageException here
+  Sort realsort = s->make_sort(REAL);
+  Term two = s->make_term(2, realsort);
+  Term quotient =
+      s->make_term(Div, s->make_term(7, intsort), s->make_term(2, intsort));
+  EXPECT_EQ(quotient->get_sort(), realsort);
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(Mult, two, quotient), s->make_term(7, realsort)));
+
+  // and an Int by a Real: (/ i 2.0) is 3/2 for i = 3
+  Term i = s->make_symbol("i", intsort);
+  s->assert_formula(s->make_term(Equal, i, s->make_term(3, intsort)));
+  s->assert_formula(
+      s->make_term(Equal,
+                   s->make_term(Mult, two, s->make_term(Div, i, two)),
+                   s->make_term(3, realsort)));
+
+  // with i fixed, nothing is left to choose, so this is sat exactly when both
+  // equations hold; dividing as Ints would make them 6 = 7 and 2 = 3
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
 TEST_P(IntTests, BvToNatIsInt)
 {
   Sort bvsort = s->make_sort(BV, 8);
