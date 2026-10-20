@@ -336,7 +336,7 @@ bool BoolectorTerm::is_value() const
   return res;
 }
 
-std::string BoolectorTerm::to_string()
+std::string BoolectorTerm::to_string() const
 {
   std::string sres;
 
@@ -426,7 +426,7 @@ TermIter BoolectorTerm::end()
   return TermIter(new BoolectorTermIter(btor, children, children.size()));
 }
 
-std::string BoolectorTerm::print_value_as(SortKind sk)
+std::string BoolectorTerm::print_value_as(SortKind sk) const
 {
   if (!is_value())
   {

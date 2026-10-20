@@ -55,7 +55,7 @@ class AbsTerm
   /* get the sort */
   virtual Sort get_sort() const = 0;
   /* to_string in smt2 format */
-  virtual std::string to_string() = 0;
+  virtual std::string to_string() const = 0;
   /* returns the string term as a native string value */
   virtual std::wstring getStringValue() const;
   /* returns true iff this term is a symbol */
@@ -110,7 +110,7 @@ class AbsTerm
    *
    *  throws an exception if the term is not a value
    */
-  virtual std::string print_value_as(SortKind sk) = 0;
+  virtual std::string print_value_as(SortKind sk) const = 0;
 };
 
 inline bool operator==(const Term & t1, const Term & t2)

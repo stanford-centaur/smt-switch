@@ -305,7 +305,7 @@ bool Cvc5Term::is_value() const
           || (k == ::cvc5::Kind::CONST_ARRAY));
 }
 
-std::string Cvc5Term::to_string() { return term.toString(); }
+std::string Cvc5Term::to_string() const { return term.toString(); }
 
 std::wstring Cvc5Term::getStringValue() const
 {
@@ -360,7 +360,7 @@ TermIter Cvc5Term::end()
   return TermIter(new Cvc5TermIter(term, num_children));
 }
 
-std::string Cvc5Term::print_value_as(SortKind /* sk */)
+std::string Cvc5Term::print_value_as(SortKind /* sk */) const
 {
   if (!is_value())
   {

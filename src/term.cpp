@@ -33,8 +33,7 @@ std::wstring AbsTerm::getStringValue() const
 
 std::int64_t AbsTerm::to_signed_int() const
 {
-  // to_string is not const only because a backend may cache the string
-  const std::string repr = const_cast<AbsTerm *>(this)->to_string();
+  const std::string repr = to_string();
   if (!is_value())
   {
     throw IncorrectUsageException("Can't convert non-value " + repr

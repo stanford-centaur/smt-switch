@@ -48,12 +48,12 @@ class GenericTerm : public AbsTerm
   Op get_op() const override;
   Sort get_sort() const override;
   std::size_t get_id() const override;
-  std::string to_string() override;
+  std::string to_string() const override;
   std::size_t hash() const override;
   bool is_value() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;
-  std::string print_value_as(SortKind sk) override;
+  std::string print_value_as(SortKind sk) const override;
   // is this a ground term
   bool is_ground() const;
   bool is_symbol() const override;
@@ -94,7 +94,7 @@ class GenericTerm : public AbsTerm
   TermVec children;
 
   // A string representation of the term
-  std::string repr;
+  mutable std::string repr;
 
   // is this a symbolic constant
   bool is_sym;

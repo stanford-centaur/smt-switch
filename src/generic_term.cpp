@@ -131,7 +131,7 @@ TermIter GenericTerm::end()
   return TermIter(new GenericTermIter(children.end()));
 }
 
-std::string GenericTerm::to_string()
+std::string GenericTerm::to_string() const
 {
   if (repr.empty())
   {
@@ -179,7 +179,7 @@ std::int64_t GenericTerm::to_signed_int() const
              : smtlib_int_to_int64(repr);
 }
 
-std::string GenericTerm::print_value_as(SortKind /* sk */)
+std::string GenericTerm::print_value_as(SortKind /* sk */) const
 {
   if (is_value())
   {

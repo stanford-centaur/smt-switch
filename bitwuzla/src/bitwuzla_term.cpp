@@ -236,7 +236,7 @@ bool BzlaTerm::is_value() const
   return term.is_value() || term.kind() == bitwuzla::Kind::CONST_ARRAY;
 }
 
-std::string BzlaTerm::to_string() { return term.str(); }
+std::string BzlaTerm::to_string() const { return term.str(); }
 
 /** Returns the bits of a bit-vector value, most significant first */
 static std::string bv_value_to_bits(const bitwuzla::Term & term)
@@ -267,7 +267,7 @@ TermIter BzlaTerm::end()
   return TermIter(new BzlaTermIter(term, num_children, tm));
 }
 
-std::string BzlaTerm::print_value_as(SortKind /* sk */)
+std::string BzlaTerm::print_value_as(SortKind /* sk */) const
 {
   if (!is_value())
   {
