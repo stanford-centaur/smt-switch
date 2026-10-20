@@ -71,7 +71,7 @@ class UnorderedScopedSymbolMap
     symbols_.push_back({});
   }
 
-  std::size_t current_scope() { return symbols_.size() - 1; }
+  std::size_t current_scope() const { return symbols_.size() - 1; }
 
   void add_mapping(const std::string & sym, const Term & t)
   {
@@ -102,7 +102,7 @@ class UnorderedScopedSymbolMap
    *  @param sym the symbol to look up
    *  @return the associated term or null pointer if not in map
    */
-  Term get_symbol(const std::string & sym)
+  Term get_symbol(const std::string & sym) const
   {
     Term res;
     auto it = symbol_map_.find(sym);
@@ -183,7 +183,7 @@ class SmtLibReader
   /* getters and setters  */
   smtlib::location & location() { return location_; }
 
-  SmtSolver & solver() { return solver_; }
+  const SmtSolver & solver() const { return solver_; }
 
   bool is_strict() const { return strict_; }
 
@@ -195,7 +195,7 @@ class SmtLibReader
    */
   void pop_scope();
 
-  std::size_t current_scope() { return arg_param_map_.current_scope(); }
+  std::size_t current_scope() const { return arg_param_map_.current_scope(); }
 
   /* Methods for use in flex/bison generated code */
 
@@ -204,7 +204,7 @@ class SmtLibReader
    *  with that name
    *  @return term
    */
-  Term lookup_symbol(const std::string & sym);
+  Term lookup_symbol(const std::string & sym) const;
 
   /** Creates a new symbol
    *  This is a light wrapper around solver_->make_symbol
@@ -220,7 +220,7 @@ class SmtLibReader
    *  @return the associated PrimOp
    *  Returns NUM_OPS_AND_NULL if there's no match
    */
-  PrimOp lookup_primop(const std::string & str);
+  PrimOp lookup_primop(const std::string & str) const;
 
   /** Look up a sort by string
    *  The available sorts are based on the logic
@@ -229,7 +229,7 @@ class SmtLibReader
    *  Returns NUM_SORT_KINDS (a null element) if there's
    *  no match
    */
-  SortKind lookup_sortkind(const std::string & str);
+  SortKind lookup_sortkind(const std::string & str) const;
 
   /** Create a define-fun macro
    *  @param name the name of the define-fun
@@ -277,7 +277,7 @@ class SmtLibReader
    *  @param name the name to look up
    *  @return the sort
    */
-  Sort lookup_sort(const std::string & name);
+  Sort lookup_sort(const std::string & name) const;
 
   /** Creates a parameter and stores it in the scoped data-structure
    *  arg_param_map_

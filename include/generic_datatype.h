@@ -24,7 +24,7 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
   GenericDatatypeDecl(const std::string name);
-  std::string get_name();
+  std::string get_name() const;
 
  protected:
   friend class GenericSolver;
@@ -38,7 +38,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   // Stores a new selector in the constructor object. newSelector: the
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
-  std::vector<SelectorComponents> get_selector_vector();
+  std::vector<SelectorComponents> get_selector_vector() const;
   std::string get_name() const;
   // Returns the size of selector_vector
   int get_selector_count() const;
@@ -66,7 +66,7 @@ class GenericDatatype : public AbsDatatype
   // (dt_cons_decl) if the constructor is associated with the datatype
   void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                     const SelectorComponents & newSelector);
-  std::vector<DatatypeConstructorDecl> get_cons_vector();
+  std::vector<DatatypeConstructorDecl> get_cons_vector() const;
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;

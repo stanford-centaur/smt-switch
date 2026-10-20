@@ -98,7 +98,7 @@ class TermTranslator
   UnorderedTermMap & get_cache() { return cache; };
 
   /* Returns a reference to the solver this object translates terms to */
-  const SmtSolver & get_solver() { return solver; };
+  const SmtSolver & get_solver() const { return solver; };
 
  protected:
   /** Creates a term value from a string of the given sort

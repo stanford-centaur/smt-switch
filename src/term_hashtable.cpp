@@ -34,14 +34,14 @@ bool TermHashTable::contains(const Term & t) const
           && table.at(hashval).find(t) != table.at(hashval).end());
 }
 
-bool TermHashTable::lookup(Term & t)
+bool TermHashTable::lookup(Term & t) const
 {
   if (contains(t))
   {
     // reassign t
     // should destroy the previous Term
     // when reference counter goes to zero
-    t = *(table[t->hash()].find(t));
+    t = *(table.at(t->hash()).find(t));
     return true;
   }
   return false;

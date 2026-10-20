@@ -61,7 +61,7 @@ class GenericTerm : public AbsTerm
   bool is_symbolic_const() const override;
   TermIter begin() const override;
   TermIter end() const override;
-  TermVec get_children();
+  TermVec get_children() const;
 
  protected:
   std::string compute_string() const;
