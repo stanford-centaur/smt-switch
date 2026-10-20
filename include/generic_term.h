@@ -59,8 +59,8 @@ class GenericTerm : public AbsTerm
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
-  TermIter begin() override;
-  TermIter end() override;
+  TermIter begin() const override;
+  TermIter end() const override;
   TermVec get_children();
 
  protected:
@@ -109,7 +109,7 @@ class GenericTerm : public AbsTerm
 class GenericTermIter : public TermIterBase
 {
  public:
-  GenericTermIter(TermVec::iterator i);
+  GenericTermIter(TermVec::const_iterator i);
   GenericTermIter(const GenericTermIter & lit);
   TermIterBase * clone() const override;
 
@@ -121,7 +121,7 @@ class GenericTermIter : public TermIterBase
 
  protected:
   bool equal(const TermIterBase & other) const override;
-  TermVec::iterator it;
+  TermVec::const_iterator it;
 };
 
 }  // namespace smt

@@ -85,11 +85,11 @@ class AbsTerm
   /** begin iterator
    *  starts iteration through Term's children
    */
-  virtual TermIter begin() = 0;
+  virtual TermIter begin() const = 0;
   /** end iterator
    *  ends iteration through Term's children
    */
-  virtual TermIter end() = 0;
+  virtual TermIter end() const = 0;
 
   // Methods used for strange edge-cases e.g. in the logging solver
 

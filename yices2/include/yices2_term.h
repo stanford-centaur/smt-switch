@@ -76,8 +76,8 @@ class Yices2Term : public AbsTerm
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
   /* Iterators for traversing the children */
-  TermIter begin() override;
-  TermIter end() override;
+  TermIter begin() const override;
+  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
  protected:

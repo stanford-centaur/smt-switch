@@ -547,9 +547,12 @@ bool Yices2TermIter::equal(const TermIterBase & other) const
   return term == it.term && pos == it.pos;
 }
 
-TermIter Yices2Term::begin() { return TermIter(new Yices2TermIter(term, 0)); }
+TermIter Yices2Term::begin() const
+{
+  return TermIter(new Yices2TermIter(term, 0));
+}
 
-TermIter Yices2Term::end()
+TermIter Yices2Term::end() const
 {
   return TermIter(new Yices2TermIter(term, smt_num_children(term)));
 }
