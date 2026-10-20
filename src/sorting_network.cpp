@@ -29,6 +29,8 @@ namespace smt {
 // implementation based on SortingNetwork in the predecessor, CoSA:
 // https://github.com/cristian-mattarei/CoSA/blob/141be4b23f4012c6ad5676907d7c211ae2b6614a/cosa/utils/formula_mngm.py#L198
 
+SortingNetwork::SortingNetwork(const SmtSolver & solver) : solver_(solver) {}
+
 TermVec SortingNetwork::sorting_network(const TermVec & unsorted) const
 {
   if (unsorted.empty())

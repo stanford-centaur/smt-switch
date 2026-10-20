@@ -51,8 +51,7 @@ class IdentityWalker
  public:
   IdentityWalker(const SmtSolver & solver,
                  bool clear_cache,
-                 UnorderedTermMap * ext_cache = nullptr)
-      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
+                 UnorderedTermMap * ext_cache = nullptr);
 
   virtual ~IdentityWalker() = default;
 

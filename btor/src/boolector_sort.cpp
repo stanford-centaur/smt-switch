@@ -21,7 +21,14 @@
 
 namespace smt {
 
-/* BoolectorSolver implementation */
+/* BoolectorSortBase implementation */
+
+BoolectorSortBase::BoolectorSortBase(SortKind sk,
+                                     const std::shared_ptr<Btor> & b,
+                                     BoolectorSort s)
+    : btor(b), sort(s), sk(sk)
+{
+}
 
 BoolectorSortBase::~BoolectorSortBase()
 {
@@ -115,6 +122,21 @@ bool BoolectorSortBase::compare(const Sort & s) const
   std::shared_ptr<BoolectorSortBase> bs =
       std::static_pointer_cast<BoolectorSortBase>(s);
   return (sort == bs->sort);
+}
+
+BoolectorBVSort::BoolectorBVSort(const std::shared_ptr<Btor> & b,
+                                 BoolectorSort s,
+                                 uint64_t w)
+    : BoolectorSortBase(BV, b, s), width(w)
+{
+}
+
+BoolectorArraySort::BoolectorArraySort(const std::shared_ptr<Btor> & b,
+                                       BoolectorSort s,
+                                       Sort is,
+                                       Sort es)
+    : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es)
+{
 }
 
 BoolectorUFSort::BoolectorUFSort(const std::shared_ptr<Btor> & b,

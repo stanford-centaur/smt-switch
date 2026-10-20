@@ -42,6 +42,11 @@ const std::unordered_map<ResultType, std::string> result2str({
     { UNKNOWN, "unknown" },
 });
 
+Result::Result(ResultType rt, std::string explanation)
+    : result(rt), explanation(explanation)
+{
+}
+
 std::string Result::get_explanation() const
 {
   if (result != UNKNOWN)

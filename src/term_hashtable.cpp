@@ -23,8 +23,6 @@ namespace smt {
 
 /* TermHashTable */
 
-TermHashTable::TermHashTable() {}
-
 void TermHashTable::insert(const Term & t) { table[t->hash()].insert(t); }
 
 bool TermHashTable::contains(const Term & t) const

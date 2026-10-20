@@ -92,6 +92,14 @@ bool uses_uninterp_sort(const Sort & sort)
   return res;
 }
 
+TermTranslator::TermTranslator(const SmtSolver & s) : solver(s)
+{
+  if (s->get_solver_enum() == SolverEnum::GENERIC_SOLVER)
+  {
+    throw SmtException("Generic Solvers do not support term transfer");
+  }
+}
+
 Sort TermTranslator::transfer_sort(const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();

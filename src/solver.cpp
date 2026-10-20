@@ -31,6 +31,8 @@ namespace smt {
 
 // TODO: Implement a generic visitor
 
+AbsSmtSolver::AbsSmtSolver(SolverEnum se) : solver_enum(se) {}
+
 Result AbsSmtSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   return check_sat_assuming(assumptions);

@@ -124,6 +124,23 @@ const unordered_map<PrimOp, yices_const_variadic_fun> yices_const_variadic_ops(
 
 /* Yices2Solver implementation */
 
+Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2)
+{
+  config = yices_new_config();
+}
+
+Yices2Solver::~Yices2Solver()
+{
+  // need to destruct all stored terms in symbol_table
+  symbol_table.clear();
+
+  yices_free_config(config);
+  if (ctx)
+  {
+    yices_free_context(ctx);
+  }
+}
+
 void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")

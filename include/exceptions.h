@@ -36,12 +36,12 @@ class SmtException : public std::exception
    *                 Hence, responsibility for deleting the char* lies
    *                 with the caller.
    */
-  explicit SmtException(const char * message) : msg(message) {}
+  explicit SmtException(const char * message);
 
   /** Constructor (C++ STL strings).
    *  @param message The error message.
    */
-  explicit SmtException(const std::string & message) : msg(message) {}
+  explicit SmtException(const std::string & message);
 
   /** Returns a pointer to the (constant) error description.
    *  @return A pointer to a const char*. The underlying memory
@@ -59,23 +59,17 @@ class SmtException : public std::exception
 class IncorrectUsageException : public SmtException
 {
  public:
-  explicit IncorrectUsageException(const char * msg) : SmtException(msg) {};
-  explicit IncorrectUsageException(const std::string & msg)
-      : SmtException(msg) {};
+  using SmtException::SmtException;
 };
 
 class NotImplementedException : public SmtException
 {
  public:
-  explicit NotImplementedException(const char * msg) : SmtException(msg) {};
-  explicit NotImplementedException(const std::string & msg)
-      : SmtException(msg) {};
+  using SmtException::SmtException;
 };
 
 class InternalSolverException : public SmtException
 {
  public:
-  explicit InternalSolverException(const char * msg) : SmtException(msg) {};
-  explicit InternalSolverException(const std::string & msg)
-      : SmtException(msg) {};
+  using SmtException::SmtException;
 };

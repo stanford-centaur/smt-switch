@@ -34,8 +34,7 @@ class BoolectorSortBase : public AbsSort
  public:
   BoolectorSortBase(SortKind sk,
                     const std::shared_ptr<Btor> & b,
-                    BoolectorSort s)
-      : btor(b), sort(s), sk(sk) {};
+                    BoolectorSort s);
   ~BoolectorSortBase() override;
   // the destructor releases sort, so a copy would release it twice
   BoolectorSortBase(const BoolectorSortBase &) = delete;
@@ -77,8 +76,7 @@ class BoolectorSortBase : public AbsSort
 class BoolectorBVSort : public BoolectorSortBase
 {
  public:
-  BoolectorBVSort(const std::shared_ptr<Btor> & b, BoolectorSort s, uint64_t w)
-      : BoolectorSortBase(BV, b, s), width(w) {};
+  BoolectorBVSort(const std::shared_ptr<Btor> & b, BoolectorSort s, uint64_t w);
   uint64_t get_width() const override { return width; };
 
  protected:
@@ -96,8 +94,7 @@ class BoolectorArraySort : public BoolectorSortBase
   BoolectorArraySort(const std::shared_ptr<Btor> & b,
                      BoolectorSort s,
                      Sort is,
-                     Sort es)
-      : BoolectorSortBase(ARRAY, b, s), indexsort(is), elemsort(es) {};
+                     Sort es);
   Sort get_indexsort() const override { return indexsort; };
   Sort get_elemsort() const override { return elemsort; };
 

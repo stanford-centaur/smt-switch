@@ -63,7 +63,7 @@ class Yices2TermIter : public TermIterBase
 class Yices2Term : public AbsTerm
 {
  public:
-  Yices2Term(term_t t) : term(t) {};
+  Yices2Term(term_t t);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

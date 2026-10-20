@@ -107,7 +107,7 @@ class AbsSmtSolver
   /** SolverEnum identifies which underlying solver is being used.
    *  It is provided by the derived class (backend implementation)
    */
-  AbsSmtSolver(SolverEnum se) : solver_enum(se) {};
+  AbsSmtSolver(SolverEnum se);
   virtual ~AbsSmtSolver() = default;
 
   /* Sets a solver option with smt-lib 2 syntax
