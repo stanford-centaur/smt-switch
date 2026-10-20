@@ -8,6 +8,13 @@
 
 namespace smt {
 
+TreeWalker::TreeWalker(const SmtSolver & solver,
+                       bool clear_cache,
+                       UnorderedTermPairMap * ext_cache)
+    : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache)
+{
+}
+
 std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
 {
   // iterates over children, for tracking which child of it's parent node

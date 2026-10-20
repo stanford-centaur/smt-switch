@@ -12,6 +12,8 @@ bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
 }  // namespace z3
 
 namespace smt {
+Z3DatatypeDecl::Z3DatatypeDecl(std::string name) : name(name) {}
+
 Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
     const std::shared_ptr<z3::context> & c, std::string name)
     : c(c), constructorname(name)

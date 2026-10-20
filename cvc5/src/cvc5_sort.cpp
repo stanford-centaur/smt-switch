@@ -26,6 +26,8 @@ namespace smt {
 // struct for hashing
 std::hash<cvc5::Sort> sorthash;
 
+Cvc5Sort::Cvc5Sort(::cvc5::Sort s) : sort(s) {}
+
 std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
 std::size_t Cvc5Sort::hash() const { return sorthash(sort); }

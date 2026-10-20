@@ -32,6 +32,8 @@ namespace smt {
 
 // Yices2Term implementation
 
+Yices2Term::Yices2Term(term_t t) : term(t) {}
+
 size_t Yices2Term::hash() const
 {
   // term_t is a unique id for the term.

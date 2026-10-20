@@ -31,7 +31,7 @@ class Cvc5Solver;
 class Cvc5Sort : public AbsSort
 {
  public:
-  Cvc5Sort(::cvc5::Sort s) : sort(s) {};
+  Cvc5Sort(::cvc5::Sort s);
   std::string to_string() const override;
   std::size_t hash() const override;
   uint64_t get_width() const override;

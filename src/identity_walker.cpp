@@ -22,6 +22,13 @@
 
 namespace smt {
 
+IdentityWalker::IdentityWalker(const SmtSolver & solver,
+                               bool clear_cache,
+                               UnorderedTermMap * ext_cache)
+    : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache)
+{
+}
+
 Term IdentityWalker::visit(Term & term)
 {
   if (clear_cache_)

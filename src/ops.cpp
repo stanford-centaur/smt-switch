@@ -219,6 +219,13 @@ std::string to_string(PrimOp op)
   return primop2str.at(op);
 }
 
+Op::Op(PrimOp o) : prim_op(o) {}
+Op::Op(PrimOp o, std::uint64_t idx0) : prim_op(o), num_idx(1), idx0(idx0) {}
+Op::Op(PrimOp o, std::uint64_t idx0, std::uint64_t idx1)
+    : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1)
+{
+}
+
 std::string Op::to_string() const
 {
   std::string res;

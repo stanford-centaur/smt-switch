@@ -70,7 +70,6 @@ std::string to_string(SortKind);
 class AbsSort
 {
  public:
-  AbsSort() {};
   virtual ~AbsSort() = default;
   virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;

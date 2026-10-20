@@ -8,4 +8,8 @@
 
 #include "exceptions.h"
 
+SmtException::SmtException(const char * message) : msg(message) {}
+
+SmtException::SmtException(const std::string & message) : msg(message) {}
+
 const char * SmtException::what() const noexcept { return msg.c_str(); }

@@ -146,10 +146,9 @@ enum PrimOp
 struct Op
 {
   Op() = default;
-  Op(PrimOp o) : prim_op(o) {};
-  Op(PrimOp o, std::uint64_t idx0) : prim_op(o), num_idx(1), idx0(idx0) {};
-  Op(PrimOp o, std::uint64_t idx0, std::uint64_t idx1)
-      : prim_op(o), num_idx(2), idx0(idx0), idx1(idx1) {};
+  Op(PrimOp o);
+  Op(PrimOp o, std::uint64_t idx0);
+  Op(PrimOp o, std::uint64_t idx0, std::uint64_t idx1);
   std::string to_string() const;
   bool is_null() const;
   PrimOp prim_op = NUM_OPS_AND_NULL;

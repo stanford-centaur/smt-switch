@@ -73,6 +73,14 @@ bool TermIterBase::operator==(const TermIterBase & other) const
 /* end TermIterBase implementation */
 
 /* TermIter implementation */
+TermIter::TermIter(TermIterBase * tib) : iter_(tib) {}
+
+// a default-constructed iterator holds no iter_, so copy it as null
+TermIter::TermIter(const TermIter & other)
+    : iter_(other.iter_ ? other.iter_->clone() : nullptr)
+{
+}
+
 TermIter & TermIter::operator=(const TermIter & other)
 {
   // clone before resetting: on self-assignment, other.iter_ is iter_

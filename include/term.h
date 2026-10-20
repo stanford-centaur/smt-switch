@@ -42,7 +42,6 @@ class TermIter;
 class AbsTerm
 {
  public:
-  AbsTerm() {};
   virtual ~AbsTerm() = default;
   /** Returns a hash for this term */
   virtual std::size_t hash() const = 0;
@@ -147,7 +146,6 @@ std::ostream & operator<<(std::ostream & output, const Term t);
 class TermIterBase
 {
  public:
-  TermIterBase() {}
   virtual ~TermIterBase() = default;
   virtual void operator++() {}
   virtual Term operator*() const;
@@ -173,12 +171,8 @@ class TermIter
   typedef std::input_iterator_tag iterator_category;
 
   TermIter() = default;
-  TermIter(TermIterBase * tib) : iter_(tib) {}
-  // a default-constructed iterator holds no iter_, so copy it as null
-  TermIter(const TermIter & other)
-      : iter_(other.iter_ ? other.iter_->clone() : nullptr)
-  {
-  }
+  TermIter(TermIterBase * tib);
+  TermIter(const TermIter & other);
   TermIter(TermIter && other) noexcept = default;
   TermIter & operator=(const TermIter & other);
   TermIter & operator=(TermIter && other) noexcept = default;

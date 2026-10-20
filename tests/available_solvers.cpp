@@ -80,6 +80,11 @@ const std::vector<SolverEnum> solver_enums({
 #endif
 });
 
+SolverConfiguration::SolverConfiguration(smt::SolverEnum se, bool ils)
+    : solver_enum(se), is_logging_solver(ils)
+{
+}
+
 SmtSolver create_solver(SolverConfiguration sc)
 {
   switch (sc.solver_enum)

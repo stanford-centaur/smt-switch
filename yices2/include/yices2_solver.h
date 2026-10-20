@@ -52,20 +52,10 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : AbsSmtSolver(YICES2) { config = yices_new_config(); };
+  Yices2Solver();
   Yices2Solver(const Yices2Solver &) = delete;
   Yices2Solver & operator=(const Yices2Solver &) = delete;
-  ~Yices2Solver() override
-  {
-    // need to destruct all stored terms in symbol_table
-    symbol_table.clear();
-
-    yices_free_config(config);
-    if (ctx)
-    {
-      yices_free_context(ctx);
-    }
-  };
+  ~Yices2Solver() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;

@@ -255,8 +255,6 @@ class DisjointSet
  public:
   DisjointSet(bool (*c)(const Term & a, const Term & b));
 
-  DisjointSet() = delete;
-
   /** Add two terms a and b in the same set.
    * @param Term a to be added in the same set
    * @param Term b to be added in the same set

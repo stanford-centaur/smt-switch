@@ -1,6 +1,14 @@
 #include "cvc5_datatype.h"
 namespace smt {
 
+Cvc5DatatypeDecl::Cvc5DatatypeDecl(cvc5::DatatypeDecl t) : datatypedecl(t) {}
+
+Cvc5DatatypeConstructorDecl::Cvc5DatatypeConstructorDecl(
+    cvc5::DatatypeConstructorDecl t)
+    : datatypeconstructordecl(t)
+{
+}
+
 bool Cvc5DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
@@ -9,5 +17,7 @@ bool Cvc5DatatypeConstructorDecl::compare(
   return datatypeconstructordecl.toString()
          == cd->datatypeconstructordecl.toString();
 }
+
+Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 
 }  // namespace smt

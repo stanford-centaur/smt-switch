@@ -48,7 +48,7 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts);
 class LoggingSort : public AbsSort
 {
  public:
-  LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
+  LoggingSort(SortKind sk, Sort s);
   // implementations
   SortKind get_sort_kind() const override;
   bool compare(const Sort & s) const override;

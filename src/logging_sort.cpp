@@ -88,6 +88,8 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
 }
 
 // implementations
+LoggingSort::LoggingSort(SortKind sk, Sort s) : sk(sk), wrapped_sort(s) {}
+
 SortKind LoggingSort::get_sort_kind() const { return sk; }
 
 bool LoggingSort::compare(const Sort & s) const

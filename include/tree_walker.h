@@ -72,8 +72,7 @@ class TreeWalker
  public:
   TreeWalker(const SmtSolver & solver,
              bool clear_cache,
-             UnorderedTermPairMap * ext_cache = nullptr)
-      : solver_(solver), clear_cache_(clear_cache), ext_cache_(ext_cache) {};
+             UnorderedTermPairMap * ext_cache = nullptr);
 
   virtual ~TreeWalker() = default;
 
