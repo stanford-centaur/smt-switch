@@ -203,7 +203,7 @@ class DatatypeLoggingSort : public LoggingSort
 class DatatypeComponentLoggingSort : public LoggingSort
 {
  public:
-  DatatypeComponentLoggingSort(SortKind sk,
+  DatatypeComponentLoggingSort(SortKind k,
                                Sort s,
                                SortVec domain,
                                Sort codomain);

@@ -469,8 +469,6 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
       btor.get(), barr->node, &bindices, &bvalues, &size);
   BoolectorNode * bidx;
   BoolectorNode * belem;
-  Term idx;
-  Term val;
   for (uint32_t i = 0; i < size; i++)
   {
     if (std::string(bindices[i]) == "*")

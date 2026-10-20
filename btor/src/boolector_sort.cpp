@@ -145,10 +145,10 @@ BoolectorArraySort::BoolectorArraySort(const std::shared_ptr<Btor> & b,
 BoolectorUFSort::BoolectorUFSort(const std::shared_ptr<Btor> & b,
                                  BoolectorSort s,
                                  SortVec sorts,
-                                 Sort sort)
+                                 Sort codomain)
     : BoolectorSortBase(FUNCTION, b, s),
       domain_sorts(std::move(sorts)),
-      codomain_sort(std::move(sort))
+      codomain_sort(std::move(codomain))
 {
 }
 

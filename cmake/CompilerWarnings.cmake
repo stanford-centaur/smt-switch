@@ -809,15 +809,15 @@ set(
   -Wsequence-point # possible violations of sequence point rules
   -Wserialized-diagnostics # unable to merge a subprocess's serialized diagnostics
   -Wsfinae-incomplete=2 # an incomplete type affecting semantics in a non-error context
-  # -Wshadow # one variable shadows another
-  # -Wshadow-all # covers -Wshadow
-  # -Wshadow-field # parameter X of Y shadows member inherited from type Z
-  # -Wshadow-field-in-constructor # constructor parameter X shadows the field Y of Z
+  -Wshadow # one variable shadows another
+  -Wshadow-all # covers -Wshadow
+  -Wshadow-field # parameter X of Y shadows member inherited from type Z
+  -Wshadow-field-in-constructor # constructor parameter X shadows the field Y of Z
   -Wshadow-field-in-constructor-modified # modifying constructor parameter X that shadows a field
   -Wshadow-header # multiple candidates for header 'X' found
   -Wshadow-uncaptured-local # declaration shadows a local variable
-  # -Wshadow=compatible-local # one local variable shadows another local variable or parameter
-  # -Wshadow=local # one local variable shadows another local variable or parameter
+  -Wshadow=compatible-local # one local variable shadows another local variable or parameter
+  -Wshadow=local # one local variable shadows another local variable or parameter
   -Wshift-bool # right shifting a 'bool' implicitly converts it to 'int'
   -Wshift-count-negative # shift count is negative
   -Wshift-count-overflow # shift count >= width of type

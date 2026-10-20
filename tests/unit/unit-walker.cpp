@@ -786,19 +786,19 @@ TEST_P(UnitWalkerTests, FreshVars)
     vector<int> expected_path;
     for (auto const & p : passed_map)
     {
-      string s = p.first->to_string();
-      if (s == "b0")
+      string name = p.first->to_string();
+      if (name == "b0")
       {
         EXPECT_EQ(p.second.first, fullform);
         EXPECT_EQ(p.second.second.size(), 0);
       }
-      else if (s == "b1")
+      else if (name == "b1")
       {
         EXPECT_EQ(p.second.first, fullform);
         ASSERT_EQ(p.second.second.size(), 1);
         EXPECT_EQ(p.second.second[0], 1);
       }
-      else if (s == "b2")
+      else if (name == "b2")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1 };
@@ -808,7 +808,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b3")
+      else if (name == "b3")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1 };
@@ -818,7 +818,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b4")
+      else if (name == "b4")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1, 1 };
@@ -828,7 +828,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b5")
+      else if (name == "b5")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 1, 0 };
@@ -838,7 +838,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b6")
+      else if (name == "b6")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0 };
@@ -848,7 +848,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b7")
+      else if (name == "b7")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0, 1 };
@@ -858,7 +858,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b8")
+      else if (name == "b8")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 1, 0, 0 };
@@ -868,7 +868,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b9")
+      else if (name == "b9")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0 };
@@ -878,7 +878,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b10")
+      else if (name == "b10")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0, 1 };
@@ -888,7 +888,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b11")
+      else if (name == "b11")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 1, 0, 0 };
@@ -898,7 +898,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b12")
+      else if (name == "b12")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0 };
@@ -908,7 +908,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b13")
+      else if (name == "b13")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0, 1 };
@@ -918,7 +918,7 @@ TEST_P(UnitWalkerTests, FreshVars)
           EXPECT_EQ(p.second.second[i], expected_path[i]);
         }
       }
-      else if (s == "b14")
+      else if (name == "b14")
       {
         EXPECT_EQ(p.second.first, fullform);
         expected_path = { 0, 0 };
@@ -931,7 +931,7 @@ TEST_P(UnitWalkerTests, FreshVars)
       else
       {
         // no other keys should exist
-        ADD_FAILURE() << "unexpected key " << s;
+        ADD_FAILURE() << "unexpected key " << name;
       }
     }
   }

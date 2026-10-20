@@ -251,11 +251,11 @@ Datatype DatatypeLoggingSort::get_datatype() const
 
 // DatatypeComponentLoggingSort
 
-DatatypeComponentLoggingSort::DatatypeComponentLoggingSort(SortKind sk,
+DatatypeComponentLoggingSort::DatatypeComponentLoggingSort(SortKind k,
                                                            Sort s,
                                                            SortVec domain,
                                                            Sort codomain)
-    : super(sk, std::move(s)),
+    : super(k, std::move(s)),
       domain_sorts(std::move(domain)),
       codomain_sort(std::move(codomain))
 {

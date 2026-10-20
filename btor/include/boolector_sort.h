@@ -111,7 +111,7 @@ class BoolectorUFSort : public BoolectorSortBase
   BoolectorUFSort(const std::shared_ptr<Btor> & b,
                   BoolectorSort s,
                   SortVec sorts,
-                  Sort sort);
+                  Sort codomain);
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
 
