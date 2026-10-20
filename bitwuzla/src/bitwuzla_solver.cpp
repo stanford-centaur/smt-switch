@@ -305,7 +305,7 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
   return store_chain_values(stores);
 }
 
-void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out)
+void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   std::vector<bitwuzla::Term> bcore;
   try
@@ -492,7 +492,7 @@ Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
-Term BzlaSolver::get_symbol(const std::string & name)
+Term BzlaSolver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())

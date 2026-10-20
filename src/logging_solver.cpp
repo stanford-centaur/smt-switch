@@ -425,7 +425,7 @@ Term LoggingSolver::make_symbol(const std::string name, const Sort & sort)
   return res;
 }
 
-Term LoggingSolver::get_symbol(const std::string & name)
+Term LoggingSolver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
@@ -537,7 +537,7 @@ Term LoggingSolver::get_value(const Term & t) const
   return res;
 }
 
-void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out)
+void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   UnorderedTermSet underlying_core;
   wrapped_solver->get_unsat_assumptions(underlying_core);

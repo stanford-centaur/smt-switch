@@ -234,7 +234,7 @@ class AbsSmtSolver
    *  assertions unsat.
    *  SMTLIB: (get-unsat-assumptions)
    */
-  virtual void get_unsat_assumptions(UnorderedTermSet & out) = 0;
+  virtual void get_unsat_assumptions(UnorderedTermSet & out) const = 0;
 
   /* Declare an uninterpreted sort, or a sort constructor if arity is nonzero
    * SMTLIB: (declare-sort <name> <arity>)
@@ -349,7 +349,7 @@ class AbsSmtSolver
    *  @param name the name of the symbol to look up
    *  @return the Term representation of the corresponding symbol
    */
-  virtual Term get_symbol(const std::string & name) = 0;
+  virtual Term get_symbol(const std::string & name) const = 0;
 
   /* Make a parameter term to be bound by a quantifier
    * @param name the name of the parameter

@@ -697,7 +697,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
   return store_chain_values(stores);
 }
 
-void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out)
+void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   // in smt-switch, should throw exception if last query
   // was check_sat instead of check_sat_assuming
@@ -861,7 +861,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   return sym;
 }
 
-Term Z3Solver::get_symbol(const std::string & name)
+Term Z3Solver::get_symbol(const std::string & name) const
 {
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
