@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <iterator>
 #include <list>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -171,20 +172,16 @@ class TermIter
   typedef Term & reference;
   typedef std::input_iterator_tag iterator_category;
 
-  TermIter() : iter_(0) {}
+  TermIter() = default;
   TermIter(TermIterBase * tib) : iter_(tib) {}
-  ~TermIter() { delete iter_; }
   // a default-constructed iterator holds no iter_, so copy it as null
   TermIter(const TermIter & other)
       : iter_(other.iter_ ? other.iter_->clone() : nullptr)
   {
   }
-  TermIter(TermIter && other) noexcept : iter_(other.iter_)
-  {
-    other.iter_ = nullptr;
-  }
+  TermIter(TermIter && other) noexcept = default;
   TermIter & operator=(const TermIter & other);
-  TermIter & operator=(TermIter && other) noexcept;
+  TermIter & operator=(TermIter && other) noexcept = default;
   TermIter & operator++();
   TermIter operator++(int junk);
   Term operator*() const { return *(*iter_); }
@@ -192,7 +189,7 @@ class TermIter
   bool operator!=(const TermIter & other) const;
 
  protected:
-  TermIterBase * iter_;
+  std::unique_ptr<TermIterBase> iter_;
 };
 
 // useful typedefs for data structures
