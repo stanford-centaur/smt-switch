@@ -182,6 +182,14 @@ TEST_P(UnitTests, CopyDefaultConstructedIter)
   EXPECT_EQ(it, empty);
 }
 
+TEST(NullTermIter, CannotBeDereferencedOrIncremented)
+{
+  TermIter it;
+  EXPECT_THROW(*it, IncorrectUsageException);
+  EXPECT_THROW(++it, IncorrectUsageException);
+  EXPECT_THROW(it++, IncorrectUsageException);
+}
+
 TEST_P(UnitTests, SelfAssignIter)
 {
   Term x = s->make_symbol("x", bvsort);

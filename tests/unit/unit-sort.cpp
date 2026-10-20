@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -97,6 +98,38 @@ TEST_P(UnitSortTests, SortSet)
   bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
                  && !GetParam().is_logging_solver;
   EXPECT_EQ(sset.size(), aliased ? 3 : 4);
+}
+
+TEST(NullSort, EqualsNullSort)
+{
+  Sort s1, s2;
+  EXPECT_EQ(s1, s2);
+  EXPECT_FALSE(s1 != s2);
+}
+
+TEST(NullSort, HashesToZero) { EXPECT_EQ(std::hash<Sort>{}(Sort()), 0u); }
+
+TEST(NullSort, PrintsNull)
+{
+  std::ostringstream out;
+  out << Sort();
+  EXPECT_EQ(out.str(), "null");
+}
+
+TEST_P(UnitSortTests, NullSortDiffersFromSort)
+{
+  Sort null;
+  EXPECT_NE(bvsort, null);
+  EXPECT_NE(null, bvsort);
+  EXPECT_FALSE(bvsort == null);
+  EXPECT_FALSE(null == bvsort);
+}
+
+TEST_P(UnitSortTests, NullSortInSet)
+{
+  UnorderedSortSet sset{ bvsort, Sort(), arrsort, Sort() };
+  EXPECT_EQ(sset.size(), 3u);
+  EXPECT_EQ(sset.count(Sort()), 1u);
 }
 
 TEST_P(UnitSortTests, FunctionSymbolSort)

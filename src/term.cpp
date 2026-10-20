@@ -55,7 +55,7 @@ std::int64_t AbsTerm::to_signed_int() const
 
 std::ostream & operator<<(std::ostream & output, const Term t)
 {
-  output << t->to_string();
+  output << (t ? t->to_string() : "null");
   return output;
 }
 
@@ -90,6 +90,10 @@ TermIter & TermIter::operator=(const TermIter & other)
 
 TermIter & TermIter::operator++()
 {
+  if (!iter_)
+  {
+    throw IncorrectUsageException("Cannot increment a null term iterator");
+  }
   ++(*iter_);
   return *this;
 }
@@ -97,8 +101,17 @@ TermIter & TermIter::operator++()
 TermIter TermIter::operator++(int)
 {
   TermIter it = *this;
-  ++(*iter_);
+  ++(*this);
   return it;
+}
+
+Term TermIter::operator*() const
+{
+  if (!iter_)
+  {
+    throw IncorrectUsageException("Cannot dereference a null term iterator");
+  }
+  return *(*iter_);
 }
 
 bool TermIter::operator==(const TermIter & other) const

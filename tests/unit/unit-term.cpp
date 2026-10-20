@@ -15,6 +15,8 @@
 **/
 
 #include <cstdint>
+#include <functional>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -184,6 +186,56 @@ TEST_P(UnitTermTests, TermContainers)
     EXPECT_EQ(s->get_value(v[i])->to_int(), i);
     EXPECT_EQ(s->get_value(utm.at(v[i]))->to_int(), i);
   }
+}
+
+TEST(NullTerm, EquivalentToNullTerm)
+{
+  Term t1, t2;
+  EXPECT_EQ(t1, t2);
+  EXPECT_FALSE(t1 != t2);
+  EXPECT_FALSE(t1 < t2);
+  EXPECT_FALSE(t1 > t2);
+  EXPECT_LE(t1, t2);
+  EXPECT_GE(t1, t2);
+}
+
+TEST(NullTerm, HashesToZero) { EXPECT_EQ(std::hash<Term>{}(Term()), 0u); }
+
+TEST(NullTerm, PrintsNull)
+{
+  std::ostringstream out;
+  out << Term();
+  EXPECT_EQ(out.str(), "null");
+}
+
+TEST(NullTerm, CannotBeIterated)
+{
+  Term t;
+  EXPECT_THROW(smt::begin(t), IncorrectUsageException);
+  EXPECT_THROW(smt::end(t), IncorrectUsageException);
+}
+
+TEST_P(UnitTermTests, NullTermSortsBeforeTerm)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term null;
+  EXPECT_NE(x, null);
+  EXPECT_NE(null, x);
+  EXPECT_LT(null, x);
+  EXPECT_LE(null, x);
+  EXPECT_GT(x, null);
+  EXPECT_GE(x, null);
+  EXPECT_FALSE(x < null);
+  EXPECT_FALSE(null > x);
+}
+
+TEST_P(UnitTermTests, NullTermInSet)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  UnorderedTermSet uts{ x, Term(), y, Term() };
+  EXPECT_EQ(uts.size(), 3u);
+  EXPECT_EQ(uts.count(Term()), 1u);
 }
 
 TEST_P(UnitTermArithTests, Sorts)

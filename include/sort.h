@@ -113,6 +113,6 @@ struct hash<smt::SortKind>
 template <>
 struct hash<smt::Sort>
 {
-  size_t operator()(const smt::Sort & s) const { return s->hash(); }
+  size_t operator()(const smt::Sort & s) const { return s ? s->hash() : 0; }
 };
 }  // namespace std
