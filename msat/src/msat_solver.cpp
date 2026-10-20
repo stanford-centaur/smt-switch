@@ -151,16 +151,7 @@ static std::shared_ptr<msat_env> share_env(msat_env e)
 
 MsatSolver::MsatSolver() : MsatSolver(msat_create_config()) {}
 
-MsatSolver::MsatSolver(msat_config c)
-    : AbsSmtSolver(MSAT),
-      cfg(c),
-      valid_model(false),
-      logic(""),
-      num_assump_clauses_(0),
-      max_assump_clauses_(10000),
-      last_query_assuming(true)
-{
-}
+MsatSolver::MsatSolver(msat_config c) : AbsSmtSolver(MSAT), cfg(c) {}
 
 MsatSolver::MsatSolver(msat_config c, msat_env e) : MsatSolver(c)
 {

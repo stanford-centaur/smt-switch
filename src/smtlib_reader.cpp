@@ -72,13 +72,10 @@ const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
 SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),
-      logic_("UNSET"),
-      allow_ufs_(false),
       // logic always includes core theory
       primops_(strict_theory2opmap.at("Core")),
       // always have sort Bool available
-      sortkinds_({ { "Bool", BOOL } }),
-      def_arg_prefix_("__defvar_")
+      sortkinds_({ { "Bool", BOOL } })
 {
 }
 

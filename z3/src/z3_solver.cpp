@@ -162,10 +162,7 @@ const unordered_map<PrimOp, variadic_fun> z3_variadic_ops({
 /* Z3Solver implementation */
 
 Z3Solver::Z3Solver()
-    : AbsSmtSolver(Z3),
-      ctx(std::make_shared<z3::context>()),
-      slv(*ctx),
-      last_query_assuming(false)
+    : AbsSmtSolver(Z3), ctx(std::make_shared<z3::context>()), slv(*ctx)
 {
 }
 

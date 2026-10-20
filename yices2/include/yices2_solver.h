@@ -52,11 +52,7 @@ namespace smt {
 class Yices2Solver : public AbsSmtSolver
 {
  public:
-  Yices2Solver() : AbsSmtSolver(YICES2), pushes_after_unsat(0), time_limit(0)
-  {
-    ctx = nullptr;
-    config = yices_new_config();
-  };
+  Yices2Solver() : AbsSmtSolver(YICES2) { config = yices_new_config(); };
   Yices2Solver(const Yices2Solver &) = delete;
   Yices2Solver & operator=(const Yices2Solver &) = delete;
   ~Yices2Solver() override
@@ -121,11 +117,11 @@ class Yices2Solver : public AbsSmtSolver
    */
   Yices2InstanceRef instance;
 
-  /** The context, null until get_context() creates it. Yices applies a
+  /** The context, created by get_context() on first use. Yices applies a
    *  configuration only when it creates a context, so the logic and any
    *  option that changes config must be set before then.
    */
-  mutable context_t * ctx;
+  mutable context_t * ctx = nullptr;
   mutable ctx_config_t * config;
 
   /** Returns the context, creating it from config the first time.
@@ -134,10 +130,10 @@ class Yices2Solver : public AbsSmtSolver
   context_t * get_context() const;
 
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
-  uint64_t pushes_after_unsat;  ///< how many pushes after trivial unsat context
-                                ///< status
+  uint64_t pushes_after_unsat = 0;  ///< how many pushes after trivial unsat
+                                    ///< context status
 
-  double time_limit;  ///< in seconds, 0 for none
+  double time_limit = 0;  ///< in seconds, 0 for none
 
   std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration

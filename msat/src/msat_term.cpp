@@ -205,17 +205,13 @@ bool MsatTermIter::equal(const TermIterBase & other) const
 // MsatTerm implementation
 
 MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t)
-    : env(e), term(t), is_uf(false)
+    : env(e), term(t)
 {
-  // should know that decl is invalid
-  decl.repr = nullptr;
 }
 
 MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d)
     : env(e), decl(d), is_uf(true)
 {
-  // should know that term is invalid
-  MSAT_MAKE_ERROR_TERM(term);
 }
 
 size_t MsatTerm::hash() const { return get_id(); }

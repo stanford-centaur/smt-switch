@@ -90,8 +90,8 @@ class Z3Term : public AbsTerm
   std::shared_ptr<context> ctx;
   expr term;
   func_decl z_func;
-  bool is_function;
-  bool is_parameter;
+  bool is_function = false;
+  bool is_parameter = false;
 
   friend class Z3Solver;
   friend class Z3TermIter;

@@ -27,7 +27,7 @@ namespace smt {
 // MsatSort implementation
 
 MsatSort::MsatSort(const std::shared_ptr<msat_env> & e, msat_type t)
-    : env(e), type(t), is_uf_type(false)
+    : env(e), type(t)
 {
 }
 

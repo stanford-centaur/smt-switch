@@ -54,8 +54,7 @@ LoggingSolver::LoggingSolver(SmtSolver s)
     : AbsSmtSolver(s->get_solver_enum()),
       wrapped_solver(s),
       hashtable(new TermHashTable()),
-      assumption_cache(new UnorderedTermMap()),
-      next_term_id(0)
+      assumption_cache(new UnorderedTermMap())
 {
 }
 

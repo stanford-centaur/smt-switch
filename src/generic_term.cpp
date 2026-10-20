@@ -32,7 +32,7 @@ namespace smt {
 /* GenericTerm */
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
-    : sort(s), op(o), children(c), repr(r), is_sym(false), is_par(false)
+    : sort(s), op(o), children(c), repr(r)
 {
   ground = compute_ground();
 }

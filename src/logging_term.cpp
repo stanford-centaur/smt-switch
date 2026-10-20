@@ -30,13 +30,7 @@ namespace smt {
 /* LoggingTerm */
 
 LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id)
-    : wrapped_term(t),
-      sort(s),
-      op(o),
-      children(c),
-      is_sym(false),
-      is_par(false),
-      id_(id)
+    : wrapped_term(t), sort(s), op(o), children(c), id_(id)
 {
 }
 
@@ -54,7 +48,7 @@ LoggingTerm::LoggingTerm(
 }
 
 LoggingTerm::LoggingTerm(Term t, Sort s, std::string r, std::size_t id)
-    : wrapped_term(t), sort(s), repr(r), is_sym(false), is_par(false), id_(id)
+    : wrapped_term(t), sort(s), repr(r), id_(id)
 {
 }
 
