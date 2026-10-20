@@ -168,11 +168,9 @@ Each one has a `using` declaration which provides a convenient name for a
 `using Solver=std::shared_ptr<AbsSolver>`.
 
 An `Op` is a simple struct that holds a `PrimOp` and up to two integer indices.
-The constructor for a single `PrimOp` is marked `explicit` so that there is no
-ambiguity in overloaded functions that take a `PrimOp` or an `Op`. Note: this
-could have workded by only taking an `Op`, but that would require constructing
-(either implicitly or explicitly) an `Op` object even if we just want to apply a
-`PrimOp`.
+Functions such as `make_term` take only an `Op`, and the constructor for a
+single `PrimOp` is not `explicit`, so a `PrimOp` converts to an unindexed `Op`
+wherever one is expected: `make_term(And, a, b)` needs no `Op(And)`.
 
 ## Utils
 
