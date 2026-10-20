@@ -33,7 +33,11 @@ namespace smt {
 /* GenericTerm */
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
-    : sort(std::move(s)), op(o), children(std::move(c)), repr(std::move(r))
+    : sort(std::move(s)),
+      op(o),
+      children(c.empty() ? nullptr
+                         : std::make_shared<const TermVec>(std::move(c))),
+      repr(std::move(r))
 {
   ground = compute_ground();
 }
@@ -41,7 +45,8 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool symbol)
     : sort(std::move(s)),
       op(o),
-      children(std::move(c)),
+      children(c.empty() ? nullptr
+                         : std::make_shared<const TermVec>(std::move(c))),
       repr(std::move(r)),
       is_sym(symbol),
       is_par(!symbol)
@@ -75,7 +80,10 @@ bool GenericTerm::compute_ground()
 
 Op GenericTerm::get_op() const { return op; }
 
-TermVec GenericTerm::get_children() const { return children; }
+TermVec GenericTerm::get_children() const
+{
+  return children ? *children : TermVec{};
+}
 
 Sort GenericTerm::get_sort() const { return sort; }
 
@@ -106,9 +114,12 @@ std::string GenericTerm::compute_string() const
   assert(!op.is_null());
   std::string result = "(";
   result += op.to_string();
-  for (auto c : children)
+  if (children)
   {
-    result += " " + c->to_string();
+    for (auto c : *children)
+    {
+      result += " " + c->to_string();
+    }
   }
   result += ")";
   return result;
@@ -129,12 +140,13 @@ bool GenericTerm::is_symbolic_const() const
 
 TermIter GenericTerm::begin() const
 {
-  return TermIter(new GenericTermIter(children.begin()));
+  return TermIter(new GenericTermIter(children, 0));
 }
 
 TermIter GenericTerm::end() const
 {
-  return TermIter(new GenericTermIter(children.end()));
+  return TermIter(
+      new GenericTermIter(children, children ? children->size() : 0));
 }
 
 std::string GenericTerm::to_string() const
@@ -200,31 +212,41 @@ std::string GenericTerm::print_value_as(SortKind /* sk */) const
 
 /* GenericTermIter */
 
-GenericTermIter::GenericTermIter(TermVec::const_iterator i) : it(i) {}
+GenericTermIter::GenericTermIter(std::shared_ptr<const TermVec> c,
+                                 std::size_t p)
+    : children(std::move(c)), pos(p)
+{
+}
 
-void GenericTermIter::operator++() { it++; }
+void GenericTermIter::operator++() { pos++; }
 
-Term GenericTermIter::operator*() const { return *it; }
+Term GenericTermIter::operator*() const
+{
+  if (!children || pos >= children->size())
+  {
+    throw IncorrectUsageException("Cannot dereference past a term's children");
+  }
+  return (*children)[pos];
+}
 
 TermIterBase * GenericTermIter::clone() const
 {
-  return new GenericTermIter(it);
+  return new GenericTermIter(children, pos);
 }
 
 bool GenericTermIter::operator==(const GenericTermIter & lit) const
 {
-  return it == lit.it;
+  return children == lit.children && pos == lit.pos;
 }
 
 bool GenericTermIter::operator!=(const GenericTermIter & lit) const
 {
-  return it != lit.it;
+  return !(*this == lit);
 }
 
 bool GenericTermIter::equal(const TermIterBase & other) const
 {
-  const GenericTermIter & lit = static_cast<const GenericTermIter &>(other);
-  return it == lit.it;
+  return *this == static_cast<const GenericTermIter &>(other);
 }
 
 }  // namespace smt
