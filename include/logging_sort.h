@@ -57,59 +57,15 @@ class LoggingSort : public AbsSort
 
   // the specific getters are implemented by the subclasses whose kind has
   // them, so reaching one here means the sort's kind does not
-  std::uint64_t get_width() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no width");
-  }
-
-  Sort get_indexsort() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no index sort");
-  }
-
-  Sort get_elemsort() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no element sort");
-  }
-
-  SortVec get_domain_sorts() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no domain sorts");
-  }
-
-  Sort get_codomain_sort() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no codomain sort");
-  }
-
-  std::string get_uninterpreted_name() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no uninterpreted name");
-  }
-
-  std::size_t get_arity() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no arity");
-  }
-
-  SortVec get_uninterpreted_param_sorts() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no uninterpreted param sorts");
-  }
-
-  Datatype get_datatype() const override
-  {
-    throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                  + " has no datatype");
-  }
+  std::uint64_t get_width() const override;
+  Sort get_indexsort() const override;
+  Sort get_elemsort() const override;
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+  std::string get_uninterpreted_name() const override;
+  std::size_t get_arity() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
+  Datatype get_datatype() const override;
 
  protected:
   SortKind sk;
