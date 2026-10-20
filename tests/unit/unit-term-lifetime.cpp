@@ -100,6 +100,33 @@ TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirTerm)
   EXPECT_EQ(children, expected);
 }
 
+TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirSolver)
+{
+  std::vector<std::string> expected;
+  TermIter it, end;
+  {
+    SmtSolver s = create_solver(GetParam());
+    Sort bv = s->make_sort(BV, 4);
+    Term x = s->make_symbol("x", bv);
+    Term y = s->make_symbol("y", bv);
+    Term z = s->make_symbol("z", bv);
+    Term t = s->make_term(
+        BVAdd, s->make_term(BVMul, x, y), s->make_term(BVMul, x, z));
+    for (TermIter i = t->begin(); i != t->end(); ++i)
+    {
+      expected.push_back((*i)->to_string());
+    }
+    it = t->begin();
+    end = t->end();
+  }
+  std::vector<std::string> children;
+  for (; it != end; ++it)
+  {
+    children.push_back((*it)->to_string());
+  }
+  EXPECT_EQ(children, expected);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     TermLifetimeTests,

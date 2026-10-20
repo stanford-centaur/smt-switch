@@ -22,6 +22,7 @@
 #include <memory>
 #include <utility>
 
+#include "exceptions.h"
 #include "sort.h"
 #include "term.h"
 #include "utils.h"
@@ -34,7 +35,8 @@ LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id)
     : wrapped_term(std::move(t)),
       sort(std::move(s)),
       op(o),
-      children(std::move(c)),
+      children(c.empty() ? nullptr
+                         : std::make_shared<const TermVec>(std::move(c))),
       id_(id)
 {
 }
@@ -44,7 +46,8 @@ LoggingTerm::LoggingTerm(
     : wrapped_term(std::move(t)),
       sort(std::move(s)),
       op(o),
-      children(std::move(c)),
+      children(c.empty() ? nullptr
+                         : std::make_shared<const TermVec>(std::move(c))),
       repr(std::move(r)),
       is_sym(symbol),
       is_par(!symbol),
@@ -115,13 +118,17 @@ bool LoggingTerm::compare(const Term & t) const
 
   // finally need to make sure all children match
   // this is the most expensive check, so we do it last
-  if (children.size() != lt->children.size())
+  if (!children || !lt->children)
+  {
+    return !children && !lt->children;
+  }
+  if (children->size() != lt->children->size())
   {
     return false;
   }
   else
   {
-    for (std::size_t i = 0; i < children.size(); i++)
+    for (std::size_t i = 0; i < children->size(); i++)
     {
       // because of hash-consing, we can compare the pointers
       // otherwise would recursively call compare on the LoggingTerm children
@@ -129,7 +136,7 @@ bool LoggingTerm::compare(const Term & t) const
       // because operator== is overloaded for Terms such that it uses the
       // compare method of the underlying object (i.e. it would be a recursive
       // call to compare)
-      if (children[i].get() != lt->children[i].get())
+      if ((*children)[i].get() != (*lt->children)[i].get())
       {
         return false;
       }
@@ -163,9 +170,9 @@ std::string LoggingTerm::to_string() const
     //     and symbols already have the repr set
     assert(!op.is_null());
     // a nullary constructor applied is an SMT-LIB constant, not a call
-    if (op.prim_op == Apply_Constructor && children.size() == 1)
+    if (op.prim_op == Apply_Constructor && children && children->size() == 1)
     {
-      repr = children[0]->to_string();
+      repr = (*children)[0]->to_string();
       return repr;
     }
     repr = "(";
@@ -177,13 +184,16 @@ std::string LoggingTerm::to_string() const
     {
       repr += op.to_string() + " ";
     }
-    for (size_t i = 0; i < children.size(); ++i)
+    if (children)
     {
-      if (i > 0)
+      for (size_t i = 0; i < children->size(); ++i)
       {
-        repr += " ";
+        if (i > 0)
+        {
+          repr += " ";
+        }
+        repr += (*children)[i]->to_string();
       }
-      repr += children[i]->to_string();
     }
     repr += ")";
     return repr;
@@ -210,12 +220,13 @@ bool LoggingTerm::is_symbolic_const() const
 
 TermIter LoggingTerm::begin() const
 {
-  return TermIter(new LoggingTermIter(children.begin()));
+  return TermIter(new LoggingTermIter(children, 0));
 }
 
 TermIter LoggingTerm::end() const
 {
-  return TermIter(new LoggingTermIter(children.end()));
+  return TermIter(
+      new LoggingTermIter(children, children ? children->size() : 0));
 }
 
 // dispatched to underlying term
@@ -243,31 +254,41 @@ std::string LoggingTerm::print_value_as(SortKind sk) const
 
 /* LoggingTermIter */
 
-LoggingTermIter::LoggingTermIter(TermVec::const_iterator i) : it(i) {}
+LoggingTermIter::LoggingTermIter(std::shared_ptr<const TermVec> c,
+                                 std::size_t p)
+    : children(std::move(c)), pos(p)
+{
+}
 
-void LoggingTermIter::operator++() { it++; }
+void LoggingTermIter::operator++() { pos++; }
 
-Term LoggingTermIter::operator*() const { return *it; }
+Term LoggingTermIter::operator*() const
+{
+  if (!children || pos >= children->size())
+  {
+    throw IncorrectUsageException("Cannot dereference past a term's children");
+  }
+  return (*children)[pos];
+}
 
 TermIterBase * LoggingTermIter::clone() const
 {
-  return new LoggingTermIter(it);
+  return new LoggingTermIter(children, pos);
 }
 
 bool LoggingTermIter::operator==(const LoggingTermIter & lit) const
 {
-  return it == lit.it;
+  return children == lit.children && pos == lit.pos;
 }
 
 bool LoggingTermIter::operator!=(const LoggingTermIter & lit) const
 {
-  return it != lit.it;
+  return !(*this == lit);
 }
 
 bool LoggingTermIter::equal(const TermIterBase & other) const
 {
-  const LoggingTermIter & lit = static_cast<const LoggingTermIter &>(other);
-  return it == lit.it;
+  return *this == static_cast<const LoggingTermIter &>(other);
 }
 
 }  // namespace smt
