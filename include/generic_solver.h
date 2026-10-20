@@ -81,19 +81,18 @@ class GenericSolver : public AbsSmtSolver
    */
   static const std::chrono::milliseconds default_response_timeout;
 
-  /** Passed as `response_timeout` to wait indefinitely, giving up the
+  /** Passed as `timeout` to wait indefinitely, giving up the
    * deadlock protection. Negative, because no real timeout can be.
    */
   static const std::chrono::milliseconds no_response_timeout;
 
-  /** `response_timeout` bounds how long one command may go unanswered;
+  /** `timeout` bounds how long one command may go unanswered;
    * `no_response_timeout` waits forever.
    */
-  GenericSolver(
-      std::string path,
-      std::vector<std::string> cmd_line_args,
-      std::chrono::milliseconds response_timeout = default_response_timeout,
-      unsigned int read_buf_size = 256);
+  GenericSolver(std::string solver_path,
+                std::vector<std::string> args,
+                std::chrono::milliseconds timeout = default_response_timeout,
+                unsigned int buffer_size = 256);
   GenericSolver(const GenericSolver &) = delete;
   GenericSolver & operator=(const GenericSolver &) = delete;
   ~GenericSolver() override;

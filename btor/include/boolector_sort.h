@@ -32,7 +32,7 @@ class BoolectorSolver;
 class BoolectorSortBase : public AbsSort
 {
  public:
-  BoolectorSortBase(SortKind sk,
+  BoolectorSortBase(SortKind k,
                     const std::shared_ptr<Btor> & b,
                     BoolectorSort s);
   ~BoolectorSortBase() override;

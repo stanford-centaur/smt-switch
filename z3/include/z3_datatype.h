@@ -10,7 +10,7 @@ namespace smt {
 class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
-  explicit Z3DatatypeDecl(std::string name);
+  explicit Z3DatatypeDecl(std::string n);
 
  protected:
   friend class Z3Solver;
@@ -21,7 +21,7 @@ class Z3DatatypeDecl : public AbsDatatypeDecl
 class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  Z3DatatypeConstructorDecl(const std::shared_ptr<z3::context> & c,
+  Z3DatatypeConstructorDecl(const std::shared_ptr<z3::context> & ctx,
                             std::string name);
   bool compare(const DatatypeConstructorDecl &) const override;
 
@@ -39,7 +39,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class Z3Datatype : public AbsDatatype
 {
  public:
-  Z3Datatype(const std::shared_ptr<z3::context> & c, z3::sort s);
+  Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s);
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string name) const override;

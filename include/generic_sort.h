@@ -34,7 +34,7 @@ namespace smt {
 class GenericSort : public AbsSort
 {
  public:
-  explicit GenericSort(SortKind sk);
+  explicit GenericSort(SortKind k);
   // Only for placeholder sorts used for datatypes. name
   // should be the name of the datatype.
   explicit GenericSort(std::string name);
@@ -136,7 +136,7 @@ class GenericSort : public AbsSort
 class BVGenericSort : public GenericSort
 {
  public:
-  explicit BVGenericSort(std::uint64_t width);
+  explicit BVGenericSort(std::uint64_t w);
 
   std::uint64_t get_width() const override;
 
@@ -206,7 +206,7 @@ class GenericDatatypeSort : public GenericSort
 class DatatypeComponentSort : public GenericSort
 {
  public:
-  DatatypeComponentSort(SortKind sk, std::string name, Sort dt);
+  DatatypeComponentSort(SortKind sk, std::string n, Sort dt);
   std::string compute_string() const override;
   std::string to_string() const override;
   SortVec get_domain_sorts() const override;

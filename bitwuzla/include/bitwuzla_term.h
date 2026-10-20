@@ -33,9 +33,9 @@ class BzlaSolver;
 class BzlaTermIter : public TermIterBase
 {
  public:
-  BzlaTermIter(bitwuzla::Term terms,
-               std::size_t idx,
-               const std::shared_ptr<bitwuzla::TermManager> & tm);
+  BzlaTermIter(bitwuzla::Term t,
+               std::size_t i,
+               const std::shared_ptr<bitwuzla::TermManager> & manager);
   void operator++() override;
   Term operator*() const override;
   TermIterBase * clone() const override;
@@ -55,7 +55,8 @@ class BzlaTermIter : public TermIterBase
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(bitwuzla::Term n, const std::shared_ptr<bitwuzla::TermManager> & tm);
+  BzlaTerm(bitwuzla::Term n,
+           const std::shared_ptr<bitwuzla::TermManager> & manager);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;

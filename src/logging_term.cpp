@@ -40,14 +40,14 @@ LoggingTerm::LoggingTerm(Term t, Sort s, Op o, TermVec c, std::size_t id)
 }
 
 LoggingTerm::LoggingTerm(
-    Term t, Sort s, Op o, TermVec c, std::string r, bool is_sym, std::size_t id)
+    Term t, Sort s, Op o, TermVec c, std::string r, bool symbol, std::size_t id)
     : wrapped_term(std::move(t)),
       sort(std::move(s)),
       op(o),
       children(std::move(c)),
       repr(std::move(r)),
-      is_sym(is_sym),
-      is_par(!is_sym),
+      is_sym(symbol),
+      is_par(!symbol),
       id_(id)
 {
 }

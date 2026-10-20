@@ -14,11 +14,11 @@ bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
 }  // namespace z3
 
 namespace smt {
-Z3DatatypeDecl::Z3DatatypeDecl(std::string name) : name(std::move(name)) {}
+Z3DatatypeDecl::Z3DatatypeDecl(std::string n) : name(std::move(n)) {}
 
 Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
-    const std::shared_ptr<z3::context> & c, std::string name)
-    : c(c), constructorname(std::move(name))
+    const std::shared_ptr<z3::context> & ctx, std::string name)
+    : c(ctx), constructorname(std::move(name))
 {
 }
 
@@ -30,8 +30,8 @@ bool Z3DatatypeConstructorDecl::compare(
          == std::tie(cast->constructorname, cast->fieldnames, cast->sorts);
 }
 
-Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & c, z3::sort s)
-    : c(c), datatype(s)
+Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
+    : c(ctx), datatype(s)
 {
 }
 

@@ -230,15 +230,15 @@ const std::chrono::milliseconds GenericSolver::no_response_timeout =
     std::chrono::milliseconds(-1);
 
 // class methods implementation
-GenericSolver::GenericSolver(std::string path,
-                             std::vector<std::string> cmd_line_args,
-                             std::chrono::milliseconds response_timeout,
-                             unsigned int read_buf_size)
+GenericSolver::GenericSolver(std::string solver_path,
+                             std::vector<std::string> args,
+                             std::chrono::milliseconds timeout,
+                             unsigned int buffer_size)
     : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
-      path(std::move(path)),
-      cmd_line_args(std::move(cmd_line_args)),
-      read_buf_size(read_buf_size),
-      response_timeout(response_timeout),
+      path(std::move(solver_path)),
+      cmd_line_args(std::move(args)),
+      read_buf_size(buffer_size),
+      response_timeout(timeout),
       name_sort_map(new std::unordered_map<std::string, Sort>()),
       sort_name_map(new std::unordered_map<Sort, std::string>()),
       name_term_map(new std::unordered_map<std::string, Term>()),
@@ -253,13 +253,13 @@ GenericSolver::GenericSolver(std::string path,
   // Until this is investigated, we support a conservative
   // limit of 256.
   // Similarly for buffers of size 1.
-  if (read_buf_size < 2 || read_buf_size > 256)
+  if (buffer_size < 2 || buffer_size > 256)
   {
     std::string msg(
         "Generic Solvers require a buffer size of at least 2 and at most 256.");
     throw IncorrectUsageException(msg);
   }
-  read_buf.resize(read_buf_size);
+  read_buf.resize(buffer_size);
   // start the process with the solver binary
   try
   {

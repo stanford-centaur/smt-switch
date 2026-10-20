@@ -36,7 +36,7 @@ static std::string to_smtlib(SortKind sk);
 
 // implementations
 
-GenericSort::GenericSort(SortKind sk) : sk(sk) {}
+GenericSort::GenericSort(SortKind k) : sk(k) {}
 
 // Only used to make placeholder sorts for datatypes when the
 // sort is the datatype itself but the sort hasn't been constructed.
@@ -246,10 +246,7 @@ static std::string to_smtlib(SortKind sk)
   return sortkind2smtlib.at(sk);
 }
 
-BVGenericSort::BVGenericSort(std::uint64_t width)
-    : GenericSort(BV), width(width)
-{
-}
+BVGenericSort::BVGenericSort(std::uint64_t w) : GenericSort(BV), width(w) {}
 
 std::uint64_t BVGenericSort::get_width() const { return width; }
 
@@ -347,9 +344,9 @@ std::string GenericDatatypeSort::to_string() const
 }
 
 DatatypeComponentSort::DatatypeComponentSort(SortKind sk,
-                                             std::string name,
+                                             std::string n,
                                              Sort dt)
-    : GenericSort(sk), name(std::move(name)), dt_sort(std::move(dt))
+    : GenericSort(sk), name(std::move(n)), dt_sort(std::move(dt))
 {
   if (sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER)
   {

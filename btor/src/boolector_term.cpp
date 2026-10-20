@@ -118,14 +118,14 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 
 /* BoolectorTermIter implementation */
 
-BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & btor,
+BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
                                      std::vector<BtorNode *> c,
-                                     int64_t idx)
-    : btor(btor), children(std::move(c)), idx(idx)
+                                     int64_t i)
+    : btor(b), children(std::move(c)), idx(i)
 {
   for (BtorNode * n : children)
   {
-    btor_node_copy(btor.get(), n);
+    btor_node_copy(b.get(), n);
   }
 }
 

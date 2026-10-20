@@ -24,10 +24,10 @@ namespace smt {
 
 /* BoolectorSortBase implementation */
 
-BoolectorSortBase::BoolectorSortBase(SortKind sk,
+BoolectorSortBase::BoolectorSortBase(SortKind k,
                                      const std::shared_ptr<Btor> & b,
                                      BoolectorSort s)
-    : btor(b), sort(s), sk(sk)
+    : btor(b), sort(s), sk(k)
 {
 }
 

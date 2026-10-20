@@ -147,8 +147,8 @@ struct Op
 {
   Op() = default;
   Op(PrimOp o);
-  Op(PrimOp o, std::uint64_t idx0);
-  Op(PrimOp o, std::uint64_t idx0, std::uint64_t idx1);
+  Op(PrimOp o, std::uint64_t index0);
+  Op(PrimOp o, std::uint64_t index0, std::uint64_t index1);
   std::string to_string() const;
   bool is_null() const;
   PrimOp prim_op = NUM_OPS_AND_NULL;

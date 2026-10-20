@@ -88,8 +88,7 @@ Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
 }
 
 // implementations
-LoggingSort::LoggingSort(SortKind sk, Sort s)
-    : sk(sk), wrapped_sort(std::move(s))
+LoggingSort::LoggingSort(SortKind k, Sort s) : sk(k), wrapped_sort(std::move(s))
 {
 }
 
@@ -168,8 +167,8 @@ std::size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
 
 // BVLoggingSort
 
-BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t width)
-    : super(BV, std::move(s)), width(width)
+BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t w)
+    : super(BV, std::move(s)), width(w)
 {
 }
 
@@ -239,9 +238,9 @@ SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 
 // DatatypeLoggingSort
 
-DatatypeLoggingSort::DatatypeLoggingSort(
-    Sort s, std::shared_ptr<LoggingDatatypeDecl> decl)
-    : super(DATATYPE, std::move(s)), decl(std::move(decl))
+DatatypeLoggingSort::DatatypeLoggingSort(Sort s,
+                                         std::shared_ptr<LoggingDatatypeDecl> d)
+    : super(DATATYPE, std::move(s)), decl(std::move(d))
 {
 }
 

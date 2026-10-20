@@ -70,10 +70,10 @@ class AbsSmtInterpolator : public AbsSmtSolver
 {
  public:
   /** @param se the interpolator's SolverEnum
-   *  @param backend_solver a fresh regular solver of the same backend, which
+   *  @param backend a fresh regular solver of the same backend, which
    *         builds the interpolator's terms and sorts
    */
-  AbsSmtInterpolator(SolverEnum se, SmtSolver backend_solver);
+  AbsSmtInterpolator(SolverEnum se, SmtSolver backend);
 
   // ------------------------- Forbidden ------------------------------------
   void assert_formula(const Term & t) final;

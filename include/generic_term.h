@@ -38,7 +38,7 @@ class GenericTerm : public AbsTerm
   // only symbols and parameters have names
   // symbols are "free" uninterpreted constants and functions
   // params are bound variables
-  GenericTerm(Sort s, Op o, TermVec c, std::string r, bool is_sym);
+  GenericTerm(Sort s, Op o, TermVec c, std::string r, bool symbol);
 
   /** Returns true iff the term AND sort are equivalent
    *  @param t the term to compare with (assumed to be GenericTerm)

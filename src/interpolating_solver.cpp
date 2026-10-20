@@ -25,8 +25,8 @@
 
 namespace smt {
 
-AbsSmtInterpolator::AbsSmtInterpolator(SolverEnum se, SmtSolver backend_solver)
-    : AbsSmtSolver(se), backend_solver(std::move(backend_solver))
+AbsSmtInterpolator::AbsSmtInterpolator(SolverEnum se, SmtSolver backend)
+    : AbsSmtSolver(se), backend_solver(std::move(backend))
 {
 }
 
