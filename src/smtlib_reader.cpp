@@ -77,6 +77,18 @@ const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
 const std::unordered_set<PrimOp> real_arith_ops(
     { Plus, Minus, Mult, Div, Lt, Le, Gt, Ge });
 
+namespace {
+bool has_sort_kind(SortKind sk, const Term & t)
+{
+  return t->get_sort()->get_sort_kind() == sk;
+}
+// Curried form of has_sort_kind(sk, t): returns a predicate on terms.
+auto has_sort_kind(SortKind sk)
+{
+  return [sk](const Term & t) { return has_sort_kind(sk, t); };
+}
+}  // namespace
+
 void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
                                            const Term & t)
 {
@@ -438,26 +450,15 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
     return solver_->make_term(Negate, args[0]);
   }
 
-  auto has_real = [&args]() {
-    return std::any_of(args.begin(), args.end(), [](const Term & arg) {
-      return arg->get_sort()->get_sort_kind() == REAL;
-    });
-  };
-  bool converts = false;
-  if (real_arith_ops.find(po) != real_arith_ops.end())
-  {
-    converts = po == Div || has_real();
-  }
-  else if (!strict_ && (po == Equal || po == Distinct))
-  {
-    converts = has_real();
-  }
-  if (converts && lookup_sortkind("Int") == INT
-      && lookup_sortkind("Real") == REAL)
+  if (lookup_sortkind("Int") == INT && lookup_sortkind("Real") == REAL
+      && (real_arith_ops.find(po) != real_arith_ops.end()
+          || (!strict_ && (po == Equal || po == Distinct)))
+      && (po == Div
+          || std::any_of(args.begin(), args.end(), has_sort_kind(REAL))))
   {
     for (Term & arg : args)
     {
-      if (arg->get_sort()->get_sort_kind() == INT)
+      if (has_sort_kind(INT, arg))
       {
         arg = solver_->make_term(To_Real, arg);
       }
