@@ -16,6 +16,7 @@
 
 #include "term_translator.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -325,6 +326,13 @@ Term TermTranslator::transfer_term(const Term & term)
         }
         else
         {
+          // MathSAT and Yices2 make an integer-valued Real an Int, so an
+          // equation over Reals can have an Int side, which solvers such as
+          // cvc5 do not equate with a Real
+          if (op.prim_op == Equal || op.prim_op == Distinct)
+          {
+            widen_ints(cached_children);
+          }
           cache[t] = solver->make_term(t->get_op(), cached_children);
         }
       }
@@ -690,6 +698,23 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     }
     msg += ")";
     throw NotImplementedException(msg);
+  }
+}
+
+void TermTranslator::widen_ints(TermVec & terms) const
+{
+  if (std::any_of(terms.begin(), terms.end(), [](const Term & t) {
+        return t->get_sort()->get_sort_kind() == REAL;
+      }))
+  {
+    Sort realsort = solver->make_sort(REAL);
+    for (Term & t : terms)
+    {
+      if (t->get_sort()->get_sort_kind() == INT)
+      {
+        t = cast_term(t, realsort);
+      }
+    }
   }
 }
 
