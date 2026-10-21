@@ -53,12 +53,13 @@ if(NOT GTest_FOUND)
   # GoogleTest is added below as a subdirectory and would inherit this
   # directory's warning flags, which it does not build clean under.
   get_directory_property(options_inherited COMPILE_OPTIONS)
-  set(options_without_warnings "")
-  foreach(option IN LISTS options_inherited)
-    if(NOT option MATCHES "-W")
-      list(APPEND options_without_warnings "${option}")
-    endif()
-  endforeach()
+  string(
+    REPLACE "${SMT_SWITCH_CXX_WARNING_OPTIONS}"
+    ""
+    options_without_warnings
+    "${options_inherited}"
+  )
+  list(REMOVE_ITEM options_without_warnings "")
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_without_warnings}")
   FetchContent_MakeAvailable(googletest)
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_inherited}")
