@@ -277,6 +277,11 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
   EXPECT_EQ(intsort, compute_sort(Plus, s, { xint, yint }));
   EXPECT_EQ(intsort, compute_sort(Minus, s, { intsort, intsort }));
 
+  // over an Int and a Real, the result is a Real
+  EXPECT_EQ(realsort, compute_sort(Plus, s, { xint, y }));
+  EXPECT_EQ(realsort, compute_sort(Minus, s, { x, yint }));
+  EXPECT_EQ(realsort, compute_sort(Mult, s, { intsort, realsort, intsort }));
+
   Sort aritharrsort = s->make_sort(ARRAY, intsort, realsort);
   Term aritharr = s->make_symbol("aritharr", aritharrsort);
 

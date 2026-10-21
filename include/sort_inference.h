@@ -194,6 +194,9 @@ bool function_sorts(const SortVec & sorts);
 /* Helper functions for sort inference */
 
 Sort same_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
+/** @return the Real sort if one of the sorts is the Real sort, and the first
+ *  sort otherwise, for an arithmetic operator over Ints and Reals */
+Sort arithmetic_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort bool_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts);
 Sort real_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);

@@ -77,6 +77,41 @@ const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
 const std::unordered_set<PrimOp> real_arith_ops(
     { Plus, Minus, Mult, Div, Lt, Le, Gt, Ge });
 
+void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
+                                           const Term & t)
+{
+  if (symbol_map_.find(sym) != symbol_map_.end())
+  {
+    throw SmtException("Repeated symbol: " + sym);
+  }
+  symbol_map_[sym] = t;
+  symbols_.back().insert(sym);
+}
+
+void UnorderedScopedSymbolMap::pop_scope()
+{
+  if (!current_scope())
+  {
+    throw IncorrectUsageException("Cannot pop the outermost scope");
+  }
+  for (const auto & sym : symbols_.back())
+  {
+    symbol_map_.erase(sym);
+  }
+  symbols_.pop_back();
+}
+
+Term UnorderedScopedSymbolMap::get_symbol(const std::string & sym) const
+{
+  Term res;
+  auto it = symbol_map_.find(sym);
+  if (it != symbol_map_.end())
+  {
+    res = it->second;
+  }
+  return res;
+}
+
 SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
     : solver_(solver),
       strict_(strict),

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "ops.h"
@@ -90,8 +91,9 @@ class GenericTerm : public AbsTerm
    */
   Op op;
 
-  // Immediate children of the term
-  TermVec children;
+  // Immediate children of the term, null for a leaf; shared with the child
+  // iterators, so they outlive the term
+  std::shared_ptr<const TermVec> children;
 
   // A string representation of the term
   mutable std::string repr;
@@ -109,7 +111,9 @@ class GenericTerm : public AbsTerm
 class GenericTermIter : public TermIterBase
 {
  public:
-  explicit GenericTermIter(TermVec::const_iterator i);
+  // points at child number pos of children, which it shares with the term
+  // and which is null for a leaf
+  GenericTermIter(std::shared_ptr<const TermVec> children, std::size_t pos);
   TermIterBase * clone() const override;
 
   void operator++() override;
@@ -119,7 +123,8 @@ class GenericTermIter : public TermIterBase
 
  protected:
   bool equal(const TermIterBase & other) const override;
-  TermVec::const_iterator it;
+  std::shared_ptr<const TermVec> children;
+  std::size_t pos;
 };
 
 }  // namespace smt

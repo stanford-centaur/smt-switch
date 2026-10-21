@@ -147,6 +147,11 @@ class TermTranslator
    */
   Term cast_value(const Term & term, const Sort & sort) const;
 
+  /** widens the Int terms among terms that also hold a Real
+   *  @param terms the terms, which are widened in place
+   */
+  void widen_ints(TermVec & terms) const;
+
   /** The uninterpreted sort or sort constructor of this name in the
    *  member variable solver, declared on first use
    *  @param name the name of the sort
