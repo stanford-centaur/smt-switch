@@ -1143,4 +1143,7 @@ else()
   endif()
 endif()
 
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
+# Named, so that code which does not build clean under these can take exactly
+# this option back off, rather than guess which of its pieces are warnings.
+set(SMT_SWITCH_CXX_WARNING_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
+add_compile_options("${SMT_SWITCH_CXX_WARNING_OPTIONS}")
