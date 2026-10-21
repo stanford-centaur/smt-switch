@@ -21,11 +21,6 @@ target_link_libraries(smt-switch-msat PUBLIC MathSAT::mathsat)
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-msat PUBLIC GMP::gmp)
 
-# setup.py links the extension module by hand rather than through a CMake
-# target, so a static build has to be told which archive sits behind this
-# backend. See python/setup.py.in.
-set(MSAT_STATIC_LINK_ARGS "${MathSAT_LIBRARY}" PARENT_SCOPE)
-
 add_library(SmtSwitch::smt-switch-msat ALIAS smt-switch-msat)
 install(TARGETS smt-switch-msat EXPORT SmtSwitchBackendTargets-msat DESTINATION lib)
 install(

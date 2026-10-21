@@ -249,9 +249,10 @@ jobs:
           exit 1
       - name: Test Python bindings
         run: |
-          pip install "$(ls build/python/Release/*.whl)[pysmt,test]"
+          pip install pysmt pytest
+          cmake --install build --config Release --component python
           pytest tests/python
-          pip install --force-reinstall --no-deps build/python/Debug/*.whl
+          cmake --install build --config Debug --component python
           pytest tests/python
   full:
     needs: [plan, deps]

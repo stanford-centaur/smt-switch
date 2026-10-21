@@ -17,9 +17,13 @@ Nothing signals that a copy has gone stale, so re-download them now and then,
 and after a tombi upgrade:
 
 ```sh
-curl -o .tombi-cache/https/www.schemastore.org/partial-setuptools.json \
-  https://www.schemastore.org/partial-setuptools.json
+curl -o .tombi-cache/https/www.schemastore.org/partial-scikit-build.json \
+  https://www.schemastore.org/partial-scikit-build.json
 ```
+
+The dynamic-metadata schema that [tombi.toml](../tombi.toml) names is pinned to
+a tag in its URL instead, so it only changes when the tag in both places is
+bumped.
 
 If that leaves a diff, run `pre-commit run --all-files` before committing it: a
 schema change can start failing a file that used to pass.

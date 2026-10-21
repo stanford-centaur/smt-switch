@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://github.com/scikit-build/dynamic-metadata/blob/main/src/dynamic_metadata/resources/toml_schema.json",
+  "description": "Dynamic metadata plugin configuration.",
+  "type": "array",
+  "items": { "$ref": "#/$defs/entry" },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["provider"],
+      "additionalProperties": true,
+      "properties": {
+        "provider": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "A registered provider entry-point name."
+            },
+            {
+              "type": "object",
+              "description": "A local plugin imported from a directory.",
+              "required": ["path", "module"],
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string" },
+                "module": { "type": "string" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

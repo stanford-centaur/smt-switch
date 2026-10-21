@@ -9,6 +9,6 @@ pip install \
   meson \
   pyparsing \
   tomli
-# Configuring is what provisions them; the C++ build itself is a separate step
-# so that this one can be cached on its own.
+# Configuring is what provisions them. scikit-build-core builds smt-switch and
+# the bindings against them afterwards, once per Python version.
 ./configure.sh --bitwuzla --cvc5 --z3

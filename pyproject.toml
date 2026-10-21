@@ -1,7 +1,7 @@
 [project]
 name = "smt-switch"
 description = "Python bindings for the smt-switch C++ SMT solving library"
-readme = { file = "README.md", content-type = "text/markdown" }
+readme = { file = "python/README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
@@ -49,11 +49,29 @@ pysmt = ["pysmt"]
 test = ["pytest"]
 
 [build-system]
-requires = ["Cython>=3.0.0", "setuptools>=77.0.0"]
-build-backend = "setuptools.build_meta"
+requires = ["Cython>=3.0.0", "scikit-build-core>=1.0"]
+build-backend = "scikit_build_core.build"
 
-[tool.setuptools]
-packages = ["smt_switch", "smt_switch.pysmt_frontend"]
-package-data = { smt_switch = ["*.pxd"] }
-exclude-package-data = { smt_switch = ["*.cpp"] }
-dynamic = { version = { attr = "smt_switch.__version__" } }
+# The version, read from the VERSION file by scikit-build-core
+[[tool.dynamic-metadata]]
+provider = "scikit_build_core.metadata.regex"
+field = "version"
+input = "VERSION"
+regex = '(?m)^(?P<value>\d+\.\d+\.\d+)$'
+
+# CMake builds and installs the package; this only says how to call it.
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.18"
+# CMake installs everything that goes in the package, as its python
+# component; the rest of what it installs is for C++ users.
+wheel.packages = []
+install.components = ["python"]
+
+[tool.scikit-build.cmake.define]
+BUILD_PYTHON_BINDINGS = "ON"
+BUILD_TESTS = "OFF"
+# The solvers the published wheels bundle, which cibw-build-deps.sh provisions
+BUILD_BITWUZLA = "ON"
+BUILD_CVC5 = "ON"
+BUILD_Z3 = "ON"

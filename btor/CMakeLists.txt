@@ -33,14 +33,6 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${Boolector_SOURCE_DIR}/src>
 )
 
-# setup.py links the extension module by hand rather than through a CMake
-# target, so a static build has to be told which archives sit behind this
-# backend. See python/setup.py.in.
-include(ImportedLocation)
-smt_switch_imported_location(Boolector::boolector Boolector_LIBRARY)
-get_target_property(Boolector_LINK_LIBRARIES Boolector::boolector INTERFACE_LINK_LIBRARIES)
-set(BTOR_STATIC_LINK_ARGS "${Boolector_LIBRARY}" ${Boolector_LINK_LIBRARIES} PARENT_SCOPE)
-
 add_library(SmtSwitch::smt-switch-btor ALIAS smt-switch-btor)
 install(TARGETS smt-switch-btor EXPORT SmtSwitchBackendTargets-btor DESTINATION lib)
 install(

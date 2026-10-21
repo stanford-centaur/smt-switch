@@ -87,20 +87,9 @@ function(check_python_module module)
 
     # Compare version if minimum version is specified
     if(min_version)
-      # The Python script returns:
-      #  - exit code 0 (success) if the version is sufficient
-      #  - exit code 1 (failure) if the version is insufficient
-      execute_process(
-        COMMAND
-          ${Python_EXECUTABLE} -c
-          "import packaging.version; exit(0 if packaging.version.parse('${_${module}_version}') >= packaging.version.parse('${min_version}') else 1)"
-        RESULT_VARIABLE _${module}_min_version_check
-        ERROR_VARIABLE _${module}_min_version_error
-        ERROR_STRIP_TRAILING_WHITESPACE
-      )
-
-      # Check the exit code
-      if(NOT _${module}_min_version_check EQUAL 0)
+      # CMake compares only the leading digits of each component, so a
+      # pre-release such as 3.0.0b2 counts as 3.0.0.
+      if(_${module}_version VERSION_LESS min_version)
         # Version check failed - version is too low
         set(PythonModule_${module}_FOUND FALSE PARENT_SCOPE)
 

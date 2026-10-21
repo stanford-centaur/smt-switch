@@ -114,6 +114,17 @@ cdef extern from "z3_factory.h":
 """
 
 
+def write_if_changed(path: Path, text: str) -> None:
+    """Write text to path, unless the file already holds exactly that.
+
+    Leaving an unchanged file untouched keeps its timestamp, so the build
+    does not redo everything that depends on it.
+    """
+    if path.is_file() and path.read_text() == text:
+        return
+    path.write_text(text)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate smt_switch python binding implementations."
@@ -174,9 +185,5 @@ if __name__ == "__main__":
         CREATE_IMPORTS = "# Built with no solvers..."
 
     dest = Path(dest_dir)
-
-    with (dest / "smt_solvers.pxd").open("w") as f:
-        f.write(pxd)
-
-    with (dest / "smt_solvers.pyx").open("w") as f:
-        f.write(pyx % CREATE_IMPORTS)
+    write_if_changed(dest / "smt_solvers.pxd", pxd)
+    write_if_changed(dest / "smt_solvers.pyx", pyx % CREATE_IMPORTS)

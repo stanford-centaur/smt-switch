@@ -27,12 +27,6 @@ endif()
 find_package(GMP REQUIRED COMPONENTS gmpxx)
 target_link_libraries(smt-switch-z3 PRIVATE GMP::gmpxx)
 
-# Variables needed in setup.py
-# TODO: move all compilation commands into CMake
-include(ImportedLocation)
-smt_switch_imported_location(z3::libz3 Z3_LIBRARY_LOCATION)
-set(Z3_LIBRARY_LOCATION "${Z3_LIBRARY_LOCATION}" PARENT_SCOPE)
-
 add_library(SmtSwitch::smt-switch-z3 ALIAS smt-switch-z3)
 install(TARGETS smt-switch-z3 EXPORT SmtSwitchBackendTargets-z3 DESTINATION lib)
 install(
