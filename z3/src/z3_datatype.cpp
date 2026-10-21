@@ -16,6 +16,8 @@ bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
 namespace smt {
 Z3DatatypeDecl::Z3DatatypeDecl(std::string n) : name(std::move(n)) {}
 
+std::string Z3DatatypeDecl::get_name() const { return name; }
+
 Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
     const std::shared_ptr<z3::context> & ctx, std::string name)
     : c(ctx), constructorname(std::move(name))

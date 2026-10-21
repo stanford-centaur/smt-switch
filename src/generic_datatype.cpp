@@ -64,7 +64,7 @@ bool GenericDatatypeConstructorDecl::compare(
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
 {
-  return std::static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
+  return dt_decl->get_name();
 }
 
 void GenericDatatypeConstructorDecl::update_stored_dt(
@@ -126,10 +126,7 @@ std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector() const
   return cons_decl_vector;
 }
 
-std::string GenericDatatype::get_name() const
-{
-  return std::static_pointer_cast<GenericDatatypeDecl>(dt_decl)->get_name();
-}
+std::string GenericDatatype::get_name() const { return dt_decl->get_name(); }
 
 int GenericDatatype::get_num_constructors() const
 {

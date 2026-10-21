@@ -276,6 +276,12 @@ TEST_P(Datatypes, PrintsAsSmtlib)
             "((_ is nil) nil)");
 }
 
+TEST_P(Datatypes, DeclName)
+{
+  DatatypeDecl decl = s->make_datatype_decl("list");
+  EXPECT_EQ(decl->get_name(), "list");
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     Datatypes,
