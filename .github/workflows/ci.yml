@@ -180,6 +180,30 @@ jobs:
       - *restore-extra-libraries
       - *install-extra-libraries
       - *save-extra-libraries
+      # Not in the package lists of vars.sh, which would rebuild every cached
+      # solver, as none of them is built with it
+      - name: Install ccache
+        run: |
+          if [[ $RUNNER_OS == Linux ]]; then
+            sudo apt-get install --no-install-recommends ccache
+          else
+            brew install ccache
+          fi
+          {
+            echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
+            echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
+            echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache"
+            echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"
+            echo "CCACHE_MAXSIZE=500M"
+          } >>"$GITHUB_ENV"
+      # Only main saves, as other branches can read its entries but not each
+      # other's, and every entry competes with the solver builds for space
+      - name: Restore the compilation cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .ccache
+          key: ccache-${{ matrix.runner }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: ccache-${{ matrix.runner }}-${{ github.job }}-
       - name: Restore the solver builds
         if: env.DEPS_ENTRIES != '[]'
         uses: ./.github/actions/restore-deps
@@ -197,7 +221,17 @@ jobs:
             --strict "${flags[@]}"
       - name: Build
         working-directory: build
-        run: cmake --build . --config Debug && cmake --build . --config Release
+        run: |
+          ccache --zero-stats
+          cmake --build . --config Debug
+          cmake --build . --config Release
+          ccache --show-stats
+      - name: Save the compilation cache
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+        uses: actions/cache/save@v6
+        with:
+          path: .ccache
+          key: ccache-${{ matrix.runner }}-${{ github.job }}-${{ github.sha }}
       - name: Test C++
         id: test-cpp
         continue-on-error: true
