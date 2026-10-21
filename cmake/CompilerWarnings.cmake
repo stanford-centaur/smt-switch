@@ -40,10 +40,18 @@ that being the point of pinning the standard: the ``-Wc++98-compat``,
 are the ``-Wc++NN-extensions`` flags for NN up to 17, which fire only when the
 standard in use is older than the feature.  Note that c++0x, c++1y and c++1z
 were the working names for C++11, C++14 and C++17, so those spellings are the
-same flags again.  Flags about *newer* standards are kept, as are the few whose
-name says c++11 but whose subject is ordinary C++17 code: ``-Wc++11-narrowing``
-and the two ``-Wc++11-compat`` flags about writable string literals and reserved
-literal suffixes.
+same flags again.  Flags about *newer* standards are kept, as is
+``-Wc++11-narrowing``, whose name says c++11 but whose subject is ordinary C++17
+code.
+
+Some flags fire only under an older standard without their name saying so,
+C++17 either accepting what they report or reporting it under another flag:
+``-Wlong-long``, ``-Wconstexpr-not-const``, ``-Wnoexcept-type``,
+``-Wdeprecated-increment-bool`` and ``-Wdeprecated-register``, the last two
+superseded by ``-Wincrement-bool`` and ``-Wregister``.  These are left out too,
+as are the two ``-Wc++11-compat`` flags about writable string literals and
+reserved literal suffixes, which fire only under C++98 and whose C++17
+counterparts are ``-Wwrite-strings`` and ``-Wreserved-user-defined-literal``.
 
 Whole families that cannot fire here are left out too: Objective-C and ARC,
 OpenMP and OpenACC, CUDA, HIP, OpenCL and SYCL, targets this project is not
@@ -185,8 +193,6 @@ set(
   -Wbuiltin-macro-redefined # a built-in preprocessor macro is undefined or redefined
   -Wbuiltin-memcpy-chk-size # 'X' will always overflow
   -Wbuiltin-requires-header # declaration of built-in function 'X' requires inclusion
-  -Wc++11-compat-deprecated-writable-strings # conversion from string literal to X is deprecated
-  -Wc++11-compat-reserved-user-defined-literal # identifier after literal will be treated
   -Wc++11-narrowing-const-reference # type X cannot be narrowed to Y in initializer list
   -Wc++20-attribute-extensions # use of the X attribute is a C++20 extension
   -Wc++20-compat # C++ constructs whose meaning differs between ISO C++ 2017 and ISO C++ 2020
@@ -240,7 +246,6 @@ set(
   -Wconstant-conversion # implicit conversion from X to Y changes value from Z to W
   -Wconstant-evaluated # 'X' will always evaluate to 'true' in a manifestly constant-evaluated
   -Wconstant-logical-operand # use of logical 'X' with constant operand
-  -Wconstexpr-not-const # 'constexpr' non-static member function will not be implicitly 'const'
   -Wconsumed # return state set for an unconsumable type 'X'
   # -Wconversion # implicit type conversions that may change a value
   -Wconversion-null # converting NULL from/to a non-pointer type
@@ -307,7 +312,6 @@ set(
   -Wdeprecated-enum-enum-conversion # deprecated arithmetic conversions on operands of enumeration
   -Wdeprecated-enum-float-conversion # deprecated arithmetic conversions on operands where one
   -Wdeprecated-implementations # implementing unavailable method
-  -Wdeprecated-increment-bool # incrementing expression of type bool
   -Wdeprecated-literal-operator # deprecated space between and suffix in a user-defined literal
   -Wdeprecated-missing-comma-variadic-parameter # declaration of a variadic function without
   -Wdeprecated-module-dot-map # 'X' as a module map name is deprecated
@@ -316,7 +320,6 @@ set(
   -Wdeprecated-ofast # argument '-Ofast' is deprecated
   -Wdeprecated-pragma # macro X has been marked as deprecated: Y
   -Wdeprecated-redundant-constexpr-static-def # out-of-line definition of constexpr static data
-  -Wdeprecated-register # 'register' storage class specifier is deprecated and incompatible
   -Wdeprecated-this-capture # implicit capture of 'this' with a capture default of '='
   -Wdeprecated-type # '_ExtInt' is deprecated
   -Wdeprecated-variadic-comma-omission # deprecated omission of comma before ... in varargs
@@ -606,7 +609,6 @@ set(
   -Wlogical-not-parentheses # logical not is used on the left hand side operand of a comparison
   -Wlogical-op # a logical operator is suspiciously always evaluating to true or false
   -Wlogical-op-parentheses # '&&' within '||'
-  -Wlong-long # do not warn about using 'long long' when -pedantic
   -Wloop-analysis # covers -Wfor-loop-analysis, -Wrange-loop-analysis
   -Wlto-type-mismatch # during link time optimization warn about mismatched types of global
   -Wmacro-redefined # X macro redefined
@@ -670,7 +672,6 @@ set(
   -Wnewline-eof # no newline at end of file
   -Wnoderef # dereferencing expression marked as 'noderef'
   # -Wnoexcept # a noexcept expression evaluates to false
-  -Wnoexcept-type # C++17 noexcept function type will change the mangled name of a symbol
   -Wnon-c-typedef-for-linkage # non-C compatible unnamed classes with a typedef name for linkage
   # -Wnon-gcc # covers -Wsign-compare, -Wconversion, -Wliteral-range
   -Wnon-literal-null-conversion # expression
