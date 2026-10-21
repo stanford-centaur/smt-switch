@@ -105,13 +105,15 @@ jobs:
         working-directory: ci-scripts
         run: |
           source vars.sh
+          # ccache is left out of the lists in vars.sh, which are part of
+          # every solver's cache key, as no solver is built with it
           if [[ $RUNNER_OS == Linux ]]; then
             read -r -a packages <<<"$APT_PACKAGES"
             sudo apt-get update
-            sudo apt-get install --no-install-recommends "${packages[@]}"
+            sudo apt-get install --no-install-recommends ccache "${packages[@]}"
           else
             read -r -a packages <<<"$BREW_PACKAGES"
-            brew install "${packages[@]}"
+            brew install ccache "${packages[@]}"
           fi
           extra_libs_script=install-extra-libraries-${RUNNER%%-*}.sh
           hash=$(cat "$extra_libs_script" vars.sh | shasum -a 256 | cut -c 1-64)
@@ -180,22 +182,6 @@ jobs:
       - *restore-extra-libraries
       - *install-extra-libraries
       - *save-extra-libraries
-      # Not in the package lists of vars.sh, which would rebuild every cached
-      # solver, as none of them is built with it
-      - name: Install ccache
-        run: |
-          if [[ $RUNNER_OS == Linux ]]; then
-            sudo apt-get install --no-install-recommends ccache
-          else
-            brew install ccache
-          fi
-          {
-            echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
-            echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
-            echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache"
-            echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"
-            echo "CCACHE_MAXSIZE=500M"
-          } >>"$GITHUB_ENV"
       # Only main saves, as other branches can read its entries but not each
       # other's, and every entry competes with the solver builds for space
       - name: Restore the compilation cache
@@ -212,6 +198,8 @@ jobs:
       - *python-setup
       - name: Configure
         env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
           CMAKE_GENERATOR: Ninja Multi-Config
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
@@ -221,10 +209,18 @@ jobs:
             --strict "${flags[@]}"
       - name: Build
         working-directory: build
+        env:
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_MAXSIZE: 500M
         run: |
           ccache --zero-stats
           cmake --build . --config Debug
           cmake --build . --config Release
+          # Drops what no build used in the last day, which ccache would
+          # otherwise keep until the cache reaches its maximum size. A day
+          # still covers branches based on an earlier commit of main.
+          ccache --evict-older-than 1d
           ccache --show-stats
       - name: Save the compilation cache
         if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
