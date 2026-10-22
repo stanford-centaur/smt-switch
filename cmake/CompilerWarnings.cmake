@@ -109,6 +109,21 @@ spelling stays on its own line for clang while the levelled one is added for
 GCC.  Both reaching GCC is deliberate: the last level on the command line is the
 one that takes effect, and the levelled spelling always sorts after the plain
 one.  ``-Wcast-align`` is the same arrangement with a word rather than a number.
+
+Code that is not ours
+^^^^^^^^^^^^^^^^^^^^^
+
+.. command:: smt_switch_drop_warning_options
+
+  .. code-block:: cmake
+
+    smt_switch_drop_warning_options(<saved-var>)
+
+  Takes the flags above off the compile options of the calling directory, and
+  so off every target defined there afterwards and every subdirectory added
+  after it, and sets ``<saved-var>`` to the options as they were, for putting
+  back.  It is for code that does not build clean under them and that we
+  cannot change, such as GoogleTest.
 #]=======================================================================]
 
 set(
@@ -1147,3 +1162,16 @@ endif()
 # this option back off, rather than guess which of its pieces are warnings.
 set(SMT_SWITCH_CXX_WARNING_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${cxx_warnings}>")
 add_compile_options("${SMT_SWITCH_CXX_WARNING_OPTIONS}")
+
+function(smt_switch_drop_warning_options saved_var)
+  get_directory_property(options_inherited COMPILE_OPTIONS)
+  string(
+    REPLACE "${SMT_SWITCH_CXX_WARNING_OPTIONS}"
+    ""
+    options_without_warnings
+    "${options_inherited}"
+  )
+  list(REMOVE_ITEM options_without_warnings "")
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_without_warnings}")
+  set(${saved_var} "${options_inherited}" PARENT_SCOPE)
+endfunction()

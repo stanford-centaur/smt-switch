@@ -52,17 +52,9 @@ if(NOT GTest_FOUND)
   )
   # GoogleTest is added below as a subdirectory and would inherit this
   # directory's warning flags, which it does not build clean under.
-  get_directory_property(options_inherited COMPILE_OPTIONS)
-  string(
-    REPLACE "${SMT_SWITCH_CXX_WARNING_OPTIONS}"
-    ""
-    options_without_warnings
-    "${options_inherited}"
-  )
-  list(REMOVE_ITEM options_without_warnings "")
-  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_without_warnings}")
+  smt_switch_drop_warning_options(original_options)
   FetchContent_MakeAvailable(googletest)
-  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${options_inherited}")
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${original_options}")
 endif()
 
 # Static, because a shared library would carry its own copy of a static
