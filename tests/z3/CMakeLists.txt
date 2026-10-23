@@ -13,4 +13,5 @@ macro(switch_add_z3_test name)
   add_test(NAME ${name}_test COMMAND ${name})
 endmacro()
 
+switch_add_z3_test(z3-set-logic)
 switch_add_z3_test(z3_test)
