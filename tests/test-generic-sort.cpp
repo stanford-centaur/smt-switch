@@ -208,4 +208,9 @@ TEST(GenericSort, DatatypeComponents)
   // a constructor of the same name in another datatype is another one
   EXPECT_NE(cons, pair_cons);
   EXPECT_NE(cons, is_cons);
+  // equal components hash alike, and those sharing a name in another
+  // datatype or of another kind hash apart
+  EXPECT_EQ(cons->hash(), cons_again->hash());
+  EXPECT_NE(cons->hash(), pair_cons->hash());
+  EXPECT_NE(cons->hash(), is_cons->hash());
 }

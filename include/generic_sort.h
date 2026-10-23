@@ -158,6 +158,7 @@ class DatatypeComponentSort : public GenericSort
 {
  public:
   DatatypeComponentSort(SortKind k, std::string n, Sort dt);
+  std::size_t hash() const override;
   std::string compute_string() const override;
   std::string to_string() const override;
   SortVec get_domain_sorts() const override;
