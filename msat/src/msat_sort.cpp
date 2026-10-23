@@ -40,8 +40,8 @@ MsatSort::MsatSort(const std::shared_ptr<msat_env> & e,
 
 std::size_t MsatSort::hash() const
 {
-  // msat_type ptr is unique
-  return (size_t)type.repr;
+  // unique within the type's environment, as msat_type_equals is
+  return msat_type_id(type);
 }
 
 uint64_t MsatSort::get_width() const

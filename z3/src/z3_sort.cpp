@@ -28,17 +28,18 @@ std::size_t Z3Sort::hash() const
   {
     // a function sort is held as a func_decl, but its name is not part of
     // the sort, so hash only the signature, to agree with compare
-    std::size_t h = z_func.range().hash();
+    std::size_t h = z_func.range().id();
     for (unsigned i = 0; i < z_func.arity(); i++)
     {
       // Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
       // irregular bits spread the value; the shifts mix in the hash so
       // far, so argument order matters and equal sorts don't cancel out
-      h ^= z_func.domain(i).hash() + 0x9e3779b9 + (h << 6) + (h >> 2);
+      h ^= z_func.domain(i).id() + 0x9e3779b9 + (h << 6) + (h >> 2);
     }
     return h;
   }
-  return type.hash();
+  // unique within the context, unlike Z3's structural hash
+  return type.id();
 }
 
 uint64_t Z3Sort::get_width() const
