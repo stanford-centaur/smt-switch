@@ -173,13 +173,15 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
 
 void Cvc5Solver::set_logic(const std::string logic)
 {
+  // cvc5 refuses an unknown logic, a second one and one after the first
+  // assertion, check or push
   try
   {
     solver->setLogic(logic);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw IncorrectUsageException(e.what());
   }
 }
 
