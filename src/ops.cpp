@@ -18,6 +18,7 @@
 
 #include <climits>
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -330,3 +331,14 @@ bool is_variadic(PrimOp po)
 }
 
 }  // namespace smt
+
+namespace std {
+
+size_t hash<smt::Op>::operator()(const smt::Op o) const
+{
+  // The hash function for op computes the string hash
+  hash<string> str_hash;
+  return str_hash(o.to_string());
+}
+
+}  // namespace std

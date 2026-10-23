@@ -16,6 +16,7 @@
 
 #include "term.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -134,3 +135,12 @@ bool TermIter::operator!=(const TermIter & other) const
 }
 /* end TermIter implementation */
 }  // namespace smt
+
+namespace std {
+
+size_t hash<smt::Term>::operator()(const smt::Term & t) const
+{
+  return t ? t->hash() : 0;
+}
+
+}  // namespace std

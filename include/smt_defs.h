@@ -49,7 +49,6 @@ using Datatype = std::shared_ptr<AbsDatatype>;
 
 }  // namespace smt
 
-// Fordward declare std::hash specialization for smt::Term
 namespace std {
 template <>
 struct hash<smt::Term>
