@@ -14,10 +14,9 @@ Reads the file behind an imported library at configure time.
   imports.
 
   ``$<TARGET_FILE:...>`` would normally be the way to ask this, but it is a
-  generator expression, and the callers here need a plain string: the path
-  ends up in ``python/setup.py.in``, which is filled in by
-  :command:`configure_file`, and ``cvc5/`` searches the directory it names
-  with :command:`find_library`.  Both run before generation.
+  generator expression, and the callers here need a plain string: ``cvc5/``
+  and the installed package configuration search the directory it names with
+  :command:`find_library`, which runs before generation.
 
   Imported targets that come from a package's own export file carry their
   location under a configuration suffix, and the configuration a package was

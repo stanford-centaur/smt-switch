@@ -6,7 +6,7 @@
 # dependency has to be finished before the main project's configure reaches
 # the backend that needs it. The usual answer, a superbuild, would move the
 # binary directory to build/<prefix>/smt-switch-build and break every path CI
-# knows -- `ninja -C build`, `ctest --test-dir build`, `build/python/*.whl`.
+# knows -- `ninja -C build`, `ctest --test-dir build`, `cmake --install build`.
 #
 # LANGUAGES NONE: nothing is compiled here, only sub-builds are driven, and
 # the compiler each of those uses is forwarded in rather than detected twice.

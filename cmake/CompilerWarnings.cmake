@@ -123,7 +123,8 @@ Code that is not ours
   so off every target defined there afterwards and every subdirectory added
   after it, and sets ``<saved-var>`` to the options as they were, for putting
   back.  It is for code that does not build clean under them and that we
-  cannot change, such as GoogleTest.
+  cannot change: GoogleTest, and the C++ that Cython generates for the Python
+  bindings.
 #]=======================================================================]
 
 set(

@@ -38,17 +38,11 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      # cibuildwheel needs pyproject.toml present from the start
-      - name: Place pyproject.toml
-        run: mkdir -p build/python && cp python/pyproject.toml build/python
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.1
-        with:
-          # Where the setup.py and pyproject.toml build infrastructure is
-          package-dir: build/python
         env:
           # Every released CPython that is not yet end-of-life
-          # Keep in sync with requires-python in python/pyproject.toml
+          # Keep in sync with requires-python in pyproject.toml
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_ARCHS_LINUX: ${{ matrix.arch }}
@@ -58,7 +52,6 @@ jobs:
             ci-scripts/cibw-install-linux.sh && ci-scripts/cibw-build-deps.sh
           CIBW_BEFORE_ALL_MACOS: |
             ci-scripts/cibw-install-macos.sh && ci-scripts/cibw-build-deps.sh
-          CIBW_BEFORE_BUILD: ci-scripts/cibw-build-cpp.sh
           # Strip the symbols nothing needs at runtime; the wheels are a
           # fraction of the size for it.
           CIBW_ENVIRONMENT_LINUX: >-

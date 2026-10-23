@@ -2,3 +2,10 @@
 [format.rules]
 trailing-comment-alignment = true
 trailing-comment-space-width = 1
+
+# schemastore's pyproject schema does not know tool.dynamic-metadata, so it
+# takes it for a table rather than the array scikit-build-core reads.
+[[schemas]]
+root = "tool.dynamic-metadata"
+path = "https://raw.githubusercontent.com/scikit-build/dynamic-metadata/v0.6.0/src/dynamic_metadata/resources/toml_schema.json"
+include = ["pyproject.toml"]

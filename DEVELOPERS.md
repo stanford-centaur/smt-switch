@@ -69,8 +69,9 @@ ctest --test-dir build -C Debug
 
 Swap `Debug` for `Release` to build and test the other one. Both share a single
 configure step and the dependencies under `deps/`, which are built only once.
-Each configuration gets its own subdirectory for the libraries, and with
-`--python` the wheels go to `build/python/Debug/` and `build/python/Release/`.
+Each configuration gets its own subdirectory for the libraries. With `--python`,
+`cmake --install build --config Debug --component python` installs that
+configuration's bindings over whichever were installed before.
 
 With a single-configuration generator such as Make or plain Ninja, pass
 `-DCMAKE_BUILD_TYPE=Debug` to `configure.sh` instead.

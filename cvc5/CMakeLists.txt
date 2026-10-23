@@ -58,21 +58,6 @@ endif()
 get_filename_component(cvc5_POLY_LIBRARY_DIR "${cvc5_POLY_LIBRARY}" DIRECTORY)
 target_link_directories(smt-switch-cvc5 PUBLIC $<BUILD_INTERFACE:${cvc5_POLY_LIBRARY_DIR}>)
 
-# setup.py links the extension module by hand rather than through a CMake
-# target, so a static build has to be told which archives sit behind this
-# backend. See python/setup.py.in. GMP is left out; setup.py adds it for
-# whichever backends need it.
-if(SMT_SWITCH_LIB_TYPE STREQUAL STATIC)
-  set(
-    CVC5_STATIC_LINK_ARGS
-    "${cvc5_LIBRARY}"
-    "${cvc5_CADICAL_LIBRARY}"
-    "${cvc5_POLYXX_LIBRARY}"
-    "${cvc5_POLY_LIBRARY}"
-    PARENT_SCOPE
-  )
-endif()
-
 add_library(SmtSwitch::smt-switch-cvc5 ALIAS smt-switch-cvc5)
 install(TARGETS smt-switch-cvc5 EXPORT SmtSwitchBackendTargets-cvc5 DESTINATION lib)
 install(

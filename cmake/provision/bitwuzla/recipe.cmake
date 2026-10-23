@@ -27,9 +27,12 @@ smt_switch_dependency(
     <SOURCE_DIR>/subprojects/packagefiles/cadical/src/meson.build
   CONFIGURE_COMMAND
     <SOURCE_DIR>/configure.py --prefix <INSTALL_DIR>
-  COMMAND
-    meson configure <SOURCE_DIR>/build "-Dcpp_args=${BITWUZLA_CADICAL}"
-    "-Dcadical:cpp_args=${BITWUZLA_CADICAL}"
+  # Meson up to 1.12.1 applies the main project's cpp_args to every
+  # subproject and ignores a subproject's own, so this renames CaDiCaL too.
+  COMMAND meson configure <SOURCE_DIR>/build "-Dcpp_args=${BITWUZLA_CADICAL}"
+  # Regenerates now, as Ninja before 1.9 misses a change made within the
+  # second of setup. Meson 1.7 drops cpp_args given to --reconfigure itself.
+  COMMAND meson setup --reconfigure <SOURCE_DIR>/build <SOURCE_DIR>
   BUILD_COMMAND meson compile -C <SOURCE_DIR>/build
   INSTALL_COMMAND meson install -C <SOURCE_DIR>/build
   BUILD_IN_SOURCE TRUE

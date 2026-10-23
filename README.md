@@ -216,26 +216,30 @@ It is highly recommended to use a Python
 [Conda environment](https://docs.conda.io/en/latest/) when building Python
 bindings. Note: only Python 3.10 or later is supported.
 
-First, install the packages the build needs:
+First, install Cython, which the build needs:
 
 ```sh
-python3 -m pip install Cython packaging setuptools
+python3 -m pip install Cython
 ```
 
-Then, to compile Python bindings, use the `--python` flag of `configure.sh`.
-Afterwards, build `smt-switch` as usual. The Python wheel will be built inside
-`build/python` as the file `smt_switch-<version>-<tags>.whl`. This can be
-installed with `pip`:
+Then, to compile Python bindings, use the `--python` flag of `configure.sh`,
+which needs CMake 3.18 or newer. Afterwards, build `smt-switch` as usual and
+install it. The bindings go into the `site-packages` directory of the Python
+that `configure.sh` found, which is the active environment's:
 
 ```sh
-python3 -m pip install build/python/<filename>.whl
+cmake --install build
 ```
 
-The Python bindings can be tested by installing the wheel with the test extra,
-`build/python/<filename>.whl[test]`, and running `pytest` from the
-`tests/python` directory. Note that some shells, like `zsh`, require brackets to
-be escaped or the path to be quoted, i.e., `build/python/<filename>.whl\[test\]`
-or `"build/python/<filename>.whl[test]"`. To run a particular test, use the
+To install only the bindings, add `--component python`. A shared build puts the
+smt-switch libraries they load into the package as well.
+
+Alternatively, `python3 -m pip install .` from the root of the repository builds
+and installs a wheel with Bitwuzla, cvc5 and Z3, the solvers the wheels on PyPI
+bundle.
+
+The Python bindings can be tested by installing `pytest` and running it from the
+`tests/python` directory. To run a particular test, use the
 `-k test_name[parameter1-...-parameter_n]` format, e.g.:
 
 ```sh
@@ -245,11 +249,11 @@ pytest -k test_bvadd[create_btor_solver]
 ### PySMT front end
 
 Optionally, smt-switch can be used with a
-[pySMT](https://pysmt.readthedocs.io/en/latest/) front end using the `pysmt`
-extra:
+[pySMT](https://pysmt.readthedocs.io/en/latest/) front end, by installing pySMT
+beside it (a wheel from PyPI takes the `pysmt` extra, `smt-switch[pysmt]`):
 
 ```sh
-python3 -m pip install build/python/<filename>.whl[pysmt]
+python3 -m pip install pysmt
 ```
 
 A pySMT solver for each switch back-end can be instantiated directly or using
@@ -274,13 +278,8 @@ with pysmt_frontend.Solver("cvc5") as solver:
 
 Please refer to the pySMT docs for further information.
 
-When the pySMT frontend is installed, tests specific to it will also be included
-in the Python test suites. Note, multiple extras may be installed by passing
-them as a comma-separated list:
-
-```sh
-python3 -m pip install build/python/<filename>.whl[test,pysmt]
-```
+When pySMT is installed, tests specific to the front end are also included in
+the Python test suites.
 
 ## Current Limitations
 

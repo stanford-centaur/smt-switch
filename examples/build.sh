@@ -7,7 +7,8 @@ set -euo pipefail
 help_message() {
   echo "usage: $0 [--python]"
   echo "this script builds smt-switch and the C++ examples"
-  echo "it also builds and installs the python bindings if run with --python"
+  echo "it also builds the python bindings if run with --python, and installs"
+  echo "them into the active python environment"
   exit 0
 }
 
@@ -32,7 +33,3 @@ make install
 cd "$script_dir"
 # now make the examples
 make
-
-# install python bindings with pip
-# this line might need to be adjusted depending on your current python environment
-python3 -m pip install -e "$script_dir/example-build/python"

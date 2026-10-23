@@ -22,12 +22,6 @@ target_link_libraries(smt-switch-yices2 PUBLIC Yices2::yices)
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-yices2 PUBLIC GMP::gmp)
 
-# setup.py links the extension module by hand rather than through a CMake
-# target, so a static build has to be told which archive sits behind this
-# backend, and the LibPoly and CUDD a Yices2 with MCSAT needs. See
-# python/setup.py.in.
-set(YICES2_STATIC_LINK_ARGS "${Yices2_LIBRARIES}" PARENT_SCOPE)
-
 add_library(SmtSwitch::smt-switch-yices2 ALIAS smt-switch-yices2)
 install(TARGETS smt-switch-yices2 EXPORT SmtSwitchBackendTargets-yices2 DESTINATION lib)
 install(

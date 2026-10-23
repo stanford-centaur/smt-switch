@@ -1,143 +1,172 @@
-# First, ensure we have Python 3.10 or newer with all required components. The
-# floor has to match requires-python in pyproject.toml: building against an
-# older interpreter would produce a wheel that pip then refuses to install.
-# An active virtualenv or conda environment is preferred by FindPython itself.
-# Want python for building a module, so use Development.Module.
-# CMake before 3.18 has only Development, which also wants the library
-# that manylinux leaves out; the wheels there are built with a newer CMake.
+# Python_add_library and the Development.Module component, which leaves out
+# the libpython that manylinux does not ship, are both newer than the rest of
+# this tree needs.
 if(CMAKE_VERSION VERSION_LESS 3.18)
-  set(_python_development Development)
-else()
-  set(_python_development Development.Module)
+  message(FATAL_ERROR "The Python bindings need CMake 3.18 or newer; this is ${CMAKE_VERSION}")
 endif()
-find_package(Python 3.10 REQUIRED COMPONENTS Interpreter ${_python_development})
 
-# Include helper function to check for required Python packages
+# The floor has to match requires-python in pyproject.toml: a wheel built
+# against an older interpreter is one that pip then refuses to install.
+# An active virtualenv or conda environment is preferred by FindPython itself.
+find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
+
 include(CheckPythonModule)
+check_python_module("Cython" 3.0.0)
 
-# Verify required Python packages are installed
-check_python_module("packaging")
+# The C++ Cython generates does not build clean under the project's warnings,
+# and is not ours to change.
+smt_switch_drop_warning_options(original_options)
 
-# setup.py links the extension module itself rather than through a CMake
-# target, so it needs the GMP flags of whichever backends were enabled.
-if(BUILD_CVC5 OR BUILD_MSAT OR BUILD_YICES2 OR BUILD_Z3)
-  if(BUILD_Z3)
-    # The Z3 backend uses the C++ bindings as well.
-    find_package(GMP REQUIRED COMPONENTS gmpxx)
-  else()
-    find_package(GMP REQUIRED)
-  endif()
-endif()
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/gen-smt-solver-declarations.py"
-  "${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py"
-  COPYONLY
-)
-
-# Configure setup.py with the correct paths and options
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/setup.py"
-  @ONLY # Use @VAR@ instead of ${VAR} syntax in setup.py.in
-)
-
-# Copy pyproject.toml to build directory
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
-  "${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml"
-  COPYONLY
-)
-
-# The wheel is built from the binary directory, so the readme and the license
-# that the package metadata references have to be copied there as well.
-# Otherwise setuptools only warns and falls back to an empty long description,
-# and the wheel ends up shipping no license text at all.
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
-  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-  COPYONLY
-)
-configure_file("${PROJECT_SOURCE_DIR}/LICENSE" "${CMAKE_CURRENT_BINARY_DIR}/LICENSE" COPYONLY)
-
-# Add Python package directory containing Cython files.
+# Puts the copied and the generated Cython sources together in the package
+# directory, as Cython finds the package a module belongs to by its directory.
 add_subdirectory(smt_switch)
+set(package_dir "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
 
-# Handle macOS-specific configuration
-if(APPLE)
-  # Detect architecture for proper compilation flags
-  execute_process(COMMAND uname -m OUTPUT_VARIABLE MACOS_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(MACOS_ARCH ${MACOS_ARCH} CACHE STRING "macOS architecture")
-endif()
-
-# Collect option flags for generating the smt solvers Cython file
-# It will include all of the solvers that are enabled for this build
-include_directories(${CMAKE_CURRENT_LIST_DIR}) # For generated files
-set(GEN_OPTIONS --dest-dir "${CMAKE_CURRENT_BINARY_DIR}/smt_switch")
-
-if(BUILD_BTOR)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --btor)
-endif()
-
-if(BUILD_BITWUZLA)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --bitwuzla)
-endif()
-
-if(BUILD_CVC5)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --cvc5)
-endif()
-
-if(BUILD_MSAT)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --msat)
-endif()
-
-if(BUILD_YICES2)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --yices2)
-endif()
-
-if(BUILD_Z3)
-  set(GEN_OPTIONS ${GEN_OPTIONS} --z3)
-endif()
-
-message(STATUS "Running gen-smt-solver-declarations.py ${GEN_OPTIONS}")
-add_custom_target(
-  gen-smt-solver-declarations
-  ALL
-  COMMAND
-    ${Python_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/gen-smt-solver-declarations.py ${GEN_OPTIONS}
-  DEPENDS gen-smt-solver-declarations.py
-  COMMENT "Generate smt_solvers.{pxd,pyx}"
-)
-
-# setup.py cannot tell which configuration it is building for, and under a
-# multi-config generator each one has its libraries in a directory of its own.
-set(_library_dirs "SMT_SWITCH_LIBRARY_DIR=$<TARGET_FILE_DIR:smt-switch>")
-foreach(_lib IN LISTS SOLVER_BACKEND_LIBS)
-  string(REPLACE "smt-switch-" "" _solver "${_lib}")
-  string(TOUPPER "${_solver}" _solver)
-  list(APPEND _library_dirs "SMT_SWITCH_${_solver}_LIBRARY_DIR=$<TARGET_FILE_DIR:${_lib}>")
+# Each .pyx is a module, the generated one included. Every module cimports
+# from the declarations, so any of them changing regenerates them all.
+set(modules smt_solvers)
+set(declarations "${package_dir}/smt_solvers.pxd")
+foreach(source IN LISTS CYTHON_SOURCE_FILES)
+  get_filename_component(name "${source}" NAME)
+  get_filename_component(stem "${source}" NAME_WE)
+  if(name MATCHES "\\.pyx$")
+    list(APPEND modules "${stem}")
+  elseif(name MATCHES "\\.pxd$")
+    list(APPEND declarations "${package_dir}/${name}")
+  endif()
 endforeach()
 
-# One wheel per configuration, or building one would overwrite the other's.
-get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(_multi_config)
-  set(_wheel_dir "$<CONFIG>")
-else()
-  set(_wheel_dir ".")
+foreach(module IN LISTS modules)
+  add_custom_command(
+    OUTPUT "${package_dir}/${module}.cpp"
+    COMMAND
+      "${Python_EXECUTABLE}" -m cython --cplus -3 -X binding=False -X embedsignature=True -o
+      "smt_switch/${module}.cpp" "smt_switch/${module}.pyx"
+    DEPENDS "${package_dir}/${module}.pyx" ${declarations}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Cythonizing smt_switch/${module}.pyx"
+    VERBATIM
+  )
+  python_add_library(smt-switch-python-${module} MODULE WITH_SOABI "${package_dir}/${module}.cpp")
+  set_target_properties(
+    smt-switch-python-${module}
+    PROPERTIES
+      OUTPUT_NAME "${module}"
+      LIBRARY_OUTPUT_DIRECTORY "${package_dir}"
+      # Finds the solver libraries this was linked against outside the build
+      # tree once installed.
+      INSTALL_RPATH_USE_LINK_PATH ON
+  )
+  target_link_libraries(smt-switch-python-${module} PRIVATE smt-switch)
+endforeach()
+target_link_libraries(smt-switch-python-smt_solvers PRIVATE ${SOLVER_BACKEND_LIBS})
+
+# A shared build installs the libraries the modules load into the package as
+# well, so that the package is complete wherever it goes: in a virtualenv
+# without the rest of the install, and in a wheel, which the repair tools
+# fill only with what the package itself can find.
+if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+  set(package_libraries smt-switch ${SOLVER_BACKEND_LIBS})
+  foreach(module IN LISTS modules)
+    set_target_properties(
+      smt-switch-python-${module}
+      PROPERTIES INSTALL_RPATH "${SMT_SWITCH_RPATH_ORIGIN}"
+    )
+  endforeach()
 endif()
 
-# Custom target for building Python bindings
-add_custom_target(
-  python_bindings
-  ALL
-  # First ensure the build directory is clean
-  COMMAND ${CMAKE_COMMAND} -E remove_directory build
-  # Then build the package in place
-  COMMAND
-    ${CMAKE_COMMAND} -E env ${_library_dirs} ${Python_EXECUTABLE} -m pip wheel --no-deps .
-    --wheel-dir ${_wheel_dir}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS smt-switch ${SOLVER_BACKEND_LIBS}
-  COMMENT "Building Python bindings"
+# scikit-build-core, which builds the wheels, says where the package goes.
+# Otherwise it is the site-packages of the Python found above.
+if(SKBUILD)
+  set(SMT_SWITCH_PYTHON_INSTALL_DIR "${SKBUILD_PLATLIB_DIR}")
+else()
+  set(
+    SMT_SWITCH_PYTHON_INSTALL_DIR
+    "${Python_SITEARCH}"
+    CACHE PATH
+    "Where to install the Python bindings"
+  )
+endif()
+
+set(installed_files "")
+foreach(declaration IN LISTS declarations)
+  get_filename_component(name "${declaration}" NAME)
+  list(APPEND installed_files "smt_switch/${name}")
+endforeach()
+install(
+  FILES "${package_dir}/__init__.py" ${declarations}
+  DESTINATION "${SMT_SWITCH_PYTHON_INSTALL_DIR}/smt_switch"
+  COMPONENT python
 )
-add_dependencies(python_bindings gen-smt-solver-declarations)
+list(APPEND installed_files "smt_switch/__init__.py")
+foreach(module IN LISTS modules)
+  install(
+    TARGETS smt-switch-python-${module}
+    LIBRARY DESTINATION "${SMT_SWITCH_PYTHON_INSTALL_DIR}/smt_switch" COMPONENT python
+  )
+  list(APPEND installed_files "smt_switch/$<TARGET_FILE_NAME:smt-switch-python-${module}>")
+endforeach()
+if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+  install(
+    TARGETS ${package_libraries}
+    LIBRARY DESTINATION "${SMT_SWITCH_PYTHON_INSTALL_DIR}/smt_switch" COMPONENT python
+  )
+  foreach(library IN LISTS package_libraries)
+    list(APPEND installed_files "smt_switch/$<TARGET_FILE_NAME:${library}>")
+  endforeach()
+endif()
+file(GLOB frontend_sources "${CMAKE_CURRENT_SOURCE_DIR}/smt_switch/pysmt_frontend/*.py")
+install(
+  FILES ${frontend_sources}
+  DESTINATION "${SMT_SWITCH_PYTHON_INSTALL_DIR}/smt_switch/pysmt_frontend"
+  COMPONENT python
+)
+foreach(source IN LISTS frontend_sources)
+  get_filename_component(name "${source}" NAME)
+  list(APPEND installed_files "smt_switch/pysmt_frontend/${name}")
+endforeach()
+
+# What lets pip see the package, uninstall it, and replace it with a wheel.
+# Only the name and version: the rest of the metadata is for PyPI, and lives
+# in pyproject.toml. scikit-build-core writes its own into the wheel.
+if(NOT SKBUILD)
+  set(dist_info "smt_switch-${PROJECT_VERSION}.dist-info")
+  set(dist_info_dir "${CMAKE_CURRENT_BINARY_DIR}/${dist_info}")
+  file(
+    WRITE "${dist_info_dir}/METADATA"
+    "Metadata-Version: 2.1\nName: smt-switch\nVersion: ${PROJECT_VERSION}\n"
+  )
+  file(WRITE "${dist_info_dir}/INSTALLER" "cmake\n")
+  list(
+    APPEND installed_files
+    "${dist_info}/METADATA"
+    "${dist_info}/INSTALLER"
+    "${dist_info}/RECORD"
+  )
+  # Paths with neither hash nor size, which a RECORD of an installed package
+  # may leave out
+  list(TRANSFORM installed_files APPEND ",,")
+  list(JOIN installed_files "\n" record)
+  file(GENERATE OUTPUT "${dist_info_dir}/RECORD" CONTENT "${record}\n")
+
+  # One installed with another version would otherwise stay beside this one.
+  install(
+    CODE "set(smt_switch_python_install_dir [[${SMT_SWITCH_PYTHON_INSTALL_DIR}]])"
+    COMPONENT python
+  )
+  install(
+    CODE
+      [[
+        file(GLOB stale_dist_infos "$ENV{DESTDIR}${smt_switch_python_install_dir}/smt_switch-*.dist-info")
+        if(stale_dist_infos)
+          file(REMOVE_RECURSE ${stale_dist_infos})
+        endif()
+      ]]
+    COMPONENT python
+  )
+  install(
+    DIRECTORY "${dist_info_dir}"
+    DESTINATION "${SMT_SWITCH_PYTHON_INSTALL_DIR}"
+    COMPONENT python
+  )
+endif()
