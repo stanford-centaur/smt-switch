@@ -184,13 +184,6 @@ class GenericSolver : public AbsSmtSolver
                     const std::string & operation,
                     const std::string & reason) const;
 
-  /** get the binary ready for a command that changes the assertion stack:
-   * set the logic ALL in start mode, and in the sat and unsat modes send
-   * the declarations and definitions held back since the check. The caller
-   * sets the assert mode once its own command succeeds.
-   */
-  void prepare_assertion_command() const;
-
   /** send the declarations and definitions held back in the sat or unsat
    * mode, in the order they were made
    */
@@ -234,15 +227,6 @@ class GenericSolver : public AbsSmtSolver
 
   // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
-
-  // when an SMT-LIB compliant solver is supposed
-  // to return a result (e.g., get-value),
-  // a result that starts with "(error " indicates
-  // that an error occurred.
-  // This cannot be caught by print-success,
-  // which is not utilized for commands that
-  // expect a result.
-  void check_no_error(std::string str) const;
 
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
@@ -340,12 +324,45 @@ class GenericSolver : public AbsSmtSolver
   // send a command and return the binary's trimmed response, as is
   std::string exchange(const std::string & cmd) const;
 
-  // run a command with the binary, restoring it after an error
-  std::string run_command(std::string cmd,
-                          bool verify_success_flag = true) const;
+  // send a command and return the binary's reply unchecked, restoring the
+  // binary after an error
+  std::string send_command(const std::string & cmd) const;
 
-  // verify that we got `success`
-  void verify_success(std::string result) const;
+  /** what a command does to the mode, after SMT-LIB 2.6, Section 4.1.1 */
+  enum class CommandKind
+  {
+    // set-option, which leaves the mode as it is
+    OPTION,
+    // set-logic, which enters the assert mode
+    LOGIC,
+    // reset, which returns to the start mode
+    RESET,
+    // reset-assertions, which leaves the query modes for the assert mode
+    RESET_ASSERTIONS,
+    // a declaration, definition, assertion, push or pop, which enters the
+    // assert mode
+    ASSERTION,
+    // check-sat or check-sat-assuming, which enters a query mode
+    CHECK,
+    // get-value or get-unsat-assumptions, which leaves the mode as it is
+    GET
+  };
+
+  /** send a command and move to the mode it leads to
+   * @param cmd the command
+   * @param kind what the command does to the mode
+   * @return the binary's reply, `success` for any kind but CHECK and GET
+   * @throws IncorrectUsageException if the binary answers anything but
+   * `success` to a kind other than CHECK and GET, SmtException if it
+   * answers a GET with an error, and NotImplementedException if it answers
+   * a CHECK with anything but sat, unsat or unknown
+   *
+   * The declarations and definitions held back since a check are sent
+   * first, for any kind but OPTION, RESET and GET. An ASSERTION or CHECK
+   * refused in the start mode is tried again after ALL, which some solvers
+   * need. A command answered with `success` is recorded for a restore.
+   */
+  std::string run_command(const std::string & cmd, CommandKind kind) const;
 
   /***********
    * members *

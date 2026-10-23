@@ -629,8 +629,7 @@ std::string GenericSolver::exchange(const std::string & cmd) const
   return trim(result);
 }
 
-std::string GenericSolver::run_command(std::string cmd,
-                                       bool verify_success_flag) const
+std::string GenericSolver::send_command(const std::string & cmd) const
 {
   std::string result;
   try
@@ -650,12 +649,6 @@ std::string GenericSolver::run_command(std::string cmd,
   if (binary_exited_ || is_error_response(result))
   {
     restore_binary();
-  }
-  // verify success if needed
-  if (verify_success_flag)
-  {
-    verify_success(result);
-    accepted_commands_.push_back(cmd);
   }
   return result;
 }
@@ -706,21 +699,6 @@ void GenericSolver::restore_binary() const
   }
 }
 
-void GenericSolver::verify_success(std::string result) const
-{
-  if (result == "success")
-  {
-    return;
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "The command did not end with a success message from the solver. The "
-        "result was: "
-        + result);
-  }
-}
-
 std::string to_string(SmtLibMode mode)
 {
   // no default, so that -Wswitch reports an enumerator without a case
@@ -747,18 +725,91 @@ void GenericSolver::require_mode(SmtLibMode needed,
   }
 }
 
-void GenericSolver::prepare_assertion_command() const
+std::string GenericSolver::run_command(const std::string & cmd,
+                                       CommandKind kind) const
 {
-  // SMT-LIB permits no declaration, definition, assertion, push, pop or
-  // check before set-logic, which callers of the other backends never
-  // need. ALL is what cvc5 assumes when no logic was set, and Yices2
-  // knows no theory at all without one.
-  if (mode_ == SmtLibMode::START)
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (kind)
   {
-    run_command("(" + SET_LOGIC_STR + " ALL)");
-    mode_ = SmtLibMode::ASSERT;
+    case CommandKind::LOGIC:
+    case CommandKind::RESET_ASSERTIONS:
+    case CommandKind::ASSERTION:
+    case CommandKind::CHECK: send_pending_commands(); break;
+    case CommandKind::OPTION:
+    case CommandKind::RESET:
+    case CommandKind::GET: break;
   }
-  send_pending_commands();
+  std::string reply = send_command(cmd);
+  // SMT-LIB permits neither kind before set-logic, which callers of the
+  // other backends never need. Most binaries go ahead anyway, and cvc5
+  // picks ALL itself, but Yices2 knows no theory at all without one, and
+  // its refusals do not always say so. Whether or not the binary takes
+  // ALL, it is past the start mode afterwards, so it is tried once.
+  if ((kind == CommandKind::ASSERTION || kind == CommandKind::CHECK)
+      && mode_ == SmtLibMode::START && is_error_response(reply))
+  {
+    mode_ = SmtLibMode::ASSERT;
+    bool all_set = false;
+    try
+    {
+      run_command("(" + SET_LOGIC_STR + " ALL)", CommandKind::LOGIC);
+      all_set = true;
+    }
+    catch (SmtException &)
+    {
+      // the command's own error is the one to report
+    }
+    if (all_set)
+    {
+      reply = send_command(cmd);
+    }
+  }
+  switch (kind)
+  {
+    case CommandKind::OPTION:
+    case CommandKind::LOGIC:
+    case CommandKind::RESET:
+    case CommandKind::RESET_ASSERTIONS:
+    case CommandKind::ASSERTION:
+      if (reply != "success")
+      {
+        throw IncorrectUsageException(
+            "The command did not end with a success message from the solver. "
+            "The result was: "
+            + reply);
+      }
+      accepted_commands_.push_back(cmd);
+      break;
+    case CommandKind::CHECK: break;
+    case CommandKind::GET:
+      // print-success does not cover a command that answers with a result
+      if (is_error_response(reply))
+      {
+        throw SmtException("Exception from the solver: " + reply);
+      }
+      break;
+  }
+  switch (kind)
+  {
+    case CommandKind::LOGIC:
+    case CommandKind::ASSERTION: mode_ = SmtLibMode::ASSERT; break;
+    case CommandKind::RESET: mode_ = SmtLibMode::START; break;
+    case CommandKind::RESET_ASSERTIONS:
+      if (mode_ != SmtLibMode::START)
+      {
+        mode_ = SmtLibMode::ASSERT;
+      }
+      break;
+    case CommandKind::CHECK:
+      // sat and unknown both leave a model to read (SMT-LIB 2.6 Section
+      // 4.2.5)
+      mode_ =
+          str_to_result(reply).is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
+      break;
+    case CommandKind::OPTION:
+    case CommandKind::GET: break;
+  }
+  return reply;
 }
 
 void GenericSolver::send_pending_commands() const
@@ -777,8 +828,7 @@ void GenericSolver::send_pending_commands() const
   {
     try
     {
-      run_command(cmd);
-      mode_ = SmtLibMode::ASSERT;
+      run_command(cmd, CommandKind::ASSERTION);
     }
     catch (SmtException &)
     {
@@ -801,9 +851,7 @@ bool GenericSolver::send_or_hold(const std::string & cmd) const
     pending_commands_.push_back(cmd);
     return true;
   }
-  prepare_assertion_command();
-  run_command(cmd);
-  mode_ = SmtLibMode::ASSERT;
+  run_command(cmd, CommandKind::ASSERTION);
   return false;
 }
 
@@ -1854,10 +1902,7 @@ Term GenericSolver::get_value(const Term & t) const
   std::string result =
       run_command("(" + GET_VALUE_STR + " ("
                       + query_text(name_it->first, "get_value") + "))",
-                  false);
-
-  // check that there was no error
-  check_no_error(result);
+                  CommandKind::GET);
 
   std::string value = strip_value_from_result(result);
 
@@ -1969,12 +2014,8 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   require_mode(SmtLibMode::UNSAT,
                "get_unsat_assumptions",
                "the last check must have answered unsat");
-  // run get-unsat-assumptions command
   std::string result =
-      run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", false);
-
-  // check that there was no error
-  check_no_error(result);
+      run_command("(" + GET_UNSAT_ASSUMPTIONS_STR + ")", CommandKind::GET);
 
   // parse the result -- get the assumptions
   UnorderedTermSet assumptions = get_assumptions_from_string(result);
@@ -1984,15 +2025,6 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   {
     auto it = labelled_assumptions.find(a);
     out.insert(it == labelled_assumptions.end() ? a : it->second);
-  }
-}
-
-void GenericSolver::check_no_error(std::string str) const
-{
-  str = trim(str);
-  if (is_error_response(str))
-  {
-    throw SmtException("Exception from the solver: " + str);
   }
 }
 
@@ -2146,8 +2178,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   std::string result =
       run_command("(" + GET_VALUE_STR + " ("
                       + query_text(name_it->first, "get_array_values") + "))",
-                  false);
-  check_no_error(result);
+                  CommandKind::GET);
   std::string value = strip_value_from_result(result);
 
   // A binary writes an array value as a chain of stores over a base,
@@ -2186,8 +2217,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 
 void GenericSolver::do_reset()
 {
-  std::string result = run_command("(" + RESET_STR + ")");
-  mode_ = SmtLibMode::START;
+  run_command("(" + RESET_STR + ")", CommandKind::RESET);
   // the binary has forgotten the labels' declarations
   assumption_labels.clear();
   labelled_assumptions.clear();
@@ -2210,14 +2240,16 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
                    "only options may precede it");
     }
   }
-  run_command("(" + SET_OPTION_STR + " :" + option + " " + value + ")");
+  run_command("(" + SET_OPTION_STR + " :" + option + " " + value + ")",
+              CommandKind::OPTION);
 }
 
 void GenericSolver::set_logic(const std::string logic)
 {
-  require_mode(SmtLibMode::START, "set_logic", "only options may precede it");
-  run_command("(" + SET_LOGIC_STR + " " + logic + ")");
-  mode_ = SmtLibMode::ASSERT;
+  // Binaries differ on whether a set-logic may follow a declaration, an
+  // assertion or another set-logic, so that is left to the binary. The
+  // commands held back come first, in the order they were made.
+  run_command("(" + SET_LOGIC_STR + " " + logic + ")", CommandKind::LOGIC);
 }
 
 void GenericSolver::assert_formula(const Term & t)
@@ -2230,9 +2262,7 @@ void GenericSolver::assert_formula(const Term & t)
   std::string name = (*term_name_map)[lt];
 
   // communicate the assertion to the binary of the solver
-  prepare_assertion_command();
-  run_command("(" + ASSERT_STR + " " + name + ")");
-  mode_ = SmtLibMode::ASSERT;
+  run_command("(" + ASSERT_STR + " " + name + ")", CommandKind::ASSERTION);
 }
 
 Result GenericSolver::str_to_result(std::string result) const
@@ -2259,17 +2289,12 @@ Result GenericSolver::str_to_result(std::string result) const
 
 Result GenericSolver::check_sat()
 {
-  prepare_assertion_command();
-  std::string result = run_command("(" + CHECK_SAT_STR + ")", false);
-  Result r = str_to_result(result);
-  // sat and unknown both leave a model to read (SMT-LIB 2.6 Section 4.2.5)
-  mode_ = r.is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
-  return r;
+  return str_to_result(
+      run_command("(" + CHECK_SAT_STR + ")", CommandKind::CHECK));
 }
 
 Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 {
-  prepare_assertion_command();
   std::string names;
   for (Term t : assumptions)
   {
@@ -2282,11 +2307,8 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
   }
 
   // send command to the solver and parse it
-  std::string result =
-      run_command("(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", false);
-  Result r = str_to_result(result);
-  mode_ = r.is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
-  return r;
+  return str_to_result(run_command(
+      "(" + CHECK_SAT_ASSUMING_STR + " (" + names + "))", CommandKind::CHECK));
 }
 
 std::string GenericSolver::assumption_name(const Term & assumption)
@@ -2320,44 +2342,35 @@ std::string GenericSolver::assumption_name(const Term & assumption)
     (*term_name_map)[label] = label_name;
     // global-declarations keeps the label once its scope is popped
     run_command("(" + DECLARE_FUN_STR + " " + label_name + " () "
-                + (*sort_name_map)[assumption->get_sort()] + ")");
-    mode_ = SmtLibMode::ASSERT;
+                    + (*sort_name_map)[assumption->get_sort()] + ")",
+                CommandKind::ASSERTION);
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
   std::string label_name = (*term_name_map)[it->second];
   // a pop takes the implication with it, so it goes in again every time
-  run_command("(" + ASSERT_STR + " (=> " + label_name + " " + name + "))");
-  mode_ = SmtLibMode::ASSERT;
+  run_command("(" + ASSERT_STR + " (=> " + label_name + " " + name + "))",
+              CommandKind::ASSERTION);
   return label_name;
 }
 
 void GenericSolver::do_push(std::uint64_t num)
 {
-  prepare_assertion_command();
-  std::string result =
-      run_command("(" + PUSH_STR + " " + std::to_string(num) + ")");
-  mode_ = SmtLibMode::ASSERT;
+  run_command("(" + PUSH_STR + " " + std::to_string(num) + ")",
+              CommandKind::ASSERTION);
 }
 
 void GenericSolver::do_pop(std::uint64_t num)
 {
-  prepare_assertion_command();
-  std::string result =
-      run_command("(" + POP_STR + " " + std::to_string(num) + ")");
-  mode_ = SmtLibMode::ASSERT;
+  run_command("(" + POP_STR + " " + std::to_string(num) + ")",
+              CommandKind::ASSERTION);
 }
 
 void GenericSolver::do_reset_assertions()
 {
   // global-declarations keeps declarations and definitions through it, so
   // the ones held back go in first
-  send_pending_commands();
-  std::string result = run_command("(" + RESET_ASSERTIONS_STR + ")");
-  if (mode_ != SmtLibMode::START)
-  {
-    mode_ = SmtLibMode::ASSERT;
-  }
+  run_command("(" + RESET_ASSERTIONS_STR + ")", CommandKind::RESET_ASSERTIONS);
 }
 
 }  // namespace smt
