@@ -25,18 +25,6 @@
 #include "ops.h"
 #include "utils.h"
 
-namespace std {
-// defining hash for old compilers
-template <>
-struct hash<msat_symbol_tag>
-{
-  size_t operator()(const msat_symbol_tag t) const
-  {
-    return static_cast<size_t>(t);
-  }
-};
-}  // namespace std
-
 using namespace std;
 
 namespace smt {

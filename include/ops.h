@@ -176,16 +176,6 @@ std::ostream & operator<<(std::ostream & output, const Op o);
 
 // defining hash for old compilers
 namespace std {
-// specialize the hash template for PrimOp
-template <>
-struct hash<smt::PrimOp>
-{
-  size_t operator()(const smt::PrimOp o) const
-  {
-    return static_cast<size_t>(o);
-  }
-};
-
 // specialize the hash template for Op
 template <>
 struct hash<smt::Op>

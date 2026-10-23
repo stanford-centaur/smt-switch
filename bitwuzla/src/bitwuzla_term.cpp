@@ -31,18 +31,6 @@
 #include "smt.h"
 #include "utils.h"
 
-namespace std {
-// specialize the hash template
-template <>
-struct hash<bitwuzla::Kind>
-{
-  size_t operator()(const bitwuzla::Kind bk) const
-  {
-    return static_cast<size_t>(bk);
-  }
-};
-}  // namespace std
-
 namespace smt {
 
 const std::unordered_map<bitwuzla::Kind, PrimOp> bkind2primop(
