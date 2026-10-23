@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <exception>
 #include <map>
 #include <sstream>
 #include <string>
@@ -153,6 +154,21 @@ TEST_P(PrintingTests, Solving)
   s->get_value(b);
 
   expect_replay({ { "unsat" }, { "sat" }, b_is_false });
+}
+
+TEST_P(PrintingTests, RefusedSetLogicIsNotPrinted)
+{
+  bool accepted = true;
+  try
+  {
+    s->set_logic("NOT_A_LOGIC");
+  }
+  catch (std::exception &)
+  {
+    accepted = false;
+  }
+  // printed exactly when the wrapped solver took it
+  EXPECT_EQ(strbuf.str().find("NOT_A_LOGIC") != string::npos, accepted);
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUnsatCoreTests);
