@@ -62,3 +62,21 @@ const std::unordered_map<std::string, std::vector<smt::Result>> qf_uf_tests(
 const std::unordered_map<std::string, std::vector<smt::Result>>
     qf_uf_param_sorts_tests({ { "test-uninterp-sort-nonzero-arity.smt2",
                                 { smt::Result(smt::UNSAT) } } });
+
+const std::unordered_map<std::string, std::vector<smt::Result>> qf_lira_tests({
+    { "test-real-ops.smt2",
+      { smt::Result(smt::SAT),
+        smt::Result(smt::UNSAT),
+        smt::Result(smt::SAT),
+        smt::Result(smt::UNSAT) } },
+});
+
+// read outside strict mode, as they use its extensions
+const std::unordered_map<std::string, std::vector<smt::Result>>
+    qf_lira_nonstrict_tests({
+        { "test-int-real-equalities.smt2",
+          { smt::Result(smt::SAT),
+            smt::Result(smt::UNSAT),
+            smt::Result(smt::SAT),
+            smt::Result(smt::UNSAT) } },
+    });

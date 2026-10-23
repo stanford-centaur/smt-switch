@@ -35,7 +35,10 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibReaderTester);
 class SmtLibReaderTester : public SmtLibReader
 {
  public:
-  explicit SmtLibReaderTester(SmtSolver & solver) : SmtLibReader(solver) {}
+  explicit SmtLibReaderTester(SmtSolver & solver, bool strict = false)
+      : SmtLibReader(solver, strict)
+  {
+  }
 
   Result check_sat() override
   {
@@ -69,7 +72,8 @@ class ReaderTests
   {
     s = create_solver(get<0>(GetParam()));
     s->set_opt("produce-models", "true");
-    reader = new SmtLibReaderTester(s);
+    // the test files follow SMT-LIB, so a strict reader reads them
+    reader = new SmtLibReaderTester(s, true);
   }
 
   void TearDown() override { delete reader; }
@@ -106,6 +110,24 @@ class ArrayIntReaderTests : public ReaderTests
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpReaderTests);
 class UninterpReaderTests : public ReaderTests
 {
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntRealReaderTests);
+class IntRealReaderTests : public ReaderTests
+{
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NonStrictIntRealReaderTests);
+class NonStrictIntRealReaderTests : public ReaderTests
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(get<0>(GetParam()));
+    s->set_opt("produce-models", "true");
+    // these files use the extensions of the reader outside strict mode
+    reader = new SmtLibReaderTester(s, false);
+  }
 };
 
 TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
@@ -216,6 +238,40 @@ TEST_P(UninterpReaderTests, QF_UF_Smt2Files)
   }
 }
 
+TEST_P(IntRealReaderTests, QF_LIRA_Smt2Files)
+{
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
+  auto testpair = get<1>(GetParam());
+  test += "/qf_lira/" + testpair.first;
+  reader->parse(test);
+  auto results = reader->get_results();
+  auto expected_results = testpair.second;
+  ASSERT_EQ(results.size(), expected_results.size());
+
+  size_t size = results.size();
+  for (size_t i = 0; i < size; i++)
+  {
+    EXPECT_EQ(results[i], expected_results[i]);
+  }
+}
+
+TEST_P(NonStrictIntRealReaderTests, QF_LIRA_Smt2Files)
+{
+  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
+  auto testpair = get<1>(GetParam());
+  test += "/qf_lira/" + testpair.first;
+  reader->parse(test);
+  auto results = reader->get_results();
+  auto expected_results = testpair.second;
+  ASSERT_EQ(results.size(), expected_results.size());
+
+  size_t size = results.size();
+  for (size_t i = 0; i < size; i++)
+  {
+    EXPECT_EQ(results[i], expected_results[i]);
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverIntReaderTests,
     IntReaderTests,
@@ -269,6 +325,22 @@ INSTANTIATE_TEST_SUITE_P(
                          filter_solver_configurations({ PARAM_UNINTERP_SORT })),
                      testing::ValuesIn(qf_uf_param_sorts_tests.begin(),
                                        qf_uf_param_sorts_tests.end())));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverIntRealReaderTests,
+    IntRealReaderTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { THEORY_INT, THEORY_REAL })),
+                     testing::ValuesIn(qf_lira_tests.begin(),
+                                       qf_lira_tests.end())));
+
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverNonStrictIntRealReaderTests,
+    NonStrictIntRealReaderTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { THEORY_INT, THEORY_REAL })),
+                     testing::ValuesIn(qf_lira_nonstrict_tests.begin(),
+                                       qf_lira_nonstrict_tests.end())));
 
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)
 {

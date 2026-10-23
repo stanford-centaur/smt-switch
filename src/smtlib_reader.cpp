@@ -16,6 +16,7 @@
 
 #include "smtlib_reader.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -68,6 +69,25 @@ const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
         { "UF", { FUNCTION } },
         { "S", { STRING } },
     });
+
+// The arithmetic operators that SMT-LIB declares as (op Real Real s), for
+// which the logic AUFLIRA makes an Int argument next to a Real one, and
+// every Int argument of /, syntactic sugar for its conversion with to_real.
+// As :left-assoc or :chainable operators, they take more arguments too.
+const std::unordered_set<PrimOp> real_arith_ops(
+    { Plus, Minus, Mult, Div, Lt, Le, Gt, Ge });
+
+namespace {
+bool has_sort_kind(SortKind sk, const Term & t)
+{
+  return t->get_sort()->get_sort_kind() == sk;
+}
+// Curried form of has_sort_kind(sk, t): returns a predicate on terms.
+auto has_sort_kind(SortKind sk)
+{
+  return [sk](const Term & t) { return has_sort_kind(sk, t); };
+}
+}  // namespace
 
 void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
                                            const Term & t)
@@ -421,6 +441,30 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str) const
     // (at least for the logic that was set)
     return NUM_OPS_AND_NULL;
   }
+}
+
+Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
+{
+  if (po == Minus && args.size() == 1)
+  {
+    return solver_->make_term(Negate, args[0]);
+  }
+
+  if (lookup_sortkind("Int") == INT && lookup_sortkind("Real") == REAL
+      && (real_arith_ops.find(po) != real_arith_ops.end()
+          || (!strict_ && (po == Equal || po == Distinct)))
+      && (po == Div
+          || std::any_of(args.begin(), args.end(), has_sort_kind(REAL))))
+  {
+    for (Term & arg : args)
+    {
+      if (has_sort_kind(INT, arg))
+      {
+        arg = solver_->make_term(To_Real, arg);
+      }
+    }
+  }
+  return solver_->make_term(po, args);
 }
 
 SortKind SmtLibReader::lookup_sortkind(const std::string & str) const
