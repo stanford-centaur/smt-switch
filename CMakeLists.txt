@@ -416,18 +416,25 @@ install(
 )
 
 # find_dependency runs on the consumer's machine, so the modules that locate
-# the solvers have to travel with the package. The remaining modules in cmake/
-# are only used while building smt-switch.
-install(
-  FILES
-    "${PROJECT_SOURCE_DIR}/cmake/FindBitwuzla.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/Findcvc5.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindGMP.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindMathSAT.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindMPFR.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindYices2.cmake"
-  DESTINATION "${SMT_SWITCH_CMAKE_DIR}"
-)
+# the solvers have to travel with the package, each only with a backend that
+# needs it. GMP's and MPFR's go with every package, as which solvers link them
+# varies with how each was built. The remaining modules in cmake/ are only
+# used while building smt-switch.
+set(installed_find_modules FindGMP.cmake FindMPFR.cmake)
+if(BUILD_BITWUZLA)
+  list(APPEND installed_find_modules FindBitwuzla.cmake)
+endif()
+if(BUILD_CVC5)
+  list(APPEND installed_find_modules Findcvc5.cmake)
+endif()
+if(BUILD_MSAT)
+  list(APPEND installed_find_modules FindMathSAT.cmake)
+endif()
+if(BUILD_YICES2)
+  list(APPEND installed_find_modules FindYices2.cmake)
+endif()
+list(TRANSFORM installed_find_modules PREPEND "${PROJECT_SOURCE_DIR}/cmake/")
+install(FILES ${installed_find_modules} DESTINATION "${SMT_SWITCH_CMAKE_DIR}")
 
 # uninstall target
 # copied from https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake
