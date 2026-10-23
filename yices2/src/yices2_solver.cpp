@@ -154,8 +154,8 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     if (ctx)
     {
       throw IncorrectUsageException(
-          "Yices2 can only set incremental before the first assertion or "
-          "check");
+          "Yices2 can only set incremental before the first assertion, "
+          "check or push");
     }
     if (value == "false")
     {
@@ -203,7 +203,8 @@ void Yices2Solver::set_logic(const std::string logic)
   if (ctx)
   {
     throw IncorrectUsageException(
-        "Yices2 can only set the logic before the first assertion or check");
+        "Yices2 can only set the logic before the first assertion, check or "
+        "push");
   }
   // Yices cannot copy a configuration, so try the logic on a scratch one
   // first; a logic Yices rejects, such as one this build does not support,
@@ -495,7 +496,13 @@ void Yices2Solver::do_pop(uint64_t num)
 Term Yices2Solver::get_value(const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
-  model_t * model = yices_get_model(get_context(), true);
+  model_t * model = ctx ? yices_get_model(ctx, true) : nullptr;
+  if (!model)
+  {
+    yices_clear_error();
+    throw IncorrectUsageException(
+        "Last call to check_sat was not sat, cannot get a model.");
+  }
 
   if (!yices_term_is_function(yterm->term))
   {
@@ -589,7 +596,13 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  model_t * model = yices_get_model(get_context(), true);
+  model_t * model = ctx ? yices_get_model(ctx, true) : nullptr;
+  if (!model)
+  {
+    yices_clear_error();
+    throw IncorrectUsageException(
+        "Last call to check_sat was not sat, cannot get a model.");
+  }
 
   // A constant array is a lambda, which Yices' model can apply but not
   // evaluate on its own: asking gives "can't evaluate lambdas". Reading an
@@ -653,9 +666,14 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
 
 void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
+  if (!ctx)
+  {
+    throw IncorrectUsageException(
+        "Last call to check_sat was not unsat, cannot get unsat core.");
+  }
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
-  int32_t err_code = yices_get_unsat_core(get_context(), &ycore);
+  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
   // yices2 documentation: returns -1 if ctx status was not UNSAT
   if (err_code == -1)
   {
