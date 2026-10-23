@@ -165,6 +165,60 @@ bool LoggingSort::compare(const Sort & s) const
 
 std::size_t LoggingSort::hash() const { return wrapped_sort->hash(); }
 
+std::uint64_t LoggingSort::get_width() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no width");
+}
+
+Sort LoggingSort::get_indexsort() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no index sort");
+}
+
+Sort LoggingSort::get_elemsort() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no element sort");
+}
+
+SortVec LoggingSort::get_domain_sorts() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no domain sorts");
+}
+
+Sort LoggingSort::get_codomain_sort() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no codomain sort");
+}
+
+std::string LoggingSort::get_uninterpreted_name() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no uninterpreted name");
+}
+
+std::size_t LoggingSort::get_arity() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no arity");
+}
+
+SortVec LoggingSort::get_uninterpreted_param_sorts() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no uninterpreted param sorts");
+}
+
+Datatype LoggingSort::get_datatype() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no datatype");
+}
+
 // BVLoggingSort
 
 BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t w)
