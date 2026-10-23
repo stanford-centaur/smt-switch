@@ -361,8 +361,9 @@ void PrintingSolver::set_opt(const std::string option, const std::string value)
 
 void PrintingSolver::set_logic(const std::string logic)
 {
-  (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << std::endl;
+  // printed once the solver accepts it, so a refused one is not replayed
   wrapped_solver->set_logic(logic);
+  (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << std::endl;
 }
 
 void PrintingSolver::assert_formula(const Term & t)
