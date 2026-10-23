@@ -16,6 +16,7 @@
 
 #include "sort.h"
 
+#include <cstddef>
 #include <string>
 #include <unordered_map>
 
@@ -154,3 +155,12 @@ std::string AbsSort::to_string() const
 }
 
 }  // namespace smt
+
+namespace std {
+
+size_t hash<smt::Sort>::operator()(const smt::Sort & s) const
+{
+  return s ? s->hash() : 0;
+}
+
+}  // namespace std

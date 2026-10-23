@@ -103,6 +103,6 @@ namespace std {
 template <>
 struct hash<smt::Sort>
 {
-  size_t operator()(const smt::Sort & s) const { return s ? s->hash() : 0; }
+  size_t operator()(const smt::Sort & s) const;
 };
 }  // namespace std

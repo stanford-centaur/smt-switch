@@ -209,11 +209,3 @@ inline TermIter end(const Term & t)
 }
 
 }  // namespace smt
-
-namespace std {
-// Specialize the hash function for data structures
-inline size_t hash<smt::Term>::operator()(const smt::Term & t) const
-{
-  return t ? t->hash() : 0;
-}
-}  // namespace std

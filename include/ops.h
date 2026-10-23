@@ -174,18 +174,11 @@ std::ostream & operator<<(std::ostream & output, const Op o);
 
 }  // namespace smt
 
-// defining hash for old compilers
 namespace std {
-// specialize the hash template for Op
 template <>
 struct hash<smt::Op>
 {
-  size_t operator()(const smt::Op o) const
-  {
-    // The hash function for op computes the string hash
-    hash<string> str_hash;
-    return str_hash(o.to_string());
-  }
+  size_t operator()(const smt::Op o) const;
 };
 }  // namespace std
 
