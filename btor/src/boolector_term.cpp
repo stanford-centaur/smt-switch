@@ -26,19 +26,6 @@
 
 #include "utils.h"
 
-// defining hash for old compilers
-namespace std {
-// specializing template
-template <>
-struct hash<BtorNodeKind>
-{
-  size_t operator()(const BtorNodeKind k) const
-  {
-    return static_cast<size_t>(k);
-  }
-};
-}  // namespace std
-
 namespace smt {
 
 /* global variables */

@@ -107,27 +107,3 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
 std::string to_string(SolverAttribute a);
 
 }  // namespace smt
-
-// define hash for older compilers
-namespace std {
-// specialize template
-template <>
-struct hash<smt::SolverEnum>
-{
-  size_t operator()(const smt::SolverEnum se) const
-  {
-    return static_cast<size_t>(se);
-  }
-};
-
-// specialize template
-template <>
-struct hash<smt::SolverAttribute>
-{
-  size_t operator()(const smt::SolverAttribute sa) const
-  {
-    return static_cast<size_t>(sa);
-  }
-};
-
-}  // namespace std

@@ -23,18 +23,6 @@
 
 #include "exceptions.h"
 
-namespace std {
-// specialize the hash template
-template <>
-struct hash<smt::ResultType>
-{
-  size_t operator()(const smt::ResultType r) const
-  {
-    return static_cast<size_t>(r);
-  }
-};
-}  // namespace std
-
 namespace smt {
 
 const std::unordered_map<ResultType, std::string> result2str({

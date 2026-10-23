@@ -100,16 +100,6 @@ using UnorderedSortSet = std::unordered_set<Sort>;
 
 namespace std {
 
-// for old compilers
-template <>
-struct hash<smt::SortKind>
-{
-  size_t operator()(const smt::SortKind & sk) const
-  {
-    return static_cast<size_t>(sk);
-  }
-};
-
 template <>
 struct hash<smt::Sort>
 {
