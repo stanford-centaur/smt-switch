@@ -111,6 +111,13 @@ if(NOT DEFINED SMT_SWITCH_LIB_TYPE)
   set(SMT_SWITCH_LIB_TYPE SHARED)
 endif()
 
+# The run path that finds a library in the same directory as what loads it
+if(APPLE)
+  set(SMT_SWITCH_RPATH_ORIGIN "@loader_path")
+else()
+  set(SMT_SWITCH_RPATH_ORIGIN "$ORIGIN")
+endif()
+
 # Where the exported package goes. Each backend installs its own export set
 # there, so that a consumer asking for one solver does not have to have the
 # others installed as well.
@@ -352,6 +359,16 @@ if(BUILD_TESTS)
   # The CMakeLists.txt file there sets up googletest
   # and builds all the parametrized tests
   add_subdirectory(tests)
+endif()
+
+# Installed, a shared backend finds libsmt-switch beside it, wherever both
+# went, and its solver where it was linked from.
+if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+  set_target_properties(
+    smt-switch
+    ${SOLVER_BACKEND_LIBS}
+    PROPERTIES INSTALL_RPATH "${SMT_SWITCH_RPATH_ORIGIN}" INSTALL_RPATH_USE_LINK_PATH ON
+  )
 endif()
 
 # install smt-switch
