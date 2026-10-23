@@ -62,4 +62,6 @@ bool operator==(const Result & r1, const Result & r2)
   return r1.result == r2.result;
 }
 
+bool operator!=(const Result & r1, const Result & r2) { return !(r1 == r2); }
+
 }  // namespace smt

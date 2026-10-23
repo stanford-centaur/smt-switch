@@ -182,4 +182,12 @@ INSTANTIATE_TEST_SUITE_P(
     UnitSolveTests,
     testing::ValuesIn(filter_solver_configurations({ TERMITER })));
 
+TEST(Result, ComparesByResultType)
+{
+  EXPECT_EQ(Result(SAT), Result(SAT, "another explanation"));
+  EXPECT_FALSE(Result(SAT) != Result(SAT, "another explanation"));
+  EXPECT_NE(Result(SAT), Result(UNSAT));
+  EXPECT_NE(Result(UNKNOWN), Result());
+}
+
 }  // namespace smt_tests

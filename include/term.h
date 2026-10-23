@@ -134,6 +134,7 @@ class TermIterBase
   virtual Term operator*() const;
   virtual TermIterBase * clone() const = 0;
   bool operator==(const TermIterBase & other) const;
+  bool operator!=(const TermIterBase & other) const;
 
  protected:
   virtual bool equal(const TermIterBase & other) const = 0;
