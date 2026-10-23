@@ -17,6 +17,7 @@
 #include "boolector_sort.h"
 
 #include <cstdint>
+#include <functional>
 #include <sstream>
 #include <utility>
 
@@ -38,19 +39,7 @@ BoolectorSortBase::~BoolectorSortBase()
 
 std::size_t BoolectorSortBase::hash() const
 {
-  // TODO: come up with better hash function
-  std::size_t hash = sk;
-
-  if (sk == BV)
-  {
-    hash ^= get_width();
-  }
-  else if (sk == ARRAY)
-  {
-    hash ^= get_indexsort()->hash();
-    hash ^= get_elemsort()->hash();
-  }
-  return hash;
+  return std::hash<BoolectorSort>{}(sort);
 }
 
 // by default the following get_* methods don't work
