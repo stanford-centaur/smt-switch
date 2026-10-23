@@ -190,6 +190,30 @@ TEST(NullTermIter, CannotBeDereferencedOrIncremented)
   EXPECT_THROW(it++, IncorrectUsageException);
 }
 
+// an iterator over nothing that only knows its position
+class PositionIter : public TermIterBase
+{
+ public:
+  explicit PositionIter(int p) : pos(p) {}
+  TermIterBase * clone() const override { return new PositionIter(pos); }
+
+ protected:
+  bool equal(const TermIterBase & other) const override
+  {
+    return pos == static_cast<const PositionIter &>(other).pos;
+  }
+
+ private:
+  int pos;
+};
+
+TEST(TermIterBase, InequalityNegatesEquality)
+{
+  PositionIter first(0), same(0), second(1);
+  EXPECT_FALSE(first != same);
+  EXPECT_TRUE(first != second);
+}
+
 TEST_P(UnitTests, SelfAssignIter)
 {
   Term x = s->make_symbol("x", bvsort);

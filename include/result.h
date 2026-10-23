@@ -48,5 +48,6 @@ struct Result
 
 std::ostream & operator<<(std::ostream & output, const Result r);
 bool operator==(const Result & r1, const Result & r2);
+bool operator!=(const Result & r1, const Result & r2);
 
 }  // namespace smt

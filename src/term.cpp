@@ -92,6 +92,11 @@ bool TermIterBase::operator==(const TermIterBase & other) const
 {
   return (typeid(*this) == typeid(other)) && equal(other);
 }
+
+bool TermIterBase::operator!=(const TermIterBase & other) const
+{
+  return !(*this == other);
+}
 /* end TermIterBase implementation */
 
 /* TermIter implementation */
