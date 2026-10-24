@@ -140,6 +140,32 @@ TEST_P(UnitTermTests, Array)
   ASSERT_TRUE(arr->is_symbolic_const());
 }
 
+TEST_P(UnitTermTests, SymbolSurvivesSubstitution)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term a = s->make_symbol("a", bvsort);
+  Term b = s->make_symbol("b", bvsort);
+  Term arr = s->make_symbol("arr", arrsort);
+  Term arr2 = s->make_symbol("arr2", arrsort);
+  s->assert_formula(s->make_term(Equal, x, s->make_term(BVAdd, a, b)));
+  s->assert_formula(s->make_term(Equal, y, s->make_term(5, bvsort)));
+  s->assert_formula(s->make_term(Equal, arr, arr2));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  for (const Term & t : { x, y, arr })
+  {
+    EXPECT_TRUE(t->is_symbol()) << t;
+    EXPECT_TRUE(t->is_symbolic_const()) << t;
+    EXPECT_FALSE(t->is_value()) << t;
+    EXPECT_TRUE(t->get_op().is_null()) << t;
+    EXPECT_EQ(t->begin(), t->end()) << t;
+    // iterating must not change the answers
+    EXPECT_TRUE(t->is_symbol()) << t;
+    EXPECT_FALSE(t->is_value()) << t;
+  }
+}
+
 TEST_P(UnitTermTests, TermContainers)
 {
   const size_t num_terms = 20;
