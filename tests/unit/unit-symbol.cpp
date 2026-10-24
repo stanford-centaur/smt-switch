@@ -77,6 +77,13 @@ TEST_P(UnitSymbolTests, GetSymbol)
   EXPECT_THROW(s->get_symbol("nonexistent_symbol"), IncorrectUsageException);
 }
 
+TEST_P(UnitSymbolTests, GetSymbolOnFreshSolver)
+{
+  // the fixture's sorts are made already, so this solver has made nothing
+  SmtSolver fresh = create_solver(GetParam());
+  EXPECT_THROW(fresh->get_symbol("x"), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitSymbol,
                          UnitSymbolTests,
                          testing::ValuesIn(available_solver_configurations()));
