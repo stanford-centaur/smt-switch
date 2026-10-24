@@ -22,6 +22,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -45,13 +46,15 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver();
   /** Creates a solver from a configuration and takes ownership of it: the
    *  solver destroys c. The environment is created from c on first use, so
-   *  options can still be set until then.
+   *  options can still be set until then. set_logic is refused, since the
+   *  configuration for a logic would discard c's settings: make c with
+   *  msat_create_default_config instead.
    */
   explicit MsatSolver(msat_config c);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   void set_opt(const std::string option, const std::string value) override;
-  void set_logic(const std::string log) override;
+  void set_logic(const std::string logic_name) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
   // Overriding check_sat_assuming hides the AbsSmtSolver template that
@@ -146,32 +149,46 @@ class MsatSolver : public AbsSmtSolver
   friend class MsatInterpolatingSolver;
 
  private:
+  /** Destroys the configuration whose handle is repr. */
+  struct ConfigDeleter
+  {
+    void operator()(void * repr) const;
+  };
+  using ConfigPtr = std::unique_ptr<void, ConfigDeleter>;
+  /** @return the MathSAT handle of the configuration cfg holds */
+  static msat_config as_msat_config(const ConfigPtr & cfg);
+
   /** The configuration and the environment made from it. Only get_env()
    *  hands out the environment, so no method can use one that does not
-   *  exist yet.
+   *  exist yet. No configuration is made before one is needed, as MathSAT
+   *  takes a logic only when it makes one.
    */
   class EnvWrapper
   {
    public:
+    /** Starts with no configuration. */
+    EnvWrapper() = default;
     /** Takes ownership of c. */
     explicit EnvWrapper(msat_config c);
     EnvWrapper(const EnvWrapper &) = delete;
     EnvWrapper & operator=(const EnvWrapper &) = delete;
-    ~EnvWrapper();
 
-    /** @return the configuration */
-    msat_config get_config() const;
-    /** Sets an option on the configuration. */
+    /** Sets the logic, by making MathSAT's configuration for it. */
+    void set_logic(const std::string & logic_name);
+    /** Sets an option, or keeps it until there is a configuration. */
     void set_option(const std::string & name, const std::string & value);
     /** @return the environment, created on first use */
     const std::shared_ptr<msat_env> & get_env();
     /** @return whether the environment exists */
     bool is_initialized() const;
-    /** Drops the environment and starts over from a plain configuration. */
+    /** Drops the environment and the configuration. */
     void reset();
 
    private:
-    msat_config cfg;  ///< owned by the wrapper
+    // empty until a configuration is made, and again once env owns it
+    ConfigPtr cfg;
+    // the options set while there is no configuration yet, in order
+    std::vector<std::pair<std::string, std::string>> pending;
     // shared with every term and sort, so the environment lives until the
     // last of them is released, even past reset() or the solver's
     // destruction
