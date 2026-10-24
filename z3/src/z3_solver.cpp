@@ -308,18 +308,21 @@ void Z3Solver::add_constructor(z3::sort dtsort,
   auto z3cons = std::static_pointer_cast<Z3DatatypeConstructorDecl>(cons);
   auto & cname = z3cons->constructorname;
   auto recognizer = "is-"s + cname;
-  for (auto & sort : z3cons->sorts)
+  // the decl keeps its self placeholders, so another datatype it is added to
+  // gets its own sort for them
+  std::vector<z3::sort> sorts = z3cons->sorts;
+  for (auto & sort : sorts)
   {
     if (static_cast<Z3_sort>(sort) == nullptr)
     {
-      sort = dtsort;  // assignment?
+      sort = dtsort;
     }
   }
   cs->add(ctx->str_symbol(cname.c_str()),
           ctx->str_symbol(recognizer.c_str()),
           z3cons->fieldnames.size(),
           z3cons->fieldnames.data(),
-          z3cons->sorts.data());
+          sorts.data());
 }
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
