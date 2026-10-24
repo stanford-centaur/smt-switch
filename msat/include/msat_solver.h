@@ -50,7 +50,6 @@ class MsatSolver : public AbsSmtSolver
   explicit MsatSolver(msat_config c);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
-  ~MsatSolver() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string log) override;
   void assert_formula(const Term & t) override;
@@ -113,14 +112,6 @@ class MsatSolver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
-  msat_config cfg;
-  // marked mutable because want to stick with const interface for functions
-  // but the environment cannot be created before setting options
-  // it will be lazily created when first used (which might be in a const
-  // function), and is null until then
-  // shared with every term and sort, so the environment lives until the last
-  // of them is released, even past reset() or this solver's destruction
-  mutable std::shared_ptr<msat_env> env;
   bool valid_model = false;
   std::string logic;
 
@@ -149,13 +140,46 @@ class MsatSolver : public AbsSmtSolver
   // called before a check-sat or check-sat-assuming call
   void clear_assumption_clauses();
 
-  // initializes the env (if not already done)
-  virtual void initialize_env() const;
-
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
 
   friend class MsatInterpolatingSolver;
+
+ private:
+  /** The configuration and the environment made from it. Only get_env()
+   *  hands out the environment, so no method can use one that does not
+   *  exist yet.
+   */
+  class EnvWrapper
+  {
+   public:
+    /** Takes ownership of c. */
+    explicit EnvWrapper(msat_config c);
+    EnvWrapper(const EnvWrapper &) = delete;
+    EnvWrapper & operator=(const EnvWrapper &) = delete;
+    ~EnvWrapper();
+
+    /** @return the configuration */
+    msat_config get_config() const;
+    /** Sets an option on the configuration. */
+    void set_option(const std::string & name, const std::string & value);
+    /** @return the environment, created on first use */
+    const std::shared_ptr<msat_env> & get_env();
+    /** @return whether the environment exists */
+    bool is_initialized() const;
+    /** Drops the environment and starts over from a plain configuration. */
+    void reset();
+
+   private:
+    msat_config cfg;  ///< owned by the wrapper
+    // shared with every term and sort, so the environment lives until the
+    // last of them is released, even past reset() or the solver's
+    // destruction
+    std::shared_ptr<msat_env> env;
+  };
+
+  // mutable, as const methods such as make_sort create the environment
+  mutable EnvWrapper env_wrapper_;
 };
 
 // Interpolating Solver
