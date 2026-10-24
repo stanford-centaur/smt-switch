@@ -693,7 +693,8 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
 
 Term MsatSolver::get_symbol(const std::string & name) const
 {
-  msat_decl decl = msat_find_decl(*env, name.c_str());
+  // with no environment yet, no symbol has been made
+  msat_decl decl = env ? msat_find_decl(*env, name.c_str()) : msat_decl{};
   if (MSAT_ERROR_DECL(decl))
   {
     // symbol already exists
