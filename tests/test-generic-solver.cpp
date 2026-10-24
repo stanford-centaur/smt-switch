@@ -235,6 +235,23 @@ bool rejects_unknown_options(GenericBinary b)
   return b != GenericBinary::Bitwuzla;
 }
 
+/** Whether the binary takes a second set-logic, which SMT-LIB forbids.
+ *  Boolector and Bitwuzla do.
+ */
+bool accepts_second_logic(GenericBinary b)
+{
+  return b == GenericBinary::Btor || b == GenericBinary::Bitwuzla;
+}
+
+/** Whether the binary takes a set-logic after a declaration made without
+ *  one, which SMT-LIB forbids. cvc5 settles on ALL at the declaration, and
+ *  Yices2 refuses the declaration until it has a logic, so it gets ALL.
+ */
+bool accepts_logic_after_declaration(GenericBinary b)
+{
+  return b != GenericBinary::Cvc5 && b != GenericBinary::Yices2;
+}
+
 // The smallest supported buffer splits each response into as many reads as
 // possible, and the biggest takes most responses in a single read.
 const vector<int> buffer_sizes = { 2, 256 };
@@ -1073,13 +1090,22 @@ TEST_P(GenericSolverTests, StartOnlyOptionAfterLogicThrows)
   EXPECT_THROW(gs->set_opt("produce-models", "true"), IncorrectUsageException);
 }
 
-TEST_P(GenericSolverTests, SetLogicTwiceThrows)
+TEST_P(GenericSolverTests, SecondSetLogicIsLeftToTheBinary)
 {
   // the fixture has set the logic
-  EXPECT_THROW(gs->set_logic("ALL"), IncorrectUsageException);
+  if (accepts_second_logic(binary))
+  {
+    EXPECT_NO_THROW(gs->set_logic("ALL"));
+  }
+  else
+  {
+    EXPECT_THROW(gs->set_logic("ALL"), IncorrectUsageException);
+  }
+  gs->assert_formula(gs->make_term(false));
+  EXPECT_TRUE(gs->check_sat().is_unsat());
 }
 
-TEST_P(GenericSolverTests, DeclarationWithoutLogicSetsAll)
+TEST_P(GenericSolverTests, DeclarationWithoutLogic)
 {
   start_binary();
   // still in start mode, which this option needs
@@ -1090,8 +1116,26 @@ TEST_P(GenericSolverTests, DeclarationWithoutLogicSetsAll)
   gs->assert_formula(gs->make_term(Equal, x, three));
   ASSERT_TRUE(gs->check_sat().is_sat());
   EXPECT_EQ(gs->get_value(x), three);
-  // the declaration set the logic
-  EXPECT_THROW(gs->set_logic("ALL"), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, SetLogicAfterDeclarationIsLeftToTheBinary)
+{
+  start_binary();
+  gs->set_opt("produce-models", "true");
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term x = gs->make_symbol("x", bv_sort);
+  if (accepts_logic_after_declaration(binary))
+  {
+    EXPECT_NO_THROW(gs->set_logic("QF_BV"));
+  }
+  else
+  {
+    EXPECT_THROW(gs->set_logic("QF_BV"), IncorrectUsageException);
+  }
+  Term three = gs->make_term(3, bv_sort);
+  gs->assert_formula(gs->make_term(Equal, x, three));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(x), three);
 }
 
 TEST_P(GenericSolverRealTests, RealStringModels)
