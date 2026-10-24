@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -115,7 +116,11 @@ class Z3Solver : public AbsSmtSolver
   // shared with every term and sort, so the context lives until the last of
   // them is released, even past this solver's destruction
   std::shared_ptr<z3::context> ctx;
-  mutable z3::solver slv;
+  // made for its logic by set_logic, or else as Z3's default by the first
+  // assertion, check or push
+  mutable std::optional<z3::solver> slv;
+  // every option set so far, for slv
+  z3::params solver_params;
   std::unordered_map<std::string, Term> symbol_table;
   ///< keep track of declared symbols to avoid
   ///< redeclaring
