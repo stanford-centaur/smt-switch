@@ -153,11 +153,6 @@ MsatSolver::MsatSolver() : MsatSolver(msat_create_config()) {}
 
 MsatSolver::MsatSolver(msat_config c) : AbsSmtSolver(MSAT), cfg(c) {}
 
-MsatSolver::MsatSolver(msat_config c, msat_env e) : MsatSolver(c)
-{
-  env = share_env(e);
-}
-
 MsatSolver::~MsatSolver()
 {
   // Note: even with this, mathsat leaks
@@ -1051,14 +1046,6 @@ void MsatInterpolatingSolver::set_required_options()
   // solver produces no proofs
   msat_solver_->set_opt("interpolation", "true");
   msat_solver_->set_opt("theory.bv.eager", "false");
-}
-
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c, msat_env e)
-    : MsatInterpolatingSolver(c)
-{
-  // e was created before interpolation could be enabled on c, so it is
-  // never used; the caller handed it over, so destroy it before c goes
-  msat_destroy_env(e);
 }
 
 void MsatInterpolatingSolver::do_set_opt(const string & option,

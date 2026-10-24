@@ -48,12 +48,6 @@ class MsatSolver : public AbsSmtSolver
    *  options can still be set until then.
    */
   explicit MsatSolver(msat_config c);
-  /** Deprecated: create the environment from the configuration with
-   *  MsatSolver(msat_config) instead. Takes ownership of both c and e, and
-   *  uses e as the environment, so no options can be set.
-   */
-  [[deprecated("use MsatSolver(msat_config), which creates the env")]]
-  MsatSolver(msat_config c, msat_env e);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   ~MsatSolver() override;
@@ -176,13 +170,6 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
    *  first use. Every other option on c is left as given.
    */
   explicit MsatInterpolatingSolver(msat_config c);
-  /** Deprecated: use MsatInterpolatingSolver(msat_config). Takes ownership
-   *  of both c and e, like MsatSolver(msat_config, msat_env), but destroys
-   *  e at once: interpolation has to be enabled on the configuration before
-   *  the environment is created, so the solver creates its own.
-   */
-  [[deprecated("use MsatInterpolatingSolver(msat_config); e is destroyed")]]
-  MsatInterpolatingSolver(msat_config c, msat_env e);
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   Result get_interpolant(const Term & A,
