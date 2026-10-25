@@ -111,6 +111,9 @@ class BoolectorTerm : public AbsTerm
   mutable BtorNode * bn;
   // true iff the node is negated
   bool negated;
+  // true iff the node was made as a symbol, fixed at construction because
+  // Boolector overwrites the kind of a symbol it substitutes
+  bool symbol;
   // for iterating args nodes
   mutable BtorArgsIterator ait;
   // for storing nodes before iterating

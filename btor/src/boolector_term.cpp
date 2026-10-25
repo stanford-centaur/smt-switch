@@ -186,10 +186,16 @@ bool BoolectorTermIter::equal(const TermIterBase & other) const
 BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
     : btor(b), node(n), bn(btor_node_real_addr(BTOR_IMPORT_BOOLECTOR_NODE(n)))
 {
-  // BTOR_PARAM_NODE is not a symbol
-  //  because it's not a symbolic constant, it's a free variable
-  //  which will be bound by a lambda
-  if (btor_node_is_proxy(bn))
+  // a substituted symbol becomes a proxy that keeps only its name, and only
+  // symbols are named
+  BtorNode * exp = BTOR_IMPORT_BOOLECTOR_NODE(n);
+  BtorNodeKind k = bn->kind;
+  // functions, parameters, and symbolic constants are all symbols
+  symbol =
+      btor_node_is_regular(exp)
+      && ((k == BTOR_VAR_NODE) || (k == BTOR_UF_NODE) || (k == BTOR_PARAM_NODE)
+          || ((k == BTOR_PROXY_NODE) && btor_node_get_symbol(btor.get(), exp)));
+  if (!symbol && btor_node_is_proxy(bn))
   {
     bn = btor_node_real_addr(btor_node_get_simplified(btor.get(), bn));
   }
@@ -219,7 +225,7 @@ Op BoolectorTerm::get_op() const
   {
     op = Op(BVNot);
   }
-  else
+  else if (!symbol)
   {
     op = lookup_op(btor.get(), node);
   }
@@ -288,14 +294,7 @@ Sort BoolectorTerm::get_sort() const
   return sort;
 }
 
-bool BoolectorTerm::is_symbol() const
-{
-  // functions, parameters, and symbolic constants are all symbols
-  auto bkind = bn->kind;
-  return !negated
-         && ((bkind == BTOR_VAR_NODE) || (bkind == BTOR_UF_NODE)
-             || (bkind == BTOR_PARAM_NODE));
-}
+bool BoolectorTerm::is_symbol() const { return symbol; }
 
 bool BoolectorTerm::is_param() const
 {
@@ -459,7 +458,8 @@ bool BoolectorTerm::is_const_array() const
 
 void BoolectorTerm::collect_children() const
 {
-  if (btor_node_is_proxy(bn))
+  // a substituted symbol is still a leaf, so its proxy is not followed
+  if (!symbol && btor_node_is_proxy(bn))
   {
     bn = btor_node_get_simplified(btor.get(), bn);
     bn = btor_node_real_addr(bn);
