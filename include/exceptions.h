@@ -60,16 +60,22 @@ class IncorrectUsageException : public SmtException
 {
  public:
   using SmtException::SmtException;
+  // defined in the .cpp to anchor the vtable
+  ~IncorrectUsageException() override;
 };
 
 class NotImplementedException : public SmtException
 {
  public:
   using SmtException::SmtException;
+  // defined in the .cpp to anchor the vtable
+  ~NotImplementedException() override;
 };
 
 class InternalSolverException : public SmtException
 {
  public:
   using SmtException::SmtException;
+  // defined in the .cpp to anchor the vtable
+  ~InternalSolverException() override;
 };

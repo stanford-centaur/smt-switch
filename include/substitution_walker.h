@@ -29,5 +29,7 @@ class SubstitutionWalker : public IdentityWalker
 {
  public:
   SubstitutionWalker(const SmtSolver & solver, const UnorderedTermMap & smap);
+  // defined in the .cpp to anchor the vtable
+  ~SubstitutionWalker() override;
 };
 }  // namespace smt

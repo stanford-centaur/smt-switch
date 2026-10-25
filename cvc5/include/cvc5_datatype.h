@@ -17,7 +17,6 @@
 
 #include "cvc5/cvc5.h"
 #include "datatype.h"
-#include "exceptions.h"
 
 namespace smt {
 
@@ -49,24 +48,9 @@ class Cvc5Datatype : public AbsDatatype
 {
  public:
   explicit Cvc5Datatype(cvc5::Datatype t);
-  std::string get_name() const override { return datatype.getName(); }
-  int get_num_constructors() const override
-  {
-    return datatype.getNumConstructors();
-  }
-  int get_num_selectors(std::string cons) const override
-  {
-    for (size_t i = 0; i != datatype.getNumConstructors(); i++)
-    {
-      cvc5::DatatypeConstructor ct = datatype[i];
-      if (ct.getName() == cons)
-      {
-        return ct.getNumSelectors();
-      }
-    }
-    throw IncorrectUsageException(datatype.getName() + "." + cons
-                                  + " not found");
-  }
+  std::string get_name() const override;
+  int get_num_constructors() const override;
+  int get_num_selectors(std::string cons) const override;
 
  protected:
   cvc5::Datatype datatype;

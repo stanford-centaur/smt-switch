@@ -144,6 +144,12 @@ BoolectorUFSort::BoolectorUFSort(const std::shared_ptr<Btor> & b,
 SortVec BoolectorUFSort::get_domain_sorts() const { return domain_sorts; }
 
 Sort BoolectorUFSort::get_codomain_sort() const { return codomain_sort; }
+
+uint64_t BoolectorBVSort::get_width() const { return width; }
+
+Sort BoolectorArraySort::get_indexsort() const { return indexsort; }
+
+Sort BoolectorArraySort::get_elemsort() const { return elemsort; }
 /* end BoolectorSolver implementation */
 
 }  // namespace smt

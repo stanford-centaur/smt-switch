@@ -25,21 +25,24 @@ namespace smt {
 class AbsDatatypeDecl
 {
  public:
-  virtual ~AbsDatatypeDecl() = default;
+  // defined in the .cpp to anchor the vtable
+  virtual ~AbsDatatypeDecl();
   virtual std::string get_name() const = 0;
 };
 
 class AbsDatatypeConstructorDecl
 {
  public:
-  virtual ~AbsDatatypeConstructorDecl() = default;
+  // defined in the .cpp to anchor the vtable
+  virtual ~AbsDatatypeConstructorDecl();
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 
 class AbsDatatype
 {
  public:
-  virtual ~AbsDatatype() = default;
+  // defined in the .cpp to anchor the vtable
+  virtual ~AbsDatatype();
   virtual std::string get_name() const = 0;
   virtual int get_num_selectors(std::string cons) const = 0;
   virtual int get_num_constructors() const = 0;

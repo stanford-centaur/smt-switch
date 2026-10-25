@@ -77,7 +77,7 @@ class BoolectorBVSort : public BoolectorSortBase
 {
  public:
   BoolectorBVSort(const std::shared_ptr<Btor> & b, BoolectorSort s, uint64_t w);
-  uint64_t get_width() const override { return width; };
+  uint64_t get_width() const override;
 
  protected:
   // bit-vector width
@@ -95,8 +95,8 @@ class BoolectorArraySort : public BoolectorSortBase
                      BoolectorSort s,
                      Sort is,
                      Sort es);
-  Sort get_indexsort() const override { return indexsort; };
-  Sort get_elemsort() const override { return elemsort; };
+  Sort get_indexsort() const override;
+  Sort get_elemsort() const override;
 
  protected:
   Sort indexsort;
