@@ -138,18 +138,9 @@ const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
 // other special cases:
 // Apply -- needs to handle arbitrarily many terms
 
-// takes ownership of e, destroying it when the last owner is released
-static std::shared_ptr<msat_env> share_env(msat_env e)
-{
-  return std::shared_ptr<msat_env>(new msat_env(e), [](msat_env * p) {
-    msat_destroy_env(*p);
-    delete p;
-  });
-}
-
 // MsatSolver implementation
 
-MsatSolver::MsatSolver() : MsatSolver(msat_create_config()) {}
+MsatSolver::MsatSolver() : AbsSmtSolver(MSAT) {}
 
 MsatSolver::MsatSolver(msat_config c) : AbsSmtSolver(MSAT), env_wrapper_(c) {}
 
@@ -177,12 +168,10 @@ void MsatSolver::set_opt(const string option, const string value)
   env_wrapper_.set_option(msat_option_name(option), value);
 }
 
-void MsatSolver::set_logic(const std::string log)
+void MsatSolver::set_logic(const std::string logic_name)
 {
-  // TODO: See if there's a correct way to do this
-  // this seems like a no-op (doesn't complain for other sorts)
-  msat_set_option(env_wrapper_.get_config(), "logic", log.c_str());
-  logic = log;
+  env_wrapper_.set_logic(logic_name);
+  logic = logic_name;
 }
 
 void MsatSolver::assert_formula(const Term & t)
@@ -985,16 +974,48 @@ bool MsatSolver::is_initialized() const
   return env_wrapper_.is_initialized();
 }
 
-MsatSolver::EnvWrapper::EnvWrapper(msat_config c) : cfg(c) {}
-
-MsatSolver::EnvWrapper::~EnvWrapper()
+msat_config MsatSolver::as_msat_config(const ConfigPtr & cfg)
 {
-  // the environment goes with its last term or sort; MathSAT does not need
-  // the configuration once the environment exists
-  msat_destroy_config(cfg);
+  return msat_config{ cfg.get() };
 }
 
-msat_config MsatSolver::EnvWrapper::get_config() const { return cfg; }
+MsatSolver::EnvWrapper::EnvWrapper(msat_config c) : cfg(c.repr) {}
+
+void MsatSolver::ConfigDeleter::operator()(void * repr) const
+{
+  msat_destroy_config(msat_config{ repr });
+}
+
+void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
+{
+  // the first term, sort or query makes the environment
+  if (env)
+  {
+    throw IncorrectUsageException(
+        "MathSAT can only set the logic before the first term, sort or "
+        "query");
+  }
+  // MathSAT has no logic option: a logic picks a whole configuration, which
+  // would discard the settings of one the caller gave or a logic set before
+  if (cfg)
+  {
+    throw IncorrectUsageException(
+        "MathSAT can only set the logic once, and not on a configuration it "
+        "was given; make that configuration with msat_create_default_config "
+        "instead");
+  }
+  cfg.reset(msat_create_default_config(logic_name.c_str()).repr);
+  if (!cfg)
+  {
+    throw IncorrectUsageException("MathSAT has no configuration for logic "
+                                  + logic_name);
+  }
+  for (const auto & [name, value] : pending)
+  {
+    set_option(name, value);
+  }
+  pending.clear();
+}
 
 void MsatSolver::EnvWrapper::set_option(const std::string & name,
                                         const std::string & value)
@@ -1003,8 +1024,21 @@ void MsatSolver::EnvWrapper::set_option(const std::string & name,
   {
     throw IncorrectUsageException("Must set options before using solver.");
   }
-  // returns zero on success
-  if (msat_set_option(cfg, name.c_str(), value.c_str()))
+  // msat_set_option returns zero on success
+  if (!cfg)
+  {
+    // with no configuration yet, the option is checked on a plain one and
+    // kept for the configuration made later
+    if (msat_set_option(as_msat_config(ConfigPtr{ msat_create_config().repr }),
+                        name.c_str(),
+                        value.c_str()))
+    {
+      throw InternalSolverException("Option " + name
+                                    + " unsupported in mathsat.");
+    }
+    pending.emplace_back(name, value);
+  }
+  else if (msat_set_option(as_msat_config(cfg), name.c_str(), value.c_str()))
   {
     throw InternalSolverException("Option " + name
                                   + " unsupported in mathsat.");
@@ -1015,7 +1049,31 @@ const std::shared_ptr<msat_env> & MsatSolver::EnvWrapper::get_env()
 {
   if (!env)
   {
-    env = share_env(msat_create_env(cfg));
+    // with no logic set, the plain configuration
+    if (!cfg)
+    {
+      cfg.reset(msat_create_config().repr);
+      for (const auto & [name, value] : pending)
+      {
+        set_option(name, value);
+      }
+      pending.clear();
+    }
+    // msat_set_option checks an option's syntax, not its range
+    msat_env e = msat_create_env(as_msat_config(cfg));
+    if (MSAT_ERROR_ENV(e))
+    {
+      throw InternalSolverException(
+          "MathSAT refused its configuration; an option may be out of range");
+    }
+    // the last owner destroys e and then cfg, as MathSAT forbids destroying
+    // a configuration an environment still uses
+    env = std::shared_ptr<msat_env>(new msat_env(e),
+                                    [c = std::move(cfg)](msat_env * p) mutable {
+                                      msat_destroy_env(*p);
+                                      c.reset();
+                                      delete p;
+                                    });
   }
   return env;
 }
@@ -1024,10 +1082,11 @@ bool MsatSolver::EnvWrapper::is_initialized() const { return env != nullptr; }
 
 void MsatSolver::EnvWrapper::reset()
 {
-  // terms and sorts still held keep the old environment alive
+  // terms and sorts still held keep the old environment alive, and the
+  // configuration it was made from with it
+  cfg.reset();
+  pending.clear();
   env.reset();
-  msat_destroy_config(cfg);
-  cfg = msat_create_config();
 }
 
 // end MsatSolver implementation
