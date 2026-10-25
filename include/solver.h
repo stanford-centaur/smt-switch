@@ -31,7 +31,6 @@
 #include <ranges>
 #endif
 
-#include "exceptions.h"
 #include "result.h"
 #include "smt_defs.h"
 #include "solver_enums.h"
@@ -119,6 +118,9 @@ class AbsSmtSolver
 
   /* Sets a solver logic -- see smt-lib 2 logics
    * SMTLIB: (set-logic <logic>)
+   * SMT-LIB allows it once, before any declaration, definition, assertion,
+   * push or check, and again after reset. Solvers differ on what they
+   * accept beyond that: some even after declarations, or more than once.
    * @param logic name of logic
    */
   virtual void set_logic(const std::string logic) = 0;

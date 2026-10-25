@@ -112,6 +112,25 @@ TEST_P(UnitResetAssertionsTests, ResetAssertionsDropsContexts)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+TEST_P(UnitResetAssertionsTests, ResetAssertionsKeepsDeclarations)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f =
+      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+  s->assert_formula(s->make_term(Equal, s->make_term(Apply, f, x), x));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  s->reset_assertions();
+
+  // both are still declared: usable, and their names taken
+  Term three = s->make_term(3, bvsort);
+  s->assert_formula(s->make_term(Equal, s->make_term(Apply, f, x), three));
+  s->assert_formula(s->make_term(Equal, x, three));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(x), three);
+  EXPECT_THROW(s->make_symbol("x", bvsort), IncorrectUsageException);
+}
+
 // only run this test if built with Boolector
 #ifdef BUILD_BTOR
 TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
