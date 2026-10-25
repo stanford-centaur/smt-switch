@@ -67,6 +67,7 @@ def test_solver_enum(name):
         "ARRAY_MODELS",
         "BOOL_BV1_ALIASING",
         "CONSTARR",
+        "ENUM_DATATYPE",
         "FULL_TRANSFER",
         "LOGGING",
         "PARAM_UNINTERP_SORT",

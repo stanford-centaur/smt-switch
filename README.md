@@ -306,7 +306,8 @@ current limitations along with recommended usage.
   counted: `get_context_level` still starts at 0.
 - The Z3 backend does not support term iteration over quantified expressions,
   though it does for every other kind of term.
-- Datatypes are supported only by cvc5 and Z3
+- Datatypes are supported only by cvc5 and Z3. Yices2 supports enumerations,
+  i.e. datatypes whose constructors have no selectors, as its scalar types
 
 ### Recommended usage
 

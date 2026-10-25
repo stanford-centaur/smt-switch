@@ -1904,7 +1904,7 @@ Term GenericSolver::get_value(const Term & t) const
   // only values of these sorts can be read back
   Sort sort = t->get_sort();
   SortKind sk = sort->get_sort_kind();
-  if (sk != BOOL && sk != BV && sk != INT && sk != REAL)
+  if (sk != BOOL && sk != BV && sk != INT && sk != REAL && sk != DATATYPE)
   {
     throw NotImplementedException(
         "The generic solver cannot get the value of a term of sort kind "
@@ -1985,6 +1985,27 @@ Term GenericSolver::value_from_string(const std::string & value,
     // number strings make_value takes
     resulting_term =
         std::make_shared<GenericTerm>(sort, Op(), TermVec{}, value);
+  }
+  else if (sk == DATATYPE)
+  {
+    // Only a value made by a constructor without selectors is read back,
+    // which is that constructor's name alone, quoted or not. A value with
+    // fields, such as (just 5), is not parsed.
+    std::shared_ptr<GenericDatatype> dt =
+        backend_pointer_cast<GenericSort>(sort)->get_generic_datatype();
+    for (const DatatypeConstructorDecl & con : dt->get_cons_vector())
+    {
+      const std::string name = con->get_name();
+      if (dt->get_num_selectors(name) == 0
+          && (value == name || value == "|" + name + "|"))
+      {
+        return make_term(Apply_Constructor, get_constructor(sort, name));
+      }
+    }
+    throw NotImplementedException(
+        "The generic solver reads back only datatype values made by "
+        "constructors without selectors, not "
+        + value);
   }
   else
   {

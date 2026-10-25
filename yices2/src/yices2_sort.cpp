@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "exceptions.h"
+#include "yices2_datatype.h"
 
 using namespace std;
 
@@ -148,9 +149,12 @@ SortVec Yices2Sort::get_uninterpreted_param_sorts() const
 
 Datatype Yices2Sort::get_datatype() const
 {
-  // Yices2 has no datatypes, so no sort has a datatype
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+  if (get_sort_kind() != DATATYPE)
+  {
+    throw IncorrectUsageException(
+        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+  }
+  return std::make_shared<Yices2Datatype>(type);
 };
 
 bool Yices2Sort::compare(const Sort & s) const
@@ -193,6 +197,11 @@ SortKind Yices2Sort::get_sort_kind() const
   else if (yices_type_is_uninterpreted(type))
   {
     return UNINTERPRETED;
+  }
+  else if (yices_type_is_scalar(type))
+  {
+    // only make_datatype_sorts makes scalar types, each one an enumeration
+    return DATATYPE;
   }
   else
   {

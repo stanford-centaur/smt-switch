@@ -1,6 +1,7 @@
 add_library(
   smt-switch-yices2
   "${SMT_SWITCH_LIB_TYPE}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_datatype.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/yices2_instance_ref.cpp"

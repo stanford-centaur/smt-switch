@@ -42,7 +42,8 @@ namespace smt {
    Terms returned by get_value were not created through the
    smt-switch API, so the LoggingSolver needs to recover some
    information. Most SortKinds are not an issue because they
-   have no Op or children
+   have no Op or children. A datatype's value is recovered by
+   get_value itself, when its constructor has no selectors.
  */
 const std::unordered_set<SortKind> supported_sortkinds_for_get_value(
     { BOOL, BV, INT, STRING, REAL, ARRAY });
@@ -483,6 +484,33 @@ Term LoggingSolver::get_value(const Term & t) const
 {
   Term res;
   SortKind sk = t->get_sort()->get_sort_kind();
+  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
+  if (sk == DATATYPE)
+  {
+    // The value of a constructor without selectors is that constructor
+    // applied, which this solver can build, and which is the value when the
+    // wrapped terms agree. A value with fields would need them recovered.
+    Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
+    Sort sort = t->get_sort();
+    for (const std::shared_ptr<LoggingDatatypeConstructorDecl> & con :
+         std::static_pointer_cast<DatatypeLoggingSort>(sort)
+             ->decl->constructors)
+    {
+      if (con->selectors.empty())
+      {
+        Term val =
+            make_term(Apply_Constructor, get_constructor(sort, con->name));
+        if (std::static_pointer_cast<LoggingTerm>(val)->wrapped_term
+            == wrapped_val)
+        {
+          return val;
+        }
+      }
+    }
+    throw NotImplementedException(
+        "LoggingSolver does not support get_value for a datatype value made "
+        "by a constructor with selectors");
+  }
   if (supported_sortkinds_for_get_value.find(sk)
       == supported_sortkinds_for_get_value.end())
   {
@@ -490,7 +518,6 @@ Term LoggingSolver::get_value(const Term & t) const
         "LoggingSolver does not support get_value for " + to_string(sk));
   }
 
-  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
   if (t->get_sort()->get_sort_kind() != ARRAY)
   {
     Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);

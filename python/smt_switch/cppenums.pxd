@@ -55,6 +55,7 @@ cdef extern from "solver_enums.h" namespace "smt":
     cdef c_SolverAttribute c_ARRAY_FUN_BOOLS "smt::ARRAY_FUN_BOOLS"
     cdef c_SolverAttribute c_UNSAT_CORE "smt::UNSAT_CORE"
     cdef c_SolverAttribute c_THEORY_DATATYPE "smt::THEORY_DATATYPE"
+    cdef c_SolverAttribute c_ENUM_DATATYPE "smt::ENUM_DATATYPE"
     cdef c_SolverAttribute c_QUANTIFIERS "smt::QUANTIFIERS"
     cdef c_SolverAttribute c_UNINTERP_SORT "smt::UNINTERP_SORT"
     cdef c_SolverAttribute c_PARAM_UNINTERP_SORT "smt::PARAM_UNINTERP_SORT"

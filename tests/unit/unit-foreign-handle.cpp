@@ -131,7 +131,7 @@ TEST_P(ForeignDatatypeHandle, ForeignDatatypeNotEqual)
 INSTANTIATE_TEST_SUITE_P(
     ,
     ForeignDatatypeHandle,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    testing::ValuesIn(filter_solver_configurations({ ENUM_DATATYPE })),
     ConfigName());
 
 }  // namespace

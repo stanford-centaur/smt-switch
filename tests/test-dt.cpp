@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <functional>
 #include <set>
+#include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -109,6 +110,25 @@ TEST_P(Datatypes, SelectorBelongsToOneConstructor)
   EXPECT_NO_THROW(s->get_selector(maybesort, "just", "value"));
   EXPECT_THROW(s->get_selector(maybesort, "nothing", "value"),
                IncorrectUsageException);
+}
+
+TEST_P(Datatypes, ValueOfConstructorWithoutSelectors)
+{
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothing =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  s->add_constructor(maybedecl, nothing);
+  s->add_constructor(maybedecl, just);
+  Sort maybesort = s->make_sort(maybedecl);
+
+  Term x = s->make_symbol("x", maybesort);
+  Term nothing_value =
+      s->make_term(Apply_Constructor, s->get_constructor(maybesort, "nothing"));
+  s->assert_formula(s->make_term(Equal, x, nothing_value));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(x), nothing_value);
 }
 
 TEST_P(Datatypes, ConstructorFromTermVec)
@@ -402,6 +422,131 @@ INSTANTIATE_TEST_SUITE_P(
     ,
     Datatypes,
     testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(EnumDatatypes);
+class EnumDatatypes : public ::testing::Test,
+                      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("produce-models", "true");
+    s->set_opt("incremental", "true");
+    DatatypeDecl colordecl = s->make_datatype_decl("Color");
+    for (const string name : { "red", "green", "blue" })
+    {
+      s->add_constructor(colordecl, s->make_datatype_constructor_decl(name));
+    }
+    color = s->make_sort(colordecl);
+  }
+
+  /** The value the constructor `name` of Color makes */
+  Term value(const string & name) const
+  {
+    return s->make_term(Apply_Constructor, s->get_constructor(color, name));
+  }
+
+  /** Whether `t` is the value the constructor `name` of Color makes */
+  Term is(const string & name, const Term & t) const
+  {
+    return s->make_term(Apply_Tester, s->get_tester(color, name), t);
+  }
+
+  SmtSolver s;
+  Sort color;
+};
+
+TEST_P(EnumDatatypes, DescribesItsDatatype)
+{
+  EXPECT_EQ(color->get_sort_kind(), DATATYPE);
+  EXPECT_EQ(color->to_string(), "Color");
+  Datatype dt = color->get_datatype();
+  EXPECT_EQ(dt->get_name(), "Color");
+  EXPECT_EQ(dt->get_num_constructors(), 3);
+  EXPECT_EQ(dt->get_num_selectors("green"), 0);
+
+  EXPECT_THROW(dt->get_num_selectors("purple"), IncorrectUsageException);
+  EXPECT_THROW(s->get_constructor(color, "purple"), IncorrectUsageException);
+  EXPECT_THROW(s->get_tester(color, "purple"), IncorrectUsageException);
+  EXPECT_THROW(s->get_selector(color, "red", "hue"), IncorrectUsageException);
+}
+
+TEST_P(EnumDatatypes, DeclarationsGiveTheirNames)
+{
+  EXPECT_EQ(s->make_datatype_decl("Light")->get_name(), "Light");
+  EXPECT_EQ(s->make_datatype_constructor_decl("on")->get_name(), "on");
+}
+
+TEST_P(EnumDatatypes, DatatypeComparesByDatatype)
+{
+  DatatypeDecl lightdecl = s->make_datatype_decl("Light");
+  s->add_constructor(lightdecl, s->make_datatype_constructor_decl("on"));
+  Sort light = s->make_sort(lightdecl);
+
+  // a backend may hand back a new Datatype on every call
+  Datatype dt = color->get_datatype();
+  Datatype dt_again = color->get_datatype();
+  EXPECT_EQ(dt, dt_again);
+  EXPECT_EQ(std::hash<Datatype>{}(dt), std::hash<Datatype>{}(dt_again));
+  EXPECT_NE(dt, light->get_datatype());
+
+  std::vector<Datatype> datatypes{
+    dt, dt_again, light->get_datatype(), Datatype()
+  };
+  expect_order_agrees_with_equality(datatypes);
+  EXPECT_EQ(std::set<Datatype>(datatypes.begin(), datatypes.end()).size(), 3u);
+}
+
+TEST_P(EnumDatatypes, ConstructorDeclsCompareByName)
+{
+  // left out of any datatype, as in Datatypes.OrderAgreesWithEquality
+  DatatypeConstructorDecl red = s->make_datatype_constructor_decl("red");
+  DatatypeConstructorDecl red_again = s->make_datatype_constructor_decl("red");
+  DatatypeConstructorDecl green = s->make_datatype_constructor_decl("green");
+  ASSERT_EQ(red, red_again);
+  EXPECT_NE(red, green);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(red),
+            std::hash<DatatypeConstructorDecl>{}(red_again));
+
+  std::vector<DatatypeConstructorDecl> decls{
+    red, red_again, green, DatatypeConstructorDecl()
+  };
+  expect_order_agrees_with_equality(decls);
+  EXPECT_EQ(
+      std::set<DatatypeConstructorDecl>(decls.begin(), decls.end()).size(), 3u);
+}
+
+TEST_P(EnumDatatypes, ValuesAreDistinctAndExhaustive)
+{
+  Term x = s->make_symbol("x", color);
+  s->assert_formula(s->make_term(Not, is("red", x)));
+  s->assert_formula(s->make_term(Distinct, x, value("green")));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  Term x_value = s->get_value(x);
+  EXPECT_EQ(x_value, value("blue"));
+  // a generic term prints datatype ops by their smt-switch names
+  if (s->get_solver_enum() != GENERIC_SOLVER || GetParam().is_logging_solver)
+  {
+    EXPECT_EQ(x_value->to_string(), "blue");
+  }
+
+  // the three values are all there are
+  s->push();
+  s->assert_formula(s->make_term(Not, is("blue", x)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+  s->pop();
+
+  // and no two of them are equal
+  s->assert_formula(s->make_term(Equal, value("red"), value("green")));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    EnumDatatypes,
+    testing::ValuesIn(filter_solver_configurations({ ENUM_DATATYPE })),
     ConfigName());
 
 }  // namespace

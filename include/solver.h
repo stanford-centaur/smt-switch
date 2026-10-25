@@ -425,7 +425,8 @@ class AbsSmtSolver
 
   // --------------------------- Datatypes ----------------------------------
   // Algebraic datatypes have been standard SMT-LIB since 2.6, but only cvc5
-  // and Z3 support them. So none of these is pure virtual. Each default lives
+  // and Z3 support them, and Yices2 only enumerations, whose constructors have
+  // no selectors. So none of these is pure virtual. Each default lives
   // in solver.cpp and throws NotImplementedException naming the solver, which
   // a backend without datatypes inherits instead of writing the same throw.
 

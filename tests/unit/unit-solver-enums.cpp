@@ -83,6 +83,7 @@ TEST(UnitSolverEnumNames, EverySolverAttributePrints)
       { ARRAY_FUN_BOOLS, "ARRAY_FUN_BOOLS" },
       { UNSAT_CORE, "UNSAT_CORE" },
       { THEORY_DATATYPE, "THEORY_DATATYPE" },
+      { ENUM_DATATYPE, "ENUM_DATATYPE" },
       { QUANTIFIERS, "QUANTIFIERS" },
       { UNINTERP_SORT, "UNINTERP_SORT" },
       { PARAM_UNINTERP_SORT, "PARAM_UNINTERP_SORT" },
@@ -108,6 +109,17 @@ TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
   }
   // TermTranslator refuses the generic solver whatever it iterates
   EXPECT_FALSE(solver_has_attribute(GENERIC_SOLVER, FULL_TRANSFER));
+}
+
+TEST(UnitSolverAttributes, DatatypesIncludeEnumerations)
+{
+  for (SolverEnum se : available_solver_enums())
+  {
+    if (solver_has_attribute(se, THEORY_DATATYPE))
+    {
+      EXPECT_TRUE(solver_has_attribute(se, ENUM_DATATYPE)) << to_string(se);
+    }
+  }
 }
 
 }  // namespace

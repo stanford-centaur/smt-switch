@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "exceptions.h"
 #include "result.h"
@@ -69,7 +70,6 @@ class Yices2Solver : public AbsSmtSolver
                                     Term & out_const_base) const override;
   void get_unsat_assumptions(UnorderedTermSet & out) const override;
 
-  // The datatype methods are left to AbsSmtSolver, whose defaults throw.
   // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
   // from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
@@ -77,6 +77,31 @@ class Yices2Solver : public AbsSmtSolver
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+
+  // Datatypes are enumerations only, as Yices2's scalar types: see
+  // yices2_datatype.h. A selector is refused with NotImplementedException.
+  // The constant a constructor makes is also the term for the constructor
+  // and for its tester, which Apply_Tester compares against. A scalar type
+  // needs Yices2's UF solver: a context for a logic without one, such as
+  // QF_BV or QF_LIA, refuses a formula over it.
+  Sort make_sort(const DatatypeDecl & d) const override;
+  DatatypeDecl make_datatype_decl(const std::string & s) const override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a

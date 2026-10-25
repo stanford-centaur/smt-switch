@@ -75,6 +75,9 @@ enum SolverAttribute
   UNSAT_CORE,
   // supports datatype theory
   THEORY_DATATYPE,
+  // supports datatypes whose constructors have no selectors, i.e.
+  // enumerations; implied by THEORY_DATATYPE
+  ENUM_DATATYPE,
   // supports quantifiers
   QUANTIFIERS,
   // supports zero arity uninterpreted sorts

@@ -24,10 +24,12 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "solver_utils.h"
 #include "utils.h"
+#include "yices2_datatype.h"
 #include "yices2_extensions.h"
 
 using namespace std;
@@ -582,10 +584,20 @@ static Term term_from_yval(const Yices2Solver & solver,
       }
       return solver.make_term(std::to_string(num), sort, 10);
     }
+    case YVAL_SCALAR: {
+      // the index of a constant of an enumeration or an uninterpreted sort,
+      // which is the term get_value gives
+      int32_t index = 0;
+      type_t type = NULL_TYPE;
+      if (yices_val_get_scalar(model, &node, &index, &type) < 0)
+      {
+        throw InternalSolverException(yices_error_string());
+      }
+      return std::make_shared<Yices2Term>(yices_constant(type, index));
+    }
     case YVAL_UNKNOWN:
     case YVAL_ALGEBRAIC:
     case YVAL_FINITEFIELD:
-    case YVAL_SCALAR:
     case YVAL_TUPLE:
     case YVAL_FUNCTION:
     case YVAL_MAPPING: break;
@@ -837,6 +849,137 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   return std::make_shared<Yices2Sort>(y_sort, sk == FUNCTION);
 }
 
+Sort Yices2Solver::make_sort(const DatatypeDecl & d) const
+{
+  return make_datatype_sort(d);
+}
+
+DatatypeDecl Yices2Solver::make_datatype_decl(const std::string & s) const
+{
+  return std::make_shared<Yices2DatatypeDecl>(s);
+}
+
+DatatypeConstructorDecl Yices2Solver::make_datatype_constructor_decl(
+    const std::string s) const
+{
+  return std::make_shared<Yices2DatatypeConstructorDecl>(s);
+}
+
+void Yices2Solver::add_constructor(DatatypeDecl & dt,
+                                   const DatatypeConstructorDecl & con) const
+{
+  backend_pointer_cast<Yices2DatatypeDecl>(dt)->constructors.push_back(
+      backend_pointer_cast<Yices2DatatypeConstructorDecl>(con)->name);
+}
+
+// a scalar type is an enumeration, which is all Yices2 has of datatypes
+static const char * const no_selectors =
+    "Yices2 supports only datatypes whose constructors have no selectors";
+
+void Yices2Solver::add_selector(DatatypeConstructorDecl & /* dt */,
+                                const std::string & /* name */,
+                                const Sort & /* s */) const
+{
+  throw NotImplementedException(no_selectors);
+}
+
+void Yices2Solver::add_selector_self(DatatypeConstructorDecl & /* dt */,
+                                     const std::string & /* name */) const
+{
+  throw NotImplementedException(no_selectors);
+}
+
+/** Whether `t` is a constant of an enumeration. A model value of an
+ *  uninterpreted sort is a scalar constant too, but not of a scalar type.
+ */
+static bool is_enum_constant(term_t t)
+{
+  return yices_term_constructor(t) == YICES_SCALAR_CONSTANT
+         && yices_type_is_scalar(yices_type_of_term(t));
+}
+
+/** The constant the constructor `name` of the datatype sort `s` makes */
+static term_t enum_constant(const Sort & s, const std::string & name)
+{
+  // throws for a sort that is not a datatype
+  shared_ptr<Yices2Datatype> dt = static_pointer_cast<Yices2Datatype>(
+      backend_pointer_cast<Yices2Sort>(s)->get_datatype());
+  term_t constant = dt->get_constant(name);
+  if (constant == NULL_TERM)
+  {
+    throw IncorrectUsageException("Constructor " + name + " not found");
+  }
+  return constant;
+}
+
+Term Yices2Solver::get_constructor(const Sort & s, std::string name) const
+{
+  return std::make_shared<Yices2Term>(enum_constant(s, name));
+}
+
+Term Yices2Solver::get_tester(const Sort & s, std::string name) const
+{
+  // Yices2 has no tester, so Apply_Tester compares against the constant
+  return std::make_shared<Yices2Term>(enum_constant(s, name));
+}
+
+Term Yices2Solver::get_selector(const Sort & s,
+                                std::string con,
+                                std::string name) const
+{
+  enum_constant(s, con);
+  throw IncorrectUsageException("Constructor " + con + " has no selector "
+                                + name);
+}
+
+SortVec Yices2Solver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls) const
+{
+  // all checked first, so that a refused call makes no type
+  for (const DatatypeDecl & d : decls)
+  {
+    shared_ptr<Yices2DatatypeDecl> yd =
+        backend_pointer_cast<Yices2DatatypeDecl>(d);
+    if (yd->constructors.empty())
+    {
+      throw IncorrectUsageException("Datatype " + yd->name
+                                    + " has no constructors");
+    }
+    // a constructor's constant is found by its name
+    unordered_set<string> names(yd->constructors.begin(),
+                                yd->constructors.end());
+    if (names.size() != yd->constructors.size())
+    {
+      throw IncorrectUsageException("Datatype " + yd->name
+                                    + " has two constructors of one name");
+    }
+  }
+
+  SortVec sorts;
+  sorts.reserve(decls.size());
+  for (const DatatypeDecl & d : decls)
+  {
+    shared_ptr<Yices2DatatypeDecl> yd =
+        backend_pointer_cast<Yices2DatatypeDecl>(d);
+    type_t y_sort = yices_new_scalar_type(yd->constructors.size());
+    if (y_sort == NULL_TYPE)
+    {
+      throw InternalSolverException(take_yices_error());
+    }
+    // Yices names are global, but a type or term keeps the first name it is
+    // given, which printing and Yices2Datatype read, so the same name given
+    // again elsewhere leaves them alone
+    yices_set_type_name(y_sort, yd->name.c_str());
+    for (size_t i = 0; i < yd->constructors.size(); ++i)
+    {
+      yices_set_term_name(yices_constant(y_sort, static_cast<int32_t>(i)),
+                          yd->constructors[i].c_str());
+    }
+    sorts.push_back(std::make_shared<Yices2Sort>(y_sort));
+  }
+  return sorts;
+}
+
 Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
 {
   if (symbol_table.find(name) != symbol_table.end())
@@ -957,6 +1100,29 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   for (const auto & t : terms)
   {
     yterms.push_back(backend_pointer_cast<Yices2Term>(t)->term);
+  }
+
+  // A datatype is an enumeration, whose constructors and testers are the
+  // constants of its scalar type: see get_constructor and get_tester
+  if (op.prim_op == Apply_Constructor)
+  {
+    if (size != 1 || !is_enum_constant(yterms[0]))
+    {
+      throw IncorrectUsageException(
+          "Expecting a constructor and no arguments for apply_constructor, as "
+          "Yices2's constructors take none");
+    }
+    return terms[0];
+  }
+  if (op.prim_op == Apply_Tester)
+  {
+    if (size != 2 || !is_enum_constant(yterms[0])
+        || yices_type_of_term(yterms[1]) != yices_type_of_term(yterms[0]))
+    {
+      throw IncorrectUsageException(
+          "Expecting a tester and a term of its datatype for apply_tester");
+    }
+    return std::make_shared<Yices2Term>(yices_eq(yterms[1], yterms[0]));
   }
 
   term_t res;

@@ -11,6 +11,7 @@ from .cppenums cimport (
     c_ARRAY_FUN_BOOLS,
     c_UNSAT_CORE,
     c_THEORY_DATATYPE,
+    c_ENUM_DATATYPE,
     c_QUANTIFIERS,
     c_UNINTERP_SORT,
     c_PARAM_UNINTERP_SORT,
@@ -67,6 +68,10 @@ globals()["UNSAT_CORE"] = UNSAT_CORE
 cdef SolverAttribute THEORY_DATATYPE = SolverAttribute()
 THEORY_DATATYPE.sa = c_THEORY_DATATYPE
 globals()["THEORY_DATATYPE"] = THEORY_DATATYPE
+
+cdef SolverAttribute ENUM_DATATYPE = SolverAttribute()
+ENUM_DATATYPE.sa = c_ENUM_DATATYPE
+globals()["ENUM_DATATYPE"] = ENUM_DATATYPE
 
 cdef SolverAttribute QUANTIFIERS = SolverAttribute()
 QUANTIFIERS.sa = c_QUANTIFIERS

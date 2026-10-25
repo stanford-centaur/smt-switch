@@ -60,6 +60,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
+            ENUM_DATATYPE,
             QUANTIFIERS,
             UNINTERP_SORT,
             PARAM_UNINTERP_SORT,
@@ -73,6 +74,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             ARRAY_FUN_BOOLS,
             UNSAT_CORE,
             THEORY_DATATYPE,
+            ENUM_DATATYPE,
             QUANTIFIERS,
             UNINTERP_SORT,
             PARAM_UNINTERP_SORT } },
@@ -91,6 +93,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
         //       but something funky happens with testing
         //       has something to do with the context and yices_init
         //       look into this more and re-enable it
+        // Yices2 has no datatypes, but its scalar types are enumerations.
         { YICES2,
           { LOGGING,
             CONSTARR,
@@ -101,6 +104,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             THEORY_REAL,
             ARRAY_FUN_BOOLS,
             ARRAY_MODELS,
+            ENUM_DATATYPE,
             UNINTERP_SORT,
             TIMELIMIT } },
         { Z3,
@@ -115,6 +119,7 @@ const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
             FULL_TRANSFER,
             UNSAT_CORE,
             THEORY_DATATYPE,
+            ENUM_DATATYPE,
             QUANTIFIERS,
             UNINTERP_SORT,
             TIMELIMIT } },
@@ -190,6 +195,7 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
     case ARRAY_FUN_BOOLS: return o << "ARRAY_FUN_BOOLS";
     case UNSAT_CORE: return o << "UNSAT_CORE";
     case THEORY_DATATYPE: return o << "THEORY_DATATYPE";
+    case ENUM_DATATYPE: return o << "ENUM_DATATYPE";
     case QUANTIFIERS: return o << "QUANTIFIERS";
     case UNINTERP_SORT: return o << "UNINTERP_SORT";
     case PARAM_UNINTERP_SORT: return o << "PARAM_UNINTERP_SORT";
