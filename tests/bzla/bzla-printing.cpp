@@ -13,8 +13,9 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 class BitwuzlaPrintingTest : public testing::Test
 {
@@ -166,4 +167,4 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
       "--produce-interpolants");
 }
 
-}  // namespace smt_tests
+}  // namespace

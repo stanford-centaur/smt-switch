@@ -28,9 +28,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 // an interpolator, and the theory it interpolates in: THEORY_INT or
 // THEORY_BV
@@ -516,4 +517,4 @@ INSTANTIATE_TEST_SUITE_P(,
                          ItpTests,
                          testing::ValuesIn(itp_params()),
                          itp_param_name);
-}  // namespace smt_tests
+}  // namespace

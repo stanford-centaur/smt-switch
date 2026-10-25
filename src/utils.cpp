@@ -391,8 +391,6 @@ PrimOp cnf_connective(const Term & t, const Sort & boolsort)
   return NUM_OPS_AND_NULL;
 }
 
-}  // namespace
-
 // Names each connective with a fresh symbol and records its definition,
 // name <-> (connective children), where each child is the name of a
 // connective or an atom
@@ -765,6 +763,8 @@ class EliminateBooleanConstants : public IdentityWalker
  private:
   Sort boolsort_;
 };
+
+}  // namespace
 
 // returns true if the formula is in cnf form else false
 bool is_cnf(Term formula)

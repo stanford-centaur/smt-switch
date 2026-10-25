@@ -25,9 +25,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortingNetworkTests);
 class SortingNetworkTests
@@ -105,4 +106,4 @@ INSTANTIATE_TEST_SUITE_P(
         testing::ValuesIn(available_non_generic_solver_configurations()),
         testing::Values(3, 6, 8)));
 
-}  // namespace smt_tests
+}  // namespace

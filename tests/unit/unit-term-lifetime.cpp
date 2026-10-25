@@ -20,8 +20,9 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TermLifetimeTests);
 class TermLifetimeTests
@@ -133,4 +134,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
     ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

@@ -29,9 +29,10 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 /** A solver's own executable, and the flags that have it read a printed
  *  session given as a file
@@ -266,4 +267,4 @@ INSTANTIATE_TEST_SUITE_P(,
                                                         UNINTERP_SORT })),
                          ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

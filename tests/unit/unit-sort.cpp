@@ -28,8 +28,9 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortTests);
 class UnitSortTests : public ::testing::Test,
@@ -467,4 +468,4 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
                          testing::ValuesIn(filter_solver_configurations(
                              { THEORY_INT, THEORY_REAL })));
 
-}  // namespace smt_tests
+}  // namespace

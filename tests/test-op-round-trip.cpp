@@ -16,8 +16,9 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 class OpRoundTripTests
     : public ::testing::Test,
@@ -551,4 +552,4 @@ INSTANTIATE_TEST_SUITE_P(,
                              { TERMITER, THEORY_BV, QUANTIFIERS })),
                          ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

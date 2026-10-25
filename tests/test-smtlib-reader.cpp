@@ -27,9 +27,10 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibReaderTester);
 class SmtLibReaderTester : public SmtLibReader
@@ -397,4 +398,4 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_non_generic_solver_configurations()),
     ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

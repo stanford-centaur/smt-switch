@@ -23,9 +23,10 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
-namespace smt_tests {
+namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntTests);
 class IntTests : public ::testing::Test,
@@ -346,4 +347,4 @@ INSTANTIATE_TEST_SUITE_P(,
                              { THEORY_INT, THEORY_REAL })),
                          ConfigName());
 
-}  // namespace smt_tests
+}  // namespace

@@ -23,7 +23,7 @@
 
 using namespace smt;
 
-namespace smt_tests {
+namespace {
 
 TEST(MsatConfig, CallerConfigRefusesLogic)
 {
@@ -46,4 +46,4 @@ TEST(MsatConfig, RefusedConfigThrows)
   EXPECT_THROW(s->make_sort(BV, 4), InternalSolverException);
 }
 
-}  // namespace smt_tests
+}  // namespace

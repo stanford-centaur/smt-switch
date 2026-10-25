@@ -28,8 +28,9 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 
-namespace smt_tests {
+namespace {
 
 class MsatPrintingTest : public testing::Test
 {
@@ -153,4 +154,4 @@ TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
                "-interpolation=true");
 }
 
-}  // namespace smt_tests
+}  // namespace

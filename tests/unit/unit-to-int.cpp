@@ -30,17 +30,14 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
-
-namespace smt_tests {
 
 namespace {
 
 const uint64_t uint64_max = numeric_limits<uint64_t>::max();
 const int64_t int64_max = numeric_limits<int64_t>::max();
 const int64_t int64_min = numeric_limits<int64_t>::min();
-
-}  // namespace
 
 class ToIntTests : public ::testing::Test,
                    public ::testing::WithParamInterface<SolverConfiguration>
@@ -355,4 +352,4 @@ TEST(ToIntParsing, DefaultToSignedInt)
   EXPECT_THROW(b.AbsTerm::to_signed_int(), IncorrectUsageException);
 }
 
-}  // namespace smt_tests
+}  // namespace

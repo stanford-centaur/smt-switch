@@ -27,9 +27,8 @@
 #include "smt.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
-
-namespace smt_tests {
 
 namespace {
 
@@ -90,8 +89,6 @@ static_assert(AcceptsAssumptions<TermVec>::value
                   && AcceptsAssumptions<std::set<Term>>::value
                   && AcceptsAssumptions<FreeBeginRange>::value,
               "check_sat_assuming accepts ranges of Terms");
-
-}  // namespace
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolveTests);
 class UnitSolveTests : public ::testing::Test,
@@ -190,4 +187,4 @@ TEST(Result, ComparesByResultType)
   EXPECT_NE(Result(UNKNOWN), Result());
 }
 
-}  // namespace smt_tests
+}  // namespace
