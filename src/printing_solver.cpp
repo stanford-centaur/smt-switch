@@ -65,6 +65,7 @@ class PrintingDatatypeDecl : public AbsDatatypeDecl
 {
  public:
   PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n);
+  std::string get_name() const override;
 
   DatatypeDecl wrapped_decl;
   std::string name;
@@ -89,6 +90,8 @@ PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n)
     : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
+
+std::string PrintingDatatypeDecl::get_name() const { return name; }
 
 /** The constructor declarations of a datatype in SMT-LIB, e.g.
  *  ((nil) (cons (head Int) (tail list))) */

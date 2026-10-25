@@ -33,4 +33,6 @@ LoggingDatatypeDecl::LoggingDatatypeDecl(DatatypeDecl wrapped, std::string n)
 {
 }
 
+std::string LoggingDatatypeDecl::get_name() const { return name; }
+
 }  // namespace smt

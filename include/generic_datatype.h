@@ -24,7 +24,7 @@ class GenericDatatypeDecl : public AbsDatatypeDecl
 {
  public:
   explicit GenericDatatypeDecl(std::string name);
-  std::string get_name() const;
+  std::string get_name() const override;
 
  protected:
   friend class GenericSolver;

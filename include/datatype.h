@@ -26,6 +26,7 @@ class AbsDatatypeDecl
 {
  public:
   virtual ~AbsDatatypeDecl() = default;
+  virtual std::string get_name() const = 0;
 };
 
 class AbsDatatypeConstructorDecl

@@ -3,6 +3,11 @@ namespace smt {
 
 Cvc5DatatypeDecl::Cvc5DatatypeDecl(cvc5::DatatypeDecl t) : datatypedecl(t) {}
 
+std::string Cvc5DatatypeDecl::get_name() const
+{
+  return datatypedecl.getName();
+}
+
 Cvc5DatatypeConstructorDecl::Cvc5DatatypeConstructorDecl(
     cvc5::DatatypeConstructorDecl t)
     : datatypeconstructordecl(t)

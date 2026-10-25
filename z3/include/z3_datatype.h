@@ -11,6 +11,7 @@ class Z3DatatypeDecl : public AbsDatatypeDecl
 {
  public:
   explicit Z3DatatypeDecl(std::string n);
+  std::string get_name() const override;
 
  protected:
   friend class Z3Solver;

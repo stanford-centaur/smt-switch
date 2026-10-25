@@ -25,6 +25,7 @@ class Cvc5DatatypeDecl : public AbsDatatypeDecl
 {
  public:
   explicit Cvc5DatatypeDecl(cvc5::DatatypeDecl t);
+  std::string get_name() const override;
 
  protected:
   cvc5::DatatypeDecl datatypedecl;

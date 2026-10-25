@@ -49,6 +49,7 @@ class LoggingDatatypeDecl : public AbsDatatypeDecl
 {
  public:
   LoggingDatatypeDecl(DatatypeDecl wrapped, std::string n);
+  std::string get_name() const override;
 
  protected:
   DatatypeDecl wrapped_decl;  ///< the underlying declaration
