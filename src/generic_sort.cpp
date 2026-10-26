@@ -219,10 +219,9 @@ bool GenericSort::compare(const Sort & s) const
     case CONSTRUCTOR:
     case SELECTOR:
     case TESTER: {
-      // a component prints as its name, which is unique only within its
-      // datatype
-      return to_string() == s->to_string()
-             && get_datatype()->get_name() == s->get_datatype()->get_name();
+      // the solver makes these only as DatatypeComponentSort, which
+      // compares them itself
+      return false;
     }
     case NUM_SORT_KINDS: {
       // null sorts should not be equal
@@ -411,6 +410,16 @@ DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
   }
 }
 
+bool DatatypeComponentSort::compare(const Sort & s) const
+{
+  // a component prints as its name, which is unique only within its
+  // datatype
+  std::shared_ptr<DatatypeComponentSort> other =
+      std::dynamic_pointer_cast<DatatypeComponentSort>(s);
+  return other && sk == other->sk && name == other->name
+         && dt_sort == other->dt_sort;
+}
+
 std::size_t DatatypeComponentSort::hash() const
 {
   // the name is unique only within the datatype, so mix in the datatype's
@@ -491,11 +500,6 @@ int DatatypeComponentSort::get_num_selectors() const
   std::shared_ptr<GenericDatatype> dt =
       std::static_pointer_cast<GenericDatatype>(dt_sort->get_datatype());
   return dt->get_num_selectors(name);
-}
-
-Datatype DatatypeComponentSort::get_datatype() const
-{
-  return dt_sort->get_datatype();
 }
 
 }  // namespace smt
