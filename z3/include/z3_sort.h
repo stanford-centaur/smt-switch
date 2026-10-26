@@ -54,6 +54,10 @@ class Z3Sort : public AbsSort
 
   // getters for solver-specific objects (EXPERTS only)
   z3::sort get_z3_type() const;
+  /** The sort, as get_datatype wraps it, once checked to be a datatype
+   *  @throws IncorrectUsageException if the sort has no datatype
+   */
+  z3::sort get_z3_datatype() const;
 
  protected:
   // shared with the solver, so the context lives as long as this sort, and

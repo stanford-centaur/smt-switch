@@ -460,8 +460,8 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
   try
   {
     auto z3sort = std::static_pointer_cast<Z3Sort>(s);
-    auto dt = std::static_pointer_cast<Z3Datatype>(z3sort->get_datatype());
-    for (auto cons_raw : dt->datatype.constructors())
+    z3::sort dt = z3sort->get_z3_datatype();
+    for (auto cons_raw : dt.constructors())
     {
       z3::func_decl cons{ *ctx, cons_raw };
       if (cons.name().str() == name) return std::make_shared<Z3Term>(ctx, cons);
@@ -477,17 +477,15 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 Term Z3Solver::get_tester(const Sort & s, std::string name) const
 {
   auto z3sort = std::static_pointer_cast<Z3Sort>(s);
-  auto dt = std::static_pointer_cast<Z3Datatype>(z3sort->get_datatype());
-  for (int i = 0; i < dt->get_num_constructors(); i++)
+  z3::sort dt = z3sort->get_z3_datatype();
+  unsigned num_constructors = Z3_get_datatype_sort_num_constructors(*ctx, dt);
+  for (unsigned i = 0; i < num_constructors; i++)
   {
-    z3::func_decl cons{
-      *ctx, Z3_get_datatype_sort_constructor(*ctx, dt->datatype, i)
-    };
+    z3::func_decl cons{ *ctx, Z3_get_datatype_sort_constructor(*ctx, dt, i) };
     if (cons.name().str() == name)
       return std::make_shared<Z3Term>(
           ctx,
-          z3::func_decl{
-              *ctx, Z3_get_datatype_sort_recognizer(*ctx, dt->datatype, i) });
+          z3::func_decl{ *ctx, Z3_get_datatype_sort_recognizer(*ctx, dt, i) });
   }
   throw IncorrectUsageException("Tester " + name + " not found");
 }

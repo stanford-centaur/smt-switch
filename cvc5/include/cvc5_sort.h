@@ -49,6 +49,10 @@ class Cvc5Sort : public AbsSort
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
   ::cvc5::Sort get_cvc5_sort() const { return sort; };
+  /** The datatype, as get_datatype gives it, without wrapping it
+   *  @throws IncorrectUsageException if the sort has no datatype
+   */
+  ::cvc5::Datatype get_cvc5_datatype() const;
 
  protected:
   ::cvc5::Sort sort;

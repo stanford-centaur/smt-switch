@@ -1049,8 +1049,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     if (gt->get_op() == Apply_Constructor)
     {
       std::shared_ptr<GenericDatatype> dt =
-          std::static_pointer_cast<GenericDatatype>(
-              (gt->get_sort())->get_datatype());
+          std::static_pointer_cast<GenericSort>(gt->get_sort())
+              ->get_generic_datatype();
       nullary_constructor =
           dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
       result = nullary_constructor ? "(" : "";
@@ -1413,7 +1413,7 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
+      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1442,7 +1442,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
+      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1473,7 +1473,7 @@ Term GenericSolver::get_selector(const Sort & s,
                                  std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericDatatype>(s->get_datatype());
+      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)

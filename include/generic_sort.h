@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,8 @@
 #include "sort.h"
 
 namespace smt {
+
+class GenericDatatype;
 
 /** \class GenericSort
  *  An abstract class for generic Sorts
@@ -53,6 +56,10 @@ class GenericSort : public AbsSort
   std::string get_uninterpreted_name() const override;
   std::vector<Sort> get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
+  /** The datatype, as get_datatype gives it, without casting it down
+   *  @throws IncorrectUsageException if the sort has no datatype
+   */
+  virtual std::shared_ptr<GenericDatatype> get_generic_datatype() const;
 
   // hash computed via std::string hash
   std::size_t hash() const override;
@@ -140,14 +147,14 @@ class UninterpretedGenericSort : public GenericSort
 class GenericDatatypeSort : public GenericSort
 {
  public:
-  explicit GenericDatatypeSort(const Datatype & dt);
-  Datatype get_datatype() const override;
+  explicit GenericDatatypeSort(std::shared_ptr<GenericDatatype> dt);
+  std::shared_ptr<GenericDatatype> get_generic_datatype() const override;
   bool compare(const Sort & s) const override;
   std::string compute_string() const override;
   std::string to_string() const override;
 
  protected:
-  Datatype gdt;
+  std::shared_ptr<GenericDatatype> gdt;
 };
 
 /* This class defines a sort class that can represent constructors,
@@ -169,7 +176,7 @@ class DatatypeComponentSort : public GenericSort
 
  protected:
   std::string name;
-  Sort dt_sort;
+  std::shared_ptr<GenericSort> dt_sort;
   Sort selector_sort;
 };
 
