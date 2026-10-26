@@ -105,7 +105,18 @@ class Cvc5Solver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::Solver & get_cvc5_solver();
+
+  /** @return the cvc5 solver; the handle keeps it and its term manager
+   *  alive, so it stays usable after reset() or this solver's destruction,
+   *  though this solver then stops using it
+   */
+  std::shared_ptr<cvc5::Solver> get_cvc5_solver();
+
+  /** @return the term manager of this solver's terms and sorts; the handle
+   *  keeps it alive, so it stays usable after reset() or this solver's
+   *  destruction, though this solver then stops using it
+   */
+  std::shared_ptr<cvc5::TermManager> get_term_manager();
 
  protected:
   void do_push(std::uint64_t num) override;
@@ -113,8 +124,10 @@ class Cvc5Solver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
-  std::unique_ptr<::cvc5::TermManager> term_manager;
-  std::unique_ptr<::cvc5::Solver> solver;
+  // a cvc5 solver together with the term manager it uses
+  struct Instance;
+
+  std::shared_ptr<Instance> instance;
 
   std::unordered_map<std::string, Term> symbol_table;
 };
