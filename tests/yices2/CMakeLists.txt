@@ -1,6 +1,6 @@
 # These include the Yices2 headers, which test-solvers does not pass on,
 # so they link the backend directly.
-set(yices2_direct_tests yices2-polynomial)
+set(yices2_direct_tests yices2-handle yices2-polynomial)
 
 macro(switch_add_yices2_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/yices2/${name}.cpp")
@@ -15,6 +15,7 @@ endmacro()
 
 switch_add_yices2_test(yices2-get-op)
 switch_add_yices2_test(yices2-gtest)
+switch_add_yices2_test(yices2-handle)
 switch_add_yices2_test(yices2-params)
 switch_add_yices2_test(yices2-polynomial)
 switch_add_yices2_test(yices2-queries)
