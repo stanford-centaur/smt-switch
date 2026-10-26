@@ -20,7 +20,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -104,8 +103,17 @@ class Z3Solver : public AbsSmtSolver
                   const UnorderedTermMap & substitution_map) const override;
 
   // getters for solver-specific objects (EXPERTS ONLY)
-  z3::context * get_z3_context();
-  z3::solver * get_z3_solver();
+
+  /** @return the context of this solver's terms and sorts; the handle keeps
+   *  it alive, so it stays usable after this solver's destruction
+   */
+  std::shared_ptr<z3::context> get_z3_context();
+
+  /** @return the Z3 solver, created on first use; the handle keeps it and
+   *  its context alive, so it stays usable after reset() or this solver's
+   *  destruction, though this solver then stops using it
+   */
+  std::shared_ptr<z3::solver> get_z3_solver();
 
  protected:
   void do_push(uint64_t num) override;
@@ -116,9 +124,12 @@ class Z3Solver : public AbsSmtSolver
   // shared with every term and sort, so the context lives until the last of
   // them is released, even past this solver's destruction
   std::shared_ptr<z3::context> ctx;
+  // a Z3 solver together with the context it lives in
+  struct Instance;
+
   // made for its logic by set_logic, or else as Z3's default by the first
   // assertion, check or push
-  mutable std::optional<z3::solver> slv;
+  std::shared_ptr<Instance> instance;
   // every option set so far, for slv
   z3::params solver_params;
   std::unordered_map<std::string, Term> symbol_table;

@@ -161,6 +161,18 @@ const unordered_map<PrimOp, variadic_fun> z3_variadic_ops({
 
 /* Z3Solver implementation */
 
+struct Z3Solver::Instance
+{
+  Instance(const std::shared_ptr<z3::context> & c, const z3::solver & s)
+      : ctx(c), slv(s)
+  {
+  }
+
+  // slv lives in ctx, so ctx is declared first and outlives it
+  std::shared_ptr<z3::context> ctx;
+  z3::solver slv;
+};
+
 Z3Solver::Z3Solver()
     : AbsSmtSolver(Z3),
       ctx(std::make_shared<z3::context>()),
@@ -266,15 +278,15 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     msg += " - not implemented for Z3 backend.";
     throw NotImplementedException(msg.c_str());
   }
-  if (slv)
+  if (instance)
   {
-    slv->set(solver_params);
+    instance->slv.set(solver_params);
   }
 }
 
 void Z3Solver::set_logic(const std::string logic)
 {
-  if (slv)
+  if (instance)
   {
     throw IncorrectUsageException(
         "Z3 can only set the logic once, before the first assertion, check "
@@ -282,13 +294,13 @@ void Z3Solver::set_logic(const std::string logic)
   }
   try
   {
-    slv.emplace(*ctx, logic.c_str());
+    instance = std::make_shared<Instance>(ctx, z3::solver(*ctx, logic.c_str()));
   }
   catch (z3::exception & e)
   {
     throw IncorrectUsageException(e.msg());
   }
-  slv->set(solver_params);
+  instance->slv.set(solver_params);
 }
 
 Term Z3Solver::make_term(bool b) const
@@ -636,7 +648,7 @@ Result Z3Solver::check_sat()
   }
   else if (r == unknown)
   {
-    return Result(UNKNOWN, slv->reason_unknown());
+    return Result(UNKNOWN, instance->slv.reason_unknown());
   }
   else
   {
@@ -672,7 +684,7 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
   }
   else if (r == unknown)
   {
-    return Result(UNKNOWN, slv->reason_unknown());
+    return Result(UNKNOWN, instance->slv.reason_unknown());
   }
   else
   {
@@ -682,10 +694,9 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
 
 void Z3Solver::do_push(uint64_t num)
 {
-  z3::solver * s = get_z3_solver();
   for (uint64_t i = 0; i < num; i++)
   {
-    s->push();
+    get_z3_solver()->push();
   }
 }
 
@@ -698,12 +709,12 @@ Term Z3Solver::get_value(const Term & t) const
   {
     throw IncorrectUsageException("Cannot evaluate a function.");
   }
-  if (!slv)
+  if (!instance)
   {
     throw IncorrectUsageException(
         "Last call to check_sat was not sat, cannot get a model.");
   }
-  z3::model model = slv->get_model();
+  z3::model model = instance->slv.get_model();
   expr eval = model.eval(zterm->term, true);
   return std::make_shared<Z3Term>(ctx, eval);
 }
@@ -713,12 +724,12 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
 {
   out_const_base = nullptr;
   shared_ptr<Z3Term> zarr = static_pointer_cast<Z3Term>(arr);
-  if (!slv)
+  if (!instance)
   {
     throw IncorrectUsageException(
         "Last call to check_sat was not sat, cannot get a model.");
   }
-  z3::model model = slv->get_model();
+  z3::model model = instance->slv.get_model();
   // Z3 gives an array model as a chain of stores over a constant base,
   // outermost store first.
   expr zval = model.eval(zarr->term, true);
@@ -751,12 +762,12 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
   // in smt-switch, should throw exception if last query
   // was check_sat instead of check_sat_assuming
-  if (!last_query_assuming || !slv)
+  if (!last_query_assuming || !instance)
   {
     throw SmtException(
         "Can only call get_unsat_assumptions after check_sat_assuming");
   }
-  expr_vector core = slv->unsat_core();
+  expr_vector core = instance->slv.unsat_core();
   for (const auto & c : core)
   {
     out.insert(std::make_shared<Z3Term>(ctx, c));
@@ -1128,16 +1139,16 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
 void Z3Solver::do_reset()
 {
-  slv.reset();
+  instance.reset();
   symbol_table.clear();
 }
 
 void Z3Solver::do_reset_assertions()
 {
   // the logic stays, as SMT-LIB's reset-assertions keeps it
-  if (slv)
+  if (instance)
   {
-    slv->reset();
+    instance->slv.reset();
   }
 }
 
@@ -1169,16 +1180,16 @@ Term Z3Solver::substitute(const Term term,
   return std::make_shared<Z3Term>(ctx, result);
 }
 
-z3::context * Z3Solver::get_z3_context() { return ctx.get(); }
+std::shared_ptr<z3::context> Z3Solver::get_z3_context() { return ctx; }
 
-z3::solver * Z3Solver::get_z3_solver()
+std::shared_ptr<z3::solver> Z3Solver::get_z3_solver()
 {
-  if (!slv)
+  if (!instance)
   {
-    slv.emplace(*ctx);
-    slv->set(solver_params);
+    instance = std::make_shared<Instance>(ctx, z3::solver(*ctx));
+    instance->slv.set(solver_params);
   }
-  return &*slv;
+  return std::shared_ptr<z3::solver>(instance, &instance->slv);
 }
 
 /* end Z3Solver implementation */
