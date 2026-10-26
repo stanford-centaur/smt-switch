@@ -24,6 +24,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  public:
   Z3DatatypeConstructorDecl(const std::shared_ptr<z3::context> & ctx,
                             std::string name);
+  std::string get_name() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:

@@ -20,6 +20,8 @@ LoggingDatatypeConstructorDecl::LoggingDatatypeConstructorDecl(
 {
 }
 
+std::string LoggingDatatypeConstructorDecl::get_name() const { return name; }
+
 bool LoggingDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {

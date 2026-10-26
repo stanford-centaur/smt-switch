@@ -1,5 +1,8 @@
 #include "cvc5_datatype.h"
 
+#include <string>
+#include <utility>
+
 #include "exceptions.h"
 
 namespace smt {
@@ -12,10 +15,12 @@ std::string Cvc5DatatypeDecl::get_name() const
 }
 
 Cvc5DatatypeConstructorDecl::Cvc5DatatypeConstructorDecl(
-    cvc5::DatatypeConstructorDecl t)
-    : datatypeconstructordecl(t)
+    cvc5::DatatypeConstructorDecl t, std::string n)
+    : datatypeconstructordecl(t), name(std::move(n))
 {
 }
+
+std::string Cvc5DatatypeConstructorDecl::get_name() const { return name; }
 
 bool Cvc5DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const

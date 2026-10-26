@@ -753,7 +753,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   try
   {
     return std::make_shared<Cvc5DatatypeConstructorDecl>(
-        instance->tm.mkDatatypeConstructorDecl(s));
+        instance->tm.mkDatatypeConstructorDecl(s), s);
   }
   catch (::cvc5::CVC5ApiException & e)
   {

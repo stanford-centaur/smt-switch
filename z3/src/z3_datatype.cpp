@@ -24,6 +24,11 @@ Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
 {
 }
 
+std::string Z3DatatypeConstructorDecl::get_name() const
+{
+  return constructorname;
+}
+
 bool Z3DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & other) const
 {
