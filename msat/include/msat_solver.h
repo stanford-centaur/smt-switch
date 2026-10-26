@@ -53,7 +53,12 @@ class MsatSolver : public AbsSmtSolver
   explicit MsatSolver(msat_config c);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
+  /** Sets an option. Refused once the environment exists: MathSAT makes
+   *  every sort and term in it, so the first sort, term, assertion, check
+   *  or push creates it, which fixes the configuration.
+   */
   void set_opt(const std::string option, const std::string value) override;
+  /** Sets the logic. Refused once the environment exists, as set_opt is. */
   void set_logic(const std::string logic_name) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;

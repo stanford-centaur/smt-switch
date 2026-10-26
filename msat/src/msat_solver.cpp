@@ -275,6 +275,11 @@ void MsatSolver::do_pop(uint64_t num)
 
 uint64_t MsatSolver::get_context_level() const
 {
+  // with no environment yet, there are no backtrack points
+  if (!env_wrapper_.is_initialized())
+  {
+    return 0;
+  }
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
   return msat_num_backtrack_points(*env);
 }
@@ -345,6 +350,11 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
 
 void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
+  if (!env_wrapper_.is_initialized())
+  {
+    throw IncorrectUsageException(
+        "MathSAT has no unsat assumptions before a check_sat_assuming");
+  }
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(*env, &core_size);
@@ -853,8 +863,11 @@ void MsatSolver::do_reset()
 
 void MsatSolver::do_reset_assertions()
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  msat_reset_env(*env);
+  // with no environment yet, nothing is asserted
+  if (env_wrapper_.is_initialized())
+  {
+    msat_reset_env(*env_wrapper_.get_env());
+  }
   base_assertions_.clear();
 }
 
@@ -903,7 +916,11 @@ Term MsatSolver::substitute(const Term term,
 
 void MsatSolver::dump_smt2(std::string filename) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  // with no environment yet nothing is asserted, and a throwaway one prints
+  // that without fixing this solver's configuration
+  std::shared_ptr<msat_env> env = env_wrapper_.is_initialized()
+                                      ? env_wrapper_.get_env()
+                                      : EnvWrapper().get_env();
   size_t num_asserted;
   msat_term * assertions = msat_get_asserted_formulas(*env, &num_asserted);
   msat_term all_asserts = msat_make_true(*env);

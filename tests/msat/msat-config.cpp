@@ -10,12 +10,14 @@
  * is left alone.
  * msat_set_option checks an option's syntax but not its range, so an
  * out-of-range value is refused only when the environment is made from the
- * configuration, at the first term, sort or query.
+ * configuration, at the first term, sort or query. A query that needs no
+ * environment must not make one, or it would fix the configuration.
  */
 
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
 
 #include "mathsat.h"
 #include "msat_solver.h"
@@ -44,6 +46,34 @@ TEST(MsatConfig, RefusedConfigThrows)
   EXPECT_THROW(s->make_sort(BV, 4), InternalSolverException);
   // no environment is kept, so the next call is refused too
   EXPECT_THROW(s->make_sort(BV, 4), InternalSolverException);
+}
+
+TEST(MsatConfig, OptionAcceptedAfterContextLevel)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  s->get_context_level();
+  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
+}
+
+TEST(MsatConfig, OptionAcceptedAfterDump)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  s->dump_smt2(testing::TempDir() + "msat-config.smt2");
+  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
+}
+
+TEST(MsatConfig, OptionAcceptedAfterResetAssertions)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  s->reset_assertions();
+  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
+}
+
+TEST(MsatConfig, UnsatAssumptionsRefusedBeforeCheck)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  UnorderedTermSet out;
+  EXPECT_THROW(s->get_unsat_assumptions(out), IncorrectUsageException);
 }
 
 }  // namespace
