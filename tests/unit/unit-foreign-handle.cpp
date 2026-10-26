@@ -74,6 +74,12 @@ TEST_P(ForeignHandle, ForeignTermNotEqual)
   EXPECT_NE(b, a);
 }
 
+TEST_P(ForeignHandle, ForeignSortNotEqual)
+{
+  EXPECT_NE(boolsort, other_boolsort);
+  EXPECT_NE(other_boolsort, boolsort);
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          ForeignHandle,
                          testing::ValuesIn(available_solver_configurations()),

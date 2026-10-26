@@ -142,6 +142,11 @@ SortKind GenericSort::get_sort_kind() const { return sk; }
 
 bool GenericSort::compare(const Sort & s) const
 {
+  // a sort of another solver is not this one, however alike
+  if (!std::dynamic_pointer_cast<GenericSort>(s))
+  {
+    return false;
+  }
   SortKind other_sk = s->get_sort_kind();
   if (sk != other_sk)
   {
