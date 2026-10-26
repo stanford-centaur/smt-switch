@@ -42,6 +42,7 @@ class BoolectorSolver : public AbsSmtSolver
   BoolectorSolver();
   BoolectorSolver(const BoolectorSolver &) = delete;
   BoolectorSolver & operator=(const BoolectorSolver &) = delete;
+  ~BoolectorSolver() override;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
@@ -86,7 +87,11 @@ class BoolectorSolver : public AbsSmtSolver
   // getters for solver-specific objects
   // for interacting with third-party Boolector-specific software
 
-  Btor * get_btor() const { return btor.get(); };
+  /** @return the Boolector instance, which the handle keeps alive; after
+   *  reset() or this solver's destruction it is one this solver no longer
+   *  uses, and queries on it run without this solver's time limit
+   */
+  std::shared_ptr<Btor> get_btor();
 
  protected:
   void do_push(uint64_t num) override;

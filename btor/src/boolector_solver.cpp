@@ -119,6 +119,15 @@ BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
   boolector_set_term(btor.get(), reached_deadline, this);
 }
 
+BoolectorSolver::~BoolectorSolver()
+{
+  // a handle from get_btor() can outlive this solver, so its instance must
+  // not call back into it
+  boolector_set_term(btor.get(), nullptr, nullptr);
+}
+
+std::shared_ptr<Btor> BoolectorSolver::get_btor() { return btor; }
+
 int32_t BoolectorSolver::reached_deadline(void * solver)
 {
   const BoolectorSolver * s = static_cast<const BoolectorSolver *>(solver);
@@ -777,6 +786,9 @@ void BoolectorSolver::do_reset()
   // forget the symbols, so that their names can be declared again; terms
   // still held from before keep the old instance alive
   symbol_table.clear();
+  // a handle from get_btor() keeps the old instance, which then runs
+  // without this solver's time limit
+  boolector_set_term(btor.get(), nullptr, nullptr);
   btor = new_btor();
   boolector_set_term(btor.get(), reached_deadline, this);
   // the new instance starts at context 0 with default options, so the
