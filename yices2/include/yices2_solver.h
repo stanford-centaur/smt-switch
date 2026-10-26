@@ -96,6 +96,16 @@ class Yices2Solver : public AbsSmtSolver
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
 
+  // getters for solver-specific objects
+  // for interacting with third-party Yices2-specific software
+
+  /** @return the context, created on first use; the handle keeps it and the
+   *  Yices instance alive, so it stays usable after reset() or this solver's
+   *  destruction, though this solver then stops using it. Throws
+   *  IncorrectUsageException if Yices rejects the configuration.
+   */
+  std::shared_ptr<context_t> get_context();
+
  protected:
   void do_push(uint64_t num) override;
   void do_pop(uint64_t num) override;
@@ -111,13 +121,8 @@ class Yices2Solver : public AbsSmtSolver
    *  configuration only when it creates a context, so the logic and any
    *  option that changes config must be set before then.
    */
-  mutable context_t * ctx = nullptr;
-  mutable ctx_config_t * config;
-
-  /** Returns the context, creating it from config the first time.
-   *  Throws IncorrectUsageException if Yices rejects the configuration.
-   */
-  context_t * get_context() const;
+  std::shared_ptr<context_t> ctx;
+  ctx_config_t * config;
 
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
   uint64_t pushes_after_unsat = 0;  ///< how many pushes after trivial unsat

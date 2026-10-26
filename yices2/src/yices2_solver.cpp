@@ -122,6 +122,17 @@ const unordered_map<PrimOp, yices_const_variadic_fun> yices_const_variadic_ops(
       { BVAdd, yices_bvsum },
       { BVMul, yices_bvproduct } });
 
+namespace {
+
+// frees a context, keeping the Yices instance alive until then
+struct ContextDeleter
+{
+  Yices2InstanceRef instance;
+  void operator()(context_t * c) const { yices_free_context(c); }
+};
+
+}  // namespace
+
 /* Yices2Solver implementation */
 
 Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2)
@@ -129,14 +140,7 @@ Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2)
   config = yices_new_config();
 }
 
-Yices2Solver::~Yices2Solver()
-{
-  yices_free_config(config);
-  if (ctx)
-  {
-    yices_free_context(ctx);
-  }
-}
+Yices2Solver::~Yices2Solver() { yices_free_config(config); }
 
 void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
@@ -226,17 +230,18 @@ void Yices2Solver::set_logic(const std::string logic)
   yices_default_config_for_logic(config, logic.c_str());
 }
 
-context_t * Yices2Solver::get_context() const
+std::shared_ptr<context_t> Yices2Solver::get_context()
 {
   if (!ctx)
   {
-    ctx = yices_new_context(config);
-    if (!ctx)
+    context_t * c = yices_new_context(config);
+    if (!c)
     {
       throw IncorrectUsageException(
           "Yices2 cannot create a context with the logic and options set: "
           + take_yices_error());
     }
+    ctx = std::shared_ptr<context_t>(c, ContextDeleter());
   }
   return ctx;
 }
@@ -390,7 +395,7 @@ void Yices2Solver::assert_formula(const Term & t)
                                   + t->to_string());
   }
 
-  yices_assert_formula(get_context(), yterm->term);
+  yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {
     std::string msg(yices_error_string());
@@ -401,7 +406,7 @@ void Yices2Solver::assert_formula(const Term & t)
 Result Yices2Solver::check_sat()
 {
   timelimit_start();
-  smt_status_t res = yices_check_context(get_context(), NULL);
+  smt_status_t res = yices_check_context(get_context().get(), NULL);
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -439,7 +444,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
   timelimit_start();
   smt_status_t res = yices_check_context_with_assumptions(
-      get_context(), NULL, y_assumps.size(), y_assumps.data());
+      get_context().get(), NULL, y_assumps.size(), y_assumps.data());
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -468,7 +473,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
 void Yices2Solver::do_push(uint64_t num)
 {
-  if (yices_context_status(get_context()) == YICES_STATUS_UNSAT)
+  if (yices_context_status(get_context().get()) == YICES_STATUS_UNSAT)
   {
     pushes_after_unsat += num;
     return;
@@ -476,7 +481,7 @@ void Yices2Solver::do_push(uint64_t num)
 
   for (size_t i = 0; i < num; ++i)
   {
-    yices_push(get_context());
+    yices_push(get_context().get());
   }
 }
 
@@ -489,14 +494,14 @@ void Yices2Solver::do_pop(uint64_t num)
       pushes_after_unsat--;
       continue;
     }
-    yices_pop(get_context());
+    yices_pop(get_context().get());
   }
 }
 
 Term Yices2Solver::get_value(const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
-  model_t * model = ctx ? yices_get_model(ctx, true) : nullptr;
+  model_t * model = ctx ? yices_get_model(ctx.get(), true) : nullptr;
   if (!model)
   {
     yices_clear_error();
@@ -596,7 +601,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  model_t * model = ctx ? yices_get_model(ctx, true) : nullptr;
+  model_t * model = ctx ? yices_get_model(ctx.get(), true) : nullptr;
   if (!model)
   {
     yices_clear_error();
@@ -673,7 +678,7 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
-  int32_t err_code = yices_get_unsat_core(ctx, &ycore);
+  int32_t err_code = yices_get_unsat_core(ctx.get(), &ycore);
   // yices2 documentation: returns -1 if ctx status was not UNSAT
   if (err_code == -1)
   {
@@ -1123,11 +1128,7 @@ void Yices2Solver::do_reset()
 {
   // only this solver's own state: yices_reset would delete the terms,
   // contexts and configurations of every other solver too
-  if (ctx)
-  {
-    yices_free_context(ctx);
-    ctx = nullptr;
-  }
+  ctx.reset();
   yices_free_config(config);
   config = yices_new_config();
   symbol_table.clear();
@@ -1138,7 +1139,7 @@ void Yices2Solver::do_reset_assertions()
 {
   if (ctx)
   {
-    yices_reset_context(ctx);
+    yices_reset_context(ctx.get());
   }
   pushes_after_unsat = 0;
 }
@@ -1184,7 +1185,7 @@ void Yices2Solver::timelimit_start()
     signal(SIGALRM, yices2_timelimit_handler);
     assert(running_ctx == nullptr);
     assert(!yices2_terminated);
-    running_ctx = get_context();
+    running_ctx = get_context().get();
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(time_limit);
     timer.it_value.tv_usec =
