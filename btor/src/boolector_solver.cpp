@@ -247,7 +247,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
   try
   {
     std::shared_ptr<BoolectorSortBase> bs =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
+        backend_pointer_cast<BoolectorSortBase>(sort);
     // note: give the constant value a null PrimOp
     if (i >= std::numeric_limits<int32_t>::min()
         && i <= std::numeric_limits<int32_t>::max())
@@ -299,9 +299,9 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
   if (sort->get_sort_kind() == ARRAY)
   {
     std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(val);
+        backend_pointer_cast<BoolectorTerm>(val);
     std::shared_ptr<BoolectorSortBase> bs =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
+        backend_pointer_cast<BoolectorSortBase>(sort);
     return std::make_shared<BoolectorTerm>(
         btor, boolector_const_array(btor.get(), bs->sort, bt->node));
   }
@@ -315,8 +315,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 
 void BoolectorSolver::assert_formula(const Term & t)
 {
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(t);
+  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
   boolector_assert(btor.get(), bt->node);
 }
 
@@ -326,8 +325,7 @@ Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
 {
   for (const Term & a : assumptions)
   {
-    std::shared_ptr<BoolectorTerm> bt =
-        std::static_pointer_cast<BoolectorTerm>(a);
+    std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(a);
     assert(boolector_get_width(bt->btor.get(), bt->node) == 1);
     boolector_assume(btor.get(), bt->node);
   }
@@ -374,8 +372,7 @@ void BoolectorSolver::do_pop(uint64_t num) { boolector_pop(btor.get(), num); }
 Term BoolectorSolver::get_value(const Term & t) const
 {
   Term result;
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(t);
+  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
   Sort sort = t->get_sort();
   SortKind sk = sort->get_sort_kind();
   if ((sk == BV) || (sk == BOOL))
@@ -389,7 +386,7 @@ Term BoolectorSolver::get_value(const Term & t) const
   else if (sk == ARRAY)
   {
     std::shared_ptr<BoolectorSortBase> bs =
-        std::static_pointer_cast<BoolectorSortBase>(sort);
+        backend_pointer_cast<BoolectorSortBase>(sort);
 
     std::shared_ptr<BoolectorSortBase> b_elemsort =
         std::static_pointer_cast<BoolectorSortBase>(sort->get_elemsort());
@@ -469,7 +466,7 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   UnorderedTermMap assignments;
 
   std::shared_ptr<BoolectorTerm> barr =
-      std::static_pointer_cast<BoolectorTerm>(arr);
+      backend_pointer_cast<BoolectorTerm>(arr);
 
   char ** bindices;
   char ** bvalues;
@@ -567,7 +564,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
     Sort returnsort = sorts.back();
     std::shared_ptr<BoolectorSortBase> btor_return_sort =
-        std::static_pointer_cast<BoolectorSortBase>(returnsort);
+        backend_pointer_cast<BoolectorSortBase>(returnsort);
 
     // arity is one less, because last sort is return sort
     uint32_t arity = sorts.size() - 1;
@@ -576,7 +573,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     for (size_t i = 0; i < arity; i++)
     {
       std::shared_ptr<BoolectorSortBase> bs =
-          std::static_pointer_cast<BoolectorSortBase>(sorts[i]);
+          backend_pointer_cast<BoolectorSortBase>(sorts[i]);
       btor_sorts.push_back(bs->sort);
     }
 
@@ -589,9 +586,9 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   else if (sk == ARRAY && sorts.size() == 2)
   {
     std::shared_ptr<BoolectorSortBase> btor_idxsort =
-        std::static_pointer_cast<BoolectorSortBase>(sorts[0]);
+        backend_pointer_cast<BoolectorSortBase>(sorts[0]);
     std::shared_ptr<BoolectorSortBase> btor_elemsort =
-        std::static_pointer_cast<BoolectorSortBase>(sorts[1]);
+        backend_pointer_cast<BoolectorSortBase>(sorts[1]);
     BoolectorSort bs = boolector_array_sort(
         btor.get(), btor_idxsort->sort, btor_elemsort->sort);
     return std::make_shared<BoolectorArraySort>(btor, bs, sorts[0], sorts[1]);
@@ -615,7 +612,7 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   }
 
   std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(sort);
+      backend_pointer_cast<BoolectorSortBase>(sort);
 
   SortKind sk = sort->get_sort_kind();
   BoolectorNode * n;
@@ -652,7 +649,7 @@ Term BoolectorSolver::make_param(const std::string /* name */,
                                  const Sort & sort) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(sort);
+      backend_pointer_cast<BoolectorSortBase>(sort);
   // The name goes unused: Boolector keeps one table of names for params and
   // variables, so a named param would refuse a symbol of its name, or be
   // refused by one
@@ -677,7 +674,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   nodes.reserve(size);
   for (const auto & t : terms)
   {
-    nodes.push_back(std::static_pointer_cast<BoolectorTerm>(t)->node);
+    nodes.push_back(backend_pointer_cast<BoolectorTerm>(t)->node);
   }
 
   BoolectorNode * btor_res;
@@ -821,15 +818,14 @@ Term BoolectorSolver::substitute(
 {
   BoolectorNodeMap * bmap = boolector_nodemap_new(btor.get());
 
-  std::shared_ptr<BoolectorTerm> bt =
-      std::static_pointer_cast<BoolectorTerm>(term);
+  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(term);
 
   std::shared_ptr<BoolectorTerm> key;
   std::shared_ptr<BoolectorTerm> value;
   for (auto elem : substitution_map)
   {
-    key = std::static_pointer_cast<BoolectorTerm>(elem.first);
-    value = std::static_pointer_cast<BoolectorTerm>(elem.second);
+    key = backend_pointer_cast<BoolectorTerm>(elem.first);
+    value = backend_pointer_cast<BoolectorTerm>(elem.second);
     // boolectornodemap only supports var -> term mappings
     if (!key->is_symbol())
     {

@@ -203,8 +203,9 @@ std::size_t Cvc5Term::get_id() const { return term.getId(); }
 
 bool Cvc5Term::compare(const Term & absterm) const
 {
-  std::shared_ptr<Cvc5Term> other = std::static_pointer_cast<Cvc5Term>(absterm);
-  return term == other->term;
+  std::shared_ptr<Cvc5Term> other =
+      std::dynamic_pointer_cast<Cvc5Term>(absterm);
+  return other && term == other->term;
 }
 
 Op Cvc5Term::get_op() const

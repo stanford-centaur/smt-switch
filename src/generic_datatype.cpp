@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -57,9 +58,9 @@ bool GenericDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
   // Compares based off constructor's name
-  return cons_name
-         == std::static_pointer_cast<GenericDatatypeConstructorDecl>(d)
-                ->get_name();
+  std::shared_ptr<GenericDatatypeConstructorDecl> other =
+      std::dynamic_pointer_cast<GenericDatatypeConstructorDecl>(d);
+  return other && cons_name == other->get_name();
 }
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
@@ -89,7 +90,7 @@ void GenericDatatype::add_constructor(
         "Can't add constructor. It already has been added!");
   }
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
-      std::static_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
+      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
   // Links the constructor to the datatype_decl of the datatype
   gdt_cons->update_stored_dt(dt_decl);
   // Links the datatype to the new constructor

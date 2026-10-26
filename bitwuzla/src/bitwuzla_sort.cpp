@@ -142,8 +142,8 @@ Datatype BzlaSort::get_datatype() const
 
 bool BzlaSort::compare(const Sort & s) const
 {
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(s);
-  return sort == bsort->sort;
+  std::shared_ptr<BzlaSort> bsort = std::dynamic_pointer_cast<BzlaSort>(s);
+  return bsort && sort == bsort->sort;
 }
 
 SortKind BzlaSort::get_sort_kind() const

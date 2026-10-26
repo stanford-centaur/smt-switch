@@ -964,7 +964,7 @@ std::string GenericSolver::query_text(const Term & term,
                                     + term->to_string() + ": it uses " + unknown
                                     + ", declared since the last check");
     }
-    std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(t);
+    std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(t);
     if (!pending && gt->is_ground())
     {
       continue;
@@ -1034,7 +1034,7 @@ void GenericSolver::define_fun(std::string name,
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
   // cast to generic term
-  std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(term);
   bool nullary_constructor = false;
   // generic terms with no operators are represented by their
   // name.
@@ -1260,7 +1260,7 @@ SortVec GenericSolver::make_datatype_sorts(
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
-      std::static_pointer_cast<GenericDatatypeDecl>(d);
+      backend_pointer_cast<GenericDatatypeDecl>(d);
   std::string dt_decl_name = gdt_decl->get_name();
   assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
   std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
@@ -1368,7 +1368,7 @@ void GenericSolver::add_constructor(DatatypeDecl & dt,
                                     const DatatypeConstructorDecl & con) const
 {
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
-      std::static_pointer_cast<GenericDatatypeDecl>(dt);
+      backend_pointer_cast<GenericDatatypeDecl>(dt);
   std::string name = gdt_decl->get_name();
   auto gdt = (*name_datatype_map)[name];
   gdt->add_constructor(con);
@@ -1385,7 +1385,7 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
   newSelector->sort = s;
   newSelector->finalized = true;
   std::shared_ptr<GenericDatatypeConstructorDecl> gdtc =
-      std::static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   gdtc->add_new_selector(*newSelector);
 }
 
@@ -1396,7 +1396,7 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
   std::shared_ptr<SelectorComponents> newSelector =
       std::make_shared<SelectorComponents>();
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
-      std::static_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
   std::string dt_decl_name = gdt_cons->get_dt_name();
 
   newSelector->name = name;
@@ -1413,7 +1413,7 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1442,7 +1442,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1473,7 +1473,7 @@ Term GenericSolver::get_selector(const Sort & s,
                                  std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)
@@ -1509,8 +1509,7 @@ Term GenericSolver::get_selector(const Sort & s,
 Term GenericSolver::store_term(Term term) const
 {
   // cast the term to a GenericTerm
-  std::shared_ptr<GenericTerm> gterm =
-      std::static_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gterm = backend_pointer_cast<GenericTerm>(term);
   // store the term in the maps in case it is not there already
   if (term_name_map->find(gterm) == term_name_map->end())
   {
@@ -2255,7 +2254,7 @@ void GenericSolver::set_logic(const std::string logic)
 void GenericSolver::assert_formula(const Term & t)
 {
   // cast to generic term, as we need to print it to the solver
-  std::shared_ptr<GenericTerm> lt = std::static_pointer_cast<GenericTerm>(t);
+  std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
   assert(term_name_map->find(lt) != term_name_map->end());

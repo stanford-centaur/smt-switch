@@ -213,8 +213,8 @@ std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; };
 bool BoolectorTerm::compare(const Term & absterm) const
 {
   std::shared_ptr<BoolectorTerm> other =
-      std::static_pointer_cast<BoolectorTerm>(absterm);
-  return this->node == other->node;
+      std::dynamic_pointer_cast<BoolectorTerm>(absterm);
+  return other && this->node == other->node;
 }
 
 Op BoolectorTerm::get_op() const

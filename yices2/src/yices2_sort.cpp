@@ -153,8 +153,8 @@ Datatype Yices2Sort::get_datatype() const
 
 bool Yices2Sort::compare(const Sort & s) const
 {
-  shared_ptr<Yices2Sort> ys = std::static_pointer_cast<Yices2Sort>(s);
-  return type == ys->type;
+  shared_ptr<Yices2Sort> ys = std::dynamic_pointer_cast<Yices2Sort>(s);
+  return ys && type == ys->type;
 }
 
 SortKind Yices2Sort::get_sort_kind() const

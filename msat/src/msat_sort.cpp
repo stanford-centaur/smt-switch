@@ -168,8 +168,8 @@ Datatype MsatSort::get_datatype() const
 
 bool MsatSort::compare(const Sort & s) const
 {
-  std::shared_ptr<MsatSort> msort = std::static_pointer_cast<MsatSort>(s);
-  return msat_type_equals(type, msort->type);
+  std::shared_ptr<MsatSort> msort = std::dynamic_pointer_cast<MsatSort>(s);
+  return msort && msat_type_equals(type, msort->type);
 }
 
 SortKind MsatSort::get_sort_kind() const

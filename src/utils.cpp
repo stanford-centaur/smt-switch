@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "identity_walker.h"
 #include "ops.h"
@@ -36,6 +37,41 @@
 #include "term.h"
 
 namespace smt {
+
+namespace detail {
+
+void throw_foreign_handle(const Term & h)
+{
+  throw IncorrectUsageException("Term " + h->to_string()
+                                + " was made by another solver");
+}
+
+void throw_foreign_handle(const Sort & h)
+{
+  throw IncorrectUsageException("Sort " + h->to_string()
+                                + " was made by another solver");
+}
+
+void throw_foreign_handle(const DatatypeDecl & h)
+{
+  throw IncorrectUsageException("Datatype declaration " + h->get_name()
+                                + " was made by another solver");
+}
+
+void throw_foreign_handle(const DatatypeConstructorDecl & h)
+{
+  throw IncorrectUsageException("Datatype constructor declaration "
+                                + h->get_name()
+                                + " was made by another solver");
+}
+
+void throw_foreign_handle(const Datatype & h)
+{
+  throw IncorrectUsageException("Datatype " + h->get_name()
+                                + " was made by another solver");
+}
+
+}  // namespace detail
 
 void op_partition(PrimOp o, const Term & term, TermVec & out)
 {

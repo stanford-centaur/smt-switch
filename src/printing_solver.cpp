@@ -33,6 +33,7 @@
 #include "smtlib_strings.h"
 #include "solver_enums.h"
 #include "sort.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -152,7 +153,7 @@ Sort PrintingSolver::make_sort(const std::string name,
 Sort PrintingSolver::make_sort(const DatatypeDecl & d) const
 {
   std::shared_ptr<PrintingDatatypeDecl> pd =
-      std::static_pointer_cast<PrintingDatatypeDecl>(d);
+      backend_pointer_cast<PrintingDatatypeDecl>(d);
   Sort res = wrapped_solver->make_sort(pd->wrapped_decl);
   (*out_stream) << "(" << DECLARE_DATATYPE_STR << " ((" << pd->name << " 0)) ("
                 << constructors_to_smtlib(*pd) << "))" << std::endl;
@@ -169,7 +170,7 @@ SortVec PrintingSolver::make_datatype_sorts(
   for (const DatatypeDecl & d : decls)
   {
     std::shared_ptr<PrintingDatatypeDecl> pd =
-        std::static_pointer_cast<PrintingDatatypeDecl>(d);
+        backend_pointer_cast<PrintingDatatypeDecl>(d);
     wrapped_decls.push_back(pd->wrapped_decl);
     names += (names.empty() ? "(" : " (") + pd->name + " 0)";
     constructors +=
@@ -198,9 +199,9 @@ void PrintingSolver::add_constructor(DatatypeDecl & dt,
                                      const DatatypeConstructorDecl & con) const
 {
   std::shared_ptr<PrintingDatatypeDecl> pdt =
-      std::static_pointer_cast<PrintingDatatypeDecl>(dt);
+      backend_pointer_cast<PrintingDatatypeDecl>(dt);
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(con);
+      backend_pointer_cast<PrintingDatatypeConstructorDecl>(con);
   wrapped_solver->add_constructor(pdt->wrapped_decl, pcon->wrapped_decl);
   pdt->constructors.push_back(pcon);
 }
@@ -210,7 +211,7 @@ void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
                                   const Sort & s) const
 {
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+      backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector(pcon->wrapped_decl, name, s);
   pcon->selectors.push_back({ name, s });
 }
@@ -219,7 +220,7 @@ void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
                                        const std::string & name) const
 {
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      std::static_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+      backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector_self(pcon->wrapped_decl, name);
   pcon->selectors.push_back({ name, nullptr });
 }

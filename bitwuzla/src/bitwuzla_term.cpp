@@ -156,9 +156,10 @@ std::size_t BzlaTerm::get_id() const
 
 bool BzlaTerm::compare(const Term & absterm) const
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(absterm);
+  std::shared_ptr<BzlaTerm> bterm =
+      std::dynamic_pointer_cast<BzlaTerm>(absterm);
   // in bitwuzla, the pointers will be equivalent iff the terms are equivalent
-  return term == bterm->term;
+  return bterm && term == bterm->term;
 }
 
 Op BzlaTerm::get_op() const

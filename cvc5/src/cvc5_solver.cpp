@@ -342,8 +342,8 @@ Term Cvc5Solver::make_term(std::string val,
 
 Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 {
-  std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(val);
-  std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
+  std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(val);
+  std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
   ::cvc5::Term const_arr = instance->tm.mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
 }
@@ -352,7 +352,7 @@ void Cvc5Solver::assert_formula(const Term & t)
 {
   try
   {
-    std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
+    std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(t);
     instance->solver.assertFormula(cterm->term);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -399,7 +399,7 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
     cvc5assumps.reserve(assumptions.size());
     for (const Term & a : assumptions)
     {
-      cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
+      cvc5assumps.push_back(backend_pointer_cast<Cvc5Term>(a)->term);
     }
 
     ::cvc5::Result r = instance->solver.checkSatAssuming(cvc5assumps);
@@ -456,7 +456,7 @@ Term Cvc5Solver::get_value(const Term & t) const
 {
   try
   {
-    std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
+    std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(t);
     return std::make_shared<Cvc5Term>(instance->solver.getValue(cterm->term));
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -471,7 +471,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
   try
   {
     out_const_base = nullptr;
-    cvc5::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
+    cvc5::Term carr = backend_pointer_cast<Cvc5Term>(arr)->term;
     // get the array value
     // cvc5 returns a sequence of stores
     carr = instance->solver.getValue(carr);
@@ -603,20 +603,20 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       ::cvc5::Sort csort;
       for (uint32_t i = 0; i < arity; i++)
       {
-        csort = std::static_pointer_cast<Cvc5Sort>(sorts[i])->sort;
+        csort = backend_pointer_cast<Cvc5Sort>(sorts[i])->sort;
         csorts.push_back(csort);
       }
 
-      csort = std::static_pointer_cast<Cvc5Sort>(sorts.back())->sort;
+      csort = backend_pointer_cast<Cvc5Sort>(sorts.back())->sort;
       ::cvc5::Sort cfunsort = instance->tm.mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
     else if (sk == ARRAY && sorts.size() == 2)
     {
       std::shared_ptr<Cvc5Sort> cidxsort =
-          std::static_pointer_cast<Cvc5Sort>(sorts[0]);
+          backend_pointer_cast<Cvc5Sort>(sorts[0]);
       std::shared_ptr<Cvc5Sort> celemsort =
-          std::static_pointer_cast<Cvc5Sort>(sorts[1]);
+          backend_pointer_cast<Cvc5Sort>(sorts[1]);
       return std::make_shared<Cvc5Sort>(
           instance->tm.mkArraySort(cidxsort->sort, celemsort->sort));
     }
@@ -636,7 +636,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  ::cvc5::Sort csort_con = std::static_pointer_cast<Cvc5Sort>(sort_con)->sort;
+  ::cvc5::Sort csort_con = backend_pointer_cast<Cvc5Sort>(sort_con)->sort;
   if (!csort_con.isUninterpretedSortConstructor())
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
@@ -657,7 +657,7 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   ::cvc5::Sort csort;
   for (uint32_t i = 0; i < arity; i++)
   {
-    csort = std::static_pointer_cast<Cvc5Sort>(sorts[i])->sort;
+    csort = backend_pointer_cast<Cvc5Sort>(sorts[i])->sort;
     csorts.push_back(csort);
   }
 
@@ -683,7 +683,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
 
   try
   {
-    std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
+    std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
     ::cvc5::Term t = instance->tm.mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::Cvc5Term>(t);
     symbol_table[name] = res;
@@ -709,7 +709,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
 {
   try
   {
-    std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
+    std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
     ::cvc5::Term t = instance->tm.mkVar(csort->sort, name);
     return std::make_shared<::smt::Cvc5Term>(t);
   }
@@ -724,7 +724,7 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
   try
   {
     std::shared_ptr<Cvc5DatatypeDecl> cd =
-        std::static_pointer_cast<Cvc5DatatypeDecl>(d);
+        backend_pointer_cast<Cvc5DatatypeDecl>(d);
 
     return std::make_shared<Cvc5Sort>(
         instance->tm.mkDatatypeSort(cd->datatypedecl));
@@ -767,9 +767,9 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
   try
   {
     std::shared_ptr<Cvc5DatatypeDecl> cdt =
-        std::static_pointer_cast<Cvc5DatatypeDecl>(dt);
+        backend_pointer_cast<Cvc5DatatypeDecl>(dt);
     std::shared_ptr<Cvc5DatatypeConstructorDecl> ccon =
-        std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(con);
+        backend_pointer_cast<Cvc5DatatypeConstructorDecl>(con);
     cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -785,8 +785,8 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
   try
   {
     std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
-        std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
-    std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
+        backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
+    std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
     cdt->datatypeconstructordecl.addSelector(name, cs->sort);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -801,7 +801,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
   try
   {
     std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
-        std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
+        backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
     cdt->datatypeconstructordecl.addSelectorSelf(name);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -814,7 +814,7 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
 {
   try
   {
-    std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
+    std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
@@ -837,7 +837,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
 {
   try
   {
-    std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
+    std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
@@ -862,7 +862,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
 {
   try
   {
-    std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
+    std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
     cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
@@ -902,7 +902,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
     for (const auto & d : decls)
     {
       cvc5_decls.push_back(
-          std::static_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
+          backend_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
     }
 
     for (const auto & csort : instance->tm.mkDatatypeSorts(cvc5_decls))
@@ -941,7 +941,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     std::shared_ptr<Cvc5Term> cterm;
     for (auto t : terms)
     {
-      cterm = std::static_pointer_cast<Cvc5Term>(t);
+      cterm = backend_pointer_cast<Cvc5Term>(t);
       cterms.push_back(cterm->term);
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
@@ -1010,11 +1010,11 @@ Term Cvc5Solver::substitute(const Term term,
 
   for (const auto & elem : substitution_map)
   {
-    keys.push_back(std::static_pointer_cast<Cvc5Term>(elem.first)->term);
-    values.push_back(std::static_pointer_cast<Cvc5Term>(elem.second)->term);
+    keys.push_back(backend_pointer_cast<Cvc5Term>(elem.first)->term);
+    values.push_back(backend_pointer_cast<Cvc5Term>(elem.second)->term);
   }
 
-  ::cvc5::Term cterm = std::static_pointer_cast<Cvc5Term>(term)->term;
+  ::cvc5::Term cterm = backend_pointer_cast<Cvc5Term>(term)->term;
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
 }
 
@@ -1107,7 +1107,7 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   solver->push();
   try
   {
-    solver->assertFormula(std::static_pointer_cast<Cvc5Term>(A)->term);
+    solver->assertFormula(backend_pointer_cast<Cvc5Term>(A)->term);
     I = solver->getInterpolant(notB);
   }
   catch (::cvc5::CVC5ApiException & e)

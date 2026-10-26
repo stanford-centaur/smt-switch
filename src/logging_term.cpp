@@ -99,7 +99,11 @@ bool LoggingTerm::compare(const Term & t) const
     return false;
   }
 
-  std::shared_ptr<LoggingTerm> lt = std::static_pointer_cast<LoggingTerm>(t);
+  std::shared_ptr<LoggingTerm> lt = std::dynamic_pointer_cast<LoggingTerm>(t);
+  if (!lt)
+  {
+    return false;
+  }
 
   // compare wrapped term and the LoggingSort
   // this handles values (e.g. null operators and no children)
