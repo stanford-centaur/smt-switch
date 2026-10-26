@@ -112,6 +112,19 @@ static Term make_bzla_term(const std::shared_ptr<bitwuzla::TermManager> & tm,
   }
 }
 
+struct BzlaSolver::Instance
+{
+  Instance(const std::shared_ptr<bitwuzla::TermManager> & term_manager,
+           const bitwuzla::Options & bzla_options)
+      : tm(term_manager), bzla(*tm, bzla_options)
+  {
+  }
+
+  // bzla uses tm, so tm is declared first and outlives it
+  std::shared_ptr<bitwuzla::TermManager> tm;
+  bitwuzla::Bitwuzla bzla;
+};
+
 BzlaSolver::BzlaSolver()
     : AbsSmtSolver(BZLA),
       options(),
@@ -119,16 +132,27 @@ BzlaSolver::BzlaSolver()
 {
 }
 
-bitwuzla::Bitwuzla * BzlaSolver::get_bitwuzla() const
+std::shared_ptr<bitwuzla::Bitwuzla> BzlaSolver::get_bitwuzla()
 {
-  if (!bzla)
-  {
-    bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
-  }
-  return bzla.get();
+  bitwuzla::Bitwuzla & b = bzla();
+  return std::shared_ptr<bitwuzla::Bitwuzla>(instance, &b);
 }
 
-bool BzlaSolver::is_initialized() const { return bzla != nullptr; }
+std::shared_ptr<bitwuzla::TermManager> BzlaSolver::get_term_manager()
+{
+  return tm;
+}
+
+bitwuzla::Bitwuzla & BzlaSolver::bzla() const
+{
+  if (!instance)
+  {
+    instance = std::make_shared<Instance>(tm, options);
+  }
+  return instance->bzla;
+}
+
+bool BzlaSolver::is_initialized() const { return instance != nullptr; }
 
 bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
 {
@@ -201,7 +225,7 @@ void BzlaSolver::set_logic(const std::string /* logic */)
 
 void BzlaSolver::assert_formula(const Term & t)
 {
-  get_bitwuzla()->assert_formula(bzla_term(t));
+  bzla().assert_formula(bzla_term(t));
 }
 
 Result BzlaSolver::check_sat()
@@ -209,7 +233,7 @@ Result BzlaSolver::check_sat()
   bitwuzla::Result r;
   try
   {
-    r = get_bitwuzla()->check_sat();
+    r = bzla().check_sat();
   }
   catch (std::exception & e)
   {
@@ -243,7 +267,7 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   bitwuzla::Result res;
   try
   {
-    res = get_bitwuzla()->check_sat(bzla_assumptions);
+    res = bzla().check_sat(bzla_assumptions);
   }
   catch (std::exception & e)
   {
@@ -265,14 +289,13 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BzlaSolver::do_push(std::uint64_t num) { get_bitwuzla()->push(num); }
+void BzlaSolver::do_push(std::uint64_t num) { bzla().push(num); }
 
-void BzlaSolver::do_pop(std::uint64_t num) { get_bitwuzla()->pop(num); }
+void BzlaSolver::do_pop(std::uint64_t num) { bzla().pop(num); }
 
 Term BzlaSolver::get_value(const Term & t) const
 {
-  return std::make_shared<BzlaTerm>(get_bitwuzla()->get_value(bzla_term(t)),
-                                    tm);
+  return std::make_shared<BzlaTerm>(bzla().get_value(bzla_term(t)), tm);
 }
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
@@ -281,7 +304,7 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
   out_const_base = nullptr;
   // Bitwuzla gives an array model as a chain of stores over a constant
   // base, outermost store first.
-  bitwuzla::Term bval = get_bitwuzla()->get_value(bzla_term(arr));
+  bitwuzla::Term bval = bzla().get_value(bzla_term(arr));
 
   std::vector<std::pair<Term, Term>> stores;
   while (bval.kind() == bitwuzla::Kind::ARRAY_STORE)
@@ -310,7 +333,7 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   std::vector<bitwuzla::Term> bcore;
   try
   {
-    bcore = get_bitwuzla()->get_unsat_assumptions();
+    bcore = bzla().get_unsat_assumptions();
   }
   catch (std::exception & e)
   {
@@ -548,19 +571,16 @@ void BzlaSolver::do_reset()
 {
   // forget the symbols, so that their names can be declared again
   symbol_table.clear();
-  // bzla uses tm, so it is destroyed first; terms still held from before
-  // keep the old term manager alive
-  bzla.reset();
+  instance.reset();
   options = {};
   tm = std::make_shared<bitwuzla::TermManager>();
-  // get_bitwuzla() creates the instance on first use, so options can be
-  // set again until then, as after construction
+  // bzla() creates the instance on first use, so options can be set again
+  // until then, as after construction
 }
 
 void BzlaSolver::do_reset_assertions()
 {
-  bzla.reset();
-  bzla = std::make_unique<bitwuzla::Bitwuzla>(*tm, options);
+  instance = std::make_shared<Instance>(tm, options);
 }
 
 Term BzlaSolver::substitute(const Term term,
@@ -619,7 +639,7 @@ TermVec BzlaSolver::substitute_terms(
 void BzlaSolver::dump_smt2(std::string filename) const
 {
   std::ofstream out(filename);
-  get_bitwuzla()->print_formula(out, "smt2");
+  bzla().print_formula(out, "smt2");
 }
 
 BzlaInterpolatingSolver::BzlaInterpolatingSolver()
@@ -698,8 +718,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   }
 
   // pop formulas that cannot be reused
-  bzla_solver->get_bitwuzla()->pop(last_itp_query_assertions.size()
-                                   - num_reused);
+  bzla_solver->bzla().pop(last_itp_query_assertions.size() - num_reused);
 
   // update the interpolation groups and assertions
   last_itp_query_assertions.resize(num_reused);
@@ -709,8 +728,8 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   for (size_t k = num_reused; k < formulae.size(); ++k)
   {
     // Add a new backtrack point and push the formula.
-    bzla_solver->get_bitwuzla()->push(1);
-    bzla_solver->get_bitwuzla()->assert_formula(bformulae.at(k));
+    bzla_solver->bzla().push(1);
+    bzla_solver->bzla().assert_formula(bformulae.at(k));
     last_itp_query_assertions.push_back(formulae.at(k));
   }
   assert(formulae == last_itp_query_assertions);
@@ -720,7 +739,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     // Note: the dumped query will only include the current assertions
     std::ofstream out(dump_queries_prefix + "."
                       + std::to_string(itp_query_count) + ".smt2");
-    bzla_solver->get_bitwuzla()->print_formula(out, "smt2");
+    bzla_solver->bzla().print_formula(out, "smt2");
     out.close();
   }
   itp_query_count++;
@@ -729,7 +748,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   bitwuzla::Result bzla_res;
   try
   {
-    bzla_res = bzla_solver->get_bitwuzla()->check_sat();
+    bzla_res = bzla_solver->bzla().check_sat();
   }
   catch (std::exception & e)
   {
@@ -755,7 +774,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     partitions.push_back({ bformulae.at(i) });
   }
   const std::vector<bitwuzla::Term> itps =
-      bzla_solver->get_bitwuzla()->get_interpolants(partitions);
+      bzla_solver->bzla().get_interpolants(partitions);
   // the interpolants belong to the term manager of the formulae
   const std::shared_ptr<bitwuzla::TermManager> & formulae_tm =
       std::static_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
