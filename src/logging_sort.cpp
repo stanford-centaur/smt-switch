@@ -96,6 +96,11 @@ SortKind LoggingSort::get_sort_kind() const { return sk; }
 
 bool LoggingSort::compare(const Sort & s) const
 {
+  // a sort of another solver is not this one, however alike
+  if (!std::dynamic_pointer_cast<LoggingSort>(s))
+  {
+    return false;
+  }
   SortKind other_sk = s->get_sort_kind();
   if (sk != other_sk)
   {
