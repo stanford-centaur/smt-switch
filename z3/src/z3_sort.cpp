@@ -158,8 +158,8 @@ z3::sort Z3Sort::get_z3_datatype() const
 
 bool Z3Sort::compare(const Sort & s) const
 {
-  std::shared_ptr<Z3Sort> zs = std::static_pointer_cast<Z3Sort>(s);
-  if (is_function != zs->is_function)
+  std::shared_ptr<Z3Sort> zs = std::dynamic_pointer_cast<Z3Sort>(s);
+  if (!zs || is_function != zs->is_function)
   {
     return false;
   }

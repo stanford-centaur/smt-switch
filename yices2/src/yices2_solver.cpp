@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "solver_utils.h"
+#include "utils.h"
 #include "yices.h"
 #include "yices2_extensions.h"
 
@@ -373,8 +374,8 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
     throw IncorrectUsageException("Expecting an array sort but got "
                                   + sort->to_string());
   }
-  shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
-  shared_ptr<Yices2Term> yval = static_pointer_cast<Yices2Term>(val);
+  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
 
   // a variable, not an uninterpreted term: yices_lambda takes only the first
   term_t index = yices_new_variable(yices_type_child(ysort->get_ytype(), 0));
@@ -388,7 +389,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
 
 void Yices2Solver::assert_formula(const Term & t)
 {
-  shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
+  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
   if (!yices_type_is_bool(yices_type_of_term(yterm->term)))
   {
     throw IncorrectUsageException("Attempted to assert non-boolean to solver: "
@@ -439,7 +440,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
   y_assumps.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    y_assumps.push_back(static_pointer_cast<Yices2Term>(a)->term);
+    y_assumps.push_back(backend_pointer_cast<Yices2Term>(a)->term);
   }
 
   timelimit_start();
@@ -500,7 +501,7 @@ void Yices2Solver::do_pop(uint64_t num)
 
 Term Yices2Solver::get_value(const Term & t) const
 {
-  shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(t);
+  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
   model_t * model = ctx ? yices_get_model(ctx.get(), true) : nullptr;
   if (!model)
   {
@@ -597,7 +598,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
 {
   out_const_base = nullptr;
-  shared_ptr<Yices2Term> yarr = static_pointer_cast<Yices2Term>(arr);
+  shared_ptr<Yices2Term> yarr = backend_pointer_cast<Yices2Term>(arr);
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
@@ -803,21 +804,19 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     type_t ys;
     for (uint32_t i = 0; i < arity; i++)
     {
-      ys = std::static_pointer_cast<Yices2Sort>(sorts[i])->type;
+      ys = backend_pointer_cast<Yices2Sort>(sorts[i])->type;
       ysorts.push_back(ys);
     }
 
     Sort sort = sorts.back();
-    ys = std::static_pointer_cast<Yices2Sort>(sort)->type;
+    ys = backend_pointer_cast<Yices2Sort>(sort)->type;
 
     y_sort = yices_function_type(arity, ysorts.data(), ys);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    std::shared_ptr<Yices2Sort> s1 =
-        std::static_pointer_cast<Yices2Sort>(sorts[0]);
-    std::shared_ptr<Yices2Sort> s2 =
-        std::static_pointer_cast<Yices2Sort>(sorts[1]);
+    std::shared_ptr<Yices2Sort> s1 = backend_pointer_cast<Yices2Sort>(sorts[0]);
+    std::shared_ptr<Yices2Sort> s2 = backend_pointer_cast<Yices2Sort>(sorts[1]);
     y_sort = yices_function_type1(s1->type, s2->type);
   }
   else
@@ -844,7 +843,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
 
-  shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
+  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   term_t y_term = yices_new_uninterpreted_term(ysort->type);
   yices_set_term_name(y_term, name.c_str());
 
@@ -870,7 +869,7 @@ Term Yices2Solver::get_symbol(const std::string & name) const
 
 Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
 {
-  shared_ptr<Yices2Sort> ysort = static_pointer_cast<Yices2Sort>(sort);
+  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   // a variable, not an uninterpreted term: this is the one a quantifier can
   // bind, and the only one yices_forall and yices_lambda accept
   term_t y_term = yices_new_variable(ysort->type);
@@ -956,7 +955,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   yterms.reserve(size);
   for (const auto & t : terms)
   {
-    yterms.push_back(static_pointer_cast<Yices2Term>(t)->term);
+    yterms.push_back(backend_pointer_cast<Yices2Term>(t)->term);
   }
 
   term_t res;
@@ -1147,7 +1146,7 @@ void Yices2Solver::do_reset_assertions()
 Term Yices2Solver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
-  shared_ptr<Yices2Term> yterm = static_pointer_cast<Yices2Term>(term);
+  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(term);
 
   vector<term_t> to_subst;
   vector<term_t> values;
@@ -1157,10 +1156,10 @@ Term Yices2Solver::substitute(const Term term,
 
   for (auto elem : substitution_map)
   {
-    tmp_key = static_pointer_cast<Yices2Term>(elem.first);
+    tmp_key = backend_pointer_cast<Yices2Term>(elem.first);
 
     to_subst.push_back(tmp_key->term);
-    tmp_val = static_pointer_cast<Yices2Term>(elem.second);
+    tmp_val = backend_pointer_cast<Yices2Term>(elem.second);
 
     values.push_back(tmp_val->term);
   }

@@ -218,7 +218,11 @@ size_t MsatTerm::get_id() const
 
 bool MsatTerm::compare(const Term & absterm) const
 {
-  shared_ptr<MsatTerm> mterm = std::static_pointer_cast<MsatTerm>(absterm);
+  shared_ptr<MsatTerm> mterm = std::dynamic_pointer_cast<MsatTerm>(absterm);
+  if (!mterm)
+  {
+    return false;
+  }
   if (is_uf ^ mterm->is_uf)
   {
     // can't be equal if one is a uf and the other is not

@@ -100,9 +100,9 @@ bool GenericTerm::compare(const Term & t) const
     // The null term is different than any constructed term.
     return false;
   }
-  std::shared_ptr<GenericTerm> gt = std::static_pointer_cast<GenericTerm>(t);
+  std::shared_ptr<GenericTerm> gt = std::dynamic_pointer_cast<GenericTerm>(t);
   // The comparison is based on a string comparison
-  return repr == gt->to_string();
+  return gt && repr == gt->to_string();
 }
 
 std::string GenericTerm::compute_string() const

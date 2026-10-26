@@ -28,6 +28,7 @@
 #include "generic_datatype.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -210,9 +211,10 @@ bool GenericSort::compare(const Sort & s) const
     case DATATYPE: {
       assert(sk == DATATYPE);
       std::shared_ptr<GenericDatatypeSort> other_type_cast =
-          std::static_pointer_cast<GenericDatatypeSort>(s);
-      return get_generic_datatype()->get_name()
-             == other_type_cast->compute_string();
+          std::dynamic_pointer_cast<GenericDatatypeSort>(s);
+      return other_type_cast
+             && get_generic_datatype()->get_name()
+                    == other_type_cast->compute_string();
     }
     case CONSTRUCTOR:
     case SELECTOR:
@@ -396,8 +398,8 @@ bool GenericDatatypeSort::compare(const Sort & s) const
   // Compares the strings of two datatype sorts
   assert(s->get_sort_kind() == DATATYPE);
   std::shared_ptr<GenericDatatypeSort> other_sort =
-      std::static_pointer_cast<GenericDatatypeSort>(s);
-  return compute_string() == other_sort->to_string();
+      std::dynamic_pointer_cast<GenericDatatypeSort>(s);
+  return other_sort && compute_string() == other_sort->to_string();
 }
 
 std::string GenericDatatypeSort::to_string() const
@@ -408,7 +410,7 @@ std::string GenericDatatypeSort::to_string() const
 DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
     : GenericSort(k),
       name(std::move(n)),
-      dt_sort(std::static_pointer_cast<GenericSort>(std::move(dt)))
+      dt_sort(backend_pointer_cast<GenericSort>(dt))
 {
   if (k != CONSTRUCTOR && k != SELECTOR && k != TESTER)
   {

@@ -110,8 +110,8 @@ Datatype BoolectorSortBase::get_datatype() const
 bool BoolectorSortBase::compare(const Sort & s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
-      std::static_pointer_cast<BoolectorSortBase>(s);
-  return (sort == bs->sort);
+      std::dynamic_pointer_cast<BoolectorSortBase>(s);
+  return bs && sort == bs->sort;
 }
 
 BoolectorBVSort::BoolectorBVSort(const std::shared_ptr<Btor> & b,

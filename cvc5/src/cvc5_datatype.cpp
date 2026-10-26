@@ -26,9 +26,10 @@ bool Cvc5DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
-      std::static_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
-  return datatypeconstructordecl.toString()
-         == cd->datatypeconstructordecl.toString();
+      std::dynamic_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
+  return cd
+         && datatypeconstructordecl.toString()
+                == cd->datatypeconstructordecl.toString();
 }
 
 Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}

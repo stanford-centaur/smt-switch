@@ -31,6 +31,7 @@
 #include "msat_term.h"
 #include "result.h"
 #include "solver_utils.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -177,7 +178,7 @@ void MsatSolver::set_logic(const std::string logic_name)
 void MsatSolver::assert_formula(const Term & t)
 {
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
+  shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(t);
   if (msat_assert_formula(*env, mterm->term))
   {
     string msg("Cannot assert term: ");
@@ -225,7 +226,7 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   lbls.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    msat_term ma = static_pointer_cast<MsatTerm>(a)->term;
+    msat_term ma = backend_pointer_cast<MsatTerm>(a)->term;
     lbl = label(ma);
     // check that label is cached correctly
     assert(msat_term_id(lbl) == msat_term_id(label(ma)));
@@ -281,7 +282,7 @@ uint64_t MsatSolver::get_context_level() const
 Term MsatSolver::get_value(const Term & t) const
 {
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(t);
+  shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(t);
   msat_term val = msat_get_model_value(*env, mterm->term);
 
   if (MSAT_ERROR_TERM(val))
@@ -310,7 +311,7 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
                                   + arr->to_string());
   }
 
-  shared_ptr<MsatTerm> marr = static_pointer_cast<MsatTerm>(arr);
+  shared_ptr<MsatTerm> marr = backend_pointer_cast<MsatTerm>(arr);
   msat_term mval = msat_get_model_value(*env, marr->term);
 
   if (MSAT_ERROR_TERM(mval))
@@ -445,7 +446,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     msat_type msort;
     for (uint32_t i = 0; i < arity; i++)
     {
-      msort = std::static_pointer_cast<MsatSort>(sorts[i])->type;
+      msort = backend_pointer_cast<MsatSort>(sorts[i])->type;
       if (msat_is_bool_type(*env, msort))
       {
         // mathsat does not support functions of booleans
@@ -456,7 +457,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
       decl_name += ("_" + sorts[i]->to_string());
     }
     Sort sort = sorts.back();
-    msort = std::static_pointer_cast<MsatSort>(sort)->type;
+    msort = backend_pointer_cast<MsatSort>(sort)->type;
     decl_name += ("_return_" + sort->to_string());
     msat_type mfunsort =
         msat_get_function_type(*env, msorts.data(), arity, msort);
@@ -471,9 +472,9 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   else if (sk == ARRAY && sorts.size() == 2)
   {
     std::shared_ptr<MsatSort> midxsort =
-        std::static_pointer_cast<MsatSort>(sorts[0]);
+        backend_pointer_cast<MsatSort>(sorts[0]);
     std::shared_ptr<MsatSort> melemsort =
-        std::static_pointer_cast<MsatSort>(sorts[1]);
+        backend_pointer_cast<MsatSort>(sorts[1]);
     return std::make_shared<MsatSort>(
         env, msat_get_array_type(*env, midxsort->type, melemsort->type));
   }
@@ -605,8 +606,8 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
     throw IncorrectUsageException(
         "Expecting to create a const array but got a non array sort");
   }
-  shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
-  shared_ptr<MsatTerm> mval = static_pointer_cast<MsatTerm>(val);
+  shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(sort);
+  shared_ptr<MsatTerm> mval = backend_pointer_cast<MsatTerm>(val);
   return std::make_shared<MsatTerm>(
       env, msat_make_array_const(*env, msort->type, mval->term));
 }
@@ -624,7 +625,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     throw IncorrectUsageException(msg);
   }
 
-  shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(sort);
   if (MSAT_ERROR_TYPE(msort->type))
   {
     throw InternalSolverException("Got error type in MathSAT backend.");
@@ -685,7 +686,7 @@ Term MsatSolver::get_symbol(const std::string & name) const
 Term MsatSolver::make_param(const std::string name, const Sort & sort) const
 {
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  shared_ptr<MsatSort> msort = static_pointer_cast<MsatSort>(sort);
+  shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(sort);
   msat_term var = msat_make_variable(*env, name.c_str(), msort->type);
   return std::make_shared<MsatTerm>(env, var);
 }
@@ -710,7 +711,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   mterms.reserve(size);
   for (const auto & t : terms)
   {
-    mterms.push_back(static_pointer_cast<MsatTerm>(t)->term);
+    mterms.push_back(backend_pointer_cast<MsatTerm>(t)->term);
   }
 
   msat_term res;
@@ -783,7 +784,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Apply)
   {
-    shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(terms[0]);
+    shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(terms[0]);
     if (!mterm->is_uf)
     {
       string msg(
@@ -866,7 +867,7 @@ Term MsatSolver::substitute(const Term term,
   }
 
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = static_pointer_cast<MsatTerm>(term);
+  shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(term);
 
   vector<msat_term> to_subst;
   vector<msat_term> values;
@@ -878,14 +879,14 @@ Term MsatSolver::substitute(const Term term,
   //       in the map
   for (auto elem : substitution_map)
   {
-    tmp_key = static_pointer_cast<MsatTerm>(elem.first);
+    tmp_key = backend_pointer_cast<MsatTerm>(elem.first);
     if (tmp_key->is_uf)
     {
       throw NotImplementedException(
           "MathSAT does not support substituting functions");
     }
     to_subst.push_back(tmp_key->term);
-    tmp_val = static_pointer_cast<MsatTerm>(elem.second);
+    tmp_val = backend_pointer_cast<MsatTerm>(elem.second);
     if (tmp_val->is_uf)
     {
       throw NotImplementedException(
@@ -1218,7 +1219,7 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     msat_set_itp_group(*env, grp);
     msat_push_backtrack_point(*env);
     msat_assert_formula(*env,
-                        static_pointer_cast<MsatTerm>(formulae.at(k))->term);
+                        backend_pointer_cast<MsatTerm>(formulae.at(k))->term);
     itp_grps_.push_back(grp);
     last_itp_query_assertions_.push_back(formulae.at(k));
   }

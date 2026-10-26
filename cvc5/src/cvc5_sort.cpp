@@ -179,8 +179,8 @@ SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 
 bool Cvc5Sort::compare(const Sort & s) const
 {
-  std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-  return sort == cs->sort;
+  std::shared_ptr<Cvc5Sort> cs = std::dynamic_pointer_cast<Cvc5Sort>(s);
+  return cs && sort == cs->sort;
 }
 
 Datatype Cvc5Sort::get_datatype() const

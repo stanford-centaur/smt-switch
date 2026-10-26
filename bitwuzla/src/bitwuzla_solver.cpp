@@ -150,7 +150,7 @@ bool BzlaSolver::is_initialized() const { return instance != nullptr; }
 
 bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
 {
-  std::shared_ptr<BzlaTerm> bterm = std::static_pointer_cast<BzlaTerm>(t);
+  std::shared_ptr<BzlaTerm> bterm = backend_pointer_cast<BzlaTerm>(t);
   if (bterm->tm != tm)
   {
     throw IncorrectUsageException("Term " + t->to_string()
@@ -161,7 +161,7 @@ bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
 
 bitwuzla::Sort BzlaSolver::bzla_sort(const Sort & s) const
 {
-  std::shared_ptr<BzlaSort> bsort = std::static_pointer_cast<BzlaSort>(s);
+  std::shared_ptr<BzlaSort> bsort = backend_pointer_cast<BzlaSort>(s);
   if (bsort->tm != tm)
   {
     throw IncorrectUsageException("Sort " + s->to_string()
@@ -794,7 +794,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
       bzla_solver->get_bitwuzla()->get_interpolants(partitions);
   // the interpolants belong to the term manager of the formulae
   const std::shared_ptr<bitwuzla::TermManager> & formulae_tm =
-      std::static_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
+      backend_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
   for (const auto & itp : itps)
   {
     if (itp.is_null())

@@ -20,12 +20,17 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 
+#include "datatype.h"
+#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 #include "term.h"
 #include "term_translator.h"
 
@@ -51,6 +56,37 @@ inline void Log(std::string msg)
 }
 
 namespace smt {
+
+namespace detail {
+
+/** Throws the IncorrectUsageException that backend_pointer_cast raises for
+ *  a handle made by another solver
+ *  @param h the foreign handle, named in the message
+ */
+[[noreturn]] void throw_foreign_handle(const Term & h);
+[[noreturn]] void throw_foreign_handle(const Sort & h);
+[[noreturn]] void throw_foreign_handle(const DatatypeDecl & h);
+[[noreturn]] void throw_foreign_handle(const DatatypeConstructorDecl & h);
+[[noreturn]] void throw_foreign_handle(const Datatype & h);
+
+}  // namespace detail
+
+/** Casts a handle to the class the solver made it as
+ *  @param h the handle a caller passed to the solver
+ *  @return h as a T, or null for a null handle
+ *  @throws IncorrectUsageException if h was made by another solver, or by a
+ *          wrapper around this one
+ */
+template <class T, class Base>
+std::shared_ptr<T> backend_pointer_cast(const std::shared_ptr<Base> & h)
+{
+  std::shared_ptr<T> cast = std::dynamic_pointer_cast<T>(h);
+  if (h && !cast)
+  {
+    detail::throw_foreign_handle(h);
+  }
+  return cast;
+}
 
 // term helper methods
 void op_partition(PrimOp o, const Term & term, TermVec & out);

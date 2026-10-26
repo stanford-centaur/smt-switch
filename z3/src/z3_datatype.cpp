@@ -32,9 +32,11 @@ std::string Z3DatatypeConstructorDecl::get_name() const
 bool Z3DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & other) const
 {
-  auto cast = std::static_pointer_cast<Z3DatatypeConstructorDecl>(other);
-  return std::tie(constructorname, fieldnames, sorts)
-         == std::tie(cast->constructorname, cast->fieldnames, cast->sorts);
+  auto cast = std::dynamic_pointer_cast<Z3DatatypeConstructorDecl>(other);
+  return cast
+         && std::tie(constructorname, fieldnames, sorts)
+                == std::tie(
+                    cast->constructorname, cast->fieldnames, cast->sorts);
 }
 
 Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
