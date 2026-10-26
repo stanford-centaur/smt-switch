@@ -113,15 +113,12 @@ class BzlaSolver : public AbsSmtSolver
   bitwuzla::Term bzla_term(const Term & t) const;
   bitwuzla::Sort bzla_sort(const Sort & s) const;
 
-  /** @return the Bitwuzla instance, created on first use */
-  bitwuzla::Bitwuzla & bzla() const;
-
   // a Bitwuzla instance together with the term manager it uses
   struct Instance;
 
   bitwuzla::Options options;
   std::shared_ptr<bitwuzla::TermManager> tm;
-  mutable std::shared_ptr<Instance> instance;
+  std::shared_ptr<Instance> instance;
 
   std::unordered_map<std::string, Term> symbol_table;
 
