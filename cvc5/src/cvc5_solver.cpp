@@ -142,12 +142,17 @@ static void set_default_options(::cvc5::Solver & s)
   s.setOption("arrays-exp", "true");
 }
 
-Cvc5Solver::Cvc5Solver()
-    : AbsSmtSolver(CVC5),
-      term_manager(std::make_unique<cvc5::TermManager>()),
-      solver(std::make_unique<::cvc5::Solver>(*term_manager))
+struct Cvc5Solver::Instance
 {
-  set_default_options(*solver);
+  Instance() : solver(tm) { set_default_options(solver); }
+
+  cvc5::TermManager tm;
+  cvc5::Solver solver;
+};
+
+Cvc5Solver::Cvc5Solver()
+    : AbsSmtSolver(CVC5), instance(std::make_shared<Instance>())
+{
 }
 
 void Cvc5Solver::set_opt(const std::string option, const std::string value)
@@ -163,7 +168,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
 
   try
   {
-    solver->setOption(cvc5option, cvc5value);
+    instance->solver.setOption(cvc5option, cvc5value);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -177,7 +182,7 @@ void Cvc5Solver::set_logic(const std::string logic)
   // assertion, check or push
   try
   {
-    solver->setLogic(logic);
+    instance->solver.setLogic(logic);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -189,7 +194,7 @@ Term Cvc5Solver::make_term(bool b) const
 {
   try
   {
-    return std::make_shared<Cvc5Term>(term_manager->mkBoolean(b));
+    return std::make_shared<Cvc5Term>(instance->tm.mkBoolean(b));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -206,18 +211,18 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
 
     if (sk == INT)
     {
-      c = term_manager->mkInteger(i);
+      c = instance->tm.mkInteger(i);
     }
     else if (sk == REAL)
     {
-      c = term_manager->mkReal(i);
+      c = instance->tm.mkReal(i);
     }
     else if (sk == BV)
     {
       // cvc5 uses unsigned integers for mkBitVector
       // to avoid casting issues, always use a string in base 10
       std::string sval = std::to_string(i);
-      c = term_manager->mkBitVector(sort->get_width(), sval, 10);
+      c = instance->tm.mkBitVector(sort->get_width(), sval, 10);
     }
     else
     {
@@ -246,7 +251,7 @@ Term Cvc5Solver::make_term(const std::string & s,
 
     if (sk == STRING)
     {
-      c = term_manager->mkString(s, useEscSequences);
+      c = instance->tm.mkString(s, useEscSequences);
     }
     else
     {
@@ -272,7 +277,7 @@ Term Cvc5Solver::make_term(const std::wstring & s, const Sort & sort) const
 
     if (sk == STRING)
     {
-      c = term_manager->mkString(std::u32string(s.begin(), s.end()));
+      c = instance->tm.mkString(std::u32string(s.begin(), s.end()));
     }
     else
     {
@@ -308,16 +313,16 @@ Term Cvc5Solver::make_term(std::string val,
       }
       if (sk == INT)
       {
-        c = term_manager->mkInteger(val);
+        c = instance->tm.mkInteger(val);
       }
       else
       {
-        c = term_manager->mkReal(val);
+        c = instance->tm.mkReal(val);
       }
     }
     else if (sk == BV)
     {
-      c = term_manager->mkBitVector(sort->get_width(), val, base);
+      c = instance->tm.mkBitVector(sort->get_width(), val, base);
     }
     else
     {
@@ -339,7 +344,7 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 {
   std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(val);
   std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-  ::cvc5::Term const_arr = term_manager->mkConstArray(csort->sort, cterm->term);
+  ::cvc5::Term const_arr = instance->tm.mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
 }
 
@@ -348,7 +353,7 @@ void Cvc5Solver::assert_formula(const Term & t)
   try
   {
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
-    solver->assertFormula(cterm->term);
+    instance->solver.assertFormula(cterm->term);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -360,7 +365,7 @@ Result Cvc5Solver::check_sat()
 {
   try
   {
-    ::cvc5::Result r = solver->checkSat();
+    ::cvc5::Result r = instance->solver.checkSat();
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -397,7 +402,7 @@ Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
       cvc5assumps.push_back(std::static_pointer_cast<Cvc5Term>(a)->term);
     }
 
-    ::cvc5::Result r = solver->checkSatAssuming(cvc5assumps);
+    ::cvc5::Result r = instance->solver.checkSatAssuming(cvc5assumps);
     if (r.isUnsat())
     {
       return Result(UNSAT);
@@ -427,7 +432,7 @@ void Cvc5Solver::do_push(uint64_t num)
 {
   try
   {
-    solver->push(num);
+    instance->solver.push(num);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -439,7 +444,7 @@ void Cvc5Solver::do_pop(uint64_t num)
 {
   try
   {
-    solver->pop(num);
+    instance->solver.pop(num);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -452,7 +457,7 @@ Term Cvc5Solver::get_value(const Term & t) const
   try
   {
     std::shared_ptr<Cvc5Term> cterm = std::static_pointer_cast<Cvc5Term>(t);
-    return std::make_shared<Cvc5Term>(solver->getValue(cterm->term));
+    return std::make_shared<Cvc5Term>(instance->solver.getValue(cterm->term));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -469,7 +474,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
     cvc5::Term carr = std::static_pointer_cast<Cvc5Term>(arr)->term;
     // get the array value
     // cvc5 returns a sequence of stores
-    carr = solver->getValue(carr);
+    carr = instance->solver.getValue(carr);
 
     std::vector<std::pair<Term, Term>> stores;
     while (carr.hasOp() && carr.getKind() == cvc5::Kind::STORE)
@@ -497,7 +502,7 @@ void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   Term f;
   try
   {
-    for (auto cterm : solver->getUnsatAssumptions())
+    for (auto cterm : instance->solver.getUnsatAssumptions())
     {
       out.insert(std::make_shared<Cvc5Term>(cterm));
     }
@@ -513,7 +518,8 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
-    return std::make_shared<Cvc5Sort>(solver->declareSort(name, arity));
+    return std::make_shared<Cvc5Sort>(
+        instance->solver.declareSort(name, arity));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -527,19 +533,19 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
   {
     if (sk == BOOL)
     {
-      return std::make_shared<Cvc5Sort>(term_manager->getBooleanSort());
+      return std::make_shared<Cvc5Sort>(instance->tm.getBooleanSort());
     }
     else if (sk == INT)
     {
-      return std::make_shared<Cvc5Sort>(term_manager->getIntegerSort());
+      return std::make_shared<Cvc5Sort>(instance->tm.getIntegerSort());
     }
     else if (sk == REAL)
     {
-      return std::make_shared<Cvc5Sort>(term_manager->getRealSort());
+      return std::make_shared<Cvc5Sort>(instance->tm.getRealSort());
     }
     else if (sk == STRING)
     {
-      return std::make_shared<Cvc5Sort>(term_manager->getStringSort());
+      return std::make_shared<Cvc5Sort>(instance->tm.getStringSort());
     }
     else
     {
@@ -561,7 +567,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   {
     if (sk == BV)
     {
-      return std::make_shared<Cvc5Sort>(term_manager->mkBitVectorSort(size));
+      return std::make_shared<Cvc5Sort>(instance->tm.mkBitVectorSort(size));
     }
     else
     {
@@ -602,7 +608,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       }
 
       csort = std::static_pointer_cast<Cvc5Sort>(sorts.back())->sort;
-      ::cvc5::Sort cfunsort = term_manager->mkFunctionSort(csorts, csort);
+      ::cvc5::Sort cfunsort = instance->tm.mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
     else if (sk == ARRAY && sorts.size() == 2)
@@ -612,7 +618,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       std::shared_ptr<Cvc5Sort> celemsort =
           std::static_pointer_cast<Cvc5Sort>(sorts[1]);
       return std::make_shared<Cvc5Sort>(
-          term_manager->mkArraySort(cidxsort->sort, celemsort->sort));
+          instance->tm.mkArraySort(cidxsort->sort, celemsort->sort));
     }
     else
     {
@@ -678,7 +684,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = term_manager->mkConst(csort->sort, name);
+    ::cvc5::Term t = instance->tm.mkConst(csort->sort, name);
     Term res = std::make_shared<::smt::Cvc5Term>(t);
     symbol_table[name] = res;
     return res;
@@ -704,7 +710,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
   try
   {
     std::shared_ptr<Cvc5Sort> csort = std::static_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = term_manager->mkVar(csort->sort, name);
+    ::cvc5::Term t = instance->tm.mkVar(csort->sort, name);
     return std::make_shared<::smt::Cvc5Term>(t);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -721,7 +727,7 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
         std::static_pointer_cast<Cvc5DatatypeDecl>(d);
 
     return std::make_shared<Cvc5Sort>(
-        term_manager->mkDatatypeSort(cd->datatypedecl));
+        instance->tm.mkDatatypeSort(cd->datatypedecl));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -733,7 +739,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
 {
   try
   {
-    return std::make_shared<Cvc5DatatypeDecl>(term_manager->mkDatatypeDecl(s));
+    return std::make_shared<Cvc5DatatypeDecl>(instance->tm.mkDatatypeDecl(s));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -747,7 +753,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   try
   {
     return std::make_shared<Cvc5DatatypeConstructorDecl>(
-        term_manager->mkDatatypeConstructorDecl(s));
+        instance->tm.mkDatatypeConstructorDecl(s));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -899,7 +905,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
           std::static_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
     }
 
-    for (const auto & csort : term_manager->mkDatatypeSorts(cvc5_decls))
+    for (const auto & csort : instance->tm.mkDatatypeSorts(cvc5_decls))
     {
       dt_sorts.push_back(std::make_shared<Cvc5Sort>(csort));
     }
@@ -949,21 +955,21 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       while (cterms.size())
       {
         ::cvc5::Term bound_var =
-            term_manager->mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
+            instance->tm.mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
         cterms.pop_back();
-        quant_res = term_manager->mkTerm(quant_kind, { bound_var, quant_res });
+        quant_res = instance->tm.mkTerm(quant_kind, { bound_var, quant_res });
       }
       return std::make_shared<Cvc5Term>(quant_res);
     }
     else if (op.num_idx == 0)
     {
       return std::make_shared<Cvc5Term>(
-          term_manager->mkTerm(primop2kind.at(op.prim_op), cterms));
+          instance->tm.mkTerm(primop2kind.at(op.prim_op), cterms));
     }
     else
     {
       ::cvc5::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(term_manager->mkTerm(cvc5_op, cterms));
+      return std::make_shared<Cvc5Term>(instance->tm.mkTerm(cvc5_op, cterms));
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -975,14 +981,10 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
 void Cvc5Solver::do_reset()
 {
   // cvc5 has no public reset, so start again with a new term manager and
-  // solver. The solver refers to its term manager, so it is destroyed first.
-  // Each cvc5 term and sort holds a shared pointer to the node manager that
-  // stores it, so terms still held from before stay valid after the old term
-  // manager is destroyed, but the new solver refuses them.
-  solver.reset();
-  term_manager = std::make_unique<::cvc5::TermManager>();
-  solver = std::make_unique<::cvc5::Solver>(*term_manager);
-  set_default_options(*solver);
+  // solver. Each cvc5 term and sort holds a shared pointer to the node
+  // manager that stores it, so terms still held from before stay valid after
+  // the old term manager is destroyed, but the new solver refuses them.
+  instance = std::make_shared<Instance>();
   symbol_table.clear();
 }
 
@@ -990,7 +992,7 @@ void Cvc5Solver::do_reset_assertions()
 {
   try
   {
-    solver->resetAssertions();
+    instance->solver.resetAssertions();
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -1030,12 +1032,12 @@ Term Cvc5Solver::substitute(const Term term,
   }
   if (op.num_idx == 1)
   {
-    return term_manager->mkOp(primop2kind.at(op.prim_op),
-                              { narrow_index(op, op.idx0) });
+    return instance->tm.mkOp(primop2kind.at(op.prim_op),
+                             { narrow_index(op, op.idx0) });
   }
   else if (op.num_idx == 2)
   {
-    return term_manager->mkOp(
+    return instance->tm.mkOp(
         primop2kind.at(op.prim_op),
         { narrow_index(op, op.idx0), narrow_index(op, op.idx1) });
   }
@@ -1047,7 +1049,15 @@ Term Cvc5Solver::substitute(const Term term,
   }
 }
 
-::cvc5::Solver & Cvc5Solver::get_cvc5_solver() { return *solver; }
+std::shared_ptr<cvc5::Solver> Cvc5Solver::get_cvc5_solver()
+{
+  return std::shared_ptr<cvc5::Solver>(instance, &instance->solver);
+}
+
+std::shared_ptr<cvc5::TermManager> Cvc5Solver::get_term_manager()
+{
+  return std::shared_ptr<cvc5::TermManager>(instance, &instance->tm);
+}
 
 /* end Cvc5Solver implementation */
 
@@ -1090,22 +1100,22 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
     throw IncorrectUsageException("get_interpolant requires boolean terms");
   }
 
-  ::cvc5::Solver & solver = cvc5_solver->get_cvc5_solver();
+  std::shared_ptr<cvc5::Solver> solver = cvc5_solver->get_cvc5_solver();
   ::cvc5::Term notB =
       std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
   ::cvc5::Term I;
-  solver.push();
+  solver->push();
   try
   {
-    solver.assertFormula(std::static_pointer_cast<Cvc5Term>(A)->term);
-    I = solver.getInterpolant(notB);
+    solver->assertFormula(std::static_pointer_cast<Cvc5Term>(A)->term);
+    I = solver->getInterpolant(notB);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    solver.pop();
+    solver->pop();
     throw InternalSolverException(e.what());
   }
-  solver.pop();
+  solver->pop();
   if (I.isNull())
   {
     return Result(UNKNOWN, "cvc5 found no interpolant");
