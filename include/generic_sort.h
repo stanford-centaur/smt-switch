@@ -158,6 +158,7 @@ class DatatypeComponentSort : public GenericSort
 {
  public:
   DatatypeComponentSort(SortKind k, std::string n, Sort dt);
+  bool compare(const Sort & s) const override;
   std::size_t hash() const override;
   std::string compute_string() const override;
   std::string to_string() const override;
@@ -165,7 +166,6 @@ class DatatypeComponentSort : public GenericSort
   Sort get_codomain_sort() const override;
   void set_selector_sort(Sort new_selector_sort);
   int get_num_selectors() const;
-  Datatype get_datatype() const override;
 
  protected:
   std::string name;

@@ -218,6 +218,10 @@ TEST_P(Datatypes, DatatypeDecl)
   EXPECT_THROW(s->get_constructor(listsort, "kons"), IncorrectUsageException);
   EXPECT_THROW(s->get_tester(listsort, "head"), IncorrectUsageException);
   EXPECT_THROW(listdt->get_num_selectors("kons"), IncorrectUsageException);
+  // a constructor's sort is not its datatype's
+  EXPECT_THROW(cons->get_sort()->get_datatype(), IncorrectUsageException);
+  EXPECT_THROW(s->get_constructor(cons->get_sort(), "nil"),
+               IncorrectUsageException);
 }
 
 TEST_P(Datatypes, ComponentsAreHashConsed)
