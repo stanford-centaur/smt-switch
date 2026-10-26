@@ -122,8 +122,7 @@ std::string GenericSort::compute_string() const
     {
       return datatype_name;
     }
-    return std::static_pointer_cast<GenericDatatype>(get_datatype())
-        ->get_name();
+    return get_generic_datatype()->get_name();
   }
   else if (get_sort_kind() == SortKind::CONSTRUCTOR
            || get_sort_kind() == SortKind::SELECTOR
@@ -212,8 +211,7 @@ bool GenericSort::compare(const Sort & s) const
       assert(sk == DATATYPE);
       std::shared_ptr<GenericDatatypeSort> other_type_cast =
           std::static_pointer_cast<GenericDatatypeSort>(s);
-      return std::static_pointer_cast<GenericDatatype>(get_datatype())
-                 ->get_name()
+      return get_generic_datatype()->get_name()
              == other_type_cast->compute_string();
     }
     case CONSTRUCTOR:
@@ -280,7 +278,9 @@ std::vector<Sort> GenericSort::get_uninterpreted_param_sorts() const
                                 + " has no uninterpreted param sorts");
 }
 
-Datatype GenericSort::get_datatype() const
+Datatype GenericSort::get_datatype() const { return get_generic_datatype(); }
+
+std::shared_ptr<GenericDatatype> GenericSort::get_generic_datatype() const
 {
   if (!datatype_name.empty())
   {
@@ -375,16 +375,20 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
   return param_sorts;
 }
 
-GenericDatatypeSort::GenericDatatypeSort(const Datatype & dt)
-    : GenericSort(DATATYPE), gdt(dt)
+GenericDatatypeSort::GenericDatatypeSort(std::shared_ptr<GenericDatatype> dt)
+    : GenericSort(DATATYPE), gdt(std::move(dt))
 {
 }
 
-Datatype GenericDatatypeSort::get_datatype() const { return gdt; }
+std::shared_ptr<GenericDatatype> GenericDatatypeSort::get_generic_datatype()
+    const
+{
+  return gdt;
+}
 
 std::string GenericDatatypeSort::compute_string() const
 {
-  return std::static_pointer_cast<GenericDatatype>(gdt)->get_name();
+  return gdt->get_name();
 }
 
 bool GenericDatatypeSort::compare(const Sort & s) const
@@ -402,7 +406,9 @@ std::string GenericDatatypeSort::to_string() const
 }
 
 DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
-    : GenericSort(k), name(std::move(n)), dt_sort(std::move(dt))
+    : GenericSort(k),
+      name(std::move(n)),
+      dt_sort(std::static_pointer_cast<GenericSort>(std::move(dt)))
 {
   if (k != CONSTRUCTOR && k != SELECTOR && k != TESTER)
   {
@@ -445,10 +451,7 @@ SortVec DatatypeComponentSort::get_domain_sorts() const
   std::vector<Sort> domain_sorts;
   if (sk == CONSTRUCTOR)
   {
-    std::shared_ptr<GenericDatatypeSort> cast_dt_sort =
-        std::static_pointer_cast<GenericDatatypeSort>(dt_sort);
-    std::shared_ptr<GenericDatatype> gdt =
-        std::static_pointer_cast<GenericDatatype>(cast_dt_sort->get_datatype());
+    std::shared_ptr<GenericDatatype> gdt = dt_sort->get_generic_datatype();
     for (int i = 0; i < gdt->get_num_constructors(); ++i)
     {
       std::shared_ptr<GenericDatatypeConstructorDecl> curr_con =
@@ -497,9 +500,7 @@ void DatatypeComponentSort::set_selector_sort(Sort new_selector_sort)
 
 int DatatypeComponentSort::get_num_selectors() const
 {
-  std::shared_ptr<GenericDatatype> dt =
-      std::static_pointer_cast<GenericDatatype>(dt_sort->get_datatype());
-  return dt->get_num_selectors(name);
+  return dt_sort->get_generic_datatype()->get_num_selectors(name);
 }
 
 }  // namespace smt

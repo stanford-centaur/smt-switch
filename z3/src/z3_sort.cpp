@@ -143,13 +143,18 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
 
 Datatype Z3Sort::get_datatype() const
 {
+  return std::make_shared<Z3Datatype>(ctx, get_z3_datatype());
+};
+
+z3::sort Z3Sort::get_z3_datatype() const
+{
   if (!type.is_datatype())
   {
     throw IncorrectUsageException(
         "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
   }
-  return std::make_shared<Z3Datatype>(ctx, type);
-};
+  return type;
+}
 
 bool Z3Sort::compare(const Sort & s) const
 {

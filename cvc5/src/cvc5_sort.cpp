@@ -185,13 +185,18 @@ bool Cvc5Sort::compare(const Sort & s) const
 
 Datatype Cvc5Sort::get_datatype() const
 {
+  return std::make_shared<Cvc5Datatype>(get_cvc5_datatype());
+};
+
+::cvc5::Datatype Cvc5Sort::get_cvc5_datatype() const
+{
   if (!sort.isDatatype())
   {
     throw IncorrectUsageException(
         "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
   }
-  return std::make_shared<Cvc5Datatype>(sort.getDatatype());
-};
+  return sort.getDatatype();
+}
 
 SortKind Cvc5Sort::get_sort_kind() const
 {

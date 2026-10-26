@@ -815,9 +815,7 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    // smt-switch's get_datatype refuses a sort that has none
-    cvc5::Datatype dt =
-        std::static_pointer_cast<Cvc5Datatype>(cs->get_datatype())->datatype;
+    cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
       cvc5::DatatypeConstructor ct = dt[i];
@@ -840,9 +838,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    // smt-switch's get_datatype refuses a sort that has none
-    cvc5::Datatype dt =
-        std::static_pointer_cast<Cvc5Datatype>(cs->get_datatype())->datatype;
+    cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
       cvc5::DatatypeConstructor ct = dt[i];
@@ -867,9 +863,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
   try
   {
     std::shared_ptr<Cvc5Sort> cs = std::static_pointer_cast<Cvc5Sort>(s);
-    // smt-switch's get_datatype refuses a sort that has none
-    cvc5::Datatype dt =
-        std::static_pointer_cast<Cvc5Datatype>(cs->get_datatype())->datatype;
+    cvc5::Datatype dt = cs->get_cvc5_datatype();
     for (size_t i = 0; i != dt.getNumConstructors(); i++)
     {
       cvc5::DatatypeConstructor ct = dt[i];
