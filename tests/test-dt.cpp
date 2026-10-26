@@ -283,6 +283,12 @@ TEST_P(Datatypes, DeclName)
   EXPECT_EQ(decl->get_name(), "list");
 }
 
+TEST_P(Datatypes, ConstructorDeclName)
+{
+  DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");
+  EXPECT_EQ(cons->get_name(), "cons");
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     Datatypes,

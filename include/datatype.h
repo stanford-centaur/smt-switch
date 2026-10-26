@@ -35,6 +35,7 @@ class AbsDatatypeConstructorDecl
  public:
   // defined in the .cpp to anchor the vtable
   virtual ~AbsDatatypeConstructorDecl();
+  virtual std::string get_name() const = 0;
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 

@@ -53,6 +53,7 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  public:
   PrintingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
                                   std::string n);
+  std::string get_name() const override;
   bool compare(const DatatypeConstructorDecl & d) const override;
 
   DatatypeConstructorDecl wrapped_decl;
@@ -77,6 +78,8 @@ PrintingDatatypeConstructorDecl::PrintingDatatypeConstructorDecl(
     : wrapped_decl(std::move(wrapped)), name(std::move(n))
 {
 }
+
+std::string PrintingDatatypeConstructorDecl::get_name() const { return name; }
 
 bool PrintingDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const

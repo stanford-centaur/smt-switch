@@ -39,7 +39,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
   std::vector<SelectorComponents> get_selector_vector() const;
-  std::string get_name() const;
+  std::string get_name() const override;
   // Returns the size of selector_vector
   int get_selector_count() const;
   bool compare(const DatatypeConstructorDecl & d) const override;

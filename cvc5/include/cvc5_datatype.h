@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "cvc5/cvc5.h"
 #include "datatype.h"
 
@@ -35,11 +37,14 @@ class Cvc5DatatypeDecl : public AbsDatatypeDecl
 class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  explicit Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t);
+  Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t, std::string n);
+  std::string get_name() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
   cvc5::DatatypeConstructorDecl datatypeconstructordecl;
+  // cvc5's declaration cannot be asked for its name
+  std::string name;
 
   friend class Cvc5Solver;
 };
