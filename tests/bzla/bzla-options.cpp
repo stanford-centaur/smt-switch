@@ -6,7 +6,8 @@
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * Bitwuzla takes its options when the solver instance is created, on first
- * use, and ignores later changes, so set_opt must refuse them instead.
+ * use, and ignores later changes, so set_opt must refuse them instead. A
+ * query that needs no instance must not create one.
  */
 
 #include <gtest/gtest.h>
@@ -21,6 +22,21 @@ TEST(BzlaOptions, RefusedOnceSolving)
   SmtSolver s = BitwuzlaSolverFactory::create(false);
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_THROW(s->set_opt("produce-models", "true"), IncorrectUsageException);
+}
+
+TEST(BzlaOptions, AcceptedAfterDump)
+{
+  SmtSolver s = BitwuzlaSolverFactory::create(false);
+  s->dump_smt2(testing::TempDir() + "bzla-options.smt2");
+  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
+}
+
+TEST(BzlaOptions, AcceptedAfterRefusedQuery)
+{
+  SmtSolver s = BitwuzlaSolverFactory::create(false);
+  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  ASSERT_THROW(s->get_value(x), IncorrectUsageException);
+  EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
 }
 
 TEST(BzlaOptions, TakenAgainAfterReset)
