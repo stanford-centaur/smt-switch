@@ -71,11 +71,11 @@ TEST(MsatConstructors, ConfigAcceptsOptionsUntilFirstUse)
 TEST(MsatConstructors, GetMsatEnvCreatesTheEnv)
 {
   std::shared_ptr<MsatSolver> s = std::make_shared<MsatSolver>();
-  msat_env env = s->get_msat_env();
-  ASSERT_FALSE(MSAT_ERROR_ENV(env));
+  std::shared_ptr<msat_env> env = s->get_msat_env();
+  ASSERT_FALSE(MSAT_ERROR_ENV(*env));
   // the solver goes on using the env it handed out
   s->make_symbol("x", s->make_sort(BOOL));
-  EXPECT_EQ(s->get_msat_env().repr, env.repr);
+  EXPECT_EQ(s->get_msat_env(), env);
 }
 
 TEST(MsatConstructors, InterpolatingFromConfig)

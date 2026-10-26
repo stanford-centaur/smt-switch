@@ -1,6 +1,6 @@
 # These include backend headers, which need the MathSAT headers that
 # test-solvers does not pass on, so they link the backend directly.
-set(msat_direct_tests msat-assumption-clauses msat-config msat-constructors)
+set(msat_direct_tests msat-assumption-clauses msat-config msat-constructors msat-handle)
 
 macro(switch_add_msat_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/msat/${name}.cpp")
@@ -18,5 +18,6 @@ switch_add_msat_test(msat-array-values)
 switch_add_msat_test(msat-assumption-clauses)
 switch_add_msat_test(msat-config)
 switch_add_msat_test(msat-constructors)
+switch_add_msat_test(msat-handle)
 switch_add_msat_test(msat-interpolator-options)
 switch_add_msat_test(msat-printing)
