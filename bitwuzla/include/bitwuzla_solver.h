@@ -85,8 +85,19 @@ class BzlaSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
-  // creates the Bitwuzla instance if it does not exist yet
-  bitwuzla::Bitwuzla * get_bitwuzla() const;
+
+  /** @return the Bitwuzla instance, created on first use; the handle keeps
+   *  it and its term manager alive, so it stays usable after reset(),
+   *  reset_assertions() or this solver's destruction, though this solver
+   *  then stops using it
+   */
+  std::shared_ptr<bitwuzla::Bitwuzla> get_bitwuzla();
+
+  /** @return the term manager of this solver's terms and sorts; the handle
+   *  keeps it alive, so it stays usable after reset() or this solver's
+   *  destruction, though this solver then stops using it
+   */
+  std::shared_ptr<bitwuzla::TermManager> get_term_manager();
 
   // true once the Bitwuzla instance exists, which fixes its options
   bool is_initialized() const;
@@ -102,10 +113,15 @@ class BzlaSolver : public AbsSmtSolver
   bitwuzla::Term bzla_term(const Term & t) const;
   bitwuzla::Sort bzla_sort(const Sort & s) const;
 
+  /** @return the Bitwuzla instance, created on first use */
+  bitwuzla::Bitwuzla & bzla() const;
+
+  // a Bitwuzla instance together with the term manager it uses
+  struct Instance;
+
   bitwuzla::Options options;
-  // bzla uses tm, so tm is declared first and outlives it
   std::shared_ptr<bitwuzla::TermManager> tm;
-  mutable std::unique_ptr<bitwuzla::Bitwuzla> bzla;
+  mutable std::shared_ptr<Instance> instance;
 
   std::unordered_map<std::string, Term> symbol_table;
 
