@@ -98,8 +98,12 @@ class MsatSolver : public AbsSmtSolver
 
   // getters for solver-specific objects
   // for interacting with third-party MathSAT-specific software
-  // creates the environment if it does not exist yet
-  msat_env get_msat_env() const;
+
+  /** @return the environment, created on first use; the handle keeps it
+   *  alive, so it stays usable after reset() or this solver's destruction,
+   *  though this solver then stops using it
+   */
+  std::shared_ptr<msat_env> get_msat_env();
 
   // true once the environment exists, which fixes the configuration
   bool is_initialized() const;

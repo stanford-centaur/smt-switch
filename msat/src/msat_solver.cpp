@@ -963,10 +963,9 @@ void MsatSolver::clear_assumption_clauses()
   }
 }
 
-msat_env MsatSolver::get_msat_env() const
+std::shared_ptr<msat_env> MsatSolver::get_msat_env()
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  return *env;
+  return env_wrapper_.get_env();
 }
 
 bool MsatSolver::is_initialized() const
