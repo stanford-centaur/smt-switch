@@ -1139,6 +1139,7 @@ void Z3Solver::do_reset()
 {
   instance.reset();
   symbol_table.clear();
+  solver_params = z3::params(*ctx);
 }
 
 void Z3Solver::do_reset_assertions()

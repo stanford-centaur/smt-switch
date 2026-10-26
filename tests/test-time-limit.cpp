@@ -130,6 +130,29 @@ TEST_P(TimeLimitTests, TimeLimitAfterReset)
   EXPECT_TRUE(s->check_sat().is_unknown());
 }
 
+TEST_P(TimeLimitTests, ResetDropsTimeLimit)
+{
+  // a limit set before the reset must not cut short a query after it
+  s->set_opt("time-limit", "0.001");
+  s->reset();
+
+  // a pigeonhole problem that takes well over the old limit, but finishes
+  Sort bvsort = s->make_sort(BV, 3);
+  TermVec vars;
+  for (size_t i = 0; i < 9; ++i)
+  {
+    vars.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
+  }
+  for (size_t i = 0; i < vars.size(); ++i)
+  {
+    for (size_t j = i + 1; j < vars.size(); ++j)
+    {
+      s->assert_formula(s->make_term(Distinct, vars[i], vars[j]));
+    }
+  }
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTimeLimitTests,
     TimeLimitTests,

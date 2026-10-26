@@ -1132,6 +1132,7 @@ void Yices2Solver::do_reset()
   config = yices_new_config();
   symbol_table.clear();
   pushes_after_unsat = 0;
+  time_limit = 0;
 }
 
 void Yices2Solver::do_reset_assertions()
