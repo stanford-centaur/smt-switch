@@ -44,6 +44,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -70,6 +71,30 @@ constexpr std::string_view start_only_options[] = {
   "produce-assignments",       "produce-models",      "produce-proofs",
   "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
 };
+
+/** The name a term or sort is written under in the binary's input
+ * @param names the solver's map from its terms, or its sorts, to their names
+ * @param h the term or sort; not deduced from, so a subclass handle converts
+ * @throws IncorrectUsageException if the solver did not make it
+ */
+template <class Handle>
+static std::string name_of(
+    const std::unordered_map<Handle, std::string> & names,
+    const typename std::unordered_map<Handle, std::string>::key_type & h)
+{
+  static_assert(
+      std::is_same<Handle, Term>::value || std::is_same<Handle, Sort>::value,
+      "names are kept for terms and sorts only");
+  // operator[] would file an unknown handle under an empty name
+  auto it = names.find(h);
+  if (it == names.end())
+  {
+    const char * what = std::is_same<Handle, Term>::value ? "Term " : "Sort ";
+    throw IncorrectUsageException(what + h->to_string()
+                                  + " was not made by this solver");
+  }
+  return it->second;
+}
 
 // helper functions
 static bool is_white_space(char c)
@@ -917,7 +942,7 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
 std::string GenericSolver::query_text(const Term & term,
                                       const std::string & operation) const
 {
-  std::string name = (*term_name_map)[term];
+  std::string name = name_of(*term_name_map, term);
   if (pending_commands_.empty())
   {
     return name;
@@ -981,8 +1006,8 @@ std::string GenericSolver::query_text(const Term & term,
   std::string text = name;
   for (auto it = used.rbegin(); it != used.rend(); ++it)
   {
-    text = "(let ((" + (*term_name_map)[*it] + " " + to_smtlib_def(*it) + ")) "
-           + text + ")";
+    text = "(let ((" + name_of(*term_name_map, *it) + " " + to_smtlib_def(*it)
+           + ")) " + text + ")";
   }
   return text;
 }
@@ -1052,15 +1077,15 @@ std::string GenericSolver::to_smtlib_def(Term term) const
           std::static_pointer_cast<GenericSort>(gt->get_sort())
               ->get_generic_datatype();
       nullary_constructor =
-          dt->get_num_selectors((*term_name_map)[gt->get_children()[0]]);
+          dt->get_num_selectors(name_of(*term_name_map, gt->get_children()[0]));
       result = nullary_constructor ? "(" : "";
     }
     else if (gt->get_op() == Apply_Tester)
     {
       result = "((_ is ";
-      result += (*term_name_map)[gt->get_children()[0]];
+      result += name_of(*term_name_map, gt->get_children()[0]);
       result += ") ";
-      result += (*term_name_map)[gt->get_children()[1]];
+      result += name_of(*term_name_map, gt->get_children()[1]);
       result += ")";
       return result;
     }
@@ -1080,9 +1105,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
     {
-      result += " ((" + (*term_name_map)[gt->get_children()[0]] + " "
-                + (*sort_name_map)[gt->get_children()[0]->get_sort()] + ")) "
-                + (*term_name_map)[gt->get_children()[1]];
+      result += " ((" + name_of(*term_name_map, gt->get_children()[0]) + " "
+                + name_of(*sort_name_map, gt->get_children()[0]->get_sort())
+                + ")) " + name_of(*term_name_map, gt->get_children()[1]);
     }
     else
     {
@@ -1092,7 +1117,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
       // space-separated list of arguments.
       for (auto c : gt->get_children())
       {
-        result += " " + (*term_name_map)[c];
+        result += " " + name_of(*term_name_map, c);
       }
     }
     if (gt->get_op() != Apply_Constructor || nullary_constructor)
@@ -1556,7 +1581,7 @@ Term GenericSolver::store_term(Term term) const
     (*term_name_map)[gterm] = name;
   }
   // return the term from the internal map
-  std::string name = (*term_name_map)[gterm];
+  std::string name = name_of(*term_name_map, gterm);
   return (*name_term_map)[name];
 }
 
@@ -1723,10 +1748,8 @@ Term GenericSolver::make_value(const std::string val,
 std::string GenericSolver::cons_arr_string(const Term & val,
                                            const Sort & sort) const
 {
-  assert(term_name_map->find(val) != term_name_map->end());
-  assert(sort_name_map->find(sort) != sort_name_map->end());
-  return "((as const " + (*sort_name_map)[sort] + ") " + val->to_string()
-         + ") ";
+  return "((as const " + name_of(*sort_name_map, sort) + ") "
+         + name_of(*term_name_map, val) + ") ";
 }
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
@@ -1752,6 +1775,9 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
         + " already taken, either by another symbol or by a param");
   }
 
+  // looked up first, so an unknown sort leaves no symbol behind
+  std::string sort_str = name_of(*sort_name_map, sort);
+
   // create the sumbol and store it in the maps
   Term term =
       std::make_shared<GenericTerm>(sort, Op(), TermVec{}, piped_name, true);
@@ -1763,7 +1789,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   // Otherwise, the name of the sort includes the domain.
   if (send_or_hold("(" + DECLARE_FUN_STR + " " + piped_name
                    + (sort->get_sort_kind() == FUNCTION ? " " : " () ")
-                   + (*sort_name_map)[sort] + ")"))
+                   + sort_str + ")"))
   {
     pending_symbols_.insert(term);
   }
@@ -1865,8 +1891,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
   {
-    assert((*term_name_map).find(terms[i]) != (*term_name_map).end());
-    repr += " " + (*term_name_map)[terms[i]];
+    repr += " " + name_of(*term_name_map, terms[i]);
   }
   repr += ")";
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
@@ -2257,8 +2282,7 @@ void GenericSolver::assert_formula(const Term & t)
   std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
-  assert(term_name_map->find(lt) != term_name_map->end());
-  std::string name = (*term_name_map)[lt];
+  std::string name = name_of(*term_name_map, lt);
 
   // communicate the assertion to the binary of the solver
   run_command("(" + ASSERT_STR + " " + name + ")", CommandKind::ASSERTION);
@@ -2341,12 +2365,12 @@ std::string GenericSolver::assumption_name(const Term & assumption)
     (*term_name_map)[label] = label_name;
     // global-declarations keeps the label once its scope is popped
     run_command("(" + DECLARE_FUN_STR + " " + label_name + " () "
-                    + (*sort_name_map)[assumption->get_sort()] + ")",
+                    + name_of(*sort_name_map, assumption->get_sort()) + ")",
                 CommandKind::ASSERTION);
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
-  std::string label_name = (*term_name_map)[it->second];
+  std::string label_name = name_of(*term_name_map, it->second);
   // a pop takes the implication with it, so it goes in again every time
   run_command("(" + ASSERT_STR + " (=> " + label_name + " " + name + "))",
               CommandKind::ASSERTION);

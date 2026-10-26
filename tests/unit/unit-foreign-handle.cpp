@@ -48,21 +48,11 @@ TEST_P(ForeignHandle, ForeignTermRefused)
   Term a = s->make_symbol("a", boolsort);
   Term b = other->make_symbol("b", other_boolsort);
   EXPECT_THROW(s->assert_formula(b), IncorrectUsageException);
-  const SolverConfiguration & sc = GetParam();
-  if (sc.solver_enum == GENERIC_SOLVER && !sc.is_logging_solver)
-  {
-    GTEST_SKIP() << "GenericSolver::make_term takes a foreign term unchecked";
-  }
   EXPECT_THROW(s->make_term(And, a, b), IncorrectUsageException);
 }
 
 TEST_P(ForeignHandle, ForeignSortRefused)
 {
-  const SolverConfiguration & sc = GetParam();
-  if (sc.solver_enum == GENERIC_SOLVER && !sc.is_logging_solver)
-  {
-    GTEST_SKIP() << "GenericSolver::make_symbol takes a foreign sort unchecked";
-  }
   EXPECT_THROW(s->make_symbol("x", other_boolsort), IncorrectUsageException);
 }
 
