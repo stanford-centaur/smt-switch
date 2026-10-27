@@ -1,5 +1,6 @@
 #include "z3_datatype.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -8,6 +9,7 @@
 #include <utility>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace z3 {
 
@@ -67,6 +69,33 @@ bool Z3DatatypeConstructorDecl::compare(
                     cast->constructorname, cast->fieldnames, cast->sorts);
 }
 
+bool Z3DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
+{
+  // The parts compare checks, in that order
+  auto cast = backend_pointer_cast<Z3DatatypeConstructorDecl>(d);
+  if (constructorname != cast->constructorname)
+  {
+    return constructorname < cast->constructorname;
+  }
+  if (!(fieldnames == cast->fieldnames))
+  {
+    return std::lexicographical_compare(
+        fieldnames.begin(),
+        fieldnames.end(),
+        cast->fieldnames.begin(),
+        cast->fieldnames.end(),
+        [](const z3::symbol & a, const z3::symbol & b) {
+          return a.str() < b.str();
+        });
+  }
+  return std::lexicographical_compare(
+      sorts.begin(),
+      sorts.end(),
+      cast->sorts.begin(),
+      cast->sorts.end(),
+      [](const z3::sort & a, const z3::sort & b) { return a.id() < b.id(); });
+}
+
 Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
     : c(ctx), datatype(s)
 {
@@ -96,6 +125,17 @@ bool Z3Datatype::compare(const Datatype & d) const
 {
   std::shared_ptr<Z3Datatype> other = std::dynamic_pointer_cast<Z3Datatype>(d);
   return other && z3::eq(datatype, other->datatype);
+}
+
+bool Z3Datatype::less(const Datatype & d) const
+{
+  // Ids are unique only within a context, so the context comes first.
+  std::shared_ptr<Z3Datatype> other = backend_pointer_cast<Z3Datatype>(d);
+  if (c != other->c)
+  {
+    return std::less<z3::context *>{}(c.get(), other->c.get());
+  }
+  return datatype.id() < other->datatype.id();
 }
 
 }  // namespace smt

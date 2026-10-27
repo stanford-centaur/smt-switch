@@ -42,6 +42,7 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
+  bool less(const DatatypeConstructorDecl & d) const override;
 
  protected:
   cvc5::DatatypeConstructorDecl datatypeconstructordecl;
@@ -60,6 +61,7 @@ class Cvc5Datatype : public AbsDatatype
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const Datatype & d) const override;
+  bool less(const Datatype & d) const override;
 
  protected:
   cvc5::Datatype datatype;

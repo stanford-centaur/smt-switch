@@ -39,6 +39,7 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl & d) const override;
+  bool less(const DatatypeConstructorDecl & d) const override;
   // Stores a new selector in the constructor object. newSelector: the
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);

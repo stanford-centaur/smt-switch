@@ -14,7 +14,9 @@
 **
 **/
 
+#include <cstddef>
 #include <functional>
+#include <set>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -29,6 +31,25 @@ using namespace smt_tests;
 using namespace std;
 
 namespace {
+
+// For every pair, neither is less than the other exactly when they are
+// equal.
+template <typename T>
+void expect_order_agrees_with_equality(const std::vector<T> & xs)
+{
+  for (std::size_t i = 0; i < xs.size(); i++)
+  {
+    for (std::size_t j = 0; j < xs.size(); j++)
+    {
+      const T & a = xs[i];
+      const T & b = xs[j];
+      EXPECT_EQ(!(a < b) && !(b < a), a == b) << i << " and " << j;
+      EXPECT_FALSE(a < b && b < a) << i << " and " << j;
+      EXPECT_EQ(a <= b, !(b < a)) << i << " and " << j;
+      EXPECT_EQ(a > b, b < a) << i << " and " << j;
+    }
+  }
+}
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Datatypes);
 class Datatypes : public ::testing::Test,
@@ -332,6 +353,40 @@ TEST_P(Datatypes, EqualConstructorDeclsHashAlike)
             std::hash<DatatypeConstructorDecl>{}(just_again));
   std::unordered_set<DatatypeConstructorDecl> unique{ just, just_again };
   EXPECT_EQ(unique.size(), 1u);
+}
+
+TEST_P(Datatypes, OrderAgreesWithEquality)
+{
+  // These stay out of any datatype, because cvc5 prints a declaration's
+  // selector sorts only once its datatype is made, and compares the printed
+  // declarations.
+  DatatypeConstructorDecl nothing =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  DatatypeConstructorDecl just_again =
+      s->make_datatype_constructor_decl("just");
+  s->add_selector(just_again, "value", intsort);
+
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  s->add_constructor(maybedecl, s->make_datatype_constructor_decl("none"));
+  Sort maybesort = s->make_sort(maybedecl);
+
+  DatatypeDecl unitdecl = s->make_datatype_decl("unit");
+  s->add_constructor(unitdecl, s->make_datatype_constructor_decl("tt"));
+  Sort unitsort = s->make_sort(unitdecl);
+
+  expect_order_agrees_with_equality(std::vector<DatatypeConstructorDecl>{
+      nothing, just, just_again, DatatypeConstructorDecl() });
+  std::set<DatatypeConstructorDecl> ordered{ just, just_again };
+  EXPECT_EQ(ordered.size(), 1u);
+
+  std::vector<Datatype> datatypes{ maybesort->get_datatype(),
+                                   maybesort->get_datatype(),
+                                   unitsort->get_datatype(),
+                                   Datatype() };
+  expect_order_agrees_with_equality(datatypes);
+  EXPECT_EQ(std::set<Datatype>(datatypes.begin(), datatypes.end()).size(), 3u);
 }
 
 INSTANTIATE_TEST_SUITE_P(

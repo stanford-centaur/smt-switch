@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -38,6 +39,14 @@ bool Cvc5DatatypeConstructorDecl::compare(
   return cd
          && datatypeconstructordecl.toString()
                 == cd->datatypeconstructordecl.toString();
+}
+
+bool Cvc5DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
+{
+  std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
+      backend_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
+  return datatypeconstructordecl.toString()
+         < cd->datatypeconstructordecl.toString();
 }
 
 namespace {
@@ -85,6 +94,12 @@ bool Cvc5Datatype::compare(const Datatype & d) const
   std::shared_ptr<Cvc5Datatype> other =
       std::dynamic_pointer_cast<Cvc5Datatype>(d);
   return other && sort_of(datatype) == sort_of(other->datatype);
+}
+
+bool Cvc5Datatype::less(const Datatype & d) const
+{
+  return sort_of(datatype)
+         < sort_of(backend_pointer_cast<Cvc5Datatype>(d)->datatype);
 }
 
 }  // namespace smt

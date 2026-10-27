@@ -18,6 +18,8 @@
 
 #include <cstddef>
 #include <string>
+#include <typeindex>
+#include <typeinfo>
 #include <unordered_map>
 
 #include "datatype.h"
@@ -61,6 +63,62 @@ bool operator==(const Sort & s1, const Sort & s2)
 }
 
 bool operator!=(const Sort & s1, const Sort & s2) { return !(s1 == s2); }
+
+// Sorts have no id, so they order by the hash, which equal sorts share.
+// Equal sorts can differ in kind and print (Boolector's Bool is its
+// (_ BitVec 1), and a function sort its array sort), so a tie asks compare
+// before the class, the printed sort, the kind and, for a datatype
+// component, which prints as its name, its datatype's name, as compare
+// checks it.
+// Handles of two solvers of one backend never compare equal, but can tie
+// on every key here, so the order is consistent only among the handles of
+// one solver and its wrappers.
+bool operator<(const Sort & s1, const Sort & s2)
+{
+  if (!s1 || !s2)
+  {
+    return !s1 && s2;
+  }
+  std::size_t h1 = s1->hash();
+  std::size_t h2 = s2->hash();
+  if (h1 != h2)
+  {
+    return h1 < h2;
+  }
+  if (s1 == s2)
+  {
+    return false;
+  }
+  const auto & o1 = *s1;
+  const auto & o2 = *s2;
+  std::type_index t1 = typeid(o1);
+  std::type_index t2 = typeid(o2);
+  if (t1 != t2)
+  {
+    return t1 < t2;
+  }
+  std::string str1 = s1->to_string();
+  std::string str2 = s2->to_string();
+  if (str1 != str2)
+  {
+    return str1 < str2;
+  }
+  SortKind k1 = s1->get_sort_kind();
+  SortKind k2 = s2->get_sort_kind();
+  if (k1 != k2)
+  {
+    return k1 < k2;
+  }
+  if (k1 != CONSTRUCTOR && k1 != SELECTOR && k1 != TESTER)
+  {
+    return false;
+  }
+  return s1->get_datatype()->get_name() < s2->get_datatype()->get_name();
+}
+
+bool operator>(const Sort & s1, const Sort & s2) { return s2 < s1; }
+bool operator<=(const Sort & s1, const Sort & s2) { return !(s2 < s1); }
+bool operator>=(const Sort & s1, const Sort & s2) { return !(s1 < s2); }
 
 std::ostream & operator<<(std::ostream & output, const Sort s)
 {

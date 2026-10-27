@@ -14,6 +14,8 @@
 #include <string>
 #include <utility>
 
+#include "utils.h"
+
 namespace smt {
 
 LoggingDatatypeConstructorDecl::LoggingDatatypeConstructorDecl(
@@ -35,6 +37,13 @@ bool LoggingDatatypeConstructorDecl::compare(
   std::shared_ptr<LoggingDatatypeConstructorDecl> other =
       std::dynamic_pointer_cast<LoggingDatatypeConstructorDecl>(d);
   return other && wrapped_decl == other->wrapped_decl;
+}
+
+bool LoggingDatatypeConstructorDecl::less(
+    const DatatypeConstructorDecl & d) const
+{
+  return wrapped_decl < backend_pointer_cast<LoggingDatatypeConstructorDecl>(d)
+                            ->wrapped_decl;
 }
 
 LoggingDatatypeDecl::LoggingDatatypeDecl(DatatypeDecl wrapped, std::string n)

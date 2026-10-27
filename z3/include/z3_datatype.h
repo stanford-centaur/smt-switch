@@ -27,6 +27,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
+  bool less(const DatatypeConstructorDecl & d) const override;
 
  protected:
   friend class Z3Solver;
@@ -48,6 +49,7 @@ class Z3Datatype : public AbsDatatype
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const Datatype & d) const override;
+  bool less(const Datatype & d) const override;
 
  private:
   // declared before datatype, so that it is released while the context lives
