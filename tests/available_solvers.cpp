@@ -229,7 +229,7 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
 std::vector<SolverEnum> available_interpolator_enums()
 {
   std::vector<SolverEnum> result;
-#ifdef BUILD_BITWUZLA
+#ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
   result.push_back(BZLA_INTERPOLATOR);
 #endif
 #ifdef BUILD_CVC5

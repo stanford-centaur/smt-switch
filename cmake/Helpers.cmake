@@ -79,3 +79,23 @@ function(smt_switch_check_library_versions var other_var)
     )
   endif()
 endfunction()
+
+# Sets the cache variable <var> to whether the C++ SOURCE compiles against
+# the headers of the imported TARGETS, without linking anything. It is
+# checked afresh on every configure, so pointing the build at another install
+# of a library is noticed.
+function(smt_switch_check_source_compiles var)
+  cmake_parse_arguments(PARSE_ARGV 1 CHECK "" "SOURCE" "TARGETS")
+  if(NOT CHECK_TARGETS OR NOT CHECK_SOURCE)
+    message(FATAL_ERROR "smt_switch_check_source_compiles needs TARGETS and SOURCE")
+  endif()
+  include(CheckCXXSourceCompiles)
+  include(CMakePushCheckState)
+  cmake_push_check_state(RESET)
+  set(CMAKE_REQUIRED_QUIET TRUE)
+  set(CMAKE_REQUIRED_LIBRARIES ${CHECK_TARGETS})
+  set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+  unset(${var} CACHE)
+  check_cxx_source_compiles("${CHECK_SOURCE}" ${var})
+  cmake_pop_check_state()
+endfunction()

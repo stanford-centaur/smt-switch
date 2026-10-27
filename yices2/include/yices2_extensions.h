@@ -27,5 +27,6 @@ term_t ext_yices_select(term_t arr, term_t idx);
 term_t ext_yices_store(term_t arr, term_t idx, term_t nu);
 term_t ext_yices_make_bv_number(const char * val, size_t size, int base);
 term_t ext_yices_bvcomp(term_t t0, term_t t1);
+term_t ext_yices_bvxor3(term_t t0, term_t t1, term_t t2);
 
 }  // namespace smt

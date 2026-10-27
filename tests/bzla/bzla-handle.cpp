@@ -10,6 +10,10 @@
  * still works afterwards.
  */
 
+// Bitwuzla's header before 0.8.0 needs <cstdint> first.
+#ifdef SMT_SWITCH_BITWUZLA_NEEDS_CSTDINT
+#include <cstdint>
+#endif
 #include <bitwuzla/cpp/bitwuzla.h>
 #include <gtest/gtest.h>
 

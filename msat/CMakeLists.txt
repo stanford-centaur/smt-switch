@@ -20,6 +20,16 @@ target_link_libraries(smt-switch-msat PUBLIC MathSAT::mathsat)
 # against this backend's headers needs GMP's as well.
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-msat PUBLIC GMP::gmp)
+# mathsat.h gives no version to compare, so the minimum is checked through
+# msat_type_id, which sorts are hashed by and 5.6.8 added.
+smt_switch_check_source_compiles(
+  SMT_SWITCH_MSAT_HAS_TYPE_ID
+  TARGETS MathSAT::mathsat GMP::gmp
+  SOURCE "#include <mathsat.h>\nsize_t id(msat_type t) { return msat_type_id(t); }"
+)
+if(NOT SMT_SWITCH_MSAT_HAS_TYPE_ID)
+  message(FATAL_ERROR "smt-switch needs MathSAT 5.6.8 or newer")
+endif()
 
 add_library(SmtSwitch::smt-switch-msat ALIAS smt-switch-msat)
 install(TARGETS smt-switch-msat EXPORT SmtSwitchBackendTargets-msat DESTINATION lib)
