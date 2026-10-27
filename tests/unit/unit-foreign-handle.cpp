@@ -105,6 +105,19 @@ TEST_P(ForeignDatatypeHandle, ForeignDatatypeSortRefused)
   EXPECT_THROW(s->get_tester(listsort, "nil"), IncorrectUsageException);
 }
 
+TEST_P(ForeignDatatypeHandle, ForeignDatatypeNotEqual)
+{
+  DatatypeDecl list = s->make_datatype_decl("list");
+  s->add_constructor(list, s->make_datatype_constructor_decl("nil"));
+  DatatypeDecl other_list = other->make_datatype_decl("list");
+  other->add_constructor(other_list,
+                         other->make_datatype_constructor_decl("nil"));
+  Datatype dt = s->make_sort(list)->get_datatype();
+  Datatype other_dt = other->make_sort(other_list)->get_datatype();
+  EXPECT_NE(dt, other_dt);
+  EXPECT_NE(other_dt, dt);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     ForeignDatatypeHandle,

@@ -57,4 +57,10 @@ struct hash<smt::Term>
 {
   size_t operator()(const smt::Term & t) const;
 };
+
+template <>
+struct hash<smt::Datatype>
+{
+  size_t operator()(const smt::Datatype & d) const;
+};
 }  // namespace std

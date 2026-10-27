@@ -14,6 +14,8 @@
 **
 **/
 
+#include <functional>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -291,6 +293,31 @@ TEST_P(Datatypes, ConstructorDeclName)
 {
   DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");
   EXPECT_EQ(cons->get_name(), "cons");
+}
+
+TEST_P(Datatypes, DatatypeComparesByDatatype)
+{
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  DatatypeConstructorDecl nothing =
+      s->make_datatype_constructor_decl("nothing");
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  s->add_constructor(maybedecl, nothing);
+  s->add_constructor(maybedecl, just);
+  Sort maybesort = s->make_sort(maybedecl);
+
+  DatatypeDecl unitdecl = s->make_datatype_decl("unit");
+  s->add_constructor(unitdecl, s->make_datatype_constructor_decl("tt"));
+  Sort unitsort = s->make_sort(unitdecl);
+
+  // a backend may hand back a new Datatype on every call
+  Datatype maybe = maybesort->get_datatype();
+  Datatype maybe_again = maybesort->get_datatype();
+  EXPECT_EQ(maybe, maybe_again);
+  EXPECT_EQ(std::hash<Datatype>{}(maybe), std::hash<Datatype>{}(maybe_again));
+  std::unordered_set<Datatype> unique{ maybe, maybe_again };
+  EXPECT_EQ(unique.size(), 1u);
+  EXPECT_NE(maybe, unitsort->get_datatype());
 }
 
 INSTANTIATE_TEST_SUITE_P(

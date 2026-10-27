@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 #include "cvc5/cvc5.h"
@@ -56,6 +57,8 @@ class Cvc5Datatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
+  bool compare(const Datatype & d) const override;
+  std::size_t hash() const override;
 
  protected:
   cvc5::Datatype datatype;
