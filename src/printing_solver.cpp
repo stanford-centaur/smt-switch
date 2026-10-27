@@ -24,6 +24,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -31,7 +32,6 @@
 #include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
-#include "smtlib_strings.h"
 #include "solver_enums.h"
 #include "sort.h"
 #include "utils.h"

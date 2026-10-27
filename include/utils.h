@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "ops.h"
@@ -121,6 +122,32 @@ Term to_cnf(Term formula, SmtSolver s);
 
 // Returns true if the formula is in cnf form, else false
 bool is_cnf(Term formula);
+
+/* string constants for the SMT-LIB commands */
+inline constexpr std::string_view SET_OPTION_STR = "set-option";
+inline constexpr std::string_view SET_LOGIC_STR = "set-logic";
+inline constexpr std::string_view DECLARE_FUN_STR = "declare-fun";
+inline constexpr std::string_view DEFINE_FUN_STR = "define-fun";
+inline constexpr std::string_view DECLARE_SORT_STR = "declare-sort";
+inline constexpr std::string_view DEFINE_SORT_STR = "define-sort";
+inline constexpr std::string_view DECLARE_DATATYPE_STR = "declare-datatypes";
+inline constexpr std::string_view ASSERT_STR = "assert";
+inline constexpr std::string_view CHECK_SAT_STR = "check-sat";
+inline constexpr std::string_view CHECK_SAT_ASSUMING_STR = "check-sat-assuming";
+inline constexpr std::string_view GET_VALUE_STR = "get-value";
+inline constexpr std::string_view GET_UNSAT_ASSUMPTIONS_STR =
+    "get-unsat-assumptions";
+inline constexpr std::string_view GET_INTERPOLANT_STR = "get-interpolant";
+inline constexpr std::string_view GET_INTERPOLANTS_STR = "get-interpolants";
+inline constexpr std::string_view PUSH_STR = "push";
+inline constexpr std::string_view POP_STR = "pop";
+inline constexpr std::string_view RESET_ASSERTIONS_STR = "reset-assertions";
+inline constexpr std::string_view RESET_STR = "reset";
+
+/* string constants for the SMT-LIB attributes */
+inline constexpr std::string_view INTERPOLATION_GROUP_STR =
+    "interpolation-group";
+inline constexpr std::string_view NAMED_STR = "named";
 
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its

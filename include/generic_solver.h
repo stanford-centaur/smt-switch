@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -195,6 +196,14 @@ class GenericSolver : public AbsSmtSolver
    * @return whether it was held back
    */
   bool send_or_hold(const std::string & cmd) const;
+
+  /** send_or_hold for the command `(name args...)`
+   * @param name the command's name
+   * @param args its arguments, each written after a space
+   * @return whether it was held back
+   */
+  template <class... Args>
+  bool send_or_hold(std::string_view name, const Args &... args) const;
 
   /** whether a sort is, or is built from, one whose declaration is held
    * back
@@ -363,6 +372,17 @@ class GenericSolver : public AbsSmtSolver
    * need. A command answered with `success` is recorded for a restore.
    */
   std::string run_command(const std::string & cmd, CommandKind kind) const;
+
+  /** run_command for the command `(name args...)`
+   * @param kind what the command does to the mode
+   * @param name the command's name
+   * @param args its arguments, each written after a space
+   * @return the binary's reply, as for run_command
+   */
+  template <class... Args>
+  std::string run_command(CommandKind kind,
+                          std::string_view name,
+                          const Args &... args) const;
 
   /***********
    * members *
