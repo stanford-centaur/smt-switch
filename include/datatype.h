@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 #include "smt_defs.h"
@@ -47,10 +48,18 @@ class AbsDatatype
   virtual std::string get_name() const = 0;
   virtual int get_num_selectors(std::string cons) const = 0;
   virtual int get_num_constructors() const = 0;
+  virtual bool compare(const Datatype & d) const;
+  virtual std::size_t hash() const;
 };
+
 // Overloaded equivalence operators for two datatype constructor declarations
 bool operator==(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);
 bool operator!=(const DatatypeConstructorDecl & d1,
                 const DatatypeConstructorDecl & d2);
+
+// Same operators for datatypes themselves
+bool operator==(const Datatype & d1, const Datatype & d2);
+bool operator!=(const Datatype & d1, const Datatype & d2);
+
 }  // namespace smt

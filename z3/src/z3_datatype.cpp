@@ -1,5 +1,8 @@
 #include "z3_datatype.h"
 
+#include <cstddef>
+#include <memory>
+#include <tuple>
 #include <utility>
 
 namespace z3 {
@@ -45,6 +48,14 @@ Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
 }
 
 std::string Z3Datatype::get_name() const { return datatype.name().str(); }
+
+bool Z3Datatype::compare(const Datatype & d) const
+{
+  std::shared_ptr<Z3Datatype> other = std::dynamic_pointer_cast<Z3Datatype>(d);
+  return other && z3::eq(datatype, other->datatype);
+}
+
+std::size_t Z3Datatype::hash() const { return datatype.id(); }
 
 int Z3Datatype::get_num_constructors() const
 {

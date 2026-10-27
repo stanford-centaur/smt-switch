@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <memory>
 
 #include "datatype.h"
@@ -45,6 +46,8 @@ class Z3Datatype : public AbsDatatype
   std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string name) const override;
+  bool compare(const Datatype & d) const override;
+  std::size_t hash() const override;
 
  private:
   // declared before datatype, so that it is released while the context lives

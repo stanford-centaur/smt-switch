@@ -1,5 +1,8 @@
 #include "cvc5_datatype.h"
 
+#include <cstddef>
+#include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -32,6 +35,17 @@ bool Cvc5DatatypeConstructorDecl::compare(
                 == cd->datatypeconstructordecl.toString();
 }
 
+namespace {
+
+// The sort of a cvc5::Datatype is not directly accessible,
+// but each constructor has it as its codomain.
+cvc5::Sort sort_of(const cvc5::Datatype & dt)
+{
+  return dt[0].getTerm().getSort().getDatatypeConstructorCodomainSort();
+}
+
+}  // namespace
+
 Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 
 std::string Cvc5Datatype::get_name() const { return datatype.getName(); }
@@ -52,6 +66,20 @@ int Cvc5Datatype::get_num_selectors(std::string cons) const
     }
   }
   throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
+}
+
+bool Cvc5Datatype::compare(const Datatype & d) const
+{
+  // cvc5::Datatype's own == compares the copy each getDatatype makes, so
+  // two Datatypes of one sort differ under it; the sort does not
+  std::shared_ptr<Cvc5Datatype> other =
+      std::dynamic_pointer_cast<Cvc5Datatype>(d);
+  return other && sort_of(datatype) == sort_of(other->datatype);
+}
+
+std::size_t Cvc5Datatype::hash() const
+{
+  return std::hash<cvc5::Sort>{}(sort_of(datatype));
 }
 
 }  // namespace smt
