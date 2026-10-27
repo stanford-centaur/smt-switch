@@ -27,6 +27,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+# Defined for every file smt-switch compiles. The core headers mark themselves
+# IWYU-private only when this is undefined, so external users are steered to
+# "smt-switch/smt.h" while smt-switch's own files, which smt.h itself includes,
+# may include each header directly.
+add_compile_definitions(SMT_SWITCH_INTERNAL)
+
 # Everyone is told, only a build that asks is stopped. What an umbrella covers
 # changes between compiler releases, so a warning arriving with a newer
 # compiler should leave an ordinary source build compiling and merely a little
