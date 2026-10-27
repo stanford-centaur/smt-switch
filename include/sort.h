@@ -92,6 +92,11 @@ class AbsSort
 
 bool operator==(const Sort & s1, const Sort & s2);
 bool operator!=(const Sort & s1, const Sort & s2);
+// A strict weak order that agrees with ==, with a null sort first
+bool operator<(const Sort & s1, const Sort & s2);
+bool operator>(const Sort & s1, const Sort & s2);
+bool operator<=(const Sort & s1, const Sort & s2);
+bool operator>=(const Sort & s1, const Sort & s2);
 std::ostream & operator<<(std::ostream & output, const Sort s);
 
 // Useful typedefs for data structures

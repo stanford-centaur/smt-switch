@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -31,6 +32,25 @@ using namespace smt;
 using namespace smt_tests;
 
 namespace {
+
+// For every pair, neither is less than the other exactly when they are
+// equal.
+template <typename T>
+void expect_order_agrees_with_equality(const std::vector<T> & xs)
+{
+  for (std::size_t i = 0; i < xs.size(); i++)
+  {
+    for (std::size_t j = 0; j < xs.size(); j++)
+    {
+      const T & a = xs[i];
+      const T & b = xs[j];
+      EXPECT_EQ(!(a < b) && !(b < a), a == b) << i << " and " << j;
+      EXPECT_FALSE(a < b && b < a) << i << " and " << j;
+      EXPECT_EQ(a <= b, !(b < a)) << i << " and " << j;
+      EXPECT_EQ(a > b, b < a) << i << " and " << j;
+    }
+  }
+}
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortTests);
 class UnitSortTests : public ::testing::Test,
@@ -87,6 +107,21 @@ TEST_P(UnitSortTests, SameSortDiffObj)
   EXPECT_EQ(arrsort, arrsort_2);
 
   EXPECT_NE(funsort, bvsort);
+}
+
+TEST_P(UnitSortTests, OrderAgreesWithEquality)
+{
+  expect_order_agrees_with_equality(
+      SortVec{ boolsort,
+               bvsort,
+               s->make_sort(BV, 4),
+               s->make_sort(BV, 8),
+               funsort,
+               arrsort,
+               s->make_sort(ARRAY, bvsort, bvsort),
+               Sort() });
+  std::set<Sort> ordered{ bvsort, s->make_sort(BV, 4), boolsort };
+  EXPECT_EQ(ordered.size(), 2u);
 }
 
 TEST_P(UnitSortTests, SortSet)

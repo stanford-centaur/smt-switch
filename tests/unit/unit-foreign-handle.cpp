@@ -70,6 +70,11 @@ TEST_P(ForeignHandle, ForeignSortNotEqual)
   EXPECT_NE(other_boolsort, boolsort);
 }
 
+TEST_P(ForeignHandle, ForeignSortOrderedApart)
+{
+  EXPECT_NE(boolsort < other_boolsort, other_boolsort < boolsort);
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          ForeignHandle,
                          testing::ValuesIn(available_solver_configurations()),
@@ -116,6 +121,7 @@ TEST_P(ForeignDatatypeHandle, ForeignDatatypeNotEqual)
   Datatype other_dt = other->make_sort(other_list)->get_datatype();
   EXPECT_NE(dt, other_dt);
   EXPECT_NE(other_dt, dt);
+  EXPECT_NE(dt < other_dt, other_dt < dt);
 }
 
 INSTANTIATE_TEST_SUITE_P(

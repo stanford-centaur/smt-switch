@@ -57,6 +57,7 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl & d) const override;
+  bool less(const DatatypeConstructorDecl & d) const override;
 
   DatatypeConstructorDecl wrapped_decl;
   std::string name;
@@ -94,6 +95,13 @@ bool PrintingDatatypeConstructorDecl::compare(
   std::shared_ptr<PrintingDatatypeConstructorDecl> other =
       std::dynamic_pointer_cast<PrintingDatatypeConstructorDecl>(d);
   return other && wrapped_decl == other->wrapped_decl;
+}
+
+bool PrintingDatatypeConstructorDecl::less(
+    const DatatypeConstructorDecl & d) const
+{
+  return wrapped_decl < backend_pointer_cast<PrintingDatatypeConstructorDecl>(d)
+                            ->wrapped_decl;
 }
 
 PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n)

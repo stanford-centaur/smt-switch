@@ -45,6 +45,13 @@ bool GenericDatatypeConstructorDecl::compare(
   return other && cons_name == other->get_name();
 }
 
+bool GenericDatatypeConstructorDecl::less(
+    const DatatypeConstructorDecl & d) const
+{
+  return cons_name
+         < backend_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
+}
+
 void GenericDatatypeConstructorDecl::add_new_selector(
     const SelectorComponents & newSelector)
 {
