@@ -16,21 +16,14 @@
 
 #pragma once
 
-#include <cassert>
-#include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 
-#include "datatype.h"
-#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
 #include "term.h"
 #include "term_translator.h"
 
@@ -38,22 +31,6 @@
 // i.e. STRFY(FOO) := "FOO"
 #define STRHELPER(A) #A
 #define STRFY(A) STRHELPER(A)
-
-#ifdef _LOGGING_LEVEL
-const std::size_t global_log_level = _LOGGING_LEVEL;
-#else
-const std::size_t global_log_level = 0;
-#endif
-
-// logs to stdout
-template <std::size_t lvl>
-inline void Log(std::string msg)
-{
-  if (global_log_level >= lvl)
-  {
-    std::cout << msg << std::endl;
-  }
-}
 
 namespace smt {
 
@@ -236,7 +213,7 @@ class UnsatCoreReducer
   bool reduce_assump_unsatcore(const Term & formula,
                                const TermVec & assump,
                                TermVec & out_red,
-                               TermVec * out_rem = NULL,
+                               TermVec * out_rem = nullptr,
                                unsigned iter = 0,
                                unsigned rand_seed = 0);
 
@@ -257,7 +234,7 @@ class UnsatCoreReducer
   bool linear_reduce_assump_unsatcore(const Term & formula,
                                       const TermVec & assump,
                                       TermVec & out_red,
-                                      TermVec * out_rem = NULL,
+                                      TermVec * out_rem = nullptr,
                                       unsigned iter = 0);
 
   /** This clears the term translation cache. Note, term translator is used to
