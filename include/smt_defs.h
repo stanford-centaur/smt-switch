@@ -59,6 +59,12 @@ struct hash<smt::Term>
 };
 
 template <>
+struct hash<smt::DatatypeConstructorDecl>
+{
+  size_t operator()(const smt::DatatypeConstructorDecl & d) const;
+};
+
+template <>
 struct hash<smt::Datatype>
 {
   size_t operator()(const smt::Datatype & d) const;

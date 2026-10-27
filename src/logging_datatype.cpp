@@ -8,6 +8,8 @@
 
 #include "logging_datatype.h"
 
+#include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -21,6 +23,11 @@ LoggingDatatypeConstructorDecl::LoggingDatatypeConstructorDecl(
 }
 
 std::string LoggingDatatypeConstructorDecl::get_name() const { return name; }
+
+std::size_t LoggingDatatypeConstructorDecl::hash() const
+{
+  return std::hash<DatatypeConstructorDecl>{}(wrapped_decl);
+}
 
 bool LoggingDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const

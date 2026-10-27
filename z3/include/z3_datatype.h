@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "datatype.h"
-#include "exceptions.h"
 #include "z3++.h"
 
 namespace smt {
@@ -26,6 +25,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   Z3DatatypeConstructorDecl(const std::shared_ptr<z3::context> & ctx,
                             std::string name);
   std::string get_name() const override;
+  std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
@@ -43,11 +43,11 @@ class Z3Datatype : public AbsDatatype
 {
  public:
   Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s);
-  std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string name) const override;
-  bool compare(const Datatype & d) const override;
+  std::string get_name() const override;
   std::size_t hash() const override;
+  bool compare(const Datatype & d) const override;
 
  private:
   // declared before datatype, so that it is released while the context lives

@@ -320,6 +320,20 @@ TEST_P(Datatypes, DatatypeComparesByDatatype)
   EXPECT_NE(maybe, unitsort->get_datatype());
 }
 
+TEST_P(Datatypes, EqualConstructorDeclsHashAlike)
+{
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  DatatypeConstructorDecl just_again =
+      s->make_datatype_constructor_decl("just");
+  s->add_selector(just_again, "value", intsort);
+  ASSERT_EQ(just, just_again);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(just),
+            std::hash<DatatypeConstructorDecl>{}(just_again));
+  std::unordered_set<DatatypeConstructorDecl> unique{ just, just_again };
+  EXPECT_EQ(unique.size(), 1u);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ,
     Datatypes,

@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <functional>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "exceptions.h"
@@ -21,6 +24,25 @@ GenericDatatypeConstructorDecl::GenericDatatypeConstructorDecl(
     const std::string & name)
     : cons_name(name)
 {
+}
+
+std::string GenericDatatypeConstructorDecl::get_name() const
+{
+  return cons_name;
+}
+
+std::size_t GenericDatatypeConstructorDecl::hash() const
+{
+  return std::hash<std::string>{}(cons_name);
+}
+
+bool GenericDatatypeConstructorDecl::compare(
+    const DatatypeConstructorDecl & d) const
+{
+  // Compares based off constructor's name
+  std::shared_ptr<GenericDatatypeConstructorDecl> other =
+      std::dynamic_pointer_cast<GenericDatatypeConstructorDecl>(d);
+  return other && cons_name == other->get_name();
 }
 
 void GenericDatatypeConstructorDecl::add_new_selector(
@@ -44,23 +66,9 @@ GenericDatatypeConstructorDecl::get_selector_vector() const
   return selector_vector;
 }
 
-std::string GenericDatatypeConstructorDecl::get_name() const
-{
-  return cons_name;
-}
-
 int GenericDatatypeConstructorDecl::get_selector_count() const
 {
   return selector_vector.size();
-}
-
-bool GenericDatatypeConstructorDecl::compare(
-    const DatatypeConstructorDecl & d) const
-{
-  // Compares based off constructor's name
-  std::shared_ptr<GenericDatatypeConstructorDecl> other =
-      std::dynamic_pointer_cast<GenericDatatypeConstructorDecl>(d);
-  return other && cons_name == other->get_name();
 }
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
@@ -78,6 +86,41 @@ GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
     : dt_decl(dt_declaration)
 {
 }
+
+int GenericDatatype::get_num_constructors() const
+{
+  return cons_decl_vector.size();
+}
+
+int GenericDatatype::get_num_selectors(std::string cons) const
+{
+  // Used to keep track of the number of selectors in the constructor
+  int num_selectors = 0;
+  bool found = false;
+  for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
+  // Searches for a matching constructor
+  {
+    if (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
+            cons_decl_vector[i])
+            ->get_name()
+        == cons)
+    {
+      found = true;
+      // Calls the constructor's get_selector_count() function
+      num_selectors = std::static_pointer_cast<GenericDatatypeConstructorDecl>(
+                          cons_decl_vector[i])
+                          ->get_selector_count();
+      break;
+    }
+  }
+  if (!found)
+  {
+    throw IncorrectUsageException("Constructor not found");
+  }
+  return num_selectors;
+}
+
+std::string GenericDatatype::get_name() const { return dt_decl->get_name(); }
 
 void GenericDatatype::add_constructor(
     const DatatypeConstructorDecl & dt_cons_decl)
@@ -125,41 +168,6 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
 std::vector<DatatypeConstructorDecl> GenericDatatype::get_cons_vector() const
 {
   return cons_decl_vector;
-}
-
-std::string GenericDatatype::get_name() const { return dt_decl->get_name(); }
-
-int GenericDatatype::get_num_constructors() const
-{
-  return cons_decl_vector.size();
-}
-
-int GenericDatatype::get_num_selectors(std::string cons) const
-{
-  // Used to keep track of the number of selectors in the constructor
-  int num_selectors = 0;
-  bool found = false;
-  for (unsigned int i = 0; i < cons_decl_vector.size(); ++i)
-  // Searches for a matching constructor
-  {
-    if (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-            cons_decl_vector[i])
-            ->get_name()
-        == cons)
-    {
-      found = true;
-      // Calls the constructor's get_selector_count() function
-      num_selectors = std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-                          cons_decl_vector[i])
-                          ->get_selector_count();
-      break;
-    }
-  }
-  if (!found)
-  {
-    throw IncorrectUsageException("Constructor not found");
-  }
-  return num_selectors;
 }
 
 /*

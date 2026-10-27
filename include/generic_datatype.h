@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <vector>
@@ -35,14 +36,15 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
   explicit GenericDatatypeConstructorDecl(const std::string & name);
+  std::string get_name() const override;
+  std::size_t hash() const override;
+  bool compare(const DatatypeConstructorDecl & d) const override;
   // Stores a new selector in the constructor object. newSelector: the
   // SelectorComponents to be added.
   void add_new_selector(const SelectorComponents & newSelector);
   std::vector<SelectorComponents> get_selector_vector() const;
-  std::string get_name() const override;
   // Returns the size of selector_vector
   int get_selector_count() const;
-  bool compare(const DatatypeConstructorDecl & d) const override;
   std::string get_dt_name() const;
 
  protected:
@@ -60,6 +62,9 @@ class GenericDatatype : public AbsDatatype
 {
  public:
   explicit GenericDatatype(const DatatypeDecl & dt_declaration);
+  int get_num_constructors() const override;
+  int get_num_selectors(std::string cons) const override;
+  std::string get_name() const override;
   // Stores a constructor object (dt_cons_decl) in the datatype object.
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
   // Stores a new selector (newSelector) in the constructor object
@@ -67,9 +72,6 @@ class GenericDatatype : public AbsDatatype
   void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
                     const SelectorComponents & newSelector);
   std::vector<DatatypeConstructorDecl> get_cons_vector() const;
-  std::string get_name() const override;
-  int get_num_constructors() const override;
-  int get_num_selectors(std::string cons) const override;
   // Updates the sort of any selector whose finalized field is
   // false. The not-finalized selectors have their sorts set to new_sort.
   // This function is used only as part of the process of adding a

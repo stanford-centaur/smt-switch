@@ -40,6 +40,7 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  public:
   Cvc5DatatypeConstructorDecl(cvc5::DatatypeConstructorDecl t, std::string n);
   std::string get_name() const override;
+  std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl &) const override;
 
  protected:
@@ -54,11 +55,11 @@ class Cvc5Datatype : public AbsDatatype
 {
  public:
   explicit Cvc5Datatype(cvc5::Datatype t);
-  std::string get_name() const override;
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
-  bool compare(const Datatype & d) const override;
+  std::string get_name() const override;
   std::size_t hash() const override;
+  bool compare(const Datatype & d) const override;
 
  protected:
   cvc5::Datatype datatype;
