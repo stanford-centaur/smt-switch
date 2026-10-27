@@ -364,11 +364,11 @@ msat_term ext_msat_make_uf(msat_env e,
                            std::vector<msat_term> args)
 {
   std::vector<msat_term> converted_args;
-  msat_type _type;
+  msat_type arg_type;
   for (auto a : args)
   {
-    _type = msat_term_get_type(a);
-    if (msat_is_bool_type(e, _type))
+    arg_type = msat_term_get_type(a);
+    if (msat_is_bool_type(e, arg_type))
     {
       converted_args.push_back(
           msat_make_term_ite(e,
