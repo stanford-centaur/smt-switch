@@ -9,14 +9,19 @@ AbsDatatypeDecl::~AbsDatatypeDecl() = default;
 
 AbsDatatypeConstructorDecl::~AbsDatatypeConstructorDecl() = default;
 
-AbsDatatype::~AbsDatatype() = default;
+std::size_t AbsDatatypeConstructorDecl::hash() const
+{
+  return std::hash<const AbsDatatypeConstructorDecl *>{}(this);
+}
 
-bool AbsDatatype::compare(const Datatype & d) const { return this == d.get(); }
+AbsDatatype::~AbsDatatype() = default;
 
 std::size_t AbsDatatype::hash() const
 {
   return std::hash<const AbsDatatype *>{}(this);
 }
+
+bool AbsDatatype::compare(const Datatype & d) const { return this == d.get(); }
 
 // Overloaded operators call the constructors' comparison functions; a null
 // declaration equals only another null declaration
@@ -53,6 +58,12 @@ bool operator!=(const Datatype & d1, const Datatype & d2)
 }  // namespace smt
 
 namespace std {
+
+size_t hash<smt::DatatypeConstructorDecl>::operator()(
+    const smt::DatatypeConstructorDecl & d) const
+{
+  return d ? d->hash() : 0;
+}
 
 size_t hash<smt::Datatype>::operator()(const smt::Datatype & d) const
 {

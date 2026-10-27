@@ -25,6 +25,11 @@ Cvc5DatatypeConstructorDecl::Cvc5DatatypeConstructorDecl(
 
 std::string Cvc5DatatypeConstructorDecl::get_name() const { return name; }
 
+std::size_t Cvc5DatatypeConstructorDecl::hash() const
+{
+  return std::hash<std::string>{}(datatypeconstructordecl.toString());
+}
+
 bool Cvc5DatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
@@ -48,8 +53,6 @@ cvc5::Sort sort_of(const cvc5::Datatype & dt)
 
 Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 
-std::string Cvc5Datatype::get_name() const { return datatype.getName(); }
-
 int Cvc5Datatype::get_num_constructors() const
 {
   return datatype.getNumConstructors();
@@ -68,6 +71,13 @@ int Cvc5Datatype::get_num_selectors(std::string cons) const
   throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
 }
 
+std::string Cvc5Datatype::get_name() const { return datatype.getName(); }
+
+std::size_t Cvc5Datatype::hash() const
+{
+  return std::hash<cvc5::Sort>{}(sort_of(datatype));
+}
+
 bool Cvc5Datatype::compare(const Datatype & d) const
 {
   // cvc5::Datatype's own == compares the copy each getDatatype makes, so
@@ -75,11 +85,6 @@ bool Cvc5Datatype::compare(const Datatype & d) const
   std::shared_ptr<Cvc5Datatype> other =
       std::dynamic_pointer_cast<Cvc5Datatype>(d);
   return other && sort_of(datatype) == sort_of(other->datatype);
-}
-
-std::size_t Cvc5Datatype::hash() const
-{
-  return std::hash<cvc5::Sort>{}(sort_of(datatype));
 }
 
 }  // namespace smt

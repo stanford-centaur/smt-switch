@@ -55,6 +55,7 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   PrintingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
                                   std::string n);
   std::string get_name() const override;
+  std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl & d) const override;
 
   DatatypeConstructorDecl wrapped_decl;
@@ -81,6 +82,11 @@ PrintingDatatypeConstructorDecl::PrintingDatatypeConstructorDecl(
 }
 
 std::string PrintingDatatypeConstructorDecl::get_name() const { return name; }
+
+std::size_t PrintingDatatypeConstructorDecl::hash() const
+{
+  return std::hash<DatatypeConstructorDecl>{}(wrapped_decl);
+}
 
 bool PrintingDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const

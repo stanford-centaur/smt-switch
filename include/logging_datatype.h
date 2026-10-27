@@ -36,6 +36,7 @@ class LoggingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   LoggingDatatypeConstructorDecl(DatatypeConstructorDecl wrapped,
                                  std::string n);
   std::string get_name() const override;
+  std::size_t hash() const override;
   bool compare(const DatatypeConstructorDecl & d) const override;
 
  protected:

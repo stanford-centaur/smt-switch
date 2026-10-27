@@ -37,6 +37,7 @@ class AbsDatatypeConstructorDecl
   // defined in the .cpp to anchor the vtable
   virtual ~AbsDatatypeConstructorDecl();
   virtual std::string get_name() const = 0;
+  virtual std::size_t hash() const;
   virtual bool compare(const DatatypeConstructorDecl & d) const = 0;
 };
 
@@ -45,11 +46,11 @@ class AbsDatatype
  public:
   // defined in the .cpp to anchor the vtable
   virtual ~AbsDatatype();
-  virtual std::string get_name() const = 0;
-  virtual int get_num_selectors(std::string cons) const = 0;
   virtual int get_num_constructors() const = 0;
-  virtual bool compare(const Datatype & d) const;
+  virtual int get_num_selectors(std::string cons) const = 0;
+  virtual std::string get_name() const = 0;
   virtual std::size_t hash() const;
+  virtual bool compare(const Datatype & d) const;
 };
 
 // Overloaded equivalence operators for two datatype constructor declarations
