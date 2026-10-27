@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
