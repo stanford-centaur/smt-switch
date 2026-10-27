@@ -120,18 +120,18 @@ cdef class Sort:
     def __init__(self, SmtSolver solver):
         # the solver this came from, which wraps the sorts and terms that
         # its methods return
-        self._solver = solver
+        self.solver = solver
 
     def get_width(self):
         return dref(self.cs).get_width()
 
     def get_indexsort(self):
-        cdef Sort s = Sort(self._solver)
+        cdef Sort s = Sort(self.solver)
         s.cs = dref(self.cs).get_indexsort()
         return s
 
     def get_elemsort(self):
-        cdef Sort s = Sort(self._solver)
+        cdef Sort s = Sort(self.solver)
         s.cs = dref(self.cs).get_elemsort()
         return s
 
@@ -139,14 +139,14 @@ cdef class Sort:
         sorts = []
 
         for cs in dref(self.cs).get_domain_sorts():
-            s = Sort(self._solver)
+            s = Sort(self.solver)
             s.cs = cs
             sorts.append(s)
 
         return sorts
 
     def get_codomain_sort(self):
-        cdef Sort s = Sort(self._solver)
+        cdef Sort s = Sort(self.solver)
         s.cs = dref(self.cs).get_codomain_sort()
         return s
 
@@ -174,7 +174,7 @@ cdef class Term:
     def __init__(self, SmtSolver solver):
         # the solver this came from, which wraps the sorts and terms that
         # its methods return
-        self._solver = solver
+        self.solver = solver
 
     def get_op(self):
         cdef Op o = Op()
@@ -182,7 +182,7 @@ cdef class Term:
         return o
 
     def get_sort(self):
-        cdef Sort s = Sort(self._solver)
+        cdef Sort s = Sort(self.solver)
         s.cs = dref(self.ct).get_sort()
         return s
 
@@ -248,18 +248,18 @@ cdef class Term:
 
     def __bool__(self):
         cdef c_Sort csort = dref(self.ct).get_sort()
-        cdef c_Sort cboolsort = dref(self._solver.css).make_sort(c_BOOL)
+        cdef c_Sort cboolsort = dref(self.solver.css).make_sort(c_BOOL)
 
         if csort != cboolsort or not dref(self.ct).is_value():
             raise ValueError("Cannot call bool on {}".format(str(self)))
 
-        cdef Term t = self._solver.make_term(True)
+        cdef Term t = self.solver.make_term(True)
 
         return (self.ct == t.ct)
 
     def __iter__(self):
         for ci in dref(self.ct):
-            t = Term(self._solver)
+            t = Term(self.solver)
             t.ct = ci
             yield t
 
@@ -484,7 +484,7 @@ cdef class SmtInterpolator(SmtSolver):
 cdef class SortingNetwork:
     def __cinit__(self, SmtSolver solver):
         self.csn = new c_SortingNetwork(solver.css)
-        self._solver = solver
+        self.solver = solver
 
     def __dealloc__(self):
         del self.csn
@@ -496,7 +496,7 @@ cdef class SortingNetwork:
 
         res = []
         for r in dref(self.csn).sorting_network(ctv):
-            t = Term(self._solver)
+            t = Term(self.solver)
             t.ct = r
             res.append(t)
         return res
@@ -515,7 +515,7 @@ def get_free_symbolic_consts(Term term):
 
     python_out_set = set()
     for s in out_symbols:
-        t = Term(term._solver)
+        t = Term(term.solver)
         t.ct = s
         python_out_set.add(t)
 
@@ -532,7 +532,7 @@ def get_free_symbols(Term term):
 
     python_out_set = set()
     for s in out_symbols:
-        t = Term(term._solver)
+        t = Term(term.solver)
         t.ct = s
         python_out_set.add(t)
 
@@ -553,7 +553,7 @@ def op_partition(PrimOp po, Term term):
 
     python_out_list = []
     for s in out:
-        t = Term(term._solver)
+        t = Term(term.solver)
         t.ct = s
         python_out_list.append(t)
 
@@ -570,7 +570,7 @@ def conjunctive_partition(Term term, bint include_bvand=False):
 
     python_out_list = []
     for s in out:
-        t = Term(term._solver)
+        t = Term(term.solver)
         t.ct = s
         python_out_list.append(t)
 

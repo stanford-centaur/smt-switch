@@ -27,14 +27,14 @@ cdef class SmtInterpolator(SmtSolver):
 
 cdef class Sort:
     cdef c_Sort cs
-    cdef SmtSolver _solver
+    cdef SmtSolver solver
 
 
 cdef class SortingNetwork:
     cdef c_SortingNetwork * csn
-    cdef SmtSolver _solver
+    cdef SmtSolver solver
 
 
 cdef class Term:
     cdef c_Term ct
-    cdef SmtSolver _solver
+    cdef SmtSolver solver
