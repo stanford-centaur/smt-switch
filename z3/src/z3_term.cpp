@@ -15,8 +15,8 @@ namespace smt {
 
 // Z3TermIter implementation
 
-Z3TermIter::Z3TermIter(const std::shared_ptr<context> & c,
-                       expr t,
+Z3TermIter::Z3TermIter(const std::shared_ptr<z3::context> & c,
+                       z3::expr t,
                        uint32_t p,
                        bool nt)
     : ctx(c), term(t), pos(p), null_term(nt)
@@ -38,7 +38,7 @@ Term Z3TermIter::operator*() const
   else
   {
     uint32_t actual_idx = is_function_app ? pos - 1 : pos;
-    expr z_child = term.arg(actual_idx);
+    z3::expr z_child = term.arg(actual_idx);
     return std::make_shared<Z3Term>(ctx, z_child);
   }
 }
@@ -82,12 +82,12 @@ bool Z3TermIter::equal(const TermIterBase & other) const
 
 // Z3Term implementation
 
-Z3Term::Z3Term(const std::shared_ptr<context> & c, expr t, bool param)
+Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::expr t, bool param)
     : ctx(c), term(t), z_func(*c), is_parameter(param)
 {
 }
 
-Z3Term::Z3Term(const std::shared_ptr<context> & c, func_decl zfunc)
+Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc)
     : ctx(c), term(*c), z_func(zfunc), is_function(true)
 {
 }
@@ -151,7 +151,7 @@ Op Z3Term::get_op() const
   }
   else
   {
-    func_decl decl = term.decl();
+    z3::func_decl decl = term.decl();
     z3::sort range = decl.range();
     string name = decl.name().str();
     Z3_decl_kind kind = decl.decl_kind();
@@ -299,7 +299,7 @@ bool Z3Term::is_value() const
   }
   else if (term.is_app())
   {
-    func_decl decl = term.decl();
+    z3::func_decl decl = term.decl();
     Z3_decl_kind kind = decl.decl_kind();
     // constant arrays are considered values
     return (kind == Z3_OP_CONST_ARRAY);
@@ -416,7 +416,7 @@ std::string Z3Term::print_value_as(SortKind /* sk */) const
   return term.to_string();
 }
 
-expr Z3Term::get_z3_expr() const
+z3::expr Z3Term::get_z3_expr() const
 {
   if (is_function)
   {
@@ -425,7 +425,7 @@ expr Z3Term::get_z3_expr() const
   return term;
 }
 
-func_decl Z3Term::get_z3_func_decl() const
+z3::func_decl Z3Term::get_z3_func_decl() const
 {
   if (!is_function)
   {

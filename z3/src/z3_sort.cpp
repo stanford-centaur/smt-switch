@@ -12,12 +12,12 @@ namespace smt {
 
 // Z3Sort implementation
 
-Z3Sort::Z3Sort(const std::shared_ptr<context> & c, z3::sort z3sort)
+Z3Sort::Z3Sort(const std::shared_ptr<z3::context> & c, z3::sort z3sort)
     : ctx(c), type(z3sort), z_func(*c)
 {
 }
 
-Z3Sort::Z3Sort(const std::shared_ptr<context> & c, func_decl zfunc)
+Z3Sort::Z3Sort(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc)
     : ctx(c), type(*c), z_func(zfunc), is_function(true)
 {
 }
@@ -170,7 +170,7 @@ bool Z3Sort::compare(const Sort & s) const
 
   // compare function sorts by signature: the func_decls have different
   // names when one comes from make_sort and the other from a symbol
-  const func_decl & other = zs->z_func;
+  const z3::func_decl & other = zs->z_func;
   if (z_func.arity() != other.arity() || !z3::eq(z_func.range(), other.range()))
   {
     return false;

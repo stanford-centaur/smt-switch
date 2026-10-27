@@ -24,7 +24,6 @@
 #include "utils.h"
 #include "z3++.h"
 
-using namespace z3;
 namespace smt {
 
 // forward declaration
@@ -34,10 +33,10 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(const std::shared_ptr<context> & c, z3::sort z3sort);
+  Z3Sort(const std::shared_ptr<z3::context> & c, z3::sort z3sort);
 
   // Functions
-  Z3Sort(const std::shared_ptr<context> & c, func_decl zfunc);
+  Z3Sort(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc);
 
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -62,9 +61,9 @@ class Z3Sort : public AbsSort
  protected:
   // shared with the solver, so the context lives as long as this sort, and
   // declared first, so that type and z_func are released while it does
-  std::shared_ptr<context> ctx;
+  std::shared_ptr<z3::context> ctx;
   z3::sort type;
-  func_decl z_func;
+  z3::func_decl z_func;
   bool is_function = false;
 
   friend class Z3Solver;
