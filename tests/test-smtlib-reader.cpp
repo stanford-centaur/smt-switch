@@ -21,9 +21,15 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "smt.h"
+#include "exceptions.h"
+#include "result.h"
+#include "smt_defs.h"
 #include "smtlib_reader.h"
 #include "smtlib_reader_test_inputs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

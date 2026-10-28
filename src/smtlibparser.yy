@@ -49,7 +49,10 @@ using namespace std;
 **/
   #include <string>
   #include <utility>
-  #include "smt.h"
+  #include "ops.h"
+  #include "smt_defs.h"
+  #include "sort.h"
+  #include "term.h"
 
   namespace smt
   {
@@ -61,6 +64,7 @@ using namespace std;
 
 %code {
 #include "smtlib_reader.h"
+#include "solver.h"
 }
 
 %token <std::string> SYMBOL

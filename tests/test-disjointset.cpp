@@ -19,7 +19,10 @@
 
 #include "available_solvers.h"
 #include "gtest/gtest.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

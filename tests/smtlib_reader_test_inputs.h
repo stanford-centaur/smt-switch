@@ -19,7 +19,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "smt.h"
+#include "result.h"
 
 // maps tests to their expected results
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_uflia_tests({

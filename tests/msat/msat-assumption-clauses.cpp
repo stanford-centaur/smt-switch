@@ -22,7 +22,12 @@
 
 #include "msat_factory.h"
 #include "msat_solver.h"  // only needed for the static_pointer_cast for testing
-#include "smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 using namespace smt;
 using namespace std;

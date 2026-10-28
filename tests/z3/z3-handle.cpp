@@ -15,7 +15,6 @@
 
 #include <memory>
 
-#include "smt.h"
 #include "z3_solver.h"
 
 using namespace smt;

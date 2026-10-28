@@ -19,9 +19,13 @@
 #include <memory>
 #include <string>
 
+#include "exceptions.h"
 #include "mathsat.h"
 #include "msat_solver.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 using namespace smt;
 

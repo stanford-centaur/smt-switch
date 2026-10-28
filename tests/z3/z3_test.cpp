@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "datatype.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 #include "z3_factory.h"
 #include "z3_sort.h"
 

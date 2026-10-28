@@ -22,7 +22,8 @@
 #include <string>
 
 #include "bitwuzla/cpp/bitwuzla.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "sort.h"
 
 namespace smt {
 

@@ -28,8 +28,10 @@
 #include "boolector_term.h"
 #include "exceptions.h"
 #include "result.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
 #include "sort.h"
+#include "term.h"
 
 namespace smt {
 /**

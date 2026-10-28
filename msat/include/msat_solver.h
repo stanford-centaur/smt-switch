@@ -32,7 +32,8 @@
 #include "msat_term.h"
 #include "ops.h"
 #include "result.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
 #include "sort.h"
 #include "term.h"
 

@@ -18,8 +18,14 @@
 #include <utility>
 #include <vector>
 
+#include "exceptions.h"
 #include "gtest/gtest.h"
-#include "smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 #include "yices2_factory.h"
 
 using namespace smt;

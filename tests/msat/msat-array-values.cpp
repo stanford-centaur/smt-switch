@@ -8,8 +8,14 @@
 
 #include <gtest/gtest.h>
 
+#include "exceptions.h"
 #include "msat_factory.h"
-#include "smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 using namespace smt;
 

@@ -21,8 +21,14 @@
 #include <utility>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "identity_walker.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
+#include "term.h"
 #include "term_utils.h"
 
 using namespace smt;

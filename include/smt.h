@@ -16,6 +16,10 @@
 
 #pragma once
 
+#ifdef SMT_SWITCH_INTERNAL
+#error "smt.h is for external users; include the specific headers instead"
+#endif
+
 // Exceptions used by SMT API.
 #include "exceptions.h"  // IWYU pragma: export
 

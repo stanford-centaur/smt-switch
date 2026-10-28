@@ -19,12 +19,11 @@
 #include <memory>
 #include <string>
 
-// note: this file depends on the CMake build infrastructure
-// specifically defined macros
-// it cannot be compiled outside of the build
 #include "generic_sort.h"
 #include "generic_term.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "sort.h"
 
 using namespace smt;
 

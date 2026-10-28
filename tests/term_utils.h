@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "available_solvers.h"
-#include "smt.h"
+#include "smt_defs.h"
 
 namespace smt_tests {
 

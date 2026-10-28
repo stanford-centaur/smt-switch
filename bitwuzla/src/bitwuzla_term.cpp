@@ -28,7 +28,8 @@
 #include <vector>
 
 #include "bitwuzla/cpp/bitwuzla.h"
-#include "smt.h"
+#include "exceptions.h"
+#include "ops.h"
 #include "utils.h"
 
 namespace smt {

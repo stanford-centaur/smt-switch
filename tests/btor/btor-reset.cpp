@@ -17,7 +17,9 @@
 #include <gtest/gtest.h>
 
 #include "boolector_factory.h"
-#include "smt.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
 
 using namespace smt;
 

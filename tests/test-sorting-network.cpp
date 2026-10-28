@@ -20,8 +20,12 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 #include "sorting_network.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

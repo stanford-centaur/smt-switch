@@ -15,7 +15,10 @@
 
 #include <string>
 
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 #include "z3_factory.h"
 
 using namespace smt;
