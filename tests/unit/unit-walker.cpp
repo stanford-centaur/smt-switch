@@ -17,6 +17,10 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 

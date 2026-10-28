@@ -21,11 +21,11 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "exceptions.h"
 #include "sort.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
 

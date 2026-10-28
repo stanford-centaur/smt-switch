@@ -17,8 +17,11 @@
 #ifndef SMT_MSAT_EXTENSIONS_H
 #define SMT_MSAT_EXTENSIONS_H
 
+#include <gmp.h>
 #include <mathsat.h>
 
+#include <cstddef>
+#include <string>
 #include <vector>
 
 #include "exceptions.h"

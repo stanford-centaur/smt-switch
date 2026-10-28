@@ -16,6 +16,10 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "available_solvers.h"
 #include "smt_defs.h"
 #include "solver.h"

@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 #include "exceptions.h"
 #include "msat_sort.h"

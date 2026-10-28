@@ -17,7 +17,9 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
-#include <utility>
+#include <memory>
+#include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"

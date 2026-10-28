@@ -20,8 +20,12 @@
 #include <cassert>
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "exceptions.h"
 #include "ops.h"

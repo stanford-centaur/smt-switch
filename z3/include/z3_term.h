@@ -18,18 +18,16 @@
 
 #include <z3++.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <vector>
+#include <string>
 
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
-#include "utils.h"
-#include "z3_sort.h"
 
 namespace smt {
-
-// forward declaration
-class Z3Solver;
 
 class Z3TermIter : public TermIterBase
 {

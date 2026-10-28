@@ -16,8 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include <memory>
-#include <vector>
+#include <string>
 
 #include "boolector_factory.h"
 #include "ops.h"

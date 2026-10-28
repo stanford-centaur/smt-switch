@@ -21,6 +21,7 @@
 #include <string>
 
 #include "datatype.h"
+#include "smt_defs.h"
 
 namespace smt {
 

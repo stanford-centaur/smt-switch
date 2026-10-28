@@ -14,6 +14,7 @@
 #include <mathsat.h>
 
 #include <memory>
+#include <string>
 
 #include "msat_solver.h"
 

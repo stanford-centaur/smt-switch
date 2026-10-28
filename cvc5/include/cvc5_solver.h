@@ -22,11 +22,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
-#include "cvc5_datatype.h"
-#include "cvc5_sort.h"
-#include "cvc5_term.h"
 #include "interpolating_solver.h"
 #include "ops.h"
 #include "smt_defs.h"

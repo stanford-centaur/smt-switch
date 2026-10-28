@@ -16,11 +16,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
-#include <functional>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"

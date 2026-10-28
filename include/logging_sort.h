@@ -21,13 +21,11 @@
 #include <memory>
 #include <string>
 
-#include "exceptions.h"
+#include "logging_datatype.h"
 #include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
-
-class LoggingDatatypeDecl;
 
 /* Helper functions for creating logging sorts */
 // Sort s is the underlying sort

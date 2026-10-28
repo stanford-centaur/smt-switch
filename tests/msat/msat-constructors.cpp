@@ -17,6 +17,7 @@
 #include <mathsat.h>
 
 #include <memory>
+#include <string>
 
 #include "interpolating_solver.h"
 #include "msat_solver.h"

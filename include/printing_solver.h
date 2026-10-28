@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "interpolating_solver.h"
+#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"

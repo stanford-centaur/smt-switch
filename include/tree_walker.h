@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "smt_defs.h"
+#include "term.h"
 
 namespace smt {
 /* vector of pairs holding terms and ints that gets used within visit in the

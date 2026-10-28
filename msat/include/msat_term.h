@@ -23,13 +23,11 @@
 #include <memory>
 #include <string>
 
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
 
 namespace smt {
-
-// forward declaration
-class MsatSolver;
-class MsatInterpolatingSolver;
 
 class MsatTermIter : public TermIterBase
 {

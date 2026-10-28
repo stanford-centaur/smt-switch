@@ -1,5 +1,6 @@
 #include "tree_walker.h"
 
+#include <memory>
 #include <utility>
 #include <vector>
 

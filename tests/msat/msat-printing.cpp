@@ -15,7 +15,7 @@
 **/
 #include <gtest/gtest.h>
 
-#include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -30,7 +30,6 @@
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
-#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;

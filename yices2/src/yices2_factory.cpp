@@ -16,6 +16,8 @@
 
 #include "yices2_factory.h"
 
+#include <memory>
+
 #include "logging_solver.h"
 #include "yices2_solver.h"
 

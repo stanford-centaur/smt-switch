@@ -12,6 +12,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "bitwuzla_factory.h"
 #include "exceptions.h"
 #include "ops.h"

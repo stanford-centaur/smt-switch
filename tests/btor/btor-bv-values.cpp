@@ -12,6 +12,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "boolector_factory.h"
 #include "exceptions.h"
 #include "smt_defs.h"

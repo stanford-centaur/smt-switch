@@ -21,9 +21,8 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
-#include "result.h"
+#include "logging_datatype.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
@@ -31,8 +30,6 @@
 #include "term_hashtable.h"
 
 namespace smt {
-
-class LoggingDatatypeConstructorDecl;
 
 class LoggingSolver : public AbsSmtSolver
 {

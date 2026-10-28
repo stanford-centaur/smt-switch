@@ -18,17 +18,15 @@
 
 #include <z3++.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
-#include "exceptions.h"
+#include "smt_defs.h"
 #include "sort.h"
-#include "utils.h"
 
 namespace smt {
-
-// forward declaration
-class Z3Solver;
 
 class Z3Sort : public AbsSort
 {

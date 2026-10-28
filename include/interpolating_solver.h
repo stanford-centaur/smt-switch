@@ -22,7 +22,6 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include "result.h"
 #include "smt_defs.h"

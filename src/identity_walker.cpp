@@ -16,6 +16,11 @@
 
 #include "identity_walker.h"
 
+#include <memory>
+#include <unordered_map>
+#include <utility>
+
+#include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "term.h"

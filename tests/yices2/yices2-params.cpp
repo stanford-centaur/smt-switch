@@ -13,6 +13,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"

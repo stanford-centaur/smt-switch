@@ -16,7 +16,10 @@
 
 #include <gtest/gtest.h>
 
-#include <utility>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <tuple>
 #include <vector>
 
 #include "available_solvers.h"
@@ -26,7 +29,6 @@
 #include "sort.h"
 #include "sorting_network.h"
 #include "term.h"
-#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;

@@ -18,6 +18,7 @@
 #include "term_hashtable.h"
 
 #include <cstddef>
+#include <unordered_set>
 
 namespace smt {
 

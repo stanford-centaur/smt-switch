@@ -9,6 +9,7 @@
 
 #include "yices2_instance_ref.h"
 
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
 #include <cstddef>

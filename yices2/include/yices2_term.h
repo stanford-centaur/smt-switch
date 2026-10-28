@@ -16,21 +16,19 @@
 
 #pragma once
 
-#include <gmp.h>
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
+#include <cstddef>
 #include <cstdint>
-#include <vector>
+#include <string>
 
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
-#include "utils.h"
 #include "yices2_instance_ref.h"
-#include "yices2_sort.h"
 
 namespace smt {
-
-// forward declaration
-class Yices2Solver;
 
 /** \class Yices2TermIter
  *  Walks a term's children. Yices keeps sums and products as polynomials

@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <unordered_map>
 
 #include "exceptions.h"
 #include "ops.h"

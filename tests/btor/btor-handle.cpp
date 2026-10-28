@@ -13,7 +13,9 @@
 #include <boolector.h>
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 #include "boolector_solver.h"
 

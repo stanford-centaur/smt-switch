@@ -4,8 +4,11 @@
 
 #include <cstddef>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "datatype.h"
+#include "smt_defs.h"
 
 namespace smt {
 

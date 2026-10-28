@@ -16,6 +16,11 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
 #include "available_solvers.h"
 #include "exceptions.h"
 #include "ops.h"

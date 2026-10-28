@@ -17,8 +17,12 @@
 
 #include <cassert>
 #include <cstddef>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "exceptions.h"
+#include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"

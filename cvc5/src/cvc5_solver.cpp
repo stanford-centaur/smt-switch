@@ -15,14 +15,19 @@
 **/
 #include "cvc5_solver.h"
 
-#include <algorithm>
-#include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <limits>
+#include <exception>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "cvc5_datatype.h"
+#include "cvc5_sort.h"
+#include "cvc5_term.h"
 #include "datatype.h"
 #include "exceptions.h"
 #include "result.h"

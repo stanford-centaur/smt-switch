@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "cvc5_solver.h"
 

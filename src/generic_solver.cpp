@@ -31,15 +31,13 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <cerrno>
 #include <chrono>
-#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
-#include <initializer_list>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <string>
@@ -48,6 +46,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "generic_datatype.h"
 #include "generic_sort.h"
@@ -55,6 +54,7 @@
 #include "ops.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "sort.h"
 #include "sort_inference.h"
