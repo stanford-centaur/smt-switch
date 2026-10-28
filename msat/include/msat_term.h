@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include "mathsat.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
 
@@ -74,25 +75,10 @@ class MsatTerm : public AbsTerm
   TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party MathSAT-specific software
-  msat_term get_msat_term() const
-  {
-    if (is_uf)
-    {
-      throw IncorrectUsageException("Cannot get msat_term from UF.");
-    }
-    return term;
-  }
-
-  msat_decl get_msat_decl() const
-  {
-    if (!is_uf)
-    {
-      throw IncorrectUsageException("Cannot get msat_decl from term.");
-    }
-    return decl;
-  }
+  msat_term get_msat_term() const;
+  msat_decl get_msat_decl() const;
 
  protected:
   // shared with the solver, so the environment lives as long as this term
