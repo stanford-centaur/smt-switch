@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <typeinfo>
 
 #include "exceptions.h"
 #include "sort.h"
@@ -82,11 +83,7 @@ std::ostream & operator<<(std::ostream & output, const Term t)
 }
 
 /* TermIterBase implementation */
-Term TermIterBase::operator*() const
-{
-  std::shared_ptr<AbsTerm> s;
-  return s;
-}
+TermIterBase::~TermIterBase() = default;
 
 bool TermIterBase::operator==(const TermIterBase & other) const
 {
