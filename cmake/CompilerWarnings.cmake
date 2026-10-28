@@ -483,7 +483,7 @@ set(
   -Wgroupshared-initializer # initializer of groupshared variable will be ignored
   -Whardened # -fhardened did not enable an option from its set
   -Wheader-guard # #ifndef of a header guard is followed by #define of a different macro
-  # -Wheader-hygiene # using namespace directive in global context in header
+  -Wheader-hygiene # using namespace directive in global context in header
   -Whexagon-reserved-caller-saved # reserving the caller-saved register 'X'
   -Whigher-precision-for-complex-division # excess precision is requested
   -Widiomatic-parentheses # using the result of an assignment as a condition without parentheses

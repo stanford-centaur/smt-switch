@@ -32,8 +32,6 @@
 #include "z3_sort.h"
 #include "z3_term.h"
 
-using namespace z3;
-
 namespace smt {
 /**
    Z3 Solver

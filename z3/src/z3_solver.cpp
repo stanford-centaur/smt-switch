@@ -306,7 +306,7 @@ void Z3Solver::set_logic(const std::string logic)
 
 Term Z3Solver::make_term(bool b) const
 {
-  expr z_term = ctx->bool_val(false);
+  z3::expr z_term = ctx->bool_val(false);
   if (b)
   {
     z_term = ctx->bool_val(true);
@@ -508,7 +508,7 @@ Term Z3Solver::get_selector(const Sort & s,
 Term Z3Solver::make_term(int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
-  expr z_term = expr(*ctx);
+  z3::expr z_term = z3::expr(*ctx);
   if (sk == INT)
   {
     z_term = ctx->int_val(i);
@@ -537,7 +537,7 @@ Term Z3Solver::make_term(const std::string val,
                          const Sort & sort,
                          uint64_t base) const
 {
-  expr z_term = expr(*ctx);
+  z3::expr z_term = z3::expr(*ctx);
   SortKind sk = sort->get_sort_kind();
 
   if (base != 10 && sk != BV)
@@ -619,7 +619,7 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
   assert(arrtype.is_array());
 
   Z3_ast c_array = Z3_mk_const_array(*ctx, arrtype.array_domain(), zterm->term);
-  expr final = to_expr(*ctx, c_array);
+  z3::expr final = to_expr(*ctx, c_array);
   return std::make_shared<Z3Term>(ctx, final);
 }
 
@@ -637,16 +637,16 @@ void Z3Solver::assert_formula(const Term & t)
 Result Z3Solver::check_sat()
 {
   last_query_assuming = false;
-  check_result r = get_z3_solver()->check();
-  if (r == unsat)
+  z3::check_result r = get_z3_solver()->check();
+  if (r == z3::unsat)
   {
     return Result(UNSAT);
   }
-  else if (r == sat)
+  else if (r == z3::sat)
   {
     return Result(SAT);
   }
-  else if (r == unknown)
+  else if (r == z3::unknown)
   {
     return Result(UNKNOWN, instance->slv.reason_unknown());
   }
@@ -673,16 +673,16 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
   }
 
   last_query_assuming = true;
-  check_result r = get_z3_solver()->check(z3assumps);
-  if (r == unsat)
+  z3::check_result r = get_z3_solver()->check(z3assumps);
+  if (r == z3::unsat)
   {
     return Result(UNSAT);
   }
-  else if (r == sat)
+  else if (r == z3::sat)
   {
     return Result(SAT);
   }
-  else if (r == unknown)
+  else if (r == z3::unknown)
   {
     return Result(UNKNOWN, instance->slv.reason_unknown());
   }
@@ -715,7 +715,7 @@ Term Z3Solver::get_value(const Term & t) const
         "Last call to check_sat was not sat, cannot get a model.");
   }
   z3::model model = instance->slv.get_model();
-  expr eval = model.eval(zterm->term, true);
+  z3::expr eval = model.eval(zterm->term, true);
   return std::make_shared<Z3Term>(ctx, eval);
 }
 
@@ -732,7 +732,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
   z3::model model = instance->slv.get_model();
   // Z3 gives an array model as a chain of stores over a constant base,
   // outermost store first.
-  expr zval = model.eval(zarr->term, true);
+  z3::expr zval = model.eval(zarr->term, true);
 
   std::vector<std::pair<Term, Term>> stores;
   while (zval.is_app() && zval.decl().decl_kind() == Z3_OP_STORE)
@@ -767,7 +767,7 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
     throw SmtException(
         "Can only call get_unsat_assumptions after check_sat_assuming");
   }
-  expr_vector core = instance->slv.unsat_core();
+  z3::expr_vector core = instance->slv.unsat_core();
   for (const auto & c : core)
   {
     out.insert(std::make_shared<Z3Term>(ctx, c));
@@ -897,21 +897,21 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   if (zsort->get_sort_kind() == FUNCTION)
   {
     // nb this is creating a func_decl
-    func_decl sort_func = zsort->z_func;
+    z3::func_decl sort_func = zsort->z_func;
 
-    sort_vector domain(*ctx);
+    z3::sort_vector domain(*ctx);
     for (unsigned i = 0; i < sort_func.arity(); i++)
     {
       domain.push_back(sort_func.domain(i));
     }
 
-    func_decl z_func = ctx->function(c, domain, sort_func.range());
+    z3::func_decl z_func = ctx->function(c, domain, sort_func.range());
     sym = std::make_shared<Z3Term>(ctx, z_func);
   }
   else
   {
     // nb this is creating an expr
-    expr z_term = ctx->constant(z_name, zsort->type);
+    z3::expr z_term = ctx->constant(z_name, zsort->type);
 
     sym = std::make_shared<Z3Term>(ctx, z_term);
   }
@@ -942,7 +942,7 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
   // Z3 gives a constant of the same name and sort back as the same term,
   // so a constant named `name` would be a symbol of that name, and a
   // quantifier over it would bind the symbol. A fresh one never is.
-  expr z_term(*ctx, Z3_mk_fresh_const(*ctx, name.c_str(), zsort->type));
+  z3::expr z_term(*ctx, Z3_mk_fresh_const(*ctx, name.c_str(), zsort->type));
   // mark as a parameter by passing true
   return std::make_shared<Z3Term>(ctx, z_term, true);
 }
@@ -1105,7 +1105,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     {
       params.push_back(to_expr(*ctx, zargs[i]));
     }
-    expr body = to_expr(*ctx, zargs.back());
+    z3::expr body = to_expr(*ctx, zargs.back());
     res = op.prim_op == Forall ? forall(params, body) : exists(params, body);
   }
   else if (size == 2 && binary_ops.find(op.prim_op) != binary_ops.end())
@@ -1162,7 +1162,7 @@ Term Z3Solver::substitute(const Term term,
 
   // z3 counterpart of `term`
   shared_ptr<Z3Term> z3term = backend_pointer_cast<Z3Term>(term);
-  expr z3expr = to_expr(*ctx, z3term->term);
+  z3::expr z3expr = to_expr(*ctx, z3term->term);
   // populate the z3 expr_vectors according to the substitution map
   for (auto p : substitution_map)
   {
@@ -1175,7 +1175,7 @@ Term Z3Solver::substitute(const Term term,
   }
 
   // perform the substitution and return the result
-  expr result = z3expr.substitute(z3sources, z3destinations);
+  z3::expr result = z3expr.substitute(z3sources, z3destinations);
   return std::make_shared<Z3Term>(ctx, result);
 }
 
