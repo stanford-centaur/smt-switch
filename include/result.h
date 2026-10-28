@@ -14,6 +14,10 @@
 **
 **/
 
+#ifndef SMT_SWITCH_INTERNAL
+// IWYU pragma: private, include "smt-switch/smt.h"
+#endif
+
 #pragma once
 
 #include <ostream>

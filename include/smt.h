@@ -20,14 +20,29 @@
 #error "smt.h is for external users; include the specific headers instead"
 #endif
 
+// Abstract datatype interface.
+#include "datatype.h"  // IWYU pragma: export
+
 // Exceptions used by SMT API.
 #include "exceptions.h"  // IWYU pragma: export
+
+// Interpolating solver interface.
+#include "interpolating_solver.h"  // IWYU pragma: export
+
+// SMT-LIB Sort and Function operators.
+#include "ops.h"  // IWYU pragma: export
+
+// Results of satisfiability checks.
+#include "result.h"  // IWYU pragma: export
 
 // Class and smart pointer definitions.
 #include "smt_defs.h"  // IWYU pragma: export
 
-// SMT-LIB Sort and Function operators.
-#include "ops.h"  // IWYU pragma: export
+// Main solver interface.
+#include "solver.h"  // IWYU pragma: export
+
+// Solver enums for identifying solver
+#include "solver_enums.h"  // IWYU pragma: export
 
 // Abstract sort interface.
 #include "sort.h"  // IWYU pragma: export
@@ -37,12 +52,3 @@
 
 // Transfer terms between solvers.
 #include "term_translator.h"  // IWYU pragma: export
-
-// Main solver interface.
-#include "solver.h"  // IWYU pragma: export
-
-// Interpolating solver interface.
-#include "interpolating_solver.h"  // IWYU pragma: export
-
-// Solver enums for identifying solver
-#include "solver_enums.h"  // IWYU pragma: export
