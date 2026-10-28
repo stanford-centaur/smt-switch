@@ -30,6 +30,7 @@
 #include "ops.h"
 #include "smtlibparser.h"
 #include "smtlibparser_maps.h"
+#include "solver.h"
 #include "sort.h"
 
 namespace smt {

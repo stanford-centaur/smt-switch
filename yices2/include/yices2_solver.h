@@ -28,8 +28,10 @@
 
 #include "exceptions.h"
 #include "result.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
 #include "sort.h"
+#include "term.h"
 #include "yices2_extensions.h"
 #include "yices2_instance_ref.h"
 #include "yices2_sort.h"

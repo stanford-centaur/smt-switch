@@ -23,7 +23,10 @@
 #include <string>
 #include <unordered_set>
 
-#include "smt.h"
+#include "datatype.h"
+#include "exceptions.h"
+#include "result.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "utils.h"
 

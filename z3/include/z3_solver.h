@@ -26,8 +26,10 @@
 
 #include "exceptions.h"
 #include "result.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "solver.h"
 #include "sort.h"
+#include "term.h"
 #include "z3_datatype.h"
 #include "z3_sort.h"
 #include "z3_term.h"

@@ -19,11 +19,13 @@
 #include <memory>
 #include <vector>
 
+#include "exceptions.h"
+#include "interpolating_solver.h"
 #include "msat_factory.h"
-#include "smt.h"
-// after a full installation
-// #include "smt-switch/msat_factory.h"
-// #include "smt-switch/smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "sort.h"
 
 using namespace smt;
 

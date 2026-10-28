@@ -13,7 +13,12 @@
 #include <gtest/gtest.h>
 
 #include "bitwuzla_factory.h"
-#include "smt.h"
+#include "exceptions.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 
 using namespace smt;
 

@@ -22,9 +22,16 @@
 #include <utility>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "gtest/gtest.h"
+#include "ops.h"
 #include "printing_solver.h"
-#include "smt.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
+#include "term.h"
 
 using namespace smt;
 using namespace smt_tests;

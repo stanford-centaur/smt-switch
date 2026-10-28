@@ -19,14 +19,13 @@
 #include <memory>
 #include <vector>
 
-#include "smt.h"
+#include "exceptions.h"
+#include "smt_defs.h"
+#include "term.h"
 #include "yices.h"
 #include "yices2_factory.h"
 #include "yices2_sort.h"
 #include "yices2_term.h"
-// after a full installation
-// #include "smt-switch/msat_factory.h"
-// #include "smt-switch/smt.h"
 
 using namespace smt;
 

@@ -14,7 +14,13 @@
 #include <gtest/gtest.h>
 
 #include "available_solvers.h"
-#include "smt.h"
+#include "exceptions.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
 
 using namespace smt;
 using namespace smt_tests;

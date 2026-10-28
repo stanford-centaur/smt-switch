@@ -16,7 +16,11 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
 
 using namespace smt;
 using namespace smt_tests;

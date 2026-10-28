@@ -17,9 +17,14 @@
 
 #include <memory>
 
+#include "interpolating_solver.h"
 #include "mathsat.h"
 #include "msat_solver.h"
-#include "smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 
 using namespace smt;
 

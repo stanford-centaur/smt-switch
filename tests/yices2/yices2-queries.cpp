@@ -12,7 +12,11 @@
 
 #include <gtest/gtest.h>
 
-#include "smt.h"
+#include "exceptions.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 #include "yices2_factory.h"
 
 using namespace smt;

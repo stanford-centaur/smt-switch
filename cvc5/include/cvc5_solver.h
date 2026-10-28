@@ -27,7 +27,11 @@
 #include "cvc5_sort.h"
 #include "cvc5_term.h"
 #include "interpolating_solver.h"
-#include "smt.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 namespace smt {
 /**

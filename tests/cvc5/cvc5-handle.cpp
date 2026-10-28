@@ -17,7 +17,6 @@
 #include <memory>
 
 #include "cvc5_solver.h"
-#include "smt.h"
 
 using namespace smt;
 

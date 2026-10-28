@@ -20,10 +20,11 @@
 #include <vector>
 
 #include "boolector_factory.h"
-#include "smt.h"
-// after a full installation
-// #include "smt-switch/boolector_factory.h"
-// #include "smt-switch/smt.h"
+#include "exceptions.h"
+#include "ops.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
 
 using namespace smt;
 using namespace std;

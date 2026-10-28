@@ -8,8 +8,13 @@
 
 #include "bitwuzla_factory.h"
 #include "exec_utils.h"
+#include "interpolating_solver.h"
+#include "ops.h"
 #include "printing_solver.h"
-#include "smt.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "sort.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

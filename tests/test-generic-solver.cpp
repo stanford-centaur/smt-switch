@@ -27,9 +27,16 @@
 #include <utility>
 #include <vector>
 
+#include "exceptions.h"
 #include "generic_solver.h"
 #include "generic_term.h"
-#include "smt.h"
+#include "ops.h"
+#include "result.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
+#include "sort.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

@@ -13,7 +13,11 @@
 #include <gtest/gtest.h>
 
 #include "boolector_factory.h"
-#include "smt.h"
+#include "exceptions.h"
+#include "smt_defs.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 
 using namespace smt;
 

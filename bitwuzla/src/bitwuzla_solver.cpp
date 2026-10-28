@@ -29,8 +29,10 @@
 
 #include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_term.h"
+#include "exceptions.h"
+#include "ops.h"
 #include "result.h"
-#include "smt.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "utils.h"
 

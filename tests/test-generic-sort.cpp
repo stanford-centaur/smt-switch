@@ -20,9 +20,11 @@
 #include <memory>
 #include <string>
 
+#include "exceptions.h"
 #include "generic_datatype.h"
 #include "generic_sort.h"
-#include "smt.h"
+#include "smt_defs.h"
+#include "sort.h"
 
 using namespace smt;
 using namespace std;

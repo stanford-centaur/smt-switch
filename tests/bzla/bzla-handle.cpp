@@ -16,7 +16,6 @@
 #include <memory>
 
 #include "bitwuzla_solver.h"
-#include "smt.h"
 
 using namespace smt;
 
