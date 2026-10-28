@@ -18,6 +18,7 @@
 
 #include <signal.h>
 #include <sys/time.h>
+#include <yices.h>
 
 #include <cassert>
 #include <cstdint>
@@ -27,7 +28,6 @@
 
 #include "solver_utils.h"
 #include "utils.h"
-#include "yices.h"
 #include "yices2_extensions.h"
 
 using namespace std;

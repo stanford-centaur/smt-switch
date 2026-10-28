@@ -1,5 +1,6 @@
 #include "z3_solver.h"
 
+#include <gmpxx.h>
 #include <z3++.h>
 
 #include <cassert>
@@ -15,11 +16,6 @@
 #include "ops.h"
 #include "smt_defs.h"
 #include "solver_utils.h"
-
-// TEMP for conversions, e.g. creating bit-vectors from base 2 or base 16
-// TODO look deeper into Z3 API to see if there's dedicated support
-//      Note: there is one for base 2 but not an obvious one for base 16
-#include "gmpxx.h"
 #include "sort.h"
 #include "utils.h"
 #include "z3_datatype.h"

@@ -14,8 +14,9 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "solver_enums.h"

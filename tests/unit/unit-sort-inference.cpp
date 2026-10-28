@@ -14,8 +14,9 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"

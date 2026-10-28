@@ -14,6 +14,9 @@
 **
 **/
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <cstddef>
 #include <functional>
 #include <iostream>
@@ -25,8 +28,6 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

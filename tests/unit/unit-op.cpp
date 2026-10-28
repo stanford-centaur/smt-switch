@@ -14,6 +14,8 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -22,7 +24,6 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

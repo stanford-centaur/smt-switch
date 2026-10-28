@@ -1,9 +1,11 @@
+#include <smt-switch/boolector_factory.h>
+#include <smt-switch/smt.h>
+
 #include <iostream>
 
-#include "smt-switch/boolector_factory.h"
-#include "smt-switch/smt.h"
 using namespace smt;
 using namespace std;
+
 int main()
 {
   // Boolector aliases booleans and bitvectors of size one

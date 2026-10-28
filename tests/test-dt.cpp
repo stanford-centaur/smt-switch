@@ -14,6 +14,8 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <cstddef>
 #include <functional>
 #include <set>
@@ -25,7 +27,6 @@
 #include "datatype.h"
 #include "exceptions.h"
 #include "generic_datatype.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

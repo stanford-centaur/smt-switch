@@ -13,11 +13,12 @@
 ** Tests for theory of strings.
 **/
 
+#include <gtest/gtest.h>
+
 #include <utility>
 #include <vector>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

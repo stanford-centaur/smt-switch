@@ -14,12 +14,13 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <cstddef>
 #include <utility>
 #include <vector>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "identity_walker.h"
 #include "ops.h"
 #include "smt_defs.h"

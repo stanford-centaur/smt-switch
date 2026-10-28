@@ -14,11 +14,11 @@
 **
 **/
 #include <gtest/gtest.h>
+#include <mathsat.h>
 
 #include <memory>
 
 #include "interpolating_solver.h"
-#include "mathsat.h"
 #include "msat_solver.h"
 #include "ops.h"
 #include "result.h"

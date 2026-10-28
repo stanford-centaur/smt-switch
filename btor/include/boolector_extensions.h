@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <cstdint>
+#include <boolector.h>
 
-#include "boolector.h"
+#include <cstdint>
 
 namespace smt {
 BoolectorNode * custom_boolector_rotate_left(Btor * btor,

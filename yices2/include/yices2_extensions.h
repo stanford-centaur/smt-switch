@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "yices.h"
+#include <yices.h>
 
 namespace smt {
 

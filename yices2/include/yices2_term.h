@@ -16,16 +16,14 @@
 
 #pragma once
 
-// before yices.h: it declares the mpq_t entry points, among them
-// yices_sum_component, only under #ifdef __GMP_H__
 #include <gmp.h>
+#include <yices.h>
 
 #include <cstdint>
 #include <vector>
 
 #include "term.h"
 #include "utils.h"
-#include "yices.h"
 #include "yices2_instance_ref.h"
 #include "yices2_sort.h"
 

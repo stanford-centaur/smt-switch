@@ -16,6 +16,11 @@
 
 #include "boolector_solver.h"
 
+extern "C" {
+#include <btornode.h>
+#include <utils/boolectornodemap.h>
+}
+
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -25,11 +30,6 @@
 
 #include "solver_utils.h"
 #include "utils.h"
-
-extern "C" {
-#include "btornode.h"
-#include "utils/boolectornodemap.h"
-}
 
 namespace smt {
 

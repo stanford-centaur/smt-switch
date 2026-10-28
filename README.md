@@ -81,7 +81,7 @@ solver, but this is hidden at the Smt-Switch level. Some solvers, such as
 Here is an example that creates a solver interface to cvc5:
 
 ```cpp
-#include "smt-switch/cvc5_factory.h"
+#include <smt-switch/cvc5_factory.h>
 
 int main()
 {

@@ -14,12 +14,13 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "exceptions.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

@@ -15,12 +15,12 @@
  */
 
 #include <gtest/gtest.h>
+#include <mathsat.h>
 
 #include <memory>
 #include <string>
 
 #include "exceptions.h"
-#include "mathsat.h"
 #include "msat_solver.h"
 #include "smt_defs.h"
 #include "solver.h"

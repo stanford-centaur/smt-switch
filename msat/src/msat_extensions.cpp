@@ -17,10 +17,11 @@
 #ifndef SMT_MSAT_EXTENSIONS_H
 #define SMT_MSAT_EXTENSIONS_H
 
+#include <mathsat.h>
+
 #include <vector>
 
 #include "exceptions.h"
-#include "mathsat.h"
 
 using namespace std;
 

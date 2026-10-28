@@ -18,7 +18,9 @@
 #include <cassert>
 #include <cstdio>
 #include <iostream>
+
 using namespace std;
+
 %}
 
 %skeleton "lalr1.cc"

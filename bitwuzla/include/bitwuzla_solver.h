@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-#include "bitwuzla/cpp/bitwuzla.h"
 #include "bitwuzla_term.h"
 #include "interpolating_solver.h"
 #include "result.h"
