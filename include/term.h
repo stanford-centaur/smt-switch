@@ -31,7 +31,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
@@ -131,9 +130,10 @@ std::ostream & operator<<(std::ostream & output, const Term t);
 class TermIterBase
 {
  public:
-  virtual ~TermIterBase() = default;
-  virtual void operator++() {}
-  virtual Term operator*() const;
+  // defined in the .cpp to anchor the vtable
+  virtual ~TermIterBase();
+  virtual void operator++() = 0;
+  virtual Term operator*() const = 0;
   virtual TermIterBase * clone() const = 0;
   bool operator==(const TermIterBase & other) const;
   bool operator!=(const TermIterBase & other) const;

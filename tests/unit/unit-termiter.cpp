@@ -202,6 +202,8 @@ class PositionIter : public TermIterBase
 {
  public:
   explicit PositionIter(int p) : pos(p) {}
+  void operator++() override { ++pos; }
+  Term operator*() const override { return Term(); }
   TermIterBase * clone() const override { return new PositionIter(pos); }
 
  protected:
