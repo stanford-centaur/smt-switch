@@ -14,13 +14,14 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <chrono>
 #include <cmath>
 #include <utility>
 #include <vector>
 
 #include "available_solvers.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"

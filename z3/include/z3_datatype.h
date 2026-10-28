@@ -1,9 +1,11 @@
 #pragma once
+
+#include <z3++.h>
+
 #include <cstddef>
 #include <memory>
 
 #include "datatype.h"
-#include "z3++.h"
 
 namespace smt {
 

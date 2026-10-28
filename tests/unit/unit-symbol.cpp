@@ -14,9 +14,10 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include "available_solvers.h"
 #include "exceptions.h"
-#include "gtest/gtest.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"

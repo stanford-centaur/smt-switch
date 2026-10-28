@@ -16,13 +16,14 @@
 
 #pragma once
 
+#include <cvc5/cvc5.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "cvc5/cvc5.h"
 #include "cvc5_datatype.h"
 #include "cvc5_sort.h"
 #include "cvc5_term.h"

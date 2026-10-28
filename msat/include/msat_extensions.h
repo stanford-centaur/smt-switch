@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "mathsat.h"
+#include <mathsat.h>
 
 namespace smt {
 msat_term ext_msat_make_negate(msat_env e, msat_term t);

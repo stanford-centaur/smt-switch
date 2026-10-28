@@ -15,10 +15,11 @@
 
 #pragma once
 
+#include <cvc5/cvc5.h>
+
 #include <cstddef>
 #include <string>
 
-#include "cvc5/cvc5.h"
 #include "datatype.h"
 
 namespace smt {

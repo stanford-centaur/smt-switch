@@ -14,6 +14,8 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <fstream>
 #include <set>
 #include <sstream>
@@ -23,7 +25,6 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
-#include "gtest/gtest.h"
 #include "ops.h"
 #include "printing_solver.h"
 #include "result.h"

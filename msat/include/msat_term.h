@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include <mathsat.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#include "mathsat.h"
 #include "term.h"
 
 namespace smt {

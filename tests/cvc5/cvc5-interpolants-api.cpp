@@ -1,8 +1,7 @@
+#include <cvc5/cvc5.h>
 #include <gtest/gtest.h>
 
 #include <vector>
-
-#include "cvc5/cvc5.h"
 
 using namespace cvc5;
 

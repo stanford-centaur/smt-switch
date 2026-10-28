@@ -15,6 +15,7 @@
 **/
 
 #include <gtest/gtest.h>
+#include <yices.h>
 
 #include <memory>
 #include <vector>
@@ -22,7 +23,6 @@
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "term.h"
-#include "yices.h"
 #include "yices2_factory.h"
 #include "yices2_sort.h"
 #include "yices2_term.h"

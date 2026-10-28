@@ -17,8 +17,9 @@
 #ifndef SMT_YICES2_EXTENSIONS_H
 #define SMT_YICES2_EXTENSIONS_H
 
-#include "gmp.h"
-#include "yices.h"
+#include <gmp.h>
+#include <yices.h>
+
 #include "yices2_solver.h"
 
 using namespace std;

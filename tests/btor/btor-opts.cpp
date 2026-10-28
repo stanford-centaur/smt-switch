@@ -14,13 +14,14 @@
 **
 **/
 
+#include <gtest/gtest.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
 
 #include "boolector_factory.h"
 #include "exceptions.h"
-#include "gtest/gtest.h"
 #include "smt_defs.h"
 #include "solver.h"
 

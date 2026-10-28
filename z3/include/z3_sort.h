@@ -16,13 +16,14 @@
 
 #pragma once
 
+#include <z3++.h>
+
 #include <cstdint>
 #include <memory>
 
 #include "exceptions.h"
 #include "sort.h"
 #include "utils.h"
-#include "z3++.h"
 
 namespace smt {
 
