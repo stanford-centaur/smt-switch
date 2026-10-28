@@ -16,7 +16,6 @@
 
 #include "result.h"
 
-#include <cstddef>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -35,6 +34,14 @@ Result::Result(ResultType rt, std::string reason)
     : result(rt), explanation(std::move(reason))
 {
 }
+
+bool Result::is_sat() const { return result == SAT; }
+
+bool Result::is_unsat() const { return result == UNSAT; }
+
+bool Result::is_unknown() const { return result == UNKNOWN; }
+
+bool Result::is_null() const { return result == NUM_RESULTS; }
 
 std::string Result::get_explanation() const
 {

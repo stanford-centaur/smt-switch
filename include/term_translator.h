@@ -24,10 +24,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "exceptions.h"
+#include "ops.h"
 #include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
 
@@ -89,10 +87,10 @@ class TermTranslator
   Term transfer_term(const Term & term, const SortKind sk);
 
   /* Returns reference to cache -- can be used to populate with symbols */
-  UnorderedTermMap & get_cache() { return cache; };
+  UnorderedTermMap & get_cache();
 
   /* Returns a reference to the solver this object translates terms to */
-  const SmtSolver & get_solver() const { return solver; };
+  const SmtSolver & get_solver() const;
 
  protected:
   /** Creates a term value from a string of the given sort

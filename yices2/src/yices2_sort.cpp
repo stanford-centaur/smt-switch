@@ -16,8 +16,10 @@
 
 #include "yices2_sort.h"
 
+#include <yices.h>
+
 #include <cstdint>
-#include <sstream>
+#include <memory>
 
 #include "exceptions.h"
 
@@ -199,5 +201,7 @@ SortKind Yices2Sort::get_sort_kind() const
     throw NotImplementedException(msg.c_str());
   }
 }
+
+type_t Yices2Sort::get_ytype() const { return type; }
 
 }  // namespace smt

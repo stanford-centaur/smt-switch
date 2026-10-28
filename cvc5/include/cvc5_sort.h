@@ -16,17 +16,16 @@
 
 #pragma once
 
-#include <cstdint>
-#include <unordered_map>
+#include <cvc5/cvc5.h>
 
-#include "cvc5/cvc5.h"
-#include "cvc5/cvc5_kind.h"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+#include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
-
-// forward declaration
-class Cvc5Solver;
 
 class Cvc5Sort : public AbsSort
 {
@@ -46,9 +45,9 @@ class Cvc5Sort : public AbsSort
   bool compare(const Sort &) const override;
   SortKind get_sort_kind() const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::Sort get_cvc5_sort() const { return sort; };
+  ::cvc5::Sort get_cvc5_sort() const;
   /** The datatype, as get_datatype gives it, without wrapping it
    *  @throws IncorrectUsageException if the sort has no datatype
    */

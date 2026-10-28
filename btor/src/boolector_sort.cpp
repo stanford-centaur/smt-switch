@@ -16,10 +16,13 @@
 
 #include "boolector_sort.h"
 
+#include <boolector.h>
+
 #include <cstdint>
 #include <functional>
-#include <sstream>
 #include <utility>
+
+#include "exceptions.h"
 
 namespace smt {
 
@@ -113,6 +116,10 @@ bool BoolectorSortBase::compare(const Sort & s) const
       std::dynamic_pointer_cast<BoolectorSortBase>(s);
   return bs && sort == bs->sort;
 }
+
+SortKind BoolectorSortBase::get_sort_kind() const { return sk; }
+
+BoolectorSort BoolectorSortBase::get_btor_sort() const { return sort; }
 
 BoolectorBVSort::BoolectorBVSort(const std::shared_ptr<Btor> & b,
                                  BoolectorSort s,

@@ -16,19 +16,17 @@
 
 #pragma once
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#include "bitwuzla/cpp/bitwuzla.h"
 #include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
-
-// forward declaration
-class BzlaSolver;
 
 class BzlaSort : public AbsSort
 {
@@ -48,10 +46,10 @@ class BzlaSort : public AbsSort
   bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  const bitwuzla::Sort get_bitwuzla_sort() const { return sort; };
+  const bitwuzla::Sort get_bitwuzla_sort() const;
 
  protected:
   // the term manager that owns sort, kept alive for as long as sort is

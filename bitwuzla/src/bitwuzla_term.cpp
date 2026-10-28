@@ -16,6 +16,8 @@
 
 #include "bitwuzla_term.h"
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -27,7 +29,7 @@
 #include <utility>
 #include <vector>
 
-#include "bitwuzla/cpp/bitwuzla.h"
+#include "bitwuzla_sort.h"
 #include "exceptions.h"
 #include "ops.h"
 #include "utils.h"
@@ -269,4 +271,7 @@ std::string BzlaTerm::print_value_as(SortKind /* sk */) const
   }
   return to_string();
 }
+
+const bitwuzla::Term BzlaTerm::get_bitwuzla_term() const { return term; }
+
 }  // namespace smt

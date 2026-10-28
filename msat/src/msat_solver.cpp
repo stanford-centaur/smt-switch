@@ -16,6 +16,8 @@
 
 #include "msat_solver.h"
 
+#include <mathsat.h>
+
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -30,7 +32,9 @@
 #include "msat_extensions.h"
 #include "msat_sort.h"
 #include "msat_term.h"
+#include "ops.h"
 #include "result.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "utils.h"
 
@@ -991,6 +995,10 @@ bool MsatSolver::is_initialized() const
 {
   return env_wrapper_.is_initialized();
 }
+
+size_t MsatSolver::max_assump_clauses() const { return max_assump_clauses_; }
+
+void MsatSolver::set_max_assump_clauses(size_t m) { max_assump_clauses_ = m; }
 
 msat_config MsatSolver::as_msat_config(const ConfigPtr & cfg)
 {

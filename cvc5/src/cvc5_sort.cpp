@@ -16,7 +16,12 @@
 
 #include "cvc5_sort.h"
 
+#include <cvc5/cvc5.h>
+
 #include <cstdint>
+#include <functional>
+#include <memory>
+#include <vector>
 
 #include "cvc5_datatype.h"
 #include "exceptions.h"
@@ -187,6 +192,8 @@ Datatype Cvc5Sort::get_datatype() const
 {
   return std::make_shared<Cvc5Datatype>(get_cvc5_datatype());
 };
+
+::cvc5::Sort Cvc5Sort::get_cvc5_sort() const { return sort; }
 
 ::cvc5::Datatype Cvc5Sort::get_cvc5_datatype() const
 {

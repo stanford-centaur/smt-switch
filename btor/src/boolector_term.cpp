@@ -16,6 +16,15 @@
 
 #include "boolector_term.h"
 
+#include <boolector.h>
+
+extern "C" {
+#include <btorcore.h>
+#include <btornode.h>
+#include <btorsort.h>
+#include <utils/btornodeiter.h>
+}
+
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -24,6 +33,8 @@
 #include <unordered_map>
 #include <utility>
 
+#include "boolector_sort.h"
+#include "exceptions.h"
 #include "utils.h"
 
 namespace smt {
@@ -448,6 +459,8 @@ std::string BoolectorTerm::print_value_as(SortKind sk) const
     return to_string();
   }
 }
+
+BoolectorNode * BoolectorTerm::get_btor_node() const { return node; }
 
 // helpers
 

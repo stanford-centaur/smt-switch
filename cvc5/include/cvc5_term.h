@@ -16,16 +16,17 @@
 
 #pragma once
 
-#include <cstdint>
+#include <cvc5/cvc5.h>
 
-#include "cvc5/cvc5.h"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
-// forward declaration
-class Cvc5Solver;
-
 class Cvc5TermIter : public TermIterBase
 {
  public:
@@ -67,9 +68,9 @@ class Cvc5Term : public AbsTerm
   TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::Term get_cvc5_term() const { return term; };
+  ::cvc5::Term get_cvc5_term() const;
 
  protected:
   cvc5::Term term;

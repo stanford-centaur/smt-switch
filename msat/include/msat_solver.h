@@ -16,22 +16,17 @@
 
 #pragma once
 
-#include <cassert>
+#include <mathsat.h>
+
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
 #include "interpolating_solver.h"
-#include "mathsat.h"
-#include "msat_sort.h"
-#include "msat_term.h"
-#include "ops.h"
-#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
@@ -114,10 +109,10 @@ class MsatSolver : public AbsSmtSolver
   // true once the environment exists, which fixes the configuration
   bool is_initialized() const;
 
-  // getters and setters for advanced use / testing
-  size_t max_assump_clauses() const { return max_assump_clauses_; }
+  // Getters and setters for advanced use / testing
+  size_t max_assump_clauses() const;
 
-  void set_max_assump_clauses(size_t m) { max_assump_clauses_ = m; }
+  void set_max_assump_clauses(size_t m);
 
  protected:
   void do_push(uint64_t num) override;

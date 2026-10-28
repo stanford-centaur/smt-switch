@@ -40,10 +40,10 @@ struct Result
 {
   Result() = default;
   explicit Result(ResultType rt, std::string reason = "no explanation");
-  bool is_sat() const { return result == SAT; };
-  bool is_unsat() const { return result == UNSAT; };
-  bool is_unknown() const { return result == UNKNOWN; };
-  bool is_null() const { return result == NUM_RESULTS; };
+  bool is_sat() const;
+  bool is_unsat() const;
+  bool is_unknown() const;
+  bool is_null() const;
   std::string get_explanation() const;
   std::string to_string() const;
   ResultType result = NUM_RESULTS;

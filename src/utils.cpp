@@ -32,7 +32,9 @@
 #include "exceptions.h"
 #include "identity_walker.h"
 #include "ops.h"
+#include "result.h"
 #include "smt_defs.h"
+#include "solver.h"
 #include "sort.h"
 #include "term.h"
 
@@ -1247,6 +1249,11 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
   reducer_->pop();
 
   return true;
+}
+
+void UnsatCoreReducer::clear_term_translation_cache()
+{
+  to_reducer_.get_cache().clear();
 }
 
 Term UnsatCoreReducer::label(const Term & t)

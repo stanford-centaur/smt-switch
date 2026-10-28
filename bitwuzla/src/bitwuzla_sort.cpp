@@ -16,6 +16,8 @@
 
 #include "bitwuzla_sort.h"
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -24,7 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include "bitwuzla/cpp/bitwuzla.h"
 #include "exceptions.h"
 
 namespace smt {
@@ -177,5 +178,7 @@ SortKind BzlaSort::get_sort_kind() const
     throw SmtException("Got Bitwuzla sort of unknown SortKind.");
   }
 }
+
+const bitwuzla::Sort BzlaSort::get_bitwuzla_sort() const { return sort; }
 
 }  // namespace smt

@@ -16,18 +16,17 @@
 
 #pragma once
 
-#include <cstdint>
+#include <yices.h>
 
-#include "exceptions.h"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+#include "smt_defs.h"
 #include "sort.h"
-#include "utils.h"
-#include "yices.h"
 #include "yices2_instance_ref.h"
 
 namespace smt {
-
-// forward declaration
-class Yices2Solver;
 
 class Yices2Sort : public AbsSort
 {
@@ -46,7 +45,7 @@ class Yices2Sort : public AbsSort
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
   SortKind get_sort_kind() const override;
-  type_t get_ytype() const { return type; };
+  type_t get_ytype() const;
 
  protected:
   // keeps Yices set up while the sort can be used, even past its solver

@@ -16,18 +16,17 @@
 
 #pragma once
 
+#include <boolector.h>
+
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
-#include "boolector.h"
-#include "exceptions.h"
+#include "smt_defs.h"
 #include "sort.h"
-#include "utils.h"
 
 namespace smt {
-
-// forward declaration
-class BoolectorSolver;
 
 class BoolectorSortBase : public AbsSort
 {
@@ -50,12 +49,12 @@ class BoolectorSortBase : public AbsSort
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
-  SortKind get_sort_kind() const override { return sk; };
+  SortKind get_sort_kind() const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party Boolector-specific software
 
-  BoolectorSort get_btor_sort() const { return sort; };
+  BoolectorSort get_btor_sort() const;
 
  protected:
   // keeps the instance alive for as long as this object is

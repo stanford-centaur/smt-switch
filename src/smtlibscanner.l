@@ -18,6 +18,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
+#include "exceptions.h"
 #include "smtlib_reader.h"
 #include "smtlibparser.h"
 using namespace std;

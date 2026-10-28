@@ -16,6 +16,8 @@
 
 #include "bitwuzla_solver.h"
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -25,9 +27,10 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
-#include "bitwuzla/cpp/bitwuzla.h"
+#include "bitwuzla_sort.h"
 #include "bitwuzla_term.h"
 #include "exceptions.h"
 #include "ops.h"

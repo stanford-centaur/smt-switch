@@ -16,6 +16,8 @@
 
 #include "msat_sort.h"
 
+#include <mathsat.h>
+
 #include <cstdint>
 
 #include "exceptions.h"
@@ -215,5 +217,7 @@ SortKind MsatSort::get_sort_kind() const
     return UNINTERPRETED;
   }
 }
+
+msat_type MsatSort::get_msat_type() const { return type; }
 
 }  // namespace smt

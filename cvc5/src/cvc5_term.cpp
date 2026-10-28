@@ -16,13 +16,19 @@
 
 #include "cvc5_term.h"
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <cstdint>
+#include <functional>
+#include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
-#include "cvc5/cvc5.h"
 #include "cvc5_sort.h"
 #include "exceptions.h"
+#include "ops.h"
 #include "utils.h"
 
 namespace smt {
@@ -367,6 +373,8 @@ std::string Cvc5Term::print_value_as(SortKind /* sk */) const
   }
   return term.toString();
 }
+
+::cvc5::Term Cvc5Term::get_cvc5_term() const { return term; }
 
 /* end Cvc5Term implementation */
 

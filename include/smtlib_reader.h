@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -24,7 +23,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "exceptions.h"
 #include "location.hh"
 #include "ops.h"
 #include "result.h"
@@ -65,11 +63,11 @@ enum Command
 class UnorderedScopedSymbolMap
 {
  public:
-  std::size_t current_scope() const { return symbols_.size() - 1; }
+  std::size_t current_scope() const;
 
   void add_mapping(const std::string & sym, const Term & t);
 
-  void push_scope() { symbols_.push_back({}); }
+  void push_scope();
 
   void pop_scope();
 
@@ -149,12 +147,12 @@ class SmtLibReader
                               const std::string & keyword,
                               const std::string & value);
 
-  /* getters and setters  */
-  smtlib::location & location() { return location_; }
+  /* Getters and setters */
+  smtlib::location & location();
 
-  const SmtSolver & solver() const { return solver_; }
+  const SmtSolver & solver() const;
 
-  bool is_strict() const { return strict_; }
+  bool is_strict() const;
 
   /** Pushes a scope for a new quantifier binding or define-fun arguments
    */
@@ -164,7 +162,7 @@ class SmtLibReader
    */
   void pop_scope();
 
-  std::size_t current_scope() const { return arg_param_map_.current_scope(); }
+  std::size_t current_scope() const;
 
   /* Methods for use in flex/bison generated code */
 
