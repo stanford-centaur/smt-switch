@@ -639,6 +639,24 @@ std::string MsatTerm::print_value_as(SortKind /* sk */) const
   return to_string();
 }
 
+msat_term MsatTerm::get_msat_term() const
+{
+  if (is_uf)
+  {
+    throw IncorrectUsageException("Cannot get msat_term from UF.");
+  }
+  return term;
+}
+
+msat_decl MsatTerm::get_msat_decl() const
+{
+  if (!is_uf)
+  {
+    throw IncorrectUsageException("Cannot get msat_decl from term.");
+  }
+  return decl;
+}
+
 // end MsatTerm implementation
 
 }  // namespace smt
