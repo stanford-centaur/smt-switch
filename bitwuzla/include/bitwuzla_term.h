@@ -16,21 +16,18 @@
 
 #pragma once
 
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#include "bitwuzla/cpp/bitwuzla.h"
-#include "bitwuzla_sort.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
 
 namespace smt {
-
-// forward declaration
-class BzlaSolver;
 
 class BzlaTermIter : public TermIterBase
 {
@@ -77,10 +74,10 @@ class BzlaTerm : public AbsTerm
   TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software
 
-  const bitwuzla::Term get_bitwuzla_term() const { return term; };
+  const bitwuzla::Term get_bitwuzla_term() const;
 
  protected:
   // the term manager that owns term, kept alive for as long as term is

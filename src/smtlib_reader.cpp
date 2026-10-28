@@ -90,6 +90,11 @@ auto has_sort_kind(SortKind sk)
 }
 }  // namespace
 
+std::size_t UnorderedScopedSymbolMap::current_scope() const
+{
+  return symbols_.size() - 1;
+}
+
 void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
                                            const Term & t)
 {
@@ -100,6 +105,8 @@ void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
   symbol_map_[sym] = t;
   symbols_.back().insert(sym);
 }
+
+void UnorderedScopedSymbolMap::push_scope() { symbols_.push_back({}); }
 
 void UnorderedScopedSymbolMap::pop_scope()
 {
@@ -357,6 +364,12 @@ void SmtLibReader::term_attribute(const Term & /* term */,
             << std::endl;
 }
 
+smtlib::location & SmtLibReader::location() { return location_; }
+
+const SmtSolver & SmtLibReader::solver() const { return solver_; }
+
+bool SmtLibReader::is_strict() const { return strict_; }
+
 void SmtLibReader::push_scope()
 {
   arg_param_map_.push_scope();
@@ -367,6 +380,11 @@ void SmtLibReader::pop_scope()
 {
   arg_param_map_.pop_scope();
   sort_arg_ids_.pop_back();
+}
+
+std::size_t SmtLibReader::current_scope() const
+{
+  return arg_param_map_.current_scope();
 }
 
 Term SmtLibReader::lookup_symbol(const std::string & sym) const

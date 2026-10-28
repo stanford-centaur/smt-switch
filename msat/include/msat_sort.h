@@ -16,16 +16,17 @@
 
 #pragma once
 
+#include <mathsat.h>
+
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
-#include "mathsat.h"
+#include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
-// forward declaration
-class MsatSolver;
-
 class MsatSort : public AbsSort
 {
  public:
@@ -44,9 +45,9 @@ class MsatSort : public AbsSort
   bool compare(const Sort &) const override;
   SortKind get_sort_kind() const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party MathSAT-specific software
-  msat_type get_msat_type() const { return type; }
+  msat_type get_msat_type() const;
 
  protected:
   // shared with the solver, so the environment lives as long as this sort

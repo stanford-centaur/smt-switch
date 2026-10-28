@@ -11,6 +11,10 @@
 #include <cstdint>
 #include <string>
 
+#include "ops.h"
+#include "solver.h"
+#include "sort.h"
+#include "term.h"
 #include "utils.h"
 
 using namespace smt;

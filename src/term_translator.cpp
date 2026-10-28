@@ -30,6 +30,8 @@
 #include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
+#include "solver.h"
+#include "solver_enums.h"
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
@@ -392,6 +394,10 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
     throw IncorrectUsageException(msg);
   }
 }
+
+UnorderedTermMap & TermTranslator::get_cache() { return cache; }
+
+const SmtSolver & TermTranslator::get_solver() const { return solver; }
 
 std::string TermTranslator::infixize_rational(const std::string smtlib) const
 {

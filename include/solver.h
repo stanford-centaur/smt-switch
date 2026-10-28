@@ -33,6 +33,7 @@
 #include <ranges>
 #endif
 
+#include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
 #include "solver_enums.h"
@@ -212,7 +213,7 @@ class AbsSmtSolver
   virtual std::uint64_t get_context_level() const;
 
   /* Pop all contexts */
-  virtual void pop_all() { pop(get_context_level()); }
+  virtual void pop_all();
 
   /* Get the value of a term after check_sat returns a satisfiable result
    * SMTLIB: (get-value (<t>))

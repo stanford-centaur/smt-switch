@@ -16,25 +16,26 @@
 
 #pragma once
 
-#include <cstdint>
-#include <memory>
-#include <vector>
+#include <boolector.h>
 
-#include "boolector.h"
 extern "C" {
-#include "btorcore.h"
-#include "btornode.h"
-#include "utils/btornodeiter.h"
+#include <btorcore.h>
+#include <btornode.h>
+#include <utils/btornodeiter.h>
 }
 
-#include "boolector_sort.h"
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "ops.h"
+#include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
-
-// forward declaration
-class BoolectorSolver;
 
 // helpers
 Op lookup_op(Btor * btor, BoolectorNode * n);
@@ -94,10 +95,10 @@ class BoolectorTerm : public AbsTerm
   TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
-  // getters for solver-specific objects
+  // Getters for solver-specific objects
   // for interacting with third-party Boolector-specific software
 
-  BoolectorNode * get_btor_node() const { return node; };
+  BoolectorNode * get_btor_node() const;
 
  protected:
   // keeps the instance alive for as long as this object is

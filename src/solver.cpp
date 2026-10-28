@@ -16,7 +16,6 @@
 
 #include "solver.h"
 
-#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -57,6 +56,8 @@ void AbsSmtSolver::pop(std::uint64_t num)
 }
 
 std::uint64_t AbsSmtSolver::get_context_level() const { return context_level; }
+
+void AbsSmtSolver::pop_all() { pop(get_context_level()); }
 
 void AbsSmtSolver::reset()
 {
