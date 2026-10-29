@@ -166,7 +166,7 @@ Datatype MsatSort::get_datatype() const
   // MathSAT has no datatypes, so no sort has a datatype
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
-};
+}
 
 bool MsatSort::compare(const Sort & s) const
 {

@@ -68,7 +68,7 @@ class SmtLibReaderTester : public SmtLibReader
     return r;
   }
 
-  const vector<Result> & get_results() const { return results_; };
+  const vector<Result> & get_results() const { return results_; }
 
  protected:
   vector<Result> results_;

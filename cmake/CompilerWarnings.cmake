@@ -399,8 +399,8 @@ set(
   -Wexternal-tu-local # naming a TU-local entity declared in another translation unit
   -Wextra # the set beyond -Wall; -Wunused-parameter needs the two together
   -Wextra-qualification # extra qualification on member X
-  # -Wextra-semi # semicolon after in-class function definition
-  # -Wextra-semi-stmt # empty expression statement has no effect
+  -Wextra-semi # semicolon after in-class function definition
+  -Wextra-semi-stmt # empty expression statement has no effect
   -Wextractapi-misuse # missing symbol graph output directory, defaulting to working directory
   -Wextraneous-template-head # extraneous template parameter list in template specialization
   -Wfinal-dtor-non-final-class # class with destructor marked 'final' cannot be inherited

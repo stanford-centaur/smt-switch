@@ -741,7 +741,7 @@ Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
 {
@@ -767,7 +767,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 void Cvc5Solver::add_constructor(DatatypeDecl & dt,
                                  const DatatypeConstructorDecl & con) const
@@ -784,7 +784,7 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
                               const std::string & name,
@@ -801,7 +801,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
                                    const std::string & name) const
@@ -816,7 +816,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
 {
@@ -839,7 +839,7 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
 {
@@ -862,7 +862,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 Term Cvc5Solver::get_selector(const Sort & s,
                               std::string con,
@@ -895,7 +895,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
   {
     throw InternalSolverException(e.what());
   }
-};
+}
 
 SortVec Cvc5Solver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & decls) const

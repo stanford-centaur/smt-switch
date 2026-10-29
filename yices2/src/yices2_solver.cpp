@@ -187,8 +187,6 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   else if (option == "produce-unsat-assumptions")
   {
     // nothing to be done
-    ;
-    ;
   }
   else
   {

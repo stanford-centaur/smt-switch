@@ -546,33 +546,33 @@ bool check_indexof_sorts(const SortVec & sorts)
 bool bool_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(BOOL, sorts);
-};
+}
 
 bool bv_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(BV, sorts);
-};
+}
 
 bool eq_bv_sorts(const SortVec & sorts)
 {
   assert(sorts.size());
   return sorts[0]->get_sort_kind() == BV && equal_sorts(sorts);
-};
+}
 
 bool real_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(REAL, sorts);
-};
+}
 
 bool int_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(INT, sorts);
-};
+}
 
 bool string_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(STRING, sorts);
-};
+}
 
 bool arithmetic_sorts(const SortVec & sorts)
 {
@@ -582,12 +582,12 @@ bool arithmetic_sorts(const SortVec & sorts)
 bool array_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(ARRAY, sorts);
-};
+}
 
 bool function_sorts(const SortVec & sorts)
 {
   return check_sortkind_matches(FUNCTION, sorts);
-};
+}
 
 /* helpers for sort inference (return type of operation) */
 
