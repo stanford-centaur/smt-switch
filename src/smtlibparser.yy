@@ -32,6 +32,9 @@ using namespace std;
 %define api.value.type variant
 
 %define api.prefix {smtlib}
+// The location classes go in the parser's header rather than a file of
+// their own, as nothing uses them apart from the parser.
+%define api.location.file none
 
 %code requires {
 /*********************                                                        */
@@ -62,11 +65,14 @@ using namespace std;
   }
 }
 
-%param { smt::SmtLibReader & drv }
+%parse-param { smt::SmtLibReader & drv }
 
 %code {
 #include "smtlib_reader.h"
 #include "solver.h"
+
+// Defined by the scanner, as its YY_DECL spells it.
+smtlib::parser::symbol_type yylex();
 }
 
 %token <std::string> SYMBOL
