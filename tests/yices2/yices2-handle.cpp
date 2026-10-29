@@ -10,10 +10,12 @@
  * solver is destroyed still works afterwards.
  */
 
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <gtest/gtest.h>
 #include <yices.h>
 
 #include <memory>
+#include <string>
 
 #include "yices2_solver.h"
 

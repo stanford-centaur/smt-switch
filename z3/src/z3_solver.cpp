@@ -4,17 +4,21 @@
 #include <z3++.h>
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <exception>
-#include <iostream>
-#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "ops.h"
+#include "result.h"
 #include "smt_defs.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "sort.h"
 #include "utils.h"

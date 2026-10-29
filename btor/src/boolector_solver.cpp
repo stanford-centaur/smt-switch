@@ -17,7 +17,7 @@
 #include "boolector_solver.h"
 
 extern "C" {
-#include <btornode.h>
+#include <btorcore.h>
 #include <utils/boolectornodemap.h>
 }
 
@@ -27,7 +27,16 @@ extern "C" {
 #include <cstdio>
 #include <limits>
 #include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "boolector_extensions.h"
+#include "boolector_sort.h"
+#include "boolector_term.h"
+#include "exceptions.h"
+#include "ops.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "utils.h"
 

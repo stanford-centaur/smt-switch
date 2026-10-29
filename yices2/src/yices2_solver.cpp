@@ -16,6 +16,7 @@
 
 #include "yices2_solver.h"
 
+#include <gmp.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <yices.h>
@@ -24,11 +25,18 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "exceptions.h"
+#include "ops.h"
+#include "result.h"
+#include "solver_enums.h"
 #include "solver_utils.h"
 #include "utils.h"
 #include "yices2_extensions.h"
+#include "yices2_sort.h"
+#include "yices2_term.h"
 
 using namespace std;
 

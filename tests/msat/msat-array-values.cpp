@@ -8,6 +8,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "exceptions.h"
 #include "msat_factory.h"
 #include "ops.h"

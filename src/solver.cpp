@@ -17,7 +17,10 @@
 #include "solver.h"
 
 #include <cstdint>
+#include <list>
+#include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "exceptions.h"
 #include "result.h"

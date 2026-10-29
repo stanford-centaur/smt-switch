@@ -18,18 +18,14 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <string>
-#include <vector>
 
-#include "exceptions.h"
+#include "generic_datatype.h"
 #include "smt_defs.h"
 #include "sort.h"
 
 namespace smt {
-
-class GenericDatatype;
 
 /** \class GenericSort
  *  An abstract class for generic Sorts

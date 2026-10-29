@@ -13,6 +13,9 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+
 #include "bitwuzla_factory.h"
 #include "exceptions.h"
 #include "interpolating_solver.h"

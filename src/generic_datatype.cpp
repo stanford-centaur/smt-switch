@@ -1,9 +1,7 @@
 #include "generic_datatype.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
-#include <functional>
 #include <memory>
 #include <string>
 #include <utility>

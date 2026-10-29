@@ -19,7 +19,6 @@
 #include <cvc5/cvc5.h>
 
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <vector>
 

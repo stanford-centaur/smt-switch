@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "interpolating_solver.h"
 #include "smt_defs.h"
 
 namespace smt {

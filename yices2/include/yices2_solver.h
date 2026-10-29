@@ -16,24 +16,19 @@
 
 #pragma once
 
-#include <gmp.h>
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 
-#include "exceptions.h"
-#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
 #include "term.h"
-#include "yices2_extensions.h"
 #include "yices2_instance_ref.h"
-#include "yices2_sort.h"
-#include "yices2_term.h"
 
 // Yices2 2.7.0 renamed the smt_status_t enumerators to YICES_STATUS_*, and
 // aliases only STATUS_INTERRUPTED back to its old spelling. Give the two

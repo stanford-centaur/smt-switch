@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
 #include <cstddef>

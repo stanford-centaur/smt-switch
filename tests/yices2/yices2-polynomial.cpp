@@ -14,17 +14,17 @@
 **
 **/
 
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <gtest/gtest.h>
 #include <yices.h>
 
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "term.h"
 #include "yices2_factory.h"
-#include "yices2_sort.h"
 #include "yices2_term.h"
 
 using namespace smt;

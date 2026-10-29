@@ -16,17 +16,14 @@
 
 #pragma once
 
+#include <boolector.h>
+
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_set>
-#include <vector>
+#include <unordered_map>
 
-#include "boolector_extensions.h"
-#include "boolector_sort.h"
-#include "boolector_term.h"
-#include "exceptions.h"
 #include "result.h"
 #include "smt_defs.h"
 #include "solver.h"

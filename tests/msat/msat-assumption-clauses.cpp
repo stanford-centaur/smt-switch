@@ -16,9 +16,8 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "msat_factory.h"
 #include "msat_solver.h"  // only needed for the static_pointer_cast for testing

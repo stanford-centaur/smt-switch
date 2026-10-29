@@ -16,6 +16,8 @@
 
 #include "z3_factory.h"
 
+#include <memory>
+
 #include "logging_solver.h"
 #include "z3_solver.h"
 

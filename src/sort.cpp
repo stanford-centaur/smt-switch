@@ -17,6 +17,7 @@
 #include "sort.h"
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <typeindex>
 #include <typeinfo>

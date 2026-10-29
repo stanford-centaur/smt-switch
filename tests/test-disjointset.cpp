@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include <utility>
+#include <string>
 #include <vector>
 
 #include "available_solvers.h"

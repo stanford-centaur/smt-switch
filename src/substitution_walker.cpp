@@ -15,7 +15,12 @@
 
 #include "substitution_walker.h"
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "exceptions.h"
+#include "sort.h"
 
 namespace smt {
 

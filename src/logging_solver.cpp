@@ -25,10 +25,13 @@
 #include <utility>
 #include <vector>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "logging_datatype.h"
 #include "logging_sort.h"
 #include "logging_term.h"
+#include "ops.h"
+#include "result.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "sort_inference.h"

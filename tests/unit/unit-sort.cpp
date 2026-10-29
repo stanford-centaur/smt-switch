@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>

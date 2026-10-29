@@ -18,8 +18,9 @@
 
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <string>
-#include <utility>
+#include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"

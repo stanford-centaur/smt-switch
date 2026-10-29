@@ -17,14 +17,13 @@
 #include "available_solvers.h"
 
 #include <chrono>
-#include <ostream>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "exceptions.h"
 #include "logging_solver.h"
-#include "utils.h"
 
 #ifdef BUILD_BTOR
 #include "boolector_factory.h"

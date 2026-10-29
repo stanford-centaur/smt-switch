@@ -13,7 +13,9 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "smt_defs.h"
 #include "solver.h"

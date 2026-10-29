@@ -16,9 +16,12 @@
 
 #include "yices2_term.h"
 
+#include <gmp.h>
+#include <yices.h>
+
 #include <cstdint>
+#include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "exceptions.h"

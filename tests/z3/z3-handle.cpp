@@ -14,6 +14,7 @@
 #include <z3++.h>
 
 #include <memory>
+#include <string>
 
 #include "z3_solver.h"
 

@@ -17,10 +17,15 @@
 #ifndef SMT_YICES2_EXTENSIONS_H
 #define SMT_YICES2_EXTENSIONS_H
 
+#include "yices2_extensions.h"
+
 #include <gmp.h>
 #include <yices.h>
 
-#include "yices2_solver.h"
+#include <cstddef>
+#include <string>
+
+#include "exceptions.h"
 
 using namespace std;
 

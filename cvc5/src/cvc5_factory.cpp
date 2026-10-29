@@ -16,6 +16,8 @@
 
 #include "cvc5_factory.h"
 
+#include <memory>
+
 #include "cvc5_solver.h"
 #include "logging_solver.h"
 

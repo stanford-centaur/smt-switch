@@ -21,18 +21,12 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_set>
-#include <vector>
+#include <unordered_map>
 
-#include "exceptions.h"
-#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
 #include "term.h"
-#include "z3_datatype.h"
-#include "z3_sort.h"
-#include "z3_term.h"
 
 namespace smt {
 /**

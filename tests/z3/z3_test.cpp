@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
+#include <z3++.h>
 
-#include "datatype.h"
+#include <memory>
+#include <string>
+
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"

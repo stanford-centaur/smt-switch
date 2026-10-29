@@ -17,8 +17,12 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <memory>
+#include <string>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "available_solvers.h"
 #include "exceptions.h"

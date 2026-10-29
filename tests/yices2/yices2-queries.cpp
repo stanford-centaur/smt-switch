@@ -12,6 +12,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "exceptions.h"
 #include "smt_defs.h"
 #include "solver.h"

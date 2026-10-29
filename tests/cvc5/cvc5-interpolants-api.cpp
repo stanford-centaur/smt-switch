@@ -1,6 +1,7 @@
 #include <cvc5/cvc5.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <vector>
 
 using namespace cvc5;

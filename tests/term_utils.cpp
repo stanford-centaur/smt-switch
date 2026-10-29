@@ -9,9 +9,14 @@
 #include "term_utils.h"
 
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "ops.h"
+#include "result.h"
 #include "solver.h"
 #include "sort.h"
 #include "term.h"

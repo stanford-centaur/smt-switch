@@ -16,8 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include <memory>
-#include <vector>
+#include <string>
 
 #include "exceptions.h"
 #include "interpolating_solver.h"

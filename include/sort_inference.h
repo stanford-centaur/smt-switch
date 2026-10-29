@@ -18,6 +18,7 @@
 
 #include <unordered_set>
 
+#include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"

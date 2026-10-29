@@ -29,6 +29,7 @@
 
 #include "datatype.h"
 #include "exceptions.h"
+#include "ops.h"
 #include "smt_defs.h"
 #include "smtlib_strings.h"
 #include "solver_enums.h"
