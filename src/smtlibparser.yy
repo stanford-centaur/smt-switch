@@ -15,6 +15,7 @@
 %define api.token.constructor
 %define api.value.type variant
 %define parse.error detailed
+%define parse.lac full
 
 %param { yyscan_t scanner }
 %parse-param { smt::SmtLibReader & drv }
@@ -94,13 +95,13 @@ EP "!"
 %nterm command
 %nterm smt2
 %nterm <smt::Term> term_s_expr
-%nterm <smt::TermVec *> term_s_expr_list
+%nterm <smt::TermVec> term_s_expr_list
 %nterm <smt::Term> atom
 %nterm <smt::Term> bvconst
 %nterm <smt::Sort> sort
 %nterm <smt::SortVec> sort_list
-%nterm <smt::TermVec *> sorted_arg_list
-%nterm <smt::TermVec *> sorted_param_list
+%nterm <smt::TermVec> sorted_arg_list
+%nterm <smt::TermVec> sorted_param_list
 %nterm let_term_bindings
 %nterm <smt::Op> indexed_op
 %nterm <std::string> stringlit
@@ -174,10 +175,9 @@ command:
     }
     SYMBOL LP sorted_arg_list RP sort term_s_expr RP
   {
-    drv.define_fun($4, $9, *$6);
+    drv.define_fun($4, $9, $6);
 
     drv.pop_scope();
-    delete $6;
   }
   | LP DEFINESORT SYMBOL LP RP sort RP
   {
@@ -194,8 +194,7 @@ command:
   }
   | LP CHECKSATASSUMING LP term_s_expr_list RP RP
   {
-    drv.check_sat_assuming(*$4);
-    delete $4;
+    drv.check_sat_assuming($4);
   }
   | LP PUSH RP
   {
@@ -220,13 +219,12 @@ command:
   | LP GETVALUE LP term_s_expr_list RP RP
   {
     std::cout << "(";
-    for (const auto & t : *$4)
+    for (const auto & t : $4)
     {
       std::cout << "(" << t << " " << drv.solver()->get_value(t) << ") "
                 << std::endl;
     }
     std::cout << ")" << std::endl;
-    delete $4;
   }
   | LP GETUNSATASSUMP RP
   {
@@ -252,8 +250,7 @@ term_s_expr:
   }
   | LP indexed_op term_s_expr_list RP
   {
-    $$ = drv.solver()->make_term($2, *$3);
-    delete $3;
+    $$ = drv.solver()->make_term($2, $3);
   }
   | LP SYMBOL term_s_expr_list RP
   {
@@ -264,21 +261,20 @@ term_s_expr:
     if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
     {
       // this is an operator
-      $$ = drv.apply_primop(po, *$3);
+      $$ = drv.apply_primop(po, std::move($3));
     }
     else if ((uf = drv.lookup_symbol($2)))
     {
       smt::TermVec vec({ uf });
-      vec.insert(vec.end(), $3->begin(), $3->end());
+      vec.insert(vec.end(), $3.begin(), $3.end());
       $$ = drv.solver()->make_term(smt::Apply, vec);
     }
     else
     {
       // assuming this is a defined fun
       // will throw exception if not a defined function symbol
-      $$ = drv.apply_define_fun($2, *$3);
+      $$ = drv.apply_define_fun($2, $3);
     }
-    delete $3;
   }
   | LP LP ASCONST sort RP atom RP
   {
@@ -293,12 +289,11 @@ term_s_expr:
   {
     smt::PrimOp po = drv.lookup_primop($2);
     // smt-switch takes all the parameters followed by the body
-    $5->push_back($7);
-    $$ = drv.solver()->make_term(po, *$5);
+    $5.push_back($7);
+    $$ = drv.solver()->make_term(po, $5);
 
     // this scope is done
     drv.pop_scope();
-    delete $5;
   }
   | LP LET
     {
@@ -326,13 +321,11 @@ term_s_expr:
 
 term_s_expr_list:
   %empty
-  {
-    $$ = new smt::TermVec();
-  }
+  {}
   | term_s_expr_list term_s_expr
   {
-    $1->push_back($2);
-    $$ = $1;
+    $1.push_back($2);
+    $$ = std::move($1);
   }
 ;
 
@@ -436,6 +429,10 @@ sort:
     if (sk == smt::ARRAY)
     {
       // this one is intended for arrays
+      if ($3.size() != 2)
+      {
+        throw syntax_error(@3, "Array takes an index and an element sort");
+      }
       $$ = drv.solver()->make_sort(sk, $3[0], $3[1]);
     }
     else
@@ -449,41 +446,33 @@ sort:
 
 sort_list:
   %empty
-  {
-    smt::SortVec vec;
-    $$ = vec;
-  }
+  {}
   | sort_list sort
   {
-    smt::SortVec & vec = $1;
-    vec.push_back($2);
-    $$ = vec;
+    $1.push_back($2);
+    $$ = std::move($1);
   }
 ;
 
 sorted_arg_list:
   %empty
-  {
-    $$ = new smt::TermVec();
-  }
+  {}
   | sorted_arg_list LP SYMBOL sort RP
   {
     smt::Term arg = drv.register_arg($3, $4);
-    $1->push_back(arg);
-    $$ = $1;
+    $1.push_back(arg);
+    $$ = std::move($1);
   }
 ;
 
 sorted_param_list:
   %empty
-  {
-    $$ = new smt::TermVec();
-  }
+  {}
   | sorted_param_list LP SYMBOL sort RP
   {
     smt::Term param = drv.create_param($3, $4);
-    $1->push_back(param);
-    $$ = $1;
+    $1.push_back(param);
+    $$ = std::move($1);
   }
 ;
 
@@ -606,13 +595,11 @@ attribute:
 
 attributes:
   %empty
-  {
-    $$ = {};
-  }
+  {}
   | attributes attribute
   {
-    $1.push_back($2);
-    $$ = $1;
+    $1.push_back(std::move($2));
+    $$ = std::move($1);
   }
 ;
 

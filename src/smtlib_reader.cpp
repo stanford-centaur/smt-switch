@@ -109,6 +109,19 @@ struct DestroyScanner
 {
   void operator()(yyscan_t scanner) const { smtliblex_destroy(scanner); }
 };
+
+/** Closes the argument scopes a failed parse leaves open */
+struct CloseScopes
+{
+  SmtLibReader & reader;
+  ~CloseScopes()
+  {
+    while (reader.current_scope())
+    {
+      reader.pop_scope();
+    }
+  }
+};
 }  // namespace
 
 std::size_t UnorderedScopedSymbolMap::current_scope() const
@@ -119,12 +132,11 @@ std::size_t UnorderedScopedSymbolMap::current_scope() const
 void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
                                            const Term & t)
 {
-  if (symbol_map_.find(sym) != symbol_map_.end())
+  if (!symbols_.back().insert(sym).second)
   {
     throw IncorrectUsageException("Repeated symbol: " + sym);
   }
-  symbol_map_[sym] = t;
-  symbols_.back().insert(sym);
+  symbol_map_[sym].push_back(t);
 }
 
 void UnorderedScopedSymbolMap::push_scope() { symbols_.push_back({}); }
@@ -137,7 +149,12 @@ void UnorderedScopedSymbolMap::pop_scope()
   }
   for (const auto & sym : symbols_.back())
   {
-    symbol_map_.erase(sym);
+    auto it = symbol_map_.find(sym);
+    it->second.pop_back();
+    if (it->second.empty())
+    {
+      symbol_map_.erase(it);
+    }
   }
   symbols_.pop_back();
 }
@@ -148,7 +165,7 @@ Term UnorderedScopedSymbolMap::get_symbol(const std::string & sym) const
   auto it = symbol_map_.find(sym);
   if (it != symbol_map_.end())
   {
-    res = it->second;
+    res = it->second.back();
   }
   return res;
 }
@@ -186,6 +203,7 @@ void SmtLibReader::parse(const std::string & f)
   std::unique_ptr<void, DestroyScanner> scanner_owner(scanner);
   smtlibset_in(input_file ? input_file.get() : stdin, scanner);
 
+  CloseScopes close_scopes{ *this };
   smtlib::parser parser(scanner, *this);
   try
   {
@@ -236,8 +254,9 @@ void SmtLibReader::set_logic(const std::string & logic)
   std::size_t logic_size;
   while ((logic_size = processed_logic.size()))
   {
-    // all existing theories have abbreviations of length 4 or shorter
-    for (std::size_t len = 1; len <= 4; len++)
+    // all existing theories have abbreviations of length 4 or shorter; the
+    // longest is tried first, so that AX is not read as A
+    for (std::size_t len = std::min<std::size_t>(4, logic_size); len > 0; --len)
     {
       std::string sub = processed_logic.substr(0, len);
       if (logic_theory_map.find(sub) != logic_theory_map.end())
@@ -550,6 +569,10 @@ void SmtLibReader::define_fun(const std::string & name,
   else
   {
     // this is just an alias for another term
+    if (global_symbols_.get_symbol(name))
+    {
+      throw IncorrectUsageException("Redeclaring symbol: " + name);
+    }
     global_symbols_.add_mapping(name, def);
   }
 }
@@ -661,13 +684,13 @@ Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
     {
       param = solver_->make_param(name + "__param_" + std::to_string(id), sort);
     }
-    catch (SmtException & e)
+    // a name already taken is what a fresh one cures; if none does, the
+    // solver's own reason is reported
+    catch (const IncorrectUsageException &)
     {
-      id++;
-      if (id > 100000)
+      if (++id > 100000)
       {
-        throw SmtException(
-            "Could not find a fresh parameter after 100,000 tries");
+        throw;
       }
     }
   }

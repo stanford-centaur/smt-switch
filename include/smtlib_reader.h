@@ -65,9 +65,9 @@ enum Command
 
 /** Basic scoped symbol map
  *  Used for arguments and parameters that have limited scope
- *  Does not support shadowing within the same mapping scope
- *    e.g. forall x . P(x) -> exists x. Q(x)
- *    is not supported
+ *  A symbol in an inner scope shadows the same symbol in an outer one,
+ *  e.g. forall x . P(x) -> exists x. Q(x), but a symbol may only be
+ *  added once per scope
  */
 class UnorderedScopedSymbolMap
 {
@@ -89,7 +89,8 @@ class UnorderedScopedSymbolMap
  private:
   // starts with one scope, to allow some symbols at 0
   std::vector<std::unordered_set<std::string>> symbols_ = { {} };
-  std::unordered_map<std::string, Term> symbol_map_;
+  // each symbol's terms, innermost scope last
+  std::unordered_map<std::string, std::vector<Term>> symbol_map_;
 };
 
 class SmtLibReader
