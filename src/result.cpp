@@ -17,18 +17,11 @@
 #include "result.h"
 
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "exceptions.h"
 
 namespace smt {
-
-const std::unordered_map<ResultType, std::string> result2str({
-    { SAT, "sat" },
-    { UNSAT, "unsat" },
-    { UNKNOWN, "unknown" },
-});
 
 Result::Result(ResultType rt, std::string reason)
     : result(rt), explanation(std::move(reason))
@@ -56,11 +49,22 @@ std::string Result::get_explanation() const
   }
 }
 
-std::string Result::to_string() const { return result2str.at(result); }
+std::string Result::to_string() const
+{
+  switch (result)
+  {
+    case SAT: return "sat";
+    case UNSAT: return "unsat";
+    case UNKNOWN: return "unknown";
+    case NUM_RESULTS: break;
+  }
+  throw SmtException("Result::to_string got a ResultType with no name: "
+                     + std::to_string(static_cast<int>(result)));
+}
 
 std::ostream & operator<<(std::ostream & output, const Result r)
 {
-  output << result2str.at(r.result);
+  output << r.to_string();
   return output;
 }
 

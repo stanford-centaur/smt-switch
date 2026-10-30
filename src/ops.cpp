@@ -23,94 +23,9 @@
 #include <unordered_set>
 #include <utility>
 
-namespace smt {
+#include "exceptions.h"
 
-const std::unordered_map<PrimOp, std::string> primop2str({
-    { And, "and" },
-    { Or, "or" },
-    { Xor, "xor" },
-    { Not, "not" },
-    { Implies, "=>" },
-    { Ite, "ite" },
-    { Equal, "=" },
-    { Distinct, "distinct" },
-    { Apply, "apply" },
-    { Plus, "+" },
-    { Minus, "-" },
-    { Negate, "-" },
-    { Mult, "*" },
-    { Div, "/" },
-    { IntDiv, "div" },
-    { To_Real, "to_real" },
-    { To_Int, "to_int" },
-    { Is_Int, "is_int" },
-    { Lt, "<" },
-    { Le, "<=" },
-    { Gt, ">" },
-    { Ge, ">=" },
-    { Mod, "mod" },
-    { Abs, "abs" },
-    { Pow, "pow" },
-    { Concat, "concat" },
-    { Extract, "extract" },
-    { BVNot, "bvnot" },
-    { BVNeg, "bvneg" },
-    { BVAnd, "bvand" },
-    { BVOr, "bvor" },
-    { BVXor, "bvxor" },
-    { BVNand, "bvnand" },
-    { BVNor, "bvnor" },
-    { BVXnor, "bvxnor" },
-    { BVComp, "bvcomp" },
-    { BVAdd, "bvadd" },
-    { BVSub, "bvsub" },
-    { BVMul, "bvmul" },
-    { BVUdiv, "bvudiv" },
-    { BVSdiv, "bvsdiv" },
-    { BVUrem, "bvurem" },
-    { BVSrem, "bvsrem" },
-    { BVSmod, "bvsmod" },
-    { BVShl, "bvshl" },
-    { BVAshr, "bvashr" },
-    { BVLshr, "bvlshr" },
-    { BVUlt, "bvult" },
-    { BVUle, "bvule" },
-    { BVUgt, "bvugt" },
-    { BVUge, "bvuge" },
-    { BVSlt, "bvslt" },
-    { BVSle, "bvsle" },
-    { BVSgt, "bvsgt" },
-    { BVSge, "bvsge" },
-    { Zero_Extend, "zero_extend" },
-    { Sign_Extend, "sign_extend" },
-    { Repeat, "repeat" },
-    { Rotate_Left, "rotate_left" },
-    { Rotate_Right, "rotate_right" },
-    { BV_To_Nat, "ubv_to_int" },
-    { UBV_To_Int, "ubv_to_int" },
-    { SBV_To_Int, "sbv_to_int" },
-    { Int_To_BV, "int_to_bv" },
-    { StrLt, "str.<" },
-    { StrLeq, "str.<=" },
-    { StrLen, "str.len" },
-    { StrConcat, "str.++" },
-    { StrSubstr, "str.substr" },
-    { StrAt, "str.at" },
-    { StrContains, "str.contains" },
-    { StrIndexof, "str.indexof" },
-    { StrReplace, "str.replace" },
-    { StrReplaceAll, "str.replace_all" },
-    { StrPrefixof, "str.prefixof" },
-    { StrSuffixof, "str.suffixof" },
-    { StrIsDigit, "str.is_digit" },
-    { Select, "select" },
-    { Store, "store" },
-    { Forall, "forall" },
-    { Exists, "exists" },
-    { Apply_Selector, "apply_selector" },
-    { Apply_Tester, "apply_tester" },
-    { Apply_Constructor, "apply_constructor" },
-});
+namespace smt {
 
 // a map from PrimOp to <minimum arity, maximum arity>
 const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
@@ -211,12 +126,96 @@ const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
 
 std::string to_string(PrimOp op)
 {
-  if (op == NUM_OPS_AND_NULL)
+  switch (op)
   {
-    return "null";
+    case And: return "and";
+    case Or: return "or";
+    case Xor: return "xor";
+    case Not: return "not";
+    case Implies: return "=>";
+    case Ite: return "ite";
+    case Equal: return "=";
+    case Distinct: return "distinct";
+    case Apply: return "apply";
+    case Plus: return "+";
+    case Minus:
+    case Negate: return "-";
+    case Mult: return "*";
+    case Div: return "/";
+    case IntDiv: return "div";
+    case To_Real: return "to_real";
+    case To_Int: return "to_int";
+    case Is_Int: return "is_int";
+    case Lt: return "<";
+    case Le: return "<=";
+    case Gt: return ">";
+    case Ge: return ">=";
+    case Mod: return "mod";
+    case Abs: return "abs";
+    case Pow: return "pow";
+    case Concat: return "concat";
+    case Extract: return "extract";
+    case BVNot: return "bvnot";
+    case BVNeg: return "bvneg";
+    case BVAnd: return "bvand";
+    case BVOr: return "bvor";
+    case BVXor: return "bvxor";
+    case BVNand: return "bvnand";
+    case BVNor: return "bvnor";
+    case BVXnor: return "bvxnor";
+    case BVComp: return "bvcomp";
+    case BVAdd: return "bvadd";
+    case BVSub: return "bvsub";
+    case BVMul: return "bvmul";
+    case BVUdiv: return "bvudiv";
+    case BVSdiv: return "bvsdiv";
+    case BVUrem: return "bvurem";
+    case BVSrem: return "bvsrem";
+    case BVSmod: return "bvsmod";
+    case BVShl: return "bvshl";
+    case BVAshr: return "bvashr";
+    case BVLshr: return "bvlshr";
+    case BVUlt: return "bvult";
+    case BVUle: return "bvule";
+    case BVUgt: return "bvugt";
+    case BVUge: return "bvuge";
+    case BVSlt: return "bvslt";
+    case BVSle: return "bvsle";
+    case BVSgt: return "bvsgt";
+    case BVSge: return "bvsge";
+    case Zero_Extend: return "zero_extend";
+    case Sign_Extend: return "sign_extend";
+    case Repeat: return "repeat";
+    case Rotate_Left: return "rotate_left";
+    case Rotate_Right: return "rotate_right";
+    case BV_To_Nat:
+    case UBV_To_Int: return "ubv_to_int";
+    case SBV_To_Int: return "sbv_to_int";
+    case Int_To_BV: return "int_to_bv";
+    case StrLt: return "str.<";
+    case StrLeq: return "str.<=";
+    case StrLen: return "str.len";
+    case StrConcat: return "str.++";
+    case StrSubstr: return "str.substr";
+    case StrAt: return "str.at";
+    case StrContains: return "str.contains";
+    case StrIndexof: return "str.indexof";
+    case StrReplace: return "str.replace";
+    case StrReplaceAll: return "str.replace_all";
+    case StrPrefixof: return "str.prefixof";
+    case StrSuffixof: return "str.suffixof";
+    case StrIsDigit: return "str.is_digit";
+    case Select: return "select";
+    case Store: return "store";
+    case Forall: return "forall";
+    case Exists: return "exists";
+    case Apply_Selector: return "apply_selector";
+    case Apply_Tester: return "apply_tester";
+    case Apply_Constructor: return "apply_constructor";
+    case NUM_OPS_AND_NULL: return "null";
   }
-
-  return primop2str.at(op);
+  throw SmtException("to_string got an out-of-range PrimOp "
+                     + std::to_string(static_cast<int>(op)));
 }
 
 Op::Op(PrimOp o) : prim_op(o) {}
