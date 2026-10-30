@@ -162,85 +162,6 @@ set(
   "${PROJECT_SOURCE_DIR}/src/utils.cpp"
 )
 
-if(SMTLIB_READER)
-  # macOS ships a bison far older than this, so this is the one non-solver
-  # dependency worth provisioning. flex is not: its 2.6.4 requirement is met
-  # by every system copy that is not ancient.
-  #
-  # Homebrew's bison is keg-only, because macOS has its own, so it is on
-  # neither PATH nor the prefixes CMake searches. Look in its keg after the
-  # provisioned copy and before the system one, unless BISON_ROOT was given,
-  # which is then the only place bison may come from.
-  get_property(_explicit_roots GLOBAL PROPERTY SMT_SWITCH_EXPLICIT_ROOTS)
-  if(APPLE AND NOT BISON IN_LIST _explicit_roots)
-    execute_process(
-      COMMAND brew --prefix
-      OUTPUT_VARIABLE _homebrew_prefix
-      RESULT_VARIABLE _brew_result
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_QUIET
-    )
-    if(_brew_result EQUAL 0)
-      list(APPEND BISON_ROOT "${_homebrew_prefix}/opt/bison")
-    endif()
-  endif()
-  smt_switch_provision_if_missing(BISON bison 3.7.0)
-  find_package(BISON 3.7.0 REQUIRED)
-  find_package(FLEX 2.6.4 REQUIRED)
-  smt_switch_check_root(FLEX)
-
-  bison_target(
-    SmtLibParser
-    ${PROJECT_SOURCE_DIR}/src/smtlibparser.yy
-    ${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.cpp
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.h
-  )
-
-  flex_target(
-    SmtLibScanner
-    ${PROJECT_SOURCE_DIR}/src/smtlibscanner.l
-    ${CMAKE_CURRENT_BINARY_DIR}/smtlibscanner.cpp
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smtlibscanner.h
-  )
-
-  add_flex_bison_dependency(SmtLibScanner SmtLibParser)
-
-  # bison's skeleton sets yynerrs_ without reading it.
-  set_source_files_properties(
-    ${BISON_SmtLibParser_OUTPUTS}
-    PROPERTIES COMPILE_OPTIONS -Wno-unused-but-set-variable
-  )
-  # Apple's flex reports 2.6.4 and is not the 2.6.4 everyone else builds: its
-  # skeleton declares yy_n_chars a yy_size_t where upstream has an int, so on
-  # macOS alone it is compared against the int yy_buf_size. The skeleton also
-  # ends its macro bodies with a semicolon and writes another at the call site,
-  # leaving an empty statement there. It defines its exiting yy_fatal_error even
-  # when the scanner replaces YY_FATAL_ERROR, which then never calls it.
-  set_source_files_properties(
-    ${FLEX_SmtLibScanner_OUTPUTS}
-    PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-extra-semi-stmt;-Wno-unused-function"
-  )
-
-  list(
-    APPEND SOURCES
-    "${PROJECT_SOURCE_DIR}/src/smtlib_reader.cpp"
-    "${BISON_SmtLibParser_OUTPUTS}"
-    "${FLEX_SmtLibScanner_OUTPUTS}"
-  )
-else()
-  # if not building with SmtLibReader
-  # then exclude the relevant header files from installing
-  set(
-    EXCLUDE_HEADERS_INSTALL
-    PATTERN
-    "smtlib_reader.h"
-    EXCLUDE
-    PATTERN
-    "smtlibparser_maps.h"
-    EXCLUDE
-  )
-endif()
-
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
 add_library(SmtSwitch::smt-switch ALIAS smt-switch)
 
@@ -251,11 +172,6 @@ target_include_directories(
   smt-switch
   PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIRS}>" $<INSTALL_INTERFACE:include>
 )
-# The parser headers bison generates into the build directory are used by
-# the reader's sources.
-if(SMTLIB_READER)
-  target_include_directories(smt-switch PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-endif()
 # States the floor for the targets in this tree that consume these headers
 target_compile_features(smt-switch PUBLIC cxx_std_17)
 
@@ -273,6 +189,7 @@ option(BUILD_CVC5 "Should we build the libraries for cvc5" OFF)
 option(BUILD_MSAT "Should we build the libraries for mathsat" OFF)
 option(BUILD_YICES2 "Should we build the libraries for yices2" OFF)
 option(BUILD_Z3 "Should we build the libraries for z3" OFF)
+option(BUILD_SMTLIB_READER "Should we build the SMT-LIB reader" OFF)
 
 if(BUILD_BTOR)
   smt_switch_provision_if_missing(Boolector boolector)
@@ -356,6 +273,10 @@ if(BUILD_CVC5 AND BUILD_YICES2 AND Yices2_POLY_LIBRARY)
   )
 endif()
 
+if(BUILD_SMTLIB_READER)
+  add_subdirectory(smtlib)
+endif()
+
 if(BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
 endif()
@@ -368,12 +289,15 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-# Installed, a shared backend finds libsmt-switch beside it, wherever both
-# went, and its solver where it was linked from.
+# Installed, a shared backend or reader finds libsmt-switch beside it,
+# wherever both went, and a backend its solver where it was linked from.
 if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+  set(shared_libraries smt-switch ${SOLVER_BACKEND_LIBS})
+  if(BUILD_SMTLIB_READER)
+    list(APPEND shared_libraries smt-switch-smtlib)
+  endif()
   set_target_properties(
-    smt-switch
-    ${SOLVER_BACKEND_LIBS}
+    ${shared_libraries}
     PROPERTIES INSTALL_RPATH "${SMT_SWITCH_RPATH_ORIGIN}" INSTALL_RPATH_USE_LINK_PATH ON
   )
 endif()
@@ -381,25 +305,24 @@ endif()
 # install smt-switch
 install(TARGETS smt-switch EXPORT SmtSwitchTargets DESTINATION lib)
 # install public headers
-install(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-  DESTINATION include/smt-switch
-  ${EXCLUDE_HEADERS_INSTALL}
-)
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/" DESTINATION include/smt-switch)
 
 ######################### Install the CMake package ############################
 include(CMakePackageConfigHelpers)
 
-# The component names are the backend suffixes, so that a consumer writes
-# find_package(SmtSwitch COMPONENTS cvc5) rather than naming a library. Each
-# backend installed its own export set; this is the list of the ones that
-# exist, so that asking for a backend this build did not produce fails in
-# find_package rather than at link time.
+# The component names are the backend suffixes, and smtlib for the SMT-LIB
+# reader, so that a consumer writes find_package(SmtSwitch COMPONENTS cvc5)
+# rather than naming a library. Each installed its own export set; this is
+# the list of the ones that exist, so that asking for one this build did not
+# produce fails in find_package rather than at link time.
 set(SMT_SWITCH_AVAILABLE_COMPONENTS "")
 foreach(lib IN LISTS SOLVER_BACKEND_LIBS)
   string(REPLACE "smt-switch-" "" component "${lib}")
   list(APPEND SMT_SWITCH_AVAILABLE_COMPONENTS "${component}")
 endforeach()
+if(BUILD_SMTLIB_READER)
+  list(APPEND SMT_SWITCH_AVAILABLE_COMPONENTS smtlib)
+endif()
 
 install(EXPORT SmtSwitchTargets NAMESPACE SmtSwitch:: DESTINATION "${SMT_SWITCH_CMAKE_DIR}")
 

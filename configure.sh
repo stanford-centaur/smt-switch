@@ -300,7 +300,7 @@ esac
   set -- "$@" "-DBUILD_PYTHON_BINDINGS=ON"
 
 [ "$smtlib_reader" != default ] &&
-  set -- "$@" "-DSMTLIB_READER=ON"
+  set -- "$@" "-DBUILD_SMTLIB_READER=ON"
 
 [ "$bison_dir" != default ] &&
   set -- "$@" "-DBISON_ROOT=$bison_dir"

@@ -5,4 +5,4 @@
 # Bison's C++ skeleton declares syntax_error's destructor without override, and
 # no bison option changes that.
 [suggest-destructor-override]
-src:*/smtlibparser.h
+src:*/smtlib_parser.h
