@@ -14,6 +14,7 @@
 %define api.token.raw
 %define api.token.constructor
 %define api.value.type variant
+%define parse.error detailed
 
 %param { yyscan_t scanner }
 %parse-param { smt::SmtLibReader & drv }
@@ -50,11 +51,24 @@ YY_DECL;
 
 // Emitted into smtlibparser.cpp only, after it includes the header.
 %code {
-#include <cassert>
+#include <cstdint>
 #include <iostream>
+#include <stdexcept>
 
 #include "smtlib_reader.h"
 #include "solver.h"
+
+static std::uint64_t to_nat(const smtlib::location & l, const std::string & s)
+{
+  try
+  {
+    return std::stoull(s);
+  }
+  catch (const std::out_of_range &)
+  {
+    throw smtlib::parser::syntax_error(l, "Numeral out of range: " + s);
+  }
+}
 }
 
 %token <std::string> SYMBOL
@@ -147,12 +161,11 @@ command:
     {
       symsort = $7;
     }
-    assert(symsort);
     drv.new_symbol($3, symsort);
   }
   | LP DECLARESORT SYMBOL NAT RP
   {
-    drv.define_sort($3, drv.solver()->make_sort($3, std::stoi($4)));
+    drv.define_sort($3, drv.solver()->make_sort($3, to_nat(@4, $4)));
   }
   | LP DEFINEFUN
     {
@@ -164,7 +177,6 @@ command:
     drv.define_fun($4, $9, *$6);
 
     drv.pop_scope();
-    assert(!drv.current_scope());
     delete $6;
   }
   | LP DEFINESORT SYMBOL LP RP sort RP
@@ -191,7 +203,7 @@ command:
   }
   | LP PUSH NAT RP
   {
-    drv.push(std::stoi($3));
+    drv.push(to_nat(@3, $3));
   }
   | LP POP RP
   {
@@ -199,7 +211,7 @@ command:
   }
   | LP POP NAT RP
   {
-    drv.pop(std::stoi($3));
+    drv.pop(to_nat(@3, $3));
   }
   | LP EXIT RP
   {
@@ -331,8 +343,7 @@ atom:
     if (!sym)
     {
       // Note: using @1 will force locations to be enabled
-      smtlib::parser::error(@1, std::string("Unrecognized symbol: ") + $1);
-      YYERROR;
+      throw syntax_error(@1, "Unrecognized symbol: " + $1);
     }
     $$ = sym;
   }
@@ -378,10 +389,9 @@ bvconst:
     if (name.size() < 3 || name.compare(0, 2, "bv") != 0
         || name.find_first_not_of("0123456789", 2) != std::string::npos)
     {
-      smtlib::parser::error(@2, "Unknown indexed literal: " + name);
-      YYERROR;
+      throw syntax_error(@2, "Unknown indexed literal: " + name);
     }
-    smt::Sort bvsort = drv.solver()->make_sort(smt::BV, std::stoi($3));
+    smt::Sort bvsort = drv.solver()->make_sort(smt::BV, to_nat(@3, $3));
     $$ = drv.solver()->make_term(name.substr(2), bvsort, 10);
   }
 ;
@@ -416,10 +426,9 @@ sort:
     if (sk == smt::NUM_SORT_KINDS)
     {
       // got dedicated null enum
-      smtlib::parser::error(@2, std::string("Unrecognized sort: ") + $2);
-      YYERROR;
+      throw syntax_error(@2, "Unrecognized sort: " + $2);
     }
-    $$ = drv.solver()->make_sort(sk, std::stoi($3));
+    $$ = drv.solver()->make_sort(sk, to_nat(@3, $3));
   }
   | LP SYMBOL sort_list RP
   {
@@ -459,7 +468,6 @@ sorted_arg_list:
   }
   | sorted_arg_list LP SYMBOL sort RP
   {
-    assert(drv.current_scope());
     smt::Term arg = drv.register_arg($3, $4);
     $1->push_back(arg);
     $$ = $1;
@@ -473,7 +481,6 @@ sorted_param_list:
   }
   | sorted_param_list LP SYMBOL sort RP
   {
-    assert(drv.current_scope());
     smt::Term param = drv.create_param($3, $4);
     $1->push_back(param);
     $$ = $1;
@@ -495,20 +502,18 @@ indexed_op:
     smt::PrimOp po = drv.lookup_primop($2);
     if (po == smt::NUM_OPS_AND_NULL)
     {
-      smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
-      YYERROR;
+      throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
     }
-    $$ = smt::Op(po, std::stoi($3));
+    $$ = smt::Op(po, to_nat(@3, $3));
   }
   | indprefix SYMBOL NAT NAT RP
   {
     smt::PrimOp po = drv.lookup_primop($2);
     if (po == smt::NUM_OPS_AND_NULL)
     {
-      smtlib::parser::error(@2, "Unexpected symbol in indexed operator: " + $2);
-      YYERROR;
+      throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
     }
-    $$ = smt::Op(po, std::stoi($3), std::stoi($4));
+    $$ = smt::Op(po, to_nat(@3, $3), to_nat(@4, $4));
   }
 ;
 
@@ -615,5 +620,5 @@ attributes:
 
 void smtlib::parser::error(const location_type & l, const std::string & m)
 {
-  std::cerr << l << ": " << m << std::endl;
+  throw syntax_error(l, m);
 }

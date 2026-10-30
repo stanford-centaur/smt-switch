@@ -214,10 +214,11 @@ if(SMTLIB_READER)
   # skeleton declares yy_n_chars a yy_size_t where upstream has an int, so on
   # macOS alone it is compared against the int yy_buf_size. The skeleton also
   # ends its macro bodies with a semicolon and writes another at the call site,
-  # leaving an empty statement there.
+  # leaving an empty statement there. It defines its exiting yy_fatal_error even
+  # when the scanner replaces YY_FATAL_ERROR, which then never calls it.
   set_source_files_properties(
     ${FLEX_SmtLibScanner_OUTPUTS}
-    PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-extra-semi-stmt"
+    PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-extra-semi-stmt;-Wno-unused-function"
   )
 
   list(
