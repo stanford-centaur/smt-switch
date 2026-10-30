@@ -94,12 +94,14 @@ class SmtLibReader
 
   virtual ~SmtLibReader() = default;
 
+  /** Parses an SMT-LIB file, running its commands
+   *  @param f the file's path, or "-" or the empty string for stdin
+   *  @return the parser's result, 0 on success
+   *  @throws IncorrectUsageException if the file cannot be opened
+   */
   int parse(const std::string & f);
   // The name of the file being parsed.
   std::string file;
-
-  void scan_begin();
-  void scan_end();
 
   /* Override-able functions corresponding to SMT-LIB commands */
 

@@ -15,8 +15,10 @@
 %define api.token.constructor
 %define api.value.type variant
 
+%param { yyscan_t scanner }
 %parse-param { smt::SmtLibReader & drv }
 
+// Emitted into smtlibparser.h, before the parser class.
 %code requires {
 #include <string>
 #include <utility>
@@ -29,19 +31,30 @@
 namespace smt {
 class SmtLibReader;
 }  // namespace smt
+
+// The scanner's state, defined as in flex's smtlibscanner.h, which cannot be
+// included here: the scanner includes this header and repeats that one.
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void * yyscan_t;
+#endif
 }
 
+// Emitted into smtlibparser.h, after the parser class.
+%code provides {
+// The scanner's yylex, renamed by the prefix, returning the parser's tokens.
+// smtlibscanner.h declares an int yylex unless this is defined first.
+#define YY_DECL smtlib::parser::symbol_type smtliblex(yyscan_t yyscanner)
+YY_DECL;
+}
+
+// Emitted into smtlibparser.cpp only, after it includes the header.
 %code {
 #include <cassert>
 #include <iostream>
 
 #include "smtlib_reader.h"
 #include "solver.h"
-
-using namespace std;
-
-// Defined by the scanner, as its YY_DECL spells it.
-smtlib::parser::symbol_type yylex();
 }
 
 %token <std::string> SYMBOL
@@ -194,28 +207,29 @@ command:
   }
   | LP GETVALUE LP term_s_expr_list RP RP
   {
-    cout << "(";
+    std::cout << "(";
     for (const auto & t : *$4)
     {
-      cout << "(" << t << " " << drv.solver()->get_value(t) << ") " << endl;
+      std::cout << "(" << t << " " << drv.solver()->get_value(t) << ") "
+                << std::endl;
     }
-    cout << ")" << endl;
+    std::cout << ")" << std::endl;
     delete $4;
   }
   | LP GETUNSATASSUMP RP
   {
     smt::UnorderedTermSet core;
     drv.solver()->get_unsat_assumptions(core);
-    cout << "(";
+    std::cout << "(";
     for (const auto & c : core)
     {
-      cout << c << endl;
+      std::cout << c << std::endl;
     }
-    cout << ")" << endl;
+    std::cout << ")" << std::endl;
   }
   | LP ECHO stringlit RP
   {
-    cout << $3 << endl;
+    std::cout << $3 << std::endl;
   }
 ;
 
@@ -601,5 +615,5 @@ attributes:
 
 void smtlib::parser::error(const location_type & l, const std::string & m)
 {
-  cerr << l << ": " << m << endl;
+  std::cerr << l << ": " << m << std::endl;
 }

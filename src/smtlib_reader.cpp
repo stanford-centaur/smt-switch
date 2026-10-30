@@ -18,10 +18,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cerrno>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <memory>
+#include <new>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,6 +36,7 @@
 #include "ops.h"
 #include "smtlibparser.h"
 #include "smtlibparser_maps.h"
+#include "smtlibscanner.h"
 #include "solver.h"
 #include "sort.h"
 
@@ -90,6 +95,18 @@ auto has_sort_kind(SortKind sk)
 {
   return [sk](const Term & t) { return has_sort_kind(sk, t); };
 }
+
+/** Closes the input file of a parse */
+struct CloseFile
+{
+  void operator()(std::FILE * input) const { std::fclose(input); }
+};
+
+/** Destroys the scanner of a parse */
+struct DestroyScanner
+{
+  void operator()(yyscan_t scanner) const { smtliblex_destroy(scanner); }
+};
 }  // namespace
 
 std::size_t UnorderedScopedSymbolMap::current_scope() const
@@ -147,23 +164,28 @@ SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
 int SmtLibReader::parse(const std::string & f)
 {
   file = f;
-  scan_begin();
-  int res;
-  try
+  std::unique_ptr<std::FILE, CloseFile> input_file;
+  if (!file.empty() && file != "-")
   {
-    smtlib::parser parse(*this);
-    // commented from calc++ example
-    // parse.set_debug_level (trace_parsing);
-    res = parse();
+    input_file.reset(std::fopen(file.c_str(), "r"));
+    if (!input_file)
+    {
+      throw IncorrectUsageException("Cannot open " + file + ": "
+                                    + std::strerror(errno));
+    }
   }
-  catch (const SmtException & e)
+
+  smtlib::location location(&file);
+  yyscan_t scanner;
+  if (smtliblex_init_extra(&location, &scanner) != 0)
   {
-    // need to end scan even if threw an exception
-    scan_end();
-    throw e;
+    throw std::bad_alloc();
   }
-  scan_end();
-  return res;
+  std::unique_ptr<void, DestroyScanner> scanner_owner(scanner);
+  smtlibset_in(input_file ? input_file.get() : stdin, scanner);
+
+  smtlib::parser parser(scanner, *this);
+  return parser.parse();
 }
 
 void SmtLibReader::set_logic(const std::string & logic)
