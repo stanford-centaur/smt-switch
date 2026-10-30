@@ -219,9 +219,6 @@ if(SMTLIB_READER)
     PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-extra-semi-stmt"
   )
 
-  # putting generated header files in build dir
-  list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
-
   list(
     APPEND SOURCES
     "${PROJECT_SOURCE_DIR}/src/smtlib_reader.cpp"
@@ -252,6 +249,11 @@ target_include_directories(
   smt-switch
   PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIRS}>" $<INSTALL_INTERFACE:include>
 )
+# The parser headers bison generates into the build directory are used by
+# the reader's sources.
+if(SMTLIB_READER)
+  target_include_directories(smt-switch PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
 # States the floor for the targets in this tree that consume these headers
 target_compile_features(smt-switch PUBLIC cxx_std_17)
 
@@ -382,10 +384,6 @@ install(
   DESTINATION include/smt-switch
   ${EXCLUDE_HEADERS_INSTALL}
 )
-if(SMTLIB_READER)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/smtlibparser.h" DESTINATION include/smt-switch)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/location.hh" DESTINATION include/smt-switch)
-endif()
 
 ######################### Install the CMake package ############################
 include(CMakePackageConfigHelpers)

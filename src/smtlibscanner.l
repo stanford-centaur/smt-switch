@@ -27,6 +27,17 @@
 
 using namespace std;
 
+// The scanner the parser calls, which the parser declares the same way.
+#define YY_DECL smtlib::parser::symbol_type yylex()
+YY_DECL;
+
+namespace {
+
+// Where the scanner is in the input, reset by scan_begin for each parse.
+smtlib::location loc;
+
+}  // namespace
+
 %}
 
 %option noyywrap nounput noinput batch
@@ -44,8 +55,6 @@ simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 %%
 
 %{
-  // A handy shortcut to the location held by the driver.
-  smtlib::location& loc = drv.location();
   // Code run each time yylex is called.
   loc.step ();
 %}
@@ -127,6 +136,7 @@ let                   { return smtlib::parser::make_LET(loc); }
 
 void smt::SmtLibReader::scan_begin ()
 {
+  loc.initialize (&file);
   // flush the buffer to make sure scanner state is fresh
   YY_FLUSH_BUFFER;
   // commented from calc++ example -- could consider adding for debug support

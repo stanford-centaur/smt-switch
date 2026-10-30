@@ -23,16 +23,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include "location.hh"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
-#include "smtlibparser.h"
 #include "sort.h"
 #include "term.h"
-
-#define YY_DECL smtlib::parser::symbol_type yylex(smt::SmtLibReader & drv)
-YY_DECL;
 
 namespace smt {
 
@@ -148,8 +143,6 @@ class SmtLibReader
                               const std::string & value);
 
   /* Getters and setters */
-  smtlib::location & location();
-
   const SmtSolver & solver() const;
 
   bool is_strict() const;
@@ -274,8 +267,6 @@ class SmtLibReader
   void let_binding(const std::string & sym, const Term & term);
 
  protected:
-  smtlib::location location_;
-
   SmtSolver solver_;
 
   bool strict_;
