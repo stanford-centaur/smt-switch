@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "datatype.h"
@@ -37,12 +38,12 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  protected:
   friend class Z3Solver;
 
-  // declared before the symbols and sorts, so they are released while the
-  // context lives
+  // declared before the sorts, so they are released while the context lives
   std::shared_ptr<z3::context> c;
   std::string constructorname, datatypename;
-  std::vector<z3::symbol> fieldnames{};
-  std::vector<z3::sort> sorts{};
+  // the selectors added; a null sort stands for one added with
+  // add_selector_self
+  std::vector<std::pair<std::string, z3::sort>> selectors{};
 };
 
 class Z3Datatype : public AbsDatatype

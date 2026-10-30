@@ -1,6 +1,5 @@
 #include "z3_datatype.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -17,9 +16,16 @@ bool operator==(const z3::sort & lhs, const z3::sort & rhs)
 {
   return z3::eq(lhs, rhs);
 }
-bool operator==(const z3::symbol & lhs, const z3::symbol & rhs)
+// A null sort, which has no id, comes first
+bool operator<(const z3::sort & lhs, const z3::sort & rhs)
 {
-  return lhs.str() == rhs.str();
+  if (static_cast<Z3_sort>(lhs) == nullptr
+      || static_cast<Z3_sort>(rhs) == nullptr)
+  {
+    return static_cast<Z3_sort>(lhs) == nullptr
+           && static_cast<Z3_sort>(rhs) != nullptr;
+  }
+  return lhs.id() < rhs.id();
 }
 }  // namespace z3
 
@@ -42,58 +48,36 @@ std::string Z3DatatypeConstructorDecl::get_name() const
 
 std::size_t Z3DatatypeConstructorDecl::hash() const
 {
-  // the parts compare checks: the name, the field names and the field
+  // the parts compare checks: the name, the selector names and the selector
   // sorts, by id. Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio,
   // whose irregular bits spread the value; the shifts mix in the hash so
   // far, so the order of the parts matters and equal parts don't cancel out
   std::hash<std::string> str_hash;
   std::size_t h = str_hash(constructorname);
-  for (const z3::symbol & field : fieldnames)
+  for (const std::pair<std::string, z3::sort> & sel : selectors)
   {
-    h ^= str_hash(field.str()) + 0x9e3779b9 + (h << 6) + (h >> 2);
-  }
-  for (const z3::sort & s : sorts)
-  {
-    h ^= s.id() + 0x9e3779b9 + (h << 6) + (h >> 2);
+    // a self selector's null sort has no id
+    std::size_t sort_id =
+        static_cast<Z3_sort>(sel.second) == nullptr ? 0 : sel.second.id();
+    h ^= str_hash(sel.first) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= sort_id + 0x9e3779b9 + (h << 6) + (h >> 2);
   }
   return h;
 }
 
-bool Z3DatatypeConstructorDecl::compare(
-    const DatatypeConstructorDecl & other) const
+bool Z3DatatypeConstructorDecl::compare(const DatatypeConstructorDecl & d) const
 {
-  auto cast = std::dynamic_pointer_cast<Z3DatatypeConstructorDecl>(other);
-  return cast
-         && std::tie(constructorname, fieldnames, sorts)
-                == std::tie(
-                    cast->constructorname, cast->fieldnames, cast->sorts);
+  auto other = std::dynamic_pointer_cast<Z3DatatypeConstructorDecl>(d);
+  return other
+         && std::tie(constructorname, selectors)
+                == std::tie(other->constructorname, other->selectors);
 }
 
 bool Z3DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
 {
-  // The parts compare checks, in that order
-  auto cast = backend_pointer_cast<Z3DatatypeConstructorDecl>(d);
-  if (constructorname != cast->constructorname)
-  {
-    return constructorname < cast->constructorname;
-  }
-  if (!(fieldnames == cast->fieldnames))
-  {
-    return std::lexicographical_compare(
-        fieldnames.begin(),
-        fieldnames.end(),
-        cast->fieldnames.begin(),
-        cast->fieldnames.end(),
-        [](const z3::symbol & a, const z3::symbol & b) {
-          return a.str() < b.str();
-        });
-  }
-  return std::lexicographical_compare(
-      sorts.begin(),
-      sorts.end(),
-      cast->sorts.begin(),
-      cast->sorts.end(),
-      [](const z3::sort & a, const z3::sort & b) { return a.id() < b.id(); });
+  auto other = backend_pointer_cast<Z3DatatypeConstructorDecl>(d);
+  return std::tie(constructorname, selectors)
+         < std::tie(other->constructorname, other->selectors);
 }
 
 Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
@@ -123,14 +107,14 @@ std::size_t Z3Datatype::hash() const { return datatype.id(); }
 
 bool Z3Datatype::compare(const Datatype & d) const
 {
-  std::shared_ptr<Z3Datatype> other = std::dynamic_pointer_cast<Z3Datatype>(d);
+  auto other = std::dynamic_pointer_cast<Z3Datatype>(d);
   return other && z3::eq(datatype, other->datatype);
 }
 
 bool Z3Datatype::less(const Datatype & d) const
 {
   // Ids are unique only within a context, so the context comes first.
-  std::shared_ptr<Z3Datatype> other = backend_pointer_cast<Z3Datatype>(d);
+  auto other = backend_pointer_cast<Z3Datatype>(d);
   if (c != other->c)
   {
     return std::less<z3::context *>{}(c.get(), other->c.get());

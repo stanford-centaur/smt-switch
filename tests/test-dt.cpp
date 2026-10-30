@@ -396,6 +396,39 @@ TEST_P(Datatypes, ConstructorDeclEqualityOutlivesItsDatatype)
             std::hash<DatatypeConstructorDecl>{}(just_again));
 }
 
+TEST_P(Datatypes, SelfSelectorsCompareAlikeAcrossDatatypes)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "a generic self selector can only be added to a "
+                    "constructor already added to a datatype";
+  }
+  DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");
+  s->add_selector(cons, "head", intsort);
+  s->add_selector_self(cons, "tail");
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  s->add_constructor(listdecl, s->make_datatype_constructor_decl("nil"));
+  s->add_constructor(listdecl, cons);
+
+  DatatypeConstructorDecl cons_again =
+      s->make_datatype_constructor_decl("cons");
+  s->add_selector(cons_again, "head", intsort);
+  s->add_selector_self(cons_again, "tail");
+  DatatypeDecl stackdecl = s->make_datatype_decl("stack");
+  s->add_constructor(stackdecl, s->make_datatype_constructor_decl("nil"));
+  s->add_constructor(stackdecl, cons_again);
+
+  ASSERT_EQ(cons, cons_again);
+  std::size_t hash_before = std::hash<DatatypeConstructorDecl>{}(cons);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(cons_again), hash_before);
+  EXPECT_FALSE(cons < cons_again);
+
+  s->make_sort(listdecl);
+  EXPECT_EQ(cons, cons_again);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(cons), hash_before);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(cons_again), hash_before);
+}
+
 TEST_P(Datatypes, OrderAgreesWithEquality)
 {
   DatatypeConstructorDecl nothing =
