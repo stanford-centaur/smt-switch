@@ -39,7 +39,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Build wheels
-        uses: pypa/cibuildwheel@v4.3.4
+        uses: pypa/cibuildwheel@v4.3.5
         env:
           # Every released CPython that is not yet end-of-life
           # Keep in sync with requires-python in pyproject.toml
