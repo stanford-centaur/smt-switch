@@ -482,11 +482,6 @@ TEST_P(Datatypes, EqualConstructorDeclsHashAlike)
 
 TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "a generic constructor declaration compares by its name "
-                    "only";
-  }
   DatatypeConstructorDecl just_int = s->make_datatype_constructor_decl("just");
   s->add_selector(just_int, "value", intsort);
   DatatypeConstructorDecl just_bool = s->make_datatype_constructor_decl("just");
