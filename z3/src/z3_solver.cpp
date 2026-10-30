@@ -323,18 +323,17 @@ void Z3Solver::add_constructor(z3::sort dtsort,
   auto recognizer = "is-"s + cname;
   // the decl keeps its self placeholders, so another datatype it is added to
   // gets its own sort for them
-  std::vector<z3::sort> sorts = z3cons->sorts;
-  for (auto & sort : sorts)
+  std::vector<z3::symbol> fieldnames;
+  std::vector<z3::sort> sorts;
+  for (const auto & [name, sort] : z3cons->selectors)
   {
-    if (static_cast<Z3_sort>(sort) == nullptr)
-    {
-      sort = dtsort;
-    }
+    fieldnames.push_back(ctx->str_symbol(name.c_str()));
+    sorts.push_back(static_cast<Z3_sort>(sort) == nullptr ? dtsort : sort);
   }
   cs->add(ctx->str_symbol(cname.c_str()),
           ctx->str_symbol(recognizer.c_str()),
-          z3cons->fieldnames.size(),
-          z3cons->fieldnames.data(),
+          fieldnames.size(),
+          fieldnames.data(),
           sorts.data());
 }
 
@@ -432,8 +431,8 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->fieldnames.push_back(ctx->str_symbol(name.c_str()));
-    cdt->sorts.push_back(backend_pointer_cast<Z3Sort>(s)->get_z3_type());
+    cdt->selectors.emplace_back(name,
+                                backend_pointer_cast<Z3Sort>(s)->get_z3_type());
   }
   catch (z3::exception & e)
   {
@@ -447,9 +446,7 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->fieldnames.push_back(ctx->str_symbol(name.c_str()));
-    cdt->sorts.emplace_back(*ctx);  // push back an empty sort because we don't
-                                    // know the datatype name yet
+    cdt->selectors.emplace_back(name, z3::sort(*ctx));
   }
   catch (z3::exception & e)
   {
