@@ -143,7 +143,7 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
 Datatype Z3Sort::get_datatype() const
 {
   return std::make_shared<Z3Datatype>(ctx, get_z3_datatype());
-};
+}
 
 z3::sort Z3Sort::get_z3_datatype() const
 {

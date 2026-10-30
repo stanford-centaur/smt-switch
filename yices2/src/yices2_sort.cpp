@@ -152,7 +152,7 @@ Datatype Yices2Sort::get_datatype() const
   // Yices2 has no datatypes, so no sort has a datatype
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
-};
+}
 
 bool Yices2Sort::compare(const Sort & s) const
 {

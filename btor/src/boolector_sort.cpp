@@ -51,34 +51,34 @@ uint64_t BoolectorSortBase::get_width() const
 {
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
-};
+}
 
 Sort BoolectorSortBase::get_indexsort() const
 {
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no index sort");
-};
+}
 
 Sort BoolectorSortBase::get_elemsort() const
 {
   throw IncorrectUsageException("Sort of kind "
                                 + smt::to_string(get_sort_kind())
                                 + " has no element sort");
-};
+}
 
 SortVec BoolectorSortBase::get_domain_sorts() const
 {
   throw IncorrectUsageException("Sort of kind "
                                 + smt::to_string(get_sort_kind())
                                 + " has no domain sorts");
-};
+}
 
 Sort BoolectorSortBase::get_codomain_sort() const
 {
   throw IncorrectUsageException("Sort of kind "
                                 + smt::to_string(get_sort_kind())
                                 + " has no codomain sort");
-};
+}
 
 std::string BoolectorSortBase::get_uninterpreted_name() const
 {
@@ -108,7 +108,7 @@ Datatype BoolectorSortBase::get_datatype() const
   // Boolector has no datatypes, so no sort has a datatype
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
-};
+}
 
 bool BoolectorSortBase::compare(const Sort & s) const
 {

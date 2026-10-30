@@ -271,7 +271,6 @@ void SmtLibReader::set_logic_all()
   }
   catch (SmtException & e)
   {
-    ;
   }
 
   logic_ = "ALL";

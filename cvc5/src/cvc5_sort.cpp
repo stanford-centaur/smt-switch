@@ -190,7 +190,7 @@ bool Cvc5Sort::compare(const Sort & s) const
 Datatype Cvc5Sort::get_datatype() const
 {
   return std::make_shared<Cvc5Datatype>(get_cvc5_datatype());
-};
+}
 
 ::cvc5::Sort Cvc5Sort::get_cvc5_sort() const { return sort; }
 

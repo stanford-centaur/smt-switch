@@ -211,10 +211,12 @@ if(SMTLIB_READER)
   )
   # Apple's flex reports 2.6.4 and is not the 2.6.4 everyone else builds: its
   # skeleton declares yy_n_chars a yy_size_t where upstream has an int, so on
-  # macOS alone it is compared against the int yy_buf_size.
+  # macOS alone it is compared against the int yy_buf_size. The skeleton also
+  # ends its macro bodies with a semicolon and writes another at the call site,
+  # leaving an empty statement there.
   set_source_files_properties(
     ${FLEX_SmtLibScanner_OUTPUTS}
-    PROPERTIES COMPILE_OPTIONS -Wno-sign-compare
+    PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-extra-semi-stmt"
   )
 
   # putting generated header files in build dir

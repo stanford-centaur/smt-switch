@@ -147,9 +147,9 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
   std::swap(children, copy.children);
   idx = it.idx;
   return *this;
-};
+}
 
-void BoolectorTermIter::operator++() { idx++; };
+void BoolectorTermIter::operator++() { idx++; }
 
 Term BoolectorTermIter::operator*() const
 {
@@ -167,7 +167,7 @@ Term BoolectorTermIter::operator*() const
 
   BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
   return std::make_shared<BoolectorTerm>(btor, node);
-};
+}
 
 TermIterBase * BoolectorTermIter::clone() const
 {
@@ -177,12 +177,12 @@ TermIterBase * BoolectorTermIter::clone() const
 bool BoolectorTermIter::operator==(const BoolectorTermIter & it) const
 {
   return equal(it);
-};
+}
 
 bool BoolectorTermIter::operator!=(const BoolectorTermIter & it) const
 {
   return !(*this == it);
-};
+}
 
 bool BoolectorTermIter::equal(const TermIterBase & other) const
 {
@@ -217,9 +217,9 @@ BoolectorTerm::~BoolectorTerm() { boolector_release(btor.get(), node); }
 
 // BoolectorNode * -> id
 
-std::size_t BoolectorTerm::hash() const { return (std::size_t)node; };
+std::size_t BoolectorTerm::hash() const { return (std::size_t)node; }
 
-std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; };
+std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; }
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {
@@ -242,7 +242,7 @@ Op BoolectorTerm::get_op() const
   }
 
   return op;
-};
+}
 
 Sort BoolectorTerm::get_sort() const
 {
