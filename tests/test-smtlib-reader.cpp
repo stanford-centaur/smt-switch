@@ -404,6 +404,30 @@ TEST_P(Scopes, BindOutsideScope)
   EXPECT_NO_THROW(reader->pop_scope());
 }
 
+TEST_P(Scopes, ShadowedBinding)
+{
+  Term outer = s->make_symbol("outer", bvsort);
+  Term inner = s->make_symbol("inner", bvsort);
+  reader->push_scope();
+  reader->let_binding("z", outer);
+  EXPECT_THROW(reader->let_binding("z", inner), IncorrectUsageException);
+  reader->push_scope();
+  reader->let_binding("z", inner);
+  EXPECT_EQ(reader->lookup_symbol("z"), inner);
+  reader->pop_scope();
+  EXPECT_EQ(reader->lookup_symbol("z"), outer);
+  reader->pop_scope();
+  EXPECT_FALSE(reader->lookup_symbol("z"));
+}
+
+TEST_P(Scopes, DefineOverOuterSymbol)
+{
+  reader->new_symbol("x", bvsort);
+  reader->push();
+  EXPECT_THROW(reader->define_fun("x", s->make_term(1, bvsort)),
+               IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     Scopes,
@@ -485,6 +509,32 @@ TEST_P(Input, PopWithoutPush)
   const string message = parse_error("pop-without-push.smt2");
   EXPECT_EQ(message.rfind(error_input("pop-without-push.smt2") + ":2.", 0), 0u)
       << message;
+}
+
+TEST_P(Input, ShortArraySort)
+{
+  const string message = parse_error("short-array-sort.smt2");
+  EXPECT_EQ(message.rfind(error_input("short-array-sort.smt2") + ":2.", 0), 0u)
+      << message;
+}
+
+TEST_P(Input, FailedParseClosesScopes)
+{
+  // the error comes inside the define-fun, with its argument b in scope
+  EXPECT_THROW(reader->parse(error_input("failed-define-fun.smt2")),
+               SmtLibParseException);
+  EXPECT_EQ(reader->current_scope(), 0u);
+  const string message = parse_error("stale-argument.smt2");
+  EXPECT_NE(message.find("Unrecognized symbol: b"), string::npos) << message;
+}
+
+TEST_P(Input, ArrayLogic)
+{
+  if (GetParam().solver_enum == BTOR)
+  {
+    GTEST_SKIP() << "Boolector refuses the logic QF_AX";
+  }
+  EXPECT_NO_THROW(reader->set_logic("QF_AX"));
 }
 
 TEST_P(Input, EmptyApplication)
