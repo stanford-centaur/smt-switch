@@ -17,7 +17,6 @@
 #include "smtlib_reader.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
@@ -26,6 +25,7 @@
 #include <iostream>
 #include <memory>
 #include <new>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -39,6 +39,8 @@
 #include "smtlibscanner.h"
 #include "solver.h"
 #include "sort.h"
+
+SmtLibParseException::~SmtLibParseException() = default;
 
 namespace smt {
 
@@ -119,7 +121,7 @@ void UnorderedScopedSymbolMap::add_mapping(const std::string & sym,
 {
   if (symbol_map_.find(sym) != symbol_map_.end())
   {
-    throw SmtException("Repeated symbol: " + sym);
+    throw IncorrectUsageException("Repeated symbol: " + sym);
   }
   symbol_map_[sym] = t;
   symbols_.back().insert(sym);
@@ -161,7 +163,7 @@ SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
 {
 }
 
-int SmtLibReader::parse(const std::string & f)
+void SmtLibReader::parse(const std::string & f)
 {
   file = f;
   std::unique_ptr<std::FILE, CloseFile> input_file;
@@ -185,7 +187,29 @@ int SmtLibReader::parse(const std::string & f)
   smtlibset_in(input_file ? input_file.get() : stdin, scanner);
 
   smtlib::parser parser(scanner, *this);
-  return parser.parse();
+  try
+  {
+    parser.parse();
+  }
+  catch (const smtlib::parser::syntax_error & e)
+  {
+    std::ostringstream message;
+    message << e.location << ": " << e.what();
+    throw SmtLibParseException(message.str());
+  }
+  // the reader or the solver refusing something the input asks for
+  catch (const IncorrectUsageException & e)
+  {
+    std::ostringstream message;
+    message << location << ": " << e.what();
+    throw SmtLibParseException(message.str());
+  }
+  catch (const InternalSolverException & e)
+  {
+    std::ostringstream message;
+    message << e.what() << " (" << location << ")";
+    throw InternalSolverException(message.str());
+  }
 }
 
 void SmtLibReader::set_logic(const std::string & logic)
@@ -231,9 +255,6 @@ void SmtLibReader::set_logic(const std::string & logic)
         processed_logic =
             processed_logic.substr(len, processed_logic.length() - len);
 
-        // should also be in logic_sortkind_map
-        assert(logic_sortkind_map.find(sub) != logic_sortkind_map.end());
-
         if (sub == "UF")
         {
           // special-case for UF, still want to allow sorts
@@ -254,7 +275,7 @@ void SmtLibReader::set_logic(const std::string & logic)
 
     if (processed_logic.size() == logic_size)
     {
-      throw SmtException("Failed to interpret logic: " + logic);
+      throw IncorrectUsageException("Failed to interpret logic: " + logic);
     }
   }
 
@@ -410,7 +431,6 @@ std::size_t SmtLibReader::current_scope() const
 Term SmtLibReader::lookup_symbol(const std::string & sym) const
 {
   Term symbol_term;
-  assert(!symbol_term);
 
   if (sym == "true")
   {
@@ -432,7 +452,6 @@ Term SmtLibReader::lookup_symbol(const std::string & sym) const
     }
   }
 
-  assert(!symbol_term);
   symbol_term = global_symbols_.get_symbol(sym);
   return symbol_term;
 }
@@ -441,7 +460,7 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
 {
   if (global_symbols_.get_symbol(name))
   {
-    throw SmtException("Redeclaring symbol: " + name);
+    throw IncorrectUsageException("Redeclaring symbol: " + name);
   }
 
   auto it = all_symbols_.find(name);
@@ -449,8 +468,9 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
   {
     if (it->second->get_sort() != sort)
     {
-      throw SmtException("Current Limitation: cannot redeclare symbol " + name
-                         + " with a different sort");
+      throw NotImplementedException(
+          "Current Limitation: cannot redeclare symbol " + name
+          + " with a different sort");
     }
     global_symbols_.add_mapping(name, it->second);
     return;
@@ -539,21 +559,20 @@ Term SmtLibReader::apply_define_fun(const std::string & defname,
 {
   UnorderedTermMap subs_map;
   std::size_t num_args = args.size();
-  assert(num_args);  // apply_define_fun only for defines which take arguments
 
   auto it = defs_.find(defname);
 
   if (it == defs_.end())
   {
-    throw SmtException("Unknown function: " + defname);
+    throw IncorrectUsageException("Unknown function: " + defname);
   }
 
   Term def = it->second;
 
   if (num_args != def_args_.at(defname).size())
   {
-    throw SmtException(defname
-                       + " not applied to correct number of arguments.");
+    throw IncorrectUsageException(
+        defname + " not applied to correct number of arguments.");
   }
 
   for (std::size_t i = 0; i < args.size(); ++i)
@@ -596,7 +615,6 @@ Term SmtLibReader::register_arg(const std::string & name, const Sort & sort)
   {
     tmpvar = tmp_args_[sort].at(id);
   }
-  assert(tmpvar);
 
   arg_param_map_.add_mapping(name, tmpvar);
   current_scope_sort_ids[sort]++;
@@ -612,7 +630,7 @@ void SmtLibReader::define_sort(const std::string & name, const Sort & sort)
   }
   else if (defined_sorts_.find(name) != defined_sorts_.end())
   {
-    throw SmtException("Cannot re-define sort with name " + name);
+    throw IncorrectUsageException("Cannot re-define sort with name " + name);
   }
   defined_sorts_[name] = sort;
 }
@@ -622,7 +640,7 @@ Sort SmtLibReader::lookup_sort(const std::string & name) const
   auto it = defined_sorts_.find(name);
   if (it == defined_sorts_.end())
   {
-    throw SmtException("Unknown defined sort symbol " + name);
+    throw IncorrectUsageException("Unknown defined sort symbol " + name);
   }
   return it->second;
 }
@@ -653,7 +671,6 @@ Term SmtLibReader::create_param(const std::string & name, const Sort & sort)
       }
     }
   }
-  assert(param);
   arg_param_map_.add_mapping(name, param);
   return param;
 }

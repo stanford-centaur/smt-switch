@@ -15,12 +15,15 @@
 
 %{
 #include <cstring>
-#include <string>
+#include <stdexcept>
 
-#include "exceptions.h"
 #include "smtlibparser.h"
 
 #define YY_USER_ACTION loc.step(); loc.columns(yyleng);
+
+// Errors flex cannot recover from, such as a failed read or allocation,
+// which it would otherwise print before exiting.
+#define YY_FATAL_ERROR(msg) throw std::runtime_error(msg)
 %}
 
 simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
@@ -102,6 +105,6 @@ let                   { return smtlib::parser::make_LET(loc); }
                       }
 {simplesymbol}        { return smtlib::parser::make_SYMBOL(yytext, loc); }
 
-.                     { throw SmtException(std::string("Parser ERROR on: ") + yytext); }
+.                     { return smtlib::parser::make_SMTLIBUNDEF(loc); }
 <<EOF>>               { loc.step(); return smtlib::parser::make_SMTLIBEOF(loc); }
 %%

@@ -23,11 +23,25 @@
 #include <unordered_set>
 #include <vector>
 
+#include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
+
+/** Thrown when SmtLibReader cannot parse its input: a syntax error, a
+ *  symbol, sort or character it does not know, or something it or the
+ *  solver refuses, such as a redeclaration. The message starts with where,
+ *  as file:line.column.
+ */
+class SmtLibParseException : public SmtException
+{
+ public:
+  using SmtException::SmtException;
+  // defined in the .cpp to anchor the vtable
+  ~SmtLibParseException() override;
+};
 
 namespace smt {
 
@@ -96,10 +110,12 @@ class SmtLibReader
 
   /** Parses an SMT-LIB file, running its commands
    *  @param f the file's path, or "-" or the empty string for stdin
-   *  @return the parser's result, 0 on success
    *  @throws IncorrectUsageException if the file cannot be opened
+   *  @throws SmtLibParseException if the input cannot be parsed
+   *  @throws std::runtime_error if the scanner fails, as when reading the
+   *          input or allocating memory
    */
-  int parse(const std::string & f);
+  void parse(const std::string & f);
   // The name of the file being parsed.
   std::string file;
 

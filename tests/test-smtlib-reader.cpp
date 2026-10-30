@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -420,6 +421,27 @@ class Input : public ::testing::Test,
     reader = std::make_unique<SmtLibReader>(s);
   }
 
+  static string error_input(const string & name)
+  {
+    return string(STRFY(SMTLIB_TEST_RESOURCE_DIR)) + "/errors/" + name;
+  }
+
+  /** Parses an input from errors/ and returns the message of the
+   *  SmtLibParseException it throws, failing the test if it throws none */
+  string parse_error(const string & name)
+  {
+    try
+    {
+      reader->parse(error_input(name));
+    }
+    catch (const SmtLibParseException & e)
+    {
+      return e.what();
+    }
+    ADD_FAILURE() << name << " parsed without an SmtLibParseException";
+    return "";
+  }
+
   SmtSolver s;
   std::unique_ptr<SmtLibReader> reader;
 };
@@ -428,6 +450,59 @@ TEST_P(Input, MissingFile)
 {
   EXPECT_THROW(reader->parse("no-such-directory/no-such-file.smt2"),
                IncorrectUsageException);
+}
+
+TEST_P(Input, UnreadableFile)
+{
+  EXPECT_THROW(reader->parse(STRFY(SMTLIB_TEST_RESOURCE_DIR)),
+               std::runtime_error);
+}
+
+TEST_P(Input, SyntaxError)
+{
+  const string message = parse_error("syntax-error.smt2");
+  EXPECT_EQ(message.rfind(error_input("syntax-error.smt2") + ":3.", 0), 0u)
+      << message;
+}
+
+TEST_P(Input, OutOfRangeNumeral)
+{
+  const string message = parse_error("out-of-range-numeral.smt2");
+  EXPECT_EQ(message.rfind(error_input("out-of-range-numeral.smt2") + ":2.", 0),
+            0u)
+      << message;
+}
+
+TEST_P(Input, Redeclaration)
+{
+  const string message = parse_error("redeclaration.smt2");
+  EXPECT_EQ(message.rfind(error_input("redeclaration.smt2") + ":3.", 0), 0u)
+      << message;
+}
+
+TEST_P(Input, PopWithoutPush)
+{
+  const string message = parse_error("pop-without-push.smt2");
+  EXPECT_EQ(message.rfind(error_input("pop-without-push.smt2") + ":2.", 0), 0u)
+      << message;
+}
+
+TEST_P(Input, EmptyApplication)
+{
+  EXPECT_THROW(reader->parse(error_input("empty-application.smt2")),
+               SmtLibParseException);
+}
+
+TEST_P(Input, UnknownSymbol)
+{
+  EXPECT_THROW(reader->parse(error_input("unknown-symbol.smt2")),
+               SmtLibParseException);
+}
+
+TEST_P(Input, UnknownCharacter)
+{
+  EXPECT_THROW(reader->parse(error_input("unknown-character.smt2")),
+               SmtLibParseException);
 }
 
 INSTANTIATE_TEST_SUITE_P(
