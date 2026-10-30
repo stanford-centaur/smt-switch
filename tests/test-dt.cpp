@@ -366,11 +366,38 @@ TEST_P(Datatypes, EqualConstructorDeclsHashAlike)
   EXPECT_EQ(unique.size(), 1u);
 }
 
+TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "a generic constructor declaration compares by its name "
+                    "only";
+  }
+  DatatypeConstructorDecl just_int = s->make_datatype_constructor_decl("just");
+  s->add_selector(just_int, "value", intsort);
+  DatatypeConstructorDecl just_bool = s->make_datatype_constructor_decl("just");
+  s->add_selector(just_bool, "value", s->make_sort(BOOL));
+  EXPECT_NE(just_int, just_bool);
+}
+
+TEST_P(Datatypes, ConstructorDeclEqualityOutlivesItsDatatype)
+{
+  DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
+  s->add_selector(just, "value", intsort);
+  DatatypeDecl maybedecl = s->make_datatype_decl("maybe");
+  s->add_constructor(maybedecl, just);
+  s->make_sort(maybedecl);
+
+  DatatypeConstructorDecl just_again =
+      s->make_datatype_constructor_decl("just");
+  s->add_selector(just_again, "value", intsort);
+  ASSERT_EQ(just, just_again);
+  EXPECT_EQ(std::hash<DatatypeConstructorDecl>{}(just),
+            std::hash<DatatypeConstructorDecl>{}(just_again));
+}
+
 TEST_P(Datatypes, OrderAgreesWithEquality)
 {
-  // These stay out of any datatype, because cvc5 prints a declaration's
-  // selector sorts only once its datatype is made, and compares the printed
-  // declarations.
   DatatypeConstructorDecl nothing =
       s->make_datatype_constructor_decl("nothing");
   DatatypeConstructorDecl just = s->make_datatype_constructor_decl("just");
