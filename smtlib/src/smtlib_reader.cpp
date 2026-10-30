@@ -34,9 +34,9 @@
 
 #include "exceptions.h"
 #include "ops.h"
-#include "smtlibparser.h"
-#include "smtlibparser_maps.h"
-#include "smtlibscanner.h"
+#include "smtlib_parser.h"
+#include "smtlib_parser_maps.h"
+#include "smtlib_scanner.h"
 #include "solver.h"
 #include "sort.h"
 

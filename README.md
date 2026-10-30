@@ -191,8 +191,10 @@ uploaded to a shared computing cluster.
 
 `SmtLibReader` parses an SMT-LIB 2 script and issues its commands against a
 solver, so a benchmark file can drive any backend through the same interface as
-the C++ API. Its interface is in `smt-switch/smtlib_reader.h`. It can be enabled
-by passing `--smtlib-reader` to `configure.sh`. It needs:
+the C++ API. Its interface is in `smt-switch/smtlib_reader.h`, and it is a
+library of its own, `smt-switch-smtlib`, which the CMake package provides as the
+`smtlib` component. It can be enabled by passing `--smtlib-reader` to
+`configure.sh`. It needs:
 
 - flex >= 2.6.4
 - Bison >= 3.7 (will be downloaded automatically if no new enough one is found;

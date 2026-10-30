@@ -1,5 +1,5 @@
 /*!
- * \file smtlibparser.yy
+ * \file smtlib_parser.yy
  * \brief The SMT-LIB grammar, from which Bison generates the parser.
  * \author Makai Mann
  * \date 2021
@@ -20,7 +20,7 @@
 %param { yyscan_t scanner }
 %parse-param { smt::SmtLibReader & drv }
 
-// Emitted into smtlibparser.h, before the parser class.
+// Emitted into smtlib_parser.h, before the parser class.
 %code requires {
 #include <string>
 #include <utility>
@@ -34,7 +34,7 @@ namespace smt {
 class SmtLibReader;
 }  // namespace smt
 
-// The scanner's state, defined as in flex's smtlibscanner.h, which cannot be
+// The scanner's state, defined as in flex's smtlib_scanner.h, which cannot be
 // included here: the scanner includes this header and repeats that one.
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T
@@ -42,15 +42,15 @@ typedef void * yyscan_t;
 #endif
 }
 
-// Emitted into smtlibparser.h, after the parser class.
+// Emitted into smtlib_parser.h, after the parser class.
 %code provides {
 // The scanner's yylex, renamed by the prefix, returning the parser's tokens.
-// smtlibscanner.h declares an int yylex unless this is defined first.
+// smtlib_scanner.h declares an int yylex unless this is defined first.
 #define YY_DECL smtlib::parser::symbol_type smtliblex(yyscan_t yyscanner)
 YY_DECL;
 }
 
-// Emitted into smtlibparser.cpp only, after it includes the header.
+// Emitted into smtlib_parser.cpp only, after it includes the header.
 %code {
 #include <cstdint>
 #include <iostream>

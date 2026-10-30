@@ -7,12 +7,15 @@ SmtSwitchConfig
 Package configuration for smt-switch.
 
 Provides ``SmtSwitch::smt-switch`` and, for each solver backend that was
-built, ``SmtSwitch::smt-switch-<backend>``.  The available backends are listed
-in ``SmtSwitch_AVAILABLE_COMPONENTS``; asking for one that was not built is an
+built, ``SmtSwitch::smt-switch-<backend>``, as well as
+``SmtSwitch::smt-switch-smtlib`` for the SMT-LIB reader if it was built.  The
+available components, the backends and ``smtlib``, are listed in
+``SmtSwitch_AVAILABLE_COMPONENTS``; asking for one that was not built is an
 error, so::
 
-    find_package(SmtSwitch REQUIRED COMPONENTS cvc5 btor)
-    target_link_libraries(myprog SmtSwitch::smt-switch-cvc5)
+    find_package(SmtSwitch REQUIRED COMPONENTS cvc5 btor smtlib)
+    target_link_libraries(myprog SmtSwitch::smt-switch-cvc5
+                                 SmtSwitch::smt-switch-smtlib)
 
 Each backend pulls in its solver, so linking the backend alone is enough.
 
@@ -76,7 +79,11 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
   # Named apart from SmtSwitchTargets-*.cmake on purpose: the core targets
   # file globs that pattern to pick up its own per-configuration files, and
   # would drag every backend in with it.
-  include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchBackendTargets-${_smt_switch_component}.cmake")
+  if(_smt_switch_component STREQUAL "smtlib")
+    include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchSmtLibTargets.cmake")
+  else()
+    include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchBackendTargets-${_smt_switch_component}.cmake")
+  endif()
 
   set(SmtSwitch_${_smt_switch_component}_FOUND TRUE)
 endforeach()

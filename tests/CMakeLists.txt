@@ -157,8 +157,9 @@ target_link_libraries(test-generic-sort PRIVATE GTest::gmock)
 target_link_libraries(test-printing PRIVATE exec-utils)
 target_link_libraries(test-term-translation PRIVATE term-utils)
 
-if(SMTLIB_READER)
+if(BUILD_SMTLIB_READER)
   switch_add_test(test-smtlib-reader)
+  target_link_libraries(test-smtlib-reader PRIVATE smt-switch-smtlib)
   target_compile_definitions(
     test-smtlib-reader
     PRIVATE SMTLIB_TEST_RESOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/smt2

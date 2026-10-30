@@ -1,5 +1,5 @@
 /*!
- * \file smtlibscanner.l
+ * \file smtlib_scanner.l
  * \brief The SMT-LIB tokens, from which flex generates the scanner.
  * \author Makai Mann
  * \date 2021
@@ -17,7 +17,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "smtlibparser.h"
+#include "smtlib_parser.h"
 
 #define YY_USER_ACTION loc.step(); loc.columns(yyleng);
 
