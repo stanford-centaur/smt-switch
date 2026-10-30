@@ -796,6 +796,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
         backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
     std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
     cdt->datatypeconstructordecl.addSelector(name, cs->sort);
+    cdt->selectors.emplace_back(name, cs->sort);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -811,6 +812,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
     std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
         backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
     cdt->datatypeconstructordecl.addSelectorSelf(name);
+    cdt->selectors.emplace_back(name, cvc5::Sort());
   }
   catch (::cvc5::CVC5ApiException & e)
   {

@@ -19,6 +19,8 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "datatype.h"
 #include "smt_defs.h"
@@ -50,6 +52,9 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   cvc5::DatatypeConstructorDecl datatypeconstructordecl;
   // cvc5's declaration cannot be asked for its name
   std::string name;
+  // nor for its selectors; a null sort stands for one added with
+  // add_selector_self
+  std::vector<std::pair<std::string, cvc5::Sort>> selectors;
 
   friend class Cvc5Solver;
 };

@@ -1,8 +1,10 @@
 #include "cvc5_datatype.h"
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #include "exceptions.h"
@@ -27,7 +29,19 @@ std::string Cvc5DatatypeConstructorDecl::get_name() const { return name; }
 
 std::size_t Cvc5DatatypeConstructorDecl::hash() const
 {
-  return std::hash<std::string>{}(datatypeconstructordecl.toString());
+  // the parts compare checks: the name, the selector names and the selector
+  // sorts. Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
+  // irregular bits spread the value; the shifts mix in the hash so far, so
+  // the order of the parts matters and equal parts don't cancel out
+  std::hash<std::string> str_hash;
+  std::hash<cvc5::Sort> sort_hash;
+  std::size_t h = str_hash(name);
+  for (const std::pair<std::string, cvc5::Sort> & sel : selectors)
+  {
+    h ^= str_hash(sel.first) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    h ^= sort_hash(sel.second) + 0x9e3779b9 + (h << 6) + (h >> 2);
+  }
+  return h;
 }
 
 bool Cvc5DatatypeConstructorDecl::compare(
@@ -35,17 +49,14 @@ bool Cvc5DatatypeConstructorDecl::compare(
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
       std::dynamic_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
-  return cd
-         && datatypeconstructordecl.toString()
-                == cd->datatypeconstructordecl.toString();
+  return cd && std::tie(name, selectors) == std::tie(cd->name, cd->selectors);
 }
 
 bool Cvc5DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
       backend_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
-  return datatypeconstructordecl.toString()
-         < cd->datatypeconstructordecl.toString();
+  return std::tie(name, selectors) < std::tie(cd->name, cd->selectors);
 }
 
 namespace {
