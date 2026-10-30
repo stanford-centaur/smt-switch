@@ -189,8 +189,15 @@ class SmtLibReader
    *  This is a light wrapper around solver_->make_symbol
    *  s.t. you can look up the symbol by name later
    *  see lookup_symbol
+   *  A name declared again after a pop removed it gets its earlier symbol
+   *  back, as a solver has at most one symbol of each name.
    *  @param name the name of the symbol
    *  @param sort the sort of the symbol
+   *  @throws IncorrectUsageException if the name is already declared, or if
+   *          a strict reader is given a function sort in a logic without
+   *          uninterpreted functions
+   *  @throws NotImplementedException if the name was declared with another
+   *          sort before a pop removed it
    */
   virtual void new_symbol(const std::string & name, const Sort & sort);
 
