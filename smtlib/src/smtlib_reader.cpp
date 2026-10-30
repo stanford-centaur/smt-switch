@@ -24,7 +24,6 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <new>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -102,12 +101,6 @@ auto has_sort_kind(SortKind sk)
 struct CloseFile
 {
   void operator()(std::FILE * input) const { std::fclose(input); }
-};
-
-/** Destroys the scanner of a parse */
-struct DestroyScanner
-{
-  void operator()(yyscan_t scanner) const { smtliblex_destroy(scanner); }
 };
 
 /** Closes the argument scopes a failed parse leaves open */
@@ -194,22 +187,16 @@ void SmtLibReader::parse(const std::string & f)
     }
   }
 
-  smtlib::location location(&file);
-  yyscan_t scanner;
-  if (smtliblex_init_extra(&location, &scanner) != 0)
-  {
-    throw std::bad_alloc();
-  }
-  std::unique_ptr<void, DestroyScanner> scanner_owner(scanner);
-  smtlibset_in(input_file ? input_file.get() : stdin, scanner);
+  SmtLibParser::location_type location(&file);
+  SmtLibScanner scanner(input_file ? input_file.get() : stdin, location);
 
   CloseScopes close_scopes{ *this };
-  smtlib::parser parser(scanner, *this);
+  SmtLibParser parser(scanner, *this);
   try
   {
     parser.parse();
   }
-  catch (const smtlib::parser::syntax_error & e)
+  catch (const SmtLibParser::syntax_error & e)
   {
     std::ostringstream message;
     message << e.location << ": " << e.what();
