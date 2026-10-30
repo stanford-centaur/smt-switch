@@ -409,4 +409,31 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_non_generic_solver_configurations()),
     ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Input);
+class Input : public ::testing::Test,
+              public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    reader = std::make_unique<SmtLibReader>(s);
+  }
+
+  SmtSolver s;
+  std::unique_ptr<SmtLibReader> reader;
+};
+
+TEST_P(Input, MissingFile)
+{
+  EXPECT_THROW(reader->parse("no-such-directory/no-such-file.smt2"),
+               IncorrectUsageException);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Input,
+    testing::ValuesIn(available_non_generic_solver_configurations()),
+    ConfigName());
+
 }  // namespace

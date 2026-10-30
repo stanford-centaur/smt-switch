@@ -200,6 +200,7 @@ if(SMTLIB_READER)
     SmtLibScanner
     ${PROJECT_SOURCE_DIR}/src/smtlibscanner.l
     ${CMAKE_CURRENT_BINARY_DIR}/smtlibscanner.cpp
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smtlibscanner.h
   )
 
   add_flex_bison_dependency(SmtLibScanner SmtLibParser)
