@@ -17,7 +17,9 @@
 #include "msat_term.h"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -203,7 +205,14 @@ MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d)
 {
 }
 
-size_t MsatTerm::hash() const { return get_id(); }
+size_t MsatTerm::hash() const
+{
+  // MathSAT numbers terms per environment, so mix in the environment, as
+  // compare checks it
+  size_t h = std::hash<msat_env *>{}(env.get());
+  detail::hash_combine(h, get_id());
+  return h;
+}
 
 size_t MsatTerm::get_id() const
 {
@@ -220,8 +229,9 @@ size_t MsatTerm::get_id() const
 bool MsatTerm::compare(const Term & absterm) const
 {
   shared_ptr<MsatTerm> mterm = std::dynamic_pointer_cast<MsatTerm>(absterm);
-  if (!mterm)
+  if (!mterm || env != mterm->env)
   {
+    // ids are unique only within one environment
     return false;
   }
   if (is_uf ^ mterm->is_uf)

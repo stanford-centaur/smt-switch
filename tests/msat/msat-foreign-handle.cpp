@@ -1,13 +1,16 @@
 /*!
  * \file msat-foreign-handle.cpp
- * \brief Tests that MathSAT refuses terms and sorts from another environment.
+ * \brief Tests that MathSAT refuses, and tells apart, terms and sorts from
+ * another environment.
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * Each MathSAT solver has its own environment, and reset() replaces it, so
  * a term or sort made by another solver, or by the same one before a reset,
- * would be read by MathSAT as one of this environment's.
+ * would be read by MathSAT as one of this environment's. Two solvers that
+ * make the same terms and sorts in the same order get the same ids for
+ * them.
  */
 
 #include <gtest/gtest.h>
@@ -115,4 +118,27 @@ TEST(MsatForeignHandle, AnotherInterpolatorsTermsRefused)
   EXPECT_THROW(itp->get_interpolant(other_a, b, out_I),
                IncorrectUsageException);
   EXPECT_TRUE(itp->get_interpolant(a, b, out_I).is_unsat());
+}
+
+TEST(MsatForeignHandle, AnotherSolversTermNotEqual)
+{
+  SmtSolver s = MsatSolverFactory::create(false);
+  SmtSolver other = MsatSolverFactory::create(false);
+  Term a = s->make_symbol("a", s->make_sort(BOOL));
+  Term b = other->make_symbol("b", other->make_sort(BOOL));
+
+  EXPECT_NE(a, b);
+  EXPECT_NE(b, a);
+}
+
+TEST(MsatForeignHandle, AnotherSolversSortNotEqual)
+{
+  SmtSolver s = MsatSolverFactory::create(false);
+  SmtSolver other = MsatSolverFactory::create(false);
+  Sort bv8 = s->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(BV, 8);
+
+  EXPECT_NE(bv8, other_bv8);
+  EXPECT_NE(other_bv8, bv8);
+  EXPECT_NE(bv8 < other_bv8, other_bv8 < bv8);
 }

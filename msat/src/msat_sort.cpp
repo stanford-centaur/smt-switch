@@ -18,9 +18,12 @@
 
 #include <mathsat.h>
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 
 #include "exceptions.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -42,8 +45,11 @@ MsatSort::MsatSort(const std::shared_ptr<msat_env> & e,
 
 std::size_t MsatSort::hash() const
 {
-  // unique within the type's environment, as msat_type_equals is
-  return msat_type_id(type);
+  // MathSAT numbers types per environment, and msat_type_equals tells
+  // environments apart, so mix in the environment
+  std::size_t h = std::hash<msat_env *>{}(env.get());
+  detail::hash_combine(h, msat_type_id(type));
+  return h;
 }
 
 uint64_t MsatSort::get_width() const
