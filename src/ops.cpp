@@ -18,204 +18,200 @@
 
 #include <climits>
 #include <cstddef>
+#include <cstdint>
+#include <iterator>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 
 #include "exceptions.h"
 
 namespace smt {
 
-// a map from PrimOp to <minimum arity, maximum arity>
-const std::unordered_map<PrimOp, std::pair<std::size_t, std::size_t>>
-    primop2arity({
-        { And, { 2, INT_MAX } },
-        { Or, { 2, INT_MAX } },
-        { Xor, { 2, INT_MAX } },
-        { Not, { 1, 1 } },
-        { Implies, { 2, INT_MAX } },
-        { Ite, { 3, 3 } },
-        { Equal, { 2, INT_MAX } },
-        { Distinct, { 2, INT_MAX } },
-        // at least the function and one argument
-        // of course, to be well-sorted the number of arguments must
-        // match the function domain
-        { Apply, { 2, INT_MAX } },
-        { Plus, { 2, INT_MAX } },
-        { Minus, { 2, INT_MAX } },
-        { Negate, { 1, 1 } },
-        { Mult, { 2, INT_MAX } },
-        { Div, { 2, INT_MAX } },
-        { IntDiv, { 2, INT_MAX } },
-        { To_Real, { 1, 1 } },
-        { To_Int, { 1, 1 } },
-        { Is_Int, { 1, 1 } },
-        { Lt, { 2, INT_MAX } },
-        { Le, { 2, INT_MAX } },
-        { Gt, { 2, INT_MAX } },
-        { Ge, { 2, INT_MAX } },
-        { Mod, { 2, 2 } },
-        { Abs, { 1, 1 } },
-        { Pow, { 2, 2 } },
-        { Concat, { 2, 2 } },
-        { Extract, { 1, 1 } },
-        { BVNot, { 1, 1 } },
-        { BVNeg, { 1, 1 } },
-        { BVAnd, { 2, INT_MAX } },
-        { BVOr, { 2, INT_MAX } },
-        { BVXor, { 2, INT_MAX } },
-        { BVNand, { 2, 2 } },
-        { BVNor, { 2, 2 } },
-        { BVXnor, { 2, 2 } },
-        { BVComp, { 2, 2 } },
-        { BVAdd, { 2, INT_MAX } },
-        { BVSub, { 2, 2 } },
-        { BVMul, { 2, INT_MAX } },
-        { BVUdiv, { 2, 2 } },
-        { BVSdiv, { 2, 2 } },
-        { BVUrem, { 2, 2 } },
-        { BVSrem, { 2, 2 } },
-        { BVSmod, { 2, 2 } },
-        { BVShl, { 2, 2 } },
-        { BVAshr, { 2, 2 } },
-        { BVLshr, { 2, 2 } },
-        { BVUlt, { 2, 2 } },
-        { BVUle, { 2, 2 } },
-        { BVUgt, { 2, 2 } },
-        { BVUge, { 2, 2 } },
-        { BVSlt, { 2, 2 } },
-        { BVSle, { 2, 2 } },
-        { BVSgt, { 2, 2 } },
-        { BVSge, { 2, 2 } },
-        { Zero_Extend, { 1, 1 } },
-        { Sign_Extend, { 1, 1 } },
-        { Repeat, { 1, 1 } },
-        { Rotate_Left, { 1, 1 } },
-        { Rotate_Right, { 1, 1 } },
-        { BV_To_Nat, { 1, 1 } },
-        { UBV_To_Int, { 1, 1 } },
-        { SBV_To_Int, { 1, 1 } },
-        { Int_To_BV, { 1, 1 } },
-        { StrLt, { 2, INT_MAX } },
-        { StrLeq, { 2, INT_MAX } },
-        { StrLen, { 1, 1 } },
-        { StrConcat, { 2, INT_MAX } },
-        { StrSubstr, { 3, 3 } },
-        { StrAt, { 2, 2 } },
-        { StrContains, { 2, 2 } },
-        { StrIndexof, { 3, 3 } },
-        { StrReplace, { 3, 3 } },
-        { StrReplaceAll, { 3, 3 } },
-        { StrPrefixof, { 2, 2 } },
-        { StrSuffixof, { 2, 2 } },
-        { StrIsDigit, { 1, 1 } },
-        { Select, { 2, 2 } },
-        { Store, { 3, 3 } },
-        // to make term traversal easier considering the differences
-        // in the underlying solver's handling of quantifiers, smt-switch
-        // always uses the form <Forall/Exists> bound_param . body
-        // i.e. it takes two arguments, the parameter to bind and the body
-        { Forall, { 2, 2 } },
-        { Exists, { 2, 2 } },
-        { Apply_Selector, { 2, 2 } },
-        { Apply_Tester, { 2, 2 } },
-        // a nullary constructor is applied to nothing but itself
-        { Apply_Constructor, { 1, INT_MAX } },
-    });
+namespace {
+
+/** The SMT-LIB attribute that defines an operator's application to more
+ *  than two arguments
+ */
+enum class Assoc
+{
+  NONE,
+  LEFT,
+  RIGHT,
+  CHAINABLE,
+  PAIRWISE,
+};
+
+/** What SMT-LIB defines for an operator */
+struct PrimOpInfo
+{
+  PrimOp op;
+  const char * name;
+  Theory theory;
+  std::uint64_t num_indices;
+  std::size_t min_arity;
+  std::size_t max_arity;
+  Assoc assoc;
+};
+
+// one row per PrimOp, in the order of the enum
+constexpr PrimOpInfo primop_info[] = {
+  { And, "and", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Or, "or", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Xor, "xor", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Not, "not", Theory::CORE, 0, 1, 1, Assoc::NONE },
+  { Implies, "=>", Theory::CORE, 0, 2, INT_MAX, Assoc::RIGHT },
+  { Ite, "ite", Theory::CORE, 0, 3, 3, Assoc::NONE },
+  { Equal, "=", Theory::CORE, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Distinct, "distinct", Theory::CORE, 0, 2, INT_MAX, Assoc::PAIRWISE },
+  // at least the function and one argument
+  // of course, to be well-sorted the number of arguments must
+  // match the function domain
+  { Apply, "apply", Theory::UF, 0, 2, INT_MAX, Assoc::NONE },
+  { Plus, "+", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Minus, "-", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Negate, "-", Theory::ARITH, 0, 1, 1, Assoc::NONE },
+  { Mult, "*", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Div, "/", Theory::REALS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Lt, "<", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Le, "<=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Gt, ">", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Ge, ">=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Mod, "mod", Theory::INTS, 0, 2, 2, Assoc::NONE },
+  { Abs, "abs", Theory::INTS, 0, 1, 1, Assoc::NONE },
+  { Pow, "pow", Theory::INTS, 0, 2, 2, Assoc::NONE },
+  { IntDiv, "div", Theory::INTS, 0, 2, INT_MAX, Assoc::LEFT },
+  { To_Real, "to_real", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { To_Int, "to_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { Is_Int, "is_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { Concat, "concat", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Extract, "extract", Theory::BITVECTORS, 2, 1, 1, Assoc::NONE },
+  { BVNot, "bvnot", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { BVNeg, "bvneg", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { BVAnd, "bvand", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { BVOr, "bvor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { BVXor, "bvxor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { BVNand, "bvnand", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVNor, "bvnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVXnor, "bvxnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVAdd, "bvadd", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { BVSub, "bvsub", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVMul, "bvmul", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { BVUdiv, "bvudiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSdiv, "bvsdiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVUrem, "bvurem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSrem, "bvsrem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSmod, "bvsmod", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVShl, "bvshl", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVAshr, "bvashr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVLshr, "bvlshr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVComp, "bvcomp", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVUlt, "bvult", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVUle, "bvule", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVUgt, "bvugt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVUge, "bvuge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSlt, "bvslt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSle, "bvsle", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSgt, "bvsgt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { BVSge, "bvsge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Zero_Extend, "zero_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Sign_Extend, "sign_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Repeat, "repeat", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Rotate_Left, "rotate_left", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Rotate_Right, "rotate_right", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { BV_To_Nat, "ubv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { UBV_To_Int, "ubv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { SBV_To_Int, "sbv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { Int_To_BV, "int_to_bv", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { StrLt, "str.<", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { StrLeq, "str.<=", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { StrLen, "str.len", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
+  { StrConcat, "str.++", Theory::STRINGS, 0, 2, INT_MAX, Assoc::LEFT },
+  { StrSubstr, "str.substr", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { StrAt, "str.at", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { StrContains, "str.contains", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { StrIndexof, "str.indexof", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { StrReplace, "str.replace", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { StrReplaceAll, "str.replace_all", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { StrPrefixof, "str.prefixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { StrSuffixof, "str.suffixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { StrIsDigit, "str.is_digit", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
+  { Select, "select", Theory::ARRAYS, 0, 2, 2, Assoc::NONE },
+  { Store, "store", Theory::ARRAYS, 0, 3, 3, Assoc::NONE },
+  // to make term traversal easier considering the differences
+  // in the underlying solver's handling of quantifiers, smt-switch
+  // always uses the form <Forall/Exists> bound_param . body
+  // i.e. it takes two arguments, the parameter to bind and the body
+  { Forall, "forall", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
+  { Exists, "exists", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
+  { Apply_Selector, "apply_selector", Theory::DATATYPES, 0, 2, 2, Assoc::NONE },
+  { Apply_Tester, "apply_tester", Theory::DATATYPES, 0, 2, 2, Assoc::NONE },
+  // a nullary constructor is applied to nothing but itself
+  { Apply_Constructor,
+    "apply_constructor",
+    Theory::DATATYPES,
+    0,
+    1,
+    INT_MAX,
+    Assoc::NONE },
+};
+
+static_assert(std::size(primop_info) == NUM_OPS_AND_NULL,
+              "primop_info needs one row per PrimOp");
+
+constexpr bool rows_follow_enum()
+{
+  for (std::size_t i = 0; i < std::size(primop_info); ++i)
+  {
+    if (primop_info[i].op != static_cast<PrimOp>(i))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+static_assert(rows_follow_enum(),
+              "primop_info's rows must be in the order of the PrimOp enum");
+
+/** The row of po, or null for NUM_OPS_AND_NULL or an out-of-range value */
+const PrimOpInfo * find_info(PrimOp po)
+{
+  auto i = static_cast<std::size_t>(po);
+  return i < std::size(primop_info) ? &primop_info[i] : nullptr;
+}
+
+/** The row of po
+ *  @param caller the public function asking, for the message
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
+ *          value
+ */
+const PrimOpInfo & info(PrimOp po, const char * caller)
+{
+  const PrimOpInfo * row = find_info(po);
+  if (!row)
+  {
+    throw IncorrectUsageException(std::string(caller)
+                                  + " got a PrimOp that is no operator: "
+                                  + std::to_string(static_cast<int>(po)));
+  }
+  return *row;
+}
+
+/** The attribute of po, NONE if it has no row */
+Assoc assoc_of(PrimOp po)
+{
+  const PrimOpInfo * row = find_info(po);
+  return row ? row->assoc : Assoc::NONE;
+}
+
+}  // namespace
 
 std::string to_string(PrimOp op)
 {
-  switch (op)
+  if (op == NUM_OPS_AND_NULL)
   {
-    case And: return "and";
-    case Or: return "or";
-    case Xor: return "xor";
-    case Not: return "not";
-    case Implies: return "=>";
-    case Ite: return "ite";
-    case Equal: return "=";
-    case Distinct: return "distinct";
-    case Apply: return "apply";
-    case Plus: return "+";
-    case Minus:
-    case Negate: return "-";
-    case Mult: return "*";
-    case Div: return "/";
-    case IntDiv: return "div";
-    case To_Real: return "to_real";
-    case To_Int: return "to_int";
-    case Is_Int: return "is_int";
-    case Lt: return "<";
-    case Le: return "<=";
-    case Gt: return ">";
-    case Ge: return ">=";
-    case Mod: return "mod";
-    case Abs: return "abs";
-    case Pow: return "pow";
-    case Concat: return "concat";
-    case Extract: return "extract";
-    case BVNot: return "bvnot";
-    case BVNeg: return "bvneg";
-    case BVAnd: return "bvand";
-    case BVOr: return "bvor";
-    case BVXor: return "bvxor";
-    case BVNand: return "bvnand";
-    case BVNor: return "bvnor";
-    case BVXnor: return "bvxnor";
-    case BVComp: return "bvcomp";
-    case BVAdd: return "bvadd";
-    case BVSub: return "bvsub";
-    case BVMul: return "bvmul";
-    case BVUdiv: return "bvudiv";
-    case BVSdiv: return "bvsdiv";
-    case BVUrem: return "bvurem";
-    case BVSrem: return "bvsrem";
-    case BVSmod: return "bvsmod";
-    case BVShl: return "bvshl";
-    case BVAshr: return "bvashr";
-    case BVLshr: return "bvlshr";
-    case BVUlt: return "bvult";
-    case BVUle: return "bvule";
-    case BVUgt: return "bvugt";
-    case BVUge: return "bvuge";
-    case BVSlt: return "bvslt";
-    case BVSle: return "bvsle";
-    case BVSgt: return "bvsgt";
-    case BVSge: return "bvsge";
-    case Zero_Extend: return "zero_extend";
-    case Sign_Extend: return "sign_extend";
-    case Repeat: return "repeat";
-    case Rotate_Left: return "rotate_left";
-    case Rotate_Right: return "rotate_right";
-    case BV_To_Nat:
-    case UBV_To_Int: return "ubv_to_int";
-    case SBV_To_Int: return "sbv_to_int";
-    case Int_To_BV: return "int_to_bv";
-    case StrLt: return "str.<";
-    case StrLeq: return "str.<=";
-    case StrLen: return "str.len";
-    case StrConcat: return "str.++";
-    case StrSubstr: return "str.substr";
-    case StrAt: return "str.at";
-    case StrContains: return "str.contains";
-    case StrIndexof: return "str.indexof";
-    case StrReplace: return "str.replace";
-    case StrReplaceAll: return "str.replace_all";
-    case StrPrefixof: return "str.prefixof";
-    case StrSuffixof: return "str.suffixof";
-    case StrIsDigit: return "str.is_digit";
-    case Select: return "select";
-    case Store: return "store";
-    case Forall: return "forall";
-    case Exists: return "exists";
-    case Apply_Selector: return "apply_selector";
-    case Apply_Tester: return "apply_tester";
-    case Apply_Constructor: return "apply_constructor";
-    case NUM_OPS_AND_NULL: return "null";
+    return "null";
   }
-  throw SmtException("to_string got an out-of-range PrimOp "
-                     + std::to_string(static_cast<int>(op)));
+  return info(op, "to_string").name;
 }
 
 Op::Op(PrimOp o) : prim_op(o) {}
@@ -254,7 +250,15 @@ bool Op::is_null() const { return prim_op == NUM_OPS_AND_NULL; }
 
 std::pair<std::size_t, std::size_t> get_arity(PrimOp po)
 {
-  return primop2arity.at(po);
+  const PrimOpInfo & row = info(po, "get_arity");
+  return { row.min_arity, row.max_arity };
+}
+
+Theory get_theory(PrimOp po) { return info(po, "get_theory").theory; }
+
+std::uint64_t get_num_indices(PrimOp po)
+{
+  return info(po, "get_num_indices").num_indices;
 }
 
 bool operator==(Op o1, Op o2)
@@ -283,50 +287,15 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
-const std::unordered_set<PrimOp> left_assoc_ops({ And,
-                                                  Or,
-                                                  Xor,
-                                                  Plus,
-                                                  Minus,
-                                                  Mult,
-                                                  Div,
-                                                  IntDiv,
-                                                  BVAnd,
-                                                  BVOr,
-                                                  BVXor,
-                                                  BVAdd,
-                                                  BVMul,
-                                                  StrConcat });
-const std::unordered_set<PrimOp> right_assoc_ops({ Implies });
-const std::unordered_set<PrimOp> chainable_ops(
-    { Equal, Lt, Le, Gt, Ge, StrLt, StrLeq });
-const std::unordered_set<PrimOp> pairwise_ops({ Distinct });
+bool is_left_assoc(PrimOp po) { return assoc_of(po) == Assoc::LEFT; }
 
-bool is_left_assoc(PrimOp po)
-{
-  return left_assoc_ops.find(po) != left_assoc_ops.end();
-}
+bool is_right_assoc(PrimOp po) { return assoc_of(po) == Assoc::RIGHT; }
 
-bool is_right_assoc(PrimOp po)
-{
-  return right_assoc_ops.find(po) != right_assoc_ops.end();
-}
+bool is_chainable(PrimOp po) { return assoc_of(po) == Assoc::CHAINABLE; }
 
-bool is_chainable(PrimOp po)
-{
-  return chainable_ops.find(po) != chainable_ops.end();
-}
+bool is_pairwise(PrimOp po) { return assoc_of(po) == Assoc::PAIRWISE; }
 
-bool is_pairwise(PrimOp po)
-{
-  return pairwise_ops.find(po) != pairwise_ops.end();
-}
-
-bool is_variadic(PrimOp po)
-{
-  return is_left_assoc(po) || is_right_assoc(po) || is_chainable(po)
-         || is_pairwise(po);
-}
+bool is_variadic(PrimOp po) { return assoc_of(po) != Assoc::NONE; }
 
 }  // namespace smt
 

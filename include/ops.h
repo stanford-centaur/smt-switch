@@ -165,8 +165,37 @@ using UnorderedOpSet = std::unordered_set<Op>;
 /** Looks up the expected arity of a PrimOp
  *  @return a tuple with the minimum and maximum
  *          accepted arity (in that order)
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
  */
 std::pair<std::size_t, std::size_t> get_arity(PrimOp po);
+
+/** The SMT-LIB theory that declares an operator, or for an operator no
+ *  theory declares, the part of SMT-LIB that provides it
+ */
+enum class Theory
+{
+  CORE,         ///< Core
+  UF,           ///< function application
+  ARITH,        ///< declared by both Ints and Reals
+  INTS,         ///< Ints only
+  REALS,        ///< Reals only
+  REALS_INTS,   ///< the conversions that only Reals_Ints declares
+  BITVECTORS,   ///< FixedSizeBitVectors and the QF_BV abbreviations
+  STRINGS,      ///< UnicodeStrings
+  ARRAYS,       ///< ArraysEx
+  QUANTIFIERS,  ///< forall and exists
+  DATATYPES,    ///< the constructors, selectors and testers of datatypes
+};
+
+/** The theory of an operator
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ */
+Theory get_theory(PrimOp po);
+
+/** How many numerals index an operator, e.g. 2 for (_ extract i j)
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ */
+std::uint64_t get_num_indices(PrimOp po);
 
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);
