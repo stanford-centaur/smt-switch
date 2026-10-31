@@ -1,6 +1,8 @@
 #include "z3_sort.h"
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 
 #include "exceptions.h"
 #include "z3_datatype.h"
@@ -23,22 +25,31 @@ Z3Sort::Z3Sort(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc)
 
 std::size_t Z3Sort::hash() const
 {
+  // Z3 numbers sorts per context, so start from the context, as compare
+  // tells apart sorts of different contexts
+  std::size_t h = std::hash<z3::context *>{}(ctx.get());
+  // Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
+  // irregular bits spread the value; the shifts mix in the hash so far,
+  // so argument order matters and equal sorts don't cancel out
+  auto combine = [&h](std::size_t v) {
+    h ^= v + 0x9e3779b9 + (h << 6) + (h >> 2);
+  };
   if (is_function)
   {
     // a function sort is held as a func_decl, but its name is not part of
     // the sort, so hash only the signature, to agree with compare
-    std::size_t h = z_func.range().id();
+    combine(z_func.range().id());
     for (unsigned i = 0; i < z_func.arity(); i++)
     {
-      // Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
-      // irregular bits spread the value; the shifts mix in the hash so
-      // far, so argument order matters and equal sorts don't cancel out
-      h ^= z_func.domain(i).id() + 0x9e3779b9 + (h << 6) + (h >> 2);
+      combine(z_func.domain(i).id());
     }
-    return h;
   }
-  // unique within the context, unlike Z3's structural hash
-  return type.id();
+  else
+  {
+    // unique within the context, unlike Z3's structural hash
+    combine(type.id());
+  }
+  return h;
 }
 
 uint64_t Z3Sort::get_width() const

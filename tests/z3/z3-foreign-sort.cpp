@@ -1,13 +1,15 @@
 /*!
  * \file z3-foreign-sort.cpp
- * \brief Tests that Z3 refuses sorts from another Z3 context.
+ * \brief Tests that Z3 refuses, and tells apart, sorts from another Z3
+ * context.
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * Each Z3 solver has its own context, and Z3 would read a sort made in
  * another one as its own, building terms that fail later or corrupt the
- * context.
+ * context. Z3 numbers sorts per context, so two solvers that make the same
+ * sorts in the same order get the same numbers for them.
  */
 
 #include <gtest/gtest.h>
@@ -56,4 +58,20 @@ TEST(Z3ForeignSort, AnotherSolversDatatypeSortsRefused)
   EXPECT_THROW(s->get_constructor(other_dt, "c"), IncorrectUsageException);
   EXPECT_THROW(s->get_tester(other_dt, "c"), IncorrectUsageException);
   EXPECT_THROW(s->get_selector(other_dt, "c", "f"), IncorrectUsageException);
+}
+
+TEST(Z3ForeignSort, AnotherSolversSortNotEqual)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  SmtSolver other = Z3SolverFactory::create(false);
+  Sort bv8 = s->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort fun = s->make_sort(FUNCTION, SortVec{ bv8, bv8 });
+  Sort other_fun = other->make_sort(FUNCTION, SortVec{ other_bv8, other_bv8 });
+
+  EXPECT_NE(bv8, other_bv8);
+  EXPECT_NE(other_bv8, bv8);
+  EXPECT_NE(bv8 < other_bv8, other_bv8 < bv8);
+  EXPECT_NE(fun, other_fun);
+  EXPECT_NE(fun < other_fun, other_fun < fun);
 }
