@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "exceptions.h"
+#include "utils.h"
 #include "z3_datatype.h"
 
 using namespace std;
@@ -28,26 +29,20 @@ std::size_t Z3Sort::hash() const
   // Z3 numbers sorts per context, so start from the context, as compare
   // tells apart sorts of different contexts
   std::size_t h = std::hash<z3::context *>{}(ctx.get());
-  // Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio, whose
-  // irregular bits spread the value; the shifts mix in the hash so far,
-  // so argument order matters and equal sorts don't cancel out
-  auto combine = [&h](std::size_t v) {
-    h ^= v + 0x9e3779b9 + (h << 6) + (h >> 2);
-  };
   if (is_function)
   {
     // a function sort is held as a func_decl, but its name is not part of
     // the sort, so hash only the signature, to agree with compare
-    combine(z_func.range().id());
+    detail::hash_combine(h, z_func.range().id());
     for (unsigned i = 0; i < z_func.arity(); i++)
     {
-      combine(z_func.domain(i).id());
+      detail::hash_combine(h, z_func.domain(i).id());
     }
   }
   else
   {
     // unique within the context, unlike Z3's structural hash
-    combine(type.id());
+    detail::hash_combine(h, type.id());
   }
   return h;
 }

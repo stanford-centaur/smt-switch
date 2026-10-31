@@ -18,11 +18,13 @@
 
 #include <boolector.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <utility>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -43,10 +45,9 @@ BoolectorSortBase::~BoolectorSortBase()
 std::size_t BoolectorSortBase::hash() const
 {
   // Boolector numbers sorts per instance, so mix in the instance, as compare
-  // checks it. Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio,
-  // whose irregular bits spread the value; the shifts mix in the hash so far
+  // checks it
   std::size_t h = std::hash<Btor *>{}(btor.get());
-  h ^= std::hash<BoolectorSort>{}(sort) + 0x9e3779b9 + (h << 6) + (h >> 2);
+  detail::hash_combine(h, sort);
   return h;
 }
 
