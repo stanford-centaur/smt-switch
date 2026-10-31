@@ -20,7 +20,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -31,9 +30,6 @@
 #include "utils.h"
 
 namespace smt {
-
-/* smtlib representation of sort kinds, used only below */
-static std::string to_smtlib(SortKind sk);
 
 // implementations
 
@@ -62,7 +58,7 @@ std::string GenericSort::compute_string() const
   }
   else if (get_sort_kind() == SortKind::BOOL)
   {
-    return to_smtlib(SortKind::BOOL);
+    return "Bool";
   }
   else if (get_sort_kind() == SortKind::BV)
   {
@@ -70,11 +66,11 @@ std::string GenericSort::compute_string() const
   }
   else if (get_sort_kind() == SortKind::INT)
   {
-    return to_smtlib(SortKind::INT);
+    return "Int";
   }
   else if (get_sort_kind() == SortKind::REAL)
   {
-    return to_smtlib(SortKind::REAL);
+    return "Real";
   }
   else if (get_sort_kind() == SortKind::FUNCTION)
   {
@@ -296,19 +292,6 @@ std::shared_ptr<GenericDatatype> GenericSort::get_generic_datatype() const
   }
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no datatype");
-}
-
-const std::unordered_map<SortKind, std::string> sortkind2smtlib({
-    { ARRAY, "Array" },
-    { BOOL, "Bool" },
-    { INT, "Int" },
-    { REAL, "Real" },
-});
-
-static std::string to_smtlib(SortKind sk)
-{
-  assert(sortkind2smtlib.find(sk) != sortkind2smtlib.end());
-  return sortkind2smtlib.at(sk);
 }
 
 BVGenericSort::BVGenericSort(std::uint64_t w) : GenericSort(BV), width(w) {}

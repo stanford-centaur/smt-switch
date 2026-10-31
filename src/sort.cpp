@@ -21,36 +21,33 @@
 #include <string>
 #include <typeindex>
 #include <typeinfo>
-#include <unordered_map>
 
 #include "datatype.h"
 #include "exceptions.h"
 
 namespace smt {
 
-const std::unordered_map<SortKind, std::string> sortkind2str({
-    { ARRAY, "Array" },
-    { BOOL, "Bool" },
-    { BV, "BitVec" },
-    { INT, "Int" },
-    { REAL, "Real" },
-    { STRING, "String" },
-    { FUNCTION, "Function" },
-    { UNINTERPRETED, "Uninterpreted" },
-    { UNINTERPRETED_CONS, "UninterpretedSortConstructor" },
-    { DATATYPE, "Datatype" },
-    { CONSTRUCTOR, "Constructor" },
-    { SELECTOR, "Selector" },
-    { TESTER, "Tester" },
-});
-
 std::string to_string(SortKind sk)
 {
-  if (sk == NUM_SORT_KINDS)
+  switch (sk)
   {
-    return "null";
+    case ARRAY: return "Array";
+    case BOOL: return "Bool";
+    case BV: return "BitVec";
+    case INT: return "Int";
+    case REAL: return "Real";
+    case STRING: return "String";
+    case FUNCTION: return "Function";
+    case UNINTERPRETED: return "Uninterpreted";
+    case UNINTERPRETED_CONS: return "UninterpretedSortConstructor";
+    case DATATYPE: return "Datatype";
+    case CONSTRUCTOR: return "Constructor";
+    case SELECTOR: return "Selector";
+    case TESTER: return "Tester";
+    case NUM_SORT_KINDS: return "null";
   }
-  return sortkind2str.at(sk);
+  throw SmtException("to_string got an out-of-range SortKind "
+                     + std::to_string(static_cast<int>(sk)));
 }
 
 // A null sort equals only another null sort
