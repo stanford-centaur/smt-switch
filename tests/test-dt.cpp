@@ -80,11 +80,6 @@ class Datatypes : public ::testing::Test,
 
 TEST_P(Datatypes, DeclareSimpleList)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    return;
-  }
-
   DatatypeDecl listSpec = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
@@ -184,10 +179,9 @@ TEST_P(Datatypes, DatatypeDecl)
   ASSERT_EQ(cons_copy, consdecl);
 
   s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector_self(consdecl, "tail");
   s->add_constructor(consListSpec, nildecl);
   s->add_constructor(consListSpec, consdecl);
-
-  s->add_selector_self(consdecl, "tail");
   Sort listsort = s->make_sort(consListSpec);
 
   DatatypeDecl counterdecl = s->make_datatype_decl("counter");
@@ -272,12 +266,6 @@ TEST_P(Datatypes, DatatypeDecl)
 
 TEST_P(Datatypes, NamesReachEveryComponent)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver's add_selector_self crashes on a "
-                    "constructor not yet added to a datatype";
-  }
-
   Sort boolsort = s->make_sort(BOOL);
   DatatypeDecl treedecl = s->make_datatype_decl("tree");
   DatatypeConstructorDecl leafdecl = s->make_datatype_constructor_decl("leaf");
@@ -337,12 +325,10 @@ TEST_P(Datatypes, ComponentsAreHashConsed)
 
 TEST_P(Datatypes, PrintsAsSmtlib)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
   {
-    GTEST_SKIP() << "the generic solver's add_selector_self crashes on a "
-                    "constructor not yet added to a datatype; without "
-                    "logging, a generic term also prints the defined name of "
-                    "each subterm, and datatype ops by their smt-switch names";
+    GTEST_SKIP() << "a generic term prints the defined name of each subterm, "
+                    "and datatype ops by their smt-switch names";
   }
 
   DatatypeDecl listdecl = s->make_datatype_decl("list");
@@ -457,11 +443,6 @@ TEST_P(Datatypes, ConstructorDeclEqualityOutlivesItsDatatype)
 
 TEST_P(Datatypes, SelfSelectorsCompareAlikeAcrossDatatypes)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "a generic self selector can only be added to a "
-                    "constructor already added to a datatype";
-  }
   DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");
   s->add_selector(cons, "head", intsort);
   s->add_selector_self(cons, "tail");

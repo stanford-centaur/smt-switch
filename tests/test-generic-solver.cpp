@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "generic_datatype.h"
 #include "generic_solver.h"
 #include "generic_term.h"
 #include "ops.h"
@@ -436,9 +437,7 @@ TEST_P(GenericSolverTests, InternalNamesRefused)
   EXPECT_THROW(gs->make_param(name, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_datatype_constructor_decl(name),
                IncorrectUsageException);
-  DatatypeDecl list = gs->make_datatype_decl("list");
   DatatypeConstructorDecl cons = gs->make_datatype_constructor_decl("cons");
-  gs->add_constructor(list, cons);
   EXPECT_THROW(gs->add_selector(cons, name, bool_sort),
                IncorrectUsageException);
   EXPECT_THROW(gs->add_selector_self(cons, name), IncorrectUsageException);
@@ -956,6 +955,12 @@ TEST_P(GenericSolverDatatypeTests, DatatypeMadeAfterCheckSat)
   EXPECT_THROW(gs->get_value(content), IncorrectUsageException);
   ASSERT_TRUE(gs->check_sat().is_sat());
   EXPECT_EQ(gs->get_value(content), three);
+}
+
+TEST_P(GenericSolverDatatypeTests, MakeSortRefusesUnknownDatatypeDecl)
+{
+  DatatypeDecl stray = std::make_shared<GenericDatatypeDecl>("stray");
+  EXPECT_THROW(gs->make_sort(stray), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverIntTests, IntModels)

@@ -1320,8 +1320,14 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
       backend_pointer_cast<GenericDatatypeDecl>(d);
   std::string dt_decl_name = gdt_decl->get_name();
-  assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
-  std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+  auto dt_it = name_datatype_map->find(dt_decl_name);
+  if (dt_it == name_datatype_map->end())
+  {
+    throw IncorrectUsageException("No datatype declaration named "
+                                  + dt_decl_name
+                                  + " was made with make_datatype_decl");
+  }
+  std::shared_ptr<GenericDatatype> curr_dt = dt_it->second;
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
     Sort dt_sort = std::make_shared<GenericDatatypeSort>(curr_dt);
@@ -1369,7 +1375,6 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
       to_solver += ")";
     }
     to_solver += ")\n))";
-    assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
     if (send_or_hold(to_solver))
@@ -1457,16 +1462,11 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
       std::make_shared<SelectorComponents>();
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
       backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
-  std::string dt_decl_name = gdt_cons->get_dt_name();
 
   newSelector->name = name;
-  // Sets the sort to be a placeholder value until the self sort is
-  // constructed.
-  newSelector->sort = std::make_shared<GenericSort>(dt_decl_name);
-  // This indicates that the sort in this selector will eventually
-  // be replaced
+  // The constructor may not belong to a datatype yet, so the sort is left
+  // null; make_sort gives it the datatype's sort.
   newSelector->finalized = false;
-  assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
   gdt_cons->add_new_selector(*newSelector);
 }
 
