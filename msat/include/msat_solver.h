@@ -27,6 +27,8 @@
 #include <vector>
 
 #include "interpolating_solver.h"
+#include "msat_sort.h"
+#include "msat_term.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
@@ -163,6 +165,23 @@ class MsatSolver : public AbsSmtSolver
   /** @return the MathSAT handle of the configuration cfg holds */
   static msat_config as_msat_config(const ConfigPtr & cfg);
 
+  /** Casts a term to pass to MathSAT, which would take another
+   *  environment's term as one of its own
+   *  @param t the term a caller passed to this solver
+   *  @return t as a MsatTerm
+   *  @throws IncorrectUsageException if t was made by another solver, or
+   *          by this one before a reset()
+   */
+  std::shared_ptr<MsatTerm> get_msat_term(const Term & t) const;
+  /** Casts a sort to pass to MathSAT, which would take another
+   *  environment's type as one of its own
+   *  @param s the sort a caller passed to this solver
+   *  @return s as a MsatSort
+   *  @throws IncorrectUsageException if s was made by another solver, or
+   *          by this one before a reset()
+   */
+  std::shared_ptr<MsatSort> get_msat_sort(const Sort & s) const;
+
   /** The configuration and the environment made from it. Only get_env()
    *  hands out the environment, so no method can use one that does not
    *  exist yet. No configuration is made before one is needed, as MathSAT
@@ -186,6 +205,8 @@ class MsatSolver : public AbsSmtSolver
     const std::shared_ptr<msat_env> & get_env();
     /** @return whether the environment exists */
     bool is_initialized() const;
+    /** @return whether e is the environment, without creating it */
+    bool owns(const std::shared_ptr<msat_env> & e) const;
     /** Drops the environment and the configuration. */
     void reset();
 
