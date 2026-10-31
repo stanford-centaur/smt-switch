@@ -94,6 +94,14 @@ TEST_P(UnitPrimOpTests, ToString)
   ASSERT_NO_THROW(::smt::to_string(po));
 }
 
+TEST_P(UnitPrimOpTests, IndicesFitOp)
+{
+  PrimOp po = static_cast<PrimOp>(GetParam());
+  ASSERT_NO_THROW(get_theory(po));
+  // an Op holds at most two indices
+  EXPECT_LE(get_num_indices(po), 2);
+}
+
 TEST_P(UnitTests, FunOp)
 {
   Term x = s->make_symbol("x", bvsort);
@@ -150,6 +158,32 @@ TEST(UnitOpIndexTests, NarrowIndexRejectsTooLarge)
   ASSERT_EQ(narrow_index(op, 0), 0);
   ASSERT_EQ(narrow_index(op, max32), max32);
   ASSERT_THROW(narrow_index(op, max32 + 1), IncorrectUsageException);
+}
+
+TEST(UnitPrimOpInfoTests, NullHasNoArity)
+{
+  EXPECT_THROW(get_arity(NUM_OPS_AND_NULL), IncorrectUsageException);
+}
+
+TEST(UnitPrimOpInfoTests, NumIndices)
+{
+  EXPECT_EQ(get_num_indices(Extract), 2);
+  EXPECT_EQ(get_num_indices(Zero_Extend), 1);
+  EXPECT_EQ(get_num_indices(Int_To_BV), 1);
+  EXPECT_EQ(get_num_indices(BVAdd), 0);
+  EXPECT_THROW(get_num_indices(NUM_OPS_AND_NULL), IncorrectUsageException);
+}
+
+TEST(UnitPrimOpInfoTests, Theory)
+{
+  EXPECT_EQ(get_theory(And), Theory::CORE);
+  EXPECT_EQ(get_theory(Plus), Theory::ARITH);
+  EXPECT_EQ(get_theory(IntDiv), Theory::INTS);
+  EXPECT_EQ(get_theory(Div), Theory::REALS);
+  EXPECT_EQ(get_theory(To_Real), Theory::REALS_INTS);
+  EXPECT_EQ(get_theory(UBV_To_Int), Theory::BITVECTORS);
+  EXPECT_EQ(get_theory(StrLt), Theory::STRINGS);
+  EXPECT_THROW(get_theory(NUM_OPS_AND_NULL), IncorrectUsageException);
 }
 
 TEST_P(UnitTests, RotateOps)
