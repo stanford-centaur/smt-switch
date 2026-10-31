@@ -42,7 +42,12 @@ BoolectorSortBase::~BoolectorSortBase()
 
 std::size_t BoolectorSortBase::hash() const
 {
-  return std::hash<BoolectorSort>{}(sort);
+  // Boolector numbers sorts per instance, so mix in the instance, as compare
+  // checks it. Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio,
+  // whose irregular bits spread the value; the shifts mix in the hash so far
+  std::size_t h = std::hash<Btor *>{}(btor.get());
+  h ^= std::hash<BoolectorSort>{}(sort) + 0x9e3779b9 + (h << 6) + (h >> 2);
+  return h;
 }
 
 // by default the following get_* methods don't work
@@ -114,7 +119,7 @@ bool BoolectorSortBase::compare(const Sort & s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
       std::dynamic_pointer_cast<BoolectorSortBase>(s);
-  return bs && sort == bs->sort;
+  return bs && btor == bs->btor && sort == bs->sort;
 }
 
 SortKind BoolectorSortBase::get_sort_kind() const { return sk; }

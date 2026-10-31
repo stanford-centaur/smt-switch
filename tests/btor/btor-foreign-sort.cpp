@@ -1,13 +1,15 @@
 /*!
  * \file btor-foreign-sort.cpp
- * \brief Tests that Boolector refuses sorts from another Boolector instance.
+ * \brief Tests that Boolector refuses, and tells apart, sorts from another
+ * Boolector instance.
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * Boolector numbers sorts per instance, and reset() replaces the instance,
  * so a sort made by another solver, or by the same one before a reset, would
- * be read as this instance's sort of the same number.
+ * be read as this instance's sort of the same number. Two solvers that make
+ * the same sorts in the same order get the same numbers for them.
  */
 
 #include <gtest/gtest.h>
@@ -46,4 +48,16 @@ TEST(BtorForeignSort, SortsFromBeforeResetRefused)
   s->reset();
 
   EXPECT_THROW(s->make_symbol("x", bv8), IncorrectUsageException);
+}
+
+TEST(BtorForeignSort, AnotherSolversSortNotEqual)
+{
+  SmtSolver s = BoolectorSolverFactory::create(false);
+  SmtSolver other = BoolectorSolverFactory::create(false);
+  Sort bv8 = s->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(BV, 8);
+
+  EXPECT_NE(bv8, other_bv8);
+  EXPECT_NE(other_bv8, bv8);
+  EXPECT_NE(bv8 < other_bv8, other_bv8 < bv8);
 }
