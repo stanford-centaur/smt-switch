@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -46,6 +48,19 @@ namespace detail {
 [[noreturn]] void throw_foreign_handle(const DatatypeDecl & h);
 [[noreturn]] void throw_foreign_handle(const DatatypeConstructorDecl & h);
 [[noreturn]] void throw_foreign_handle(const Datatype & h);
+
+/** Mixes a part's hash into one being built up, as Boost's hash_combine
+ *  does: 0x9e3779b9 is 2^32 / golden ratio, whose irregular bits spread
+ *  the value, and the shifts mix in the hash so far, so the order of the
+ *  parts matters and equal parts don't cancel out
+ *  @param h the hash so far, updated in place
+ *  @param v the next part, hashed with std::hash
+ */
+template <class T>
+void hash_combine(std::size_t & h, const T & v)
+{
+  h ^= std::hash<T>{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
+}
 
 }  // namespace detail
 

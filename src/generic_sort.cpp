@@ -419,13 +419,10 @@ bool DatatypeComponentSort::compare(const Sort & s) const
 std::size_t DatatypeComponentSort::hash() const
 {
   // the name is unique only within the datatype, so mix in the datatype's
-  // name and the kind, as compare checks both. Boost's hash_combine:
-  // 0x9e3779b9 is 2^32 / golden ratio, whose irregular bits spread the
-  // value; the shifts mix in the hash so far, so the order of the parts
-  // matters and equal parts don't cancel out
+  // name and the kind, as compare checks both
   std::size_t h = str_hash(name);
-  h ^= str_hash(dt_sort->to_string()) + 0x9e3779b9 + (h << 6) + (h >> 2);
-  h ^= static_cast<std::size_t>(sk) + 0x9e3779b9 + (h << 6) + (h >> 2);
+  detail::hash_combine(h, dt_sort->to_string());
+  detail::hash_combine(h, sk);
   return h;
 }
 

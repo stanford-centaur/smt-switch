@@ -50,18 +50,15 @@ std::string Z3DatatypeConstructorDecl::get_name() const
 std::size_t Z3DatatypeConstructorDecl::hash() const
 {
   // the parts compare checks: the name, the selector names and the selector
-  // sorts, by id. Boost's hash_combine: 0x9e3779b9 is 2^32 / golden ratio,
-  // whose irregular bits spread the value; the shifts mix in the hash so
-  // far, so the order of the parts matters and equal parts don't cancel out
-  std::hash<std::string> str_hash;
-  std::size_t h = str_hash(constructorname);
+  // sorts, by id
+  std::size_t h = std::hash<std::string>{}(constructorname);
   for (const std::pair<std::string, z3::sort> & sel : selectors)
   {
     // a self selector's null sort has no id
     std::size_t sort_id =
         static_cast<Z3_sort>(sel.second) == nullptr ? 0 : sel.second.id();
-    h ^= str_hash(sel.first) + 0x9e3779b9 + (h << 6) + (h >> 2);
-    h ^= sort_id + 0x9e3779b9 + (h << 6) + (h >> 2);
+    detail::hash_combine(h, sel.first);
+    detail::hash_combine(h, sort_id);
   }
   return h;
 }
