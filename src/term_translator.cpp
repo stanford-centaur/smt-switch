@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "datatype.h"
 #include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
@@ -148,9 +149,65 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
     return uninterpreted_sort(sort->get_uninterpreted_name(),
                               sort->get_arity());
   }
+  else if (sk == DATATYPE)
+  {
+    return transfer_datatype_sort(sort);
+  }
   else
   {
     throw SmtException("Failed to transfer sort: " + sort->to_string());
+  }
+}
+
+Sort TermTranslator::transfer_datatype_sort(const Sort & sort)
+{
+  Datatype dt = sort->get_datatype();
+  std::string name = dt->get_name();
+  auto it = datatype_sorts.find(name);
+  if (it != datatype_sorts.end())
+  {
+    // cache hit
+    return it->second;
+  }
+  // a selector of another datatype that refers back to this one would
+  // otherwise recurse forever
+  if (!datatypes_in_progress.insert(name).second)
+  {
+    throw NotImplementedException(
+        "Cannot transfer the mutually recursive "
+        "datatype "
+        + name);
+  }
+  try
+  {
+    DatatypeDecl decl = solver->make_datatype_decl(name);
+    for (const std::string & cons : dt->get_constructor_names())
+    {
+      DatatypeConstructorDecl cons_decl =
+          solver->make_datatype_constructor_decl(cons);
+      for (const std::string & sel : dt->get_selector_names(cons))
+      {
+        Sort sel_sort = dt->get_selector_sort(cons, sel);
+        if (sel_sort == sort)
+        {
+          solver->add_selector_self(cons_decl, sel);
+        }
+        else
+        {
+          solver->add_selector(cons_decl, sel, transfer_sort(sel_sort));
+        }
+      }
+      solver->add_constructor(decl, cons_decl);
+    }
+    Sort res = solver->make_sort(decl);
+    datatypes_in_progress.erase(name);
+    datatype_sorts[name] = res;
+    return res;
+  }
+  catch (...)
+  {
+    datatypes_in_progress.erase(name);
+    throw;
   }
 }
 

@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "datatype.h"
 #include "exceptions.h"
 #include "ops.h"
 #include "result.h"
@@ -210,6 +211,27 @@ class IntRealTranslationTests : public RealTranslationTests
     intsort = s1->make_sort(INT);
   }
   Sort intsort;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DatatypeTranslationTests);
+class DatatypeTranslationTests : public TranslationTests
+{
+ protected:
+  void SetUp() override
+  {
+    TranslationTests::SetUp();
+    intsort = s1->make_sort(INT);
+    DatatypeDecl listdecl = s1->make_datatype_decl("list");
+    DatatypeConstructorDecl nildecl = s1->make_datatype_constructor_decl("nil");
+    DatatypeConstructorDecl consdecl =
+        s1->make_datatype_constructor_decl("cons");
+    s1->add_selector(consdecl, "head", intsort);
+    s1->add_selector_self(consdecl, "tail");
+    s1->add_constructor(listdecl, nildecl);
+    s1->add_constructor(listdecl, consdecl);
+    listsort = s1->make_sort(listdecl);
+  }
+  Sort intsort, listsort;
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortConstructorTranslationTests);
@@ -632,6 +654,55 @@ TEST_P(StringTranslationTests, Strings)
   EXPECT_EQ(nt, nt1);
 }
 
+TEST_P(DatatypeTranslationTests, DatatypeSort)
+{
+  TermTranslator to_s2(s2);
+  Sort list2 = to_s2.transfer_sort(listsort);
+  ASSERT_EQ(list2->get_sort_kind(), DATATYPE);
+  // declared once, so every transfer gives the same datatype
+  EXPECT_EQ(to_s2.transfer_sort(listsort), list2);
+
+  Datatype dt2 = list2->get_datatype();
+  EXPECT_EQ(dt2->get_name(), "list");
+  EXPECT_EQ(dt2->get_constructor_names(), (vector<string>{ "nil", "cons" }));
+  EXPECT_EQ(dt2->get_selector_names("cons"),
+            (vector<string>{ "head", "tail" }));
+  EXPECT_EQ(dt2->get_selector_sort("cons", "head"), s2->make_sort(INT));
+  EXPECT_EQ(dt2->get_selector_sort("cons", "tail"), list2);
+
+  // a symbol of the datatype transfers with it, and s2 can reason about it
+  Term l2 = to_s2.transfer_term(s1->make_symbol("l", listsort));
+  EXPECT_EQ(l2->get_sort(), list2);
+  s2->assert_formula(
+      s2->make_term(Apply_Tester, s2->get_tester(list2, "cons"), l2));
+  s2->assert_formula(s2->make_term(
+      Apply_Tester,
+      s2->get_tester(list2, "nil"),
+      s2->make_term(
+          Apply_Selector, s2->get_selector(list2, "cons", "tail"), l2)));
+  EXPECT_TRUE(s2->check_sat().is_sat());
+}
+
+TEST_P(DatatypeTranslationTests, NestedDatatype)
+{
+  // a datatype with a selector of another datatype brings that one along
+  DatatypeDecl pairdecl = s1->make_datatype_decl("pair");
+  DatatypeConstructorDecl mkpair = s1->make_datatype_constructor_decl("mkpair");
+  s1->add_selector(mkpair, "first", listsort);
+  s1->add_selector(mkpair, "second", listsort);
+  s1->add_constructor(pairdecl, mkpair);
+  Sort pairsort = s1->make_sort(pairdecl);
+
+  TermTranslator to_s2(s2);
+  Sort pair2 = to_s2.transfer_sort(pairsort);
+  Datatype dt2 = pair2->get_datatype();
+  Sort list2 = dt2->get_selector_sort("mkpair", "first");
+  EXPECT_EQ(list2->get_datatype()->get_name(), "list");
+  // both selectors share the one transferred list
+  EXPECT_EQ(dt2->get_selector_sort("mkpair", "second"), list2);
+  EXPECT_EQ(to_s2.transfer_sort(listsort), list2);
+}
+
 TEST_P(SortConstructorTranslationTests, SortConstructor)
 {
   TermTranslator to_s2(s2);
@@ -762,6 +833,15 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, THEORY_STR })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, THEORY_STR }))),
+    ConfigPairName());
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    DatatypeTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_DATATYPE })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_DATATYPE }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
