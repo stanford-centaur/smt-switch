@@ -15,6 +15,7 @@ endmacro()
 
 switch_add_btor_test(btor-bv-values)
 switch_add_btor_test(btor-exceptions)
+switch_add_btor_test(btor-foreign-sort)
 switch_add_btor_test(btor-handle)
 switch_add_btor_test(btor-negation)
 switch_add_btor_test(btor-opts)

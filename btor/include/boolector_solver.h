@@ -98,6 +98,15 @@ class BoolectorSolver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
+  /** Unwraps a sort to pass to Boolector, which numbers sorts per instance
+   *  and so would read another instance's sort as its own of that number
+   *  @param s the sort a caller passed to this solver
+   *  @return the Boolector sort behind s
+   *  @throws IncorrectUsageException if s was made by another solver, or
+   *          by this one before a reset()
+   */
+  BoolectorSort btor_sort(const Sort & s) const;
+
   // shared with every term and sort, so the instance lives until the last
   // of them is released, even past reset() or this solver's destruction
   std::shared_ptr<Btor> btor;
