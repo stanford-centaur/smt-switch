@@ -9,6 +9,7 @@
 
 #include "exceptions.h"
 #include "utils.h"
+#include "z3_sort.h"
 
 namespace z3 {
 
@@ -98,6 +99,61 @@ int Z3Datatype::get_num_selectors(std::string name) const
     if (cons.name().str() == name) return cons.arity();
   }
   throw IncorrectUsageException(datatype.name().str() + "." + name
+                                + " not found");
+}
+
+std::vector<std::string> Z3Datatype::get_constructor_names() const
+{
+  std::vector<std::string> names;
+  for (int i = 0; i < get_num_constructors(); i++)
+  {
+    z3::func_decl cons{ *c, Z3_get_datatype_sort_constructor(*c, datatype, i) };
+    names.push_back(cons.name().str());
+  }
+  return names;
+}
+
+std::vector<std::string> Z3Datatype::get_selector_names(
+    const std::string & cons) const
+{
+  for (int i = 0; i < get_num_constructors(); i++)
+  {
+    z3::func_decl con{ *c, Z3_get_datatype_sort_constructor(*c, datatype, i) };
+    if (con.name().str() == cons)
+    {
+      std::vector<std::string> names;
+      for (const z3::func_decl & sel : con.accessors())
+      {
+        names.push_back(sel.name().str());
+      }
+      return names;
+    }
+  }
+  throw IncorrectUsageException(datatype.name().str() + "." + cons
+                                + " not found");
+}
+
+Sort Z3Datatype::get_selector_sort(const std::string & cons,
+                                   const std::string & sel) const
+{
+  for (int i = 0; i < get_num_constructors(); i++)
+  {
+    z3::func_decl con{ *c, Z3_get_datatype_sort_constructor(*c, datatype, i) };
+    if (con.name().str() != cons)
+    {
+      continue;
+    }
+    for (const z3::func_decl & accessor : con.accessors())
+    {
+      if (accessor.name().str() == sel)
+      {
+        return std::make_shared<Z3Sort>(c, accessor.range());
+      }
+    }
+    throw IncorrectUsageException(datatype.name().str() + "." + cons + "." + sel
+                                  + " not found");
+  }
+  throw IncorrectUsageException(datatype.name().str() + "." + cons
                                 + " not found");
 }
 
