@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -112,6 +113,17 @@ TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
   }
   // TermTranslator refuses the generic solver whatever it iterates
   EXPECT_FALSE(solver_has_attribute(GENERIC_SOLVER, FULL_TRANSFER));
+}
+
+TEST(UnitSolverAttributes, InterpolatorsShareTheirSolversAttributes)
+{
+  for (SolverEnum se :
+       { BZLA_INTERPOLATOR, CVC5_INTERPOLATOR, MSAT_INTERPOLATOR })
+  {
+    EXPECT_EQ(get_solver_attributes(se),
+              get_solver_attributes(interpolator_base_solver(se)))
+        << to_string(se);
+  }
 }
 
 }  // namespace
