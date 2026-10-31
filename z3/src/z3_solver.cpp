@@ -431,8 +431,7 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
   try
   {
     auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->selectors.emplace_back(name,
-                                backend_pointer_cast<Z3Sort>(s)->get_z3_type());
+    cdt->selectors.emplace_back(name, get_z3_sort(s)->get_z3_type());
   }
   catch (z3::exception & e)
   {
@@ -458,7 +457,7 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 {
   try
   {
-    auto z3sort = backend_pointer_cast<Z3Sort>(s);
+    auto z3sort = get_z3_sort(s);
     z3::sort dt = z3sort->get_z3_datatype();
     for (auto cons_raw : dt.constructors())
     {
@@ -475,7 +474,7 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
 
 Term Z3Solver::get_tester(const Sort & s, std::string name) const
 {
-  auto z3sort = backend_pointer_cast<Z3Sort>(s);
+  auto z3sort = get_z3_sort(s);
   z3::sort dt = z3sort->get_z3_datatype();
   unsigned num_constructors = Z3_get_datatype_sort_num_constructors(*ctx, dt);
   for (unsigned i = 0; i < num_constructors; i++)
@@ -605,7 +604,7 @@ Term Z3Solver::make_term(const std::string val,
 Term Z3Solver::make_term(const Term & val, const Sort & sort) const
 {
   std::shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(val);
-  std::shared_ptr<Z3Sort> zsort = backend_pointer_cast<Z3Sort>(sort);
+  std::shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
   if (zsort->is_function || zterm->is_function)
   {
@@ -849,12 +848,12 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     for (uint32_t i = 0; i < arity; i++)
     {
-      z_sort = backend_pointer_cast<Z3Sort>(sorts[i])->type;
+      z_sort = get_z3_sort(sorts[i])->type;
       zsorts.push_back(z_sort);
     }
 
     Sort sort = sorts.back();
-    z_sort = backend_pointer_cast<Z3Sort>(sort)->type;
+    z_sort = get_z3_sort(sort)->type;
 
     const char * c = "throwaway name";
     z3::symbol func_name = ctx->str_symbol(c);
@@ -865,8 +864,8 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    std::shared_ptr<Z3Sort> cidxsort = backend_pointer_cast<Z3Sort>(sorts[0]);
-    std::shared_ptr<Z3Sort> celemsort = backend_pointer_cast<Z3Sort>(sorts[1]);
+    std::shared_ptr<Z3Sort> cidxsort = get_z3_sort(sorts[0]);
+    std::shared_ptr<Z3Sort> celemsort = get_z3_sort(sorts[1]);
     return std::make_shared<Z3Sort>(
         ctx, ctx->array_sort(cidxsort->type, celemsort->type));
   }
@@ -886,7 +885,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
 
-  shared_ptr<Z3Sort> zsort = backend_pointer_cast<Z3Sort>(sort);
+  shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
   const char * c = name.c_str();
   z3::symbol z_name = ctx->str_symbol(c);
 
@@ -929,7 +928,7 @@ Term Z3Solver::get_symbol(const std::string & name) const
 
 Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 {
-  shared_ptr<Z3Sort> zsort = backend_pointer_cast<Z3Sort>(sort);
+  shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
   if (zsort->is_function)
   {
@@ -1186,6 +1185,16 @@ std::shared_ptr<z3::solver> Z3Solver::get_z3_solver()
     instance->slv.set(solver_params);
   }
   return std::shared_ptr<z3::solver>(instance, &instance->slv);
+}
+
+std::shared_ptr<Z3Sort> Z3Solver::get_z3_sort(const Sort & s) const
+{
+  std::shared_ptr<Z3Sort> zs = backend_pointer_cast<Z3Sort>(s);
+  if (zs->ctx != ctx)
+  {
+    detail::throw_foreign_handle(s);
+  }
+  return zs;
 }
 
 /* end Z3Solver implementation */

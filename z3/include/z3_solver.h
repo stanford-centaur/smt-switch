@@ -27,6 +27,7 @@
 #include "solver.h"
 #include "sort.h"
 #include "term.h"
+#include "z3_sort.h"
 
 namespace smt {
 /**
@@ -114,6 +115,14 @@ class Z3Solver : public AbsSmtSolver
   void do_pop(uint64_t num) override;
   void do_reset() override;
   void do_reset_assertions() override;
+
+  /** Unwraps a sort to pass to Z3, which would read another context's
+   *  sort as one of its own
+   *  @param s the sort a caller passed to this solver
+   *  @return s as the Z3Sort that wraps it
+   *  @throws IncorrectUsageException if s was made by another solver
+   */
+  std::shared_ptr<Z3Sort> get_z3_sort(const Sort & s) const;
 
   // shared with every term and sort, so the context lives until the last of
   // them is released, even past this solver's destruction
