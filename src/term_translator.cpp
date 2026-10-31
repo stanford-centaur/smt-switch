@@ -53,23 +53,13 @@ const std::unordered_set<PrimOp> bv_ops({
     UBV_To_Int,  SBV_To_Int,
 });
 
-// boolean ops that can easily be represented with bit-vector operators
-const std::unordered_map<PrimOp, PrimOp> bool_to_bv_ops({
-    { And, BVAnd },
-    { Or, BVOr },
-    { Xor, BVXor },
-    { Not, BVNot },
-    { Equal, BVComp },
-});
-
-// bitvector ops that can easily be represented with boolean operators
-const std::unordered_map<PrimOp, PrimOp> bv_to_bool_ops({
-    { BVAnd, And },
-    { BVOr, Or },
-    { BVXor, Xor },
-    { BVNot, Not },
-    { BVComp, Equal },
-});
+// boolean ops and the bit-vector ops that mean the same, looked up from
+// either side to swap one for the other
+constexpr std::pair<PrimOp, PrimOp> bool_bv_ops[] = { { And, BVAnd },
+                                                      { Or, BVOr },
+                                                      { Xor, BVXor },
+                                                      { Not, BVNot },
+                                                      { Equal, BVComp } };
 
 // helper function used for debugging asserts
 bool uses_uninterp_sort(const Sort & sort)
@@ -571,8 +561,15 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
   // operators, the most common scenario is turning bitvector ops to
   // boolean
 
+  const auto * bool_bv_begin = std::begin(bool_bv_ops);
+  const auto * bool_bv_end = std::end(bool_bv_ops);
+  auto bool_is_po = [po](const auto & ops) { return ops.first == po; };
+  auto bv_is_po = [po](const auto & ops) { return ops.second == po; };
+  const auto * as_bool = std::find_if(bool_bv_begin, bool_bv_end, bv_is_po);
+  const auto * as_bv = std::find_if(bool_bv_begin, bool_bv_end, bool_is_po);
+
   // case 1 -- bitvector to boolean op
-  if (bv_to_bool_ops.find(po) != bv_to_bool_ops.end())
+  if (as_bool != bool_bv_end)
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
@@ -581,10 +578,10 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     {
       casted_children.push_back(cast_term(t, boolsort));
     }
-    return solver->make_term(bv_to_bool_ops.at(po), casted_children);
+    return solver->make_term(as_bool->first, casted_children);
   }
   // case 2 -- boolean to bitvector op
-  else if (bool_to_bv_ops.find(po) != bool_to_bv_ops.end())
+  else if (as_bv != bool_bv_end)
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
@@ -593,7 +590,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     {
       casted_children.push_back(cast_term(t, bv1sort));
     }
-    return solver->make_term(bool_to_bv_ops.at(po), casted_children);
+    return solver->make_term(as_bv->second, casted_children);
   }
   // case 3 -- cast all bit-vectors to booleans
   // a boolean operator that can't be converted to a bit-vector operator easily
