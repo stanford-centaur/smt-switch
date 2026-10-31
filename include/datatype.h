@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #include "smt_defs.h"
 
@@ -53,6 +54,33 @@ class AbsDatatype
   virtual ~AbsDatatype();
   virtual int get_num_constructors() const = 0;
   virtual int get_num_selectors(std::string cons) const = 0;
+  /** The names of the constructors, in the order they were declared
+   *
+   *  The solver's get_constructor and get_tester take these names.
+   */
+  virtual std::vector<std::string> get_constructor_names() const = 0;
+  /** The names of the selectors of a constructor, in the order they were
+   *  declared
+   *
+   *  The solver's get_selector takes these names.
+   *  @param cons the name of the constructor
+   *  @throws IncorrectUsageException if the datatype has no constructor cons
+   */
+  virtual std::vector<std::string> get_selector_names(
+      const std::string & cons) const = 0;
+  /** The sort of a selector, the datatype's own sort for one declared with
+   *  add_selector_self
+   *
+   *  With the names, these sorts describe the whole declaration: a
+   *  constructor's sort maps its selectors' sorts to the datatype, and a
+   *  tester's maps the datatype to Bool.
+   *  @param cons the name of the constructor
+   *  @param sel the name of the selector
+   *  @throws IncorrectUsageException if the datatype has no constructor cons,
+   *  or cons has no selector sel
+   */
+  virtual Sort get_selector_sort(const std::string & cons,
+                                 const std::string & sel) const = 0;
   virtual std::string get_name() const = 0;
   virtual std::size_t hash() const;
   virtual bool compare(const Datatype & d) const;

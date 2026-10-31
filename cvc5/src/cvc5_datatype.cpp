@@ -7,6 +7,7 @@
 #include <tuple>
 #include <utility>
 
+#include "cvc5_sort.h"
 #include "exceptions.h"
 #include "utils.h"
 
@@ -86,6 +87,58 @@ int Cvc5Datatype::get_num_selectors(std::string cons) const
     {
       return ct.getNumSelectors();
     }
+  }
+  throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
+}
+
+std::vector<std::string> Cvc5Datatype::get_constructor_names() const
+{
+  std::vector<std::string> names;
+  for (size_t i = 0; i != datatype.getNumConstructors(); i++)
+  {
+    names.push_back(datatype[i].getName());
+  }
+  return names;
+}
+
+std::vector<std::string> Cvc5Datatype::get_selector_names(
+    const std::string & cons) const
+{
+  for (size_t i = 0; i != datatype.getNumConstructors(); i++)
+  {
+    cvc5::DatatypeConstructor ct = datatype[i];
+    if (ct.getName() == cons)
+    {
+      std::vector<std::string> names;
+      for (size_t j = 0; j != ct.getNumSelectors(); j++)
+      {
+        names.push_back(ct[j].getName());
+      }
+      return names;
+    }
+  }
+  throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
+}
+
+Sort Cvc5Datatype::get_selector_sort(const std::string & cons,
+                                     const std::string & sel) const
+{
+  for (size_t i = 0; i != datatype.getNumConstructors(); i++)
+  {
+    cvc5::DatatypeConstructor ct = datatype[i];
+    if (ct.getName() != cons)
+    {
+      continue;
+    }
+    for (size_t j = 0; j != ct.getNumSelectors(); j++)
+    {
+      if (ct[j].getName() == sel)
+      {
+        return std::make_shared<Cvc5Sort>(ct[j].getCodomainSort());
+      }
+    }
+    throw IncorrectUsageException(datatype.getName() + "." + cons + "." + sel
+                                  + " not found");
   }
   throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
 }

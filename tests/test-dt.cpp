@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -245,6 +246,12 @@ TEST_P(Datatypes, DatatypeDecl)
   EXPECT_EQ(listdt->get_num_constructors(), 2);
   EXPECT_EQ(listdt->get_num_selectors("cons"), 2);
   EXPECT_EQ(listdt->get_num_selectors("nil"), 0);
+  EXPECT_EQ(listdt->get_constructor_names(), (vector<string>{ "nil", "cons" }));
+  EXPECT_EQ(listdt->get_selector_names("cons"),
+            (vector<string>{ "head", "tail" }));
+  EXPECT_TRUE(listdt->get_selector_names("nil").empty());
+  EXPECT_EQ(listdt->get_selector_sort("cons", "head"), intsort);
+  EXPECT_EQ(listdt->get_selector_sort("cons", "tail"), listsort);
 
   EXPECT_TRUE(res.is_sat());
   // Expected exceptions
@@ -252,10 +259,61 @@ TEST_P(Datatypes, DatatypeDecl)
   EXPECT_THROW(s->get_constructor(listsort, "kons"), IncorrectUsageException);
   EXPECT_THROW(s->get_tester(listsort, "head"), IncorrectUsageException);
   EXPECT_THROW(listdt->get_num_selectors("kons"), IncorrectUsageException);
+  EXPECT_THROW(listdt->get_selector_names("kons"), IncorrectUsageException);
+  EXPECT_THROW(listdt->get_selector_sort("kons", "head"),
+               IncorrectUsageException);
+  EXPECT_THROW(listdt->get_selector_sort("nil", "head"),
+               IncorrectUsageException);
   // a constructor's sort is not its datatype's
   EXPECT_THROW(cons->get_sort()->get_datatype(), IncorrectUsageException);
   EXPECT_THROW(s->get_constructor(cons->get_sort(), "nil"),
                IncorrectUsageException);
+}
+
+TEST_P(Datatypes, NamesReachEveryComponent)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver's add_selector_self crashes on a "
+                    "constructor not yet added to a datatype";
+  }
+
+  Sort boolsort = s->make_sort(BOOL);
+  DatatypeDecl treedecl = s->make_datatype_decl("tree");
+  DatatypeConstructorDecl leafdecl = s->make_datatype_constructor_decl("leaf");
+  DatatypeConstructorDecl nodedecl = s->make_datatype_constructor_decl("node");
+  s->add_selector(nodedecl, "flag", boolsort);
+  s->add_selector(nodedecl, "value", intsort);
+  s->add_selector_self(nodedecl, "child");
+  s->add_constructor(treedecl, leafdecl);
+  s->add_constructor(treedecl, nodedecl);
+  Sort treesort = s->make_sort(treedecl);
+
+  map<string, Sort> declared{ { "flag", boolsort },
+                              { "value", intsort },
+                              { "child", treesort } };
+  Datatype dt = treesort->get_datatype();
+  EXPECT_EQ(dt->get_constructor_names(), (vector<string>{ "leaf", "node" }));
+  EXPECT_EQ(dt->get_selector_names("node"),
+            (vector<string>{ "flag", "value", "child" }));
+  for (const string & con : dt->get_constructor_names())
+  {
+    EXPECT_NO_THROW(s->get_tester(treesort, con)) << con;
+    SortVec domain =
+        s->get_constructor(treesort, con)->get_sort()->get_domain_sorts();
+    vector<string> selectors = dt->get_selector_names(con);
+    ASSERT_EQ(domain.size(), selectors.size()) << con;
+    for (size_t i = 0; i < selectors.size(); ++i)
+    {
+      Sort selsort = s->get_selector(treesort, con, selectors[i])
+                         ->get_sort()
+                         ->get_codomain_sort();
+      EXPECT_EQ(selsort, declared.at(selectors[i])) << selectors[i];
+      EXPECT_EQ(dt->get_selector_sort(con, selectors[i]), selsort)
+          << selectors[i];
+      EXPECT_EQ(domain[i], selsort) << selectors[i];
+    }
+  }
 }
 
 TEST_P(Datatypes, ComponentsAreHashConsed)
@@ -279,20 +337,21 @@ TEST_P(Datatypes, ComponentsAreHashConsed)
 
 TEST_P(Datatypes, PrintsAsSmtlib)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
+  if (s->get_solver_enum() == GENERIC_SOLVER)
   {
-    GTEST_SKIP() << "a generic term prints the defined name of each subterm, "
-                    "and datatype ops by their smt-switch names";
+    GTEST_SKIP() << "the generic solver's add_selector_self crashes on a "
+                    "constructor not yet added to a datatype; without "
+                    "logging, a generic term also prints the defined name of "
+                    "each subterm, and datatype ops by their smt-switch names";
   }
 
   DatatypeDecl listdecl = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
   s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
   s->add_constructor(listdecl, nildecl);
   s->add_constructor(listdecl, consdecl);
-  // after add_constructor, which the generic solver needs first (B.4)
-  s->add_selector_self(consdecl, "tail");
   Sort listsort = s->make_sort(listdecl);
   EXPECT_EQ(listsort->to_string(), "list");
 

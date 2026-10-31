@@ -306,7 +306,12 @@ DatatypeLoggingSort::DatatypeLoggingSort(Sort s,
 
 Datatype DatatypeLoggingSort::get_datatype() const
 {
-  return wrapped_sort->get_datatype();
+  // a copy of this sort, which compares equal to it, for the selectors
+  // declared with add_selector_self
+  return std::make_shared<LoggingDatatype>(
+      wrapped_sort->get_datatype(),
+      std::make_shared<DatatypeLoggingSort>(wrapped_sort, decl),
+      decl);
 }
 
 // DatatypeComponentLoggingSort

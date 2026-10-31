@@ -125,6 +125,59 @@ int GenericDatatype::get_num_selectors(std::string cons) const
   return num_selectors;
 }
 
+std::vector<std::string> GenericDatatype::get_constructor_names() const
+{
+  std::vector<std::string> names;
+  for (const DatatypeConstructorDecl & con : cons_decl_vector)
+  {
+    names.push_back(con->get_name());
+  }
+  return names;
+}
+
+std::vector<std::string> GenericDatatype::get_selector_names(
+    const std::string & cons) const
+{
+  for (const DatatypeConstructorDecl & con : cons_decl_vector)
+  {
+    if (con->get_name() == cons)
+    {
+      std::vector<std::string> names;
+      for (const SelectorComponents & sel :
+           std::static_pointer_cast<GenericDatatypeConstructorDecl>(con)
+               ->get_selector_vector())
+      {
+        names.push_back(sel.name);
+      }
+      return names;
+    }
+  }
+  throw IncorrectUsageException("Constructor not found");
+}
+
+Sort GenericDatatype::get_selector_sort(const std::string & cons,
+                                        const std::string & sel) const
+{
+  for (const DatatypeConstructorDecl & con : cons_decl_vector)
+  {
+    if (con->get_name() != cons)
+    {
+      continue;
+    }
+    for (const SelectorComponents & selector :
+         std::static_pointer_cast<GenericDatatypeConstructorDecl>(con)
+             ->get_selector_vector())
+    {
+      if (selector.name == sel)
+      {
+        return selector.sort;
+      }
+    }
+    throw IncorrectUsageException("Selector not found");
+  }
+  throw IncorrectUsageException("Constructor not found");
+}
+
 std::string GenericDatatype::get_name() const { return dt_decl->get_name(); }
 
 void GenericDatatype::add_constructor(

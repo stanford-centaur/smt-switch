@@ -65,6 +65,11 @@ class Cvc5Datatype : public AbsDatatype
   explicit Cvc5Datatype(cvc5::Datatype t);
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
+  std::vector<std::string> get_constructor_names() const override;
+  std::vector<std::string> get_selector_names(
+      const std::string & cons) const override;
+  Sort get_selector_sort(const std::string & cons,
+                         const std::string & sel) const override;
   std::string get_name() const override;
   std::size_t hash() const override;
   bool compare(const Datatype & d) const override;

@@ -64,6 +64,11 @@ class GenericDatatype : public AbsDatatype
   explicit GenericDatatype(const DatatypeDecl & dt_declaration);
   int get_num_constructors() const override;
   int get_num_selectors(std::string cons) const override;
+  std::vector<std::string> get_constructor_names() const override;
+  std::vector<std::string> get_selector_names(
+      const std::string & cons) const override;
+  Sort get_selector_sort(const std::string & cons,
+                         const std::string & sel) const override;
   std::string get_name() const override;
   // Stores a constructor object (dt_cons_decl) in the datatype object.
   void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
