@@ -23,8 +23,6 @@
 #include <iterator>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -35,195 +33,251 @@
 
 namespace smt {
 
-// a map used to look up the sortedness check functions in check_sortedness
-// maps primitive operators to a function used to check that the sorts are
-// expected
-const std::unordered_map<PrimOp, std::function<bool(const SortVec & sorts)>>
-    sort_check_dispatch({
-        { And, bool_sorts },
-        { Or, bool_sorts },
-        { Xor, bool_sorts },
-        { Not, bool_sorts },
-        { Implies, bool_sorts },
-        { Ite, check_ite_sorts },
-        { Equal, arith_equal_sorts },
-        { Distinct, arith_equal_sorts },
-        { Apply, check_apply_sorts },
-        { Plus, arithmetic_sorts },
-        { Minus, arithmetic_sorts },
-        { Negate, arithmetic_sorts },
-        { Mult, arithmetic_sorts },
-        { Div, arithmetic_sorts },
-        { Lt, arithmetic_sorts },
-        { Le, arithmetic_sorts },
-        { Gt, arithmetic_sorts },
-        { Ge, arithmetic_sorts },
-        { Mod, int_sorts },
-        // technically Abs/Pow only defined for integers in
-        // SMT-LIB but not sure if that's true for all solvers
-        // might also be good to be forward looking
-        { Abs, int_sorts },
-        { Pow, int_sorts },
-        { IntDiv, int_sorts },
-        { To_Real, int_sorts },
-        { To_Int, real_sorts },
-        { Is_Int, real_sorts },
-        { Concat, bv_sorts },
-        { Extract, bv_sorts },
-        { BVNot, bv_sorts },
-        { BVNeg, bv_sorts },
-        { BVAnd, eq_bv_sorts },
-        { BVOr, eq_bv_sorts },
-        { BVXor, eq_bv_sorts },
-        { BVNand, eq_bv_sorts },
-        { BVNor, eq_bv_sorts },
-        { BVXnor, eq_bv_sorts },
-        { BVAdd, eq_bv_sorts },
-        { BVSub, eq_bv_sorts },
-        { BVMul, eq_bv_sorts },
-        { BVUdiv, eq_bv_sorts },
-        { BVSdiv, eq_bv_sorts },
-        { BVUrem, eq_bv_sorts },
-        { BVSrem, eq_bv_sorts },
-        { BVSmod, eq_bv_sorts },
-        { BVShl, eq_bv_sorts },
-        { BVAshr, eq_bv_sorts },
-        { BVLshr, eq_bv_sorts },
-        { BVComp, eq_bv_sorts },
-        { BVUlt, eq_bv_sorts },
-        { BVUle, eq_bv_sorts },
-        { BVUgt, eq_bv_sorts },
-        { BVUge, eq_bv_sorts },
-        { BVSlt, eq_bv_sorts },
-        { BVSle, eq_bv_sorts },
-        { BVSgt, eq_bv_sorts },
-        { BVSge, eq_bv_sorts },
-        { Zero_Extend, bv_sorts },
-        { Sign_Extend, bv_sorts },
-        { Repeat, bv_sorts },
-        { Rotate_Left, bv_sorts },
-        { Rotate_Right, bv_sorts },
-        { BV_To_Nat, bv_sorts },
-        { UBV_To_Int, bv_sorts },
-        { SBV_To_Int, bv_sorts },
-        { Int_To_BV, int_sorts },
-        { StrLt, string_sorts },
-        { StrLeq, string_sorts },
-        { StrConcat, string_sorts },
-        { StrLen, string_sorts },
-        { StrSubstr, check_substr_sorts },
-        { StrAt, check_charat_sorts },
-        { StrContains, string_sorts },
-        { StrIndexof, check_indexof_sorts },
-        { StrReplace, string_sorts },
-        { StrReplaceAll, string_sorts },
-        { StrPrefixof, string_sorts },
-        { StrSuffixof, string_sorts },
-        { StrIsDigit, string_sorts },
-        { Select, check_select_sorts },
-        { Store, check_store_sorts },
-        { Forall, check_quantifier_sorts },
-        { Exists, check_quantifier_sorts },
-        { Apply_Constructor, check_constructor_sorts },
-        { Apply_Selector, check_selector_sorts },
-        { Apply_Tester, check_tester_sorts },
-    });
+namespace {
 
-// map from Primitive Operators to the corresponding sort inference function
-// used in compute_sort
-const std::unordered_map<
-    PrimOp,
-    std::function<
-        Sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)>>
-    sort_comp_dispatch({
-        { And, bool_sort },
-        { Or, bool_sort },
-        { Xor, bool_sort },
-        { Not, bool_sort },
-        { Implies, bool_sort },
-        { Ite, ite_sort },
-        { Equal, bool_sort },
-        { Distinct, bool_sort },
-        { Apply, apply_sort },
-        { Plus, arithmetic_sort },
-        { Minus, arithmetic_sort },
-        { Negate, same_sort },
-        { Mult, arithmetic_sort },
-        { Div, real_sort },
-        { Lt, bool_sort },
-        { Le, bool_sort },
-        { Gt, bool_sort },
-        { Ge, bool_sort },
-        { Mod, int_sort },
-        // technically Abs/Pow only defined for integers in
-        // SMT-LIB but not sure if that's true for all solvers
-        // might also be good to be forward looking
-        { Abs, same_sort },
-        { Pow, same_sort },
-        { IntDiv, int_sort },
-        { To_Real, real_sort },
-        { To_Int, int_sort },
-        { Is_Int, bool_sort },
-        { Concat, concat_sort },
-        { Extract, extract_sort },
-        { BVNot, same_sort },
-        { BVNeg, same_sort },
-        { BVAnd, same_sort },
-        { BVOr, same_sort },
-        { BVXor, same_sort },
-        { BVNand, same_sort },
-        { BVNor, same_sort },
-        { BVXnor, same_sort },
-        { BVAdd, same_sort },
-        { BVSub, same_sort },
-        { BVMul, same_sort },
-        { BVUdiv, same_sort },
-        { BVSdiv, same_sort },
-        { BVUrem, same_sort },
-        { BVSrem, same_sort },
-        { BVSmod, same_sort },
-        { BVShl, same_sort },
-        { BVAshr, same_sort },
-        { BVLshr, same_sort },
-        { BVComp, single_bit_sort },
-        { BVUlt, bool_sort },
-        { BVUle, bool_sort },
-        { BVUgt, bool_sort },
-        { BVUge, bool_sort },
-        { BVSlt, bool_sort },
-        { BVSle, bool_sort },
-        { BVSgt, bool_sort },
-        { BVSge, bool_sort },
-        { Zero_Extend, extend_sort },
-        { Sign_Extend, extend_sort },
-        { Repeat, repeat_sort },
-        { Rotate_Left, same_sort },
-        { Rotate_Right, same_sort },
-        { BV_To_Nat, int_sort },
-        { UBV_To_Int, int_sort },
-        { SBV_To_Int, int_sort },
-        { Int_To_BV, int_to_bv_sort },
-        { StrLt, bool_sort },
-        { StrLeq, bool_sort },
-        { StrConcat, string_sort },
-        { StrLen, int_sort },
-        { StrSubstr, string_sort },
-        { StrAt, string_sort },
-        { StrContains, bool_sort },
-        { StrIndexof, int_sort },
-        { StrReplace, string_sort },
-        { StrReplaceAll, string_sort },
-        { StrPrefixof, bool_sort },
-        { StrSuffixof, bool_sort },
-        { StrIsDigit, bool_sort },
-        { Select, select_sort },
-        { Store, store_sort },
-        { Forall, bool_sort },
-        { Exists, bool_sort },
-        { Apply_Constructor, constructor_sort },
-        { Apply_Tester, bool_sort },
-        { Apply_Selector, selector_sort },
-    });
+/** How check_sortedness checks an operator's argument sorts, by the
+ *  function it calls
+ */
+enum class SortCheck
+{
+  BOOL,
+  ITE,
+  ARITH_EQUAL,
+  APPLY,
+  ARITHMETIC,
+  INT,
+  REAL,
+  BV,
+  EQ_BV,
+  STRING,
+  SUBSTR,
+  CHARAT,
+  INDEXOF,
+  SELECT,
+  STORE,
+  QUANTIFIER,
+  SELECTOR,
+  TESTER,
+  CONSTRUCTOR,
+};
+
+/** How compute_sort computes the sort of an operator's application, by
+ *  the function it calls
+ */
+enum class SortComputation
+{
+  BOOL,
+  ITE,
+  APPLY,
+  ARITHMETIC,
+  SAME,
+  REAL,
+  INT,
+  CONCAT,
+  EXTRACT,
+  SINGLE_BIT,
+  EXTEND,
+  REPEAT,
+  INT_TO_BV,
+  STRING,
+  SELECT,
+  STORE,
+  SELECTOR,
+  CONSTRUCTOR,
+};
+
+/** The sort rules of an operator */
+struct PrimOpSortInfo
+{
+  PrimOp op;
+  SortCheck check;
+  SortComputation computation;
+};
+
+// one row per PrimOp, in the order of the enum
+constexpr PrimOpSortInfo primop_sort_info[] = {
+  { And, SortCheck::BOOL, SortComputation::BOOL },
+  { Or, SortCheck::BOOL, SortComputation::BOOL },
+  { Xor, SortCheck::BOOL, SortComputation::BOOL },
+  { Not, SortCheck::BOOL, SortComputation::BOOL },
+  { Implies, SortCheck::BOOL, SortComputation::BOOL },
+  { Ite, SortCheck::ITE, SortComputation::ITE },
+  { Equal, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
+  { Distinct, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
+  { Apply, SortCheck::APPLY, SortComputation::APPLY },
+  { Plus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Minus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Negate, SortCheck::ARITHMETIC, SortComputation::SAME },
+  { Mult, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Div, SortCheck::ARITHMETIC, SortComputation::REAL },
+  { Lt, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Le, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Gt, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Ge, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Mod, SortCheck::INT, SortComputation::INT },
+  // technically Abs/Pow only defined for integers in
+  // SMT-LIB but not sure if that's true for all solvers
+  // might also be good to be forward looking
+  { Abs, SortCheck::INT, SortComputation::SAME },
+  { Pow, SortCheck::INT, SortComputation::SAME },
+  { IntDiv, SortCheck::INT, SortComputation::INT },
+  { To_Real, SortCheck::INT, SortComputation::REAL },
+  { To_Int, SortCheck::REAL, SortComputation::INT },
+  { Is_Int, SortCheck::REAL, SortComputation::BOOL },
+  { Concat, SortCheck::BV, SortComputation::CONCAT },
+  { Extract, SortCheck::BV, SortComputation::EXTRACT },
+  { BVNot, SortCheck::BV, SortComputation::SAME },
+  { BVNeg, SortCheck::BV, SortComputation::SAME },
+  { BVAnd, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVOr, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVXor, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVNand, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVNor, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVXnor, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVAdd, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVSub, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVMul, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVUdiv, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVSdiv, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVUrem, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVSrem, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVSmod, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVShl, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVAshr, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVLshr, SortCheck::EQ_BV, SortComputation::SAME },
+  { BVComp, SortCheck::EQ_BV, SortComputation::SINGLE_BIT },
+  { BVUlt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVUle, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVUgt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVUge, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVSlt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVSle, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVSgt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { BVSge, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Zero_Extend, SortCheck::BV, SortComputation::EXTEND },
+  { Sign_Extend, SortCheck::BV, SortComputation::EXTEND },
+  { Repeat, SortCheck::BV, SortComputation::REPEAT },
+  { Rotate_Left, SortCheck::BV, SortComputation::SAME },
+  { Rotate_Right, SortCheck::BV, SortComputation::SAME },
+  { BV_To_Nat, SortCheck::BV, SortComputation::INT },
+  { UBV_To_Int, SortCheck::BV, SortComputation::INT },
+  { SBV_To_Int, SortCheck::BV, SortComputation::INT },
+  { Int_To_BV, SortCheck::INT, SortComputation::INT_TO_BV },
+  { StrLt, SortCheck::STRING, SortComputation::BOOL },
+  { StrLeq, SortCheck::STRING, SortComputation::BOOL },
+  { StrLen, SortCheck::STRING, SortComputation::INT },
+  { StrConcat, SortCheck::STRING, SortComputation::STRING },
+  { StrSubstr, SortCheck::SUBSTR, SortComputation::STRING },
+  { StrAt, SortCheck::CHARAT, SortComputation::STRING },
+  { StrContains, SortCheck::STRING, SortComputation::BOOL },
+  { StrIndexof, SortCheck::INDEXOF, SortComputation::INT },
+  { StrReplace, SortCheck::STRING, SortComputation::STRING },
+  { StrReplaceAll, SortCheck::STRING, SortComputation::STRING },
+  { StrPrefixof, SortCheck::STRING, SortComputation::BOOL },
+  { StrSuffixof, SortCheck::STRING, SortComputation::BOOL },
+  { StrIsDigit, SortCheck::STRING, SortComputation::BOOL },
+  { Select, SortCheck::SELECT, SortComputation::SELECT },
+  { Store, SortCheck::STORE, SortComputation::STORE },
+  { Forall, SortCheck::QUANTIFIER, SortComputation::BOOL },
+  { Exists, SortCheck::QUANTIFIER, SortComputation::BOOL },
+  { Apply_Selector, SortCheck::SELECTOR, SortComputation::SELECTOR },
+  { Apply_Tester, SortCheck::TESTER, SortComputation::BOOL },
+  { Apply_Constructor, SortCheck::CONSTRUCTOR, SortComputation::CONSTRUCTOR },
+};
+
+static_assert(std::size(primop_sort_info) == NUM_OPS_AND_NULL,
+              "primop_sort_info needs one row per PrimOp");
+
+constexpr bool rows_follow_enum()
+{
+  for (std::size_t i = 0; i < std::size(primop_sort_info); ++i)
+  {
+    if (primop_sort_info[i].op != static_cast<PrimOp>(i))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+static_assert(
+    rows_follow_enum(),
+    "primop_sort_info's rows must be in the order of the PrimOp enum");
+
+/** The sort rules of po
+ *  @param caller the public function asking, for the message
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
+ *          value
+ */
+const PrimOpSortInfo & sort_info(PrimOp po, const char * caller)
+{
+  auto i = static_cast<std::size_t>(po);
+  if (i >= std::size(primop_sort_info))
+  {
+    throw IncorrectUsageException(std::string(caller)
+                                  + " got a PrimOp that is no operator: "
+                                  + std::to_string(static_cast<int>(po)));
+  }
+  return primop_sort_info[i];
+}
+
+bool check_sorts(SortCheck check, const SortVec & sorts)
+{
+  switch (check)
+  {
+    case SortCheck::BOOL: return bool_sorts(sorts);
+    case SortCheck::ITE: return check_ite_sorts(sorts);
+    case SortCheck::ARITH_EQUAL: return arith_equal_sorts(sorts);
+    case SortCheck::APPLY: return check_apply_sorts(sorts);
+    case SortCheck::ARITHMETIC: return arithmetic_sorts(sorts);
+    case SortCheck::INT: return int_sorts(sorts);
+    case SortCheck::REAL: return real_sorts(sorts);
+    case SortCheck::BV: return bv_sorts(sorts);
+    case SortCheck::EQ_BV: return eq_bv_sorts(sorts);
+    case SortCheck::STRING: return string_sorts(sorts);
+    case SortCheck::SUBSTR: return check_substr_sorts(sorts);
+    case SortCheck::CHARAT: return check_charat_sorts(sorts);
+    case SortCheck::INDEXOF: return check_indexof_sorts(sorts);
+    case SortCheck::SELECT: return check_select_sorts(sorts);
+    case SortCheck::STORE: return check_store_sorts(sorts);
+    case SortCheck::QUANTIFIER: return check_quantifier_sorts(sorts);
+    case SortCheck::SELECTOR: return check_selector_sorts(sorts);
+    case SortCheck::TESTER: return check_tester_sorts(sorts);
+    case SortCheck::CONSTRUCTOR: return check_constructor_sorts(sorts);
+  }
+  throw SmtException("check_sortedness got an out-of-range SortCheck");
+}
+
+Sort compute(SortComputation computation,
+             Op op,
+             const AbsSmtSolver * solver,
+             const SortVec & sorts)
+{
+  switch (computation)
+  {
+    case SortComputation::BOOL: return bool_sort(op, solver, sorts);
+    case SortComputation::ITE: return ite_sort(op, solver, sorts);
+    case SortComputation::APPLY: return apply_sort(op, solver, sorts);
+    case SortComputation::ARITHMETIC: return arithmetic_sort(op, solver, sorts);
+    case SortComputation::SAME: return same_sort(op, solver, sorts);
+    case SortComputation::REAL: return real_sort(op, solver, sorts);
+    case SortComputation::INT: return int_sort(op, solver, sorts);
+    case SortComputation::CONCAT: return concat_sort(op, solver, sorts);
+    case SortComputation::EXTRACT: return extract_sort(op, solver, sorts);
+    case SortComputation::SINGLE_BIT: return single_bit_sort(op, solver, sorts);
+    case SortComputation::EXTEND: return extend_sort(op, solver, sorts);
+    case SortComputation::REPEAT: return repeat_sort(op, solver, sorts);
+    case SortComputation::INT_TO_BV: return int_to_bv_sort(op, solver, sorts);
+    case SortComputation::STRING: return string_sort(op, solver, sorts);
+    case SortComputation::SELECT: return select_sort(op, solver, sorts);
+    case SortComputation::STORE: return store_sort(op, solver, sorts);
+    case SortComputation::SELECTOR: return selector_sort(op, solver, sorts);
+    case SortComputation::CONSTRUCTOR:
+      return constructor_sort(op, solver, sorts);
+  }
+  throw SmtException("compute_sort got an out-of-range SortComputation");
+}
+
+}  // namespace
 
 // main function implementations
 bool check_sortedness(Op op, const TermVec & terms)
@@ -256,15 +310,7 @@ bool check_sortedness(Op op, const SortVec & sorts)
     return false;
   }
 
-  if (sort_check_dispatch.find(op.prim_op) != sort_check_dispatch.end())
-  {
-    return sort_check_dispatch.at(op.prim_op)(sorts);
-  }
-  else
-  {
-    throw NotImplementedException("Sort checking for operator " + op.to_string()
-                                  + " is not yet implemented.");
-  }
+  return check_sorts(sort_info(op.prim_op, "check_sortedness").check, sorts);
 }
 
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
@@ -275,13 +321,15 @@ Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
   {
     sorts.push_back(t->get_sort());
   }
-  return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
+  return compute(
+      sort_info(op.prim_op, "compute_sort").computation, op, solver, sorts);
 }
 
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
   assert(sorts.size());
-  return sort_comp_dispatch.at(op.prim_op)(op, solver, sorts);
+  return compute(
+      sort_info(op.prim_op, "compute_sort").computation, op, solver, sorts);
 }
 
 Sort compute_sort(Op op, const SmtSolver solver, const TermVec & terms)
