@@ -92,7 +92,8 @@ TermTranslator::TermTranslator(const SmtSolver & s) : solver(s)
 {
   if (s->get_solver_enum() == SolverEnum::GENERIC_SOLVER)
   {
-    throw SmtException("Generic Solvers do not support term transfer");
+    throw NotImplementedException(
+        "Generic Solvers do not support term transfer");
   }
 }
 
