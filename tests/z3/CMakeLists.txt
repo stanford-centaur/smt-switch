@@ -15,5 +15,6 @@ endmacro()
 
 switch_add_z3_test(z3-datatype)
 switch_add_z3_test(z3-foreign-sort)
+switch_add_z3_test(z3-foreign-term)
 switch_add_z3_test(z3-handle)
 switch_add_z3_test(z3_test)
