@@ -47,6 +47,7 @@ class SmtLibScanner;
 #include "smtlib_reader.h"
 #include "smtlib_scanner.h"
 #include "solver.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -106,9 +107,11 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
+%nterm <std::string> bv_literal
 %nterm <std::string> spec_constant
 %nterm <std::string> s_expr
 %nterm <std::string> s_expr_list
+%nterm <std::string> nested_s_expr
 %nterm <std::pair<std::string, std::string>> attribute
 %nterm <std::vector<std::pair<std::string, std::string>>> attributes
 
@@ -424,20 +427,43 @@ indprefix:
   LP US
 ;
 
-spec_constant:
-  number_or_string
-| BITSTR
-| HEXSTR
+bv_literal:
+  BITSTR { $$ = "#b" + $1; }
+| HEXSTR { $$ = "#x" + $1; }
 ;
 
+spec_constant:
+  number_or_string
+| bv_literal
+;
+
+// An attribute's value, where a string or symbol stands for its text
 s_expr:
   spec_constant
 | LP s_expr_list RP { $$ = "(" + $2 + ")"; }
 ;
 
 s_expr_list:
-  %empty             {}
-| s_expr_list s_expr { $$ = $1 + $2; }
+  %empty {}
+| s_expr_list nested_s_expr
+  {
+    if (!$1.empty())
+    {
+      $1 += ' ';
+    }
+    $1 += $2;
+    $$ = std::move($1);
+  }
+;
+
+// An element of a list, as SMT-LIB writes it
+nested_s_expr:
+  number
+| bv_literal
+| QUOTESTRING       { $$ = '"' + $1 + '"'; }
+| SYMBOL            { $$ = smtlib_quote_symbol($1); }
+| KEYWORD           { $$ = ':' + $1; }
+| LP s_expr_list RP { $$ = "(" + $2 + ")"; }
 ;
 
 attribute:

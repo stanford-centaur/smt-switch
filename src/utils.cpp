@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <locale>
 #include <map>
 #include <random>
 #include <sstream>
@@ -1717,6 +1718,28 @@ std::int64_t smtlib_bv_to_int64(const std::string & s)
   std::uint64_t width;
   parse_smtlib_bv(s, value, width);
   return to_twos_complement(value, width);
+}
+
+std::string smtlib_quote_symbol(const std::string & s)
+{
+  if (s.empty())
+  {
+    return "||";
+  }
+  const std::locale & ascii = std::locale::classic();
+  if (std::isdigit(s[0], ascii))
+  {
+    return "|" + s + "|";
+  }
+  const std::string punctuation = "~!@$%^&*_-+=<>.?/";
+  for (char c : s)
+  {
+    if (!std::isalnum(c, ascii) && punctuation.find(c) == std::string::npos)
+    {
+      return "|" + s + "|";
+    }
+  }
+  return s;
 }
 
 std::string internal_name(const std::string & kind, std::uint64_t index)

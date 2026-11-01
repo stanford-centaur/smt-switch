@@ -164,6 +164,13 @@ inline constexpr std::string_view INTERPOLATION_GROUP_STR =
     "interpolation-group";
 inline constexpr std::string_view NAMED_STR = "named";
 
+/** A symbol as SMT-LIB writes it: as is if it is a simple symbol, as the
+ *  SMT-LIB standard defines one, and in bars otherwise
+ *  @param s the symbol
+ *  @return s, or s in bars
+ */
+std::string smtlib_quote_symbol(const std::string & s);
+
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
 // value does not fit in the result type.
