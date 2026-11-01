@@ -316,6 +316,47 @@ TEST_P(Datatypes, NamesReachEveryComponent)
   }
 }
 
+TEST_P(Datatypes, ConstructorDeclChangedAfterMakeSort)
+{
+  DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");
+  s->add_selector(cons, "head", intsort);
+  DatatypeDecl adecl = s->make_datatype_decl("a");
+  s->add_constructor(adecl, cons);
+  Sort asort = s->make_sort(adecl);
+
+  // the sort keeps the constructor as it was when its declaration was used
+  s->add_selector_self(cons, "tail");
+  DatatypeDecl bdecl = s->make_datatype_decl("b");
+  DatatypeConstructorDecl nil = s->make_datatype_constructor_decl("nil");
+  s->add_constructor(bdecl, nil);
+  s->add_constructor(bdecl, cons);
+  Sort bsort = s->make_sort(bdecl);
+
+  Datatype adt = asort->get_datatype();
+  EXPECT_EQ(adt->get_selector_names("cons"), (vector<string>{ "head" }));
+  EXPECT_EQ(
+      s->get_constructor(asort, "cons")->get_sort()->get_domain_sorts().size(),
+      1u);
+  EXPECT_THROW(s->get_selector(asort, "cons", "tail"), IncorrectUsageException);
+
+  Datatype bdt = bsort->get_datatype();
+  EXPECT_EQ(bdt->get_selector_names("cons"),
+            (vector<string>{ "head", "tail" }));
+  EXPECT_EQ(bdt->get_selector_sort("cons", "tail"), bsort);
+  EXPECT_EQ(
+      s->get_constructor(bsort, "cons")->get_sort()->get_domain_sorts().size(),
+      2u);
+}
+
+TEST_P(Datatypes, SecondMakeSortRefused)
+{
+  DatatypeDecl unitdecl = s->make_datatype_decl("unit");
+  DatatypeConstructorDecl u = s->make_datatype_constructor_decl("u");
+  s->add_constructor(unitdecl, u);
+  s->make_sort(unitdecl);
+  EXPECT_THROW(s->make_sort(unitdecl), IncorrectUsageException);
+}
+
 TEST_P(Datatypes, ComponentsAreHashConsed)
 {
   DatatypeDecl maybedecl = s->make_datatype_decl("maybe");

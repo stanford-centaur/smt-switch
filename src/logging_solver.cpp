@@ -114,7 +114,8 @@ Sort LoggingSolver::make_sort(const DatatypeDecl & d) const
   std::shared_ptr<LoggingDatatypeDecl> ld =
       backend_pointer_cast<LoggingDatatypeDecl>(d);
   Sort wrapped_sort = wrapped_solver->make_sort(ld->wrapped_decl);
-  return std::make_shared<DatatypeLoggingSort>(wrapped_sort, ld);
+  return std::make_shared<DatatypeLoggingSort>(wrapped_sort,
+                                               copy_for_sort(*ld));
 }
 
 DatatypeDecl LoggingSolver::make_datatype_decl(const std::string & s) const
@@ -219,7 +220,8 @@ SortVec LoggingSolver::make_datatype_sorts(
   {
     res.push_back(std::make_shared<DatatypeLoggingSort>(
         wrapped_sorts[i],
-        std::static_pointer_cast<LoggingDatatypeDecl>(decls[i])));
+        copy_for_sort(
+            *std::static_pointer_cast<LoggingDatatypeDecl>(decls[i]))));
   }
   return res;
 }
@@ -236,6 +238,20 @@ std::shared_ptr<LoggingDatatypeConstructorDecl> LoggingSolver::find_constructor(
     }
   }
   throw IncorrectUsageException("Constructor " + name + " not found");
+}
+
+std::shared_ptr<LoggingDatatypeDecl> LoggingSolver::copy_for_sort(
+    const LoggingDatatypeDecl & d) const
+{
+  auto copy = std::make_shared<LoggingDatatypeDecl>(d.wrapped_decl, d.name);
+  for (const auto & con : d.constructors)
+  {
+    auto con_copy = std::make_shared<LoggingDatatypeConstructorDecl>(
+        con->wrapped_decl, con->name);
+    con_copy->selectors = con->selectors;
+    copy->constructors.push_back(con_copy);
+  }
+  return copy;
 }
 
 Term LoggingSolver::make_component(const Term & wrapped,
