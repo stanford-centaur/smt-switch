@@ -42,65 +42,84 @@ extern "C" {
 
 namespace smt {
 
-/* Boolector op mappings */
-// Boolector PrimOp mappings
-typedef BoolectorNode * (*un_fun)(Btor *, BoolectorNode *);
-typedef BoolectorNode * (*bin_fun)(Btor *, BoolectorNode *, BoolectorNode *);
-typedef BoolectorNode * (*tern_fun)(Btor *,
-                                    BoolectorNode *,
-                                    BoolectorNode *,
-                                    BoolectorNode *);
+/** The node of po applied to one argument in a single Boolector call,
+ *  or nullptr where Boolector has none
+ */
+static BoolectorNode * unary_op(Btor * btor, PrimOp po, BoolectorNode * a)
+{
+  switch (po)
+  {
+    case Not: return boolector_not(btor, a);
+    case BVNot: return boolector_not(btor, a);
+    case BVNeg: return boolector_neg(btor, a);
+    default: return nullptr;
+  }
+}
 
-const std::unordered_map<PrimOp, un_fun> unary_ops({ { Not, boolector_not },
-                                                     { BVNot, boolector_not },
-                                                     { BVNeg,
-                                                       boolector_neg } });
+/** The node of po applied to two arguments in a single Boolector call,
+ *  or nullptr where Boolector has none
+ */
+static BoolectorNode * binary_op(Btor * btor,
+                                 PrimOp po,
+                                 BoolectorNode * a,
+                                 BoolectorNode * b)
+{
+  switch (po)
+  {
+    case And: return boolector_and(btor, a, b);
+    case Or: return boolector_or(btor, a, b);
+    case Xor: return boolector_xor(btor, a, b);
+    case Implies: return boolector_implies(btor, a, b);
+    case Equal: return boolector_eq(btor, a, b);
+    case Distinct: return boolector_ne(btor, a, b);
+    case Concat: return boolector_concat(btor, a, b);
+    case BVAnd: return boolector_and(btor, a, b);
+    case BVOr: return boolector_or(btor, a, b);
+    case BVXor: return boolector_xor(btor, a, b);
+    case BVNand: return boolector_nand(btor, a, b);
+    case BVNor: return boolector_nor(btor, a, b);
+    case BVXnor: return boolector_xnor(btor, a, b);
+    case BVAdd: return boolector_add(btor, a, b);
+    case BVSub: return boolector_sub(btor, a, b);
+    case BVMul: return boolector_mul(btor, a, b);
+    case BVUdiv: return boolector_udiv(btor, a, b);
+    case BVSdiv: return boolector_sdiv(btor, a, b);
+    case BVUrem: return boolector_urem(btor, a, b);
+    case BVSrem: return boolector_srem(btor, a, b);
+    case BVSmod: return boolector_smod(btor, a, b);
+    case BVShl: return boolector_sll(btor, a, b);
+    case BVAshr: return boolector_sra(btor, a, b);
+    case BVLshr: return boolector_srl(btor, a, b);
+    case BVComp: return boolector_eq(btor, a, b);
+    case BVUlt: return boolector_ult(btor, a, b);
+    case BVUle: return boolector_ulte(btor, a, b);
+    case BVUgt: return boolector_ugt(btor, a, b);
+    case BVUge: return boolector_ugte(btor, a, b);
+    case BVSlt: return boolector_slt(btor, a, b);
+    case BVSle: return boolector_slte(btor, a, b);
+    case BVSgt: return boolector_sgt(btor, a, b);
+    case BVSge: return boolector_sgte(btor, a, b);
+    case Select: return boolector_read(btor, a, b);
+    default: return nullptr;
+  }
+}
 
-// Indexed Operators are implemented inline for make_term
-const std::unordered_map<PrimOp, bin_fun> binary_ops(
-    { { And, boolector_and },
-      { Or, boolector_or },
-      { Xor, boolector_xor },
-      { Implies, boolector_implies },
-      { Equal, boolector_eq },
-      { Distinct, boolector_ne },
-      { Concat, boolector_concat },
-      // Indexed Op: Extract
-      { BVAnd, boolector_and },
-      { BVOr, boolector_or },
-      { BVXor, boolector_xor },
-      { BVNand, boolector_nand },
-      { BVNor, boolector_nor },
-      { BVXnor, boolector_xnor },
-      { BVComp, boolector_eq },
-      { BVAdd, boolector_add },
-      { BVSub, boolector_sub },
-      { BVMul, boolector_mul },
-      { BVUdiv, boolector_udiv },
-      { BVSdiv, boolector_sdiv },
-      { BVUrem, boolector_urem },
-      { BVSrem, boolector_srem },
-      { BVSmod, boolector_smod },
-      { BVShl, boolector_sll },
-      { BVAshr, boolector_sra },
-      { BVLshr, boolector_srl },
-      { BVUlt, boolector_ult },
-      { BVUle, boolector_ulte },
-      { BVUgt, boolector_ugt },
-      { BVUge, boolector_ugte },
-      { BVSlt, boolector_slt },
-      { BVSle, boolector_slte },
-      { BVSgt, boolector_sgt },
-      { BVSge, boolector_sgte },
-      // Indexed Op: Zero_Extend
-      // Indexed Op: Sign_Extend
-      // Indexed Op: Repeat
-      // Indexed Op: Rotate_Left
-      // Indexed Op: Rotate_Right
-      { Select, boolector_read } });
-
-const std::unordered_map<PrimOp, tern_fun> ternary_ops(
-    { { Ite, boolector_cond }, { Store, boolector_write } });
+/** The node of po applied to three arguments in a single Boolector call,
+ *  or nullptr where Boolector has none
+ */
+static BoolectorNode * ternary_op(Btor * btor,
+                                  PrimOp po,
+                                  BoolectorNode * a,
+                                  BoolectorNode * b,
+                                  BoolectorNode * c)
+{
+  switch (po)
+  {
+    case Ite: return boolector_cond(btor, a, b, c);
+    case Store: return boolector_write(btor, a, b, c);
+    default: return nullptr;
+  }
+}
 
 const std::unordered_set<std::string> supported_logics(
     { "QF_BV", "QF_ABV", "QF_UFBV", "QF_AUFBV", "BV", "UFBV", "ABV", "AUFBV" });
@@ -684,7 +703,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     nodes.push_back(backend_pointer_cast<BoolectorTerm>(t)->node);
   }
 
-  BoolectorNode * btor_res;
+  BoolectorNode * btor_res = nullptr;
   if (size == 1)
   {
     if (op.prim_op == Extract)
@@ -725,14 +744,13 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     }
     else if (!op.num_idx)
     {
-      auto it = unary_ops.find(op.prim_op);
-      if (it == unary_ops.end())
+      btor_res = unary_op(btor.get(), op.prim_op, nodes[0]);
+      if (!btor_res)
       {
         throw IncorrectUsageException(
             to_string(op.prim_op)
             + " unsupported or can't be applied to a single term.");
       }
-      btor_res = it->second(btor.get(), nodes[0]);
     }
     else
     {
@@ -762,24 +780,27 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
             : boolector_exists(
                   btor.get(), nodes.data(), size - 1, nodes.back());
   }
-  else if (size == 2 && binary_ops.find(op.prim_op) != binary_ops.end())
-  {
-    btor_res = binary_ops.at(op.prim_op)(btor.get(), nodes[0], nodes[1]);
-  }
-  else if (size == 3 && ternary_ops.find(op.prim_op) != ternary_ops.end())
-  {
-    btor_res =
-        ternary_ops.at(op.prim_op)(btor.get(), nodes[0], nodes[1], nodes[2]);
-  }
   else if (size == 2)
   {
-    throw IncorrectUsageException(
-        to_string(op.prim_op)
-        + " unsupported or can't be applied to two terms.");
+    btor_res = binary_op(btor.get(), op.prim_op, nodes[0], nodes[1]);
+    if (!btor_res)
+    {
+      throw IncorrectUsageException(
+          to_string(op.prim_op)
+          + " unsupported or can't be applied to two terms.");
+    }
   }
   else
   {
-    return make_nary_term(this, op, terms);
+    if (size == 3)
+    {
+      btor_res =
+          ternary_op(btor.get(), op.prim_op, nodes[0], nodes[1], nodes[2]);
+    }
+    if (!btor_res)
+    {
+      return make_nary_term(this, op, terms);
+    }
   }
 
   return std::make_shared<BoolectorTerm>(btor, btor_res);
