@@ -92,26 +92,26 @@ simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 \(                    { return SmtLibParser::make_LP(loc); }
 \)                    { return SmtLibParser::make_RP(loc); }
-_                     { return SmtLibParser::make_US(loc); }
-!                     { return SmtLibParser::make_EP(loc); }
+_                     { return SmtLibParser::make_US(yytext, loc); }
+!                     { return SmtLibParser::make_EP(yytext, loc); }
 
-set-logic             { return SmtLibParser::make_SETLOGIC(loc); }
-set-option            { return SmtLibParser::make_SETOPT(loc); }
-set-info              { return SmtLibParser::make_SETINFO(loc); }
-declare-const         { return SmtLibParser::make_DECLARECONST(loc); }
-declare-fun           { return SmtLibParser::make_DECLAREFUN(loc); }
-declare-sort          { return SmtLibParser::make_DECLARESORT(loc); }
-define-fun            { return SmtLibParser::make_DEFINEFUN(loc); }
-define-sort           { return SmtLibParser::make_DEFINESORT(loc); }
-assert                { return SmtLibParser::make_ASSERT(loc); }
-check-sat             { return SmtLibParser::make_CHECKSAT(loc); }
-check-sat-assuming    { return SmtLibParser::make_CHECKSATASSUMING(loc); }
-push                  { return SmtLibParser::make_PUSH(loc); }
-pop                   { return SmtLibParser::make_POP(loc); }
-exit                  { return SmtLibParser::make_EXIT(loc); }
-get-value[ \t\r]*     { return SmtLibParser::make_GETVALUE(loc); }
-get-unsat-assumptions { return SmtLibParser::make_GETUNSATASSUMP(loc); }
-echo                  { return SmtLibParser::make_ECHO(loc); }
+set-logic             { return SmtLibParser::make_SETLOGIC(yytext, loc); }
+set-option            { return SmtLibParser::make_SETOPT(yytext, loc); }
+set-info              { return SmtLibParser::make_SETINFO(yytext, loc); }
+declare-const         { return SmtLibParser::make_DECLARECONST(yytext, loc); }
+declare-fun           { return SmtLibParser::make_DECLAREFUN(yytext, loc); }
+declare-sort          { return SmtLibParser::make_DECLARESORT(yytext, loc); }
+define-fun            { return SmtLibParser::make_DEFINEFUN(yytext, loc); }
+define-sort           { return SmtLibParser::make_DEFINESORT(yytext, loc); }
+assert                { return SmtLibParser::make_ASSERT(yytext, loc); }
+check-sat             { return SmtLibParser::make_CHECKSAT(yytext, loc); }
+check-sat-assuming    { return SmtLibParser::make_CHECKSATASSUMING(yytext, loc); }
+push                  { return SmtLibParser::make_PUSH(yytext, loc); }
+pop                   { return SmtLibParser::make_POP(yytext, loc); }
+exit                  { return SmtLibParser::make_EXIT(yytext, loc); }
+get-value             { return SmtLibParser::make_GETVALUE(yytext, loc); }
+get-unsat-assumptions { return SmtLibParser::make_GETUNSATASSUMP(yytext, loc); }
+echo                  { return SmtLibParser::make_ECHO(yytext, loc); }
 
 \"(\\.|[^\"\\])*\"    {
                         char * noquotes = yytext;
@@ -133,8 +133,8 @@ echo                  { return SmtLibParser::make_ECHO(loc); }
 [0-9]+\.[0-9]+        { return SmtLibParser::make_FLOAT(yytext, loc); }
 #b[01]+               { yytext = yytext + 2; return SmtLibParser::make_BITSTR(yytext, loc); }
 #x[0-9a-fA-F]+        { yytext = yytext + 2; return SmtLibParser::make_HEXSTR(yytext, loc); }
-as[ \t\r\n]+const     { return SmtLibParser::make_ASCONST(loc); }
-let                   { return SmtLibParser::make_LET(loc); }
+as[ \t\r\n]+const     { return SmtLibParser::make_ASCONST("as const", loc); }
+let                   { return SmtLibParser::make_LET(yytext, loc); }
 
 \:{simplesymbol}      { return SmtLibParser::make_KEYWORD(++yytext, loc); }
 

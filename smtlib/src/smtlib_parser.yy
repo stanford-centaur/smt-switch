@@ -78,21 +78,20 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 // Literals, with their text
 %token <std::string> NAT FLOAT BITSTR HEXSTR QUOTESTRING
 
-// Command names
-%token SETLOGIC SETOPT SETINFO
-%token DECLARECONST DECLAREFUN DECLARESORT DEFINEFUN DEFINESORT
-%token ASSERT CHECKSAT CHECKSATASSUMING PUSH POP EXIT
-%token GETVALUE GETUNSATASSUMP ECHO
+// Command names, with their text
+%token <std::string> SETLOGIC SETOPT SETINFO
+%token <std::string> DECLARECONST DECLAREFUN DECLARESORT DEFINEFUN DEFINESORT
+%token <std::string> ASSERT CHECKSAT CHECKSATASSUMING PUSH POP EXIT
+%token <std::string> GETVALUE GETUNSATASSUMP ECHO
 
-// Reserved words of terms: forall/exists, with its text, as const, and let
-%token <std::string> QUANTIFIER
-%token ASCONST LET
+// Reserved words of terms, with their text: forall/exists, as const, and let
+%token <std::string> QUANTIFIER ASCONST LET
 
-// Punctuation
+// Punctuation, where _ and ! are reserved words, with their text
 %token LP "("
 %token RP ")"
-%token US "_"
-%token EP "!"
+%token <std::string> US "_"
+%token <std::string> EP "!"
 
 // The types of the nonterminals' values; the other nonterminals have none
 %nterm <Term> term_s_expr
@@ -112,6 +111,7 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 %nterm <std::string> s_expr
 %nterm <std::string> s_expr_list
 %nterm <std::string> nested_s_expr
+%nterm <std::string> reserved_word
 %nterm <std::pair<std::string, std::string>> attribute
 %nterm <std::vector<std::pair<std::string, std::string>>> attributes
 
@@ -463,7 +463,33 @@ nested_s_expr:
 | QUOTESTRING       { $$ = '"' + $1 + '"'; }
 | SYMBOL            { $$ = smtlib_quote_symbol($1); }
 | KEYWORD           { $$ = ':' + $1; }
+| reserved_word
 | LP s_expr_list RP { $$ = "(" + $2 + ")"; }
+;
+
+reserved_word:
+  US
+| EP
+| SETLOGIC
+| SETOPT
+| SETINFO
+| DECLARECONST
+| DECLAREFUN
+| DECLARESORT
+| DEFINEFUN
+| DEFINESORT
+| ASSERT
+| CHECKSAT
+| CHECKSATASSUMING
+| PUSH
+| POP
+| EXIT
+| GETVALUE
+| GETUNSATASSUMP
+| ECHO
+| QUANTIFIER
+| ASCONST
+| LET
 ;
 
 attribute:
