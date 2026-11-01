@@ -1,0 +1,8 @@
+(set-info :set (set-logic set-option set-info))
+(set-info :declare (declare-const declare-fun declare-sort))
+(set-info :define (define-fun define-sort))
+(set-info :check (assert check-sat check-sat-assuming))
+(set-info :scope (push pop exit))
+(set-info :get (get-value get-unsat-assumptions echo))
+(set-info :terms (forall exists let (as const Int)))
+(set-info :indexed ((_ bv5 8) (! x :named y)))

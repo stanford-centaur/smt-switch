@@ -634,6 +634,19 @@ TEST_P(AttributeValues, TopLevelStringOrSymbolIsItsText)
   EXPECT_EQ(info["symbol"], "a b");
 }
 
+TEST_P(AttributeValues, ReservedWordsInLists)
+{
+  unordered_map<string, string> reserved = values_in("reserved-words.smt2");
+  EXPECT_EQ(reserved["set"], "(set-logic set-option set-info)");
+  EXPECT_EQ(reserved["declare"], "(declare-const declare-fun declare-sort)");
+  EXPECT_EQ(reserved["define"], "(define-fun define-sort)");
+  EXPECT_EQ(reserved["check"], "(assert check-sat check-sat-assuming)");
+  EXPECT_EQ(reserved["scope"], "(push pop exit)");
+  EXPECT_EQ(reserved["get"], "(get-value get-unsat-assumptions echo)");
+  EXPECT_EQ(reserved["terms"], "(forall exists let (as const Int))");
+  EXPECT_EQ(reserved["indexed"], "((_ bv5 8) (! x :named y))");
+}
+
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     AttributeValues,
