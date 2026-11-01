@@ -665,6 +665,29 @@ TEST_P(GenericSolverTests, UsableAfterIllSortedBvTerm)
   EXPECT_EQ(gs->get_value(x), bv_one);
 }
 
+TEST_P(GenericSolverTests, SymbolsPrintInSmtlibSpelling)
+{
+  Sort bool_sort = gs->make_sort(BOOL);
+  EXPECT_EQ(gs->make_symbol("x", bool_sort)->to_string(), "x");
+  EXPECT_EQ(gs->make_symbol("a b", bool_sort)->to_string(), "|a b|");
+  EXPECT_EQ(gs->get_symbol("a b")->to_string(), "|a b|");
+}
+
+TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
+{
+  if (binary == GenericBinary::Bitwuzla)
+  {
+    GTEST_SKIP() << "the Bitwuzla binary refuses a reserved word as a "
+                    "declared name even in bars, as in |let|";
+  }
+  // a bare let would be a syntax error to the binary
+  Term let = gs->make_symbol("let", gs->make_sort(BOOL));
+  EXPECT_EQ(let->to_string(), "|let|");
+  gs->assert_formula(let);
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(let), gs->make_term(true));
+}
+
 TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
 {
   // plenty for every command but the factoring below, which no binary
