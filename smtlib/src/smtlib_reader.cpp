@@ -368,6 +368,24 @@ void SmtLibReader::set_info(const std::string & /* key */,
   // No-Op for set-info by default
 }
 
+void SmtLibReader::declare_fun(const std::string & name,
+                               SortVec domain,
+                               const Sort & sort)
+{
+  if (domain.empty())
+  {
+    new_symbol(name, sort);
+    return;
+  }
+  domain.push_back(sort);
+  new_symbol(name, solver_->make_sort(FUNCTION, domain));
+}
+
+void SmtLibReader::declare_sort(const std::string & name, std::uint64_t arity)
+{
+  SmtLibReader::define_sort(name, solver_->make_sort(name, arity));
+}
+
 void SmtLibReader::assert_formula(const Term & assertion)
 {
   solver_->assert_formula(assertion);
@@ -387,6 +405,28 @@ Result SmtLibReader::check_sat_assuming(const TermVec & assumptions)
   return r;
 }
 
+void SmtLibReader::get_value(const TermVec & terms)
+{
+  std::cout << "(";
+  for (const auto & t : terms)
+  {
+    std::cout << "(" << t << " " << solver_->get_value(t) << ") " << std::endl;
+  }
+  std::cout << ")" << std::endl;
+}
+
+void SmtLibReader::get_unsat_assumptions()
+{
+  UnorderedTermSet core;
+  solver_->get_unsat_assumptions(core);
+  std::cout << "(";
+  for (const auto & c : core)
+  {
+    std::cout << c << std::endl;
+  }
+  std::cout << ")" << std::endl;
+}
+
 void SmtLibReader::push(std::uint64_t num)
 {
   for (std::size_t i = 0; i < num; ++i)
@@ -403,6 +443,11 @@ void SmtLibReader::pop(std::uint64_t num)
     global_symbols_.pop_scope();
   }
   solver_->pop(num);
+}
+
+void SmtLibReader::echo(const std::string & text)
+{
+  std::cout << text << std::endl;
 }
 
 void SmtLibReader::term_attribute(const Term & /* term */,
@@ -532,6 +577,22 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
   return solver_->make_term(po, args);
 }
 
+Term SmtLibReader::apply_symbol(const std::string & name, TermVec args)
+{
+  PrimOp po = lookup_primop(name);
+  if (po != NUM_OPS_AND_NULL)
+  {
+    return apply_primop(po, std::move(args));
+  }
+  Term uf = lookup_symbol(name);
+  if (uf)
+  {
+    args.insert(args.begin(), uf);
+    return solver_->make_term(Apply, args);
+  }
+  return apply_define_fun(name, args);
+}
+
 SortKind SmtLibReader::lookup_sortkind(const std::string & str) const
 {
   SortKind sk = NUM_SORT_KINDS;
@@ -653,6 +714,68 @@ Sort SmtLibReader::lookup_sort(const std::string & name) const
     throw IncorrectUsageException("Unknown defined sort symbol " + name);
   }
   return it->second;
+}
+
+Sort SmtLibReader::make_sort(const std::string & name) const
+{
+  SortKind sk = lookup_sortkind(name);
+  if (sk == NUM_SORT_KINDS || sk == UNINTERPRETED)
+  {
+    return lookup_sort(name);
+  }
+  return solver_->make_sort(sk);
+}
+
+Sort SmtLibReader::make_sort(const std::string & name,
+                             std::uint64_t index) const
+{
+  SortKind sk = lookup_sortkind(name);
+  if (sk == NUM_SORT_KINDS)
+  {
+    return Sort();
+  }
+  return solver_->make_sort(sk, index);
+}
+
+Sort SmtLibReader::make_sort(const std::string & name,
+                             const SortVec & sorts) const
+{
+  if (lookup_sortkind(name) == ARRAY)
+  {
+    if (sorts.size() != 2)
+    {
+      return Sort();
+    }
+    return solver_->make_sort(ARRAY, sorts[0], sorts[1]);
+  }
+  return solver_->make_sort(lookup_sort(name), sorts);
+}
+
+Term SmtLibReader::make_bv_literal(const std::string & name,
+                                   std::uint64_t width) const
+{
+  if (name.size() < 3 || name.compare(0, 2, "bv") != 0
+      || name.find_first_not_of("0123456789", 2) != std::string::npos)
+  {
+    return Term();
+  }
+  return solver_->make_term(name.substr(2), solver_->make_sort(BV, width), 10);
+}
+
+Term SmtLibReader::make_bv_value(const std::string & digits,
+                                 std::uint64_t base) const
+{
+  std::uint64_t width = digits.size() * (base == 16 ? 4 : 1);
+  return solver_->make_term(digits, solver_->make_sort(BV, width), base);
+}
+
+Term SmtLibReader::make_numeral(const std::string & n) const
+{
+  SortKind sk = lookup_sortkind("Int") == NUM_SORT_KINDS
+                        && lookup_sortkind("Real") == REAL
+                    ? REAL
+                    : INT;
+  return solver_->make_term(n, solver_->make_sort(sk));
 }
 
 Term SmtLibReader::create_param(const std::string & name, const Sort & sort)

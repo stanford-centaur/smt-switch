@@ -15,6 +15,7 @@
 %define api.prefix {smtlib}
 %define api.token.constructor
 %define api.token.raw
+%define api.value.automove
 %define api.value.type variant
 %define parse.error detailed
 %define parse.lac full
@@ -41,7 +42,6 @@ class SmtLibScanner;
 // Emitted into smtlib_parser.cpp only, after it includes the header.
 %code {
 #include <cstdint>
-#include <iostream>
 #include <stdexcept>
 
 #include "smtlib_reader.h"
@@ -103,6 +103,7 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 %nterm <TermVec> sorted_arg_list
 %nterm <TermVec> sorted_param_list
 %nterm <Op> indexed_op
+%nterm <PrimOp> indexed_name
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
@@ -115,7 +116,19 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 %nterm <std::pair<std::string, std::string>> attribute
 %nterm <std::vector<std::pair<std::string, std::string>>> attributes
 
+%start commands
+
 %%
+
+// These open and close a scope for the names an alternative binds, such as
+// define-fun's arguments, around them and the body that uses them.
+open_scope:
+  %empty { drv.push_scope(); }
+;
+
+close_scope:
+  %empty { drv.pop_scope(); }
+;
 
 // An alternative without an action gives its rule the value of its first
 // symbol, as $$ = $1, or no value if the rule has none. An empty
@@ -129,41 +142,16 @@ commands:
 
 command:
   LP SETLOGIC SYMBOL RP          { drv.set_logic($3); }
-| LP SETOPT attribute RP         { drv.set_opt($3.first, $3.second); }
-| LP SETINFO attribute RP        { drv.set_info($3.first, $3.second); }
+| LP SETOPT attribute RP         { auto [k, v] = $3; drv.set_opt(k, v); }
+| LP SETINFO attribute RP        { auto [k, v] = $3; drv.set_info(k, v); }
 | LP DECLARECONST SYMBOL sort RP { drv.new_symbol($3, $4); }
 | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
-  {
-    Sort symsort;
-    if ($5.size())
-    {
-      SortVec & vec = $5;
-      vec.push_back($7);
-      symsort = drv.solver()->make_sort(FUNCTION, vec);
-    }
-    else
-    {
-      symsort = $7;
-    }
-    drv.new_symbol($3, symsort);
-  }
-| LP DECLARESORT SYMBOL NAT RP
-  { drv.define_sort($3, drv.solver()->make_sort($3, to_nat(@4, $4))); }
-| LP DEFINEFUN
-  {
-    // new scope for arguments
-    drv.push_scope();
-  }
-  SYMBOL LP sorted_arg_list RP sort term_s_expr RP
-  {
-    drv.define_fun($4, $9, $6);
-    drv.pop_scope();
-  }
+  { drv.declare_fun($3, $5, $7); }
+| LP DECLARESORT SYMBOL NAT RP   { drv.declare_sort($3, to_nat(@4, $4)); }
+| LP DEFINEFUN open_scope SYMBOL LP sorted_arg_list RP sort term_s_expr
+  close_scope RP                 { drv.define_fun($4, $9, $6); }
 | LP DEFINESORT SYMBOL LP RP sort RP
-  {
-    // only supports 0-arity define-sorts
-    drv.define_sort($3, $6);
-  }
+  { drv.define_sort($3, $6); }
 | LP ASSERT term_s_expr RP       { drv.assert_formula($3); }
 | LP CHECKSAT RP                 { drv.check_sat(); }
 | LP CHECKSATASSUMING LP term_s_expr_list RP RP
@@ -174,212 +162,106 @@ command:
 | LP POP NAT RP                  { drv.pop(to_nat(@3, $3)); }
 | LP EXIT RP                     { YYACCEPT; }
 | LP GETVALUE LP term_s_expr_list RP RP
-  {
-    std::cout << "(";
-    for (const auto & t : $4)
-    {
-      std::cout << "(" << t << " " << drv.solver()->get_value(t) << ") "
-                << std::endl;
-    }
-    std::cout << ")" << std::endl;
-  }
-| LP GETUNSATASSUMP RP
-  {
-    UnorderedTermSet core;
-    drv.solver()->get_unsat_assumptions(core);
-    std::cout << "(";
-    for (const auto & c : core)
-    {
-      std::cout << c << std::endl;
-    }
-    std::cout << ")" << std::endl;
-  }
-| LP ECHO stringlit RP           { std::cout << $3 << std::endl; }
+  { drv.get_value($4); }
+| LP GETUNSATASSUMP RP           { drv.get_unsat_assumptions(); }
+| LP ECHO stringlit RP           { drv.echo($3); }
 ;
 
 term_s_expr:
   atom
 | LP indexed_op term_s_expr_list RP { $$ = drv.solver()->make_term($2, $3); }
-| LP SYMBOL term_s_expr_list RP
-  {
-    PrimOp po;
-    Term uf;
-
-    // check if it's a known operator in the given logic
-    if ((po = drv.lookup_primop($2)) != NUM_OPS_AND_NULL)
-    {
-      $$ = drv.apply_primop(po, std::move($3));
-    }
-    else if ((uf = drv.lookup_symbol($2)))
-    {
-      TermVec vec({ uf });
-      vec.insert(vec.end(), $3.begin(), $3.end());
-      $$ = drv.solver()->make_term(Apply, vec);
-    }
-    else
-    {
-      $$ = drv.apply_define_fun($2, $3);
-    }
-  }
+| LP SYMBOL term_s_expr_list RP     { $$ = drv.apply_symbol($2, $3); }
 | LP LP ASCONST sort RP atom RP     { $$ = drv.solver()->make_term($6, $4); }
-| LP QUANTIFIER LP
+| LP QUANTIFIER LP open_scope sorted_param_list RP term_s_expr close_scope RP
   {
-    // new scope for the parameters
-    drv.push_scope();
+    TermVec params = $5;
+    params.push_back($7);  // the body follows the parameters in smt-switch
+    $$ = drv.solver()->make_term(drv.lookup_primop($2), params);
   }
-  sorted_param_list RP term_s_expr RP
-  {
-    PrimOp po = drv.lookup_primop($2);
-    // smt-switch takes all the parameters followed by the body
-    $5.push_back($7);
-    $$ = drv.solver()->make_term(po, $5);
-    drv.pop_scope();
-  }
-| LP LET
-  {
-    // new scope for the bindings
-    drv.push_scope();
-  }
-  LP let_term_bindings RP term_s_expr RP
-  {
-    drv.pop_scope();
-    $$ = $7;
-  }
+| LP LET open_scope LP let_term_bindings RP term_s_expr close_scope RP
+  { $$ = $7; }
 | LP EP term_s_expr attributes RP
   {
+    $$ = $3;
     for (const auto & attr : $4)
     {
-      drv.term_attribute($3, attr.first, attr.second);
+      drv.term_attribute($$, attr.first, attr.second);
     }
-    $$ = $3;
   }
 ;
 
 term_s_expr_list:
-  %empty {}
-| term_s_expr_list term_s_expr
-  {
-    $1.push_back($2);
-    $$ = std::move($1);
-  }
+  %empty                       {}
+| term_s_expr_list term_s_expr { $$ = $1; $$.push_back($2); }
 ;
 
 atom:
   SYMBOL
   {
-    Term sym = drv.lookup_symbol($1);
-    if (!sym)
+    const std::string & name = $1;
+    $$ = drv.lookup_symbol(name);
+    if (!$$)
     {
-      throw syntax_error(@1, "Unrecognized symbol: " + $1);
+      throw syntax_error(@1, "Unrecognized symbol: " + name);
     }
-    $$ = sym;
   }
 | FLOAT { $$ = drv.solver()->make_term($1, drv.solver()->make_sort(REAL)); }
-| NAT
-  {
-    // in a logic of reals without integers, numerals are reals
-    SortKind sk = drv.lookup_sortkind("Int") == NUM_SORT_KINDS
-                          && drv.lookup_sortkind("Real") == REAL
-                      ? REAL
-                      : INT;
-    $$ = drv.solver()->make_term($1, drv.solver()->make_sort(sk));
-  }
+| NAT   { $$ = drv.make_numeral($1); }
 | bvconst
 | QUOTESTRING
   { $$ = drv.solver()->make_term($1, false, drv.solver()->make_sort(STRING)); }
 ;
 
 bvconst:
-  BITSTR
-  {
-    Sort bvsort = drv.solver()->make_sort(BV, $1.length());
-    $$ = drv.solver()->make_term($1, bvsort, 2);
-  }
-| HEXSTR
-  {
-    Sort bvsort = drv.solver()->make_sort(BV, 4 * $1.length());
-    $$ = drv.solver()->make_term($1, bvsort, 16);
-  }
+  BITSTR { $$ = drv.make_bv_value($1, 2); }
+| HEXSTR { $$ = drv.make_bv_value($1, 16); }
 | indprefix SYMBOL NAT RP
   {
-    // bvN is a symbol like any other unless indexed, as in (_ bv5 8)
     const std::string & name = $2;
-    if (name.size() < 3 || name.compare(0, 2, "bv") != 0
-        || name.find_first_not_of("0123456789", 2) != std::string::npos)
+    $$ = drv.make_bv_literal(name, to_nat(@3, $3));
+    if (!$$)
     {
       throw syntax_error(@2, "Unknown indexed literal: " + name);
     }
-    Sort bvsort = drv.solver()->make_sort(BV, to_nat(@3, $3));
-    $$ = drv.solver()->make_term(name.substr(2), bvsort, 10);
   }
 ;
 
 sort:
-  SYMBOL
-  {
-    SortKind sk = drv.lookup_sortkind($1);
-    if (sk == NUM_SORT_KINDS || sk == UNINTERPRETED)
-    {
-      $$ = drv.lookup_sort($1);
-    }
-    else
-    {
-      $$ = drv.solver()->make_sort(sk);
-    }
-  }
+  SYMBOL { $$ = drv.make_sort($1); }
 | indprefix SYMBOL NAT RP
   {
-    SortKind sk = drv.lookup_sortkind($2);
-    if (sk == NUM_SORT_KINDS)
+    const std::string & name = $2;
+    $$ = drv.make_sort(name, to_nat(@3, $3));
+    if (!$$)
     {
-      throw syntax_error(@2, "Unrecognized sort: " + $2);
+      throw syntax_error(@2, "Unrecognized sort: " + name);
     }
-    $$ = drv.solver()->make_sort(sk, to_nat(@3, $3));
   }
 | LP SYMBOL sort_list RP
   {
-    SortKind sk = drv.lookup_sortkind($2);
-    if (sk == ARRAY)
+    $$ = drv.make_sort($2, $3);
+    if (!$$)
     {
-      if ($3.size() != 2)
-      {
-        throw syntax_error(@3, "Array takes an index and an element sort");
-      }
-      $$ = drv.solver()->make_sort(sk, $3[0], $3[1]);
-    }
-    else
-    {
-      Sort sort_con = drv.lookup_sort($2);
-      $$ = drv.solver()->make_sort(sort_con, $3);
+      throw syntax_error(@3, "Array takes an index and an element sort");
     }
   }
 ;
 
 sort_list:
-  %empty {}
-| sort_list sort
-  {
-    $1.push_back($2);
-    $$ = std::move($1);
-  }
+  %empty         {}
+| sort_list sort { $$ = $1; $$.push_back($2); }
 ;
 
 sorted_arg_list:
   %empty {}
 | sorted_arg_list LP SYMBOL sort RP
-  {
-    $1.push_back(drv.register_arg($3, $4));
-    $$ = std::move($1);
-  }
+  { $$ = $1; $$.push_back(drv.register_arg($3, $4)); }
 ;
 
 sorted_param_list:
   %empty {}
 | sorted_param_list LP SYMBOL sort RP
-  {
-    $1.push_back(drv.create_param($3, $4));
-    $$ = std::move($1);
-  }
+  { $$ = $1; $$.push_back(drv.create_param($3, $4)); }
 ;
 
 let_term_bindings:
@@ -388,23 +270,19 @@ let_term_bindings:
 ;
 
 indexed_op:
-  indprefix SYMBOL NAT RP
+  indexed_name NAT RP     { $$ = Op($1, to_nat(@2, $2)); }
+| indexed_name NAT NAT RP { $$ = Op($1, to_nat(@2, $2), to_nat(@3, $3)); }
+;
+
+indexed_name:
+  indprefix SYMBOL
   {
-    PrimOp po = drv.lookup_primop($2);
-    if (po == NUM_OPS_AND_NULL)
+    const std::string & name = $2;
+    $$ = drv.lookup_primop(name);
+    if ($$ == NUM_OPS_AND_NULL)
     {
-      throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
+      throw syntax_error(@2, "Unexpected symbol in indexed operator: " + name);
     }
-    $$ = Op(po, to_nat(@3, $3));
-  }
-| indprefix SYMBOL NAT NAT RP
-  {
-    PrimOp po = drv.lookup_primop($2);
-    if (po == NUM_OPS_AND_NULL)
-    {
-      throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
-    }
-    $$ = Op(po, to_nat(@3, $3), to_nat(@4, $4));
   }
 ;
 
@@ -447,12 +325,12 @@ s_expr_list:
   %empty {}
 | s_expr_list nested_s_expr
   {
-    if (!$1.empty())
+    $$ = $1;
+    if (!$$.empty())
     {
-      $1 += ' ';
+      $$ += ' ';
     }
-    $1 += $2;
-    $$ = std::move($1);
+    $$ += $2;
   }
 ;
 
@@ -498,10 +376,6 @@ attribute:
 ;
 
 attributes:
-  %empty {}
-| attributes attribute
-  {
-    $1.push_back(std::move($2));
-    $$ = std::move($1);
-  }
+  %empty               {}
+| attributes attribute { $$ = $1; $$.push_back($2); }
 ;

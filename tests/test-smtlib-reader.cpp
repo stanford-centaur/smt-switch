@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -650,6 +651,98 @@ TEST_P(AttributeValues, ReservedWordsInLists)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     AttributeValues,
+    testing::ValuesIn(available_non_generic_solver_configurations()),
+    ConfigName());
+
+/** Records the overridable commands it reads that declare, define or
+ *  print, each as its name followed by its arguments */
+class CommandRecorder : public SmtLibReader
+{
+ public:
+  using SmtLibReader::SmtLibReader;
+
+  void declare_fun(const string & name,
+                   SortVec domain,
+                   const Sort & sort) override
+  {
+    vector<string> call = { "declare-fun", name };
+    for (const Sort & s : domain)
+    {
+      call.push_back(to_string(s->get_sort_kind()));
+    }
+    call.push_back(to_string(sort->get_sort_kind()));
+    calls.push_back(call);
+  }
+
+  void declare_sort(const string & name, std::uint64_t arity) override
+  {
+    calls.push_back({ "declare-sort", name, std::to_string(arity) });
+  }
+
+  void define_fun(const string & name,
+                  const Term & def,
+                  const TermVec & args) override
+  {
+    vector<string> call = { "define-fun", name };
+    for (const Term & a : args)
+    {
+      call.push_back(a->to_string());
+    }
+    call.push_back(def->to_string());
+    calls.push_back(call);
+  }
+
+  void define_sort(const string & name, const Sort & sort) override
+  {
+    calls.push_back({ "define-sort", name, to_string(sort->get_sort_kind()) });
+  }
+
+  void get_value(const TermVec & terms) override
+  {
+    vector<string> call = { "get-value" };
+    for (const Term & t : terms)
+    {
+      call.push_back(t->to_string());
+    }
+    calls.push_back(call);
+  }
+
+  void get_unsat_assumptions() override
+  {
+    calls.push_back({ "get-unsat-assumptions" });
+  }
+
+  void echo(const string & text) override { calls.push_back({ "echo", text }); }
+
+  vector<vector<string>> calls;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Commands);
+class Commands : public ::testing::Test,
+                 public ::testing::WithParamInterface<SolverConfiguration>
+{
+};
+
+TEST_P(Commands, OverridesReceiveEachCommand)
+{
+  SmtSolver s = create_solver(GetParam());
+  CommandRecorder reader(s);
+  reader.parse(string(STRFY(SMTLIB_TEST_RESOURCE_DIR))
+               + "/commands/overridable.smt2");
+  EXPECT_EQ(reader.calls,
+            (vector<vector<string>>{
+                { "declare-fun", "f", "BitVec", "BitVec", "BitVec" },
+                { "declare-sort", "U", "0" },
+                { "define-sort", "T", "BitVec" },
+                { "define-fun", "g", "a" },
+                { "get-value", "a", "a" },
+                { "get-unsat-assumptions" },
+                { "echo", "x y" } }));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Commands,
     testing::ValuesIn(available_non_generic_solver_configurations()),
     ConfigName());
 
