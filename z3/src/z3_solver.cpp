@@ -603,7 +603,7 @@ Term Z3Solver::make_term(const std::string val,
 
 Term Z3Solver::make_term(const Term & val, const Sort & sort) const
 {
-  std::shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(val);
+  std::shared_ptr<Z3Term> zterm = get_z3_term(val);
   std::shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
   if (zsort->is_function || zterm->is_function)
@@ -621,7 +621,7 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
 
 void Z3Solver::assert_formula(const Term & t)
 {
-  std::shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(t);
+  std::shared_ptr<Z3Term> zterm = get_z3_term(t);
   if (zterm->is_function)
   {
     throw IncorrectUsageException(
@@ -659,7 +659,7 @@ Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
   shared_ptr<Z3Term> za;
   for (auto a : assumptions)
   {
-    za = backend_pointer_cast<Z3Term>(a);
+    za = get_z3_term(a);
     if (za->is_function)
     {
       throw IncorrectUsageException(
@@ -700,7 +700,7 @@ void Z3Solver::do_pop(uint64_t num) { get_z3_solver()->pop(num); }
 
 Term Z3Solver::get_value(const Term & t) const
 {
-  shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(t);
+  shared_ptr<Z3Term> zterm = get_z3_term(t);
   if (zterm->is_function)
   {
     throw IncorrectUsageException("Cannot evaluate a function.");
@@ -719,7 +719,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
                                             Term & out_const_base) const
 {
   out_const_base = nullptr;
-  shared_ptr<Z3Term> zarr = backend_pointer_cast<Z3Term>(arr);
+  shared_ptr<Z3Term> zarr = get_z3_term(arr);
   if (!instance)
   {
     throw IncorrectUsageException(
@@ -962,7 +962,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
   if (size == 1)
   {
-    shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(terms[0]);
+    shared_ptr<Z3Term> zterm = get_z3_term(terms[0]);
 
     if (zterm->is_function)
     {
@@ -1049,7 +1049,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   // Z3 represents datatype constructors, testers and selectors as functions,
   // so applying one is an Apply
   if ((op == Apply_Constructor || op == Apply_Tester || op == Apply_Selector)
-      && backend_pointer_cast<Z3Term>(terms[0])->is_function)
+      && get_z3_term(terms[0])->is_function)
   {
     op = Op(Apply);
   }
@@ -1064,26 +1064,20 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   // the operands, leaving out the function an Apply applies
   vector<Z3_ast> zargs;
   zargs.reserve(size);
-  shared_ptr<Z3Term> zfirst;
   for (size_t i = op.prim_op == Apply ? 1 : 0; i < size; ++i)
   {
-    shared_ptr<Z3Term> zterm = backend_pointer_cast<Z3Term>(terms[i]);
+    shared_ptr<Z3Term> zterm = get_z3_term(terms[i]);
     if (zterm->is_function)
     {
       throw IncorrectUsageException("Cannot use a function as an argument to "
                                     + op.to_string());
     }
-    if (!zfirst)
-    {
-      zfirst = zterm;
-    }
-    check_context(zfirst->term, zterm->term);
     zargs.push_back(zterm->term);
   }
 
   if (op.prim_op == Apply)
   {
-    shared_ptr<Z3Term> zfun = backend_pointer_cast<Z3Term>(terms[0]);
+    shared_ptr<Z3Term> zfun = get_z3_term(terms[0]);
     if (!zfun->is_function)
     {
       string msg(
@@ -1157,15 +1151,15 @@ Term Z3Solver::substitute(const Term term,
   z3::expr_vector z3destinations(*ctx);
 
   // z3 counterpart of `term`
-  shared_ptr<Z3Term> z3term = backend_pointer_cast<Z3Term>(term);
+  shared_ptr<Z3Term> z3term = get_z3_term(term);
   z3::expr z3expr = to_expr(*ctx, z3term->term);
   // populate the z3 expr_vectors according to the substitution map
   for (auto p : substitution_map)
   {
     Term from_term = p.first;
     Term to_term = p.second;
-    shared_ptr<Z3Term> z3_from_term = backend_pointer_cast<Z3Term>(from_term);
-    shared_ptr<Z3Term> z3_to_term = backend_pointer_cast<Z3Term>(to_term);
+    shared_ptr<Z3Term> z3_from_term = get_z3_term(from_term);
+    shared_ptr<Z3Term> z3_to_term = get_z3_term(to_term);
     z3sources.push_back(z3_from_term->term);
     z3destinations.push_back(z3_to_term->term);
   }
@@ -1195,6 +1189,16 @@ std::shared_ptr<Z3Sort> Z3Solver::get_z3_sort(const Sort & s) const
     detail::throw_foreign_handle(s);
   }
   return zs;
+}
+
+std::shared_ptr<Z3Term> Z3Solver::get_z3_term(const Term & t) const
+{
+  std::shared_ptr<Z3Term> zt = backend_pointer_cast<Z3Term>(t);
+  if (zt->ctx != ctx)
+  {
+    detail::throw_foreign_handle(t);
+  }
+  return zt;
 }
 
 /* end Z3Solver implementation */
