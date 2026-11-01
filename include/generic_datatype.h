@@ -83,7 +83,8 @@ class GenericDatatype : public AbsDatatype
   // 'self-selector'. After a self selector is added to a datatype, it
   // holds a placeholder sort. This function is
   // called when the datatype's sort is created to replace the
-  // self-selector's placeholder sort with the actual datatype sort.
+  // placeholder sort in the datatype's copy of the self-selector with the
+  // actual datatype sort.
   void change_sort_of_selector(const Sort new_sort);
   std::hash<std::string> str_hash;
 

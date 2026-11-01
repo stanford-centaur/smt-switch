@@ -729,18 +729,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
 
 Sort Cvc5Solver::make_sort(const DatatypeDecl & d) const
 {
-  try
-  {
-    std::shared_ptr<Cvc5DatatypeDecl> cd =
-        backend_pointer_cast<Cvc5DatatypeDecl>(d);
-
-    return std::make_shared<Cvc5Sort>(
-        instance->tm.mkDatatypeSort(cd->datatypedecl));
-  }
-  catch (::cvc5::CVC5ApiException & e)
-  {
-    throw InternalSolverException(e.what());
-  }
+  return make_datatype_sorts({ d })[0];
 }
 
 DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
@@ -779,6 +768,7 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
     std::shared_ptr<Cvc5DatatypeConstructorDecl> ccon =
         backend_pointer_cast<Cvc5DatatypeConstructorDecl>(con);
     cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
+    cdt->constructors.push_back(ccon);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -899,6 +889,29 @@ Term Cvc5Solver::get_selector(const Sort & s,
   }
 }
 
+cvc5::DatatypeDecl Cvc5Solver::fresh_datatype_decl(
+    const Cvc5DatatypeDecl & d) const
+{
+  auto fresh = instance->tm.mkDatatypeDecl(d.get_name());
+  for (const auto & con : d.constructors)
+  {
+    auto fresh_con = instance->tm.mkDatatypeConstructorDecl(con->name);
+    for (const auto & sel : con->selectors)
+    {
+      if (sel.second.isNull())
+      {
+        fresh_con.addSelectorSelf(sel.first);
+      }
+      else
+      {
+        fresh_con.addSelector(sel.first, sel.second);
+      }
+    }
+    fresh.addConstructor(fresh_con);
+  }
+  return fresh;
+}
+
 SortVec Cvc5Solver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & decls) const
 {
@@ -907,17 +920,29 @@ SortVec Cvc5Solver::make_datatype_sorts(
     SortVec dt_sorts;
     dt_sorts.reserve(decls.size());
 
+    std::vector<std::shared_ptr<Cvc5DatatypeDecl>> cvc5_decl_wrappers;
     std::vector<cvc5::DatatypeDecl> cvc5_decls;
     cvc5_decls.reserve(decls.size());
     for (const auto & d : decls)
     {
-      cvc5_decls.push_back(
-          backend_pointer_cast<Cvc5DatatypeDecl>(d)->datatypedecl);
+      auto cd = backend_pointer_cast<Cvc5DatatypeDecl>(d);
+      // as SMT-LIB declares a datatype once
+      if (cd->used)
+      {
+        throw IncorrectUsageException("Datatype declaration " + cd->get_name()
+                                      + " was used for a sort already");
+      }
+      cvc5_decl_wrappers.push_back(cd);
+      cvc5_decls.push_back(fresh_datatype_decl(*cd));
     }
 
     for (const auto & csort : instance->tm.mkDatatypeSorts(cvc5_decls))
     {
       dt_sorts.push_back(std::make_shared<Cvc5Sort>(csort));
+    }
+    for (const auto & cd : cvc5_decl_wrappers)
+    {
+      cd->used = true;
     }
     return dt_sorts;
   }

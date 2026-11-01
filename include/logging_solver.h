@@ -114,6 +114,15 @@ class LoggingSolver : public AbsSmtSolver
   std::shared_ptr<LoggingDatatypeConstructorDecl> find_constructor(
       const Sort & s, const std::string & name) const;
 
+  /** A copy of a datatype declaration and of its constructors, for a sort
+   *  to keep, so that a constructor declaration changed or added to another
+   *  datatype later does not change the sort
+   *  @param d the declaration used for the sort
+   *  @return the copy
+   */
+  std::shared_ptr<LoggingDatatypeDecl> copy_for_sort(
+      const LoggingDatatypeDecl & d) const;
+
   /** Wraps a constructor, selector or tester term of the underlying solver
    *  @param wrapped the underlying term
    *  @param sk CONSTRUCTOR, SELECTOR or TESTER

@@ -23,6 +23,9 @@ class Z3DatatypeDecl : public AbsDatatypeDecl
   friend class Z3Solver;
   std::string name;
   std::vector<DatatypeConstructorDecl> consvec{};
+  // whether it was used for a sort; Z3 would give the same sort back for
+  // the name, however the constructors changed
+  bool used = false;
 };
 
 class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl

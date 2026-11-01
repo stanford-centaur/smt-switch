@@ -18,6 +18,7 @@
 #include <cvc5/cvc5.h>
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,18 +27,6 @@
 #include "smt_defs.h"
 
 namespace smt {
-
-class Cvc5DatatypeDecl : public AbsDatatypeDecl
-{
- public:
-  explicit Cvc5DatatypeDecl(cvc5::DatatypeDecl t);
-  std::string get_name() const override;
-
- protected:
-  cvc5::DatatypeDecl datatypedecl;
-
-  friend class Cvc5Solver;
-};
 
 class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
@@ -55,6 +44,25 @@ class Cvc5DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   // nor for its selectors; a null sort stands for one added with
   // add_selector_self
   std::vector<std::pair<std::string, cvc5::Sort>> selectors;
+
+  friend class Cvc5Solver;
+};
+
+class Cvc5DatatypeDecl : public AbsDatatypeDecl
+{
+ public:
+  explicit Cvc5DatatypeDecl(cvc5::DatatypeDecl t);
+  std::string get_name() const override;
+
+ protected:
+  cvc5::DatatypeDecl datatypedecl;
+  // the constructors added, from which make_sort builds a fresh cvc5
+  // declaration: one cvc5 resolves shares its constructors' declarations,
+  // so a selector added to one later would reach the datatype
+  std::vector<std::shared_ptr<Cvc5DatatypeConstructorDecl>> constructors;
+  // whether it was used for a sort, which a fresh declaration does not
+  // record
+  bool used = false;
 
   friend class Cvc5Solver;
 };

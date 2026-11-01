@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "cvc5_datatype.h"
 #include "interpolating_solver.h"
 #include "ops.h"
 #include "smt_defs.h"
@@ -124,6 +125,13 @@ class Cvc5Solver : public AbsSmtSolver
   void do_pop(std::uint64_t num) override;
   void do_reset() override;
   void do_reset_assertions() override;
+
+  /** A fresh cvc5 declaration of a datatype, built from what was added to
+   *  it, for cvc5 to resolve into a sort
+   *  @param d the declaration
+   *  @return the fresh declaration
+   */
+  cvc5::DatatypeDecl fresh_datatype_decl(const Cvc5DatatypeDecl & d) const;
 
   // a cvc5 solver together with the term manager it uses
   struct Instance;

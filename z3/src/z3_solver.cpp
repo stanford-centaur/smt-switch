@@ -343,6 +343,12 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
   {
     std::shared_ptr<Z3DatatypeDecl> cd =
         backend_pointer_cast<Z3DatatypeDecl>(d);
+    // as SMT-LIB declares a datatype once
+    if (cd->used)
+    {
+      throw IncorrectUsageException("Datatype declaration " + cd->name
+                                    + " was used for a sort already");
+    }
     auto dtsort = ctx->datatype_sort(ctx->str_symbol(cd->name.c_str()));
     z3::constructors cs{ *ctx };
     for (auto cons : cd->consvec)
@@ -350,6 +356,7 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
       add_constructor(dtsort, &cs, cons);
     }
     auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
+    cd->used = true;
     return std::make_shared<Z3Sort>(ctx, sort);
   }
   catch (z3::exception & e)
@@ -365,10 +372,18 @@ SortVec Z3Solver::make_datatype_sorts(
   std::vector<std::unique_ptr<z3::constructors>> consvec;
   std::vector<z3::constructor_list> clvec{};
   std::vector<z3::constructor_list *> clpvec{};  // constructor_list pointer vec
+  std::vector<std::shared_ptr<Z3DatatypeDecl>> z3_decls;
   for (auto & absdecl : decls)
   {
     std::shared_ptr<Z3DatatypeDecl> decl =
         backend_pointer_cast<Z3DatatypeDecl>(absdecl);
+    // as SMT-LIB declares a datatype once
+    if (decl->used)
+    {
+      throw IncorrectUsageException("Datatype declaration " + decl->name
+                                    + " was used for a sort already");
+    }
+    z3_decls.push_back(decl);
     auto dt_symbol = ctx->str_symbol(decl->name.c_str());
     auto dt_sort = ctx->datatype_sort(dt_symbol);
     syms.push_back(dt_symbol);
@@ -379,6 +394,10 @@ SortVec Z3Solver::make_datatype_sorts(
     consvec.push_back(std::move(cs));
   }
   auto raw_sorts = ctx->datatypes(decls.size(), syms.data(), clpvec.data());
+  for (const auto & decl : z3_decls)
+  {
+    decl->used = true;
+  }
   SortVec sorts{};
   for (auto s : raw_sorts) sorts.push_back(std::make_shared<Z3Sort>(ctx, s));
   return sorts;

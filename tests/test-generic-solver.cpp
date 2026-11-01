@@ -958,6 +958,16 @@ TEST_P(GenericSolverDatatypeTests, DatatypeMadeAfterCheckSat)
   EXPECT_EQ(gs->get_value(content), three);
 }
 
+TEST_P(GenericSolverDatatypeTests, UsedDatatypeRefusesConstructor)
+{
+  DatatypeDecl list = gs->make_datatype_decl("list");
+  DatatypeConstructorDecl nil = gs->make_datatype_constructor_decl("nil");
+  gs->add_constructor(list, nil);
+  gs->make_sort(list);
+  DatatypeConstructorDecl cons = gs->make_datatype_constructor_decl("cons");
+  EXPECT_THROW(gs->add_constructor(list, cons), IncorrectUsageException);
+}
+
 TEST_P(GenericSolverIntTests, IntModels)
 {
   // Testing models
