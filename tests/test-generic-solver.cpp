@@ -38,6 +38,7 @@
 #include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
+#include "term_translator.h"
 #include "utils.h"
 
 using namespace smt;
@@ -1344,6 +1345,11 @@ TEST_P(GenericSolverTests, AssumeForeignTerm)
   Term foreign = std::make_shared<GenericTerm>(
       gs->make_sort(BOOL), Op(), TermVec{}, "|foreign|", true);
   EXPECT_THROW(gs->check_sat_assuming({ foreign }), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverTests, TermTranslatorRefusesIt)
+{
+  EXPECT_THROW(TermTranslator tt(gs), NotImplementedException);
 }
 
 TEST_P(GenericSolverTests, CheckSatAssuming1)
