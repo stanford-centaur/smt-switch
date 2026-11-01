@@ -480,6 +480,17 @@ TEST_P(Datatypes, EqualConstructorDeclsHashAlike)
   EXPECT_EQ(unique.size(), 1u);
 }
 
+TEST_P(Datatypes, SameNamedDeclsKeepTheirOwnConstructors)
+{
+  DatatypeDecl first = s->make_datatype_decl("pair");
+  DatatypeDecl second = s->make_datatype_decl("pair");
+  s->add_constructor(first, s->make_datatype_constructor_decl("left"));
+  s->add_constructor(second, s->make_datatype_constructor_decl("right"));
+  Sort second_sort = s->make_sort(second);
+  EXPECT_EQ(second_sort->get_datatype()->get_constructor_names(),
+            (vector<string>{ "right" }));
+}
+
 TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
 {
   DatatypeConstructorDecl just_int = s->make_datatype_constructor_decl("just");

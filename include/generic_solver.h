@@ -448,10 +448,11 @@ class GenericSolver : public AbsSmtSolver
   UnorderedTermMap assumption_labels;
   UnorderedTermMap labelled_assumptions;
 
-  // Map between names and Generic datatypes and vice versa
-  std::unique_ptr<
-      std::unordered_map<std::string, std::shared_ptr<GenericDatatype>>>
-      name_datatype_map;
+  // The datatype of each declaration, as two declarations can share a name
+  std::unique_ptr<std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
+                                     std::shared_ptr<GenericDatatype>>>
+      decl_datatype_map;
+  // The name of each datatype
   std::unique_ptr<
       std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>>
       datatype_name_map;
