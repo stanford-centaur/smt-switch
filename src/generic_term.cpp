@@ -102,8 +102,10 @@ bool GenericTerm::compare(const Term & t) const
     return false;
   }
   std::shared_ptr<GenericTerm> gt = std::dynamic_pointer_cast<GenericTerm>(t);
-  // The comparison is based on a string comparison
-  return gt && repr == gt->to_string();
+  // The comparison is based on a string comparison. A param is not the
+  // term printed like it, since the binary is given it under a name of its
+  // own.
+  return gt && is_par == gt->is_par && repr == gt->to_string();
 }
 
 std::string GenericTerm::compute_string() const
