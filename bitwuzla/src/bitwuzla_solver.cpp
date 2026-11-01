@@ -216,10 +216,36 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
 }
 
-void BzlaSolver::set_logic(const std::string /* logic */)
+void BzlaSolver::set_logic(const std::string logic)
 {
-  // no need to set logic in bitwuzla
-  return;
+  // AX is refused by the bitwuzla binary, but this backend handles it
+  // through uninterpreted sorts
+  if (logic == "ALL" || logic == "AX" || logic == "QF_AX")
+  {
+    return;
+  }
+  // an optional QF_ followed by at least one of A, UF, BV and FPLRA or FP,
+  // in that order, as the bitwuzla binary accepts
+  static const std::vector<std::vector<std::string>> theories(
+      { { "A" }, { "UF" }, { "BV" }, { "FPLRA", "FP" } });
+  const std::size_t start = logic.compare(0, 3, "QF_") == 0 ? 3 : 0;
+  std::size_t pos = start;
+  for (const std::vector<std::string> & choices : theories)
+  {
+    for (const std::string & theory : choices)
+    {
+      if (logic.compare(pos, theory.size(), theory) == 0)
+      {
+        pos += theory.size();
+        break;
+      }
+    }
+  }
+  if (pos == start || pos != logic.size())
+  {
+    throw NotImplementedException("Bitwuzla does not support the logic "
+                                  + logic);
+  }
 }
 
 void BzlaSolver::assert_formula(const Term & t)
