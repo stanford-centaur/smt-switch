@@ -561,4 +561,83 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_non_generic_solver_configurations()),
     ConfigName());
 
+/** Records the values of the set-info commands it reads */
+class InfoRecorder : public SmtLibReader
+{
+ public:
+  using SmtLibReader::SmtLibReader;
+
+  void set_info(const string & key, const string & val) override
+  {
+    info[key] = val;
+  }
+
+  unordered_map<string, string> info;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(AttributeValues);
+class AttributeValues
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    info = values_in("values.smt2");
+  }
+
+  /** The values of the set-info commands of an input from attributes/ */
+  unordered_map<string, string> values_in(const string & name)
+  {
+    InfoRecorder reader(s);
+    reader.parse(string(STRFY(SMTLIB_TEST_RESOURCE_DIR)) + "/attributes/"
+                 + name);
+    return reader.info;
+  }
+
+  SmtSolver s;
+  unordered_map<string, string> info;
+};
+
+TEST_P(AttributeValues, ListElementsAreSpaced)
+{
+  EXPECT_EQ(info["list"], "(a (b c) 1 2.5)");
+  EXPECT_EQ(info["empty"], "()");
+}
+
+TEST_P(AttributeValues, BitVecLiteralsKeepTheirPrefix)
+{
+  EXPECT_EQ(info["bits"], "#b01");
+  EXPECT_EQ(info["hex"], "#x1f");
+  EXPECT_EQ(info["bv-list"], "(#b01 #x1f)");
+}
+
+TEST_P(AttributeValues, StringsInListsKeepTheirQuotes)
+{
+  EXPECT_EQ(info["strings"], "(a \"x y\")");
+}
+
+TEST_P(AttributeValues, SymbolsInListsKeepNeededBars)
+{
+  EXPECT_EQ(info["symbols"], "(|a b| c d)");
+}
+
+TEST_P(AttributeValues, KeywordsInLists)
+{
+  EXPECT_EQ(values_in("keyword-in-list.smt2")["keywords"], "(:a b)");
+}
+
+TEST_P(AttributeValues, TopLevelStringOrSymbolIsItsText)
+{
+  EXPECT_EQ(info["string"], "x y");
+  EXPECT_EQ(info["symbol"], "a b");
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    AttributeValues,
+    testing::ValuesIn(available_non_generic_solver_configurations()),
+    ConfigName());
+
 }  // namespace

@@ -646,4 +646,20 @@ TEST(InternalName, KindAndIndex)
   EXPECT_FALSE(is_internal_name("x_smt_switch_internal_term_1"));
 }
 
+TEST(SmtLibQuoteSymbol, SimpleSymbolStaysBare)
+{
+  EXPECT_EQ(smtlib_quote_symbol("x"), "x");
+  EXPECT_EQ(smtlib_quote_symbol("a1"), "a1");
+  EXPECT_EQ(smtlib_quote_symbol("~!@$%^&*_-+=<>.?/"), "~!@$%^&*_-+=<>.?/");
+}
+
+TEST(SmtLibQuoteSymbol, OtherSymbolGetsBars)
+{
+  EXPECT_EQ(smtlib_quote_symbol(""), "||");
+  EXPECT_EQ(smtlib_quote_symbol("1a"), "|1a|");
+  EXPECT_EQ(smtlib_quote_symbol("a b"), "|a b|");
+  EXPECT_EQ(smtlib_quote_symbol("a\"b"), "|a\"b|");
+  EXPECT_EQ(smtlib_quote_symbol("\xc3\xa9"), "|\xc3\xa9|");
+}
+
 }  // namespace
