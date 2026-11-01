@@ -299,8 +299,8 @@ GenericSolver::GenericSolver(std::string solver_path,
       sort_name_map(new std::unordered_map<Sort, std::string>()),
       name_term_map(new std::unordered_map<std::string, Term>()),
       term_name_map(new std::unordered_map<Term, std::string>()),
-      name_datatype_map(
-          new std::unordered_map<std::string,
+      decl_datatype_map(
+          new std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
                                  std::shared_ptr<GenericDatatype>>()),
       datatype_name_map(new std::unordered_map<std::shared_ptr<GenericDatatype>,
                                                std::string>())
@@ -1320,22 +1320,19 @@ SortVec GenericSolver::make_datatype_sorts(
 
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
-  std::shared_ptr<GenericDatatypeDecl> gdt_decl =
-      backend_pointer_cast<GenericDatatypeDecl>(d);
-  std::string dt_decl_name = gdt_decl->get_name();
-  auto dt_it = name_datatype_map->find(dt_decl_name);
-  if (dt_it == name_datatype_map->end())
+  auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(d);
+  auto dt_it = decl_datatype_map->find(gdt_decl);
+  if (dt_it == decl_datatype_map->end())
   {
-    throw IncorrectUsageException("No datatype declaration named "
-                                  + dt_decl_name
-                                  + " was made with make_datatype_decl");
+    detail::throw_foreign_handle(d);
   }
-  std::shared_ptr<GenericDatatype> curr_dt = dt_it->second;
+  auto dt_decl_name = gdt_decl->get_name();
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
     // The sort keeps copies of the constructors, so that a constructor
     // declaration changed or added to another datatype later does not
     // change it.
+    auto curr_dt = dt_it->second;
     for (DatatypeConstructorDecl & con : curr_dt->cons_decl_vector)
     {
       auto orig = std::static_pointer_cast<GenericDatatypeConstructorDecl>(con);
@@ -1408,10 +1405,9 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
 {
-  DatatypeDecl new_dt_decl = std::make_shared<GenericDatatypeDecl>(s);
-  std::shared_ptr<GenericDatatype> new_dt =
-      std::shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
-  (*name_datatype_map)[s] = new_dt;
+  auto new_dt_decl = std::make_shared<GenericDatatypeDecl>(s);
+  auto new_dt = std::make_shared<GenericDatatype>(new_dt_decl);
+  (*decl_datatype_map)[new_dt_decl] = new_dt;
   (*datatype_name_map)[new_dt] = s;
   return new_dt_decl;
 }
@@ -1447,17 +1443,15 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
 void GenericSolver::add_constructor(DatatypeDecl & dt,
                                     const DatatypeConstructorDecl & con) const
 {
-  std::shared_ptr<GenericDatatypeDecl> gdt_decl =
-      backend_pointer_cast<GenericDatatypeDecl>(dt);
-  std::string name = gdt_decl->get_name();
-  auto dt_it = name_datatype_map->find(name);
-  if (dt_it == name_datatype_map->end())
+  auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(dt);
+  auto dt_it = decl_datatype_map->find(gdt_decl);
+  if (dt_it == decl_datatype_map->end())
   {
-    throw IncorrectUsageException("No datatype declaration named " + name
-                                  + " was made with make_datatype_decl");
+    detail::throw_foreign_handle(dt);
   }
   // a sort the datatype was used for holds this same datatype, and the
   // binary has its declaration already
+  auto name = gdt_decl->get_name();
   if (name_sort_map->find(name) != name_sort_map->end())
   {
     throw IncorrectUsageException("Datatype " + name
