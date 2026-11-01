@@ -14,7 +14,21 @@ target_include_directories(
 
 target_link_libraries(smt-switch-z3 PUBLIC smt-switch)
 find_package(Z3 REQUIRED ${SMT_SWITCH_Z3_FIND_ARGS})
+# Z3's package accepts only its own major version, so the minimum cannot be
+# asked of find_package.
+if(Z3_VERSION VERSION_LESS 4.12.2)
+  message(FATAL_ERROR "smt-switch needs Z3 4.12.2 or newer, not ${Z3_VERSION}")
+endif()
 target_link_libraries(smt-switch-z3 PUBLIC z3::libz3)
+# Z3 4.14.1 added a kind of its own for signed bv2int.
+smt_switch_check_source_compiles(
+  SMT_SWITCH_Z3_HAS_SBV2INT
+  TARGETS z3::libz3
+  SOURCE "#include <z3.h>\nint sbv2int() { return Z3_OP_SBV2INT; }"
+)
+if(SMT_SWITCH_Z3_HAS_SBV2INT)
+  target_compile_definitions(smt-switch-z3 PRIVATE SMT_SWITCH_Z3_HAS_SBV2INT)
+endif()
 # A consumer's find_dependency would otherwise load whichever libz3 its own
 # settings favour, so the package config asks for the one used here.
 get_target_property(_z3_type z3::libz3 TYPE)

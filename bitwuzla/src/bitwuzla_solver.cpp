@@ -574,6 +574,11 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  // Bitwuzla 0.9.1 and older make a term of width 0 instead of refusing.
+  if (op.prim_op == Repeat && op.idx0 == 0)
+  {
+    throw IncorrectUsageException("Repeat needs a count of at least 1");
+  }
 
   std::vector<bitwuzla::Term> bitwuzla_terms;
   for (auto && t : terms)
@@ -734,8 +739,12 @@ Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
 }
 
 Result BzlaInterpolatingSolver::get_sequence_interpolants(
-    const TermVec & formulae, TermVec & out_I) const
+    [[maybe_unused]] const TermVec & formulae,
+    [[maybe_unused]] TermVec & out_I) const
 {
+#ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
+  throw NotImplementedException("Bitwuzla interpolates only from 0.9.0 on");
+#else
   if (formulae.size() < 2)
   {
     throw IncorrectUsageException(
@@ -844,6 +853,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
 
   assert(out_I.size() == formulae.size() - 1);
   return r;
+#endif
 }
 
 // these terms belong to the term manager a reset destroys

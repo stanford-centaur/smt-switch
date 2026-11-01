@@ -180,6 +180,32 @@ to Boolector's private headers to support term iteration, so
 `--boolector-src-dir` points at the source tree alongside `--boolector-dir`. It
 defaults to `<boolector-dir>/src/boolector`.
 
+### Supported Versions
+
+Configuration stops if a solver is older than the oldest version below. The
+newest tested version is the newest release smt-switch was tested with; newer
+ones may work too. What is built automatically is pinned in
+`cmake/provision/<solver>/pin.cmake`.
+
+| Solver    | Oldest | Newest tested |
+| --------- | ------ | ------------- |
+| Bitwuzla  | 0.4.0  | 0.9.1         |
+| Boolector | 3.2.2  | 3.2.4         |
+| cvc5      | 1.4.0  | 1.4.2         |
+| MathSAT   | 5.6.8  | 5.6.19        |
+| Yices2    | 2.6.0  | 2.7.0         |
+| Z3        | 4.12.2 | 5.3.2         |
+
+- Bitwuzla interpolates only from 0.9.0 on, and 0.9.0 and 0.9.1 answer `unknown`
+  to some equalities with a constant array.
+- A Yices2 2.6.5 or 2.7.0 built with `--enable-thread-safety` hangs in
+  `check_sat_assuming` when the answer is sat.
+- Some older executables are not compliant with SMT-LIB, so the generic solver
+  fails with them where linking against the same release works: Boolector 3.2.2
+  prints Boolean values as bit-vectors, MathSAT before 5.6.11 rejects `#b`
+  literals in `get-value`, and Yices2 2.6 prints array values in a notation of
+  its own.
+
 ### Static Linking
 
 It is possible to produce smt-switch libraries (`libsmt-switch.a`, etc.) instead

@@ -247,7 +247,9 @@ Op Z3Term::get_op() const
         return Op(Int_To_BV, out_width);
       }
       case Z3_OP_BV2INT: return Op(UBV_To_Int);
+#ifdef SMT_SWITCH_Z3_HAS_SBV2INT
       case Z3_OP_SBV2INT: return Op(SBV_To_Int);
+#endif
       case Z3_OP_UNINTERPRETED: return Op(Apply);
 
       default: {

@@ -24,7 +24,13 @@ namespace {
 class BitwuzlaPrintingTest : public testing::Test
 {
  protected:
-  void SetUp() override { os = new std::ostream(&strbuf); }
+  void SetUp() override
+  {
+#ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
+    GTEST_SKIP() << "this Bitwuzla cannot interpolate";
+#endif
+    os = new std::ostream(&strbuf);
+  }
   void TearDown() override { delete os; }
   void check_result(
       std::vector<std::unordered_set<std::string>> expected_results,
@@ -37,7 +43,7 @@ class BitwuzlaPrintingTest : public testing::Test
 #endif
   }
   std::stringbuf strbuf;
-  std::ostream * os;
+  std::ostream * os = nullptr;
 };
 
 TEST_F(BitwuzlaPrintingTest, Interpolation)
@@ -159,14 +165,20 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
         { "(bvult x y)" },
         { "(and (not (and (= ((_ extract 1 1) z) #b1) (= ((_ extract 1 1) y) "
           "#b0))) (not (and (= #b1 ((_ extract 0 0) z)) (= ((_ extract 0 0) "
-          "y) #b0))))" },
+          "y) #b0))))",
+          "(not (and (not (and (= ((_ extract 0 0) z) #b0) (= #b1 ((_ extract "
+          "1 1) y)))) (not (and (= ((_ extract 1 1) z) #b0) (= #b1 ((_ "
+          "extract 0 0) y))))))" },
         { ")" },
         { "unsat" },
         { "(" },
         { "(bvult y z)" },
         { "(and (not (and (= ((_ extract 1 1) x) #b0) (= #b1 ((_ extract 1 1) "
           "y)))) (not (and (= ((_ extract 0 0) x) #b0) (= #b1 ((_ extract 0 0) "
-          "y)))))" },
+          "y)))))",
+          "(not (and (not (and (= ((_ extract 0 0) x) #b1) (= ((_ extract 1 1) "
+          "y) #b0))) (not (and (= #b1 ((_ extract 1 1) x)) (= ((_ extract 0 0) "
+          "y) #b0)))))" },
         { ")" } },
       "--produce-interpolants");
 }

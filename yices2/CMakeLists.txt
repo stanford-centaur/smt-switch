@@ -14,7 +14,7 @@ target_include_directories(
 )
 
 target_link_libraries(smt-switch-yices2 PUBLIC smt-switch)
-find_package(Yices2 REQUIRED)
+find_package(Yices2 2.6.0 REQUIRED)
 target_link_libraries(smt-switch-yices2 PUBLIC Yices2::yices)
 # Yices2 depends on libgmp, but there is no interface that exposes this to us.
 # Public because yices2_term.h, which is installed, includes gmp.h to reach

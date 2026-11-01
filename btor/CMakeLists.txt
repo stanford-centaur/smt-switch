@@ -13,7 +13,7 @@ target_include_directories(
 )
 
 target_link_libraries(smt-switch-btor PUBLIC smt-switch)
-find_package(Boolector REQUIRED)
+find_package(Boolector 3.2.2 REQUIRED)
 target_link_libraries(smt-switch-btor PUBLIC Boolector::boolector)
 # Boolector's quantifier solver uses pthreads, which its package omits.
 find_package(Threads REQUIRED)

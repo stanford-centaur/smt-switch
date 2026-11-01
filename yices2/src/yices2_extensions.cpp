@@ -141,6 +141,17 @@ term_t ext_yices_bvcomp(term_t t0, term_t t1)
       yices_eq(t0, t1), yices_bvconst_int64(1, 1), yices_bvconst_int64(1, 0));
 }
 
+term_t ext_yices_bvxor3(term_t t0, term_t t1, term_t t2)
+{
+#if __YICES_VERSION > 2 || __YICES_VERSION_MAJOR > 6 \
+    || __YICES_VERSION_PATCHLEVEL >= 3
+  return yices_bvxor3(t0, t1, t2);
+#else
+  // Before 2.6.3, yices_bvxor3 computes a bvor.
+  return yices_bvxor2(yices_bvxor2(t0, t1), t2);
+#endif
+}
+
 }  // namespace smt
 
 #endif

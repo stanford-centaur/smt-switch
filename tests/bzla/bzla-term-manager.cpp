@@ -74,6 +74,9 @@ TEST(BzlaTermManager, TermsFromBeforeResetRefused)
 
 TEST(BzlaTermManager, AnotherInterpolatorsTermsRefused)
 {
+#ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
+  GTEST_SKIP() << "this Bitwuzla cannot interpolate";
+#endif
   SmtInterpolator itp = BitwuzlaSolverFactory::create_interpolating_solver();
   SmtInterpolator other = BitwuzlaSolverFactory::create_interpolating_solver();
   Sort bv8 = other->make_sort(BV, 8);

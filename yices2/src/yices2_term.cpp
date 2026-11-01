@@ -149,7 +149,9 @@ Op Yices2Term::get_op() const
     // as BVMul over the coefficient and the term, as the arithmetic one does
     case YICES_BV_SUM:
       return yices_term_num_children(term) == 1 ? Op(BVMul) : Op(BVAdd);
+#if __YICES_VERSION > 2 || __YICES_VERSION_MAJOR >= 7
     case YICES_ARITH_FF_SUM: no_smt_switch_op(term);
+#endif
     case YICES_ARITH_SUM:
       /* Arithmetic sums are represented as polynomials,
        * and something like (+ a (-b)) is actually
@@ -209,7 +211,9 @@ Op Yices2Term::get_op() const
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
     case YICES_ARITH_CONSTANT: return Op();
+#if __YICES_VERSION > 2 || __YICES_VERSION_MAJOR >= 7
     case YICES_ARITH_FF_CONSTANT: no_smt_switch_op(term);
+#endif
     case YICES_BV_CONSTANT: return Op();
     case YICES_SCALAR_CONSTANT: return Op();
     case YICES_VARIABLE: return Op();

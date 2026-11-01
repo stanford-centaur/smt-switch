@@ -43,6 +43,8 @@ Result Variables
 
 ``Yices2_FOUND``
   Boolean indicating whether Yices2 was found.
+``Yices2_VERSION``
+  The version of Yices2 found, read from ``yices.h``.
 ``Yices2_INCLUDE_DIRS``
   The include directories of Yices2.
 ``Yices2_LIBRARIES``
@@ -73,6 +75,21 @@ else()
   find_library(Yices2_LIBRARY NAMES yices)
 endif()
 mark_as_advanced(Yices2_INCLUDE_DIR Yices2_LIBRARY)
+
+# yices.h gives the three parts of its version in this order.
+if(Yices2_INCLUDE_DIR)
+  file(
+    STRINGS "${Yices2_INCLUDE_DIR}/yices.h"
+    _yices2_version_lines
+    REGEX "^#define __YICES_VERSION(_MAJOR|_PATCHLEVEL)? +[0-9]+"
+  )
+  set(_yices2_version_parts "")
+  foreach(_yices2_line IN LISTS _yices2_version_lines)
+    string(REGEX MATCH "[0-9]+" _yices2_number "${_yices2_line}")
+    list(APPEND _yices2_version_parts "${_yices2_number}")
+  endforeach()
+  list(JOIN _yices2_version_parts "." Yices2_VERSION)
+endif()
 
 # Whether the library links with GMP alone, and if not, whether it does with
 # LibPoly and CUDD too. The results are cached under the library's path, so
@@ -108,16 +125,26 @@ if(Yices2_INCLUDE_DIR AND Yices2_LIBRARY AND "CXX" IN_LIST _yices2_languages)
   cmake_pop_check_state()
 endif()
 
-string(
-  CONCAT _yices2_reason
-  "${Yices2_LIBRARY} does not link with GMP alone, nor with the LibPoly and "
-  "CUDD found (Yices2_POLY_LIBRARY, Yices2_CUDD_LIBRARY), which a Yices2 "
-  "built with MCSAT needs."
-)
+set(_yices2_reason "")
+if(NOT Yices2_LINKS AND _yices2_extra_libraries)
+  string(
+    CONCAT _yices2_reason
+    "${Yices2_LIBRARY} does not link with GMP alone, nor with "
+    "${Yices2_POLY_LIBRARY} and ${Yices2_CUDD_LIBRARY}, the LibPoly and CUDD "
+    "that a Yices2 built with MCSAT needs."
+  )
+elseif(NOT Yices2_LINKS)
+  string(
+    CONCAT _yices2_reason
+    "${Yices2_LIBRARY} does not link with GMP alone, and the LibPoly and CUDD "
+    "that a Yices2 built with MCSAT needs were not both found."
+  )
+endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
   Yices2
   REQUIRED_VARS Yices2_LIBRARY Yices2_INCLUDE_DIR Yices2_LINKS
+  VERSION_VAR Yices2_VERSION
   REASON_FAILURE_MESSAGE "${_yices2_reason}"
 )
 

@@ -13,7 +13,7 @@ target_include_directories(
 )
 
 target_link_libraries(smt-switch-cvc5 PUBLIC smt-switch)
-find_package(cvc5 1.3.1 REQUIRED)
+find_package(cvc5 1.4.0 REQUIRED)
 target_link_libraries(smt-switch-cvc5 PUBLIC cvc5::cvc5)
 # cvc5's package names gmp in its link interface as a plain library too, and
 # does not find it, so saying where it is falls to us.
