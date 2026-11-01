@@ -23,8 +23,11 @@
 #include <cstdint>
 #include <exception>
 #include <fstream>
+#include <initializer_list>
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -40,63 +43,6 @@
 #include "utils.h"
 
 namespace smt {
-
-const std::unordered_map<PrimOp, bitwuzla::Kind> op2bkind(
-    { /* Core Theory */
-      { And, bitwuzla::Kind::AND },
-      { Or, bitwuzla::Kind::OR },
-      { Xor, bitwuzla::Kind::XOR },
-      { Not, bitwuzla::Kind::NOT },
-      { Implies, bitwuzla::Kind::IMPLIES },
-      { Ite, bitwuzla::Kind::ITE },
-      { Equal, bitwuzla::Kind::EQUAL },
-      { Distinct, bitwuzla::Kind::DISTINCT },
-      /* Uninterpreted Functions */
-      { Apply, bitwuzla::Kind::APPLY },
-      /* Fixed Size BitVector Theory */
-      { Concat, bitwuzla::Kind::BV_CONCAT },
-      { Extract, bitwuzla::Kind::BV_EXTRACT },  // Indexed
-      { BVNot, bitwuzla::Kind::BV_NOT },
-      { BVNeg, bitwuzla::Kind::BV_NEG },
-      { BVAnd, bitwuzla::Kind::BV_AND },
-      { BVOr, bitwuzla::Kind::BV_OR },
-      { BVXor, bitwuzla::Kind::BV_XOR },
-      { BVNand, bitwuzla::Kind::BV_NAND },
-      { BVNor, bitwuzla::Kind::BV_NOR },
-      { BVXnor, bitwuzla::Kind::BV_XNOR },
-      { BVAdd, bitwuzla::Kind::BV_ADD },
-      { BVSub, bitwuzla::Kind::BV_SUB },
-      { BVMul, bitwuzla::Kind::BV_MUL },
-      { BVUdiv, bitwuzla::Kind::BV_UDIV },
-      { BVSdiv, bitwuzla::Kind::BV_SDIV },
-      { BVUrem, bitwuzla::Kind::BV_UREM },
-      { BVSrem, bitwuzla::Kind::BV_SREM },
-      { BVSmod, bitwuzla::Kind::BV_SMOD },
-      { BVShl, bitwuzla::Kind::BV_SHL },
-      { BVAshr, bitwuzla::Kind::BV_ASHR },
-      { BVLshr, bitwuzla::Kind::BV_SHR },
-      { BVComp, bitwuzla::Kind::BV_COMP },
-      { BVUlt, bitwuzla::Kind::BV_ULT },
-      { BVUle, bitwuzla::Kind::BV_ULE },
-      { BVUgt, bitwuzla::Kind::BV_UGT },
-      { BVUge, bitwuzla::Kind::BV_UGE },
-      { BVSlt, bitwuzla::Kind::BV_SLT },
-      { BVSle, bitwuzla::Kind::BV_SLE },
-      { BVSgt, bitwuzla::Kind::BV_SGT },
-      { BVSge, bitwuzla::Kind::BV_SGE },
-      { Zero_Extend, bitwuzla::Kind::BV_ZERO_EXTEND },  // Indexed
-      { Sign_Extend, bitwuzla::Kind::BV_SIGN_EXTEND },  // Indexed
-      { Repeat, bitwuzla::Kind::BV_REPEAT },            // Indexed
-      { Rotate_Left, bitwuzla::Kind::BV_ROLI },         // Indexed
-      { Rotate_Right, bitwuzla::Kind::BV_RORI },        // Indexed
-      /* Array Theory */
-      { Select, bitwuzla::Kind::ARRAY_SELECT },
-      { Store, bitwuzla::Kind::ARRAY_STORE },
-      /* Quantifiers */
-      { Forall, bitwuzla::Kind::FORALL },
-      { Exists, bitwuzla::Kind::EXISTS } });
-
-const std::unordered_set<std::uint64_t> bvbases({ 2, 10, 16 });
 
 /** Apply kind to args with Bitwuzla, throwing an IncorrectUsageException
  *  where Bitwuzla rejects the application, e.g. for the number or the sorts
@@ -226,22 +172,20 @@ void BzlaSolver::set_logic(const std::string logic)
   }
   // an optional QF_ followed by at least one of A, UF, BV and FPLRA or FP,
   // in that order, as the bitwuzla binary accepts
-  static const std::vector<std::vector<std::string>> theories(
-      { { "A" }, { "UF" }, { "BV" }, { "FPLRA", "FP" } });
-  const std::size_t start = logic.compare(0, 3, "QF_") == 0 ? 3 : 0;
-  std::size_t pos = start;
-  for (const std::vector<std::string> & choices : theories)
+  std::string_view theories = logic;
+  if (theories.substr(0, 3) == "QF_")
   {
-    for (const std::string & theory : choices)
+    theories.remove_prefix(3);
+  }
+  std::string_view rest = theories;
+  for (std::string_view theory : { "A", "UF", "BV" })
+  {
+    if (rest.substr(0, theory.size()) == theory)
     {
-      if (logic.compare(pos, theory.size(), theory) == 0)
-      {
-        pos += theory.size();
-        break;
-      }
+      rest.remove_prefix(theory.size());
     }
   }
-  if (pos == start || pos != logic.size())
+  if (theories.empty() || !(rest.empty() || rest == "FP" || rest == "FPLRA"))
   {
     throw NotImplementedException("Bitwuzla does not support the logic "
                                   + logic);
@@ -504,7 +448,7 @@ Term BzlaSolver::make_term(const std::string val,
         + to_string(sk));
   }
 
-  if (bvbases.count(base) == 0)
+  if (base != 2 && base != 10 && base != 16)
   {
     throw IncorrectUsageException(::std::to_string(base) + " base for creating a BV value is not supported."
                                   " Options are 2, 10, and 16");
@@ -568,6 +512,68 @@ Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
   return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
 }
 
+/** The Bitwuzla kind of po, or nothing for an operator Bitwuzla lacks */
+static std::optional<bitwuzla::Kind> kind_of(PrimOp po)
+{
+  switch (po)
+  {
+    // Core theory
+    case And: return bitwuzla::Kind::AND;
+    case Or: return bitwuzla::Kind::OR;
+    case Xor: return bitwuzla::Kind::XOR;
+    case Not: return bitwuzla::Kind::NOT;
+    case Implies: return bitwuzla::Kind::IMPLIES;
+    case Ite: return bitwuzla::Kind::ITE;
+    case Equal: return bitwuzla::Kind::EQUAL;
+    case Distinct: return bitwuzla::Kind::DISTINCT;
+    // Uninterpreted functions
+    case Apply: return bitwuzla::Kind::APPLY;
+    // Fixed-size bit-vector theory
+    case Concat: return bitwuzla::Kind::BV_CONCAT;
+    case Extract: return bitwuzla::Kind::BV_EXTRACT;
+    case BVNot: return bitwuzla::Kind::BV_NOT;
+    case BVNeg: return bitwuzla::Kind::BV_NEG;
+    case BVAnd: return bitwuzla::Kind::BV_AND;
+    case BVOr: return bitwuzla::Kind::BV_OR;
+    case BVXor: return bitwuzla::Kind::BV_XOR;
+    case BVNand: return bitwuzla::Kind::BV_NAND;
+    case BVNor: return bitwuzla::Kind::BV_NOR;
+    case BVXnor: return bitwuzla::Kind::BV_XNOR;
+    case BVAdd: return bitwuzla::Kind::BV_ADD;
+    case BVSub: return bitwuzla::Kind::BV_SUB;
+    case BVMul: return bitwuzla::Kind::BV_MUL;
+    case BVUdiv: return bitwuzla::Kind::BV_UDIV;
+    case BVSdiv: return bitwuzla::Kind::BV_SDIV;
+    case BVUrem: return bitwuzla::Kind::BV_UREM;
+    case BVSrem: return bitwuzla::Kind::BV_SREM;
+    case BVSmod: return bitwuzla::Kind::BV_SMOD;
+    case BVShl: return bitwuzla::Kind::BV_SHL;
+    case BVAshr: return bitwuzla::Kind::BV_ASHR;
+    case BVLshr: return bitwuzla::Kind::BV_SHR;
+    case BVComp: return bitwuzla::Kind::BV_COMP;
+    case BVUlt: return bitwuzla::Kind::BV_ULT;
+    case BVUle: return bitwuzla::Kind::BV_ULE;
+    case BVUgt: return bitwuzla::Kind::BV_UGT;
+    case BVUge: return bitwuzla::Kind::BV_UGE;
+    case BVSlt: return bitwuzla::Kind::BV_SLT;
+    case BVSle: return bitwuzla::Kind::BV_SLE;
+    case BVSgt: return bitwuzla::Kind::BV_SGT;
+    case BVSge: return bitwuzla::Kind::BV_SGE;
+    case Zero_Extend: return bitwuzla::Kind::BV_ZERO_EXTEND;
+    case Sign_Extend: return bitwuzla::Kind::BV_SIGN_EXTEND;
+    case Repeat: return bitwuzla::Kind::BV_REPEAT;
+    case Rotate_Left: return bitwuzla::Kind::BV_ROLI;
+    case Rotate_Right: return bitwuzla::Kind::BV_RORI;
+    // Array theory
+    case Select: return bitwuzla::Kind::ARRAY_SELECT;
+    case Store: return bitwuzla::Kind::ARRAY_STORE;
+    // Quantifiers
+    case Forall: return bitwuzla::Kind::FORALL;
+    case Exists: return bitwuzla::Kind::EXISTS;
+    default: return std::nullopt;
+  }
+}
+
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
@@ -586,17 +592,16 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     bitwuzla_terms.push_back(bzla_term(t));
   }
 
-  auto it = op2bkind.find(op.prim_op);
-  if (it == op2bkind.end())
+  auto bkind = kind_of(op.prim_op);
+  if (!bkind)
   {
     throw IncorrectUsageException("Bitwuzla does not yet support operator: "
                                   + op.to_string());
   }
-  bitwuzla::Kind bkind = it->second;
 
   if (!op.num_idx)
   {
-    return make_bzla_term(tm, bkind, bitwuzla_terms);
+    return make_bzla_term(tm, *bkind, bitwuzla_terms);
   }
   else
   {
@@ -606,7 +611,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     {
       indices.push_back(op.idx1);
     }
-    return make_bzla_term(tm, bkind, bitwuzla_terms, indices);
+    return make_bzla_term(tm, *bkind, bitwuzla_terms, indices);
   }
 }
 
@@ -709,7 +714,7 @@ void BzlaInterpolatingSolver::initialize()
 void BzlaInterpolatingSolver::do_set_opt(const std::string & option,
                                          const std::string & value)
 {
-  if (disallowed_options.find(option) != disallowed_options.end())
+  if (option == "produce-interpolants")
   {
     throw IncorrectUsageException(
         "Bitwuzla interpolator does not allow option: " + option);

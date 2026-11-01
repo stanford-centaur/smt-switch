@@ -22,7 +22,6 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "interpolating_solver.h"
 #include "smt_defs.h"
@@ -155,9 +154,6 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
   // the method does not guarantee that the assertions are in the correct order)
   mutable TermVec last_itp_query_assertions;
 
-  inline static const std::unordered_set<std::string> disallowed_options = {
-    "produce-interpolants"
-  };
   std::string dump_queries_prefix = "";
   mutable uint32_t itp_query_count = 0;
 };
