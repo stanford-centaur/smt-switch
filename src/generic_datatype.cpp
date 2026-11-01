@@ -2,11 +2,14 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #include "exceptions.h"
+#include "sort.h"
 #include "utils.h"
 
 namespace smt {
@@ -29,25 +32,58 @@ std::string GenericDatatypeConstructorDecl::get_name() const
   return cons_name;
 }
 
+// A selector of a declaration compares by its name and sort. A self
+// selector's sort is null there, as make_sort gives the datatype's sort only
+// to the copy the datatype sort keeps, so it never changes once added.
+static bool selector_equal(const SelectorComponents & a,
+                           const SelectorComponents & b)
+{
+  return std::tie(a.name, a.sort) == std::tie(b.name, b.sort);
+}
+
+static bool selector_less(const SelectorComponents & a,
+                          const SelectorComponents & b)
+{
+  return std::tie(a.name, a.sort) < std::tie(b.name, b.sort);
+}
+
 std::size_t GenericDatatypeConstructorDecl::hash() const
 {
-  return std::hash<std::string>{}(cons_name);
+  // The name and each selector's name and sort, as compare checks them.
+  std::size_t h = std::hash<std::string>{}(cons_name);
+  for (const SelectorComponents & sel : selector_vector)
+  {
+    detail::hash_combine(h, sel.name);
+    detail::hash_combine(h, sel.sort);
+  }
+  return h;
 }
 
 bool GenericDatatypeConstructorDecl::compare(
     const DatatypeConstructorDecl & d) const
 {
-  // Compares based off constructor's name
-  std::shared_ptr<GenericDatatypeConstructorDecl> other =
-      std::dynamic_pointer_cast<GenericDatatypeConstructorDecl>(d);
-  return other && cons_name == other->get_name();
+  auto other = std::dynamic_pointer_cast<GenericDatatypeConstructorDecl>(d);
+  return other && cons_name == other->cons_name
+         && std::equal(selector_vector.begin(),
+                       selector_vector.end(),
+                       other->selector_vector.begin(),
+                       other->selector_vector.end(),
+                       selector_equal);
 }
 
 bool GenericDatatypeConstructorDecl::less(
     const DatatypeConstructorDecl & d) const
 {
-  return cons_name
-         < backend_pointer_cast<GenericDatatypeConstructorDecl>(d)->get_name();
+  auto other = backend_pointer_cast<GenericDatatypeConstructorDecl>(d);
+  if (cons_name != other->cons_name)
+  {
+    return cons_name < other->cons_name;
+  }
+  return std::lexicographical_compare(selector_vector.begin(),
+                                      selector_vector.end(),
+                                      other->selector_vector.begin(),
+                                      other->selector_vector.end(),
+                                      selector_less);
 }
 
 void GenericDatatypeConstructorDecl::add_new_selector(
@@ -183,9 +219,13 @@ std::string GenericDatatype::get_name() const { return dt_decl->get_name(); }
 void GenericDatatype::add_constructor(
     const DatatypeConstructorDecl & dt_cons_decl)
 {
-  // Checks if dt_cons_decl is already associated with the datatype
-  if (std::find(cons_decl_vector.begin(), cons_decl_vector.end(), dt_cons_decl)
-      != cons_decl_vector.end())
+  // Constructor names are unique within a datatype, and two declarations of
+  // one name can differ in their selectors, so the names are compared.
+  if (std::any_of(cons_decl_vector.begin(),
+                  cons_decl_vector.end(),
+                  [&dt_cons_decl](const DatatypeConstructorDecl & c) {
+                    return c->get_name() == dt_cons_decl->get_name();
+                  }))
   {
     throw InternalSolverException(
         "Can't add constructor. It already has been added!");
