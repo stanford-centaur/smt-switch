@@ -345,6 +345,34 @@ TEST_P(Datatypes, SecondMakeSortRefused)
   EXPECT_THROW(s->make_sort(unitdecl), IncorrectUsageException);
 }
 
+TEST_P(Datatypes, MakeDatatypeSortsMakesEach)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses every make_datatype_sorts";
+  }
+  std::vector<DatatypeDecl> decls;
+  for (const string & name : vector<string>{ "a", "b", "c" })
+  {
+    DatatypeDecl decl = s->make_datatype_decl(name);
+    DatatypeConstructorDecl con =
+        s->make_datatype_constructor_decl("mk" + name);
+    s->add_selector(con, "get" + name, intsort);
+    s->add_constructor(decl, con);
+    decls.push_back(decl);
+  }
+  SortVec sorts = s->make_datatype_sorts(decls);
+  ASSERT_EQ(sorts.size(), 3u);
+  for (size_t i = 0; i < sorts.size(); ++i)
+  {
+    string name = decls[i]->get_name();
+    Datatype dt = sorts[i]->get_datatype();
+    EXPECT_EQ(dt->get_name(), name);
+    EXPECT_EQ(dt->get_constructor_names(), (vector<string>{ "mk" + name }));
+    EXPECT_EQ(dt->get_selector_sort("mk" + name, "get" + name), intsort);
+  }
+}
+
 TEST_P(Datatypes, ComponentsAreHashConsed)
 {
   DatatypeDecl maybedecl = s->make_datatype_decl("maybe");

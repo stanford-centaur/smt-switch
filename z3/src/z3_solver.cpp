@@ -372,6 +372,8 @@ SortVec Z3Solver::make_datatype_sorts(
   std::vector<std::unique_ptr<z3::constructors>> consvec;
   std::vector<z3::constructor_list> clvec{};
   std::vector<z3::constructor_list *> clpvec{};  // constructor_list pointer vec
+  // clpvec points into clvec, so clvec must not reallocate
+  clvec.reserve(decls.size());
   std::vector<std::shared_ptr<Z3DatatypeDecl>> z3_decls;
   for (auto & absdecl : decls)
   {
