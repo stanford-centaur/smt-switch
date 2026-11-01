@@ -16,6 +16,7 @@
 
 #include "available_solvers.h"
 
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -251,6 +252,22 @@ std::vector<SolverConfiguration> available_interpolator_configurations()
   return result;
 }
 
+namespace {
+
+/** Whether se has every one of the attributes */
+bool has_all_attributes(SolverEnum se,
+                        const std::unordered_set<SolverAttribute> & attributes)
+{
+  const std::unordered_set<SolverAttribute> se_attrs =
+      get_solver_attributes(se);
+  return std::all_of(
+      attributes.begin(), attributes.end(), [&se_attrs](SolverAttribute a) {
+        return se_attrs.find(a) != se_attrs.end();
+      });
+}
+
+}  // namespace
+
 SolverEnum interpolator_base_solver(SolverEnum se)
 {
   switch (se)
@@ -270,18 +287,7 @@ std::vector<SolverConfiguration> filter_interpolator_configurations(
   std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc : available_interpolator_configurations())
   {
-    const std::unordered_set<SolverAttribute> base_attrs =
-        get_solver_attributes(interpolator_base_solver(sc.solver_enum));
-    bool all_attrs = true;
-    for (auto a : attributes)
-    {
-      if (base_attrs.find(a) == base_attrs.end())
-      {
-        all_attrs = false;
-        break;
-      }
-    }
-    if (all_attrs)
+    if (has_all_attributes(sc.solver_enum, attributes))
     {
       result.push_back(sc);
     }
@@ -295,18 +301,7 @@ std::vector<SolverEnum> filter_solver_enums(
   std::vector<SolverEnum> filtered_enums;
   for (auto se : solver_enums)
   {
-    const std::unordered_set<SolverAttribute> & se_attrs =
-        get_solver_attributes(se);
-    bool all_attrs = true;
-    for (auto a : attributes)
-    {
-      if (se_attrs.find(a) == se_attrs.end())
-      {
-        all_attrs = false;
-        break;
-      }
-    }
-    if (all_attrs)
+    if (has_all_attributes(se, attributes))
     {
       filtered_enums.push_back(se);
     }

@@ -17,108 +17,11 @@
 #include "solver_enums.h"
 
 #include <sstream>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "exceptions.h"
 
 namespace smt {
-
-const std::unordered_map<SolverEnum, std::unordered_set<SolverAttribute>>
-    solver_attributes({
-        { BTOR,
-          { TERMITER,
-            ARRAY_MODELS,
-            THEORY_BV,
-            CONSTARR,
-            UNSAT_CORE,
-            QUANTIFIERS,
-            BOOL_BV1_ALIASING,
-            TIMELIMIT } },
-        // Bitwuzla declares uninterpreted sorts and constants of them, but
-        // cannot reason over them: an equality or distinct warns "Equalities
-        // over uninterpreted sorts not yet supported" and answers unknown.
-        // So it claims neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
-        { BZLA,
-          { TERMITER,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            THEORY_BV,
-            QUANTIFIERS,
-            TIMELIMIT } },
-        { CVC5,
-          { TERMITER,
-            THEORY_INT,
-            THEORY_STR,
-            THEORY_BV,
-            THEORY_REAL,
-            ARRAY_MODELS,
-            ARRAY_FUN_BOOLS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            THEORY_DATATYPE,
-            QUANTIFIERS,
-            UNINTERP_SORT,
-            PARAM_UNINTERP_SORT,
-            TIMELIMIT } },
-        { GENERIC_SOLVER,
-          { TERMITER,
-            ARRAY_MODELS,
-            THEORY_INT,
-            THEORY_BV,
-            THEORY_REAL,
-            ARRAY_FUN_BOOLS,
-            UNSAT_CORE,
-            THEORY_DATATYPE,
-            QUANTIFIERS,
-            UNINTERP_SORT,
-            PARAM_UNINTERP_SORT } },
-        { MSAT,
-          { TERMITER,
-            THEORY_INT,
-            THEORY_BV,
-            THEORY_REAL,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            QUANTIFIERS,
-            UNINTERP_SORT } },
-        // TODO: Yices2 should support UNSAT_CORE
-        //       but something funky happens with testing
-        //       has something to do with the context and yices_init
-        //       look into this more and re-enable it
-        { YICES2,
-          { LOGGING,
-            CONSTARR,
-            FULL_TRANSFER,
-            TERMITER,
-            THEORY_INT,
-            THEORY_BV,
-            THEORY_REAL,
-            ARRAY_FUN_BOOLS,
-            ARRAY_MODELS,
-            UNINTERP_SORT,
-            TIMELIMIT } },
-        { Z3,
-          { TERMITER,
-            LOGGING,
-            THEORY_INT,
-            THEORY_BV,
-            THEORY_REAL,
-            ARRAY_FUN_BOOLS,
-            ARRAY_MODELS,
-            CONSTARR,
-            FULL_TRANSFER,
-            UNSAT_CORE,
-            THEORY_DATATYPE,
-            QUANTIFIERS,
-            UNINTERP_SORT,
-            TIMELIMIT } },
-    });
 
 const std::unordered_set<SolverEnum> interpolator_solver_enums({
     BZLA_INTERPOLATOR,
@@ -139,12 +42,52 @@ bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
 
 std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
 {
-  if (solver_attributes.find(se) == solver_attributes.end())
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (se)
   {
-    throw NotImplementedException("Unhandled solver enum: " + to_string(se));
+    case BTOR:
+      return { TERMITER,   ARRAY_MODELS, THEORY_BV,         CONSTARR,
+               UNSAT_CORE, QUANTIFIERS,  BOOL_BV1_ALIASING, TIMELIMIT };
+    // Bitwuzla declares uninterpreted sorts and constants of them, but
+    // cannot reason over them: an equality or distinct warns "Equalities
+    // over uninterpreted sorts not yet supported" and answers unknown.
+    // So it claims neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
+    case BZLA:
+    case BZLA_INTERPOLATOR:
+      return { TERMITER,   ARRAY_MODELS, CONSTARR,    FULL_TRANSFER,
+               UNSAT_CORE, THEORY_BV,    QUANTIFIERS, TIMELIMIT };
+    case CVC5:
+    case CVC5_INTERPOLATOR:
+      return { TERMITER,      THEORY_INT,          THEORY_STR,      THEORY_BV,
+               THEORY_REAL,   ARRAY_MODELS,        ARRAY_FUN_BOOLS, CONSTARR,
+               FULL_TRANSFER, UNSAT_CORE,          THEORY_DATATYPE, QUANTIFIERS,
+               UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT };
+    case GENERIC_SOLVER:
+      return { TERMITER,      ARRAY_MODELS,       THEORY_INT,
+               THEORY_BV,     THEORY_REAL,        ARRAY_FUN_BOOLS,
+               UNSAT_CORE,    THEORY_DATATYPE,    QUANTIFIERS,
+               UNINTERP_SORT, PARAM_UNINTERP_SORT };
+    case MSAT:
+    case MSAT_INTERPOLATOR:
+      return {
+        TERMITER, THEORY_INT,    THEORY_BV,  THEORY_REAL, ARRAY_MODELS,
+        CONSTARR, FULL_TRANSFER, UNSAT_CORE, QUANTIFIERS, UNINTERP_SORT
+      };
+    // TODO: Yices2 should support UNSAT_CORE
+    //       but something funky happens with testing
+    //       has something to do with the context and yices_init
+    //       look into this more and re-enable it
+    case YICES2:
+      return { LOGGING,      CONSTARR,      FULL_TRANSFER, TERMITER,
+               THEORY_INT,   THEORY_BV,     THEORY_REAL,   ARRAY_FUN_BOOLS,
+               ARRAY_MODELS, UNINTERP_SORT, TIMELIMIT };
+    case Z3:
+      return { TERMITER,      LOGGING,         THEORY_INT,      THEORY_BV,
+               THEORY_REAL,   ARRAY_FUN_BOOLS, ARRAY_MODELS,    CONSTARR,
+               FULL_TRANSFER, UNSAT_CORE,      THEORY_DATATYPE, QUANTIFIERS,
+               UNINTERP_SORT, TIMELIMIT };
   }
-
-  return solver_attributes.at(se);
+  throw NotImplementedException("Unknown SolverEnum: " + std::to_string(se));
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
