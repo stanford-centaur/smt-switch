@@ -10,6 +10,8 @@
 
 // The location classes go in the parser's own header.
 %define api.location.file none
+%define api.namespace {smt}
+%define api.parser.class {SmtLibParser}
 %define api.prefix {smtlib}
 %define api.token.raw
 %define api.token.constructor
@@ -17,8 +19,8 @@
 %define parse.error detailed
 %define parse.lac full
 
-%param { yyscan_t scanner }
-%parse-param { smt::SmtLibReader & drv }
+%param { SmtLibScanner & scanner }
+%parse-param { SmtLibReader & drv }
 
 // Emitted into smtlib_parser.h, before the parser class.
 %code requires {
@@ -30,24 +32,11 @@
 #include "sort.h"
 #include "term.h"
 
+// SmtLibScanner is declared in smtlib_scanner.h, which includes this header.
 namespace smt {
 class SmtLibReader;
+class SmtLibScanner;
 }  // namespace smt
-
-// The scanner's state, defined as in flex's smtlib_scanner.h, which cannot be
-// included here: the scanner includes this header and repeats that one.
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void * yyscan_t;
-#endif
-}
-
-// Emitted into smtlib_parser.h, after the parser class.
-%code provides {
-// The scanner's yylex, renamed by the prefix, returning the parser's tokens.
-// smtlib_scanner.h declares an int yylex unless this is defined first.
-#define YY_DECL smtlib::parser::symbol_type smtliblex(yyscan_t yyscanner)
-YY_DECL;
 }
 
 // Emitted into smtlib_parser.cpp only, after it includes the header.
@@ -57,9 +46,13 @@ YY_DECL;
 #include <stdexcept>
 
 #include "smtlib_reader.h"
+#include "smtlib_scanner.h"
 #include "solver.h"
 
-static std::uint64_t to_nat(const smtlib::location & l, const std::string & s)
+namespace smt {
+
+static std::uint64_t to_nat(const SmtLibParser::location_type & l,
+                            const std::string & s)
 {
   try
   {
@@ -67,9 +60,11 @@ static std::uint64_t to_nat(const smtlib::location & l, const std::string & s)
   }
   catch (const std::out_of_range &)
   {
-    throw smtlib::parser::syntax_error(l, "Numeral out of range: " + s);
+    throw SmtLibParser::syntax_error(l, "Numeral out of range: " + s);
   }
 }
+
+}  // namespace smt
 }
 
 %token <std::string> SYMBOL
@@ -94,16 +89,16 @@ EP "!"
 %nterm commands
 %nterm command
 %nterm smt2
-%nterm <smt::Term> term_s_expr
-%nterm <smt::TermVec> term_s_expr_list
-%nterm <smt::Term> atom
-%nterm <smt::Term> bvconst
-%nterm <smt::Sort> sort
-%nterm <smt::SortVec> sort_list
-%nterm <smt::TermVec> sorted_arg_list
-%nterm <smt::TermVec> sorted_param_list
+%nterm <Term> term_s_expr
+%nterm <TermVec> term_s_expr_list
+%nterm <Term> atom
+%nterm <Term> bvconst
+%nterm <Sort> sort
+%nterm <SortVec> sort_list
+%nterm <TermVec> sorted_arg_list
+%nterm <TermVec> sorted_param_list
 %nterm let_term_bindings
-%nterm <smt::Op> indexed_op
+%nterm <Op> indexed_op
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
@@ -151,12 +146,12 @@ command:
   }
   | LP DECLAREFUN SYMBOL LP sort_list RP sort RP
   {
-    smt::Sort symsort;
+    Sort symsort;
     if ($5.size())
     {
-      smt::SortVec & vec = $5;
+      SortVec & vec = $5;
       vec.push_back($7);
-      symsort = drv.solver()->make_sort(smt::FUNCTION, vec);
+      symsort = drv.solver()->make_sort(FUNCTION, vec);
     }
     else
     {
@@ -228,7 +223,7 @@ command:
   }
   | LP GETUNSATASSUMP RP
   {
-    smt::UnorderedTermSet core;
+    UnorderedTermSet core;
     drv.solver()->get_unsat_assumptions(core);
     std::cout << "(";
     for (const auto & c : core)
@@ -254,20 +249,20 @@ term_s_expr:
   }
   | LP SYMBOL term_s_expr_list RP
   {
-    smt::PrimOp po;
-    smt::Term uf;
+    PrimOp po;
+    Term uf;
 
     // check if it's a known operator in the given logic
-    if ((po = drv.lookup_primop($2)) != smt::NUM_OPS_AND_NULL)
+    if ((po = drv.lookup_primop($2)) != NUM_OPS_AND_NULL)
     {
       // this is an operator
       $$ = drv.apply_primop(po, std::move($3));
     }
     else if ((uf = drv.lookup_symbol($2)))
     {
-      smt::TermVec vec({ uf });
+      TermVec vec({ uf });
       vec.insert(vec.end(), $3.begin(), $3.end());
-      $$ = drv.solver()->make_term(smt::Apply, vec);
+      $$ = drv.solver()->make_term(Apply, vec);
     }
     else
     {
@@ -287,7 +282,7 @@ term_s_expr:
     }
     sorted_param_list RP term_s_expr RP
   {
-    smt::PrimOp po = drv.lookup_primop($2);
+    PrimOp po = drv.lookup_primop($2);
     // smt-switch takes all the parameters followed by the body
     $5.push_back($7);
     $$ = drv.solver()->make_term(po, $5);
@@ -332,7 +327,7 @@ term_s_expr_list:
 atom:
   SYMBOL
   {
-    smt::Term sym = drv.lookup_symbol($1);
+    Term sym = drv.lookup_symbol($1);
     if (!sym)
     {
       // Note: using @1 will force locations to be enabled
@@ -342,15 +337,15 @@ atom:
   }
   | FLOAT
   {
-    $$ = drv.solver()->make_term($1, drv.solver()->make_sort(smt::REAL));
+    $$ = drv.solver()->make_term($1, drv.solver()->make_sort(REAL));
   }
   | NAT
   {
     // in a logic of reals without integers, numerals are reals
-    smt::SortKind sk = drv.lookup_sortkind("Int") == smt::NUM_SORT_KINDS
-                               && drv.lookup_sortkind("Real") == smt::REAL
-                           ? smt::REAL
-                           : smt::INT;
+    SortKind sk = drv.lookup_sortkind("Int") == NUM_SORT_KINDS
+                               && drv.lookup_sortkind("Real") == REAL
+                           ? REAL
+                           : INT;
     $$ = drv.solver()->make_term($1, drv.solver()->make_sort(sk));
   }
   | bvconst
@@ -360,19 +355,19 @@ atom:
   | QUOTESTRING
   {
     $$ = drv.solver()->make_term(
-        $1, false, drv.solver()->make_sort(smt::STRING));
+        $1, false, drv.solver()->make_sort(STRING));
   }
 ;
 
 bvconst:
   BITSTR
   {
-    smt::Sort bvsort = drv.solver()->make_sort(smt::BV, $1.length());
+    Sort bvsort = drv.solver()->make_sort(BV, $1.length());
     $$ = drv.solver()->make_term($1, bvsort, 2);
   }
   | HEXSTR
   {
-    smt::Sort bvsort = drv.solver()->make_sort(smt::BV, 4 * $1.length());
+    Sort bvsort = drv.solver()->make_sort(BV, 4 * $1.length());
     $$ = drv.solver()->make_term($1, bvsort, 16);
   }
   | indprefix SYMBOL NAT RP
@@ -384,7 +379,7 @@ bvconst:
     {
       throw syntax_error(@2, "Unknown indexed literal: " + name);
     }
-    smt::Sort bvsort = drv.solver()->make_sort(smt::BV, to_nat(@3, $3));
+    Sort bvsort = drv.solver()->make_sort(BV, to_nat(@3, $3));
     $$ = drv.solver()->make_term(name.substr(2), bvsort, 10);
   }
 ;
@@ -392,16 +387,16 @@ bvconst:
 sort:
   SYMBOL
   {
-    smt::Sort res;
+    Sort res;
     // check built-in sort kinds first
-    smt::SortKind sk = drv.lookup_sortkind($1);
-    if (sk == smt::NUM_SORT_KINDS)
+    SortKind sk = drv.lookup_sortkind($1);
+    if (sk == NUM_SORT_KINDS)
     {
       // got the dedicated null enum
       // check defined sorts
       res = drv.lookup_sort($1);
     }
-    else if (sk == smt::UNINTERPRETED)
+    else if (sk == UNINTERPRETED)
     {
       // uninterpreted sorts also stored with defined sorts
       res = drv.lookup_sort($1);
@@ -415,8 +410,8 @@ sort:
   | indprefix SYMBOL NAT RP
   {
     // this one is intended for bit-vectors
-    smt::SortKind sk = drv.lookup_sortkind($2);
-    if (sk == smt::NUM_SORT_KINDS)
+    SortKind sk = drv.lookup_sortkind($2);
+    if (sk == NUM_SORT_KINDS)
     {
       // got dedicated null enum
       throw syntax_error(@2, "Unrecognized sort: " + $2);
@@ -425,8 +420,8 @@ sort:
   }
   | LP SYMBOL sort_list RP
   {
-    smt::SortKind sk = drv.lookup_sortkind($2);
-    if (sk == smt::ARRAY)
+    SortKind sk = drv.lookup_sortkind($2);
+    if (sk == ARRAY)
     {
       // this one is intended for arrays
       if ($3.size() != 2)
@@ -438,7 +433,7 @@ sort:
     else
     {
       // defined or declared sort
-      smt::Sort sort_con = drv.lookup_sort($2);
+      Sort sort_con = drv.lookup_sort($2);
       $$ = drv.solver()->make_sort(sort_con, $3);
     }
   }
@@ -459,7 +454,7 @@ sorted_arg_list:
   {}
   | sorted_arg_list LP SYMBOL sort RP
   {
-    smt::Term arg = drv.register_arg($3, $4);
+    Term arg = drv.register_arg($3, $4);
     $1.push_back(arg);
     $$ = std::move($1);
   }
@@ -470,7 +465,7 @@ sorted_param_list:
   {}
   | sorted_param_list LP SYMBOL sort RP
   {
-    smt::Term param = drv.create_param($3, $4);
+    Term param = drv.create_param($3, $4);
     $1.push_back(param);
     $$ = std::move($1);
   }
@@ -488,21 +483,21 @@ let_term_bindings:
 indexed_op:
   indprefix SYMBOL NAT RP
   {
-    smt::PrimOp po = drv.lookup_primop($2);
-    if (po == smt::NUM_OPS_AND_NULL)
+    PrimOp po = drv.lookup_primop($2);
+    if (po == NUM_OPS_AND_NULL)
     {
       throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
     }
-    $$ = smt::Op(po, to_nat(@3, $3));
+    $$ = Op(po, to_nat(@3, $3));
   }
   | indprefix SYMBOL NAT NAT RP
   {
-    smt::PrimOp po = drv.lookup_primop($2);
-    if (po == smt::NUM_OPS_AND_NULL)
+    PrimOp po = drv.lookup_primop($2);
+    if (po == NUM_OPS_AND_NULL)
     {
       throw syntax_error(@2, "Unexpected symbol in indexed operator: " + $2);
     }
-    $$ = smt::Op(po, to_nat(@3, $3), to_nat(@4, $4));
+    $$ = Op(po, to_nat(@3, $3), to_nat(@4, $4));
   }
 ;
 
@@ -605,7 +600,11 @@ attributes:
 
 %%
 
-void smtlib::parser::error(const location_type & l, const std::string & m)
+namespace smt {
+
+void SmtLibParser::error(const location_type & l, const std::string & m)
 {
   throw syntax_error(l, m);
 }
+
+}  // namespace smt

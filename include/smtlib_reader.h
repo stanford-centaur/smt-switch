@@ -46,7 +46,7 @@ class SmtLibParseException : public SmtException
 namespace smt {
 
 /** Used to keep track of which command is currently being parsed */
-enum Command
+enum class SmtLibCommand
 {
   SETLOGIC = 0,
   SETOPT,
@@ -60,7 +60,7 @@ enum Command
   PUSH,
   POP,
   NONE /** this must stay at the end --
-           can also be used for the number of Command enums */
+           can also be used for the number of SmtLibCommand enums */
 };
 
 /** Basic scoped symbol map
