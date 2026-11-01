@@ -12,7 +12,8 @@ namespace smt {
 // Struct used to hold everything needed to work with datatype selectors
 struct SelectorComponents
 {
-  // Name of the selector and its associated sort
+  // Name of the selector and its associated sort, which for a self selector
+  // is null except in the copy a sort keeps when its datatype is used
   std::string name;
   Sort sort;
   // Used to determine if the sort needs to be replaced later
@@ -80,11 +81,9 @@ class GenericDatatype : public AbsDatatype
   // Updates the sort of any selector whose finalized field is
   // false. The not-finalized selectors have their sorts set to new_sort.
   // This function is used only as part of the process of adding a
-  // 'self-selector'. After a self selector is added to a datatype, it
-  // holds a placeholder sort. This function is
-  // called when the datatype's sort is created to replace the
-  // placeholder sort in the datatype's copy of the self-selector with the
-  // actual datatype sort.
+  // 'self-selector'. A self selector holds no sort until this function
+  // is called, when the datatype's sort is created, to give the
+  // datatype's copy of it the datatype sort.
   void change_sort_of_selector(const Sort new_sort);
   std::hash<std::string> str_hash;
 

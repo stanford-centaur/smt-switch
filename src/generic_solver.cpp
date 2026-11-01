@@ -1320,8 +1320,14 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
       backend_pointer_cast<GenericDatatypeDecl>(d);
   std::string dt_decl_name = gdt_decl->get_name();
-  assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
-  std::shared_ptr<GenericDatatype> curr_dt = (*name_datatype_map)[dt_decl_name];
+  auto dt_it = name_datatype_map->find(dt_decl_name);
+  if (dt_it == name_datatype_map->end())
+  {
+    throw IncorrectUsageException("No datatype declaration named "
+                                  + dt_decl_name
+                                  + " was made with make_datatype_decl");
+  }
+  std::shared_ptr<GenericDatatype> curr_dt = dt_it->second;
   if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
   {
     // The sort keeps copies of the constructors, so that a constructor
@@ -1381,7 +1387,6 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
       to_solver += ")";
     }
     to_solver += ")\n))";
-    assert(name_sort_map->find(dt_decl_name) == name_sort_map->end());
     (*name_sort_map)[dt_decl_name] = dt_sort;
     (*sort_name_map)[dt_sort] = dt_decl_name;
     if (send_or_hold(to_solver))
@@ -1442,6 +1447,12 @@ void GenericSolver::add_constructor(DatatypeDecl & dt,
   std::shared_ptr<GenericDatatypeDecl> gdt_decl =
       backend_pointer_cast<GenericDatatypeDecl>(dt);
   std::string name = gdt_decl->get_name();
+  auto dt_it = name_datatype_map->find(name);
+  if (dt_it == name_datatype_map->end())
+  {
+    throw IncorrectUsageException("No datatype declaration named " + name
+                                  + " was made with make_datatype_decl");
+  }
   // a sort the datatype was used for holds this same datatype, and the
   // binary has its declaration already
   if (name_sort_map->find(name) != name_sort_map->end())
@@ -1450,8 +1461,7 @@ void GenericSolver::add_constructor(DatatypeDecl & dt,
                                   + " cannot change, since the sort name "
                                   + name + " is already taken");
   }
-  auto gdt = (*name_datatype_map)[name];
-  gdt->add_constructor(con);
+  dt_it->second->add_constructor(con);
 }
 
 void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
@@ -1477,16 +1487,11 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
       std::make_shared<SelectorComponents>();
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
       backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
-  std::string dt_decl_name = gdt_cons->get_dt_name();
 
   newSelector->name = name;
-  // Sets the sort to be a placeholder value until the self sort is
-  // constructed.
-  newSelector->sort = std::make_shared<GenericSort>(dt_decl_name);
-  // This indicates that the sort in this selector will eventually
-  // be replaced
+  // The constructor may not belong to a datatype yet, so the sort is left
+  // null; make_sort gives the datatype's sort to its copy of the selector.
   newSelector->finalized = false;
-  assert(name_datatype_map->find(dt_decl_name) != name_datatype_map->end());
   gdt_cons->add_new_selector(*newSelector);
 }
 
