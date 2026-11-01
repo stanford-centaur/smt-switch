@@ -9,6 +9,8 @@
  * check. Solvers accept more than that, and smt-switch allows what each
  * one allows, so a later set_logic may be accepted or refused with
  * IncorrectUsageException. One it accepts must keep what was made before.
+ * A logic the solver does not support is refused with
+ * NotImplementedException.
  */
 
 #include <gtest/gtest.h>
@@ -135,6 +137,23 @@ TEST_P(SetLogic, KeepsScopes)
   s->pop();
   EXPECT_EQ(s->get_context_level(), 0);
   EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST_P(SetLogic, UnknownLogic)
+{
+  const SolverEnum se = GetParam().solver_enum;
+  if (se == BTOR || se == CVC5 || se == GENERIC_SOLVER || se == YICES2
+      || se == Z3)
+  {
+    GTEST_SKIP() << "The solver refuses an unknown logic with "
+                    "IncorrectUsageException";
+  }
+  if (se == MSAT)
+  {
+    GTEST_SKIP() << "MathSAT accepts any logic name";
+  }
+  EXPECT_THROW(s->set_logic("NOT_A_LOGIC"), NotImplementedException);
+  EXPECT_THROW(s->set_logic("QF_"), NotImplementedException);
 }
 
 INSTANTIATE_TEST_SUITE_P(
