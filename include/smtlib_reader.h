@@ -120,7 +120,7 @@ class SmtLibReader
   // The name of the file being parsed.
   std::string file;
 
-  /* Override-able functions corresponding to SMT-LIB commands */
+  /* Overridable functions corresponding to SMT-LIB commands */
 
   virtual void set_logic(const std::string & logic);
 
@@ -131,11 +131,52 @@ class SmtLibReader
 
   virtual void set_info(const std::string & key, const std::string & val);
 
+  /** Declares a function, or a constant if it takes no arguments
+   *  @param name its name
+   *  @param domain the sorts of its arguments
+   *  @param sort the sort of its result
+   */
+  virtual void declare_fun(const std::string & name,
+                           SortVec domain,
+                           const Sort & sort);
+
+  /** Declares an uninterpreted sort
+   *  @param name its name
+   *  @param arity the number of sorts it takes
+   */
+  virtual void declare_sort(const std::string & name, std::uint64_t arity);
+
+  /** Create a define-fun macro
+   *  @param name the name of the define-fun
+   *  @param the definition
+   *  @param the arguments to the define-fun
+   *  stored in defs_ and def_args_
+   */
+  virtual void define_fun(const std::string & name,
+                          const Term & def,
+                          const TermVec & args = {});
+
+  /** Create an alias for a sort
+   *  define-sort in SMT-LIB can take arguments, but currently this
+   *  only supports 0-arity defined sorts
+   *  It also is currently not scoped correctly
+   *  TODO fix these limitations
+   *  @param name the name of the defined sort
+   *  @param sort the sort to associate name with
+   */
+  virtual void define_sort(const std::string & name, const Sort & sort);
+
   virtual void assert_formula(const Term & assertion);
 
   virtual Result check_sat();
 
   virtual Result check_sat_assuming(const TermVec & assumptions);
+
+  /** Prints the values of terms in the last model to standard output */
+  virtual void get_value(const TermVec & terms);
+
+  /** Prints the assumptions in the last unsat core to standard output */
+  virtual void get_unsat_assumptions();
 
   /** Pushes num contexts in the solver and the global symbol map
    *  If overriding, make sure to push scopes in global_symbols_
@@ -148,6 +189,11 @@ class SmtLibReader
    *    or consider calling this version of the function also
    */
   virtual void pop(std::uint64_t num = 1);
+
+  /** Prints a string to standard output
+   *  @param text the string, without its quotes
+   */
+  virtual void echo(const std::string & text);
 
   /** Mark a term with an attribute
    *  This currently is ignores the attribute and prints a warning.
@@ -219,6 +265,16 @@ class SmtLibReader
    */
   Term apply_primop(PrimOp po, TermVec args) const;
 
+  /** Apply a symbol to arguments: a primitive operator of the logic, a
+   *  declared function, or else a define-fun
+   *  @param name the symbol
+   *  @param args its arguments
+   *  @return the application
+   *  @throws IncorrectUsageException if the symbol is none of these, or is
+   *          a define-fun applied to the wrong number of arguments
+   */
+  Term apply_symbol(const std::string & name, TermVec args);
+
   /** Look up a sort by string
    *  The available sorts are based on the logic
    *  @param str the string to look up
@@ -227,16 +283,6 @@ class SmtLibReader
    *  no match
    */
   SortKind lookup_sortkind(const std::string & str) const;
-
-  /** Create a define-fun macro
-   *  @param name the name of the define-fun
-   *  @param the definition
-   *  @param the arguments to the define-fun
-   *  stored in defs_ and def_args_
-   */
-  void define_fun(const std::string & name,
-                  const Term & def,
-                  const TermVec & args = {});
 
   /** Apply a define fun
    *  @param defname the name of the define-fun
@@ -260,21 +306,57 @@ class SmtLibReader
    */
   Term register_arg(const std::string & name, const Sort & sort);
 
-  /** Create an alias for a sort
-   *  define-sort in SMT-LIB can take arguments, but currently this
-   *  only supports 0-arity defined sorts
-   *  It also is currently not scoped correctly
-   *  TODO fix these limitations
-   *  @param name the name of the defined sort
-   *  @param sort the sort to associate name with
-   */
-  void define_sort(const std::string & name, const Sort & sort);
-
   /** Looks up a defined sort by name
    *  @param name the name to look up
    *  @return the sort
    */
   Sort lookup_sort(const std::string & name) const;
+
+  /** Make the sort a name stands for: a sort of the logic, or a defined or
+   *  declared sort
+   *  @param name the name
+   *  @return the sort
+   *  @throws IncorrectUsageException if the name is none of these
+   */
+  Sort make_sort(const std::string & name) const;
+
+  /** Make an indexed sort, as in (_ BitVec 8)
+   *  @param name the sort's name
+   *  @param index its index
+   *  @return the sort, or a null sort if the logic has no sort of that name
+   */
+  Sort make_sort(const std::string & name, std::uint64_t index) const;
+
+  /** Make a sort applied to sorts: an Array sort, or a declared sort
+   *  constructor applied to its arguments
+   *  @param name the sort's name
+   *  @param sorts the sorts it is applied to
+   *  @return the sort, or a null sort for an Array of other than two sorts
+   *  @throws IncorrectUsageException if the name is neither
+   */
+  Sort make_sort(const std::string & name, const SortVec & sorts) const;
+
+  /** Make a bit-vector literal written as (_ bvN width)
+   *  @param name the bvN symbol, where N is the value in decimal
+   *  @param width the literal's width
+   *  @return the literal, or a null term if the name is not bvN, which is a
+   *          symbol like any other unless indexed
+   */
+  Term make_bv_literal(const std::string & name, std::uint64_t width) const;
+
+  /** Make a bit-vector value written as #b or #x digits
+   *  @param digits the digits, without the #b or #x
+   *  @param base 2 or 16, which sets the width to one or four bits a digit
+   *  @return the value
+   */
+  Term make_bv_value(const std::string & digits, std::uint64_t base) const;
+
+  /** Make a numeral: an Int, or a Real in a logic of reals without
+   *  integers
+   *  @param n the numeral
+   *  @return the value
+   */
+  Term make_numeral(const std::string & n) const;
 
   /** Creates a parameter and stores it in the scoped data-structure
    *  arg_param_map_
