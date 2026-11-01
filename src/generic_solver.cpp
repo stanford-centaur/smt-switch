@@ -694,12 +694,10 @@ std::string GenericSolver::send_command(const std::string & cmd) const
   }
   catch (InternalSolverException &)
   {
-    // a binary that died of the command took the solver's state with it;
-    // one that is only slow is left alone
-    if (binary_exited_)
-    {
-      restore_binary();
-    }
+    // a binary that died of the command took the solver's state with it,
+    // and one still busy past the deadline would answer it in place of the
+    // next command
+    restart_binary();
     throw;
   }
   if (binary_exited_ || is_error_response(result))
@@ -727,6 +725,11 @@ void GenericSolver::restore_binary() const
     {
     }
   }
+  restart_binary();
+}
+
+void GenericSolver::restart_binary() const
+{
   // a fresh binary given everything the old one accepted is in that state
   // too, but for the model, as no check-sat is sent again
   try
@@ -746,8 +749,8 @@ void GenericSolver::restore_binary() const
   }
   catch (SmtException & e)
   {
-    throw InternalSolverException("Could not restore the solver binary at "
-                                  + path + " after an error: " + e.what());
+    throw InternalSolverException("Could not restart the solver binary at "
+                                  + path + ": " + e.what());
   }
   if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
   {
