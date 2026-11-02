@@ -28,6 +28,12 @@ Configures the CMAKE build environment.
 --strict                treat compiler warnings as errors (default: off)
 --without-tests         build without the smt-switch test suite (default: off)
 --no-system-gtest       do not use system GTest sources; forces download (default: off)
+--no-system-bison       do not use an installed bison; forces download (default: off)
+--no-system-bitwuzla    do not use an installed Bitwuzla; forces download (default: off)
+--no-system-boolector   do not use an installed Boolector; forces download (default: off)
+--no-system-cvc5        do not use an installed cvc5; forces download (default: off)
+--no-system-yices2      do not use an installed Yices2; forces download (default: off)
+--no-system-z3          do not use an installed Z3; forces download (default: off)
 --python                compile with python bindings (default: off)
 --smtlib-reader         include the smt-lib reader - requires bison/flex (default:off)
 --bison-dir=STR         custom bison install prefix     (default: deps/bison)
@@ -64,6 +70,12 @@ allow_gpl=default
 strict=default
 build_tests=default
 system_gtest=default
+system_bison=default
+system_bitwuzla=default
+system_btor=default
+system_cvc5=default
+system_yices2=default
+system_z3=default
 python=default
 smtlib_reader=default
 bison_dir=default
@@ -173,6 +185,24 @@ while [ "$i" -lt "$argc" ]; do
     --no-system-gtest)
       system_gtest=no
       ;;
+    --no-system-bison)
+      system_bison=OFF
+      ;;
+    --no-system-bitwuzla)
+      system_bitwuzla=OFF
+      ;;
+    --no-system-boolector)
+      system_btor=OFF
+      ;;
+    --no-system-cvc5)
+      system_cvc5=OFF
+      ;;
+    --no-system-yices2)
+      system_yices2=OFF
+      ;;
+    --no-system-z3)
+      system_z3=OFF
+      ;;
     --python)
       python=yes
       ;;
@@ -227,6 +257,27 @@ if [ "$yices2_dir" != default ] && [ "$build_yices2" = default ]; then
 fi
 
 if [ "$z3_dir" != default ] && [ "$build_z3" = default ]; then
+  build_z3=ON
+fi
+
+# and likewise if a download is forced
+if [ "$system_btor" != default ] && [ "$build_btor" = default ]; then
+  build_btor=ON
+fi
+
+if [ "$system_bitwuzla" != default ] && [ "$build_bitwuzla" = default ]; then
+  build_bitwuzla=ON
+fi
+
+if [ "$system_cvc5" != default ] && [ "$build_cvc5" = default ]; then
+  build_cvc5=ON
+fi
+
+if [ "$system_yices2" != default ] && [ "$build_yices2" = default ]; then
+  build_yices2=ON
+fi
+
+if [ "$system_z3" != default ] && [ "$build_z3" = default ]; then
   build_z3=ON
 fi
 
@@ -286,6 +337,24 @@ esac
 
 [ "$system_gtest" != default ] &&
   set -- "$@" "-DSYSTEM_GTEST=$system_gtest"
+
+[ "$system_bison" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_BISON=$system_bison"
+
+[ "$system_bitwuzla" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_BITWUZLA=$system_bitwuzla"
+
+[ "$system_btor" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_BOOLECTOR=$system_btor"
+
+[ "$system_cvc5" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_CVC5=$system_cvc5"
+
+[ "$system_yices2" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_YICES2=$system_yices2"
+
+[ "$system_z3" != default ] &&
+  set -- "$@" "-DSMT_SWITCH_SYSTEM_Z3=$system_z3"
 
 [ "$auto_deps" != default ] &&
   set -- "$@" "-DSMT_SWITCH_AUTO_DEPS=OFF"

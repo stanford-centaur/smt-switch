@@ -121,6 +121,12 @@ Pass `--no-auto-deps` to turn that off and be told what is missing instead.
 Nothing is downloaded for a solver that is already installed, so the
 `--<solver>-dir` flags below take precedence.
 
+To use the pinned version even when another one is installed, pass
+`--no-system-<solver>` (or `--no-system-bison` for the SMT-LIB reader's parser
+generator): the copy under `deps/` is then used, and downloaded first if it is
+not there yet. This cannot be combined with that solver's `--<solver>-dir` or
+with `--no-auto-deps`, and Yices2 still needs `--allow-gpl`.
+
 Each enabled solver produces a `libsmt-switch-<solver>.so`.
 `cmake --install build` installs those and the public headers under the
 configured prefix (`/usr/local` by default), with the headers in a subdirectory

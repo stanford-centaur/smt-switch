@@ -22,6 +22,10 @@ here as a nested project, to completion, before the lookup that needs it.
   caller is expected to follow with its own ``REQUIRED`` lookup, which is what
   reports a failure that provisioning did not fix.
 
+  If ``SMT_SWITCH_SYSTEM_<NAME>`` is off for the package, ``<target>`` is
+  built before the lookup rather than after it fails, and the package then
+  has to be found in its prefix under ``SMT_SWITCH_DEPS_DIR``.
+
 .. command:: smt_switch_dependency_root
 
   .. code-block:: cmake
@@ -34,7 +38,8 @@ here as a nested project, to completion, before the lookup that needs it.
   default and has to be a directory.  ``<found-var>`` is the variable the
   lookup records the package's location in, and ``<flag>`` the
   ``configure.sh`` option that sets the root, if there is one, for the
-  error messages.
+  error messages.  A given root cannot be combined with
+  ``SMT_SWITCH_SYSTEM_<NAME>`` off, since nothing is built into it.
 
   A root from the command line is made absolute against the directory
   ``cmake`` was started in, as any ``PATH`` cache entry is.
@@ -47,7 +52,8 @@ here as a nested project, to completion, before the lookup that needs it.
 
   Called after looking for ``<Package>``.  If its root was given, stops
   configuration unless the package was found under that root: falling back
-  to another copy, or building one, would quietly ignore the request.
+  to another copy, or building one, would quietly ignore the request.  The
+  same holds for the default root when ``SMT_SWITCH_SYSTEM_<NAME>`` is off.
 
 Cache Variables
 ^^^^^^^^^^^^^^^
@@ -71,10 +77,25 @@ Cache Variables
   to be rebuilt rather than carried across.  Provisioning into a new
   location from scratch works as it should.
 
+``SMT_SWITCH_SYSTEM_<NAME>``
+  One for each dependency the provisioner can build, named after its
+  directory under ``cmake/provision/``: ``BISON``, ``BITWUZLA``,
+  ``BOOLECTOR``, ``CVC5``, ``YICES2`` and ``Z3``.  On by default, so that an
+  installed copy is used.  Turned off, the dependency is downloaded and built
+  under ``SMT_SWITCH_DEPS_DIR`` even if it is installed elsewhere.
+
 #]=======================================================================]
 
 option(SMT_SWITCH_AUTO_DEPS "Download and build dependencies that cannot be found" ON)
 option(SMT_SWITCH_ALLOW_GPL "Permit automatic download of GPL-licensed dependencies (Yices2)" OFF)
+foreach(
+  _name
+  IN
+  ITEMS bison bitwuzla boolector cvc5 yices2 z3
+)
+  string(TOUPPER "${_name}" _upper)
+  option(SMT_SWITCH_SYSTEM_${_upper} "Use an installed ${_name} rather than downloading one" ON)
+endforeach()
 
 set(
   SMT_SWITCH_DEPS_DIR
@@ -100,9 +121,9 @@ define_property(
 
 define_property(
   GLOBAL
-  PROPERTY SMT_SWITCH_EXPLICIT_ROOTS
-  BRIEF_DOCS "Packages whose <Package>_ROOT was given rather than defaulted"
-  FULL_DOCS "Each of them has to be found under its root"
+  PROPERTY SMT_SWITCH_REQUIRED_ROOTS
+  BRIEF_DOCS "Packages that have to be found under their <Package>_ROOT"
+  FULL_DOCS "Those whose root was given, and those not to be taken from the system"
 )
 
 function(smt_switch_dependency_root package name found_var)
@@ -110,32 +131,54 @@ function(smt_switch_dependency_root package name found_var)
   if(ARGC GREATER 3)
     set(_given "${_given} (${ARGV3})")
   endif()
+  string(TOUPPER "${name}" _upper)
+  set(_no_system FALSE)
+  if(DEFINED SMT_SWITCH_SYSTEM_${_upper} AND NOT SMT_SWITCH_SYSTEM_${_upper})
+    set(_no_system TRUE)
+  endif()
   if(DEFINED CACHE{${package}_ROOT})
     # Declaring it a PATH is what makes CMake turn a relative value from the
     # command line into an absolute one.
     set(${package}_ROOT "" CACHE PATH "Install prefix of ${package}")
   endif()
   if("${${package}_ROOT}" STREQUAL "")
-    set(${package}_ROOT "${SMT_SWITCH_DEPS_DIR}/${name}" PARENT_SCOPE)
+    set(${package}_ROOT "${SMT_SWITCH_DEPS_DIR}/${name}")
+    if(_no_system)
+      set(
+        _reason
+        "--no-system-${name} was given, so ${package} has to come from ${${package}_ROOT}"
+      )
+      set_property(GLOBAL APPEND PROPERTY SMT_SWITCH_REQUIRED_ROOTS "${package}")
+      set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_REASON "${_reason}")
+      set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR "${found_var}")
+    endif()
+    set(${package}_ROOT "${${package}_ROOT}" PARENT_SCOPE)
     return()
+  endif()
+  if(_no_system)
+    message(
+      FATAL_ERROR
+      "--no-system-${name} was given, which asks for ${package} to be "
+      "downloaded, but so was ${ARGV3}, which points at an installation of "
+      "it. Pass only one of them."
+    )
   endif()
   if(NOT IS_DIRECTORY "${${package}_ROOT}")
     message(FATAL_ERROR "${_given} is ${${package}_ROOT}, which is not a directory.")
   endif()
-  set_property(GLOBAL APPEND PROPERTY SMT_SWITCH_EXPLICIT_ROOTS "${package}")
-  set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_GIVEN "${_given}")
+  set_property(GLOBAL APPEND PROPERTY SMT_SWITCH_REQUIRED_ROOTS "${package}")
+  set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_REASON "${_given} is ${${package}_ROOT}")
   set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR "${found_var}")
   set(${package}_ROOT "${${package}_ROOT}" PARENT_SCOPE)
 endfunction()
 
 function(smt_switch_check_root package)
-  get_property(_explicit_roots GLOBAL PROPERTY SMT_SWITCH_EXPLICIT_ROOTS)
-  if(NOT package IN_LIST _explicit_roots)
+  get_property(_required_roots GLOBAL PROPERTY SMT_SWITCH_REQUIRED_ROOTS)
+  if(NOT package IN_LIST _required_roots)
     return()
   endif()
-  get_property(_given GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_GIVEN)
+  get_property(_given GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_REASON)
   get_property(_found_var GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR)
-  set(_given "${_given} is ${${package}_ROOT}")
   if(NOT ${package}_FOUND)
     message(FATAL_ERROR "${_given}, but no suitable ${package} is installed there.")
   endif()
@@ -244,7 +287,36 @@ function(_smt_switch_run_provision_driver target)
   endif()
 endfunction()
 
+# Yices2 is GPLv3. Everything else here is permissively licensed, so this is
+# the one dependency that is not fetched unless it is asked for.
+function(_smt_switch_check_licence target reason)
+  if(target STREQUAL "yices2" AND NOT SMT_SWITCH_ALLOW_GPL)
+    message(
+      FATAL_ERROR
+      "${reason} It is licensed under the GPLv3, so it is only downloaded "
+      "when you say so: pass --allow-gpl to accept that, or point "
+      "--yices2-dir at an installation you built yourself."
+    )
+  endif()
+endfunction()
+
 function(smt_switch_provision_if_missing package target)
+  string(TOUPPER "${target}" _upper)
+  if(NOT SMT_SWITCH_SYSTEM_${_upper})
+    if(NOT SMT_SWITCH_AUTO_DEPS)
+      message(
+        FATAL_ERROR
+        "--no-system-${target} asks for ${package} to be downloaded, but "
+        "--no-auto-deps turns downloading off. Pass only one of them."
+      )
+    endif()
+    _smt_switch_check_licence("${target}" "--no-system-${target} asks for Yices2 to be downloaded.")
+    # Built before looking rather than after the lookup fails: the root is
+    # searched before anywhere else, so once the package is there an
+    # installed copy is never reached. Once it is built, this does nothing.
+    _smt_switch_run_provision_driver("${target}")
+  endif()
+
   get_cmake_property(_cache_before CACHE_VARIABLES)
   find_package("${package}" QUIET ${ARGN})
   smt_switch_check_root("${package}")
@@ -271,16 +343,6 @@ function(smt_switch_provision_if_missing package target)
     )
   endif()
 
-  # Yices2 is GPLv3. Everything else here is permissively licensed, so this
-  # is the one dependency that is not fetched unless it is asked for.
-  if(target STREQUAL "yices2" AND NOT SMT_SWITCH_ALLOW_GPL)
-    message(
-      FATAL_ERROR
-      "Yices2 was not found. It is licensed under the GPLv3, so it is only "
-      "downloaded when you say so: pass --allow-gpl to accept that, or "
-      "point --yices2-dir at an installation you built yourself."
-    )
-  endif()
-
+  _smt_switch_check_licence("${target}" "Yices2 was not found.")
   _smt_switch_run_provision_driver("${target}")
 endfunction()
