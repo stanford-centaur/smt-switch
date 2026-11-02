@@ -244,6 +244,16 @@ bool LoggingTerm::is_value() const
   return op.is_null() && wrapped_term->is_value();
 }
 
+std::string LoggingTerm::get_symbol_name() const
+{
+  if (!is_sym)
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  return wrapped_term->get_symbol_name();
+}
+
 std::uint64_t LoggingTerm::to_int() const { return wrapped_term->to_int(); }
 
 std::int64_t LoggingTerm::to_signed_int() const

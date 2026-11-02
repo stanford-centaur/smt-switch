@@ -186,6 +186,22 @@ static SortKind int_convertible_sort_kind(const GenericTerm & term,
   return sk;
 }
 
+std::string GenericTerm::get_symbol_name() const
+{
+  if (!is_sym)
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  // The name was quoted with smtlib_quote_symbol, which adds bars to any
+  // name with a bar in it, so a leading bar is always one it added.
+  if (!repr.empty() && repr.front() == '|')
+  {
+    return repr.substr(1, repr.size() - 2);
+  }
+  return repr;
+}
+
 std::uint64_t GenericTerm::to_int() const
 {
   return int_convertible_sort_kind(*this, repr) == BV

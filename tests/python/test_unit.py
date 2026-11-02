@@ -112,6 +112,15 @@ def test_bool(create_solver):
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
+def test_symbol_name(create_solver):
+    solver = create_solver(logging=False)
+
+    x = solver.make_symbol("a b", solver.make_sort(ss.sortkinds.BOOL))
+
+    assert x.get_symbol_name() == "a b"
+
+
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_check_sat_assuming(create_solver):
     solver = create_solver(logging=False)
     solver.set_opt("incremental", "true")

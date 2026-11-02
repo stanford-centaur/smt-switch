@@ -67,6 +67,13 @@ class AbsTerm
   virtual bool is_symbolic_const() const = 0;
   /* returns true iff this term is an interpreted constant */
   virtual bool is_value() const = 0;
+  /** Returns the name the symbol was made with. Unlike to_string, which
+   *  prints SMT-LIB, it is never quoted: a symbol made as "a b" is named
+   *  a b, not |a b|.
+   *  Throws an IncorrectUsageException unless the term is a symbol that is
+   *  not a parameter.
+   */
+  virtual std::string get_symbol_name() const = 0;
   /** converts a value that can be represented as an int to an int
    *  otherwise, throws an IncorrectUsageException
    *  Integer values (and real values with an integral value) must be in

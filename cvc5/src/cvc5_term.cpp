@@ -365,6 +365,16 @@ std::wstring Cvc5Term::getStringValue() const
   return std::wstring(value.begin(), value.end());
 }
 
+std::string Cvc5Term::get_symbol_name() const
+{
+  if (term.getKind() != ::cvc5::Kind::CONSTANT)
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  return term.getSymbol();
+}
+
 uint64_t Cvc5Term::to_int() const
 {
   if (term.isBitVectorValue())

@@ -192,6 +192,12 @@ TEST_P(Binders, SymbolNamedLikeEarlierParam)
   expect_symbol_not_captured(param, symbol);
 }
 
+TEST_P(Binders, ParamHasNoSymbolName)
+{
+  Term param = s->make_param("x", bvsort);
+  EXPECT_THROW(param->get_symbol_name(), IncorrectUsageException);
+}
+
 TEST_P(Binders, NoParam)
 {
   Term body = s->make_symbol("b", boolsort);

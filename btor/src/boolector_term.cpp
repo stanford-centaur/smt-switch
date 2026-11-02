@@ -395,6 +395,17 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
   return s;
 }
 
+std::string BoolectorTerm::get_symbol_name() const
+{
+  if (!symbol || is_param())
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  // A substituted symbol is a proxy, which keeps the name.
+  return btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
+}
+
 uint64_t BoolectorTerm::to_int() const
 {
   return bits_to_uint64(const_to_bits(btor.get(), node));

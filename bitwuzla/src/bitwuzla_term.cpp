@@ -302,6 +302,16 @@ static std::string bv_value_to_bits(const bitwuzla::Term & term)
   return term.value<std::string>(2);
 }
 
+std::string BzlaTerm::get_symbol_name() const
+{
+  if (!term.is_const())
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  return term.symbol().value();
+}
+
 std::uint64_t BzlaTerm::to_int() const
 {
   return bits_to_uint64(bv_value_to_bits(term));

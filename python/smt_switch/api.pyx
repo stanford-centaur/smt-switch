@@ -186,6 +186,9 @@ cdef class Term:
         s.cs = dref(self.ct).get_sort()
         return s
 
+    def get_symbol_name(self):
+        return dref(self.ct).get_symbol_name().decode()
+
     def is_symbolic_const(self):
         return dref(self.ct).is_symbolic_const()
 

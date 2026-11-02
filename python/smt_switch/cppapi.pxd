@@ -70,6 +70,7 @@ cdef extern from "term.h" namespace "smt":
         c_Op get_op() except +
         c_Sort get_sort() except +
         string to_string() except +
+        string get_symbol_name() except +
         bint is_symbolic_const() except +
         bint is_value() except +
         uint64_t to_int() except +

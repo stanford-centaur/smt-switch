@@ -575,6 +575,20 @@ static string number_to_text(msat_env env,
   return val;
 }
 
+string MsatTerm::get_symbol_name() const
+{
+  // A function has a declaration but no term, which is_param would read.
+  if (!is_uf && (!is_symbol() || is_param()))
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  char * s = msat_decl_get_name(is_uf ? decl : msat_term_get_decl(term));
+  string res = s;
+  msat_free(s);
+  return res;
+}
+
 uint64_t MsatTerm::to_int() const
 {
   bool is_bv;
