@@ -127,7 +127,11 @@ void get_ops(const Term & term, UnorderedOpSet & out);
  */
 bool is_lit(const Term & l, const Sort & boolsort);
 
-// Returns a string in DIMACs format for a given cnf formula
+/** Writes a CNF formula in DIMACS format
+ *  @param cnf a Boolean term that is a conjunction of disjunctions
+ *  @param y the stream to write to
+ *  @throws IncorrectUsageException if cnf is not Boolean or not in CNF
+ */
 void cnf_to_dimacs(Term cnf, std::ostringstream & y);
 
 // Converts any boolean formula to cnf, formula is the formula to be converted
@@ -300,6 +304,7 @@ class UnsatCoreReducer
    *  @param rand_seed if strickly positive then assump will be shuffled.
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
+   *  @throws InternalSolverException if the reducer answers unknown
    */
   bool reduce_assump_unsatcore(const Term & formula,
                                const TermVec & assump,
@@ -311,8 +316,7 @@ class UnsatCoreReducer
   /** The additional method to reduce the assump (vector of assumptions). The
    * method assumes that the conjunction of the formula and assump is
    * unsatisfiable. This will iterate through the assump and requires at most
-   * size(assump) queries. Note: this function assumes that there are no
-   * duplicate assumptions from the second input vector.
+   * size(assump) queries.
    *  @param input formula
    *  @param input vector of assumptions
    *  @param output vector for the reduced assumptions
@@ -321,6 +325,8 @@ class UnsatCoreReducer
    *         and it means that the result in out_red will be minimal.
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
+   *  @throws IncorrectUsageException if an assumption appears more than once
+   *  @throws InternalSolverException if the reducer answers unknown
    */
   bool linear_reduce_assump_unsatcore(const Term & formula,
                                       const TermVec & assump,
@@ -368,6 +374,7 @@ class DisjointSet
   /** Find the representative (leader) of the term t.
    * @param Term t whose respresentative to be returned.
    * returns the representative term.
+   * @throws IncorrectUsageException if t was never added
    */
   Term find(const Term & t) const;
 

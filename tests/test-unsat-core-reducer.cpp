@@ -22,6 +22,8 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
+#include "logging_solver.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -120,6 +122,45 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
   EXPECT_EQ(red.size(), 1);
   EXPECT_EQ(rem.size(), 1);
   EXPECT_NE(rem[0], red[0]);
+}
+
+TEST_P(UnsatCoreReducerTests, LinearRefusesRepeatedAssumption)
+{
+  UnsatCoreReducer uscr(r);
+
+  Term a = s->make_symbol("a", boolsort);
+  Term not_a = s->make_term(Not, a);
+  TermVec red;
+  EXPECT_THROW(uscr.linear_reduce_assump_unsatcore(a, { not_a, not_a }, red),
+               IncorrectUsageException);
+}
+
+/** A solver that answers unknown to every query with assumptions */
+class UnknownAssumingSolver : public LoggingSolver
+{
+ public:
+  using AbsSmtSolver::check_sat_assuming;
+  using LoggingSolver::LoggingSolver;
+  Result check_sat_assuming(const TermVec & /* assumptions */) override
+  {
+    return Result(UNKNOWN);
+  }
+};
+
+TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
+{
+  SolverConfiguration sc(GetParam().solver_enum, false);
+  UnsatCoreReducer uscr(make_shared<UnknownAssumingSolver>(create_solver(sc)));
+
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term formula = s->make_term(And, a, b);
+  TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
+  TermVec red;
+  EXPECT_THROW(uscr.reduce_assump_unsatcore(formula, assump, red),
+               InternalSolverException);
+  EXPECT_THROW(uscr.linear_reduce_assump_unsatcore(formula, assump, red),
+               InternalSolverException);
 }
 
 // The unsat cores reducer module requires the

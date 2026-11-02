@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
@@ -78,6 +79,13 @@ TEST_P(DisjointSetTests, TestDisjointSet)
   ds.add(w, z);
   t4 = ds.find(w);
   EXPECT_TRUE(t1 == t4);
+}
+
+TEST_P(DisjointSetTests, FindRefusesTermNeverAdded)
+{
+  DisjointSet ds(disjoint_set_rank);
+  ds.add(z, y);
+  EXPECT_THROW(ds.find(x), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverDisjointSetTests,
