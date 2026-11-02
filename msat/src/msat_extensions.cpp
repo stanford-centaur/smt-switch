@@ -45,10 +45,15 @@ msat_term ext_msat_make_abs(msat_env e, msat_term t)
 
 msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
 {
+  // SMT-LIB's div rounds t1 / t2 down for a positive t2 and up for a negative
+  // one, so that the remainder is never negative. MathSAT only has floor, and
+  // ceil(u) = -floor(-u), whereas floor(u) + 1 is one too large for an
+  // integer u.
   msat_term res;
   msat_term div = msat_make_divide(e, t1, t2);
   msat_term div_floor = msat_make_floor(e, div);
-  msat_term div_ceil = msat_make_plus(e, div_floor, msat_make_number(e, "1"));
+  msat_term div_ceil =
+      ext_msat_make_negate(e, msat_make_floor(e, ext_msat_make_negate(e, div)));
 
   if (msat_term_is_number(e, t2))
   {
@@ -61,8 +66,8 @@ msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
   else
   {
     msat_term zero = msat_make_number(e, "0");
-    msat_term t2_pos = msat_make_leq(e, t2, zero);
-    res = msat_make_term_ite(e, t2_pos, div_floor, div_ceil);
+    res =
+        msat_make_term_ite(e, msat_make_leq(e, zero, t2), div_floor, div_ceil);
   }
 
   return res;
