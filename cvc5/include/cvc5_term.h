@@ -20,8 +20,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 
+#include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
@@ -78,5 +80,16 @@ class Cvc5Term : public AbsTerm
   friend class Cvc5Solver;
   friend class cvc5InterpolatingSolver;
 };
+
+/** The cvc5 kind of the applications of po
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
+ *          value
+ */
+cvc5::Kind to_cvc5_kind(PrimOp po);
+
+/** The PrimOp of the applications of kind, or nothing for a kind that no
+ *  PrimOp stands for
+ */
+std::optional<PrimOp> to_primop(cvc5::Kind kind);
 
 }  // namespace smt
