@@ -79,13 +79,6 @@ const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
         { "S", { STRING } },
     });
 
-// The arithmetic operators that SMT-LIB declares as (op Real Real s), for
-// which the logic AUFLIRA makes an Int argument next to a Real one, and
-// every Int argument of /, syntactic sugar for its conversion with to_real.
-// As :left-assoc or :chainable operators, they take more arguments too.
-const std::unordered_set<PrimOp> real_arith_ops(
-    { Plus, Minus, Mult, Div, Lt, Le, Gt, Ge });
-
 namespace {
 bool has_sort_kind(SortKind sk, const Term & t)
 {
@@ -560,8 +553,11 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
     return solver_->make_term(Negate, args[0]);
   }
 
+  // SMT-LIB declares the arithmetic operators as (op Real Real s), for which
+  // the logic AUFLIRA makes an Int argument next to a Real one, and every Int
+  // argument of /, syntactic sugar for its conversion with to_real.
   if (lookup_sortkind("Int") == INT && lookup_sortkind("Real") == REAL
-      && (real_arith_ops.find(po) != real_arith_ops.end()
+      && (get_theory(po) == Theory::ARITH || get_theory(po) == Theory::REALS
           || (!strict_ && (po == Equal || po == Distinct)))
       && (po == Div
           || std::any_of(args.begin(), args.end(), has_sort_kind(REAL))))
