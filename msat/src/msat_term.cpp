@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
 #include <vector>
 
 #include "exceptions.h"
@@ -31,83 +30,6 @@
 using namespace std;
 
 namespace smt {
-
-/* Op mappings */
-const std::unordered_map<msat_symbol_tag, PrimOp> tag2op({
-    { MSAT_TAG_AND, And },
-    { MSAT_TAG_OR, Or },
-    { MSAT_TAG_NOT, Not },
-    { MSAT_TAG_IFF, Equal },
-    { MSAT_TAG_PLUS, Plus },
-    { MSAT_TAG_TIMES, Mult },
-    { MSAT_TAG_DIVIDE, Div },
-    { MSAT_TAG_FLOOR, To_Int },
-    { MSAT_TAG_LEQ, Le },
-    { MSAT_TAG_EQ, Equal },
-    { MSAT_TAG_ITE, Ite },
-    // { MSAT_TAG_INT_MOD_CONGR, Mod }, // this is not regular mod
-    { MSAT_TAG_BV_CONCAT, Concat },
-    { MSAT_TAG_BV_EXTRACT, Extract },
-    { MSAT_TAG_BV_NOT, BVNot },
-    { MSAT_TAG_BV_AND, BVAnd },
-    { MSAT_TAG_BV_OR, BVOr },
-    { MSAT_TAG_BV_XOR, BVXor },
-    { MSAT_TAG_BV_ULT, BVUlt },
-    { MSAT_TAG_BV_SLT, BVSlt },
-    { MSAT_TAG_BV_ULE, BVUle },
-    { MSAT_TAG_BV_SLE, BVSle },
-    { MSAT_TAG_BV_COMP, BVComp },
-    { MSAT_TAG_BV_NEG, BVNeg },
-    { MSAT_TAG_BV_ADD, BVAdd },
-    { MSAT_TAG_BV_SUB, BVSub },
-    { MSAT_TAG_BV_MUL, BVMul },
-    { MSAT_TAG_BV_UDIV, BVUdiv },
-    { MSAT_TAG_BV_SDIV, BVSdiv },
-    { MSAT_TAG_BV_UREM, BVUrem },
-    { MSAT_TAG_BV_SREM, BVSrem },
-    { MSAT_TAG_BV_LSHL, BVShl },
-    { MSAT_TAG_BV_LSHR, BVLshr },
-    { MSAT_TAG_BV_ASHR, BVAshr },
-    { MSAT_TAG_BV_ROL, Rotate_Left },
-    { MSAT_TAG_BV_ROR, Rotate_Right },
-    { MSAT_TAG_BV_ZEXT, Zero_Extend },
-    { MSAT_TAG_BV_SEXT, Sign_Extend },
-    { MSAT_TAG_ARRAY_READ, Select },
-    { MSAT_TAG_ARRAY_WRITE, Store },
-    { MSAT_TAG_ARRAY_CONST,
-      NUM_OPS_AND_NULL },  // Const Array is a value (no op)
-    { MSAT_TAG_INT_TO_BV, Int_To_BV },
-    { MSAT_TAG_INT_FROM_UBV, UBV_To_Int },
-    { MSAT_TAG_INT_FROM_SBV, SBV_To_Int },
-    { MSAT_TAG_FORALL, Forall },
-    { MSAT_TAG_EXISTS, Exists },
-    // MSAT_TAG_FP_EQ,
-    // MSAT_TAG_FP_LT,
-    // MSAT_TAG_FP_LE,
-    // MSAT_TAG_FP_NEG,
-    // MSAT_TAG_FP_ADD,
-    // MSAT_TAG_FP_SUB,
-    // MSAT_TAG_FP_MUL,
-    // MSAT_TAG_FP_DIV,
-    // MSAT_TAG_FP_SQRT,
-    // MSAT_TAG_FP_ABS,
-    // MSAT_TAG_FP_MIN,
-    // MSAT_TAG_FP_MAX,
-    // MSAT_TAG_FP_CAST,
-    // MSAT_TAG_FP_ROUND_TO_INT,
-    // MSAT_TAG_FP_FROM_SBV,
-    // MSAT_TAG_FP_FROM_UBV,
-    // MSAT_TAG_FP_TO_BV,
-    // MSAT_TAG_FP_AS_IEEEBV,
-    // MSAT_TAG_FP_ISNAN,
-    // MSAT_TAG_FP_ISINF,
-    // MSAT_TAG_FP_ISZERO,
-    // MSAT_TAG_FP_ISSUBNORMAL,
-    // MSAT_TAG_FP_ISNORMAL,
-    // MSAT_TAG_FP_ISNEG,
-    // MSAT_TAG_FP_ISPOS,
-    // MSAT_TAG_FP_FROM_IEEEBV,
-});
 
 // MsatTermIter implementation
 
