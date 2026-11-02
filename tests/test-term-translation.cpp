@@ -377,6 +377,19 @@ TEST_P(TranslationTests, And)
   ASSERT_TRUE(round_trip_matches(get<1>(GetParam()), s1, a_and_b_1, a_and_b));
 }
 
+// A name SMT-LIB prints in bars keeps its name, and translating it back
+// finds the symbol it came from.
+TEST_P(TranslationTests, QuotedSymbolName)
+{
+  Term spaced = s1->make_symbol("a b", boolsort);
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  Term spaced_2 = to_s2.transfer_term(spaced);
+  EXPECT_EQ(spaced_2->get_symbol_name(), "a b");
+  EXPECT_EQ(to_s1.transfer_term(spaced_2), spaced);
+}
+
 TEST_P(TranslationTests, Equal)
 {
   Term a_equal_b = s1->make_term(Equal, a, b);
