@@ -357,7 +357,24 @@ bool Cvc5Term::is_value() const
           || (k == ::cvc5::Kind::CONST_ARRAY));
 }
 
-std::string Cvc5Term::to_string() const { return term.toString(); }
+std::string Cvc5Term::to_string() const
+{
+  // cvc5 prints a tester by an internal name of its own, is_C, which is no
+  // SMT-LIB term
+  if (term.getSort().isDatatypeTester())
+  {
+    cvc5::Datatype dt =
+        term.getSort().getDatatypeTesterDomainSort().getDatatype();
+    for (std::size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      if (dt[i].getTesterTerm() == term)
+      {
+        return "(_ is " + smtlib_quote_symbol(dt[i].getName()) + ")";
+      }
+    }
+  }
+  return term.toString();
+}
 
 std::wstring Cvc5Term::getStringValue() const
 {

@@ -410,6 +410,11 @@ TEST_P(Datatypes, PrintsAsSmtlib)
   Sort listsort = s->make_sort(listdecl);
   EXPECT_EQ(listsort->to_string(), "list");
 
+  // a constructor or selector is its name, a tester an indexed identifier
+  EXPECT_EQ(s->get_constructor(listsort, "cons")->to_string(), "cons");
+  EXPECT_EQ(s->get_selector(listsort, "cons", "head")->to_string(), "head");
+  EXPECT_EQ(s->get_tester(listsort, "nil")->to_string(), "(_ is nil)");
+
   // a nullary constructor applied is a constant
   Term nil =
       s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));

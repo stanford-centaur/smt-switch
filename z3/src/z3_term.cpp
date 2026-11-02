@@ -332,6 +332,14 @@ string Z3Term::to_string() const
 {
   if (is_function)
   {
+    // a tester's name is is, whatever constructor it tests, so it is printed
+    // with the constructor, which is its parameter
+    if (z_func.decl_kind() == Z3_OP_DT_IS)
+    {
+      z3::func_decl cons{ *ctx,
+                          Z3_get_decl_func_decl_parameter(*ctx, z_func, 0) };
+      return "(_ is " + smtlib_quote_symbol(cons.name().str()) + ")";
+    }
     return z_func.name().str();
   }
   else
