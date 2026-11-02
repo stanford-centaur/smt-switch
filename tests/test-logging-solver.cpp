@@ -27,6 +27,7 @@
 #include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
+#include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
 
@@ -36,9 +37,9 @@ using namespace std;
 
 namespace {
 
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(LoggingTests);
-class LoggingTests : public ::testing::Test,
-                     public ::testing::WithParamInterface<SolverConfiguration>
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Logging);
+class Logging : public ::testing::Test,
+                public ::testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -64,7 +65,7 @@ class LoggingTests : public ::testing::Test,
   Term x, y, zero, one;
 };
 
-TEST_P(LoggingTests, Children)
+TEST_P(Logging, Children)
 {
   EXPECT_TRUE(x->get_op().is_null());
   EXPECT_TRUE(y->is_symbolic_const());
@@ -81,13 +82,13 @@ TEST_P(LoggingTests, Children)
   EXPECT_EQ(children[1], one);
 }
 
-TEST_P(LoggingTests, PrintsApplicationAsSmtlib)
+TEST_P(Logging, PrintsApplicationAsSmtlib)
 {
   Term f = s->make_symbol("f", funsort);
   EXPECT_EQ(s->make_term(Apply, f, x)->to_string(), "(f x)");
 }
 
-TEST_P(LoggingTests, PrintsIndexedOpAsSmtlib)
+TEST_P(Logging, PrintsIndexedOpAsSmtlib)
 {
   EXPECT_EQ(s->make_term(Op(Rotate_Right, 2), x)->to_string(),
             "((_ rotate_right 2) x)");
@@ -95,7 +96,7 @@ TEST_P(LoggingTests, PrintsIndexedOpAsSmtlib)
             "((_ rotate_left 2) x)");
 }
 
-TEST_P(LoggingTests, HashConsing)
+TEST_P(Logging, HashConsing)
 {
   Term xp1 = s->make_term(BVAdd, x, one);
   // Check hash-consing using comparison of underlying pointers
@@ -103,7 +104,7 @@ TEST_P(LoggingTests, HashConsing)
   EXPECT_EQ(xp1.get(), xp1_2.get());
 }
 
-TEST_P(LoggingTests, Sorts)
+TEST_P(Logging, Sorts)
 {
   Term cond = s->make_term(BVUge, x, zero);
   EXPECT_EQ(cond->get_sort()->get_sort_kind(), BOOL);
@@ -111,7 +112,7 @@ TEST_P(LoggingTests, Sorts)
   EXPECT_EQ(relu->get_sort(), x->get_sort());
 }
 
-TEST_P(LoggingTests, ConstantSorts)
+TEST_P(Logging, ConstantSorts)
 {
   Term t = s->make_term(true);
   Term f = s->make_term(false);
@@ -134,7 +135,7 @@ TEST_P(LoggingTests, ConstantSorts)
   EXPECT_EQ(bv1->get_sort()->get_width(), 1);
 }
 
-TEST_P(LoggingTests, Compare)
+TEST_P(Logging, Compare)
 {
   Term f = s->make_symbol("f", funsort);
   Term fx = s->make_term(Apply, f, x);
@@ -172,7 +173,7 @@ TEST_P(LoggingTests, Compare)
   EXPECT_EQ(fxv, fyv);
 }
 
-TEST_P(LoggingTests, WrongKindAccessors)
+TEST_P(Logging, WrongKindAccessors)
 {
   Sort boolsort = s->make_sort(BOOL);
   EXPECT_THROW(boolsort->get_width(), IncorrectUsageException);
@@ -189,8 +190,59 @@ TEST_P(LoggingTests, WrongKindAccessors)
   EXPECT_THROW(bvsort4->get_elemsort(), IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverLoggingTests,
-                         LoggingTests,
-                         testing::ValuesIn(available_solver_configurations()));
+TEST_P(Logging, TermFromAnotherSolver)
+{
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "generic terms compare by their text, so another generic "
+                    "solver's x is taken for this one's";
+  }
+  SmtSolver s2 = make_shared<LoggingSolver>(create_solver(GetParam()));
+  Term x2 = s2->make_symbol("x", s2->make_sort(BV, 4));
+  EXPECT_THROW(s->make_term(BVAdd, x, x2), IncorrectUsageException);
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(LoggingUninterpretedArrays);
+class LoggingUninterpretedArrays : public Logging
+{
+};
+
+TEST_P(LoggingUninterpretedArrays, ValuesHoldAssertedEntry)
+{
+  SolverEnum se = GetParam().solver_enum;
+  if (se == MSAT)
+  {
+    GTEST_SKIP() << "MathSAT's model of an array indexed by an uninterpreted "
+                    "sort is a constant array without the asserted entry";
+  }
+  if (se == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver cannot read back a value of an "
+                    "uninterpreted sort";
+  }
+  Sort usort = s->make_sort("U", 0);
+  Term arr = s->make_symbol("arr", s->make_sort(ARRAY, usort, bvsort8));
+  Term u = s->make_symbol("u", usort);
+  Term one8 = s->make_term(1, bvsort8);
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, u), one8));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  Term base;
+  UnorderedTermMap values = s->get_array_values(arr, base);
+  // the entry at u's value, or else the constant base, is the asserted one
+  auto it = values.find(s->get_value(u));
+  EXPECT_EQ(it != values.end() ? it->second : base, one8);
+}
+
+INSTANTIATE_TEST_SUITE_P(,
+                         Logging,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(,
+                         LoggingUninterpretedArrays,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { UNINTERP_SORT, ARRAY_MODELS })),
+                         ConfigName());
 
 }  // namespace
