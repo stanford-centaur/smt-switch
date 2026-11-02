@@ -27,6 +27,7 @@
 #include "exceptions.h"
 #include "ops.h"
 #include "utils.h"
+#include "yices2_extensions.h"
 #include "yices2_sort.h"
 
 using namespace std;
@@ -220,7 +221,7 @@ Op Yices2Term::get_op() const
     case YICES_UNINTERPRETED_TERM: return Op();
     // reported for a term that is not valid, which this one is
     case YICES_CONSTRUCTOR_ERROR:
-      throw InternalSolverException(yices_error_string());
+      throw InternalSolverException(take_yices_error());
   }
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
@@ -399,7 +400,7 @@ Term Yices2TermIter::operator*() const
             term, one_component ? 0 : pos, coeff.data(), &component)
         < 0)
     {
-      throw InternalSolverException(yices_error_string());
+      throw InternalSolverException(take_yices_error());
     }
     term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
     if (one_component)
@@ -423,7 +424,7 @@ Term Yices2TermIter::operator*() const
       if (yices_sum_component(term, 0, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       ret_term = pos == 0 ? yices_mpq(coeff) : component;
     }
@@ -432,7 +433,7 @@ Term Yices2TermIter::operator*() const
       if (yices_sum_component(term, pos, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       ret_term = component == NULL_TERM
                      ? yices_mpq(coeff)
@@ -449,7 +450,7 @@ Term Yices2TermIter::operator*() const
             term, one_component ? 0 : pos, &component, &exponent)
         < 0)
     {
-      throw InternalSolverException(yices_error_string());
+      throw InternalSolverException(take_yices_error());
     }
     if (one_component)
     {
@@ -518,7 +519,7 @@ Term Yices2TermIter::operator*() const
 
   if (ret_term == NULL_TERM)
   {
-    throw InternalSolverException(yices_error_string());
+    throw InternalSolverException(take_yices_error());
   }
   return std::make_shared<Yices2Term>(ret_term);
 }
