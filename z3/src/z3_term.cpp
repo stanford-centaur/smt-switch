@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <memory>
 
 #include "exceptions.h"
 #include "ops.h"
@@ -26,20 +27,19 @@ void Z3TermIter::operator++() { pos++; }
 
 Term Z3TermIter::operator*() const
 {
-  assert(!null_term);
-  bool is_function_app = term.is_app()
-                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
-                         && !term.is_const();
-  if (!pos && is_function_app)
+  // only a function's iterators are null, and it has no children
+  if (null_term)
   {
-    return std::make_shared<Z3Term>(ctx, term.decl());
+    throw IncorrectUsageException("A function has no children");
   }
-  else
+  // smt-switch lists the function, constructor, selector or tester applied
+  // as the first child, which Z3 keeps as the decl
+  if (is_apply(Z3Term(ctx, term).get_op().prim_op))
   {
-    uint32_t actual_idx = is_function_app ? pos - 1 : pos;
-    z3::expr z_child = term.arg(actual_idx);
-    return std::make_shared<Z3Term>(ctx, z_child);
+    return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
+                    : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));
   }
+  return std::make_shared<Z3Term>(ctx, term.arg(pos));
 }
 
 TermIterBase * Z3TermIter::clone() const
@@ -135,7 +135,9 @@ bool Z3Term::compare(const Term & absterm) const
 
 Op Z3Term::get_op() const
 {
-  if (is_function || term.is_const())
+  // a nullary constructor is a constant that applies it
+  if (is_function
+      || (term.is_const() && term.decl().decl_kind() != Z3_OP_DT_CONSTRUCTOR))
   {
     return Op();
   }
@@ -251,6 +253,9 @@ Op Z3Term::get_op() const
       case Z3_OP_SBV2INT: return Op(SBV_To_Int);
 #endif
       case Z3_OP_UNINTERPRETED: return Op(Apply);
+      case Z3_OP_DT_CONSTRUCTOR: return Op(Apply_Constructor);
+      case Z3_OP_DT_ACCESSOR: return Op(Apply_Selector);
+      case Z3_OP_DT_IS: return Op(Apply_Tester);
       // Z3 makes divisibility an internal op, which only its name tells apart
       case Z3_OP_INTERNAL:
         if (name == "divisible"
@@ -280,7 +285,15 @@ Sort Z3Term::get_sort() const
 
 bool Z3Term::is_symbol() const
 {
-  return is_function || (term.is_const() && !is_value()) || is_parameter;
+  // a function is an uninterpreted one or a datatype constructor, selector
+  // or tester, which its datatype declares, not make_symbol
+  if (is_function)
+  {
+    return z_func.decl_kind() == Z3_OP_UNINTERPRETED;
+  }
+  return (term.is_const() && !is_value()
+          && term.decl().decl_kind() != Z3_OP_DT_CONSTRUCTOR)
+         || is_parameter;
 }
 
 bool Z3Term::is_param() const { return is_parameter; }
@@ -411,11 +424,8 @@ TermIter Z3Term::end() const
     return TermIter(new Z3TermIter(ctx, term, 0, true));
   }
 
-  bool is_function_app = term.is_app()
-                         && (term.decl().decl_kind() == Z3_OP_UNINTERPRETED)
-                         && !term.is_const();
   uint32_t num_args = term.num_args();
-  if (is_function_app)
+  if (is_apply(get_op().prim_op))
   {
     // smt-switch treats the function as an argument
     num_args++;

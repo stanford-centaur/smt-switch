@@ -1,6 +1,6 @@
 /*!
  * \file z3-exceptions.cpp
- * \brief The exceptions the Z3 backend throws for refused operators.
+ * \brief The exceptions the Z3 backend throws.
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -40,4 +40,13 @@ TEST(Z3Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Rotate_Left, x, y), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
+}
+
+TEST(Z3Exceptions, FunctionHasNoChildToDereference)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Sort bvsort = s->make_sort(BV, 4);
+  Term f = s->make_symbol("f", s->make_sort(FUNCTION, { bvsort, bvsort }));
+
+  EXPECT_THROW(*f->begin(), IncorrectUsageException);
 }

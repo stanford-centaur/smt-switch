@@ -222,6 +222,19 @@ SortKind Z3Sort::get_sort_kind() const
   }
   else if (is_function)
   {
+    Z3_decl_kind kind = z_func.decl_kind();
+    if (kind == Z3_OP_DT_CONSTRUCTOR)
+    {
+      return CONSTRUCTOR;
+    }
+    else if (kind == Z3_OP_DT_ACCESSOR)
+    {
+      return SELECTOR;
+    }
+    else if (kind == Z3_OP_DT_IS)
+    {
+      return TESTER;
+    }
     return FUNCTION;
   }
   else
