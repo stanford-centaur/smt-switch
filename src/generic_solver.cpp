@@ -1516,9 +1516,8 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
       std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
-  return (*name_term_map)[name];
+  return new_term;
 }
 
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
@@ -1545,9 +1544,8 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
-  return (*name_term_map)[name];
+  return new_term;
 }
 
 Term GenericSolver::get_selector(const Sort & s,
@@ -1583,9 +1581,8 @@ Term GenericSolver::get_selector(const Sort & s,
   }
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*name_term_map)[name] = new_term;
   (*term_name_map)[new_term] = name;
-  return (*name_term_map)[name];
+  return new_term;
 }
 
 Term GenericSolver::store_term(Term term) const
@@ -1629,17 +1626,17 @@ Term GenericSolver::store_term(Term term) const
       term_counter++;
       name = internal_name("term", term_counter);
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
+      // The binary can name the definition back, in an unsat core.
+      (*name_term_map)[name] = gterm;
     }
     else
     {
       name = to_smtlib_def(gterm);
     }
-    (*name_term_map)[name] = gterm;
     (*term_name_map)[gterm] = name;
   }
-  // return the term from the internal map
-  std::string name = name_of(*term_name_map, gterm);
-  return (*name_term_map)[name];
+  // The term stored first, which an equal term made later stands for
+  return term_name_map->find(gterm)->first;
 }
 
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
@@ -1821,15 +1818,11 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 {
   refuse_internal_name(name, "symbol");
-  // always put pipes around name in case there
-  // are special symbols / spaces
-  std::string piped_name = "|" + name + "|";
-  // make sure that the symbol name is not already taken.
-  if (name_term_map->find(piped_name) != name_term_map->end())
+  // Bars only where SMT-LIB needs them, as they do not change the symbol
+  std::string quoted_name = smtlib_quote_symbol(name);
+  if (name_term_map->find(quoted_name) != name_term_map->end())
   {
-    throw IncorrectUsageException(
-        "symbol name: " + name
-        + " already taken, either by another symbol or by a param");
+    throw IncorrectUsageException("symbol name: " + name + " already taken");
   }
 
   // looked up first, so an unknown sort leaves no symbol behind
@@ -1837,30 +1830,29 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 
   // create the sumbol and store it in the maps
   Term term =
-      std::make_shared<GenericTerm>(sort, Op(), TermVec{}, piped_name, true);
-  (*name_term_map)[piped_name] = term;
-  (*term_name_map)[term] = piped_name;
+      std::make_shared<GenericTerm>(sort, Op(), TermVec{}, quoted_name, true);
+  (*name_term_map)[quoted_name] = term;
+  (*term_name_map)[term] = quoted_name;
 
   // communicate the creation of the symbol to the binary of the solver.
   // When the sort is not a function, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
   if (sort->get_sort_kind() == FUNCTION
-          ? send_or_hold(DECLARE_FUN_STR, piped_name, sort_str)
-          : send_or_hold(DECLARE_FUN_STR, piped_name, "()", sort_str))
+          ? send_or_hold(DECLARE_FUN_STR, quoted_name, sort_str)
+          : send_or_hold(DECLARE_FUN_STR, quoted_name, "()", sort_str))
   {
     pending_symbols_.insert(term);
   }
 
-  // return the created symbol as a term
-  return (*name_term_map)[piped_name];
+  return term;
 }
 
 Term GenericSolver::get_symbol(const std::string & name) const
 {
-  // GenericSolver always puts pipes around symbol names
-  // in case there are special symbols / spaces
-  std::string piped_name = "|" + name + "|";
-  auto it = name_term_map->find(piped_name);
+  // The map holds the binary's own names too, which no symbol can have.
+  auto it = is_internal_name(name)
+                ? name_term_map->end()
+                : name_term_map->find(smtlib_quote_symbol(name));
   if (it == name_term_map->end())
   {
     throw IncorrectUsageException("Symbol named " + name + " does not exist.");
@@ -1871,19 +1863,20 @@ Term GenericSolver::get_symbol(const std::string & name) const
 Term GenericSolver::make_param(const std::string name, const Sort & sort) const
 {
   refuse_internal_name(name, "param");
-  if (name_term_map->find(name) != name_term_map->end())
+  if (!param_names_.insert(name).second)
   {
-    throw IncorrectUsageException(
-        "param name: " + name
-        + " already taken, either by another param or by a symbol");
+    throw IncorrectUsageException("param name: " + name
+                                  + " already taken by another param");
   }
-  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, name, false);
-  (*name_term_map)[name] = term;
-  // SMT-LIB reads a symbol |x| as x, so a binder of x would capture it;
-  // the binary sees the param under a name no symbol can have
+  // The param prints as the user named it, and is told apart from a symbol
+  // of that name by being a param. SMT-LIB reads a symbol |x| as x, so a
+  // binder of x would capture it: the binary sees the param under a name
+  // no symbol can have.
+  Term term = std::make_shared<GenericTerm>(
+      sort, Op(), TermVec{}, smtlib_quote_symbol(name), false);
   term_counter++;
   (*term_name_map)[term] = internal_name("param", term_counter);
-  return (*name_term_map)[name];
+  return term;
 }
 
 /**
@@ -2159,16 +2152,16 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
       positive = true;
     }
 
-    // retrieve the literal from the map
+    // A binary may write a name in bars or without, which SMT-LIB reads as
+    // the same symbol, so the name is looked up as this solver writes it.
     std::string str_atom = strip.substr(begin, end - begin + 1);
-    auto it = name_term_map->find(str_atom);
-    if (it == name_term_map->end())
+    if (str_atom.size() >= 2 && str_atom.front() == '|'
+        && str_atom.back() == '|')
     {
-      // solvers don't always print with the pipes
-      // need to add those back in
-      it = name_term_map->find("|" + str_atom + "|");
-      assert(it != name_term_map->end());
+      str_atom = str_atom.substr(1, str_atom.size() - 2);
     }
+    auto it = name_term_map->find(smtlib_quote_symbol(str_atom));
+    assert(it != name_term_map->end());
     Term atom = it->second;
     Term literal;
     if (positive)

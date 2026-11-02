@@ -97,6 +97,23 @@ TEST_P(UnsatCoreTests, ApplicationInCore)
   EXPECT_EQ((*core.begin())->get_op(), Apply);
 }
 
+TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
+{
+  if (!solver_has_attribute(GetParam().solver_enum, QUANTIFIERS))
+  {
+    GTEST_SKIP() << "a solver without quantifiers has no params";
+  }
+  Term x = s->make_symbol("x", boolsort);
+  Term param = s->make_param("x", boolsort);
+  ASSERT_NE(param, x);
+  s->assert_formula(s->make_term(Not, x));
+  ASSERT_TRUE(s->check_sat_assuming({ x }).is_unsat());
+
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  EXPECT_EQ(core, UnorderedTermSet{ x });
+}
+
 TEST_P(UnsatCoreTests, UnsatCoreNonLit)
 {
   // test that everything works in a fresh context
