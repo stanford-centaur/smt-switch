@@ -19,11 +19,13 @@
 #include <mathsat.h>
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "exceptions.h"
@@ -55,8 +57,27 @@ static string msat_option_name(const string & option)
 
 /* MathSAT op mappings */
 
-/** The term of op applied to one argument, or an exception where MathSAT has
- *  no such op
+/** Refuses po applied to num_args arguments, which MathSAT has no operator
+ *  for
+ *  @throws IncorrectUsageException where SMT-LIB does not allow that many
+ *          arguments
+ *  @throws NotImplementedException otherwise
+ */
+[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
+{
+  const pair<size_t, size_t> arity = get_arity(po);
+  if (num_args < arity.first || num_args > arity.second)
+  {
+    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+                                  + std::to_string(num_args)
+                                  + (num_args == 1 ? " term" : " terms"));
+  }
+  throw NotImplementedException("MathSAT does not support the operator "
+                                + to_string(po));
+}
+
+/** The term of op applied to one argument
+ *  @throws as throw_unsupported where MathSAT has no such op
  */
 static msat_term unary_term(msat_env e, const Op & op, msat_term a)
 {
@@ -68,28 +89,39 @@ static msat_term unary_term(msat_env e, const Op & op, msat_term a)
     case To_Real: return ext_msat_make_nop(e, a);
     case To_Int: return msat_make_floor(e, a);
     case Is_Int: return ext_msat_is_int(e, a);
+    case Extract: return msat_make_bv_extract(e, op.idx0, op.idx1, a);
     case BVNot: return msat_make_bv_not(e, a);
     case BVNeg: return msat_make_bv_neg(e, a);
+    case Zero_Extend: return msat_make_bv_zext(e, op.idx0, a);
+    case Sign_Extend: return msat_make_bv_sext(e, op.idx0, a);
+    case Repeat: {
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      msat_term res = a;
+      for (uint64_t i = 1; i < op.idx0; i++)
+      {
+        res = msat_make_bv_concat(e, a, res);
+      }
+      return res;
+    }
+    case Rotate_Left: return msat_make_bv_rol(e, op.idx0, a);
+    case Rotate_Right: return msat_make_bv_ror(e, op.idx0, a);
     case BV_To_Nat: return msat_make_int_from_ubv(e, a);
     case UBV_To_Int: return msat_make_int_from_ubv(e, a);
     case SBV_To_Int: return msat_make_int_from_sbv(e, a);
-    default: break;
+    case Int_To_BV: return msat_make_int_to_bv(e, op.idx0, a);
+    default: throw_unsupported(op.prim_op, 1);
   }
-  string msg("Can't apply ");
-  msg += op.to_string();
-  msg += " to a single term, or not supported by MathSAT backend yet.";
-  throw IncorrectUsageException(msg);
 }
 
-/** The term of op applied to two arguments, or an exception where MathSAT has
- *  no such op
+/** The term of po applied to two arguments
+ *  @throws as throw_unsupported where MathSAT has no such op
  */
-static msat_term binary_term(msat_env e,
-                             const Op & op,
-                             msat_term a,
-                             msat_term b)
+static msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
 {
-  switch (op.prim_op)
+  switch (po)
   {
     case And: return msat_make_and(e, a, b);
     case Or: return msat_make_or(e, a, b);
@@ -136,12 +168,8 @@ static msat_term binary_term(msat_env e,
     case BVSgt: return ext_msat_make_bv_sgt(e, a, b);
     case BVSge: return ext_msat_make_bv_sgeq(e, a, b);
     case Select: return msat_make_array_read(e, a, b);
-    default: break;
+    default: throw_unsupported(po, 2);
   }
-  string msg("Can't apply ");
-  msg += op.to_string();
-  msg += " to two terms, or not supported by MathSAT backend yet.";
-  throw IncorrectUsageException(msg);
 }
 
 // MsatSolver implementation
@@ -727,6 +755,14 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  const uint64_t num_indices = get_num_indices(op.prim_op);
+  if (op.num_idx != num_indices)
+  {
+    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
+                                  + std::to_string(num_indices)
+                                  + (num_indices == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(op.num_idx));
+  }
 
   vector<msat_term> mterms;
   mterms.reserve(size);
@@ -738,60 +774,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   msat_term res;
   if (size == 1)
   {
-    if (op.prim_op == Extract)
-    {
-      res = msat_make_bv_extract(*env, op.idx0, op.idx1, mterms[0]);
-    }
-    else if (op.prim_op == Zero_Extend)
-    {
-      res = msat_make_bv_zext(*env, op.idx0, mterms[0]);
-    }
-    else if (op.prim_op == Sign_Extend)
-    {
-      res = msat_make_bv_sext(*env, op.idx0, mterms[0]);
-    }
-    else if (op.prim_op == Repeat)
-    {
-      if (op.idx0 < 1)
-      {
-        throw IncorrectUsageException("Can't create repeat with index < 1");
-      }
-      res = mterms[0];
-      for (size_t i = 1; i < op.idx0; i++)
-      {
-        res = msat_make_bv_concat(*env, mterms[0], res);
-      }
-    }
-    else if (op.prim_op == Rotate_Left)
-    {
-      res = msat_make_bv_rol(*env, op.idx0, mterms[0]);
-    }
-    else if (op.prim_op == Rotate_Right)
-    {
-      res = msat_make_bv_ror(*env, op.idx0, mterms[0]);
-    }
-    else if (op.prim_op == Int_To_BV)
-    {
-      res = msat_make_int_to_bv(*env, op.idx0, mterms[0]);
-    }
-    else if (!op.num_idx)
-    {
-      res = unary_term(*env, op, mterms[0]);
-    }
-    else
-    {
-      string msg("Can't apply ");
-      msg += op.to_string();
-      msg += " to ";
-      msg += terms[0]->to_string();
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else if (op.num_idx)
-  {
-    string msg = op.to_string();
-    msg += " not supported for more than one term argument";
-    throw IncorrectUsageException(msg);
+    res = unary_term(*env, op, mterms[0]);
   }
   else if (op.prim_op == Apply)
   {
@@ -819,7 +802,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    res = binary_term(*env, op, mterms[0], mterms[1]);
+    res = binary_term(*env, op.prim_op, mterms[0], mterms[1]);
   }
   else if (size == 3 && op.prim_op == Ite)
   {
