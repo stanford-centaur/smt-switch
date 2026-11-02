@@ -728,6 +728,70 @@ TEST_P(DatatypeTranslationTests, NestedDatatype)
   EXPECT_EQ(to_s2.transfer_sort(listsort), list2);
 }
 
+TEST_P(DatatypeTranslationTests, DatatypeTerms)
+{
+  Term nilc = s1->get_constructor(listsort, "nil");
+  Term cons = s1->get_constructor(listsort, "cons");
+  Term head = s1->get_selector(listsort, "cons", "head");
+  Term tail = s1->get_selector(listsort, "cons", "tail");
+  Term isnil = s1->get_tester(listsort, "nil");
+  Term iscons = s1->get_tester(listsort, "cons");
+
+  // each constructor, selector and tester becomes that of the transferred
+  // datatype
+  TermTranslator to_s2(s2);
+  Sort list2 = to_s2.transfer_sort(listsort);
+  EXPECT_EQ(to_s2.transfer_term(nilc), s2->get_constructor(list2, "nil"));
+  EXPECT_EQ(to_s2.transfer_term(cons), s2->get_constructor(list2, "cons"));
+  EXPECT_EQ(to_s2.transfer_term(head), s2->get_selector(list2, "cons", "head"));
+  EXPECT_EQ(to_s2.transfer_term(tail), s2->get_selector(list2, "cons", "tail"));
+  EXPECT_EQ(to_s2.transfer_term(isnil), s2->get_tester(list2, "nil"));
+  EXPECT_EQ(to_s2.transfer_term(iscons), s2->get_tester(list2, "cons"));
+
+  // either disjunct contradicts what the components mean, so s2 refutes the
+  // transferred term only if they kept their meaning
+  Term five = s1->make_term(5, intsort);
+  Term nil = s1->make_term(Apply_Constructor, nilc);
+  Term list5 = s1->make_term(Apply_Constructor, cons, five, nil);
+  Term l = s1->make_symbol("l", listsort);
+  Term wrong_tester = s1->make_term(And,
+                                    s1->make_term(Equal, l, list5),
+                                    s1->make_term(Apply_Tester, isnil, l));
+  Term wrong_selector =
+      s1->make_term(Distinct, s1->make_term(Apply_Selector, head, list5), five);
+  s2->assert_formula(
+      to_s2.transfer_term(s1->make_term(Or, wrong_tester, wrong_selector)));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
+TEST_P(DatatypeTranslationTests, QuotedComponentNames)
+{
+  if (get<0>(GetParam()).is_logging_solver
+      || get<0>(GetParam()).solver_enum == Z3)
+  {
+    GTEST_SKIP() << "the logging solver and Z3 print a constructor or "
+                    "selector name without SMT-LIB quoting";
+  }
+
+  // names that SMT-LIB quotes
+  DatatypeDecl boxdecl = s1->make_datatype_decl("box");
+  DatatypeConstructorDecl fulldecl =
+      s1->make_datatype_constructor_decl("full box");
+  s1->add_selector(fulldecl, "box value", intsort);
+  s1->add_constructor(boxdecl, fulldecl);
+  Sort boxsort = s1->make_sort(boxdecl);
+
+  TermTranslator to_s2(s2);
+  Sort box2 = to_s2.transfer_sort(boxsort);
+  EXPECT_EQ(to_s2.transfer_term(s1->get_constructor(boxsort, "full box")),
+            s2->get_constructor(box2, "full box"));
+  EXPECT_EQ(
+      to_s2.transfer_term(s1->get_selector(boxsort, "full box", "box value")),
+      s2->get_selector(box2, "full box", "box value"));
+  EXPECT_EQ(to_s2.transfer_term(s1->get_tester(boxsort, "full box")),
+            s2->get_tester(box2, "full box"));
+}
+
 TEST_P(SortConstructorTranslationTests, SortConstructor)
 {
   TermTranslator to_s2(s2);

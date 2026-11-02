@@ -38,6 +38,7 @@
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -212,6 +213,42 @@ Sort TermTranslator::transfer_datatype_sort(const Sort & sort)
   }
 }
 
+Term TermTranslator::transfer_datatype_component(const Term & term)
+{
+  Sort sort = term->get_sort();
+  SortKind sk = sort->get_sort_kind();
+  // a constructor makes its datatype, a selector or tester takes it
+  Sort dt_sort = sk == CONSTRUCTOR ? sort->get_codomain_sort()
+                                   : sort->get_domain_sorts().at(0);
+  Sort transferred = transfer_sort(dt_sort);
+  Datatype dt = dt_sort->get_datatype();
+  // a term has no name to look up, so it is matched by how it prints
+  std::string printed = term->to_string();
+  for (const std::string & cons : dt->get_constructor_names())
+  {
+    std::string quoted = smtlib_quote_symbol(cons);
+    if (sk == CONSTRUCTOR && printed == quoted)
+    {
+      return solver->get_constructor(transferred, cons);
+    }
+    if (sk == TESTER && printed == "(_ is " + quoted + ")")
+    {
+      return solver->get_tester(transferred, cons);
+    }
+    if (sk == SELECTOR)
+    {
+      for (const std::string & sel : dt->get_selector_names(cons))
+      {
+        if (printed == smtlib_quote_symbol(sel))
+        {
+          return solver->get_selector(transferred, cons, sel);
+        }
+      }
+    }
+  }
+  throw SmtException("Failed to transfer datatype component: " + printed);
+}
+
 Sort TermTranslator::uninterpreted_sort(const std::string & name,
                                         std::uint64_t arity)
 {
@@ -280,7 +317,12 @@ Term TermTranslator::transfer_term(const Term & term)
     }
     else
     {
-      if (t->is_symbol())
+      SortKind sk = t->get_sort()->get_sort_kind();
+      if (sk == CONSTRUCTOR || sk == SELECTOR || sk == TESTER)
+      {
+        cache[t] = transfer_datatype_component(t);
+      }
+      else if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
         std::string name = t->get_symbol_name();
