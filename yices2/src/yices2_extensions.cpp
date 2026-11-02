@@ -31,6 +31,15 @@ using namespace std;
 
 namespace smt {
 
+string take_yices_error()
+{
+  char * reason = yices_error_string();
+  string msg(reason);
+  yices_free_string(reason);
+  yices_clear_error();
+  return msg;
+}
+
 term_t ext_yices_select(term_t arr, term_t idx)
 {
   term_t selection = yices_application1(arr, idx);

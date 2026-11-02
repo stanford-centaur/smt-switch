@@ -23,6 +23,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -131,17 +132,16 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   }
 }
 
-/**
- * Yices' description of its last error, freeing the string it returns and
- * clearing the error, which later calls would otherwise report again
+/** The smt-switch term of res
+ *  @throws InternalSolverException where making res failed
  */
-static std::string take_yices_error()
+static Term checked_term(term_t res)
 {
-  char * reason = yices_error_string();
-  std::string msg(reason);
-  yices_free_string(reason);
-  yices_clear_error();
-  return msg;
+  if (yices_error_code() != 0)
+  {
+    throw InternalSolverException(take_yices_error());
+  }
+  return std::make_shared<Yices2Term>(res);
 }
 
 void Yices2Solver::set_logic(const std::string logic)
@@ -213,13 +213,7 @@ Term Yices2Solver::make_term(bool b) const
     y_term = yices_false();
   }
 
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(y_term);
+  return checked_term(y_term);
 }
 
 Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
@@ -243,13 +237,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
     throw IncorrectUsageException(msg);
   }
 
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(y_term);
+  return checked_term(y_term);
 }
 
 Term Yices2Solver::make_term(const std::string val,
@@ -308,13 +296,7 @@ Term Yices2Solver::make_term(const std::string val,
     throw IncorrectUsageException(msg);
   }
 
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(y_term);
+  return checked_term(y_term);
 }
 
 Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
@@ -336,7 +318,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   term_t y_term = yices_lambda(1, &index, yval->term);
   if (y_term == NULL_TERM)
   {
-    throw InternalSolverException(yices_error_string());
+    throw InternalSolverException(take_yices_error());
   }
   return std::make_shared<Yices2Term>(y_term);
 }
@@ -353,8 +335,7 @@ void Yices2Solver::assert_formula(const Term & t)
   yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 }
 
@@ -366,8 +347,7 @@ Result Yices2Solver::check_sat()
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   if (res == YICES_STATUS_SAT)
@@ -404,8 +384,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   if (res == YICES_STATUS_SAT)
@@ -501,7 +480,7 @@ static Term term_from_yval(const Yices2Solver & solver,
       int32_t b = 0;
       if (yices_val_get_bool(model, &node, &b) < 0)
       {
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       return solver.make_term(b != 0);
     }
@@ -510,7 +489,7 @@ static Term term_from_yval(const Yices2Solver & solver,
       std::vector<int32_t> bits(width);
       if (yices_val_get_bv(model, &node, bits.data()) < 0)
       {
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       // bits[0] is the low-order bit, so read the array back to front
       std::string digits;
@@ -525,7 +504,7 @@ static Term term_from_yval(const Yices2Solver & solver,
       uint64_t den = 0;
       if (yices_val_get_rational64(model, &node, &num, &den) < 0)
       {
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       if (den != 1)
       {
@@ -583,7 +562,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   yval_t node;
   if (yices_get_value(model, yarr->term, &node) < 0)
   {
-    throw InternalSolverException(yices_error_string());
+    throw InternalSolverException(take_yices_error());
   }
   if (yices_val_function_arity(model, &node) != 1)
   {
@@ -597,7 +576,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   if (yices_val_expand_function(model, &node, &def, &mappings) < 0)
   {
     yices_delete_yval_vector(&mappings);
-    throw InternalSolverException(yices_error_string());
+    throw InternalSolverException(take_yices_error());
   }
 
   UnorderedTermMap assignments;
@@ -611,7 +590,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
       if (yices_val_expand_mapping(model, &mappings.data[m], &index, &value)
           < 0)
       {
-        throw InternalSolverException(yices_error_string());
+        throw InternalSolverException(take_yices_error());
       }
       assignments[term_from_yval(*this, model, index, idxsort)] =
           term_from_yval(*this, model, value, elemsort);
@@ -672,9 +651,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   return std::make_shared<Yices2Sort>(y_sort);
@@ -706,8 +683,7 @@ Sort Yices2Solver::make_sort(SortKind sk) const
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   return std::make_shared<Yices2Sort>(y_sort);
@@ -731,8 +707,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   return std::make_shared<Yices2Sort>(y_sort);
@@ -785,8 +760,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
   if (yices_error_code() != 0)
   {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
+    throw InternalSolverException(take_yices_error());
   }
 
   return std::make_shared<Yices2Sort>(y_sort, sk == FUNCTION);
@@ -896,29 +870,103 @@ static uint32_t pow_exponent(term_t term)
   return res;
 }
 
-/** The term of po applied to one argument
- *  @throws IncorrectUsageException where Yices2 has no such op
+/** Refuses po applied to num_args arguments, which Yices2 has no operator for
+ *  @throws IncorrectUsageException where SMT-LIB does not allow that many
+ *          arguments
+ *  @throws NotImplementedException otherwise
  */
-static term_t unary_term(PrimOp po, term_t a)
+[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
 {
-  switch (po)
+  const pair<size_t, size_t> arity = get_arity(po);
+  if (num_args < arity.first || num_args > arity.second)
+  {
+    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+                                  + std::to_string(num_args)
+                                  + (num_args == 1 ? " term" : " terms"));
+  }
+  throw NotImplementedException("Yices2 does not support the operator "
+                                + to_string(po));
+}
+
+/** The term of op applied to one argument
+ *  @throws as throw_unsupported where Yices2 has no such op
+ */
+static term_t unary_term(const Op & op, term_t a)
+{
+  switch (op.prim_op)
   {
     case Not: return yices_not(a);
     case Negate: return yices_neg(a);
     case Abs: return yices_abs(a);
+    case To_Real:
+      if (!yices_term_is_arithmetic(a))
+      {
+        throw IncorrectUsageException(
+            "Can't apply to_real to a non-arithmetic term");
+      }
+      // Int is a subtype of Real in Yices2, which has no conversion
+      return a;
     case To_Int: return yices_floor(a);
     case Is_Int: return yices_is_int_atom(a);
+    case Extract:
+      return yices_bvextract(
+          a, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
     case BVNot: return yices_bvnot(a);
     case BVNeg: return yices_bvneg(a);
-    default:
-      throw IncorrectUsageException(
-          "Can't apply " + to_string(po)
-          + " to the term or not supported by Yices2 backend yet.");
+    case Zero_Extend: return yices_zero_extend(a, narrow_index(op, op.idx0));
+    case Sign_Extend: return yices_sign_extend(a, narrow_index(op, op.idx0));
+    case Repeat:
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      return yices_bvrepeat(a, narrow_index(op, op.idx0));
+    case Rotate_Left: return yices_rotate_left(a, narrow_index(op, op.idx0));
+    case Rotate_Right: return yices_rotate_right(a, narrow_index(op, op.idx0));
+    case BV_To_Nat:
+    case UBV_To_Int:
+    case SBV_To_Int:
+      if (!yices_term_is_bitvector(a))
+      {
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(a) != YICES_BV_CONSTANT)
+      {
+        throw NotImplementedException("Yices2 has no " + op.to_string()
+                                      + ", so it can only apply it to a "
+                                        "bit-vector value");
+      }
+      return bv_value_to_int(a, op.prim_op == SBV_To_Int);
+    case Int_To_BV: {
+      if (!yices_term_is_int(a))
+      {
+        throw IncorrectUsageException(
+            "Can't apply int_to_bv to a non-integer term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(a) != YICES_ARITH_CONSTANT)
+      {
+        throw NotImplementedException(
+            "Yices2 has no int_to_bv, so it can only apply it to an Int value");
+      }
+      const uint32_t width = narrow_index(op, op.idx0);
+      mpq_t value;
+      mpq_init(value);
+      yices_rational_const_value(a, value);
+      // truncates two's complement to the width, which is the value mod
+      // 2^width
+      const term_t res = yices_bvconst_mpz(width, mpq_numref(value));
+      mpq_clear(value);
+      return res;
+    }
+    default: throw_unsupported(op.prim_op, 1);
   }
 }
 
 /** The term of po applied to two arguments
- *  @throws IncorrectUsageException where Yices2 has no such op
+ *  @throws as throw_unsupported where Yices2 has no such op
  */
 static term_t binary_term(PrimOp po, term_t a, term_t b)
 {
@@ -970,24 +1018,8 @@ static term_t binary_term(PrimOp po, term_t a, term_t b)
     case BVSgt: return yices_bvsgt_atom(a, b);
     case BVSge: return yices_bvsge_atom(a, b);
     case Select: return ext_yices_select(a, b);
-    default:
-      throw IncorrectUsageException(
-          "Can't apply " + to_string(po)
-          + " to two terms, or not supported by Yices2 backend yet.");
+    default: throw_unsupported(po, 2);
   }
-}
-
-/** The smt-switch term of res
- *  @throws InternalSolverException where making res failed
- */
-static Term checked_term(term_t res)
-{
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-  return std::make_shared<Yices2Term>(res);
 }
 
 /** The term of op applied to terms, three or more, whose Yices2 terms are
@@ -1042,6 +1074,14 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
   }
+  const uint64_t num_indices = get_num_indices(op.prim_op);
+  if (op.num_idx != num_indices)
+  {
+    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
+                                  + std::to_string(num_indices)
+                                  + (num_indices == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(op.num_idx));
+  }
 
   vector<term_t> yterms;
   yterms.reserve(size);
@@ -1053,101 +1093,13 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   term_t res;
   if (size == 1)
   {
-    term_t yterm = yterms[0];
-    if (op.prim_op == To_Real)
-    {
-      if (!yices_term_is_arithmetic(yterm))
-      {
-        throw IncorrectUsageException(
-            "Can't apply to_real to a non-arithmetic term");
-      }
-      // Int is a subtype of Real in Yices2, which has no conversion
-      res = yterm;
-    }
-    else if (op.prim_op == Extract)
-    {
-      res = yices_bvextract(
-          yterm, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Zero_Extend)
-    {
-      res = yices_zero_extend(yterm, narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Sign_Extend)
-    {
-      res = yices_sign_extend(yterm, narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Repeat)
-    {
-      if (op.idx0 < 1)
-      {
-        throw IncorrectUsageException("Can't create repeat with index < 1");
-      }
-      res = yices_bvrepeat(yterm, narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Rotate_Left)
-    {
-      res = yices_rotate_left(yterm, narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Rotate_Right)
-    {
-      res = yices_rotate_right(yterm, narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == BV_To_Nat || op.prim_op == UBV_To_Int
-             || op.prim_op == SBV_To_Int)
-    {
-      if (!yices_term_is_bitvector(yterm))
-      {
-        throw IncorrectUsageException("Can't apply " + op.to_string()
-                                      + " to a non-bit-vector term");
-      }
-      // Yices2 has no conversion, so only a value can be folded into one
-      if (yices_term_constructor(yterm) != YICES_BV_CONSTANT)
-      {
-        throw NotImplementedException("Yices2 has no " + op.to_string()
-                                      + ", so it can only apply it to a "
-                                        "bit-vector value");
-      }
-      res = bv_value_to_int(yterm, op.prim_op == SBV_To_Int);
-    }
-    else if (op.prim_op == Int_To_BV)
-    {
-      if (!yices_term_is_int(yterm))
-      {
-        throw IncorrectUsageException(
-            "Can't apply int_to_bv to a non-integer term");
-      }
-      // Yices2 has no conversion, so only a value can be folded into one
-      if (yices_term_constructor(yterm) != YICES_ARITH_CONSTANT)
-      {
-        throw NotImplementedException(
-            "Yices2 has no int_to_bv, so it can only apply it to an Int value");
-      }
-      uint32_t width = narrow_index(op, op.idx0);
-      mpq_t value;
-      mpq_init(value);
-      yices_rational_const_value(yterm, value);
-      // truncates two's complement to the width, which is the value mod
-      // 2^width
-      res = yices_bvconst_mpz(width, mpq_numref(value));
-      mpq_clear(value);
-    }
-    else if (!op.num_idx)
-    {
-      res = unary_term(op.prim_op, yterm);
-    }
-    else
-    {
-      string msg = op.to_string();
-      msg += " not supported for one term argument";
-      throw IncorrectUsageException(msg);
-    }
+    res = unary_term(op, yterms[0]);
   }
-  else if (op.num_idx)
+  else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    string msg = op.to_string();
-    msg += " not supported for more than one term argument";
-    throw IncorrectUsageException(msg);
+    // Yices2 has quantifiers, but this backend does not build them yet
+    throw NotImplementedException("The Yices2 backend does not support "
+                                  + to_string(op.prim_op));
   }
   else if (op.prim_op == Apply)
   {
@@ -1226,13 +1178,7 @@ Term Yices2Solver::substitute(const Term term,
   term_t res = yices_subst_term(
       to_subst.size(), to_subst.data(), values.data(), yterm->term);
 
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(res);
+  return checked_term(res);
 }
 
 // helpers

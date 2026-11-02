@@ -20,8 +20,14 @@
 #include <yices.h>
 
 #include <cstddef>
+#include <string>
 
 namespace smt {
+
+/** Yices' description of its last error, freeing the string it returns and
+ *  clearing the error, which later calls would otherwise report again
+ */
+std::string take_yices_error();
 
 term_t ext_yices_select(term_t arr, term_t idx);
 term_t ext_yices_store(term_t arr, term_t idx, term_t nu);
