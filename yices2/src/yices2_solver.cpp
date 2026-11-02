@@ -231,7 +231,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
   else
   {
     string msg("Can't create value ");
-    msg += i;
+    msg += std::to_string(i);
     msg += " with sort ";
     msg += sort->to_string();
     throw IncorrectUsageException(msg);
