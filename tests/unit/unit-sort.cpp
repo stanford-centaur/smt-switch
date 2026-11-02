@@ -440,13 +440,6 @@ TEST_P(UnitSortTests, UninterpSortEquality)
                     "sort kind is Uninterpreted";
   }
 
-  if (GetParam().is_logging_solver)
-  {
-    // need some additional fixes for is_value in LoggingSolver to handle
-    // uninterpreted sorts
-    return;
-  }
-
   Sort uninterp_sort;
   try
   {
