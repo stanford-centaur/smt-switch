@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "solver.h"
@@ -118,6 +119,27 @@ TEST_P(UnitSortInferenceTests, HelperTests)
   EXPECT_TRUE(bv_sorts({ bvsort4 }));
   EXPECT_TRUE(array_sorts({ arrsort }));
   EXPECT_TRUE(function_sorts({ funsort }));
+}
+
+TEST_P(UnitSortInferenceTests, HelpersTakeTooFewSorts)
+{
+  EXPECT_TRUE(equal_sorts({}));
+  EXPECT_TRUE(equal_sortkinds({}));
+  EXPECT_FALSE(check_ite_sorts({}));
+  EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4 }));
+  EXPECT_FALSE(check_apply_sorts({}));
+  EXPECT_FALSE(eq_bv_sorts({}));
+  EXPECT_FALSE(check_select_sorts({}));
+  EXPECT_FALSE(check_store_sorts({}));
+}
+
+TEST_P(UnitSortInferenceTests, SortComputationTooFewArguments)
+{
+  EXPECT_THROW(compute_sort(And, s, SortVec{}), IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Concat, s, SortVec{ bvsort4 }),
+               IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Concat, s, TermVec{ p }), IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Ite, s, TermVec{ b1, p }), IncorrectUsageException);
 }
 
 TEST_P(UnitSortInferenceTests, SortednessTests)

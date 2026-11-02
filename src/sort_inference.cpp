@@ -17,7 +17,6 @@
 #include "sort_inference.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -316,19 +315,25 @@ bool check_sortedness(Op op, const SortVec & sorts)
 
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
 {
-  assert(terms.size());
   SortVec sorts;
   for (auto t : terms)
   {
     sorts.push_back(t->get_sort());
   }
-  return compute(
-      sort_info(op.prim_op, "compute_sort").computation, op, solver, sorts);
+  return compute_sort(op, solver, sorts);
 }
 
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  assert(sorts.size());
+  // Only too few arguments are refused, since a backend may take more than
+  // SMT-LIB defines, such as a quantifier binding several params.
+  std::size_t min_arity = get_arity(op.prim_op).first;
+  if (sorts.size() < min_arity)
+  {
+    throw IncorrectUsageException(
+        op.to_string() + " takes at least " + std::to_string(min_arity)
+        + " arguments, but got " + std::to_string(sorts.size()));
+  }
   return compute(
       sort_info(op.prim_op, "compute_sort").computation, op, solver, sorts);
 }
@@ -360,7 +365,6 @@ bool check_quantifier_sorts(const SortVec & sorts)
 
 bool equal_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   return (adjacent_find(sorts.begin(), sorts.end(), std::not_equal_to<Sort>())
           == sorts.end());
 }
@@ -372,7 +376,10 @@ bool arith_equal_sorts(const SortVec & sorts)
 
 bool equal_sortkinds(const SortVec & sorts)
 {
-  assert(sorts.size());
+  if (sorts.empty())
+  {
+    return true;
+  }
   SortKind first_sk = sorts[0]->get_sort_kind();
   for (auto it = next(sorts.begin()); it != sorts.end(); ++it)
   {
@@ -386,8 +393,8 @@ bool equal_sortkinds(const SortVec & sorts)
 
 bool check_ite_sorts(const SortVec & sorts)
 {
-  assert(sorts.size() == 3);
-  return sorts[0]->get_sort_kind() == BOOL && sorts[1] == sorts[2];
+  return sorts.size() == 3 && sorts[0]->get_sort_kind() == BOOL
+         && sorts[1] == sorts[2];
 }
 
 bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
@@ -417,7 +424,10 @@ bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
 
 bool check_apply_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
+  if (sorts.empty())
+  {
+    return false;
+  }
   Sort funsort = sorts[0];
   if (funsort->get_sort_kind() != FUNCTION)
   {
@@ -443,7 +453,6 @@ bool check_apply_sorts(const SortVec & sorts)
 
 bool check_select_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   if (sorts.size() != 2)
   {
     return false;
@@ -485,7 +494,6 @@ bool check_tester_sorts(const SortVec & sorts)
 
 bool check_store_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   if (sorts.size() != 3)
   {
     return false;
@@ -511,7 +519,6 @@ bool check_store_sorts(const SortVec & sorts)
 
 bool check_substr_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   if (sorts.size() != 3)
   {
     return false;
@@ -537,7 +544,6 @@ bool check_substr_sorts(const SortVec & sorts)
 
 bool check_charat_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   if (sorts.size() != 2)
   {
     return false;
@@ -559,7 +565,6 @@ bool check_charat_sorts(const SortVec & sorts)
 
 bool check_indexof_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
   if (sorts.size() != 3)
   {
     return false;
@@ -595,8 +600,8 @@ bool bv_sorts(const SortVec & sorts)
 
 bool eq_bv_sorts(const SortVec & sorts)
 {
-  assert(sorts.size());
-  return sorts[0]->get_sort_kind() == BV && equal_sorts(sorts);
+  return !sorts.empty() && sorts[0]->get_sort_kind() == BV
+         && equal_sorts(sorts);
 }
 
 bool real_sorts(const SortVec & sorts)
