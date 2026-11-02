@@ -505,12 +505,12 @@ set(
   -Wimplicit-fallthrough-per-function # unannotated fall-through between switch labels
   -Wimplicit-fallthrough=5 # a switch case falls through
   -Wimplicit-fixed-point-conversion # implicit conversion from X cannot fit within the range
-  # -Wimplicit-float-conversion # implicit conversion loses floating-point precision: X to Y
+  -Wimplicit-float-conversion # implicit conversion loses floating-point precision: X to Y
   -Wimplicit-int # a declaration does not specify a type
   # -Wimplicit-int-conversion # higher order bits are zeroes after implicit conversion
   -Wimplicit-int-conversion-on-negation # implicit conversion loses integer precision: X to Y
   -Wimplicit-int-enum-cast # implicit conversion from X to enumeration type Y is invalid in C++
-  # -Wimplicit-int-float-conversion # implicit conversion from X to Y may lose precision
+  -Wimplicit-int-float-conversion # implicit conversion from X to Y may lose precision
   -Wimplicit-overflow-behavior-conversion # implicit conversion from X to Y discards overflow
   -Wimplicit-overflow-behavior-conversion-assignment # implicit conversion from X to Y during
   -Wimplicit-overflow-behavior-conversion-assignment-pedantic # implicit conversion from X to Y
@@ -843,7 +843,7 @@ set(
   -Wshift-overflow # left shift of a signed value overflows
   -Wshift-overflow=2 # left shift of a signed value overflows
   -Wshift-sign-overflow # signed shift result sets the sign bit of the shift expression's
-  # -Wshorten-64-to-32 # implicit conversion loses integer precision: X to Y
+  -Wshorten-64-to-32 # implicit conversion loses integer precision: X to Y
   -Wsign-compare # signed-unsigned comparisons
   # -Wsign-conversion # implicit type conversions between signed and unsigned integers
   # -Wsign-promo # overload promotes from unsigned to signed

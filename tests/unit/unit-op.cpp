@@ -160,6 +160,54 @@ TEST(UnitOpIndexTests, NarrowIndexRejectsTooLarge)
   ASSERT_THROW(narrow_index(op, max32 + 1), IncorrectUsageException);
 }
 
+TEST(Narrow, UnsignedToNarrowerUnsigned)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::uint32_t>::max();
+  EXPECT_EQ(detail::narrow<std::uint32_t>(max, "a value"), max);
+  EXPECT_THROW(detail::narrow<std::uint32_t>(max + 1, "a value"),
+               IncorrectUsageException);
+}
+
+TEST(Narrow, UnsignedToSigned)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::int32_t>::max();
+  EXPECT_EQ(detail::narrow<std::int32_t>(max, "a value"), max);
+  EXPECT_THROW(detail::narrow<std::int32_t>(max + 1, "a value"),
+               IncorrectUsageException);
+}
+
+TEST(Narrow, SignedToNarrowerSigned)
+{
+  constexpr std::int64_t min = std::numeric_limits<std::int32_t>::min();
+  constexpr std::int64_t max = std::numeric_limits<std::int32_t>::max();
+  EXPECT_EQ(detail::narrow<std::int32_t>(min, "a value"), min);
+  EXPECT_EQ(detail::narrow<std::int32_t>(max, "a value"), max);
+  EXPECT_THROW(detail::narrow<std::int32_t>(min - 1, "a value"),
+               IncorrectUsageException);
+  EXPECT_THROW(detail::narrow<std::int32_t>(max + 1, "a value"),
+               IncorrectUsageException);
+}
+
+TEST(Narrow, SignedToUnsigned)
+{
+  constexpr std::int64_t max = std::numeric_limits<std::uint32_t>::max();
+  EXPECT_EQ(detail::narrow<std::uint32_t>(std::int64_t{ 0 }, "a value"), 0u);
+  EXPECT_EQ(detail::narrow<std::uint32_t>(max, "a value"), max);
+  EXPECT_THROW(detail::narrow<std::uint32_t>(std::int64_t{ -1 }, "a value"),
+               IncorrectUsageException);
+  EXPECT_THROW(detail::narrow<std::uint32_t>(max + 1, "a value"),
+               IncorrectUsageException);
+}
+
+TEST(Narrow, WiderTypeKeepsEveryValue)
+{
+  constexpr std::uint32_t umax = std::numeric_limits<std::uint32_t>::max();
+  constexpr std::int32_t smin = std::numeric_limits<std::int32_t>::min();
+  EXPECT_EQ(detail::narrow<std::uint64_t>(umax, "a value"), umax);
+  EXPECT_EQ(detail::narrow<std::int64_t>(smin, "a value"), smin);
+  EXPECT_EQ(detail::narrow<std::int64_t>(umax, "a value"), umax);
+}
+
 TEST(UnitPrimOpInfoTests, NullHasNoArity)
 {
   EXPECT_THROW(get_arity(NUM_OPS_AND_NULL), IncorrectUsageException);

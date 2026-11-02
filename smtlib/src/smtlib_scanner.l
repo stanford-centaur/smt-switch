@@ -71,7 +71,13 @@ inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
 #include <new>
 #include <stdexcept>
 
-#define YY_USER_ACTION loc.step(); loc.columns(yyleng);
+// The length of the token, as the location counts it. Some flex versions
+// declare yyleng as an int and others as a yy_size_t. A token too long for
+// the count would only misplace the columns of a later error.
+#define TOKEN_LENGTH \
+  static_cast<smt::SmtLibParser::location_type::counter_type>(yyleng)
+
+#define YY_USER_ACTION loc.step(); loc.columns(TOKEN_LENGTH);
 
 // Errors flex cannot recover from, such as a failed read or allocation,
 // which it would otherwise print before exiting.
@@ -86,7 +92,7 @@ simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
   SmtLibParser::location_type & loc = *yyextra;
 %}
 [ \t\r]+              { /* skip whitespace */ }
-\n+                   { loc.lines(yyleng); }
+\n+                   { loc.lines(TOKEN_LENGTH); }
 
 ;.*                   { /* skip comment */ }
 

@@ -82,7 +82,7 @@ class BoolectorBVSort : public BoolectorSortBase
   // bit-vector width
   // Note: we need to store this in addition to the BoolectorSort
   //       because in Boolector the width is retrieved from a node not a sort
-  unsigned width;
+  uint64_t width;
 
   friend class BoolectorSolver;
 };

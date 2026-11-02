@@ -30,6 +30,7 @@
 #include "cvc5_sort.h"
 #include "exceptions.h"
 #include "ops.h"
+#include "solver_utils.h"
 #include "utils.h"
 
 namespace smt {
@@ -297,14 +298,14 @@ Op Cvc5Term::get_op() const
     }
     if (num_indices == 1)
     {
-      uint32_t idx0 = std::stoul(cvc5_op[0].toString());
+      uint64_t idx0 = std::stoull(cvc5_op[0].toString());
       return Op(po, idx0);
     }
     else
     {
       assert(num_indices == 2);
-      std::pair<uint32_t, uint32_t> indices = {
-        std::stoul(cvc5_op[0].toString()), std::stoul(cvc5_op[1].toString())
+      std::pair<uint64_t, uint64_t> indices = {
+        std::stoull(cvc5_op[0].toString()), std::stoull(cvc5_op[1].toString())
       };
       return Op(po, indices.first, indices.second);
     }
@@ -401,7 +402,8 @@ TermIter Cvc5Term::begin() const { return TermIter(new Cvc5TermIter(term, 0)); }
 
 TermIter Cvc5Term::end() const
 {
-  uint32_t num_children = term.getNumChildren();
+  uint32_t num_children =
+      detail::narrow<uint32_t>(term.getNumChildren(), "a number of children");
   if (term.getKind() == ::cvc5::Kind::CONST_ARRAY)
   {
     // base of constant array is the child

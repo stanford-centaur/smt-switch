@@ -26,7 +26,6 @@ extern "C" {
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <limits>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -305,11 +304,10 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
   {
     BoolectorSort bs = btor_sort(sort);
     // note: give the constant value a null PrimOp
-    if (i >= std::numeric_limits<int32_t>::min()
-        && i <= std::numeric_limits<int32_t>::max())
+    if (detail::fits_in<int32_t>(i))
     {
-      return std::make_shared<BoolectorTerm>(btor,
-                                             boolector_int(btor.get(), i, bs));
+      return std::make_shared<BoolectorTerm>(
+          btor, boolector_int(btor.get(), static_cast<int32_t>(i), bs));
     }
     // boolector_int takes an int32_t, so write out the bits it would give a
     // wider value: truncated to the width, or sign-extended to it
@@ -419,9 +417,15 @@ Result BoolectorSolver::solve()
   }
 }
 
-void BoolectorSolver::do_push(uint64_t num) { boolector_push(btor.get(), num); }
+void BoolectorSolver::do_push(uint64_t num)
+{
+  boolector_push(btor.get(), narrow_levels(num));
+}
 
-void BoolectorSolver::do_pop(uint64_t num) { boolector_pop(btor.get(), num); }
+void BoolectorSolver::do_pop(uint64_t num)
+{
+  boolector_pop(btor.get(), narrow_levels(num));
+}
 
 Term BoolectorSolver::get_value(const Term & t) const
 {
@@ -595,7 +599,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   if (sk == BV)
   {
     return std::make_shared<BoolectorBVSort>(
-        btor, boolector_bitvec_sort(btor.get(), size), size);
+        btor, boolector_bitvec_sort(btor.get(), narrow_width(size)), size);
   }
   else
   {
@@ -620,7 +624,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     BoolectorSort btor_return_sort = btor_sort(returnsort);
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = sorts.size() - 1;
+    uint32_t arity = narrow_num_args(sorts.size() - 1);
     std::vector<BoolectorSort> btor_sorts;
     btor_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
@@ -737,17 +741,19 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   else if (op.prim_op == Apply)
   {
     // the first term is the function, applied to the rest
-    btor_res =
-        boolector_apply(btor.get(), nodes.data() + 1, size - 1, nodes[0]);
+    btor_res = boolector_apply(
+        btor.get(), nodes.data() + 1, narrow_num_args(size - 1), nodes[0]);
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
     // the last term is the body, bound by the rest
-    btor_res =
-        op.prim_op == Forall
-            ? boolector_forall(btor.get(), nodes.data(), size - 1, nodes.back())
-            : boolector_exists(
-                  btor.get(), nodes.data(), size - 1, nodes.back());
+    const uint32_t num_params =
+        detail::narrow<uint32_t>(size - 1, "a number of params");
+    btor_res = op.prim_op == Forall
+                   ? boolector_forall(
+                         btor.get(), nodes.data(), num_params, nodes.back())
+                   : boolector_exists(
+                         btor.get(), nodes.data(), num_params, nodes.back());
   }
   else if (size == 2)
   {
@@ -798,7 +804,7 @@ void BoolectorSolver::do_reset_assertions()
   else
   {
     // pop the contexts, and the hidden base context under them
-    boolector_pop(btor.get(), get_context_level() + 1);
+    boolector_pop(btor.get(), narrow_levels(get_context_level() + 1));
     // push the base context back
     boolector_push(btor.get(), 1);
   }
