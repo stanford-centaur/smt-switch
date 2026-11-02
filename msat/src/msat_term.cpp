@@ -25,6 +25,7 @@
 #include "exceptions.h"
 #include "msat_sort.h"
 #include "ops.h"
+#include "solver_utils.h"
 #include "utils.h"
 
 using namespace std;
@@ -553,7 +554,8 @@ TermIter MsatTerm::end() const
     return TermIter(new MsatTermIter(env, term, 0));
   }
 
-  uint32_t arity = msat_term_arity(term);
+  uint32_t arity =
+      detail::narrow<uint32_t>(msat_term_arity(term), "a number of children");
   if (msat_term_is_uf(*env, term))
   {
     // consider the function itself a child

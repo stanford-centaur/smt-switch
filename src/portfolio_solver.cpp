@@ -36,6 +36,7 @@
 #include "smt_defs.h"
 #include "solver.h"
 #include "solver_enums.h"
+#include "solver_utils.h"
 #include "sort.h"
 #include "term_translator.h"
 
@@ -244,7 +245,10 @@ Result PortfolioSolver::portfolio_solve()
         polled_children.push_back(&child);
       }
     }
-    if (poll(polled.data(), polled.size(), -1) < 0)
+    if (poll(polled.data(),
+             detail::narrow<nfds_t>(polled.size(), "a number of descriptors"),
+             -1)
+        < 0)
     {
       if (errno == EINTR)
       {

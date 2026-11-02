@@ -26,6 +26,7 @@
 #include <string>
 
 #include "exceptions.h"
+#include "solver_utils.h"
 
 using namespace std;
 
@@ -99,7 +100,7 @@ term_t ext_yices_make_bv_number(const char * val, size_t size, int base)
     mpz_t negval;
     mpz_init(negval);
     mpz_neg(negval, yval);
-    res = yices_bvconst_mpz(size, negval);
+    res = yices_bvconst_mpz(narrow_width(size), negval);
     if (res == -1)
     {
       std::string msg("Error creating bit-vector from ");
@@ -127,7 +128,7 @@ term_t ext_yices_make_bv_number(const char * val, size_t size, int base)
       mpz_clear(yval);
       throw IncorrectUsageException(msg);
     }
-    res = yices_bvconst_mpz(size, yval);
+    res = yices_bvconst_mpz(narrow_width(size), yval);
   }
 
   mpz_clear(exclusive_upper_bnd);

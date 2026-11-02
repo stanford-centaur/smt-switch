@@ -16,11 +16,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <limits>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -97,6 +100,19 @@ TEST_P(UnitIncrementalTests, ContextLevel)
   EXPECT_EQ(s->get_context_level(), 0);
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
+}
+
+TEST_P(UnitIncrementalTests, PushMoreLevelsThanTheSolverTakes)
+{
+  const SolverEnum se = GetParam().solver_enum;
+  if (se != BTOR && se != BZLA && se != CVC5)
+  {
+    GTEST_SKIP() << "This backend pushes one level at a time, so it takes "
+                    "any number of levels, and pushing this many would not end";
+  }
+  const uint64_t levels = uint64_t{ numeric_limits<uint32_t>::max() } + 2;
+  EXPECT_THROW(s->push(levels), IncorrectUsageException);
+  EXPECT_EQ(s->get_context_level(), 0);
 }
 
 INSTANTIATE_TEST_SUITE_P(

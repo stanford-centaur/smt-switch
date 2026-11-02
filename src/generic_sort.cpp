@@ -77,8 +77,8 @@ std::string GenericSort::compute_string() const
     std::string name = "(";
     std::vector<Sort> domain_sorts = get_domain_sorts();
     Sort codomain_sort = get_codomain_sort();
-    int num_args = domain_sorts.size();
-    for (int i = 0; i < num_args; i++)
+    size_t num_args = domain_sorts.size();
+    for (size_t i = 0; i < num_args; i++)
     {
       if (i > 0)
       {

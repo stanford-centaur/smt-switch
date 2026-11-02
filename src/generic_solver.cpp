@@ -593,9 +593,8 @@ void GenericSolver::await_response(
                                       + " ms to the command: " + cmd);
       }
       // poll() takes an int, so a distant deadline is waited out in slices
-      timeout_ms = (left > std::numeric_limits<int>::max())
-                       ? std::numeric_limits<int>::max()
-                       : static_cast<int>(left);
+      timeout_ms = detail::fits_in<int>(left) ? static_cast<int>(left)
+                                              : std::numeric_limits<int>::max();
     }
     struct pollfd pfd;
     pfd.fd = inpipefd[0];

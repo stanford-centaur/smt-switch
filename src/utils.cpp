@@ -360,7 +360,7 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
   y << ptr;  // number of distinct symbols
   y << " ";
 
-  int sz = clauses.size();
+  size_t sz = clauses.size();
 
   y << sz;  // number of clauses
   y << "\n";

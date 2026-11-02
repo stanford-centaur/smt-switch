@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "exceptions.h"
+#include "solver_utils.h"
 #include "sort.h"
 #include "utils.h"
 
@@ -109,7 +110,7 @@ GenericDatatypeConstructorDecl::get_selector_vector() const
 
 int GenericDatatypeConstructorDecl::get_selector_count() const
 {
-  return selector_vector.size();
+  return detail::narrow<int>(selector_vector.size(), "a number of selectors");
 }
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
@@ -130,7 +131,8 @@ GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
 
 int GenericDatatype::get_num_constructors() const
 {
-  return cons_decl_vector.size();
+  return detail::narrow<int>(cons_decl_vector.size(),
+                             "a number of constructors");
 }
 
 int GenericDatatype::get_num_selectors(std::string cons) const

@@ -127,7 +127,7 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
       // cvc5 uses unsigned integers for mkBitVector
       // to avoid casting issues, always use a string in base 10
       std::string sval = std::to_string(i);
-      c = instance->tm.mkBitVector(sort->get_width(), sval, 10);
+      c = instance->tm.mkBitVector(narrow_width(sort->get_width()), sval, 10);
     }
     else
     {
@@ -227,7 +227,9 @@ Term Cvc5Solver::make_term(std::string val,
     }
     else if (sk == BV)
     {
-      c = instance->tm.mkBitVector(sort->get_width(), val, base);
+      c = instance->tm.mkBitVector(narrow_width(sort->get_width()),
+                                   val,
+                                   detail::narrow<uint32_t>(base, "a base"));
     }
     else
     {
@@ -337,7 +339,7 @@ void Cvc5Solver::do_push(uint64_t num)
 {
   try
   {
-    instance->solver.push(num);
+    instance->solver.push(narrow_levels(num));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -349,7 +351,7 @@ void Cvc5Solver::do_pop(uint64_t num)
 {
   try
   {
-    instance->solver.pop(num);
+    instance->solver.pop(narrow_levels(num));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -423,8 +425,8 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
 {
   try
   {
-    return std::make_shared<Cvc5Sort>(
-        instance->solver.declareSort(name, arity));
+    return std::make_shared<Cvc5Sort>(instance->solver.declareSort(
+        name, detail::narrow<uint32_t>(arity, "a number of sort parameters")));
   }
   catch (::cvc5::CVC5ApiException & e)
   {
@@ -472,7 +474,8 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   {
     if (sk == BV)
     {
-      return std::make_shared<Cvc5Sort>(instance->tm.mkBitVectorSort(size));
+      return std::make_shared<Cvc5Sort>(
+          instance->tm.mkBitVectorSort(narrow_width(size)));
     }
     else
     {
@@ -501,12 +504,12 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       }
 
       // arity is one less, because last sort is return sort
-      uint32_t arity = sorts.size() - 1;
+      size_t arity = sorts.size() - 1;
 
       std::vector<::cvc5::Sort> csorts;
       csorts.reserve(arity);
       ::cvc5::Sort csort;
-      for (uint32_t i = 0; i < arity; i++)
+      for (size_t i = 0; i < arity; i++)
       {
         csort = backend_pointer_cast<Cvc5Sort>(sorts[i])->sort;
         csorts.push_back(csort);

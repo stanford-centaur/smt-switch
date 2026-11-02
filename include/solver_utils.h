@@ -15,11 +15,15 @@
 **/
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
+#include "exceptions.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
@@ -61,6 +65,106 @@ void check_quantifier_binders(const Op & op, const TermVec & terms);
  *  @throws IncorrectUsageException if idx does not fit
  */
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx);
+
+/** Narrow a bit-vector width to the 32 bits that solver APIs take
+ *  @param width the width to narrow
+ *  @return width as a 32-bit value
+ *  @throws IncorrectUsageException if width does not fit
+ */
+std::uint32_t narrow_width(std::uint64_t width);
+
+/** Narrow a number of levels to push or pop to the 32 bits that solver APIs
+ *  take
+ *  @param levels the number of levels to narrow
+ *  @return levels as a 32-bit value
+ *  @throws IncorrectUsageException if levels does not fit
+ */
+std::uint32_t narrow_levels(std::uint64_t levels);
+
+/** Narrow a number of arguments, such as of an application or a function
+ *  sort, to the 32 bits that solver APIs take
+ *  @param num_args the number of arguments to narrow
+ *  @return num_args as a 32-bit value
+ *  @throws IncorrectUsageException if num_args does not fit
+ */
+std::uint32_t narrow_num_args(std::size_t num_args);
+
+// The general forms of the checks above, for the kinds no wrapper covers
+namespace detail {
+
+/** Whether an integer of any type has the same value as a T
+ *  @param value the value to check
+ *  @return true iff value is in T's range
+ */
+template <typename T, typename U>
+constexpr bool fits_in(U value)
+{
+  static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
+                "only integers are compared");
+  using To = std::numeric_limits<T>;
+  using From = std::numeric_limits<U>;
+  // Each comparison is left out where every U fits, so none is tautological.
+  if constexpr (std::is_unsigned_v<U>)
+  {
+    // T's maximum is positive, so it compares with value as unsigned.
+    constexpr auto max = static_cast<std::make_unsigned_t<T>>(To::max());
+    if constexpr (From::max() > max)
+    {
+      return value <= max;
+    }
+    else
+    {
+      return true;
+    }
+  }
+  else if constexpr (std::is_signed_v<T>)
+  {
+    if constexpr (From::min() < To::min() || From::max() > To::max())
+    {
+      return value >= To::min() && value <= To::max();
+    }
+    else
+    {
+      return true;
+    }
+  }
+  else if constexpr (static_cast<std::make_unsigned_t<U>>(From::max())
+                     > To::max())
+  {
+    return value >= 0
+           && static_cast<std::make_unsigned_t<U>>(value) <= To::max();
+  }
+  else
+  {
+    return value >= 0;
+  }
+}
+
+/** Narrow an integer to the type a solver API takes it as, such as the
+ *  number of arguments of an application or a bit-vector width.
+ *  Without this the conversion is silent and a value outside T's range
+ *  reaches the solver as an unrelated one.
+ *  @param value the value to narrow, of any integer type
+ *  @param what what value is, as "a bit-vector width", used in the error
+ *         message
+ *  @return value as a T
+ *  @throws IncorrectUsageException if value does not fit
+ */
+template <typename T, typename U>
+T narrow(U value, const char * what)
+{
+  if (!fits_in<T>(value))
+  {
+    using To = std::numeric_limits<T>;
+    throw IncorrectUsageException("This solver takes " + std::string(what)
+                                  + " from " + std::to_string(To::min())
+                                  + " to " + std::to_string(To::max())
+                                  + ", not " + std::to_string(value));
+  }
+  return static_cast<T>(value);
+}
+
+}  // namespace detail
 
 /** Whether val is a number a value of sort kind sk, INT or REAL, can be
  *  made from, with an optional leading minus: a decimal numeral, or for a

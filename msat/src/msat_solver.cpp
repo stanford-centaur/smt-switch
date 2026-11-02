@@ -55,8 +55,6 @@ static string msat_option_name(const string & option)
   return option;
 }
 
-/* MathSAT op mappings */
-
 /** Refuses po applied to num_args arguments, which MathSAT has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
@@ -488,14 +486,14 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = sorts.size() - 1;
+    size_t arity = sorts.size() - 1;
 
     string decl_name("internal_ref_fun");
 
     std::vector<msat_type> msorts;
     msorts.reserve(arity);
     msat_type msort;
-    for (uint32_t i = 0; i < arity; i++)
+    for (size_t i = 0; i < arity; i++)
     {
       msort = get_msat_sort(sorts[i])->type;
       if (msat_is_bool_type(*env, msort))
@@ -604,7 +602,10 @@ Term MsatSolver::make_term(const std::string val,
     if (sk == BV)
     {
       msat_term mval =
-          ext_msat_make_bv_number(*env, val.c_str(), sort->get_width(), base);
+          ext_msat_make_bv_number(*env,
+                                  val.c_str(),
+                                  sort->get_width(),
+                                  detail::narrow<int>(base, "a base"));
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");

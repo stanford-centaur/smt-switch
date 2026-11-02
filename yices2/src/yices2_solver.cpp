@@ -226,7 +226,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
   }
   else if (sk == BV)
   {
-    y_term = yices_bvconst_int64(sort->get_width(), i);
+    y_term = yices_bvconst_int64(narrow_width(sort->get_width()), i);
   }
   else
   {
@@ -249,7 +249,8 @@ Term Yices2Solver::make_term(const std::string val,
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
   {
-    y_term = ext_yices_make_bv_number(val.c_str(), sort->get_width(), base);
+    y_term = ext_yices_make_bv_number(
+        val.c_str(), sort->get_width(), detail::narrow<int>(base, "a base"));
   }
   else if (sk == REAL)
   {
@@ -379,7 +380,10 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
   timelimit_start();
   smt_status_t res = yices_check_context_with_assumptions(
-      get_context().get(), NULL, y_assumps.size(), y_assumps.data());
+      get_context().get(),
+      NULL,
+      detail::narrow<uint32_t>(y_assumps.size(), "a number of assumptions"),
+      y_assumps.data());
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -695,7 +699,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
 
   if (sk == BV)
   {
-    y_sort = yices_bv_type(size);
+    y_sort = yices_bv_type(narrow_width(size));
   }
   else
   {
@@ -726,7 +730,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = sorts.size() - 1;
+    uint32_t arity = narrow_num_args(sorts.size() - 1);
 
     std::vector<type_t> ysorts;
 
@@ -1033,7 +1037,7 @@ static Term variadic_term(const AbsSmtSolver * solver,
                           const TermVec & terms,
                           vector<term_t> & args)
 {
-  const uint32_t n = static_cast<uint32_t>(args.size());
+  const uint32_t n = narrow_num_args(args.size());
   term_t * a = args.data();
   term_t res;
   switch (op.prim_op)
@@ -1111,7 +1115,8 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
       throw IncorrectUsageException(msg);
     }
     // the first term is the function, applied to the rest
-    res = yices_application(yterms[0], size - 1, yterms.data() + 1);
+    res = yices_application(
+        yterms[0], narrow_num_args(size - 1), yterms.data() + 1);
   }
   else if (size == 2)
   {
@@ -1176,7 +1181,10 @@ Term Yices2Solver::substitute(const Term term,
   }
 
   term_t res = yices_subst_term(
-      to_subst.size(), to_subst.data(), values.data(), yterm->term);
+      detail::narrow<uint32_t>(to_subst.size(), "a number of substitutions"),
+      to_subst.data(),
+      values.data(),
+      yterm->term);
 
   return checked_term(res);
 }
@@ -1192,8 +1200,8 @@ void Yices2Solver::timelimit_start()
     running_ctx = get_context().get();
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(time_limit);
-    timer.it_value.tv_usec =
-        static_cast<suseconds_t>((time_limit - timer.it_value.tv_sec) * 1e6);
+    timer.it_value.tv_usec = static_cast<suseconds_t>(
+        (time_limit - static_cast<double>(timer.it_value.tv_sec)) * 1e6);
     setitimer(ITIMER_REAL, &timer, nullptr);
   }
 }

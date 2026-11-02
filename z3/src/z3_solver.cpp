@@ -10,6 +10,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -30,6 +31,10 @@
 using namespace std;
 
 namespace smt {
+
+// The narrowing helpers return a std::uint32_t, which Z3 takes as unsigned.
+static_assert(std::is_same_v<unsigned, std::uint32_t>,
+              "Z3 takes counts and widths as an unsigned of 32 bits");
 
 // extension function: bvcomp as an ite over equality. Each new term is
 // referenced until the ite holds it, as in ext_Z3_mk_abs.
@@ -210,7 +215,7 @@ static Term variadic_term(const AbsSmtSolver * solver,
                           const TermVec & terms,
                           const vector<Z3_ast> & args)
 {
-  const unsigned n = static_cast<unsigned>(args.size());
+  const unsigned n = narrow_num_args(args.size());
   Z3_ast res;
   switch (op.prim_op)
   {
@@ -397,7 +402,7 @@ void Z3Solver::add_constructor(z3::sort dtsort,
   }
   cs->add(ctx->str_symbol(cname.c_str()),
           ctx->str_symbol(recognizer.c_str()),
-          fieldnames.size(),
+          detail::narrow<unsigned>(fieldnames.size(), "a number of fields"),
           fieldnames.data(),
           sorts.data());
 }
@@ -460,7 +465,10 @@ SortVec Z3Solver::make_datatype_sorts(
     clpvec.push_back(&clvec.back());
     consvec.push_back(std::move(cs));
   }
-  auto raw_sorts = ctx->datatypes(decls.size(), syms.data(), clpvec.data());
+  auto raw_sorts = ctx->datatypes(
+      detail::narrow<unsigned>(decls.size(), "a number of datatypes"),
+      syms.data(),
+      clpvec.data());
   for (const auto & decl : z3_decls)
   {
     decl->used = true;
@@ -601,7 +609,7 @@ Term Z3Solver::make_term(int64_t i, const Sort & sort) const
   }
   else if (sk == BV)
   {
-    z_term = ctx->bv_val(i, sort->get_width());
+    z_term = ctx->bv_val(i, narrow_width(sort->get_width()));
   }
   else
   {
@@ -637,7 +645,7 @@ Term Z3Solver::make_term(const std::string val,
     mpz_class value;
     try
     {
-      value = mpz_class(val, base);
+      value = mpz_class(val, detail::narrow<int>(base, "a base"));
     }
     catch (std::invalid_argument & e)
     {
@@ -653,7 +661,7 @@ Term Z3Solver::make_term(const std::string val,
       throw IncorrectUsageException("Value " + val + " does not fit in sort "
                                     + sort->to_string());
     }
-    z_term = ctx->bv_val(value.get_str(10).c_str(), width);
+    z_term = ctx->bv_val(value.get_str(10).c_str(), narrow_width(width));
   }
   else if (sk == REAL || sk == INT)
   {
@@ -782,7 +790,10 @@ void Z3Solver::do_push(uint64_t num)
   }
 }
 
-void Z3Solver::do_pop(uint64_t num) { get_z3_solver()->pop(num); }
+void Z3Solver::do_pop(uint64_t num)
+{
+  get_z3_solver()->pop(narrow_levels(num));
+}
 
 Term Z3Solver::get_value(const Term & t) const
 {
@@ -904,7 +915,7 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
 {
   if (sk == BV)
   {
-    return std::make_shared<Z3Sort>(ctx, ctx->bv_sort(size));
+    return std::make_shared<Z3Sort>(ctx, ctx->bv_sort(narrow_width(size)));
   }
   else
   {
@@ -926,13 +937,13 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = sorts.size() - 1;
+    unsigned arity = narrow_num_args(sorts.size() - 1);
 
     std::vector<z3::sort> zsorts;
     zsorts.reserve(arity);
     z3::sort z_sort = z3::sort(*ctx);
 
-    for (uint32_t i = 0; i < arity; i++)
+    for (unsigned i = 0; i < arity; i++)
     {
       z_sort = get_z3_sort(sorts[i])->type;
       zsorts.push_back(z_sort);
@@ -1107,7 +1118,8 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
-    res = Z3_mk_app(*ctx, zfun->z_func, size - 1, zargs.data());
+    res =
+        Z3_mk_app(*ctx, zfun->z_func, narrow_num_args(size - 1), zargs.data());
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {

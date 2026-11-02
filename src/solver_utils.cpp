@@ -19,7 +19,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -103,7 +102,7 @@ void check_quantifier_binders(const Op & op, const TermVec & terms)
 
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx)
 {
-  if (idx > std::numeric_limits<std::uint32_t>::max())
+  if (!detail::fits_in<std::uint32_t>(idx))
   {
     throw IncorrectUsageException("Index " + std::to_string(idx) + " of "
                                   + op.to_string()
@@ -111,6 +110,21 @@ std::uint32_t narrow_index(const Op & op, std::uint64_t idx)
                                     "accepts");
   }
   return static_cast<std::uint32_t>(idx);
+}
+
+std::uint32_t narrow_width(std::uint64_t width)
+{
+  return detail::narrow<std::uint32_t>(width, "a bit-vector width");
+}
+
+std::uint32_t narrow_levels(std::uint64_t levels)
+{
+  return detail::narrow<std::uint32_t>(levels, "a number of levels");
+}
+
+std::uint32_t narrow_num_args(std::size_t num_args)
+{
+  return detail::narrow<std::uint32_t>(num_args, "a number of arguments");
 }
 
 /** Whether s is a non-empty string of decimal digits */

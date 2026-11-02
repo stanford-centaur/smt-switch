@@ -258,8 +258,8 @@ Sort BoolectorTerm::get_sort() const
   // a unary function has the sort of the matching array, so ask the node
   else if (boolector_is_array(btor.get(), node))
   {
-    uint64_t idxwidth = boolector_get_index_width(btor.get(), node);
-    uint64_t elemwidth = boolector_get_width(btor.get(), node);
+    uint32_t idxwidth = boolector_get_index_width(btor.get(), node);
+    uint32_t elemwidth = boolector_get_width(btor.get(), node);
     // Note: Boolector does not support multidimensional arrays
     std::shared_ptr<BoolectorSortBase> idxsort =
         std::make_shared<BoolectorBVSort>(
@@ -289,7 +289,7 @@ Sort BoolectorTerm::get_sort() const
         btor_sort_fun_get_domain(btor.get(), BTOR_IMPORT_BOOLECTOR_SORT(s)));
     while (btor_iter_tuple_sort_has_next(&it))
     {
-      uint64_t bds_width =
+      uint32_t bds_width =
           btor_sort_bv_get_width(btor.get(), btor_iter_tuple_sort_next(&it));
       domain_sorts.push_back(std::make_shared<BoolectorBVSort>(
           btor, boolector_bitvec_sort(btor.get(), bds_width), bds_width));

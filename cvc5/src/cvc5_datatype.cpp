@@ -9,6 +9,7 @@
 
 #include "cvc5_sort.h"
 #include "exceptions.h"
+#include "solver_utils.h"
 #include "utils.h"
 
 namespace smt {
@@ -71,7 +72,8 @@ Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 
 int Cvc5Datatype::get_num_constructors() const
 {
-  return datatype.getNumConstructors();
+  return detail::narrow<int>(datatype.getNumConstructors(),
+                             "a number of constructors");
 }
 
 int Cvc5Datatype::get_num_selectors(std::string cons) const
@@ -81,7 +83,7 @@ int Cvc5Datatype::get_num_selectors(std::string cons) const
     cvc5::DatatypeConstructor ct = datatype[i];
     if (ct.getName() == cons)
     {
-      return ct.getNumSelectors();
+      return detail::narrow<int>(ct.getNumSelectors(), "a number of selectors");
     }
   }
   throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");

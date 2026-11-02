@@ -257,9 +257,15 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   }
 }
 
-void BzlaSolver::do_push(std::uint64_t num) { get_bitwuzla()->push(num); }
+void BzlaSolver::do_push(std::uint64_t num)
+{
+  get_bitwuzla()->push(narrow_levels(num));
+}
 
-void BzlaSolver::do_pop(std::uint64_t num) { get_bitwuzla()->pop(num); }
+void BzlaSolver::do_pop(std::uint64_t num)
+{
+  get_bitwuzla()->pop(narrow_levels(num));
+}
 
 Term BzlaSolver::get_value(const Term & t) const
 {
@@ -384,7 +390,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
     bitwuzla::Sort bzla_return_sort = bzla_sort(sorts.back());
 
     // arity is one less, because last sort is return sort
-    std::uint32_t arity = sorts.size() - 1;
+    std::size_t arity = sorts.size() - 1;
     std::vector<bitwuzla::Sort> bzla_sorts;
     bzla_sorts.reserve(arity);
     for (std::size_t i = 0; i < arity; i++)
@@ -775,8 +781,8 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   }
 
   // pop formulas that cannot be reused
-  bzla_solver->get_bitwuzla()->pop(last_itp_query_assertions.size()
-                                   - num_reused);
+  bzla_solver->get_bitwuzla()->pop(
+      narrow_levels(last_itp_query_assertions.size() - num_reused));
 
   // update the interpolation groups and assertions
   last_itp_query_assertions.resize(num_reused);
