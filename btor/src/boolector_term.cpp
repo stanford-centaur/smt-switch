@@ -30,7 +30,6 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "boolector_sort.h"
@@ -39,41 +38,44 @@ extern "C" {
 
 namespace smt {
 
-/* global variables */
-const std::unordered_map<BtorNodeKind, PrimOp> btorkind2primop({
-    //{BTOR_INVALID_NODE}, // this should never happen
-    { BTOR_BV_CONST_NODE, NUM_OPS_AND_NULL },
-    { BTOR_VAR_NODE, NUM_OPS_AND_NULL },
-    { BTOR_PARAM_NODE, NUM_OPS_AND_NULL },
-    { BTOR_BV_SLICE_NODE, Extract },
-    { BTOR_BV_AND_NODE, BVAnd },
-    // note: could also use BVComp because they're indistinguishable
-    // in Boolector, but expect Equal is more common
-    { BTOR_BV_EQ_NODE, Equal },
-    { BTOR_FUN_EQ_NODE, Equal },
-    { BTOR_BV_ADD_NODE, BVAdd },
-    { BTOR_BV_MUL_NODE, BVMul },
-    { BTOR_BV_ULT_NODE, BVUlt },
-    { BTOR_BV_SLL_NODE, BVShl },
-    { BTOR_BV_SRL_NODE, BVLshr },
-    { BTOR_BV_UDIV_NODE, BVUdiv },
-    { BTOR_BV_UREM_NODE, BVUrem },
-    { BTOR_BV_CONCAT_NODE, Concat },
-    { BTOR_APPLY_NODE, Apply },
-    { BTOR_FORALL_NODE, Forall },
-    { BTOR_EXISTS_NODE, Exists },
-    // {BTOR_LAMBDA_NODE}, // TODO: figure out when/how to use this, hopefully
-    // only for quantifiers
-    { BTOR_COND_NODE, Ite },
-    // {BTOR_ARGS_NODE}, // should already be flattened in BoolectorTerm
-    // constructor
-    { BTOR_UF_NODE, NUM_OPS_AND_NULL },
-    { BTOR_UPDATE_NODE, Store },
-    // {BTOR_PROXY_NODE, NUM_OPS_AND_NULL} // should never happen
-    // {BTOR_NUM_OPS_NOE} // should never be used
-});
-
 // helpers
+
+/** The PrimOp of the nodes of kind k, or NUM_OPS_AND_NULL for a kind whose
+ *  nodes are not applications
+ *  @throws SmtException for a kind with no PrimOp
+ */
+static PrimOp primop_of(BtorNodeKind k)
+{
+  switch (k)
+  {
+    case BTOR_BV_CONST_NODE: return NUM_OPS_AND_NULL;
+    case BTOR_VAR_NODE: return NUM_OPS_AND_NULL;
+    case BTOR_PARAM_NODE: return NUM_OPS_AND_NULL;
+    case BTOR_BV_SLICE_NODE: return Extract;
+    case BTOR_BV_AND_NODE: return BVAnd;
+    // BVComp makes the same node, but Equal is the more common reading.
+    case BTOR_BV_EQ_NODE: return Equal;
+    case BTOR_FUN_EQ_NODE: return Equal;
+    case BTOR_BV_ADD_NODE: return BVAdd;
+    case BTOR_BV_MUL_NODE: return BVMul;
+    case BTOR_BV_ULT_NODE: return BVUlt;
+    case BTOR_BV_SLL_NODE: return BVShl;
+    case BTOR_BV_SRL_NODE: return BVLshr;
+    case BTOR_BV_UDIV_NODE: return BVUdiv;
+    case BTOR_BV_UREM_NODE: return BVUrem;
+    case BTOR_BV_CONCAT_NODE: return Concat;
+    case BTOR_APPLY_NODE: return Apply;
+    case BTOR_FORALL_NODE: return Forall;
+    case BTOR_EXISTS_NODE: return Exists;
+    case BTOR_COND_NODE: return Ite;
+    case BTOR_UF_NODE: return NUM_OPS_AND_NULL;
+    case BTOR_UPDATE_NODE: return Store;
+    default:
+      throw SmtException("Can't find PrimOp for BtorNodeKind "
+                         + std::to_string(k) + " see boolector/btornode.h");
+  }
+}
+
 Op lookup_op(Btor * btor, BoolectorNode * n)
 {
   Op op;
@@ -103,13 +105,7 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   else
   {
-    if (btorkind2primop.find(k) == btorkind2primop.end())
-    {
-      throw SmtException("Can't find PrimOp for BtorNodeKind "
-                         + std::to_string(k) + " see boolector/btornode.h");
-    }
-    PrimOp po = btorkind2primop.at(k);
-    op = Op(po);
+    op = Op(primop_of(k));
   }
   return op;
 }
