@@ -66,6 +66,12 @@ void check_quantifier_binders(const Op & op, const TermVec & terms);
  */
 std::uint32_t narrow_index(const Op & op, std::uint64_t idx);
 
+/** Check the index of a divisible op, which SMT-LIB requires to be positive
+ *  @param op the divisible op
+ *  @throws IncorrectUsageException if the index is 0
+ */
+void check_divisible_index(const Op & op);
+
 /** Narrow a bit-vector width to the 32 bits that solver APIs take
  *  @param width the width to narrow
  *  @return width as a 32-bit value

@@ -109,6 +109,26 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
   throw NotImplementedException(message);
 }
 
+/* (divides n t) is (_ divisible n) applied to t, where n is a positive integer
+ * that fits in an op index
+ */
+static Op divisible_op(term_t term)
+{
+  mpq_t divisor;
+  mpq_init(divisor);
+  yices_rational_const_value(yices_term_child(term, 0), divisor);
+  const bool is_index = mpz_cmp_ui(mpq_denref(divisor), 1) == 0
+                        && mpq_sgn(divisor) > 0
+                        && mpz_fits_ulong_p(mpq_numref(divisor));
+  const uint64_t n = is_index ? mpz_get_ui(mpq_numref(divisor)) : 0;
+  mpq_clear(divisor);
+  if (!is_index)
+  {
+    no_smt_switch_op(term);
+  }
+  return Op(Divisible, n);
+}
+
 Op Yices2Term::get_op() const
 {
   term_constructor_t tc = yices_term_constructor(term);
@@ -203,7 +223,7 @@ Op Yices2Term::get_op() const
     case YICES_CEIL: no_smt_switch_op(term);
     case YICES_FLOOR: return Op(To_Int);
     case YICES_IS_INT_ATOM: return Op(Is_Int);
-    case YICES_DIVIDES_ATOM: no_smt_switch_op(term);
+    case YICES_DIVIDES_ATOM: return divisible_op(term);
     // projections
     case YICES_SELECT_TERM: no_smt_switch_op(term);
     // a bit select is a Boolean, which no op gives for a bit-vector, so
@@ -347,6 +367,11 @@ static uint32_t smt_num_children(term_t term)
     // the base value, Yices keeping the bound variable alongside it
     return 1;
   }
+  if (tc == YICES_DIVIDES_ATOM)
+  {
+    // the dividend, as get_op reads the divisor as the index
+    return 1;
+  }
   if (tc == YICES_BIT_TERM)
   {
     // the Equal reading: the width-one extract, and the one it meets
@@ -467,6 +492,11 @@ Term Yices2TermIter::operator*() const
   else if (yices_term_constructor(term) == YICES_LAMBDA_TERM)
   {
     // the body, after the bound variable Yices lists first
+    ret_term = yices_term_child(term, 1);
+  }
+  else if (yices_term_constructor(term) == YICES_DIVIDES_ATOM)
+  {
+    // the dividend, after the divisor that get_op reads as the index
     ret_term = yices_term_child(term, 1);
   }
   else if (yices_term_constructor(term) == YICES_BIT_TERM)

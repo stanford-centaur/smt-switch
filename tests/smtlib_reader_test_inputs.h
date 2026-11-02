@@ -23,6 +23,8 @@
 
 // maps tests to their expected results
 const std::unordered_map<std::string, std::vector<smt::Result>> qf_uflia_tests({
+    { "test-divisible.smt2",
+      { smt::Result(smt::SAT), smt::Result(smt::UNSAT) } },
     { "test-uf.smt2",
       { smt::Result(smt::SAT),
         smt::Result(smt::UNSAT),

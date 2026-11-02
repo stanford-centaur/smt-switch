@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "msat_extensions.h"
 #include "msat_sort.h"
 #include "ops.h"
 #include "solver_utils.h"
@@ -31,6 +32,39 @@
 using namespace std;
 
 namespace smt {
+
+// MathSAT's congruence t1 = t2 mod n, i.e. n divides t1 - t2, is smt-switch's
+// (_ divisible n) with the one child t1 - t2. t2 can't be dropped: MathSAT
+// moves the constant part into t2, e.g. x + 1 = 0 mod 3 is stored as
+// x = -1 mod 3.
+static bool is_congruence(msat_env e, msat_term t)
+{
+  return msat_decl_get_tag(e, msat_term_get_decl(t)) == MSAT_TAG_INT_MOD_CONGR;
+}
+
+/** The modulus n of a congruence t1 = t2 mod n
+ *  @throws NotImplementedException if n does not fit in an op index
+ */
+static uint64_t congruence_modulus(msat_env e, msat_term t)
+{
+  mpz_t modulus;
+  mpz_init(modulus);
+  [[maybe_unused]] int ok = msat_term_is_int_modular_congruence(e, t, modulus);
+  assert(ok);
+  bool fits = mpz_fits_ulong_p(modulus);
+  uint64_t res = fits ? mpz_get_ui(modulus) : 0;
+  mpz_clear(modulus);
+  if (!fits)
+  {
+    char * s = msat_to_smtlib2_term(e, t);
+    std::string msg("The modulus of the Msat term ");
+    msg += s;
+    msg += " does not fit in an op index.";
+    msat_free(s);
+    throw NotImplementedException(msg);
+  }
+  return res;
+}
 
 // MsatTermIter implementation
 
@@ -45,7 +79,15 @@ void MsatTermIter::operator++() { pos++; }
 
 Term MsatTermIter::operator*() const
 {
-  if (!pos && msat_term_is_uf(*env, term))
+  if (is_congruence(*env, term))
+  {
+    assert(pos == 0);
+    return std::make_shared<MsatTerm>(
+        env,
+        ext_msat_make_minus(
+            *env, msat_term_get_arg(term, 0), msat_term_get_arg(term, 1)));
+  }
+  else if (!pos && msat_term_is_uf(*env, term))
   {
     return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
   }
@@ -340,6 +382,10 @@ Op MsatTerm::get_op() const
   {
     return Op(To_Int);
   }
+  else if (is_congruence(*env, term))
+  {
+    return Op(Divisible, congruence_modulus(*env, term));
+  }
   else if (msat_term_is_int_from_ubv(*env, term))
   {
     return Op(UBV_To_Int);
@@ -552,6 +598,11 @@ TermIter MsatTerm::end() const
     // term is null, but begin() and end() TermIter will evaluate as equal
     // which is what we want because function symbols have no children
     return TermIter(new MsatTermIter(env, term, 0));
+  }
+  else if (is_congruence(*env, term))
+  {
+    // the one child t1 - t2
+    return TermIter(new MsatTermIter(env, term, 1));
   }
 
   uint32_t arity =

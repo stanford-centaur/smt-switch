@@ -66,6 +66,7 @@ constexpr std::pair<PrimOp, cvc5::Kind> primop_kinds[] = {
   { Abs, cvc5::Kind::ABS },
   { Pow, cvc5::Kind::POW },
   { IntDiv, cvc5::Kind::INTS_DIVISION },
+  { Divisible, cvc5::Kind::DIVISIBLE },
   { To_Real, cvc5::Kind::TO_REAL },
   { To_Int, cvc5::Kind::TO_INTEGER },
   { Is_Int, cvc5::Kind::IS_INTEGER },

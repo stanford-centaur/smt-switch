@@ -251,7 +251,14 @@ Op Z3Term::get_op() const
       case Z3_OP_SBV2INT: return Op(SBV_To_Int);
 #endif
       case Z3_OP_UNINTERPRETED: return Op(Apply);
-
+      // Z3 makes divisibility an internal op, which only its name tells apart
+      case Z3_OP_INTERNAL:
+        if (name == "divisible")
+        {
+          assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
+          return Op(Divisible, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        }
+        [[fallthrough]];
       default: {
         std::string msg("Option - ");
         msg += name;
