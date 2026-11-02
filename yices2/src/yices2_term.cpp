@@ -315,6 +315,16 @@ static string bv_constant_to_bits(term_t term)
   return res;
 }
 
+string Yices2Term::get_symbol_name() const
+{
+  if (!is_symbol() || is_param())
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  return yices_get_term_name(term);
+}
+
 uint64_t Yices2Term::to_int() const
 {
   term_constructor_t tc = yices_term_constructor(term);

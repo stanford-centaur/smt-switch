@@ -327,6 +327,16 @@ string Z3Term::to_string() const
   }
 }
 
+string Z3Term::get_symbol_name() const
+{
+  if (!is_symbol() || is_param())
+  {
+    throw IncorrectUsageException(
+        "Only a symbol that is not a param has a symbol name");
+  }
+  return (is_function ? z_func : term.decl()).name().str();
+}
+
 uint64_t Z3Term::to_int() const
 {
   if (!is_function && term.is_numeral())
