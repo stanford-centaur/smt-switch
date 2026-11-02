@@ -913,7 +913,10 @@ static term_t unary_term(const Op & op, term_t a)
     case To_Int: return yices_floor(a);
     case Is_Int: return yices_is_int_atom(a);
     case Divisible:
-      check_divisible_index(op);
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create divisible with index < 1");
+      }
       return yices_divides_atom(
           yices_parse_rational(std::to_string(op.idx0).c_str()), a);
     case Extract:

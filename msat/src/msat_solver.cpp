@@ -88,7 +88,10 @@ static msat_term unary_term(msat_env e, const Op & op, msat_term a)
     case To_Int: return msat_make_floor(e, a);
     case Is_Int: return ext_msat_is_int(e, a);
     case Divisible:
-      check_divisible_index(op);
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create divisible with index < 1");
+      }
       return ext_msat_make_divisible(e, op.idx0, a);
     case Extract: return msat_make_bv_extract(e, op.idx0, op.idx1, a);
     case BVNot: return msat_make_bv_not(e, a);

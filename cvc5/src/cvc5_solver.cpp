@@ -863,6 +863,10 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  else if (op.prim_op == Divisible && op.idx0 < 1)
+  {
+    throw IncorrectUsageException("Can't create divisible with index < 1");
+  }
   // Operators that SMT-LIB applies to more than two arguments, but that cvc5
   // only applies to two
   else if (terms.size() > 2 && (op.prim_op == StrLt || op.prim_op == StrLeq))

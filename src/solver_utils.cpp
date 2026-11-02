@@ -112,15 +112,6 @@ std::uint32_t narrow_index(const Op & op, std::uint64_t idx)
   return static_cast<std::uint32_t>(idx);
 }
 
-void check_divisible_index(const Op & op)
-{
-  assert(op.prim_op == Divisible);
-  if (op.idx0 == 0)
-  {
-    throw IncorrectUsageException("Can't create divisible with index 0");
-  }
-}
-
 std::uint32_t narrow_width(std::uint64_t width)
 {
   return detail::narrow<std::uint32_t>(width, "a bit-vector width");
