@@ -33,7 +33,7 @@ TEST(BtorExceptions, UnsupportedTheories)
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("produce-models", "true");
 
-  EXPECT_THROW(s->set_logic("QF_NIA"), IncorrectUsageException);
+  EXPECT_THROW(s->set_logic("QF_NIA"), NotImplementedException);
 
   EXPECT_THROW(s->make_sort(INT), NotImplementedException);
 
@@ -45,4 +45,20 @@ TEST(BtorExceptions, UnsupportedTheories)
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 4), x), NotImplementedException);
   EXPECT_THROW(s->make_term(Op(Not, 3), x), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
+}
+
+TEST(BtorExceptions, OnlyBitVectorLogics)
+{
+  for (const string logic :
+       { "ALL", "QF_BV", "QF_ABV", "QF_UFBV", "QF_AUFBV", "BV" })
+  {
+    SmtSolver s = BoolectorSolverFactory::create(false);
+    EXPECT_NO_THROW(s->set_logic(logic)) << logic;
+  }
+  for (const string logic :
+       { "ABV", "UFBV", "AUFBV", "QF_UF", "QF_A", "QF_UFABV", "QF_BVA" })
+  {
+    SmtSolver s = BoolectorSolverFactory::create(false);
+    EXPECT_THROW(s->set_logic(logic), NotImplementedException) << logic;
+  }
 }

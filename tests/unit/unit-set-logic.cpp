@@ -142,8 +142,7 @@ TEST_P(SetLogic, KeepsScopes)
 TEST_P(SetLogic, UnknownLogic)
 {
   const SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == CVC5 || se == GENERIC_SOLVER || se == YICES2
-      || se == Z3)
+  if (se == CVC5 || se == GENERIC_SOLVER || se == YICES2 || se == Z3)
   {
     GTEST_SKIP() << "The solver refuses an unknown logic with "
                     "IncorrectUsageException";
