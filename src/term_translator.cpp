@@ -17,7 +17,6 @@
 #include "term_translator.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -49,7 +48,7 @@ constexpr std::pair<PrimOp, PrimOp> bool_bv_ops[] = { { And, BVAnd },
                                                       { Not, BVNot },
                                                       { Equal, BVComp } };
 
-// helper function used for debugging asserts
+// Whether a sort is or contains an uninterpreted sort
 bool uses_uninterp_sort(const Sort & sort)
 {
   bool res = false;
@@ -312,25 +311,49 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         s = transfer_sort(t->get_sort());
         std::string name = t->get_symbol_name();
+        Term sym;
         try
         {
-          Term sym = solver->get_symbol(name);
-          cache[t] = sym;
-          // the sort should already match the expected sort
-          // or be castable to the same sort
-          assert(
-              s == sym->get_sort() ||
-              // can't properly transfer uninterpreted sort, so ignore that case
-              // (no way to look up uninterpreted sort by name, so transfer_sort
-              //  would make a new sort with the same name)
-              // relying on short-circuit semantics so cast_term line not
-              // executed
-              uses_uninterp_sort(sym->get_sort())
-              || s == cast_term(sym, s)->get_sort());
+          sym = solver->get_symbol(name);
         }
         catch (IncorrectUsageException & e)
         {
+          // not declared in this solver yet
+        }
+
+        if (!sym)
+        {
           cache[t] = solver->make_symbol(name, s);
+        }
+        // An uninterpreted sort can't be looked up by name, so transfer_sort
+        // makes a new one of the same name, and two that both use one are
+        // let through.
+        else if (s == sym->get_sort()
+                 || (uses_uninterp_sort(s)
+                     && uses_uninterp_sort(sym->get_sort())))
+        {
+          cache[t] = sym;
+        }
+        else
+        {
+          // Otherwise the symbol must cast to the expected sort.
+          Sort cast_sort;
+          try
+          {
+            cast_sort = cast_term(sym, s)->get_sort();
+          }
+          catch (NotImplementedException & e)
+          {
+            // not castable
+          }
+          if (cast_sort != s)
+          {
+            throw IncorrectUsageException(
+                "Can't transfer symbol " + name + " of sort " + s->to_string()
+                + ": the target solver has it with sort "
+                + sym->get_sort()->to_string());
+          }
+          cache[t] = sym;
         }
       }
       else if (t->is_param())
@@ -344,15 +367,9 @@ Term TermTranslator::transfer_term(const Term & term)
         if (s->get_sort_kind() == ARRAY)
         {
           // special case for const-array
-          assert(t->begin() != t->end());
           Term val = cache.at(*(t->begin()));
           Sort valsort = val->get_sort();
-          if (s->get_sort_kind() != ARRAY)
-          {
-            throw SmtException("Expecting array sort but got: "
-                               + s->to_string());
-          }
-          else if (s->get_elemsort() != valsort)
+          if (s->get_elemsort() != valsort)
           {
             throw SmtException("Expecting element sort but got "
                                + val->get_sort()->to_string() + " and "
@@ -378,19 +395,20 @@ Term TermTranslator::transfer_term(const Term & term)
       }
       else
       {
-        assert(!t->is_symbol());
-        assert(!t->is_param());
-        assert(!t->is_value());
-        assert(!t->get_op().is_null());
+        Op op = t->get_op();
+        if (op.is_null())
+        {
+          throw NotImplementedException(
+              "Can't transfer " + t->to_string()
+              + ": it is not a symbol, param, value or operator application");
+        }
 
         cached_children.clear();
         for (auto c : t)
         {
           cached_children.push_back(cache.at(c));
         }
-        assert(cached_children.size());
 
-        Op op = t->get_op();
         if (!check_sortedness(op, cached_children))
         {
           /* NOTE: interesting behavior here
@@ -419,7 +437,6 @@ Term TermTranslator::transfer_term(const Term & term)
     }
   }
 
-  assert(cache.find(term) != cache.end());
   // make sure the sort is as-expected and cast if not
   // for dealing with solvers that alias sorts
 
@@ -492,9 +509,14 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   op = "/";
   std::string new_up;
   std::string::size_type ind_of_up_end;
+  const std::string malformed = "Can't read " + smtlib + " as a rational.";
   if (smtlib.substr(ind_of_up_start, 2) == "(-")
   {
     ind_of_up_end = smtlib.find_first_of(')', ind_of_up_start);
+    if (ind_of_up_end == std::string::npos)
+    {
+      throw IncorrectUsageException(malformed);
+    }
     new_up = "- "
              + smtlib.substr(ind_of_up_start + 3,
                              ind_of_up_end - ind_of_up_start - 3);
@@ -502,7 +524,10 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   else
   {
     ind_of_up_end = smtlib.find_first_of(' ', ind_of_up_start);
-    assert(ind_of_up_end != std::string::npos);
+    if (ind_of_up_end == std::string::npos)
+    {
+      throw IncorrectUsageException(malformed);
+    }
     ind_of_up_end -= 1;
     new_up =
         smtlib.substr(ind_of_up_start, ind_of_up_end - ind_of_up_start + 1);
@@ -510,7 +535,10 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
   std::string::size_type ind_of_down_start = ind_of_up_end + 2;
   std::string::size_type ind_of_down_end =
       smtlib.find_first_of(')', ind_of_down_start);
-  assert(ind_of_down_end != std::string::npos);
+  if (ind_of_down_end == std::string::npos)
+  {
+    throw IncorrectUsageException(malformed);
+  }
   ind_of_down_end -= 1;
   std::string new_down =
       smtlib.substr(ind_of_down_start, ind_of_down_end - ind_of_down_start + 1);
@@ -639,7 +667,6 @@ Term TermTranslator::value_from_smt2(const std::string val,
 
 Term TermTranslator::cast_op(Op op, const TermVec & terms) const
 {
-  assert(!check_sortedness(op, terms));
   PrimOp po = op.prim_op;
 
   // priority is turning bitvector operations to boolean operations
@@ -707,7 +734,6 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
       else
       {
         // expecting a bit-vector
-        assert(t->get_sort()->get_sort_kind() == BV);
         casted_children.push_back(t);
       }
     }
@@ -716,7 +742,6 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
   // case 5 -- special case for Ite
   else if (po == Ite)
   {
-    assert(terms.size() == 3);
     Sort boolsort = solver->make_sort(BOOL);
     Term cond = cast_term(terms[0], boolsort);
 
@@ -771,7 +796,13 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     casted_children.reserve(terms.size());
     casted_children.push_back(terms[0]);
     SortVec domain_sorts = funsort->get_domain_sorts();
-    assert(terms.size() == domain_sorts.size() + 1);
+    if (terms.size() != domain_sorts.size() + 1)
+    {
+      throw IncorrectUsageException("Can't apply " + terms[0]->to_string()
+                                    + " of sort " + funsort->to_string()
+                                    + " to " + std::to_string(terms.size() - 1)
+                                    + " arguments");
+    }
     for (size_t i = 1; i < terms.size(); ++i)
     {
       casted_children.push_back(cast_term(terms[i], domain_sorts[i - 1]));

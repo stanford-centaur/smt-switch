@@ -365,6 +365,24 @@ TEST_P(SelfTranslationRealTests, Fractions)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+/** Exposes infixize_rational for testing */
+class RationalInfixizer : public TermTranslator
+{
+ public:
+  using TermTranslator::infixize_rational;
+  using TermTranslator::TermTranslator;
+};
+
+TEST_P(SelfTranslationRealTests, MalformedFractions)
+{
+  RationalInfixizer infixizer(s);
+  EXPECT_EQ(infixizer.infixize_rational("(/ 1 2)"), "1 / 2");
+  EXPECT_THROW(infixizer.infixize_rational("(/ 1)"), IncorrectUsageException);
+  EXPECT_THROW(infixizer.infixize_rational("(/ 1 2"), IncorrectUsageException);
+  EXPECT_THROW(infixizer.infixize_rational("(/ (- 1 2"),
+               IncorrectUsageException);
+}
+
 TEST_P(TranslationTests, And)
 {
   Term a_and_b = s1->make_term(And, a, b);
@@ -569,6 +587,34 @@ TEST_P(TranslationTests, UninterpretedSort)
 
   Term fv_1 = to_s1.transfer_term(fv_2);
   EXPECT_TRUE(round_trip_matches(get<1>(GetParam()), s1, fv_1, fv));
+}
+
+TEST_P(TranslationTests, ApplicationOfFewerArguments)
+{
+  Sort u1, u2;
+  try
+  {
+    u1 = s1->make_sort("U", 0);
+    u2 = s2->make_sort("U", 0);
+  }
+  catch (SmtException & e)
+  {
+    GTEST_SKIP() << "both solvers need uninterpreted sorts";
+  }
+  Term f1 = s1->make_symbol("f", s1->make_sort(FUNCTION, { u1, u1, boolsort }));
+  Term v1 = s1->make_symbol("v", u1);
+  s2->make_symbol("f", s2->make_sort(FUNCTION, { u2, s2->make_sort(BOOL) }));
+
+  TermTranslator to_s2(s2);
+  EXPECT_THROW(to_s2.transfer_term(s1->make_term(Apply, f1, v1, v1)),
+               IncorrectUsageException);
+}
+
+TEST_P(IntTranslationTests, SymbolOfAnotherSort)
+{
+  s2->make_symbol("a", s2->make_sort(INT));
+  TermTranslator to_s2(s2);
+  EXPECT_THROW(to_s2.transfer_term(a), IncorrectUsageException);
 }
 
 TEST_P(BoolArrayTranslationTests, Arrays)

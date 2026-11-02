@@ -75,6 +75,11 @@ class TermTranslator
   /** Transfers a term from the other solver to this solver
    *  @param term the term to transfer to the member variable solver
    *  @return a term belonging to this solver
+   *  @throws IncorrectUsageException if this solver already has a symbol of
+   *          the term's name with a sort it cannot be cast to, or a function
+   *          is applied to more or fewer arguments than its new sort takes
+   *  @throws NotImplementedException for a term that is not a symbol,
+   *          param, value or operator application
    */
   Term transfer_term(const Term & term);
 
@@ -109,6 +114,7 @@ class TermTranslator
    *  infix "a/b", is returned unchanged.
    * @param smtlib is the smtlib representation
    * @return the infix-style representation
+   * @throws IncorrectUsageException if smtlib is a malformed fraction
    */
   std::string infixize_rational(const std::string smtlib) const;
 
