@@ -21,7 +21,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -40,15 +39,6 @@
 #include "utils.h"
 
 namespace smt {
-
-/* These are the only sortkinds that are supported for get_value
-   Terms returned by get_value were not created through the
-   smt-switch API, so the LoggingSolver needs to recover some
-   information. Most SortKinds are not an issue because they
-   have no Op or children
- */
-const std::unordered_set<SortKind> supported_sortkinds_for_get_value(
-    { BOOL, BV, INT, STRING, REAL, ARRAY });
 
 /* LoggingSolver */
 
@@ -500,33 +490,8 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term LoggingSolver::get_value(const Term & t) const
 {
-  Term res;
-  SortKind sk = t->get_sort()->get_sort_kind();
-  if (supported_sortkinds_for_get_value.find(sk)
-      == supported_sortkinds_for_get_value.end())
-  {
-    throw NotImplementedException(
-        "LoggingSolver does not support get_value for " + to_string(sk));
-  }
-
-  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
-  if (t->get_sort()->get_sort_kind() != ARRAY)
-  {
-    Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
-    res = std::make_shared<LoggingTerm>(
-        wrapped_val, t->get_sort(), Op(), TermVec{}, next_term_id);
-
-    // check hash table
-    // lookup modifies term in place and returns true if it's a known term
-    // i.e. returns existing term and destroying the unnecessary new one
-    if (!hashtable->lookup(res))
-    {
-      // this is the first time this term was created
-      hashtable->insert(res);
-      next_term_id++;
-    }
-  }
-  else
+  Sort sort = t->get_sort();
+  if (sort->get_sort_kind() == ARRAY)
   {
     Term out_const_base;
     UnorderedTermMap pairs = get_array_values(t, out_const_base);
@@ -536,13 +501,36 @@ Term LoggingSolver::get_value(const Term & t) const
           "Wrapped solver did not provide constant base. Please use "
           "get_array_values instead of get_value of an array");
     }
-    res = make_term(out_const_base, t->get_sort());
+    Term res = make_term(out_const_base, sort);
     for (auto elem : pairs)
     {
       res = make_term(Store, res, elem.first, elem.second);
     }
+    return res;
   }
 
+  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
+  Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
+  // The value was not created through the smt-switch API, so the
+  // LoggingSolver cannot recover an Op or children for it
+  if (!wrapped_val->get_op().is_null())
+  {
+    throw NotImplementedException(
+        "LoggingSolver does not support get_value for a "
+        + to_string(sort->get_sort_kind()) + " value that is not a leaf");
+  }
+  Term res = std::make_shared<LoggingTerm>(
+      wrapped_val, sort, Op(), TermVec{}, next_term_id);
+
+  // check hash table
+  // lookup modifies res in place and returns true if it's a known term
+  // i.e. returns existing term and destroying the unnecessary new one
+  if (!hashtable->lookup(res))
+  {
+    // this is the first time this term was created
+    hashtable->insert(res);
+    next_term_id++;
+  }
   return res;
 }
 
