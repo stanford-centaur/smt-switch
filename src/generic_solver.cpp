@@ -294,16 +294,7 @@ GenericSolver::GenericSolver(std::string solver_path,
       path(std::move(solver_path)),
       cmd_line_args(std::move(args)),
       read_buf_size(buffer_size),
-      response_timeout(timeout),
-      name_sort_map(new std::unordered_map<std::string, Sort>()),
-      sort_name_map(new std::unordered_map<Sort, std::string>()),
-      name_term_map(new std::unordered_map<std::string, Term>()),
-      term_name_map(new std::unordered_map<Term, std::string>()),
-      decl_datatype_map(
-          new std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
-                                 std::shared_ptr<GenericDatatype>>()),
-      datatype_name_map(new std::unordered_map<std::shared_ptr<GenericDatatype>,
-                                               std::string>())
+      response_timeout(timeout)
 {
   // Buffer sizes over 256 caused issues in tests.
   // Until this is investigated, we support a conservative
@@ -953,8 +944,8 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
     case DATATYPE: {
       // a datatype whose selectors use a held-back sort is declared after
       // it, so is held back itself
-      auto name_it = sort_name_map->find(sort);
-      return name_it != sort_name_map->end()
+      auto name_it = sort_name_map.find(sort);
+      return name_it != sort_name_map.end()
              && pending_sort_names_.find(name_it->second)
                     != pending_sort_names_.end();
     }
@@ -976,7 +967,7 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
 std::string GenericSolver::query_text(const Term & term,
                                       const std::string & operation) const
 {
-  std::string name = name_of(*term_name_map, term);
+  std::string name = name_of(term_name_map, term);
   if (pending_commands_.empty())
   {
     return name;
@@ -1040,7 +1031,7 @@ std::string GenericSolver::query_text(const Term & term,
   std::string text = name;
   for (auto it = used.rbegin(); it != used.rend(); ++it)
   {
-    text = "(let ((" + name_of(*term_name_map, *it) + " " + to_smtlib_def(*it)
+    text = "(let ((" + name_of(term_name_map, *it) + " " + to_smtlib_def(*it)
            + ")) " + text + ")";
   }
   return text;
@@ -1076,8 +1067,8 @@ void GenericSolver::define_fun(std::string name,
   }
   // Looking the name up rather than indexing: operator[] would insert an
   // empty one and send a define-fun with no sort.
-  auto res_name = sort_name_map->find(res_sort);
-  if (res_name == sort_name_map->end())
+  auto res_name = sort_name_map.find(res_sort);
+  if (res_name == sort_name_map.end())
   {
     throw IncorrectUsageException("Sort " + res_sort->to_string()
                                   + " was not created by this solver");
@@ -1114,15 +1105,15 @@ std::string GenericSolver::to_smtlib_def(Term term) const
           std::static_pointer_cast<GenericSort>(gt->get_sort())
               ->get_generic_datatype();
       nullary_constructor =
-          dt->get_num_selectors(name_of(*term_name_map, gt->get_children()[0]));
+          dt->get_num_selectors(name_of(term_name_map, gt->get_children()[0]));
       result = nullary_constructor ? "(" : "";
     }
     else if (gt->get_op() == Apply_Tester)
     {
       result = "((_ is ";
-      result += name_of(*term_name_map, gt->get_children()[0]);
+      result += name_of(term_name_map, gt->get_children()[0]);
       result += ") ";
-      result += name_of(*term_name_map, gt->get_children()[1]);
+      result += name_of(term_name_map, gt->get_children()[1]);
       result += ")";
       return result;
     }
@@ -1142,9 +1133,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
     {
-      result += " ((" + name_of(*term_name_map, gt->get_children()[0]) + " "
-                + name_of(*sort_name_map, gt->get_children()[0]->get_sort())
-                + ")) " + name_of(*term_name_map, gt->get_children()[1]);
+      result += " ((" + name_of(term_name_map, gt->get_children()[0]) + " "
+                + name_of(sort_name_map, gt->get_children()[0]->get_sort())
+                + ")) " + name_of(term_name_map, gt->get_children()[1]);
     }
     else
     {
@@ -1154,7 +1145,7 @@ std::string GenericSolver::to_smtlib_def(Term term) const
       // space-separated list of arguments.
       for (auto c : gt->get_children())
       {
-        result += " " + name_of(*term_name_map, c);
+        result += " " + name_of(term_name_map, c);
       }
     }
     if (gt->get_op() != Apply_Constructor || nullary_constructor)
@@ -1175,13 +1166,13 @@ Sort GenericSolver::make_sort(const Sort & sort_con,
   const std::string name = sort->to_string();
   // Applying the same constructor to the same sorts twice names the same
   // sort, so unlike declare-sort this is not a clash.
-  auto known = name_sort_map->find(name);
-  if (known != name_sort_map->end())
+  auto known = name_sort_map.find(name);
+  if (known != name_sort_map.end())
   {
     return known->second;
   }
-  (*name_sort_map)[name] = sort;
-  (*sort_name_map)[sort] = name;
+  name_sort_map[name] = sort;
+  sort_name_map[sort] = name;
   return sort;
 }
 
@@ -1189,13 +1180,13 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
   // when creating a new uninterpreted sort, the name
   // must be new.
-  if (name_sort_map->find(name) == name_sort_map->end())
+  if (name_sort_map.find(name) == name_sort_map.end())
   {
     // create the sort
     Sort sort = std::make_shared<UninterpretedGenericSort>(name, arity);
     // store the sort and the name in the maps
-    (*name_sort_map)[name] = sort;
-    (*sort_name_map)[sort] = name;
+    name_sort_map[name] = sort;
+    sort_name_map[sort] = name;
     // declare the sort to the binary of the solver
     if (send_or_hold(DECLARE_SORT_STR, name, std::to_string(arity)))
     {
@@ -1224,15 +1215,15 @@ Sort GenericSolver::make_sort(const SortKind sk) const
   // as in this case the sort is built in.
 
   // store in local maps if needed, and return the sort
-  if (name_sort_map->find(name) == name_sort_map->end())
+  if (name_sort_map.find(name) == name_sort_map.end())
   {
-    (*name_sort_map)[name] = sort;
-    (*sort_name_map)[sort] = name;
+    name_sort_map[name] = sort;
+    sort_name_map[sort] = name;
     return sort;
   }
   else
   {
-    return name_sort_map->at(name);
+    return name_sort_map.at(name);
   }
 }
 
@@ -1252,15 +1243,15 @@ Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
   // as in this case the sort is built in.
 
   // store in maps if needed and return the sort
-  if (name_sort_map->find(name) == name_sort_map->end())
+  if (name_sort_map.find(name) == name_sort_map.end())
   {
-    (*name_sort_map)[name] = sort;
-    (*sort_name_map)[sort] = name;
+    name_sort_map[name] = sort;
+    sort_name_map[sort] = name;
     return sort;
   }
   else
   {
-    return name_sort_map->at(name);
+    return name_sort_map.at(name);
   }
 }
 
@@ -1297,15 +1288,15 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   // by combining sorts that were already defined.
 
   // store in maps if needed and return the sort
-  if (name_sort_map->find(name) == name_sort_map->end())
+  if (name_sort_map.find(name) == name_sort_map.end())
   {
-    (*name_sort_map)[name] = sort;
-    (*sort_name_map)[sort] = name;
+    name_sort_map[name] = sort;
+    sort_name_map[sort] = name;
     return sort;
   }
   else
   {
-    return name_sort_map->at(name);
+    return name_sort_map.at(name);
   }
 }
 
@@ -1321,13 +1312,13 @@ SortVec GenericSolver::make_datatype_sorts(
 Sort GenericSolver::make_sort(const DatatypeDecl & d) const
 {
   auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(d);
-  auto dt_it = decl_datatype_map->find(gdt_decl);
-  if (dt_it == decl_datatype_map->end())
+  auto dt_it = decl_datatype_map.find(gdt_decl);
+  if (dt_it == decl_datatype_map.end())
   {
     detail::throw_foreign_handle(d);
   }
   auto dt_decl_name = gdt_decl->get_name();
-  if (name_sort_map->find(dt_decl_name) == name_sort_map->end())
+  if (name_sort_map.find(dt_decl_name) == name_sort_map.end())
   {
     // The sort keeps copies of the constructors, so that a constructor
     // declaration changed or added to another datatype later does not
@@ -1387,8 +1378,8 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
       to_solver += ")";
     }
     to_solver += ")\n))";
-    (*name_sort_map)[dt_decl_name] = dt_sort;
-    (*sort_name_map)[dt_sort] = dt_decl_name;
+    name_sort_map[dt_decl_name] = dt_sort;
+    sort_name_map[dt_sort] = dt_decl_name;
     if (send_or_hold(to_solver))
     {
       pending_sort_names_.insert(dt_decl_name);
@@ -1407,8 +1398,8 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
 {
   auto new_dt_decl = std::make_shared<GenericDatatypeDecl>(s);
   auto new_dt = std::make_shared<GenericDatatype>(new_dt_decl);
-  (*decl_datatype_map)[new_dt_decl] = new_dt;
-  (*datatype_name_map)[new_dt] = s;
+  decl_datatype_map[new_dt_decl] = new_dt;
+  datatype_name_map[new_dt] = s;
   return new_dt_decl;
 }
 
@@ -1444,15 +1435,15 @@ void GenericSolver::add_constructor(DatatypeDecl & dt,
                                     const DatatypeConstructorDecl & con) const
 {
   auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(dt);
-  auto dt_it = decl_datatype_map->find(gdt_decl);
-  if (dt_it == decl_datatype_map->end())
+  auto dt_it = decl_datatype_map.find(gdt_decl);
+  if (dt_it == decl_datatype_map.end())
   {
     detail::throw_foreign_handle(dt);
   }
   // a sort the datatype was used for holds this same datatype, and the
   // binary has its declaration already
   auto name = gdt_decl->get_name();
-  if (name_sort_map->find(name) != name_sort_map->end())
+  if (name_sort_map.find(name) != name_sort_map.end())
   {
     throw IncorrectUsageException("Datatype " + name
                                   + " cannot change, since the sort name "
@@ -1516,7 +1507,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
       std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*term_name_map)[new_term] = name;
+  term_name_map[new_term] = name;
   return new_term;
 }
 
@@ -1544,7 +1535,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*term_name_map)[new_term] = name;
+  term_name_map[new_term] = name;
   return new_term;
 }
 
@@ -1581,7 +1572,7 @@ Term GenericSolver::get_selector(const Sort & s,
   }
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  (*term_name_map)[new_term] = name;
+  term_name_map[new_term] = name;
   return new_term;
 }
 
@@ -1590,7 +1581,7 @@ Term GenericSolver::store_term(Term term) const
   // cast the term to a GenericTerm
   std::shared_ptr<GenericTerm> gterm = backend_pointer_cast<GenericTerm>(term);
   // store the term in the maps in case it is not there already
-  if (term_name_map->find(gterm) == term_name_map->end())
+  if (term_name_map.find(gterm) == term_name_map.end())
   {
     std::string name;
     // ground terms are communicated to the binary
@@ -1627,16 +1618,16 @@ Term GenericSolver::store_term(Term term) const
       name = internal_name("term", term_counter);
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
       // The binary can name the definition back, in an unsat core.
-      (*name_term_map)[name] = gterm;
+      name_term_map[name] = gterm;
     }
     else
     {
       name = to_smtlib_def(gterm);
     }
-    (*term_name_map)[gterm] = name;
+    term_name_map[gterm] = name;
   }
   // The term stored first, which an equal term made later stands for
-  return term_name_map->find(gterm)->first;
+  return term_name_map.find(gterm)->first;
 }
 
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
@@ -1802,8 +1793,8 @@ Term GenericSolver::make_value(const std::string val,
 std::string GenericSolver::cons_arr_string(const Term & val,
                                            const Sort & sort) const
 {
-  return "((as const " + name_of(*sort_name_map, sort) + ") "
-         + name_of(*term_name_map, val) + ") ";
+  return "((as const " + name_of(sort_name_map, sort) + ") "
+         + name_of(term_name_map, val) + ") ";
 }
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
@@ -1820,19 +1811,19 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   refuse_internal_name(name, "symbol");
   // Bars only where SMT-LIB needs them, as they do not change the symbol
   std::string quoted_name = smtlib_quote_symbol(name);
-  if (name_term_map->find(quoted_name) != name_term_map->end())
+  if (name_term_map.find(quoted_name) != name_term_map.end())
   {
     throw IncorrectUsageException("symbol name: " + name + " already taken");
   }
 
   // looked up first, so an unknown sort leaves no symbol behind
-  std::string sort_str = name_of(*sort_name_map, sort);
+  std::string sort_str = name_of(sort_name_map, sort);
 
   // create the sumbol and store it in the maps
   Term term =
       std::make_shared<GenericTerm>(sort, Op(), TermVec{}, quoted_name, true);
-  (*name_term_map)[quoted_name] = term;
-  (*term_name_map)[term] = quoted_name;
+  name_term_map[quoted_name] = term;
+  term_name_map[term] = quoted_name;
 
   // communicate the creation of the symbol to the binary of the solver.
   // When the sort is not a function, we specify an empty domain.
@@ -1851,9 +1842,9 @@ Term GenericSolver::get_symbol(const std::string & name) const
 {
   // The map holds the binary's own names too, which no symbol can have.
   auto it = is_internal_name(name)
-                ? name_term_map->end()
-                : name_term_map->find(smtlib_quote_symbol(name));
-  if (it == name_term_map->end())
+                ? name_term_map.end()
+                : name_term_map.find(smtlib_quote_symbol(name));
+  if (it == name_term_map.end())
   {
     throw IncorrectUsageException("Symbol named " + name + " does not exist.");
   }
@@ -1875,7 +1866,7 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
   Term term = std::make_shared<GenericTerm>(
       sort, Op(), TermVec{}, smtlib_quote_symbol(name), false);
   term_counter++;
-  (*term_name_map)[term] = internal_name("param", term_counter);
+  term_name_map[term] = internal_name("param", term_counter);
   return term;
 }
 
@@ -1941,7 +1932,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
   {
-    repr += " " + name_of(*term_name_map, terms[i]);
+    repr += " " + name_of(term_name_map, terms[i]);
   }
   repr += ")";
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
@@ -1962,8 +1953,8 @@ Term GenericSolver::get_value(const Term & t) const
   }
 
   // get the name of the term (the way the term is defined in the solver)
-  auto name_it = term_name_map->find(t);
-  if (name_it == term_name_map->end())
+  auto name_it = term_name_map.find(t);
+  if (name_it == term_name_map.end())
   {
     throw IncorrectUsageException("Can't get the value of " + t->to_string()
                                   + ": it was not made by this solver");
@@ -2160,8 +2151,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
     {
       str_atom = str_atom.substr(1, str_atom.size() - 2);
     }
-    auto it = name_term_map->find(smtlib_quote_symbol(str_atom));
-    assert(it != name_term_map->end());
+    auto it = name_term_map.find(smtlib_quote_symbol(str_atom));
+    assert(it != name_term_map.end());
     Term atom = it->second;
     Term literal;
     if (positive)
@@ -2237,8 +2228,8 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                   + ", which is not an array");
   }
 
-  auto name_it = term_name_map->find(arr);
-  if (name_it == term_name_map->end())
+  auto name_it = term_name_map.find(arr);
+  if (name_it == term_name_map.end())
   {
     throw IncorrectUsageException("Can't get the value of " + arr->to_string()
                                   + ": it was not made by this solver");
@@ -2330,7 +2321,7 @@ void GenericSolver::assert_formula(const Term & t)
   std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
-  std::string name = name_of(*term_name_map, lt);
+  std::string name = name_of(term_name_map, lt);
 
   // communicate the assertion to the binary of the solver
   run_command(CommandKind::ASSERTION, ASSERT_STR, name);
@@ -2383,8 +2374,8 @@ Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
 
 std::string GenericSolver::assumption_name(const Term & assumption)
 {
-  auto name_it = term_name_map->find(assumption);
-  if (name_it == term_name_map->end())
+  auto name_it = term_name_map.find(assumption);
+  if (name_it == term_name_map.end())
   {
     throw IncorrectUsageException("Can't assume " + assumption->to_string()
                                   + ": it was not made by this solver");
@@ -2408,18 +2399,18 @@ std::string GenericSolver::assumption_name(const Term & assumption)
         internal_name("assump", assumption_labels.size() + 1);
     Term label = std::make_shared<GenericTerm>(
         assumption->get_sort(), Op(), TermVec{}, label_name, true);
-    (*name_term_map)[label_name] = label;
-    (*term_name_map)[label] = label_name;
+    name_term_map[label_name] = label;
+    term_name_map[label] = label_name;
     // global-declarations keeps the label once its scope is popped
     run_command(CommandKind::ASSERTION,
                 DECLARE_FUN_STR,
                 label_name,
                 "()",
-                name_of(*sort_name_map, assumption->get_sort()));
+                name_of(sort_name_map, assumption->get_sort()));
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
-  std::string label_name = name_of(*term_name_map, it->second);
+  std::string label_name = name_of(term_name_map, it->second);
   // a pop takes the implication with it, so it goes in again every time
   run_command(CommandKind::ASSERTION,
               ASSERT_STR,

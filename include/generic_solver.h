@@ -422,8 +422,8 @@ class GenericSolver : public AbsSmtSolver
   mutable std::string response_buffer;
 
   // maps between sort name and actual sort and vice versa
-  std::unique_ptr<std::unordered_map<std::string, Sort>> name_sort_map;
-  std::unique_ptr<std::unordered_map<Sort, std::string>> sort_name_map;
+  mutable std::unordered_map<std::string, Sort> name_sort_map;
+  mutable std::unordered_map<Sort, std::string> sort_name_map;
 
   // internal counter for naming terms
   mutable unsigned int term_counter = 0;
@@ -431,9 +431,9 @@ class GenericSolver : public AbsSmtSolver
   // The terms the binary knows by a name it declared, under that name as
   // SMT-LIB writes it, so that a name the binary answers with finds its
   // term
-  std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
+  mutable std::unordered_map<std::string, Term> name_term_map;
   // How the binary is given each term made
-  std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
+  mutable std::unordered_map<Term, std::string> term_name_map;
   // The names users gave params, which the binary never sees
   mutable std::unordered_set<std::string> param_names_;
 
@@ -454,12 +454,11 @@ class GenericSolver : public AbsSmtSolver
   UnorderedTermMap labelled_assumptions;
 
   // The datatype of each declaration, as two declarations can share a name
-  std::unique_ptr<std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
-                                     std::shared_ptr<GenericDatatype>>>
+  mutable std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
+                             std::shared_ptr<GenericDatatype>>
       decl_datatype_map;
   // The name of each datatype
-  std::unique_ptr<
-      std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>>
+  mutable std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>
       datatype_name_map;
 };
 
