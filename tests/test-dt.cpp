@@ -429,6 +429,61 @@ TEST_P(Datatypes, PrintsAsSmtlib)
             "((_ is nil) nil)");
 }
 
+TEST_P(Datatypes, ComponentsAndApplications)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "the generic solver makes each constructor, selector and "
+                    "tester a symbol";
+  }
+
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+  Term nilc = s->get_constructor(listsort, "nil");
+  Term cons = s->get_constructor(listsort, "cons");
+  Term head = s->get_selector(listsort, "cons", "head");
+  Term isnil = s->get_tester(listsort, "nil");
+
+  // a constructor, selector or tester is a leaf of its own sort kind, and
+  // its datatype declares it, not a symbol
+  for (const auto & [leaf, kind] :
+       vector<pair<Term, SortKind>>{ { nilc, CONSTRUCTOR },
+                                     { cons, CONSTRUCTOR },
+                                     { head, SELECTOR },
+                                     { isnil, TESTER } })
+  {
+    EXPECT_EQ(leaf->get_sort()->get_sort_kind(), kind) << leaf;
+    EXPECT_FALSE(leaf->is_symbol()) << leaf;
+    EXPECT_TRUE(leaf->get_op().is_null()) << leaf;
+    EXPECT_EQ(TermVec(leaf->begin(), leaf->end()), TermVec{}) << leaf;
+  }
+
+  // an application has the component it applies as its first child, even
+  // a nullary constructor, which SMT-LIB writes as a constant
+  Term l = s->make_symbol("l", listsort);
+  Term five = s->make_term(5, intsort);
+  Term nil = s->make_term(Apply_Constructor, nilc);
+  EXPECT_FALSE(nil->is_symbol());
+  EXPECT_EQ(nil->get_op(), Op(Apply_Constructor));
+  EXPECT_EQ(TermVec(nil->begin(), nil->end()), TermVec{ nilc });
+  Term list5 = s->make_term(Apply_Constructor, cons, five, nil);
+  EXPECT_EQ(list5->get_op(), Op(Apply_Constructor));
+  EXPECT_EQ(TermVec(list5->begin(), list5->end()),
+            (TermVec{ cons, five, nil }));
+  Term head_l = s->make_term(Apply_Selector, head, l);
+  EXPECT_EQ(head_l->get_op(), Op(Apply_Selector));
+  EXPECT_EQ(TermVec(head_l->begin(), head_l->end()), (TermVec{ head, l }));
+  Term isnil_l = s->make_term(Apply_Tester, isnil, l);
+  EXPECT_EQ(isnil_l->get_op(), Op(Apply_Tester));
+  EXPECT_EQ(TermVec(isnil_l->begin(), isnil_l->end()), (TermVec{ isnil, l }));
+}
+
 TEST_P(Datatypes, DeclName)
 {
   DatatypeDecl decl = s->make_datatype_decl("list");
