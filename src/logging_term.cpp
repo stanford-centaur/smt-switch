@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "ops.h"
 #include "sort.h"
 #include "term.h"
 
@@ -183,8 +184,7 @@ std::string LoggingTerm::to_string() const
     // SMT-LIB has no operator for applying a function, constructor,
     // selector or tester: the one applied, which is the first child, stands
     // in its place
-    if (op.prim_op != Apply && op.prim_op != Apply_Constructor
-        && op.prim_op != Apply_Selector && op.prim_op != Apply_Tester)
+    if (!is_apply(op.prim_op))
     {
       repr += op.to_string() + " ";
     }

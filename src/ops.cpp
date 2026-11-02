@@ -262,6 +262,12 @@ std::uint64_t get_num_indices(PrimOp po)
   return info(po, "get_num_indices").num_indices;
 }
 
+bool is_apply(PrimOp po)
+{
+  return po == Apply || po == Apply_Constructor || po == Apply_Selector
+         || po == Apply_Tester;
+}
+
 bool operator==(Op o1, Op o2)
 {
   if (o1.prim_op != o2.prim_op)

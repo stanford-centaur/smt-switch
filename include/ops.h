@@ -198,6 +198,32 @@ Theory get_theory(PrimOp po);
  */
 std::uint64_t get_num_indices(PrimOp po);
 
+/* SMT-LIB defines the applications of some operators to more than two
+ * arguments in terms of their applications to two, by giving them one of the
+ * attributes below. Every backend takes these operators with any number of
+ * arguments, and builds the applications to two itself where its solver
+ * takes no more.
+ */
+/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c) */
+bool is_left_assoc(PrimOp po);
+/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c)) */
+bool is_right_assoc(PrimOp po);
+/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c)) */
+bool is_chainable(PrimOp po);
+/** Whether po is :pairwise, e.g. (distinct a b c) is
+ *  (and (distinct a b) (distinct a c) (distinct b c))
+ */
+bool is_pairwise(PrimOp po);
+/** Whether po can be applied to more than two arguments: whether it is
+ *  :left-assoc, :right-assoc, :chainable or :pairwise
+ */
+bool is_variadic(PrimOp po);
+
+/** Whether an operator applies its first child: a function, constructor,
+ *  selector or tester, which SMT-LIB writes in the operator's place
+ */
+bool is_apply(PrimOp po);
+
 std::string to_string(PrimOp op);
 bool operator==(Op o1, Op o2);
 bool operator!=(Op o1, Op o2);
@@ -212,28 +238,3 @@ struct hash<smt::Op>
   size_t operator()(const smt::Op o) const;
 };
 }  // namespace std
-
-namespace smt {
-/* SMT-LIB defines the applications of some operators to more than two
- * arguments in terms of their applications to two, by giving them one of the
- * attributes below. Every backend takes these operators with any number of
- * arguments, and builds the applications to two itself where its solver
- * takes no more.
- */
-
-/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c) */
-bool is_left_assoc(PrimOp po);
-/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c)) */
-bool is_right_assoc(PrimOp po);
-/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c)) */
-bool is_chainable(PrimOp po);
-/** Whether po is :pairwise, e.g. (distinct a b c) is
- *  (and (distinct a b) (distinct a c) (distinct b c))
- */
-bool is_pairwise(PrimOp po);
-
-/** Whether po can be applied to more than two arguments: whether it is
- *  :left-assoc, :right-assoc, :chainable or :pairwise
- */
-bool is_variadic(PrimOp po);
-}  // namespace smt
