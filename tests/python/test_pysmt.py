@@ -44,3 +44,11 @@ def test_basic(solver_str, sort, logic, implicit):
             else:
                 x_val = solver.get_value(problem)
         assert x_val is not None
+
+
+@pytest.mark.parametrize("solver_str", fe.SWITCH_SOLVERS.keys())
+def test_symbol_name_round_trip(solver_str):
+    x = sc.Symbol("a b", st.BV8)
+    with fe.Solver(solver_str) as solver:
+        converter = solver.converter
+        assert converter.back(converter.convert(x)) == x
