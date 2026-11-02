@@ -49,8 +49,12 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
 {
   mpz_t modulus;
   mpz_init(modulus);
-  [[maybe_unused]] int ok = msat_term_is_int_modular_congruence(e, t, modulus);
-  assert(ok);
+  if (!msat_term_is_int_modular_congruence(e, t, modulus))
+  {
+    mpz_clear(modulus);
+    throw InternalSolverException(
+        "MathSAT tagged a term as a congruence but gave no modulus for it");
+  }
   bool fits = mpz_fits_ulong_p(modulus);
   uint64_t res = fits ? mpz_get_ui(modulus) : 0;
   mpz_clear(modulus);
@@ -81,7 +85,6 @@ Term MsatTermIter::operator*() const
 {
   if (is_congruence(*env, term))
   {
-    assert(pos == 0);
     return std::make_shared<MsatTerm>(
         env,
         ext_msat_make_minus(
