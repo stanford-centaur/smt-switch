@@ -600,7 +600,7 @@ class BackVisitor(ss.TermDagVisitor):
             return self._convert_value(term)
         # A symbolic constant, or an uninterpreted function symbol.
         if term.is_symbolic_const() or sort.get_sort_kind() is ss.sortkinds.FUNCTION:
-            return self.mgr.Symbol(str(term), self._convert_sort(sort))
+            return self.mgr.Symbol(term.get_symbol_name(), self._convert_sort(sort))
         raise ConvertExpressionError(f"Cannot convert term: {term}")
 
     def _convert_sort(self, sort):
