@@ -21,9 +21,11 @@
 #include <sys/time.h>
 #include <yices.h>
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -63,74 +65,6 @@ void yices2_timelimit_handler(int /* signum */)
     yices2_terminated = 1;
   }
 }
-
-/* Yices2 Op mappings */
-typedef term_t (*yices_un_fun)(term_t);
-typedef term_t (*yices_bin_fun)(term_t, term_t);
-typedef term_t (*yices_tern_fun)(term_t, term_t, term_t);
-typedef term_t (*yices_variadic_fun)(uint32_t, term_t[]);
-typedef term_t (*yices_const_variadic_fun)(uint32_t, const term_t[]);
-
-const unordered_map<PrimOp, yices_un_fun> yices_unary_ops(
-    { { Not, yices_not },
-      { Negate, yices_neg },
-      { Abs, yices_abs },
-      { To_Int, yices_floor },
-      { Is_Int, yices_is_int_atom },
-      { BVNot, yices_bvnot },
-      { BVNeg, yices_bvneg } });
-
-const unordered_map<PrimOp, yices_bin_fun> yices_binary_ops(
-    { { And, yices_and2 },          { Or, yices_or2 },
-      { Xor, yices_xor2 },          { Implies, yices_implies },
-      { Plus, yices_add },          { Minus, yices_sub },
-      { Mult, yices_mul },          { Div, yices_division },
-      { Lt, yices_arith_lt_atom },  { IntDiv, yices_idiv },
-      { Le, yices_arith_leq_atom }, { Gt, yices_arith_gt_atom },
-      { Ge, yices_arith_geq_atom }, { Equal, yices_eq },
-      { Mod, yices_imod },          { Concat, yices_bvconcat2 },
-      { BVAnd, yices_bvand2 },      { BVOr, yices_bvor2 },
-      { BVXor, yices_bvxor2 },      { BVNand, yices_bvnand },
-      { BVNor, yices_bvnor },       { BVXnor, yices_bvxnor },
-      { BVAdd, yices_bvadd },       { BVSub, yices_bvsub },
-      { BVMul, yices_bvmul },       { BVUdiv, yices_bvdiv },
-      { BVUrem, yices_bvrem },      { BVSdiv, yices_bvsdiv },
-      { BVSrem, yices_bvsrem },     { BVSmod, yices_bvsmod },
-      { BVShl, yices_bvshl },       { BVAshr, yices_bvashr },
-      { BVLshr, yices_bvlshr },     { BVUlt, yices_bvlt_atom },
-      { BVUle, yices_bvle_atom },   { BVUgt, yices_bvgt_atom },
-      { BVUge, yices_bvge_atom },   { BVSle, yices_bvsle_atom },
-      { BVSlt, yices_bvslt_atom },  { BVSge, yices_bvsge_atom },
-      { BVSgt, yices_bvsgt_atom },  { Select, ext_yices_select },
-      { BVComp, ext_yices_bvcomp } });
-
-const unordered_map<PrimOp, yices_tern_fun> yices_ternary_ops(
-    { { And, yices_and3 },
-      { Or, yices_or3 },
-      { Xor, yices_xor3 },
-      { Ite, yices_ite },
-      { BVAnd, yices_bvand3 },
-      { BVOr, yices_bvor3 },
-      { BVXor, ext_yices_bvxor3 },
-      { Store, ext_yices_store } });
-
-// these may modify the array of arguments
-const unordered_map<PrimOp, yices_variadic_fun> yices_variadic_ops({
-    { And, yices_and },
-    { Or, yices_or },
-    { Xor, yices_xor },
-    { Distinct, yices_distinct },
-});
-
-// these take the array of arguments as const
-const unordered_map<PrimOp, yices_const_variadic_fun> yices_const_variadic_ops(
-    { { Plus, yices_sum },
-      { Mult, yices_product },
-      { BVAnd, yices_bvand },
-      { BVOr, yices_bvor },
-      { BVXor, yices_bvxor },
-      { BVAdd, yices_bvsum },
-      { BVMul, yices_bvproduct } });
 
 namespace {
 
@@ -962,6 +896,142 @@ static uint32_t pow_exponent(term_t term)
   return res;
 }
 
+/** The term of po applied to one argument
+ *  @throws IncorrectUsageException where Yices2 has no such op
+ */
+static term_t unary_term(PrimOp po, term_t a)
+{
+  switch (po)
+  {
+    case Not: return yices_not(a);
+    case Negate: return yices_neg(a);
+    case Abs: return yices_abs(a);
+    case To_Int: return yices_floor(a);
+    case Is_Int: return yices_is_int_atom(a);
+    case BVNot: return yices_bvnot(a);
+    case BVNeg: return yices_bvneg(a);
+    default:
+      throw IncorrectUsageException(
+          "Can't apply " + to_string(po)
+          + " to the term or not supported by Yices2 backend yet.");
+  }
+}
+
+/** The term of po applied to two arguments
+ *  @throws IncorrectUsageException where Yices2 has no such op
+ */
+static term_t binary_term(PrimOp po, term_t a, term_t b)
+{
+  switch (po)
+  {
+    case And: return yices_and2(a, b);
+    case Or: return yices_or2(a, b);
+    case Xor: return yices_xor2(a, b);
+    case Implies: return yices_implies(a, b);
+    case Equal: return yices_eq(a, b);
+    case Distinct:
+      return yices_distinct(2, std::array<term_t, 2>{ { a, b } }.data());
+    case Plus: return yices_add(a, b);
+    case Minus: return yices_sub(a, b);
+    case Mult: return yices_mul(a, b);
+    case Div: return yices_division(a, b);
+    case Lt: return yices_arith_lt_atom(a, b);
+    case Le: return yices_arith_leq_atom(a, b);
+    case Gt: return yices_arith_gt_atom(a, b);
+    case Ge: return yices_arith_geq_atom(a, b);
+    case Mod: return yices_imod(a, b);
+    case Pow: return yices_power(a, pow_exponent(b));
+    case IntDiv: return yices_idiv(a, b);
+    case Concat: return yices_bvconcat2(a, b);
+    case BVAnd: return yices_bvand2(a, b);
+    case BVOr: return yices_bvor2(a, b);
+    case BVXor: return yices_bvxor2(a, b);
+    case BVNand: return yices_bvnand(a, b);
+    case BVNor: return yices_bvnor(a, b);
+    case BVXnor: return yices_bvxnor(a, b);
+    case BVAdd: return yices_bvadd(a, b);
+    case BVSub: return yices_bvsub(a, b);
+    case BVMul: return yices_bvmul(a, b);
+    case BVUdiv: return yices_bvdiv(a, b);
+    case BVSdiv: return yices_bvsdiv(a, b);
+    case BVUrem: return yices_bvrem(a, b);
+    case BVSrem: return yices_bvsrem(a, b);
+    case BVSmod: return yices_bvsmod(a, b);
+    case BVShl: return yices_bvshl(a, b);
+    case BVAshr: return yices_bvashr(a, b);
+    case BVLshr: return yices_bvlshr(a, b);
+    case BVComp: return ext_yices_bvcomp(a, b);
+    case BVUlt: return yices_bvlt_atom(a, b);
+    case BVUle: return yices_bvle_atom(a, b);
+    case BVUgt: return yices_bvgt_atom(a, b);
+    case BVUge: return yices_bvge_atom(a, b);
+    case BVSlt: return yices_bvslt_atom(a, b);
+    case BVSle: return yices_bvsle_atom(a, b);
+    case BVSgt: return yices_bvsgt_atom(a, b);
+    case BVSge: return yices_bvsge_atom(a, b);
+    case Select: return ext_yices_select(a, b);
+    default:
+      throw IncorrectUsageException(
+          "Can't apply " + to_string(po)
+          + " to two terms, or not supported by Yices2 backend yet.");
+  }
+}
+
+/** The smt-switch term of res
+ *  @throws InternalSolverException where making res failed
+ */
+static Term checked_term(term_t res)
+{
+  if (yices_error_code() != 0)
+  {
+    std::string msg(yices_error_string());
+    throw InternalSolverException(msg.c_str());
+  }
+  return std::make_shared<Yices2Term>(res);
+}
+
+/** The term of op applied to terms, three or more, whose Yices2 terms are
+ *  args, in a single Yices2 call where Yices2 has one and through
+ *  make_nary_term otherwise
+ *
+ *  Some of the calls may modify args.
+ */
+static Term variadic_term(const AbsSmtSolver * solver,
+                          const Op & op,
+                          const TermVec & terms,
+                          vector<term_t> & args)
+{
+  const uint32_t n = static_cast<uint32_t>(args.size());
+  term_t * a = args.data();
+  term_t res;
+  switch (op.prim_op)
+  {
+    case And:
+      res = n == 3 ? yices_and3(a[0], a[1], a[2]) : yices_and(n, a);
+      break;
+    case Or: res = n == 3 ? yices_or3(a[0], a[1], a[2]) : yices_or(n, a); break;
+    case Xor:
+      res = n == 3 ? yices_xor3(a[0], a[1], a[2]) : yices_xor(n, a);
+      break;
+    case Distinct: res = yices_distinct(n, a); break;
+    case Plus: res = yices_sum(n, a); break;
+    case Mult: res = yices_product(n, a); break;
+    case BVAnd:
+      res = n == 3 ? yices_bvand3(a[0], a[1], a[2]) : yices_bvand(n, a);
+      break;
+    case BVOr:
+      res = n == 3 ? yices_bvor3(a[0], a[1], a[2]) : yices_bvor(n, a);
+      break;
+    case BVXor:
+      res = n == 3 ? ext_yices_bvxor3(a[0], a[1], a[2]) : yices_bvxor(n, a);
+      break;
+    case BVAdd: res = yices_bvsum(n, a); break;
+    case BVMul: res = yices_bvproduct(n, a); break;
+    default: return make_nary_term(solver, op, terms);
+  }
+  return checked_term(res);
+}
+
 Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 {
   size_t size = terms.size();
@@ -1064,17 +1134,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     }
     else if (!op.num_idx)
     {
-      if (yices_unary_ops.find(op.prim_op) != yices_unary_ops.end())
-      {
-        res = yices_unary_ops.at(op.prim_op)(yterm);
-      }
-      else
-      {
-        string msg("Can't apply ");
-        msg += op.to_string();
-        msg += " to the term or not supported by Yices2 backend yet.";
-        throw IncorrectUsageException(msg);
-      }
+      res = unary_term(op.prim_op, yterm);
     }
     else
     {
@@ -1101,48 +1161,24 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     // the first term is the function, applied to the rest
     res = yices_application(yterms[0], size - 1, yterms.data() + 1);
   }
-  else if (size == 2 && op.prim_op == Pow)
-  {
-    res = yices_power(yterms[0], pow_exponent(yterms[1]));
-  }
-  else if (size == 2
-           && yices_binary_ops.find(op.prim_op) != yices_binary_ops.end())
-  {
-    res = yices_binary_ops.at(op.prim_op)(yterms[0], yterms[1]);
-  }
-  else if (size == 3
-           && yices_ternary_ops.find(op.prim_op) != yices_ternary_ops.end())
-  {
-    res = yices_ternary_ops.at(op.prim_op)(yterms[0], yterms[1], yterms[2]);
-  }
-  else if (yices_variadic_ops.find(op.prim_op) != yices_variadic_ops.end())
-  {
-    res = yices_variadic_ops.at(op.prim_op)(size, yterms.data());
-  }
-  else if (yices_const_variadic_ops.find(op.prim_op)
-           != yices_const_variadic_ops.end())
-  {
-    res = yices_const_variadic_ops.at(op.prim_op)(size, yterms.data());
-  }
   else if (size == 2)
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to two terms, or not supported by Yices2 backend yet.";
-    throw IncorrectUsageException(msg);
+    res = binary_term(op.prim_op, yterms[0], yterms[1]);
+  }
+  else if (size == 3 && op.prim_op == Ite)
+  {
+    res = yices_ite(yterms[0], yterms[1], yterms[2]);
+  }
+  else if (size == 3 && op.prim_op == Store)
+  {
+    res = ext_yices_store(yterms[0], yterms[1], yterms[2]);
   }
   else
   {
-    return make_nary_term(this, op, terms);
+    return variadic_term(this, op, terms, yterms);
   }
 
-  if (yices_error_code() != 0)
-  {
-    std::string msg(yices_error_string());
-    throw InternalSolverException(msg.c_str());
-  }
-
-  return std::make_shared<Yices2Term>(res);
+  return checked_term(res);
 }
 
 void Yices2Solver::do_reset()
