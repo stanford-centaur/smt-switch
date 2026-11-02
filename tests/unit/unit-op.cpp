@@ -223,6 +223,17 @@ TEST(UnitPrimOpInfoTests, NumIndices)
   EXPECT_THROW(get_num_indices(NUM_OPS_AND_NULL), IncorrectUsageException);
 }
 
+TEST(UnitPrimOpInfoTests, IsApply)
+{
+  EXPECT_TRUE(is_apply(Apply));
+  EXPECT_TRUE(is_apply(Apply_Constructor));
+  EXPECT_TRUE(is_apply(Apply_Selector));
+  EXPECT_TRUE(is_apply(Apply_Tester));
+  EXPECT_FALSE(is_apply(BVAdd));
+  EXPECT_FALSE(is_apply(Select));
+  EXPECT_FALSE(is_apply(NUM_OPS_AND_NULL));
+}
+
 TEST(UnitPrimOpInfoTests, Theory)
 {
   EXPECT_EQ(get_theory(And), Theory::CORE);

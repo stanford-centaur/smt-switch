@@ -1122,12 +1122,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     }
     // The Apply operator is ignored and the
     // function being applied is used instead.
-    result += ((term->get_op().prim_op == Apply
-                || term->get_op().prim_op == Apply_Constructor
-                || term->get_op().prim_op == Apply_Selector
-                || term->get_op().prim_op == Apply_Tester)
-                   ? ""
-                   : term->get_op().to_string());
+    result +=
+        is_apply(term->get_op().prim_op) ? "" : term->get_op().to_string();
     // For quantifiers we separate the bound variables list
     // and the formula body.
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
