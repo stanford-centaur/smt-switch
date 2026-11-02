@@ -16,7 +16,6 @@
 
 #include "solver_utils.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -35,8 +34,12 @@ Term make_nary_term(const AbsSmtSolver * solver,
                     const Op & op,
                     const TermVec & terms)
 {
-  assert(terms.size() >= 2);
   std::size_t size = terms.size();
+  if (size < 2)
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
+                                  + std::to_string(size) + " terms.");
+  }
   if (is_left_assoc(op.prim_op))
   {
     Term res = terms[0];
