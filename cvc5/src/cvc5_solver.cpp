@@ -37,109 +37,6 @@
 
 namespace smt {
 
-/* cvc5 Op mappings */
-const std::unordered_map<PrimOp, ::cvc5::Kind> primop2kind(
-    { { And, ::cvc5::Kind::AND },
-      { Or, ::cvc5::Kind::OR },
-      { Xor, ::cvc5::Kind::XOR },
-      { Not, ::cvc5::Kind::NOT },
-      { Implies, ::cvc5::Kind::IMPLIES },
-      { Ite, ::cvc5::Kind::ITE },
-      { Equal, ::cvc5::Kind::EQUAL },
-      { Distinct, ::cvc5::Kind::DISTINCT },
-      /* Uninterpreted Functions */
-      { Apply, ::cvc5::Kind::APPLY_UF },
-      /* Arithmetic Theories */
-      { Plus, ::cvc5::Kind::ADD },
-      { Minus, ::cvc5::Kind::SUB },
-      { Negate, ::cvc5::Kind::NEG },
-      { Mult, ::cvc5::Kind::MULT },
-      { Div, ::cvc5::Kind::DIVISION },
-      { IntDiv, ::cvc5::Kind::INTS_DIVISION },
-      { Lt, ::cvc5::Kind::LT },
-      { Le, ::cvc5::Kind::LEQ },
-      { Gt, ::cvc5::Kind::GT },
-      { Ge, ::cvc5::Kind::GEQ },
-      { Mod, ::cvc5::Kind::INTS_MODULUS },
-      { Abs, ::cvc5::Kind::ABS },
-      { Pow, ::cvc5::Kind::POW },
-      { To_Real, ::cvc5::Kind::TO_REAL },
-      { To_Int, ::cvc5::Kind::TO_INTEGER },
-      { Is_Int, ::cvc5::Kind::IS_INTEGER },
-      /* Fixed Size BitVector Theory */
-      { Concat, ::cvc5::Kind::BITVECTOR_CONCAT },
-      // Indexed Op
-      { Extract, ::cvc5::Kind::BITVECTOR_EXTRACT },
-      { BVNot, ::cvc5::Kind::BITVECTOR_NOT },
-      { BVNeg, ::cvc5::Kind::BITVECTOR_NEG },
-      { BVAnd, ::cvc5::Kind::BITVECTOR_AND },
-      { BVOr, ::cvc5::Kind::BITVECTOR_OR },
-      { BVXor, ::cvc5::Kind::BITVECTOR_XOR },
-      { BVNand, ::cvc5::Kind::BITVECTOR_NAND },
-      { BVNor, ::cvc5::Kind::BITVECTOR_NOR },
-      { BVXnor, ::cvc5::Kind::BITVECTOR_XNOR },
-      { BVComp, ::cvc5::Kind::BITVECTOR_COMP },
-      { BVAdd, ::cvc5::Kind::BITVECTOR_ADD },
-      { BVSub, ::cvc5::Kind::BITVECTOR_SUB },
-      { BVMul, ::cvc5::Kind::BITVECTOR_MULT },
-      { BVUdiv, ::cvc5::Kind::BITVECTOR_UDIV },
-      { BVSdiv, ::cvc5::Kind::BITVECTOR_SDIV },
-      { BVUrem, ::cvc5::Kind::BITVECTOR_UREM },
-      { BVSrem, ::cvc5::Kind::BITVECTOR_SREM },
-      { BVSmod, ::cvc5::Kind::BITVECTOR_SMOD },
-      { BVShl, ::cvc5::Kind::BITVECTOR_SHL },
-      { BVAshr, ::cvc5::Kind::BITVECTOR_ASHR },
-      { BVLshr, ::cvc5::Kind::BITVECTOR_LSHR },
-      { BVUlt, ::cvc5::Kind::BITVECTOR_ULT },
-      { BVUle, ::cvc5::Kind::BITVECTOR_ULE },
-      { BVUgt, ::cvc5::Kind::BITVECTOR_UGT },
-      { BVUge, ::cvc5::Kind::BITVECTOR_UGE },
-      { BVSlt, ::cvc5::Kind::BITVECTOR_SLT },
-      { BVSle, ::cvc5::Kind::BITVECTOR_SLE },
-      { BVSgt, ::cvc5::Kind::BITVECTOR_SGT },
-      { BVSge, ::cvc5::Kind::BITVECTOR_SGE },
-      // Indexed Op
-      { Zero_Extend, ::cvc5::Kind::BITVECTOR_ZERO_EXTEND },
-      // Indexed Op
-      { Sign_Extend, ::cvc5::Kind::BITVECTOR_SIGN_EXTEND },
-      // Indexed Op
-      { Repeat, ::cvc5::Kind::BITVECTOR_REPEAT },
-      // Indexed Op
-      { Rotate_Left, ::cvc5::Kind::BITVECTOR_ROTATE_LEFT },
-      // Indexed Op
-      { Rotate_Right, ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT },
-      // Conversion
-      { BV_To_Nat, ::cvc5::Kind::BITVECTOR_UBV_TO_INT },
-      { UBV_To_Int, ::cvc5::Kind::BITVECTOR_UBV_TO_INT },
-      { SBV_To_Int, ::cvc5::Kind::BITVECTOR_SBV_TO_INT },
-      { Int_To_BV, ::cvc5::Kind::INT_TO_BITVECTOR },
-      // String Op
-      { StrLt, ::cvc5::Kind::STRING_LT },
-      { StrLeq, ::cvc5::Kind::STRING_LEQ },
-      { StrLen, ::cvc5::Kind::STRING_LENGTH },
-      { StrConcat, ::cvc5::Kind::STRING_CONCAT },
-      { StrSubstr, ::cvc5::Kind::STRING_SUBSTR },
-      { StrAt, ::cvc5::Kind::STRING_CHARAT },
-      { StrContains, ::cvc5::Kind::STRING_CONTAINS },
-      { StrIndexof, ::cvc5::Kind::STRING_INDEXOF },
-      { StrReplace, ::cvc5::Kind::STRING_REPLACE },
-      { StrReplaceAll, ::cvc5::Kind::STRING_REPLACE_ALL },
-      { StrPrefixof, ::cvc5::Kind::STRING_PREFIX },
-      { StrSuffixof, ::cvc5::Kind::STRING_SUFFIX },
-      { StrIsDigit, ::cvc5::Kind::STRING_IS_DIGIT },
-      // Indexed Op
-      { Select, ::cvc5::Kind::SELECT },
-      { Store, ::cvc5::Kind::STORE },
-      { Forall, ::cvc5::Kind::FORALL },
-      { Exists, ::cvc5::Kind::EXISTS },
-      { Apply_Selector, ::cvc5::Kind::APPLY_SELECTOR },
-      { Apply_Tester, ::cvc5::Kind::APPLY_TESTER },
-      { Apply_Constructor, ::cvc5::Kind::APPLY_CONSTRUCTOR } });
-
-// operators that SMT-LIB applies to more than two arguments, but that cvc5
-// only applies to two
-const std::unordered_set<PrimOp> binary_only_ops({ StrLt, StrLeq });
-
 /* Cvc5Solver implementation */
 
 // the options every Cvc5Solver starts from, set again by reset()
@@ -963,15 +860,16 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
-  else if (terms.size() > 2
-           && binary_only_ops.find(op.prim_op) != binary_only_ops.end())
+  // Operators that SMT-LIB applies to more than two arguments, but that cvc5
+  // only applies to two
+  else if (terms.size() > 2 && (op.prim_op == StrLt || op.prim_op == StrLeq))
   {
     return make_nary_term(this, op, terms);
   }
 
   try
   {
-    std::vector<::cvc5::Term> cterms;
+    std::vector<cvc5::Term> cterms;
     cterms.reserve(terms.size());
     std::shared_ptr<Cvc5Term> cterm;
     for (auto t : terms)
@@ -981,15 +879,14 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
-      ::cvc5::Kind quant_kind = primop2kind.at(op.prim_op);
-      ::cvc5::Term quant_res = cterms.back();
+      cvc5::Kind quant_kind = to_cvc5_kind(op.prim_op);
+      cvc5::Term quant_res = cterms.back();
       cterms.pop_back();
-      // bind quantifiers one a time
-      // makes traversal easier since smt-switch has no
-      // VARIABLE_LIST equivalent
+      // Bind the parameters one at a time, which makes traversal easier
+      // since smt-switch has no VARIABLE_LIST equivalent.
       while (cterms.size())
       {
-        ::cvc5::Term bound_var =
+        cvc5::Term bound_var =
             instance->tm.mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
         cterms.pop_back();
         quant_res = instance->tm.mkTerm(quant_kind, { bound_var, quant_res });
@@ -999,15 +896,15 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     else if (op.num_idx == 0)
     {
       return std::make_shared<Cvc5Term>(
-          instance->tm.mkTerm(primop2kind.at(op.prim_op), cterms));
+          instance->tm.mkTerm(to_cvc5_kind(op.prim_op), cterms));
     }
     else
     {
-      ::cvc5::Op cvc5_op = make_cvc5_op(op);
+      cvc5::Op cvc5_op = make_cvc5_op(op);
       return std::make_shared<Cvc5Term>(instance->tm.mkTerm(cvc5_op, cterms));
     }
   }
-  catch (::cvc5::CVC5ApiException & e)
+  catch (cvc5::CVC5ApiException & e)
   {
     throw IncorrectUsageException(e.what());
   }
@@ -1057,24 +954,17 @@ Term Cvc5Solver::substitute(const Term term,
    Helper function for creating a cvc5 Op from an Op
    Preconditions: op must be indexed, i.e. op.num_idx > 0
 */
-::cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
+cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
 {
-  if (primop2kind.find(op.prim_op) == primop2kind.end())
-  {
-    throw IncorrectUsageException(
-        smt::to_string(op.prim_op)
-        + " not recognized as a PrimOp for an indexed operator.");
-  }
+  const cvc5::Kind kind = to_cvc5_kind(op.prim_op);
   if (op.num_idx == 1)
   {
-    return instance->tm.mkOp(primop2kind.at(op.prim_op),
-                             { narrow_index(op, op.idx0) });
+    return instance->tm.mkOp(kind, { narrow_index(op, op.idx0) });
   }
   else if (op.num_idx == 2)
   {
     return instance->tm.mkOp(
-        primop2kind.at(op.prim_op),
-        { narrow_index(op, op.idx0), narrow_index(op, op.idx1) });
+        kind, { narrow_index(op, op.idx0), narrow_index(op, op.idx1) });
   }
   else
   {
