@@ -62,17 +62,32 @@ namespace smt {
                                 + to_string(po));
 }
 
-/** The node of po applied to one argument in a single Boolector call
+/** The node of op applied to one argument in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
-static BoolectorNode * unary_op(Btor * btor, PrimOp po, BoolectorNode * a)
+static BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
 {
-  switch (po)
+  switch (op.prim_op)
   {
     case Not: return boolector_not(btor, a);
+    case Extract:
+      return boolector_slice(
+          btor, a, narrow_index(op, op.idx0), narrow_index(op, op.idx1));
     case BVNot: return boolector_not(btor, a);
     case BVNeg: return boolector_neg(btor, a);
-    default: throw_unsupported(po, 1);
+    case Zero_Extend: return boolector_uext(btor, a, narrow_index(op, op.idx0));
+    case Sign_Extend: return boolector_sext(btor, a, narrow_index(op, op.idx0));
+    case Repeat:
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      return boolector_repeat(btor, a, narrow_index(op, op.idx0));
+    case Rotate_Left:
+      return custom_boolector_rotate_left(btor, a, narrow_index(op, op.idx0));
+    case Rotate_Right:
+      return custom_boolector_rotate_right(btor, a, narrow_index(op, op.idx0));
+    default: throw_unsupported(op.prim_op, 1);
   }
 }
 
@@ -698,6 +713,14 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  const std::uint64_t num_indices = get_num_indices(op.prim_op);
+  if (op.num_idx != num_indices)
+  {
+    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
+                                  + std::to_string(num_indices)
+                                  + (num_indices == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(op.num_idx));
+  }
 
   std::vector<BoolectorNode *> nodes;
   nodes.reserve(size);
@@ -709,58 +732,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   BoolectorNode * btor_res = nullptr;
   if (size == 1)
   {
-    if (op.prim_op == Extract)
-    {
-      btor_res = boolector_slice(btor.get(),
-                                 nodes[0],
-                                 narrow_index(op, op.idx0),
-                                 narrow_index(op, op.idx1));
-    }
-    else if (op.prim_op == Zero_Extend)
-    {
-      btor_res =
-          boolector_uext(btor.get(), nodes[0], narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Sign_Extend)
-    {
-      btor_res =
-          boolector_sext(btor.get(), nodes[0], narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Repeat)
-    {
-      if (op.idx0 < 1)
-      {
-        throw IncorrectUsageException("Can't create repeat with index < 1");
-      }
-      btor_res =
-          boolector_repeat(btor.get(), nodes[0], narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Rotate_Left)
-    {
-      btor_res = custom_boolector_rotate_left(
-          btor.get(), nodes[0], narrow_index(op, op.idx0));
-    }
-    else if (op.prim_op == Rotate_Right)
-    {
-      btor_res = custom_boolector_rotate_right(
-          btor.get(), nodes[0], narrow_index(op, op.idx0));
-    }
-    else if (!op.num_idx)
-    {
-      btor_res = unary_op(btor.get(), op.prim_op, nodes[0]);
-    }
-    else
-    {
-      std::string msg = "Could not find Boolector implementation of ";
-      msg += to_string(op.prim_op);
-      throw IncorrectUsageException(msg);
-    }
-  }
-  else if (op.num_idx)
-  {
-    throw IncorrectUsageException(
-        "There are no supported indexed operators that take more than one "
-        "argument");
+    btor_res = unary_op(btor.get(), op, nodes[0]);
   }
   else if (op.prim_op == Apply)
   {
