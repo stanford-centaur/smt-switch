@@ -88,12 +88,31 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
   return result;
 }
 
-/** The term of po applied to one argument
- *  @throws IncorrectUsageException where Z3 has no such op
+/** Refuses po applied to num_args arguments, which this backend has no Z3
+ *  call for
+ *  @throws IncorrectUsageException where SMT-LIB does not allow that many
+ *          arguments
+ *  @throws NotImplementedException otherwise
  */
-static Z3_ast unary_term(Z3_context c, PrimOp po, Z3_ast a)
+[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
 {
-  switch (po)
+  const pair<size_t, size_t> arity = get_arity(po);
+  if (num_args < arity.first || num_args > arity.second)
+  {
+    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+                                  + std::to_string(num_args)
+                                  + (num_args == 1 ? " term" : " terms"));
+  }
+  throw NotImplementedException("The Z3 backend does not support the operator "
+                                + to_string(po));
+}
+
+/** The term of op applied to one argument
+ *  @throws as throw_unsupported where this backend has no such op
+ */
+static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
+{
+  switch (op.prim_op)
   {
     case Not: return Z3_mk_not(c, a);
     case Negate: return Z3_mk_unary_minus(c, a);
@@ -101,17 +120,32 @@ static Z3_ast unary_term(Z3_context c, PrimOp po, Z3_ast a)
     case To_Real: return Z3_mk_int2real(c, a);
     case To_Int: return Z3_mk_real2int(c, a);
     case Is_Int: return Z3_mk_is_int(c, a);
+    case Extract:
+      return Z3_mk_extract(
+          c, narrow_index(op, op.idx0), narrow_index(op, op.idx1), a);
     case BVNot: return Z3_mk_bvnot(c, a);
     case BVNeg: return Z3_mk_bvneg(c, a);
-    default:
-      throw IncorrectUsageException(
-          "Can't apply " + to_string(po)
-          + " to the term or not supported by Z3 backend yet.");
+    case Zero_Extend: return Z3_mk_zero_ext(c, narrow_index(op, op.idx0), a);
+    case Sign_Extend: return Z3_mk_sign_ext(c, narrow_index(op, op.idx0), a);
+    case Repeat:
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      return Z3_mk_repeat(c, narrow_index(op, op.idx0), a);
+    case Rotate_Left: return Z3_mk_rotate_left(c, narrow_index(op, op.idx0), a);
+    case Rotate_Right:
+      return Z3_mk_rotate_right(c, narrow_index(op, op.idx0), a);
+    case BV_To_Nat:
+    case UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
+    case SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
+    case Int_To_BV: return Z3_mk_int2bv(c, narrow_index(op, op.idx0), a);
+    default: throw_unsupported(op.prim_op, 1);
   }
 }
 
 /** The term of po applied to two arguments
- *  @throws IncorrectUsageException where Z3 has no such op
+ *  @throws as throw_unsupported where this backend has no such op
  */
 static Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
 {
@@ -162,13 +196,8 @@ static Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
     case BVSle: return Z3_mk_bvsle(c, a, b);
     case BVSgt: return Z3_mk_bvsgt(c, a, b);
     case BVSge: return Z3_mk_bvsge(c, a, b);
-    case Rotate_Left: return Z3_mk_ext_rotate_left(c, a, b);
-    case Rotate_Right: return Z3_mk_ext_rotate_right(c, a, b);
     case Select: return Z3_mk_select(c, a, b);
-    default:
-      throw IncorrectUsageException(
-          "Can't apply " + to_string(po)
-          + " to the term or not supported by Z3 backend yet.");
+    default: throw_unsupported(po, 2);
   }
 }
 
@@ -1016,6 +1045,14 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  const uint64_t num_indices = get_num_indices(op.prim_op);
+  if (op.num_idx != num_indices)
+  {
+    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
+                                  + std::to_string(num_indices)
+                                  + (num_indices == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(op.num_idx));
+  }
 
   if (size == 1)
   {
@@ -1030,64 +1067,9 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       }
       res = Z3_mk_app(*ctx, zterm->get_z3_func_decl(), 0, 0);
     }
-    else if (op.prim_op == Extract)
-    {
-      res = Z3_mk_extract(*ctx,
-                          narrow_index(op, op.idx0),
-                          narrow_index(op, op.idx1),
-                          zterm->term);
-    }
-    else if (op.prim_op == Zero_Extend)
-    {
-      res = Z3_mk_zero_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (op.prim_op == Sign_Extend)
-    {
-      res = Z3_mk_sign_ext(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (op.prim_op == Repeat)
-    {
-      if (op.idx0 < 1)
-      {
-        throw IncorrectUsageException("Can't create repeat with index < 1");
-      }
-      res = Z3_mk_repeat(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (op.prim_op == Rotate_Left)
-    {
-      res = Z3_mk_rotate_left(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (op.prim_op == Rotate_Right)
-    {
-      res = Z3_mk_rotate_right(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (op.prim_op == BV_To_Nat)
-    {
-      // n.b., the third parameter is a boolean is_signed, by flagging it
-      // false, this becomes bv2nat
-      res = Z3_mk_bv2int(*ctx, zterm->term, false);
-    }
-    else if (op.prim_op == UBV_To_Int)
-    {
-      res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ false);
-    }
-    else if (op.prim_op == SBV_To_Int)
-    {
-      res = Z3_mk_bv2int(*ctx, zterm->term, /* is_signed */ true);
-    }
-    else if (op.prim_op == Int_To_BV)
-    {
-      res = Z3_mk_int2bv(*ctx, narrow_index(op, op.idx0), zterm->term);
-    }
-    else if (!op.num_idx)
-    {
-      res = unary_term(*ctx, op.prim_op, zterm->term);
-    }
     else
     {
-      string msg = op.to_string();
-      msg += " not supported for one term argument";
-      throw IncorrectUsageException(msg);
+      res = unary_term(*ctx, op, zterm->term);
     }
 
     return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
@@ -1099,13 +1081,6 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
       && get_z3_term(terms[0])->is_function)
   {
     op = Op(Apply);
-  }
-
-  if (op.num_idx)
-  {
-    string msg = op.to_string();
-    msg += " not supported for more than one term argument";
-    throw IncorrectUsageException(msg);
   }
 
   // the operands, leaving out the function an Apply applies
