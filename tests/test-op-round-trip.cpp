@@ -415,6 +415,18 @@ TEST_P(IntRoundTripTests, IntDiv)
 
 TEST_P(IntRoundTripTests, Mod) { expect_round_trip(s->make_term(Mod, a, b)); }
 
+TEST_P(IntRoundTripTests, Divisible)
+{
+  expect_round_trip(s->make_term(Op(Divisible, 3), a));
+}
+
+TEST_P(IntRoundTripTests, DivisibleWithConstant)
+{
+  // MathSAT keeps the constant apart, as the congruence a = 2 mod 3
+  expect_round_trip(s->make_term(
+      Op(Divisible, 3), s->make_term(Minus, a, s->make_term(2, intsort))));
+}
+
 TEST_P(IntRoundTripTests, Abs) { expect_round_trip(s->make_term(Abs, a)); }
 
 TEST_P(IntRoundTripTests, Pow)

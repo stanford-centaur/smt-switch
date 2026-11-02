@@ -422,6 +422,18 @@ TEST_P(BVTranslationTests, NaryApplications)
   ASSERT_TRUE(s1->check_sat().is_unsat());
 }
 
+TEST_P(IntTranslationTests, Divisible)
+{
+  // MathSAT keeps the constant apart, as the congruence i = 2 mod 3
+  Term divisible = s1->make_term(
+      Op(Divisible, 3), s1->make_term(Minus, i, s1->make_term(2, intsort)));
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+  Term divisible_1 = to_s1.transfer_term(to_s2.transfer_term(divisible), BOOL);
+  s1->assert_formula(s1->make_term(Distinct, divisible, divisible_1));
+  ASSERT_TRUE(s1->check_sat().is_unsat());
+}
+
 TEST_P(IntTranslationTests, NaryApplications)
 {
   // a source solver may keep these as applications to three arguments, as

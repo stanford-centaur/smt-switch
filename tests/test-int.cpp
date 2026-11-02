@@ -65,6 +65,26 @@ TEST_P(IntTests, IntDiv)
   ASSERT_EQ(resval, two);
 }
 
+TEST_P(IntTests, Divisible)
+{
+  Term x = s->make_symbol("x", intsort);
+  Term divisible = s->make_term(Op(Divisible, 3), x);
+  EXPECT_EQ(divisible->get_sort(), s->make_sort(BOOL));
+  EXPECT_EQ(divisible->get_op(), Op(Divisible, 3));
+  // SMT-LIB requires a positive index
+  EXPECT_THROW(s->make_term(Op(Divisible, 0), x), IncorrectUsageException);
+  // an index too large for a solver's API is refused rather than changed,
+  // e.g. to its low 32 bits, the valid divisor 3
+  Op large(Divisible, (std::uint64_t{ 1 } << 40) + 3);
+  try
+  {
+    EXPECT_EQ(s->make_term(large, x)->get_op(), large);
+  }
+  catch (IncorrectUsageException &)
+  {
+  }
+}
+
 TEST_P(IntTests, BvToNatIsInt)
 {
   Sort bvsort = s->make_sort(BV, 8);

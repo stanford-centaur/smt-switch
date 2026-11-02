@@ -145,6 +145,18 @@ static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
     case UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
     case SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
     case Int_To_BV: return Z3_mk_int2bv(c, narrow_index(op, op.idx0), a);
+    case Divisible:
+      if (op.idx0 < 1)
+      {
+        throw IncorrectUsageException("Can't create divisible with index < 1");
+      }
+      // Z3 keeps the divisor as an int parameter
+      return Z3_mk_divides(
+          c,
+          Z3_mk_int(c,
+                    detail::narrow<int>(op.idx0, "a divisible index"),
+                    Z3_mk_int_sort(c)),
+          a);
     default: throw_unsupported(op.prim_op, 1);
   }
 }

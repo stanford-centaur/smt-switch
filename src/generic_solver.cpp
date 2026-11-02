@@ -1896,6 +1896,10 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
+  else if (op.prim_op == Divisible && op.idx0 < 1)
+  {
+    throw IncorrectUsageException("Can't create divisible with index < 1");
+  }
 
   // SMT-LIB has no pow, so a power is sent as the product it stands for.
   // Pow is over Int, where a negative exponent has no product to stand for.

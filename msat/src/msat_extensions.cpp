@@ -21,6 +21,7 @@
 #include <mathsat.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,16 @@ msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
     res = msat_make_term_ite(e, t2_pos, div_floor, div_ceil);
   }
 
+  return res;
+}
+
+msat_term ext_msat_make_divisible(msat_env e, std::uint64_t n, msat_term t)
+{
+  mpz_t modulus;
+  mpz_init_set_str(modulus, std::to_string(n).c_str(), 10);
+  msat_term res =
+      msat_make_int_modular_congruence(e, modulus, t, msat_make_number(e, "0"));
+  mpz_clear(modulus);
   return res;
 }
 

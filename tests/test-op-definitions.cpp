@@ -242,6 +242,17 @@ TEST_P(IntOpDefinitionTests, Pow)
   expect_equivalent(s->make_term(Pow, v, s->make_term(1, intsort)), v);
 }
 
+TEST_P(IntOpDefinitionTests, Divisible)
+{
+  Sort intsort = v->get_sort();
+  Term three = s->make_term(3, intsort);
+  Term two = s->make_term(2, intsort);
+  expect_equivalent(s->make_term(Op(Divisible, 3), v),
+                    s->make_term(Equal, s->make_term(Mod, v, three), zero));
+  expect_equivalent(s->make_term(Op(Divisible, 3), s->make_term(Minus, v, two)),
+                    s->make_term(Equal, s->make_term(Mod, v, three), two));
+}
+
 TEST_P(IntOpDefinitionTests, Minus)
 {
   expect_equivalent(s->make_term(Minus, v, v), zero);

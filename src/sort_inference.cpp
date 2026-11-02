@@ -121,6 +121,7 @@ constexpr PrimOpSortInfo primop_sort_info[] = {
   { Abs, SortCheck::INT, SortComputation::SAME },
   { Pow, SortCheck::INT, SortComputation::SAME },
   { IntDiv, SortCheck::INT, SortComputation::INT },
+  { Divisible, SortCheck::INT, SortComputation::BOOL },
   { To_Real, SortCheck::INT, SortComputation::REAL },
   { To_Int, SortCheck::REAL, SortComputation::INT },
   { Is_Int, SortCheck::REAL, SortComputation::BOOL },

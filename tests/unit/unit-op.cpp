@@ -218,6 +218,7 @@ TEST(UnitPrimOpInfoTests, NumIndices)
   EXPECT_EQ(get_num_indices(Extract), 2);
   EXPECT_EQ(get_num_indices(Zero_Extend), 1);
   EXPECT_EQ(get_num_indices(Int_To_BV), 1);
+  EXPECT_EQ(get_num_indices(Divisible), 1);
   EXPECT_EQ(get_num_indices(BVAdd), 0);
   EXPECT_THROW(get_num_indices(NUM_OPS_AND_NULL), IncorrectUsageException);
 }
@@ -227,6 +228,7 @@ TEST(UnitPrimOpInfoTests, Theory)
   EXPECT_EQ(get_theory(And), Theory::CORE);
   EXPECT_EQ(get_theory(Plus), Theory::ARITH);
   EXPECT_EQ(get_theory(IntDiv), Theory::INTS);
+  EXPECT_EQ(get_theory(Divisible), Theory::INTS);
   EXPECT_EQ(get_theory(Div), Theory::REALS);
   EXPECT_EQ(get_theory(To_Real), Theory::REALS_INTS);
   EXPECT_EQ(get_theory(UBV_To_Int), Theory::BITVECTORS);
