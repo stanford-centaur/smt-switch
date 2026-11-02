@@ -53,7 +53,7 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
     ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
     UnorderedOpSet ops;
     get_ops(I, ops);
-    EXPECT_EQ(ops.count(Op(Divisible, 2)), 1) << I;
+    EXPECT_EQ(ops.count(Op(Divisible, 2)), 1u) << I;
 
     // a solver can take the interpolant over, as an engine does, and it is
     // still one there: A implies it and it contradicts B
