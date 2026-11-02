@@ -283,7 +283,7 @@ Term TermTranslator::transfer_term(const Term & term)
       if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
-        std::string name = t->to_string();
+        std::string name = t->get_symbol_name();
         try
         {
           Term sym = solver->get_symbol(name);
