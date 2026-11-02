@@ -428,9 +428,14 @@ class GenericSolver : public AbsSmtSolver
   // internal counter for naming terms
   mutable unsigned int term_counter = 0;
 
-  // maps between Term name and actual Term and vice versa
+  // The terms the binary knows by a name it declared, under that name as
+  // SMT-LIB writes it, so that a name the binary answers with finds its
+  // term
   std::unique_ptr<std::unordered_map<std::string, Term>> name_term_map;
+  // How the binary is given each term made
   std::unique_ptr<std::unordered_map<Term, std::string>> term_name_map;
+  // The names users gave params, which the binary never sees
+  mutable std::unordered_set<std::string> param_names_;
 
   // the binary's execution mode, as of the last command that succeeded
   mutable SmtLibMode mode_ = SmtLibMode::START;
