@@ -23,6 +23,7 @@ extern "C" {
 
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <limits>
@@ -42,8 +43,27 @@ extern "C" {
 
 namespace smt {
 
-/** The node of po applied to one argument in a single Boolector call,
- *  or nullptr where Boolector has none
+/** Refuses po applied to num_args arguments, which Boolector has no operator
+ *  for
+ *  @throws IncorrectUsageException where SMT-LIB does not allow that many
+ *          arguments
+ *  @throws NotImplementedException otherwise
+ */
+[[noreturn]] static void throw_unsupported(PrimOp po, std::size_t num_args)
+{
+  const std::pair<std::size_t, std::size_t> arity = get_arity(po);
+  if (num_args < arity.first || num_args > arity.second)
+  {
+    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+                                  + std::to_string(num_args)
+                                  + (num_args == 1 ? " term" : " terms"));
+  }
+  throw NotImplementedException("Boolector does not support the operator "
+                                + to_string(po));
+}
+
+/** The node of po applied to one argument in a single Boolector call
+ *  @throws as throw_unsupported where Boolector has none
  */
 static BoolectorNode * unary_op(Btor * btor, PrimOp po, BoolectorNode * a)
 {
@@ -52,12 +72,12 @@ static BoolectorNode * unary_op(Btor * btor, PrimOp po, BoolectorNode * a)
     case Not: return boolector_not(btor, a);
     case BVNot: return boolector_not(btor, a);
     case BVNeg: return boolector_neg(btor, a);
-    default: return nullptr;
+    default: throw_unsupported(po, 1);
   }
 }
 
-/** The node of po applied to two arguments in a single Boolector call,
- *  or nullptr where Boolector has none
+/** The node of po applied to two arguments in a single Boolector call
+ *  @throws as throw_unsupported where Boolector has none
  */
 static BoolectorNode * binary_op(Btor * btor,
                                  PrimOp po,
@@ -100,24 +120,7 @@ static BoolectorNode * binary_op(Btor * btor,
     case BVSgt: return boolector_sgt(btor, a, b);
     case BVSge: return boolector_sgte(btor, a, b);
     case Select: return boolector_read(btor, a, b);
-    default: return nullptr;
-  }
-}
-
-/** The node of po applied to three arguments in a single Boolector call,
- *  or nullptr where Boolector has none
- */
-static BoolectorNode * ternary_op(Btor * btor,
-                                  PrimOp po,
-                                  BoolectorNode * a,
-                                  BoolectorNode * b,
-                                  BoolectorNode * c)
-{
-  switch (po)
-  {
-    case Ite: return boolector_cond(btor, a, b, c);
-    case Store: return boolector_write(btor, a, b, c);
-    default: return nullptr;
+    default: throw_unsupported(po, 2);
   }
 }
 
@@ -745,12 +748,6 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     else if (!op.num_idx)
     {
       btor_res = unary_op(btor.get(), op.prim_op, nodes[0]);
-      if (!btor_res)
-      {
-        throw IncorrectUsageException(
-            to_string(op.prim_op)
-            + " unsupported or can't be applied to a single term.");
-      }
     }
     else
     {
@@ -783,24 +780,18 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   else if (size == 2)
   {
     btor_res = binary_op(btor.get(), op.prim_op, nodes[0], nodes[1]);
-    if (!btor_res)
-    {
-      throw IncorrectUsageException(
-          to_string(op.prim_op)
-          + " unsupported or can't be applied to two terms.");
-    }
+  }
+  else if (size == 3 && op.prim_op == Ite)
+  {
+    btor_res = boolector_cond(btor.get(), nodes[0], nodes[1], nodes[2]);
+  }
+  else if (size == 3 && op.prim_op == Store)
+  {
+    btor_res = boolector_write(btor.get(), nodes[0], nodes[1], nodes[2]);
   }
   else
   {
-    if (size == 3)
-    {
-      btor_res =
-          ternary_op(btor.get(), op.prim_op, nodes[0], nodes[1], nodes[2]);
-    }
-    if (!btor_res)
-    {
-      return make_nary_term(this, op, terms);
-    }
+    return make_nary_term(this, op, terms);
   }
 
   return std::make_shared<BoolectorTerm>(btor, btor_res);

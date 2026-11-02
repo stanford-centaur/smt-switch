@@ -41,5 +41,5 @@ TEST(BtorExceptions, UnsupportedTheories)
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
 
-  EXPECT_THROW(s->make_term(Ge, x, y), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Ge, x, y), NotImplementedException);
 }
