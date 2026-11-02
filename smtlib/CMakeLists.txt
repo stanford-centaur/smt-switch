@@ -1,6 +1,7 @@
 # The default bison on macOS is too old, so we try installing one from Homebrew.
-get_property(_explicit_roots GLOBAL PROPERTY SMT_SWITCH_EXPLICIT_ROOTS)
-if(APPLE AND NOT BISON IN_LIST _explicit_roots)
+# Not when bison has to come from its root: Homebrew's is an installed copy.
+get_property(_required_roots GLOBAL PROPERTY SMT_SWITCH_REQUIRED_ROOTS)
+if(APPLE AND NOT BISON IN_LIST _required_roots)
   execute_process(
     COMMAND brew --prefix
     OUTPUT_VARIABLE _homebrew_prefix
