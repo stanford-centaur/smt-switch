@@ -462,7 +462,9 @@ Term BzlaSolver::make_term(const std::string val,
   bitwuzla::Sort bsort = bzla_sort(sort);
   try
   {
-    return std::make_shared<BzlaTerm>(tm->mk_bv_value(bsort, val, base), tm);
+    // The base is 2, 10 or 16, so it fits the uint8_t that Bitwuzla takes.
+    return std::make_shared<BzlaTerm>(
+        tm->mk_bv_value(bsort, val, static_cast<std::uint8_t>(base)), tm);
   }
   catch (bitwuzla::Exception & e)
   {

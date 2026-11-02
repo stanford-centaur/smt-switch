@@ -507,7 +507,7 @@ set(
   -Wimplicit-fixed-point-conversion # implicit conversion from X cannot fit within the range
   -Wimplicit-float-conversion # implicit conversion loses floating-point precision: X to Y
   -Wimplicit-int # a declaration does not specify a type
-  # -Wimplicit-int-conversion # higher order bits are zeroes after implicit conversion
+  -Wimplicit-int-conversion # higher order bits are zeroes after implicit conversion
   -Wimplicit-int-conversion-on-negation # implicit conversion loses integer precision: X to Y
   -Wimplicit-int-enum-cast # implicit conversion from X to enumeration type Y is invalid in C++
   -Wimplicit-int-float-conversion # implicit conversion from X to Y may lose precision
