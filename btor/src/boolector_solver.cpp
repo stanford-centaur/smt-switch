@@ -26,8 +26,9 @@ extern "C" {
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <initializer_list>
 #include <string>
-#include <unordered_set>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -137,9 +138,6 @@ static BoolectorNode * binary_op(Btor * btor,
     default: throw_unsupported(po, 2);
   }
 }
-
-const std::unordered_set<std::string> supported_logics(
-    { "QF_BV", "QF_ABV", "QF_UFBV", "QF_AUFBV", "BV", "UFBV", "ABV", "AUFBV" });
 
 /* BoolectorSolver implementation */
 
@@ -276,12 +274,30 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 
 void BoolectorSolver::set_logic(const std::string logic)
 {
-  if (supported_logics.find(logic) == supported_logics.end())
+  // ALL, BV, and QF_ followed by A and UF, in that order, where present, and
+  // then BV, as the boolector binary accepts
+  if (logic == "ALL" || logic == "BV")
   {
-    throw IncorrectUsageException(
-        "Boolector only supports logics using bit-vectors, arrays and "
-        "uninterpreted functions");
+    return;
   }
+  std::string_view rest = logic;
+  if (rest.substr(0, 3) == "QF_")
+  {
+    rest.remove_prefix(3);
+    for (std::string_view theory : { "A", "UF" })
+    {
+      if (rest.substr(0, theory.size()) == theory)
+      {
+        rest.remove_prefix(theory.size());
+      }
+    }
+    if (rest == "BV")
+    {
+      return;
+    }
+  }
+  throw NotImplementedException("Boolector does not support the logic "
+                                + logic);
 }
 
 Term BoolectorSolver::make_term(bool b) const
