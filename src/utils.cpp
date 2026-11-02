@@ -27,7 +27,7 @@
 #include <random>
 #include <sstream>
 #include <string>
-#include <unordered_set>
+#include <string_view>
 #include <vector>
 
 #include "datatype.h"
@@ -1720,11 +1720,66 @@ std::int64_t smtlib_bv_to_int64(const std::string & s)
   return to_twos_complement(value, width);
 }
 
+// SMT-LIB 2.6 reserves these words (Section 3.1) and every command name
+// (Figure 3.6), so none of them is a simple symbol.
+constexpr std::string_view smtlib_reserved_words[] = {
+  "!",
+  "_",
+  "BINARY",
+  "DECIMAL",
+  "HEXADECIMAL",
+  "NUMERAL",
+  "STRING",
+  "as",
+  "assert",
+  "check-sat",
+  "check-sat-assuming",
+  "declare-const",
+  "declare-datatype",
+  "declare-datatypes",
+  "declare-fun",
+  "declare-sort",
+  "define-fun",
+  "define-fun-rec",
+  "define-funs-rec",
+  "define-sort",
+  "echo",
+  "exists",
+  "exit",
+  "forall",
+  "get-assertions",
+  "get-assignment",
+  "get-info",
+  "get-model",
+  "get-option",
+  "get-proof",
+  "get-unsat-assumptions",
+  "get-unsat-core",
+  "get-value",
+  "let",
+  "match",
+  "par",
+  "pop",
+  "push",
+  "reset",
+  "reset-assertions",
+  "set-info",
+  "set-logic",
+  "set-option",
+};
+
 std::string smtlib_quote_symbol(const std::string & s)
 {
   if (s.empty())
   {
     return "||";
+  }
+  for (std::string_view reserved : smtlib_reserved_words)
+  {
+    if (s == reserved)
+    {
+      return "|" + s + "|";
+    }
   }
   const std::locale & ascii = std::locale::classic();
   if (std::isdigit(s[0], ascii))

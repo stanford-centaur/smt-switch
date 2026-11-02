@@ -662,4 +662,17 @@ TEST(SmtLibQuoteSymbol, OtherSymbolGetsBars)
   EXPECT_EQ(smtlib_quote_symbol("\xc3\xa9"), "|\xc3\xa9|");
 }
 
+TEST(SmtLibQuoteSymbol, ReservedWordGetsBars)
+{
+  EXPECT_EQ(smtlib_quote_symbol("let"), "|let|");
+  EXPECT_EQ(smtlib_quote_symbol("par"), "|par|");
+  EXPECT_EQ(smtlib_quote_symbol("NUMERAL"), "|NUMERAL|");
+  EXPECT_EQ(smtlib_quote_symbol("_"), "|_|");
+  EXPECT_EQ(smtlib_quote_symbol("!"), "|!|");
+  EXPECT_EQ(smtlib_quote_symbol("check-sat"), "|check-sat|");
+  // only the exact words are reserved
+  EXPECT_EQ(smtlib_quote_symbol("lets"), "lets");
+  EXPECT_EQ(smtlib_quote_symbol("Let"), "Let");
+}
+
 }  // namespace
