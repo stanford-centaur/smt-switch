@@ -24,7 +24,6 @@
 #include <cstdint>
 #include <iterator>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 
@@ -183,13 +182,14 @@ cvc5::Kind to_cvc5_kind(PrimOp po)
   return primop_kinds[po].second;
 }
 
-std::optional<PrimOp> to_primop(cvc5::Kind kind)
+PrimOp to_primop(cvc5::Kind kind)
 {
   const int i = static_cast<int>(kind) - first_kind;
   if (i < 0 || static_cast<std::size_t>(i) >= num_kinds
       || kind_primops.primops[i] == NUM_OPS_AND_NULL)
   {
-    return std::nullopt;
+    throw NotImplementedException("smt-switch has no PrimOp for the cvc5 Kind "
+                                  + std::to_string(kind));
   }
   return kind_primops.primops[i];
 }
@@ -284,18 +284,12 @@ Op Cvc5Term::get_op() const
     return Op();
   }
 
-  // Implementation checking
-  std::optional<PrimOp> po = to_primop(cvc5_kind);
-  if (!po)
-  {
-    throw NotImplementedException("get_op not implemented for cvc5 Kind "
-                                  + std::to_string(cvc5_kind));
-  }
+  const PrimOp po = to_primop(cvc5_kind);
 
   // Create an smt-switch Op and return it.
   if (cvc5_op.isIndexed())
   {
-    const std::uint64_t num_indices = get_num_indices(*po);
+    const std::uint64_t num_indices = get_num_indices(po);
     if (num_indices == 0)
     {
       throw NotImplementedException("get_op not implemented for cvc5 Kind "
@@ -304,7 +298,7 @@ Op Cvc5Term::get_op() const
     if (num_indices == 1)
     {
       uint32_t idx0 = std::stoul(cvc5_op[0].toString());
-      return Op(*po, idx0);
+      return Op(po, idx0);
     }
     else
     {
@@ -312,12 +306,12 @@ Op Cvc5Term::get_op() const
       std::pair<uint32_t, uint32_t> indices = {
         std::stoul(cvc5_op[0].toString()), std::stoul(cvc5_op[1].toString())
       };
-      return Op(*po, indices.first, indices.second);
+      return Op(po, indices.first, indices.second);
     }
   }
   else
   {
-    return Op(*po);
+    return Op(po);
   }
 }
 

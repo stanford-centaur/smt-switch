@@ -25,7 +25,6 @@
 #include <fstream>
 #include <initializer_list>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -512,8 +511,8 @@ Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
   return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
 }
 
-/** The Bitwuzla kind of po, or nothing for an operator Bitwuzla lacks */
-static std::optional<bitwuzla::Kind> kind_of(PrimOp po)
+/** The Bitwuzla kind of po, or an exception for an operator Bitwuzla lacks */
+static bitwuzla::Kind kind_of(PrimOp po)
 {
   switch (po)
   {
@@ -570,7 +569,9 @@ static std::optional<bitwuzla::Kind> kind_of(PrimOp po)
     // Quantifiers
     case Forall: return bitwuzla::Kind::FORALL;
     case Exists: return bitwuzla::Kind::EXISTS;
-    default: return std::nullopt;
+    default:
+      throw NotImplementedException("Bitwuzla does not support the operator "
+                                    + to_string(po));
   }
 }
 
@@ -592,16 +593,11 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     bitwuzla_terms.push_back(bzla_term(t));
   }
 
-  auto bkind = kind_of(op.prim_op);
-  if (!bkind)
-  {
-    throw IncorrectUsageException("Bitwuzla does not yet support operator: "
-                                  + op.to_string());
-  }
+  const bitwuzla::Kind bkind = kind_of(op.prim_op);
 
   if (!op.num_idx)
   {
-    return make_bzla_term(tm, *bkind, bitwuzla_terms);
+    return make_bzla_term(tm, bkind, bitwuzla_terms);
   }
   else
   {
@@ -611,7 +607,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     {
       indices.push_back(op.idx1);
     }
-    return make_bzla_term(tm, *bkind, bitwuzla_terms, indices);
+    return make_bzla_term(tm, bkind, bitwuzla_terms, indices);
   }
 }
 

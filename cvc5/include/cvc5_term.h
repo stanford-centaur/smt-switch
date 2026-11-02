@@ -20,7 +20,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string>
 
 #include "ops.h"
@@ -87,9 +86,9 @@ class Cvc5Term : public AbsTerm
  */
 cvc5::Kind to_cvc5_kind(PrimOp po);
 
-/** The PrimOp of the applications of kind, or nothing for a kind that no
- *  PrimOp stands for
+/** The PrimOp of the applications of kind
+ *  @throws NotImplementedException for a kind that no PrimOp stands for
  */
-std::optional<PrimOp> to_primop(cvc5::Kind kind);
+PrimOp to_primop(cvc5::Kind kind);
 
 }  // namespace smt
