@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
@@ -90,5 +91,15 @@ class BzlaTerm : public AbsTerm
   friend class BzlaInterpolatingSolver;
   friend class BzlaTermIter;
 };
+
+/** The Bitwuzla kind of the applications of po
+ *  @throws NotImplementedException for an operator Bitwuzla does not support
+ */
+bitwuzla::Kind to_bitwuzla_kind(PrimOp po);
+
+/** The PrimOp of the applications of kind
+ *  @throws NotImplementedException for a kind that no PrimOp stands for
+ */
+PrimOp to_primop(bitwuzla::Kind kind);
 
 }  // namespace smt

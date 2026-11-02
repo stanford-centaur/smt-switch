@@ -519,70 +519,6 @@ Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
   return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
 }
 
-/** The Bitwuzla kind of po, or an exception for an operator Bitwuzla lacks */
-static bitwuzla::Kind kind_of(PrimOp po)
-{
-  switch (po)
-  {
-    // Core theory
-    case And: return bitwuzla::Kind::AND;
-    case Or: return bitwuzla::Kind::OR;
-    case Xor: return bitwuzla::Kind::XOR;
-    case Not: return bitwuzla::Kind::NOT;
-    case Implies: return bitwuzla::Kind::IMPLIES;
-    case Ite: return bitwuzla::Kind::ITE;
-    case Equal: return bitwuzla::Kind::EQUAL;
-    case Distinct: return bitwuzla::Kind::DISTINCT;
-    // Uninterpreted functions
-    case Apply: return bitwuzla::Kind::APPLY;
-    // Fixed-size bit-vector theory
-    case Concat: return bitwuzla::Kind::BV_CONCAT;
-    case Extract: return bitwuzla::Kind::BV_EXTRACT;
-    case BVNot: return bitwuzla::Kind::BV_NOT;
-    case BVNeg: return bitwuzla::Kind::BV_NEG;
-    case BVAnd: return bitwuzla::Kind::BV_AND;
-    case BVOr: return bitwuzla::Kind::BV_OR;
-    case BVXor: return bitwuzla::Kind::BV_XOR;
-    case BVNand: return bitwuzla::Kind::BV_NAND;
-    case BVNor: return bitwuzla::Kind::BV_NOR;
-    case BVXnor: return bitwuzla::Kind::BV_XNOR;
-    case BVAdd: return bitwuzla::Kind::BV_ADD;
-    case BVSub: return bitwuzla::Kind::BV_SUB;
-    case BVMul: return bitwuzla::Kind::BV_MUL;
-    case BVUdiv: return bitwuzla::Kind::BV_UDIV;
-    case BVSdiv: return bitwuzla::Kind::BV_SDIV;
-    case BVUrem: return bitwuzla::Kind::BV_UREM;
-    case BVSrem: return bitwuzla::Kind::BV_SREM;
-    case BVSmod: return bitwuzla::Kind::BV_SMOD;
-    case BVShl: return bitwuzla::Kind::BV_SHL;
-    case BVAshr: return bitwuzla::Kind::BV_ASHR;
-    case BVLshr: return bitwuzla::Kind::BV_SHR;
-    case BVComp: return bitwuzla::Kind::BV_COMP;
-    case BVUlt: return bitwuzla::Kind::BV_ULT;
-    case BVUle: return bitwuzla::Kind::BV_ULE;
-    case BVUgt: return bitwuzla::Kind::BV_UGT;
-    case BVUge: return bitwuzla::Kind::BV_UGE;
-    case BVSlt: return bitwuzla::Kind::BV_SLT;
-    case BVSle: return bitwuzla::Kind::BV_SLE;
-    case BVSgt: return bitwuzla::Kind::BV_SGT;
-    case BVSge: return bitwuzla::Kind::BV_SGE;
-    case Zero_Extend: return bitwuzla::Kind::BV_ZERO_EXTEND;
-    case Sign_Extend: return bitwuzla::Kind::BV_SIGN_EXTEND;
-    case Repeat: return bitwuzla::Kind::BV_REPEAT;
-    case Rotate_Left: return bitwuzla::Kind::BV_ROLI;
-    case Rotate_Right: return bitwuzla::Kind::BV_RORI;
-    // Array theory
-    case Select: return bitwuzla::Kind::ARRAY_SELECT;
-    case Store: return bitwuzla::Kind::ARRAY_STORE;
-    // Quantifiers
-    case Forall: return bitwuzla::Kind::FORALL;
-    case Exists: return bitwuzla::Kind::EXISTS;
-    default:
-      throw NotImplementedException("Bitwuzla does not support the operator "
-                                    + to_string(po));
-  }
-}
-
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
@@ -601,7 +537,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     bitwuzla_terms.push_back(bzla_term(t));
   }
 
-  const bitwuzla::Kind bkind = kind_of(op.prim_op);
+  const bitwuzla::Kind bkind = to_bitwuzla_kind(op.prim_op);
 
   if (!op.num_idx)
   {
