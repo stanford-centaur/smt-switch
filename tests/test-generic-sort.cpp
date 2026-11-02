@@ -216,3 +216,10 @@ TEST(GenericSort, DatatypeComponents)
   EXPECT_NE(cons->hash(), pair_cons->hash());
   EXPECT_NE(cons->hash(), is_cons->hash());
 }
+
+TEST(GenericSort, DatatypeSortDiffersFromOtherKinds)
+{
+  Sort list = datatype_sort("list", "cons");
+  Sort int_sort = std::make_shared<GenericSort>(INT);
+  EXPECT_NE(list, int_sort);
+}

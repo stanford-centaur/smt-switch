@@ -32,6 +32,7 @@ class GenericTerm : public AbsTerm
 {
  public:
   // General constructor
+  // throws IncorrectUsageException if there is neither an op nor a repr
   GenericTerm(Sort s, Op o, TermVec c, std::string r);
   // this one is for making symbols
   // if passed with true, sets is_sym true

@@ -16,7 +16,6 @@
 
 #include "generic_term.h"
 
-#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -40,6 +39,11 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
                          : std::make_shared<const TermVec>(std::move(c))),
       repr(std::move(r))
 {
+  if (repr.empty() && op.is_null())
+  {
+    throw IncorrectUsageException(
+        "A generic term needs an operator or a representation");
+  }
   ground = compute_ground();
 }
 
@@ -52,6 +56,11 @@ GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r, bool symbol)
       is_sym(symbol),
       is_par(!symbol)
 {
+  if (repr.empty() && op.is_null())
+  {
+    throw IncorrectUsageException(
+        "A generic term needs an operator or a representation");
+  }
   ground = compute_ground();
 }
 
@@ -114,7 +123,6 @@ std::string GenericTerm::compute_string() const
   {
     return repr;
   }
-  assert(!op.is_null());
   std::string result = "(";
   result += op.to_string();
   if (children)

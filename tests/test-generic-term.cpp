@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "exceptions.h"
 #include "generic_sort.h"
 #include "generic_term.h"
 #include "ops.h"
@@ -45,4 +46,12 @@ TEST(GenericTerm, IdsAndProperties)
   EXPECT_TRUE(x.is_symbol());
   EXPECT_FALSE(x.is_param());
   EXPECT_TRUE(x.is_symbolic_const());
+}
+
+TEST(GenericTerm, NeedsOpOrRepresentation)
+{
+  Sort int_sort = std::make_shared<GenericSort>(INT);
+  EXPECT_THROW(GenericTerm(int_sort, Op(), {}, ""), IncorrectUsageException);
+  EXPECT_THROW(GenericTerm(int_sort, Op(), {}, "", true),
+               IncorrectUsageException);
 }

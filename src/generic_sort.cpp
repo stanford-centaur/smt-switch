@@ -15,7 +15,6 @@
 
 #include "generic_sort.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -210,7 +209,6 @@ bool GenericSort::compare(const Sort & s) const
              && get_arity() == s->get_arity();
     }
     case DATATYPE: {
-      assert(sk == DATATYPE);
       std::shared_ptr<GenericDatatypeSort> other_type_cast =
           std::dynamic_pointer_cast<GenericDatatypeSort>(s);
       return other_type_cast
@@ -384,7 +382,6 @@ std::string GenericDatatypeSort::compute_string() const
 bool GenericDatatypeSort::compare(const Sort & s) const
 {
   // Compares the strings of two datatype sorts
-  assert(s->get_sort_kind() == DATATYPE);
   std::shared_ptr<GenericDatatypeSort> other_sort =
       std::dynamic_pointer_cast<GenericDatatypeSort>(s);
   return other_sort && compute_string() == other_sort->to_string();
@@ -474,8 +471,6 @@ Sort DatatypeComponentSort::get_codomain_sort() const
   {
     return selector_sort;
   }
-
-  assert(sk == CONSTRUCTOR || sk == TESTER || sk == SELECTOR);
 
   return nullptr;
 }
