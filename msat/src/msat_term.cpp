@@ -486,7 +486,7 @@ bool MsatTerm::is_symbol() const
   return (
       (msat_term_arity(term) == 0)
       && (msat_decl_get_tag(*env, msat_term_get_decl(term)) == MSAT_TAG_UNKNOWN)
-      && !msat_term_is_number(*env, term));
+      && !is_value());
 }
 
 bool MsatTerm::is_param() const { return msat_term_is_variable(*env, term); }
@@ -509,11 +509,22 @@ bool MsatTerm::is_value() const
     return false;
   }
 
-  // value if it has no children and a built-in interpretation
-  return (msat_term_is_number(*env, term) || msat_term_is_true(*env, term)
-          || msat_term_is_false(*env, term) ||
-          // constant arrays are considered values in smt-switch
-          msat_term_is_array_const(*env, term));
+  if (msat_term_is_number(*env, term) || msat_term_is_true(*env, term)
+      || msat_term_is_false(*env, term) || msat_term_is_array_const(*env, term))
+  {
+    return true;
+  }
+
+  // an abstract value, which an uninterpreted sort has, is a constant whose
+  // name starts with @, as SMT-LIB reserves for them
+  if (!msat_term_is_constant(*env, term))
+  {
+    return false;
+  }
+  char * name = msat_decl_get_name(msat_term_get_decl(term));
+  bool res = name[0] == '@';
+  msat_free(name);
+  return res;
 }
 
 string MsatTerm::to_string() const

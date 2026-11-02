@@ -475,6 +475,8 @@ TEST_P(UnitSortTests, UninterpSortEquality)
   s->pop();
 
   ASSERT_EQ(xv, yv);
+  EXPECT_TRUE(xv->is_value());
+  EXPECT_FALSE(xv->is_symbol());
 
   Term xeq = s->make_term(Equal, x, xv);
   Term yeq = s->make_term(Equal, y, yv);

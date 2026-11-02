@@ -320,10 +320,10 @@ bool Z3Term::is_value() const
   }
   else if (term.is_app())
   {
-    z3::func_decl decl = term.decl();
-    Z3_decl_kind kind = decl.decl_kind();
-    // constant arrays are considered values
-    return (kind == Z3_OP_CONST_ARRAY);
+    Z3_decl_kind kind = term.decl().decl_kind();
+    return kind == Z3_OP_CONST_ARRAY
+           || (kind == Z3_OP_UNINTERPRETED && term.is_const()
+               && term.decl().num_parameters() != 0);
   }
   return false;
 }
