@@ -24,8 +24,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "exceptions.h"
@@ -42,107 +40,109 @@ using namespace std;
 
 namespace smt {
 
-const unordered_map<string, string> msat_option_map(
-    { { "produce-interpolants", "interpolation" },
-      { "produce-models", "model_generation" } });
-
 static string msat_option_name(const string & option)
 {
-  auto it = msat_option_map.find(option);
-  return it == msat_option_map.end() ? option : it->second;
+  if (option == "produce-interpolants")
+  {
+    return "interpolation";
+  }
+  if (option == "produce-models")
+  {
+    return "model_generation";
+  }
+  return option;
 }
 
-// the options MsatInterpolatingSolver cannot do without, set by its
-// constructor
-const unordered_set<string> interpolator_disallowed_options(
-    { "interpolation", "theory.bv.eager" });
-
 /* MathSAT op mappings */
-typedef msat_term (*msat_un_fun)(msat_env, msat_term);
-typedef msat_term (*msat_bin_fun)(msat_env, msat_term, msat_term);
-typedef msat_term (*msat_tern_fun)(msat_env, msat_term, msat_term, msat_term);
 
-// TODO: implement the external functions
-const unordered_map<PrimOp, msat_un_fun> msat_unary_ops({
-    { Not, msat_make_not },
-    { Negate, ext_msat_make_negate },
-    { Abs, ext_msat_make_abs },
-    { To_Real, ext_msat_make_nop },
-    { To_Int, msat_make_floor },
-    { Is_Int, ext_msat_is_int },
-    // Indexed Op
-    // {Extract, },
-    { BVNot, msat_make_bv_not },
-    { BVNeg, msat_make_bv_neg },
-    // Indexed Ops
-    // { Zero_Extend, }
-    // { Sign_Extend, }
-    // { Repeat, }
-    // { Rotate_Left, }
-    // { Rotate_Right, }
-    // BitVector conversion
-    { BV_To_Nat, msat_make_int_from_ubv },
-    { UBV_To_Int, msat_make_int_from_ubv },
-    { SBV_To_Int, msat_make_int_from_sbv },
-    // Indexed Op
-    // { Int_To_BV, }
-    // Special case
-});
+/** The term of op applied to one argument, or an exception where MathSAT has
+ *  no such op
+ */
+static msat_term unary_term(msat_env e, const Op & op, msat_term a)
+{
+  switch (op.prim_op)
+  {
+    case Not: return msat_make_not(e, a);
+    case Negate: return ext_msat_make_negate(e, a);
+    case Abs: return ext_msat_make_abs(e, a);
+    case To_Real: return ext_msat_make_nop(e, a);
+    case To_Int: return msat_make_floor(e, a);
+    case Is_Int: return ext_msat_is_int(e, a);
+    case BVNot: return msat_make_bv_not(e, a);
+    case BVNeg: return msat_make_bv_neg(e, a);
+    case BV_To_Nat: return msat_make_int_from_ubv(e, a);
+    case UBV_To_Int: return msat_make_int_from_ubv(e, a);
+    case SBV_To_Int: return msat_make_int_from_sbv(e, a);
+    default: break;
+  }
+  string msg("Can't apply ");
+  msg += op.to_string();
+  msg += " to a single term, or not supported by MathSAT backend yet.";
+  throw IncorrectUsageException(msg);
+}
 
-const unordered_map<PrimOp, msat_bin_fun> msat_binary_ops(
-    { { And, msat_make_and },
-      { Or, msat_make_or },
-      { Xor, ext_msat_make_xor },
-      { Implies, ext_msat_make_implies },
-      { Equal, msat_make_eq },
-      { Distinct, ext_msat_make_distinct },
-      { Plus, msat_make_plus },
-      { Minus, ext_msat_make_minus },
-      { Mult, msat_make_times },
-      { Div, msat_make_divide },
-      { IntDiv, ext_msat_make_intdiv },
-      { Lt, ext_msat_make_lt },
-      { Le, msat_make_leq },
-      { Gt, ext_msat_make_gt },
-      { Ge, ext_msat_make_geq },
-      { Mod, ext_msat_make_mod },
-      { Pow, ext_msat_make_pow },
-      { Concat, msat_make_bv_concat },
-      { BVAnd, msat_make_bv_and },
-      { BVOr, msat_make_bv_or },
-      { BVXor, msat_make_bv_xor },
-      { BVNand, ext_msat_make_bv_nand },
-      { BVNor, ext_msat_make_bv_nor },
-      { BVXnor, ext_msat_make_bv_xnor },
-      { BVComp, msat_make_bv_comp },
-      { BVAdd, msat_make_bv_plus },
-      { BVSub, msat_make_bv_minus },
-      { BVMul, msat_make_bv_times },
-      { BVUdiv, msat_make_bv_udiv },
-      { BVSdiv, msat_make_bv_sdiv },
-      { BVUrem, msat_make_bv_urem },
-      { BVSrem, msat_make_bv_srem },
-      // TODO: figure out how to implement this
-      //       tbh I don't really understand what smod does
-      { BVSmod, ext_msat_make_bv_smod },
-      { BVShl, msat_make_bv_lshl },
-      { BVAshr, msat_make_bv_ashr },
-      { BVLshr, msat_make_bv_lshr },
-      { BVUlt, msat_make_bv_ult },
-      { BVUle, msat_make_bv_uleq },
-      { BVUgt, ext_msat_make_bv_ugt },
-      { BVUge, ext_msat_make_bv_ugeq },
-      { BVSlt, msat_make_bv_slt },
-      { BVSle, msat_make_bv_sleq },
-      { BVSgt, ext_msat_make_bv_sgt },
-      { BVSge, ext_msat_make_bv_sgeq },
-      { Select, msat_make_array_read } });
-
-const unordered_map<PrimOp, msat_tern_fun> msat_ternary_ops(
-    { { Ite, ext_msat_make_ite }, { Store, msat_make_array_write } });
-
-// other special cases:
-// Apply -- needs to handle arbitrarily many terms
+/** The term of op applied to two arguments, or an exception where MathSAT has
+ *  no such op
+ */
+static msat_term binary_term(msat_env e,
+                             const Op & op,
+                             msat_term a,
+                             msat_term b)
+{
+  switch (op.prim_op)
+  {
+    case And: return msat_make_and(e, a, b);
+    case Or: return msat_make_or(e, a, b);
+    case Xor: return ext_msat_make_xor(e, a, b);
+    case Implies: return ext_msat_make_implies(e, a, b);
+    case Equal: return msat_make_eq(e, a, b);
+    case Distinct: return ext_msat_make_distinct(e, a, b);
+    case Plus: return msat_make_plus(e, a, b);
+    case Minus: return ext_msat_make_minus(e, a, b);
+    case Mult: return msat_make_times(e, a, b);
+    case Div: return msat_make_divide(e, a, b);
+    case IntDiv: return ext_msat_make_intdiv(e, a, b);
+    case Lt: return ext_msat_make_lt(e, a, b);
+    case Le: return msat_make_leq(e, a, b);
+    case Gt: return ext_msat_make_gt(e, a, b);
+    case Ge: return ext_msat_make_geq(e, a, b);
+    case Mod: return ext_msat_make_mod(e, a, b);
+    case Pow: return ext_msat_make_pow(e, a, b);
+    case Concat: return msat_make_bv_concat(e, a, b);
+    case BVAnd: return msat_make_bv_and(e, a, b);
+    case BVOr: return msat_make_bv_or(e, a, b);
+    case BVXor: return msat_make_bv_xor(e, a, b);
+    case BVNand: return ext_msat_make_bv_nand(e, a, b);
+    case BVNor: return ext_msat_make_bv_nor(e, a, b);
+    case BVXnor: return ext_msat_make_bv_xnor(e, a, b);
+    case BVComp: return msat_make_bv_comp(e, a, b);
+    case BVAdd: return msat_make_bv_plus(e, a, b);
+    case BVSub: return msat_make_bv_minus(e, a, b);
+    case BVMul: return msat_make_bv_times(e, a, b);
+    case BVUdiv: return msat_make_bv_udiv(e, a, b);
+    case BVSdiv: return msat_make_bv_sdiv(e, a, b);
+    case BVUrem: return msat_make_bv_urem(e, a, b);
+    case BVSrem: return msat_make_bv_srem(e, a, b);
+    case BVSmod: return ext_msat_make_bv_smod(e, a, b);
+    case BVShl: return msat_make_bv_lshl(e, a, b);
+    case BVAshr: return msat_make_bv_ashr(e, a, b);
+    case BVLshr: return msat_make_bv_lshr(e, a, b);
+    case BVUlt: return msat_make_bv_ult(e, a, b);
+    case BVUle: return msat_make_bv_uleq(e, a, b);
+    case BVUgt: return ext_msat_make_bv_ugt(e, a, b);
+    case BVUge: return ext_msat_make_bv_ugeq(e, a, b);
+    case BVSlt: return msat_make_bv_slt(e, a, b);
+    case BVSle: return msat_make_bv_sleq(e, a, b);
+    case BVSgt: return ext_msat_make_bv_sgt(e, a, b);
+    case BVSge: return ext_msat_make_bv_sgeq(e, a, b);
+    case Select: return msat_make_array_read(e, a, b);
+    default: break;
+  }
+  string msg("Can't apply ");
+  msg += op.to_string();
+  msg += " to two terms, or not supported by MathSAT backend yet.";
+  throw IncorrectUsageException(msg);
+}
 
 // MsatSolver implementation
 
@@ -776,17 +776,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     }
     else if (!op.num_idx)
     {
-      if (msat_unary_ops.find(op.prim_op) != msat_unary_ops.end())
-      {
-        res = msat_unary_ops.at(op.prim_op)(*env, mterms[0]);
-      }
-      else
-      {
-        string msg("Can't apply ");
-        msg += op.to_string();
-        msg += " to a single term, or not supported by MathSAT backend yet.";
-        throw IncorrectUsageException(msg);
-      }
+      res = unary_term(*env, op, mterms[0]);
     }
     else
     {
@@ -827,23 +817,17 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
                                  : msat_make_exists(*env, mterms[i], res);
     }
   }
-  else if (size == 2
-           && msat_binary_ops.find(op.prim_op) != msat_binary_ops.end())
-  {
-    res = msat_binary_ops.at(op.prim_op)(*env, mterms[0], mterms[1]);
-  }
-  else if (size == 3
-           && msat_ternary_ops.find(op.prim_op) != msat_ternary_ops.end())
-  {
-    res =
-        msat_ternary_ops.at(op.prim_op)(*env, mterms[0], mterms[1], mterms[2]);
-  }
   else if (size == 2)
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to two terms, or not supported by MathSAT backend yet.";
-    throw IncorrectUsageException(msg);
+    res = binary_term(*env, op, mterms[0], mterms[1]);
+  }
+  else if (size == 3 && op.prim_op == Ite)
+  {
+    res = ext_msat_make_ite(*env, mterms[0], mterms[1], mterms[2]);
+  }
+  else if (size == 3 && op.prim_op == Store)
+  {
+    res = msat_make_array_write(*env, mterms[0], mterms[1], mterms[2]);
   }
   else
   {
@@ -1185,8 +1169,9 @@ void MsatInterpolatingSolver::set_required_options()
 void MsatInterpolatingSolver::do_set_opt(const string & option,
                                          const string & value)
 {
-  if (interpolator_disallowed_options.find(msat_option_name(option))
-      != interpolator_disallowed_options.end())
+  // The constructor sets these, and the interpolator cannot do without them.
+  const string name = msat_option_name(option);
+  if (name == "interpolation" || name == "theory.bv.eager")
   {
     throw IncorrectUsageException("MathSAT interpolator does not allow option: "
                                   + option);
