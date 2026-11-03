@@ -1799,10 +1799,10 @@ std::string smtlib_quote_symbol(const std::string & s)
 
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
-  return INTERNAL_NAME_PREFIX + kind + "_" + std::to_string(index);
+  return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);
 }
 
-bool is_internal_name(const std::string & name)
+bool is_internal_name(std::string_view name)
 {
   return name.compare(0, INTERNAL_NAME_PREFIX.size(), INTERNAL_NAME_PREFIX)
          == 0;
