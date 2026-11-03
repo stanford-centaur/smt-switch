@@ -562,6 +562,36 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_non_generic_solver_configurations()),
     ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Logics);
+class Logics : public ::testing::Test,
+               public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    reader = std::make_unique<SmtLibReader>(s);
+  }
+
+  SmtSolver s;
+  std::unique_ptr<SmtLibReader> reader;
+};
+
+TEST_P(Logics, AllLeavesFunctionUndeclared)
+{
+  // SMT-LIB declares no sort named Function, so a script may define one
+  reader->set_logic("ALL");
+  Sort boolsort = s->make_sort(BOOL);
+  reader->define_sort("Function", boolsort);
+  EXPECT_EQ(reader->make_sort("Function"), boolsort);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Logics,
+    testing::ValuesIn(available_non_generic_solver_configurations()),
+    ConfigName());
+
 /** Records the values of the set-info commands it reads */
 class InfoRecorder : public SmtLibReader
 {

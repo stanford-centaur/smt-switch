@@ -24,17 +24,17 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "exceptions.h"
 #include "ops.h"
 #include "smtlib_parser.h"
-#include "smtlib_parser_maps.h"
 #include "smtlib_scanner.h"
 #include "solver.h"
 #include "sort.h"
@@ -43,43 +43,8 @@ SmtLibParseException::~SmtLibParseException() = default;
 
 namespace smt {
 
-// maps logic string to vector of theories included in the logic
-const std::unordered_map<std::string, std::vector<std::string>>
-    logic_theory_map({
-        { "A", { "A" } },
-        { "AX", { "A" } },
-        { "BV", { "BV" } },
-        { "IDL", { "IA" } },
-        { "LIA", { "IA" } },
-        { "LIRA", { "IA", "RA", "IRA" } },
-        { "LRA", { "RA" } },
-        { "NIA", { "IA" } },
-        { "NIRA", { "IA", "RA", "IRA" } },
-        { "NRA", { "RA" } },
-        { "RDL", { "RA" } },
-        { "UF", { "UF" } },
-        { "S", { "S" } },
-    });
-
-// maps logic string to vector of associated SortKinds for that logic
-const std::unordered_map<std::string, std::vector<SortKind>> logic_sortkind_map(
-    {
-        { "A", { ARRAY } },
-        { "AX", { ARRAY } },
-        { "BV", { BV } },
-        { "IDL", { INT } },
-        { "LIA", { INT } },
-        { "LIRA", { INT, REAL } },
-        { "LRA", { REAL } },
-        { "NIA", { INT } },
-        { "NIRA", { INT, REAL } },
-        { "NRA", { REAL } },
-        { "RDL", { REAL } },
-        { "UF", { FUNCTION } },
-        { "S", { STRING } },
-    });
-
 namespace {
+
 bool has_sort_kind(SortKind sk, const Term & t)
 {
   return t->get_sort()->get_sort_kind() == sk;
@@ -157,13 +122,10 @@ Term UnorderedScopedSymbolMap::get_symbol(const std::string & sym) const
 }
 
 SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
-    : solver_(solver),
-      strict_(strict),
-      // logic always includes core theory
-      primops_(strict_theory2opmap.at("Core")),
-      // always have sort Bool available
-      sortkinds_({ { "Bool", BOOL } })
+    : solver_(solver), strict_(strict)
 {
+  // every logic includes the core theory
+  add_theory(LogicTheory::CORE);
 }
 
 void SmtLibReader::parse(const std::string & f)
@@ -212,141 +174,153 @@ void SmtLibReader::parse(const std::string & f)
 
 void SmtLibReader::set_logic(const std::string & logic)
 {
-  if (logic == "ALL")
-  {
-    set_logic_all();
-    return;
-  }
-
   solver_->set_logic(logic);
   logic_ = logic;
 
-  // process logic to get available operator symbols
-  std::string processed_logic = logic;
-  if (processed_logic.substr(0, 3) == "QF_")
+  if (logic == "ALL")
+  {
+    for (int theory = 0; theory < static_cast<int>(LogicTheory::NUM_THEORIES);
+         ++theory)
+    {
+      add_theory(static_cast<LogicTheory>(theory));
+    }
+    return;
+  }
+
+  std::string_view rest = logic;
+  if (rest.substr(0, 3) == "QF_")
   {
     // parser doesn't distinguish -- let solver complain
     // if using quantifiers in quantifier-free logic
-    processed_logic = processed_logic.substr(3, processed_logic.length() - 3);
+    rest.remove_prefix(3);
   }
 
-  std::unordered_set<std::string> theories;
-  std::size_t logic_size;
-  while ((logic_size = processed_logic.size()))
+  // The arithmetic comes last, as I, R or IR followed by A for arithmetic
+  // or DL for difference logic, and QF_AX ends in the X of extensionality.
+  // These suffixes declare no symbols.
+  if (rest.size() >= 2 && rest.substr(rest.size() - 2) == "DL")
   {
-    // all existing theories have abbreviations of length 4 or shorter; the
-    // longest is tried first, so that AX is not read as A
-    for (std::size_t len = std::min<std::size_t>(4, logic_size); len > 0; --len)
+    rest.remove_suffix(2);
+  }
+  else if (rest.size() >= 2
+           && (rest.substr(rest.size() - 2) == "IA"
+               || rest.substr(rest.size() - 2) == "RA"
+               || rest.substr(rest.size() - 2) == "AX"))
+  {
+    rest.remove_suffix(1);
+  }
+
+  // the abbreviations of the theories, none a prefix of another, with
+  // linear (L) and nonlinear (N) arithmetic declaring nothing of their own
+  static constexpr std::pair<std::string_view, LogicTheory> abbreviations[] = {
+    { "A", LogicTheory::A },    { "BV", LogicTheory::BV },
+    { "UF", LogicTheory::UF },  { "S", LogicTheory::S },
+    { "I", LogicTheory::IA },   { "R", LogicTheory::RA },
+    { "L", LogicTheory::CORE }, { "N", LogicTheory::CORE },
+  };
+  while (!rest.empty())
+  {
+    std::size_t len = 0;
+    for (const auto & [abbreviation, theory] : abbreviations)
     {
-      std::string sub = processed_logic.substr(0, len);
-      if (logic_theory_map.find(sub) != logic_theory_map.end())
+      if (rest.substr(0, abbreviation.size()) == abbreviation)
       {
-        // add operators for this theory
-        for (const auto & theory : logic_theory_map.at(sub))
-        {
-          theories.insert(theory);
-          for (const auto & elem : strict_theory2opmap.at(theory))
-          {
-            primops_.insert(elem);
-          }
-        }
-
-        processed_logic =
-            processed_logic.substr(len, processed_logic.length() - len);
-
-        if (sub == "UF")
-        {
-          // special-case for UF, still want to allow sorts
-          // named FUNCTION, so don't add to sortkinds_
-          // instead, just set the allow_ufs_ flag
-          allow_ufs_ = true;
-        }
-        else
-        {
-          for (const SortKind sk : logic_sortkind_map.at(sub))
-          {
-            sortkinds_[to_string(sk)] = sk;
-          }
-        }
+        add_theory(theory);
+        len = abbreviation.size();
         break;
       }
     }
-
-    if (processed_logic.size() == logic_size)
+    if (len == 0)
     {
       throw IncorrectUsageException("Failed to interpret logic: " + logic);
     }
+    rest.remove_prefix(len);
   }
 
-  if (!strict_)
+  // the conversions between the theories that a logic combines
+  if (lookup_sortkind(to_string(INT)) == INT
+      && lookup_sortkind(to_string(REAL)) == REAL)
   {
-    // add non-strict operators
-    bool bv_theory = theories.find("BV") != theories.end();
-    bool int_theory = theories.find("IA") != theories.end();
-    std::vector<std::string> theory_combs;
-
-    if (int_theory)
-    {
-      theory_combs.push_back("IA");
-    }
-    if (int_theory && bv_theory)
-    {
-      theory_combs.push_back("BVIA");
-    }
-
-    for (const auto & comb : theory_combs)
-    {
-      for (const auto & elem : nonstrict_theory2opmap.at(comb))
-      {
-        primops_.insert(elem);
-      }
-    }
+    add_theory(LogicTheory::IRA);
+  }
+  if (lookup_sortkind(to_string(INT)) == INT
+      && lookup_sortkind(to_string(BV)) == BV)
+  {
+    add_theory(LogicTheory::BVIA);
   }
 }
 
-void SmtLibReader::set_logic_all()
+void SmtLibReader::add_theory(LogicTheory theory)
 {
-  try
+  std::optional<SortKind> sort;
+  std::vector<PrimOp> ops;
+  switch (theory)
   {
-    solver_->set_logic("ALL");
-  }
-  catch (SmtException & e)
-  {
-  }
-
-  logic_ = "ALL";
-
-  // enable UFs manually
-  allow_ufs_ = true;
-
-  // add all strict operators
-  for (const auto & tmap : strict_theory2opmap)
-  {
-    for (const auto & elem : tmap.second)
-    {
-      primops_.insert(elem);
-    }
-  }
-
-  // add sorts
-  for (const auto & elem : logic_sortkind_map)
-  {
-    for (const SortKind & sk : elem.second)
-    {
-      sortkinds_[to_string(sk)] = sk;
-    }
-  }
-
-  if (!strict_)
-  {
-    // add non-strict operators
-    for (const auto & tmap : nonstrict_theory2opmap)
-    {
-      for (const auto & elem : tmap.second)
+    case LogicTheory::CORE:
+      sort = BOOL;
+      ops = {
+        And, Or, Xor, Not, Implies, Ite, Equal, Distinct, Forall, Exists
+      };
+      break;
+    case LogicTheory::UF:
+      // no sort or operator, so that neither Function nor apply is
+      // reserved
+      allow_ufs_ = true;
+      break;
+    case LogicTheory::IA:
+      sort = INT;
+      // - with one argument is Negate, which apply_primop picks
+      ops = { Plus, Minus, Lt, Le, Gt, Ge, Mult, IntDiv, Mod, Divisible, Abs };
+      if (!strict_)
       {
-        primops_.insert(elem);
+        ops.push_back(Pow);
       }
-    }
+      break;
+    case LogicTheory::RA:
+      sort = REAL;
+      // - with one argument is Negate, which apply_primop picks
+      ops = { Plus, Minus, Lt, Le, Gt, Ge, Mult, Div };
+      break;
+    case LogicTheory::IRA: ops = { To_Real, To_Int, Is_Int }; break;
+    case LogicTheory::BV:
+      sort = BV;
+      ops = { Concat,      Extract,     BVNot,  BVNeg,       BVAnd,
+              BVOr,        BVXor,       BVNand, BVNor,       BVXnor,
+              BVComp,      BVAdd,       BVSub,  BVMul,       BVUdiv,
+              BVSdiv,      BVUrem,      BVSrem, BVSmod,      BVShl,
+              BVAshr,      BVLshr,      BVUlt,  BVUle,       BVUgt,
+              BVUge,       BVSlt,       BVSle,  BVSgt,       BVSge,
+              Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right };
+      break;
+    case LogicTheory::BVIA:
+      if (!strict_)
+      {
+        ops = { Int_To_BV, UBV_To_Int, SBV_To_Int };
+        // obsolete spellings of int_to_bv and ubv_to_int
+        primops_.emplace("int2bv", Int_To_BV);
+        primops_.emplace("bv2nat", UBV_To_Int);
+      }
+      break;
+    case LogicTheory::S:
+      sort = STRING;
+      ops = { StrLt,       StrLeq,      StrLen,     StrConcat,  StrSubstr,
+              StrAt,       StrContains, StrIndexof, StrReplace, StrReplaceAll,
+              StrPrefixof, StrSuffixof, StrIsDigit };
+      break;
+    case LogicTheory::A:
+      sort = ARRAY;
+      ops = { Select, Store };
+      break;
+    case LogicTheory::NUM_THEORIES: break;
+  }
+
+  if (sort)
+  {
+    sortkinds_.emplace(to_string(*sort), *sort);
+  }
+  for (const PrimOp po : ops)
+  {
+    primops_.emplace(to_string(po), po);
   }
 }
 
@@ -556,7 +530,8 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
   // SMT-LIB declares the arithmetic operators as (op Real Real s), for which
   // the logic AUFLIRA makes an Int argument next to a Real one, and every Int
   // argument of /, syntactic sugar for its conversion with to_real.
-  if (lookup_sortkind("Int") == INT && lookup_sortkind("Real") == REAL
+  if (lookup_sortkind(to_string(INT)) == INT
+      && lookup_sortkind(to_string(REAL)) == REAL
       && (get_theory(po) == Theory::ARITH || get_theory(po) == Theory::REALS
           || (!strict_ && (po == Equal || po == Distinct)))
       && (po == Div
@@ -767,8 +742,8 @@ Term SmtLibReader::make_bv_value(const std::string & digits,
 
 Term SmtLibReader::make_numeral(const std::string & n) const
 {
-  SortKind sk = lookup_sortkind("Int") == NUM_SORT_KINDS
-                        && lookup_sortkind("Real") == REAL
+  SortKind sk = lookup_sortkind(to_string(INT)) == NUM_SORT_KINDS
+                        && lookup_sortkind(to_string(REAL)) == REAL
                     ? REAL
                     : INT;
   return solver_->make_term(n, solver_->make_sort(sk));
