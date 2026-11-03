@@ -1411,7 +1411,8 @@ static void refuse_internal_name(const std::string & name,
   if (is_internal_name(name))
   {
     throw IncorrectUsageException(
-        what + " name " + name + " starts with " + INTERNAL_NAME_PREFIX
+        what + " name " + name + " starts with "
+        + std::string(INTERNAL_NAME_PREFIX)
         + ", which the generic solver keeps for names of its own");
   }
 }

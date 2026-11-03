@@ -214,7 +214,7 @@ std::string bv_value_to_bits(const std::string & val,
 /** The start of every name internal_name makes. A solver that makes such
  *  names refuses a user name with this start, so the two never meet.
  */
-const std::string INTERNAL_NAME_PREFIX = "smt_switch_internal_";
+inline constexpr std::string_view INTERNAL_NAME_PREFIX = "smt_switch_internal_";
 
 /** A name smt-switch makes up for its own use, such as
  *  `smt_switch_internal_assump_3`
@@ -229,7 +229,7 @@ std::string internal_name(const std::string & kind, std::uint64_t index);
  *  @param name the name to check
  *  @return true if internal_name could have made it
  */
-bool is_internal_name(const std::string & name);
+bool is_internal_name(std::string_view name);
 
 // -----------------------------------------------------------------------------
 
