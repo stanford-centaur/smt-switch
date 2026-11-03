@@ -23,15 +23,10 @@
 
 namespace smt {
 
-const std::unordered_set<SolverEnum> interpolator_solver_enums({
-    BZLA_INTERPOLATOR,
-    CVC5_INTERPOLATOR,
-    MSAT_INTERPOLATOR,
-});
-
 bool is_interpolator_solver_enum(SolverEnum se)
 {
-  return interpolator_solver_enums.find(se) != interpolator_solver_enums.end();
+  return se == BZLA_INTERPOLATOR || se == CVC5_INTERPOLATOR
+         || se == MSAT_INTERPOLATOR;
 }
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
