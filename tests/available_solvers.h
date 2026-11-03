@@ -17,6 +17,7 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <unordered_set>
@@ -47,6 +48,9 @@ smt::SolverEnum interpolator_base_solver(smt::SolverEnum se);
 
 // collect all the available solvers
 std::vector<smt::SolverEnum> available_solver_enums();
+
+/** The solver's own executable, if configure found one */
+std::optional<std::string> solver_binary(smt::SolverEnum se);
 
 // collect all the available solvers non generic
 std::vector<smt::SolverEnum> available_non_generic_solver_enums();

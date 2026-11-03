@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -55,31 +56,6 @@ using namespace smt;
 
 namespace smt_tests {
 
-// list of regular (non-interpolator) solver enums
-const std::vector<SolverEnum> solver_enums({
-#ifdef BUILD_BTOR
-    BTOR,
-#endif
-#ifdef BUILD_BITWUZLA
-    BZLA,
-#endif
-#ifdef BUILD_CVC5
-    CVC5,
-#ifdef CVC5_BINARY
-    GENERIC_SOLVER,
-#endif
-#endif
-#ifdef BUILD_MSAT
-    MSAT,
-#endif
-#ifdef BUILD_YICES2
-    YICES2,
-#endif
-#ifdef BUILD_Z3
-    Z3,
-#endif
-});
-
 SolverConfiguration::SolverConfiguration(smt::SolverEnum se, bool ils)
     : solver_enum(se), is_logging_solver(ils)
 {
@@ -106,9 +82,8 @@ SmtSolver create_solver(SolverConfiguration sc)
       return Cvc5SolverFactory::create(sc.is_logging_solver);
       break;
     }
-#ifdef CVC5_BINARY
     case GENERIC_SOLVER: {
-      std::string path = CVC5_BINARY;
+      std::string path = solver_binary(CVC5).value();
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };
@@ -130,7 +105,6 @@ SmtSolver create_solver(SolverConfiguration sc)
       }
       break;
     }
-#endif
 #endif
 #ifdef BUILD_MSAT
     case MSAT: {
@@ -184,12 +158,67 @@ SmtInterpolator create_interpolating_solver(SolverConfiguration sc)
   }
 }
 
-std::vector<SolverEnum> available_solver_enums() { return solver_enums; }
+std::vector<SolverEnum> available_solver_enums()
+{
+  // the regular (non-interpolator) solvers
+  std::vector<SolverEnum> enums = {
+#ifdef BUILD_BTOR
+    BTOR,
+#endif
+#ifdef BUILD_BITWUZLA
+    BZLA,
+#endif
+#ifdef BUILD_CVC5
+    CVC5,
+#endif
+#ifdef BUILD_MSAT
+    MSAT,
+#endif
+#ifdef BUILD_YICES2
+    YICES2,
+#endif
+#ifdef BUILD_Z3
+    Z3,
+#endif
+  };
+  // the generic solver drives the cvc5 executable
+  if (solver_binary(CVC5))
+  {
+    enums.push_back(GENERIC_SOLVER);
+  }
+  return enums;
+}
+
+std::optional<std::string> solver_binary(SolverEnum se)
+{
+  switch (se)
+  {
+#ifdef BOOLECTOR_BINARY
+    case BTOR: return BOOLECTOR_BINARY;
+#endif
+#ifdef BITWUZLA_BINARY
+    case BZLA: return BITWUZLA_BINARY;
+#endif
+#ifdef CVC5_BINARY
+    case CVC5: return CVC5_BINARY;
+#endif
+#ifdef MATHSAT_BINARY
+    case MSAT: return MATHSAT_BINARY;
+#endif
+#ifdef YICES2_BINARY
+    case YICES2: return YICES2_BINARY;
+#endif
+#ifdef Z3_BINARY
+    case Z3: return Z3_BINARY;
+#endif
+    default: return std::nullopt;
+  }
+}
 
 std::vector<SolverEnum> available_non_generic_solver_enums()
 {
   std::vector<SolverEnum> result;
-  for (SolverEnum se : solver_enums)
+  for (SolverEnum se : available_solver_enums())
   {
     if (se != SolverEnum::GENERIC_SOLVER)
     {
@@ -299,7 +328,7 @@ std::vector<SolverEnum> filter_solver_enums(
     const std::unordered_set<SolverAttribute> attributes)
 {
   std::vector<SolverEnum> filtered_enums;
-  for (auto se : solver_enums)
+  for (auto se : available_solver_enums())
   {
     if (has_all_attributes(se, attributes))
     {

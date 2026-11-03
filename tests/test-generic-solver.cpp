@@ -19,15 +19,14 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <memory>
-#include <ostream>
+#include <optional>
 #include <string>
 #include <tuple>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "available_solvers.h"
 #include "exceptions.h"
 #include "generic_datatype.h"
 #include "generic_solver.h"
@@ -43,6 +42,7 @@
 #include "utils.h"
 
 using namespace smt;
+using namespace smt_tests;
 using namespace std;
 
 namespace {
@@ -54,41 +54,6 @@ namespace {
 // costs nothing here and keeps a wedged run from occupying a CI job.
 const std::chrono::seconds solver_response_timeout(2);
 
-enum class GenericBinary
-{
-  Cvc5,
-  Msat,
-  Yices2,
-  Btor,
-  Bitwuzla,
-  Z3
-};
-
-// The binaries whose executable configure found, and where. It looks only
-// for the solvers being built: under the solver's root first, which is where
-// a provisioned copy lives, then on the PATH, which is where a system one
-// does. A built solver without an executable is left out of every suite.
-const map<GenericBinary, string> binary_paths = {
-#ifdef CVC5_BINARY
-  { GenericBinary::Cvc5, CVC5_BINARY },
-#endif
-#ifdef MATHSAT_BINARY
-  { GenericBinary::Msat, MATHSAT_BINARY },
-#endif
-#ifdef YICES2_BINARY
-  { GenericBinary::Yices2, YICES2_BINARY },
-#endif
-#ifdef BOOLECTOR_BINARY
-  { GenericBinary::Btor, BOOLECTOR_BINARY },
-#endif
-#ifdef BITWUZLA_BINARY
-  { GenericBinary::Bitwuzla, BITWUZLA_BINARY },
-#endif
-#ifdef Z3_BINARY
-  { GenericBinary::Z3, Z3_BINARY },
-#endif
-};
-
 void init_solver(SmtSolver gs)
 {
   gs->set_opt("produce-models", "true");
@@ -96,114 +61,40 @@ void init_solver(SmtSolver gs)
   gs->set_logic("ALL");
 }
 
-void new_btor(SmtSolver & gs,
-              int buffer_size,
-              std::chrono::milliseconds timeout)
+/** The arguments the binary of a native backend's solver is started with */
+vector<string> binary_args(SolverEnum se)
 {
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Btor);
-  vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-void new_bitwuzla(SmtSolver & gs,
-                  int buffer_size,
-                  std::chrono::milliseconds timeout)
-{
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Bitwuzla);
-  // Bitwuzla is always incremental, so it has no flag for it
-  vector<string> args = { "--lang", "smt2" };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-void new_msat(SmtSolver & gs,
-              int buffer_size,
-              std::chrono::milliseconds timeout)
-{
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Msat);
-  vector<string> args = { "" };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-void new_yices2(SmtSolver & gs,
-                int buffer_size,
-                std::chrono::milliseconds timeout)
-{
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Yices2);
-  vector<string> args = { "--incremental" };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-void new_cvc5(SmtSolver & gs,
-              int buffer_size,
-              std::chrono::milliseconds timeout)
-{
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Cvc5);
-  vector<string> args = {
-    "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
-  };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-void new_z3(SmtSolver & gs, int buffer_size, std::chrono::milliseconds timeout)
-{
-  gs.reset();
-  string path = binary_paths.at(GenericBinary::Z3);
-  // Z3 reads SMT-LIB 2 from standard input only when told to, and is
-  // incremental without a flag
-  vector<string> args = { "-smt2", "-in" };
-  gs = std::make_shared<GenericSolver>(path, args, timeout, buffer_size);
-}
-
-string binary_name(GenericBinary b)
-{
-  switch (b)
+  switch (se)
   {
-    case GenericBinary::Cvc5: return "Cvc5";
-    case GenericBinary::Msat: return "Msat";
-    case GenericBinary::Yices2: return "Yices2";
-    case GenericBinary::Btor: return "Btor";
-    case GenericBinary::Bitwuzla: return "Bitwuzla";
-    case GenericBinary::Z3: return "Z3";
+    case BTOR: return { "--incremental" };
+    // Bitwuzla is always incremental, so it has no flag for it
+    case BZLA: return { "--lang", "smt2" };
+    case CVC5:
+      return {
+        "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
+      };
+    case MSAT: return { "" };
+    case YICES2: return { "--incremental" };
+    // Z3 reads SMT-LIB 2 from standard input only when told to, and is
+    // incremental without a flag
+    case Z3: return { "-smt2", "-in" };
+    case GENERIC_SOLVER:
+    case BZLA_INTERPOLATOR:
+    case CVC5_INTERPOLATOR:
+    case MSAT_INTERPOLATOR: break;
   }
-  return "Unknown";
-}
-
-ostream & operator<<(ostream & o, GenericBinary b)
-{
-  return o << binary_name(b);
-}
-
-/** The native backend built on the same solver, whose attributes describe
- *  what the binary accepts unless has_attribute says otherwise.
- */
-SolverEnum native_backend(GenericBinary b)
-{
-  switch (b)
-  {
-    case GenericBinary::Cvc5: return CVC5;
-    case GenericBinary::Msat: return MSAT;
-    case GenericBinary::Yices2: return YICES2;
-    case GenericBinary::Btor: return BTOR;
-    case GenericBinary::Bitwuzla: return BZLA;
-    case GenericBinary::Z3: return Z3;
-  }
-  throw NotImplementedException("Unhandled generic binary");
+  throw NotImplementedException("No binary for " + to_string(se));
 }
 
 /** Whether the binary accepts what the attribute describes: its native
  *  backend's attribute, except where the binary was seen to differ.
  */
-bool has_attribute(GenericBinary b, SolverAttribute a)
+bool has_attribute(SolverEnum b, SolverAttribute a)
 {
   // The mathsat binary answers every check-sat over a quantified assertion
   // with (error "The CNF conversion does not support quantifiers"), though
   // the backend built on its API claims quantifiers.
-  if (b == GenericBinary::Msat && a == QUANTIFIERS)
+  if (b == MSAT && a == QUANTIFIERS)
   {
     return false;
   }
@@ -211,59 +102,50 @@ bool has_attribute(GenericBinary b, SolverAttribute a)
   // ask of it: they declare a sort and never solve over it. The native
   // backend declares them too but cannot reason about them, which is why
   // BZLA does not claim the attribute -- see src/solver_enums.cpp.
-  if (b == GenericBinary::Bitwuzla && a == UNINTERP_SORT)
+  if (b == BZLA && a == UNINTERP_SORT)
   {
     return true;
   }
   // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
   // frontend has no such term: the binary answers
   // (error "undefined term: const") to ((as const (Array ...)) ...).
-  if (b == GenericBinary::Yices2 && a == CONSTARR)
+  if (b == YICES2 && a == CONSTARR)
   {
     return false;
   }
   // The boolector binary answers get-value for a select, then dies of
   // SIGSEGV on get-value for the array itself.
-  if (b == GenericBinary::Btor && a == ARRAY_MODELS)
+  if (b == BTOR && a == ARRAY_MODELS)
   {
     return false;
   }
-  return solver_has_attribute(native_backend(b), a);
+  return solver_has_attribute(b, a);
 }
 
 /** Whether the binary accepts a function returning an array, which no
  *  SolverAttribute covers. Boolector does not: "only bit-vector sorts
  *  supported as return sort for arity > 0".
  */
-bool has_array_returning_functions(GenericBinary b)
-{
-  return b != GenericBinary::Btor;
-}
+bool has_array_returning_functions(SolverEnum b) { return b != BTOR; }
 
 /** Whether the binary refuses a set-option it does not know, as SMT-LIB
  *  requires, which is what reaches the caller as an error. No
  *  SolverAttribute covers it. Bitwuzla answers success instead.
  */
-bool rejects_unknown_options(GenericBinary b)
-{
-  return b != GenericBinary::Bitwuzla;
-}
+bool rejects_unknown_options(SolverEnum b) { return b != BZLA; }
 
 /** Whether the binary takes a second set-logic, which SMT-LIB forbids.
  *  Boolector and Bitwuzla do.
  */
-bool accepts_second_logic(GenericBinary b)
-{
-  return b == GenericBinary::Btor || b == GenericBinary::Bitwuzla;
-}
+bool accepts_second_logic(SolverEnum b) { return b == BTOR || b == BZLA; }
 
 /** Whether the binary takes a set-logic after a declaration made without
  *  one, which SMT-LIB forbids. cvc5 settles on ALL at the declaration, and
  *  Yices2 refuses the declaration until it has a logic, so it gets ALL.
  */
-bool accepts_logic_after_declaration(GenericBinary b)
+bool accepts_logic_after_declaration(SolverEnum b)
 {
-  return b != GenericBinary::Cvc5 && b != GenericBinary::Yices2;
+  return b != CVC5 && b != YICES2;
 }
 
 // The smallest supported buffer splits each response into as many reads as
@@ -271,17 +153,18 @@ bool accepts_logic_after_declaration(GenericBinary b)
 const vector<int> buffer_sizes = { 2, 256 };
 
 // (solver binary, buffer size)
-typedef tuple<GenericBinary, int> GenericSolverParam;
+typedef tuple<SolverEnum, int> GenericSolverParam;
 
-/** Every buffer size for each available binary that passes the filter */
+/** Every buffer size for each available binary that passes the filter. A
+ *  built solver without an executable is left out of every suite.
+ */
 vector<GenericSolverParam> params_where(
-    const function<bool(GenericBinary)> & filter)
+    const function<bool(SolverEnum)> & filter)
 {
   vector<GenericSolverParam> params;
-  for (const auto & entry : binary_paths)
+  for (SolverEnum b : available_non_generic_solver_enums())
   {
-    GenericBinary b = entry.first;
-    if (!filter(b))
+    if (!solver_binary(b) || !filter(b))
     {
       continue;
     }
@@ -295,23 +178,26 @@ vector<GenericSolverParam> params_where(
 
 vector<GenericSolverParam> params_with(SolverAttribute a)
 {
-  return params_where([a](GenericBinary b) { return has_attribute(b, a); });
+  return params_where([a](SolverEnum b) { return has_attribute(b, a); });
 }
 
 /** Each available binary at the biggest buffer size only */
 vector<GenericSolverParam> params_one_buffer_size()
 {
   vector<GenericSolverParam> params;
-  for (const auto & entry : binary_paths)
+  for (SolverEnum b : available_non_generic_solver_enums())
   {
-    params.emplace_back(entry.first, buffer_sizes.back());
+    if (solver_binary(b))
+    {
+      params.emplace_back(b, buffer_sizes.back());
+    }
   }
   return params;
 }
 
 string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
 {
-  return binary_name(get<0>(info.param)) + "_Buf"
+  return to_string(get<0>(info.param)) + "_Buf"
          + std::to_string(get<1>(info.param));
 }
 
@@ -332,21 +218,14 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   // replace gs with a fresh solver, in start mode with no options set
   void start_binary(std::chrono::milliseconds timeout = solver_response_timeout)
   {
-    int buffer_size = get<1>(GetParam());
-    switch (binary)
-    {
-      case GenericBinary::Cvc5: new_cvc5(gs, buffer_size, timeout); break;
-      case GenericBinary::Msat: new_msat(gs, buffer_size, timeout); break;
-      case GenericBinary::Yices2: new_yices2(gs, buffer_size, timeout); break;
-      case GenericBinary::Btor: new_btor(gs, buffer_size, timeout); break;
-      case GenericBinary::Bitwuzla:
-        new_bitwuzla(gs, buffer_size, timeout);
-        break;
-      case GenericBinary::Z3: new_z3(gs, buffer_size, timeout); break;
-    }
+    gs.reset();
+    gs = std::make_shared<GenericSolver>(solver_binary(binary).value(),
+                                         binary_args(binary),
+                                         timeout,
+                                         get<1>(GetParam()));
   }
 
-  GenericBinary binary;
+  SolverEnum binary;
   SmtSolver gs;
 };
 
@@ -675,7 +554,7 @@ TEST_P(GenericSolverTests, SymbolsPrintInSmtlibSpelling)
 
 TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
 {
-  if (binary == GenericBinary::Bitwuzla)
+  if (binary == BZLA)
   {
     GTEST_SKIP() << "the Bitwuzla binary refuses a reserved word as a "
                     "declared name even in bars, as in |let|";
@@ -1511,7 +1390,7 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
   // Boolector itself answers wrongly, not the parsing here: assuming a
   // name defined as (not bool11), get-unsat-assumptions gives (bool11),
   // and assuming the literal (not bool11) it gives (false).
-  Term culprit = binary == GenericBinary::Btor ? b1 : not_b1;
+  Term culprit = binary == BTOR ? b1 : not_b1;
   EXPECT_NE(core.find(culprit), core.end());
   gs->pop(1);
 }
@@ -1539,7 +1418,7 @@ TEST_P(GenericSolverTests, FormulaAssumptions)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverTests,
                          GenericSolverTests,
-                         testing::ValuesIn(params_where([](GenericBinary) {
+                         testing::ValuesIn(params_where([](SolverEnum) {
                            return true;
                          })),
                          param_name);
@@ -1573,7 +1452,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntQuantifierTests,
                          GenericSolverIntQuantifierTests,
-                         testing::ValuesIn(params_where([](GenericBinary b) {
+                         testing::ValuesIn(params_where([](SolverEnum b) {
                            return has_attribute(b, THEORY_INT)
                                   && has_attribute(b, QUANTIFIERS);
                          })),
