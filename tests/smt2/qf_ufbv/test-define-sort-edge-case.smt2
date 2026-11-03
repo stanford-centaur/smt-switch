@@ -11,4 +11,5 @@
 (assert (= ((_ extract 31 31) x) #b1))
 (assert (= ((_ extract 31 31) y) #b0))
 (assert (bvult x y))
+(set-info :status unsat)
 (check-sat)

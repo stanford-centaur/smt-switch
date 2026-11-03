@@ -9,4 +9,5 @@
            ))
 (assert (= y (select all0 x)))
 (assert (distinct y 0))
+(set-info :status unsat)
 (check-sat)

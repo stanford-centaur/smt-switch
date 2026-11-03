@@ -4,6 +4,8 @@
 (assert ((_ divisible 3) (- x 2)))
 (assert (<= 4 x))
 (assert (<= x 6))
+(set-info :status sat)
 (check-sat)
 (assert (distinct x 5))
+(set-info :status unsat)
 (check-sat)

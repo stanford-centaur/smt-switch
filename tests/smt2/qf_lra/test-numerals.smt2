@@ -5,10 +5,13 @@
 ; without integers in the logic, numerals are reals
 (assert (= x 0))
 (assert (< x (+ x 1)))
+(set-info :status sat)
 (check-sat)
 (push 1)
 (assert (= (* 2 x) 1))
+(set-info :status unsat)
 (check-sat)
 (pop 1)
 (assert (> (half 1) x))
+(set-info :status sat)
 (check-sat)

@@ -8,4 +8,5 @@
 (declare-fun pred ((Mem Int Int)) Bool)
 (assert (pred m0))
 (assert (not (pred m2)))
+(set-info :status unsat)
 (check-sat)
