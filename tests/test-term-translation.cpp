@@ -390,6 +390,21 @@ TEST_P(TranslationTests, QuotedSymbolName)
   EXPECT_EQ(to_s1.transfer_term(spaced_2), spaced);
 }
 
+// So does a symbol made after a push. By default, Boolector's API prefixes its
+// name, but smt-switch's Boolector backend names the symbol directly.
+TEST_P(TranslationTests, SymbolMadeAfterPush)
+{
+  s1->set_opt("incremental", "true");
+  s1->push();
+  Term c = s1->make_symbol("c", boolsort);
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  Term c_2 = to_s2.transfer_term(c);
+  EXPECT_EQ(c_2->get_symbol_name(), "c");
+  EXPECT_EQ(to_s1.transfer_term(c_2), c);
+}
+
 TEST_P(TranslationTests, Equal)
 {
   Term a_equal_b = s1->make_term(Equal, a, b);

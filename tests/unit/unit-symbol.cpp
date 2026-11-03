@@ -116,6 +116,25 @@ TEST_P(UnitSymbolTests, QuotedSymbolName)
   EXPECT_EQ(fun->get_symbol_name(), "strange Fun _ name$");
 }
 
+// Symbols made after a push keep their names. By default, Boolector's API
+// prefixes such a name with its count of pushes and pops, as in BTOR_1@x,
+// which smt-switch's Boolector backend avoids by naming the symbol directly.
+TEST_P(UnitSymbolTests, SymbolNameAfterPush)
+{
+  s->set_opt("incremental", "true");
+  Term prefixed = s->make_symbol("BTOR_1@x", bvsort);
+  s->push();
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term a = s->make_symbol("a", arrsort);
+
+  EXPECT_EQ(prefixed->get_symbol_name(), "BTOR_1@x");
+  EXPECT_EQ(x->get_symbol_name(), "x");
+  EXPECT_EQ(f->get_symbol_name(), "f");
+  EXPECT_EQ(a->get_symbol_name(), "a");
+  EXPECT_EQ(x->to_string(), "x");
+}
+
 TEST_P(UnitSymbolTests, EmptySymbolName)
 {
   if (GetParam().solver_enum == MSAT)

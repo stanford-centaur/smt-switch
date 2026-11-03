@@ -18,6 +18,7 @@
 
 extern "C" {
 #include <btorcore.h>
+#include <btornode.h>
 #include <utils/boolectornodemap.h>
 }
 
@@ -671,8 +672,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
-  // check that name is available
-  // avoids memory leak when boolector aborts
+  // check that name is available, which btor_node_set_symbol below does not
   if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
@@ -680,20 +680,25 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 
   BoolectorSort bs = btor_sort(sort);
 
+  // The symbol is made without a name and named afterwards: Boolector names a
+  // symbol made after its n-th push or pop BTOR_<n>@<name>, so that a name can
+  // be declared again after a pop, but symbol_table keeps a name taken at
+  // every context level.
   SortKind sk = sort->get_sort_kind();
   BoolectorNode * n;
   if (sk == ARRAY)
   {
-    n = boolector_array(btor.get(), bs, name.c_str());
+    n = boolector_array(btor.get(), bs, nullptr);
   }
   else if (sk == FUNCTION)
   {
-    n = boolector_uf(btor.get(), bs, name.c_str());
+    n = boolector_uf(btor.get(), bs, nullptr);
   }
   else
   {
-    n = boolector_var(btor.get(), bs, name.c_str());
+    n = boolector_var(btor.get(), bs, nullptr);
   }
+  btor_node_set_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(n), name.c_str());
 
   // note: giving the symbol a null Op
   Term term = std::make_shared<BoolectorTerm>(btor, n);
