@@ -17,14 +17,15 @@
 #include <gtest/gtest.h>
 
 #include <exception>
-#include <map>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "exec_utils.h"
 #include "ops.h"
 #include "printing_solver.h"
@@ -41,37 +42,26 @@ using namespace std;
 
 namespace {
 
-/** A solver's own executable, and the flags that have it read a printed
- *  session given as a file
+/** The flags that have a solver's executable read a printed session given
+ *  as a file
  */
-struct Executable
+string replay_flags(SolverEnum se)
 {
-  string path;
-  string flags;
-};
-
-// Each executable configure found, under the solver whose sessions it
-// replays. A solver without one is left out.
-const map<SolverEnum, Executable> executables = {
-#ifdef BOOLECTOR_BINARY
-  { BTOR, { BOOLECTOR_BINARY, "--incremental" } },
-#endif
-#ifdef BITWUZLA_BINARY
-  { BZLA, { BITWUZLA_BINARY, "" } },
-#endif
-#ifdef CVC5_BINARY
-  { CVC5, { CVC5_BINARY, "--incremental" } },
-#endif
-#ifdef MATHSAT_BINARY
-  { MSAT, { MATHSAT_BINARY, "" } },
-#endif
-#ifdef YICES2_BINARY
-  { YICES2, { YICES2_BINARY, "--incremental" } },
-#endif
-#ifdef Z3_BINARY
-  { Z3, { Z3_BINARY, "-smt2" } },
-#endif
-};
+  switch (se)
+  {
+    case BTOR: return "--incremental";
+    case BZLA: return "";
+    case CVC5: return "--incremental";
+    case MSAT: return "";
+    case YICES2: return "--incremental";
+    case Z3: return "-smt2";
+    case GENERIC_SOLVER:
+    case BZLA_INTERPOLATOR:
+    case CVC5_INTERPOLATOR:
+    case MSAT_INTERPOLATOR: break;
+  }
+  throw NotImplementedException("No executable for " + to_string(se));
+}
 
 /** The configurations with all the attributes whose solver has an
  *  executable
@@ -86,7 +76,7 @@ vector<SolverConfiguration> replayable(
     // (/= x y), so only the logging solver, which prints terms itself,
     // writes sessions the executable reads
     bool prints_smtlib = sc.solver_enum != YICES2 || sc.is_logging_solver;
-    if (executables.count(sc.solver_enum) && prints_smtlib)
+    if (solver_binary(sc.solver_enum) && prints_smtlib)
     {
       result.push_back(sc);
     }
@@ -117,8 +107,8 @@ class PrintingTests : public ::testing::Test,
    */
   void expect_replay(const vector<unordered_set<string>> & expected)
   {
-    const Executable & e = executables.at(GetParam().solver_enum);
-    dump_and_run(e.path, strbuf, expected, e.flags);
+    SolverEnum se = GetParam().solver_enum;
+    dump_and_run(solver_binary(se).value(), strbuf, expected, replay_flags(se));
   }
 
   stringbuf strbuf;
