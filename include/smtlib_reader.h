@@ -124,9 +124,6 @@ class SmtLibReader
 
   virtual void set_logic(const std::string & logic);
 
-  /** Adds all known logics */
-  virtual void set_logic_all();
-
   virtual void set_opt(const std::string & key, const std::string & val);
 
   virtual void set_info(const std::string & key, const std::string & val);
@@ -427,6 +424,27 @@ class SmtLibReader
   // useful constants
   std::string def_arg_prefix_ = "__defvar_";  ///< the prefix for renamed
                                               ///< define-fun arguments
+
+ private:
+  /** The theories an SMT-LIB logic is made of */
+  enum class LogicTheory
+  {
+    CORE,          ///< Core
+    UF,            ///< uninterpreted functions
+    IA,            ///< integer arithmetic
+    RA,            ///< real arithmetic
+    IRA,           ///< the conversions between integers and reals
+    BV,            ///< FixedSizeBitVectors
+    BVIA,          ///< the conversions between bit-vectors and integers
+    S,             ///< Strings
+    A,             ///< ArraysEx
+    NUM_THEORIES,  ///< the number of theories, which stays last
+  };
+
+  /** Makes the sort and the operators of a theory available
+   *  @param theory the theory
+   */
+  void add_theory(LogicTheory theory);
 };
 
 }  // namespace smt

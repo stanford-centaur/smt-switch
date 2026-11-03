@@ -52,10 +52,6 @@ add_library(
   ${BISON_SmtLibParser_OUTPUTS}
   ${FLEX_SmtLibScanner_OUTPUTS}
 )
-target_include_directories(
-  smt-switch-smtlib
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-)
 # The parser headers bison and flex generate are used by the reader's sources.
 target_include_directories(smt-switch-smtlib PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -64,9 +60,3 @@ target_link_libraries(smt-switch-smtlib PUBLIC smt-switch)
 add_library(SmtSwitch::smt-switch-smtlib ALIAS smt-switch-smtlib)
 install(TARGETS smt-switch-smtlib EXPORT SmtSwitchSmtLibTargets DESTINATION lib)
 install(EXPORT SmtSwitchSmtLibTargets NAMESPACE SmtSwitch:: DESTINATION "${SMT_SWITCH_CMAKE_DIR}")
-install(
-  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
-  DESTINATION include/smt-switch
-  FILES_MATCHING
-  PATTERN "*.h"
-)
