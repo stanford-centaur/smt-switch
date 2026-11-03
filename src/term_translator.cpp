@@ -25,7 +25,6 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -41,19 +40,6 @@
 #include "utils.h"
 
 namespace smt {
-
-// boolean ops
-const std::unordered_set<PrimOp> bool_ops({ And, Or, Xor, Not, Implies });
-
-const std::unordered_set<PrimOp> bv_ops({
-    Concat,      Extract,     BVNot,  BVNeg,       BVAnd,        BVOr,
-    BVXor,       BVNand,      BVNor,  BVXnor,      BVAdd,        BVSub,
-    BVMul,       BVUdiv,      BVSdiv, BVUrem,      BVSrem,       BVSmod,
-    BVShl,       BVAshr,      BVLshr, BVComp,      BVUlt,        BVUle,
-    BVUgt,       BVUge,       BVSlt,  BVSle,       BVSgt,        BVSge,
-    Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right, BV_To_Nat,
-    UBV_To_Int,  SBV_To_Int,
-});
 
 // boolean ops and the bit-vector ops that mean the same, looked up from
 // either side to swap one for the other
@@ -695,7 +681,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
   // case 3 -- cast all bit-vectors to booleans
   // a boolean operator that can't be converted to a bit-vector operator easily
   // (easily meaning by just switching the PrimOp)
-  else if (bool_ops.find(po) != bool_ops.end())
+  else if (po == Implies)
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
@@ -707,7 +693,7 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
     return solver->make_term(po, casted_children);
   }
   // case 4 -- cast all booleans to bitvectors
-  else if (bv_ops.find(po) != bv_ops.end())
+  else if (get_theory(po) == Theory::BITVECTORS)
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
