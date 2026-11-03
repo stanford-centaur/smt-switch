@@ -64,4 +64,5 @@
 (assert (not (str.is_digit "A")))
 (assert (not (str.is_digit "10")))
 
+(set-info :status sat)
 (check-sat)

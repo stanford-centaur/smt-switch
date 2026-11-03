@@ -1,30 +1,26 @@
-/*********************                                                        */
-/*! \file test-smtlib-reader.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Test the SmtLibReader (if enabled)
-**
-**
-**/
+/*!
+ * \file test-smtlib-reader.cpp
+ * \brief Tests the SmtLibReader.
+ * \author Makai Mann
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ *
+ * The benchmarks under tests/smt2 state the answer to each check-sat with a
+ * (set-info :status ...) before it, as SMT-LIB's incremental benchmarks do.
+ */
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "available_solvers.h"
@@ -32,7 +28,6 @@
 #include "result.h"
 #include "smt_defs.h"
 #include "smtlib_reader.h"
-#include "smtlib_reader_test_inputs.h"
 #include "solver.h"
 #include "solver_enums.h"
 #include "sort.h"
@@ -45,316 +40,185 @@ using namespace std;
 
 namespace {
 
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibReaderTester);
-class SmtLibReaderTester : public SmtLibReader
+/** Checks the answer to each check-sat against the (set-info :status ...)
+ *  before it, failing the test for a check-sat without one
+ */
+class StatusChecker : public SmtLibReader
 {
  public:
-  explicit SmtLibReaderTester(SmtSolver & solver, bool strict = false)
-      : SmtLibReader(solver, strict)
+  using SmtLibReader::SmtLibReader;
+
+  void set_info(const string & key, const string & val) override
   {
+    if (key == "status")
+    {
+      expected_ = val;
+    }
   }
 
-  Result check_sat() override
-  {
-    Result r = solver_->check_sat();
-    // save the result to compare later
-    results_.push_back(r);
-    return r;
-  }
+  Result check_sat() override { return checked(solver_->check_sat()); }
 
   Result check_sat_assuming(const TermVec & assumptions) override
   {
-    Result r = solver_->check_sat_assuming(assumptions);
-    // save the result to compare later
-    results_.push_back(r);
+    return checked(solver_->check_sat_assuming(assumptions));
+  }
+
+  /** The number of check-sats answered */
+  size_t checks() const { return checks_; }
+
+  /** A status no check-sat has followed, or empty */
+  const string & pending_status() const { return expected_; }
+
+ private:
+  Result checked(Result r)
+  {
+    ++checks_;
+    EXPECT_EQ(r.to_string(), expected_) << "at check-sat " << checks_;
+    expected_.clear();
     return r;
   }
 
-  const vector<Result> & get_results() const { return results_; }
-
- protected:
-  vector<Result> results_;
+  string expected_;
+  size_t checks_ = 0;
 };
 
-class ReaderTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<
-          tuple<SolverConfiguration, pair<const string, vector<Result>>>>
+/** The .smt2 inputs in a directory of the test resources, in name order */
+vector<string> inputs_in(const string & directory)
 {
- protected:
-  void SetUp() override
+  vector<string> inputs;
+  for (const filesystem::directory_entry & entry :
+       filesystem::directory_iterator(string(STRFY(SMTLIB_TEST_RESOURCE_DIR))
+                                      + "/" + directory))
   {
-    s = create_solver(get<0>(GetParam()));
-    s->set_opt("produce-models", "true");
-    // the test files follow SMT-LIB, so a strict reader reads them
-    reader = new SmtLibReaderTester(s, true);
+    if (entry.path().extension() == ".smt2")
+    {
+      inputs.push_back(entry.path().string());
+    }
   }
-
-  void TearDown() override { delete reader; }
-
-  SmtSolver s;
-  SmtLibReaderTester * reader;
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntReaderTests);
-class IntReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(RealReaderTests);
-class RealReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(StrReaderTests);
-class StrReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(BitVecReaderTests);
-class BitVecReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ArrayIntReaderTests);
-class ArrayIntReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpReaderTests);
-class UninterpReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntRealReaderTests);
-class IntRealReaderTests : public ReaderTests
-{
-};
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NonStrictIntRealReaderTests);
-class NonStrictIntRealReaderTests : public ReaderTests
-{
- protected:
-  void SetUp() override
-  {
-    s = create_solver(get<0>(GetParam()));
-    s->set_opt("produce-models", "true");
-    // these files use the extensions of the reader outside strict mode
-    reader = new SmtLibReaderTester(s, false);
-  }
-};
-
-TEST_P(IntReaderTests, QF_UFLIA_Smt2Files)
-{
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_uflia/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
+  sort(inputs.begin(), inputs.end());
+  return inputs;
 }
 
-TEST_P(RealReaderTests, QF_LRA_Smt2Files)
-{
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_lra/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
+// (configuration, input, whether the reader is strict)
+typedef tuple<SolverConfiguration, string, bool> ReaderInput;
 
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
+string reader_input_name(const testing::TestParamInfo<ReaderInput> & info)
+{
+  string file = filesystem::path(get<1>(info.param)).stem().string();
+  // the inputs are named test-..., which says nothing in a test name
+  if (file.rfind("test-", 0) == 0)
   {
-    EXPECT_EQ(results[i], expected_results[i]);
+    file.erase(0, 5);
   }
+  string name = config_name(get<0>(info.param)) + "_" + file;
+  replace(name.begin(), name.end(), '-', '_');
+  return name;
 }
 
-TEST_P(StrReaderTests, QF_S_Smt2Files)
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Benchmark);
+class Benchmark : public ::testing::TestWithParam<ReaderInput>
 {
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_s/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
+};
 
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
-}
-
-TEST_P(BitVecReaderTests, QF_UFBV_Smt2Files)
+TEST_P(Benchmark, Answers)
 {
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_ufbv/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
-}
-
-TEST_P(ArrayIntReaderTests, QF_ALIA_Smt2Files)
-{
-  if (get<0>(GetParam()).solver_enum == YICES2)
+  const auto & [config, input, strict] = GetParam();
+  if (config.solver_enum == YICES2
+      && filesystem::path(input).filename() == "test-array.smt2")
   {
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array, which test-array.smt2 does";
   }
-
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_alia/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
+  SmtSolver s = create_solver(config);
+  s->set_opt("produce-models", "true");
+  StatusChecker reader(s, strict);
+  reader.parse(input);
+  EXPECT_GT(reader.checks(), 0u);
+  EXPECT_EQ(reader.pending_status(), "");
 }
 
-TEST_P(UninterpReaderTests, QF_UF_Smt2Files)
-{
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_uf/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
-}
-
-TEST_P(IntRealReaderTests, QF_LIRA_Smt2Files)
-{
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_lira/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
-}
-
-TEST_P(NonStrictIntRealReaderTests, QF_LIRA_Smt2Files)
-{
-  string test = STRFY(SMTLIB_TEST_RESOURCE_DIR);
-  auto testpair = get<1>(GetParam());
-  test += "/qf_lira/" + testpair.first;
-  reader->parse(test);
-  auto results = reader->get_results();
-  auto expected_results = testpair.second;
-  ASSERT_EQ(results.size(), expected_results.size());
-
-  size_t size = results.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    EXPECT_EQ(results[i], expected_results[i]);
-  }
-}
-
+// The inputs follow SMT-LIB, so a strict reader reads them, except those
+// of qf_lira_nonstrict, which use its extensions.
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverIntReaderTests,
-    IntReaderTests,
+    QF_UFLIA,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT })),
-                     testing::ValuesIn(qf_uflia_tests.begin(),
-                                       qf_uflia_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_uflia")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverRealReaderTests,
-    RealReaderTests,
+    QF_LRA,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_REAL })),
-                     testing::ValuesIn(qf_lra_tests.begin(),
-                                       qf_lra_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_lra")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverStrReaderTests,
-    StrReaderTests,
+    QF_S,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT, THEORY_STR })),
-                     testing::ValuesIn(qf_s_tests.begin(), qf_s_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_s")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverBitVecReaderTests,
-    BitVecReaderTests,
+    QF_UFBV,
+    Benchmark,
     testing::Combine(
         testing::ValuesIn(available_non_generic_solver_configurations()),
-        testing::ValuesIn(qf_ufbv_tests.begin(), qf_ufbv_tests.end())));
+        testing::ValuesIn(inputs_in("qf_ufbv")),
+        testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverArrayIntReaderTests,
-    ArrayIntReaderTests,
+    QF_ALIA,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT, ARRAY_MODELS, CONSTARR })),
-                     testing::ValuesIn(qf_alia_tests.begin(),
-                                       qf_alia_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_alia")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverUninterpReaderTests,
-    UninterpReaderTests,
+    QF_UF,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { UNINTERP_SORT })),
-                     testing::ValuesIn(qf_uf_tests.begin(),
-                                       qf_uf_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_uf")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverParamUninterpReaderTests,
-    UninterpReaderTests,
+    QF_UF_PARAM_SORTS,
+    Benchmark,
     testing::Combine(testing::ValuesIn(
                          filter_solver_configurations({ PARAM_UNINTERP_SORT })),
-                     testing::ValuesIn(qf_uf_param_sorts_tests.begin(),
-                                       qf_uf_param_sorts_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_uf_param_sorts")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverIntRealReaderTests,
-    IntRealReaderTests,
+    QF_LIRA,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT, THEORY_REAL })),
-                     testing::ValuesIn(qf_lira_tests.begin(),
-                                       qf_lira_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_lira")),
+                     testing::Values(true)),
+    reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverNonStrictIntRealReaderTests,
-    NonStrictIntRealReaderTests,
+    QF_LIRA_NONSTRICT,
+    Benchmark,
     testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
                          { THEORY_INT, THEORY_REAL })),
-                     testing::ValuesIn(qf_lira_nonstrict_tests.begin(),
-                                       qf_lira_nonstrict_tests.end())));
+                     testing::ValuesIn(inputs_in("qf_lira_nonstrict")),
+                     testing::Values(false)),
+    reader_input_name);
 
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)
 {

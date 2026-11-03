@@ -16,4 +16,5 @@
 (assert (rgb c1))
 (assert (rgb c2))
 
+(set-info :status sat)
 (check-sat)
