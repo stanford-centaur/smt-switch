@@ -1014,6 +1014,14 @@ void MsatSolver::ConfigDeleter::operator()(void * repr) const
 
 void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
 {
+  // even the configuration for a specific logic supports every theory
+  // MathSAT has, so ALL leaves the configuration as it is, even after the
+  // environment has been made from it; the other backends also accept ALL
+  // once terms exist
+  if (logic_name == "ALL" && (env || cfg))
+  {
+    return;
+  }
   // the first term, sort or query makes the environment
   if (env)
   {

@@ -586,6 +586,14 @@ TEST_P(Logics, AllLeavesFunctionUndeclared)
   EXPECT_EQ(reader->make_sort("Function"), boolsort);
 }
 
+TEST_P(Logics, AllAfterTerm)
+{
+  // a client, such as a model checker, may make terms of its own before it
+  // reads a script in logic ALL, which every backend accepts
+  s->make_term(true);
+  EXPECT_NO_THROW(reader->set_logic("ALL"));
+}
+
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     Logics,

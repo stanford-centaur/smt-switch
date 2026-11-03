@@ -44,9 +44,9 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver();
   /** Creates a solver from a configuration and takes ownership of it: the
    *  solver destroys c. The environment is created from c on first use, so
-   *  options can still be set until then. set_logic is refused, since the
-   *  configuration for a logic would discard c's settings: make c with
-   *  msat_create_default_config instead.
+   *  options can still be set until then. set_logic is refused for every
+   *  logic except ALL, since the configuration for a logic would discard
+   *  c's settings: make c with msat_create_default_config instead.
    */
   explicit MsatSolver(msat_config c);
   MsatSolver(const MsatSolver &) = delete;
@@ -56,7 +56,12 @@ class MsatSolver : public AbsSmtSolver
    *  or push creates it, which fixes the configuration.
    */
   void set_opt(const std::string option, const std::string value) override;
-  /** Sets the logic. Refused once the environment exists, as set_opt is. */
+  /** Sets the logic. Refused once the environment exists, as set_opt is,
+   *  or once a configuration exists, the caller's or an earlier logic's.
+   *  ALL is the exception: even the configuration for a specific logic
+   *  supports every theory MathSAT has, so ALL leaves the configuration as
+   *  it is.
+   */
   void set_logic(const std::string logic_name) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
@@ -197,7 +202,9 @@ class MsatSolver : public AbsSmtSolver
     EnvWrapper(const EnvWrapper &) = delete;
     EnvWrapper & operator=(const EnvWrapper &) = delete;
 
-    /** Sets the logic, by making MathSAT's configuration for it. */
+    /** Sets the logic, by making MathSAT's configuration for it. ALL
+     *  leaves a configuration that already exists as it is.
+     */
     void set_logic(const std::string & logic_name);
     /** Sets an option, or keeps it until there is a configuration. */
     void set_option(const std::string & name, const std::string & value);

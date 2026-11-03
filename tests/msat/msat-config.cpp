@@ -7,7 +7,9 @@
  *
  * MathSAT has no logic option: a logic picks a whole configuration, made
  * with msat_create_default_config, so a configuration the caller passed in
- * is left alone.
+ * is left alone. Even the configuration for a specific logic supports every
+ * theory MathSAT has, so set_logic("ALL") leaves the configuration as it
+ * is, even after the environment has been made from it.
  * msat_set_option checks an option's syntax but not its range, so an
  * out-of-range value is refused only when the environment is made from the
  * configuration, at the first term, sort or query. A query that needs no
@@ -22,6 +24,8 @@
 
 #include "exceptions.h"
 #include "msat_solver.h"
+#include "ops.h"
+#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
@@ -34,6 +38,26 @@ namespace {
 TEST(MsatConfig, CallerConfigRefusesLogic)
 {
   SmtSolver s = std::make_shared<MsatSolver>(msat_create_config());
+  EXPECT_THROW(s->set_logic("QF_BV"), IncorrectUsageException);
+}
+
+TEST(MsatConfig, CallerConfigAcceptsAll)
+{
+  SmtSolver s =
+      std::make_shared<MsatSolver>(msat_create_default_config("QF_BV"));
+  EXPECT_NO_THROW(s->set_logic("ALL"));
+  // the configuration for QF_BV supports integers too
+  Sort intsort = s->make_sort(INT);
+  Term x = s->make_symbol("x", intsort);
+  s->assert_formula(s->make_term(Gt, x, s->make_term(0, intsort)));
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST(MsatConfig, AllAcceptedAfterTerm)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  s->make_term(true);
+  EXPECT_NO_THROW(s->set_logic("ALL"));
   EXPECT_THROW(s->set_logic("QF_BV"), IncorrectUsageException);
 }
 
