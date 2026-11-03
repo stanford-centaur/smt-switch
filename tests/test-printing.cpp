@@ -117,10 +117,6 @@ class PrintingTests : public ::testing::Test,
   Term b;
 };
 
-// MathSAT pads the parentheses of what it answers with spaces
-const unordered_set<string> unsat_assumption_b = { "(b)", "( b )" };
-const unordered_set<string> b_is_false = { "((b false))", "( (b false) )" };
-
 TEST_P(PrintingTests, Solving)
 {
   s->set_logic("QF_AUFBV");
@@ -151,7 +147,8 @@ TEST_P(PrintingTests, Solving)
   ASSERT_TRUE(s->check_sat().is_sat());
   s->get_value(b);
 
-  expect_replay({ { "unsat" }, { "sat" }, b_is_false });
+  // MathSAT pads the parentheses of what it answers with spaces
+  expect_replay({ { "unsat" }, { "sat" }, { "((b false))", "( (b false) )" } });
 }
 
 TEST_P(PrintingTests, RefusedSetLogicIsNotPrinted)
@@ -184,7 +181,8 @@ TEST_P(PrintingUnsatCoreTests, UnsatAssumptions)
   UnorderedTermSet assumptions;
   s->get_unsat_assumptions(assumptions);
 
-  expect_replay({ { "unsat" }, unsat_assumption_b });
+  // MathSAT pads the parentheses of what it answers with spaces
+  expect_replay({ { "unsat" }, { "(b)", "( b )" } });
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUninterpretedSortTests);

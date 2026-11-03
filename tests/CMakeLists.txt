@@ -4,6 +4,11 @@ enable_testing()
 # defined only for them rather than for the whole project.
 add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
 
+# GoogleTest registers every TEST, TEST_P and INSTANTIATE_TEST_SUITE_P by
+# initialising a static variable with a function call, which
+# -Wglobal-constructors reports where the macro is used.
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Wno-global-constructors>")
+
 # The generic solver drives a solver's executable rather than the library the
 # rest of the suite links, so it has to be found separately. A provisioned
 # copy, or one given with --<solver>-dir, keeps it under the solver's root; a

@@ -150,10 +150,11 @@ bool accepts_logic_after_declaration(SolverEnum b)
 
 // The smallest supported buffer splits each response into as many reads as
 // possible, and the biggest takes most responses in a single read.
-const vector<int> buffer_sizes = { 2, 256 };
+constexpr unsigned int buffer_size_min = 2;
+constexpr unsigned int buffer_size_max = 256;
 
 // (solver binary, buffer size)
-typedef tuple<SolverEnum, int> GenericSolverParam;
+typedef tuple<SolverEnum, unsigned int> GenericSolverParam;
 
 /** Every buffer size for each available binary that passes the filter. A
  *  built solver without an executable is left out of every suite.
@@ -168,10 +169,8 @@ vector<GenericSolverParam> params_where(
     {
       continue;
     }
-    for (int size : buffer_sizes)
-    {
-      params.emplace_back(b, size);
-    }
+    params.emplace_back(b, buffer_size_min);
+    params.emplace_back(b, buffer_size_max);
   }
   return params;
 }
@@ -189,7 +188,7 @@ vector<GenericSolverParam> params_one_buffer_size()
   {
     if (solver_binary(b))
     {
-      params.emplace_back(b, buffer_sizes.back());
+      params.emplace_back(b, buffer_size_max);
     }
   }
   return params;
