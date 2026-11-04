@@ -16,11 +16,12 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 #include "available_solvers.h"
 #include "exceptions.h"
@@ -60,23 +61,22 @@ struct DivModCase
   int64_t t, c, div, mod;
 };
 
-// every sign of t and c, with a remainder and without
-const vector<DivModCase> div_mod_cases = {
-  { 7, 3, 2, 1 }, { -7, 3, -3, 2 }, { 7, -3, -2, 1 }, { -7, -3, 3, 2 },
-  { 6, 3, 2, 0 }, { -6, 3, -2, 0 }, { 6, -3, -2, 0 }, { -6, -3, 2, 0 },
-};
-
-/** Checks div and mod in each of div_mod_cases
+/** Checks div and mod for every sign of t and c, with a remainder and
+ *  without
  *  @param s the solver
  *  @param by_symbol whether to divide by a symbol equal to c rather than by c
  */
 void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
 {
+  constexpr DivModCase cases[] = {
+    { 7, 3, 2, 1 }, { -7, 3, -3, 2 }, { 7, -3, -2, 1 }, { -7, -3, 3, 2 },
+    { 6, 3, 2, 0 }, { -6, 3, -2, 0 }, { 6, -3, -2, 0 }, { -6, -3, 2, 0 },
+  };
   Sort intsort = s->make_sort(INT);
   TermVec divs, mods;
-  for (size_t i = 0; i < div_mod_cases.size(); ++i)
+  for (size_t i = 0; i < std::size(cases); ++i)
   {
-    const DivModCase & k = div_mod_cases[i];
+    const DivModCase & k = cases[i];
     Term t = s->make_symbol("t" + to_string(i), intsort);
     s->assert_formula(s->make_term(Equal, t, s->make_term(k.t, intsort)));
     Term c = s->make_term(k.c, intsort);
@@ -90,9 +90,9 @@ void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
     mods.push_back(s->make_term(Mod, t, c));
   }
   ASSERT_TRUE(s->check_sat().is_sat());
-  for (size_t i = 0; i < div_mod_cases.size(); ++i)
+  for (size_t i = 0; i < std::size(cases); ++i)
   {
-    const DivModCase & k = div_mod_cases[i];
+    const DivModCase & k = cases[i];
     SCOPED_TRACE("t = " + to_string(k.t) + ", c = " + to_string(k.c));
     EXPECT_EQ(s->get_value(divs[i])->to_signed_int(), k.div);
     EXPECT_EQ(s->get_value(mods[i])->to_signed_int(), k.mod);

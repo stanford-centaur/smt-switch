@@ -385,7 +385,7 @@ set(
   -Wexceptions # an exception handler is shadowed by another handler
   -Wexcess-initializers # excess elements in char array initializer
   -Wexcessive-regsave # interrupt service routine should only call a function with attribute
-  # -Wexit-time-destructors # declaration requires an exit-time destructor
+  -Wexit-time-destructors # declaration requires an exit-time destructor
   -Wexpansion-stmt-missing-braces # ISO C++ requires the body of an expansion statement
   -Wexpansion-to-defined # 'defined' is used outside #if
   -Wexperimental-header-units # the implementation of header units is in an experimental phase
@@ -446,7 +446,7 @@ set(
   -Wfuse-ld-path # '-fuse-ld=' taking a path is deprecated
   -Wgcc-compat # 'enable_if' is a clang extension
   -Wgcc-install-dir-libstdcxx # future releases of the clang compiler
-  # -Wglobal-constructors # declaration requires a global constructor
+  -Wglobal-constructors # declaration requires a global constructor
   -Wglobal-isel # -fglobal-isel support is incomplete for this architecture at the current
   -Wglobal-module # the global module fragment not containing only preprocessing directives
   -Wgnu # covers -Wgnu-alignof-expression

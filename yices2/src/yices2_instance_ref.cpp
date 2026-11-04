@@ -20,9 +20,15 @@ namespace smt {
 
 namespace {
 
-// locked around every count change, including the yices_init() and
-// yices_exit() calls, so no thread sees Yices half set up
-std::mutex count_mutex;
+// Locked around every count change, including the yices_init() and
+// yices_exit() calls, so no thread sees Yices half set up. Never destroyed,
+// so that a reference released during exit can still lock it.
+std::mutex & count_mutex()
+{
+  static std::mutex & mutex = *new std::mutex;
+  return mutex;
+}
+
 std::size_t count = 0;
 // the symbols declared with a function sort, also under count_mutex, made
 // and freed with the instance
@@ -30,7 +36,7 @@ std::unordered_set<term_t> * functions = nullptr;
 
 void acquire()
 {
-  std::lock_guard lock(count_mutex);
+  std::lock_guard lock(count_mutex());
   if (count++ == 0)
   {
     yices_init();
@@ -46,7 +52,7 @@ Yices2InstanceRef::Yices2InstanceRef(const Yices2InstanceRef &) { acquire(); }
 
 Yices2InstanceRef::~Yices2InstanceRef()
 {
-  std::lock_guard lock(count_mutex);
+  std::lock_guard lock(count_mutex());
   if (--count == 0)
   {
     yices_exit();
@@ -57,13 +63,13 @@ Yices2InstanceRef::~Yices2InstanceRef()
 
 void Yices2InstanceRef::mark_function(term_t t)
 {
-  std::lock_guard lock(count_mutex);
+  std::lock_guard lock(count_mutex());
   functions->insert(t);
 }
 
 bool Yices2InstanceRef::is_function(term_t t)
 {
-  std::lock_guard lock(count_mutex);
+  std::lock_guard lock(count_mutex());
   return functions->count(t) != 0;
 }
 
