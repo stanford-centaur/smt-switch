@@ -55,6 +55,24 @@ static string msat_option_name(const string & option)
   return option;
 }
 
+/** The last error message MathSAT reported in e, empty if there is none
+ *  MathSAT keeps a message until the next error replaces it, also across
+ *  successful calls, and does not say whether a call set it. It set one for
+ *  every unknown result seen so far, terminations included, so an unknown
+ *  result is explained by this message.
+ */
+static string last_error_message(msat_env e)
+{
+  const char * msg = msat_last_error_message(e);
+  return msg ? msg : "";
+}
+
+/** text, followed by error if there is one */
+static string with_error(const string & text, const string & error)
+{
+  return error.empty() ? text : text + ": " + error;
+}
+
 /** Refuses po applied to num_args arguments, which MathSAT has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
@@ -247,7 +265,8 @@ Result MsatSolver::check_sat()
   }
   else
   {
-    return Result(UNKNOWN);
+    const string error = last_error_message(*env);
+    return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
 
@@ -296,7 +315,8 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    return Result(UNKNOWN);
+    const string error = last_error_message(*env);
+    return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
 
@@ -1276,7 +1296,8 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   }
   else if (msat_res == MSAT_UNKNOWN)
   {
-    return Result(UNKNOWN, "Interpolation failure.");
+    return Result(
+        UNKNOWN, with_error("Interpolation failure", last_error_message(*env)));
   }
 
   assert(msat_res == MSAT_UNSAT);
@@ -1290,9 +1311,15 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
       // add a null term -- see solver.h documentation for this function
       Term nullterm;
       out_I.push_back(nullterm);
-      r = Result(UNKNOWN,
-                 "Had at least one interpolation failure in "
-                 "get_sequence_interpolants.");
+      // MathSAT reports the error behind an error term, and the first
+      // failure's report explains the result
+      if (r.is_unsat())
+      {
+        r = Result(UNKNOWN,
+                   with_error("Had at least one interpolation failure in "
+                              "get_sequence_interpolants",
+                              last_error_message(*env)));
+      }
     }
     else
     {

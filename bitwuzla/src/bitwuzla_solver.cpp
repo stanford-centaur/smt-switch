@@ -775,8 +775,16 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   {
     partitions.push_back({ bformulae.at(i) });
   }
-  const std::vector<bitwuzla::Term> itps =
-      bzla_solver->get_bitwuzla()->get_interpolants(partitions);
+  std::vector<bitwuzla::Term> itps;
+  try
+  {
+    itps = bzla_solver->get_bitwuzla()->get_interpolants(partitions);
+  }
+  catch (const bitwuzla::Exception & e)
+  {
+    out_I.assign(partitions.size(), Term());
+    return Result(UNKNOWN, std::string("Interpolation failure: ") + e.what());
+  }
   // the interpolants belong to the term manager of the formulae
   const std::shared_ptr<bitwuzla::TermManager> & formulae_tm =
       backend_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
