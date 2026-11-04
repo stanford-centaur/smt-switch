@@ -49,7 +49,11 @@ class MsatSolver : public AbsSmtSolver
    *  or push creates it, which fixes the configuration.
    */
   void set_opt(const std::string option, const std::string value) override;
-  /** Sets the logic. Refused once the environment exists, as set_opt is. */
+  /** Sets the logic. Once the environment exists, as for set_opt, or once
+   *  a logic was set, only that same logic is accepted, and it changes
+   *  nothing. With no logic set, the environment is made from MathSAT's
+   *  plain configuration, which has every theory and so counts as ALL.
+   */
   void set_logic(const std::string logic_name) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
@@ -116,7 +120,6 @@ class MsatSolver : public AbsSmtSolver
   void do_reset_assertions() override;
 
   bool valid_model = false;
-  std::string logic;
 
   // for matching the generic check_sat_assuming interface which allows
   // arbitrary formulas rather than just (negated) boolean constants
@@ -188,7 +191,9 @@ class MsatSolver : public AbsSmtSolver
     EnvWrapper(const EnvWrapper &) = delete;
     EnvWrapper & operator=(const EnvWrapper &) = delete;
 
-    /** Sets the logic, by making MathSAT's configuration for it. */
+    /** Sets the logic, by making MathSAT's configuration for it. Once
+     *  there is a configuration, only its own logic is accepted.
+     */
     void set_logic(const std::string & logic_name);
     /** Sets an option, or keeps it until there is a configuration. */
     void set_option(const std::string & name, const std::string & value);
@@ -200,12 +205,19 @@ class MsatSolver : public AbsSmtSolver
     bool owns(const std::shared_ptr<msat_env> & e) const;
     /** Drops the environment and the configuration. */
     void reset();
+    /** @return the logic the configuration was made for, or an empty
+     *  string before there is one
+     */
+    const std::string & get_logic() const;
 
    private:
     // empty until a configuration is made, and again once env owns it
     ConfigPtr cfg;
     // the options set while there is no configuration yet, in order
     std::vector<std::pair<std::string, std::string>> pending;
+    // the logic the configuration was made for, held by cfg or by env, ALL
+    // for the plain configuration, and empty while there is none
+    std::string logic;
     // shared with every term and sort, so the environment lives until the
     // last of them is released, even past reset() or the solver's
     // destruction

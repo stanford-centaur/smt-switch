@@ -207,7 +207,6 @@ void MsatSolver::set_opt(const string option, const string value)
 void MsatSolver::set_logic(const std::string logic_name)
 {
   env_wrapper_.set_logic(logic_name);
-  logic = logic_name;
 }
 
 void MsatSolver::assert_formula(const Term & t)
@@ -916,6 +915,7 @@ void MsatSolver::dump_smt2(std::string filename) const
   {
     throw InternalSolverException("Failed to gather all assertions");
   }
+  const std::string & logic = env_wrapper_.get_logic();
   const char * log = logic.empty() ? NULL : logic.c_str();
   FILE * file = fopen(filename.c_str(), "w");
   msat_to_smtlib2_ext_file(*env, all_asserts, log, true, file);
@@ -1010,18 +1010,19 @@ void MsatSolver::ConfigDeleter::operator()(void * repr) const
 
 void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
 {
-  // the first term, sort or query makes the environment
-  if (env)
+  // MathSAT has no logic option: a logic picks a whole configuration, and
+  // the first term, sort or query makes the environment from it, so once a
+  // logic is fixed only that same logic changes nothing
+  if (!logic.empty())
   {
+    if (logic_name == logic)
+    {
+      return;
+    }
     throw IncorrectUsageException(
-        "MathSAT can only set the logic before the first term, sort or "
-        "query");
-  }
-  // MathSAT has no logic option: a logic picks a whole configuration, which
-  // would discard the settings of a logic set before
-  if (cfg)
-  {
-    throw IncorrectUsageException("MathSAT can only set the logic once");
+        "MathSAT already uses logic " + logic
+        + "; a logic can only be set once, before the first term, sort or "
+          "query");
   }
   cfg.reset(msat_create_default_config(logic_name.c_str()).repr);
   if (!cfg)
@@ -1029,6 +1030,7 @@ void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
     throw IncorrectUsageException("MathSAT has no configuration for logic "
                                   + logic_name);
   }
+  logic = logic_name;
   for (const auto & [name, value] : pending)
   {
     set_option(name, value);
@@ -1068,10 +1070,12 @@ const std::shared_ptr<msat_env> & MsatSolver::EnvWrapper::get_env()
 {
   if (!env)
   {
-    // with no logic set, the plain configuration
+    // with no logic set, the plain configuration, which has every theory
+    // and so is all that ALL asks for
     if (!cfg)
     {
       cfg.reset(msat_create_config().repr);
+      logic = "ALL";
       for (const auto & [name, value] : pending)
       {
         set_option(name, value);
@@ -1110,8 +1114,11 @@ void MsatSolver::EnvWrapper::reset()
   // configuration it was made from with it
   cfg.reset();
   pending.clear();
+  logic.clear();
   env.reset();
 }
+
+const std::string & MsatSolver::EnvWrapper::get_logic() const { return logic; }
 
 // end MsatSolver implementation
 
