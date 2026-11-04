@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -361,8 +362,9 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
   }
 
   // a split after a failed one has no interpolant to start from, so it
-  // fails too
+  // fails too, and the first failure explains the result
   bool any_fails = false;
+  std::string failure;
   for (std::size_t i = first_split; i + 1 < formulae.size(); ++i)
   {
     if (any_fails)
@@ -386,6 +388,10 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
     if (!r.is_unsat() || !I)
     {
       any_fails = true;
+      if (r.is_unknown())
+      {
+        failure = r.get_explanation();
+      }
       out_I.push_back(Term());
     }
     else
@@ -398,9 +404,13 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
   {
     last_itp_query_formulae.clear();
     last_itp_query_interpolants.clear();
-    return Result(
-        UNKNOWN,
-        "Had at least one interpolation failure in get_sequence_interpolants");
+    std::string explanation =
+        "Had at least one interpolation failure in get_sequence_interpolants";
+    if (!failure.empty())
+    {
+      explanation += ": " + failure;
+    }
+    return Result(UNKNOWN, explanation);
   }
   last_itp_query_formulae = formulae;
   last_itp_query_interpolants = out_I;
