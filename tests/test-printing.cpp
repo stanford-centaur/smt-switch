@@ -92,16 +92,13 @@ class PrintingTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    // Boolector refuses push without it. Set before printing starts, since
-    // not every executable takes it as an option; they get flags instead.
     SmtSolver wrapped = create_solver(GetParam());
+    // Boolector refuses push without this. Set before printing starts, since
+    // not every executable accepts it as an option; they get flags instead.
     wrapped->set_opt("incremental", "true");
     s = create_printing_solver(wrapped, &os);
     s->set_opt("produce-models", "true");
   }
-
-  /** Declares b, which has to come after set-logic */
-  void declare_b() { b = s->make_symbol("b", s->make_sort(BOOL)); }
 
   /** Replays what was printed, and checks that the executable answers with
    *  one of the expected lines for each command that has an answer
@@ -115,18 +112,50 @@ class PrintingTests : public ::testing::Test,
   stringbuf strbuf;
   ostream os{ &strbuf };
   SmtSolver s;
-  Term b;
 };
 
-TEST_P(PrintingTests, Solving)
+TEST_P(PrintingTests, RefusedSetLogicIsNotPrinted)
 {
-  s->set_logic("QF_AUFBV");
-  declare_b();
-  Sort bvsort = s->make_sort(BV, 8);
+  bool accepted = true;
+  try
+  {
+    s->set_logic("NOT_A_LOGIC");
+  }
+  catch (std::exception &)
+  {
+    accepted = false;
+  }
+  // printed exactly when the wrapped solver accepted it
+  EXPECT_EQ(strbuf.str().find("NOT_A_LOGIC") != string::npos, accepted);
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingBitVectorTests);
+class PrintingBitVectorTests : public PrintingTests
+{
+ protected:
+  void SetUp() override
+  {
+    PrintingTests::SetUp();
+    make_symbols();
+  }
+
+  void make_symbols()
+  {
+    s->set_logic("QF_AUFBV");
+    bvsort = s->make_sort(BV, 8);
+    b = s->make_symbol("b", s->make_sort(BOOL));
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+  }
+
+  Sort bvsort;
+  Term b, x, y;
+};
+
+TEST_P(PrintingBitVectorTests, Solving)
+{
   Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
   Sort arrsort = s->make_sort(ARRAY, bvsort, bvsort);
-  Term x = s->make_symbol("x", bvsort);
-  Term y = s->make_symbol("y", bvsort);
   Term f = s->make_symbol("f", funsort);
   Term arr = s->make_symbol("arr", arrsort);
 
@@ -152,31 +181,37 @@ TEST_P(PrintingTests, Solving)
   expect_replay({ { "unsat" }, { "sat" }, { "((b false))", "( (b false) )" } });
 }
 
-TEST_P(PrintingTests, RefusedSetLogicIsNotPrinted)
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUninterpretedSortTests);
+class PrintingUninterpretedSortTests : public PrintingBitVectorTests
 {
-  bool accepted = true;
-  try
-  {
-    s->set_logic("NOT_A_LOGIC");
-  }
-  catch (std::exception &)
-  {
-    accepted = false;
-  }
-  // printed exactly when the wrapped solver took it
-  EXPECT_EQ(strbuf.str().find("NOT_A_LOGIC") != string::npos, accepted);
+};
+
+TEST_P(PrintingUninterpretedSortTests, DeclaresSorts)
+{
+  Sort us = s->make_sort("S", 0);
+  Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort, us });
+  Term g = s->make_symbol("g", funsort);
+  Term u = s->make_symbol("u", us);
+  s->assert_formula(s->make_term(Equal, s->make_term(Apply, g, x), u));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  expect_replay({ { "sat" } });
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUnsatCoreTests);
-class PrintingUnsatCoreTests : public PrintingTests
+class PrintingUnsatCoreTests : public PrintingBitVectorTests
 {
+ protected:
+  void SetUp() override
+  {
+    PrintingTests::SetUp();
+    s->set_opt("produce-unsat-assumptions", "true");
+    make_symbols();
+  }
 };
 
 TEST_P(PrintingUnsatCoreTests, UnsatAssumptions)
 {
-  s->set_opt("produce-unsat-assumptions", "true");
-  s->set_logic("QF_BV");
-  declare_b();
   s->assert_formula(s->make_term(Not, b));
   ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_unsat());
   UnorderedTermSet assumptions;
@@ -184,26 +219,6 @@ TEST_P(PrintingUnsatCoreTests, UnsatAssumptions)
 
   // MathSAT pads the parentheses of what it answers with spaces
   expect_replay({ { "unsat" }, { "(b)", "( b )" } });
-}
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUninterpretedSortTests);
-class PrintingUninterpretedSortTests : public PrintingTests
-{
-};
-
-TEST_P(PrintingUninterpretedSortTests, DeclaresSorts)
-{
-  s->set_logic("QF_UFBV");
-  Sort us = s->make_sort("S", 0);
-  Sort bvsort = s->make_sort(BV, 8);
-  Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort, us });
-  Term x = s->make_symbol("x", bvsort);
-  Term g = s->make_symbol("g", funsort);
-  Term u = s->make_symbol("u", us);
-  s->assert_formula(s->make_term(Equal, s->make_term(Apply, g, x), u));
-  ASSERT_TRUE(s->check_sat().is_sat());
-
-  expect_replay({ { "sat" } });
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingDatatypeTests);
@@ -243,7 +258,18 @@ TEST_P(PrintingDatatypeTests, DeclaresDatatypes)
 
 INSTANTIATE_TEST_SUITE_P(,
                          PrintingTests,
+                         testing::ValuesIn(replayable({})),
+                         ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(,
+                         PrintingBitVectorTests,
                          testing::ValuesIn(replayable({ THEORY_BV })),
+                         ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(,
+                         PrintingUninterpretedSortTests,
+                         testing::ValuesIn(replayable({ THEORY_BV,
+                                                        UNINTERP_SORT })),
                          ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(,
@@ -255,12 +281,6 @@ INSTANTIATE_TEST_SUITE_P(,
 INSTANTIATE_TEST_SUITE_P(,
                          PrintingDatatypeTests,
                          testing::ValuesIn(replayable({ THEORY_DATATYPE })),
-                         ConfigName());
-
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingUninterpretedSortTests,
-                         testing::ValuesIn(replayable({ THEORY_BV,
-                                                        UNINTERP_SORT })),
                          ConfigName());
 
 }  // namespace
