@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <optional>
@@ -73,11 +74,7 @@ vector<SolverConfiguration> replayable(
   vector<SolverConfiguration> result;
   for (SolverConfiguration sc : filter_solver_configurations(attributes))
   {
-    // Yices2 terms print in Yices' own language rather than SMT-LIB, e.g.
-    // (/= x y), so only the logging solver, which prints terms itself,
-    // writes sessions the executable reads
-    bool prints_smtlib = sc.solver_enum != YICES2 || sc.is_logging_solver;
-    if (solver_binary(sc.solver_enum) && prints_smtlib)
+    if (solver_binary(sc.solver_enum))
     {
       result.push_back(sc);
     }
@@ -148,6 +145,8 @@ class PrintingBitVectorTests : public PrintingTests
     y = s->make_symbol("y", bvsort);
   }
 
+  Term make_bv(int64_t value) { return s->make_term(value, bvsort); }
+
   Sort bvsort;
   Term b, x, y;
 };
@@ -179,6 +178,33 @@ TEST_P(PrintingBitVectorTests, Solving)
 
   // MathSAT pads the parentheses of what it answers with spaces
   expect_replay({ { "unsat" }, { "sat" }, { "((b false))", "( (b false) )" } });
+}
+
+TEST_P(PrintingBitVectorTests, BitVectorArithmetic)
+{
+  s->assert_formula(s->make_term(Equal, x, make_bv(5)));
+  s->assert_formula(s->make_term(Equal, y, make_bv(7)));
+  // Yices keeps a sum with a coefficient as a polynomial, a square as a power
+  // product and slices as arrays of bits, which each print differently
+  Term sum = s->make_term(BVAdd, x, s->make_term(BVMul, make_bv(3), y));
+  s->assert_formula(
+      s->make_term(Equal, s->make_term(BVMul, x, x), make_bv(25)));
+  Op low(Extract, 3, 0);
+  s->assert_formula(s->make_term(
+      Equal,
+      s->make_term(Concat, s->make_term(low, x), s->make_term(low, y)),
+      make_bv(0x57)));
+  s->assert_formula(s->make_term(
+      Distinct, s->make_term(low, x), s->make_term(Op(Extract, 7, 4), y)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(Ite, s->make_term(BVUlt, x, y), x, y), x));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  s->push(1);
+  s->assert_formula(s->make_term(Distinct, sum, make_bv(26)));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+  s->pop(1);
+
+  expect_replay({ { "sat" }, { "unsat" } });
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingUninterpretedSortTests);
@@ -219,6 +245,41 @@ TEST_P(PrintingUnsatCoreTests, UnsatAssumptions)
 
   // MathSAT pads the parentheses of what it answers with spaces
   expect_replay({ { "unsat" }, { "(b)", "( b )" } });
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingRealTests);
+class PrintingRealTests : public PrintingTests
+{
+ protected:
+  void SetUp() override
+  {
+    PrintingTests::SetUp();
+    s->set_logic("QF_LRA");
+    realsort = s->make_sort(REAL);
+    x = s->make_symbol("x", realsort);
+    y = s->make_symbol("y", realsort);
+  }
+
+  Sort realsort;
+  Term x, y;
+};
+
+TEST_P(PrintingRealTests, NegativesAndFractions)
+{
+  // 2x = -1 and y = x - 3, so x is -1/2 and y is -7/2
+  s->assert_formula(
+      s->make_term(Equal,
+                   s->make_term(Mult, s->make_term(2, realsort), x),
+                   s->make_term(-1, realsort)));
+  s->assert_formula(s->make_term(
+      Equal, y, s->make_term(Minus, x, s->make_term(3, realsort))));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  s->push(1);
+  s->assert_formula(s->make_term(Distinct, y, s->make_term("-7/2", realsort)));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+  s->pop(1);
+
+  expect_replay({ { "sat" }, { "unsat" } });
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingDatatypeTests);
@@ -276,6 +337,11 @@ INSTANTIATE_TEST_SUITE_P(,
                          PrintingUnsatCoreTests,
                          testing::ValuesIn(replayable({ THEORY_BV,
                                                         UNSAT_CORE })),
+                         ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(,
+                         PrintingRealTests,
+                         testing::ValuesIn(replayable({ THEORY_REAL })),
                          ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(,
