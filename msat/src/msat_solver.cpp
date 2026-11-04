@@ -180,8 +180,6 @@ static msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
 
 MsatSolver::MsatSolver() : AbsSmtSolver(MSAT) {}
 
-MsatSolver::MsatSolver(msat_config c) : AbsSmtSolver(MSAT), env_wrapper_(c) {}
-
 void MsatSolver::set_opt(const string option, const string value)
 {
   // Note: mathsat needs options to be set on a configuration before creating an
@@ -1005,8 +1003,6 @@ msat_config MsatSolver::as_msat_config(const ConfigPtr & cfg)
   return msat_config{ cfg.get() };
 }
 
-MsatSolver::EnvWrapper::EnvWrapper(msat_config c) : cfg(c.repr) {}
-
 void MsatSolver::ConfigDeleter::operator()(void * repr) const
 {
   msat_destroy_config(msat_config{ repr });
@@ -1022,13 +1018,10 @@ void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
         "query");
   }
   // MathSAT has no logic option: a logic picks a whole configuration, which
-  // would discard the settings of one the caller gave or a logic set before
+  // would discard the settings of a logic set before
   if (cfg)
   {
-    throw IncorrectUsageException(
-        "MathSAT can only set the logic once, and not on a configuration it "
-        "was given; make that configuration with msat_create_default_config "
-        "instead");
+    throw IncorrectUsageException("MathSAT can only set the logic once");
   }
   cfg.reset(msat_create_default_config(logic_name.c_str()).repr);
   if (!cfg)
@@ -1131,29 +1124,16 @@ MsatInterpolatingSolver::MsatInterpolatingSolver()
   initialize();
 }
 
-MsatInterpolatingSolver::MsatInterpolatingSolver(msat_config c)
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>(c)),
-      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
-{
-  // a caller's configuration keeps its own preferences
-  set_required_options();
-}
-
 void MsatInterpolatingSolver::initialize()
-{
-  set_required_options();
-  // only a preference, so a caller's configuration keeps its own
-  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
-  // TODO: decide if we should add this
-  // msat_solver_->set_opt("theory.eq_propagation", "false");
-}
-
-void MsatInterpolatingSolver::set_required_options()
 {
   // without interpolation there are no interpolants, and the eager BV
   // solver produces no proofs
   msat_solver_->set_opt("interpolation", "true");
   msat_solver_->set_opt("theory.bv.eager", "false");
+  // only a preference, which a caller's own set_opt replaces
+  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
+  // TODO: decide if we should add this
+  // msat_solver_->set_opt("theory.eq_propagation", "false");
 }
 
 void MsatInterpolatingSolver::do_set_opt(const string & option,
