@@ -454,7 +454,7 @@ class TseitinTraversal : public IdentityWalker
     PrimOp connective;
     TermVec children;
   };
-  std::vector<Definition> reduced;
+  std::vector<Definition> reduced = {};
 
   explicit TseitinTraversal(const SmtSolver & solver)
       : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))

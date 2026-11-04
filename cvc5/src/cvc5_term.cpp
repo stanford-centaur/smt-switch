@@ -154,7 +154,7 @@ constexpr std::size_t num_kinds =
 // NUM_OPS_AND_NULL for a kind that no PrimOp stands for
 struct KindPrimops
 {
-  constexpr KindPrimops() : primops{}
+  constexpr KindPrimops()
   {
     for (PrimOp & po : primops)
     {
@@ -166,7 +166,7 @@ struct KindPrimops
                                        - first_kind)] = row.first;
     }
   }
-  std::array<PrimOp, num_kinds> primops;
+  std::array<PrimOp, num_kinds> primops = {};
 };
 constexpr KindPrimops kind_primops;
 

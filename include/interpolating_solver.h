@@ -278,8 +278,8 @@ class AbsSmtInterpolator : public AbsSmtSolver
   // for sequence_from_interpolants, the last sequence query and, if it was
   // unsat with every interpolant found, its interpolants, which stay valid
   // for a query that extends it
-  mutable TermVec last_itp_query_formulae;
-  mutable TermVec last_itp_query_interpolants;
+  mutable TermVec last_itp_query_formulae = {};
+  mutable TermVec last_itp_query_interpolants = {};
 
   // to run the rounds of refute_model on the interpolator it wraps
   friend class PrintingInterpolator;

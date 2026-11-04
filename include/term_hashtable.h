@@ -48,7 +48,7 @@ class TermHashTable
   void clear();
 
  protected:
-  std::unordered_map<std::size_t, UnorderedTermSet> table;
+  std::unordered_map<std::size_t, UnorderedTermSet> table = {};
 };
 
 }  // namespace smt

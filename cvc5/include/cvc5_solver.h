@@ -139,7 +139,7 @@ class Cvc5Solver : public AbsSmtSolver
 
   std::shared_ptr<Instance> instance;
 
-  std::unordered_map<std::string, Term> symbol_table;
+  std::unordered_map<std::string, Term> symbol_table = {};
 };
 
 // Interpolating Solver

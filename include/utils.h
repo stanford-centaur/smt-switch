@@ -384,10 +384,10 @@ class UnsatCoreReducer
    */
   Term label(const Term & t);
 
-  SmtSolver reducer_;          ///< solver for unsatcore-based reduction
-  TermTranslator to_reducer_;  ///< translator for converting terms from
-                               ///< ext_solver to reducer_
-  UnorderedTermMap labels_;    ///< labels for unsat cores
+  SmtSolver reducer_;             ///< solver for unsatcore-based reduction
+  TermTranslator to_reducer_;     ///< translator for converting terms from
+                                  ///< ext_solver to reducer_
+  UnorderedTermMap labels_ = {};  ///< labels for unsat cores
 };
 
 // -----------------------------------------------------------------------------
@@ -422,9 +422,9 @@ class DisjointSet
   bool (*comp)(const Term & a, const Term & b);
 
   // member to group's leader
-  UnorderedTermMap leader_;
+  UnorderedTermMap leader_ = {};
   // group leader to group
-  std::unordered_map<Term, UnorderedTermSet> group_;
+  std::unordered_map<Term, UnorderedTermSet> group_ = {};
 };
 
 }  // namespace smt

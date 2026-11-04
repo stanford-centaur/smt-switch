@@ -73,7 +73,7 @@ namespace {
 // frees a context, keeping the Yices instance alive until then
 struct ContextDeleter
 {
-  Yices2InstanceRef instance;
+  Yices2InstanceRef instance = {};
   void operator()(context_t * c) const { yices_free_context(c); }
 };
 
@@ -81,9 +81,8 @@ struct ContextDeleter
 
 /* Yices2Solver implementation */
 
-Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2)
+Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2), config(yices_new_config())
 {
-  config = yices_new_config();
 }
 
 Yices2Solver::~Yices2Solver() { yices_free_config(config); }

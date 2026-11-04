@@ -48,7 +48,7 @@ class Yices2TermIter : public TermIterBase
  private:
   // keeps Yices set up while the iterator can be used, even past its term
   // and solver
-  Yices2InstanceRef instance;
+  Yices2InstanceRef instance = {};
   term_t term;
 };
 
@@ -76,7 +76,7 @@ class Yices2Term : public AbsTerm
 
  protected:
   // keeps Yices set up while the term can be used, even past its solver
-  Yices2InstanceRef instance;
+  Yices2InstanceRef instance = {};
   term_t term;
 
   friend class Yices2TermIter;

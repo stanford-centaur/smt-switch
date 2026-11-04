@@ -76,9 +76,7 @@ struct BzlaSolver::Instance
 };
 
 BzlaSolver::BzlaSolver()
-    : AbsSmtSolver(BZLA),
-      options(),
-      tm(std::make_shared<bitwuzla::TermManager>())
+    : AbsSmtSolver(BZLA), tm(std::make_shared<bitwuzla::TermManager>())
 {
 }
 

@@ -108,20 +108,19 @@ class BoolectorTerm : public AbsTerm
   //   e:    for getting children
   mutable BtorNode * bn;
   // true iff the node is negated
-  bool negated;
+  bool negated = false;
   // true iff the node was made as a symbol, fixed at construction because
   // Boolector overwrites the kind of a symbol it substitutes
-  bool symbol;
+  bool symbol = false;
   // for iterating args nodes
-  mutable BtorArgsIterator ait;
+  mutable BtorArgsIterator ait = {};
   // for storing nodes before iterating
-  mutable std::vector<BtorNode *> children;
+  mutable std::vector<BtorNode *> children = {};
   // flag that's set to true if children have already been gathered
   // not straightforward to just rely on number of children / arity
   // because boolector term representation isn't a perfect match
   // for the smt-switch abstract interface
-  mutable bool children_cached_ =
-      false;  ///< set to true if children have already been gathered
+  mutable bool children_cached_ = false;
 
   // helpers
   bool is_const_array() const;

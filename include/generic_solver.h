@@ -416,9 +416,9 @@ class GenericSolver : public AbsSmtSolver
   mutable bool binary_exited_ = false;
   // every command the binary answered success to, in order, to bring a
   // new binary to the same state
-  mutable std::vector<std::string> accepted_commands_;
+  mutable std::vector<std::string> accepted_commands_ = {};
   // filled by reads in const methods
-  mutable std::vector<char> read_buf;
+  mutable std::vector<char> read_buf = {};
 
   // buffer size
   unsigned int read_buf_size;
@@ -427,10 +427,10 @@ class GenericSolver : public AbsSmtSolver
 
   // bytes read from the solver that no caller has taken yet: a read can
   // overshoot one response, and the rest belongs to the next command
-  mutable std::string response_buffer;
+  mutable std::string response_buffer = "";
 
   // the sorts made, by name
-  mutable std::unordered_map<std::string, Sort> name_sort_map;
+  mutable std::unordered_map<std::string, Sort> name_sort_map = {};
 
   // internal counter for naming terms
   mutable unsigned int term_counter = 0;
@@ -438,11 +438,11 @@ class GenericSolver : public AbsSmtSolver
   // The terms the binary knows by a name it declared, under that name as
   // SMT-LIB writes it, so that a name the binary answers with finds its
   // term
-  mutable std::unordered_map<std::string, Term> name_term_map;
+  mutable std::unordered_map<std::string, Term> name_term_map = {};
   // How the binary is given each term made
-  mutable std::unordered_map<Term, std::string> term_name_map;
+  mutable std::unordered_map<Term, std::string> term_name_map = {};
   // The names users gave params, which the binary never sees
-  mutable std::unordered_set<std::string> param_names_;
+  mutable std::unordered_set<std::string> param_names_ = {};
 
   // the binary's execution mode, as of the last command that succeeded
   mutable SmtLibMode mode_ = SmtLibMode::START;
@@ -450,23 +450,23 @@ class GenericSolver : public AbsSmtSolver
   // declarations and definitions made in the sat or unsat mode, which
   // would leave it; in the order they were made, so each comes after
   // whatever it uses
-  mutable std::vector<std::string> pending_commands_;
+  mutable std::vector<std::string> pending_commands_ = {};
   // the terms and sorts those commands define or declare
-  mutable UnorderedTermSet pending_definitions_;
-  mutable UnorderedTermSet pending_symbols_;
-  mutable std::unordered_set<std::string> pending_sort_names_;
+  mutable UnorderedTermSet pending_definitions_ = {};
+  mutable UnorderedTermSet pending_symbols_ = {};
+  mutable std::unordered_set<std::string> pending_sort_names_ = {};
 
   // labels standing in for assumptions that are not literals, and back
-  UnorderedTermMap assumption_labels;
-  UnorderedTermMap labelled_assumptions;
+  UnorderedTermMap assumption_labels = {};
+  UnorderedTermMap labelled_assumptions = {};
 
   // The datatype of each declaration, as two declarations can share a name
   mutable std::unordered_map<std::shared_ptr<GenericDatatypeDecl>,
                              std::shared_ptr<GenericDatatype>>
-      decl_datatype_map;
+      decl_datatype_map = {};
   // The name of each datatype
   mutable std::unordered_map<std::shared_ptr<GenericDatatype>, std::string>
-      datatype_name_map;
+      datatype_name_map = {};
 };
 
 }  // namespace smt

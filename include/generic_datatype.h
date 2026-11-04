@@ -14,8 +14,8 @@ struct SelectorComponents
 {
   // Name of the selector and its associated sort, which for a self selector
   // is null except in the copy a sort keeps when its datatype is used
-  std::string name;
-  Sort sort;
+  std::string name = "";
+  Sort sort = nullptr;
   // Used to determine if the sort needs to be replaced later
   // on. Usually true if no further work needs to be done to the selector.
   bool finalized = false;
@@ -49,9 +49,9 @@ class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   std::string get_dt_name() const;
 
  protected:
-  std::vector<SelectorComponents> selector_vector;
+  std::vector<SelectorComponents> selector_vector = {};
   std::string cons_name;
-  DatatypeDecl dt_decl;
+  DatatypeDecl dt_decl = nullptr;
   // Setter for the dt_decl member. Only to be used when a constructor
   // is added to a datatype. datatype_decl: The DatatypeDecl of the datatype.
   void update_stored_dt(const DatatypeDecl & datatype_decl);
@@ -85,11 +85,11 @@ class GenericDatatype : public AbsDatatype
   // is called, when the datatype's sort is created, to give the
   // datatype's copy of it the datatype sort.
   void change_sort_of_selector(const Sort new_sort);
-  std::hash<std::string> str_hash;
+  std::hash<std::string> str_hash = {};
 
  protected:
   DatatypeDecl dt_decl;
-  std::vector<DatatypeConstructorDecl> cons_decl_vector;
+  std::vector<DatatypeConstructorDecl> cons_decl_vector = {};
 
   friend class GenericSolver;
 };

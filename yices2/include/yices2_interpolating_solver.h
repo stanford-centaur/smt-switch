@@ -68,9 +68,9 @@ class Yices2InterpolatingSolver : public AbsSmtInterpolator
   /** @return a solver to check A or B of a query with */
   SmtSolver new_solver() const;
 
-  std::string logic;  ///< empty until set_logic
+  std::string logic = "";  ///< empty until set_logic
   std::vector<std::pair<std::string, std::string>>
-      options;  ///< in the order they were set
+      options = {};  ///< in the order they were set
 };
 
 }  // namespace smt

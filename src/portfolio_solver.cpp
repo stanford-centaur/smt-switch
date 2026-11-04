@@ -112,7 +112,7 @@ struct Child
   pid_t pid;
   int fd;
   std::string label;
-  std::string report;
+  std::string report = "";
   bool reaped = false;
   int status = 0;
 };
@@ -159,7 +159,7 @@ class Children
   }
 
  private:
-  std::vector<Child> children_;
+  std::vector<Child> children_ = {};
 };
 
 // Why a child gave no answer, once it has been reaped.

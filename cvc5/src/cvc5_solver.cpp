@@ -52,7 +52,7 @@ struct Cvc5Solver::Instance
 {
   Instance() : solver(tm) { set_default_options(solver); }
 
-  cvc5::TermManager tm;
+  cvc5::TermManager tm = {};
   cvc5::Solver solver;
 };
 
