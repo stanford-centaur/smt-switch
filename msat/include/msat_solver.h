@@ -42,13 +42,6 @@ class MsatSolver : public AbsSmtSolver
 {
  public:
   MsatSolver();
-  /** Creates a solver from a configuration and takes ownership of it: the
-   *  solver destroys c. The environment is created from c on first use, so
-   *  options can still be set until then. set_logic is refused, since the
-   *  configuration for a logic would discard c's settings: make c with
-   *  msat_create_default_config instead.
-   */
-  explicit MsatSolver(msat_config c);
   MsatSolver(const MsatSolver &) = delete;
   MsatSolver & operator=(const MsatSolver &) = delete;
   /** Sets an option. Refused once the environment exists: MathSAT makes
@@ -192,8 +185,6 @@ class MsatSolver : public AbsSmtSolver
    public:
     /** Starts with no configuration. */
     EnvWrapper() = default;
-    /** Takes ownership of c. */
-    explicit EnvWrapper(msat_config c);
     EnvWrapper(const EnvWrapper &) = delete;
     EnvWrapper & operator=(const EnvWrapper &) = delete;
 
@@ -230,13 +221,6 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
 {
  public:
   MsatInterpolatingSolver();
-  /** Creates an interpolating solver from a configuration and takes
-   *  ownership of it: the solver destroys c. It sets the two options
-   *  MathSAT cannot interpolate without, interpolation=true and
-   *  theory.bv.eager=false, and the environment is created from c on
-   *  first use. Every other option on c is left as given.
-   */
-  explicit MsatInterpolatingSolver(msat_config c);
   MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
   MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
   Result get_interpolant(const Term & A,
@@ -249,13 +233,9 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
   void forget_queries() override;
-  // sets what set_required_options does and the preferences for a
-  // configuration of the solver's own, on construction without a
-  // configuration and after reset()
+  // sets the options MathSAT cannot interpolate without and the solver's
+  // preferences, on construction and after reset()
   void initialize() override;
-  // sets the options MathSAT cannot interpolate without, which a caller's
-  // configuration needs too
-  void set_required_options();
 
   // the regular solver that builds this solver's terms
   std::shared_ptr<MsatSolver> msat_solver_;

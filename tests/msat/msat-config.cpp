@@ -5,9 +5,6 @@
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * MathSAT has no logic option: a logic picks a whole configuration, made
- * with msat_create_default_config, so a configuration the caller passed in
- * is left alone.
  * msat_set_option checks an option's syntax but not its range, so an
  * out-of-range value is refused only when the environment is made from the
  * configuration, at the first term, sort or query. A query that needs no
@@ -15,7 +12,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <mathsat.h>
 
 #include <memory>
 #include <string>
@@ -30,12 +26,6 @@
 using namespace smt;
 
 namespace {
-
-TEST(MsatConfig, CallerConfigRefusesLogic)
-{
-  SmtSolver s = std::make_shared<MsatSolver>(msat_create_config());
-  EXPECT_THROW(s->set_logic("QF_BV"), IncorrectUsageException);
-}
 
 TEST(MsatConfig, UnknownOptionRefusedBeforeConfig)
 {
