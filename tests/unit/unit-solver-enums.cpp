@@ -66,6 +66,7 @@ TEST(UnitSolverEnumNames, EverySolverEnumPrints)
       { BZLA_INTERPOLATOR, "BZLA_INTERPOLATOR" },
       { CVC5_INTERPOLATOR, "CVC5_INTERPOLATOR" },
       { MSAT_INTERPOLATOR, "MSAT_INTERPOLATOR" },
+      { YICES2_INTERPOLATOR, "YICES2_INTERPOLATOR" },
   });
   for (const auto & [se, name] : names)
   {

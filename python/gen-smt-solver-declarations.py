@@ -66,6 +66,11 @@ def create_yices2_solver(logging):
     solver.css = cpp_create_yices2_solver(logging)
     return solver
 solvers["yices2"] = create_yices2_solver
+
+def create_yices2_interpolator():
+    cdef SmtInterpolator solver = SmtInterpolator()
+    solver.set_interpolator(cpp_create_yices2_interpolator())
+    return solver
 """
 
 CREATE_Z3 = """
@@ -106,6 +111,7 @@ cdef extern from "msat_factory.h":
 DECLARE_YICES2 = """
 cdef extern from "yices2_factory.h":
     c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (bint logging) except +
+    c_SmtInterpolator cpp_create_yices2_interpolator "smt::Yices2SolverFactory::create_interpolating_solver" () except +
 """
 
 DECLARE_Z3 = """
@@ -173,6 +179,7 @@ if __name__ == "__main__":
         pxd += "\n" + DECLARE_YICES2
         pyx += "\n" + CREATE_YICES2
         imports.append("cpp_create_yices2_solver")
+        imports.append("cpp_create_yices2_interpolator")
 
     if args.z3:
         pxd += "\n" + DECLARE_Z3

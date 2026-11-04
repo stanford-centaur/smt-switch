@@ -26,7 +26,7 @@ namespace smt {
 bool is_interpolator_solver_enum(SolverEnum se)
 {
   return se == BZLA_INTERPOLATOR || se == CVC5_INTERPOLATOR
-         || se == MSAT_INTERPOLATOR;
+         || se == MSAT_INTERPOLATOR || se == YICES2_INTERPOLATOR;
 }
 
 bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
@@ -73,6 +73,7 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
     //       has something to do with the context and yices_init
     //       look into this more and re-enable it
     case YICES2:
+    case YICES2_INTERPOLATOR:
       return { LOGGING,      CONSTARR,      FULL_TRANSFER, TERMITER,
                THEORY_INT,   THEORY_BV,     THEORY_REAL,   ARRAY_FUN_BOOLS,
                ARRAY_MODELS, UNINTERP_SORT, TIMELIMIT };
@@ -100,6 +101,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case BZLA_INTERPOLATOR: return o << "BZLA_INTERPOLATOR";
     case CVC5_INTERPOLATOR: return o << "CVC5_INTERPOLATOR";
     case MSAT_INTERPOLATOR: return o << "MSAT_INTERPOLATOR";
+    case YICES2_INTERPOLATOR: return o << "YICES2_INTERPOLATOR";
   }
   throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
 }

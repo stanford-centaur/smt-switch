@@ -41,6 +41,7 @@ enum SolverEnum
   BZLA_INTERPOLATOR,
   CVC5_INTERPOLATOR,
   MSAT_INTERPOLATOR,
+  YICES2_INTERPOLATOR,
 
   // NOTE: when adding a new enum, also add it to the python interface, in
   // python/smt_switch/cppenums.pxd and python/smt_switch/solverenums.pyx

@@ -16,9 +16,14 @@
 
 #include "yices2_factory.h"
 
+#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
+#include <yices.h>
+
 #include <memory>
 
+#include "exceptions.h"
 #include "logging_solver.h"
+#include "yices2_interpolating_solver.h"
 #include "yices2_solver.h"
 
 namespace smt {
@@ -39,5 +44,15 @@ SmtSolver Yices2SolverFactory::create(bool logging)
   return solver;
 }
 /* end Yices2SolverFactory logging implementation */
+
+SmtInterpolator Yices2SolverFactory::create_interpolating_solver()
+{
+  if (!yices_has_mcsat())
+  {
+    throw NotImplementedException(
+        "This Yices2 was built without MCSAT, which interpolation needs");
+  }
+  return std::make_shared<Yices2InterpolatingSolver>();
+}
 
 }  // namespace smt

@@ -650,7 +650,9 @@ Result PrintingInterpolator::print_query(
     case GENERIC_SOLVER:
     case MSAT:
     case YICES2:
-    case Z3: break;
+    case Z3:
+    // its checks fix the values of models it chooses, which are not seen here
+    case YICES2_INTERPOLATOR: break;
   }
   throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
