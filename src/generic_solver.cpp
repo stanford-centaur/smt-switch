@@ -1081,61 +1081,17 @@ std::string GenericSolver::sort_name(const Sort & sort) const
 
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
-  // cast to generic term
   std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(term);
-  bool nullary_constructor = false;
-  // generic terms with no operators are represented by their
-  // name.
+  // a term without an op is its name
   if (gt->get_op().is_null())
   {
     return gt->to_string();
   }
-  else
-  {
-    // generic terms with operators are written as s-expressions.
-    std::string result;
-    if (gt->get_op() == Apply_Constructor)
-    {
-      std::shared_ptr<GenericDatatype> dt =
-          std::static_pointer_cast<GenericSort>(gt->get_sort())
-              ->get_generic_datatype();
-      nullary_constructor =
-          dt->get_num_selectors(name_of(term_name_map, gt->get_children()[0]));
-      result = nullary_constructor ? "(" : "";
-    }
-    else
-    {
-      result = "(";
-    }
-    // The Apply operator is ignored and the
-    // function being applied is used instead.
-    result +=
-        is_apply(term->get_op().prim_op) ? "" : term->get_op().to_string();
-    // For quantifiers we separate the bound variables list
-    // and the formula body.
-    if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
-    {
-      result += " ((" + name_of(term_name_map, gt->get_children()[0]) + " "
-                + sort_name(gt->get_children()[0]->get_sort()) + ")) "
-                + name_of(term_name_map, gt->get_children()[1]);
-    }
-    else
-    {
-      // in the general case (other than quantifiers
-      // and Apply), we use ordinary
-      // s-expressions notation and write a
-      // space-separated list of arguments.
-      for (auto c : gt->get_children())
-      {
-        result += " " + name_of(term_name_map, c);
-      }
-    }
-    if (gt->get_op() != Apply_Constructor || nullary_constructor)
-    {
-      result += ")";
-    }
-    return result;
-  }
+  // the children by the names the binary knows them by
+  return smtlib_application(
+      gt->get_op(), gt->get_children(), [this](const Term & t) {
+        return name_of(term_name_map, t);
+      });
 }
 
 Sort GenericSolver::make_sort(const Sort & sort_con,
