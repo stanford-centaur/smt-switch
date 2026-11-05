@@ -1284,6 +1284,12 @@ TEST_P(GenericSolverTests, BvIntOutOfRange)
             "#b0" + string(63, '1'));
 }
 
+TEST_P(GenericSolverIntTests, IntStringInOtherBase)
+{
+  EXPECT_THROW(gs->make_term("101", gs->make_sort(INT), 2),
+               IncorrectUsageException);
+}
+
 TEST_P(GenericSolverIntTests, IntStringNotANumber)
 {
   Sort int_sort = gs->make_sort(INT);
@@ -1393,6 +1399,26 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
   Term culprit = binary == BTOR ? b1 : not_b1;
   EXPECT_NE(core.find(culprit), core.end());
   gs->pop(1);
+}
+
+TEST_P(GenericSolverTests, UnsatAssumptionWithQuotedName)
+{
+  Term x = gs->make_symbol("a b", gs->make_sort(BOOL));
+  gs->assert_formula(gs->make_term(Not, x));
+  ASSERT_TRUE(gs->check_sat_assuming(TermVec{ x }).is_unsat());
+  UnorderedTermSet core;
+  gs->get_unsat_assumptions(core);
+  EXPECT_NE(core.find(x), core.end());
+}
+
+TEST_P(GenericSolverTests, ConstantArrayChecksSorts)
+{
+  Sort bv_sort = gs->make_sort(BV, 4);
+  Term zero = gs->make_term(0, bv_sort);
+  EXPECT_THROW(gs->make_term(zero, bv_sort), IncorrectUsageException);
+  Sort arr_sort = gs->make_sort(ARRAY, bv_sort, bv_sort);
+  EXPECT_THROW(gs->make_term(gs->make_term(true), arr_sort),
+               IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, FormulaAssumptions)

@@ -30,7 +30,6 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cerrno>
 #include <chrono>
 #include <cstdint>
@@ -238,6 +237,43 @@ static std::size_t sexpr_end(const std::string & buf, std::size_t i)
     }
   }
   return std::string::npos;
+}
+
+/**
+ * The top-level subexpressions of a parenthesized s-expression, so that
+ * "(store a #b01 #b10)" gives { "store", "a", "#b01", "#b10" }, and "()"
+ * gives an empty vector. Returns no value for anything that is not one
+ * parenthesized expression, such as an atom.
+ */
+static std::optional<std::vector<std::string>> split_sexpr(
+    const std::string & s)
+{
+  if (s.empty() || s.front() != '(' || sexpr_end(s, 0) != s.size())
+  {
+    return std::nullopt;
+  }
+
+  std::vector<std::string> parts;
+  const std::size_t last = s.size() - 1;
+  std::size_t i = 1;
+  while (i < last)
+  {
+    if (is_white_space(s[i]))
+    {
+      i++;
+      continue;
+    }
+    // the closing parenthesis delimits the last subexpression, so every one
+    // of them ends inside `s`
+    const std::size_t end = sexpr_end(s, i);
+    if (end == std::string::npos || end <= i)
+    {
+      return std::nullopt;
+    }
+    parts.push_back(s.substr(i, end - i));
+    i = end;
+  }
+  return parts;
 }
 
 /** Length of the first complete response in `buf`, including any leading
@@ -1578,7 +1614,6 @@ Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
 Term GenericSolver::make_non_negative_bv_const(std::int64_t i,
                                                unsigned int width) const
 {
-  assert(i >= 0);
   return make_non_negative_bv_const(std::to_string(i), width);
 }
 
@@ -1688,11 +1723,15 @@ Term GenericSolver::make_value(const std::string val,
 {
   SortKind sk = sort->get_sort_kind();
   check_value_sort_kind(sk);
-  assert(base == 2 || base == 10 || base == 16);
   std::string repr;
   if (sk == INT || sk == REAL)
   {
-    assert(base == 10);
+    if (base != 10)
+    {
+      throw IncorrectUsageException(
+          "Can't use base " + std::to_string(base) + " for a value of sort "
+          + sort->to_string() + ", which is read in base 10");
+    }
     // a solver binary reads some other strings, such as the name of a
     // symbol or a decimal for an INT, without an error but not as the
     // number meant
@@ -1735,8 +1774,18 @@ std::string GenericSolver::cons_arr_string(const Term & val,
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 {
-  assert(sort->get_sort_kind() == ARRAY);
-  assert(sort->get_elemsort() == val->get_sort());
+  if (sort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
+  }
+  if (sort->get_elemsort() != val->get_sort())
+  {
+    throw IncorrectUsageException(
+        "Can't make a constant array of sort " + sort->to_string() + " from "
+        + val->to_string() + " of sort " + val->get_sort()->to_string());
+  }
   Term term = std::make_shared<GenericTerm>(
       sort, Op(), TermVec{ val }, cons_arr_string(val, sort));
   return store_term(term);
@@ -2035,126 +2084,47 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 UnorderedTermSet GenericSolver::get_assumptions_from_string(
     std::string result) const
 {
-  // the result from the solver is a
-  // space-separated list of Boolean literals.
-  UnorderedTermSet literals;
-
-  // trim the result from spaces
-  result = trim(result);
-
-  // unwrap parenthesis and trim spaces again
-  std::string strip = result.substr(1, result.size() - 2);
-  strip = trim(strip);
-
-  // position in the string
-  std::string::size_type index = 0;
-  // if true, current literal is positive.
-  // otherwise, it has the form (not <var>)
-  bool positive;
-
-  // iterate the string
-  while (index < strip.size())
+  // the result from the solver is a list of Boolean literals, each a
+  // symbol or its negation
+  const auto literal_list = split_sexpr(trim(result));
+  if (!literal_list)
   {
-    // beginning and end of literal
-    std::string::size_type begin;
-    std::string::size_type end;
+    throw InternalSolverException("Unexpected get-unsat-assumptions response: "
+                                  + result);
+  }
 
-    // negative literal
-    if (strip.substr(index, 5) == "(not ")
+  UnorderedTermSet literals;
+  for (const std::string & literal : *literal_list)
+  {
+    std::string name = literal;
+    bool positive = true;
+    if (const auto parts = split_sexpr(literal))
     {
-      begin = index + 5;
-      std::string::size_type close = strip.find(")", begin + 1);
-      assert(close != std::string::npos);
-      end = close - 1;
-      positive = false;
-    }
-    else
-    {
-      // positive literal -- starts with the variable name
-      begin = index;
-      // end -- one character after the end of the substring
-      end = strip.find(" ", begin + 1);
-      if (end == std::string::npos)
+      if (parts->size() != 2 || (*parts)[0] != "not")
       {
-        end = strip.size();
+        throw InternalSolverException(
+            "Unexpected get-unsat-assumptions response: " + result);
       }
-      // end -- the actual end of the substring
-      end--;
-      positive = true;
+      name = (*parts)[1];
+      positive = false;
     }
 
     // A binary may write a name in bars or without, which SMT-LIB reads as
     // the same symbol, so the name is looked up as this solver writes it.
-    std::string str_atom = strip.substr(begin, end - begin + 1);
-    if (str_atom.size() >= 2 && str_atom.front() == '|'
-        && str_atom.back() == '|')
+    if (name.size() >= 2 && name.front() == '|' && name.back() == '|')
     {
-      str_atom = str_atom.substr(1, str_atom.size() - 2);
+      name = name.substr(1, name.size() - 2);
     }
-    auto it = name_term_map.find(smtlib_quote_symbol(str_atom));
-    assert(it != name_term_map.end());
-    Term atom = it->second;
-    Term literal;
-    if (positive)
+    auto it = name_term_map.find(smtlib_quote_symbol(name));
+    if (it == name_term_map.end())
     {
-      literal = atom;
+      throw InternalSolverException(
+          "The get-unsat-assumptions response names an unknown term " + name
+          + ": " + result);
     }
-    else
-    {
-      literal = make_term(Not, atom);
-    }
-
-    // add the literal to the result
-    literals.insert(literal);
-    if (positive)
-    {
-      // next beginning is after a space
-      index = end + 2;
-    }
-    else
-    {
-      // next beginning is after a space and a ')'
-      index = end + 3;
-    }
+    literals.insert(positive ? it->second : make_term(Not, it->second));
   }
   return literals;
-}
-
-/**
- * The top-level subexpressions of a parenthesized s-expression, so that
- * "(store a #b01 #b10)" gives { "store", "a", "#b01", "#b10" }, and "()"
- * gives an empty vector. Returns no value for anything that is not one
- * parenthesized expression, such as an atom.
- */
-static std::optional<std::vector<std::string>> split_sexpr(
-    const std::string & s)
-{
-  if (s.empty() || s.front() != '(' || sexpr_end(s, 0) != s.size())
-  {
-    return std::nullopt;
-  }
-
-  std::vector<std::string> parts;
-  const std::size_t last = s.size() - 1;
-  std::size_t i = 1;
-  while (i < last)
-  {
-    if (is_white_space(s[i]))
-    {
-      i++;
-      continue;
-    }
-    // the closing parenthesis delimits the last subexpression, so every one
-    // of them ends inside `s`
-    const std::size_t end = sexpr_end(s, i);
-    if (end == std::string::npos || end <= i)
-    {
-      return std::nullopt;
-    }
-    parts.push_back(s.substr(i, end - i));
-    i = end;
-  }
-  return parts;
 }
 
 UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
