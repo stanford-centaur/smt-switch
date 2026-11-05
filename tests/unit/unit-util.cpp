@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -258,6 +259,20 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   string ret4 = y4.str();
   string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
   ASSERT_TRUE(ret4 == expected4) << ret4 << endl << cnf4 << endl;
+}
+
+TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
+{
+  Term a = s->make_symbol("a", boolsort);
+  Term b = s->make_symbol("b", boolsort);
+  Term c = s->make_symbol("c", boolsort);
+  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  ostringstream y;
+  EXPECT_THROW(cnf_to_dimacs(x, y), IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Implies, a, b), y),
+               IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
+               IncorrectUsageException);
 }
 
 TEST_P(UnitUtilDimacsTests, tseitin)

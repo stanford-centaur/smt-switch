@@ -17,7 +17,6 @@
 #include "utils.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
@@ -260,7 +259,12 @@ bool is_lit(const Term & l, const Sort & boolsort)
 void cnf_to_dimacs(Term cnf, std::ostringstream & y)
 {
   Sort sort = cnf->get_sort();
-  assert(sort->get_sort_kind() == BOOL);
+  if (sort->get_sort_kind() != BOOL)
+  {
+    throw IncorrectUsageException("cnf_to_dimacs expects a Boolean term, but "
+                                  + cnf->to_string() + " has sort "
+                                  + sort->to_string());
+  }
   if (cnf->is_value() && cnf->to_string() == "true")
   {  // empty cnf formula
     y << "p cnf 0 0\n";
@@ -278,7 +282,11 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
     Op op = t->get_op();
-    assert(op.is_null() || op == Or || op == And || op == Not);
+    if (!(op.is_null() || op == Or || op == And || op == Not))
+    {
+      throw IncorrectUsageException("cnf_to_dimacs: " + cnf->to_string()
+                                    + " is not in CNF");
+    }
     if (op.prim_op == And)
     {
       for (auto u : t)
@@ -305,7 +313,11 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
       Op op = t->get_op();
-      assert(op.is_null() || op == Or || op == Not);
+      if (!(op.is_null() || op == Or || op == Not))
+      {
+        throw IncorrectUsageException("cnf_to_dimacs: " + cnf->to_string()
+                                      + " is not in CNF");
+      }
 
       if (op.prim_op == Or)
       {
@@ -316,7 +328,6 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
       }
       else
       {
-        assert(op.is_null() || op == Not);
         after_or_elimination.push_back(t);
       }
     }
@@ -1085,7 +1096,12 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
       return false;
     }
 
-    assert(r.is_unsat());
+    if (!r.is_unsat())
+    {
+      reducer_->pop();
+      throw InternalSolverException(
+          "reduce_assump_unsatcore expected unsat but got " + r.to_string());
+    }
 
     bool_assump.clear();
     local_assump.clear();
@@ -1119,7 +1135,6 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
 
     first_iter = false;
   }
-  assert(!iter || cur_iter <= iter);
 
   reducer_->pop();
 
@@ -1144,8 +1159,14 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
   for (const auto & a : assump)
   {
     Term t = to_reducer_.transfer_term(a);
+    // A repeated assumption gets the same label twice, and removing one
+    // copy at a time never shrinks the core.
+    if (!to_ext_assump.emplace(t, a).second)
+    {
+      throw IncorrectUsageException("linear_reduce_assump_unsatcore got "
+                                    + a->to_string() + " more than once");
+    }
     cand_res.push_back(t);
-    to_ext_assump[t] = a;
   }
 
   reducer_->push();
@@ -1176,7 +1197,13 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
     reducer_->pop();
     return false;
   }
-  assert(r.is_unsat());
+  if (!r.is_unsat())
+  {
+    reducer_->pop();
+    throw InternalSolverException(
+        "linear_reduce_assump_unsatcore expected unsat but got "
+        + r.to_string());
+  }
 
   while (cur_iter <= iter && assump_pos_for_removal < bool_assump.size())
   {
@@ -1196,10 +1223,16 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
       // we cannot remove this assumption, then try next one
       ++assump_pos_for_removal;
     }
+    else if (!r.is_unsat())
+    {
+      reducer_->pop();
+      throw InternalSolverException(
+          "linear_reduce_assump_unsatcore expected unsat but got "
+          + r.to_string());
+    }
     else
     {
       // we can remove this assumption
-      assert(r.is_unsat());
 
       // the reason of using unsat core rather than the removal
       // of bool_assump[bool_assump_for_query] is because
@@ -1216,8 +1249,6 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
         bool_assump.swap(
             new_bool_assump);  // do "bool_assump = new_bool_assump" w.o. copy
       }
-      assert(!bool_assump.empty());
-      assert(bool_assump.size() <= bool_assump_for_query.size());
       // we don't need to change assump_pos_for_removal, because the size of
       // bool_assump is reduced by at least one, so in the next round
       // it is another element sitting at this location
@@ -1358,7 +1389,6 @@ void DisjointSet::add(const Term & a, const Term & b)
     }
     else
     {
-      assert(!b->is_value());
       leader_[a] = b;
       leader_[b] = b;
       group_[b] = UnorderedTermSet({ a, b });
@@ -1368,8 +1398,13 @@ void DisjointSet::add(const Term & a, const Term & b)
 
 Term DisjointSet::find(const Term & t) const
 {
-  assert(leader_.find(t) != leader_.end());
-  return leader_.at(t);
+  auto it = leader_.find(t);
+  if (it == leader_.end())
+  {
+    throw IncorrectUsageException("DisjointSet::find: " + t->to_string()
+                                  + " was never added");
+  }
+  return it->second;
 }
 
 void DisjointSet::clear()
