@@ -870,4 +870,122 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                              { THEORY_INT, THEORY_DATATYPE })),
                          ConfigName());
 
+TEST(SmtLibBenchmark, NothingToDeclare)
+{
+  ostringstream out;
+  smtlib_benchmark(out, "QF_LIA", {});
+  EXPECT_EQ(out.str(), "(set-logic QF_LIA)\n(check-sat)\n");
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkDeclarations);
+class SmtLibBenchmarkDeclarations
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    intsort = s->make_sort(INT);
+  }
+
+  SmtSolver s;
+  Sort intsort;
+};
+
+TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
+{
+  Sort usort = s->make_sort("U", 0);
+  Sort boolsort = s->make_sort(BOOL);
+  Term p = s->make_symbol("p", s->make_sort(FUNCTION, { usort, boolsort }));
+  Term u = s->make_symbol("u", usort);
+  Term x = s->make_symbol("x", intsort);
+  Term a = s->make_term(Apply, p, u);
+  Term b = s->make_term(Gt, x, s->make_term(0, intsort));
+  ostringstream out;
+  smtlib_benchmark(out, "QF_UFLIA", { a, b });
+  EXPECT_EQ(out.str(),
+            "(set-logic QF_UFLIA)\n"
+            "(declare-sort U 0)\n"
+            "(declare-fun p (U) Bool)\n"
+            "(declare-fun u () U)\n"
+            "(declare-fun x () Int)\n"
+            "(assert "
+                + a->to_string() + ")\n(assert " + b->to_string()
+                + ")\n"
+                  "(check-sat)\n");
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibBenchmarkDeclarations,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { TERMITER, THEORY_INT, UNINTERP_SORT })),
+                         ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkParamSorts);
+class SmtLibBenchmarkParamSorts : public SmtLibBenchmarkDeclarations
+{
+};
+
+TEST_P(SmtLibBenchmarkParamSorts, DeclaresTheSortConstructor)
+{
+  Sort fint = s->make_sort(s->make_sort("F", 1), { intsort });
+  Term a = s->make_symbol("a", fint);
+  Term b = s->make_symbol("b", fint);
+  Term eq = s->make_term(Equal, a, b);
+  ostringstream out;
+  smtlib_benchmark(out, "ALL", { eq });
+  EXPECT_EQ(out.str(),
+            "(set-logic ALL)\n"
+            "(declare-sort F 1)\n"
+            "(declare-fun a () "
+                + fint->to_string() + ")\n(declare-fun b () "
+                + fint->to_string() + ")\n(assert " + eq->to_string()
+                + ")\n(check-sat)\n");
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibBenchmarkParamSorts,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { TERMITER, THEORY_INT, PARAM_UNINTERP_SORT })),
+                         ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkDatatypes);
+class SmtLibBenchmarkDatatypes : public SmtLibBenchmarkDeclarations
+{
+};
+
+TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort list = s->make_sort(listdecl);
+  Term l = s->make_symbol("l", list);
+  Term m = s->make_symbol("m", list);
+  Term d = s->make_term(Distinct, l, m);
+  ostringstream out;
+  smtlib_benchmark(out, "ALL", { d });
+  EXPECT_EQ(out.str(),
+            "(set-logic ALL)\n"
+            "(declare-datatypes ((list 0)) "
+            "(((nil) (cons (head Int) (tail list)))))\n"
+            "(declare-fun l () list)\n"
+            "(declare-fun m () list)\n"
+            "(assert "
+                + d->to_string()
+                + ")\n"
+                  "(check-sat)\n");
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibBenchmarkDatatypes,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { TERMITER, THEORY_INT, THEORY_DATATYPE })),
+                         ConfigName());
+
 }  // namespace

@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -236,6 +237,20 @@ std::string smtlib_declare_fun(const Term & symbol);
  *          that is not a datatype
  */
 std::string smtlib_declare_datatypes(const SortVec & datatypes);
+
+/** Writes assertions as an SMT-LIB benchmark: set-logic, a declaration
+ *  for every uninterpreted sort, datatype and symbol they use, each kind
+ *  in name order, the assertions, and check-sat. Terms and sorts are
+ *  written by their to_string, so their solver must print them in
+ *  SMT-LIB.
+ *  @param out where to write
+ *  @param logic the logic, such as ALL for a solver's default, since
+ *         SMT-LIB declares nothing before set-logic
+ *  @param assertions the formulas to assert
+ */
+void smtlib_benchmark(std::ostream & out,
+                      const std::string & logic,
+                      const TermVec & assertions);
 
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
