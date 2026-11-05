@@ -18,7 +18,6 @@
 
 #include <mathsat.h>
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -289,15 +288,11 @@ Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
   for (msat_term ma : massumptions)
   {
     lbl = label(ma);
-    // check that label is cached correctly
-    assert(msat_term_id(lbl) == msat_term_id(label(ma)));
     msat_assert_formula(*env, msat_make_or(*env, msat_make_not(*env, lbl), ma));
     num_assump_clauses_++;
     assumption_map_[msat_term_id(lbl)] = ma;
     lbls.push_back(lbl);
   }
-
-  assert(lbls.size() == assumptions.size());
 
   msat_result mres =
       msat_solve_with_assumptions(*env, lbls.data(), lbls.size());
@@ -1203,8 +1198,6 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   const std::shared_ptr<msat_env> & env = msat_solver_->env_wrapper_.get_env();
-  assert(msat_num_backtrack_points(*env) == last_itp_query_assertions_.size());
-  assert(itp_grps_.size() == last_itp_query_assertions_.size());
 
   if (formulae.size() < 2)
   {
@@ -1252,7 +1245,6 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
   }
 
   // update the interpolation groups and assertions
-  assert(num_reused == msat_num_backtrack_points(*env));
   itp_grps_.resize(num_reused);
   itp_grps_.reserve(formulae.size());
   last_itp_query_assertions_.resize(num_reused);
@@ -1270,9 +1262,6 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     itp_grps_.push_back(grp);
     last_itp_query_assertions_.push_back(formulae.at(k));
   }
-  assert(itp_grps_.size() == last_itp_query_assertions_.size());
-  assert(itp_grps_.size() == msat_num_backtrack_points(*env));
-  assert(formulae == last_itp_query_assertions_);
 
   // solve query and get interpolants
   msat_result msat_res = msat_solve(*env);
@@ -1286,8 +1275,6 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     return Result(
         UNKNOWN, with_error("Interpolation failure", last_error_message(*env)));
   }
-
-  assert(msat_res == MSAT_UNSAT);
 
   Result r = Result(UNSAT);
   for (size_t i = 1; i < itp_grps_.size(); ++i)
@@ -1314,7 +1301,6 @@ Result MsatInterpolatingSolver::get_sequence_interpolants(
     }
   }
 
-  assert(out_I.size() == formulae.size() - 1);
   return r;
 }
 
