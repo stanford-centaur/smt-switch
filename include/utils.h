@@ -27,6 +27,7 @@
 
 #include "ops.h"
 #include "smt_defs.h"
+#include "sort.h"
 #include "term.h"
 #include "term_translator.h"
 
@@ -201,6 +202,16 @@ std::string smtlib_application(
  */
 std::string smtlib_const_array(const std::string & sort,
                                const std::string & value);
+
+/** The SMT-LIB text of an integer or real value. Its numbers lose leading
+ *  zeros and gain a zero on an empty side of a decimal point, as SMT-LIB
+ *  writes them: .1 becomes 0.1.
+ *  @param sk the sort kind of the value, INT or REAL
+ *  @param value a numeral, decimal or fraction of numerals without spaces,
+ *         optionally after a sign, as in 5, +5, -0.5 or -1/2
+ *  @return the SMT-LIB text of the value
+ */
+std::string smtlib_arith_value(SortKind sk, const std::string & value);
 
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
