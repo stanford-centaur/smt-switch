@@ -21,10 +21,12 @@
 #include <sys/time.h>
 #include <yices.h>
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -201,6 +203,7 @@ void Yices2Solver::set_logic(const std::string logic)
   yices_free_context(scratch_ctx);
 
   yices_default_config_for_logic(config, logic.c_str());
+  logic_ = logic;
 }
 
 std::shared_ptr<context_t> Yices2Solver::get_context()
@@ -358,6 +361,7 @@ void Yices2Solver::assert_formula(const Term & t)
   {
     throw InternalSolverException(take_yices_error());
   }
+  assertions.push_back(t);
 }
 
 Result Yices2Solver::check_sat()
@@ -431,6 +435,7 @@ Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
 
 void Yices2Solver::do_push(uint64_t num)
 {
+  scope_starts.insert(scope_starts.end(), num, assertions.size());
   if (yices_context_status(get_context().get()) == YICES_STATUS_UNSAT)
   {
     pushes_after_unsat += num;
@@ -453,6 +458,13 @@ void Yices2Solver::do_pop(uint64_t num)
       continue;
     }
     yices_pop(get_context().get());
+  }
+  // Yices pops one scope at a time, and stops at the outermost
+  std::size_t popped = std::min<std::size_t>(num, scope_starts.size());
+  if (popped)
+  {
+    assertions.resize(scope_starts[scope_starts.size() - popped]);
+    scope_starts.resize(scope_starts.size() - popped);
   }
 }
 
@@ -1175,6 +1187,9 @@ void Yices2Solver::do_reset()
   symbol_table.clear();
   pushes_after_unsat = 0;
   time_limit = 0;
+  logic_ = "ALL";
+  assertions.clear();
+  scope_starts.clear();
 }
 
 void Yices2Solver::do_reset_assertions()
@@ -1184,6 +1199,14 @@ void Yices2Solver::do_reset_assertions()
     yices_reset_context(ctx.get());
   }
   pushes_after_unsat = 0;
+  assertions.clear();
+  scope_starts.clear();
+}
+
+void Yices2Solver::dump_smt2(std::string filename) const
+{
+  std::ofstream out(filename);
+  smtlib_benchmark(out, logic_, assertions);
 }
 
 Term Yices2Solver::substitute(const Term term,

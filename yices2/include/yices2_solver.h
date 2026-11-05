@@ -19,10 +19,12 @@
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "smt_defs.h"
 #include "solver.h"
@@ -90,6 +92,7 @@ class Yices2Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
+  void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects
   // for interacting with third-party Yices2-specific software
@@ -127,6 +130,14 @@ class Yices2Solver : public AbsSmtSolver
                                     ///< context status
 
   double time_limit = 0;  ///< in seconds, 0 for none
+
+  // Yices cannot list a context's assertions, so dump_smt2 writes these:
+  // the logic given to set_logic, ALL for none, since SMT-LIB declares
+  // nothing before set-logic, the formulas asserted and not popped, and
+  // how many of them came before each pushed scope
+  std::string logic_ = "ALL";
+  TermVec assertions;
+  std::vector<std::size_t> scope_starts;
 
   std::unordered_map<std::string, Term> symbol_table;
   ///< Keep track of declared symbols to avoid re-declaration
