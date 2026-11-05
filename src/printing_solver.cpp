@@ -17,10 +17,8 @@
 
 #include "printing_solver.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -482,12 +480,28 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
                                              const Term & B,
                                              Term & out_I) const
 {
-  TermVec interpolant;
-  return print_query({ A, B }, interpolant, false, [&]() {
-    Result r = wrapped_interpolator->get_interpolant(A, B, out_I);
-    interpolant.push_back(out_I);
-    return r;
-  });
+  switch (get_solver_enum())
+  {
+    case CVC5_INTERPOLATOR: {
+      TermVec interpolant;
+      Result r = print_query({ A, B }, interpolant);
+      out_I = interpolant.front();
+      return r;
+    }
+    // both define it as the sequence interpolant of A and B
+    case BZLA_INTERPOLATOR:
+    case MSAT_INTERPOLATOR: return interpolant_from_sequence(A, B, out_I);
+    case BTOR:
+    case BZLA:
+    case CVC5:
+    case GENERIC_SOLVER:
+    case MSAT:
+    case YICES2:
+    // its checks fix the values of models it chooses, which are not seen here
+    case YICES2_INTERPOLATOR:
+    case Z3: break;
+  }
+  throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
 
 Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
@@ -505,16 +519,31 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
-  return print_query(formulae, out_I, true, [&]() {
-    return wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
-  });
+  switch (get_solver_enum())
+  {
+    // It splits a sequence query into one get_interpolant query per split,
+    // with sequence_from_interpolants, and keeps what it reuses between
+    // queries. Splitting it here the same way asks the same queries, and
+    // prints each as it is asked.
+    case CVC5_INTERPOLATOR: return sequence_from_interpolants(formulae, out_I);
+    // both answer it natively
+    case BZLA_INTERPOLATOR:
+    case MSAT_INTERPOLATOR: return print_query(formulae, out_I);
+    case BTOR:
+    case BZLA:
+    case CVC5:
+    case GENERIC_SOLVER:
+    case MSAT:
+    case YICES2:
+    // its checks fix the values of models it chooses, which are not seen here
+    case YICES2_INTERPOLATOR:
+    case Z3: break;
+  }
+  throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
 
-Result PrintingInterpolator::print_query(
-    const TermVec & formulae,
-    const TermVec & out_I,
-    bool sequence,
-    const std::function<Result()> & ask) const
+Result PrintingInterpolator::print_query(const TermVec & formulae,
+                                         TermVec & out_I) const
 {
   switch (get_solver_enum())
   {
@@ -557,7 +586,8 @@ Result PrintingInterpolator::print_query(
         asserted_names.push_back(name);
       }
       (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
-      Result r = ask();
+      Result r =
+          wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
       // the interpolants are asked for only after an unsat answer
       if (r.is_unsat() && msat)
       {
@@ -585,63 +615,18 @@ Result PrintingInterpolator::print_query(
       return r;
     }
     case CVC5_INTERPOLATOR: {
-      // cvc5 has no sequence query, so a sequence query asks one query per
-      // split, from the interpolant of the split before, as
-      // sequence_from_interpolants does; they are printed once those
-      // interpolants are known. It reuses the interpolants of an unsat last
-      // sequence query that this one extends, unless incremental is off,
-      // and asks no more after a split that fails. A get_interpolant query
-      // is asked on its own and leaves the last sequence query as it was.
-      std::size_t first_split = 0;
-      if (sequence && incremental_mode && !last_unsat_query.empty()
-          && last_unsat_query.size() <= formulae.size()
-          && std::equal(last_unsat_query.begin(),
-                        last_unsat_query.end(),
-                        formulae.begin()))
-      {
-        first_split = last_unsat_query.size() - 1;
-      }
-      Result r = ask();
-      if (sequence)
-      {
-        last_unsat_query = r.is_unsat() ? formulae : TermVec();
-      }
-      for (std::size_t i = first_split; i < out_I.size(); ++i)
-      {
-        if (i > 0 && !out_I[i - 1])
-        {
-          break;
-        }
-        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-        // the split asserts the conjunction of the interpolant before it
-        // and its formula
-        (*out_stream) << "(" << ASSERT_STR << " ";
-        if (i > 0)
-        {
-          (*out_stream) << "(and " << out_I[i - 1] << " " << formulae[i] << ")";
-        }
-        else
-        {
-          (*out_stream) << formulae[i];
-        }
-        (*out_stream) << ")" << std::endl;
-        (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not ";
-        if (i + 2 == formulae.size())
-        {
-          (*out_stream) << formulae.back();
-        }
-        else
-        {
-          (*out_stream) << "(and";
-          for (std::size_t j = i + 1; j < formulae.size(); ++j)
-          {
-            (*out_stream) << " " << formulae[j];
-          }
-          (*out_stream) << ")";
-        }
-        (*out_stream) << "))" << std::endl;
-        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
-      }
+      // A get_interpolant query, printed once it is answered: cvc5 asks for
+      // an interpolant of the assertions and the negation of B
+      Term I;
+      Result r = wrapped_interpolator->get_interpolant(
+          formulae.front(), formulae.back(), I);
+      out_I.push_back(I);
+      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << ASSERT_STR << " " << formulae.front() << ")"
+                    << std::endl;
+      (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not "
+                    << formulae.back() << "))" << std::endl;
+      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return r;
     }
     case BTOR:
@@ -681,7 +666,6 @@ void PrintingInterpolator::forget_queries()
 {
   asserted.clear();
   asserted_names.clear();
-  last_unsat_query.clear();
 }
 
 SmtInterpolator create_printing_interpolator(
