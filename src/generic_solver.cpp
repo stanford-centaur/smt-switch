@@ -1103,15 +1103,6 @@ std::string GenericSolver::to_smtlib_def(Term term) const
           dt->get_num_selectors(name_of(term_name_map, gt->get_children()[0]));
       result = nullary_constructor ? "(" : "";
     }
-    else if (gt->get_op() == Apply_Tester)
-    {
-      result = "((_ is ";
-      result += name_of(term_name_map, gt->get_children()[0]);
-      result += ") ";
-      result += name_of(term_name_map, gt->get_children()[1]);
-      result += ")";
-      return result;
-    }
     else
     {
       result = "(";
@@ -1519,9 +1510,11 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   }
 
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
+  // SMT-LIB writes a tester as an indexed identifier
+  std::string tester = "(_ is " + smtlib_quote_symbol(name) + ")";
   Term new_term =
-      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
-  term_name_map[new_term] = name;
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, tester, true);
+  term_name_map[new_term] = tester;
   return new_term;
 }
 
