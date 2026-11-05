@@ -192,6 +192,16 @@ std::string smtlib_application(
     const std::function<std::string(const Term &)> & term_text =
         [](const Term & t) { return t->to_string(); });
 
+/** The text of a constant array, ((as const S) v). SMT-LIB's theory of
+ *  arrays declares no const, so this is a solver extension, written as
+ *  SMT-LIB writes a symbol whose result sort its arguments do not fix.
+ *  @param sort the text of the array sort
+ *  @param value the text of the value at every index
+ *  @return the text of the constant array
+ */
+std::string smtlib_const_array(const std::string & sort,
+                               const std::string & value);
+
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
 // value does not fit in the result type.

@@ -1757,12 +1757,6 @@ Term GenericSolver::make_value(const std::string val,
   }
 }
 
-std::string GenericSolver::cons_arr_string(const Term & val,
-                                           const Sort & sort) const
-{
-  return "((as const " + sort_name(sort) + ") " + term_name(val) + ") ";
-}
-
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 {
   if (sort->get_sort_kind() != ARRAY)
@@ -1777,8 +1771,8 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
         "Can't make a constant array of sort " + sort->to_string() + " from "
         + val->to_string() + " of sort " + val->get_sort()->to_string());
   }
-  Term term = std::make_shared<GenericTerm>(
-      sort, Op(), TermVec{ val }, cons_arr_string(val, sort));
+  std::string repr = smtlib_const_array(sort_name(sort), term_name(val));
+  Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{ val }, repr);
   return store_term(term);
 }
 
