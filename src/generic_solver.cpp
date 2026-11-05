@@ -40,6 +40,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -2121,14 +2122,16 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
 
 /**
  * The top-level subexpressions of a parenthesized s-expression, so that
- * "(store a #b01 #b10)" gives { "store", "a", "#b01", "#b10" }. Returns an
- * empty vector for anything that is not one parenthesized expression.
+ * "(store a #b01 #b10)" gives { "store", "a", "#b01", "#b10" }, and "()"
+ * gives an empty vector. Returns no value for anything that is not one
+ * parenthesized expression, such as an atom.
  */
-static std::vector<std::string> split_sexpr(const std::string & s)
+static std::optional<std::vector<std::string>> split_sexpr(
+    const std::string & s)
 {
   if (s.empty() || s.front() != '(' || sexpr_end(s, 0) != s.size())
   {
-    return {};
+    return std::nullopt;
   }
 
   std::vector<std::string> parts;
@@ -2146,7 +2149,7 @@ static std::vector<std::string> split_sexpr(const std::string & s)
     const std::size_t end = sexpr_end(s, i);
     if (end == std::string::npos || end <= i)
     {
-      return {};
+      return std::nullopt;
     }
     parts.push_back(s.substr(i, end - i));
     i = end;
@@ -2189,22 +2192,22 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   const Sort indexsort = sort->get_indexsort();
   const Sort elemsort = sort->get_elemsort();
   std::vector<std::pair<Term, Term>> stores;
-  std::vector<std::string> parts = split_sexpr(value);
-  while (parts.size() == 4 && parts[0] == "store")
+  auto parts = split_sexpr(value);
+  while (parts && parts->size() == 4 && (*parts)[0] == "store")
   {
     // store each term, so that a caller can read the array at an index this
     // returns: a term the binary has no name for cannot be printed to it
-    stores.push_back({ store_term(value_from_string(parts[2], indexsort)),
-                       store_term(value_from_string(parts[3], elemsort)) });
-    value = parts[1];
+    stores.push_back({ store_term(value_from_string((*parts)[2], indexsort)),
+                       store_term(value_from_string((*parts)[3], elemsort)) });
+    value = (*parts)[1];
     parts = split_sexpr(value);
   }
 
   // Under the stores stands ((as const <sort>) <base>) where the binary
   // gives a constant base.
-  const std::vector<std::string> head =
-      parts.size() == 2 ? split_sexpr(parts[0]) : std::vector<std::string>();
-  if (head.size() != 3 || head[0] != "as" || head[1] != "const")
+  const auto head =
+      parts && parts->size() == 2 ? split_sexpr((*parts)[0]) : std::nullopt;
+  if (!head || head->size() != 3 || (*head)[0] != "as" || (*head)[1] != "const")
   {
     // Say which head turned up rather than return a map that quietly omits
     // whatever it holds.
@@ -2213,7 +2216,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
         "model headed by "
         + value + ", which has no constant base");
   }
-  out_const_base = store_term(value_from_string(parts[1], elemsort));
+  out_const_base = store_term(value_from_string((*parts)[1], elemsort));
 
   return store_chain_values(stores);
 }
