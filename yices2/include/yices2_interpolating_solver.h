@@ -9,6 +9,8 @@
 #pragma once
 
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "interpolating_solver.h"
 #include "result.h"
@@ -43,9 +45,22 @@ class Yices2InterpolatingSolver : public AbsSmtInterpolator
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const override;
 
+  /** Sets the logic of the terms and of the queries */
+  void set_logic(const std::string logic) override;
+
  protected:
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
+
+  void initialize() override;
+
+ private:
+  /** @return a solver to check A or B of a query with */
+  SmtSolver new_solver() const;
+
+  std::string logic;  ///< empty until set_logic
+  std::vector<std::pair<std::string, std::string>>
+      options;  ///< in the order they were set
 };
 
 }  // namespace smt

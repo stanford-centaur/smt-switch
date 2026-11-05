@@ -40,58 +40,11 @@ std::string yices2_error()
   return message;
 }
 
-struct ContextDeleter
-{
-  void operator()(context_t * ctx) const { yices_free_context(ctx); }
-};
-using ContextPtr = std::unique_ptr<context_t, ContextDeleter>;
-
 struct ModelDeleter
 {
   void operator()(model_t * model) const { yices_free_model(model); }
 };
 using ModelPtr = std::unique_ptr<model_t, ModelDeleter>;
-
-// An MCSAT context for one side of a query, which is checked again after
-// each refuted model. A's also produces the interpolants of its refutations.
-ContextPtr new_context(bool model_interpolation)
-{
-  ctx_config_t * config = yices_new_config();
-  if (yices_set_config(config, "solver-type", "mcsat") < 0
-      || yices_set_config(config, "mode", "multi-checks") < 0
-      || (model_interpolation
-          && yices_set_config(config, "model-interpolation", "true") < 0))
-  {
-    std::string message = yices2_error();
-    yices_free_config(config);
-    throw InternalSolverException(message);
-  }
-  ContextPtr ctx(yices_new_context(config));
-  yices_free_config(config);
-  if (!ctx)
-  {
-    throw InternalSolverException(yices2_error());
-  }
-  return ctx;
-}
-
-void assert_into(context_t * ctx, term_t t)
-{
-  if (yices_assert_formula(ctx, t) < 0)
-  {
-    throw InternalSolverException(yices2_error());
-  }
-}
-
-// what a check that neither proved nor refuted answers
-Result undecided(smt_status_t status)
-{
-  if (status == YICES_STATUS_ERROR)
-  {
-    throw InternalSolverException(yices2_error());
-  }
-  return Result(UNKNOWN, "Yices2 could not decide a check while interpolating");
-}
 
 }  // namespace
 
@@ -100,17 +53,60 @@ Yices2InterpolatingSolver::Yices2InterpolatingSolver()
 {
 }
 
-void Yices2InterpolatingSolver::do_set_opt(const std::string & option,
-                                           const std::string & /* value */)
+void Yices2InterpolatingSolver::set_logic(const std::string l)
 {
+  AbsSmtInterpolator::set_logic(l);
+  logic = l;
+}
+
+void Yices2InterpolatingSolver::do_set_opt(const std::string & option,
+                                           const std::string & value)
+{
+  if (option == "produce-unsat-model-interpolants")
+  {
+    if (value != "true")
+    {
+      throw IncorrectUsageException(
+          "Yices2 interpolator cannot set " + option + " to " + value
+          + ": it needs model interpolants to refute models of B");
+    }
+    return;
+  }
   if (option == "produce-interpolants")
   {
     throw IncorrectUsageException("Yices2 interpolator does not allow option: "
                                   + option);
   }
-  // each query runs in contexts of its own, which no option reaches
-  throw NotImplementedException("Yices2 interpolator does not take option: "
-                                + option);
+  // the regular solver refuses what a Yices2 solver would
+  backend_solver->set_opt(option, value);
+  options.emplace_back(option, value);
+}
+
+void Yices2InterpolatingSolver::initialize()
+{
+  logic.clear();
+  options.clear();
+}
+
+SmtSolver Yices2InterpolatingSolver::new_solver() const
+{
+  auto solver = std::make_shared<Yices2Solver>();
+  // smt-switch has no option for the solver type
+  if (yices_set_config(solver->get_config(), "solver-type", "mcsat") < 0)
+  {
+    throw InternalSolverException(yices2_error());
+  }
+  solver->set_opt("incremental", "true");
+  solver->set_opt("produce-unsat-model-interpolants", "true");
+  if (!logic.empty())
+  {
+    solver->set_logic(logic);
+  }
+  for (const auto & [option, value] : options)
+  {
+    solver->set_opt(option, value);
+  }
+  return solver;
 }
 
 Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
@@ -148,10 +144,15 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
     shared.push_back(yices2_term(symbol));
   }
 
-  ContextPtr ctx_a = new_context(true);
-  ContextPtr ctx_b = new_context(false);
-  assert_into(ctx_a.get(), yices2_term(A));
-  assert_into(ctx_b.get(), yices2_term(B));
+  SmtSolver solver_a = new_solver();
+  SmtSolver solver_b = new_solver();
+  solver_a->assert_formula(A);
+  solver_b->assert_formula(B);
+  // for the Yices calls that have no AbsSmtSolver method
+  context_t * ctx_a =
+      std::static_pointer_cast<Yices2Solver>(solver_a)->get_context().get();
+  context_t * ctx_b =
+      std::static_pointer_cast<Yices2Solver>(solver_b)->get_context().get();
 
   // Each model of B restricted to the shared symbols that A refutes gives a
   // formula A implies and the model falsifies, which B then has to satisfy
@@ -159,8 +160,8 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
   std::vector<term_t> model_interpolants;
   while (true)
   {
-    smt_status_t status_b = yices_check_context(ctx_b.get(), nullptr);
-    if (status_b == YICES_STATUS_UNSAT)
+    Result r_b = solver_b->check_sat();
+    if (r_b.is_unsat())
     {
       term_t I = yices_and(narrow_num_args(model_interpolants.size()),
                            model_interpolants.data());
@@ -171,18 +172,18 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
       out_I = std::make_shared<Yices2Term>(I);
       return Result(UNSAT);
     }
-    if (status_b != YICES_STATUS_SAT)
+    if (!r_b.is_sat())
     {
-      return undecided(status_b);
+      return r_b;
     }
 
-    ModelPtr model(yices_get_model(ctx_b.get(), 1));
+    ModelPtr model(yices_get_model(ctx_b, 1));
     if (!model)
     {
       throw InternalSolverException(yices2_error());
     }
     smt_status_t status_a = yices_check_context_with_model(
-        ctx_a.get(),
+        ctx_a,
         nullptr,
         model.get(),
         detail::narrow<uint32_t>(shared.size(), "a number of shared symbols"),
@@ -191,18 +192,23 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
     {
       return Result(SAT);
     }
+    if (status_a == YICES_STATUS_ERROR)
+    {
+      throw InternalSolverException(yices2_error());
+    }
     if (status_a != YICES_STATUS_UNSAT)
     {
-      return undecided(status_a);
+      return Result(UNKNOWN,
+                    "Yices2 could not decide a check while interpolating");
     }
 
-    term_t model_interpolant = yices_get_model_interpolant(ctx_a.get());
+    term_t model_interpolant = yices_get_model_interpolant(ctx_a);
     if (model_interpolant == NULL_TERM)
     {
       throw InternalSolverException(yices2_error());
     }
     model_interpolants.push_back(model_interpolant);
-    assert_into(ctx_b.get(), model_interpolant);
+    solver_b->assert_formula(std::make_shared<Yices2Term>(model_interpolant));
   }
 }
 
