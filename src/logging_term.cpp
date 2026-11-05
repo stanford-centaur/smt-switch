@@ -27,6 +27,7 @@
 #include "ops.h"
 #include "sort.h"
 #include "term.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -174,32 +175,7 @@ std::string LoggingTerm::to_string() const
     // Op should not be null because handled values above
     //     and symbols already have the repr set
     assert(!op.is_null());
-    // a nullary constructor applied is an SMT-LIB constant, not a call
-    if (op.prim_op == Apply_Constructor && children && children->size() == 1)
-    {
-      repr = (*children)[0]->to_string();
-      return repr;
-    }
-    repr = "(";
-    // SMT-LIB has no operator for applying a function, constructor,
-    // selector or tester: the one applied, which is the first child, stands
-    // in its place
-    if (!is_apply(op.prim_op))
-    {
-      repr += op.to_string() + " ";
-    }
-    if (children)
-    {
-      for (size_t i = 0; i < children->size(); ++i)
-      {
-        if (i > 0)
-        {
-          repr += " ";
-        }
-        repr += (*children)[i]->to_string();
-      }
-    }
-    repr += ")";
+    repr = smtlib_application(op, children ? *children : TermVec());
     return repr;
   }
 }

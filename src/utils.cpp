@@ -1797,6 +1797,48 @@ std::string smtlib_quote_symbol(const std::string & s)
   return s;
 }
 
+std::string smtlib_application(
+    const Op & op,
+    const TermVec & children,
+    const std::function<std::string(const Term &)> & term_text)
+{
+  if (op.prim_op == Apply_Constructor && children.size() == 1)
+  {
+    return term_text(children[0]);
+  }
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    const Term & var = children[0];
+    return "(" + op.to_string() + " ((" + term_text(var) + " "
+           + var->get_sort()->to_string() + ")) " + term_text(children[1])
+           + ")";
+  }
+  if (op.prim_op == Pow && children[1]->is_value())
+  {
+    std::string res =
+        children[0]->get_sort()->get_sort_kind() == BV ? "(bvmul" : "(*";
+    for (std::uint64_t i = children[1]->to_int(); i > 0; --i)
+    {
+      res += " " + term_text(children[0]);
+    }
+    return res + ")";
+  }
+  std::string res = "(";
+  if (!is_apply(op.prim_op))
+  {
+    res += op.to_string() + " ";
+  }
+  for (std::size_t i = 0; i < children.size(); ++i)
+  {
+    if (i > 0)
+    {
+      res += " ";
+    }
+    res += term_text(children[i]);
+  }
+  return res + ")";
+}
+
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
   return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);

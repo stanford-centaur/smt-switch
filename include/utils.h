@@ -171,6 +171,27 @@ inline constexpr std::string_view NAMED_STR = "named";
  */
 std::string smtlib_quote_symbol(const std::string & s);
 
+/** An operator applied to its children as SMT-LIB writes it, (op c1 ... cn),
+ *  with each child written by term_text. SMT-LIB writes some applications
+ *  in forms of their own:
+ *  - an applied function, constructor, selector or tester has no operator:
+ *    the one applied, which is the first child, stands in its place, and a
+ *    nullary constructor applied is that constructor alone;
+ *  - a quantifier lists its bound variable with its sort,
+ *    (forall ((x S)) body);
+ *  - SMT-LIB has no power, so a power to a constant exponent n is the
+ *    product of n factors, with * or bvmul.
+ *  @param op the operator
+ *  @param children what it is applied to
+ *  @param term_text how a child is written
+ *  @return the SMT-LIB text of the application
+ */
+std::string smtlib_application(
+    const Op & op,
+    const TermVec & children,
+    const std::function<std::string(const Term &)> & term_text =
+        [](const Term & t) { return t->to_string(); });
+
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
 // value does not fit in the result type.

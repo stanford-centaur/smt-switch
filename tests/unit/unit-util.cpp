@@ -675,4 +675,58 @@ TEST(SmtLibQuoteSymbol, ReservedWordGetsBars)
   EXPECT_EQ(smtlib_quote_symbol("Let"), "Let");
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibApplication);
+class SmtLibApplication
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    intsort = s->make_sort(INT);
+    x = s->make_symbol("x", intsort);
+    y = s->make_symbol("y", intsort);
+  }
+
+  SmtSolver s;
+  Sort intsort;
+  Term x, y;
+};
+
+TEST_P(SmtLibApplication, OpThenChildren)
+{
+  EXPECT_EQ(smtlib_application(Op(Plus), { x, y }), "(+ x y)");
+}
+
+TEST_P(SmtLibApplication, AppliedFunctionStandsForTheOp)
+{
+  Term f = s->make_symbol("f", s->make_sort(FUNCTION, { intsort, intsort }));
+  EXPECT_EQ(smtlib_application(Op(Apply), { f, x }), "(f x)");
+}
+
+TEST_P(SmtLibApplication, QuantifierListsItsVariableWithItsSort)
+{
+  Term p = s->make_param("p", intsort);
+  Term body = s->make_term(Ge, p, x);
+  // the children's text is given, so the body need not print alike everywhere
+  auto term_text = [&](const Term & t) {
+    return t == p ? string("p") : string("body");
+  };
+  EXPECT_EQ(smtlib_application(Op(Forall), { p, body }, term_text),
+            "(forall ((p Int)) body)");
+}
+
+TEST_P(SmtLibApplication, PowerIsAProduct)
+{
+  EXPECT_EQ(smtlib_application(Op(Pow), { x, s->make_term(3, intsort) }),
+            "(* x x x)");
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibApplication,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, QUANTIFIERS })),
+                         ConfigName());
+
 }  // namespace
