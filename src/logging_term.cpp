@@ -16,7 +16,6 @@
 
 #include "logging_term.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -170,11 +169,14 @@ std::string LoggingTerm::to_string() const
   {
     return wrapped_term->print_value_as(sort->get_sort_kind());
   }
+  else if (op.is_null())
+  {
+    // A leaf the backend made that is not a value, such as some get_value
+    // results, which only the backend can print
+    return wrapped_term->to_string();
+  }
   else
   {
-    // Op should not be null because handled values above
-    //     and symbols already have the repr set
-    assert(!op.is_null());
     repr = smtlib_application(op, children ? *children : TermVec());
     return repr;
   }

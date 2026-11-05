@@ -16,7 +16,6 @@
 
 #include "logging_solver.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -463,10 +462,13 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   for (auto tt : terms)
   {
     std::shared_ptr<LoggingTerm> ltt = backend_pointer_cast<LoggingTerm>(tt);
+    // A LoggingTerm of another LoggingSolver casts, but is not in this one's
+    // hash table, nor is one made before a reset.
+    if (!hashtable->contains(tt))
+    {
+      detail::throw_foreign_handle(tt);
+    }
     lterms.push_back(ltt->wrapped_term);
-
-    // check that children are already in the hash table
-    assert(hashtable->contains(tt));
   }
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
   // Note: for convenience there's a version of compute_sort that takes terms
@@ -589,9 +591,15 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
   Term val;
   for (auto elem : wrapped_assignments)
   {
-    // expecting values in assignment map
-    assert(elem.first->is_value());
-    assert(elem.second->is_value());
+    // An entry is wrapped with no op, which claims it is a leaf, so only a
+    // value can be wrapped.
+    if (!elem.first->is_value() || !elem.second->is_value())
+    {
+      throw NotImplementedException(
+          "LoggingSolver can't wrap array model entry "
+          + elem.first->to_string() + " -> " + elem.second->to_string()
+          + ", which is not a value");
+    }
 
     idx = std::make_shared<LoggingTerm>(
         elem.first, idxsort, Op(), TermVec{}, next_term_id);
