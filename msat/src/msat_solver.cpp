@@ -928,9 +928,9 @@ void MsatSolver::dump_smt2(std::string filename) const
   msat_term all_asserts = msat_make_true(*env);
   for (size_t i = 0; i < num_asserted; ++i)
   {
-    all_asserts = msat_make_and(*env, all_asserts, *assertions);
-    ++assertions;
+    all_asserts = msat_make_and(*env, all_asserts, assertions[i]);
   }
+  msat_free(assertions);
   if (MSAT_ERROR_TERM(all_asserts))
   {
     throw InternalSolverException("Failed to gather all assertions");
