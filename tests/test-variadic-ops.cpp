@@ -197,6 +197,19 @@ TEST_P(BoolNaryTests, MakeNaryTerm)
   }
 }
 
+TEST_P(BoolNaryTests, MakeNaryTermTooFewArguments)
+{
+  TermVec args = make_args(sort, 1);
+  for (PrimOp op : { And, Implies, Equal, Distinct })
+  {
+    EXPECT_THROW(make_nary_term(s.get(), op, TermVec{}),
+                 IncorrectUsageException)
+        << to_string(op);
+    EXPECT_THROW(make_nary_term(s.get(), op, args), IncorrectUsageException)
+        << to_string(op);
+  }
+}
+
 TEST_P(IntNaryTests, MakeNaryTerm)
 {
   for (PrimOp op :
