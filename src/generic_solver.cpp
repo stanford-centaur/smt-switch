@@ -36,6 +36,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <fstream>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -2285,6 +2286,35 @@ void GenericSolver::do_push(std::uint64_t num)
 void GenericSolver::do_pop(std::uint64_t num)
 {
   run_command(CommandKind::ASSERTION, POP_STR, std::to_string(num));
+}
+
+void GenericSolver::dump_smt2(std::string filename) const
+{
+  // the binary is in the state these commands bring a new one to, so they
+  // are the benchmark, options and popped scopes included
+  std::ofstream out(filename);
+  // SMT-LIB declares nothing before set-logic, so where the binary was left
+  // to its default logic the dump sets ALL
+  bool start_mode = true;
+  for (const std::string & cmd : accepted_commands_)
+  {
+    std::string name = cmd.substr(1, cmd.find_first_of(" )") - 1);
+    if (name == RESET_STR)
+    {
+      start_mode = true;
+    }
+    else if (name == SET_LOGIC_STR)
+    {
+      start_mode = false;
+    }
+    else if (start_mode && name != SET_OPTION_STR)
+    {
+      out << "(" << SET_LOGIC_STR << " ALL)\n";
+      start_mode = false;
+    }
+    out << cmd << "\n";
+  }
+  out << "(" << CHECK_SAT_STR << ")\n";
 }
 
 void GenericSolver::do_reset_assertions()
