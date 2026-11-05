@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -246,14 +247,19 @@ static Term variadic_term(const AbsSmtSolver * solver,
 
 struct Z3Solver::Instance
 {
-  Instance(const std::shared_ptr<z3::context> & c, const z3::solver & s)
-      : ctx(c), slv(s)
+  Instance(const std::shared_ptr<z3::context> & c,
+           const z3::solver & s,
+           const std::string & l = "ALL")
+      : ctx(c), slv(s), logic(l)
   {
   }
 
   // slv lives in ctx, so ctx is declared first and outlives it
   std::shared_ptr<z3::context> ctx;
   z3::solver slv;
+  // the logic slv was made for, ALL for Z3's default, which SMT-LIB needs
+  // named before any declaration
+  std::string logic;
 };
 
 Z3Solver::Z3Solver()
@@ -377,7 +383,8 @@ void Z3Solver::set_logic(const std::string logic)
   }
   try
   {
-    instance = std::make_shared<Instance>(ctx, z3::solver(*ctx, logic.c_str()));
+    instance =
+        std::make_shared<Instance>(ctx, z3::solver(*ctx, logic.c_str()), logic);
   }
   catch (z3::exception & e)
   {
@@ -1206,6 +1213,35 @@ Term Z3Solver::substitute(const Term term,
   // perform the substitution and return the result
   z3::expr result = z3expr.substitute(z3sources, z3destinations);
   return std::make_shared<Z3Term>(ctx, result);
+}
+
+void Z3Solver::dump_smt2(std::string filename) const
+{
+  // with no Z3 solver yet nothing is asserted, and making one here would
+  // fix the logic
+  z3::expr_vector assertions =
+      instance ? instance->slv.assertions() : z3::expr_vector(*ctx);
+  // Z3 prints the assumptions and then the formula as assertions
+  z3::expr formula = ctx->bool_val(true);
+  std::vector<Z3_ast> assumptions;
+  if (!assertions.empty())
+  {
+    formula = assertions.back();
+    for (unsigned i = 0; i + 1 < assertions.size(); ++i)
+    {
+      assumptions.push_back(assertions[i]);
+    }
+  }
+  std::ofstream out(filename);
+  out << Z3_benchmark_to_smtlib_string(
+      *ctx,
+      /* name */ "",
+      instance ? instance->logic.c_str() : "ALL",
+      /* status */ "unknown",
+      /* attributes */ "",
+      static_cast<unsigned>(assumptions.size()),
+      assumptions.data(),
+      formula);
 }
 
 std::shared_ptr<z3::context> Z3Solver::get_z3_context() { return ctx; }
