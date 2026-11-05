@@ -392,6 +392,23 @@ TEST_P(Datatypes, ComponentsAreHashConsed)
   EXPECT_EQ(s->get_tester(maybesort, "just"), s->get_tester(maybesort, "just"));
 }
 
+TEST_P(Datatypes, ComponentsPrintAsSmtlib)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+
+  // a constructor or selector is its name, a tester an indexed identifier
+  EXPECT_EQ(s->get_constructor(listsort, "cons")->to_string(), "cons");
+  EXPECT_EQ(s->get_selector(listsort, "cons", "head")->to_string(), "head");
+  EXPECT_EQ(s->get_tester(listsort, "nil")->to_string(), "(_ is nil)");
+}
+
 TEST_P(Datatypes, PrintsAsSmtlib)
 {
   if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
@@ -409,11 +426,6 @@ TEST_P(Datatypes, PrintsAsSmtlib)
   s->add_constructor(listdecl, consdecl);
   Sort listsort = s->make_sort(listdecl);
   EXPECT_EQ(listsort->to_string(), "list");
-
-  // a constructor or selector is its name, a tester an indexed identifier
-  EXPECT_EQ(s->get_constructor(listsort, "cons")->to_string(), "cons");
-  EXPECT_EQ(s->get_selector(listsort, "cons", "head")->to_string(), "head");
-  EXPECT_EQ(s->get_tester(listsort, "nil")->to_string(), "(_ is nil)");
 
   // a nullary constructor applied is a constant
   Term nil =
