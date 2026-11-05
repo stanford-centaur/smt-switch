@@ -242,6 +242,11 @@ class GenericSolver : public AbsSmtSolver
    */
   std::string sort_name(const Sort & sort) const;
 
+  /** The name a term is written under in the binary's input
+   *  @throws IncorrectUsageException if this solver did not make it
+   */
+  std::string term_name(const Term & term) const;
+
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
 

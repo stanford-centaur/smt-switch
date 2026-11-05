@@ -43,7 +43,6 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <unordered_map>
 #include <utility>
 
 #include "datatype.h"
@@ -70,24 +69,6 @@ constexpr std::string_view start_only_options[] = {
   "produce-assignments",       "produce-models",      "produce-proofs",
   "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
 };
-
-/** The name a term is written under in the binary's input
- * @param names the solver's map from its terms to their names
- * @param t the term
- * @throws IncorrectUsageException if the solver did not make it
- */
-static std::string name_of(const std::unordered_map<Term, std::string> & names,
-                           const Term & t)
-{
-  // operator[] would file an unknown term under an empty name
-  auto it = names.find(t);
-  if (it == names.end())
-  {
-    throw IncorrectUsageException("Term " + t->to_string()
-                                  + " was not made by this solver");
-  }
-  return it->second;
-}
 
 /** An SMT-LIB command, e.g. (push 1)
  * @param name the command's name
@@ -994,7 +975,7 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
 std::string GenericSolver::query_text(const Term & term,
                                       const std::string & operation) const
 {
-  std::string name = name_of(term_name_map, term);
+  std::string name = term_name(term);
   if (pending_commands_.empty())
   {
     return name;
@@ -1058,8 +1039,8 @@ std::string GenericSolver::query_text(const Term & term,
   std::string text = name;
   for (auto it = used.rbegin(); it != used.rend(); ++it)
   {
-    text = "(let ((" + name_of(term_name_map, *it) + " " + to_smtlib_def(*it)
-           + ")) " + text + ")";
+    text = "(let ((" + term_name(*it) + " " + to_smtlib_def(*it) + ")) " + text
+           + ")";
   }
   return text;
 }
@@ -1116,6 +1097,18 @@ std::string GenericSolver::sort_name(const Sort & sort) const
   return name;
 }
 
+std::string GenericSolver::term_name(const Term & term) const
+{
+  // operator[] would file an unknown term under an empty name
+  auto it = term_name_map.find(term);
+  if (it == term_name_map.end())
+  {
+    throw IncorrectUsageException("Term " + term->to_string()
+                                  + " was not made by this solver");
+  }
+  return it->second;
+}
+
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
   std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(term);
@@ -1125,10 +1118,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     return gt->to_string();
   }
   // the children by the names the binary knows them by
-  return smtlib_application(
-      gt->get_op(), gt->get_children(), [this](const Term & t) {
-        return name_of(term_name_map, t);
-      });
+  return smtlib_application(gt->get_op(),
+                            gt->get_children(),
+                            [this](const Term & t) { return term_name(t); });
 }
 
 Sort GenericSolver::make_sort(const Sort & sort_con,
@@ -1768,8 +1760,7 @@ Term GenericSolver::make_value(const std::string val,
 std::string GenericSolver::cons_arr_string(const Term & val,
                                            const Sort & sort) const
 {
-  return "((as const " + sort_name(sort) + ") " + name_of(term_name_map, val)
-         + ") ";
+  return "((as const " + sort_name(sort) + ") " + term_name(val) + ") ";
 }
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
@@ -1921,7 +1912,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
   {
-    repr += " " + name_of(term_name_map, terms[i]);
+    repr += " " + term_name(terms[i]);
   }
   repr += ")";
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
@@ -2233,7 +2224,7 @@ void GenericSolver::assert_formula(const Term & t)
   std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
-  std::string name = name_of(term_name_map, lt);
+  std::string name = term_name(lt);
 
   // communicate the assertion to the binary of the solver
   run_command(CommandKind::ASSERTION, ASSERT_STR, name);
@@ -2322,7 +2313,7 @@ std::string GenericSolver::assumption_name(const Term & assumption)
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
-  std::string label_name = name_of(term_name_map, it->second);
+  std::string label_name = term_name(it->second);
   // a pop takes the implication with it, so it goes in again every time
   run_command(CommandKind::ASSERTION,
               ASSERT_STR,
