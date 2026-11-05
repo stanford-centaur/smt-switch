@@ -254,10 +254,6 @@ class GenericSolver : public AbsSmtSolver
   // own, or for any other formula a label asserted to imply it
   std::string assumption_name(const Term & assumption);
 
-  // create an smt-lib constant array value.
-  // used for make_term
-  std::string cons_arr_string(const Term & val, const Sort & sort) const;
-
   /** store a term in the internal maps and return the stored term
    * The returned term might be a different object than the input term.
    * For example, if a term with the same content has already been stored,

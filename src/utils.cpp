@@ -1839,6 +1839,12 @@ std::string smtlib_application(
   return res + ")";
 }
 
+std::string smtlib_const_array(const std::string & sort,
+                               const std::string & value)
+{
+  return "((as const " + sort + ") " + value + ")";
+}
+
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
   return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);
