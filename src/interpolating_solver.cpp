@@ -26,6 +26,7 @@
 
 #include "exceptions.h"
 #include "ops.h"
+#include "solver_enums.h"
 
 namespace smt {
 
@@ -139,6 +140,17 @@ void AbsSmtInterpolator::do_reset()
 void AbsSmtInterpolator::forget_queries() {}
 
 void AbsSmtInterpolator::initialize() {}
+
+Result AbsSmtInterpolator::refute_model(const Term & /* A */,
+                                        const Term & /* B */,
+                                        SmtSolver & /* solver_a */,
+                                        SmtSolver & /* solver_b */,
+                                        TermsPairVec & /* model */,
+                                        Term & /* model_interpolant */) const
+{
+  throw NotImplementedException(to_string(get_solver_enum())
+                                + " does not interpolate by refuting models");
+}
 
 // ------------------------- Forwarded ---------------------------------------
 

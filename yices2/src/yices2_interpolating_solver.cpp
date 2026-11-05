@@ -15,6 +15,7 @@
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -113,6 +114,44 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
                                                   const Term & B,
                                                   Term & out_I) const
 {
+  // Each model of B restricted to the shared symbols that A refutes gives a
+  // formula A implies and the model falsifies, which B then has to satisfy
+  // as well; once B cannot, their conjunction is the interpolant.
+  SmtSolver solver_a, solver_b;
+  std::vector<term_t> model_interpolants;
+  while (true)
+  {
+    TermsPairVec model;
+    Term model_interpolant;
+    Result r = refute_model(A, B, solver_a, solver_b, model, model_interpolant);
+    if (!r.is_unsat())
+    {
+      return r;
+    }
+    // unsat with no model interpolant: B has no model left
+    if (!model_interpolant)
+    {
+      term_t I = yices_and(narrow_num_args(model_interpolants.size()),
+                           model_interpolants.data());
+      if (I == NULL_TERM)
+      {
+        throw InternalSolverException(yices2_error());
+      }
+      out_I = std::make_shared<Yices2Term>(I);
+      return r;
+    }
+    model_interpolants.push_back(
+        std::static_pointer_cast<Yices2Term>(model_interpolant)->term);
+  }
+}
+
+Result Yices2InterpolatingSolver::refute_model(const Term & A,
+                                               const Term & B,
+                                               SmtSolver & solver_a,
+                                               SmtSolver & solver_b,
+                                               TermsPairVec & model,
+                                               Term & model_interpolant) const
+{
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
   {
@@ -125,6 +164,7 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
   UnorderedTermSet symbols_a, symbols_b;
   get_free_symbolic_consts(A, symbols_a);
   get_free_symbolic_consts(B, symbols_b);
+  TermVec shared_symbols;
   std::vector<term_t> shared;
   for (const Term & symbol : symbols_a)
   {
@@ -141,75 +181,69 @@ Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
             "their values in a model, and cannot fix a "
           + symbol->get_sort()->to_string());
     }
+    shared_symbols.push_back(symbol);
     shared.push_back(yices2_term(symbol));
   }
 
-  SmtSolver solver_a = new_solver();
-  SmtSolver solver_b = new_solver();
-  solver_a->assert_formula(A);
-  solver_b->assert_formula(B);
+  if (!solver_a)
+  {
+    solver_a = new_solver();
+    solver_b = new_solver();
+    solver_a->assert_formula(A);
+    solver_b->assert_formula(B);
+  }
   // for the Yices calls that have no AbsSmtSolver method
   context_t * ctx_a =
       std::static_pointer_cast<Yices2Solver>(solver_a)->get_context().get();
   context_t * ctx_b =
       std::static_pointer_cast<Yices2Solver>(solver_b)->get_context().get();
 
-  // Each model of B restricted to the shared symbols that A refutes gives a
-  // formula A implies and the model falsifies, which B then has to satisfy
-  // as well; once B cannot, their conjunction is the interpolant.
-  std::vector<term_t> model_interpolants;
-  while (true)
+  Result r_b = solver_b->check_sat();
+  if (!r_b.is_sat())
   {
-    Result r_b = solver_b->check_sat();
-    if (r_b.is_unsat())
-    {
-      term_t I = yices_and(narrow_num_args(model_interpolants.size()),
-                           model_interpolants.data());
-      if (I == NULL_TERM)
-      {
-        throw InternalSolverException(yices2_error());
-      }
-      out_I = std::make_shared<Yices2Term>(I);
-      return Result(UNSAT);
-    }
-    if (!r_b.is_sat())
-    {
-      return r_b;
-    }
-
-    ModelPtr model(yices_get_model(ctx_b, 1));
-    if (!model)
-    {
-      throw InternalSolverException(yices2_error());
-    }
-    smt_status_t status_a = yices_check_context_with_model(
-        ctx_a,
-        nullptr,
-        model.get(),
-        detail::narrow<uint32_t>(shared.size(), "a number of shared symbols"),
-        shared.data());
-    if (status_a == YICES_STATUS_SAT)
-    {
-      return Result(SAT);
-    }
-    if (status_a == YICES_STATUS_ERROR)
-    {
-      throw InternalSolverException(yices2_error());
-    }
-    if (status_a != YICES_STATUS_UNSAT)
-    {
-      return Result(UNKNOWN,
-                    "Yices2 could not decide a check while interpolating");
-    }
-
-    term_t model_interpolant = yices_get_model_interpolant(ctx_a);
-    if (model_interpolant == NULL_TERM)
-    {
-      throw InternalSolverException(yices2_error());
-    }
-    model_interpolants.push_back(model_interpolant);
-    solver_b->assert_formula(std::make_shared<Yices2Term>(model_interpolant));
+    return r_b;
   }
+  ModelPtr model_b(yices_get_model(ctx_b, 1));
+  if (!model_b)
+  {
+    throw InternalSolverException(yices2_error());
+  }
+  for (std::size_t i = 0; i < shared.size(); ++i)
+  {
+    // an algebraic number has no term
+    term_t value = yices_get_value_as_term(model_b.get(), shared[i]);
+    model.emplace_back(
+        shared_symbols[i],
+        value == NULL_TERM ? Term() : std::make_shared<Yices2Term>(value));
+  }
+
+  smt_status_t status_a = yices_check_context_with_model(
+      ctx_a,
+      nullptr,
+      model_b.get(),
+      detail::narrow<uint32_t>(shared.size(), "a number of shared symbols"),
+      shared.data());
+  if (status_a == YICES_STATUS_SAT)
+  {
+    return Result(SAT);
+  }
+  if (status_a == YICES_STATUS_ERROR)
+  {
+    throw InternalSolverException(yices2_error());
+  }
+  if (status_a != YICES_STATUS_UNSAT)
+  {
+    return Result(UNKNOWN,
+                  "Yices2 could not decide a check while interpolating");
+  }
+  term_t refutation = yices_get_model_interpolant(ctx_a);
+  if (refutation == NULL_TERM)
+  {
+    throw InternalSolverException(yices2_error());
+  }
+  model_interpolant = std::make_shared<Yices2Term>(refutation);
+  solver_b->assert_formula(model_interpolant);
+  return Result(UNSAT);
 }
 
 Result Yices2InterpolatingSolver::get_sequence_interpolants(
