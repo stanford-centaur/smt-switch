@@ -159,6 +159,10 @@ inline constexpr std::string_view GET_UNSAT_ASSUMPTIONS_STR =
     "get-unsat-assumptions";
 inline constexpr std::string_view GET_INTERPOLANT_STR = "get-interpolant";
 inline constexpr std::string_view GET_INTERPOLANTS_STR = "get-interpolants";
+inline constexpr std::string_view CHECK_SAT_ASSUMING_MODEL_STR =
+    "check-sat-assuming-model";
+inline constexpr std::string_view GET_UNSAT_MODEL_INTERPOLANT_STR =
+    "get-unsat-model-interpolant";
 inline constexpr std::string_view PUSH_STR = "push";
 inline constexpr std::string_view POP_STR = "pop";
 inline constexpr std::string_view RESET_ASSERTIONS_STR = "reset-assertions";

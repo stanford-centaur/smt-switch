@@ -461,6 +461,11 @@ PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
       wrapped_interpolator(std::move(s)),
       out_stream(os)
 {
+  if (get_solver_enum() == YICES2_INTERPOLATOR)
+  {
+    (*out_stream) << "; run with yices-smt2 --mcsat --incremental" << std::endl;
+  }
+  initialize();
 }
 
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
@@ -482,7 +487,8 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
 {
   switch (get_solver_enum())
   {
-    case CVC5_INTERPOLATOR: {
+    case CVC5_INTERPOLATOR:
+    case YICES2_INTERPOLATOR: {
       TermVec interpolant;
       Result r = print_query({ A, B }, interpolant);
       out_I = interpolant.front();
@@ -497,8 +503,6 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
     case GENERIC_SOLVER:
     case MSAT:
     case YICES2:
-    // its checks fix the values of models it chooses, which are not seen here
-    case YICES2_INTERPOLATOR:
     case Z3: break;
   }
   throw NotImplementedException(no_query_syntax(get_solver_enum()));
@@ -521,11 +525,13 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
   }
   switch (get_solver_enum())
   {
-    // It splits a sequence query into one get_interpolant query per split,
-    // with sequence_from_interpolants, and keeps what it reuses between
+    // Both split a sequence query into one get_interpolant query per split,
+    // with sequence_from_interpolants, and keep what it reuses between
     // queries. Splitting it here the same way asks the same queries, and
     // prints each as it is asked.
-    case CVC5_INTERPOLATOR: return sequence_from_interpolants(formulae, out_I);
+    case CVC5_INTERPOLATOR:
+    case YICES2_INTERPOLATOR:
+      return sequence_from_interpolants(formulae, out_I);
     // both answer it natively
     case BZLA_INTERPOLATOR:
     case MSAT_INTERPOLATOR: return print_query(formulae, out_I);
@@ -535,8 +541,6 @@ Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
     case GENERIC_SOLVER:
     case MSAT:
     case YICES2:
-    // its checks fix the values of models it chooses, which are not seen here
-    case YICES2_INTERPOLATOR:
     case Z3: break;
   }
   throw NotImplementedException(no_query_syntax(get_solver_enum()));
@@ -629,15 +633,108 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
       return r;
     }
+    case YICES2_INTERPOLATOR: {
+      // A get_interpolant query. Yices2 refutes models of B one after
+      // another, which are not seen from here, so its rounds are run here
+      // through refute_model and printed as they go: a check of B that
+      // finds the next model, and one of A under the shared symbols' values
+      // in it, until B has none left or A does not refute one.
+      const Term & A = formulae.front();
+      const Term & B = formulae.back();
+      SmtSolver solver_a, solver_b;
+      TermVec model_interpolants;
+      while (true)
+      {
+        TermsPairVec model;
+        Term model_interpolant;
+        Result r = wrapped_interpolator->refute_model(
+            A, B, solver_a, solver_b, model, model_interpolant);
+        for (const auto & [symbol, value] : model)
+        {
+          // checked before printing the round, so that it is not left half
+          // printed
+          if (!value)
+          {
+            throw NotImplementedException(
+                "A printing interpolator cannot write the value of "
+                + symbol->to_string()
+                + " in a model of B, which has no term, such as an "
+                  "algebraic number");
+          }
+        }
+        // B, with the model interpolants of the rounds before
+        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
+        for (const Term & t : model_interpolants)
+        {
+          (*out_stream) << "(" << ASSERT_STR << " " << t << ")" << std::endl;
+        }
+        (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+        if (!model.empty())
+        {
+          (*out_stream) << "(" << GET_VALUE_STR << " (";
+          for (std::size_t i = 0; i < model.size(); ++i)
+          {
+            (*out_stream) << (i > 0 ? " " : "") << model[i].first;
+          }
+          (*out_stream) << "))" << std::endl;
+        }
+        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+        // The round ended at B if B had no model left, or if B's check did
+        // not decide. An unknown answer with an empty model comes from B's
+        // check, or from A's when the two share no symbols, so B's check is
+        // run again to tell which.
+        if ((r.is_unsat() && !model_interpolant)
+            || (r.is_unknown() && model.empty()
+                && !solver_b->check_sat().is_sat()))
+        {
+          Term I;
+          if (r.is_unsat())
+          {
+            I = model_interpolants.empty() ? make_term(true)
+                : model_interpolants.size() == 1
+                    ? model_interpolants[0]
+                    : make_term(And, model_interpolants);
+          }
+          out_I.push_back(I);
+          return r;
+        }
+        // A under the shared symbols' values in B's model, those the
+        // wrapped interpolator found rather than any the script finds
+        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
+        (*out_stream) << "(" << CHECK_SAT_ASSUMING_MODEL_STR << " (";
+        for (std::size_t i = 0; i < model.size(); ++i)
+        {
+          (*out_stream) << (i > 0 ? " " : "") << model[i].first;
+        }
+        (*out_stream) << ") (";
+        for (std::size_t i = 0; i < model.size(); ++i)
+        {
+          (*out_stream) << (i > 0 ? " " : "") << model[i].second;
+        }
+        (*out_stream) << "))" << std::endl;
+        if (model_interpolant)
+        {
+          (*out_stream) << "(" << GET_UNSAT_MODEL_INTERPOLANT_STR << ")"
+                        << std::endl;
+        }
+        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+        if (!r.is_unsat())
+        {
+          out_I.push_back(Term());
+          return r;
+        }
+        model_interpolants.push_back(model_interpolant);
+      }
+    }
     case BTOR:
     case BZLA:
     case CVC5:
     case GENERIC_SOLVER:
     case MSAT:
     case YICES2:
-    case Z3:
-    // its checks fix the values of models it chooses, which are not seen here
-    case YICES2_INTERPOLATOR: break;
+    case Z3: break;
   }
   throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
@@ -666,6 +763,16 @@ void PrintingInterpolator::forget_queries()
 {
   asserted.clear();
   asserted_names.clear();
+}
+
+void PrintingInterpolator::initialize()
+{
+  if (get_solver_enum() == YICES2_INTERPOLATOR)
+  {
+    // printed by the regular solver, as yices-smt2 needs it for
+    // get-unsat-model-interpolant
+    set_opt("produce-unsat-model-interpolants", "true");
+  }
 }
 
 SmtInterpolator create_printing_interpolator(

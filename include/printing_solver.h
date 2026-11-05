@@ -160,6 +160,7 @@ class PrintingInterpolator : public AbsSmtInterpolator
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
   void forget_queries() override;
+  void initialize() override;
 
   /* Runs a query on the wrapped interpolator, prints the commands it runs,
    * and stores the interpolants in out_I */

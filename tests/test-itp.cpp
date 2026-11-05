@@ -380,10 +380,6 @@ TEST_P(ItpTests, IncrementalCanChangeBetweenQueries)
 // a printing interpolator writes, as it follows what the one it wraps reuses
 TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
 {
-  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
-  {
-    GTEST_SKIP() << "the Yices2 interpolator's queries cannot be printed yet";
-  }
   auto log_after_reset = [this](bool turn_off) {
     std::ostringstream out;
     SmtInterpolator s = create_printing_interpolator(
@@ -480,7 +476,7 @@ TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
   std::ostringstream out;
   SmtInterpolator printing = create_printing_interpolator(itp, &out);
   printing->set_opt("incremental", "false");
-  EXPECT_EQ(out.str().find("incremental"), std::string::npos) << out.str();
+  EXPECT_EQ(out.str().find(":incremental"), std::string::npos) << out.str();
   EXPECT_THROW(printing->set_opt("incremental", "maybe"),
                IncorrectUsageException);
 }
@@ -488,10 +484,6 @@ TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
 // a printing interpolator leaves the answer to the one it wraps
 TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {
-  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
-  {
-    GTEST_SKIP() << "the Yices2 interpolator's queries cannot be printed yet";
-  }
   std::ostringstream out;
   SmtInterpolator printing = create_printing_interpolator(itp, &out);
   Term A1 =
