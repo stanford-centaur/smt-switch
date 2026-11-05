@@ -151,3 +151,14 @@ repos:
       # across versions: a bump can reformat files the previous version left
       # alone. Reformat the tree in the same commit that bumps it.
       - id: clang-format
+  - repo: local
+    hooks:
+      # An assert vanishes from a Release build, so a check that can fail
+      # stops checking: throw an exception instead, or drop a check that
+      # cannot fail. The word boundary leaves static_assert and
+      # boolector_assert alone.
+      - id: no-assert
+        name: no assert in C++
+        language: pygrep
+        entry: \bassert\s*\(|#\s*include\s*<(cassert|assert\.h)>
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx|yy|l)$
