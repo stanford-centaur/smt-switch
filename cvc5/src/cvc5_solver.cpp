@@ -1021,7 +1021,10 @@ void cvc5InterpolatingSolver::do_set_opt(const std::string & option,
 }
 
 // cvc5 interpolates between its assertions and a given formula, so A is
-// asserted and the interpolant asked for not B
+// asserted and the interpolant asked for not B. cvc5 synthesizes the
+// interpolant. It finds none both when A and B are satisfiable and when its
+// search gives up. On a satisfiable query, the search may also run on without
+// end, so A and B are checked first.
 Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
                                                 const Term & B,
                                                 Term & out_I) const
@@ -1035,22 +1038,46 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   std::shared_ptr<cvc5::Solver> solver = cvc5_solver->get_cvc5_solver();
   ::cvc5::Term notB =
       std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
+  Result r;
   ::cvc5::Term I;
   solver->push();
   try
   {
     solver->assertFormula(backend_pointer_cast<Cvc5Term>(A)->term);
-    I = solver->getInterpolant(notB);
+    r = cvc5_solver->check_sat_assuming(TermVec{ B });
+    // an interpolant proves unsat, so one is still worth asking for when
+    // the check answers unknown
+    if (!r.is_sat())
+    {
+      I = solver->getInterpolant(notB);
+    }
   }
   catch (::cvc5::CVC5ApiException & e)
   {
     solver->pop();
     throw InternalSolverException(e.what());
   }
+  catch (...)
+  {
+    // check_sat_assuming has already turned cvc5's exceptions into ours
+    solver->pop();
+    throw;
+  }
   solver->pop();
+  if (r.is_sat())
+  {
+    return r;
+  }
   if (I.isNull())
   {
-    return Result(UNKNOWN, "cvc5 found no interpolant");
+    std::string explanation = "cvc5 found no interpolant";
+    if (r.is_unknown())
+    {
+      explanation +=
+          ", and the satisfiability check of A and B answered unknown: "
+          + r.get_explanation();
+    }
+    return Result(UNKNOWN, explanation);
   }
   out_I = std::make_shared<Cvc5Term>(I);
   return Result(UNSAT);
