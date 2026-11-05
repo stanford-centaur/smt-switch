@@ -97,6 +97,7 @@ class Z3Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
+  void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects (EXPERTS ONLY)
 
