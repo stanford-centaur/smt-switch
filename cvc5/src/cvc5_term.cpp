@@ -19,7 +19,6 @@
 #include <cvc5/cvc5.h>
 
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -304,7 +303,6 @@ Op Cvc5Term::get_op() const
     }
     else
     {
-      assert(num_indices == 2);
       std::pair<uint64_t, uint64_t> indices = {
         std::stoull(cvc5_op[0].toString()), std::stoull(cvc5_op[1].toString())
       };
