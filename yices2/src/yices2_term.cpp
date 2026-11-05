@@ -52,6 +52,21 @@ bool Yices2Term::compare(const Term & absterm) const
   return yterm && term == yterm->term;
 }
 
+/** Returns a term as Yices prints it, in its own language and on one line,
+ *  e.g. -5 or 1/2 for a constant
+ */
+static string yices_to_string(term_t term)
+{
+  char * printed = yices_term_to_string(term, UINT32_MAX, 1, 0);
+  if (!printed)
+  {
+    throw InternalSolverException(take_yices_error());
+  }
+  string res = printed;
+  yices_free_string(printed);
+  return res;
+}
+
 /* Yices has no extract constructor. It stores (_ extract high low) as an
  * array of the individual bits, so a BV_ARRAY whose children are the
  * consecutive bits of one bitvector, lowest first, is an extract of it.
@@ -180,7 +195,7 @@ Op Yices2Term::get_op() const
        * (* -1 b) is still of type YICES_ARITH_SUM. To transfer this
        * term, you need to construct the multiply.
        */
-      sres = to_string();
+      sres = yices_to_string(term);
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
       if (yices_term_num_children(term) == 1 && sres == "*")
@@ -190,7 +205,7 @@ Op Yices2Term::get_op() const
       return Op(Plus);
     // products
     case YICES_POWER_PRODUCT:
-      sres = to_string();
+      sres = yices_to_string(term);
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
       if (sres == "bv-mul")
@@ -291,15 +306,6 @@ bool Yices2Term::is_value() const
           || tc == YICES_LAMBDA_TERM);
 }
 
-/** Returns the text of an arithmetic constant, e.g. -5 or 1/2 */
-static string arith_constant_to_string(term_t term)
-{
-  char * s = yices_term_to_string(term, UINT32_MAX, 1, 0);
-  string val = s;
-  yices_free_string(s);
-  return val;
-}
-
 /** Returns the bits of a bit-vector constant, most significant first */
 static string bv_constant_to_bits(term_t term)
 {
@@ -334,7 +340,7 @@ uint64_t Yices2Term::to_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_uint64(arith_constant_to_string(term));
+    return smtlib_int_to_uint64(yices_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -350,7 +356,7 @@ int64_t Yices2Term::to_signed_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_int64(arith_constant_to_string(term));
+    return smtlib_int_to_int64(yices_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -610,27 +616,52 @@ string Yices2Term::to_string() const
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_ARITH_CONSTANT)
   {
-    string repr = yices_term_to_string(term, 120, 1, 0);
-    if (repr.substr(0, 1) == "-")
-    {
-      // put in smt-lib format
-      repr = "(- " + repr.substr(1, repr.length() - 1) + ")";
-    }
-    return repr;
+    // Yices prints a number as -5 or -1/2
+    return smtlib_arith_value(get_sort()->get_sort_kind(),
+                              yices_to_string(term));
   }
-  else if (tc == YICES_BV_CONSTANT)
+  if (tc == YICES_BV_CONSTANT)
   {
-    string repr = yices_term_to_string(term, 120, 1, 0);
-    if (repr.substr(0, 2) == "0b")
-    {
-      repr = "#b" + repr.substr(2, repr.length() - 2);
-    }
-    return repr;
+    return "#b" + bv_constant_to_bits(term);
   }
-  else
+  if (tc == YICES_LAMBDA_TERM)
   {
-    return yices_term_to_string(term, 120, 1, 0);
+    // how make_term writes a constant array, its one child being the base
+    // value
+    return smtlib_const_array(get_sort()->to_string(), (*begin())->to_string());
   }
+  if (is_symbol())
+  {
+    const char * name = yices_get_term_name(term);
+    if (name)
+    {
+      return smtlib_quote_symbol(name);
+    }
+  }
+
+  // Everything else SMT-LIB writes as an op applied to the children. A term
+  // that no op describes, such as a root atom MCSAT makes, has no SMT-LIB
+  // text, and keeps Yices' own, as do a Boolean constant, which Yices
+  // already prints as SMT-LIB does, and a term without a name.
+  Op op;
+  try
+  {
+    op = get_op();
+  }
+  catch (const NotImplementedException &)
+  {
+    return yices_to_string(term);
+  }
+  if (op.is_null())
+  {
+    return yices_to_string(term);
+  }
+  TermVec children;
+  for (TermIter it = begin(); it != end(); ++it)
+  {
+    children.push_back(*it);
+  }
+  return smtlib_application(op, children);
 }
 
 // end Yices2Term implementation
