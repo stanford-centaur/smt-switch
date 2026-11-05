@@ -12,11 +12,19 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cstddef>
+#include <future>
+#include <string>
+#include <thread>
+
 #include "exceptions.h"
 #include "ops.h"
+#include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
 #include "sort.h"
+#include "term.h"
 #include "yices2_factory.h"
 
 using namespace smt;
@@ -55,4 +63,35 @@ TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Op(Not, 3), x), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
+}
+
+TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
+{
+  // a pigeonhole problem too hard to finish inside its limit
+  SmtSolver hard = Yices2SolverFactory::create(false);
+  hard->set_opt("time-limit", "0.1");
+  Sort bvsort = hard->make_sort(BV, 6);
+  TermVec vars;
+  for (size_t i = 0; i < 65; ++i)
+  {
+    vars.push_back(hard->make_symbol("x" + std::to_string(i), bvsort));
+  }
+  for (size_t i = 0; i + 1 < vars.size(); ++i)
+  {
+    for (size_t j = i + 1; j < vars.size(); ++j)
+    {
+      hard->assert_formula(hard->make_term(Distinct, vars[i], vars[j]));
+    }
+  }
+
+  SmtSolver other = Yices2SolverFactory::create(false);
+  other->set_opt("time-limit", "0.1");
+
+  std::future<Result> running =
+      std::async(std::launch::async, &AbsSmtSolver::check_sat, hard.get());
+  std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  // the running check holds the process's one time-limit timer
+  EXPECT_THROW(other->check_sat(), NotImplementedException);
+  // the refused check left the running one's limit in place
+  EXPECT_TRUE(running.get().is_unknown());
 }

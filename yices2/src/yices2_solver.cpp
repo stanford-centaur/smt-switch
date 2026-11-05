@@ -22,7 +22,7 @@
 #include <yices.h>
 
 #include <array>
-#include <cassert>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -46,11 +46,16 @@ using namespace std;
 
 namespace smt {
 
-// Shared with yices2_timelimit_handler, which runs on a signal. Both are
-// volatile so the compiler cannot hold either in a register across the search,
-// and the flag is a sig_atomic_t because that is the only type whose write
-// from a handler the standard promises will be visible here.
-context_t * volatile running_ctx = nullptr;
+// Shared with yices2_timelimit_handler, which runs on a signal. The context is
+// the one check the process's single SIGALRM timer is set for, claimed with a
+// compare-exchange so that a check in another thread cannot take it over; a
+// lock-free atomic is safe to read from a handler. The flag is volatile so the
+// compiler cannot hold it in a register across the search, and a sig_atomic_t
+// because that is the only type whose write from a handler the standard
+// promises will be visible here.
+std::atomic<context_t *> running_ctx{ nullptr };
+static_assert(std::atomic<context_t *>::is_always_lock_free,
+              "the time limit handler reads the running context");
 volatile sig_atomic_t yices2_terminated = 0;
 
 // Registered for SIGALRM alone, so the argument cannot be anything else and is
@@ -61,9 +66,10 @@ volatile sig_atomic_t yices2_terminated = 0;
 // it was meant to catch to reach Yices.
 void yices2_timelimit_handler(int /* signum */)
 {
-  if (running_ctx != nullptr)
+  context_t * ctx = running_ctx.load();
+  if (ctx != nullptr)
   {
-    yices_stop_search(running_ctx);
+    yices_stop_search(ctx);
     yices2_terminated = 1;
   }
 }
@@ -400,12 +406,12 @@ Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
     y_assumps.push_back(backend_pointer_cast<Yices2Term>(a)->term);
   }
 
+  // Narrowed before the timer is claimed, which a throw would leave claimed
+  const uint32_t num_assumps =
+      detail::narrow<uint32_t>(y_assumps.size(), "a number of assumptions");
   timelimit_start();
   smt_status_t res = yices_check_context_with_assumptions(
-      get_context().get(),
-      NULL,
-      detail::narrow<uint32_t>(y_assumps.size(), "a number of assumptions"),
-      y_assumps.data());
+      get_context().get(), NULL, num_assumps, y_assumps.data());
   bool tl_triggered = timelimit_end();
 
   if (yices_error_code() != 0)
@@ -811,7 +817,6 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
     Yices2InstanceRef::mark_function(y_term);
   }
   Term sym = std::make_shared<Yices2Term>(y_term);
-  assert(sym);
   symbol_table[name] = sym;
   return sym;
 }
@@ -1233,10 +1238,14 @@ void Yices2Solver::timelimit_start()
 {
   if (time_limit)
   {
+    context_t * none = nullptr;
+    if (!running_ctx.compare_exchange_strong(none, get_context().get()))
+    {
+      throw NotImplementedException(
+          "Yices2 time limits use the process's one SIGALRM timer, so only "
+          "one time-limited check can run at a time");
+    }
     signal(SIGALRM, yices2_timelimit_handler);
-    assert(running_ctx == nullptr);
-    assert(!yices2_terminated);
-    running_ctx = get_context().get();
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(time_limit);
     timer.it_value.tv_usec = static_cast<suseconds_t>(
