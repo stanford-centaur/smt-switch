@@ -50,3 +50,12 @@ TEST(Z3Exceptions, FunctionHasNoChildToDereference)
 
   EXPECT_THROW(*f->begin(), IncorrectUsageException);
 }
+
+TEST(Z3Exceptions, ConstantArrayNeedsAnArraySort)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Sort bvsort = s->make_sort(BV, 8);
+
+  EXPECT_THROW(s->make_term(s->make_term(0, bvsort), bvsort),
+               IncorrectUsageException);
+}

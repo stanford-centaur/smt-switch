@@ -4,7 +4,6 @@
 #include <z3++.h>
 
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -730,7 +729,12 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
         "Cannot create constant array with function element");
   }
   z3::sort arrtype = zsort->type;
-  assert(arrtype.is_array());
+  if (!arrtype.is_array())
+  {
+    throw IncorrectUsageException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
+  }
 
   Z3_ast c_array = Z3_mk_const_array(*ctx, arrtype.array_domain(), zterm->term);
   z3::expr final = to_expr(*ctx, c_array);
@@ -1025,7 +1029,6 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 
     sym = std::make_shared<Z3Term>(ctx, z_term);
   }
-  assert(sym);
   symbol_table[name] = sym;
   return sym;
 }
