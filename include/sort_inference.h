@@ -47,6 +47,8 @@ bool check_sortedness(Op op, const SortVec & sorts);
  *         assumed that the passed sorts belong to this solver
  *  @param terms the vector of terms the op would be applied to
  *  @return the expected sort
+ *  @throws IncorrectUsageException if there are fewer terms than the op
+ *          takes
  */
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms);
 
@@ -56,6 +58,8 @@ Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms);
  *         assumed that the passed sorts belong to this solver
  *  @param sorts a vector of sorts corresponding to the op arguments
  *  @return the expected sort
+ *  @throws IncorrectUsageException if there are fewer sorts than the op
+ *          takes
  */
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
@@ -94,8 +98,8 @@ bool check_quantifier_terms(const TermVec & terms);
 bool check_quantifier_sorts(const SortVec & sorts);
 
 /** Checks that the sorts are equivalent
- *  @param sorts a non-empty vector of sorts
- *  @return true iff they're all equal
+ *  @param sorts a vector of sorts
+ *  @return true iff they're all equal, so true for none
  */
 bool equal_sorts(const SortVec & sorts);
 
@@ -109,8 +113,8 @@ bool equal_sorts(const SortVec & sorts);
 bool arith_equal_sorts(const SortVec & sorts);
 
 /** Checks that the sorts have the same SortKind
- *  @param sorts a non-empty vector of sorts
- *  @return true iff they're all equal
+ *  @param sorts a vector of sorts
+ *  @return true iff they're all equal, so true for none
  */
 bool equal_sortkinds(const SortVec & sorts);
 
