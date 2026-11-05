@@ -58,21 +58,13 @@ TermVec::const_iterator begin(const FreeBeginRange & r)
 
 TermVec::const_iterator end(const FreeBeginRange & r) { return r.terms.end(); }
 
-// What s writes to filename for an asserted x = y, or "refused" if it does
-// not dump
+// What s writes to filename for an asserted x = y
 string dump_equality(SmtSolver s, const string & filename)
 {
   Sort bvsort = s->make_sort(BV, 4);
   s->assert_formula(s->make_term(
       Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
-  try
-  {
-    s->dump_smt2(filename);
-  }
-  catch (NotImplementedException &)
-  {
-    return "refused";
-  }
+  s->dump_smt2(filename);
   ifstream in(filename);
   stringstream contents;
   contents << in.rdbuf();
