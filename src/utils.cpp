@@ -1845,6 +1845,40 @@ std::string smtlib_const_array(const std::string & sort,
   return "((as const " + sort + ") " + value + ")";
 }
 
+std::string smtlib_arith_value(SortKind sk, const std::string & value)
+{
+  bool negative = value.find('-') == 0;
+  std::string magnitude =
+      negative || value.find('+') == 0 ? value.substr(1) : value;
+  // SMT-LIB numerals have no leading zeros, a decimal has digits on both
+  // sides of its point, and a REAL value needs a decimal point for solvers
+  // that do not convert an integer literal
+  auto number_text = [sk](const std::string & number) {
+    std::string::size_type point = number.find('.');
+    std::string whole = number.substr(0, point);
+    std::string::size_type first = whole.find_first_not_of('0');
+    whole = first == std::string::npos ? "0" : whole.substr(first);
+    if (point == std::string::npos)
+    {
+      return sk == REAL ? whole + ".0" : whole;
+    }
+    std::string fraction = number.substr(point + 1);
+    return whole + "." + (fraction.empty() ? "0" : fraction);
+  };
+  // SMT-LIB numerals are never negative, and SMT-LIB has no fraction
+  // literal, so a fraction is a division of two numbers
+  std::string::size_type slash = magnitude.find('/');
+  std::string repr = sk == REAL && slash != std::string::npos
+                         ? "(/ " + number_text(magnitude.substr(0, slash)) + " "
+                               + number_text(magnitude.substr(slash + 1)) + ")"
+                         : number_text(magnitude);
+  if (negative)
+  {
+    repr = "(- " + repr + ")";
+  }
+  return repr;
+}
+
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
   return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);

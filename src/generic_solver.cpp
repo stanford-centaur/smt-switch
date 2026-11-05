@@ -1640,37 +1640,6 @@ static void check_value_sort_kind(SortKind sk)
   }
 }
 
-/**
- * The SMT-LIB form of a value of sort kind INT or REAL, given its sign and
- * its magnitude, a numeral, decimal or fraction without spaces
- */
-static std::string arith_value_repr(SortKind sk,
-                                    bool negative,
-                                    const std::string & magnitude)
-{
-  // SMT-LIB numerals are never negative, a REAL value needs a decimal point
-  // for solvers that do not convert an integer literal, and SMT-LIB has no
-  // fraction literal, so a fraction is a division of two of those
-  std::string::size_type slash = magnitude.find('/');
-  std::string repr;
-  if (sk == REAL && slash != std::string::npos)
-  {
-    repr = "(/ " + magnitude.substr(0, slash) + ".0 "
-           + magnitude.substr(slash + 1) + ".0)";
-  }
-  else
-  {
-    repr = sk == REAL && magnitude.find('.') == std::string::npos
-               ? magnitude + ".0"
-               : magnitude;
-  }
-  if (negative)
-  {
-    repr = "(- " + repr + ")";
-  }
-  return repr;
-}
-
 Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   Term value_term = make_value(i, sort);
@@ -1681,14 +1650,9 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
 {
   SortKind sk = sort->get_sort_kind();
   check_value_sort_kind(sk);
-  // the magnitude of i, computed without negating i, which overflows for
-  // the minimum int64_t
-  std::string abs_decimal =
-      i < 0 ? std::to_string(static_cast<std::uint64_t>(-(i + 1)) + 1)
-            : std::to_string(i);
   if (sk == INT || sk == REAL)
   {
-    std::string repr = arith_value_repr(sk, i < 0, abs_decimal);
+    std::string repr = smtlib_arith_value(sk, std::to_string(i));
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1732,19 +1696,17 @@ Term GenericSolver::make_value(const std::string val,
       throw IncorrectUsageException("Value " + val + " is not a number of sort "
                                     + sort->to_string());
     }
-    bool negative = val.find("-") == 0;
-    std::string magnitude = negative ? val.substr(1) : val;
     // no binary reads a number with spaces in it
-    magnitude.erase(std::remove(magnitude.begin(), magnitude.end(), ' '),
-                    magnitude.end());
+    std::string number = val;
+    number.erase(std::remove(number.begin(), number.end(), ' '), number.end());
     // a division by zero is a legal term, but not a number
-    std::string::size_type slash = magnitude.find('/');
+    std::string::size_type slash = number.find('/');
     if (slash != std::string::npos
-        && magnitude.find_first_not_of('0', slash + 1) == std::string::npos)
+        && number.find_first_not_of('0', slash + 1) == std::string::npos)
     {
       throw IncorrectUsageException("Value " + val + " divides by zero");
     }
-    repr = arith_value_repr(sk, negative, magnitude);
+    repr = smtlib_arith_value(sk, number);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }

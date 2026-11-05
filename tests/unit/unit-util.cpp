@@ -675,6 +675,38 @@ TEST(SmtLibQuoteSymbol, ReservedWordGetsBars)
   EXPECT_EQ(smtlib_quote_symbol("Let"), "Let");
 }
 
+TEST(SmtLibArithValue, IntegerStaysANumeral)
+{
+  EXPECT_EQ(smtlib_arith_value(INT, "5"), "5");
+  EXPECT_EQ(smtlib_arith_value(INT, "-5"), "(- 5)");
+  EXPECT_EQ(smtlib_arith_value(INT, "+5"), "5");
+  EXPECT_EQ(smtlib_arith_value(INT, "007"), "7");
+  EXPECT_EQ(smtlib_arith_value(INT, "0"), "0");
+  EXPECT_EQ(smtlib_arith_value(INT, "-00"), "(- 0)");
+}
+
+TEST(SmtLibArithValue, RealGetsADecimalPoint)
+{
+  EXPECT_EQ(smtlib_arith_value(REAL, "5"), "5.0");
+  EXPECT_EQ(smtlib_arith_value(REAL, "0.5"), "0.5");
+  EXPECT_EQ(smtlib_arith_value(REAL, "-0.5"), "(- 0.5)");
+}
+
+TEST(SmtLibArithValue, DecimalGetsDigitsAroundItsPoint)
+{
+  EXPECT_EQ(smtlib_arith_value(REAL, ".1"), "0.1");
+  EXPECT_EQ(smtlib_arith_value(REAL, "-.1"), "(- 0.1)");
+  EXPECT_EQ(smtlib_arith_value(REAL, "1."), "1.0");
+  EXPECT_EQ(smtlib_arith_value(REAL, "00.50"), "0.50");
+}
+
+TEST(SmtLibArithValue, FractionIsADivision)
+{
+  EXPECT_EQ(smtlib_arith_value(REAL, "1/2"), "(/ 1.0 2.0)");
+  EXPECT_EQ(smtlib_arith_value(REAL, "-1/2"), "(- (/ 1.0 2.0))");
+  EXPECT_EQ(smtlib_arith_value(REAL, "01/02"), "(/ 1.0 2.0)");
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibApplication);
 class SmtLibApplication
     : public ::testing::Test,
