@@ -32,17 +32,15 @@ stopped.  The option is declared beside the ``include()`` in the top-level
 Omissions
 ^^^^^^^^^
 
-Flags reporting that C++17 code is not valid in an older standard are left out,
-that being the point of pinning the standard: the ``-Wc++98-compat``,
-``-Wc++11-compat``, ``-Wc++14-compat``, ``-Wc++17-compat`` and
-``-Wpre-c++17-compat`` families, along with ``-Wbinary-literal`` and
-``-Wlocal-type-template-args``, which say the same of one construct each.  So
-are the ``-Wc++NN-extensions`` flags for NN up to 17, which fire only when the
-standard in use is older than the feature.  Note that c++0x, c++1y and c++1z
-were the working names for C++11, C++14 and C++17, so those spellings are the
-same flags again.  Flags about *newer* standards are kept, as is
-``-Wc++11-narrowing``, whose name says c++11 but whose subject is ordinary C++17
-code.
+Flags reporting that code is not valid in an older standard are left out: the
+``-Wc++98-compat``, ``-Wc++11-compat``, ``-Wc++14-compat``, ``-Wc++17-compat``
+and ``-Wpre-c++17-compat`` families, along with ``-Wbinary-literal``,
+``-Wlocal-type-template-args`` and ``-Wunnamed-type-template-args``.
+
+The ``-Wc++NN-extensions`` flags are also omitted for NN up to 17, which fire
+only when the standard in use is older than the feature. Note that c++0x, c++1y
+and c++1z were the working names for C++11, C++14 and C++17, so those spellings
+are the same flags again.
 
 Some flags fire only under an older standard without their name saying so,
 C++17 either accepting what they report or reporting it under another flag:
@@ -67,13 +65,16 @@ because without a version to compare against GCC rejects it outright, and
 ``-Wpoison-system-directories`` because it reports an include path unsafe for
 cross-compilation, which describes where Homebrew puts things.
 
-So are flags with no diagnostic behind them on *either* compiler: clang keeps a
-number of groups that are empty, and GCC documents a few of its own as doing
-nothing.  A flag empty on one compiler is often real on the other, so this
-applies only where neither can report through it.  Neither needs compiling to
-find: GCC prints "Does nothing" as the description of such a flag, and clang's
+Flags with no diagnostic behind them on *either* compiler are also excluded:
+clang keeps a number of groups that are empty, and GCC documents a few of its
+own as doing nothing.  A flag empty on one compiler is often real on the other,
+so this applies only where neither can report through it.  These flags can be
+derived as follows: GCC prints "Does nothing" as the description, and clang's
 groups are tabulated in ``clang/Basic/DiagnosticGroups.inc``, which its
 development headers install.
+
+Flags about *newer* standards are kept, as is ``-Wc++11-narrowing``, whose name
+says c++11 but whose subject is ordinary C++17 code.
 
 A flag needing a compiler mode this project does not build with is kept when
 that mode is one a build here could plausibly turn on: the coverage, profile-use
@@ -984,7 +985,6 @@ set(
   -Wunknown-pragmas # unrecognized pragmas
   -Wunknown-sanitizers # unknown sanitizer 'X' ignored
   -Wunknown-warning-option # unknown warning option 'X'
-  -Wunnamed-type-template-args # template argument uses unnamed type
   -Wunnecessary-virtual-specifier # virtual method X is inside a 'final' class
   -Wunneeded-internal-declaration # 'static' function X declared in header file
   -Wunneeded-member-function # member function X is not needed and will not be emitted
