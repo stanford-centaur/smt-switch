@@ -237,6 +237,11 @@ class GenericSolver : public AbsSmtSolver
   // returns a string representation of a term in smtlib
   std::string to_smtlib_def(Term term) const;
 
+  /** The name a sort is written under in the binary's input, its to_string
+   *  @throws IncorrectUsageException if this solver did not make it
+   */
+  std::string sort_name(const Sort & sort) const;
+
   // parse solver's response from get-sat-assumptions
   UnorderedTermSet get_assumptions_from_string(std::string result) const;
 
@@ -421,9 +426,8 @@ class GenericSolver : public AbsSmtSolver
   // overshoot one response, and the rest belongs to the next command
   mutable std::string response_buffer;
 
-  // maps between sort name and actual sort and vice versa
+  // the sorts made, by name
   mutable std::unordered_map<std::string, Sort> name_sort_map;
-  mutable std::unordered_map<Sort, std::string> sort_name_map;
 
   // internal counter for naming terms
   mutable unsigned int term_counter = 0;

@@ -71,25 +71,19 @@ constexpr std::string_view start_only_options[] = {
   "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
 };
 
-/** The name a term or sort is written under in the binary's input
- * @param names the solver's map from its terms, or its sorts, to their names
- * @param h the term or sort; not deduced from, so a subclass handle converts
+/** The name a term is written under in the binary's input
+ * @param names the solver's map from its terms to their names
+ * @param t the term
  * @throws IncorrectUsageException if the solver did not make it
  */
-template <class Handle>
-static std::string name_of(
-    const std::unordered_map<Handle, std::string> & names,
-    const typename std::unordered_map<Handle, std::string>::key_type & h)
+static std::string name_of(const std::unordered_map<Term, std::string> & names,
+                           const Term & t)
 {
-  static_assert(
-      std::is_same<Handle, Term>::value || std::is_same<Handle, Sort>::value,
-      "names are kept for terms and sorts only");
-  // operator[] would file an unknown handle under an empty name
-  auto it = names.find(h);
+  // operator[] would file an unknown term under an empty name
+  auto it = names.find(t);
   if (it == names.end())
   {
-    const char * what = std::is_same<Handle, Term>::value ? "Term " : "Sort ";
-    throw IncorrectUsageException(what + h->to_string()
+    throw IncorrectUsageException("Term " + t->to_string()
                                   + " was not made by this solver");
   }
   return it->second;
@@ -940,14 +934,11 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
         }
       }
       return false;
-    case DATATYPE: {
+    case DATATYPE:
       // a datatype whose selectors use a held-back sort is declared after
       // it, so is held back itself
-      auto name_it = sort_name_map.find(sort);
-      return name_it != sort_name_map.end()
-             && pending_sort_names_.find(name_it->second)
-                    != pending_sort_names_.end();
-    }
+      return pending_sort_names_.find(sort->to_string())
+             != pending_sort_names_.end();
     // an application of a datatype component has the datatype's sort, or
     // takes a term of it, so the term or its child is what is caught
     case CONSTRUCTOR:
@@ -1064,23 +1055,28 @@ void GenericSolver::define_fun(std::string name,
     throw NotImplementedException(
         "The generic solver can only define functions without parameters");
   }
-  // Looking the name up rather than indexing: operator[] would insert an
-  // empty one and send a define-fun with no sort.
-  auto res_name = sort_name_map.find(res_sort);
-  if (res_name == sort_name_map.end())
-  {
-    throw IncorrectUsageException("Sort " + res_sort->to_string()
-                                  + " was not created by this solver");
-  }
   // send a define-fun to the binary
   if (send_or_hold(DEFINE_FUN_STR,
                    name,
                    "()",
-                   res_name->second,
+                   sort_name(res_sort),
                    to_smtlib_def(defining_term)))
   {
     pending_definitions_.insert(defining_term);
   }
+}
+
+std::string GenericSolver::sort_name(const Sort & sort) const
+{
+  std::string name = sort->to_string();
+  // the same name is not enough: another backend's sort can print alike
+  auto it = name_sort_map.find(name);
+  if (it == name_sort_map.end() || it->second != sort)
+  {
+    throw IncorrectUsageException("Sort " + name
+                                  + " was not made by this solver");
+  }
+  return name;
 }
 
 std::string GenericSolver::to_smtlib_def(Term term) const
@@ -1129,8 +1125,8 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     if (term->get_op().prim_op == Forall || term->get_op().prim_op == Exists)
     {
       result += " ((" + name_of(term_name_map, gt->get_children()[0]) + " "
-                + name_of(sort_name_map, gt->get_children()[0]->get_sort())
-                + ")) " + name_of(term_name_map, gt->get_children()[1]);
+                + sort_name(gt->get_children()[0]->get_sort()) + ")) "
+                + name_of(term_name_map, gt->get_children()[1]);
     }
     else
     {
@@ -1167,7 +1163,6 @@ Sort GenericSolver::make_sort(const Sort & sort_con,
     return known->second;
   }
   name_sort_map[name] = sort;
-  sort_name_map[sort] = name;
   return sort;
 }
 
@@ -1181,7 +1176,6 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
     Sort sort = std::make_shared<UninterpretedGenericSort>(name, arity);
     // store the sort and the name in the maps
     name_sort_map[name] = sort;
-    sort_name_map[sort] = name;
     // declare the sort to the binary of the solver
     if (send_or_hold(DECLARE_SORT_STR, name, std::to_string(arity)))
     {
@@ -1213,7 +1207,6 @@ Sort GenericSolver::make_sort(const SortKind sk) const
   if (name_sort_map.find(name) == name_sort_map.end())
   {
     name_sort_map[name] = sort;
-    sort_name_map[sort] = name;
     return sort;
   }
   else
@@ -1241,7 +1234,6 @@ Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
   if (name_sort_map.find(name) == name_sort_map.end())
   {
     name_sort_map[name] = sort;
-    sort_name_map[sort] = name;
     return sort;
   }
   else
@@ -1286,7 +1278,6 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
   if (name_sort_map.find(name) == name_sort_map.end())
   {
     name_sort_map[name] = sort;
-    sort_name_map[sort] = name;
     return sort;
   }
   else
@@ -1374,7 +1365,6 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     }
     to_solver += ")\n))";
     name_sort_map[dt_decl_name] = dt_sort;
-    sort_name_map[dt_sort] = dt_decl_name;
     if (send_or_hold(to_solver))
     {
       pending_sort_names_.insert(dt_decl_name);
@@ -1789,8 +1779,8 @@ Term GenericSolver::make_value(const std::string val,
 std::string GenericSolver::cons_arr_string(const Term & val,
                                            const Sort & sort) const
 {
-  return "((as const " + name_of(sort_name_map, sort) + ") "
-         + name_of(term_name_map, val) + ") ";
+  return "((as const " + sort_name(sort) + ") " + name_of(term_name_map, val)
+         + ") ";
 }
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
@@ -1813,7 +1803,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   }
 
   // looked up first, so an unknown sort leaves no symbol behind
-  std::string sort_str = name_of(sort_name_map, sort);
+  std::string sort_str = sort_name(sort);
 
   // create the sumbol and store it in the maps
   Term term =
@@ -2406,7 +2396,7 @@ std::string GenericSolver::assumption_name(const Term & assumption)
                 DECLARE_FUN_STR,
                 label_name,
                 "()",
-                name_of(sort_name_map, assumption->get_sort()));
+                sort_name(assumption->get_sort()));
     it = assumption_labels.emplace(assumption, label).first;
     labelled_assumptions[label] = assumption;
   }
