@@ -274,6 +274,14 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
                IncorrectUsageException);
   EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
                IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y),
+               IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(Not, a)), y),
+               IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(true)), y),
+               IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(And, a, s->make_term(true)), y),
+               IncorrectUsageException);
 }
 
 TEST_P(UnitUtilDimacsTests, tseitin)

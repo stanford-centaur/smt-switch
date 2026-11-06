@@ -129,7 +129,8 @@ void get_ops(const Term & term, UnorderedOpSet & out);
 bool is_lit(const Term & l, const Sort & boolsort);
 
 /** Writes a CNF formula in DIMACS format
- *  @param cnf a Boolean term that is a conjunction of disjunctions
+ *  @param cnf a Boolean term that is true or a conjunction of clauses, each
+ *         a disjunction of symbols, negated symbols and false
  *  @param y the stream to write to
  *  @throws IncorrectUsageException if cnf is not Boolean or not in CNF
  */
