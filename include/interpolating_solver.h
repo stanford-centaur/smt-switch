@@ -280,6 +280,9 @@ class AbsSmtInterpolator : public AbsSmtSolver
   // for a query that extends it
   mutable TermVec last_itp_query_formulae;
   mutable TermVec last_itp_query_interpolants;
+
+  // to run the rounds of refute_model on the interpolator it wraps
+  friend class PrintingInterpolator;
 };
 
 }  // namespace smt
