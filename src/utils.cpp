@@ -1914,6 +1914,56 @@ std::string smtlib_arith_value(SortKind sk, const std::string & value)
   return repr;
 }
 
+std::string smtlib_declare_fun(const Term & symbol)
+{
+  Sort sort = symbol->get_sort();
+  std::string domain;
+  if (sort->get_sort_kind() == FUNCTION)
+  {
+    for (const Sort & d : sort->get_domain_sorts())
+    {
+      domain += (domain.empty() ? "" : " ") + d->to_string();
+    }
+    sort = sort->get_codomain_sort();
+  }
+  std::string res = "(";
+  res += DECLARE_FUN_STR;
+  return res + " " + symbol->to_string() + " (" + domain + ") "
+         + sort->to_string() + ")";
+}
+
+std::string smtlib_declare_datatypes(const SortVec & datatypes)
+{
+  if (datatypes.empty())
+  {
+    throw IncorrectUsageException(
+        "SMT-LIB cannot declare an empty list of datatypes");
+  }
+  std::string names;
+  std::string bodies;
+  for (const Sort & s : datatypes)
+  {
+    Datatype dt = s->get_datatype();
+    names += (names.empty() ? "(" : " (") + s->to_string() + " 0)";
+    std::string constructors;
+    for (const std::string & cons : dt->get_constructor_names())
+    {
+      constructors +=
+          (constructors.empty() ? "(" : " (") + smtlib_quote_symbol(cons);
+      for (const std::string & sel : dt->get_selector_names(cons))
+      {
+        constructors += " (" + smtlib_quote_symbol(sel) + " "
+                        + dt->get_selector_sort(cons, sel)->to_string() + ")";
+      }
+      constructors += ")";
+    }
+    bodies += (bodies.empty() ? "(" : " (") + constructors + ")";
+  }
+  std::string res = "(";
+  res += DECLARE_DATATYPE_STR;
+  return res + " (" + names + ") (" + bodies + "))";
+}
+
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
   return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);

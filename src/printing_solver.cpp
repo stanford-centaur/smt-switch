@@ -38,16 +38,7 @@ namespace smt {
 
 namespace {
 
-/** A selector as declared: its name, and its sort, which is null for one
- *  declared with add_selector_self */
-struct PrintingSelectorDecl
-{
-  std::string name;
-  Sort sort;
-};
-
-/** A constructor declaration of the wrapped solver, with what it declares,
- *  which the wrapped declaration cannot be asked for */
+/** A constructor declaration of the wrapped solver */
 class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
@@ -60,10 +51,9 @@ class PrintingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
   DatatypeConstructorDecl wrapped_decl;
   std::string name;
-  std::vector<PrintingSelectorDecl> selectors;
 };
 
-/** A datatype declaration of the wrapped solver, with its constructors */
+/** A datatype declaration of the wrapped solver */
 class PrintingDatatypeDecl : public AbsDatatypeDecl
 {
  public:
@@ -72,7 +62,6 @@ class PrintingDatatypeDecl : public AbsDatatypeDecl
 
   DatatypeDecl wrapped_decl;
   std::string name;
-  std::vector<std::shared_ptr<PrintingDatatypeConstructorDecl>> constructors;
 };
 
 PrintingDatatypeConstructorDecl::PrintingDatatypeConstructorDecl(
@@ -109,25 +98,6 @@ PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n)
 }
 
 std::string PrintingDatatypeDecl::get_name() const { return name; }
-
-/** The constructor declarations of a datatype in SMT-LIB, e.g.
- *  ((nil) (cons (head Int) (tail list))) */
-std::string constructors_to_smtlib(const PrintingDatatypeDecl & d)
-{
-  std::string res = "(";
-  for (const std::shared_ptr<PrintingDatatypeConstructorDecl> & con :
-       d.constructors)
-  {
-    res += (res.size() > 1 ? " (" : "(") + con->name;
-    for (const PrintingSelectorDecl & sel : con->selectors)
-    {
-      res += " (" + sel.name + " " + (sel.sort ? sel.sort->to_string() : d.name)
-             + ")";
-    }
-    res += ")";
-  }
-  return res + ")";
-}
 
 }  // namespace
 
@@ -168,8 +138,7 @@ Sort PrintingSolver::make_sort(const DatatypeDecl & d) const
   std::shared_ptr<PrintingDatatypeDecl> pd =
       backend_pointer_cast<PrintingDatatypeDecl>(d);
   Sort res = wrapped_solver->make_sort(pd->wrapped_decl);
-  (*out_stream) << "(" << DECLARE_DATATYPE_STR << " ((" << pd->name << " 0)) ("
-                << constructors_to_smtlib(*pd) << "))" << std::endl;
+  (*out_stream) << smtlib_declare_datatypes({ res }) << std::endl;
   return res;
 }
 
@@ -178,20 +147,13 @@ SortVec PrintingSolver::make_datatype_sorts(
 {
   std::vector<DatatypeDecl> wrapped_decls;
   wrapped_decls.reserve(decls.size());
-  std::string names;
-  std::string constructors;
   for (const DatatypeDecl & d : decls)
   {
-    std::shared_ptr<PrintingDatatypeDecl> pd =
-        backend_pointer_cast<PrintingDatatypeDecl>(d);
-    wrapped_decls.push_back(pd->wrapped_decl);
-    names += (names.empty() ? "(" : " (") + pd->name + " 0)";
-    constructors +=
-        (constructors.empty() ? "" : " ") + constructors_to_smtlib(*pd);
+    wrapped_decls.push_back(
+        backend_pointer_cast<PrintingDatatypeDecl>(d)->wrapped_decl);
   }
   SortVec res = wrapped_solver->make_datatype_sorts(wrapped_decls);
-  (*out_stream) << "(" << DECLARE_DATATYPE_STR << " (" << names << ") ("
-                << constructors << "))" << std::endl;
+  (*out_stream) << smtlib_declare_datatypes(res) << std::endl;
   return res;
 }
 
@@ -216,7 +178,6 @@ void PrintingSolver::add_constructor(DatatypeDecl & dt,
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
       backend_pointer_cast<PrintingDatatypeConstructorDecl>(con);
   wrapped_solver->add_constructor(pdt->wrapped_decl, pcon->wrapped_decl);
-  pdt->constructors.push_back(pcon);
 }
 
 void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
@@ -226,7 +187,6 @@ void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
       backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector(pcon->wrapped_decl, name, s);
-  pcon->selectors.push_back({ name, s });
 }
 
 void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
@@ -235,7 +195,6 @@ void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
       backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector_self(pcon->wrapped_decl, name);
-  pcon->selectors.push_back({ name, nullptr });
 }
 
 Term PrintingSolver::get_constructor(const Sort & s, std::string name) const
@@ -312,25 +271,8 @@ Term PrintingSolver::make_term(const Term & val, const Sort & sort) const
 
 Term PrintingSolver::make_symbol(const std::string name, const Sort & sort)
 {
-  SortKind sk = sort->get_sort_kind();
-  std::string domain_str = "";
-  std::string range_str = "";
-  if (sk == FUNCTION)
-  {
-    for (Sort ds : sort->get_domain_sorts())
-    {
-      domain_str += ds->to_string() + " ";
-    }
-    range_str = sort->get_codomain_sort()->to_string();
-  }
-  else
-  {
-    range_str = sort->to_string();
-  }
   Term sym = wrapped_solver->make_symbol(name, sort);
-  std::string name_str = sym->to_string();
-  (*out_stream) << "(" << DECLARE_FUN_STR << " " << name_str << " " << "("
-                << domain_str << ")" << " " << range_str << ")" << std::endl;
+  (*out_stream) << smtlib_declare_fun(sym) << std::endl;
   return sym;
 }
 

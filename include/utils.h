@@ -221,6 +221,22 @@ std::string smtlib_const_array(const std::string & sort,
  */
 std::string smtlib_arith_value(SortKind sk, const std::string & value);
 
+/** The SMT-LIB declaration of a symbol, (declare-fun f (D1 ... Dn) R) for
+ *  a function and (declare-fun x () S) otherwise
+ *  @param symbol the symbol
+ *  @return the text of its declaration
+ */
+std::string smtlib_declare_fun(const Term & symbol);
+
+/** One SMT-LIB declaration of datatypes, which may refer to each other,
+ *  (declare-datatypes ((D1 0) ... (Dn 0)) (cs1 ... csn))
+ *  @param datatypes the datatype sorts, in the order to declare them
+ *  @return the text of their declaration
+ *  @throws IncorrectUsageException if datatypes is empty or holds a sort
+ *          that is not a datatype
+ */
+std::string smtlib_declare_datatypes(const SortVec & datatypes);
+
 // Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
 // Each throws an IncorrectUsageException if its input is malformed or its
 // value does not fit in the result type.

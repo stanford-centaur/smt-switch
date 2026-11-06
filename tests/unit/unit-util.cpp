@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "datatype.h"
 #include "exceptions.h"
 #include "ops.h"
 #include "result.h"
@@ -774,6 +775,99 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          SmtLibApplication,
                          testing::ValuesIn(filter_solver_configurations(
                              { THEORY_INT, QUANTIFIERS })),
+                         ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareFun);
+class SmtLibDeclareFun
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    intsort = s->make_sort(INT);
+  }
+
+  SmtSolver s;
+  Sort intsort;
+};
+
+TEST_P(SmtLibDeclareFun, ConstantHasAnEmptyDomain)
+{
+  EXPECT_EQ(smtlib_declare_fun(s->make_symbol("x", intsort)),
+            "(declare-fun x () Int)");
+}
+
+TEST_P(SmtLibDeclareFun, FunctionListsItsDomain)
+{
+  Sort fsort = s->make_sort(FUNCTION, { intsort, intsort, intsort });
+  EXPECT_EQ(smtlib_declare_fun(s->make_symbol("f", fsort)),
+            "(declare-fun f (Int Int) Int)");
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibDeclareFun,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    ConfigName());
+
+TEST(SmtLibDeclareDatatypes, NoDatatypeIsRefused)
+{
+  EXPECT_THROW(smtlib_declare_datatypes({}), IncorrectUsageException);
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareDatatypes);
+class SmtLibDeclareDatatypes
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    DatatypeDecl colordecl = s->make_datatype_decl("color");
+    s->add_constructor(colordecl, s->make_datatype_constructor_decl("red"));
+    s->add_constructor(colordecl, s->make_datatype_constructor_decl("green"));
+    color = s->make_sort(colordecl);
+    DatatypeDecl listdecl = s->make_datatype_decl("list");
+    DatatypeConstructorDecl consdecl =
+        s->make_datatype_constructor_decl("cons");
+    s->add_selector(consdecl, "head", s->make_sort(INT));
+    s->add_selector_self(consdecl, "tail");
+    s->add_constructor(listdecl, s->make_datatype_constructor_decl("nil"));
+    s->add_constructor(listdecl, consdecl);
+    list = s->make_sort(listdecl);
+  }
+
+  SmtSolver s;
+  Sort color, list;
+};
+
+TEST_P(SmtLibDeclareDatatypes, ListsConstructorsWithTheirSelectors)
+{
+  EXPECT_EQ(smtlib_declare_datatypes({ list }),
+            "(declare-datatypes ((list 0)) "
+            "(((nil) (cons (head Int) (tail list)))))");
+}
+
+TEST_P(SmtLibDeclareDatatypes, DeclaresSeveralTogether)
+{
+  EXPECT_EQ(smtlib_declare_datatypes({ color, list }),
+            "(declare-datatypes ((color 0) (list 0)) "
+            "(((red) (green)) ((nil) (cons (head Int) (tail list)))))");
+}
+
+TEST_P(SmtLibDeclareDatatypes, NonDatatypeIsRefused)
+{
+  EXPECT_THROW(smtlib_declare_datatypes({ list, s->make_sort(INT) }),
+               IncorrectUsageException);
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibDeclareDatatypes,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { THEORY_INT, THEORY_DATATYPE })),
                          ConfigName());
 
 }  // namespace
