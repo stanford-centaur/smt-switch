@@ -34,22 +34,18 @@ class BzlaTermIter : public TermIterBase
 {
  public:
   BzlaTermIter(bitwuzla::Term t,
-               std::size_t i,
+               std::size_t pos,
                const std::shared_ptr<bitwuzla::TermManager> & manager);
-  void operator++() override;
-  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const BzlaTermIter & it) const;
-  bool operator!=(const BzlaTermIter & it) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
 
  private:
   // keeps the term manager alive for as long as terms is
   std::shared_ptr<bitwuzla::TermManager> tm;
   bitwuzla::Term terms;  // terms to iterate over (e.g. children)
-  std::size_t idx;       // current idx of iteration
 };
 
 class BzlaTerm : public AbsTerm

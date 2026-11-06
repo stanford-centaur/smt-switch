@@ -114,8 +114,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 
 BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
                                      std::vector<BtorNode *> c,
-                                     int64_t i)
-    : btor(b), children(std::move(c)), idx(i)
+                                     std::size_t pos)
+    : TermIterBase(pos), btor(b), children(std::move(c))
 {
   for (BtorNode * n : children)
   {
@@ -124,7 +124,7 @@ BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
 }
 
 BoolectorTermIter::BoolectorTermIter(const BoolectorTermIter & it)
-    : BoolectorTermIter(it.btor, it.children, it.idx)
+    : BoolectorTermIter(it.btor, it.children, it.position)
 {
 }
 
@@ -141,16 +141,14 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
   BoolectorTermIter copy(it);
   std::swap(btor, copy.btor);
   std::swap(children, copy.children);
-  idx = it.idx;
+  position = it.position;
   return *this;
 }
 
-void BoolectorTermIter::operator++() { idx++; }
-
-Term BoolectorTermIter::operator*() const
+Term BoolectorTermIter::child() const
 {
-  assert(idx >= 0 && static_cast<size_t>(idx) < children.size());
-  BtorNode * res = children[idx];
+  assert(position < children.size());
+  BtorNode * res = children[position];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
     throw SmtException("Should never have an args node in children look up");
@@ -167,23 +165,13 @@ Term BoolectorTermIter::operator*() const
 
 TermIterBase * BoolectorTermIter::clone() const
 {
-  return new BoolectorTermIter(btor, children, idx);
+  return new BoolectorTermIter(btor, children, position);
 }
 
-bool BoolectorTermIter::operator==(const BoolectorTermIter & it) const
-{
-  return equal(it);
-}
-
-bool BoolectorTermIter::operator!=(const BoolectorTermIter & it) const
-{
-  return !(*this == it);
-}
-
-bool BoolectorTermIter::equal(const TermIterBase & other) const
+bool BoolectorTermIter::same_term(const TermIterBase & other) const
 {
   const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return ((btor == bti.btor) && (idx == bti.idx) && (children == bti.children));
+  return btor == bti.btor && children == bti.children;
 }
 
 /* end BoolectorTermIter implementation */

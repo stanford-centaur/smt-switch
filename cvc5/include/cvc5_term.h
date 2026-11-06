@@ -31,19 +31,15 @@ namespace smt {
 class Cvc5TermIter : public TermIterBase
 {
  public:
-  explicit Cvc5TermIter(::cvc5::Term t, uint32_t p = 0);
-  void operator++() override;
-  Term operator*() const override;
+  explicit Cvc5TermIter(::cvc5::Term t, std::size_t pos = 0);
   TermIterBase * clone() const override;
-  bool operator==(const Cvc5TermIter & it) const;
-  bool operator!=(const Cvc5TermIter & it) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
 
  private:
   ::cvc5::Term term;
-  uint32_t pos;
 };
 
 class Cvc5Term : public AbsTerm

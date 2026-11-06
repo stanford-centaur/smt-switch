@@ -199,13 +199,14 @@ PrimOp to_primop(cvc5::Kind kind)
 std::hash<cvc5::Term> termhash;
 
 /* Cvc5TermIter implementation */
-Cvc5TermIter::Cvc5TermIter(::cvc5::Term t, uint32_t p) : term(t), pos(p) {}
-
-void Cvc5TermIter::operator++() { pos++; }
-
-Term Cvc5TermIter::operator*() const
+Cvc5TermIter::Cvc5TermIter(::cvc5::Term t, std::size_t pos)
+    : TermIterBase(pos), term(t)
 {
-  if (pos == term.getNumChildren()
+}
+
+Term Cvc5TermIter::child() const
+{
+  if (position == term.getNumChildren()
       && term.getKind() == ::cvc5::Kind::CONST_ARRAY)
   {
     return std::make_shared<Cvc5Term>(term.getConstArrayBase());
@@ -213,7 +214,7 @@ Term Cvc5TermIter::operator*() const
   // special-case for VARIABLE_LIST -- parameters bound by a quantifier
   // smt-switch cvc5 backend guarantees that the length is only one by
   // construction
-  ::cvc5::Term t = term[pos];
+  ::cvc5::Term t = term[position];
   if (t.getKind() == ::cvc5::Kind::VARIABLE_LIST)
   {
     if (t.getNumChildren() != 1)
@@ -231,23 +232,12 @@ Term Cvc5TermIter::operator*() const
 
 TermIterBase * Cvc5TermIter::clone() const
 {
-  return new Cvc5TermIter(term, pos);
+  return new Cvc5TermIter(term, position);
 }
 
-bool Cvc5TermIter::operator==(const Cvc5TermIter & it) const
+bool Cvc5TermIter::same_term(const TermIterBase & other) const
 {
-  return term == it.term && pos == it.pos;
-}
-
-bool Cvc5TermIter::operator!=(const Cvc5TermIter & it) const
-{
-  return term != it.term || pos != it.pos;
-}
-
-bool Cvc5TermIter::equal(const TermIterBase & other) const
-{
-  const Cvc5TermIter & cti = static_cast<const Cvc5TermIter &>(other);
-  return term == cti.term && pos == cti.pos;
+  return term == static_cast<const Cvc5TermIter &>(other).term;
 }
 
 /* end Cvc5TermIter implementation */

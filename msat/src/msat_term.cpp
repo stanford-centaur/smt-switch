@@ -74,14 +74,12 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
 
 MsatTermIter::MsatTermIter(const std::shared_ptr<msat_env> & e,
                            const msat_term t,
-                           uint32_t p)
-    : env(e), term(t), pos(p)
+                           std::size_t pos)
+    : TermIterBase(pos), env(e), term(t)
 {
 }
 
-void MsatTermIter::operator++() { pos++; }
-
-Term MsatTermIter::operator*() const
+Term MsatTermIter::child() const
 {
   if (is_congruence(*env, term))
   {
@@ -90,13 +88,13 @@ Term MsatTermIter::operator*() const
         ext_msat_make_minus(
             *env, msat_term_get_arg(term, 0), msat_term_get_arg(term, 1)));
   }
-  else if (!pos && msat_term_is_uf(*env, term))
+  else if (!position && msat_term_is_uf(*env, term))
   {
     return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
   }
   else
   {
-    uint32_t actual_idx = pos;
+    std::size_t actual_idx = position;
     if (msat_term_is_uf(*env, term))
     {
       actual_idx--;
@@ -108,41 +106,10 @@ Term MsatTermIter::operator*() const
 
 TermIterBase * MsatTermIter::clone() const
 {
-  return new MsatTermIter(env, term, pos);
+  return new MsatTermIter(env, term, position);
 }
 
-bool MsatTermIter::operator==(const MsatTermIter & it) const
-{
-  // null terms mean you're iterating over a function symbol
-  // it has no children, so the two iterators should be considered equal
-  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
-  {
-    return true;
-  }
-  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
-  {
-    throw SmtException("Undefined TermIter comparison (not from same term)");
-  }
-  return ((msat_term_id(term) == msat_term_id(it.term)) && (pos == it.pos));
-}
-
-bool MsatTermIter::operator!=(const MsatTermIter & it) const
-{
-  // null terms mean you're iterating over a function symbol
-  // it has no children, so the two iterators should be considered equal
-  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(it.term))
-  {
-    return false;
-  }
-  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(it.term))
-  {
-    throw SmtException("Undefined TermIter comparison (not from same term)");
-  }
-
-  return ((msat_term_id(term) != msat_term_id(it.term)) || (pos != it.pos));
-}
-
-bool MsatTermIter::equal(const TermIterBase & other) const
+bool MsatTermIter::same_term(const TermIterBase & other) const
 {
   const MsatTermIter & cti = static_cast<const MsatTermIter &>(other);
 
@@ -156,7 +123,7 @@ bool MsatTermIter::equal(const TermIterBase & other) const
   {
     throw SmtException("Undefined TermIter comparison (not from same term)");
   }
-  return ((msat_term_id(term) == msat_term_id(cti.term)) && (pos == cti.pos));
+  return msat_term_id(term) == msat_term_id(cti.term);
 }
 
 // end MsatTermIter implementation

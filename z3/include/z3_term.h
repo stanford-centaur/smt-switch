@@ -34,23 +34,18 @@ class Z3TermIter : public TermIterBase
  public:
   Z3TermIter(const std::shared_ptr<z3::context> & c,
              z3::expr t,
-             uint32_t p,
-             bool nt = false);
-  void operator++() override;
-  Term operator*() const override;
+             std::size_t pos);
   TermIterBase * clone() const override;
-  bool operator==(const Z3TermIter & it) const;
-  bool operator!=(const Z3TermIter & it) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
 
  private:
   // declared before term, so that term is released while the context lives
   std::shared_ptr<z3::context> ctx;
+  // null for a function symbol, which has no children
   z3::expr term;
-  uint32_t pos;
-  bool null_term;  ///< set to true if the term is null (no iteration)
 };
 
 class Z3Term : public AbsTerm

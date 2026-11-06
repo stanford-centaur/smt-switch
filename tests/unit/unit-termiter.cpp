@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -205,19 +206,15 @@ TEST(NullTermIter, CannotBeDereferencedOrIncremented)
 class PositionIter : public TermIterBase
 {
  public:
-  explicit PositionIter(int p) : pos(p) {}
-  void operator++() override { ++pos; }
-  Term operator*() const override { return Term(); }
-  TermIterBase * clone() const override { return new PositionIter(pos); }
+  explicit PositionIter(std::size_t pos) : TermIterBase(pos) {}
+  TermIterBase * clone() const override { return new PositionIter(position); }
 
  protected:
-  bool equal(const TermIterBase & other) const override
+  Term child() const override { return Term(); }
+  bool same_term(const TermIterBase & /* other */) const override
   {
-    return pos == static_cast<const PositionIter &>(other).pos;
+    return true;
   }
-
- private:
-  int pos;
 };
 
 TEST(TermIterBase, InequalityNegatesEquality)

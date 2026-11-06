@@ -167,45 +167,28 @@ PrimOp to_primop(bitwuzla::Kind kind)
 
 BzlaTermIter::BzlaTermIter(
     bitwuzla::Term t,
-    std::size_t i,
+    std::size_t pos,
     const std::shared_ptr<bitwuzla::TermManager> & manager)
-    : tm(manager), terms(std::move(t)), idx(i)
+    : TermIterBase(pos), tm(manager), terms(std::move(t))
 {
 }
 
-void BzlaTermIter::operator++() { idx++; }
-
-Term BzlaTermIter::operator*() const
+Term BzlaTermIter::child() const
 {
-  assert(idx < terms.num_children());
-  return std::make_shared<BzlaTerm>(terms[idx], tm);
+  assert(position < terms.num_children());
+  return std::make_shared<BzlaTerm>(terms[position], tm);
 }
 
 TermIterBase * BzlaTermIter::clone() const
 {
-  return new BzlaTermIter(terms, idx, tm);
+  return new BzlaTermIter(terms, position, tm);
 }
 
-bool BzlaTermIter::operator==(const BzlaTermIter & it) const
-{
-  return equal(it);
-}
-
-bool BzlaTermIter::operator!=(const BzlaTermIter & it) const
-{
-  return !equal(it);
-}
-
-bool BzlaTermIter::equal(const TermIterBase & other) const
+bool BzlaTermIter::same_term(const TermIterBase & other) const
 {
   const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  if (idx != bti.idx || terms.num_children() != bti.terms.num_children())
-  {
-    // do a cheap equality test first
-    return false;
-  }
-  // more expensive vector equality
-  return terms == bti.terms;
+  // a cheap test first, then the term comparison
+  return terms.num_children() == bti.terms.num_children() && terms == bti.terms;
 }
 
 /*  end BzlaTermIter implementation */

@@ -247,40 +247,28 @@ std::string LoggingTerm::print_value_as(SortKind sk) const
 /* LoggingTermIter */
 
 LoggingTermIter::LoggingTermIter(std::shared_ptr<const TermVec> c,
-                                 std::size_t p)
-    : children(std::move(c)), pos(p)
+                                 std::size_t pos)
+    : TermIterBase(pos), children(std::move(c))
 {
 }
 
-void LoggingTermIter::operator++() { pos++; }
-
-Term LoggingTermIter::operator*() const
+Term LoggingTermIter::child() const
 {
-  if (!children || pos >= children->size())
+  if (!children || position >= children->size())
   {
     throw IncorrectUsageException("Cannot dereference past a term's children");
   }
-  return (*children)[pos];
+  return (*children)[position];
 }
 
 TermIterBase * LoggingTermIter::clone() const
 {
-  return new LoggingTermIter(children, pos);
+  return new LoggingTermIter(children, position);
 }
 
-bool LoggingTermIter::operator==(const LoggingTermIter & lit) const
+bool LoggingTermIter::same_term(const TermIterBase & other) const
 {
-  return children == lit.children && pos == lit.pos;
-}
-
-bool LoggingTermIter::operator!=(const LoggingTermIter & lit) const
-{
-  return !(*this == lit);
-}
-
-bool LoggingTermIter::equal(const TermIterBase & other) const
-{
-  return *this == static_cast<const LoggingTermIter &>(other);
+  return children == static_cast<const LoggingTermIter &>(other).children;
 }
 
 }  // namespace smt

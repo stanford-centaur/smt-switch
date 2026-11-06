@@ -118,15 +118,10 @@ class GenericTermIter : public TermIterBase
   GenericTermIter(std::shared_ptr<const TermVec> children, std::size_t pos);
   TermIterBase * clone() const override;
 
-  void operator++() override;
-  Term operator*() const override;
-  bool operator==(const GenericTermIter & lit) const;
-  bool operator!=(const GenericTermIter & lit) const;
-
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
   std::shared_ptr<const TermVec> children;
-  std::size_t pos;
 };
 
 }  // namespace smt
