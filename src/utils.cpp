@@ -1964,6 +1964,121 @@ std::string smtlib_declare_datatypes(const SortVec & datatypes)
   return res + " (" + names + ") (" + bodies + "))";
 }
 
+// Adds the uninterpreted sorts and datatypes that declaring a term of sort
+// s needs, keyed by name, to those found so far
+static void collect_declared_sorts(const Sort & s,
+                                   std::map<std::string, Sort> & sorts,
+                                   std::map<std::string, Sort> & datatypes)
+{
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (s->get_sort_kind())
+  {
+    case ARRAY:
+      collect_declared_sorts(s->get_indexsort(), sorts, datatypes);
+      collect_declared_sorts(s->get_elemsort(), sorts, datatypes);
+      break;
+    case FUNCTION:
+      for (const Sort & d : s->get_domain_sorts())
+      {
+        collect_declared_sorts(d, sorts, datatypes);
+      }
+      collect_declared_sorts(s->get_codomain_sort(), sorts, datatypes);
+      break;
+    case UNINTERPRETED:
+      sorts.emplace(s->get_uninterpreted_name(), s);
+      for (const Sort & p : s->get_uninterpreted_param_sorts())
+      {
+        collect_declared_sorts(p, sorts, datatypes);
+      }
+      break;
+    case DATATYPE: {
+      // a datatype found before may be the sort of its own selectors
+      if (!datatypes.emplace(s->to_string(), s).second)
+      {
+        break;
+      }
+      Datatype dt = s->get_datatype();
+      for (const std::string & cons : dt->get_constructor_names())
+      {
+        for (const std::string & sel : dt->get_selector_names(cons))
+        {
+          collect_declared_sorts(
+              dt->get_selector_sort(cons, sel), sorts, datatypes);
+        }
+      }
+      break;
+    }
+    // nothing to declare, and the datatypes of constructors, selectors
+    // and testers are met through their arguments and results
+    case BOOL:
+    case BV:
+    case INT:
+    case REAL:
+    case STRING:
+    case UNINTERPRETED_CONS:
+    case CONSTRUCTOR:
+    case SELECTOR:
+    case TESTER:
+    case NUM_SORT_KINDS: break;
+  }
+}
+
+void smtlib_benchmark(std::ostream & out,
+                      const std::string & logic,
+                      const TermVec & assertions)
+{
+  // what the assertions need declared, each kind by name, so that the same
+  // assertions always dump alike
+  std::map<std::string, Term> symbols;
+  std::map<std::string, Sort> sorts;
+  std::map<std::string, Sort> datatypes;
+  TermVec to_visit = assertions;
+  UnorderedTermSet visited;
+  while (!to_visit.empty())
+  {
+    Term t = to_visit.back();
+    to_visit.pop_back();
+    if (!visited.insert(t).second)
+    {
+      continue;
+    }
+    if (t->is_symbol())
+    {
+      symbols.emplace(t->to_string(), t);
+    }
+    collect_declared_sorts(t->get_sort(), sorts, datatypes);
+    for (const Term & c : t)
+    {
+      to_visit.push_back(c);
+    }
+  }
+
+  out << "(" << SET_LOGIC_STR << " " << logic << ")\n";
+  for (const auto & [name, s] : sorts)
+  {
+    out << "(" << DECLARE_SORT_STR << " " << name << " "
+        << s->get_uninterpreted_param_sorts().size() << ")\n";
+  }
+  if (!datatypes.empty())
+  {
+    SortVec dts;
+    for (const auto & [name, s] : datatypes)
+    {
+      dts.push_back(s);
+    }
+    out << smtlib_declare_datatypes(dts) << "\n";
+  }
+  for (const auto & [name, symbol] : symbols)
+  {
+    out << smtlib_declare_fun(symbol) << "\n";
+  }
+  for (const Term & a : assertions)
+  {
+    out << "(" << ASSERT_STR << " " << a->to_string() << ")\n";
+  }
+  out << "(" << CHECK_SAT_STR << ")\n";
+}
+
 std::string internal_name(const std::string & kind, std::uint64_t index)
 {
   return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);

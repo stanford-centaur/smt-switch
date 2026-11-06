@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -955,6 +956,20 @@ Term Cvc5Solver::substitute(const Term term,
 
   ::cvc5::Term cterm = backend_pointer_cast<Cvc5Term>(term)->term;
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
+}
+
+void Cvc5Solver::dump_smt2(std::string filename) const
+{
+  TermVec assertions;
+  for (const ::cvc5::Term & a : instance->solver.getAssertions())
+  {
+    assertions.push_back(std::make_shared<Cvc5Term>(a));
+  }
+  std::ofstream out(filename);
+  smtlib_benchmark(
+      out,
+      instance->solver.isLogicSet() ? instance->solver.getLogic() : "ALL",
+      assertions);
 }
 
 /**

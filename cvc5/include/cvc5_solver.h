@@ -101,6 +101,7 @@ class Cvc5Solver : public AbsSmtSolver
   Term make_term(Op op, const TermVec & terms) const override;
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
+  void dump_smt2(std::string filename) const override;
 
   // helpers
   ::cvc5::Op make_cvc5_op(Op op) const;
