@@ -15,7 +15,6 @@
 
 #include "sorting_network.h"
 
-#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -134,7 +133,6 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
 
   if (sorted1_is_even && sorted2_is_even)
   {
-    assert(len_res_even == len_res_odd);
     // if both inputs were even, they have same number of elements
     // need to interleave and compare all inner elements
     // the first odd result and last even result have already
@@ -146,7 +144,6 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
     for (std::size_t i = 0; i < len_res_odd - 1; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
-      assert(two_sorted.size() == 2);
       res.push_back(two_sorted[0]);
       res.push_back(two_sorted[1]);
     }
@@ -156,7 +153,6 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
   }
   else if (sorted1_is_even && !sorted2_is_even)
   {
-    assert(len_res_even + 1 == len_res_odd);
     // if first element was even and second was odd,
     //   then there's one extra element in the merged
     //   odd list
@@ -167,14 +163,12 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
     for (std::size_t i = 0; i < len_res_even; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
-      assert(two_sorted.size() == 2);
       res.push_back(two_sorted[0]);
       res.push_back(two_sorted[1]);
     }
   }
-  else if (!sorted1_is_even && !sorted2_is_even)
+  else
   {
-    assert(len_res_even + 2 == len_res_odd);
     // if both inputs were odd, then there are
     // two more elements in the odd merged list
     // the first and last elements have already
@@ -189,19 +183,12 @@ TermVec SortingNetwork::merge(const TermVec & sorted1,
     for (std::size_t i = 0; i < len_res_even; ++i)
     {
       const TermVec & two_sorted = sort_two(res_odd[i + 1], res_even[i]);
-      assert(two_sorted.size() == 2);
       res.push_back(two_sorted[0]);
       res.push_back(two_sorted[1]);
     }
     res.push_back(last_res_odd);
   }
-  else
-  {
-    // should not occur to due normalization above
-    assert(false);
-  }
 
-  assert(res.size() == len1 + len2);
   return res;
 }
 
