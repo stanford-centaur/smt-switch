@@ -22,7 +22,6 @@ extern "C" {
 #include <utils/boolectornodemap.h>
 }
 
-#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstddef>
@@ -446,13 +445,8 @@ void BoolectorSolver::do_push(uint64_t num)
 void BoolectorSolver::do_pop(uint64_t num)
 {
   boolector_pop(btor.get(), narrow_levels(num));
-  // with base-context-1, Boolector also pops its hidden base context
-  std::size_t popped = std::min<std::size_t>(num, scope_starts.size());
-  if (popped)
-  {
-    assertions.resize(scope_starts[scope_starts.size() - popped]);
-    scope_starts.resize(scope_starts.size() - popped);
-  }
+  assertions.resize(scope_starts[scope_starts.size() - num]);
+  scope_starts.resize(scope_starts.size() - num);
 }
 
 Term BoolectorSolver::get_value(const Term & t) const
