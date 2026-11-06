@@ -38,6 +38,10 @@ cdef extern from "sort.h" namespace "smt":
 
 
 cdef extern from "ops.h" namespace "smt":
+    cdef cppclass c_OpIndices "smt::Op::Indices":
+        size_t size() except +
+        uint64_t operator[](size_t i) except +
+
     cdef cppclass c_Op "smt::Op":
         c_Op() except +
         c_Op(c_PrimOp o) except +
@@ -46,9 +50,7 @@ cdef extern from "ops.h" namespace "smt":
         string to_string() except +
         bint is_null() except +
         c_PrimOp prim_op
-        uint64_t num_idx
-        uint64_t idx0
-        uint64_t idx1
+        c_OpIndices indices
 
     bint operator==(c_Op op1, c_Op op2) except +
     bint operator!=(c_Op op1, c_Op op2) except +

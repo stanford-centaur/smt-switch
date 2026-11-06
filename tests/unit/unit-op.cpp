@@ -140,14 +140,28 @@ TEST_P(UnitTests, IndexedOps1)
 // Not parameterized: neither case involves a solver. The narrowing itself is
 // only reached by the backends whose API takes 32-bit indices, so testing it
 // through make_term would exercise nothing on mathsat or bitwuzla.
-TEST(UnitOpIndexTests, UnsetIndicesReadAsZero)
+TEST(UnitOpIndexTests, IndicesFollowTheConstructor)
 {
-  ASSERT_EQ(Op().idx0, 0);
-  ASSERT_EQ(Op().idx1, 0);
-  ASSERT_EQ(Op(Extract).idx0, 0);
-  ASSERT_EQ(Op(Extract).idx1, 0);
-  // the one-index constructor leaves idx1 out of its initializer list
-  ASSERT_EQ(Op(Zero_Extend, 5).idx1, 0);
+  EXPECT_TRUE(Op().indices.empty());
+  EXPECT_TRUE(Op(BVAdd).indices.empty());
+
+  const Op extend(Zero_Extend, 5);
+  EXPECT_EQ(extend.indices.size(), 1);
+  EXPECT_EQ(extend.indices[0], 5);
+  EXPECT_THROW(extend.indices[1], IncorrectUsageException);
+
+  const Op extract(Extract, 2, 0);
+  EXPECT_EQ(extract.indices.size(), 2);
+  EXPECT_EQ(extract.indices[0], 2);
+  EXPECT_EQ(extract.indices[1], 0);
+}
+
+TEST(UnitOpIndexTests, IndexCountMustMatchTheOperator)
+{
+  EXPECT_THROW(Op{ Extract }, IncorrectUsageException);
+  EXPECT_THROW((Op{ Extract, 3 }), IncorrectUsageException);
+  EXPECT_THROW((Op{ Repeat, 2, 0 }), IncorrectUsageException);
+  EXPECT_THROW((Op{ BVAdd, 1 }), IncorrectUsageException);
 }
 
 TEST(UnitOpIndexTests, NarrowIndexRejectsTooLarge)

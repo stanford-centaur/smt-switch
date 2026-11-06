@@ -938,27 +938,31 @@ static term_t unary_term(const Op & op, term_t a)
     case To_Int: return yices_floor(a);
     case Is_Int: return yices_is_int_atom(a);
     case Divisible:
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
       return yices_divides_atom(
-          yices_parse_rational(std::to_string(op.idx0).c_str()), a);
+          yices_parse_rational(std::to_string(op.indices[0]).c_str()), a);
     case Extract:
       return yices_bvextract(
-          a, narrow_index(op, op.idx1), narrow_index(op, op.idx0));
+          a, narrow_index(op, op.indices[1]), narrow_index(op, op.indices[0]));
     case BVNot: return yices_bvnot(a);
     case BVNeg: return yices_bvneg(a);
-    case Zero_Extend: return yices_zero_extend(a, narrow_index(op, op.idx0));
-    case Sign_Extend: return yices_sign_extend(a, narrow_index(op, op.idx0));
+    case Zero_Extend:
+      return yices_zero_extend(a, narrow_index(op, op.indices[0]));
+    case Sign_Extend:
+      return yices_sign_extend(a, narrow_index(op, op.indices[0]));
     case Repeat:
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      return yices_bvrepeat(a, narrow_index(op, op.idx0));
-    case Rotate_Left: return yices_rotate_left(a, narrow_index(op, op.idx0));
-    case Rotate_Right: return yices_rotate_right(a, narrow_index(op, op.idx0));
+      return yices_bvrepeat(a, narrow_index(op, op.indices[0]));
+    case Rotate_Left:
+      return yices_rotate_left(a, narrow_index(op, op.indices[0]));
+    case Rotate_Right:
+      return yices_rotate_right(a, narrow_index(op, op.indices[0]));
     case BV_To_Nat:
     case UBV_To_Int:
     case SBV_To_Int:
@@ -987,7 +991,7 @@ static term_t unary_term(const Op & op, term_t a)
         throw NotImplementedException(
             "Yices2 has no int_to_bv, so it can only apply it to an Int value");
       }
-      const uint32_t width = narrow_index(op, op.idx0);
+      const uint32_t width = narrow_index(op, op.indices[0]);
       mpq_t value;
       mpq_init(value);
       yices_rational_const_value(a, value);
@@ -1109,14 +1113,6 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     msg += op.to_string();
     msg += " to zero terms.";
     throw IncorrectUsageException(msg);
-  }
-  const uint64_t num_indices = get_num_indices(op.prim_op);
-  if (op.num_idx != num_indices)
-  {
-    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
-                                  + std::to_string(num_indices)
-                                  + (num_indices == 1 ? " index" : " indices")
-                                  + ", not " + std::to_string(op.num_idx));
   }
 
   vector<term_t> yterms;
