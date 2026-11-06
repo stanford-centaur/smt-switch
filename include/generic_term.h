@@ -113,9 +113,10 @@ class GenericTerm : public AbsTerm
 class GenericTermIter : public TermIterBase
 {
  public:
-  // points at child number pos of children, which it shares with the term
-  // and which is null for a leaf
-  GenericTermIter(std::shared_ptr<const TermVec> children, std::size_t pos);
+  // points at the first of children, or past the last when at_end;
+  // children is shared with the term and null for a leaf
+  explicit GenericTermIter(std::shared_ptr<const TermVec> children,
+                           bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:

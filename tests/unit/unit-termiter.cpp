@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -76,6 +75,17 @@ TEST_P(UnitTests, TermIter)
 
   EXPECT_EQ(it, it);
   EXPECT_EQ(it, it2);
+}
+
+TEST_P(UnitTests, CannotDereferencePastTheChildren)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
+
+  EXPECT_THROW(*x->begin(), IncorrectUsageException);
+  EXPECT_THROW(*f->begin(), IncorrectUsageException);
+  EXPECT_THROW(*fx->end(), IncorrectUsageException);
 }
 
 TEST_P(UnitTests, NestedApplication)
@@ -202,12 +212,12 @@ TEST(NullTermIter, CannotBeDereferencedOrIncremented)
   EXPECT_THROW(it++, IncorrectUsageException);
 }
 
-// an iterator over nothing that only knows its position
+// an iterator over one child that only knows its position
 class PositionIter : public TermIterBase
 {
  public:
-  explicit PositionIter(std::size_t pos) : TermIterBase(pos) {}
-  TermIterBase * clone() const override { return new PositionIter(position); }
+  explicit PositionIter(bool at_end = false) : TermIterBase(1, at_end) {}
+  TermIterBase * clone() const override { return new PositionIter(*this); }
 
  protected:
   Term child() const override { return Term(); }
@@ -219,7 +229,8 @@ class PositionIter : public TermIterBase
 
 TEST(TermIterBase, InequalityNegatesEquality)
 {
-  PositionIter first(0), same(0), second(1);
+  PositionIter first, same;
+  PositionIter second(/* at_end */ true);
   EXPECT_FALSE(first != same);
   EXPECT_TRUE(first != second);
 }

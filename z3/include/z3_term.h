@@ -34,7 +34,7 @@ class Z3TermIter : public TermIterBase
  public:
   Z3TermIter(const std::shared_ptr<z3::context> & c,
              z3::expr t,
-             std::size_t pos);
+             bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:

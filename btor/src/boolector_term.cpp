@@ -25,7 +25,6 @@ extern "C" {
 #include <utils/btornodeiter.h>
 }
 
-#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -114,8 +113,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
 
 BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
                                      std::vector<BtorNode *> c,
-                                     std::size_t pos)
-    : TermIterBase(pos), btor(b), children(std::move(c))
+                                     bool at_end)
+    : TermIterBase(c.size(), at_end), btor(b), children(std::move(c))
 {
   for (BtorNode * n : children)
   {
@@ -124,8 +123,12 @@ BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
 }
 
 BoolectorTermIter::BoolectorTermIter(const BoolectorTermIter & it)
-    : BoolectorTermIter(it.btor, it.children, it.position)
+    : TermIterBase(it), btor(it.btor), children(it.children)
 {
+  for (BtorNode * n : children)
+  {
+    btor_node_copy(btor.get(), n);
+  }
 }
 
 BoolectorTermIter::~BoolectorTermIter()
@@ -141,13 +144,12 @@ BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
   BoolectorTermIter copy(it);
   std::swap(btor, copy.btor);
   std::swap(children, copy.children);
-  position = it.position;
+  TermIterBase::operator=(it);
   return *this;
 }
 
 Term BoolectorTermIter::child() const
 {
-  assert(position < children.size());
   BtorNode * res = children[position];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
@@ -165,7 +167,7 @@ Term BoolectorTermIter::child() const
 
 TermIterBase * BoolectorTermIter::clone() const
 {
-  return new BoolectorTermIter(btor, children, position);
+  return new BoolectorTermIter(*this);
 }
 
 bool BoolectorTermIter::same_term(const TermIterBase & other) const
@@ -256,8 +258,6 @@ Sort BoolectorTerm::get_sort() const
   else if (boolector_is_fun_sort(btor.get(), s))
   {
     BoolectorSort bcds = boolector_fun_get_codomain_sort(btor.get(), node);
-    assert(boolector_is_bitvec_sort(btor.get(),
-                                    bcds));  // no other options in boolector
     uint64_t bcds_width = boolector_bitvec_sort_get_width(btor.get(), bcds);
     // increment reference counter for the sort
     boolector_copy_sort(btor.get(), bcds);
@@ -285,7 +285,6 @@ Sort BoolectorTerm::get_sort() const
     throw SmtException("Failed to translate boolector sort to smt-switch sort");
   }
 
-  assert(sort);
   return sort;
 }
 
@@ -409,13 +408,13 @@ int64_t BoolectorTerm::to_signed_int() const
 TermIter BoolectorTerm::begin() const
 {
   collect_children();
-  return TermIter(new BoolectorTermIter(btor, children, 0));
+  return TermIter(new BoolectorTermIter(btor, children));
 }
 
 TermIter BoolectorTerm::end() const
 {
   collect_children();
-  return TermIter(new BoolectorTermIter(btor, children, children.size()));
+  return TermIter(new BoolectorTermIter(btor, children, /* at_end */ true));
 }
 
 std::string BoolectorTerm::print_value_as(SortKind sk) const
@@ -493,12 +492,9 @@ void BoolectorTerm::collect_children() const
   BtorNode * tmp;
   // don't expose the parameter node of the lambda -- start at 1 instead of 0
   size_t start_idx = is_const_array() ? 1 : 0;
-  assert(!is_const_array() || bn->e[0]->kind == BTOR_PARAM_NODE);
   for (size_t i = start_idx; i < bn->arity; ++i)
   {
     tmp = bn->e[i];
-    // a non-proxy node should never have proxy children
-    assert(!btor_node_is_proxy(tmp));
     if (btor_node_real_addr(tmp)->kind == BTOR_ARGS_NODE)
     {
       btor_iter_args_init(&ait, tmp);

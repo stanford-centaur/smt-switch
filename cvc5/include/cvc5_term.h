@@ -31,7 +31,7 @@ namespace smt {
 class Cvc5TermIter : public TermIterBase
 {
  public:
-  explicit Cvc5TermIter(::cvc5::Term t, std::size_t pos = 0);
+  explicit Cvc5TermIter(::cvc5::Term t, bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:

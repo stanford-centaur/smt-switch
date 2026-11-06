@@ -35,7 +35,7 @@ class MsatTermIter : public TermIterBase
   // TODO: consider making env const everywhere
   MsatTermIter(const std::shared_ptr<msat_env> & e,
                const msat_term t,
-               std::size_t pos);
+               bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:
