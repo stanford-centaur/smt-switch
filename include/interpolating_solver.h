@@ -22,6 +22,8 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "result.h"
 #include "smt_defs.h"
@@ -31,6 +33,8 @@
 #include "term.h"
 
 namespace smt {
+
+using TermsPairVec = std::vector<std::pair<Term, Term>>;
 
 /**
    Abstract interpolating solver, to be implemented by each backend that
@@ -65,6 +69,8 @@ namespace smt {
      it keeps anything else between queries, and initialize if the regular
      solver needs setting up for interpolation, which its constructor then
      calls too.
+   - Optional: refute_model, one round of a backend that interpolates by
+     refuting models of B.
    - Everything else is forwarded to the regular solver.
  */
 class AbsSmtInterpolator : public AbsSmtSolver
@@ -219,6 +225,32 @@ class AbsSmtInterpolator : public AbsSmtSolver
    *  constructor would only reach this one.
    */
   virtual void initialize();
+
+  /** One round of interpolating A and B by refuting models of B: checks B
+   *  with the model interpolants of the rounds before, and if it has a
+   *  model, checks A with the shared symbols fixed to their values in it.
+   *  Once B has no model left, the conjunction of the model interpolants
+   *  is an interpolant. Throws NotImplementedException unless overridden.
+   *  @param A the A term, which must be Boolean
+   *  @param B the B term, which must be Boolean
+   *  @param solver_a the solver the query checks A with, null before its
+   *         first round, which makes it and asserts A
+   *  @param solver_b the same for B, to which each model interpolant is
+   *         added
+   *  @param model an empty vector, which is set, if B has a model, to each
+   *         symbol A and B share paired with its value in that model; a
+   *         value that has no term, such as an algebraic number, is null
+   *  @param model_interpolant set, if A refutes the model, to a formula
+   *         that A implies and the model falsifies
+   *  @return B's answer if it has no model, and otherwise A's under it,
+   *          which is unsat if A refutes the model
+   */
+  virtual Result refute_model(const Term & A,
+                              const Term & B,
+                              SmtSolver & solver_a,
+                              SmtSolver & solver_b,
+                              TermsPairVec & model,
+                              Term & model_interpolant) const;
 
   /** Computes the interpolant of A and B as the sequence interpolant of
    *  { A, B }, for a backend that computes sequences natively.

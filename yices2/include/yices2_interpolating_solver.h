@@ -54,6 +54,16 @@ class Yices2InterpolatingSolver : public AbsSmtInterpolator
 
   void initialize() override;
 
+  /** @throws NotImplementedException if a symbol both sides share has a
+   *          sort MCSAT cannot fix
+   */
+  Result refute_model(const Term & A,
+                      const Term & B,
+                      SmtSolver & solver_a,
+                      SmtSolver & solver_b,
+                      TermsPairVec & model,
+                      Term & model_interpolant) const override;
+
  private:
   /** @return a solver to check A or B of a query with */
   SmtSolver new_solver() const;
