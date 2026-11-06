@@ -101,6 +101,9 @@ class Yices2Solver : public AbsSmtSolver
    */
   std::shared_ptr<context_t> get_context();
 
+  /** @return the configuration get_context() creates the context from */
+  ctx_config_t * get_config();
+
  protected:
   void do_push(uint64_t num) override;
   void do_pop(uint64_t num) override;

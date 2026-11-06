@@ -123,6 +123,24 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   {
     // nothing to be done
   }
+  else if (option == "produce-unsat-model-interpolants")
+  {
+    if (ctx)
+    {
+      throw IncorrectUsageException(
+          "Yices2 can only set produce-unsat-model-interpolants before the "
+          "first assertion, check or push");
+    }
+    if (value != "true" && value != "false")
+    {
+      throw IncorrectUsageException("Invalid value for boolean option "
+                                    + option);
+    }
+    if (yices_set_config(config, "model-interpolation", value.c_str()) < 0)
+    {
+      throw InternalSolverException(take_yices_error());
+    }
+  }
   else
   {
     string msg("Option ");
@@ -200,6 +218,8 @@ std::shared_ptr<context_t> Yices2Solver::get_context()
   }
   return ctx;
 }
+
+ctx_config_t * Yices2Solver::get_config() { return config; }
 
 Term Yices2Solver::make_term(bool b) const
 {
