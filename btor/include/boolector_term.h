@@ -40,31 +40,6 @@ namespace smt {
 // helpers
 Op lookup_op(Btor * btor, BoolectorNode * n);
 
-class BoolectorTermIter : public TermIterBase
-{
- public:
-  // IMPORTANT: The correctness of this code depends on the array e being of
-  // size 3
-  BoolectorTermIter(const std::shared_ptr<Btor> & b,
-                    std::vector<BtorNode *> c,
-                    bool at_end = false);
-  BoolectorTermIter(const BoolectorTermIter & it);
-  ~BoolectorTermIter() override;
-  BoolectorTermIter & operator=(const BoolectorTermIter & it);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  // keeps the instance alive for as long as this object is
-  std::shared_ptr<Btor> btor;
-  // this object holds a reference to each, so they stay alive after the
-  // term they came from is gone
-  std::vector<BtorNode *> children;
-};
-
 class BoolectorTerm : public AbsTerm
 {
  public:
@@ -86,10 +61,6 @@ class BoolectorTerm : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
-  /** Iterators for traversing the children
-   */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // Getters for solver-specific objects
@@ -98,6 +69,9 @@ class BoolectorTerm : public AbsTerm
   BoolectorNode * get_btor_node() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   // keeps the instance alive for as long as this object is
   std::shared_ptr<Btor> btor;
   // the actual API level node that is used
@@ -114,7 +88,8 @@ class BoolectorTerm : public AbsTerm
   bool symbol = false;
   // for iterating args nodes
   mutable BtorArgsIterator ait = {};
-  // for storing nodes before iterating
+  // for storing nodes before iterating; this object holds a reference to
+  // each, so they stay alive while they are listed
   mutable std::vector<BtorNode *> children = {};
   // flag that's set to true if children have already been gathered
   // not straightforward to just rely on number of children / arity
@@ -125,9 +100,10 @@ class BoolectorTerm : public AbsTerm
   // helpers
   bool is_const_array() const;
   void collect_children() const;
+  // releases and clears children
+  void release_children() const;
 
   friend class BoolectorSolver;
-  friend class BoolectorTermIter;
 };
 
 }  // namespace smt

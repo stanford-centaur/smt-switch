@@ -162,32 +162,6 @@ PrimOp to_primop(bitwuzla::Kind kind)
   return kind_tables.primops[i];
 }
 
-/*  start BzlaTermIter implementation */
-
-BzlaTermIter::BzlaTermIter(
-    bitwuzla::Term t,
-    const std::shared_ptr<bitwuzla::TermManager> & manager,
-    bool at_end)
-    : TermIterBase(t.num_children(), at_end), tm(manager), terms(std::move(t))
-{
-}
-
-Term BzlaTermIter::child() const
-{
-  return std::make_shared<BzlaTerm>(terms[position], tm);
-}
-
-TermIterBase * BzlaTermIter::clone() const { return new BzlaTermIter(*this); }
-
-bool BzlaTermIter::same_term(const TermIterBase & other) const
-{
-  const BzlaTermIter & bti = static_cast<const BzlaTermIter &>(other);
-  // a cheap test first, then the term comparison
-  return terms.num_children() == bti.terms.num_children() && terms == bti.terms;
-}
-
-/*  end BzlaTermIter implementation */
-
 BzlaTerm::BzlaTerm(bitwuzla::Term t,
                    const std::shared_ptr<bitwuzla::TermManager> & manager)
     : tm(manager), term(std::move(t))
@@ -298,14 +272,11 @@ std::int64_t BzlaTerm::to_signed_int() const
   return bits_to_int64(bv_value_to_bits(term));
 }
 
-TermIter BzlaTerm::begin() const
-{
-  return TermIter(new BzlaTermIter(term, tm));
-}
+std::size_t BzlaTerm::get_num_children() const { return term.num_children(); }
 
-TermIter BzlaTerm::end() const
+Term BzlaTerm::get_child(std::size_t i) const
 {
-  return TermIter(new BzlaTermIter(term, tm, /* at_end */ true));
+  return std::make_shared<BzlaTerm>(term[i], tm);
 }
 
 std::string BzlaTerm::print_value_as(SortKind /* sk */) const

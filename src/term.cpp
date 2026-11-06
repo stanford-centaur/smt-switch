@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <typeinfo>
+#include <utility>
 
 #include "exceptions.h"
 #include "sort.h"
@@ -82,60 +82,32 @@ std::ostream & operator<<(std::ostream & output, const Term t)
   return output;
 }
 
-/* TermIterBase implementation */
-TermIterBase::TermIterBase(std::size_t s, bool at_end)
-    : position(at_end ? s : 0), size(s)
+TermIter AbsTerm::begin() const
 {
+  return TermIter(shared_from_this(), 0, get_num_children());
 }
 
-TermIterBase::~TermIterBase() = default;
-
-void TermIterBase::operator++() { ++position; }
-
-Term TermIterBase::operator*() const
+TermIter AbsTerm::end() const
 {
-  if (position >= size)
-  {
-    throw IncorrectUsageException("Cannot dereference past a term's children");
-  }
-  return child();
+  const std::size_t size = get_num_children();
+  return TermIter(shared_from_this(), size, size);
 }
-
-bool TermIterBase::operator==(const TermIterBase & other) const
-{
-  return typeid(*this) == typeid(other) && same_term(other)
-         && position == other.position;
-}
-
-bool TermIterBase::operator!=(const TermIterBase & other) const
-{
-  return !(*this == other);
-}
-/* end TermIterBase implementation */
 
 /* TermIter implementation */
-TermIter::TermIter(TermIterBase * tib) : iter_(tib) {}
-
-// a default-constructed iterator holds no iter_, so copy it as null
-TermIter::TermIter(const TermIter & other)
-    : iter_(other.iter_ ? other.iter_->clone() : nullptr)
+TermIter::TermIter(std::shared_ptr<const AbsTerm> t,
+                   std::size_t p,
+                   std::size_t s)
+    : term(std::move(t)), position(p), size(s)
 {
-}
-
-TermIter & TermIter::operator=(const TermIter & other)
-{
-  // clone before resetting: on self-assignment, other.iter_ is iter_
-  iter_.reset(other.iter_ ? other.iter_->clone() : nullptr);
-  return *this;
 }
 
 TermIter & TermIter::operator++()
 {
-  if (!iter_)
+  if (!term)
   {
     throw IncorrectUsageException("Cannot increment a null term iterator");
   }
-  ++(*iter_);
+  ++position;
   return *this;
 }
 
@@ -148,25 +120,21 @@ TermIter TermIter::operator++(int)
 
 Term TermIter::operator*() const
 {
-  if (!iter_)
+  if (!term)
   {
     throw IncorrectUsageException("Cannot dereference a null term iterator");
   }
-  return *(*iter_);
+  if (position >= size)
+  {
+    throw IncorrectUsageException("Cannot dereference past a term's children");
+  }
+  return term->get_child(position);
 }
 
 bool TermIter::operator==(const TermIter & other) const
 {
-  if (iter_ == other.iter_)
-  {
-    return true;
-  }
-  // a default-constructed iterator equals only another one
-  if (!iter_ || !other.iter_)
-  {
-    return false;
-  }
-  return *iter_ == *other.iter_;
+  // compares the objects, not the terms they stand for
+  return term.get() == other.term.get() && position == other.position;
 }
 
 bool TermIter::operator!=(const TermIter & other) const

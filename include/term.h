@@ -40,7 +40,7 @@ namespace smt {
 class TermIter;
 
 // Abstract class for term
-class AbsTerm
+class AbsTerm : public std::enable_shared_from_this<AbsTerm>
 {
  public:
   virtual ~AbsTerm() = default;
@@ -93,11 +93,11 @@ class AbsTerm
   /** begin iterator
    *  starts iteration through Term's children
    */
-  virtual TermIter begin() const = 0;
+  TermIter begin() const;
   /** end iterator
    *  ends iteration through Term's children
    */
-  virtual TermIter end() const = 0;
+  TermIter end() const;
 
   // Methods used for strange edge-cases e.g. in the logging solver
 
@@ -119,6 +119,16 @@ class AbsTerm
    *  throws an exception if the term is not a value
    */
   virtual std::string print_value_as(SortKind sk) const = 0;
+
+ protected:
+  /** Returns the number of children that begin() and end() iterate over */
+  virtual std::size_t get_num_children() const = 0;
+  /** Returns the child at index i
+   *  @param i an index below get_num_children()
+   */
+  virtual Term get_child(std::size_t i) const = 0;
+
+  friend class TermIter;
 };
 
 // A null term equals only another null term and sorts before every term
@@ -131,45 +141,7 @@ bool operator>=(const Term & t1, const Term & t2);
 
 std::ostream & operator<<(std::ostream & output, const Term t);
 
-// term iterators
-// implementation based on
-// https://www.codeproject.com/Articles/92671/How-to-write-abstract-iterators-in-Cplusplus
-class TermIterBase
-{
- public:
-  // defined in the .cpp to anchor the vtable
-  virtual ~TermIterBase();
-  void operator++();
-  /** @throws IncorrectUsageException at or past the end of the children */
-  Term operator*() const;
-  virtual TermIterBase * clone() const = 0;
-  /** Iterators are equal when they are of one type, over the same term and
-   *  at the same position
-   */
-  bool operator==(const TermIterBase & other) const;
-  bool operator!=(const TermIterBase & other) const;
-
- protected:
-  /** @param size the number of children
-   *  @param at_end true for an iterator past the last child, false for one
-   *         at the first
-   */
-  TermIterBase(std::size_t size, bool at_end);
-  TermIterBase(const TermIterBase & other) = default;
-  TermIterBase & operator=(const TermIterBase & other) = default;
-  /** @return the child at position, which is before the end */
-  virtual Term child() const = 0;
-  /** @param other an iterator of the same type
-   *  @return true iff other iterates over the same term
-   */
-  virtual bool same_term(const TermIterBase & other) const = 0;
-
-  std::size_t position;
-
- private:
-  std::size_t size;
-};
-
+// iterates over a term's children, keeping the term alive
 class TermIter
 {
  public:
@@ -185,20 +157,34 @@ class TermIter
   typedef std::input_iterator_tag iterator_category;
 
   TermIter() = default;
-  explicit TermIter(TermIterBase * tib);
-  TermIter(const TermIter & other);
+  TermIter(const TermIter & other) = default;
   TermIter(TermIter && other) noexcept = default;
-  TermIter & operator=(const TermIter & other);
+  TermIter & operator=(const TermIter & other) = default;
   TermIter & operator=(TermIter && other) noexcept = default;
+  /** @throws IncorrectUsageException on a default-constructed iterator */
   TermIter & operator++();
+  /** @throws IncorrectUsageException on a default-constructed iterator */
   TermIter operator++(int junk);
-  // a default-constructed or moved-from iterator throws on both
+  /** @throws IncorrectUsageException on a default-constructed iterator, or
+   *  at or past the end of the children
+   */
   Term operator*() const;
+  /** Iterators are equal when both are default-constructed, or when they
+   *  are over the same term object and at the same position
+   */
   bool operator==(const TermIter & other) const;
   bool operator!=(const TermIter & other) const;
 
- protected:
-  std::unique_ptr<TermIterBase> iter_ = nullptr;
+ private:
+  TermIter(std::shared_ptr<const AbsTerm> t,
+           std::size_t position,
+           std::size_t size);
+
+  std::shared_ptr<const AbsTerm> term = nullptr;
+  std::size_t position = 0;
+  std::size_t size = 0;
+
+  friend class AbsTerm;
 };
 
 // useful typedefs for data structures

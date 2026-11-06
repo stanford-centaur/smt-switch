@@ -68,78 +68,6 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
   return res;
 }
 
-// MsatTermIter implementation
-
-// The children smt-switch lists, with the function first in an application.
-// A function symbol has no term, and so no children.
-static std::size_t num_children(msat_env e, msat_term t)
-{
-  if (MSAT_ERROR_TERM(t))
-  {
-    return 0;
-  }
-  if (is_congruence(e, t))
-  {
-    // the one child t1 - t2
-    return 1;
-  }
-  std::size_t arity = msat_term_arity(t);
-  return msat_term_is_uf(e, t) ? arity + 1 : arity;
-}
-
-MsatTermIter::MsatTermIter(const std::shared_ptr<msat_env> & e,
-                           const msat_term t,
-                           bool at_end)
-    : TermIterBase(num_children(*e, t), at_end), env(e), term(t)
-{
-}
-
-Term MsatTermIter::child() const
-{
-  if (is_congruence(*env, term))
-  {
-    return std::make_shared<MsatTerm>(
-        env,
-        ext_msat_make_minus(
-            *env, msat_term_get_arg(term, 0), msat_term_get_arg(term, 1)));
-  }
-  else if (!position && msat_term_is_uf(*env, term))
-  {
-    return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
-  }
-  else
-  {
-    std::size_t actual_idx = position;
-    if (msat_term_is_uf(*env, term))
-    {
-      actual_idx--;
-    }
-
-    return std::make_shared<MsatTerm>(env, msat_term_get_arg(term, actual_idx));
-  }
-}
-
-TermIterBase * MsatTermIter::clone() const { return new MsatTermIter(*this); }
-
-bool MsatTermIter::same_term(const TermIterBase & other) const
-{
-  const MsatTermIter & cti = static_cast<const MsatTermIter &>(other);
-
-  // null terms mean you're iterating over a function symbol
-  // it has no children, so the two iterators should be considered equal
-  if (MSAT_ERROR_TERM(term) && MSAT_ERROR_TERM(cti.term))
-  {
-    return true;
-  }
-  else if (MSAT_ERROR_TERM(term) || MSAT_ERROR_TERM(cti.term))
-  {
-    throw SmtException("Undefined TermIter comparison (not from same term)");
-  }
-  return msat_term_id(term) == msat_term_id(cti.term);
-}
-
-// end MsatTermIter implementation
-
 // MsatTerm implementation
 
 MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t)
@@ -592,14 +520,46 @@ int64_t MsatTerm::to_signed_int() const
   return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
 }
 
-TermIter MsatTerm::begin() const
+// The children smt-switch lists, with the function first in an application.
+// A function symbol has no term, and so no children.
+std::size_t MsatTerm::get_num_children() const
 {
-  return TermIter(new MsatTermIter(env, term));
+  if (MSAT_ERROR_TERM(term))
+  {
+    return 0;
+  }
+  if (is_congruence(*env, term))
+  {
+    // the one child t1 - t2
+    return 1;
+  }
+  std::size_t arity = msat_term_arity(term);
+  return msat_term_is_uf(*env, term) ? arity + 1 : arity;
 }
 
-TermIter MsatTerm::end() const
+Term MsatTerm::get_child(std::size_t i) const
 {
-  return TermIter(new MsatTermIter(env, term, /* at_end */ true));
+  if (is_congruence(*env, term))
+  {
+    return std::make_shared<MsatTerm>(
+        env,
+        ext_msat_make_minus(
+            *env, msat_term_get_arg(term, 0), msat_term_get_arg(term, 1)));
+  }
+  else if (!i && msat_term_is_uf(*env, term))
+  {
+    return std::make_shared<MsatTerm>(env, msat_term_get_decl(term));
+  }
+  else
+  {
+    std::size_t actual_idx = i;
+    if (msat_term_is_uf(*env, term))
+    {
+      actual_idx--;
+    }
+
+    return std::make_shared<MsatTerm>(env, msat_term_get_arg(term, actual_idx));
+  }
 }
 
 std::string MsatTerm::print_value_as(SortKind /* sk */) const

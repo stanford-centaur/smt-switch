@@ -29,24 +29,6 @@
 
 namespace smt {
 
-class MsatTermIter : public TermIterBase
-{
- public:
-  // TODO: consider making env const everywhere
-  MsatTermIter(const std::shared_ptr<msat_env> & e,
-               const msat_term t,
-               bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  std::shared_ptr<msat_env> env;
-  msat_term term;
-};
-
 class MsatTerm : public AbsTerm
 {
  public:
@@ -65,10 +47,6 @@ class MsatTerm : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
-  /** Iterators for traversing the children
-   */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // Getters for solver-specific objects
@@ -77,6 +55,9 @@ class MsatTerm : public AbsTerm
   msat_decl get_msat_decl() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   // shared with the solver, so the environment lives as long as this term
   std::shared_ptr<msat_env> env;
   // whichever of term and decl is not wrapped stays null (invalid)

@@ -29,7 +29,6 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <utility>
 
 #include "boolector_sort.h"
 #include "exceptions.h"
@@ -109,75 +108,6 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   return op;
 }
 
-/* BoolectorTermIter implementation */
-
-BoolectorTermIter::BoolectorTermIter(const std::shared_ptr<Btor> & b,
-                                     std::vector<BtorNode *> c,
-                                     bool at_end)
-    : TermIterBase(c.size(), at_end), btor(b), children(std::move(c))
-{
-  for (BtorNode * n : children)
-  {
-    btor_node_copy(b.get(), n);
-  }
-}
-
-BoolectorTermIter::BoolectorTermIter(const BoolectorTermIter & it)
-    : TermIterBase(it), btor(it.btor), children(it.children)
-{
-  for (BtorNode * n : children)
-  {
-    btor_node_copy(btor.get(), n);
-  }
-}
-
-BoolectorTermIter::~BoolectorTermIter()
-{
-  for (BtorNode * n : children)
-  {
-    btor_node_release(btor.get(), n);
-  }
-}
-
-BoolectorTermIter & BoolectorTermIter::operator=(const BoolectorTermIter & it)
-{
-  BoolectorTermIter copy(it);
-  std::swap(btor, copy.btor);
-  std::swap(children, copy.children);
-  TermIterBase::operator=(it);
-  return *this;
-}
-
-Term BoolectorTermIter::child() const
-{
-  BtorNode * res = children[position];
-  if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
-  {
-    throw SmtException("Should never have an args node in children look up");
-  }
-
-  // increment internal reference counter
-  res = btor_node_copy(btor.get(), res);
-  // increment external reference counter
-  btor_node_inc_ext_ref_counter(btor.get(), res);
-
-  BoolectorNode * node = BTOR_EXPORT_BOOLECTOR_NODE(res);
-  return std::make_shared<BoolectorTerm>(btor, node);
-}
-
-TermIterBase * BoolectorTermIter::clone() const
-{
-  return new BoolectorTermIter(*this);
-}
-
-bool BoolectorTermIter::same_term(const TermIterBase & other) const
-{
-  const BoolectorTermIter & bti = static_cast<const BoolectorTermIter &>(other);
-  return btor == bti.btor && children == bti.children;
-}
-
-/* end BoolectorTermIter implementation */
-
 /* BoolectorTerm implementation */
 
 BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
@@ -199,7 +129,11 @@ BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
   negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
 }
 
-BoolectorTerm::~BoolectorTerm() { boolector_release(btor.get(), node); }
+BoolectorTerm::~BoolectorTerm()
+{
+  release_children();
+  boolector_release(btor.get(), node);
+}
 
 // BoolectorNode * -> id
 
@@ -403,18 +337,34 @@ int64_t BoolectorTerm::to_signed_int() const
   return bits_to_int64(const_to_bits(btor.get(), node));
 }
 
-/** Iterators for traversing the children
- */
-TermIter BoolectorTerm::begin() const
+std::size_t BoolectorTerm::get_num_children() const
 {
   collect_children();
-  return TermIter(new BoolectorTermIter(btor, children));
+  return children.size();
 }
 
-TermIter BoolectorTerm::end() const
+Term BoolectorTerm::get_child(std::size_t i) const
 {
-  collect_children();
-  return TermIter(new BoolectorTermIter(btor, children, /* at_end */ true));
+  // Boolector can simplify the node after an iterator counted its children,
+  // and collecting them again for another iterator can leave fewer.
+  if (i >= children.size())
+  {
+    throw IncorrectUsageException(
+        "The term's children changed since the iterator was made");
+  }
+  BtorNode * res = children[i];
+  if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
+  {
+    throw SmtException("Should never have an args node in children look up");
+  }
+
+  // increment internal reference counter
+  res = btor_node_copy(btor.get(), res);
+  // increment external reference counter
+  btor_node_inc_ext_ref_counter(btor.get(), res);
+
+  BoolectorNode * child = BTOR_EXPORT_BOOLECTOR_NODE(res);
+  return std::make_shared<BoolectorTerm>(btor, child);
 }
 
 std::string BoolectorTerm::print_value_as(SortKind sk) const
@@ -480,15 +430,14 @@ void BoolectorTerm::collect_children() const
     return;
   }
 
+  release_children();
   if (negated)
   {
     // the negated value is the real address stored in bn
-    children.clear();
-    children.push_back(bn);
+    children.push_back(btor_node_copy(btor.get(), bn));
     return;
   }
 
-  children.clear();
   BtorNode * tmp;
   // don't expose the parameter node of the lambda -- start at 1 instead of 0
   size_t start_idx = is_const_array() ? 1 : 0;
@@ -500,16 +449,26 @@ void BoolectorTerm::collect_children() const
       btor_iter_args_init(&ait, tmp);
       while (btor_iter_args_has_next(&ait))
       {
-        children.push_back(btor_iter_args_next(&ait));
+        children.push_back(
+            btor_node_copy(btor.get(), btor_iter_args_next(&ait)));
       }
     }
     else
     {
-      children.push_back(tmp);
+      children.push_back(btor_node_copy(btor.get(), tmp));
     }
   }
 
   children_cached_ = true;
+}
+
+void BoolectorTerm::release_children() const
+{
+  for (BtorNode * n : children)
+  {
+    btor_node_release(btor.get(), n);
+  }
+  children.clear();
 }
 
 /* end BoolectorTerm implementation */

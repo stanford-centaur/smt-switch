@@ -149,15 +149,12 @@ bool GenericTerm::is_symbolic_const() const
   return is_sym && sort->get_sort_kind() != FUNCTION;
 }
 
-TermIter GenericTerm::begin() const
+std::size_t GenericTerm::get_num_children() const
 {
-  return TermIter(new GenericTermIter(children));
+  return children ? children->size() : 0;
 }
 
-TermIter GenericTerm::end() const
-{
-  return TermIter(new GenericTermIter(children, /* at_end */ true));
-}
+Term GenericTerm::get_child(std::size_t i) const { return (*children)[i]; }
 
 std::string GenericTerm::to_string() const
 {
@@ -234,25 +231,6 @@ std::string GenericTerm::print_value_as(SortKind /* sk */) const
     throw IncorrectUsageException(
         "print_value_as is only applicable for values");
   }
-}
-
-/* GenericTermIter */
-
-GenericTermIter::GenericTermIter(std::shared_ptr<const TermVec> c, bool at_end)
-    : TermIterBase(c ? c->size() : 0, at_end), children(std::move(c))
-{
-}
-
-Term GenericTermIter::child() const { return (*children)[position]; }
-
-TermIterBase * GenericTermIter::clone() const
-{
-  return new GenericTermIter(*this);
-}
-
-bool GenericTermIter::same_term(const TermIterBase & other) const
-{
-  return children == static_cast<const GenericTermIter &>(other).children;
 }
 
 }  // namespace smt

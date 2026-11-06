@@ -30,28 +30,6 @@
 
 namespace smt {
 
-/** \class Yices2TermIter
- *  Walks a term's children. Yices keeps sums and products as polynomials
- *  rather than as applications, so some children do not exist as terms until
- *  this iterator builds them; see `child`.
- */
-class Yices2TermIter : public TermIterBase
-{
- public:
-  explicit Yices2TermIter(term_t t, bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  // keeps Yices set up while the iterator can be used, even past its term
-  // and solver
-  Yices2InstanceRef instance = {};
-  term_t term;
-};
-
 class Yices2Term : public AbsTerm
 {
  public:
@@ -69,17 +47,15 @@ class Yices2Term : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
-  /* Iterators for traversing the children */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   // keeps Yices set up while the term can be used, even past its solver
   Yices2InstanceRef instance = {};
   term_t term;
-
-  friend class Yices2TermIter;
 
   friend class Yices2Solver;
   friend class Yices2InterpolatingSolver;

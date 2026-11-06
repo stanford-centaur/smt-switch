@@ -62,8 +62,6 @@ class LoggingTerm : public AbsTerm
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
-  TermIter begin() const override;
-  TermIter end() const override;
 
   // dispatched to underlying term
   std::size_t hash() const override;
@@ -74,10 +72,13 @@ class LoggingTerm : public AbsTerm
   std::string print_value_as(SortKind sk) const override;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   Term wrapped_term;  ///< the term of the underlying solver
   Sort sort;          ///< a LoggingSort
   Op op = {};
-  // null for a leaf; shared with the child iterators, so they outlive the term
+  // null for a leaf
   std::shared_ptr<const TermVec> children = nullptr;
   mutable std::string repr = "";
   bool is_sym = false;
@@ -86,21 +87,6 @@ class LoggingTerm : public AbsTerm
 
   // So LoggingSolver can access protected members:
   friend class LoggingSolver;
-};
-
-class LoggingTermIter : public TermIterBase
-{
- public:
-  // points at the first of children, or past the last when at_end;
-  // children is shared with the term and null for a leaf
-  explicit LoggingTermIter(std::shared_ptr<const TermVec> children,
-                           bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-  std::shared_ptr<const TermVec> children;
 };
 
 }  // namespace smt

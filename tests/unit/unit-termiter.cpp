@@ -212,27 +212,17 @@ TEST(NullTermIter, CannotBeDereferencedOrIncremented)
   EXPECT_THROW(it++, IncorrectUsageException);
 }
 
-// an iterator over one child that only knows its position
-class PositionIter : public TermIterBase
+TEST_P(UnitTests, InequalityNegatesEquality)
 {
- public:
-  explicit PositionIter(bool at_end = false) : TermIterBase(1, at_end) {}
-  TermIterBase * clone() const override { return new PositionIter(*this); }
+  Term x = s->make_symbol("x", bvsort);
+  Term f = s->make_symbol("f", funsort);
+  Term fx = s->make_term(Apply, f, x);
 
- protected:
-  Term child() const override { return Term(); }
-  bool same_term(const TermIterBase & /* other */) const override
-  {
-    return true;
-  }
-};
-
-TEST(TermIterBase, InequalityNegatesEquality)
-{
-  PositionIter first, same;
-  PositionIter second(/* at_end */ true);
+  TermIter first = fx->begin();
+  TermIter same = fx->begin();
+  TermIter past = fx->end();
   EXPECT_FALSE(first != same);
-  EXPECT_TRUE(first != second);
+  EXPECT_TRUE(first != past);
 }
 
 TEST_P(UnitTests, SelfAssignIter)

@@ -13,58 +13,6 @@ using namespace std;
 
 namespace smt {
 
-// Z3TermIter implementation
-
-// The children smt-switch lists, with the function, constructor, selector or
-// tester applied first. Only a function's iterators are null, and it has no
-// children. The cast asks whether the term is null, as z3::expr's operator!
-// makes a negation.
-static std::size_t num_children(const std::shared_ptr<z3::context> & c,
-                                const z3::expr & t)
-{
-  if (!static_cast<bool>(t))
-  {
-    return 0;
-  }
-  std::size_t num_args = t.num_args();
-  return is_apply(Z3Term(c, t).get_op().prim_op) ? num_args + 1 : num_args;
-}
-
-Z3TermIter::Z3TermIter(const std::shared_ptr<z3::context> & c,
-                       z3::expr t,
-                       bool at_end)
-    : TermIterBase(num_children(c, t), at_end), ctx(c), term(t)
-{
-}
-
-Term Z3TermIter::child() const
-{
-  // the position as Z3 takes an argument index
-  const unsigned pos = detail::narrow<unsigned>(position, "a child position");
-  // smt-switch lists the function, constructor, selector or tester applied
-  // as the first child, which Z3 keeps as the decl
-  if (is_apply(Z3Term(ctx, term).get_op().prim_op))
-  {
-    return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
-                    : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));
-  }
-  return std::make_shared<Z3Term>(ctx, term.arg(pos));
-}
-
-TermIterBase * Z3TermIter::clone() const { return new Z3TermIter(*this); }
-
-bool Z3TermIter::same_term(const TermIterBase & other) const
-{
-  const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
-  if (!static_cast<bool>(term) || !static_cast<bool>(zti.term))
-  {
-    return static_cast<bool>(term) == static_cast<bool>(zti.term);
-  }
-  return term.id() == zti.term.id();
-}
-
-// end Z3TermIter implementation
-
 // Z3Term implementation
 
 Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::expr t, bool param)
@@ -144,8 +92,6 @@ Op Z3Term::get_op() const
   else
   {
     z3::func_decl decl = term.decl();
-    z3::sort range = decl.range();
-    string name = decl.name().str();
     Z3_decl_kind kind = decl.decl_kind();
 
     switch (kind)
@@ -232,7 +178,7 @@ Op Z3Term::get_op() const
       case Z3_OP_ROTATE_RIGHT:
         return Op(Rotate_Right, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       case Z3_OP_INT2BV: {
-        size_t out_width = range.bv_size();
+        size_t out_width = decl.range().bv_size();
         return Op(Int_To_BV, out_width);
       }
       case Z3_OP_BV2INT: return Op(UBV_To_Int);
@@ -245,7 +191,7 @@ Op Z3Term::get_op() const
       case Z3_OP_DT_IS: return Op(Apply_Tester);
       // Z3 makes divisibility an internal op, which only its name tells apart
       case Z3_OP_INTERNAL:
-        if (name == "divisible"
+        if (decl.name().str() == "divisible"
             && Z3_get_decl_num_parameters(term.ctx(), decl) == 1)
         {
           return Op(Divisible, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
@@ -253,7 +199,7 @@ Op Z3Term::get_op() const
         [[fallthrough]];
       default: {
         std::string msg("Option - ");
-        msg += name;
+        msg += decl.name().str();
         msg += " - not implemented for Z3 backend.";
         throw NotImplementedException(msg.c_str());
       }
@@ -389,13 +335,15 @@ int64_t Z3Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
-TermIter Z3Term::begin() const
+// The children smt-switch lists, with the function, constructor, selector or
+// tester applied first. Only a function's term is null, and it has no
+// children. The cast asks whether the term is null, as z3::expr's operator!
+// makes a negation.
+std::size_t Z3Term::get_num_children() const
 {
-  if (is_function)
+  if (!static_cast<bool>(term))
   {
-    // no iteration for a function symbol
-    // cannot query term (it's null)
-    return TermIter(new Z3TermIter(ctx, term));
+    return 0;
   }
 
   if (term.is_quantifier())
@@ -407,12 +355,22 @@ TermIter Z3Term::begin() const
         + "support getting parameters from quantified "
         + "expression. Use logging if required.");
   }
-  return TermIter(new Z3TermIter(ctx, term));
+  std::size_t num_args = term.num_args();
+  return is_apply(get_op().prim_op) ? num_args + 1 : num_args;
 }
 
-TermIter Z3Term::end() const
+Term Z3Term::get_child(std::size_t i) const
 {
-  return TermIter(new Z3TermIter(ctx, term, /* at_end */ true));
+  // the index as Z3 takes an argument index
+  const unsigned pos = detail::narrow<unsigned>(i, "a child position");
+  // smt-switch lists the function, constructor, selector or tester applied
+  // as the first child, which Z3 keeps as the decl
+  if (is_apply(get_op().prim_op))
+  {
+    return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
+                    : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));
+  }
+  return std::make_shared<Z3Term>(ctx, term.arg(pos));
 }
 
 std::string Z3Term::print_value_as(SortKind /* sk */) const
