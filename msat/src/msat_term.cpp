@@ -489,7 +489,11 @@ bool MsatTerm::is_symbol() const
       && !is_value());
 }
 
-bool MsatTerm::is_param() const { return msat_term_is_variable(*env, term); }
+bool MsatTerm::is_param() const
+{
+  // a function term holds only its declaration, not a term to ask about
+  return !is_uf && msat_term_is_variable(*env, term);
+}
 
 bool MsatTerm::is_symbolic_const() const
 {
