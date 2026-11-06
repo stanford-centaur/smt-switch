@@ -2042,7 +2042,8 @@ void smtlib_benchmark(std::ostream & out,
     {
       continue;
     }
-    if (t->is_symbol())
+    // a param is a symbol too, but its quantifier binds it
+    if (t->is_symbol() && !t->is_param())
     {
       symbols.emplace(t->to_string(), t);
     }

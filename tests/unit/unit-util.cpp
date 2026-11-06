@@ -988,4 +988,35 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                              { TERMITER, THEORY_INT, THEORY_DATATYPE })),
                          ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkQuantifiers);
+class SmtLibBenchmarkQuantifiers : public SmtLibBenchmarkDeclarations
+{
+};
+
+TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
+{
+  if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
+  }
+  Term x = s->make_symbol("x", intsort);
+  Term i = s->make_param("i", intsort);
+  Term forall = s->make_term(Forall, i, s->make_term(Le, i, x));
+  ostringstream out;
+  smtlib_benchmark(out, "ALL", { forall });
+  EXPECT_EQ(out.str(),
+            "(set-logic ALL)\n"
+            "(declare-fun x () Int)\n"
+            "(assert "
+                + forall->to_string()
+                + ")\n"
+                  "(check-sat)\n");
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         SmtLibBenchmarkQuantifiers,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { TERMITER, THEORY_INT, QUANTIFIERS })),
+                         ConfigName());
+
 }  // namespace
