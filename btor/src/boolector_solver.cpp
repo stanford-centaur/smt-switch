@@ -22,6 +22,7 @@ extern "C" {
 #include <utils/boolectornodemap.h>
 }
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstddef>
@@ -40,6 +41,7 @@ extern "C" {
 #include "ops.h"
 #include "solver_enums.h"
 #include "solver_utils.h"
+#include "term_translator.h"
 #include "utils.h"
 
 namespace smt {
@@ -386,6 +388,7 @@ void BoolectorSolver::assert_formula(const Term & t)
 {
   std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
   boolector_assert(btor.get(), bt->node);
+  assertions.push_back(t);
 }
 
 Result BoolectorSolver::check_sat() { return solve(); }
@@ -437,11 +440,19 @@ Result BoolectorSolver::solve()
 void BoolectorSolver::do_push(uint64_t num)
 {
   boolector_push(btor.get(), narrow_levels(num));
+  scope_starts.insert(scope_starts.end(), num, assertions.size());
 }
 
 void BoolectorSolver::do_pop(uint64_t num)
 {
   boolector_pop(btor.get(), narrow_levels(num));
+  // with base-context-1, Boolector also pops its hidden base context
+  std::size_t popped = std::min<std::size_t>(num, scope_starts.size());
+  if (popped)
+  {
+    assertions.resize(scope_starts[scope_starts.size() - popped]);
+    scope_starts.resize(scope_starts.size() - popped);
+  }
 }
 
 Term BoolectorSolver::get_value(const Term & t) const
@@ -810,6 +821,8 @@ void BoolectorSolver::do_reset()
   // bookkeeping for the old one goes too
   base_context_1 = false;
   time_limit = std::chrono::duration<double>::zero();
+  assertions.clear();
+  scope_starts.clear();
 }
 
 void BoolectorSolver::do_reset_assertions()
@@ -828,6 +841,8 @@ void BoolectorSolver::do_reset_assertions()
     boolector_pop(btor.get(), narrow_levels(get_context_level() + 1));
     // push the base context back
     boolector_push(btor.get(), 1);
+    assertions.clear();
+    scope_starts.clear();
   }
 }
 
@@ -866,8 +881,16 @@ Term BoolectorSolver::substitute(
 
 void BoolectorSolver::dump_smt2(std::string filename) const
 {
+  // Boolector dumps only the assertions at context 0, so they are all
+  // asserted there in a fresh instance, which Boolector dumps
+  auto fresh = std::make_shared<BoolectorSolver>();
+  TermTranslator to_fresh(fresh);
+  for (const Term & a : assertions)
+  {
+    fresh->assert_formula(to_fresh.transfer_term(a));
+  }
   FILE * file = fopen(filename.c_str(), "w");
-  boolector_dump_smt2(btor.get(), file);
+  boolector_dump_smt2(fresh->btor.get(), file);
   fclose(file);
 }
 

@@ -19,10 +19,12 @@
 #include <boolector.h>
 
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "result.h"
 #include "smt_defs.h"
@@ -119,6 +121,12 @@ class BoolectorSolver : public AbsSmtSolver
   ///< the context. Without it, boolector does not support
   ///< reset_assertions yet
   ///< set this flag with set_opt("base-context-1", "true")
+
+  // Boolector dumps only the assertions at context 0, so dump_smt2 writes
+  // these: the formulas asserted and not popped, and how many of them came
+  // before each pushed scope
+  TermVec assertions;
+  std::vector<std::size_t> scope_starts;
 
   std::chrono::duration<double> time_limit{ 0 };   ///< zero means no limit
   std::chrono::steady_clock::time_point deadline;  ///< of the running query
