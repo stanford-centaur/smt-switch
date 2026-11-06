@@ -95,14 +95,12 @@ class IdentityWalker
 
   const SmtSolver & solver_;  ///< the solver to use for rebuilding terms
   bool clear_cache_;       ///< if true, clears the cache between calls to visit
-  bool preorder_ = false;  ///< true when the current term is being visited
-                           ///< for the first time
+  bool preorder_ = false;  ///< true if the term is visited for the first time
 
  private:
   // derived classes should interact with cache through the methods above only
   UnorderedTermMap cache_ = {};   ///< cache for updating terms
-  UnorderedTermMap * ext_cache_;  ///< external (user-provided) cache. If
-                                  ///< non-null, used instead of cache_
+  UnorderedTermMap * ext_cache_;  ///< used instead of cache_ if not null
 };
 
 }  // namespace smt
