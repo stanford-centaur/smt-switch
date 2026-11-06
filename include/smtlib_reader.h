@@ -90,7 +90,7 @@ class UnorderedScopedSymbolMap
   // starts with one scope, to allow some symbols at 0
   std::vector<std::unordered_set<std::string>> symbols_ = { {} };
   // each symbol's terms, innermost scope last
-  std::unordered_map<std::string, std::vector<Term>> symbol_map_;
+  std::unordered_map<std::string, std::vector<Term>> symbol_map_ = {};
 };
 
 class SmtLibReader
@@ -118,7 +118,7 @@ class SmtLibReader
    */
   void parse(const std::string & f);
   // The name of the file being parsed.
-  std::string file;
+  std::string file = "";
 
   /* Overridable functions corresponding to SMT-LIB commands */
 
@@ -382,44 +382,45 @@ class SmtLibReader
                             ///< is supported in the set logic
 
   std::unordered_map<std::string, PrimOp>
-      primops_;  ///< available primops with set logic
+      primops_ = {};  ///< available primops with set logic
 
   std::unordered_map<std::string, SortKind>
-      sortkinds_;  ///< available sortkinds with set logic
+      sortkinds_ = {};  ///< available sortkinds with set logic
 
   std::unordered_map<std::string, Term>
-      all_symbols_;  ///< remembers all symbolic constants
-                     ///< and functions
-                     ///< even after context is popped
+      all_symbols_ = {};  ///< remembers all symbolic constants
+                          ///< and functions
+                          ///< even after context is popped
 
   std::unordered_map<std::string, Sort>
-      defined_sorts_;  ///< mapping from symbol to defined sort
-                       ///< currently only supports 0-arity defines
+      defined_sorts_ = {};  ///< mapping from symbol to defined sort
+                            ///< currently only supports 0-arity defines
 
   UnorderedScopedSymbolMap
-      global_symbols_;  ///< symbolic constants and functions
-                        ///< defined functions with no arguments
-                        ///< scoped by the solver context
-                        ///< e.g. push / pop
+      global_symbols_ = {};  ///< symbolic constants and functions
+                             ///< defined functions with no arguments
+                             ///< scoped by the solver context
+                             ///< e.g. push / pop
 
   UnorderedScopedSymbolMap
-      arg_param_map_;  ///< map for arguments (to define-funs)
-                       ///< and parameters (bound variables)
-                       ///< scoped by the term structure
-                       ///< e.g. nested quantifiers
+      arg_param_map_ = {};  ///< map for arguments (to define-funs)
+                            ///< and parameters (bound variables)
+                            ///< scoped by the term structure
+                            ///< e.g. nested quantifiers
 
   // define-fun data structures
-  std::unordered_map<std::string, Term> defs_;  ///< keeps track of define-funs
+  std::unordered_map<std::string, Term>
+      defs_ = {};  ///< keeps track of define-funs
   std::unordered_map<std::string, TermVec>
-      def_args_;  ///< keeps track of define-fun arguments
+      def_args_ = {};  ///< keeps track of define-fun arguments
   std::unordered_map<Sort, TermVec>
-      tmp_args_;  ///< temporary variables organized by sort
+      tmp_args_ = {};  ///< temporary variables organized by sort
   std::vector<std::unordered_map<Sort, std::size_t>>
-      sort_arg_ids_;  ///< scope-dependent argument ids in use
-                      ///< example: sort_arg_ids_.back()[intsort]
-                      ///< returns the first index into tmp_args (might be out
-                      ///< of bounds, which means a new tmp argument is needed)
-                      ///< that is currently unused in this scope
+      sort_arg_ids_ = {};  ///< scope-dependent argument ids in use
+                           ///< example: sort_arg_ids_.back()[intsort]
+                           ///< returns the first index into tmp_args (might be
+                           ///< out of bounds, which means a new tmp argument is
+                           ///< needed) that is currently unused in this scope
 
   // useful constants
   std::string def_arg_prefix_ = "__defvar_";  ///< the prefix for renamed

@@ -54,7 +54,7 @@ class SmtLibScanner
   SmtLibParser::symbol_type next_token();
 
  private:
-  yyscan_t state_;
+  yyscan_t state_ = nullptr;
 };
 
 /** The parser's yylex, renamed by the prefix */

@@ -76,13 +76,13 @@ class GenericTerm : public AbsTerm
   bool compute_ground();
 
   // true iff this is a ground term
-  bool ground;
+  bool ground = false;
 
   /**
    * A hash function for strings,
    * to be used to compute the hash of the term.
    */
-  std::hash<std::string> str_hash;
+  std::hash<std::string> str_hash = {};
 
   // The term's sort
   Sort sort;

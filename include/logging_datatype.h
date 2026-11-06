@@ -45,7 +45,7 @@ class LoggingDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
  protected:
   DatatypeConstructorDecl wrapped_decl;  ///< the underlying declaration
   std::string name;
-  std::vector<LoggingSelectorDecl> selectors;
+  std::vector<LoggingSelectorDecl> selectors = {};
 
   friend class LoggingSolver;
   friend class LoggingDatatype;
@@ -60,7 +60,8 @@ class LoggingDatatypeDecl : public AbsDatatypeDecl
  protected:
   DatatypeDecl wrapped_decl;  ///< the underlying declaration
   std::string name;
-  std::vector<std::shared_ptr<LoggingDatatypeConstructorDecl>> constructors;
+  std::vector<std::shared_ptr<LoggingDatatypeConstructorDecl>>
+      constructors = {};
 
   friend class LoggingSolver;
   friend class LoggingDatatype;

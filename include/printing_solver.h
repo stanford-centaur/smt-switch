@@ -174,8 +174,8 @@ class PrintingInterpolator : public AbsSmtInterpolator
   mutable std::size_t num_names = 0;
   /* For Bitwuzla and MathSAT, the formulae left asserted by the last query,
    * one context level each, and the names they were printed with */
-  mutable TermVec asserted;
-  mutable std::vector<std::string> asserted_names;
+  mutable TermVec asserted = {};
+  mutable std::vector<std::string> asserted_names = {};
 };
 
 /* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.

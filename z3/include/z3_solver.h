@@ -141,10 +141,10 @@ class Z3Solver : public AbsSmtSolver
 
   // made for its logic by set_logic, or else as Z3's default by the first
   // assertion, check or push
-  std::shared_ptr<Instance> instance;
+  std::shared_ptr<Instance> instance = nullptr;
   // every option set so far, for slv
   z3::params solver_params;
-  std::unordered_map<std::string, Term> symbol_table;
+  std::unordered_map<std::string, Term> symbol_table = {};
   ///< keep track of declared symbols to avoid
   ///< redeclaring
 

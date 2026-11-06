@@ -113,7 +113,7 @@ class BoolectorSolver : public AbsSmtSolver
   // of them is released, even past reset() or this solver's destruction
   std::shared_ptr<Btor> btor;
 
-  std::unordered_map<std::string, Term> symbol_table;
+  std::unordered_map<std::string, Term> symbol_table = {};
 
   bool base_context_1 = false;
   ///< if set to true, do all solving at context 1 in the solver
@@ -125,11 +125,13 @@ class BoolectorSolver : public AbsSmtSolver
   // Boolector dumps only the assertions at context 0, so dump_smt2 writes
   // these: the formulas asserted and not popped, and how many of them came
   // before each pushed scope
-  TermVec assertions;
-  std::vector<std::size_t> scope_starts;
+  TermVec assertions = {};
+  std::vector<std::size_t> scope_starts = {};
 
-  std::chrono::duration<double> time_limit{ 0 };   ///< zero means no limit
-  std::chrono::steady_clock::time_point deadline;  ///< of the running query
+  std::chrono::duration<double> time_limit =
+      std::chrono::duration<double>::zero();  ///< zero means no limit
+  std::chrono::steady_clock::time_point
+      deadline = {};  ///< of the running query
 
   /** Termination callback: tells Boolector to stop once the deadline
    *  passes. Registered for the solver's whole life, because Boolector

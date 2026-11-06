@@ -113,7 +113,7 @@ constexpr std::size_t num_kinds = table_kinds();
 // or NUM_OPS_AND_NULL for one that no PrimOp stands for
 struct KindTables
 {
-  constexpr KindTables() : rows{}, primops{}
+  constexpr KindTables()
   {
     for (int & row : rows)
     {
@@ -133,8 +133,8 @@ struct KindTables
       primops[static_cast<std::size_t>(row.second)] = row.first;
     }
   }
-  std::array<int, NUM_OPS_AND_NULL> rows;
-  std::array<PrimOp, num_kinds> primops;
+  std::array<int, NUM_OPS_AND_NULL> rows = {};
+  std::array<PrimOp, num_kinds> primops = {};
 };
 constexpr KindTables kind_tables;
 

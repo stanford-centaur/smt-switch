@@ -141,14 +141,13 @@ class TreeWalker
   void save_in_cache(const Term & key,
                      const std::pair<Term, std::vector<int>> & val);
 
-  const SmtSolver & solver_; /**< the solver to use for rebuilding terms */
-  bool clear_cache_; /**< if true, clears the cache between calls to visit */
+  const SmtSolver & solver_;  ///< the solver to use for rebuilding terms
+  bool clear_cache_;  ///< if true, clears the cache between calls to visit
 
  private:
   // derived classes should interact with cache through the methods above only
-  UnorderedTermPairMap cache_;       /**< cache for updating terms */
-  UnorderedTermPairMap * ext_cache_; /**< external (user-provided) cache. If
-                                        non-null, used instead of cache_ */
+  UnorderedTermPairMap cache_ = {};   ///< cache for updating terms
+  UnorderedTermPairMap * ext_cache_;  ///< used instead of cache_ if not null
 };
 
 }  // namespace smt

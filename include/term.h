@@ -198,7 +198,7 @@ class TermIter
   bool operator!=(const TermIter & other) const;
 
  protected:
-  std::unique_ptr<TermIterBase> iter_;
+  std::unique_ptr<TermIterBase> iter_ = nullptr;
 };
 
 // useful typedefs for data structures

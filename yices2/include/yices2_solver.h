@@ -116,30 +116,30 @@ class Yices2Solver : public AbsSmtSolver
   /** Keeps Yices set up. Declared first, so it is destroyed after the
    *  members below that still hold Yices objects.
    */
-  Yices2InstanceRef instance;
+  Yices2InstanceRef instance = {};
 
   /** The context, created by get_context() on first use. Yices applies a
    *  configuration only when it creates a context, so the logic and any
    *  option that changes config must be set before then.
    */
-  std::shared_ptr<context_t> ctx;
+  std::shared_ptr<context_t> ctx = nullptr;
   ctx_config_t * config;
 
   // workaround for: https://github.com/makaimann/smt-switch/issues/218
   uint64_t pushes_after_unsat = 0;  ///< how many pushes after trivial unsat
                                     ///< context status
 
-  double time_limit = 0;  ///< in seconds, 0 for none
+  double time_limit = 0.0;  ///< in seconds, 0 for none
 
   // Yices cannot list a context's assertions, so dump_smt2 writes these:
   // the logic given to set_logic, ALL for none, since SMT-LIB declares
   // nothing before set-logic, the formulas asserted and not popped, and
   // how many of them came before each pushed scope
   std::string logic_ = "ALL";
-  TermVec assertions;
-  std::vector<std::size_t> scope_starts;
+  TermVec assertions = {};
+  std::vector<std::size_t> scope_starts = {};
 
-  std::unordered_map<std::string, Term> symbol_table;
+  std::unordered_map<std::string, Term> symbol_table = {};
   ///< Keep track of declared symbols to avoid re-declaration
   ///< Note: Yices2 has a global symbol table, but we want it
   ///< associated with each solver instance. This is why we

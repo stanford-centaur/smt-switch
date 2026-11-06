@@ -117,11 +117,11 @@ class BzlaSolver : public AbsSmtSolver
   // a Bitwuzla instance together with the term manager it uses
   struct Instance;
 
-  bitwuzla::Options options;
+  bitwuzla::Options options = {};
   std::shared_ptr<bitwuzla::TermManager> tm;
-  std::shared_ptr<Instance> instance;
+  std::shared_ptr<Instance> instance = nullptr;
 
-  std::unordered_map<std::string, Term> symbol_table;
+  std::unordered_map<std::string, Term> symbol_table = {};
 
   friend class BzlaInterpolatingSolver;
 };
@@ -152,7 +152,7 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `bzla->get_assertions()`,
   // the method does not guarantee that the assertions are in the correct order)
-  mutable TermVec last_itp_query_assertions;
+  mutable TermVec last_itp_query_assertions = {};
 
   std::string dump_queries_prefix = "";
   mutable uint32_t itp_query_count = 0;

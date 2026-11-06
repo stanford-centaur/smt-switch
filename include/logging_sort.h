@@ -134,7 +134,7 @@ class UninterpretedLoggingSort : public LoggingSort
  protected:
   std::string name;
   std::uint64_t arity;
-  SortVec param_sorts;
+  SortVec param_sorts = {};
 };
 
 class DatatypeLoggingSort : public LoggingSort

@@ -191,15 +191,15 @@ class TermTranslator
   // Note: const meaning the solver doesn't change to a different solver
   // it can still call non-const methods of the solver
   SmtSolver solver;  ///< solver to translate terms to
-  UnorderedTermMap cache;
+  UnorderedTermMap cache = {};
   // map from uninterpreted sort names to the sort in the destination solver
   // necessary because it needs to be the same exact uninterpreted sort
   // cannot recreate it with the same name and get the same object back
-  std::unordered_map<std::string, Sort> uninterpreted_sorts;
+  std::unordered_map<std::string, Sort> uninterpreted_sorts = {};
   // map from datatype names to the sort in the destination solver, which
   // like an uninterpreted sort cannot be declared twice and stay the same
-  std::unordered_map<std::string, Sort> datatype_sorts;
+  std::unordered_map<std::string, Sort> datatype_sorts = {};
   // the datatypes whose transfer has begun and not yet finished
-  std::unordered_set<std::string> datatypes_in_progress;
+  std::unordered_set<std::string> datatypes_in_progress = {};
 };
 }  // namespace smt

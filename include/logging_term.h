@@ -76,10 +76,10 @@ class LoggingTerm : public AbsTerm
  protected:
   Term wrapped_term;  ///< the term of the underlying solver
   Sort sort;          ///< a LoggingSort
-  Op op;
+  Op op = {};
   // null for a leaf; shared with the child iterators, so they outlive the term
-  std::shared_ptr<const TermVec> children;
-  mutable std::string repr;
+  std::shared_ptr<const TermVec> children = nullptr;
+  mutable std::string repr = "";
   bool is_sym = false;
   bool is_par = false;
   std::size_t id_;  ///< unique id for this term

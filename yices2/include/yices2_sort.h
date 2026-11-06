@@ -50,7 +50,7 @@ class Yices2Sort : public AbsSort
 
  protected:
   // keeps Yices set up while the sort can be used, even past its solver
-  Yices2InstanceRef instance;
+  Yices2InstanceRef instance = {};
   type_t type;
   bool is_function;
 

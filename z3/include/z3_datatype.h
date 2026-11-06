@@ -22,7 +22,7 @@ class Z3DatatypeDecl : public AbsDatatypeDecl
  protected:
   friend class Z3Solver;
   std::string name;
-  std::vector<DatatypeConstructorDecl> consvec{};
+  std::vector<DatatypeConstructorDecl> consvec = {};
   // whether it was used for a sort; Z3 would give the same sort back for
   // the name, however the constructors changed
   bool used = false;
@@ -43,10 +43,11 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 
   // declared before the sorts, so they are released while the context lives
   std::shared_ptr<z3::context> c;
-  std::string constructorname, datatypename;
+  std::string constructorname;
+  std::string datatypename = "";
   // the selectors added; a null sort stands for one added with
   // add_selector_self
-  std::vector<std::pair<std::string, z3::sort>> selectors{};
+  std::vector<std::pair<std::string, z3::sort>> selectors = {};
 };
 
 class Z3Datatype : public AbsDatatype

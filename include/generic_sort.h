@@ -74,10 +74,10 @@ class GenericSort : public AbsSort
   // standing in for a datatype whose own sort does not exist yet. Empty for
   // every other sort, including GenericDatatypeSort, which has a real
   // datatype to ask.
-  std::string datatype_name;
+  std::string datatype_name = "";
 
   // strings hash function, to be used for hash()
-  std::hash<std::string> str_hash;
+  std::hash<std::string> str_hash = {};
 
   // So GenericSolver can access protected members:
   friend class GenericSolver;
@@ -137,7 +137,7 @@ class UninterpretedGenericSort : public GenericSort
  protected:
   std::string name;
   std::uint64_t arity;
-  SortVec param_sorts;
+  SortVec param_sorts = {};
 };
 
 class GenericDatatypeSort : public GenericSort
@@ -173,7 +173,7 @@ class DatatypeComponentSort : public GenericSort
  protected:
   std::string name;
   std::shared_ptr<GenericSort> dt_sort;
-  Sort selector_sort;
+  Sort selector_sort = nullptr;
 };
 
 }  // namespace smt

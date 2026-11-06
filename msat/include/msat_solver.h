@@ -124,11 +124,11 @@ class MsatSolver : public AbsSmtSolver
   // for matching the generic check_sat_assuming interface which allows
   // arbitrary formulas rather than just (negated) boolean constants
   std::unordered_map<size_t, msat_term>
-      assumption_map_;  ///< maps msat_term labels to assumptions
+      assumption_map_ = {};  ///< maps msat_term labels to assumptions
   std::vector<msat_term>
-      base_assertions_;  ///< assertions at context level 0
-                         ///< to be re-added after resetting to clear old
-                         ///< clauses added for assumptions
+      base_assertions_ = {};  ///< assertions at context level 0
+                              ///< to be re-added after resetting to clear old
+                              ///< clauses added for assumptions
   size_t num_assump_clauses_ = 0;      ///< counts how many assumption clauses
                                        ///< are added
   size_t max_assump_clauses_ = 10000;  ///< number of assumption clauses before
@@ -212,20 +212,20 @@ class MsatSolver : public AbsSmtSolver
 
    private:
     // empty until a configuration is made, and again once env owns it
-    ConfigPtr cfg;
+    ConfigPtr cfg = nullptr;
     // the options set while there is no configuration yet, in order
-    std::vector<std::pair<std::string, std::string>> pending;
+    std::vector<std::pair<std::string, std::string>> pending = {};
     // the logic the configuration was made for, held by cfg or by env, ALL
     // for the plain configuration, and empty while there is none
-    std::string logic;
+    std::string logic = "";
     // shared with every term and sort, so the environment lives until the
     // last of them is released, even past reset() or the solver's
     // destruction
-    std::shared_ptr<msat_env> env;
+    std::shared_ptr<msat_env> env = nullptr;
   };
 
   // mutable, as const methods such as make_sort create the environment
-  mutable EnvWrapper env_wrapper_;
+  mutable EnvWrapper env_wrapper_ = {};
 };
 
 // Interpolating Solver
@@ -255,9 +255,9 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
   // assertions from the last interpolation query, indexed by the context level
   // (although one can get assertions using `msat_get_asserted_formulas`,
   // the method does not guarantee that the assertions are in the correct order)
-  mutable TermVec last_itp_query_assertions_;
+  mutable TermVec last_itp_query_assertions_ = {};
   // interpolation group for each assertion level
-  mutable std::vector<int> itp_grps_;
+  mutable std::vector<int> itp_grps_ = {};
 };
 
 }  // namespace smt
