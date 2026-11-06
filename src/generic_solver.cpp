@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -45,6 +46,7 @@
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "datatype.h"
 #include "exceptions.h"
@@ -2290,29 +2292,75 @@ void GenericSolver::do_pop(std::uint64_t num)
 
 void GenericSolver::dump_smt2(std::string filename) const
 {
-  // the binary is in the state these commands bring a new one to, so they
-  // are the benchmark, options and popped scopes included
-  std::ofstream out(filename);
-  // SMT-LIB declares nothing before set-logic, so where the binary was left
-  // to its default logic the dump sets ALL
-  bool start_mode = true;
+  // The binary is in the state these commands bring a new one to. Of them,
+  // what it still holds: nothing from before a reset, and no assertion of a
+  // popped scope or from before a reset-assertions, while declarations and
+  // definitions stay, under global-declarations.
+  std::vector<std::pair<std::string, const std::string *>> kept;
+  // where each pushed scope starts in kept
+  std::vector<std::size_t> scope_starts;
   for (const std::string & cmd : accepted_commands_)
   {
     std::string name = cmd.substr(1, cmd.find_first_of(" )") - 1);
     if (name == RESET_STR)
     {
-      start_mode = true;
+      kept.clear();
+      scope_starts.clear();
     }
-    else if (name == SET_LOGIC_STR)
+    else if (name == PUSH_STR)
     {
-      start_mode = false;
+      std::size_t num = std::stoull(cmd.substr(name.size() + 2));
+      scope_starts.insert(scope_starts.end(), num, kept.size());
     }
-    else if (start_mode && name != SET_OPTION_STR)
+    else if (name == POP_STR || name == RESET_ASSERTIONS_STR)
+    {
+      std::size_t from = 0;
+      if (name == POP_STR)
+      {
+        std::size_t num = std::stoull(cmd.substr(name.size() + 2));
+        from = scope_starts[scope_starts.size() - num];
+        scope_starts.resize(scope_starts.size() - num);
+      }
+      else
+      {
+        scope_starts.clear();
+      }
+      std::size_t end = from;
+      for (std::size_t i = from; i < kept.size(); ++i)
+      {
+        if (kept[i].first != ASSERT_STR)
+        {
+          kept[end++] = kept[i];
+        }
+      }
+      kept.resize(end);
+    }
+    else
+    {
+      kept.emplace_back(name, &cmd);
+    }
+  }
+
+  std::ofstream out(filename);
+  // SMT-LIB declares nothing before set-logic, so where the binary was left
+  // to its default logic the dump sets ALL
+  bool logic_set = false;
+  for (const auto & [name, cmd] : kept)
+  {
+    if (name == SET_LOGIC_STR)
+    {
+      logic_set = true;
+    }
+    else if (!logic_set && name != SET_OPTION_STR)
     {
       out << "(" << SET_LOGIC_STR << " ALL)\n";
-      start_mode = false;
+      logic_set = true;
     }
-    out << cmd << "\n";
+    out << *cmd << "\n";
+  }
+  if (!logic_set)
+  {
+    out << "(" << SET_LOGIC_STR << " ALL)\n";
   }
   out << "(" << CHECK_SAT_STR << ")\n";
 }

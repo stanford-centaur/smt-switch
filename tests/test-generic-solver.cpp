@@ -18,9 +18,11 @@
 
 #include <chrono>
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -317,6 +319,40 @@ TEST_P(GenericSolverTests, Bool1)
   r = gs->check_sat();
   EXPECT_TRUE(r.is_sat());
   gs->pop(1);
+}
+
+// a dump holds what the binary still holds, not how it got there
+TEST_P(GenericSolverTests, DumpLeavesOutWhatNoLongerHolds)
+{
+  if (binary == BTOR)
+  {
+    GTEST_SKIP() << "the Boolector binary refuses reset-assertions";
+  }
+  Sort bool_sort = gs->make_sort(BOOL);
+  Term a = gs->make_symbol("a", bool_sort);
+  Term b = gs->make_symbol("b", bool_sort);
+  Term c = gs->make_symbol("c", bool_sort);
+  gs->assert_formula(a);
+  gs->reset_assertions();
+  gs->push(1);
+  gs->assert_formula(b);
+  gs->pop(1);
+  gs->assert_formula(c);
+  string file = testing::TempDir() + "generic-dump-" + to_string(binary) + "-"
+                + std::to_string(get<1>(GetParam())) + ".smt2";
+  gs->dump_smt2(file);
+  ifstream in(file);
+  stringstream contents;
+  contents << in.rdbuf();
+  string dump = contents.str();
+  EXPECT_EQ(dump.find("(push"), string::npos) << dump;
+  EXPECT_EQ(dump.find("(pop"), string::npos) << dump;
+  EXPECT_EQ(dump.find("(reset-assertions"), string::npos) << dump;
+  EXPECT_EQ(dump.find("(assert a)"), string::npos) << dump;
+  EXPECT_EQ(dump.find("(assert b)"), string::npos) << dump;
+  EXPECT_NE(dump.find("(assert c)"), string::npos) << dump;
+  // b was declared inside the popped scope, and stays declared
+  EXPECT_NE(dump.find("(declare-fun b "), string::npos) << dump;
 }
 
 TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
