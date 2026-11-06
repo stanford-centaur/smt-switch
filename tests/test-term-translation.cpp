@@ -247,6 +247,11 @@ class SortConstructorTranslationTests : public TranslationTests
   Sort list, list_bool;
 };
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(QuantifierTranslationTests);
+class QuantifierTranslationTests : public BVTranslationTests
+{
+};
+
 TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
@@ -898,6 +903,29 @@ TEST_P(SortConstructorTranslationTests, ArityClash)
   EXPECT_THROW(to_s2.transfer_sort(list0), IncorrectUsageException);
 }
 
+TEST_P(QuantifierTranslationTests, Forall)
+{
+  if (get<0>(GetParam()).solver_enum == Z3
+      && !get<0>(GetParam()).is_logging_solver)
+  {
+    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
+  }
+  if (get<1>(GetParam()).solver_enum == MSAT)
+  {
+    GTEST_SKIP() << "MathSAT answers unknown for any quantified formula";
+  }
+  // x is the largest value only if every i is at most x
+  Term i = s1->make_param("i", bvsort8);
+  Term forall = s1->make_term(Forall, i, s1->make_term(BVUle, i, x));
+  TermTranslator to_s2(s2);
+  Term forall2 = to_s2.transfer_term(forall);
+  EXPECT_EQ(forall2->get_op(), Op(Forall));
+  s2->assert_formula(forall2);
+  s2->assert_formula(
+      to_s2.transfer_term(s1->make_term(Equal, x, s1->make_term(0, bvsort8))));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
 // All tests are instantiated with non-generic solvers,
 // as generic solvers do not support term translation
 // currently.
@@ -1001,6 +1029,15 @@ INSTANTIATE_TEST_SUITE_P(
                          { TERMITER, PARAM_UNINTERP_SORT })),
                      testing::ValuesIn(filter_non_generic_solver_configurations(
                          { TERMITER, PARAM_UNINTERP_SORT }))),
+    ConfigPairName());
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    QuantifierTranslationTests,
+    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_BV, QUANTIFIERS })),
+                     testing::ValuesIn(filter_non_generic_solver_configurations(
+                         { TERMITER, THEORY_BV, QUANTIFIERS }))),
     ConfigPairName());
 
 }  // namespace
