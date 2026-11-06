@@ -149,10 +149,12 @@ TEST_P(TimeLimitTests, ResetDropsTimeLimit)
 
   // a pigeonhole problem that takes well over the old limit, but finishes
   Sort bvsort = s->make_sort(BV, 3);
+  Term holes = s->make_term(6, bvsort);
   TermVec vars;
-  for (size_t i = 0; i < 9; ++i)
+  for (size_t i = 0; i < 7; ++i)
   {
     vars.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
+    s->assert_formula(s->make_term(BVUlt, vars.back(), holes));
   }
   for (size_t i = 0; i < vars.size(); ++i)
   {
