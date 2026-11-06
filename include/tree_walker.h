@@ -147,8 +147,7 @@ class TreeWalker
  private:
   // derived classes should interact with cache through the methods above only
   UnorderedTermPairMap cache_ = {};   ///< cache for updating terms
-  UnorderedTermPairMap * ext_cache_;  ///< external (user-provided) cache. If
-                                      ///< non-null, used instead of cache_
+  UnorderedTermPairMap * ext_cache_;  ///< used instead of cache_ if not null
 };
 
 }  // namespace smt
