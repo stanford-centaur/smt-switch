@@ -330,8 +330,8 @@ TEST_P(ItpTests, ReuseKeepsResults)
       TermVec itps;
       Result r = s->get_sequence_interpolants(queries[q], itps);
       bool unsat_expected = q + 1 < queries.size();
-      EXPECT_EQ(r.is_unsat(), unsat_expected)
-          << "incremental " << incremental << ", query " << q;
+      EXPECT_TRUE(unsat_expected ? r.is_unsat() : r.is_sat())
+          << "incremental " << incremental << ", query " << q << ": " << r;
       if (!unsat_expected)
       {
         continue;
@@ -450,10 +450,9 @@ TEST_P(ItpTests, AnswersEachQuery)
     EXPECT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << A << " / " << B;
     EXPECT_TRUE(I) << A << " / " << B;
   }
-  // a satisfiable query has no interpolant; cvc5 answers unknown
+  // a satisfiable query has no interpolant
   Term I;
-  EXPECT_FALSE(
-      itp->get_interpolant(down, itp->make_term(gt, x, z), I).is_unsat());
+  EXPECT_TRUE(itp->get_interpolant(down, itp->make_term(gt, x, z), I).is_sat());
 }
 
 TEST_P(ItpTests, SequenceInterpolantsRefuseMisuse)
