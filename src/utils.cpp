@@ -312,23 +312,21 @@ void cnf_to_dimacs(Term cnf, std::ostringstream & y)
        // smt::or by separating the literals
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
-      Op op = t->get_op();
-      if (!(op.is_null() || op == Or || op == Not))
-      {
-        throw IncorrectUsageException("cnf_to_dimacs: " + cnf->to_string()
-                                      + " is not in CNF");
-      }
-
-      if (op.prim_op == Or)
+      if (t->get_op() == Or)
       {
         for (auto child : t)
         {
           before_or_elimination.push_back(child);
         }
       }
-      else
+      else if (is_lit(t, sort) || (t->is_value() && t->to_string() == "false"))
       {
         after_or_elimination.push_back(t);
+      }
+      else
+      {
+        throw IncorrectUsageException("cnf_to_dimacs: " + cnf->to_string()
+                                      + " is not in CNF");
       }
     }
     clauses.push_back(after_or_elimination);
