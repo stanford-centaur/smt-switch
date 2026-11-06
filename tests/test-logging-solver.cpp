@@ -202,6 +202,50 @@ TEST_P(Logging, TermFromAnotherSolver)
   EXPECT_THROW(s->make_term(BVAdd, x, x2), IncorrectUsageException);
 }
 
+TEST_P(Logging, NullTerm)
+{
+  EXPECT_THROW(s->make_term(BVAdd, x, Term()), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Term(), arraysort), IncorrectUsageException);
+  EXPECT_THROW(s->get_value(Term()), IncorrectUsageException);
+  Term out_const_base;
+  EXPECT_THROW(s->get_array_values(Term(), out_const_base),
+               IncorrectUsageException);
+  EXPECT_THROW(s->assert_formula(Term()), IncorrectUsageException);
+  EXPECT_THROW(s->check_sat_assuming(TermVec{ Term() }),
+               IncorrectUsageException);
+}
+
+TEST_P(Logging, NullSort)
+{
+  EXPECT_THROW(s->make_sort(ARRAY, SortVec{ bvsort4, Sort() }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(Sort(), SortVec{ bvsort4 }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(0, Sort()), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(std::string("a"), true, Sort()),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(std::wstring(L"a"), Sort()),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(std::string("1"), Sort()), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(zero, Sort()), IncorrectUsageException);
+  EXPECT_THROW(s->make_symbol("z", Sort()), IncorrectUsageException);
+  EXPECT_THROW(s->make_param("p", Sort()), IncorrectUsageException);
+  EXPECT_THROW(s->get_constructor(Sort(), "c"), IncorrectUsageException);
+  EXPECT_THROW(s->get_tester(Sort(), "c"), IncorrectUsageException);
+  EXPECT_THROW(s->get_selector(Sort(), "c", "f"), IncorrectUsageException);
+}
+
+TEST_P(Logging, NullDatatypeDeclaration)
+{
+  DatatypeDecl decl;
+  DatatypeConstructorDecl con;
+  EXPECT_THROW(s->make_sort(decl), IncorrectUsageException);
+  EXPECT_THROW(s->make_datatype_sorts({ decl }), IncorrectUsageException);
+  EXPECT_THROW(s->add_constructor(decl, con), IncorrectUsageException);
+  EXPECT_THROW(s->add_selector(con, "f", bvsort4), IncorrectUsageException);
+  EXPECT_THROW(s->add_selector_self(con, "f"), IncorrectUsageException);
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(LoggingUninterpretedArrays);
 class LoggingUninterpretedArrays : public Logging
 {
