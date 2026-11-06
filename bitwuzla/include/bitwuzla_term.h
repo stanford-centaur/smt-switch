@@ -34,8 +34,8 @@ class BzlaTermIter : public TermIterBase
 {
  public:
   BzlaTermIter(bitwuzla::Term t,
-               std::size_t pos,
-               const std::shared_ptr<bitwuzla::TermManager> & manager);
+               const std::shared_ptr<bitwuzla::TermManager> & manager,
+               bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:

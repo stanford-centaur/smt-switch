@@ -38,7 +38,7 @@ namespace smt {
 class Yices2TermIter : public TermIterBase
 {
  public:
-  Yices2TermIter(term_t t, std::size_t pos);
+  explicit Yices2TermIter(term_t t, bool at_end = false);
   TermIterBase * clone() const override;
 
  protected:

@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -167,22 +166,18 @@ PrimOp to_primop(bitwuzla::Kind kind)
 
 BzlaTermIter::BzlaTermIter(
     bitwuzla::Term t,
-    std::size_t pos,
-    const std::shared_ptr<bitwuzla::TermManager> & manager)
-    : TermIterBase(pos), tm(manager), terms(std::move(t))
+    const std::shared_ptr<bitwuzla::TermManager> & manager,
+    bool at_end)
+    : TermIterBase(t.num_children(), at_end), tm(manager), terms(std::move(t))
 {
 }
 
 Term BzlaTermIter::child() const
 {
-  assert(position < terms.num_children());
   return std::make_shared<BzlaTerm>(terms[position], tm);
 }
 
-TermIterBase * BzlaTermIter::clone() const
-{
-  return new BzlaTermIter(terms, position, tm);
-}
+TermIterBase * BzlaTermIter::clone() const { return new BzlaTermIter(*this); }
 
 bool BzlaTermIter::same_term(const TermIterBase & other) const
 {
@@ -229,8 +224,6 @@ Op BzlaTerm::get_op() const
   if (get_num_indices(po) > 0)
   {
     std::size_t num_indices = term.num_indices();
-    assert(num_indices > 0);
-    assert(num_indices <= 2);
     std::vector<std::uint64_t> indices = term.indices();
     std::uint64_t idx0 = indices[0];
     if (num_indices == 1)
@@ -307,13 +300,12 @@ std::int64_t BzlaTerm::to_signed_int() const
 
 TermIter BzlaTerm::begin() const
 {
-  return TermIter(new BzlaTermIter(term, 0, tm));
+  return TermIter(new BzlaTermIter(term, tm));
 }
 
 TermIter BzlaTerm::end() const
 {
-  std::size_t num_children = term.num_children();
-  return TermIter(new BzlaTermIter(term, num_children, tm));
+  return TermIter(new BzlaTermIter(term, tm, /* at_end */ true));
 }
 
 std::string BzlaTerm::print_value_as(SortKind /* sk */) const

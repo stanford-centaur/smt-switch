@@ -202,13 +202,12 @@ bool LoggingTerm::is_symbolic_const() const
 
 TermIter LoggingTerm::begin() const
 {
-  return TermIter(new LoggingTermIter(children, 0));
+  return TermIter(new LoggingTermIter(children));
 }
 
 TermIter LoggingTerm::end() const
 {
-  return TermIter(
-      new LoggingTermIter(children, children ? children->size() : 0));
+  return TermIter(new LoggingTermIter(children, /* at_end */ true));
 }
 
 // dispatched to underlying term
@@ -246,24 +245,16 @@ std::string LoggingTerm::print_value_as(SortKind sk) const
 
 /* LoggingTermIter */
 
-LoggingTermIter::LoggingTermIter(std::shared_ptr<const TermVec> c,
-                                 std::size_t pos)
-    : TermIterBase(pos), children(std::move(c))
+LoggingTermIter::LoggingTermIter(std::shared_ptr<const TermVec> c, bool at_end)
+    : TermIterBase(c ? c->size() : 0, at_end), children(std::move(c))
 {
 }
 
-Term LoggingTermIter::child() const
-{
-  if (!children || position >= children->size())
-  {
-    throw IncorrectUsageException("Cannot dereference past a term's children");
-  }
-  return (*children)[position];
-}
+Term LoggingTermIter::child() const { return (*children)[position]; }
 
 TermIterBase * LoggingTermIter::clone() const
 {
-  return new LoggingTermIter(children, position);
+  return new LoggingTermIter(*this);
 }
 
 bool LoggingTermIter::same_term(const TermIterBase & other) const

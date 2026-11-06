@@ -16,21 +16,30 @@ namespace smt {
 
 // Z3TermIter implementation
 
+// The children smt-switch lists, with the function, constructor, selector or
+// tester applied first. Only a function's iterators are null, and it has no
+// children. The cast asks whether the term is null, as z3::expr's operator!
+// makes a negation.
+static std::size_t num_children(const std::shared_ptr<z3::context> & c,
+                                const z3::expr & t)
+{
+  if (!static_cast<bool>(t))
+  {
+    return 0;
+  }
+  std::size_t num_args = t.num_args();
+  return is_apply(Z3Term(c, t).get_op().prim_op) ? num_args + 1 : num_args;
+}
+
 Z3TermIter::Z3TermIter(const std::shared_ptr<z3::context> & c,
                        z3::expr t,
-                       std::size_t pos)
-    : TermIterBase(pos), ctx(c), term(t)
+                       bool at_end)
+    : TermIterBase(num_children(c, t), at_end), ctx(c), term(t)
 {
 }
 
 Term Z3TermIter::child() const
 {
-  // Only a function's iterators are null, and it has no children. The cast
-  // asks whether the term is null, as z3::expr's operator! makes a negation.
-  if (!static_cast<bool>(term))
-  {
-    throw IncorrectUsageException("A function has no children");
-  }
   // the position as Z3 takes an argument index
   const unsigned pos = detail::narrow<unsigned>(position, "a child position");
   // smt-switch lists the function, constructor, selector or tester applied
@@ -43,10 +52,7 @@ Term Z3TermIter::child() const
   return std::make_shared<Z3Term>(ctx, term.arg(pos));
 }
 
-TermIterBase * Z3TermIter::clone() const
-{
-  return new Z3TermIter(ctx, term, position);
-}
+TermIterBase * Z3TermIter::clone() const { return new Z3TermIter(*this); }
 
 bool Z3TermIter::same_term(const TermIterBase & other) const
 {
@@ -389,7 +395,7 @@ TermIter Z3Term::begin() const
   {
     // no iteration for a function symbol
     // cannot query term (it's null)
-    return TermIter(new Z3TermIter(ctx, term, 0));
+    return TermIter(new Z3TermIter(ctx, term));
   }
 
   if (term.is_quantifier())
@@ -401,26 +407,12 @@ TermIter Z3Term::begin() const
         + "support getting parameters from quantified "
         + "expression. Use logging if required.");
   }
-  return TermIter(new Z3TermIter(ctx, term, 0));
+  return TermIter(new Z3TermIter(ctx, term));
 }
 
 TermIter Z3Term::end() const
 {
-  if (is_function)
-  {
-    // this is the actual function (not an application of a function)
-    // no iteration to do
-    return TermIter(new Z3TermIter(ctx, term, 0));
-  }
-
-  uint32_t num_args = term.num_args();
-  if (is_apply(get_op().prim_op))
-  {
-    // smt-switch treats the function as an argument
-    num_args++;
-  }
-
-  return TermIter(new Z3TermIter(ctx, term, num_args));
+  return TermIter(new Z3TermIter(ctx, term, /* at_end */ true));
 }
 
 std::string Z3Term::print_value_as(SortKind /* sk */) const

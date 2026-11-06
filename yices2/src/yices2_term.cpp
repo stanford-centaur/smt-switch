@@ -420,8 +420,8 @@ static uint32_t smt_num_children(term_t term)
   return static_cast<uint32_t>(num_children);
 }
 
-Yices2TermIter::Yices2TermIter(term_t t, std::size_t pos)
-    : TermIterBase(pos), term(t)
+Yices2TermIter::Yices2TermIter(term_t t, bool at_end)
+    : TermIterBase(smt_num_children(t), at_end), term(t)
 {
 }
 
@@ -576,7 +576,7 @@ Term Yices2TermIter::child() const
 
 TermIterBase * Yices2TermIter::clone() const
 {
-  return new Yices2TermIter(term, position);
+  return new Yices2TermIter(*this);
 }
 
 bool Yices2TermIter::same_term(const TermIterBase & other) const
@@ -586,12 +586,12 @@ bool Yices2TermIter::same_term(const TermIterBase & other) const
 
 TermIter Yices2Term::begin() const
 {
-  return TermIter(new Yices2TermIter(term, 0));
+  return TermIter(new Yices2TermIter(term));
 }
 
 TermIter Yices2Term::end() const
 {
-  return TermIter(new Yices2TermIter(term, smt_num_children(term)));
+  return TermIter(new Yices2TermIter(term, /* at_end */ true));
 }
 
 std::string Yices2Term::print_value_as(SortKind /* sk */) const

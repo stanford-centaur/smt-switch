@@ -83,13 +83,23 @@ std::ostream & operator<<(std::ostream & output, const Term t)
 }
 
 /* TermIterBase implementation */
-TermIterBase::TermIterBase(std::size_t pos) : position(pos) {}
+TermIterBase::TermIterBase(std::size_t s, bool at_end)
+    : position(at_end ? s : 0), size(s)
+{
+}
 
 TermIterBase::~TermIterBase() = default;
 
 void TermIterBase::operator++() { ++position; }
 
-Term TermIterBase::operator*() const { return child(); }
+Term TermIterBase::operator*() const
+{
+  if (position >= size)
+  {
+    throw IncorrectUsageException("Cannot dereference past a term's children");
+  }
+  return child();
+}
 
 bool TermIterBase::operator==(const TermIterBase & other) const
 {

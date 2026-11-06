@@ -26,7 +26,6 @@
 #include "msat_extensions.h"
 #include "msat_sort.h"
 #include "ops.h"
-#include "solver_utils.h"
 #include "utils.h"
 
 using namespace std;
@@ -72,10 +71,27 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
 
 // MsatTermIter implementation
 
+// The children smt-switch lists, with the function first in an application.
+// A function symbol has no term, and so no children.
+static std::size_t num_children(msat_env e, msat_term t)
+{
+  if (MSAT_ERROR_TERM(t))
+  {
+    return 0;
+  }
+  if (is_congruence(e, t))
+  {
+    // the one child t1 - t2
+    return 1;
+  }
+  std::size_t arity = msat_term_arity(t);
+  return msat_term_is_uf(e, t) ? arity + 1 : arity;
+}
+
 MsatTermIter::MsatTermIter(const std::shared_ptr<msat_env> & e,
                            const msat_term t,
-                           std::size_t pos)
-    : TermIterBase(pos), env(e), term(t)
+                           bool at_end)
+    : TermIterBase(num_children(*e, t), at_end), env(e), term(t)
 {
 }
 
@@ -104,10 +120,7 @@ Term MsatTermIter::child() const
   }
 }
 
-TermIterBase * MsatTermIter::clone() const
-{
-  return new MsatTermIter(env, term, position);
-}
+TermIterBase * MsatTermIter::clone() const { return new MsatTermIter(*this); }
 
 bool MsatTermIter::same_term(const TermIterBase & other) const
 {
@@ -587,31 +600,12 @@ int64_t MsatTerm::to_signed_int() const
 
 TermIter MsatTerm::begin() const
 {
-  return TermIter(new MsatTermIter(env, term, 0));
+  return TermIter(new MsatTermIter(env, term));
 }
 
 TermIter MsatTerm::end() const
 {
-  if (is_uf)
-  {
-    // term is null, but begin() and end() TermIter will evaluate as equal
-    // which is what we want because function symbols have no children
-    return TermIter(new MsatTermIter(env, term, 0));
-  }
-  else if (is_congruence(*env, term))
-  {
-    // the one child t1 - t2
-    return TermIter(new MsatTermIter(env, term, 1));
-  }
-
-  uint32_t arity =
-      detail::narrow<uint32_t>(msat_term_arity(term), "a number of children");
-  if (msat_term_is_uf(*env, term))
-  {
-    // consider the function itself a child
-    arity++;
-  }
-  return TermIter(new MsatTermIter(env, term, arity));
+  return TermIter(new MsatTermIter(env, term, /* at_end */ true));
 }
 
 std::string MsatTerm::print_value_as(SortKind /* sk */) const

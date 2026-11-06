@@ -29,7 +29,6 @@
 #include "cvc5_sort.h"
 #include "exceptions.h"
 #include "ops.h"
-#include "solver_utils.h"
 #include "utils.h"
 
 namespace smt {
@@ -199,8 +198,15 @@ PrimOp to_primop(cvc5::Kind kind)
 std::hash<cvc5::Term> termhash;
 
 /* Cvc5TermIter implementation */
-Cvc5TermIter::Cvc5TermIter(::cvc5::Term t, std::size_t pos)
-    : TermIterBase(pos), term(t)
+// The children smt-switch lists: cvc5's, then a constant array's base
+static std::size_t num_children(const ::cvc5::Term & t)
+{
+  std::size_t n = t.getNumChildren();
+  return t.getKind() == ::cvc5::Kind::CONST_ARRAY ? n + 1 : n;
+}
+
+Cvc5TermIter::Cvc5TermIter(::cvc5::Term t, bool at_end)
+    : TermIterBase(num_children(t), at_end), term(t)
 {
 }
 
@@ -230,10 +236,7 @@ Term Cvc5TermIter::child() const
   return std::make_shared<Cvc5Term>(t);
 }
 
-TermIterBase * Cvc5TermIter::clone() const
-{
-  return new Cvc5TermIter(term, position);
-}
+TermIterBase * Cvc5TermIter::clone() const { return new Cvc5TermIter(*this); }
 
 bool Cvc5TermIter::same_term(const TermIterBase & other) const
 {
@@ -411,18 +414,11 @@ int64_t Cvc5Term::to_signed_int() const
 
 /** Iterators for traversing the children
  */
-TermIter Cvc5Term::begin() const { return TermIter(new Cvc5TermIter(term, 0)); }
+TermIter Cvc5Term::begin() const { return TermIter(new Cvc5TermIter(term)); }
 
 TermIter Cvc5Term::end() const
 {
-  uint32_t num_children =
-      detail::narrow<uint32_t>(term.getNumChildren(), "a number of children");
-  if (term.getKind() == ::cvc5::Kind::CONST_ARRAY)
-  {
-    // base of constant array is the child
-    num_children++;
-  }
-  return TermIter(new Cvc5TermIter(term, num_children));
+  return TermIter(new Cvc5TermIter(term, /* at_end */ true));
 }
 
 std::string Cvc5Term::print_value_as(SortKind /* sk */) const
