@@ -102,6 +102,22 @@ TEST_P(UnitIncrementalTests, ContextLevel)
   ASSERT_TRUE(r.is_sat());
 }
 
+TEST_P(UnitIncrementalTests, PopPastThePushesIsRefused)
+{
+  Term a = s->make_symbol("a", boolsort);
+  EXPECT_THROW(s->pop(), IncorrectUsageException);
+  EXPECT_EQ(s->get_context_level(), 0);
+
+  s->push();
+  s->assert_formula(a);
+  EXPECT_THROW(s->pop(2), IncorrectUsageException);
+  EXPECT_EQ(s->get_context_level(), 1);
+  s->assert_formula(s->make_term(Not, a));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+  s->pop();
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
 TEST_P(UnitIncrementalTests, PushMoreLevelsThanTheSolverTakes)
 {
   const SolverEnum se = GetParam().solver_enum;

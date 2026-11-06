@@ -21,7 +21,6 @@
 #include <sys/time.h>
 #include <yices.h>
 
-#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -459,13 +458,8 @@ void Yices2Solver::do_pop(uint64_t num)
     }
     yices_pop(get_context().get());
   }
-  // Yices pops one scope at a time, and stops at the outermost
-  std::size_t popped = std::min<std::size_t>(num, scope_starts.size());
-  if (popped)
-  {
-    assertions.resize(scope_starts[scope_starts.size() - popped]);
-    scope_starts.resize(scope_starts.size() - popped);
-  }
+  assertions.resize(scope_starts[scope_starts.size() - num]);
+  scope_starts.resize(scope_starts.size() - num);
 }
 
 Term Yices2Solver::get_value(const Term & t) const

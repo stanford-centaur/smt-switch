@@ -54,6 +54,12 @@ void AbsSmtSolver::push(std::uint64_t num)
 
 void AbsSmtSolver::pop(std::uint64_t num)
 {
+  if (num > get_context_level())
+  {
+    throw IncorrectUsageException("Can't pop " + std::to_string(num)
+                                  + " contexts at context level "
+                                  + std::to_string(get_context_level()));
+  }
   do_pop(num);
   context_level -= num;
 }

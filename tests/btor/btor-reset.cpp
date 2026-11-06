@@ -19,6 +19,7 @@
 #include <string>
 
 #include "boolector_factory.h"
+#include "exceptions.h"
 #include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
@@ -36,6 +37,20 @@ TEST(BtorResetTest, BaseContext1AfterReset)
   s->set_opt("incremental", "true");
   s->set_opt("base-context-1", "true");
   s->assert_formula(s->make_term(false));
+  s->reset_assertions();
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST(BtorResetTest, BaseContext1KeepsItsLevelFromPop)
+{
+  SmtSolver s = BoolectorSolverFactory::create(false);
+  s->set_opt("incremental", "true");
+  s->set_opt("base-context-1", "true");
+  s->assert_formula(s->make_term(false));
+  EXPECT_THROW(s->pop(), IncorrectUsageException);
+  EXPECT_EQ(s->get_context_level(), 0);
+  // the assertion is still there, and reset_assertions still removes it
+  EXPECT_TRUE(s->check_sat().is_unsat());
   s->reset_assertions();
   EXPECT_TRUE(s->check_sat().is_sat());
 }

@@ -202,6 +202,7 @@ class AbsSmtSolver
    * The solver does the pop in do_pop, and the context level goes down by
    * num once it succeeds.
    * @param num the number of contexts to pop
+   * @throws IncorrectUsageException if num is more than the context level
    */
   void pop(std::uint64_t num = 1);
 
