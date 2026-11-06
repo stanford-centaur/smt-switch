@@ -220,6 +220,113 @@ INSTANTIATE_TEST_SUITE_P(
                      testing::Values(false)),
     reader_input_name);
 
+/** Records the answer to the last check-sat */
+class AnswerRecorder : public SmtLibReader
+{
+ public:
+  using SmtLibReader::SmtLibReader;
+
+  Result check_sat() override
+  {
+    answer = solver_->check_sat();
+    return answer;
+  }
+
+  Result answer;
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Dump);
+class Dump : public ::testing::Test,
+             public ::testing::WithParamInterface<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    s->set_opt("incremental", "true");
+  }
+
+  /** Makes x and y, after any set_logic, which some solvers refuse once
+   *  they have made a term
+   */
+  void make_symbols()
+  {
+    Sort bvsort = s->make_sort(BV, 4);
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+  }
+
+  /** What a fresh solver of the same configuration answers to the
+   *  check-sat that ends s's dump
+   *  @param name what tells the dump apart from the other tests' dumps
+   */
+  Result reread(const string & name)
+  {
+    string file =
+        testing::TempDir() + "dump-" + name + "-" + config_name(GetParam());
+    s->dump_smt2(file);
+    SmtSolver fresh = create_solver(GetParam());
+    AnswerRecorder reader(fresh);
+    reader.parse(file);
+    return reader.answer;
+  }
+
+  SmtSolver s;
+  Term x, y;
+};
+
+TEST_P(Dump, KeepsTheLogicAndTheAssertions)
+{
+  s->set_logic("QF_BV");
+  make_symbols();
+  s->assert_formula(s->make_term(Equal, x, y));
+  s->assert_formula(s->make_term(Distinct, x, y));
+  EXPECT_TRUE(reread("assertions").is_unsat());
+}
+
+TEST_P(Dump, KeepsAssertionsMadeInAPush)
+{
+  if (GetParam().solver_enum == BTOR)
+  {
+    GTEST_SKIP() << "Boolector's dump leaves out the assertions made inside "
+                    "a push";
+  }
+  make_symbols();
+  s->push();
+  s->assert_formula(s->make_term(Equal, x, y));
+  s->assert_formula(s->make_term(Distinct, x, y));
+  EXPECT_TRUE(reread("pushed").is_unsat());
+}
+
+TEST_P(Dump, LeavesOutPoppedAssertions)
+{
+  make_symbols();
+  s->assert_formula(s->make_term(Equal, x, y));
+  s->push();
+  s->assert_formula(s->make_term(Distinct, x, y));
+  s->pop();
+  EXPECT_TRUE(reread("popped").is_sat());
+}
+
+TEST_P(Dump, LeavesOutResetAssertions)
+{
+  if (GetParam().solver_enum == BTOR)
+  {
+    // Boolector resets assertions only with this option
+    s->set_opt("base-context-1", "true");
+  }
+  make_symbols();
+  s->assert_formula(s->make_term(Distinct, x, y));
+  s->reset_assertions();
+  s->assert_formula(s->make_term(Equal, x, y));
+  EXPECT_TRUE(reread("reset").is_sat());
+}
+
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         Dump,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
+
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)
 {
   UnorderedScopedSymbolMap map;
