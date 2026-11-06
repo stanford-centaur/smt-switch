@@ -39,6 +39,28 @@
 
 namespace smt {
 
+namespace {
+
+/** Casts a handle as backend_pointer_cast does, but refuses a null one
+ *  @param h the handle a caller passed to the solver
+ *  @param msg the message to throw if h is null
+ *  @return h as a T
+ *  @throws IncorrectUsageException if h is null or was made by another
+ *          solver
+ */
+template <class T, class Base>
+std::shared_ptr<T> non_null_cast(const std::shared_ptr<Base> & h,
+                                 const std::string & msg)
+{
+  if (!h)
+  {
+    throw IncorrectUsageException(msg);
+  }
+  return backend_pointer_cast<T>(h);
+}
+
+}  // namespace
+
 /* LoggingSolver */
 
 // implementations
@@ -75,7 +97,9 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
   SortVec sub_sorts;
   for (auto s : sorts)
   {
-    sub_sorts.push_back(backend_pointer_cast<LoggingSort>(s)->wrapped_sort);
+    sub_sorts.push_back(
+        non_null_cast<LoggingSort>(s, "Cannot make a sort from a null sort")
+            ->wrapped_sort);
   }
   Sort sort = wrapped_solver->make_sort(sk, sub_sorts);
   return make_logging_sort(sk, sort, sorts);
@@ -84,13 +108,17 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
 Sort LoggingSolver::make_sort(const Sort & sort_con,
                               const SortVec & sorts) const
 {
-  Sort sub_sort_con = backend_pointer_cast<LoggingSort>(sort_con)->wrapped_sort;
+  Sort sub_sort_con = non_null_cast<LoggingSort>(
+                          sort_con, "Cannot apply a null sort constructor")
+                          ->wrapped_sort;
 
   // convert to sorts stored by LoggingSorts
   SortVec sub_sorts;
   for (auto s : sorts)
   {
-    sub_sorts.push_back(backend_pointer_cast<LoggingSort>(s)->wrapped_sort);
+    sub_sorts.push_back(non_null_cast<LoggingSort>(
+                            s, "Cannot apply a sort constructor to a null sort")
+                            ->wrapped_sort);
   }
 
   Sort ressort = wrapped_solver->make_sort(sub_sort_con, sub_sorts);
@@ -100,8 +128,8 @@ Sort LoggingSolver::make_sort(const Sort & sort_con,
 
 Sort LoggingSolver::make_sort(const DatatypeDecl & d) const
 {
-  std::shared_ptr<LoggingDatatypeDecl> ld =
-      backend_pointer_cast<LoggingDatatypeDecl>(d);
+  std::shared_ptr<LoggingDatatypeDecl> ld = non_null_cast<LoggingDatatypeDecl>(
+      d, "Cannot make a sort from a null datatype declaration");
   Sort wrapped_sort = wrapped_solver->make_sort(ld->wrapped_decl);
   return std::make_shared<DatatypeLoggingSort>(wrapped_sort,
                                                copy_for_sort(*ld));
@@ -123,10 +151,11 @@ DatatypeConstructorDecl LoggingSolver::make_datatype_constructor_decl(
 void LoggingSolver::add_constructor(DatatypeDecl & dt,
                                     const DatatypeConstructorDecl & con) const
 {
-  std::shared_ptr<LoggingDatatypeDecl> ldt =
-      backend_pointer_cast<LoggingDatatypeDecl>(dt);
+  std::shared_ptr<LoggingDatatypeDecl> ldt = non_null_cast<LoggingDatatypeDecl>(
+      dt, "Cannot add a constructor to a null datatype declaration");
   std::shared_ptr<LoggingDatatypeConstructorDecl> lcon =
-      backend_pointer_cast<LoggingDatatypeConstructorDecl>(con);
+      non_null_cast<LoggingDatatypeConstructorDecl>(
+          con, "Cannot add a null constructor declaration");
   wrapped_solver->add_constructor(ldt->wrapped_decl, lcon->wrapped_decl);
   ldt->constructors.push_back(lcon);
 }
@@ -136,11 +165,13 @@ void LoggingSolver::add_selector(DatatypeConstructorDecl & dt,
                                  const Sort & s) const
 {
   std::shared_ptr<LoggingDatatypeConstructorDecl> lcon =
-      backend_pointer_cast<LoggingDatatypeConstructorDecl>(dt);
+      non_null_cast<LoggingDatatypeConstructorDecl>(
+          dt, "Cannot add a selector to a null constructor declaration");
   wrapped_solver->add_selector(
       lcon->wrapped_decl,
       name,
-      backend_pointer_cast<LoggingSort>(s)->wrapped_sort);
+      non_null_cast<LoggingSort>(s, "Cannot add a selector of a null sort")
+          ->wrapped_sort);
   lcon->selectors.push_back({ name, s });
 }
 
@@ -148,7 +179,8 @@ void LoggingSolver::add_selector_self(DatatypeConstructorDecl & dt,
                                       const std::string & name) const
 {
   std::shared_ptr<LoggingDatatypeConstructorDecl> lcon =
-      backend_pointer_cast<LoggingDatatypeConstructorDecl>(dt);
+      non_null_cast<LoggingDatatypeConstructorDecl>(
+          dt, "Cannot add a selector to a null constructor declaration");
   wrapped_solver->add_selector_self(lcon->wrapped_decl, name);
   // the datatype's own sort does not exist yet, so it is left null
   lcon->selectors.push_back({ name, nullptr });
@@ -157,7 +189,9 @@ void LoggingSolver::add_selector_self(DatatypeConstructorDecl & dt,
 Term LoggingSolver::get_constructor(const Sort & s, std::string name) const
 {
   Term wrapped = wrapped_solver->get_constructor(
-      backend_pointer_cast<LoggingSort>(s)->wrapped_sort, name);
+      non_null_cast<LoggingSort>(s, "Cannot get a constructor of a null sort")
+          ->wrapped_sort,
+      name);
   SortVec domain;
   for (const LoggingSelectorDecl & sel : find_constructor(s, name)->selectors)
   {
@@ -169,7 +203,9 @@ Term LoggingSolver::get_constructor(const Sort & s, std::string name) const
 Term LoggingSolver::get_tester(const Sort & s, std::string name) const
 {
   Term wrapped = wrapped_solver->get_tester(
-      backend_pointer_cast<LoggingSort>(s)->wrapped_sort, name);
+      non_null_cast<LoggingSort>(s, "Cannot get a tester of a null sort")
+          ->wrapped_sort,
+      name);
   return make_component(
       wrapped, TESTER, SortVec{ s }, make_sort(BOOL), "(_ is " + name + ")");
 }
@@ -179,7 +215,10 @@ Term LoggingSolver::get_selector(const Sort & s,
                                  std::string name) const
 {
   Term wrapped = wrapped_solver->get_selector(
-      backend_pointer_cast<LoggingSort>(s)->wrapped_sort, con, name);
+      non_null_cast<LoggingSort>(s, "Cannot get a selector of a null sort")
+          ->wrapped_sort,
+      con,
+      name);
   for (const LoggingSelectorDecl & sel : find_constructor(s, con)->selectors)
   {
     if (sel.name == name)
@@ -200,7 +239,9 @@ SortVec LoggingSolver::make_datatype_sorts(
   for (const DatatypeDecl & d : decls)
   {
     wrapped_decls.push_back(
-        backend_pointer_cast<LoggingDatatypeDecl>(d)->wrapped_decl);
+        non_null_cast<LoggingDatatypeDecl>(
+            d, "Cannot make a sort from a null datatype declaration")
+            ->wrapped_decl);
   }
   SortVec wrapped_sorts = wrapped_solver->make_datatype_sorts(wrapped_decls);
   SortVec res;
@@ -288,7 +329,8 @@ Term LoggingSolver::make_term(bool b) const
 
 Term LoggingSolver::make_term(std::int64_t i, const Sort & sort) const
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort =
+      non_null_cast<LoggingSort>(sort, "Cannot make a value of a null sort");
   Term wrapped_res = wrapped_solver->make_term(i, lsort->wrapped_sort);
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, sort, Op(), TermVec{}, next_term_id);
@@ -310,7 +352,8 @@ Term LoggingSolver::make_term(const std::string & s,
                               bool useEscSequences,
                               const Sort & sort) const
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort =
+      non_null_cast<LoggingSort>(sort, "Cannot make a value of a null sort");
   Term wrapped_res =
       wrapped_solver->make_term(s, useEscSequences, lsort->wrapped_sort);
   Term res = std::make_shared<LoggingTerm>(
@@ -331,7 +374,8 @@ Term LoggingSolver::make_term(const std::string & s,
 
 Term LoggingSolver::make_term(const std::wstring & s, const Sort & sort) const
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort =
+      non_null_cast<LoggingSort>(sort, "Cannot make a value of a null sort");
   Term wrapped_res = wrapped_solver->make_term(s, lsort->wrapped_sort);
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, sort, Op(), TermVec{}, next_term_id);
@@ -353,7 +397,8 @@ Term LoggingSolver::make_term(const std::string name,
                               const Sort & sort,
                               std::uint64_t base) const
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort =
+      non_null_cast<LoggingSort>(sort, "Cannot make a value of a null sort");
   Term wrapped_res = wrapped_solver->make_term(name, lsort->wrapped_sort, base);
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, sort, Op(), TermVec{}, next_term_id);
@@ -373,8 +418,10 @@ Term LoggingSolver::make_term(const std::string name,
 
 Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 {
-  std::shared_ptr<LoggingTerm> lval = backend_pointer_cast<LoggingTerm>(val);
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingTerm> lval = non_null_cast<LoggingTerm>(
+      val, "Cannot make a constant array from a null term");
+  std::shared_ptr<LoggingSort> lsort = non_null_cast<LoggingSort>(
+      sort, "Cannot make a constant array of a null sort");
   Term wrapped_res =
       wrapped_solver->make_term(lval->wrapped_term, lsort->wrapped_sort);
   // this make_term is for constant arrays
@@ -404,7 +451,8 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
 
 Term LoggingSolver::make_symbol(const std::string name, const Sort & sort)
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort =
+      non_null_cast<LoggingSort>(sort, "Cannot make a symbol of a null sort");
   Term wrapped_sym = wrapped_solver->make_symbol(name, lsort->wrapped_sort);
   // bool true means it's a symbol
   Term res = std::make_shared<LoggingTerm>(
@@ -437,7 +485,8 @@ Term LoggingSolver::get_symbol(const std::string & name) const
 
 Term LoggingSolver::make_param(const std::string name, const Sort & sort) const
 {
-  std::shared_ptr<LoggingSort> lsort = backend_pointer_cast<LoggingSort>(sort);
+  std::shared_ptr<LoggingSort> lsort = non_null_cast<LoggingSort>(
+      sort, "Cannot make a parameter of a null sort");
   Term wrapped_param = wrapped_solver->make_param(name, lsort->wrapped_sort);
   // bool false means it's not a symbol
   Term res = std::make_shared<LoggingTerm>(
@@ -461,7 +510,8 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   TermVec lterms;
   for (auto tt : terms)
   {
-    std::shared_ptr<LoggingTerm> ltt = backend_pointer_cast<LoggingTerm>(tt);
+    std::shared_ptr<LoggingTerm> ltt = non_null_cast<LoggingTerm>(
+        tt, "Cannot apply " + op.to_string() + " to a null term");
     // A LoggingTerm of another LoggingSolver casts, but is not in this one's
     // hash table, nor is one made before a reset.
     if (!hashtable->contains(tt))
@@ -492,6 +542,8 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
 
 Term LoggingSolver::get_value(const Term & t) const
 {
+  std::shared_ptr<LoggingTerm> lt =
+      non_null_cast<LoggingTerm>(t, "Cannot get the value of a null term");
   Sort sort = t->get_sort();
   if (sort->get_sort_kind() == ARRAY)
   {
@@ -511,7 +563,6 @@ Term LoggingSolver::get_value(const Term & t) const
     return res;
   }
 
-  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
   Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
   // The value was not created through the smt-switch API, so the
   // LoggingSolver cannot recover an Op or children for it
@@ -558,10 +609,11 @@ void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
                                                  Term & out_const_base) const
 {
+  std::shared_ptr<LoggingTerm> larr =
+      non_null_cast<LoggingTerm>(arr, "Cannot get the values of a null array");
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  std::shared_ptr<LoggingTerm> larr = backend_pointer_cast<LoggingTerm>(arr);
   UnorderedTermMap assignments;
   Term wrapped_out_const_base;
   UnorderedTermMap wrapped_assignments = wrapped_solver->get_array_values(
@@ -649,7 +701,8 @@ void LoggingSolver::set_logic(const std::string logic)
 
 void LoggingSolver::assert_formula(const Term & t)
 {
-  std::shared_ptr<LoggingTerm> lt = backend_pointer_cast<LoggingTerm>(t);
+  std::shared_ptr<LoggingTerm> lt =
+      non_null_cast<LoggingTerm>(t, "Cannot assert a null term");
   wrapped_solver->assert_formula(lt->wrapped_term);
 }
 
@@ -663,7 +716,7 @@ Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
   std::shared_ptr<LoggingTerm> la;
   for (auto a : assumptions)
   {
-    la = backend_pointer_cast<LoggingTerm>(a);
+    la = non_null_cast<LoggingTerm>(a, "Cannot assume a null term");
     lassumps.push_back(la->wrapped_term);
     // store a mapping from the wrapped term to the logging term
     (*assumption_cache)[la->wrapped_term] = la;
