@@ -26,6 +26,7 @@
 
 #include "exceptions.h"
 #include "ops.h"
+#include "solver_utils.h"
 #include "utils.h"
 #include "yices2_extensions.h"
 #include "yices2_sort.h"
@@ -419,12 +420,15 @@ static uint32_t smt_num_children(term_t term)
   return static_cast<uint32_t>(num_children);
 }
 
-Yices2TermIter::Yices2TermIter(term_t t, uint32_t p) : term(t), pos(p) {}
-
-void Yices2TermIter::operator++() { pos++; }
-
-Term Yices2TermIter::operator*() const
+Yices2TermIter::Yices2TermIter(term_t t, std::size_t pos)
+    : TermIterBase(pos), term(t)
 {
+}
+
+Term Yices2TermIter::child() const
+{
+  // the position as Yices takes a child index
+  const int32_t pos = detail::narrow<int32_t>(position, "a child position");
   term_t ret_term;
 
   if (yices_term_is_bvsum(term))
@@ -572,23 +576,12 @@ Term Yices2TermIter::operator*() const
 
 TermIterBase * Yices2TermIter::clone() const
 {
-  return new Yices2TermIter(term, pos);
+  return new Yices2TermIter(term, position);
 }
 
-bool Yices2TermIter::operator==(const Yices2TermIter & it) const
+bool Yices2TermIter::same_term(const TermIterBase & other) const
 {
-  return term == it.term && pos == it.pos;
-}
-
-bool Yices2TermIter::operator!=(const Yices2TermIter & it) const
-{
-  return !(*this == it);
-}
-
-bool Yices2TermIter::equal(const TermIterBase & other) const
-{
-  const Yices2TermIter & it = static_cast<const Yices2TermIter &>(other);
-  return term == it.term && pos == it.pos;
+  return term == static_cast<const Yices2TermIter &>(other).term;
 }
 
 TermIter Yices2Term::begin() const

@@ -6,6 +6,7 @@
 
 #include "exceptions.h"
 #include "ops.h"
+#include "solver_utils.h"
 #include "utils.h"
 #include "z3_sort.h"
 
@@ -17,21 +18,21 @@ namespace smt {
 
 Z3TermIter::Z3TermIter(const std::shared_ptr<z3::context> & c,
                        z3::expr t,
-                       uint32_t p,
-                       bool nt)
-    : ctx(c), term(t), pos(p), null_term(nt)
+                       std::size_t pos)
+    : TermIterBase(pos), ctx(c), term(t)
 {
 }
 
-void Z3TermIter::operator++() { pos++; }
-
-Term Z3TermIter::operator*() const
+Term Z3TermIter::child() const
 {
-  // only a function's iterators are null, and it has no children
-  if (null_term)
+  // Only a function's iterators are null, and it has no children. The cast
+  // asks whether the term is null, as z3::expr's operator! makes a negation.
+  if (!static_cast<bool>(term))
   {
     throw IncorrectUsageException("A function has no children");
   }
+  // the position as Z3 takes an argument index
+  const unsigned pos = detail::narrow<unsigned>(position, "a child position");
   // smt-switch lists the function, constructor, selector or tester applied
   // as the first child, which Z3 keeps as the decl
   if (is_apply(Z3Term(ctx, term).get_op().prim_op))
@@ -44,37 +45,17 @@ Term Z3TermIter::operator*() const
 
 TermIterBase * Z3TermIter::clone() const
 {
-  return new Z3TermIter(ctx, term, pos, null_term);
+  return new Z3TermIter(ctx, term, position);
 }
 
-bool Z3TermIter::operator==(const Z3TermIter & it) const
-{
-  if (!null_term && !it.null_term)
-  {
-    return term.id() == it.term.id() && pos == it.pos;
-  }
-  else
-  {
-    return null_term && it.null_term;
-  }
-}
-
-bool Z3TermIter::operator!=(const Z3TermIter & it) const
-{
-  return !(*this == it);
-}
-
-bool Z3TermIter::equal(const TermIterBase & other) const
+bool Z3TermIter::same_term(const TermIterBase & other) const
 {
   const Z3TermIter & zti = static_cast<const Z3TermIter &>(other);
-  if (!null_term && !zti.null_term)
+  if (!static_cast<bool>(term) || !static_cast<bool>(zti.term))
   {
-    return term.id() == zti.term.id() && pos == zti.pos;
+    return static_cast<bool>(term) == static_cast<bool>(zti.term);
   }
-  else
-  {
-    return null_term && zti.null_term;
-  }
+  return term.id() == zti.term.id();
 }
 
 // end Z3TermIter implementation
@@ -408,7 +389,7 @@ TermIter Z3Term::begin() const
   {
     // no iteration for a function symbol
     // cannot query term (it's null)
-    return TermIter(new Z3TermIter(ctx, term, 0, true));
+    return TermIter(new Z3TermIter(ctx, term, 0));
   }
 
   if (term.is_quantifier())
@@ -429,7 +410,7 @@ TermIter Z3Term::end() const
   {
     // this is the actual function (not an application of a function)
     // no iteration to do
-    return TermIter(new Z3TermIter(ctx, term, 0, true));
+    return TermIter(new Z3TermIter(ctx, term, 0));
   }
 
   uint32_t num_args = term.num_args();

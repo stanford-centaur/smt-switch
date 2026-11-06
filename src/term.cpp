@@ -83,11 +83,18 @@ std::ostream & operator<<(std::ostream & output, const Term t)
 }
 
 /* TermIterBase implementation */
+TermIterBase::TermIterBase(std::size_t pos) : position(pos) {}
+
 TermIterBase::~TermIterBase() = default;
+
+void TermIterBase::operator++() { ++position; }
+
+Term TermIterBase::operator*() const { return child(); }
 
 bool TermIterBase::operator==(const TermIterBase & other) const
 {
-  return (typeid(*this) == typeid(other)) && equal(other);
+  return typeid(*this) == typeid(other) && same_term(other)
+         && position == other.position;
 }
 
 bool TermIterBase::operator!=(const TermIterBase & other) const

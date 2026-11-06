@@ -139,14 +139,26 @@ class TermIterBase
  public:
   // defined in the .cpp to anchor the vtable
   virtual ~TermIterBase();
-  virtual void operator++() = 0;
-  virtual Term operator*() const = 0;
+  void operator++();
+  Term operator*() const;
   virtual TermIterBase * clone() const = 0;
+  /** Iterators are equal when they are of one type, over the same term and
+   *  at the same position
+   */
   bool operator==(const TermIterBase & other) const;
   bool operator!=(const TermIterBase & other) const;
 
  protected:
-  virtual bool equal(const TermIterBase & other) const = 0;
+  /** @param pos the position of the child the iterator starts at */
+  explicit TermIterBase(std::size_t pos);
+  /** @return the child at position */
+  virtual Term child() const = 0;
+  /** @param other an iterator of the same type
+   *  @return true iff other iterates over the same term
+   */
+  virtual bool same_term(const TermIterBase & other) const = 0;
+
+  std::size_t position;
 };
 
 class TermIter

@@ -94,16 +94,12 @@ class LoggingTermIter : public TermIterBase
   // points at child number pos of children, which it shares with the term
   // and which is null for a leaf
   LoggingTermIter(std::shared_ptr<const TermVec> children, std::size_t pos);
-  void operator++() override;
-  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const LoggingTermIter & lit) const;
-  bool operator!=(const LoggingTermIter & lit) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
   std::shared_ptr<const TermVec> children;
-  std::size_t pos;
 };
 
 }  // namespace smt

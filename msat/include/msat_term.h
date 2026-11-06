@@ -35,20 +35,16 @@ class MsatTermIter : public TermIterBase
   // TODO: consider making env const everywhere
   MsatTermIter(const std::shared_ptr<msat_env> & e,
                const msat_term t,
-               uint32_t p);
-  void operator++() override;
-  Term operator*() const override;
+               std::size_t pos);
   TermIterBase * clone() const override;
-  bool operator==(const MsatTermIter & it) const;
-  bool operator!=(const MsatTermIter & it) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
 
  private:
   std::shared_ptr<msat_env> env;
   msat_term term;
-  uint32_t pos;
 };
 
 class MsatTerm : public AbsTerm

@@ -47,18 +47,15 @@ class BoolectorTermIter : public TermIterBase
   // size 3
   BoolectorTermIter(const std::shared_ptr<Btor> & b,
                     std::vector<BtorNode *> c,
-                    int64_t i);
+                    std::size_t pos);
   BoolectorTermIter(const BoolectorTermIter & it);
   ~BoolectorTermIter() override;
   BoolectorTermIter & operator=(const BoolectorTermIter & it);
-  void operator++() override;
-  Term operator*() const override;
   TermIterBase * clone() const override;
-  bool operator==(const BoolectorTermIter & it) const;
-  bool operator!=(const BoolectorTermIter & it) const;
 
  protected:
-  bool equal(const TermIterBase & other) const override;
+  Term child() const override;
+  bool same_term(const TermIterBase & other) const override;
 
  private:
   // keeps the instance alive for as long as this object is
@@ -66,7 +63,6 @@ class BoolectorTermIter : public TermIterBase
   // this object holds a reference to each, so they stay alive after the
   // term they came from is gone
   std::vector<BtorNode *> children;
-  int64_t idx;
 };
 
 class BoolectorTerm : public AbsTerm
