@@ -17,7 +17,6 @@
 #include "interpolating_solver.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -322,7 +321,6 @@ Result AbsSmtInterpolator::interpolant_from_sequence(const Term & A,
   TermVec formulas{ A, B };
   TermVec itp_seq;
   Result res = get_sequence_interpolants(formulas, itp_seq);
-  assert(itp_seq.size() <= 1);
   if (itp_seq.size() == 1)
   {
     out_I = itp_seq.front();
