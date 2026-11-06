@@ -286,11 +286,6 @@ TEST_P(Dump, KeepsTheLogicAndTheAssertions)
 
 TEST_P(Dump, KeepsAssertionsMadeInAPush)
 {
-  if (GetParam().solver_enum == BTOR)
-  {
-    GTEST_SKIP() << "Boolector's dump leaves out the assertions made inside "
-                    "a push";
-  }
   make_symbols();
   s->push();
   s->assert_formula(s->make_term(Equal, x, y));
