@@ -16,6 +16,8 @@
 
 #include "boolector_solver.h"
 
+#include <boolector.h>
+
 extern "C" {
 #include <btorcore.h>
 #include <btornode.h>

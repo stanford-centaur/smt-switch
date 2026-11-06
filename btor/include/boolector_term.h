@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <boolector.h>
+#include <btortypes.h>
 
 extern "C" {
 #include <btorcore.h>
