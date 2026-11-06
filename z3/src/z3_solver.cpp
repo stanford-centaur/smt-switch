@@ -127,27 +127,32 @@ static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
     case To_Int: return Z3_mk_real2int(c, a);
     case Is_Int: return Z3_mk_is_int(c, a);
     case Extract:
-      return Z3_mk_extract(
-          c, narrow_index(op, op.idx0), narrow_index(op, op.idx1), a);
+      return Z3_mk_extract(c,
+                           narrow_index(op, op.indices[0]),
+                           narrow_index(op, op.indices[1]),
+                           a);
     case BVNot: return Z3_mk_bvnot(c, a);
     case BVNeg: return Z3_mk_bvneg(c, a);
-    case Zero_Extend: return Z3_mk_zero_ext(c, narrow_index(op, op.idx0), a);
-    case Sign_Extend: return Z3_mk_sign_ext(c, narrow_index(op, op.idx0), a);
+    case Zero_Extend:
+      return Z3_mk_zero_ext(c, narrow_index(op, op.indices[0]), a);
+    case Sign_Extend:
+      return Z3_mk_sign_ext(c, narrow_index(op, op.indices[0]), a);
     case Repeat:
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      return Z3_mk_repeat(c, narrow_index(op, op.idx0), a);
-    case Rotate_Left: return Z3_mk_rotate_left(c, narrow_index(op, op.idx0), a);
+      return Z3_mk_repeat(c, narrow_index(op, op.indices[0]), a);
+    case Rotate_Left:
+      return Z3_mk_rotate_left(c, narrow_index(op, op.indices[0]), a);
     case Rotate_Right:
-      return Z3_mk_rotate_right(c, narrow_index(op, op.idx0), a);
+      return Z3_mk_rotate_right(c, narrow_index(op, op.indices[0]), a);
     case BV_To_Nat:
     case UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
     case SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
-    case Int_To_BV: return Z3_mk_int2bv(c, narrow_index(op, op.idx0), a);
+    case Int_To_BV: return Z3_mk_int2bv(c, narrow_index(op, op.indices[0]), a);
     case Divisible:
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
@@ -155,7 +160,7 @@ static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
       return Z3_mk_divides(
           c,
           Z3_mk_int(c,
-                    detail::narrow<int>(op.idx0, "a divisible index"),
+                    detail::narrow<int>(op.indices[0], "a divisible index"),
                     Z3_mk_int_sort(c)),
           a);
     default: throw_unsupported(op.prim_op, 1);
@@ -1074,14 +1079,6 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
     check_quantifier_binders(op, terms);
-  }
-  const uint64_t num_indices = get_num_indices(op.prim_op);
-  if (op.num_idx != num_indices)
-  {
-    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
-                                  + std::to_string(num_indices)
-                                  + (num_indices == 1 ? " index" : " indices")
-                                  + ", not " + std::to_string(op.num_idx));
   }
 
   if (size == 1)

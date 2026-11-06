@@ -1832,7 +1832,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   {
     check_quantifier_binders(op, terms);
   }
-  else if (op.prim_op == Divisible && op.idx0 < 1)
+  else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
     throw IncorrectUsageException("Can't create divisible with index < 1");
   }

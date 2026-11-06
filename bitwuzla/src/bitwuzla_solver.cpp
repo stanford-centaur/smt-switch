@@ -524,7 +524,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     check_quantifier_binders(op, terms);
   }
   // Bitwuzla 0.9.1 and older make a term of width 0 instead of refusing.
-  if (op.prim_op == Repeat && op.idx0 == 0)
+  if (op.prim_op == Repeat && op.indices[0] == 0)
   {
     throw IncorrectUsageException("Repeat needs a count of at least 1");
   }
@@ -537,20 +537,11 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 
   const bitwuzla::Kind bkind = to_bitwuzla_kind(op.prim_op);
 
-  if (!op.num_idx)
-  {
-    return make_bzla_term(tm, bkind, bitwuzla_terms);
-  }
-  else
-  {
-    assert(op.num_idx > 0 && op.num_idx <= 2);
-    std::vector<uint64_t> indices({ op.idx0 });
-    if (op.num_idx == 2)
-    {
-      indices.push_back(op.idx1);
-    }
-    return make_bzla_term(tm, bkind, bitwuzla_terms, indices);
-  }
+  return make_bzla_term(
+      tm,
+      bkind,
+      bitwuzla_terms,
+      std::vector<std::uint64_t>(op.indices.begin(), op.indices.end()));
 }
 
 void BzlaSolver::do_reset()

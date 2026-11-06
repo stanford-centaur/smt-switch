@@ -16,6 +16,7 @@
 
 #include "ops.h"
 
+#include <algorithm>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -215,35 +216,84 @@ std::string to_string(PrimOp op)
   return info(op, "to_string").name;
 }
 
-Op::Op(PrimOp o) : prim_op(o) {}
-Op::Op(PrimOp o, std::uint64_t index0) : prim_op(o), num_idx(1), idx0(index0) {}
-Op::Op(PrimOp o, std::uint64_t index0, std::uint64_t index1)
-    : prim_op(o), num_idx(2), idx0(index0), idx1(index1)
+Op::Indices::Indices(std::uint64_t index0) : values{ { index0, 0 } }, count(1)
 {
+}
+
+Op::Indices::Indices(std::uint64_t index0, std::uint64_t index1)
+    : values{ { index0, index1 } }, count(2)
+{
+}
+
+std::size_t Op::Indices::size() const { return count; }
+
+bool Op::Indices::empty() const { return count == 0; }
+
+std::uint64_t Op::Indices::operator[](std::size_t i) const
+{
+  if (i >= count)
+  {
+    throw IncorrectUsageException("Op has no index " + std::to_string(i));
+  }
+  return values[i];
+}
+
+const std::uint64_t * Op::Indices::begin() const { return values.data(); }
+
+const std::uint64_t * Op::Indices::end() const { return values.data() + count; }
+
+bool Op::Indices::operator==(const Indices & other) const
+{
+  return std::equal(begin(), end(), other.begin(), other.end());
+}
+
+bool Op::Indices::operator!=(const Indices & other) const
+{
+  return !(*this == other);
+}
+
+/** @throws IncorrectUsageException unless po takes given indices; the null
+ *  operator takes none
+ */
+static void check_num_indices(PrimOp po, std::uint64_t given)
+{
+  const std::uint64_t expected =
+      (po == NUM_OPS_AND_NULL && given == 0) ? 0 : get_num_indices(po);
+  if (given != expected)
+  {
+    throw IncorrectUsageException(to_string(po) + " takes "
+                                  + std::to_string(expected)
+                                  + (expected == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(given));
+  }
+}
+
+Op::Op(PrimOp o) : prim_op(o) { check_num_indices(o, 0); }
+
+Op::Op(PrimOp o, std::uint64_t index0) : prim_op(o), indices(index0)
+{
+  check_num_indices(o, 1);
+}
+
+Op::Op(PrimOp o, std::uint64_t index0, std::uint64_t index1)
+    : prim_op(o), indices(index0, index1)
+{
+  check_num_indices(o, 2);
 }
 
 std::string Op::to_string() const
 {
-  std::string res;
-  if (num_idx)
+  if (indices.empty())
   {
-    res += "(_ ";
+    return smt::to_string(prim_op);
   }
 
-  res += smt::to_string(prim_op);
-
-  if (num_idx >= 1)
+  std::string res = "(_ " + smt::to_string(prim_op);
+  for (std::uint64_t index : indices)
   {
-    res += " " + std::to_string(idx0);
+    res += " " + std::to_string(index);
   }
-  if (num_idx >= 2)
-  {
-    res += " " + std::to_string(idx1);
-  }
-  if (num_idx)
-  {
-    res += ")";
-  }
+  res += ")";
   return res;
 }
 
@@ -270,20 +320,7 @@ bool is_apply(PrimOp po)
 
 bool operator==(Op o1, Op o2)
 {
-  if (o1.prim_op != o2.prim_op)
-  {
-    return false;
-  }
-  else if (o1.num_idx != o2.num_idx)
-  {
-    return false;
-  }
-  else
-  {
-    return (o1.num_idx == 0) || ((o1.num_idx == 1) && (o1.idx0 == o2.idx0))
-           || ((o1.num_idx == 2) && (o1.idx0 == o2.idx0)
-               && (o1.idx1 == o2.idx1));
-  }
+  return o1.prim_op == o2.prim_op && o1.indices == o2.indices;
 }
 
 bool operator!=(Op o1, Op o2) { return !(o1 == o2); }

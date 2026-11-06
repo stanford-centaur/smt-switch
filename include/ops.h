@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <ostream>
@@ -143,23 +144,52 @@ enum PrimOp
 
 /**
    Represents operators
-   If num_idx > 0 then it's an indexed operator
+   An Op made with indices is an indexed operator
  */
 struct Op
 {
+  /** The indices of an Op, in order, fixed when the Op is made: only Op can
+   *  make one or assign to one
+   */
+  class Indices
+  {
+   public:
+    Indices(const Indices & other) = default;
+    std::size_t size() const;
+    bool empty() const;
+    /** @throws IncorrectUsageException at or past size() */
+    std::uint64_t operator[](std::size_t i) const;
+    const std::uint64_t * begin() const;
+    const std::uint64_t * end() const;
+    bool operator==(const Indices & other) const;
+    bool operator!=(const Indices & other) const;
+
+   private:
+    friend struct Op;
+    Indices() = default;
+    explicit Indices(std::uint64_t index0);
+    Indices(std::uint64_t index0, std::uint64_t index1);
+    Indices & operator=(const Indices & other) = default;
+    // SMT-LIB indices are naturals, and no operator takes more than two.
+    std::array<std::uint64_t, 2> values{};
+    std::uint8_t count = 0;
+  };
+
   Op() = default;
+  /** @throws IncorrectUsageException for an operator that takes indices */
   Op(PrimOp o);
+  /** @throws IncorrectUsageException for an operator that does not take one
+   *  index
+   */
   Op(PrimOp o, std::uint64_t index0);
+  /** @throws IncorrectUsageException for an operator that does not take two
+   *  indices
+   */
   Op(PrimOp o, std::uint64_t index0, std::uint64_t index1);
   std::string to_string() const;
   bool is_null() const;
   PrimOp prim_op = NUM_OPS_AND_NULL;
-  std::uint64_t num_idx = 0;
-  // Zeroed so that the constructors leaving one or both unset still produce a
-  // readable Op: the public Python properties read them without consulting
-  // num_idx.
-  std::uint64_t idx0 = 0;
-  std::uint64_t idx1 = 0;
+  Indices indices;
 };
 using UnorderedOpSet = std::unordered_set<Op>;
 

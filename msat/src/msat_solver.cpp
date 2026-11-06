@@ -105,34 +105,35 @@ static msat_term unary_term(msat_env e, const Op & op, msat_term a)
     case To_Int: return msat_make_floor(e, a);
     case Is_Int: return ext_msat_is_int(e, a);
     case Divisible:
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
-      return ext_msat_make_divisible(e, op.idx0, a);
-    case Extract: return msat_make_bv_extract(e, op.idx0, op.idx1, a);
+      return ext_msat_make_divisible(e, op.indices[0], a);
+    case Extract:
+      return msat_make_bv_extract(e, op.indices[0], op.indices[1], a);
     case BVNot: return msat_make_bv_not(e, a);
     case BVNeg: return msat_make_bv_neg(e, a);
-    case Zero_Extend: return msat_make_bv_zext(e, op.idx0, a);
-    case Sign_Extend: return msat_make_bv_sext(e, op.idx0, a);
+    case Zero_Extend: return msat_make_bv_zext(e, op.indices[0], a);
+    case Sign_Extend: return msat_make_bv_sext(e, op.indices[0], a);
     case Repeat: {
-      if (op.idx0 < 1)
+      if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
       msat_term res = a;
-      for (uint64_t i = 1; i < op.idx0; i++)
+      for (uint64_t i = 1; i < op.indices[0]; i++)
       {
         res = msat_make_bv_concat(e, a, res);
       }
       return res;
     }
-    case Rotate_Left: return msat_make_bv_rol(e, op.idx0, a);
-    case Rotate_Right: return msat_make_bv_ror(e, op.idx0, a);
+    case Rotate_Left: return msat_make_bv_rol(e, op.indices[0], a);
+    case Rotate_Right: return msat_make_bv_ror(e, op.indices[0], a);
     case BV_To_Nat: return msat_make_int_from_ubv(e, a);
     case UBV_To_Int: return msat_make_int_from_ubv(e, a);
     case SBV_To_Int: return msat_make_int_from_sbv(e, a);
-    case Int_To_BV: return msat_make_int_to_bv(e, op.idx0, a);
+    case Int_To_BV: return msat_make_int_to_bv(e, op.indices[0], a);
     default: throw_unsupported(op.prim_op, 1);
   }
 }
@@ -773,14 +774,6 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
     check_quantifier_binders(op, terms);
-  }
-  const uint64_t num_indices = get_num_indices(op.prim_op);
-  if (op.num_idx != num_indices)
-  {
-    throw IncorrectUsageException(to_string(op.prim_op) + " takes "
-                                  + std::to_string(num_indices)
-                                  + (num_indices == 1 ? " index" : " indices")
-                                  + ", not " + std::to_string(op.num_idx));
   }
 
   vector<msat_term> mterms;
