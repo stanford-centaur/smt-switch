@@ -307,6 +307,12 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         cache[t] = transfer_datatype_component(t);
       }
+      // a param is a symbol too, but one without a symbol name
+      else if (t->is_param())
+      {
+        s = transfer_sort(t->get_sort());
+        cache[t] = solver->make_param(t->to_string(), s);
+      }
       else if (t->is_symbol())
       {
         s = transfer_sort(t->get_sort());
@@ -355,11 +361,6 @@ Term TermTranslator::transfer_term(const Term & term)
           }
           cache[t] = sym;
         }
-      }
-      else if (t->is_param())
-      {
-        s = transfer_sort(t->get_sort());
-        cache[t] = solver->make_param(t->to_string(), s);
       }
       else if (t->is_value())
       {
@@ -808,6 +809,14 @@ Term TermTranslator::cast_op(Op op, const TermVec & terms) const
       casted_children.push_back(cast_term(terms[i], domain_sorts[i - 1]));
     }
     return solver->make_term(Apply, casted_children);
+  }
+  // case 10 -- a quantifier, whose body is a bit-vector of width one in a
+  // solver that aliases the two
+  else if (po == Forall || po == Exists)
+  {
+    TermVec casted_children(terms.begin(), terms.end() - 1);
+    casted_children.push_back(cast_term(terms.back(), solver->make_sort(BOOL)));
+    return solver->make_term(op, casted_children);
   }
   // default case
   else
