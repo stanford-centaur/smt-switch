@@ -17,7 +17,6 @@
 #include "utils.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -36,6 +35,7 @@
 #include "result.h"
 #include "smt_defs.h"
 #include "solver.h"
+#include "solver_utils.h"
 #include "sort.h"
 #include "term.h"
 
@@ -1558,10 +1558,8 @@ void parse_smtlib_bv(const std::string & s,
     value = 0;
     for (char c : hex)
     {
-      const std::string::size_type d = std::string("0123456789abcdef")
-                                           .find(static_cast<char>(std::tolower(
-                                               static_cast<unsigned char>(c))));
-      if (d == std::string::npos)
+      const unsigned d = detail::numeral_digit(c);
+      if (d >= 16)
       {
         throw IncorrectUsageException(not_bv);
       }
@@ -1654,24 +1652,27 @@ std::string bv_value_to_bits(const std::string & val,
                              std::uint64_t base,
                              const Sort & sort)
 {
-  if (base != 2 && base != 10 && base != 16)
-  {
-    throw IncorrectUsageException(
-        "Only accepted bases are 2, 10 and 16, but got "
-        + std::to_string(base));
-  }
   if (sort->get_sort_kind() != BV)
   {
     throw IncorrectUsageException("Sort " + sort->to_string()
                                   + " is not a bit-vector sort");
   }
-  bool negative = val.find("-") == 0;
-  std::string digits = negative ? val.substr(1) : val;
-  const char * digit_chars = base == 2    ? "01"
-                             : base == 16 ? "0123456789abcdefABCDEF"
-                                          : "0123456789";
-  if (digits.empty()
-      || digits.find_first_not_of(digit_chars) != std::string::npos)
+  // the digits below are read in base 2, 10 or 16
+  std::string numeral = val;
+  std::uint64_t native_base = base;
+  if (base != 2 && base != 10 && base != 16)
+  {
+    numeral = arith_value_to_decimal(INT, val, base);
+    native_base = 10;
+  }
+  bool negative = numeral.find("-") == 0;
+  std::string digits = negative ? numeral.substr(1) : numeral;
+  bool well_formed = !digits.empty();
+  for (char c : digits)
+  {
+    well_formed = well_formed && detail::numeral_digit(c) < native_base;
+  }
+  if (!well_formed)
   {
     throw IncorrectUsageException("Value " + val + " is not a base-"
                                   + std::to_string(base) + " numeral");
@@ -1680,31 +1681,60 @@ std::string bv_value_to_bits(const std::string & val,
   // the bits of the magnitude, most significant first, without leading
   // zeros
   std::string bits;
-  if (base == 10)
+  // whether reading stopped with bits left over, beyond what the sort has
+  bool too_wide = false;
+  if (native_base == 10)
   {
-    // halving the decimal digits gives the bits least significant first;
-    // stop once there are more than the sort has
-    std::string::size_type start = digits.find_first_not_of('0');
-    while (start != std::string::npos && bits.size() <= width)
+    // the digits in groups of nine, the first group possibly shorter, as
+    // digits in base 10^9, most significant first
+    std::vector<std::uint32_t> limbs;
+    std::string::size_type group = digits.size() % 9 ? digits.size() % 9 : 9;
+    for (std::string::size_type pos = 0; pos < digits.size(); pos += group)
     {
-      int remainder = 0;
-      for (std::string::size_type i = start; i < digits.size(); ++i)
+      group = pos == 0 ? group : 9;
+      std::uint32_t limb = 0;
+      for (std::string::size_type i = pos; i < pos + group; ++i)
       {
-        int current = remainder * 10 + (digits[i] - '0');
-        digits[i] = static_cast<char>('0' + current / 2);
-        remainder = current % 2;
+        limb = limb * 10 + static_cast<std::uint32_t>(digits[i] - '0');
       }
-      bits.push_back(static_cast<char>('0' + remainder));
-      start = digits.find_first_not_of('0', start);
+      limbs.push_back(limb);
     }
+    // dividing by 2^32 gives the bits 32 at a time, least significant
+    // first; stop once there are more than the sort has
+    std::vector<std::uint32_t>::size_type start = 0;
+    while (start < limbs.size() && limbs[start] == 0)
+    {
+      ++start;
+    }
+    while (start < limbs.size() && bits.size() <= width)
+    {
+      std::uint64_t remainder = 0;
+      for (std::vector<std::uint32_t>::size_type i = start; i < limbs.size();
+           ++i)
+      {
+        std::uint64_t current = remainder * 1000000000 + limbs[i];
+        limbs[i] = static_cast<std::uint32_t>(current >> 32);
+        remainder = current & 0xffffffff;
+      }
+      for (int bit = 0; bit < 32; ++bit)
+      {
+        bits.push_back((remainder >> bit) & 1 ? '1' : '0');
+      }
+      while (start < limbs.size() && limbs[start] == 0)
+      {
+        ++start;
+      }
+    }
+    too_wide = start < limbs.size();
     std::reverse(bits.begin(), bits.end());
+    bits.erase(0, std::min(bits.find('1'), bits.size()));
   }
   else
   {
     for (char c : digits)
     {
-      int digit = std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
-      for (int bit = base == 2 ? 0 : 3; bit >= 0; --bit)
+      unsigned digit = detail::numeral_digit(c);
+      for (int bit = native_base == 2 ? 0 : 3; bit >= 0; --bit)
       {
         bits.push_back((digit >> bit) & 1 ? '1' : '0');
       }
@@ -1712,10 +1742,11 @@ std::string bv_value_to_bits(const std::string & val,
     bits.erase(0, std::min(bits.find('1'), bits.size()));
   }
   // a magnitude of all width bits only fits negated, as -2^(width - 1)
-  bool fits = negative ? bits.size() < width
-                             || (bits.size() == width
-                                 && bits.find('1', 1) == std::string::npos)
-                       : bits.size() <= width;
+  bool fits = !too_wide
+              && (negative ? bits.size() < width
+                                 || (bits.size() == width
+                                     && bits.find('1', 1) == std::string::npos)
+                           : bits.size() <= width);
   if (!fits)
   {
     throw IncorrectUsageException("Value " + val + " does not fit in sort "

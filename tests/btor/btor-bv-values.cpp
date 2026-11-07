@@ -62,9 +62,4 @@ TEST_F(BtorBvValues, MalformedNumeralsThrow)
   EXPECT_THROW(s->make_term("fg", bv8, 16), IncorrectUsageException);
 }
 
-TEST_F(BtorBvValues, OtherBasesThrow)
-{
-  EXPECT_THROW(s->make_term("7", bv8, 8), IncorrectUsageException);
-}
-
 }  // namespace

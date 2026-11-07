@@ -164,6 +164,13 @@ T narrow(U value, const char * what)
   return static_cast<T>(value);
 }
 
+/** The value of c as a digit of a numeral in a base up to 36: 0 to 9,
+ *  then a to z in either case
+ *  @param c the character
+ *  @return its value, or 36 if c is no such digit
+ */
+unsigned numeral_digit(char c);
+
 }  // namespace detail
 
 /** Whether val is a number a value of sort kind sk, INT or REAL, can be
@@ -177,6 +184,22 @@ T narrow(U value, const char * what)
  *  @return true iff val is such a number
  */
 bool is_arith_number(SortKind sk, const std::string & val);
+
+/** The number val names in base `base`, written for is_arith_number: val
+ *  itself in base 10, and otherwise the same number in decimal, a REAL
+ *  with a point as a fraction. In another base, val is a numeral, or for a
+ *  REAL a decimal or fraction of numerals, of digits in that base (0 to 9,
+ *  then a to z in either case), with an optional leading minus.
+ *  @param sk the sort kind of the value, INT or REAL
+ *  @param val the number in base `base`
+ *  @param base from 2 to 36
+ *  @return the number in base 10
+ *  @throws IncorrectUsageException for another base, or a val in a base
+ *  other than 10 that is not such a number
+ */
+std::string arith_value_to_decimal(SortKind sk,
+                                   const std::string & val,
+                                   std::uint64_t base);
 
 /** The index-value map that a chain of stores over a constant base stands
  *  for, given the index and value each store along it writes. A backend

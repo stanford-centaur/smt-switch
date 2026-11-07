@@ -26,6 +26,7 @@
 #include "available_solvers.h"
 #include "datatype.h"
 #include "exceptions.h"
+#include "generic_sort.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -660,6 +661,46 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
                          UnitUtilDimacsTests,
                          testing::ValuesIn(available_solver_enums()));
+
+TEST(BvValueToBits, DecimalAcrossLimbs)
+{
+  // 2^32 - 1 and 2^32, either side of one 32-bit chunk
+  EXPECT_EQ(
+      bv_value_to_bits("4294967295", 10, std::make_shared<BVGenericSort>(33)),
+      "0" + std::string(32, '1'));
+  EXPECT_EQ(
+      bv_value_to_bits("4294967296", 10, std::make_shared<BVGenericSort>(33)),
+      "1" + std::string(32, '0'));
+  // ten digits, so the first group of nine is a single digit
+  EXPECT_EQ(
+      bv_value_to_bits("1000000000", 10, std::make_shared<BVGenericSort>(30)),
+      "111011100110101100101000000000");
+  EXPECT_EQ(
+      bv_value_to_bits(
+          "000000000000000000005", 10, std::make_shared<BVGenericSort>(4)),
+      "0101");
+  EXPECT_EQ(bv_value_to_bits("340282366920938463463374607431768211455",
+                             10,
+                             std::make_shared<BVGenericSort>(128)),
+            std::string(128, '1'));
+}
+
+TEST(BvValueToBits, DecimalAtTheBounds)
+{
+  Sort bv64 = std::make_shared<BVGenericSort>(64);
+  EXPECT_EQ(bv_value_to_bits("18446744073709551615", 10, bv64),
+            std::string(64, '1'));
+  EXPECT_EQ(bv_value_to_bits("-9223372036854775808", 10, bv64),
+            "1" + std::string(63, '0'));
+  EXPECT_THROW(bv_value_to_bits("18446744073709551616", 10, bv64),
+               IncorrectUsageException);
+  EXPECT_THROW(bv_value_to_bits("-9223372036854775809", 10, bv64),
+               IncorrectUsageException);
+  // the lowest 32 bits of 2^32 are all zero, which must not read as 0
+  EXPECT_THROW(
+      bv_value_to_bits("4294967296", 10, std::make_shared<BVGenericSort>(8)),
+      IncorrectUsageException);
+}
 
 TEST(InternalName, KindAndIndex)
 {

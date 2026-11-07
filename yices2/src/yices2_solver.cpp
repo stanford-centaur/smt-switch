@@ -276,27 +276,22 @@ Term Yices2Solver::make_term(const std::string val,
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
   {
-    y_term = ext_yices_make_bv_number(
-        val.c_str(), sort->get_width(), detail::narrow<int>(base, "a base"));
+    y_term = yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
   }
   else if (sk == REAL)
   {
-    if (base != 10)
-    {
-      throw NotImplementedException("Does not support base not equal to 10.");
-    }
-
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!is_arith_number(REAL, val))
+    if (!is_arith_number(REAL, decimal))
     {
       throw IncorrectUsageException(msg);
     }
     // yices_parse_float reads only a leading number, so "1/2" as 1, while
     // yices_parse_rational reads no decimals
-    y_term = val.find('/') == std::string::npos
-                 ? yices_parse_float(val.c_str())
-                 : yices_parse_rational(val.c_str());
+    y_term = decimal.find('/') == std::string::npos
+                 ? yices_parse_float(decimal.c_str())
+                 : yices_parse_rational(decimal.c_str());
     if (y_term == NULL_TERM)
     {
       // such as division by zero
@@ -307,7 +302,8 @@ Term Yices2Solver::make_term(const std::string val,
   else if (sk == INT)
   {
     // reads an integer of any size, but also a fraction, which is no Int
-    y_term = yices_parse_rational(val.c_str());
+    y_term =
+        yices_parse_rational(arith_value_to_decimal(sk, val, base).c_str());
     if (y_term == NULL_TERM || !yices_term_is_int(y_term))
     {
       yices_clear_error();
