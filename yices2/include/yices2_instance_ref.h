@@ -17,8 +17,7 @@
 
 #pragma once
 
-#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
-#include <yices.h>
+#include <yices_types.h>
 
 namespace smt {
 

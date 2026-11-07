@@ -16,6 +16,8 @@
 
 #include "boolector_extensions.h"
 
+#include <boolector.h>
+
 #include <cstdint>
 
 namespace smt {
