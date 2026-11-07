@@ -1,6 +1,5 @@
 #include "z3_term.h"
 
-#include <cassert>
 #include <cstdint>
 #include <memory>
 
@@ -128,9 +127,14 @@ Op Z3Term::get_op() const
   {
     return Op();
   }
+  else if (term.is_lambda())
+  {
+    // Z3 gives one as the model value of an array it cannot write as stores
+    throw NotImplementedException("Z3 lambda terms have no smt-switch op: "
+                                  + term.to_string());
+  }
   else if (term.is_quantifier())
   {
-    assert(term.is_forall() || term.is_exists());
     return term.is_forall() ? Op(Forall) : Op(Exists);
   }
   else if (!term.is_app())
@@ -210,21 +214,17 @@ Op Z3Term::get_op() const
         return Op(Distinct);
         // indexed
       case Z3_OP_EXTRACT: {
-        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 2);
         return Op(Extract,
                   Z3_get_decl_int_parameter(term.ctx(), decl, 0),
                   Z3_get_decl_int_parameter(term.ctx(), decl, 1));
       }
       case Z3_OP_ZERO_EXT: {
-        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
         return Op(Zero_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_SIGN_EXT: {
-        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
         return Op(Sign_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_REPEAT: {
-        assert(Z3_get_decl_num_parameters(term.ctx(), decl) == 1);
         return Op(Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_ROTATE_LEFT:
