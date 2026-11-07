@@ -1,6 +1,5 @@
 #include "z3_solver.h"
 
-#include <gmpxx.h>
 #include <z3++.h>
 
 #include <array>
@@ -8,7 +7,6 @@
 #include <cstdint>
 #include <fstream>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
@@ -653,52 +651,32 @@ Term Z3Solver::make_term(const std::string val,
   z3::expr z_term = z3::expr(*ctx);
   SortKind sk = sort->get_sort_kind();
 
-  if (base != 10 && sk != BV)
-  {
-    throw NotImplementedException(
-        "Does not support base not equal to 10 for arithmetic.");
-  }
-
   if (sk == BV)
   {
-    if (base != 2 && base != 10 && base != 16)
+    // bv_value_to_bits writes the highest bit first, and Z3 reads the
+    // lowest first
+    std::string bits = bv_value_to_bits(val, base, sort);
+    std::unique_ptr<bool[]> low_first = std::make_unique<bool[]>(bits.size());
+    for (std::string::size_type i = 0; i < bits.size(); ++i)
     {
-      throw IncorrectUsageException("Unsupported base " + std::to_string(base));
+      low_first[i] = bits[bits.size() - 1 - i] == '1';
     }
-    mpz_class value;
-    try
-    {
-      value = mpz_class(val, detail::narrow<int>(base, "a base"));
-    }
-    catch (std::invalid_argument & e)
-    {
-      throw IncorrectUsageException("Can't create value " + val + " with sort "
-                                    + sort->to_string());
-    }
-    // Z3 reduces a value modulo 2^width, so reject anything below the
-    // smallest signed value or above the largest unsigned value
-    uint64_t width = sort->get_width();
-    mpz_class limit = mpz_class(1) << width;
-    if (value >= limit || value < -(limit >> 1))
-    {
-      throw IncorrectUsageException("Value " + val + " does not fit in sort "
-                                    + sort->to_string());
-    }
-    z_term = ctx->bv_val(value.get_str(10).c_str(), narrow_width(width));
+    z_term = ctx->bv_val(narrow_width(bits.size()), low_first.get());
   }
   else if (sk == REAL || sk == INT)
   {
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     // Z3 reads "" and "-" as 0, and "1.2.3" as some Real
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!is_arith_number(sk, val))
+    if (!is_arith_number(sk, decimal))
     {
       throw IncorrectUsageException(msg);
     }
     try
     {
-      z_term =
-          sk == REAL ? ctx->real_val(val.c_str()) : ctx->int_val(val.c_str());
+      z_term = sk == REAL ? ctx->real_val(decimal.c_str())
+                          : ctx->int_val(decimal.c_str());
     }
     catch (z3::exception & e)
     {

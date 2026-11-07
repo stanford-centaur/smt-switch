@@ -19,6 +19,7 @@
 #include <mathsat.h>
 
 #include <cstdint>
+#include <vector>
 
 namespace smt {
 msat_term ext_msat_make_negate(msat_env e, msat_term t);
@@ -47,10 +48,6 @@ msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1);
-msat_term ext_msat_make_bv_number(msat_env e,
-                                  const char * val,
-                                  size_t size,
-                                  int base);
 msat_term ext_msat_make_uf(msat_env e,
                            msat_decl func,
                            std::vector<msat_term> args);

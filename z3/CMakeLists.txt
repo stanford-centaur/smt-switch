@@ -37,9 +37,6 @@ if(_z3_type STREQUAL "STATIC_LIBRARY")
 elseif(_z3_type STREQUAL "SHARED_LIBRARY")
   set(SMT_SWITCH_Z3_DEPENDENCY_ARGS "COMPONENTS shared" PARENT_SCOPE)
 endif()
-# z3_solver.cpp uses GMP
-find_package(GMP REQUIRED COMPONENTS gmpxx)
-target_link_libraries(smt-switch-z3 PRIVATE GMP::gmpxx)
 
 add_library(SmtSwitch::smt-switch-z3 ALIAS smt-switch-z3)
 install(TARGETS smt-switch-z3 EXPORT SmtSwitchBackendTargets-z3 DESTINATION lib)

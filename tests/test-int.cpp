@@ -436,6 +436,38 @@ TEST_P(IntRealArithmeticTests, Div)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+TEST_P(IntRealArithmeticTests, ValueInOtherBase)
+{
+  // every value equals its decimal counterpart exactly when this is sat
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("101", intsort, 2), s->make_term(5, intsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("-fF", intsort, 16), s->make_term(-255, intsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("1.8", realsort, 16), s->make_term("3/2", realsort)));
+  s->assert_formula(s->make_term(Equal,
+                                 s->make_term("-0.01", realsort, 2),
+                                 s->make_term("-1/4", realsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("1/11", realsort, 2), s->make_term("1/3", realsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("17", intsort, 8), s->make_term(15, intsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("0.2", realsort, 3), s->make_term("2/3", realsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("Zz", intsort, 36), s->make_term(1295, intsort)));
+  EXPECT_TRUE(s->check_sat().is_sat());
+
+  EXPECT_THROW(s->make_term("102", intsort, 2), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("1.1", intsort, 2), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("1.", realsort, 16), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("-", realsort, 16), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("18", intsort, 8), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("0", intsort, 1), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("h", intsort, 17), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("0", intsort, 37), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(,
                          IntRealArithmeticTests,
                          testing::ValuesIn(filter_solver_configurations(

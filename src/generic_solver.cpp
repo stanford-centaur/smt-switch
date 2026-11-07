@@ -1685,22 +1685,17 @@ Term GenericSolver::make_value(const std::string val,
   std::string repr;
   if (sk == INT || sk == REAL)
   {
-    if (base != 10)
-    {
-      throw IncorrectUsageException(
-          "Can't use base " + std::to_string(base) + " for a value of sort "
-          + sort->to_string() + ", which is read in base 10");
-    }
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     // a solver binary reads some other strings, such as the name of a
     // symbol or a decimal for an INT, without an error but not as the
     // number meant
-    if (!is_arith_number(sk, val))
+    if (!is_arith_number(sk, decimal))
     {
       throw IncorrectUsageException("Value " + val + " is not a number of sort "
                                     + sort->to_string());
     }
     // no binary reads a number with spaces in it
-    std::string number = val;
+    std::string number = decimal;
     number.erase(std::remove(number.begin(), number.end(), ' '), number.end());
     // a division by zero is a legal term, but not a number
     std::string::size_type slash = number.find('/');

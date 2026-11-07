@@ -16,9 +16,9 @@
 
 #include "solver_utils.h"
 
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -130,6 +130,17 @@ std::uint32_t narrow_num_args(std::size_t num_args)
   return detail::narrow<std::uint32_t>(num_args, "a number of arguments");
 }
 
+unsigned detail::numeral_digit(char c)
+{
+  unsigned char u = static_cast<unsigned char>(c);
+  if (!std::isalnum(u))
+  {
+    return 36;
+  }
+  return static_cast<unsigned>(std::isdigit(u) ? u - '0'
+                                               : std::tolower(u) - 'a' + 10);
+}
+
 /** Whether s is a non-empty string of decimal digits */
 static bool is_decimal_numeral(const std::string & s)
 {
@@ -157,6 +168,89 @@ bool is_arith_number(SortKind sk, const std::string & val)
     part = start == std::string::npos ? "" : part.substr(start);
   }
   return is_decimal_numeral(whole) && is_decimal_numeral(part);
+}
+
+/** The decimal numeral of the non-empty string of base-`base` digits
+ *  `digits`, 0 to 9 then a to z in either case, or "" if digits is not one
+ */
+static std::string digits_to_decimal(const std::string & digits, unsigned base)
+{
+  if (digits.empty())
+  {
+    return "";
+  }
+  std::string dec = "0";
+  for (char c : digits)
+  {
+    unsigned digit = detail::numeral_digit(c);
+    if (digit >= base)
+    {
+      return "";
+    }
+    // dec = dec * base + digit
+    unsigned carry = digit;
+    for (auto it = dec.rbegin(); it != dec.rend(); ++it)
+    {
+      unsigned current = static_cast<unsigned>(*it - '0') * base + carry;
+      *it = static_cast<char>('0' + current % 10);
+      carry = current / 10;
+    }
+    while (carry > 0)
+    {
+      dec.insert(dec.begin(), static_cast<char>('0' + carry % 10));
+      carry /= 10;
+    }
+  }
+  return dec;
+}
+
+std::string arith_value_to_decimal(SortKind sk,
+                                   const std::string & val,
+                                   std::uint64_t base)
+{
+  if (base == 10)
+  {
+    return val;
+  }
+  if (base < 2 || base > 36)
+  {
+    throw IncorrectUsageException("Only accepted bases are 2 to 36, but got "
+                                  + std::to_string(base));
+  }
+  unsigned b = static_cast<unsigned>(base);
+  bool negative = val.find('-') == 0;
+  std::string magnitude = negative ? val.substr(1) : val;
+  std::string::size_type separator =
+      sk == REAL ? magnitude.find_first_of("./") : std::string::npos;
+  std::string whole = magnitude.substr(0, separator);
+  std::string decimal = digits_to_decimal(whole, b);
+  if (!decimal.empty() && separator != std::string::npos)
+  {
+    std::string part = magnitude.substr(separator + 1);
+    std::string denominator;
+    if (magnitude[separator] == '/')
+    {
+      denominator = digits_to_decimal(part, b);
+    }
+    else if (!part.empty())
+    {
+      // the digits after the point count base^-1, base^-2, ..., so the
+      // number is all its digits over base^(digits after the point), a 1
+      // followed by that many zeros
+      decimal = digits_to_decimal(whole + part, b);
+      denominator = digits_to_decimal("1" + std::string(part.size(), '0'), b);
+    }
+    decimal = decimal.empty() || denominator.empty()
+                  ? ""
+                  : decimal + "/" + denominator;
+  }
+  if (decimal.empty())
+  {
+    throw IncorrectUsageException("Value " + val + " is not a base-"
+                                  + std::to_string(base) + " number of sort "
+                                  + to_string(sk));
+  }
+  return negative ? "-" + decimal : decimal;
 }
 
 UnorderedTermMap store_chain_values(

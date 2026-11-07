@@ -333,6 +333,13 @@ TEST(ToIntParsing, SignedLiteral)
   EXPECT_EQ(smtlib_int_to_uint64("-0"), 0u);
 }
 
+TEST(ToIntParsing, HexBV)
+{
+  EXPECT_EQ(smtlib_bv_to_uint64("#xfF"), 255u);
+  EXPECT_EQ(smtlib_bv_to_int64("#xff"), -1);
+  EXPECT_THROW(smtlib_bv_to_uint64("#xg0"), IncorrectUsageException);
+}
+
 TEST(ToIntParsing, IndexedBVOutOfRange)
 {
   EXPECT_EQ(smtlib_bv_to_int64("(_ bv15 4)"), -1);

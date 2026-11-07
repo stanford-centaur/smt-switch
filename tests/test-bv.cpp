@@ -163,6 +163,21 @@ TEST_P(IndexedOpTests, RotateExtractRepeat)
             x_val == 0b1'1111'1111 ? 0b1111 : 0);
 }
 
+TEST_P(BVTests, ValueInOtherBase)
+{
+  Sort bv8 = s->make_sort(BV, 8);
+  EXPECT_EQ(s->make_term("17", bv8, 8), s->make_term(15, bv8));
+  EXPECT_EQ(s->make_term("-1", bv8, 3), s->make_term(-1, bv8));
+  EXPECT_EQ(s->make_term("7v", bv8, 32), s->make_term(255, bv8));
+  EXPECT_EQ(s->make_term("2N", bv8, 36), s->make_term(95, bv8));
+
+  EXPECT_THROW(s->make_term("8", bv8, 8), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("400", bv8, 8), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("0x1f", bv8, 0), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("0", bv8, 1), IncorrectUsageException);
+  EXPECT_THROW(s->make_term("z", bv8, 62), IncorrectUsageException);
+}
+
 TEST_P(IndexedOpTests, RepeatZeroTimes)
 {
   Term x = s->make_symbol("x", s->make_sort(BV, 4));

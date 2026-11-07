@@ -211,26 +211,21 @@ Term Cvc5Solver::make_term(std::string val,
 
     if ((sk == INT) || (sk == REAL))
     {
-      // TODO: Only do these checks in debug
-      if (base != 10)
-      {
-        throw IncorrectUsageException(
-            "Can't use non-decimal base for reals and ints");
-      }
+      std::string decimal = arith_value_to_decimal(sk, val, base);
       if (sk == INT)
       {
-        c = instance->tm.mkInteger(val);
+        c = instance->tm.mkInteger(decimal);
       }
       else
       {
-        c = instance->tm.mkReal(val);
+        c = instance->tm.mkReal(decimal);
       }
     }
     else if (sk == BV)
     {
       c = instance->tm.mkBitVector(narrow_width(sort->get_width()),
-                                   val,
-                                   detail::narrow<uint32_t>(base, "a base"));
+                                   bv_value_to_bits(val, base, sort),
+                                   2);
     }
     else
     {

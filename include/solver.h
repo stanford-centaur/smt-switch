@@ -317,8 +317,9 @@ class AbsSmtSolver
   /* Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
    * @param sort the sort to create
-   * @param base the base to interpret the value, for bit-vector sorts (ignored
-   * otherwise)
+   * @param base the base val is written in, from 2 to 36, for the digits (0
+   * to 9, then a to z in either case) of a numeral and of each part of a
+   * decimal or fraction
    * @return a value term with Sort sort and value val
    */
   virtual Term make_term(const std::string val,

@@ -16,6 +16,7 @@
 
 #include "msat_solver.h"
 
+#include <gmp.h>
 #include <mathsat.h>
 
 #include <cstddef>
@@ -40,6 +41,19 @@
 using namespace std;
 
 namespace smt {
+
+/** The bit-vector whose bits, most significant first, are `bits`, as wide
+ *  as bits is long
+ */
+static msat_term make_bv_from_bits(msat_env e, const string & bits)
+{
+  // msat_make_bv_number reads a string of bits far more slowly
+  mpz_t value;
+  mpz_init_set_str(value, bits.c_str(), 2);
+  msat_term res = msat_make_bv_mpz_number(e, value, bits.size());
+  mpz_clear(value);
+  return res;
+}
 
 static string msat_option_name(const string & option)
 {
@@ -574,10 +588,8 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      // always use string version for consistency
-      std::string sval = std::to_string(i);
-      msat_term mval =
-          ext_msat_make_bv_number(*env, sval.c_str(), sort->get_width(), 10);
+      msat_term mval = make_bv_from_bits(
+          *env, bv_value_to_bits(std::to_string(i), 10, sort));
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -621,10 +633,7 @@ Term MsatSolver::make_term(const std::string val,
     if (sk == BV)
     {
       msat_term mval =
-          ext_msat_make_bv_number(*env,
-                                  val.c_str(),
-                                  sort->get_width(),
-                                  detail::narrow<int>(base, "a base"));
+          make_bv_from_bits(*env, bv_value_to_bits(val, base, sort));
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -633,19 +642,15 @@ Term MsatSolver::make_term(const std::string val,
     }
     else if (sk == REAL || sk == INT)
     {
-      if (base != 10)
-      {
-        throw NotImplementedException(
-            "MathSAT only supports base 10 for real and integer values");
-      }
+      std::string decimal = arith_value_to_decimal(sk, val, base);
       // msat_make_number reads "" and "-" as 0, and "1/2" as a Real even
       // for an INT
-      if (!is_arith_number(sk, val))
+      if (!is_arith_number(sk, decimal))
       {
         throw IncorrectUsageException("");
       }
 
-      msat_term mval = msat_make_number(*env, val.c_str());
+      msat_term mval = msat_make_number(*env, decimal.c_str());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");

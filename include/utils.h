@@ -282,8 +282,8 @@ std::uint64_t smtlib_bv_to_uint64(const std::string & s);
 std::int64_t smtlib_bv_to_int64(const std::string & s);
 
 /** The bits, most significant first, of the value of bit-vector sort `sort`
- *  that `val` names: a numeral in base 2, 10 or 16 with an optional leading
- *  minus, as passed to AbsSmtSolver::make_term. A short value is
+ *  that `val` names: a numeral in a base from 2 to 36 with an optional
+ *  leading minus, as passed to AbsSmtSolver::make_term. A short value is
  *  zero-extended, and a negative one is written in two's complement.
  *  Throws an IncorrectUsageException for another base, a malformed
  *  numeral, a value outside the smallest signed and the largest unsigned

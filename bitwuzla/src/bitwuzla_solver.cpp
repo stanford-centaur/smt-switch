@@ -448,18 +448,11 @@ Term BzlaSolver::make_term(const std::string val,
         + to_string(sk));
   }
 
-  if (base != 2 && base != 10 && base != 16)
-  {
-    throw IncorrectUsageException(::std::to_string(base) + " base for creating a BV value is not supported."
-                                  " Options are 2, 10, and 16");
-  }
-
   bitwuzla::Sort bsort = bzla_sort(sort);
   try
   {
-    // The base is 2, 10 or 16, so it fits the uint8_t that Bitwuzla takes.
     return std::make_shared<BzlaTerm>(
-        tm->mk_bv_value(bsort, val, static_cast<std::uint8_t>(base)), tm);
+        tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2), tm);
   }
   catch (bitwuzla::Exception & e)
   {

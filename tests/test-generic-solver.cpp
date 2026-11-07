@@ -1320,12 +1320,6 @@ TEST_P(GenericSolverTests, BvIntOutOfRange)
             "#b0" + string(63, '1'));
 }
 
-TEST_P(GenericSolverIntTests, IntStringInOtherBase)
-{
-  EXPECT_THROW(gs->make_term("101", gs->make_sort(INT), 2),
-               IncorrectUsageException);
-}
-
 TEST_P(GenericSolverIntTests, IntStringNotANumber)
 {
   Sort int_sort = gs->make_sort(INT);
