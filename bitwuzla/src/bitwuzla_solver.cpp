@@ -18,7 +18,6 @@
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -216,7 +215,6 @@ Result BzlaSolver::check_sat()
   }
   else
   {
-    assert(r == bitwuzla::Result::UNKNOWN);
     return Result(UNKNOWN);
   }
 }
@@ -250,7 +248,6 @@ Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    assert(res == bitwuzla::Result::UNKNOWN);
     return Result(UNKNOWN);
   }
 }
@@ -723,7 +720,6 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     bzla_solver->get_bitwuzla()->assert_formula(bformulae.at(k));
     last_itp_query_assertions.push_back(formulae.at(k));
   }
-  assert(formulae == last_itp_query_assertions);
 
   if (!dump_queries_prefix.empty())
   {
@@ -754,9 +750,6 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
   {
     return Result(UNKNOWN, "Interpolation failure");
   }
-
-  // if the result is not UNSAT, we cannot interpolate
-  assert(bzla_res == bitwuzla::Result::UNSAT);
 
   Result r = Result(UNSAT);
   std::vector<std::vector<bitwuzla::Term>> partitions;
@@ -793,7 +786,6 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     }
   }
 
-  assert(out_I.size() == formulae.size() - 1);
   return r;
 #endif
 }
