@@ -37,10 +37,26 @@
 
 namespace smt {
 
+class AbsTerm;
 class TermIter;
 
+namespace detail {
+
+// Gives AbsTerm shared_from_this. Deleting a term through a base whose
+// destructor is not virtual would skip the term's own destructors, and
+// enable_shared_from_this's is not virtual and can be reached by its
+// friend classes.
+class SharedTermBase : public std::enable_shared_from_this<AbsTerm>
+{
+ protected:
+  // Protected so no term can be deleted through it
+  ~SharedTermBase() = default;
+};
+
+}  // namespace detail
+
 // Abstract class for term
-class AbsTerm : public std::enable_shared_from_this<AbsTerm>
+class AbsTerm : public detail::SharedTermBase
 {
  public:
   virtual ~AbsTerm() = default;
