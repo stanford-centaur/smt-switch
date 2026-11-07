@@ -830,6 +830,28 @@ TEST_P(DatatypeTranslationTests, DatatypeTerms)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(DatatypeTranslationTests, DatatypeValues)
+{
+  Term nil =
+      s1->make_term(Apply_Constructor, s1->get_constructor(listsort, "nil"));
+  Term list5 = s1->make_term(Apply_Constructor,
+                             s1->get_constructor(listsort, "cons"),
+                             s1->make_term(5, intsort),
+                             nil);
+
+  TermTranslator to_s2(s2);
+  Term list5_2 = to_s2.transfer_term(list5);
+  EXPECT_TRUE(list5_2->is_value()) << list5_2;
+  Sort list2 = to_s2.transfer_sort(listsort);
+  Term nil2 =
+      s2->make_term(Apply_Constructor, s2->get_constructor(list2, "nil"));
+  EXPECT_EQ(list5_2,
+            s2->make_term(Apply_Constructor,
+                          s2->get_constructor(list2, "cons"),
+                          s2->make_term(5, s2->make_sort(INT)),
+                          nil2));
+}
+
 TEST_P(DatatypeTranslationTests, QuotedComponentNames)
 {
   if (get<0>(GetParam()).solver_enum == Z3)

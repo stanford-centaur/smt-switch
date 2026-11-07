@@ -170,6 +170,34 @@ struct KindPrimops
 };
 constexpr KindPrimops kind_primops;
 
+// Whether a cvc5 term is a literal, an abstract value or a constructor
+// applied to values
+bool is_cvc5_value(const cvc5::Term & term)
+{
+  cvc5::Kind k = term.getKind();
+  if (k == cvc5::Kind::APPLY_CONSTRUCTOR)
+  {
+    // The first child is the constructor itself.
+    for (std::size_t i = 1; i < term.getNumChildren(); ++i)
+    {
+      if (!is_cvc5_value(term[i]))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  // checking all possible const types for future-proofing
+  // not all these sorts are even supported at this time
+  return k == cvc5::Kind::UNINTERPRETED_SORT_VALUE
+         || k == cvc5::Kind::CONST_BOOLEAN || k == cvc5::Kind::CONST_RATIONAL
+         || k == cvc5::Kind::CONST_INTEGER || k == cvc5::Kind::CONST_BITVECTOR
+         || k == cvc5::Kind::CONST_FINITE_FIELD
+         || k == cvc5::Kind::CONST_FLOATINGPOINT
+         || k == cvc5::Kind::CONST_ROUNDINGMODE || k == cvc5::Kind::CONST_ARRAY
+         || k == cvc5::Kind::CONST_STRING || k == cvc5::Kind::CONST_SEQUENCE;
+}
+
 }  // namespace
 
 cvc5::Kind to_cvc5_kind(PrimOp po)
@@ -283,19 +311,7 @@ bool Cvc5Term::is_symbolic_const() const
           && !term.getSort().isFunction());
 }
 
-bool Cvc5Term::is_value() const
-{
-  // checking all possible const types for future-proofing
-  // not all these sorts are even supported at this time
-  cvc5::Kind k = term.getKind();
-  return k == cvc5::Kind::UNINTERPRETED_SORT_VALUE
-         || k == cvc5::Kind::CONST_BOOLEAN || k == cvc5::Kind::CONST_RATIONAL
-         || k == cvc5::Kind::CONST_INTEGER || k == cvc5::Kind::CONST_BITVECTOR
-         || k == cvc5::Kind::CONST_FINITE_FIELD
-         || k == cvc5::Kind::CONST_FLOATINGPOINT
-         || k == cvc5::Kind::CONST_ROUNDINGMODE || k == cvc5::Kind::CONST_ARRAY
-         || k == cvc5::Kind::CONST_STRING || k == cvc5::Kind::CONST_SEQUENCE;
-}
+bool Cvc5Term::is_value() const { return is_cvc5_value(term); }
 
 std::string Cvc5Term::to_string() const
 {

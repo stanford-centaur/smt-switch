@@ -503,6 +503,73 @@ TEST_P(Datatypes, ComponentsAndApplications)
   EXPECT_EQ(free_consts, UnorderedTermSet{ l });
 }
 
+TEST_P(Datatypes, ConstructorsOverValuesAreValues)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, s->make_datatype_constructor_decl("nil"));
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+  Term cons = s->get_constructor(listsort, "cons");
+  Term nil =
+      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+  Term five = s->make_term(5, intsort);
+  Term list5 = s->make_term(Apply_Constructor, cons, five, nil);
+  Term l = s->make_symbol("l", listsort);
+
+  EXPECT_TRUE(nil->is_value());
+  EXPECT_TRUE(list5->is_value());
+  EXPECT_FALSE(s->make_term(Apply_Constructor, cons, five, l)->is_value());
+  EXPECT_FALSE(s->make_term(Apply_Selector,
+                            s->get_selector(listsort, "cons", "tail"),
+                            list5)
+                   ->is_value());
+
+  // the solver reads the values as the lists they are
+  s->assert_formula(s->make_term(Equal, l, list5));
+  s->assert_formula(s->make_term(
+      Distinct,
+      s->make_term(
+          Apply_Selector, s->get_selector(listsort, "cons", "head"), l),
+      five));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(Datatypes, ModelValueIsValue)
+{
+  if (GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "the logging solver cannot get a value that is not a leaf";
+  }
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver cannot get the value of a datatype "
+                    "term";
+  }
+
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, s->make_datatype_constructor_decl("nil"));
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+  Term list5 = s->make_term(
+      Apply_Constructor,
+      s->get_constructor(listsort, "cons"),
+      s->make_term(5, intsort),
+      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil")));
+  Term l = s->make_symbol("l", listsort);
+  s->assert_formula(s->make_term(Equal, l, list5));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  Term value = s->get_value(l);
+  EXPECT_TRUE(value->is_value()) << value;
+  EXPECT_EQ(value, list5);
+}
+
 TEST_P(Datatypes, DeclName)
 {
   DatatypeDecl decl = s->make_datatype_decl("list");

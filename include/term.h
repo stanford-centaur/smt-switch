@@ -81,7 +81,10 @@ class AbsTerm : public detail::SharedTermBase
   virtual bool is_param() const = 0;
   /* returns true iff this term is a symbolic constant */
   virtual bool is_symbolic_const() const = 0;
-  /* returns true iff this term is an interpreted constant */
+  /** Returns true iff this term is a value: a literal, an abstract value, a
+   *  constant array, or a datatype constructor applied to values. No symbol
+   *  is a value, not even a function.
+   */
   virtual bool is_value() const = 0;
   /** Returns the name the symbol was made with. Unlike to_string, which
    *  prints SMT-LIB, it is never quoted: a symbol made as "a b" is named

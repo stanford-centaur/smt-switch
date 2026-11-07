@@ -1574,7 +1574,7 @@ Term GenericSolver::store_term(Term term) const
     // and a query before then binds it with a let (see query_text).
     if (gterm->is_value())
     {
-      name = gterm->to_string();
+      name = to_smtlib_def(gterm);
     }
     else if (gterm->is_ground())
     {
