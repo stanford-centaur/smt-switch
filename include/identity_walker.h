@@ -93,7 +93,7 @@ class IdentityWalker
    */
   void save_in_cache(const Term & key, const Term & val);
 
-  const SmtSolver & solver_;  ///< the solver to use for rebuilding terms
+  SmtSolver solver_;       ///< the solver to use for rebuilding terms
   bool clear_cache_;       ///< if true, clears the cache between calls to visit
   bool preorder_ = false;  ///< true if the term is visited for the first time
 
