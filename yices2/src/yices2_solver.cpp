@@ -276,7 +276,12 @@ Term Yices2Solver::make_term(const std::string val,
   SortKind sk = sort->get_sort_kind();
   if (sk == BV)
   {
-    y_term = yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
+    std::uint64_t width = sort->get_width();
+    y_term =
+        width <= 64
+            ? yices_bvconst_uint64(narrow_width(width),
+                                   detail::bv_value_to_uint64(val, base, width))
+            : yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
   }
   else if (sk == REAL)
   {

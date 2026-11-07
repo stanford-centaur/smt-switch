@@ -702,6 +702,23 @@ TEST(BvValueToBits, DecimalAtTheBounds)
       IncorrectUsageException);
 }
 
+TEST(BvValueToBits, PowerOfTwoBases)
+{
+  Sort bv4 = std::make_shared<BVGenericSort>(4);
+  EXPECT_EQ(bv_value_to_bits("777", 8, std::make_shared<BVGenericSort>(9)),
+            std::string(9, '1'));
+  EXPECT_EQ(bv_value_to_bits("-1", 4, std::make_shared<BVGenericSort>(3)),
+            "111");
+  EXPECT_EQ(bv_value_to_bits("vV", 32, std::make_shared<BVGenericSort>(10)),
+            std::string(10, '1'));
+  // leading zero digits add no bits
+  EXPECT_EQ(bv_value_to_bits("000000000000000f", 16, bv4), "1111");
+  EXPECT_EQ(bv_value_to_bits("-1000", 2, bv4), "1000");
+  EXPECT_THROW(bv_value_to_bits("10000", 2, bv4), IncorrectUsageException);
+  EXPECT_THROW(bv_value_to_bits("-1001", 2, bv4), IncorrectUsageException);
+  EXPECT_THROW(bv_value_to_bits("8", 8, bv4), IncorrectUsageException);
+}
+
 TEST(InternalName, KindAndIndex)
 {
   EXPECT_EQ(internal_name("assump", 3), "smt_switch_internal_assump_3");

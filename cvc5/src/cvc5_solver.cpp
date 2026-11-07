@@ -223,9 +223,11 @@ Term Cvc5Solver::make_term(std::string val,
     }
     else if (sk == BV)
     {
-      c = instance->tm.mkBitVector(narrow_width(sort->get_width()),
-                                   bv_value_to_bits(val, base, sort),
-                                   2);
+      std::uint32_t width = narrow_width(sort->get_width());
+      c = width <= 64 ? instance->tm.mkBitVector(
+                            width, detail::bv_value_to_uint64(val, base, width))
+                      : instance->tm.mkBitVector(
+                            width, bv_value_to_bits(val, base, sort), 2);
     }
     else
     {

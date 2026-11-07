@@ -1657,115 +1657,19 @@ std::string bv_value_to_bits(const std::string & val,
     throw IncorrectUsageException("Sort " + sort->to_string()
                                   + " is not a bit-vector sort");
   }
-  // the digits below are read in base 2, 10 or 16
-  std::string numeral = val;
-  std::uint64_t native_base = base;
-  if (base != 2 && base != 10 && base != 16)
-  {
-    numeral = arith_value_to_decimal(INT, val, base);
-    native_base = 10;
-  }
-  bool negative = numeral.find("-") == 0;
-  std::string digits = negative ? numeral.substr(1) : numeral;
-  bool well_formed = !digits.empty();
-  for (char c : digits)
-  {
-    well_formed = well_formed && detail::numeral_digit(c) < native_base;
-  }
-  if (!well_formed)
-  {
-    throw IncorrectUsageException("Value " + val + " is not a base-"
-                                  + std::to_string(base) + " numeral");
-  }
   std::uint64_t width = sort->get_width();
-  // the bits of the magnitude, most significant first, without leading
-  // zeros
-  std::string bits;
-  // whether reading stopped with bits left over, beyond what the sort has
-  bool too_wide = false;
-  if (native_base == 10)
+  std::vector<std::uint32_t> words =
+      detail::bv_value_to_words(val, base, width);
+  // bit i is in word i / 32, and the string starts with the highest bit
+  std::string bits(width, '0');
+  for (std::uint64_t i = 0; i < width; ++i)
   {
-    // the digits in groups of nine, the first group possibly shorter, as
-    // digits in base 10^9, most significant first
-    std::vector<std::uint32_t> limbs;
-    std::string::size_type group = digits.size() % 9 ? digits.size() % 9 : 9;
-    for (std::string::size_type pos = 0; pos < digits.size(); pos += group)
+    if ((words[i / 32] >> (i % 32)) & 1)
     {
-      group = pos == 0 ? group : 9;
-      std::uint32_t limb = 0;
-      for (std::string::size_type i = pos; i < pos + group; ++i)
-      {
-        limb = limb * 10 + static_cast<std::uint32_t>(digits[i] - '0');
-      }
-      limbs.push_back(limb);
-    }
-    // dividing by 2^32 gives the bits 32 at a time, least significant
-    // first; stop once there are more than the sort has
-    std::vector<std::uint32_t>::size_type start = 0;
-    while (start < limbs.size() && limbs[start] == 0)
-    {
-      ++start;
-    }
-    while (start < limbs.size() && bits.size() <= width)
-    {
-      std::uint64_t remainder = 0;
-      for (std::vector<std::uint32_t>::size_type i = start; i < limbs.size();
-           ++i)
-      {
-        std::uint64_t current = remainder * 1000000000 + limbs[i];
-        limbs[i] = static_cast<std::uint32_t>(current >> 32);
-        remainder = current & 0xffffffff;
-      }
-      for (int bit = 0; bit < 32; ++bit)
-      {
-        bits.push_back((remainder >> bit) & 1 ? '1' : '0');
-      }
-      while (start < limbs.size() && limbs[start] == 0)
-      {
-        ++start;
-      }
-    }
-    too_wide = start < limbs.size();
-    std::reverse(bits.begin(), bits.end());
-    bits.erase(0, std::min(bits.find('1'), bits.size()));
-  }
-  else
-  {
-    for (char c : digits)
-    {
-      unsigned digit = detail::numeral_digit(c);
-      for (int bit = native_base == 2 ? 0 : 3; bit >= 0; --bit)
-      {
-        bits.push_back((digit >> bit) & 1 ? '1' : '0');
-      }
-    }
-    bits.erase(0, std::min(bits.find('1'), bits.size()));
-  }
-  // a magnitude of all width bits only fits negated, as -2^(width - 1)
-  bool fits = !too_wide
-              && (negative ? bits.size() < width
-                                 || (bits.size() == width
-                                     && bits.find('1', 1) == std::string::npos)
-                           : bits.size() <= width);
-  if (!fits)
-  {
-    throw IncorrectUsageException("Value " + val + " does not fit in sort "
-                                  + sort->to_string());
-  }
-  std::string literal = std::string(width - bits.size(), '0') + bits;
-  if (negative)
-  {
-    // the two's complement keeps the bits up to the lowest one and flips
-    // the bits above it
-    std::string::size_type lowest_one = literal.rfind('1');
-    for (std::string::size_type i = 0;
-         lowest_one != std::string::npos && i < lowest_one;
-         ++i)
-    {
-      literal[i] = literal[i] == '0' ? '1' : '0';
+      bits[width - 1 - i] = '1';
     }
   }
-  return literal;
+  return bits;
 }
 
 std::uint64_t smtlib_bv_to_uint64(const std::string & s)

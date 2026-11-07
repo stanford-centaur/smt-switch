@@ -653,15 +653,24 @@ Term Z3Solver::make_term(const std::string val,
 
   if (sk == BV)
   {
-    // bv_value_to_bits writes the highest bit first, and Z3 reads the
-    // lowest first
-    std::string bits = bv_value_to_bits(val, base, sort);
-    std::unique_ptr<bool[]> low_first = std::make_unique<bool[]>(bits.size());
-    for (std::string::size_type i = 0; i < bits.size(); ++i)
+    std::uint64_t width = sort->get_width();
+    if (width <= 64)
     {
-      low_first[i] = bits[bits.size() - 1 - i] == '1';
+      z_term = ctx->bv_val(detail::bv_value_to_uint64(val, base, width),
+                           narrow_width(width));
     }
-    z_term = ctx->bv_val(narrow_width(bits.size()), low_first.get());
+    else
+    {
+      std::vector<std::uint32_t> words =
+          detail::bv_value_to_words(val, base, width);
+      // Z3 reads bits[0] as the lowest bit
+      std::unique_ptr<bool[]> bits = std::make_unique<bool[]>(width);
+      for (std::uint64_t i = 0; i < width; ++i)
+      {
+        bits[i] = (words[i / 32] >> (i % 32)) & 1;
+      }
+      z_term = ctx->bv_val(narrow_width(width), bits.get());
+    }
   }
   else if (sk == REAL || sk == INT)
   {

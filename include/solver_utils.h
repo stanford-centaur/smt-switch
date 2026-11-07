@@ -171,6 +171,27 @@ T narrow(U value, const char * what)
  */
 unsigned numeral_digit(char c);
 
+/** The two's complement of the bit-vector value val, a numeral in base
+ *  `base` with an optional leading minus, as AbsSmtSolver::make_term
+ *  accepts it
+ *  @param val the value
+ *  @param base from 2 to 36
+ *  @param width the width of the bit-vector
+ *  @return its bits in 32-bit words, least significant first, as many as
+ *  width bits take; bits of the last word above width are zero
+ *  @throws IncorrectUsageException for another base, a val that is not
+ *  such a numeral, or a value outside the smallest signed and the largest
+ *  unsigned value of width bits
+ */
+std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
+                                             std::uint64_t base,
+                                             std::uint64_t width);
+
+/** bv_value_to_words as one number, for a width of at most 64 */
+std::uint64_t bv_value_to_uint64(const std::string & val,
+                                 std::uint64_t base,
+                                 std::uint64_t width);
+
 }  // namespace detail
 
 /** Whether val is a number a value of sort kind sk, INT or REAL, can be
