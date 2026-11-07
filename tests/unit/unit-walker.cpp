@@ -211,6 +211,24 @@ TEST_P(UnitWalkerTests, FunSubstitution)
   EXPECT_EQ(fy, iw.visit(fx));
 }
 
+TEST_P(UnitWalkerTests, OutlivesTheHandleItWasMadeWith)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+
+  Term y = s->make_symbol("y", bvsort);
+  Term yp1 = s->make_term(BVAdd, y, s->make_term(1, bvsort));
+
+  UnorderedTermMap subs({ { x, y } });
+  std::unique_ptr<IdentityWalker> iw;
+  {
+    SmtSolver handle = s;
+    iw = std::make_unique<IdentityWalker>(handle, false, &subs);
+  }
+  // rebuilding x + 1 as y + 1 makes the term through the walker's solver
+  EXPECT_EQ(yp1, iw->visit(xp1));
+}
+
 /* helper function to test equivalency of passed_map that TreeWalker builds up
  * against expected_map that should have been built up. gets used for all tests
  * using TreeWalker */

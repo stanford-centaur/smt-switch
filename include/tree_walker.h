@@ -141,7 +141,7 @@ class TreeWalker
   void save_in_cache(const Term & key,
                      const std::pair<Term, std::vector<int>> & val);
 
-  const SmtSolver & solver_;  ///< the solver to use for rebuilding terms
+  SmtSolver solver_;  ///< the solver to use for rebuilding terms
   bool clear_cache_;  ///< if true, clears the cache between calls to visit
 
  private:
