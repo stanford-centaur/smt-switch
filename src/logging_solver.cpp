@@ -197,7 +197,8 @@ Term LoggingSolver::get_constructor(const Sort & s, std::string name) const
   {
     domain.push_back(sel.sort ? sel.sort : s);
   }
-  return make_component(wrapped, CONSTRUCTOR, domain, s, name);
+  return make_component(
+      wrapped, CONSTRUCTOR, domain, s, smtlib_quote_symbol(name));
 }
 
 Term LoggingSolver::get_tester(const Sort & s, std::string name) const
@@ -206,8 +207,11 @@ Term LoggingSolver::get_tester(const Sort & s, std::string name) const
       non_null_cast<LoggingSort>(s, "Cannot get a tester of a null sort")
           ->wrapped_sort,
       name);
-  return make_component(
-      wrapped, TESTER, SortVec{ s }, make_sort(BOOL), "(_ is " + name + ")");
+  return make_component(wrapped,
+                        TESTER,
+                        SortVec{ s },
+                        make_sort(BOOL),
+                        "(_ is " + smtlib_quote_symbol(name) + ")");
 }
 
 Term LoggingSolver::get_selector(const Sort & s,
@@ -223,8 +227,11 @@ Term LoggingSolver::get_selector(const Sort & s,
   {
     if (sel.name == name)
     {
-      return make_component(
-          wrapped, SELECTOR, SortVec{ s }, sel.sort ? sel.sort : s, name);
+      return make_component(wrapped,
+                            SELECTOR,
+                            SortVec{ s },
+                            sel.sort ? sel.sort : s,
+                            smtlib_quote_symbol(name));
     }
   }
   throw IncorrectUsageException("Constructor " + con + " has no selector "
@@ -454,9 +461,13 @@ Term LoggingSolver::make_symbol(const std::string name, const Sort & sort)
   std::shared_ptr<LoggingSort> lsort =
       non_null_cast<LoggingSort>(sort, "Cannot make a symbol of a null sort");
   Term wrapped_sym = wrapped_solver->make_symbol(name, lsort->wrapped_sort);
-  // bool true means it's a symbol
-  Term res = std::make_shared<LoggingTerm>(
-      wrapped_sym, sort, Op(), TermVec{}, name, true, next_term_id);
+  Term res = std::make_shared<LoggingTerm>(wrapped_sym,
+                                           sort,
+                                           Op(),
+                                           TermVec{},
+                                           smtlib_quote_symbol(name),
+                                           /* symbol */ true,
+                                           next_term_id);
 
   // check hash table
   // lookup modifies term in place and returns true if it's a known term

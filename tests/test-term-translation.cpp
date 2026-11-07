@@ -832,11 +832,10 @@ TEST_P(DatatypeTranslationTests, DatatypeTerms)
 
 TEST_P(DatatypeTranslationTests, QuotedComponentNames)
 {
-  if (get<0>(GetParam()).is_logging_solver
-      || get<0>(GetParam()).solver_enum == Z3)
+  if (get<0>(GetParam()).solver_enum == Z3)
   {
-    GTEST_SKIP() << "the logging solver and Z3 print a constructor or "
-                    "selector name without SMT-LIB quoting";
+    GTEST_SKIP() << "Z3 prints a constructor or selector name without "
+                    "SMT-LIB quoting";
   }
 
   // names that SMT-LIB quotes
