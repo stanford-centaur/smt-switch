@@ -43,6 +43,7 @@ class Cvc5Term : public AbsTerm
   bool is_value() const override;
   virtual std::string to_string() const override;
   virtual std::wstring getStringValue() const override;
+  std::string get_param_name() const override;
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;

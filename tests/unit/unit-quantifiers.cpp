@@ -147,6 +147,20 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   ASSERT_EQ(body, bimpfxeq0);
 }
 
+TEST_P(UnitQuantifierIterTests, BoundParamName)
+{
+  if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)
+  {
+    GTEST_SKIP() << "Z3 cannot list a quantifier's children";
+  }
+  Term x = s->make_param("x y", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term forall = s->make_term(Forall, x, s->make_term(BVUlt, x, y));
+  TermVec children(forall->begin(), forall->end());
+  ASSERT_FALSE(children.empty());
+  EXPECT_EQ(children.front()->get_param_name(), "x y");
+}
+
 TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
 {
   Term b = s->make_param("b", boolsort);
@@ -196,6 +210,32 @@ TEST_P(Binders, ParamHasNoSymbolName)
 {
   Term param = s->make_param("x", bvsort);
   EXPECT_THROW(param->get_symbol_name(), IncorrectUsageException);
+}
+
+TEST_P(Binders, ParamName)
+{
+  EXPECT_EQ(s->make_param("x", bvsort)->get_param_name(), "x");
+  EXPECT_EQ(s->make_param("x_1", bvsort)->get_param_name(), "x_1");
+  // SMT-LIB quotes this one, but the name is as given
+  EXPECT_EQ(s->make_param("a b", bvsort)->get_param_name(), "a b");
+}
+
+// Boolector prefixes a name made after a push or pop with its count of them
+TEST_P(Binders, ParamNameAfterPush)
+{
+  s->set_opt("incremental", "true");
+  s->push();
+  EXPECT_EQ(s->make_param("x", bvsort)->get_param_name(), "x");
+}
+
+TEST_P(Binders, NonParamHasNoParamName)
+{
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_THROW(x->get_param_name(), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(1, bvsort)->get_param_name(),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(BVNot, x)->get_param_name(),
+               IncorrectUsageException);
 }
 
 TEST_P(Binders, NoParam)

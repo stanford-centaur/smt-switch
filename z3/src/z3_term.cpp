@@ -295,6 +295,15 @@ string Z3Term::to_string() const
   }
 }
 
+string Z3Term::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  return param_name;
+}
+
 string Z3Term::get_symbol_name() const
 {
   if (!is_symbol() || is_param())

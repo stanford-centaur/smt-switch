@@ -322,6 +322,15 @@ static string bv_constant_to_bits(term_t term)
   return res;
 }
 
+string Yices2Term::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  return yices_get_term_name(term);
+}
+
 string Yices2Term::get_symbol_name() const
 {
   if (!is_symbol() || is_param())

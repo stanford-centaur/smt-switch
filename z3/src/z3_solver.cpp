@@ -1045,7 +1045,9 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
   // quantifier over it would bind the symbol. A fresh one never is.
   z3::expr z_term(*ctx, Z3_mk_fresh_const(*ctx, name.c_str(), zsort->type));
   // mark as a parameter by passing true
-  return std::make_shared<Z3Term>(ctx, z_term, true);
+  auto param = std::make_shared<Z3Term>(ctx, z_term, true);
+  param->param_name = name;
+  return param;
 }
 
 Term Z3Solver::make_term(Op op, const TermVec & terms) const

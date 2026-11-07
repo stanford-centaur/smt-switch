@@ -338,6 +338,15 @@ std::wstring Cvc5Term::getStringValue() const
   return std::wstring(value.begin(), value.end());
 }
 
+std::string Cvc5Term::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  return term.getSymbol();
+}
+
 std::string Cvc5Term::get_symbol_name() const
 {
   if (term.getKind() != ::cvc5::Kind::CONSTANT)
