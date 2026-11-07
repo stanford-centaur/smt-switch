@@ -500,9 +500,12 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       // incremental is off, and push the rest. MathSAT resets its
       // environment instead of popping when it keeps none.
       bool msat = get_solver_enum() == MSAT_INTERPOLATOR;
+      TermVec & asserted = record->asserted;
+      std::vector<std::string> & asserted_names = record->asserted_names;
       std::size_t num_reused = 0;
-      while (incremental_mode && num_reused < asserted.size()
-             && num_reused < formulae.size()
+      // the mode of the wrapped interpolator, which copies share
+      while (wrapped_interpolator->incremental_mode
+             && num_reused < asserted.size() && num_reused < formulae.size()
              && asserted[num_reused] == formulae[num_reused])
       {
         ++num_reused;
@@ -522,8 +525,9 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       {
         // a MathSAT interpolation group per level; Bitwuzla names every
         // formula, since one asserted last may be reused as a partition
-        std::string name = msat ? "g" + std::to_string(k + 1)
-                                : name_prefix + std::to_string(num_names++);
+        std::string name =
+            msat ? "g" + std::to_string(k + 1)
+                 : name_prefix + std::to_string(record->num_names++);
         (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
         (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[k] << " :"
                       << (msat ? INTERPOLATION_GROUP_STR : NAMED_STR) << " "
@@ -703,8 +707,8 @@ void PrintingInterpolator::do_set_opt(const std::string & option,
 
 void PrintingInterpolator::forget_queries()
 {
-  asserted.clear();
-  asserted_names.clear();
+  record->asserted.clear();
+  record->asserted_names.clear();
 }
 
 void PrintingInterpolator::initialize()

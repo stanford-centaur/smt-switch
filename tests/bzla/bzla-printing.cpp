@@ -183,4 +183,30 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
       "--produce-interpolants");
 }
 
+// copies share the wrapped interpolator, so a query through one pops what a
+// query through the other left asserted
+TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
+{
+  SmtInterpolator solver = create_printing_interpolator(
+      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+  auto copy = std::make_shared<PrintingInterpolator>(
+      *std::static_pointer_cast<PrintingInterpolator>(solver));
+  solver->set_logic("QF_BV");
+  Sort bvsort = solver->make_sort(BV, 2);
+  Term x = solver->make_symbol("x", bvsort);
+  Term y = solver->make_symbol("y", bvsort);
+  Term z = solver->make_symbol("z", bvsort);
+  Term xy = solver->make_term(BVUlt, x, y);
+  Term yz = solver->make_term(BVUlt, y, z);
+  Term zx = solver->make_term(BVUlt, z, x);
+
+  TermVec first;
+  ASSERT_TRUE(
+      solver->get_sequence_interpolants({ xy, yz, zx }, first).is_unsat());
+  TermVec second;
+  ASSERT_TRUE(
+      copy->get_sequence_interpolants({ yz, zx, xy }, second).is_unsat());
+  EXPECT_NE(strbuf.str().find("(pop 3)"), std::string::npos);
+}
+
 }  // namespace

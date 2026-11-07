@@ -110,6 +110,8 @@ class AbsSmtSolver
    *  It is provided by the derived class (backend implementation)
    */
   explicit AbsSmtSolver(SolverEnum se);
+  AbsSmtSolver(const AbsSmtSolver & other) = default;
+  AbsSmtSolver & operator=(const AbsSmtSolver & other) = default;
   virtual ~AbsSmtSolver() = default;
 
   /* Sets a solver option with smt-lib 2 syntax
