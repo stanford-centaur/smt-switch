@@ -362,7 +362,8 @@ Term TermTranslator::transfer_term(const Term & term)
           cache[t] = sym;
         }
       }
-      else if (t->is_value())
+      // a datatype value is rebuilt below, from its constructor and arguments
+      else if (t->is_value() && sk != DATATYPE)
       {
         s = transfer_sort(t->get_sort());
         if (s->get_sort_kind() == ARRAY)

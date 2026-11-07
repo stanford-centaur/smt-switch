@@ -215,6 +215,18 @@ std::size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
 // may have been simplified to a value by the underlying solver
 bool LoggingTerm::is_value() const
 {
+  if (op.prim_op == Apply_Constructor)
+  {
+    // The first child is the constructor itself.
+    for (std::size_t i = 1; i < children->size(); ++i)
+    {
+      if (!(*children)[i]->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   return op.is_null() && wrapped_term->is_value();
 }
 

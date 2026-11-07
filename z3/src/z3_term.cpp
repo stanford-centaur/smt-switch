@@ -13,6 +13,39 @@ using namespace std;
 
 namespace smt {
 
+namespace {
+
+// Whether a Z3 expression is a literal, an abstract value, a constant array
+// or a constructor applied to values
+bool is_z3_value(const z3::expr & term)
+{
+  if (term.is_true() || term.is_false() || term.is_numeral())
+  {
+    return true;
+  }
+  else if (!term.is_app())
+  {
+    return false;
+  }
+  Z3_decl_kind kind = term.decl().decl_kind();
+  if (kind == Z3_OP_DT_CONSTRUCTOR)
+  {
+    for (unsigned i = 0; i < term.num_args(); ++i)
+    {
+      if (!is_z3_value(term.arg(i)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  return kind == Z3_OP_CONST_ARRAY
+         || (kind == Z3_OP_UNINTERPRETED && term.is_const()
+             && term.decl().num_parameters() != 0);
+}
+
+}  // namespace
+
 // Z3Term implementation
 
 Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::expr t, bool param)
@@ -240,26 +273,7 @@ bool Z3Term::is_symbolic_const() const
   return is_symbol();
 }
 
-bool Z3Term::is_value() const
-{
-  if (is_function)
-  {
-    return false;
-  }
-
-  if (term.is_true() || term.is_false() || term.is_numeral())
-  {
-    return true;
-  }
-  else if (term.is_app())
-  {
-    Z3_decl_kind kind = term.decl().decl_kind();
-    return kind == Z3_OP_CONST_ARRAY
-           || (kind == Z3_OP_UNINTERPRETED && term.is_const()
-               && term.decl().num_parameters() != 0);
-  }
-  return false;
-}
+bool Z3Term::is_value() const { return !is_function && is_z3_value(term); }
 
 string Z3Term::to_string() const
 {
