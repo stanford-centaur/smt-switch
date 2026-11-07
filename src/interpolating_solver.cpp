@@ -58,7 +58,8 @@ Result AbsSmtInterpolator::check_sat()
       "Can't call check_sat from interpolating solver");
 }
 
-Result AbsSmtInterpolator::check_sat_assuming(const TermVec & /* assumptions */)
+Result AbsSmtInterpolator::do_check_sat_assuming(
+    const TermVec & /* assumptions */)
 {
   throw IncorrectUsageException(
       "Can't call check_sat_assuming from interpolating solver");

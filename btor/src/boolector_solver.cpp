@@ -22,7 +22,6 @@ extern "C" {
 #include <utils/boolectornodemap.h>
 }
 
-#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -398,13 +397,19 @@ void BoolectorSolver::assert_formula(const Term & t)
 
 Result BoolectorSolver::check_sat() { return solve(); }
 
-Result BoolectorSolver::check_sat_assuming(const TermVec & assumptions)
+Result BoolectorSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
+  // Every assumption is unwrapped before any is assumed: one assumed before
+  // a refused one would still hold for the next check.
+  std::vector<BoolectorNode *> nodes;
+  nodes.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(a);
-    assert(boolector_get_width(bt->btor.get(), bt->node) == 1);
-    boolector_assume(btor.get(), bt->node);
+    nodes.push_back(backend_pointer_cast<BoolectorTerm>(a)->node);
+  }
+  for (BoolectorNode * node : nodes)
+  {
+    boolector_assume(btor.get(), node);
   }
 
   return solve();
@@ -543,7 +548,6 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
                                                    Term & out_const_base) const
 {
   Sort arrsort = arr->get_sort();
-  assert(arrsort->get_sort_kind() == ARRAY);
 
   // assume base is zero
   // if it's not, it will be changed below

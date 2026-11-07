@@ -219,7 +219,7 @@ Result BzlaSolver::check_sat()
   }
 }
 
-Result BzlaSolver::check_sat_assuming(const TermVec & assumptions)
+Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
   std::vector<bitwuzla::Term> bzla_assumptions;
   bzla_assumptions.reserve(assumptions.size());

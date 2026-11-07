@@ -145,10 +145,12 @@ class AbsSmtSolver
    * SMT-LIB requires; a solver that needs literals labels the others itself
    * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with assumptions =
    * [t1,...,tn]
+   * The solver does the check in do_check_sat_assuming.
    * @param assumptions a vector of boolean formulas
    * @return a result object - see result.h
+   * @throws IncorrectUsageException for an assumption that is not boolean
    */
-  virtual Result check_sat_assuming(const TermVec & assumptions) = 0;
+  Result check_sat_assuming(const TermVec & assumptions);
 
   /* Check satisfiability under the assumptions in any other range of Terms,
    * such as a TermList or an UnorderedTermSet: anything a range-based for
@@ -538,6 +540,11 @@ class AbsSmtSolver
 
   /* Pop num contexts in the underlying solver; see pop */
   virtual void do_pop(std::uint64_t num) = 0;
+
+  /* Check satisfiability under boolean assumptions in the underlying solver;
+   * see check_sat_assuming
+   */
+  virtual Result do_check_sat_assuming(const TermVec & assumptions) = 0;
 
   /* Return the underlying solver to its startup state; see reset */
   virtual void do_reset() = 0;

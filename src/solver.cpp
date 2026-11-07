@@ -35,6 +35,27 @@ namespace smt {
 
 AbsSmtSolver::AbsSmtSolver(SolverEnum se) : solver_enum(se) {}
 
+Result AbsSmtSolver::check_sat_assuming(const TermVec & assumptions)
+{
+  // Every assumption is checked before any is assumed: one assumed before a
+  // refused one would still hold for the next check. The check compares
+  // sorts rather than kinds, as some solvers alias Bool to another sort.
+  const Sort boolsort = make_sort(BOOL);
+  for (const Term & a : assumptions)
+  {
+    if (!a)
+    {
+      throw IncorrectUsageException("Cannot assume a null term");
+    }
+    if (a->get_sort() != boolsort)
+    {
+      throw IncorrectUsageException("Expecting Boolean assumptions but got: "
+                                    + a->to_string());
+    }
+  }
+  return do_check_sat_assuming(assumptions);
+}
+
 Result AbsSmtSolver::check_sat_assuming_list(const TermList & assumptions)
 {
   return check_sat_assuming(assumptions);

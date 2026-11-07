@@ -267,7 +267,7 @@ Result MsatSolver::check_sat()
   }
 }
 
-Result MsatSolver::check_sat_assuming(const TermVec & assumptions)
+Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
   // unwrapped before anything changes, so a refused assumption leaves

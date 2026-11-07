@@ -44,10 +44,6 @@ class BzlaSolver : public AbsSmtSolver
   void set_logic(const std::string logic) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
-  // Overriding check_sat_assuming hides the AbsSmtSolver template that
-  // takes any range of Terms, so name it back in.
-  using AbsSmtSolver::check_sat_assuming;
-  Result check_sat_assuming(const TermVec & assumptions) override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
                                     Term & out_const_base) const override;
@@ -106,6 +102,7 @@ class BzlaSolver : public AbsSmtSolver
  protected:
   void do_push(std::uint64_t num) override;
   void do_pop(std::uint64_t num) override;
+  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_reset() override;
   void do_reset_assertions() override;
 

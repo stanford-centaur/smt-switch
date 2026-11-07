@@ -341,7 +341,7 @@ Result PrintingSolver::check_sat()
   return wrapped_solver->check_sat();
 }
 
-Result PrintingSolver::check_sat_assuming(const TermVec & assumptions)
+Result PrintingSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
   std::string assumptions_str;
   for (Term a : assumptions)

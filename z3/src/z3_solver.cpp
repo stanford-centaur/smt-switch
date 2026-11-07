@@ -770,20 +770,13 @@ Result Z3Solver::check_sat()
   }
 }
 
-Result Z3Solver::check_sat_assuming(const TermVec & assumptions)
+Result Z3Solver::do_check_sat_assuming(const TermVec & assumptions)
 {
   z3::expr_vector z3assumps(*ctx);
 
-  shared_ptr<Z3Term> za;
   for (auto a : assumptions)
   {
-    za = get_z3_term(a);
-    if (za->is_function)
-    {
-      throw IncorrectUsageException(
-          "Functions cannot be used directly as assumptions.");
-    }
-    z3assumps.push_back(za->term);
+    z3assumps.push_back(get_z3_term(a)->term);
   }
 
   last_query_assuming = true;

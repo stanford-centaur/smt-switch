@@ -2216,7 +2216,7 @@ Result GenericSolver::check_sat()
   return str_to_result(run_command(CommandKind::CHECK, CHECK_SAT_STR));
 }
 
-Result GenericSolver::check_sat_assuming(const TermVec & assumptions)
+Result GenericSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
   std::string names;
   for (Term t : assumptions)

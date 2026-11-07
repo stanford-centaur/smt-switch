@@ -391,7 +391,7 @@ Result Yices2Solver::check_sat()
   }
 }
 
-Result Yices2Solver::check_sat_assuming(const TermVec & assumptions)
+Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
 {
   vector<term_t> y_assumps;
   y_assumps.reserve(assumptions.size());
