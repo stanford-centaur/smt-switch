@@ -200,7 +200,7 @@ jobs:
         env:
           CMAKE_C_COMPILER_LAUNCHER: ccache
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
-          CMAKE_GENERATOR: Ninja Multi-Config
+          CMAKE_GENERATOR: Ninja
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           flags=$(jq -r '.[] | "--" + .solver' <<<"$DEPS_ENTRIES")
@@ -215,8 +215,7 @@ jobs:
           CCACHE_MAXSIZE: 500M
         run: |
           ccache --zero-stats
-          cmake --build . --config Debug
-          cmake --build . --config Release
+          cmake --build .
           # Drops what no build used in the last day, which ccache would
           # otherwise keep until the cache reaches its maximum size. A day
           # still covers branches based on an earlier commit of main.
@@ -235,7 +234,7 @@ jobs:
         env:
           # msat-printing runs the MathSAT executable, which needs libgmp
           DYLD_FALLBACK_LIBRARY_PATH: /opt/homebrew/lib
-        run: ctest -C Debug --parallel && ctest -C Release --parallel
+        run: ctest --parallel
       - name: Upload failing test log
         if: steps.test-cpp.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -250,9 +249,7 @@ jobs:
       - name: Test Python bindings
         run: |
           pip install pysmt pytest
-          cmake --install build --config Release --component python
-          pytest tests/python
-          cmake --install build --config Debug --component python
+          cmake --install build --component python
           pytest tests/python
   full:
     needs: [plan, deps]

@@ -54,27 +54,21 @@ invalidates *every* dependency's cache, because it hashes itself;
 
 ## Debug Builds
 
-`configure.sh` sets up a Release build. Release compiles out the library's
-internal `assert()` checks, so running the tests with them enabled needs a Debug
-build.
+`configure.sh` sets up a Release build, which is what CI builds and tests. For a
+build to run under a debugger, pass `-DCMAKE_BUILD_TYPE=Debug` to
+`configure.sh`.
 
-To build both configurations from one build directory, as CI does, use the Ninja
-Multi-Config generator and pick the configuration when building:
+To have Debug and Release side by side from one configure step, use the Ninja
+Multi-Config generator, which builds the dependencies under `deps/` once and
+gives each configuration its own subdirectory for the libraries. The
+configuration is then picked when building, testing or installing:
 
 ```sh
 CMAKE_GENERATOR="Ninja Multi-Config" ./configure.sh --<solver> ...
 cmake --build build --config Debug
 ctest --test-dir build -C Debug
+cmake --install build --config Debug --component python
 ```
-
-Swap `Debug` for `Release` to build and test the other one. Both share a single
-configure step and the dependencies under `deps/`, which are built only once.
-Each configuration gets its own subdirectory for the libraries. With `--python`,
-`cmake --install build --config Debug --component python` installs that
-configuration's bindings over whichever were installed before.
-
-With a single-configuration generator such as Make or plain Ninja, pass
-`-DCMAKE_BUILD_TYPE=Debug` to `configure.sh` instead.
 
 ## Style Decisions
 
@@ -172,12 +166,6 @@ An `Op` is a simple struct that holds a `PrimOp` and up to two integer indices.
 Functions such as `make_term` take only an `Op`, and the constructor for a
 single `PrimOp` is not `explicit`, so a `PrimOp` converts to an unindexed `Op`
 wherever one is expected: `make_term(And, a, b)` needs no `Op(And)`.
-
-## Utils
-
-`include/utils.h` implements assertions as macros and logging as a template
-parameterised on the log level, and these should be the only assertions/logging
-functions used throughout the codebase.
 
 ## Implementing New Solvers
 

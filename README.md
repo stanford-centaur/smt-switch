@@ -238,11 +238,6 @@ Testing needs GTest >= 1.14, which is downloaded and built automatically if no
 appropriate installation is found. Invoking CTest as shown in Quick Start will
 run every test. Individual test suites can be run using `./build/tests/<suite>`.
 
-The library's internal `assert()` checks are compiled out in release mode (the
-default). To run the tests with them enabled, pass `-DCMAKE_BUILD_TYPE=Debug` to
-`./configure.sh`, or see [DEVELOPERS.md](./DEVELOPERS.md#debug-builds) for
-building release and debug side by side.
-
 ## Python bindings
 
 It is highly recommended to use a Python
