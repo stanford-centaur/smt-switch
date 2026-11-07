@@ -299,7 +299,7 @@ Result Cvc5Solver::check_sat()
   }
 }
 
-Result Cvc5Solver::check_sat_assuming(const TermVec & assumptions)
+Result Cvc5Solver::do_check_sat_assuming(const TermVec & assumptions)
 {
   try
   {

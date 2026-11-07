@@ -162,6 +162,18 @@ TEST_P(UnitSolveTests, SatisfiableAssumption)
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
 }
 
+TEST_P(UnitSolveTests, NonBooleanAssumptionAssumesNothing)
+{
+  Term p = s->make_symbol("p", boolsort);
+  Term x = s->make_symbol("x", bvsort);
+  s->assert_formula(p);
+
+  EXPECT_THROW(s->check_sat_assuming(TermVec{ s->make_term(Not, p), x }),
+               IncorrectUsageException);
+  // the (not p) before the refused assumption must not have been assumed
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
 TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
 {
   SolverEnum se = GetParam().solver_enum;

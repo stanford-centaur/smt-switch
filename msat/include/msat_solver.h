@@ -57,10 +57,6 @@ class MsatSolver : public AbsSmtSolver
   void set_logic(const std::string logic_name) override;
   void assert_formula(const Term & t) override;
   Result check_sat() override;
-  // Overriding check_sat_assuming hides the AbsSmtSolver template that
-  // takes any range of Terms, so name it back in.
-  using AbsSmtSolver::check_sat_assuming;
-  Result check_sat_assuming(const TermVec & assumptions) override;
   uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
@@ -116,6 +112,7 @@ class MsatSolver : public AbsSmtSolver
  protected:
   void do_push(uint64_t num) override;
   void do_pop(uint64_t num) override;
+  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_reset() override;
   void do_reset_assertions() override;
 

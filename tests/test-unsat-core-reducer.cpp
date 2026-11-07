@@ -139,9 +139,10 @@ TEST_P(UnsatCoreReducerTests, LinearRefusesRepeatedAssumption)
 class UnknownAssumingSolver : public LoggingSolver
 {
  public:
-  using AbsSmtSolver::check_sat_assuming;
   using LoggingSolver::LoggingSolver;
-  Result check_sat_assuming(const TermVec & /* assumptions */) override
+
+ protected:
+  Result do_check_sat_assuming(const TermVec & /* assumptions */) override
   {
     return Result(UNKNOWN);
   }

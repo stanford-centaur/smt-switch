@@ -708,7 +708,7 @@ void LoggingSolver::assert_formula(const Term & t)
 
 Result LoggingSolver::check_sat() { return wrapped_solver->check_sat(); }
 
-Result LoggingSolver::check_sat_assuming(const TermVec & assumptions)
+Result LoggingSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
   // only needs to remember the latest set of assumptions
   assumption_cache->clear();
