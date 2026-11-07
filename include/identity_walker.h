@@ -53,6 +53,10 @@ class IdentityWalker
                  bool clear_cache,
                  UnorderedTermMap * ext_cache = nullptr);
 
+  IdentityWalker(const IdentityWalker & other) = default;
+  IdentityWalker(IdentityWalker && other) = default;
+  IdentityWalker & operator=(const IdentityWalker & other) = default;
+  IdentityWalker & operator=(IdentityWalker && other) = default;
   virtual ~IdentityWalker() = default;
 
   /** Visit a term and all its subterms in a post-order traversal
