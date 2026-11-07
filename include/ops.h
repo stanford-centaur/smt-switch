@@ -189,7 +189,7 @@ struct Op
   std::string to_string() const;
   bool is_null() const;
   PrimOp prim_op = NUM_OPS_AND_NULL;
-  Indices indices;
+  Indices indices = {};
 };
 using UnorderedOpSet = std::unordered_set<Op>;
 
