@@ -85,6 +85,8 @@ TEST_P(UnitTermTests, FunOp)
   ASSERT_FALSE(f->is_symbolic_const());
   EXPECT_FALSE(x->is_param());
   EXPECT_FALSE(f->is_param());
+  EXPECT_FALSE(x->is_value());
+  EXPECT_FALSE(f->is_value());
 
   EXPECT_EQ(fx->get_op(), Apply);
   ASSERT_NE(fx->begin(), fx->end());

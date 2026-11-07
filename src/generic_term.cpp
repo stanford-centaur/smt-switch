@@ -171,7 +171,13 @@ std::size_t GenericTerm::hash() const { return str_hash(compute_string()); }
 // may have been simplified to a value by the underlying solver
 bool GenericTerm::is_value() const
 {
-  return op == Op() && !is_param() && !is_symbolic_const();
+  if (!op.is_null() || is_symbol())
+  {
+    return false;
+  }
+  // A datatype's constructor, selector or tester is a leaf, not a value.
+  SortKind sk = sort->get_sort_kind();
+  return sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER;
 }
 
 bool GenericTerm::is_ground() const { return ground; }
