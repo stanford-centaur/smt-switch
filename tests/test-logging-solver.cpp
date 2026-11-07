@@ -88,6 +88,13 @@ TEST_P(Logging, PrintsApplicationAsSmtlib)
   EXPECT_EQ(s->make_term(Apply, f, x)->to_string(), "(f x)");
 }
 
+TEST_P(Logging, PrintsQuotedSymbolName)
+{
+  Term spaced = s->make_symbol("my x", bvsort4);
+  EXPECT_EQ(spaced->to_string(), "|my x|");
+  EXPECT_EQ(s->get_symbol("my x"), spaced);
+}
+
 TEST_P(Logging, PrintsIndexedOpAsSmtlib)
 {
   EXPECT_EQ(s->make_term(Op(Rotate_Right, 2), x)->to_string(),
