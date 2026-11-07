@@ -65,6 +65,13 @@ TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
 }
 
+// checks s, first telling started that its thread is running
+static Result check_once_started(SmtSolver s, std::promise<void> * started)
+{
+  started->set_value();
+  return s->check_sat();
+}
+
 TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
 {
   // a pigeonhole problem too hard to finish inside its limit
@@ -87,9 +94,14 @@ TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
   SmtSolver other = Yices2SolverFactory::create(false);
   other->set_opt("time-limit", "0.1");
 
+  std::promise<void> started;
   std::future<Result> running =
-      std::async(std::launch::async, &AbsSmtSolver::check_sat, hard.get());
-  std::this_thread::sleep_for(std::chrono::milliseconds(25));
+      std::async(std::launch::async, check_once_started, hard, &started);
+  // Waiting for the thread, however slow it is to be scheduled, leaves only
+  // the few calls between its signal and its claim of the timer to sleep
+  // through.
+  started.get_future().wait();
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
   // the running check holds the process's one time-limit timer
   EXPECT_THROW(other->check_sat(), NotImplementedException);
   // the refused check left the running one's limit in place
