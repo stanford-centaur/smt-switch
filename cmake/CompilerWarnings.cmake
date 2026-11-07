@@ -365,7 +365,7 @@ set(
   -Wdynamic-class-memaccess # destination for this X call is a pointer to class containing
   -Wdynamic-exception-spec # ISO C++17 does not allow dynamic exception specifications
   -Weager-load-cxx-named-modules # the form '-fmodule-file=<BMI-path>'
-  # -Weffc++ # violations of Effective C++ style rules
+  -Weffc++ # violations of Effective C++ style rules
   -Welaborated-enum-base # an additional enum-base is used in an elaborated-type-specifier
   -Welaborated-enum-class # reference to enumeration must use 'enum' not 'enum struct'
   -Wembedded-directive # embedding a directive within macro arguments has undefined behavior
