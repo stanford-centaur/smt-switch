@@ -947,6 +947,14 @@ TEST_P(QuantifierTranslationTests, Forall)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(QuantifierTranslationTests, ParamName)
+{
+  // SMT-LIB quotes this name, but the copy is named as the param was
+  Term i = s1->make_param("i j", bvsort8);
+  TermTranslator to_s2(s2);
+  EXPECT_EQ(to_s2.transfer_term(i)->get_param_name(), "i j");
+}
+
 // All tests are instantiated with non-generic solvers,
 // as generic solvers do not support term translation
 // currently.
