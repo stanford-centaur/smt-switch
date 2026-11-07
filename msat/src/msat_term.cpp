@@ -16,7 +16,6 @@
 
 #include "msat_term.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -379,12 +378,7 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_int_to_bv(*env, term))
   {
-    // need to include the width
-    size_t out_width;
-    [[maybe_unused]] bool ok =
-        msat_is_bv_type(*env, msat_term_get_type(term), &out_width);
-    assert(ok);
-    return Op(Int_To_BV, out_width);
+    return Op(Int_To_BV, get_sort()->get_width());
   }
   else
   {
