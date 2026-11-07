@@ -16,7 +16,7 @@
 
 #include "solver_utils.h"
 
-#include <cctype>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -132,13 +132,178 @@ std::uint32_t narrow_num_args(std::size_t num_args)
 
 unsigned detail::numeral_digit(char c)
 {
-  unsigned char u = static_cast<unsigned char>(c);
-  if (!std::isalnum(u))
+  return static_cast<unsigned>(c >= '0' && c <= '9'   ? c - '0'
+                               : c >= 'a' && c <= 'z' ? c - 'a' + 10
+                               : c >= 'A' && c <= 'Z' ? c - 'A' + 10
+                                                      : 36);
+}
+
+/** The exception for a val that is not a base-`base` numeral */
+static IncorrectUsageException not_a_numeral(const std::string & val,
+                                             std::uint64_t base)
+{
+  return IncorrectUsageException("Value " + val + " is not a base-"
+                                 + std::to_string(base) + " numeral");
+}
+
+std::vector<std::uint32_t> detail::bv_value_to_words(const std::string & val,
+                                                     std::uint64_t base,
+                                                     std::uint64_t width)
+{
+  if (base < 2 || base > 36)
   {
-    return 36;
+    throw IncorrectUsageException("Only accepted bases are 2 to 36, but got "
+                                  + std::to_string(base));
   }
-  return static_cast<unsigned>(std::isdigit(u) ? u - '0'
-                                               : std::tolower(u) - 'a' + 10);
+  bool negative = val.find('-') == 0;
+  std::string::size_type first = negative ? 1 : 0;
+  if (first == val.size())
+  {
+    throw not_a_numeral(val, base);
+  }
+  // the magnitude, least significant word first
+  std::vector<std::uint32_t> words;
+  // whether the magnitude grew past the words that can hold more bits than
+  // width, after which it is no longer computed
+  bool too_wide = false;
+  // a power of two
+  if ((base & (base - 1)) == 0)
+  {
+    // each digit is a whole number of bits, so shift them in from the last
+    // digit on
+    unsigned digit_bits = 0;
+    while ((std::uint64_t{ 1 } << digit_bits) < base)
+    {
+      ++digit_bits;
+    }
+    // bits read but not yet a whole word, lowest first
+    std::uint64_t pending = 0;
+    unsigned pending_bits = 0;
+    for (std::string::size_type i = val.size(); i-- > first;)
+    {
+      unsigned digit = numeral_digit(val[i]);
+      if (digit >= base)
+      {
+        throw not_a_numeral(val, base);
+      }
+      pending |= std::uint64_t{ digit } << pending_bits;
+      pending_bits += digit_bits;
+      if (pending_bits >= 32)
+      {
+        words.push_back(static_cast<std::uint32_t>(pending));
+        pending >>= 32;
+        pending_bits -= 32;
+      }
+    }
+    // the rest, which may be zero
+    words.push_back(static_cast<std::uint32_t>(pending));
+  }
+  else
+  {
+    // read the digits in groups of n, with n as large as keeps base^n
+    // within a word, multiplying by base^n and adding each group in turn
+    std::uint64_t group_scale = base;
+    std::string::size_type group = 1;
+    while (group_scale * base <= 0xffffffff)
+    {
+      group_scale *= base;
+      ++group;
+    }
+    // the first group takes the digits left over, so the rest are full
+    std::string::size_type count = val.size() - first;
+    std::string::size_type length = count % group ? count % group : group;
+    for (std::string::size_type pos = first; pos < val.size();
+         pos += length, length = group)
+    {
+      // the group as a number, and base^(its length)
+      std::uint64_t value = 0;
+      std::uint64_t scale = 1;
+      for (std::string::size_type i = pos; i < pos + length; ++i)
+      {
+        unsigned digit = numeral_digit(val[i]);
+        if (digit >= base)
+        {
+          throw not_a_numeral(val, base);
+        }
+        value = value * base + digit;
+        scale *= base;
+      }
+      // the remaining digits are only checked
+      if (too_wide)
+      {
+        continue;
+      }
+      // words = words * scale + value
+      std::uint64_t carry = value;
+      for (std::uint32_t & word : words)
+      {
+        std::uint64_t current = word * scale + carry;
+        word = static_cast<std::uint32_t>(current);
+        carry = current >> 32;
+      }
+      if (carry)
+      {
+        words.push_back(static_cast<std::uint32_t>(carry));
+      }
+      // the last word is not zero, so more words than these hold more bits
+      // than width
+      too_wide = words.size() > width / 32 + 1;
+    }
+  }
+  // drop the zero words at the top, so the last word holds the highest one
+  while (!words.empty() && words.back() == 0)
+  {
+    words.pop_back();
+  }
+  // the bits up to and including the highest one
+  std::uint64_t magnitude_bits = 0;
+  if (!words.empty())
+  {
+    magnitude_bits = 32 * (words.size() - 1);
+    for (std::uint32_t top = words.back(); top; top >>= 1)
+    {
+      ++magnitude_bits;
+    }
+  }
+  // a magnitude of all width bits only fits negated, as -2^(width - 1):
+  // a single bit in the last word, and every word below it zero
+  if (too_wide || magnitude_bits > width
+      || (negative && magnitude_bits == width
+          && ((words.back() & (words.back() - 1)) != 0
+              || std::count(words.begin(), words.end() - 1, 0u)
+                     != static_cast<std::ptrdiff_t>(words.size() - 1))))
+  {
+    throw IncorrectUsageException("Value " + val + " does not fit in "
+                                  + std::to_string(width) + " bits");
+  }
+  // as many words as width bits take
+  words.resize((width + 31) / 32, 0);
+  if (negative)
+  {
+    // the two's complement inverts every bit, then adds one
+    std::uint64_t carry = 1;
+    for (std::uint32_t & word : words)
+    {
+      std::uint64_t current = std::uint64_t{ ~word } + carry;
+      word = static_cast<std::uint32_t>(current);
+      carry = current >> 32;
+    }
+  }
+  // clear the bits above width, which the two's complement sets
+  if (width % 32)
+  {
+    words.back() &= (std::uint32_t{ 1 } << (width % 32)) - 1;
+  }
+  return words;
+}
+
+std::uint64_t detail::bv_value_to_uint64(const std::string & val,
+                                         std::uint64_t base,
+                                         std::uint64_t width)
+{
+  std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
+  return words.size() > 1 ? std::uint64_t{ words[1] } << 32 | words[0]
+                          : words[0];
 }
 
 /** Whether s is a non-empty string of decimal digits */
@@ -223,26 +388,32 @@ std::string arith_value_to_decimal(SortKind sk,
   std::string::size_type separator =
       sk == REAL ? magnitude.find_first_of("./") : std::string::npos;
   std::string whole = magnitude.substr(0, separator);
-  std::string decimal = digits_to_decimal(whole, b);
-  if (!decimal.empty() && separator != std::string::npos)
+  std::string decimal;
+  if (separator == std::string::npos)
+  {
+    decimal = digits_to_decimal(whole, b);
+  }
+  else
   {
     std::string part = magnitude.substr(separator + 1);
+    std::string numerator;
     std::string denominator;
     if (magnitude[separator] == '/')
     {
+      numerator = digits_to_decimal(whole, b);
       denominator = digits_to_decimal(part, b);
     }
-    else if (!part.empty())
+    else if (!whole.empty() && !part.empty())
     {
       // the digits after the point count base^-1, base^-2, ..., so the
       // number is all its digits over base^(digits after the point), a 1
       // followed by that many zeros
-      decimal = digits_to_decimal(whole + part, b);
+      numerator = digits_to_decimal(whole + part, b);
       denominator = digits_to_decimal("1" + std::string(part.size(), '0'), b);
     }
-    decimal = decimal.empty() || denominator.empty()
+    decimal = numerator.empty() || denominator.empty()
                   ? ""
-                  : decimal + "/" + denominator;
+                  : numerator + "/" + denominator;
   }
   if (decimal.empty())
   {

@@ -449,10 +449,15 @@ Term BzlaSolver::make_term(const std::string val,
   }
 
   bitwuzla::Sort bsort = bzla_sort(sort);
+  std::uint64_t width = sort->get_width();
   try
   {
     return std::make_shared<BzlaTerm>(
-        tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2), tm);
+        width <= 64
+            ? tm->mk_bv_value_uint64(
+                  bsort, detail::bv_value_to_uint64(val, base, width))
+            : tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2),
+        tm);
   }
   catch (bitwuzla::Exception & e)
   {

@@ -176,6 +176,18 @@ TEST_P(BVTests, ValueInOtherBase)
   EXPECT_THROW(s->make_term("0x1f", bv8, 0), IncorrectUsageException);
   EXPECT_THROW(s->make_term("0", bv8, 1), IncorrectUsageException);
   EXPECT_THROW(s->make_term("z", bv8, 62), IncorrectUsageException);
+
+  // past 64 bits, where backends take a value as bits rather than as a
+  // number; each of these is all ones, as the concatenation is
+  Sort bv72 = s->make_sort(BV, 72);
+  Term ones = s->make_term(
+      Concat, s->make_term(-1, bv8), s->make_term(-1, s->make_sort(BV, 64)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term("4722366482869645213695", bv72, 10), ones));
+  s->assert_formula(s->make_term(Equal, s->make_term("-1", bv72, 3), ones));
+  s->assert_formula(
+      s->make_term(Equal, s->make_term(std::string(24, '7'), bv72, 8), ones));
+  EXPECT_TRUE(s->check_sat().is_sat());
 }
 
 TEST_P(IndexedOpTests, RepeatZeroTimes)

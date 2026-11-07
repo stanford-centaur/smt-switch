@@ -42,15 +42,21 @@ using namespace std;
 
 namespace smt {
 
-/** The bit-vector whose bits, most significant first, are `bits`, as wide
- *  as bits is long
+/** The bit-vector of width bits that val, a numeral in base `base`, names,
+ *  as AbsSmtSolver::make_term accepts it
  */
-static msat_term make_bv_from_bits(msat_env e, const string & bits)
+static msat_term make_bv_value(msat_env e,
+                               const string & val,
+                               uint64_t base,
+                               uint64_t width)
 {
-  // msat_make_bv_number reads a string of bits far more slowly
+  vector<uint32_t> words = detail::bv_value_to_words(val, base, width);
+  // msat_make_bv_number reads a string far more slowly
   mpz_t value;
-  mpz_init_set_str(value, bits.c_str(), 2);
-  msat_term res = msat_make_bv_mpz_number(e, value, bits.size());
+  mpz_init(value);
+  // the lowest word first, each in the machine's byte order
+  mpz_import(value, words.size(), -1, sizeof(uint32_t), 0, 0, words.data());
+  msat_term res = msat_make_bv_mpz_number(e, value, width);
   mpz_clear(value);
   return res;
 }
@@ -588,8 +594,8 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      msat_term mval = make_bv_from_bits(
-          *env, bv_value_to_bits(std::to_string(i), 10, sort));
+      msat_term mval =
+          make_bv_value(*env, std::to_string(i), 10, sort->get_width());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -632,8 +638,7 @@ Term MsatSolver::make_term(const std::string val,
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      msat_term mval =
-          make_bv_from_bits(*env, bv_value_to_bits(val, base, sort));
+      msat_term mval = make_bv_value(*env, val, base, sort->get_width());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
