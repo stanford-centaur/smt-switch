@@ -75,6 +75,10 @@ class TreeWalker
              bool clear_cache,
              UnorderedTermPairMap * ext_cache = nullptr);
 
+  TreeWalker(const TreeWalker & other) = default;
+  TreeWalker(TreeWalker && other) = default;
+  TreeWalker & operator=(const TreeWalker & other) = default;
+  TreeWalker & operator=(TreeWalker && other) = default;
   virtual ~TreeWalker() = default;
 
   /** Visit a term and all its subterms in a post-order traversal
