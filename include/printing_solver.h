@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -149,6 +150,9 @@ class PrintingInterpolator : public AbsSmtInterpolator
   PrintingInterpolator(SmtInterpolator s, std::ostream * os);
   [[deprecated("use the constructor without a style")]] PrintingInterpolator(
       SmtInterpolator s, std::ostream * os, PrintingStyleEnum pse);
+  PrintingInterpolator(const PrintingInterpolator & other) = default;
+  PrintingInterpolator & operator=(const PrintingInterpolator & other) =
+      default;
 
   Result get_interpolant(const Term & A,
                          const Term & B,
@@ -171,12 +175,19 @@ class PrintingInterpolator : public AbsSmtInterpolator
   SmtInterpolator wrapped_interpolator;
   /* A stream to dump SMT-LIB commands to */
   std::ostream * out_stream;
-  /* Keep track of created names */
-  mutable std::size_t num_names = 0;
-  /* For Bitwuzla and MathSAT, the formulae left asserted by the last query,
-   * one context level each, and the names they were printed with */
-  mutable TermVec asserted = {};
-  mutable std::vector<std::string> asserted_names = {};
+
+  /* What the queries printed so far left in the wrapped interpolator */
+  struct QueryRecord
+  {
+    /* Keep track of created names */
+    std::size_t num_names = 0;
+    /* For Bitwuzla and MathSAT, the formulae left asserted by the last
+     * query, one context level each, and the names they were printed with */
+    TermVec asserted = {};
+    std::vector<std::string> asserted_names = {};
+  };
+  /* Shared by copies, as they share the wrapped interpolator */
+  std::shared_ptr<QueryRecord> record = std::make_shared<QueryRecord>();
 };
 
 /* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.
