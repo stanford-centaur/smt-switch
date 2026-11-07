@@ -37,6 +37,7 @@
 #include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -448,12 +449,6 @@ TEST_P(Datatypes, PrintsAsSmtlib)
 
 TEST_P(Datatypes, ComponentsAndApplications)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "the generic solver makes each constructor, selector and "
-                    "tester a symbol";
-  }
-
   DatatypeDecl listdecl = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
@@ -477,6 +472,8 @@ TEST_P(Datatypes, ComponentsAndApplications)
   {
     EXPECT_EQ(leaf->get_sort()->get_sort_kind(), kind) << leaf;
     EXPECT_FALSE(leaf->is_symbol()) << leaf;
+    EXPECT_FALSE(leaf->is_symbolic_const()) << leaf;
+    EXPECT_FALSE(leaf->is_value()) << leaf;
     EXPECT_TRUE(leaf->get_op().is_null()) << leaf;
     EXPECT_EQ(TermVec(leaf->begin(), leaf->end()), TermVec{}) << leaf;
   }
@@ -499,6 +496,11 @@ TEST_P(Datatypes, ComponentsAndApplications)
   Term isnil_l = s->make_term(Apply_Tester, isnil, l);
   EXPECT_EQ(isnil_l->get_op(), Op(Apply_Tester));
   EXPECT_EQ(TermVec(isnil_l->begin(), isnil_l->end()), (TermVec{ isnil, l }));
+
+  // only the declared constant is free, not the constructor it is compared to
+  UnorderedTermSet free_consts;
+  get_free_symbolic_consts(s->make_term(Equal, l, nil), free_consts);
+  EXPECT_EQ(free_consts, UnorderedTermSet{ l });
 }
 
 TEST_P(Datatypes, DeclName)

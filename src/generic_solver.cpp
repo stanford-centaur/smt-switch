@@ -1471,7 +1471,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
   Sort cons_sort =
       std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
   Term new_term =
-      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name);
   term_name_map[new_term] = name;
   return new_term;
 }
@@ -1501,7 +1501,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
   // SMT-LIB writes a tester as an indexed identifier
   std::string tester = "(_ is " + smtlib_quote_symbol(name) + ")";
   Term new_term =
-      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, tester, true);
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, tester);
   term_name_map[new_term] = tester;
   return new_term;
 }
@@ -1538,7 +1538,7 @@ Term GenericSolver::get_selector(const Sort & s,
     throw IncorrectUsageException("Selector not in datatype");
   }
   Term new_term =
-      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name, true);
+      std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name);
   term_name_map[new_term] = name;
   return new_term;
 }
