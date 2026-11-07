@@ -946,14 +946,10 @@ msat_term MsatSolver::label(msat_term p) const
 {
   const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
 
-  if (msat_term_is_boolean_constant(*env, p)
-      || (msat_term_is_not(*env, p)
-          && msat_term_is_boolean_constant(*env, msat_term_get_arg(p, 0))))
-  {
-    // if a (negated) boolean constant, don't need a fresh label
-    return p;
-  }
-
+  // A (negated) Boolean constant needs a label too: MathSAT's model can
+  // contradict an assumed constant that occurs in no remaining clause (e.g.,
+  // a = false after (assert c) and assuming a). The label clause keeps the
+  // constant in the formula.
   std::ostringstream buf;
   buf << ".assump_lbl{" << msat_term_id(p) << "}";
   std::string name = buf.str();

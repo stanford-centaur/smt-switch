@@ -162,6 +162,23 @@ TEST_P(UnitSolveTests, SatisfiableAssumption)
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
 }
 
+TEST_P(UnitSolveTests, ModelFollowsUnconstrainedAssumptions)
+{
+  Term b1 = s->make_symbol("b1", boolsort);
+  Term b2 = s->make_symbol("b2", boolsort);
+  Term b3 = s->make_symbol("b3", boolsort);
+  Term c = s->make_symbol("c", boolsort);
+  s->assert_formula(c);
+  // satisfied by c alone, so it leaves b2 unconstrained
+  s->assert_formula(s->make_term(Or, b2, c));
+  // b1 and b3 occur in no assertion
+  ASSERT_TRUE(
+      s->check_sat_assuming(TermVec{ b1, b2, s->make_term(Not, b3) }).is_sat());
+  EXPECT_EQ(s->get_value(b1), s->make_term(true));
+  EXPECT_EQ(s->get_value(b2), s->make_term(true));
+  EXPECT_EQ(s->get_value(b3), s->make_term(false));
+}
+
 TEST_P(UnitSolveTests, NonBooleanAssumptionAssumesNothing)
 {
   Term p = s->make_symbol("p", boolsort);
