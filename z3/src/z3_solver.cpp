@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
+#include <valarray>
 #include <vector>
 
 #include "datatype.h"
@@ -664,12 +665,12 @@ Term Z3Solver::make_term(const std::string val,
       std::vector<std::uint32_t> words =
           detail::bv_value_to_words(val, base, width);
       // Z3 reads bits[0] as the lowest bit
-      std::unique_ptr<bool[]> bits = std::make_unique<bool[]>(width);
+      std::valarray<bool> bits(false, width);
       for (std::uint64_t i = 0; i < width; ++i)
       {
         bits[i] = (words[i / 32] >> (i % 32)) & 1;
       }
-      z_term = ctx->bv_val(narrow_width(width), bits.get());
+      z_term = ctx->bv_val(narrow_width(width), &bits[0]);
     }
   }
   else if (sk == REAL || sk == INT)
