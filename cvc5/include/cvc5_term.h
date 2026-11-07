@@ -28,20 +28,6 @@
 #include "term.h"
 
 namespace smt {
-class Cvc5TermIter : public TermIterBase
-{
- public:
-  explicit Cvc5TermIter(::cvc5::Term t, bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  ::cvc5::Term term;
-};
-
 class Cvc5Term : public AbsTerm
 {
  public:
@@ -60,10 +46,6 @@ class Cvc5Term : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
-  /** Iterators for traversing the children
-   */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // Getters for solver-specific objects
@@ -71,6 +53,9 @@ class Cvc5Term : public AbsTerm
   ::cvc5::Term get_cvc5_term() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   cvc5::Term term;
 
   friend class Cvc5Solver;

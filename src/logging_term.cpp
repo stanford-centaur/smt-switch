@@ -200,15 +200,12 @@ bool LoggingTerm::is_symbolic_const() const
   return is_sym && sort->get_sort_kind() != FUNCTION;
 }
 
-TermIter LoggingTerm::begin() const
+std::size_t LoggingTerm::get_num_children() const
 {
-  return TermIter(new LoggingTermIter(children));
+  return children ? children->size() : 0;
 }
 
-TermIter LoggingTerm::end() const
-{
-  return TermIter(new LoggingTermIter(children, /* at_end */ true));
-}
+Term LoggingTerm::get_child(std::size_t i) const { return (*children)[i]; }
 
 // dispatched to underlying term
 
@@ -241,25 +238,6 @@ std::int64_t LoggingTerm::to_signed_int() const
 std::string LoggingTerm::print_value_as(SortKind sk) const
 {
   return wrapped_term->print_value_as(sk);
-}
-
-/* LoggingTermIter */
-
-LoggingTermIter::LoggingTermIter(std::shared_ptr<const TermVec> c, bool at_end)
-    : TermIterBase(c ? c->size() : 0, at_end), children(std::move(c))
-{
-}
-
-Term LoggingTermIter::child() const { return (*children)[position]; }
-
-TermIterBase * LoggingTermIter::clone() const
-{
-  return new LoggingTermIter(*this);
-}
-
-bool LoggingTermIter::same_term(const TermIterBase & other) const
-{
-  return children == static_cast<const LoggingTermIter &>(other).children;
 }
 
 }  // namespace smt

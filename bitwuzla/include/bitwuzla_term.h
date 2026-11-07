@@ -30,24 +30,6 @@
 
 namespace smt {
 
-class BzlaTermIter : public TermIterBase
-{
- public:
-  BzlaTermIter(bitwuzla::Term t,
-               const std::shared_ptr<bitwuzla::TermManager> & manager,
-               bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  // keeps the term manager alive for as long as terms is
-  std::shared_ptr<bitwuzla::TermManager> tm;
-  bitwuzla::Term terms;  // terms to iterate over (e.g. children)
-};
-
 class BzlaTerm : public AbsTerm
 {
  public:
@@ -66,10 +48,6 @@ class BzlaTerm : public AbsTerm
   std::string get_symbol_name() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;
-  /** Iterators for traversing the children
-   */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // Getters for solver-specific objects
@@ -78,6 +56,9 @@ class BzlaTerm : public AbsTerm
   const bitwuzla::Term get_bitwuzla_term() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   // the term manager that owns term, kept alive for as long as term is
   // (declared first, so that term is destroyed before it)
   const std::shared_ptr<bitwuzla::TermManager> tm;
@@ -86,7 +67,6 @@ class BzlaTerm : public AbsTerm
 
   friend class BzlaSolver;
   friend class BzlaInterpolatingSolver;
-  friend class BzlaTermIter;
 };
 
 /** The Bitwuzla kind of the applications of po

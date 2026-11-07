@@ -29,25 +29,6 @@
 
 namespace smt {
 
-class Z3TermIter : public TermIterBase
-{
- public:
-  Z3TermIter(const std::shared_ptr<z3::context> & c,
-             z3::expr t,
-             bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-
- private:
-  // declared before term, so that term is released while the context lives
-  std::shared_ptr<z3::context> ctx;
-  // null for a function symbol, which has no children
-  z3::expr term;
-};
-
 class Z3Term : public AbsTerm
 {
  public:
@@ -72,9 +53,6 @@ class Z3Term : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
-  /* Iterators for traversing the children */
-  TermIter begin() const override;
-  TermIter end() const override;
   std::string print_value_as(SortKind sk) const override;
 
   // getters for solver-specific objects (EXPERTS only)
@@ -82,6 +60,9 @@ class Z3Term : public AbsTerm
   z3::func_decl get_z3_func_decl() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   // shared with the solver, so the context lives as long as this term, and
   // declared first, so that term and z_func are released while it does
   std::shared_ptr<z3::context> ctx;
@@ -91,7 +72,6 @@ class Z3Term : public AbsTerm
   bool is_parameter = false;
 
   friend class Z3Solver;
-  friend class Z3TermIter;
 };
 
 }  // namespace smt

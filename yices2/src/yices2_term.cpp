@@ -370,7 +370,7 @@ int64_t Yices2Term::to_signed_int() const
  * exception: get_op() reads those as Mult or BVMul and Pow, whose children
  * are the coefficient and the term, or the base and the exponent.
  */
-static uint32_t smt_num_children(term_t term)
+std::size_t Yices2Term::get_num_children() const
 {
   int32_t num_children = yices_term_num_children(term);
   if (num_children <= 0)
@@ -417,18 +417,13 @@ static uint32_t smt_num_children(term_t term)
   {
     return 2;
   }
-  return static_cast<uint32_t>(num_children);
+  return static_cast<std::size_t>(num_children);
 }
 
-Yices2TermIter::Yices2TermIter(term_t t, bool at_end)
-    : TermIterBase(smt_num_children(t), at_end), term(t)
+Term Yices2Term::get_child(std::size_t i) const
 {
-}
-
-Term Yices2TermIter::child() const
-{
-  // the position as Yices takes a child index
-  const int32_t pos = detail::narrow<int32_t>(position, "a child position");
+  // the index as Yices takes a child index
+  const int32_t pos = detail::narrow<int32_t>(i, "a child position");
   term_t ret_term;
 
   if (yices_term_is_bvsum(term))
@@ -463,7 +458,7 @@ Term Yices2TermIter::child() const
     mpq_t coeff;
     mpq_init(coeff);
     term_t component;
-    if (smt_num_children(term) == 2 && yices_term_num_children(term) == 1)
+    if (yices_term_num_children(term) == 1)
     {
       // the Mult reading: the coefficient, then the term it multiplies
       if (yices_sum_component(term, 0, coeff, &component) < 0)
@@ -552,11 +547,11 @@ Term Yices2TermIter::child() const
     {
       // the Concat reading. Yices keeps the least significant bit first, so
       // the high child is the last one, and the low child is everything
-      // below it, itself an array this iterator reads the same way.
+      // below it, itself an array that is read the same way.
       std::vector<term_t> bits(num_bits);
-      for (int32_t i = 0; i < num_bits; i++)
+      for (int32_t bit = 0; bit < num_bits; bit++)
       {
-        bits[i] = yices_term_child(term, i);
+        bits[bit] = yices_term_child(term, bit);
       }
       ret_term = pos == 0 ? yices_bvarray(1, &bits[num_bits - 1])
                           : yices_bvarray(num_bits - 1, bits.data());
@@ -572,26 +567,6 @@ Term Yices2TermIter::child() const
     throw InternalSolverException(take_yices_error());
   }
   return std::make_shared<Yices2Term>(ret_term);
-}
-
-TermIterBase * Yices2TermIter::clone() const
-{
-  return new Yices2TermIter(*this);
-}
-
-bool Yices2TermIter::same_term(const TermIterBase & other) const
-{
-  return term == static_cast<const Yices2TermIter &>(other).term;
-}
-
-TermIter Yices2Term::begin() const
-{
-  return TermIter(new Yices2TermIter(term));
-}
-
-TermIter Yices2Term::end() const
-{
-  return TermIter(new Yices2TermIter(term, /* at_end */ true));
 }
 
 std::string Yices2Term::print_value_as(SortKind /* sk */) const

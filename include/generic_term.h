@@ -62,11 +62,12 @@ class GenericTerm : public AbsTerm
   bool is_symbol() const override;
   bool is_param() const override;
   bool is_symbolic_const() const override;
-  TermIter begin() const override;
-  TermIter end() const override;
   TermVec get_children() const;
 
  protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
   std::string compute_string() const;
 
   /** check whether this is a ground term
@@ -93,8 +94,7 @@ class GenericTerm : public AbsTerm
    */
   Op op;
 
-  // Immediate children of the term, null for a leaf; shared with the child
-  // iterators, so they outlive the term
+  // Immediate children of the term, null for a leaf
   std::shared_ptr<const TermVec> children;
 
   // A string representation of the term
@@ -108,21 +108,6 @@ class GenericTerm : public AbsTerm
 
   // So GenericSolver can access protected members:
   friend class GenericSolver;
-};
-
-class GenericTermIter : public TermIterBase
-{
- public:
-  // points at the first of children, or past the last when at_end;
-  // children is shared with the term and null for a leaf
-  explicit GenericTermIter(std::shared_ptr<const TermVec> children,
-                           bool at_end = false);
-  TermIterBase * clone() const override;
-
- protected:
-  Term child() const override;
-  bool same_term(const TermIterBase & other) const override;
-  std::shared_ptr<const TermVec> children;
 };
 
 }  // namespace smt

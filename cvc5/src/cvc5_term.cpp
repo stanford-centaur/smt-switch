@@ -197,54 +197,6 @@ PrimOp to_primop(cvc5::Kind kind)
 // struct for hashing
 std::hash<cvc5::Term> termhash;
 
-/* Cvc5TermIter implementation */
-// The children smt-switch lists: cvc5's, then a constant array's base
-static std::size_t num_children(const ::cvc5::Term & t)
-{
-  std::size_t n = t.getNumChildren();
-  return t.getKind() == ::cvc5::Kind::CONST_ARRAY ? n + 1 : n;
-}
-
-Cvc5TermIter::Cvc5TermIter(::cvc5::Term t, bool at_end)
-    : TermIterBase(num_children(t), at_end), term(t)
-{
-}
-
-Term Cvc5TermIter::child() const
-{
-  if (position == term.getNumChildren()
-      && term.getKind() == ::cvc5::Kind::CONST_ARRAY)
-  {
-    return std::make_shared<Cvc5Term>(term.getConstArrayBase());
-  }
-  // special-case for VARIABLE_LIST -- parameters bound by a quantifier
-  // smt-switch cvc5 backend guarantees that the length is only one by
-  // construction
-  ::cvc5::Term t = term[position];
-  if (t.getKind() == ::cvc5::Kind::VARIABLE_LIST)
-  {
-    if (t.getNumChildren() != 1)
-    {
-      // smt-switch cvc5 backend should only allow binding one parameter
-      // otherwise, we need to flatten arbitrary nestings of quantifiers and
-      // VARIABLE_LISTs for term iteration
-      throw InternalSolverException(
-          "Expected exactly one bound variable in cvc5 VARIABLE_LIST");
-    }
-    return std::make_shared<Cvc5Term>(t[0]);
-  }
-  return std::make_shared<Cvc5Term>(t);
-}
-
-TermIterBase * Cvc5TermIter::clone() const { return new Cvc5TermIter(*this); }
-
-bool Cvc5TermIter::same_term(const TermIterBase & other) const
-{
-  return term == static_cast<const Cvc5TermIter &>(other).term;
-}
-
-/* end Cvc5TermIter implementation */
-
 /* Cvc5Term implementation */
 
 Cvc5Term::Cvc5Term(cvc5::Term t) : term(t) {}
@@ -412,13 +364,36 @@ int64_t Cvc5Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
-/** Iterators for traversing the children
- */
-TermIter Cvc5Term::begin() const { return TermIter(new Cvc5TermIter(term)); }
-
-TermIter Cvc5Term::end() const
+// The children smt-switch lists: cvc5's, then a constant array's base
+std::size_t Cvc5Term::get_num_children() const
 {
-  return TermIter(new Cvc5TermIter(term, /* at_end */ true));
+  std::size_t n = term.getNumChildren();
+  return term.getKind() == ::cvc5::Kind::CONST_ARRAY ? n + 1 : n;
+}
+
+Term Cvc5Term::get_child(std::size_t i) const
+{
+  if (i == term.getNumChildren() && term.getKind() == ::cvc5::Kind::CONST_ARRAY)
+  {
+    return std::make_shared<Cvc5Term>(term.getConstArrayBase());
+  }
+  // special-case for VARIABLE_LIST -- parameters bound by a quantifier
+  // smt-switch cvc5 backend guarantees that the length is only one by
+  // construction
+  ::cvc5::Term t = term[i];
+  if (t.getKind() == ::cvc5::Kind::VARIABLE_LIST)
+  {
+    if (t.getNumChildren() != 1)
+    {
+      // smt-switch cvc5 backend should only allow binding one parameter
+      // otherwise, we need to flatten arbitrary nestings of quantifiers and
+      // VARIABLE_LISTs for term iteration
+      throw InternalSolverException(
+          "Expected exactly one bound variable in cvc5 VARIABLE_LIST");
+    }
+    return std::make_shared<Cvc5Term>(t[0]);
+  }
+  return std::make_shared<Cvc5Term>(t);
 }
 
 std::string Cvc5Term::print_value_as(SortKind /* sk */) const
