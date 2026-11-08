@@ -218,12 +218,8 @@ std::string GenericTerm::get_symbol_name() const
         "Only a symbol that is not a param has a symbol name");
   }
   // The name was quoted with smtlib_quote_symbol, which adds bars to any
-  // name with a bar in it, so a leading bar is always one it added.
-  if (!repr.empty() && repr.front() == '|')
-  {
-    return repr.substr(1, repr.size() - 2);
-  }
-  return repr;
+  // name with a bar in it, so bars around it are always ones it added.
+  return smtlib_unquote_symbol(repr);
 }
 
 std::uint64_t GenericTerm::to_int() const
