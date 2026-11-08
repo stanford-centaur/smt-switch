@@ -252,6 +252,12 @@ static std::string bv_value_to_bits(const bitwuzla::Term & term)
   return term.value<std::string>(2);
 }
 
+std::string BzlaTerm::get_constructor_name() const
+{
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 std::string BzlaTerm::get_param_name() const
 {
   if (!is_param())
@@ -259,6 +265,11 @@ std::string BzlaTerm::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return term.symbol().value();
+}
+
+std::string BzlaTerm::get_selector_name() const
+{
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 std::string BzlaTerm::get_symbol_name() const

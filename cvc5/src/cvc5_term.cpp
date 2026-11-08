@@ -319,15 +319,7 @@ std::string Cvc5Term::to_string() const
   // SMT-LIB term
   if (term.getSort().isDatatypeTester())
   {
-    cvc5::Datatype dt =
-        term.getSort().getDatatypeTesterDomainSort().getDatatype();
-    for (std::size_t i = 0; i != dt.getNumConstructors(); i++)
-    {
-      if (dt[i].getTesterTerm() == term)
-      {
-        return "(_ is " + smtlib_quote_symbol(dt[i].getName()) + ")";
-      }
-    }
+    return "(_ is " + smtlib_quote_symbol(get_constructor_name()) + ")";
   }
   return term.toString();
 }
@@ -338,6 +330,36 @@ std::wstring Cvc5Term::getStringValue() const
   return std::wstring(value.begin(), value.end());
 }
 
+std::string Cvc5Term::get_constructor_name() const
+{
+  // a constructor or tester is found among its datatype's
+  cvc5::Sort sort = term.getSort();
+  if (sort.isDatatypeConstructor())
+  {
+    cvc5::Datatype dt = sort.getDatatypeConstructorCodomainSort().getDatatype();
+    for (std::size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      if (dt[i].getTerm() == term)
+      {
+        return dt[i].getName();
+      }
+    }
+  }
+  if (sort.isDatatypeTester())
+  {
+    cvc5::Datatype dt = sort.getDatatypeTesterDomainSort().getDatatype();
+    for (std::size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      if (dt[i].getTesterTerm() == term)
+      {
+        return dt[i].getName();
+      }
+    }
+  }
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 std::string Cvc5Term::get_param_name() const
 {
   if (!is_param())
@@ -345,6 +367,27 @@ std::string Cvc5Term::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return term.getSymbol();
+}
+
+std::string Cvc5Term::get_selector_name() const
+{
+  // a selector is found among its datatype's
+  cvc5::Sort sort = term.getSort();
+  if (sort.isDatatypeSelector())
+  {
+    cvc5::Datatype dt = sort.getDatatypeSelectorDomainSort().getDatatype();
+    for (std::size_t i = 0; i != dt.getNumConstructors(); i++)
+    {
+      for (std::size_t j = 0; j != dt[i].getNumSelectors(); j++)
+      {
+        if (dt[i][j].getTerm() == term)
+        {
+          return dt[i][j].getName();
+        }
+      }
+    }
+  }
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 std::string Cvc5Term::get_symbol_name() const

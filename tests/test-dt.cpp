@@ -305,6 +305,81 @@ TEST_P(Datatypes, NamesReachEveryComponent)
   }
 }
 
+TEST_P(Datatypes, ConstructorAndSelectorNames)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+
+  EXPECT_EQ(s->get_constructor(listsort, "nil")->get_constructor_name(), "nil");
+  EXPECT_EQ(s->get_constructor(listsort, "cons")->get_constructor_name(),
+            "cons");
+  // a tester has no name of its own, only the constructor it tests
+  EXPECT_EQ(s->get_tester(listsort, "cons")->get_constructor_name(), "cons");
+  EXPECT_EQ(s->get_selector(listsort, "cons", "head")->get_selector_name(),
+            "head");
+  EXPECT_EQ(s->get_selector(listsort, "cons", "tail")->get_selector_name(),
+            "tail");
+}
+
+// each name as declared, though SMT-LIB quotes these
+TEST_P(Datatypes, QuotedConstructorAndSelectorNames)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver declares a datatype's names to the "
+                    "binary without SMT-LIB quoting";
+  }
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl =
+      s->make_datatype_constructor_decl("my cons");
+  s->add_selector(consdecl, "my head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+
+  EXPECT_EQ(s->get_constructor(listsort, "my cons")->get_constructor_name(),
+            "my cons");
+  EXPECT_EQ(s->get_tester(listsort, "my cons")->get_constructor_name(),
+            "my cons");
+  EXPECT_EQ(
+      s->get_selector(listsort, "my cons", "my head")->get_selector_name(),
+      "my head");
+}
+
+TEST_P(Datatypes, ConstructorAndSelectorNamesOfOtherTerms)
+{
+  DatatypeDecl listdecl = s->make_datatype_decl("list");
+  DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
+  DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
+  s->add_selector(consdecl, "head", intsort);
+  s->add_selector_self(consdecl, "tail");
+  s->add_constructor(listdecl, nildecl);
+  s->add_constructor(listdecl, consdecl);
+  Sort listsort = s->make_sort(listdecl);
+  Term nilc = s->get_constructor(listsort, "nil");
+  Term head = s->get_selector(listsort, "cons", "head");
+  Term isnil = s->get_tester(listsort, "nil");
+
+  EXPECT_THROW(nilc->get_selector_name(), IncorrectUsageException);
+  EXPECT_THROW(isnil->get_selector_name(), IncorrectUsageException);
+  EXPECT_THROW(head->get_constructor_name(), IncorrectUsageException);
+  // an application is not what it applies
+  EXPECT_THROW(s->make_term(Apply_Constructor, nilc)->get_constructor_name(),
+               IncorrectUsageException);
+  Term l = s->make_symbol("l", listsort);
+  EXPECT_THROW(s->make_term(Apply_Selector, head, l)->get_selector_name(),
+               IncorrectUsageException);
+  EXPECT_THROW(l->get_constructor_name(), IncorrectUsageException);
+}
+
 TEST_P(Datatypes, ConstructorDeclChangedAfterMakeSort)
 {
   DatatypeConstructorDecl cons = s->make_datatype_constructor_decl("cons");

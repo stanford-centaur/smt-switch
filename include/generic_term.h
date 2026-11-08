@@ -53,7 +53,9 @@ class GenericTerm : public AbsTerm
   std::string to_string() const override;
   std::size_t hash() const override;
   bool is_value() const override;
+  std::string get_constructor_name() const override;
   std::string get_param_name() const override;
+  std::string get_selector_name() const override;
   std::string get_symbol_name() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;

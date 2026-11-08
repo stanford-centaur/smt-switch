@@ -322,6 +322,12 @@ static string bv_constant_to_bits(term_t term)
   return res;
 }
 
+string Yices2Term::get_constructor_name() const
+{
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 string Yices2Term::get_param_name() const
 {
   if (!is_param())
@@ -329,6 +335,11 @@ string Yices2Term::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return yices_get_term_name(term);
+}
+
+string Yices2Term::get_selector_name() const
+{
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 string Yices2Term::get_symbol_name() const

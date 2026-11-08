@@ -163,6 +163,13 @@ TEST_P(UnitSymbolTests, NonSymbolHasNoSymbolName)
                IncorrectUsageException);
 }
 
+TEST_P(UnitSymbolTests, SymbolHasNoConstructorOrSelectorName)
+{
+  Term x = s->make_symbol("x", bvsort);
+  EXPECT_THROW(x->get_constructor_name(), IncorrectUsageException);
+  EXPECT_THROW(x->get_selector_name(), IncorrectUsageException);
+}
+
 TEST_P(UnitSymbolTests, GetSymbolOnFreshSolver)
 {
   // the fixture's sorts are made already, so this solver has made nothing

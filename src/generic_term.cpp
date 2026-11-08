@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "exceptions.h"
+#include "generic_sort.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
@@ -210,6 +211,17 @@ static SortKind int_convertible_sort_kind(const GenericTerm & term,
   return sk;
 }
 
+std::string GenericTerm::get_constructor_name() const
+{
+  SortKind sk = sort->get_sort_kind();
+  if (sk != CONSTRUCTOR && sk != TESTER)
+  {
+    throw IncorrectUsageException(
+        "Only a constructor or a tester has a constructor name");
+  }
+  return std::static_pointer_cast<DatatypeComponentSort>(sort)->get_name();
+}
+
 std::string GenericTerm::get_param_name() const
 {
   if (!is_param())
@@ -217,6 +229,15 @@ std::string GenericTerm::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return smtlib_unquote_symbol(repr);
+}
+
+std::string GenericTerm::get_selector_name() const
+{
+  if (sort->get_sort_kind() != SELECTOR)
+  {
+    throw IncorrectUsageException("Only a selector has a selector name");
+  }
+  return std::static_pointer_cast<DatatypeComponentSort>(sort)->get_name();
 }
 
 std::string GenericTerm::get_symbol_name() const

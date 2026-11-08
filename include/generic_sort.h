@@ -169,6 +169,10 @@ class DatatypeComponentSort : public GenericSort
   Sort get_codomain_sort() const override;
   void set_selector_sort(Sort new_selector_sort);
   int get_num_selectors() const;
+  /** @return the name a constructor or selector was declared with, or that
+   *  of the constructor a tester tests
+   */
+  std::string get_name() const;
 
  protected:
   std::string name;
