@@ -999,6 +999,28 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
                   "(check-sat)\n");
 }
 
+TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver declares a sort's name to the binary "
+                    "without SMT-LIB quoting";
+  }
+  Sort usort = s->make_sort("my sort", 0);
+  Term u = s->make_symbol("u", usort);
+  Term v = s->make_symbol("v", usort);
+  Term eq = s->make_term(Equal, u, v);
+  ostringstream out;
+  smtlib_benchmark(out, "QF_UF", { eq });
+  EXPECT_EQ(out.str(),
+            "(set-logic QF_UF)\n"
+            "(declare-sort |my sort| 0)\n"
+            "(declare-fun u () |my sort|)\n"
+            "(declare-fun v () |my sort|)\n"
+            "(assert "
+                + eq->to_string() + ")\n(check-sat)\n");
+}
+
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          SmtLibBenchmarkDeclarations,
                          testing::ValuesIn(filter_solver_configurations(
