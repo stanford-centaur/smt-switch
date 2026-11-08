@@ -36,7 +36,6 @@
 #include "sort.h"
 #include "sort_inference.h"
 #include "term.h"
-#include "utils.h"
 
 namespace smt {
 
@@ -206,32 +205,29 @@ Term TermTranslator::transfer_datatype_component(const Term & term)
   Sort dt_sort = sk == CONSTRUCTOR ? sort->get_codomain_sort()
                                    : sort->get_domain_sorts().at(0);
   Sort transferred = transfer_sort(dt_sort);
+  if (sk == CONSTRUCTOR)
+  {
+    return solver->get_constructor(transferred, term->get_constructor_name());
+  }
+  if (sk == TESTER)
+  {
+    return solver->get_tester(transferred, term->get_constructor_name());
+  }
+  // a selector is named together with the constructor it belongs to
+  std::string name = term->get_selector_name();
   Datatype dt = dt_sort->get_datatype();
-  // a term has no name to look up, so it is matched by how it prints
-  std::string printed = term->to_string();
   for (const std::string & cons : dt->get_constructor_names())
   {
-    std::string quoted = smtlib_quote_symbol(cons);
-    if (sk == CONSTRUCTOR && printed == quoted)
+    for (const std::string & sel : dt->get_selector_names(cons))
     {
-      return solver->get_constructor(transferred, cons);
-    }
-    if (sk == TESTER && printed == "(_ is " + quoted + ")")
-    {
-      return solver->get_tester(transferred, cons);
-    }
-    if (sk == SELECTOR)
-    {
-      for (const std::string & sel : dt->get_selector_names(cons))
+      if (sel == name)
       {
-        if (printed == smtlib_quote_symbol(sel))
-        {
-          return solver->get_selector(transferred, cons, sel);
-        }
+        return solver->get_selector(transferred, cons, sel);
       }
     }
   }
-  throw SmtException("Failed to transfer datatype component: " + printed);
+  throw SmtException("Failed to transfer selector " + name
+                     + ": its datatype has no selector of that name");
 }
 
 Sort TermTranslator::uninterpreted_sort(const std::string & name,

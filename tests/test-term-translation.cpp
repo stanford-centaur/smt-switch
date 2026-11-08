@@ -854,12 +854,6 @@ TEST_P(DatatypeTranslationTests, DatatypeValues)
 
 TEST_P(DatatypeTranslationTests, QuotedComponentNames)
 {
-  if (get<0>(GetParam()).solver_enum == Z3)
-  {
-    GTEST_SKIP() << "Z3 prints a constructor or selector name without "
-                    "SMT-LIB quoting";
-  }
-
   // names that SMT-LIB quotes
   DatatypeDecl boxdecl = s1->make_datatype_decl("box");
   DatatypeConstructorDecl fulldecl =
