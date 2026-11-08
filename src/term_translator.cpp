@@ -307,11 +307,11 @@ Term TermTranslator::transfer_term(const Term & term)
       {
         cache[t] = transfer_datatype_component(t);
       }
-      // a param is a symbol too, but one without a symbol name
+      // a param is a symbol too, but has a param name, not a symbol name
       else if (t->is_param())
       {
         s = transfer_sort(t->get_sort());
-        cache[t] = solver->make_param(t->to_string(), s);
+        cache[t] = solver->make_param(t->get_param_name(), s);
       }
       else if (t->is_symbol())
       {
