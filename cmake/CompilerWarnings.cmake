@@ -64,6 +64,10 @@ treats padding as a defect rather than a layout choice.  ``-Wabi`` is out
 because without a version to compare against GCC rejects it outright, and
 ``-Wpoison-system-directories`` because it reports an include path unsafe for
 cross-compilation, which describes where Homebrew puts things.
+``-Wsuggest-final-methods`` and ``-Wsuggest-final-types`` judge each file
+alone, so they ask for ``final`` on abstract bases and on virtual functions
+meant to be overridden, and otherwise only on classes that external users of
+the installed headers may derive from.
 
 Flags with no diagnostic behind them on *either* compiler are also excluded:
 clang keeps a number of groups that are empty, and GCC documents a few of its
@@ -135,23 +139,23 @@ set(
   -Wabbreviated-auto-in-template-arg # diagnose a placeholder type in a template argument
   -Wabsolute-value # suspicious calls of standard functions computing absolute values
   -Wabstract-final-class # abstract class is marked 'final'
-  -Wabstract-vbase-init # initializer for virtual base class X of abstract class Y
+  -Wabstract-vbase-init # initializer for virtual base X of abstract class Y will never be used
   -Waddress # suspicious uses of memory addresses
   -Waddress-of-packed-member # the address of packed member of struct or union is taken
   -Waddress-of-temporary # taking the address of a temporary object of type X
-  -Waggressive-loop-optimizations # a loop with constant number of iterations triggers undefined
-  -Walias-template-in-declaration-name # a declarative nested name specifier cannot name an alias
+  -Waggressive-loop-optimizations # a constant loop iteration count triggers undefined behavior
+  -Walias-template-in-declaration-name # declarative nested name specifier names an alias template
   -Walign-mismatch # passing X-byte aligned argument to Y-byte aligned parameter Z of W
   -Wall # the baseline set: mistakes almost nobody intends
   -Walloc-size # allocating insufficient storage for the target type of the assigned pointer
   -Walloc-zero # calls to allocation functions that specify zero bytes
   -Walloca # any use of alloca
-  -Walloca-with-align-alignof # second argument to __builtin_alloca_with_align
+  -Walloca-with-align-alignof # second argument to __builtin_alloca_with_align is in bits
   -Walways-inline-coroutine # this coroutine may be split into pieces
   -Wambiguous-delete # multiple suitable X functions for Y
   -Wambiguous-ellipsis # '...' in this location creates a C-style varargs function
   -Wambiguous-member-template # lookup of X in member access expression is ambiguous
-  -Wambiguous-reversed-operator # ISO C++20 considers use of overloaded operator 'X'
+  -Wambiguous-reversed-operator # ISO C++20 considers use of overloaded operator 'X' ambiguous
   -Wanon-enum-enum-conversion # arithmetic between different enumeration types (X and Y)
   -Wanonymous-pack-parens # C++11 and later require a parenthesized pack declaration to be named
   -Wapinotes # a malformed API notes file
@@ -159,7 +163,7 @@ set(
   -Wargument-undefined-behaviour # argument value X will result in undefined behaviour
   -Warith-conversion # conversion of the result of arithmetic might change the value
   -Warray-bounds # an array is accessed out of bounds
-  -Warray-bounds-pointer-arithmetic # the pointer decremented by X refers before the beginning
+  -Warray-bounds-pointer-arithmetic # the pointer decremented by X refers before the array
   -Warray-bounds=2 # an array is accessed out of bounds
   -Warray-compare # comparisons between two operands of array type
   -Warray-compare-cxx26 # comparison between two arrays is ill-formed in C++26
@@ -172,10 +176,10 @@ set(
   -Watomic-alignment # misaligned atomic operation may incur significant performance penalty
   -Watomic-implicit-seq-cst # implicit use of sequentially-consistent atomic
   -Watomic-memory-ordering # success memory order argument to atomic operation is invalid
-  -Watomic-property-with-user-defined-accessor # writable atomic property X cannot pair
-  -Wattribute-alias # type safety and similar errors and mismatches in declarations with alias
-  -Wattribute-alias=2 # type safety and similar errors and mismatches in declarations with alias
-  -Wattribute-packed-for-bitfield # 'packed' attribute was ignored on bit-fields with single-byte
+  -Watomic-property-with-user-defined-accessor # cannot pair synthesized and user defined accessors
+  -Wattribute-alias # type safety errors and mismatches in declarations with alias attributes
+  -Wattribute-alias=2 # type safety errors and mismatches in declarations with alias attributes
+  -Wattribute-packed-for-bitfield # 'packed' was ignored on bit-fields with single-byte alignment
   -Wattribute-preprocessor-tokens # 'X' is not allowed in an attribute argument list
   -Wattribute-statement # X attribute minimum and maximum arguments are equal
   -Wattribute-warning # uses of __attribute__((warning)) declarations
@@ -192,8 +196,8 @@ set(
   -Wbidi-chars # UTF-8 bidirectional control characters
   -Wbind-to-temporary-copy # a reference bound to a temporary with an inaccessible copy ctor
   -Wbit-int-extension # '_BitInt' in C17 and earlier is a Clang extension
-  -Wbitfield-constant-conversion # implicit truncation from X to bit-field changes value from Y
-  -Wbitfield-enum-conversion # signed bit-field X needs an extra bit to represent the largest
+  -Wbitfield-constant-conversion # truncation from X to bit-field changes value from Y to Z
+  -Wbitfield-enum-conversion # bit-field X is not wide enough to store all enumerators of Y
   -Wbitfield-width # width of bit-field X (Y bits) exceeds the width of its type
   -Wbitwise-conditional-parentheses # operator '?:' has lower precedence than 'X'
   -Wbitwise-instead-of-logical # use of bitwise 'X' with boolean operands
@@ -201,7 +205,7 @@ set(
   -Wbool-compare # boolean expression compared with an integer value different from true/false
   -Wbool-conversion # initialization of pointer of type X to null from a constant boolean
   -Wbool-operation # certain operations on boolean expressions
-  -Wbounds-safety-counted-by-elt-type-unknown-size # 'counted_by' cannot be applied to a pointer
+  -Wbounds-safety-counted-by-elt-type-unknown-size # 'counted_by' on a pointee of unknown size
   -Wbraced-scalar-init # braces around scalar initializer
   -Wbranch-protection # unsupported branch protection specification 'X'
   -Wbridge-cast # X cannot bridge to Y
@@ -209,7 +213,7 @@ set(
   -Wbuiltin-declaration-mismatch # a built-in function is declared with the wrong signature
   -Wbuiltin-macro-redefined # a built-in preprocessor macro is undefined or redefined
   -Wbuiltin-memcpy-chk-size # 'X' will always overflow
-  -Wbuiltin-requires-header # declaration of built-in function 'X' requires inclusion
+  -Wbuiltin-requires-header # declaration of built-in function 'X' requires the header <Y>
   -Wc++11-narrowing-const-reference # type X cannot be narrowed to Y in initializer list
   -Wc++20-attribute-extensions # use of the X attribute is a C++20 extension
   -Wc++20-compat # C++ constructs whose meaning differs between ISO C++ 2017 and ISO C++ 2020
@@ -225,8 +229,8 @@ set(
   -Wc99-designator # array designators are a C99 extension
   -Wcall-to-pure-virtual-from-ctor-dtor # call to pure virtual member function X
   -Wcalled-once-parameter # X parameter marked 'called_once' is called twice
-  -Wcalloc-transposed-args # suspicious calls to calloc-like functions where sizeof expression
-  -Wcannot-profile # profiling instrumentation was requested
+  -Wcalloc-transposed-args # calloc-like calls where sizeof expression is the earlier size argument
+  -Wcannot-profile # profiling instrumentation was requested, but could not be applied
   -Wcast-align # pointer casts which increase alignment
   -Wcast-align=strict # the same for any widening of alignment, not just where it can fault
   -Wcast-calling-convention # cast between incompatible calling conventions 'X' and 'Y'
@@ -235,13 +239,13 @@ set(
   -Wcast-function-type-strict # cast from X to Y converts to incompatible function type
   # -Wcast-qual # casts which discard qualifiers
   -Wcast-qual-unrelated # ISO C++ does not allow const_cast from X to Y
-  -Wcast-user-defined # a cast to reference type that does not use a related user-defined
+  -Wcast-user-defined # a cast to reference type that does not use a related conversion function
   -Wcatch-value=3 # catch handlers of non-reference type
   -Wcfi-unchecked-callee # implicit conversion from X to Y discards 'cfi_unchecked_callee'
   -Wchanges-meaning # complain about a name being declared as a class member after a previous use
   -Wchar-subscripts # subscripts whose type is 'char'
   -Wcharacter-conversion # implicit conversion from X to Y may change the meaning
-  -Wclass-conversion # a conversion function will never be called due to the type it converts
+  -Wclass-conversion # a conversion function will never be called due to the type it converts to
   -Wclass-memaccess # unsafe raw memory writes to objects of class types
   -Wclass-varargs # passing object of class type X through variadic function
   -Wclobbered # variables that might be changed by 'longjmp' or 'vfork'
@@ -250,43 +254,43 @@ set(
   -Wcomma-subscript # uses of a comma operator within a subscripting expression
   -Wcomment # possibly nested block comments, and C++ comments spanning more than one physical line
   -Wcompare-distinct-pointer-types # pointers of distinct types are compared without a cast
-  -Wcomplain-wrong-lang # complain when a command-line option is valid
+  -Wcomplain-wrong-lang # a command-line option is valid, but not applicable to this front end
   -Wcompletion-handler # completion handler is called twice
   -Wcomplex-component-init # complex initialization specifying real and imaginary components
   -Wcompound-token-split # covers -Wcompound-token-split-by-macro, -Wcompound-token-split-by-space
-  -Wcompound-token-split-by-macro # X and Y tokens introducing statement expression appear
-  -Wcompound-token-split-by-space # X and Y tokens introducing statement expression
+  -Wcompound-token-split-by-macro # X and Y tokens appear in different macro expansion contexts
+  -Wcompound-token-split-by-space # X and Y tokens are separated by whitespace
   -Wconditional-type-mismatch # pointer/integer type mismatch in conditional expression (X and Y)
   -Wconditional-uninitialized # variable X may be uninitialized when used here
   -Wconditionally-supported # conditionally-supported constructs
   -Wconfig-macros # definition of configuration macro 'X' has no effect on the import of 'Y'
   -Wconstant-conversion # implicit conversion from X to Y changes value from Z to W
-  -Wconstant-evaluated # 'X' will always evaluate to 'true' in a manifestly constant-evaluated
+  -Wconstant-evaluated # 'X' will always evaluate to 'true' in a constant-evaluated expression
   -Wconstant-logical-operand # use of logical 'X' with constant operand
   -Wconsumed # return state set for an unconsumable type 'X'
   # -Wconversion # implicit type conversions that may change a value
   -Wconversion-null # converting NULL from/to a non-pointer type
-  -Wcoro-non-aligned-allocation-function # under -fcoro-aligned-allocation
+  -Wcoro-non-aligned-allocation-function # non-aligned allocation function for X takes precedence
   -Wcoro-type-aware-allocation-function # type aware X will not be used for coroutine allocation
   -Wcoroutine # coroutine_handle<>::address not returning 'void*'
-  -Wcoroutine-missing-unhandled-exception # X is required to declare the member
-  -Wcoverage-invalid-line-number # a function ends earlier than it begins due to an invalid
+  -Wcoroutine-missing-unhandled-exception # X is required to declare 'unhandled_exception()'
+  -Wcoverage-invalid-line-number # a function ends earlier than it begins
   -Wcoverage-mismatch # profiles in -fprofile-use do not match
-  -Wcoverage-too-many-conditions # a conditional has too many terms and condition coverage
+  -Wcoverage-too-many-conditions # a conditional has too many terms for condition coverage
   -Wcoverage-too-many-paths # a function exceeds the number of paths and path coverage give up
   -Wcovered-switch-default # default label in switch which covers all enumeration values
   -Wcpp # a #warning directive is encountered
-  # -Wctad-maybe-unsupported # performing class template argument deduction
+  # -Wctad-maybe-unsupported # class template argument deduction on a type with no deduction guides
   -Wctor-dtor-privacy # all constructors and destructors are private
   -Wcxx-attribute-extension # ISO C++ does not allow an attribute list to appear here
   -Wdangling # temporary whose address is used as value of reference member of local variable X
-  -Wdangling-assignment # object backing the pointer X will be destroyed at the end
-  -Wdangling-assignment-gsl # object backing the pointer X will be destroyed at the end
-  -Wdangling-capture # object whose reference is captured will be destroyed at the end
+  -Wdangling-assignment # object backing the pointer X will be destroyed
+  -Wdangling-assignment-gsl # object backing the pointer X will be destroyed
+  -Wdangling-capture # object whose reference is captured will be destroyed
   -Wdangling-else # dangling else
-  -Wdangling-field # temporary bound to reference member of allocated object
+  -Wdangling-field # temporary bound to reference member of allocated object will be destroyed
   -Wdangling-gsl # object backing the pointer will be destroyed at the end of the full-expression
-  -Wdangling-initializer-list # array backing initializer list subobject of the allocated object
+  -Wdangling-initializer-list # array backing the allocated initializer list will be destroyed
   -Wdangling-pointer=2 # uses of pointers to auto variables whose lifetime has ended
   -Wdangling-reference # a reference is bound to a temporary whose lifetime has ended
   -Wdarwin-sdk-settings # SDK settings were ignored as 'SDKSettings.json' could not be parsed
@@ -296,28 +300,28 @@ set(
   -Wdecls-in-multiple-modules # declaration X is detected to be defined in multiple module units
   -Wdefault-const-init # covers -Wdefault-const-init-field
   -Wdefault-const-init-field # default initialization of an object of type X with const member
-  -Wdefault-const-init-field-unsafe # default initialization of an object of type X
+  -Wdefault-const-init-field-unsafe # the object of type X with const member is left uninitialized
   -Wdefault-const-init-unsafe # covers -Wdefault-const-init-field-unsafe
   -Wdefault-const-init-var # default initialization of an object of type X is incompatible with C++
-  -Wdefault-const-init-var-unsafe # default initialization of an object of type X leaves
+  -Wdefault-const-init-var-unsafe # default initialization leaves an object of type X uninitialized
   -Wdefaulted-function-deleted # an explicitly defaulted function is deleted
   -Wdelayed-template-parsing-in-cxx20 # -fdelayed-template-parsing is deprecated after C++20
   -Wdelegating-ctor-cycles # constructor for X creates a delegation cycle
-  -Wdelete-abstract-non-virtual-dtor # delete called on X that is abstract
+  -Wdelete-abstract-non-virtual-dtor # delete called on abstract X that has non-virtual destructor
   -Wdelete-incomplete # deleting a pointer to incomplete type
-  -Wdelete-non-abstract-non-virtual-dtor # delete called on non-final X that has virtual functions
+  -Wdelete-non-abstract-non-virtual-dtor # delete called on non-final X with non-virtual destructor
   -Wdelete-non-virtual-dtor # deleting polymorphic objects with non- virtual destructors
   -Wdelimited-escape-sequence-extension # delimited escape sequences are a C++23 extension
   -Wdeprecate-lax-vec-conv-all # implicit conversion between vector types is deprecated
   -Wdeprecated # a deprecated compiler feature, class, method, or field is used
-  -Wdeprecated-altivec-src-compat # current handling of vector bool and vector pixel types
+  -Wdeprecated-altivec-src-compat # current handling of vector bool and pixel types is deprecated
   -Wdeprecated-anon-enum-enum-conversion # arithmetic between different enumeration types
   -Wdeprecated-array-compare # comparison between two arrays is deprecated
   -Wdeprecated-attributes # the '[[_Noreturn]]' attribute spelling is deprecated in C23
   -Wdeprecated-builtins # builtin X is deprecated
   -Wdeprecated-comma-subscript # top-level comma expression in array subscript
-  -Wdeprecated-copy # mark implicitly-declared copy operations as deprecated if the class
-  -Wdeprecated-copy-dtor # mark implicitly-declared copy operations as deprecated if the class
+  -Wdeprecated-copy # implicit copy operations deprecated by a user-provided copy operation
+  -Wdeprecated-copy-dtor # implicit copy operations deprecated by user-provided copy or destructor
   -Wdeprecated-copy-with-user-provided-copy # definition of implicit copy constructor for X
   -Wdeprecated-copy-with-user-provided-dtor # definition of implicit copy constructor for X
   -Wdeprecated-coroutine # 'for co_await' belongs to CoroutineTS instead of C++20
@@ -326,24 +330,24 @@ set(
   -Wdeprecated-dynamic-exception-spec # dynamic exception specifications are deprecated
   -Wdeprecated-enum-compare # arithmetic between different enumeration types is deprecated
   -Wdeprecated-enum-compare-conditional # arithmetic between different enumeration types
-  -Wdeprecated-enum-enum-conversion # deprecated arithmetic conversions on operands of enumeration
-  -Wdeprecated-enum-float-conversion # deprecated arithmetic conversions on operands where one
+  -Wdeprecated-enum-enum-conversion # deprecated arithmetic conversions on enumeration operands
+  -Wdeprecated-enum-float-conversion # deprecated enum and floating-point arithmetic conversions
   -Wdeprecated-implementations # implementing unavailable method
-  -Wdeprecated-literal-operator # deprecated space between and suffix in a user-defined literal
-  -Wdeprecated-missing-comma-variadic-parameter # declaration of a variadic function without
+  -Wdeprecated-literal-operator # deprecated space between "" and suffix in a user-defined literal
+  -Wdeprecated-missing-comma-variadic-parameter # a variadic function without a comma before '...'
   -Wdeprecated-module-dot-map # 'X' as a module map name is deprecated
   -Wdeprecated-non-prototype # calls with arguments to functions declared without parameters
   -Wdeprecated-octal-literals # octal literals without a '0o' prefix are deprecated
   -Wdeprecated-ofast # argument '-Ofast' is deprecated
   -Wdeprecated-pragma # macro X has been marked as deprecated: Y
-  -Wdeprecated-redundant-constexpr-static-def # out-of-line definition of constexpr static data
+  -Wdeprecated-redundant-constexpr-static-def # out-of-line definition of constexpr static member
   -Wdeprecated-this-capture # implicit capture of 'this' with a capture default of '='
   -Wdeprecated-type # '_ExtInt' is deprecated
   -Wdeprecated-variadic-comma-omission # deprecated omission of comma before ... in varargs
   -Wdeprecated-volatile # volatile qualifier in structured binding declaration is deprecated
   -Wdisabled-macro-expansion # disabled expansion of recursive macro
   -Wdisabled-optimization # an optimization pass is disabled
-  -Wdistributed-object-modifiers # conflicting distributed object modifiers on return
+  -Wdistributed-object-modifiers # conflicting distributed object modifiers on return type
   -Wdiv-by-zero # compile-time integer division by zero
   # -Wdocumentation # not a Doxygen trailing comment
   # -Wdocumentation-deprecated-sync # declaration is marked with '\\deprecated' command
@@ -354,7 +358,7 @@ set(
   -Wdouble-promotion # implicit conversions from 'float' to 'double'
   -Wdtor-name # ISO C++ considers this destructor name lookup to be ambiguous
   -Wdtor-typedef # destructor cannot be declared using a typedef X of the class name
-  -Wduplicate-decl-specifier # a declaration has duplicate const
+  -Wduplicate-decl-specifier # duplicate const, volatile, restrict or _Atomic specifier
   -Wduplicate-enum # element X has been implicitly assigned Y
   -Wduplicate-header-ownership # header 'X' is owned by multiple modules
   -Wduplicate-method-arg # redeclaration of method parameter X
@@ -362,9 +366,9 @@ set(
   -Wduplicated-branches # duplicated branches in if-else statements
   -Wduplicated-cond # duplicated conditions in an if-else-if chain
   -Wdxil-validation # dxv not found
-  -Wdynamic-class-memaccess # destination for this X call is a pointer to class containing
+  -Wdynamic-class-memaccess # destination for this X call is a pointer to dynamic class Y
   -Wdynamic-exception-spec # ISO C++17 does not allow dynamic exception specifications
-  -Weager-load-cxx-named-modules # the form '-fmodule-file=<BMI-path>'
+  -Weager-load-cxx-named-modules # '-fmodule-file=<BMI-path>' is deprecated for named modules
   -Weffc++ # violations of Effective C++ style rules
   -Welaborated-enum-base # an additional enum-base is used in an elaborated-type-specifier
   -Welaborated-enum-class # reference to enumeration must use 'enum' not 'enum struct'
@@ -385,9 +389,9 @@ set(
   -Wenum-too-large # enumeration values exceed range of largest integer
   -Wexceptions # an exception handler is shadowed by another handler
   -Wexcess-initializers # excess elements in char array initializer
-  -Wexcessive-regsave # interrupt service routine should only call a function with attribute
+  -Wexcessive-regsave # interrupt routine should only call 'no_caller_saved_registers' functions
   -Wexit-time-destructors # declaration requires an exit-time destructor
-  -Wexpansion-stmt-missing-braces # ISO C++ requires the body of an expansion statement
+  -Wexpansion-stmt-missing-braces # the body of an expansion statement must be a compound statement
   -Wexpansion-to-defined # 'defined' is used outside #if
   -Wexperimental-header-units # the implementation of header units is in an experimental phase
   -Wexplicit-initialize-call # explicit call to +initialize results in duplicate call
@@ -408,7 +412,7 @@ set(
   -Wfinal-macro # macro X has been marked as final and should not be undefined
   -Wfixed-point-overflow # overflow in expression
   -Wflag-enum # enumeration value X is out of range of flags in enumeration type Y
-  -Wflex-array-member-not-at-end # a structure containing a C99 flexible array member as the last
+  -Wflex-array-member-not-at-end # struct ending in a flexible array member is not last in another
   -Wflexible-array-extensions # X may not be nested in a struct due to flexible array member
   # -Wfloat-conversion # implicit type conversions that cause loss of floating point precision
   # -Wfloat-equal # testing floating point numbers for equality
@@ -441,14 +445,14 @@ set(
   -Wframe-address # __builtin_frame_address or __builtin_return_address is used unsafely
   -Wfree-nonheap-object # attempting to free a non-heap object
   -Wfriend-enum # elaborated enum specifier cannot be declared as a friend
-  -Wfunction-effect-redeclarations # redeclaration is missing 'X' attribute from previous
+  -Wfunction-effect-redeclarations # redeclaration is missing 'X' attribute
   -Wfunction-effects # attribute 'X' should not be added via type conversion
   -Wfunction-multiversion # CPU list contains duplicate entries
   -Wfuse-ld-path # '-fuse-ld=' taking a path is deprecated
   -Wgcc-compat # 'enable_if' is a clang extension
-  -Wgcc-install-dir-libstdcxx # future releases of the clang compiler
+  -Wgcc-install-dir-libstdcxx # future releases will prefer GCC installs with libstdc++ headers
   -Wglobal-constructors # declaration requires a global constructor
-  -Wglobal-isel # -fglobal-isel support is incomplete for this architecture at the current
+  -Wglobal-isel # -fglobal-isel support is incomplete for this architecture
   -Wglobal-module # the global module fragment not containing only preprocessing directives
   -Wgnu # covers -Wgnu-alignof-expression
   -Wgnu-alignof-expression # X applied to an expression is a GNU extension
@@ -457,7 +461,7 @@ set(
   -Wgnu-auto-type # '__auto_type' is a GNU extension
   -Wgnu-case-range # case ranges are a GNU extension
   -Wgnu-complex-integer # complex integer types are a GNU extension
-  -Wgnu-compound-literal-initializer # initialization of an array of type X from a compound
+  -Wgnu-compound-literal-initializer # initialization of an array of type X from a compound literal
   -Wgnu-conditional-omitted-operand # use of GNU ?: conditional expression extension
   -Wgnu-designator # use of GNU 'missing =' extension in designator
   -Wgnu-empty-struct # empty struct is a GNU extension
@@ -466,10 +470,10 @@ set(
   -Wgnu-folding-constant # in-class initializer for static data member is not a constant expression
   -Wgnu-imaginary-constant # imaginary constants are a GNU extension
   -Wgnu-include-next # #include_next is a language extension
-  -Wgnu-inline-cpp-without-extern # 'gnu_inline' attribute without 'extern' in C++ treated
+  -Wgnu-inline-cpp-without-extern # 'gnu_inline' without 'extern' treated as externally available
   -Wgnu-label-as-value # use of GNU address-of-label extension
   -Wgnu-line-marker # this style of line directive is a GNU extension
-  -Wgnu-null-pointer-arithmetic # arithmetic on a null pointer treated as a cast from integer
+  -Wgnu-null-pointer-arithmetic # null pointer arithmetic treated as a cast from integer to pointer
   -Wgnu-pointer-arith # arithmetic on a pointers to the function types X and Y is a GNU extension
   -Wgnu-redeclared-enum # redeclaration of already-defined enum X is a GNU extension
   -Wgnu-statement-expression # use of GNU statement expression extension
@@ -480,17 +484,17 @@ set(
   -Wgnu-variable-sized-type-not-at-end # field X with variable sized type Y not at the end
   -Wgnu-zero-line-directive # #line directive with zero argument is a GNU extension
   -Wgnu-zero-variadic-macro-arguments # token pasting of ',' and '__VA_ARGS__' is a GNU extension
-  -Wgpu-maybe-wrong-side # capture host side class data member by this pointer in device or host
+  -Wgpu-maybe-wrong-side # capture host side class data member by this pointer in a device lambda
   -Wgroupshared-initializer # initializer of groupshared variable will be ignored
   -Whardened # -fhardened did not enable an option from its set
   -Wheader-guard # #ifndef of a header guard is followed by #define of a different macro
   -Wheader-hygiene # using namespace directive in global context in header
   -Whexagon-reserved-caller-saved # reserving the caller-saved register 'X'
-  -Whigher-precision-for-complex-division # excess precision is requested
+  -Whigher-precision-for-complex-division # excess precision is requested but unsupported
   -Widiomatic-parentheses # using the result of an assignment as a condition without parentheses
   -Wif-not-aligned # the field in a struct is not aligned
   -Wignored-attributes # attributes are ignored
-  -Wignored-availability-without-sdk-settings # X availability is ignored without a valid
+  -Wignored-availability-without-sdk-settings # X availability is ignored without SDK settings
   -Wignored-base-class-qualifiers # 'X' qualifierY on base class type Z no effect
   -Wignored-optimization-argument # optimization flag 'X' is not supported
   -Wignored-pragma-intrinsic # X is not a recognized builtin
@@ -499,49 +503,49 @@ set(
   -Wignored-reference-qualifiers # 'X' qualifier on reference type Y has no effect
   -Wimplicit # implicit declarations
   -Wimplicit-const-int-float-conversion # implicit conversion from X to Y changes value from Z to W
-  -Wimplicit-conversion-floating-point-to-bool # implicit conversion turns floating-point number
-  -Wimplicit-enum-enum-cast # implicit conversion from enumeration type X to different enumeration
-  -Wimplicit-exception-spec-mismatch # function previously declared with an explicit exception
+  -Wimplicit-conversion-floating-point-to-bool # implicit conversion of floating-point to bool
+  -Wimplicit-enum-enum-cast # implicit conversion from enumeration type X to enumeration type Y
+  -Wimplicit-exception-spec-mismatch # function redeclared with an implicit exception specification
   -Wimplicit-fallthrough # a switch case falls through
   -Wimplicit-fallthrough-per-function # unannotated fall-through between switch labels
   -Wimplicit-fallthrough=5 # a switch case falls through
-  -Wimplicit-fixed-point-conversion # implicit conversion from X cannot fit within the range
+  -Wimplicit-fixed-point-conversion # implicit conversion from X cannot fit within the range of Y
   -Wimplicit-float-conversion # implicit conversion loses floating-point precision: X to Y
   -Wimplicit-int # a declaration does not specify a type
   -Wimplicit-int-conversion # higher order bits are zeroes after implicit conversion
   -Wimplicit-int-conversion-on-negation # implicit conversion loses integer precision: X to Y
   -Wimplicit-int-enum-cast # implicit conversion from X to enumeration type Y is invalid in C++
   -Wimplicit-int-float-conversion # implicit conversion from X to Y may lose precision
-  -Wimplicit-overflow-behavior-conversion # implicit conversion from X to Y discards overflow
-  -Wimplicit-overflow-behavior-conversion-assignment # implicit conversion from X to Y during
-  -Wimplicit-overflow-behavior-conversion-assignment-pedantic # implicit conversion from X to Y
-  -Wimplicit-overflow-behavior-conversion-function-boundary # passing argument of type X
-  -Wimplicit-overflow-behavior-conversion-function-boundary-pedantic # passing argument of type X
-  -Wimplicit-overflow-behavior-conversion-pedantic # implicit conversion from X to Y discards
+  -Wimplicit-overflow-behavior-conversion # implicit conversion from X discards overflow behavior
+  -Wimplicit-overflow-behavior-conversion-assignment # assigning discards overflow behavior
+  -Wimplicit-overflow-behavior-conversion-assignment-pedantic # assignment loses overflow behavior
+  -Wimplicit-overflow-behavior-conversion-function-boundary # passing X discards overflow behavior
+  -Wimplicit-overflow-behavior-conversion-function-boundary-pedantic # overflow behavior discarded
+  -Wimplicit-overflow-behavior-conversion-pedantic # implicit conversion discards overflow behavior
   -Wimplicit-retain-self # block implicitly retains 'self'
   -Wimplicit-void-ptr-cast # implicit conversion when assigning to X from type Y
-  -Wimplicitly-unsigned-literal # integer literal is too large to be represented in a signed
+  -Wimplicitly-unsigned-literal # integer literal is too large for a signed integer type
   -Wimport-implementation-partition-unit-in-interface-unit # importing an implementation partition
   -Wimport-preprocessor-directive-pedantic # #import is a language extension
   -Winaccessible-base # a base is inaccessible in derived due to ambiguity
-  -Winclude-angled-in-module-purview # '#include <filename>' attaches the declarations
+  -Winclude-angled-in-module-purview # '#include <filename>' attaches declarations to module 'X'
   -Winclude-next-absolute-path # #include_next in file found relative to primary source file
   -Winclude-next-outside-header # #include_next in primary source file
   -Wincompatible-exception-spec # target exception specification is not superset of source
   -Wincompatible-function-pointer-types # incompatible function pointer types assigning to X from Y
-  -Wincompatible-function-pointer-types-strict # incompatible function pointer types assigning
+  -Wincompatible-function-pointer-types-strict # incompatible function pointer types
   -Wincompatible-library-redeclaration # incompatible redeclaration of library function X
-  -Wincompatible-pointer-types # there is a conversion between pointers
-  -Wincompatible-pointer-types-discards-overflow-behavior # assigning to X from Y discards
+  -Wincompatible-pointer-types # a conversion between pointers that have incompatible types
+  -Wincompatible-pointer-types-discards-overflow-behavior # assigning discards overflow behavior
   -Wincompatible-pointer-types-discards-qualifiers # assigning to X from Y discards qualifiers
   -Wincompatible-property-type # property type X is incompatible with type Y inherited from Z
   -Wincompatible-sysroot # using sysroot for 'X' but targeting 'Y'
   -Wincomplete-framework-module-declaration # skipping 'X'
   -Wincomplete-implementation # method definition for X not found
   -Wincomplete-module # covers -Wincomplete-umbrella, -Wnon-modular-include-in-module
-  -Wincomplete-setjmp-declaration # declaration of built-in function 'X' requires the declaration
-  -Winconsistent-dllimport # X redeclared without 'dllimport' attribute: 'dllexport' attribute
-  -Winconsistent-missing-destructor-override # X overrides a destructor
+  -Wincomplete-setjmp-declaration # declaring built-in function 'X' requires the 'jmp_buf' type
+  -Winconsistent-dllimport # X redeclared without 'dllimport': 'dllexport' attribute added
+  -Winconsistent-missing-destructor-override # X overrides a destructor but lacks 'override'
   -Winconsistent-missing-override # X overrides a member function but is not marked 'override'
   -Wincrement-bool # ISO C++17 does not allow incrementing expression of type bool
   -Winfinite-recursion # infinitely recursive calls
@@ -555,7 +559,7 @@ set(
   -Winline-namespace-reopened-noninline # inline namespace reopened as a non-inline namespace
   -Winline-new-delete # replacement function X cannot be declared 'inline'
   -Winstallapi-violation # violations found for X
-  -Winstantiation-after-specialization # explicit instantiation of X that occurs after an explicit
+  -Winstantiation-after-specialization # instantiation after explicit specialization has no effect
   -Wint-conversion # incompatible integer to pointer and pointer to integer conversions
   -Wint-in-bool-context # suspicious integer expressions in boolean context
   -Wint-to-pointer-cast # there is a cast to a pointer from an integer of a different size
@@ -575,11 +579,11 @@ set(
   -Winvalid-noreturn # function X declared 'noreturn' should not return
   -Winvalid-offsetof # invalid uses of the 'offsetof' macro
   -Winvalid-or-nonexistent-directory # unable to find X directory
-  -Winvalid-partial-specialization # class template partial specialization
+  -Winvalid-partial-specialization # partial specialization is no more specialized than the primary
   -Winvalid-pp-token # empty character constant
   -Winvalid-source-encoding # illegal character encoding in string literal
   -Winvalid-specialization # X cannot be specialized: Y
-  -Winvalid-static-assert-message # the message in this static assertion
+  -Winvalid-static-assert-message # static assertion message is not a constant expression
   -Winvalid-token-paste # pasting formed 'X', an invalid preprocessing token
   -Winvalid-unevaluated-string # encoding prefix 'X' on an unevaluated string literal
   -Winvalid-utf8 # invalid UTF-8 characters
@@ -595,20 +599,20 @@ set(
   # -Wlifetime-safety-all # covers -Wlifetime-safety
   -Wlifetime-safety-annotation-placement # covers -Wlifetime-safety-inapplicable-lifetimebound
   -Wlifetime-safety-annotation-verification # covers -Wlifetime-safety-noescape
-  # -Wlifetime-safety-cross-tu-constructor-suggestions # parameter in cross-TU constructor
-  -Wlifetime-safety-cross-tu-misplaced-lifetimebound # 'lifetimebound' attribute
-  # -Wlifetime-safety-cross-tu-suggestions # parameter in cross-TU function
+  # -Wlifetime-safety-cross-tu-constructor-suggestions # parameter should be marked lifetimebound
+  -Wlifetime-safety-cross-tu-misplaced-lifetimebound # 'lifetimebound' is not visible to other TUs
+  # -Wlifetime-safety-cross-tu-suggestions # parameter should be marked [[clang::lifetimebound]]
   -Wlifetime-safety-dangling-field # stack memory associated with X escapes to the Y
   -Wlifetime-safety-dangling-field-moved # stack memory associated with X may escape to the Y
   -Wlifetime-safety-dangling-global # stack memory associated with X escapes to the Y
   -Wlifetime-safety-dangling-global-moved # stack memory associated with X may escape to the Y
-  -Wlifetime-safety-inapplicable-lifetimebound # 'lifetimebound' attribute
-  # -Wlifetime-safety-intra-tu-constructor-suggestions # parameter in intra-TU constructor
-  -Wlifetime-safety-intra-tu-misplaced-lifetimebound # 'lifetimebound' attribute
-  # -Wlifetime-safety-intra-tu-suggestions # parameter in intra-TU function
+  -Wlifetime-safety-inapplicable-lifetimebound # 'lifetimebound' attribute has no effect
+  # -Wlifetime-safety-intra-tu-constructor-suggestions # parameter should be marked lifetimebound
+  -Wlifetime-safety-intra-tu-misplaced-lifetimebound # 'lifetimebound' is not visible to callers
+  # -Wlifetime-safety-intra-tu-suggestions # parameter should be marked [[clang::lifetimebound]]
   # -Wlifetime-safety-invalidation # X is later invalidated
-  -Wlifetime-safety-lifetimebound-violation # could not verify that the return value
-  -Wlifetime-safety-misplaced-lifetimebound # covers
+  -Wlifetime-safety-lifetimebound-violation # return value could not be verified as lifetime bound
+  -Wlifetime-safety-misplaced-lifetimebound # covers the cross-TU and intra-TU variants
   -Wlifetime-safety-noescape # parameter is marked [[clang::noescape]] but escapes
   -Wlifetime-safety-permissive # covers -Wlifetime-safety-use-after-scope
   -Wlifetime-safety-return-stack-addr # stack memory associated with X is returned
@@ -627,7 +631,7 @@ set(
   -Wlogical-op # a logical operator is suspiciously always evaluating to true or false
   -Wlogical-op-parentheses # '&&' within '||'
   -Wloop-analysis # covers -Wfor-loop-analysis, -Wrange-loop-analysis
-  -Wlto-type-mismatch # during link time optimization warn about mismatched types of global
+  -Wlto-type-mismatch # mismatched types of global declarations during link time optimization
   -Wmacro-redefined # X macro redefined
   -Wmain # suspicious declarations of 'main'
   -Wmain-attached-to-named-module # 'main' never has module linkage
@@ -635,24 +639,24 @@ set(
   -Wmalformed-warning-check # __has_warning expected option name (e.g. '-Wundef')
   -Wmany-braces-around-scalar-init # too many braces around scalar initializer
   -Wmath-errno-enabled-with-veclib # math errno enabled by 'X'
-  -Wmathematical-notation-identifier-extension # mathematical notation character <U+X>
+  -Wmathematical-notation-identifier-extension # mathematical notation character in an identifier
   -Wmatrix-conversion # implicit conversion truncates matrix: X to Y
   -Wmax-tokens # the number of preprocessor source tokens (X) exceeds this token limit (Y)
   -Wmax-unsigned-zero # taking the max of a value and unsigned zero is always equal to the other
-  -Wmaybe-musttail-local-addr # pointer/reference to a local or temporary variable possibly
+  -Wmaybe-musttail-local-addr # pointer/reference to a local possibly escaping to a musttail call
   -Wmaybe-uninitialized # maybe uninitialized automatic variables
-  -Wmemset-elt-size # suspicious calls to memset where the third argument contains the number
-  -Wmemset-transposed-args # suspicious calls to memset where the third argument
+  -Wmemset-elt-size # memset calls whose size argument is not multiplied by the element size
+  -Wmemset-transposed-args # calls to memset where the third argument is constant literal zero
   -Wmemsize-comparison # size argument in X call is a comparison
   -Wmethod-signatures # conflicting return type in implementation of X: Y vs Z
-  -Wmisexpect # potential performance regression from use of __builtin_expect: annotation
+  -Wmisexpect # potential performance regression from use of __builtin_expect()
   -Wmisleading-indentation # the indentation of the code does not reflect the block structure
-  -Wmismatched-dealloc # deallocation calls with arguments returned from mismatched allocation
+  -Wmismatched-dealloc # deallocation calls with arguments from mismatched allocation functions
   -Wmismatched-new-delete # mismatches between calls to operator new or delete
   -Wmismatched-parameter-types # conflicting parameter types in implementation of X: Y vs Z
   -Wmismatched-return-types # conflicting return type in implementation of X: Y vs Z
   -Wmismatched-tags # a class is redeclared or referenced using a mismatched class-key
-  -Wmissing-attributes # declarations of entities that may be missing attributes that related
+  -Wmissing-attributes # declarations that may be missing attributes their related entities have
   -Wmissing-braces # possibly missing braces around initializers
   -Wmissing-constinit # 'constinit' specifier missing on initializing declaration of X
   # -Wmissing-declarations # global functions without previous declarations
@@ -668,21 +672,21 @@ set(
   -Wmissing-profile # profiles in -fprofile-use do not exist
   -Wmissing-requires # likely missing requires keyword
   -Wmissing-sysroot # no such sysroot directory: 'X'
-  -Wmissing-template-arg-list-after-template-kw # a template argument list
+  -Wmissing-template-arg-list-after-template-kw # template keyword not followed by an argument list
   -Wmissing-template-keyword # the template keyword is missing after a member access token
   # -Wmissing-variable-declarations # global variables without previous declarations
   -Wmisspelled-assumption # unknown assumption string 'X' may be misspelled
   -Wmix-packoffset # cannot mix packoffset elements with nonpackoffset elements in a cbuffer
-  -Wmmap-deprecated-symlink-to-modular-header # header 'X' may be a symlink to 'Y' owned by module
+  -Wmmap-deprecated-symlink-to-modular-header # header 'X' may be a symlink to modular header 'Y'
   -Wmost # covers -Warray-parameter
   -Wmove # covers -Wpessimizing-move, -Wredundant-move, -Wreturn-std-move, -Wself-move
   -Wmulti-gpu # multiple X architectures are detected: Y
   -Wmultichar # use of multi-character character constants
   -Wmultilib-not-found # no multilib structure encoded for Arm, Aarch64 and PPC targets
-  -Wmultiple-move-vbase # defaulted move assignment operator of X will move assign virtual base
+  -Wmultiple-move-vbase # defaulted move assignment of X moves virtual base class Y multiple times
   -Wmultistatement-macros # unsafe macros expanding to multiple statements used as a body
-  -Wmusttail-local-addr # passing a pointer/reference to a local or temporary variable
-  -Wnan-infinity-disabled # use of infinity via a macro is undefined behavior due to the currently
+  -Wmusttail-local-addr # passing a pointer/reference to a local or temporary to a musttail call
+  -Wnan-infinity-disabled # use of infinity is undefined under the enabled floating-point options
   -Wnarrowing # a narrowing conversion inside { }, ill-formed since C++11
   -Wnested-anon-types # anonymous types declared in an anonymous struct are an extension
   -Wnew-returns-null # X should not return a null pointer
@@ -691,7 +695,7 @@ set(
   # -Wnoexcept # a noexcept expression evaluates to false
   -Wnon-c-typedef-for-linkage # non-C compatible unnamed classes with a typedef name for linkage
   # -Wnon-gcc # covers -Wsign-compare, -Wconversion, -Wliteral-range
-  -Wnon-literal-null-conversion # expression
+  -Wnon-literal-null-conversion # expression evaluating to zero treated as a null pointer constant
   -Wnon-pod-varargs # cannot pass object of non-POD type X through variadic function
   -Wnon-power-of-two-alignment # requested alignment is not a power of 2
   -Wnon-template-friend # non-templatized friend functions are declared within a template
@@ -714,7 +718,7 @@ set(
   # -Wnull-dereference # dereferencing a NULL pointer may lead to erroneous or undefined behavior
   -Wnull-pointer-arithmetic # performing pointer arithmetic on a null pointer
   -Wnull-pointer-subtraction # performing pointer subtraction with a null pointer
-  -Wnullable-to-nonnull-conversion # implicit conversion from nullable pointer X to non-nullable
+  -Wnullable-to-nonnull-conversion # implicit conversion from nullable to non-nullable pointer
   -Wnvcc-compat # target-attribute based function overloads are not supported by NVCC
   -Woctal-prefix-extension # octal integer literals are a Clang extension
   -Wodr # some C++ One Definition Rule violations during link time optimization
@@ -723,7 +727,7 @@ set(
   -Wordered-compare-function-pointers # ordered comparison of function pointers (X and Y)
   -Wout-of-line-declaration # out-of-line declaration of a member must be a definition
   -Wout-of-scope-function # use of out-of-scope declaration of X
-  -Wover-aligned # type X requires Y bytes of alignment and the default allocator only guarantees
+  -Wover-aligned # type X requires Y bytes of alignment, more than the default allocator guarantees
   -Woverflow # overflow in arithmetic expressions
   -Woverflow-behavior-attribute-ignored # X attribute is ignored because it is not enabled
   -Woverlength-strings # a string is longer than the maximum portable length specified
@@ -747,7 +751,7 @@ set(
   -Wpedantic # anything the pinned standard does not permit, GNU extensions included
   -Wpedantic-macros # covers -Wdeprecated-pragma
   -Wperf-constraint-implies-noexcept # function with 'X' attribute should be declared noexcept
-  -Wpessimizing-move # calling std::move on a local object in a return statement preventing copy
+  -Wpessimizing-move # std::move on a local object in a return statement preventing copy elision
   -Wpgo-coverage # unsupported MC/DC boolean expression
   -Wplacement-new=2 # placement new expressions with undefined behavior
   -Wpmf-conversions # converting the type of pointers to member functions
@@ -770,9 +774,9 @@ set(
   -Wpre-c++23-compat # built as C++23 or later, a construct C++20 and earlier reject
   -Wpre-c++26-compat # built as C++26 or later, a construct C++23 and earlier reject
   -Wpredefined-identifier-outside-function # predefined identifier is only valid inside function
-  -Wpreferred-type-bitfield-enum-conversion # signed bit-field X needs an extra bit to represent
+  -Wpreferred-type-bitfield-enum-conversion # signed bit-field X needs an extra bit
   -Wprio-ctor-dtor # constructor or destructors with priorities from 0 to 100 are used
-  -Wprivate-extern # use of __private_extern__ on a declaration may not produce external symbol
+  -Wprivate-extern # use of __private_extern__ may not produce a symbol private to the linkage unit
   -Wprivate-header # use of private header from outside its module: 'X'
   -Wprofile-instr-missing # profile data may be incomplete: of X functionX, Y no data
   -Wprofile-instr-out-of-date # profile data may be out of date: of X functionX, Y mismatched data
@@ -793,9 +797,9 @@ set(
   -Wredundant-move # redundant calls to std::move
   -Wredundant-parens # redundant parentheses surrounding declarator
   # -Wredundant-tags # a class or enumerated type is referenced using a redundant class-key
-  -Wreference-tu-local-entity-in-other-tu # instantiation of X triggers reference to TU-local
+  -Wreference-tu-local-entity-in-other-tu # instantiation of X references TU-local entity Y
   -Wregister # uses of register storage specifier
-  -Wreinterpret-base-class # 'reinterpret_cast' from class X to its virtual base Y behaves
+  -Wreinterpret-base-class # 'reinterpret_cast' to a virtual base differs from 'static_cast'
   -Wreorder # the compiler reorders code
   -Wreorder-ctor # initializer order does not match the declaration order
   -Wreorder-init-list # ISO C++ requires field designators to be specified in declaration order
@@ -812,7 +816,7 @@ set(
   -Wreturn-mismatch # void-returning functions return a non-void expressions
   -Wreturn-type # a function's return type defaults to 'int' (C) or inconsistent return types (C++)
   -Wreturn-type-c-linkage # X has C-linkage specified, but returns user-defined type Y
-  -Wrewrite-not-bool # ISO C++20 requires return type of selected 'operator==' function
+  -Wrewrite-not-bool # ISO C++20 requires return type of selected 'operator==' to be 'bool'
   -Wrtti # typeid will not work since RTTI data is disabled by -fno-rtti-data
   -Wsarif-format-unstable # diagnostic formatting in SARIF mode is currently unstable
   -Wscalable-static-analysis-framework # must enable some summary extractors
@@ -843,14 +847,14 @@ set(
   -Wshift-op-parentheses # operator 'X' has lower precedence than 'Y'
   -Wshift-overflow # left shift of a signed value overflows
   -Wshift-overflow=2 # left shift of a signed value overflows
-  -Wshift-sign-overflow # signed shift result sets the sign bit of the shift expression's
+  -Wshift-sign-overflow # signed shift result sets the sign bit and becomes negative
   -Wshorten-64-to-32 # implicit conversion loses integer precision: X to Y
   -Wsign-compare # signed-unsigned comparisons
   # -Wsign-conversion # implicit type conversions between signed and unsigned integers
   # -Wsign-promo # overload promotes from unsigned to signed
   -Wsigned-unsigned-wchar # 'X' cannot be signed or unsigned
   -Wsimdlen # the clause simdlen(1) has no effect when targeting aarch64
-  -Wsingle-bit-bitfield-constant-conversion # implicit truncation from X to a one-bit wide
+  -Wsingle-bit-bitfield-constant-conversion # truncation to a one-bit wide bit-field changes value
   -Wsized-deallocation # missing sized deallocation functions
   -Wsizeof-array-argument # sizeof is applied on a parameter declared as an array
   -Wsizeof-array-decay # sizeof on pointer operation will return size of X instead of Y
@@ -865,7 +869,7 @@ set(
   -Wstack-protector # not issuing stack smashing protection for some reason
   -Wstatic-float-init # in-class initializer for static data member of type X requires 'constexpr'
   -Wstatic-in-inline # using static function X in an inline function with external linkage
-  -Wstatic-inline-explicit-instantiation # ignoring 'static' keyword on explicit template
+  -Wstatic-inline-explicit-instantiation # ignoring 'static' on explicit template instantiation
   -Wstatic-local-in-inline # non-constant static local variable in inline function
   -Wstatic-self-init # static variable X is suspiciously used within its own initialization
   -Wstdlibcxx-not-found # include path for libstdc++ headers not found
@@ -889,9 +893,7 @@ set(
   -Wsuggest-attribute=malloc # functions which might be candidates for __attribute__((malloc))
   # -Wsuggest-attribute=pure # functions which might be candidates for __attribute__((pure))
   -Wsuggest-destructor-override # X overrides a destructor but is not marked 'override'
-  # -Wsuggest-final-methods # C++ virtual methods where adding final keyword
-  # -Wsuggest-final-types # C++ polymorphic types where adding final keyword
-  -Wsuggest-override # suggest that the override keyword be used when the declaration
+  -Wsuggest-override # suggest the override keyword when a virtual function overrides another
   -Wsuspicious-bzero # 'size' argument to bzero is '0'
   -Wsuspicious-memaccess # covers -Wsizeof-pointer-memaccess
   -Wswift-name-attribute # X attribute is missing parameter label clause
@@ -902,31 +904,31 @@ set(
   -Wswitch-outside-range # switch values that are outside of the switch's type range
   -Wswitch-unreachable # statements between switch's controlling expression and the first case
   -Wsync-alignment # __sync builtin operation must have natural alignment (consider using __atomic)
-  -Wsync-fetch-and-nand-semantics-changed # the semantics of this intrinsic changed with GCC
+  -Wsync-fetch-and-nand-semantics-changed # the semantics of this intrinsic changed with GCC 4.4
   -Wsync-nand # __sync_fetch_and_nand and __sync_nand_and_fetch built-in functions are used
   -Wtarget-clones-mixed-specifiers # mixing 'target_clones' specifier mechanisms
   -Wtautological-bitwise-compare # bitwise or with non-zero value always evaluates to true
   -Wtautological-compare # a comparison always evaluates to true or false
-  -Wtautological-constant-compare # result of comparison of constant X with expression of type Y
+  -Wtautological-constant-compare # comparison of constant X with expression of type Y is always Z
   -Wtautological-constant-in-range-compare # covers -Wtype-limits
-  -Wtautological-constant-out-of-range-compare # result of comparison of constant X
+  -Wtautological-constant-out-of-range-compare # comparison of constant X with type Y is always Z
   -Wtautological-negation-compare # '||' of a value and its negation always evaluates to true
   -Wtautological-overlap-compare # non-overlapping comparisons always evaluate to false
-  -Wtautological-pointer-compare # comparison of address of 'X' not equal to a null pointer
+  -Wtautological-pointer-compare # comparison of address of 'X' not equal to null is always true
   -Wtautological-type-limit-compare # result of comparison X Y Z is always W
   -Wtautological-undefined-compare # 'this' pointer cannot be null in well-defined C++ code
-  -Wtautological-unsigned-char-zero-compare # result of comparison of X Y char expression
-  -Wtautological-unsigned-enum-zero-compare # result of comparison of X Y unsigned enum expression
-  -Wtautological-unsigned-zero-compare # result of comparison of X Y unsigned expression
+  -Wtautological-unsigned-char-zero-compare # comparison of X Y char expression is always Z
+  -Wtautological-unsigned-enum-zero-compare # comparison of X Y unsigned enum is always Z
+  -Wtautological-unsigned-zero-compare # comparison of X Y unsigned expression is always Z
   -Wtautological-value-range-compare # result of comparison of X Y Z-bit signed value is always W
   -Wtcb-enforcement # calling X is a violation of trusted computing base 'Y'
   -Wtemplate-body # diagnose errors when parsing a template
   -Wtemplate-id-cdtor # simple-template-id in a constructor or destructor
-  -Wtemplate-in-declaration-name # 'template' cannot be used after a declarative nested name
+  -Wtemplate-in-declaration-name # 'template' cannot follow a declarative nested name specifier
   -Wtemplate-names-tu-local # templates naming TU-local entities in a module
   -Wtentative-definition-array # tentative array definition assumed to have one element
   -Wtentative-definition-compat # duplicate declaration of X is invalid in C++
-  -Wtentative-definition-incomplete-type # tentative definition of variable with internal linkage
+  -Wtentative-definition-incomplete-type # tentative definition has incomplete type X
   -Wterminate # a throw expression will always result in a call to terminate()
   -Wthread-safety # covers -Wthread-safety-attributes
   -Wthread-safety-analysis # cannot resolve lock expression
@@ -964,7 +966,7 @@ set(
   -Wundefined-var-template # instantiation of variable X required here
   -Wunderaligned-exception-object # underaligned exception object thrown
   -Wunderlying-atomic-qualifier-ignored # '_Atomic' qualifier ignored
-  -Wunderlying-cv-qualifier-ignored # 'const' and 'volatile' qualifiers in enumeration underlying
+  -Wunderlying-cv-qualifier-ignored # 'const' and 'volatile' in enumeration underlying type ignored
   -Wunevaluated-expression # expression with side effects has no effect in an unevaluated context
   -Wunguarded-availability # X is unavailable
   -Wunguarded-availability-new # X is unavailable
@@ -993,28 +995,28 @@ set(
   # -Wunreachable-code-aggressive # covers -Wunreachable-code
   # -Wunreachable-code-break # 'break' will never be executed
   -Wunreachable-code-fallthrough # fallthrough annotation in unreachable code
-  -Wunreachable-code-generic-assoc # due to lvalue conversion of the controlling expression
+  -Wunreachable-code-generic-assoc # association of type X will never be selected
   -Wunreachable-code-loop-increment # loop will run at most once (loop increment never executed)
   # -Wunreachable-code-return # 'return' will never be executed
   # -Wunsafe-buffer-usage # X is an unsafe pointer used for buffer access
-  -Wunsafe-buffer-usage-in-container # the two-parameter std::span construction
+  -Wunsafe-buffer-usage-in-container # the two-parameter std::span construction is unsafe
   -Wunsafe-buffer-usage-in-format-attr-call # formatting function X is unsafe
   # -Wunsafe-buffer-usage-in-libc-call # function X is unsafe
-  -Wunsafe-buffer-usage-in-static-sized-array # direct access on T[N] is unsafe due to the lack
-  -Wunsafe-buffer-usage-in-unique-ptr-array-access # direct access using operator[]
+  -Wunsafe-buffer-usage-in-static-sized-array # direct access on T[N] lacks bounds checking
+  -Wunsafe-buffer-usage-in-unique-ptr-array-access # operator[] on std::unique_ptr<T[]> is unsafe
   -Wunsupported-abi # float ABI 'X' is not supported by current library
   -Wunsupported-abs # ignoring '-mabs=2008' option because the 'X' architecture does not support it
   -Wunsupported-availability-guard # availability not guarded by __builtin_available
   -Wunsupported-cb # ignoring '-mcompact-branches=' option
-  -Wunsupported-dll-base-class-template # propagating dll attribute to already instantiated base
-  -Wunsupported-floating-point-opt # overriding currently unsupported use of floating point
+  -Wunsupported-dll-base-class-template # propagating dll attribute to an instantiated base class
+  -Wunsupported-floating-point-opt # overriding unsupported use of floating point exceptions
   -Wunsupported-friend # dependent nested name specifier X for friend template declaration
-  -Wunsupported-gpopt # ignoring '-mgpopt' option as it cannot be used with the implicit usage
+  -Wunsupported-gpopt # ignoring '-mgpopt' option as it cannot be used with -mabicalls
   -Wunsupported-nan # ignoring '-mnan=2008' option because the 'X' architecture does not support it
   -Wunsupported-target-opt # debug information option 'X' is not supported for target 'Y'
   -Wunsupported-visibility # target does not support 'protected' visibility
-  -Wunterminated-string-initialization # character arrays initialized as unterminated character
-  -Wunusable-partial-specialization # class template partial specialization contains a template
+  -Wunterminated-string-initialization # character arrays initialized as unterminated sequences
+  -Wunusable-partial-specialization # partial specialization has a parameter that cannot be deduced
   -Wunused # enable all -Wunused- warnings
   -Wunused-but-set-global # variable X set but not used
   -Wunused-but-set-parameter # a function parameter is only set, otherwise unused
@@ -1027,7 +1029,7 @@ set(
   -Wunused-const-variable=2 # a const variable is unused
   # -Wunused-exception-parameter # unused exception parameter X
   -Wunused-function # a function is unused
-  -Wunused-getter-return-value # property access result unused - getters should not be used
+  -Wunused-getter-return-value # property access result unused
   -Wunused-label # a label is unused
   -Wunused-lambda-capture # lambda capture X is not used
   -Wunused-local-typedefs # typedefs locally defined in a function are not used
@@ -1035,7 +1037,7 @@ set(
   -Wunused-member-function # unused member function X
   -Wunused-parameter # a function parameter is unused
   -Wunused-private-field # private field X is not used
-  -Wunused-result # a caller of a function
+  -Wunused-result # a caller of a function marked warn_unused_result does not use its return value
   -Wunused-template # unused function template X
   -Wunused-value # an expression value is unused
   -Wunused-variable # a variable is unused
@@ -1046,7 +1048,7 @@ set(
   -Wuser-defined-literals # user-defined literal suffixes not starting with '_' are reserved
   -Wuser-defined-warnings # whatever #pragma clang warning prints
   -Wvarargs # questionable usage of the macros used to retrieve variable arguments
-  -Wvariadic-macro-arguments-omitted # passing no argument for the '...' parameter of a variadic
+  -Wvariadic-macro-arguments-omitted # no argument for the '...' parameter of a variadic macro
   -Wvariadic-macros # using variadic macros
   -Wvec-elem-size # vector operands do not have the same elements sizes (X and Y)
   -Wvector-conversion # implicit conversion truncates vector: X to Y
@@ -1066,7 +1068,7 @@ set(
   -Wvolatile-register-var # a register variable is declared volatile
   -Wweak-template-vtables # this warning is no longer in use
   -Wweak-vtables # X has no out-of-line virtual method definitions
-  -Wwrite-strings # in C++
+  -Wwrite-strings # deprecated conversion from string literals to 'char *'
   -Wxor-used-as-pow # xor operators where it appears the user meant exponentiation
   # -Wzero-as-null-pointer-constant # a literal '0' is used as null pointer
   -Wzero-length-array # zero size arrays are an extension
