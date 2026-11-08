@@ -310,7 +310,7 @@ set(
   -Wdelete-abstract-non-virtual-dtor # delete called on abstract X that has non-virtual destructor
   -Wdelete-incomplete # deleting a pointer to incomplete type
   -Wdelete-non-abstract-non-virtual-dtor # delete called on non-final X with non-virtual destructor
-  -Wdelete-non-virtual-dtor # deleting polymorphic objects with non- virtual destructors
+  -Wdelete-non-virtual-dtor # deleting polymorphic objects with non-virtual destructors
   -Wdelimited-escape-sequence-extension # delimited escape sequences are a C++23 extension
   -Wdeprecate-lax-vec-conv-all # implicit conversion between vector types is deprecated
   -Wdeprecated # a deprecated compiler feature, class, method, or field is used
@@ -474,7 +474,7 @@ set(
   -Wgnu-label-as-value # use of GNU address-of-label extension
   -Wgnu-line-marker # this style of line directive is a GNU extension
   -Wgnu-null-pointer-arithmetic # null pointer arithmetic treated as a cast from integer to pointer
-  -Wgnu-pointer-arith # arithmetic on a pointers to the function types X and Y is a GNU extension
+  -Wgnu-pointer-arith # arithmetic on pointers to function types X and Y is a GNU extension
   -Wgnu-redeclared-enum # redeclaration of already-defined enum X is a GNU extension
   -Wgnu-statement-expression # use of GNU statement expression extension
   -Wgnu-statement-expression-from-macro-expansion # use of GNU statement expression extension
@@ -495,7 +495,7 @@ set(
   -Wif-not-aligned # the field in a struct is not aligned
   -Wignored-attributes # attributes are ignored
   -Wignored-availability-without-sdk-settings # X availability is ignored without SDK settings
-  -Wignored-base-class-qualifiers # 'X' qualifierY on base class type Z no effect
+  -Wignored-base-class-qualifiers # 'X' qualifier on base class type Y has no effect
   -Wignored-optimization-argument # optimization flag 'X' is not supported
   -Wignored-pragma-intrinsic # X is not a recognized builtin
   -Wignored-pragmas # missing debug command
@@ -667,7 +667,7 @@ set(
   -Wmissing-include-dirs # user-specified include directories that do not exist
   -Wmissing-method-return-type # method has no return type specified
   -Wmissing-multilib # no multilib found matching flags: X
-  -Wmissing-noescape # parameter of overriding method should be annotated with __attribute__()
+  -Wmissing-noescape # parameter of overriding method should have __attribute__((noescape))
   # -Wmissing-noreturn # block could be declared with attribute 'noreturn'
   -Wmissing-profile # profiles in -fprofile-use do not exist
   -Wmissing-requires # likely missing requires keyword
@@ -744,7 +744,7 @@ set(
   -Wpacked-bitfield-compat # packed bit-fields whose offset changed in GCC 4.4
   -Wpacked-non-pod # not packing field X as it is non-POD for the purposes of layout
   -Wpacked-not-aligned # fields in a struct with the packed attribute are misaligned
-  -Wpadded-bitfield # padding struct X with Y byteY to align anonymous bit-field
+  -Wpadded-bitfield # padding struct X with Y bytes to align anonymous bit-field
   -Wparentheses # possibly missing parentheses
   -Wparentheses-equality # equality comparison with extraneous parentheses
   -Wpass-failed # an optimisation pass reporting it could not run
@@ -778,8 +778,8 @@ set(
   -Wprio-ctor-dtor # constructor or destructors with priorities from 0 to 100 are used
   -Wprivate-extern # use of __private_extern__ may not produce a symbol private to the linkage unit
   -Wprivate-header # use of private header from outside its module: 'X'
-  -Wprofile-instr-missing # profile data may be incomplete: of X functionX, Y no data
-  -Wprofile-instr-out-of-date # profile data may be out of date: of X functionX, Y mismatched data
+  -Wprofile-instr-missing # profile data may be incomplete: of X functions, Y have no data
+  -Wprofile-instr-out-of-date # profile data out of date: of X functions, Y have mismatched data
   -Wprofile-instr-unprofiled # no profile data available for file 'X'
   -Wprotocol # inherited methods are unimplemented
   -Wpsabi # code affected by incompatible psABI changes
@@ -809,7 +809,7 @@ set(
   -Wreserved-macro-identifier # macro name is a reserved identifier
   -Wreserved-module-identifier # X is a reserved name for a module
   -Wreserved-user-defined-literal # invalid suffix on literal
-  -Wrestrict # an argument passed to a restrict- qualified parameter aliases with another argument
+  -Wrestrict # an argument passed to a restrict-qualified parameter aliases with another argument
   -Wrestrict-expansion # macro X has been marked as unsafe for use in headers: Y
   -Wretained-language-linkage # friend function X retaining previous language linkage
   -Wreturn-local-addr # returning a pointer/reference to a local or temporary variable
