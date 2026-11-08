@@ -230,6 +230,17 @@ bool LoggingTerm::is_value() const
   return op.is_null() && wrapped_term->is_value();
 }
 
+std::string LoggingTerm::get_constructor_name() const
+{
+  SortKind sk = sort->get_sort_kind();
+  if (sk != CONSTRUCTOR && sk != TESTER)
+  {
+    throw IncorrectUsageException(
+        "Only a constructor or a tester has a constructor name");
+  }
+  return wrapped_term->get_constructor_name();
+}
+
 std::string LoggingTerm::get_param_name() const
 {
   if (!is_param())
@@ -237,6 +248,15 @@ std::string LoggingTerm::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return wrapped_term->get_param_name();
+}
+
+std::string LoggingTerm::get_selector_name() const
+{
+  if (sort->get_sort_kind() != SELECTOR)
+  {
+    throw IncorrectUsageException("Only a selector has a selector name");
+  }
+  return wrapped_term->get_selector_name();
 }
 
 std::string LoggingTerm::get_symbol_name() const

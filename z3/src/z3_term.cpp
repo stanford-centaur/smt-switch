@@ -279,13 +279,11 @@ string Z3Term::to_string() const
 {
   if (is_function)
   {
-    // a tester's name is is, whatever constructor it tests, so it is printed
-    // with the constructor, which is its parameter
+    // Z3 names every tester `is`, so a tester is printed with the
+    // constructor it tests
     if (z_func.decl_kind() == Z3_OP_DT_IS)
     {
-      z3::func_decl cons{ *ctx,
-                          Z3_get_decl_func_decl_parameter(*ctx, z_func, 0) };
-      return "(_ is " + smtlib_quote_symbol(cons.name().str()) + ")";
+      return "(_ is " + smtlib_quote_symbol(get_constructor_name()) + ")";
     }
     return z_func.name().str();
   }
@@ -295,6 +293,24 @@ string Z3Term::to_string() const
   }
 }
 
+string Z3Term::get_constructor_name() const
+{
+  if (is_function && z_func.decl_kind() == Z3_OP_DT_CONSTRUCTOR)
+  {
+    return z_func.name().str();
+  }
+  // Z3 names every tester `is`, so a tester's constructor is read from its
+  // parameter
+  if (is_function && z_func.decl_kind() == Z3_OP_DT_IS)
+  {
+    z3::func_decl cons{ *ctx,
+                        Z3_get_decl_func_decl_parameter(*ctx, z_func, 0) };
+    return cons.name().str();
+  }
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 string Z3Term::get_param_name() const
 {
   if (!is_param())
@@ -302,6 +318,15 @@ string Z3Term::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   return param_name;
+}
+
+string Z3Term::get_selector_name() const
+{
+  if (is_function && z_func.decl_kind() == Z3_OP_DT_ACCESSOR)
+  {
+    return z_func.name().str();
+  }
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 string Z3Term::get_symbol_name() const

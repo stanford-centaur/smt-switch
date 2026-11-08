@@ -485,4 +485,6 @@ int DatatypeComponentSort::get_num_selectors() const
   return dt_sort->get_generic_datatype()->get_num_selectors(name);
 }
 
+std::string DatatypeComponentSort::get_name() const { return name; }
+
 }  // namespace smt

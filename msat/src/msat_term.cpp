@@ -492,6 +492,12 @@ static string number_to_text(msat_env env,
   return val;
 }
 
+string MsatTerm::get_constructor_name() const
+{
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 string MsatTerm::get_param_name() const
 {
   if (!is_param())
@@ -503,6 +509,11 @@ string MsatTerm::get_param_name() const
   string res = s + 1;
   msat_free(s);
   return res;
+}
+
+string MsatTerm::get_selector_name() const
+{
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 string MsatTerm::get_symbol_name() const

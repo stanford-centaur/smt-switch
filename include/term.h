@@ -86,10 +86,20 @@ class AbsTerm : public detail::SharedTermBase
    *  is a value, not even a function.
    */
   virtual bool is_value() const = 0;
+  /** Returns the name a constructor was declared with, or that of the
+   *  constructor a tester tests, unquoted.
+   *  Throws an IncorrectUsageException unless the term is a constructor or a
+   *  tester.
+   */
+  virtual std::string get_constructor_name() const = 0;
   /** Returns the name the param was made with, unquoted.
    *  Throws an IncorrectUsageException unless the term is a param.
    */
   virtual std::string get_param_name() const = 0;
+  /** Returns the name the selector was declared with, unquoted.
+   *  Throws an IncorrectUsageException unless the term is a selector.
+   */
+  virtual std::string get_selector_name() const = 0;
   /** Returns the name the symbol was made with. Unlike to_string, which
    *  prints SMT-LIB, it is never quoted: a symbol made as "a b" is named
    *  a b, not |a b|.

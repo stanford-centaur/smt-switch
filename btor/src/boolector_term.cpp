@@ -318,6 +318,12 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
   return s;
 }
 
+std::string BoolectorTerm::get_constructor_name() const
+{
+  throw IncorrectUsageException(
+      "Only a constructor or a tester has a constructor name");
+}
+
 std::string BoolectorTerm::get_param_name() const
 {
   if (!is_param())
@@ -331,6 +337,11 @@ std::string BoolectorTerm::get_param_name() const
   std::size_t number =
       INTERNAL_NAME_PREFIX.size() + std::string_view("param_").size();
   return internal.substr(internal.find('_', number) + 1);
+}
+
+std::string BoolectorTerm::get_selector_name() const
+{
+  throw IncorrectUsageException("Only a selector has a selector name");
 }
 
 std::string BoolectorTerm::get_symbol_name() const
