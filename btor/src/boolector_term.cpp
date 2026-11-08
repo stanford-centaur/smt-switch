@@ -25,10 +25,12 @@ extern "C" {
 #include <utils/btornodeiter.h>
 }
 
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <string_view>
 
 #include "boolector_sort.h"
 #include "exceptions.h"
@@ -314,6 +316,21 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
   std::string s(assignment);
   boolector_free_bv_assignment(btor, assignment);
   return s;
+}
+
+std::string BoolectorTerm::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  // make_param names it internal_name("param", n), an underscore, then the
+  // name it was given
+  std::string internal =
+      btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
+  std::size_t number =
+      INTERNAL_NAME_PREFIX.size() + std::string_view("param_").size();
+  return internal.substr(internal.find('_', number) + 1);
 }
 
 std::string BoolectorTerm::get_symbol_name() const

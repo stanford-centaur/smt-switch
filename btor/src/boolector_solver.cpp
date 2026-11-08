@@ -694,6 +694,13 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
   }
+  // params are named this way, in the table symbols share
+  if (is_internal_name(name))
+  {
+    throw IncorrectUsageException("symbol name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
+  }
 
   BoolectorSort bs = btor_sort(sort);
 
@@ -733,13 +740,22 @@ Term BoolectorSolver::get_symbol(const std::string & name) const
   return it->second;
 }
 
-Term BoolectorSolver::make_param(const std::string /* name */,
+Term BoolectorSolver::make_param(const std::string name,
                                  const Sort & sort) const
 {
-  // The name goes unused: Boolector keeps one table of names for params and
-  // variables, so a named param would refuse a symbol of its name, or be
-  // refused by one
+  // Boolector keeps one table of names for params and variables, so a param
+  // named as given would make a symbol with the same name refused.
+  // It is named internally instead, after its node id, which Boolector never
+  // gives another node, with the given name at the end.
   BoolectorNode * n = boolector_param(btor.get(), btor_sort(sort), nullptr);
+  // a new node is never negated, so its id is positive
+  std::string internal =
+      internal_name(
+          "param",
+          static_cast<std::uint64_t>(boolector_get_node_id(btor.get(), n)))
+      + "_" + name;
+  btor_node_set_symbol(
+      btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(n), internal.c_str());
   return std::make_shared<BoolectorTerm>(btor, n);
 }
 

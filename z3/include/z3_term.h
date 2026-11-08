@@ -50,6 +50,7 @@ class Z3Term : public AbsTerm
   bool is_symbolic_const() const override;
   bool is_value() const override;
   virtual std::string to_string() const override;
+  std::string get_param_name() const override;
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
@@ -70,6 +71,9 @@ class Z3Term : public AbsTerm
   z3::func_decl z_func;
   bool is_function = false;
   bool is_parameter = false;
+  // the name make_param was given, which Z3 does not keep, as it makes the
+  // param a fresh constant
+  std::string param_name = "";
 
   friend class Z3Solver;
 };

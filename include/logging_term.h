@@ -66,6 +66,7 @@ class LoggingTerm : public AbsTerm
   // dispatched to underlying term
   std::size_t hash() const override;
   bool is_value() const override;
+  std::string get_param_name() const override;
   std::string get_symbol_name() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;

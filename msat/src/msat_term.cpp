@@ -492,6 +492,19 @@ static string number_to_text(msat_env env,
   return val;
 }
 
+string MsatTerm::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  char * s = msat_decl_get_name(msat_term_get_decl(term));
+  // MathSAT names a variable with a quote before the name it was made with
+  string res = s + 1;
+  msat_free(s);
+  return res;
+}
+
 string MsatTerm::get_symbol_name() const
 {
   // A function has a declaration but no term, which is_param would read.

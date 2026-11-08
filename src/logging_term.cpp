@@ -230,6 +230,15 @@ bool LoggingTerm::is_value() const
   return op.is_null() && wrapped_term->is_value();
 }
 
+std::string LoggingTerm::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  return wrapped_term->get_param_name();
+}
+
 std::string LoggingTerm::get_symbol_name() const
 {
   if (!is_sym)

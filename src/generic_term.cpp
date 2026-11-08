@@ -210,6 +210,15 @@ static SortKind int_convertible_sort_kind(const GenericTerm & term,
   return sk;
 }
 
+std::string GenericTerm::get_param_name() const
+{
+  if (!is_param())
+  {
+    throw IncorrectUsageException("Only a param has a param name");
+  }
+  return smtlib_unquote_symbol(repr);
+}
+
 std::string GenericTerm::get_symbol_name() const
 {
   if (!is_sym)
