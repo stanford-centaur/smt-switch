@@ -498,6 +498,23 @@ TEST_P(UnitSortArithTests, SortKinds)
   EXPECT_EQ(realsort->get_sort_kind(), REAL);
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpretedSorts);
+class UninterpretedSorts : public UnitSortTests
+{
+};
+
+TEST_P(UninterpretedSorts, NameAsMadePrintedInBars)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver declares a sort's name to the binary "
+                    "without SMT-LIB quoting";
+  }
+  Sort sort = s->make_sort("my sort", 0);
+  EXPECT_EQ(sort->get_uninterpreted_name(), "my sort");
+  EXPECT_EQ(sort->to_string(), "|my sort|");
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
                          UnitSortTests,
                          testing::ValuesIn(available_solver_configurations()));
@@ -506,5 +523,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
                          UnitSortArithTests,
                          testing::ValuesIn(filter_solver_configurations(
                              { THEORY_INT, THEORY_REAL })));
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitSort,
+    UninterpretedSorts,
+    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    ConfigName());
 
 }  // namespace

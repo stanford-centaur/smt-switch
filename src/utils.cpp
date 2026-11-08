@@ -1999,7 +1999,7 @@ void smtlib_benchmark(std::ostream & out,
   out << "(" << SET_LOGIC_STR << " " << logic << ")\n";
   for (const auto & [name, s] : sorts)
   {
-    out << "(" << DECLARE_SORT_STR << " " << name << " "
+    out << "(" << DECLARE_SORT_STR << " " << smtlib_quote_symbol(name) << " "
         << s->get_uninterpreted_param_sorts().size() << ")\n";
   }
   if (!datatypes.empty())

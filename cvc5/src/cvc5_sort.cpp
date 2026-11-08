@@ -131,15 +131,14 @@ Sort Cvc5Sort::get_codomain_sort() const
 
 std::string Cvc5Sort::get_uninterpreted_name() const
 {
-  // an applied sort prints with its parameters, but is named after its
-  // constructor
+  // an applied sort is named after its constructor
   if (sort.isUninterpretedSort() && sort.isInstantiated())
   {
-    return sort.getUninterpretedSortConstructor().toString();
+    return sort.getUninterpretedSortConstructor().getSymbol();
   }
   if (sort.isUninterpretedSort() || sort.isUninterpretedSortConstructor())
   {
-    return sort.toString();
+    return sort.getSymbol();
   }
   throw IncorrectUsageException("Sort of kind "
                                 + smt::to_string(get_sort_kind())
