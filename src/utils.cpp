@@ -1765,6 +1765,15 @@ std::string smtlib_quote_symbol(const std::string & s)
   return s;
 }
 
+std::string smtlib_unquote_symbol(const std::string & s)
+{
+  if (s.size() >= 2 && s.front() == '|' && s.back() == '|')
+  {
+    return s.substr(1, s.size() - 2);
+  }
+  return s;
+}
+
 std::string smtlib_application(
     const Op & op,
     const TermVec & children,

@@ -2056,10 +2056,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
 
     // A binary may write a name in bars or without, which SMT-LIB reads as
     // the same symbol, so the name is looked up as this solver writes it.
-    if (name.size() >= 2 && name.front() == '|' && name.back() == '|')
-    {
-      name = name.substr(1, name.size() - 2);
-    }
+    name = smtlib_unquote_symbol(name);
     auto it = name_term_map.find(smtlib_quote_symbol(name));
     if (it == name_term_map.end())
     {

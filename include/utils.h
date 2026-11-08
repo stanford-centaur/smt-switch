@@ -182,6 +182,13 @@ inline constexpr std::string_view NAMED_STR = "named";
  */
 std::string smtlib_quote_symbol(const std::string & s);
 
+/** The symbol an SMT-LIB symbol names: without its bars if it is quoted, so
+ *  |a b| names a b, and as is otherwise
+ *  @param s the symbol as SMT-LIB writes it
+ *  @return s without its bars
+ */
+std::string smtlib_unquote_symbol(const std::string & s);
+
 /** An operator applied to its children as SMT-LIB writes it, (op c1 ... cn),
  *  with each child written by term_text. SMT-LIB writes some applications
  *  in forms of their own:

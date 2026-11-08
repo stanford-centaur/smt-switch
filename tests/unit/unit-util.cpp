@@ -757,6 +757,23 @@ TEST(SmtLibQuoteSymbol, ReservedWordGetsBars)
   EXPECT_EQ(smtlib_quote_symbol("Let"), "Let");
 }
 
+TEST(SmtLibUnquoteSymbol, QuotedSymbolLosesBars)
+{
+  EXPECT_EQ(smtlib_unquote_symbol("|a b|"), "a b");
+  EXPECT_EQ(smtlib_unquote_symbol("|x|"), "x");
+  EXPECT_EQ(smtlib_unquote_symbol("||"), "");
+}
+
+TEST(SmtLibUnquoteSymbol, OtherTextStaysAsIs)
+{
+  EXPECT_EQ(smtlib_unquote_symbol("x"), "x");
+  EXPECT_EQ(smtlib_unquote_symbol(""), "");
+  // a lone bar, or one at one end only, is not a quoted symbol
+  EXPECT_EQ(smtlib_unquote_symbol("|"), "|");
+  EXPECT_EQ(smtlib_unquote_symbol("|a"), "|a");
+  EXPECT_EQ(smtlib_unquote_symbol("a|"), "a|");
+}
+
 TEST(SmtLibArithValue, IntegerStaysANumeral)
 {
   EXPECT_EQ(smtlib_arith_value(INT, "5"), "5");
