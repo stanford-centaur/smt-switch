@@ -590,6 +590,24 @@ TEST_P(SortConstructors, SortOfATerm)
   EXPECT_EQ(sort->to_string(), "(List E)");
 }
 
+TEST_P(SortConstructors, FunctionOverAppliedSortIsCongruent)
+{
+  Sort list_e = s->make_sort(list, SortVec{ elem });
+  Term x = s->make_symbol("x", list_e);
+  Term y = s->make_symbol("y", list_e);
+  Term c = s->make_symbol("c", boolsort);
+  Term f =
+      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ list_e, bvsort }));
+  s->assert_formula(c);
+  s->assert_formula(
+      s->make_term(Equal,
+                   s->make_term(Apply, f, s->make_term(Ite, c, x, y)),
+                   s->make_term(1, bvsort)));
+  s->assert_formula(
+      s->make_term(Equal, s->make_term(Apply, f, x), s->make_term(2, bvsort)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
 TEST_P(SortConstructors, ConstructorIsNotATermSort)
 {
   if (s->get_solver_enum() == GENERIC_SOLVER)
@@ -598,14 +616,13 @@ TEST_P(SortConstructors, ConstructorIsNotATermSort)
                     "sort of a param, in an array or function sort, and as a "
                     "sort constructor's argument";
   }
-  Sort intsort = s->make_sort(INT);
   EXPECT_THROW(s->make_symbol("x", list), IncorrectUsageException);
   EXPECT_THROW(s->make_param("p", list), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(ARRAY, list, intsort), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(ARRAY, intsort, list), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ list, intsort }),
+  EXPECT_THROW(s->make_sort(ARRAY, list, bvsort), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(ARRAY, bvsort, list), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ list, bvsort }),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ intsort, list }),
+  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ bvsort, list }),
                IncorrectUsageException);
   EXPECT_THROW(s->make_sort(list, SortVec{ list }), IncorrectUsageException);
 }

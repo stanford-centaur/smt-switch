@@ -163,7 +163,7 @@ PrimOp to_primop(bitwuzla::Kind kind)
 }
 
 BzlaTerm::BzlaTerm(bitwuzla::Term t,
-                   const std::shared_ptr<bitwuzla::TermManager> & manager)
+                   const std::shared_ptr<BzlaTermManager> & manager)
     : tm(manager), term(std::move(t))
 {
 }

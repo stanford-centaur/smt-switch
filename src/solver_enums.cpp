@@ -48,8 +48,9 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
     // them that its preprocessing cannot remove.
     case BZLA:
     case BZLA_INTERPOLATOR:
-      return { TERMITER,  ARRAY_MODELS, CONSTARR,  FULL_TRANSFER, UNSAT_CORE,
-               THEORY_BV, QUANTIFIERS,  TIMELIMIT, UNINTERP_SORT };
+      return { TERMITER,      ARRAY_MODELS,       CONSTARR,    FULL_TRANSFER,
+               UNSAT_CORE,    THEORY_BV,          QUANTIFIERS, TIMELIMIT,
+               UNINTERP_SORT, PARAM_UNINTERP_SORT };
     case CVC5:
     case CVC5_INTERPOLATOR:
       return { TERMITER,      THEORY_INT,          THEORY_STR,      THEORY_BV,

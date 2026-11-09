@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "bitwuzla_term_manager.h"
 #include "ops.h"
 #include "smt_defs.h"
 #include "sort.h"
@@ -33,8 +34,7 @@ namespace smt {
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(bitwuzla::Term n,
-           const std::shared_ptr<bitwuzla::TermManager> & manager);
+  BzlaTerm(bitwuzla::Term n, const std::shared_ptr<BzlaTermManager> & manager);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
@@ -64,7 +64,7 @@ class BzlaTerm : public AbsTerm
 
   // the term manager that owns term, kept alive for as long as term is
   // (declared first, so that term is destroyed before it)
-  const std::shared_ptr<bitwuzla::TermManager> tm;
+  const std::shared_ptr<BzlaTermManager> tm;
   // the actual API level node that is used
   const bitwuzla::Term term;
 

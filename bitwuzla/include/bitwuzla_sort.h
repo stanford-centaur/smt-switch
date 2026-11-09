@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "bitwuzla_term_manager.h"
 #include "smt_defs.h"
 #include "sort.h"
 
@@ -31,8 +32,11 @@ namespace smt {
 class BzlaSort : public AbsSort
 {
  public:
-  BzlaSort(bitwuzla::Sort s,
-           const std::shared_ptr<bitwuzla::TermManager> & manager);
+  BzlaSort(bitwuzla::Sort s, const std::shared_ptr<BzlaTermManager> & manager);
+  // Sort constructors, which Bitwuzla's API lacks, by their name and arity
+  BzlaSort(const std::string & name,
+           std::uint64_t arity,
+           const std::shared_ptr<BzlaTermManager> & manager);
   std::size_t hash() const override;
   std::uint64_t get_width() const override;
   Sort get_indexsort() const override;
@@ -54,9 +58,12 @@ class BzlaSort : public AbsSort
  protected:
   // the term manager that owns sort, kept alive for as long as sort is
   // (declared first, so that sort is destroyed before it)
-  const std::shared_ptr<bitwuzla::TermManager> tm;
+  const std::shared_ptr<BzlaTermManager> tm;
   // objects from Bitwuzla API
   const bitwuzla::Sort sort;
+  // parametric sort emulation
+  const bool is_constructor = false;
+  const std::uint64_t constructor_id = 0;
 
   friend class BzlaSolver;
 };
