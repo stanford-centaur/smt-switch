@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "msat_env.h"
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
@@ -32,8 +33,8 @@ namespace smt {
 class MsatTerm : public AbsTerm
 {
  public:
-  MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t);
-  MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d);
+  MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_term t);
+  MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_decl d);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
@@ -62,7 +63,7 @@ class MsatTerm : public AbsTerm
   Term get_child(std::size_t i) const override;
 
   // shared with the solver, so the environment lives as long as this term
-  std::shared_ptr<msat_env> env;
+  std::shared_ptr<MsatEnv> env;
   // whichever of term and decl is not wrapped stays null (invalid)
   msat_term term = {};
   msat_decl decl = {};

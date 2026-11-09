@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "msat_env.h"
 #include "smt_defs.h"
 #include "sort.h"
 
@@ -30,8 +31,12 @@ namespace smt {
 class MsatSort : public AbsSort
 {
  public:
-  MsatSort(const std::shared_ptr<msat_env> & e, msat_type t);
-  MsatSort(const std::shared_ptr<msat_env> & e, msat_type t, msat_decl d);
+  MsatSort(const std::shared_ptr<MsatEnv> & e, msat_type t);
+  MsatSort(const std::shared_ptr<MsatEnv> & e, msat_type t, msat_decl d);
+  // Sort constructors, which MathSAT's API lacks, by their name and arity
+  MsatSort(const std::shared_ptr<MsatEnv> & e,
+           std::string name,
+           std::uint64_t arity);
   std::size_t hash() const override;
   uint64_t get_width() const override;
   Sort get_indexsort() const override;
@@ -51,11 +56,15 @@ class MsatSort : public AbsSort
 
  protected:
   // shared with the solver, so the environment lives as long as this sort
-  std::shared_ptr<msat_env> env;
+  std::shared_ptr<MsatEnv> env;
   msat_type type;
   // null (invalid) unless this is a function sort
   msat_decl uf_decl = {};
   bool is_uf_type = false;
+  // whether this is a sort constructor, whose type is null (invalid)
+  bool is_constructor = false;
+  std::string constructor_name = "";
+  std::uint64_t constructor_arity = 0;
 
   friend class MsatSolver;
 };

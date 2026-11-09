@@ -70,12 +70,12 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
 
 // MsatTerm implementation
 
-MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_term t)
+MsatTerm::MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_term t)
     : env(e), term(t)
 {
 }
 
-MsatTerm::MsatTerm(const std::shared_ptr<msat_env> & e, msat_decl d)
+MsatTerm::MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_decl d)
     : env(e), decl(d), is_uf(true)
 {
 }
@@ -84,7 +84,7 @@ size_t MsatTerm::hash() const
 {
   // MathSAT numbers terms per environment, so mix in the environment, as
   // compare checks it
-  size_t h = std::hash<msat_env *>{}(env.get());
+  size_t h = std::hash<MsatEnv *>{}(env.get());
   detail::hash_combine(h, get_id());
   return h;
 }

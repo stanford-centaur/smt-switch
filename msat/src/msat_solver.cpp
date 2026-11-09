@@ -249,7 +249,7 @@ void MsatSolver::set_logic(const std::string logic_name)
 
 void MsatSolver::assert_formula(const Term & t)
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   shared_ptr<MsatTerm> mterm = get_msat_term(t);
   if (msat_assert_formula(*env, mterm->term))
   {
@@ -267,7 +267,7 @@ void MsatSolver::assert_formula(const Term & t)
 
 Result MsatSolver::check_sat()
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   last_query_assuming = false;
   clear_assumption_clauses();
   msat_result mres = msat_solve(*env);
@@ -289,7 +289,7 @@ Result MsatSolver::check_sat()
 
 Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   // unwrapped before anything changes, so a refused assumption leaves
   // no label clause behind
   vector<msat_term> massumptions;
@@ -335,7 +335,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
 
 void MsatSolver::do_push(uint64_t num)
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   for (uint64_t i = 0; i < num; i++)
   {
     msat_push_backtrack_point(*env);
@@ -344,7 +344,7 @@ void MsatSolver::do_push(uint64_t num)
 
 void MsatSolver::do_pop(uint64_t num)
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   for (uint64_t i = 0; i < num; i++)
   {
     msat_pop_backtrack_point(*env);
@@ -358,13 +358,13 @@ uint64_t MsatSolver::get_context_level() const
   {
     return 0;
   }
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   return msat_num_backtrack_points(*env);
 }
 
 Term MsatSolver::get_value(const Term & t) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   shared_ptr<MsatTerm> mterm = get_msat_term(t);
   msat_term val = msat_get_model_value(*env, mterm->term);
 
@@ -384,7 +384,7 @@ Term MsatSolver::get_value(const Term & t) const
 UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
                                               Term & out_const_base) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   UnorderedTermMap assignments;
   out_const_base = nullptr;
 
@@ -433,7 +433,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
     throw IncorrectUsageException(
         "MathSAT has no unsat assumptions before a check_sat_assuming");
   }
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   size_t core_size;
   msat_term * mcore = msat_get_unsat_assumptions(*env, &core_size);
   if (!last_query_assuming)
@@ -459,23 +459,52 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 
 Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
-  if (!arity)
+  // an instance of a sort constructor is an uninterpreted MathSAT type of an
+  // internal name, which a user sort of that name would be
+  if (is_internal_name(name))
   {
-    return std::make_shared<MsatSort>(env,
-                                      msat_get_simple_type(*env, name.c_str()));
+    throw IncorrectUsageException("sort name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
   }
-  else
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
+  if (arity)
   {
-    throw NotImplementedException(
-        "Uninterpreted sorts with non-zero arity not supported through MathSAT "
-        "api.");
+    return std::make_shared<MsatSort>(env, name, arity);
   }
+  return std::make_shared<MsatSort>(env,
+                                    msat_get_simple_type(*env, name.c_str()));
+}
+
+Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  std::shared_ptr<MsatSort> mcon = get_msat_sort(sort_con);
+  if (mcon->get_sort_kind() != UNINTERPRETED_CONS)
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " is not a sort constructor");
+  }
+  std::size_t arity = mcon->get_arity();
+  if (sorts.size() != arity)
+  {
+    throw IncorrectUsageException(
+        "Expected " + std::to_string(arity) + " sort arguments to "
+        + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
+  }
+  std::vector<msat_type> params;
+  params.reserve(sorts.size());
+  for (const Sort & s : sorts)
+  {
+    params.push_back(get_msat_sort(s)->get_msat_type());
+  }
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
+  return std::make_shared<MsatSort>(
+      env, env->add_instance(mcon->get_uninterpreted_name(), params));
 }
 
 Sort MsatSolver::make_sort(SortKind sk) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (sk == BOOL)
   {
     return std::make_shared<MsatSort>(env, msat_get_bool_type(*env));
@@ -499,7 +528,7 @@ Sort MsatSolver::make_sort(SortKind sk) const
 
 Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (sk == BV)
   {
     return std::make_shared<MsatSort>(env, msat_get_bv_type(*env, size));
@@ -515,7 +544,7 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 
 Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (sk == FUNCTION)
   {
     if (sorts.size() < 2)
@@ -534,7 +563,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     msat_type msort;
     for (size_t i = 0; i < arity; i++)
     {
-      msort = get_msat_sort(sorts[i])->type;
+      msort = get_msat_sort(sorts[i])->get_msat_type();
       if (msat_is_bool_type(*env, msort))
       {
         // mathsat does not support functions of booleans
@@ -545,7 +574,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
       decl_name += ("_" + sorts[i]->to_string());
     }
     Sort sort = sorts.back();
-    msort = get_msat_sort(sort)->type;
+    msort = get_msat_sort(sort)->get_msat_type();
     decl_name += ("_return_" + sort->to_string());
     msat_type mfunsort =
         msat_get_function_type(*env, msorts.data(), arity, msort);
@@ -562,7 +591,9 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     std::shared_ptr<MsatSort> midxsort = get_msat_sort(sorts[0]);
     std::shared_ptr<MsatSort> melemsort = get_msat_sort(sorts[1]);
     return std::make_shared<MsatSort>(
-        env, msat_get_array_type(*env, midxsort->type, melemsort->type));
+        env,
+        msat_get_array_type(
+            *env, midxsort->get_msat_type(), melemsort->get_msat_type()));
   }
   else
   {
@@ -575,7 +606,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
 
 Term MsatSolver::make_term(bool b) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (b)
   {
     return std::make_shared<MsatTerm>(env, msat_make_true(*env));
@@ -588,7 +619,7 @@ Term MsatSolver::make_term(bool b) const
 
 Term MsatSolver::make_term(int64_t i, const Sort & sort) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   try
   {
     SortKind sk = sort->get_sort_kind();
@@ -632,7 +663,7 @@ Term MsatSolver::make_term(const std::string val,
                            const Sort & sort,
                            uint64_t base) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   try
   {
     SortKind sk = sort->get_sort_kind();
@@ -679,7 +710,7 @@ Term MsatSolver::make_term(const std::string val,
 
 Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (sort->get_sort_kind() != ARRAY)
   {
     throw IncorrectUsageException(
@@ -688,12 +719,12 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
   shared_ptr<MsatTerm> mval = get_msat_term(val);
   return std::make_shared<MsatTerm>(
-      env, msat_make_array_const(*env, msort->type, mval->term));
+      env, msat_make_array_const(*env, msort->get_msat_type(), mval->term));
 }
 
 Term MsatSolver::make_symbol(const string name, const Sort & sort)
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   msat_decl decl = msat_find_decl(*env, name.c_str());
   if (!MSAT_ERROR_DECL(decl))
   {
@@ -705,16 +736,16 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   }
 
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
-  if (MSAT_ERROR_TYPE(msort->type))
+  if (MSAT_ERROR_TYPE(msort->get_msat_type()))
   {
     throw InternalSolverException("Got error type in MathSAT backend.");
   }
 
-  decl = msat_declare_function(*env, name.c_str(), msort->type);
+  decl = msat_declare_function(*env, name.c_str(), msort->get_msat_type());
 
   if (MSAT_ERROR_DECL(decl) && name.empty())
   {
-    decl = msat_declare_function(*env, "||", msort->type);
+    decl = msat_declare_function(*env, "||", msort->get_msat_type());
   }
   else if (MSAT_ERROR_DECL(decl))
   {
@@ -752,7 +783,7 @@ Term MsatSolver::get_symbol(const std::string & name) const
     throw IncorrectUsageException(msg);
   }
 
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   msat_term res = msat_make_constant(*env, decl);
   if (MSAT_ERROR_TERM(res))
   {
@@ -764,15 +795,16 @@ Term MsatSolver::get_symbol(const std::string & name) const
 
 Term MsatSolver::make_param(const std::string name, const Sort & sort) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
-  msat_term var = msat_make_variable(*env, name.c_str(), msort->type);
+  msat_term var =
+      msat_make_variable(*env, name.c_str(), msort->get_msat_type());
   return std::make_shared<MsatTerm>(env, var);
 }
 
 Term MsatSolver::make_term(Op op, const TermVec & terms) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   size_t size = terms.size();
   if (!size)
   {
@@ -879,7 +911,7 @@ Term MsatSolver::substitute(const Term term,
     return term;
   }
 
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   shared_ptr<MsatTerm> mterm = get_msat_term(term);
 
   vector<msat_term> to_subst;
@@ -918,9 +950,9 @@ void MsatSolver::dump_smt2(std::string filename) const
 {
   // with no environment yet nothing is asserted, and a throwaway one prints
   // that without fixing this solver's configuration
-  std::shared_ptr<msat_env> env = env_wrapper_.is_initialized()
-                                      ? env_wrapper_.get_env()
-                                      : EnvWrapper().get_env();
+  std::shared_ptr<MsatEnv> env = env_wrapper_.is_initialized()
+                                     ? env_wrapper_.get_env()
+                                     : EnvWrapper().get_env();
   size_t num_asserted;
   msat_term * assertions = msat_get_asserted_formulas(*env, &num_asserted);
   msat_term all_asserts = msat_make_true(*env);
@@ -944,7 +976,7 @@ void MsatSolver::dump_smt2(std::string filename) const
 // helpers
 msat_term MsatSolver::label(msat_term p) const
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
 
   // A (negated) Boolean constant needs a label too: MathSAT's model can
   // contradict an assumed constant that occurs in no remaining clause (e.g.,
@@ -962,7 +994,7 @@ msat_term MsatSolver::label(msat_term p) const
 
 void MsatSolver::clear_assumption_clauses()
 {
-  const std::shared_ptr<msat_env> & env = env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   // can only reset at context 0, and only do so if
   // there's a "magic large number" of assumption clauses
   if (!msat_num_backtrack_points(*env)
@@ -1080,7 +1112,7 @@ void MsatSolver::EnvWrapper::set_option(const std::string & name,
   }
 }
 
-const std::shared_ptr<msat_env> & MsatSolver::EnvWrapper::get_env()
+const std::shared_ptr<MsatEnv> & MsatSolver::EnvWrapper::get_env()
 {
   if (!env)
   {
@@ -1103,21 +1135,14 @@ const std::shared_ptr<msat_env> & MsatSolver::EnvWrapper::get_env()
       throw InternalSolverException(
           "MathSAT refused its configuration; an option may be out of range");
     }
-    // the last owner destroys e and then cfg, as MathSAT forbids destroying
-    // a configuration an environment still uses
-    env = std::shared_ptr<msat_env>(new msat_env(e),
-                                    [c = std::move(cfg)](msat_env * p) mutable {
-                                      msat_destroy_env(*p);
-                                      c.reset();
-                                      delete p;
-                                    });
+    env = std::make_shared<MsatEnv>(e, msat_config{ cfg.release() });
   }
   return env;
 }
 
 bool MsatSolver::EnvWrapper::is_initialized() const { return env != nullptr; }
 
-bool MsatSolver::EnvWrapper::owns(const std::shared_ptr<msat_env> & e) const
+bool MsatSolver::EnvWrapper::owns(const std::shared_ptr<MsatEnv> & e) const
 {
   return e == env;
 }
@@ -1196,7 +1221,7 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 Result MsatInterpolatingSolver::get_sequence_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
-  const std::shared_ptr<msat_env> & env = msat_solver_->env_wrapper_.get_env();
+  const std::shared_ptr<MsatEnv> & env = msat_solver_->env_wrapper_.get_env();
 
   if (formulae.size() < 2)
   {

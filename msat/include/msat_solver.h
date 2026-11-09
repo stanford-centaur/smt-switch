@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "interpolating_solver.h"
+#include "msat_env.h"
 #include "msat_sort.h"
 #include "msat_term.h"
 #include "smt_defs.h"
@@ -71,6 +72,7 @@ class MsatSolver : public AbsSmtSolver
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a
@@ -195,11 +197,11 @@ class MsatSolver : public AbsSmtSolver
     /** Sets an option, or keeps it until there is a configuration. */
     void set_option(const std::string & name, const std::string & value);
     /** @return the environment, created on first use */
-    const std::shared_ptr<msat_env> & get_env();
+    const std::shared_ptr<MsatEnv> & get_env();
     /** @return whether the environment exists */
     bool is_initialized() const;
     /** @return whether e is the environment, without creating it */
-    bool owns(const std::shared_ptr<msat_env> & e) const;
+    bool owns(const std::shared_ptr<MsatEnv> & e) const;
     /** Drops the environment and the configuration. */
     void reset();
     /** @return the logic the configuration was made for, or an empty
@@ -218,7 +220,7 @@ class MsatSolver : public AbsSmtSolver
     // shared with every term and sort, so the environment lives until the
     // last of them is released, even past reset() or the solver's
     // destruction
-    std::shared_ptr<msat_env> env = nullptr;
+    std::shared_ptr<MsatEnv> env = nullptr;
   };
 
   // mutable, as const methods such as make_sort create the environment
