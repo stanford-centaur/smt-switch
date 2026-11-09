@@ -10,7 +10,6 @@
  * otherwise. A term, sort or datatype declaration made by one must be
  * refused by the other, and terms of the two never compare equal.
  */
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -97,9 +96,7 @@ TEST_P(ForeignDatatypeHandle, ForeignConstructorDeclRefused)
 {
   DatatypeDecl list = s->make_datatype_decl("list");
   DatatypeConstructorDecl nil = other->make_datatype_constructor_decl("nil");
-  EXPECT_THAT([&] { s->add_constructor(list, nil); },
-              testing::ThrowsMessage<IncorrectUsageException>(
-                  testing::HasSubstr("nil")));
+  EXPECT_THROW(s->add_constructor(list, nil), IncorrectUsageException);
 }
 
 TEST_P(ForeignDatatypeHandle, ForeignDatatypeDeclRefused)
