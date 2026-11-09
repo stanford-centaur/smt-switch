@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
@@ -347,9 +348,13 @@ namespace std {
 
 size_t hash<smt::Op>::operator()(const smt::Op o) const
 {
-  // The hash function for op computes the string hash
-  hash<string> str_hash;
-  return str_hash(o.to_string());
+  // the primitive op and the indices, which == compares
+  size_t h = hash<smt::PrimOp>{}(o.prim_op);
+  for (uint64_t index : o.indices)
+  {
+    smt::detail::hash_combine(h, index);
+  }
+  return h;
 }
 
 }  // namespace std
