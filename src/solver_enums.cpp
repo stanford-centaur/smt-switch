@@ -74,9 +74,11 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
     //       look into this more and re-enable it
     case YICES2:
     case YICES2_INTERPOLATOR:
-      return { LOGGING,      CONSTARR,      FULL_TRANSFER, TERMITER,
-               THEORY_INT,   THEORY_BV,     THEORY_REAL,   ARRAY_FUN_BOOLS,
-               ARRAY_MODELS, UNINTERP_SORT, TIMELIMIT };
+      return {
+        LOGGING,      CONSTARR,      FULL_TRANSFER,       TERMITER,
+        THEORY_INT,   THEORY_BV,     THEORY_REAL,         ARRAY_FUN_BOOLS,
+        ARRAY_MODELS, UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT
+      };
     case Z3:
       return { TERMITER,      LOGGING,         THEORY_INT,      THEORY_BV,
                THEORY_REAL,   ARRAY_FUN_BOOLS, ARRAY_MODELS,    CONSTARR,

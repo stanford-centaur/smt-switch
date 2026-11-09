@@ -515,6 +515,58 @@ TEST_P(UninterpretedSorts, NameAsMadePrintedInBars)
   EXPECT_EQ(sort->to_string(), "|my sort|");
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortConstructors);
+class SortConstructors : public UnitSortTests
+{
+ protected:
+  void SetUp() override
+  {
+    UnitSortTests::SetUp();
+    elem = s->make_sort("E", 0);
+    list = s->make_sort("List", 1);
+  }
+
+  Sort elem, list;
+};
+
+// the sort of a term is the applied sort, with its name and parameters
+TEST_P(SortConstructors, SortOfATerm)
+{
+  Sort list_e = s->make_sort(list, SortVec{ elem });
+  Sort sort = s->make_symbol("x", list_e)->get_sort();
+  EXPECT_EQ(sort, list_e);
+  EXPECT_EQ(sort->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(sort->get_uninterpreted_name(), "List");
+  EXPECT_EQ(sort->get_uninterpreted_param_sorts(), SortVec{ elem });
+  EXPECT_EQ(sort->to_string(), "(List E)");
+}
+
+TEST_P(SortConstructors, ConstructorIsNotATermSort)
+{
+  if (s->get_solver_enum() == CVC5)
+  {
+    GTEST_SKIP() << "cvc5 accepts a sort constructor as the sort of a symbol";
+  }
+  EXPECT_THROW(s->make_symbol("x", list), IncorrectUsageException);
+}
+
+TEST_P(SortConstructors, SameNamedConstructorsDiffer)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
+                    "the same name";
+  }
+  Sort other = s->make_sort("List", 1);
+  if (other == list)
+  {
+    GTEST_SKIP() << "this solver returns the existing sort constructor when "
+                    "one with the same name is declared again";
+  }
+  EXPECT_NE(s->make_sort(other, SortVec{ elem }),
+            s->make_sort(list, SortVec{ elem }));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
                          UnitSortTests,
                          testing::ValuesIn(available_solver_configurations()));
@@ -528,6 +580,12 @@ INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     UninterpretedSorts,
     testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitSort,
+    SortConstructors,
+    testing::ValuesIn(filter_solver_configurations({ PARAM_UNINTERP_SORT })),
     ConfigName());
 
 }  // namespace

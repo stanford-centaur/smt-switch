@@ -31,7 +31,12 @@ namespace smt {
 class Yices2Sort : public AbsSort
 {
  public:
-  explicit Yices2Sort(type_t y_type, bool is_fun = false);
+  /** A sort constructor has no type, only the macro id
+   *  yices_type_constructor gave it: Yices2Sort(NULL_TYPE, false, id)
+   */
+  explicit Yices2Sort(type_t y_type,
+                      bool is_fun = false,
+                      std::int32_t constructor = -1);
 
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -52,6 +57,8 @@ class Yices2Sort : public AbsSort
   Yices2InstanceRef instance = {};
   type_t type;
   bool is_function;
+  // the macro id of the sort constructor this sort is, or -1 if it is a type
+  std::int32_t constructor_id;
 
   friend class Yices2Solver;
 };
