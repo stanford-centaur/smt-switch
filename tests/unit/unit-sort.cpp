@@ -543,11 +543,22 @@ TEST_P(SortConstructors, SortOfATerm)
 
 TEST_P(SortConstructors, ConstructorIsNotATermSort)
 {
-  if (s->get_solver_enum() == CVC5)
+  if (s->get_solver_enum() == GENERIC_SOLVER)
   {
-    GTEST_SKIP() << "cvc5 accepts a sort constructor as the sort of a symbol";
+    GTEST_SKIP() << "the generic solver accepts a sort constructor as the "
+                    "sort of a param, in an array or function sort, and as a "
+                    "sort constructor's argument";
   }
+  Sort intsort = s->make_sort(INT);
   EXPECT_THROW(s->make_symbol("x", list), IncorrectUsageException);
+  EXPECT_THROW(s->make_param("p", list), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(ARRAY, list, intsort), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(ARRAY, intsort, list), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ list, intsort }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ intsort, list }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(list, SortVec{ list }), IncorrectUsageException);
 }
 
 TEST_P(SortConstructors, SameNamedConstructorsDiffer)
