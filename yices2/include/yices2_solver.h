@@ -68,6 +68,7 @@ class Yices2Solver : public AbsSmtSolver
   // from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;

@@ -20,7 +20,9 @@
 #include <yices.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <vector>
 
 #include "exceptions.h"
 
@@ -30,15 +32,17 @@ namespace smt {
 
 // Yices2Sort implementation
 
-Yices2Sort::Yices2Sort(type_t y_type, bool is_fun)
-    : type(y_type), is_function(is_fun)
+Yices2Sort::Yices2Sort(type_t y_type, bool is_fun, std::int32_t constructor)
+    : type(y_type), is_function(is_fun), constructor_id(constructor)
 {
 }
 
 std::size_t Yices2Sort::hash() const
 {
-  // type_t is a unique id, see Yices2 docs.
-  return type;
+  // type_t is a unique id, see Yices2 docs, and so is a constructor's macro
+  // id, which a constructor has in place of a type
+  return constructor_id < 0 ? std::hash<type_t>{}(type)
+                            : ~std::hash<std::int32_t>{}(constructor_id);
 }
 
 uint64_t Yices2Sort::get_width() const
@@ -110,29 +114,43 @@ Sort Yices2Sort::get_codomain_sort() const
 
 string Yices2Sort::get_uninterpreted_name() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
-                                  + " has no uninterpreted name");
+    return Yices2InstanceRef::get_constructor_name(constructor_id);
   }
-  const char * res = yices_get_type_name(type);
-  if (res == NULL)
+  if (sk == UNINTERPRETED)
   {
-    throw InternalSolverException("Failed to get name of uninterpreted sort");
+    // an applied sort is named after its constructor
+    std::int32_t applied = Yices2InstanceRef::get_instance_constructor(type);
+    if (applied >= 0)
+    {
+      return Yices2InstanceRef::get_constructor_name(applied);
+    }
+    const char * res = yices_get_type_name(type);
+    if (res == NULL)
+    {
+      throw InternalSolverException("Failed to get name of uninterpreted sort");
+    }
+    return res;
   }
-  return res;
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no uninterpreted name");
 }
 
 size_t Yices2Sort::get_arity() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+    return Yices2InstanceRef::get_constructor_arity(constructor_id);
   }
-  // yices2 does not support uninterpreted sorts with non-zero arity
-  return 0;
+  if (sk == UNINTERPRETED)
+  {
+    return 0;
+  }
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no arity");
 }
 
 SortVec Yices2Sort::get_uninterpreted_param_sorts() const
@@ -143,8 +161,16 @@ SortVec Yices2Sort::get_uninterpreted_param_sorts() const
                                   + smt::to_string(get_sort_kind())
                                   + " has no uninterpreted param sorts");
   }
-  // Yices2 has no sort constructors, so no sort has parameters
-  return {};
+  if (Yices2InstanceRef::get_instance_constructor(type) < 0)
+  {
+    return {};
+  }
+  SortVec params;
+  for (type_t p : Yices2InstanceRef::get_instance_params(type))
+  {
+    params.push_back(std::make_shared<Yices2Sort>(p));
+  }
+  return params;
 }
 
 Datatype Yices2Sort::get_datatype() const
@@ -157,11 +183,15 @@ Datatype Yices2Sort::get_datatype() const
 bool Yices2Sort::compare(const Sort & s) const
 {
   shared_ptr<Yices2Sort> ys = std::dynamic_pointer_cast<Yices2Sort>(s);
-  return ys && type == ys->type;
+  return ys && type == ys->type && constructor_id == ys->constructor_id;
 }
 
 SortKind Yices2Sort::get_sort_kind() const
 {
+  if (constructor_id >= 0)
+  {
+    return UNINTERPRETED_CONS;
+  }
   if (yices_type_is_int(type))
   {
     return INT;
@@ -191,8 +221,11 @@ SortKind Yices2Sort::get_sort_kind() const
       return FUNCTION;
     }
   }
-  else if (yices_type_is_uninterpreted(type))
+  else if (yices_type_is_uninterpreted(type)
+           || Yices2InstanceRef::get_instance_constructor(type) >= 0)
   {
+    // Yices does not count an applied sort constructor as an uninterpreted
+    // type; only the record knows it is one
     return UNINTERPRETED;
   }
   else
@@ -203,6 +236,14 @@ SortKind Yices2Sort::get_sort_kind() const
   }
 }
 
-type_t Yices2Sort::get_ytype() const { return type; }
+type_t Yices2Sort::get_ytype() const
+{
+  if (constructor_id >= 0)
+  {
+    throw IncorrectUsageException("Sort constructor " + get_uninterpreted_name()
+                                  + " is not a term sort until it is applied");
+  }
+  return type;
+}
 
 }  // namespace smt

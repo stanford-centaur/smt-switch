@@ -672,24 +672,55 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 
 Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 {
-  type_t y_sort;
-
-  if (!arity)
+  if (arity)
   {
-    y_sort = yices_new_uninterpreted_type();
-    yices_set_type_name(y_sort, name.c_str());
-  }
-  else
-  {
-    throw NotImplementedException(
-        "Yices does not support uninterpreted type with non-zero arity.");
+    std::uint32_t n = detail::narrow<std::uint32_t>(arity, "an arity");
+    std::int32_t constructor_id = yices_type_constructor(name.c_str(), n);
+    if (constructor_id < 0)
+    {
+      throw InternalSolverException(take_yices_error());
+    }
+    Yices2InstanceRef::add_constructor(constructor_id, name, n);
+    return std::make_shared<Yices2Sort>(NULL_TYPE, false, constructor_id);
   }
 
+  type_t y_sort = yices_new_uninterpreted_type();
+  yices_set_type_name(y_sort, name.c_str());
   if (yices_error_code() != 0)
   {
     throw InternalSolverException(take_yices_error());
   }
+  return std::make_shared<Yices2Sort>(y_sort);
+}
 
+Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  std::shared_ptr<Yices2Sort> ycon = backend_pointer_cast<Yices2Sort>(sort_con);
+  if (ycon->get_sort_kind() != UNINTERPRETED_CONS)
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " is not a sort constructor");
+  }
+  std::size_t arity = ycon->get_arity();
+  if (sorts.size() != arity)
+  {
+    throw IncorrectUsageException(
+        "Expected " + std::to_string(arity) + " sort arguments to "
+        + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
+  }
+  std::vector<type_t> params;
+  for (const Sort & s : sorts)
+  {
+    params.push_back(backend_pointer_cast<Yices2Sort>(s)->get_ytype());
+  }
+  // Yices gives back the type it made for the same arguments
+  type_t y_sort = yices_instance_type(
+      ycon->constructor_id, static_cast<std::uint32_t>(arity), params.data());
+  if (y_sort == NULL_TYPE)
+  {
+    throw InternalSolverException(take_yices_error());
+  }
+  Yices2InstanceRef::add_instance(y_sort, ycon->constructor_id, params);
   return std::make_shared<Yices2Sort>(y_sort);
 }
 
@@ -771,12 +802,12 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     type_t ys;
     for (uint32_t i = 0; i < arity; i++)
     {
-      ys = backend_pointer_cast<Yices2Sort>(sorts[i])->type;
+      ys = backend_pointer_cast<Yices2Sort>(sorts[i])->get_ytype();
       ysorts.push_back(ys);
     }
 
     Sort sort = sorts.back();
-    ys = backend_pointer_cast<Yices2Sort>(sort)->type;
+    ys = backend_pointer_cast<Yices2Sort>(sort)->get_ytype();
 
     y_sort = yices_function_type(arity, ysorts.data(), ys);
   }
@@ -784,7 +815,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     std::shared_ptr<Yices2Sort> s1 = backend_pointer_cast<Yices2Sort>(sorts[0]);
     std::shared_ptr<Yices2Sort> s2 = backend_pointer_cast<Yices2Sort>(sorts[1]);
-    y_sort = yices_function_type1(s1->type, s2->type);
+    y_sort = yices_function_type1(s1->get_ytype(), s2->get_ytype());
   }
   else
   {
@@ -810,7 +841,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   }
 
   shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
-  term_t y_term = yices_new_uninterpreted_term(ysort->type);
+  term_t y_term = yices_new_uninterpreted_term(ysort->get_ytype());
   yices_set_term_name(y_term, name.c_str());
 
   if (ysort->get_sort_kind() == FUNCTION)
@@ -837,7 +868,7 @@ Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
   shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   // a variable, not an uninterpreted term: this is the one a quantifier can
   // bind, and the only one yices_forall and yices_lambda accept
-  term_t y_term = yices_new_variable(ysort->type);
+  term_t y_term = yices_new_variable(ysort->get_ytype());
   yices_set_term_name(y_term, name.c_str());
   return std::make_shared<Yices2Term>(y_term);
 }
