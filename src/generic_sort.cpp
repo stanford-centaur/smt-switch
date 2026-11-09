@@ -76,8 +76,8 @@ std::string GenericSort::compute_string() const
     std::string name = "(";
     std::vector<Sort> domain_sorts = get_domain_sorts();
     Sort codomain_sort = get_codomain_sort();
-    size_t num_args = domain_sorts.size();
-    for (size_t i = 0; i < num_args; i++)
+    std::size_t num_args = domain_sorts.size();
+    for (std::size_t i = 0; i < num_args; i++)
     {
       if (i > 0)
       {
@@ -237,12 +237,6 @@ std::uint64_t GenericSort::get_width() const
                                 + " has no width");
 }
 
-std::size_t GenericSort::get_arity() const
-{
-  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
-                                + " has no arity");
-}
-
 Sort GenericSort::get_indexsort() const
 {
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
@@ -271,6 +265,19 @@ std::string GenericSort::get_uninterpreted_name() const
 {
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no uninterpreted name");
+}
+
+std::size_t GenericSort::get_arity() const
+{
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no arity");
+}
+
+Sort GenericSort::get_uninterpreted_constructor() const
+{
+  throw IncorrectUsageException("Sort " + to_string()
+                                + " was not made by applying a sort "
+                                  "constructor");
 }
 
 std::vector<Sort> GenericSort::get_uninterpreted_param_sorts() const
@@ -337,6 +344,7 @@ UninterpretedGenericSort::UninterpretedGenericSort(Sort sort_cons,
     : GenericSort(UNINTERPRETED),
       name(sort_cons->get_uninterpreted_name()),
       arity(sorts.size()),
+      constructor(sort_cons),
       param_sorts(sorts)
 {
   // compute_string prints the parameters only when the arity is non-zero, so
@@ -357,6 +365,17 @@ std::string UninterpretedGenericSort::get_uninterpreted_name() const
 }
 
 std::size_t UninterpretedGenericSort::get_arity() const { return arity; }
+
+Sort UninterpretedGenericSort::get_uninterpreted_constructor() const
+{
+  if (!constructor)
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  return constructor;
+}
 
 SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 {

@@ -26,8 +26,6 @@
 
 #include "exceptions.h"
 
-using namespace std;
-
 namespace smt {
 
 // Yices2Sort implementation
@@ -45,7 +43,7 @@ std::size_t Yices2Sort::hash() const
                             : ~std::hash<std::int32_t>{}(constructor_id);
 }
 
-uint64_t Yices2Sort::get_width() const
+std::uint64_t Yices2Sort::get_width() const
 {
   if (!yices_type_is_bitvector(type))
   {
@@ -86,11 +84,11 @@ SortVec Yices2Sort::get_domain_sorts() const
                                   + " has no domain sorts");
   }
   // one less because last is return sort.
-  int32_t s_arity = yices_type_num_children(type) - 1;
+  std::int32_t s_arity = yices_type_num_children(type) - 1;
   SortVec sorts;
   sorts.reserve(s_arity);
 
-  for (int32_t i = 0; i < s_arity; i++)
+  for (std::int32_t i = 0; i < s_arity; i++)
   {
     sorts.push_back(Sort(new Yices2Sort(yices_type_child(type, i))));
   }
@@ -112,7 +110,7 @@ Sort Yices2Sort::get_codomain_sort() const
       yices_type_child(type, yices_type_num_children(type) - 1)));
 }
 
-string Yices2Sort::get_uninterpreted_name() const
+std::string Yices2Sort::get_uninterpreted_name() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -138,7 +136,7 @@ string Yices2Sort::get_uninterpreted_name() const
                                 + " has no uninterpreted name");
 }
 
-size_t Yices2Sort::get_arity() const
+std::size_t Yices2Sort::get_arity() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -151,6 +149,18 @@ size_t Yices2Sort::get_arity() const
   }
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no arity");
+}
+
+Sort Yices2Sort::get_uninterpreted_constructor() const
+{
+  std::int32_t id = Yices2InstanceRef::get_instance_constructor(type);
+  if (id < 0)
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  return std::make_shared<Yices2Sort>(NULL_TYPE, false, id);
 }
 
 SortVec Yices2Sort::get_uninterpreted_param_sorts() const
@@ -182,7 +192,7 @@ Datatype Yices2Sort::get_datatype() const
 
 bool Yices2Sort::compare(const Sort & s) const
 {
-  shared_ptr<Yices2Sort> ys = std::dynamic_pointer_cast<Yices2Sort>(s);
+  std::shared_ptr<Yices2Sort> ys = std::dynamic_pointer_cast<Yices2Sort>(s);
   return ys && type == ys->type && constructor_id == ys->constructor_id;
 }
 

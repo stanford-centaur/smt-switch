@@ -337,7 +337,7 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
   }
   if (arity)
   {
-    return std::make_shared<BzlaSort>(name, arity, tm);
+    return std::make_shared<BzlaSort>(tm->add_constructor(name, arity), tm);
   }
   try
   {

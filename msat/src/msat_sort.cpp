@@ -27,8 +27,6 @@
 #include "exceptions.h"
 #include "utils.h"
 
-using namespace std;
-
 namespace smt {
 
 // MsatSort implementation
@@ -71,9 +69,9 @@ std::size_t MsatSort::hash() const
   return h;
 }
 
-uint64_t MsatSort::get_width() const
+std::uint64_t MsatSort::get_width() const
 {
-  size_t out_width;
+  std::size_t out_width;
   if (is_constructor || !msat_is_bv_type(*env, type, &out_width))
   {
     throw IncorrectUsageException(
@@ -117,11 +115,11 @@ SortVec MsatSort::get_domain_sorts() const
                                   + " has no domain sorts");
   }
 
-  size_t arity = msat_decl_get_arity(uf_decl);
+  std::size_t arity = msat_decl_get_arity(uf_decl);
   SortVec sorts;
   sorts.reserve(arity);
   msat_type tmp_type;
-  for (size_t i = 0; i < arity; i++)
+  for (std::size_t i = 0; i < arity; i++)
   {
     tmp_type = msat_decl_get_arg_type(uf_decl, i);
     if (MSAT_ERROR_TYPE(type))
@@ -151,7 +149,7 @@ Sort MsatSort::get_codomain_sort() const
   return std::make_shared<MsatSort>(env, t);
 }
 
-string MsatSort::get_uninterpreted_name() const
+std::string MsatSort::get_uninterpreted_name() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -167,7 +165,7 @@ string MsatSort::get_uninterpreted_name() const
                                 + " has no uninterpreted name");
 }
 
-size_t MsatSort::get_arity() const
+std::size_t MsatSort::get_arity() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -180,6 +178,20 @@ size_t MsatSort::get_arity() const
   }
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no arity");
+}
+
+Sort MsatSort::get_uninterpreted_constructor() const
+{
+  if (get_sort_kind() != UNINTERPRETED || !env->is_instance(type))
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  // MathSAT gives the same type back for the same name, so a constructor is
+  // its name and arity
+  return std::make_shared<MsatSort>(
+      env, env->get_instance_name(type), env->get_instance_params(type).size());
 }
 
 SortVec MsatSort::get_uninterpreted_param_sorts() const

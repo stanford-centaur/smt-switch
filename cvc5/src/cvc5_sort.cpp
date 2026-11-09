@@ -30,13 +30,13 @@ namespace smt {
 // struct for hashing
 std::hash<cvc5::Sort> sorthash;
 
-Cvc5Sort::Cvc5Sort(::cvc5::Sort s) : sort(s) {}
+Cvc5Sort::Cvc5Sort(cvc5::Sort s) : sort(s) {}
 
 std::string Cvc5Sort::to_string() const { return sort.toString(); }
 
 std::size_t Cvc5Sort::hash() const { return sorthash(sort); }
 
-uint64_t Cvc5Sort::get_width() const
+std::uint64_t Cvc5Sort::get_width() const
 {
   if (!sort.isBitVector())
   {
@@ -71,7 +71,7 @@ Sort Cvc5Sort::get_elemsort() const
 SortVec Cvc5Sort::get_domain_sorts() const
 {
   // cvc5 has a separate accessor for each kind of sort with a domain
-  std::vector<::cvc5::Sort> cvc5_sorts;
+  std::vector<cvc5::Sort> cvc5_sorts;
   if (sort.isFunction())
   {
     cvc5_sorts = sort.getFunctionDomainSorts();
@@ -145,7 +145,7 @@ std::string Cvc5Sort::get_uninterpreted_name() const
                                 + " has no uninterpreted name");
 }
 
-size_t Cvc5Sort::get_arity() const
+std::size_t Cvc5Sort::get_arity() const
 {
   if (sort.isUninterpretedSort())
   {
@@ -157,6 +157,17 @@ size_t Cvc5Sort::get_arity() const
   }
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+}
+
+Sort Cvc5Sort::get_uninterpreted_constructor() const
+{
+  if (!sort.isUninterpretedSort() || !sort.isInstantiated())
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  return std::make_shared<Cvc5Sort>(sort.getUninterpretedSortConstructor());
 }
 
 SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
@@ -191,9 +202,9 @@ Datatype Cvc5Sort::get_datatype() const
   return std::make_shared<Cvc5Datatype>(get_cvc5_datatype());
 }
 
-::cvc5::Sort Cvc5Sort::get_cvc5_sort() const { return sort; }
+cvc5::Sort Cvc5Sort::get_cvc5_sort() const { return sort; }
 
-::cvc5::Datatype Cvc5Sort::get_cvc5_datatype() const
+cvc5::Datatype Cvc5Sort::get_cvc5_datatype() const
 {
   if (!sort.isDatatype())
   {

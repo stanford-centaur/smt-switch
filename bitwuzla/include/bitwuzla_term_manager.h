@@ -44,6 +44,12 @@ class BzlaTermManager : public bitwuzla::TermManager
    */
   bitwuzla::Sort add_instance(std::uint64_t constructor,
                               const std::vector<bitwuzla::Sort> & params);
+  /** Whether add_instance made `sort` */
+  bool is_instance(const bitwuzla::Sort & sort) const;
+  /** The id of the sort constructor `sort` applies, which add_instance
+   *  made
+   */
+  std::uint64_t get_instance_constructor(const bitwuzla::Sort & sort) const;
   /** The name of the sort constructor `sort` applies, or the symbol of
    *  `sort` if add_instance did not make it
    */

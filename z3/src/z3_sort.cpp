@@ -10,8 +10,6 @@
 #include "utils.h"
 #include "z3_datatype.h"
 
-using namespace std;
-
 namespace smt {
 
 // Z3Sort implementation
@@ -66,7 +64,7 @@ std::size_t Z3Sort::hash() const
   return h;
 }
 
-uint64_t Z3Sort::get_width() const
+std::uint64_t Z3Sort::get_width() const
 {
   if (!type.is_bv())
   {
@@ -131,7 +129,7 @@ Sort Z3Sort::get_codomain_sort() const
   return std::make_shared<Z3Sort>(ctx, z_func.range());
 }
 
-string Z3Sort::get_uninterpreted_name() const
+std::string Z3Sort::get_uninterpreted_name() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -147,7 +145,7 @@ string Z3Sort::get_uninterpreted_name() const
                                 + " has no uninterpreted name");
 }
 
-size_t Z3Sort::get_arity() const
+std::size_t Z3Sort::get_arity() const
 {
   SortKind sk = get_sort_kind();
   if (sk == UNINTERPRETED_CONS)
@@ -160,6 +158,20 @@ size_t Z3Sort::get_arity() const
   }
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no arity");
+}
+
+Sort Z3Sort::get_uninterpreted_constructor() const
+{
+  if (get_sort_kind() != UNINTERPRETED || !ctx->is_instance(type))
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  // Z3 gives the same sort back for the same name, so a constructor is its
+  // name and arity
+  return std::make_shared<Z3Sort>(
+      ctx, ctx->get_instance_name(type), ctx->get_instance_params(type).size());
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const
