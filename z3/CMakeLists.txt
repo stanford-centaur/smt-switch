@@ -1,6 +1,7 @@
 add_library(
   smt-switch-z3
   "${SMT_SWITCH_LIB_TYPE}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_context.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_datatype.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_factory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/z3_solver.cpp"

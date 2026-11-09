@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <string>
+#include <utility>
 
 #include "exceptions.h"
 #include "utils.h"
@@ -14,13 +16,25 @@ namespace smt {
 
 // Z3Sort implementation
 
-Z3Sort::Z3Sort(const std::shared_ptr<z3::context> & c, z3::sort z3sort)
+Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::sort z3sort)
     : ctx(c), type(z3sort), z_func(*c)
 {
 }
 
-Z3Sort::Z3Sort(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc)
+Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc)
     : ctx(c), type(*c), z_func(zfunc), is_function(true)
+{
+}
+
+Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c,
+               std::string name,
+               std::uint64_t arity)
+    : ctx(c),
+      type(*c),
+      z_func(*c),
+      is_constructor(true),
+      constructor_name(std::move(name)),
+      constructor_arity(arity)
 {
 }
 
@@ -28,8 +42,13 @@ std::size_t Z3Sort::hash() const
 {
   // Z3 numbers sorts per context, so start from the context, as compare
   // tells apart sorts of different contexts
-  std::size_t h = std::hash<z3::context *>{}(ctx.get());
-  if (is_function)
+  std::size_t h = std::hash<Z3Context *>{}(ctx.get());
+  if (is_constructor)
+  {
+    detail::hash_combine(h, std::hash<std::string>{}(constructor_name));
+    detail::hash_combine(h, constructor_arity);
+  }
+  else if (is_function)
   {
     // a function sort is held as a func_decl, but its name is not part of
     // the sort, so hash only the signature, to agree with compare
@@ -114,24 +133,33 @@ Sort Z3Sort::get_codomain_sort() const
 
 string Z3Sort::get_uninterpreted_name() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
-                                  + " has no uninterpreted name");
+    return constructor_name;
   }
-  return type.name().str();
+  if (sk == UNINTERPRETED)
+  {
+    // an applied sort is named after its constructor, not its Z3 sort
+    return ctx->get_instance_name(type);
+  }
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no uninterpreted name");
 }
 
 size_t Z3Sort::get_arity() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+    return constructor_arity;
   }
-  // the backend makes no sort constructors, so every arity is zero
-  return 0;
+  if (sk == UNINTERPRETED)
+  {
+    return 0;
+  }
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no arity");
 }
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const
@@ -142,8 +170,14 @@ SortVec Z3Sort::get_uninterpreted_param_sorts() const
                                   + smt::to_string(get_sort_kind())
                                   + " has no uninterpreted param sorts");
   }
-  // the backend makes no sort constructors, so no sort has parameters
-  return {};
+  auto z3_params = ctx->get_instance_params(type);
+  SortVec params;
+  params.reserve(z3_params.size());
+  for (const z3::sort & p : z3_params)
+  {
+    params.push_back(std::make_shared<Z3Sort>(ctx, p));
+  }
+  return params;
 }
 
 Datatype Z3Sort::get_datatype() const
@@ -164,9 +198,17 @@ z3::sort Z3Sort::get_z3_datatype() const
 bool Z3Sort::compare(const Sort & s) const
 {
   std::shared_ptr<Z3Sort> zs = std::dynamic_pointer_cast<Z3Sort>(s);
-  if (!zs || is_function != zs->is_function)
+  if (!zs || is_function != zs->is_function
+      || is_constructor != zs->is_constructor)
   {
     return false;
+  }
+  if (is_constructor)
+  {
+    // Z3 gives the same sort back for the same name, so constructors of the
+    // same name and arity are the same constructor
+    return ctx == zs->ctx && constructor_name == zs->constructor_name
+           && constructor_arity == zs->constructor_arity;
   }
   if (!is_function)
   {
@@ -192,6 +234,10 @@ bool Z3Sort::compare(const Sort & s) const
 
 SortKind Z3Sort::get_sort_kind() const
 {
+  if (is_constructor)
+  {
+    return UNINTERPRETED_CONS;
+  }
   if (type.is_int())
   {
     return INT;
@@ -249,6 +295,11 @@ z3::sort Z3Sort::get_z3_type() const
   if (is_function)
   {
     throw IncorrectUsageException("Cannot get Z3 type from function term.");
+  }
+  if (is_constructor)
+  {
+    throw IncorrectUsageException("Sort constructor " + constructor_name
+                                  + " is not a term sort until it is applied");
   }
   return type;
 }

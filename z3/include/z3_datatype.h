@@ -10,6 +10,7 @@
 
 #include "datatype.h"
 #include "smt_defs.h"
+#include "z3_context.h"
 
 namespace smt {
 
@@ -31,7 +32,7 @@ class Z3DatatypeDecl : public AbsDatatypeDecl
 class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 {
  public:
-  Z3DatatypeConstructorDecl(const std::shared_ptr<z3::context> & ctx,
+  Z3DatatypeConstructorDecl(const std::shared_ptr<Z3Context> & ctx,
                             std::string name);
   std::string get_name() const override;
   std::size_t hash() const override;
@@ -42,7 +43,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
   friend class Z3Solver;
 
   // declared before the sorts, so they are released while the context lives
-  std::shared_ptr<z3::context> c;
+  std::shared_ptr<Z3Context> c;
   std::string constructorname;
   std::string datatypename = "";
   // the selectors added; a null sort stands for one added with
@@ -53,7 +54,7 @@ class Z3DatatypeConstructorDecl : public AbsDatatypeConstructorDecl
 class Z3Datatype : public AbsDatatype
 {
  public:
-  Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s);
+  Z3Datatype(const std::shared_ptr<Z3Context> & ctx, z3::sort s);
   int get_num_constructors() const override;
   int get_num_selectors(std::string name) const override;
   std::vector<std::string> get_constructor_names() const override;
@@ -68,7 +69,7 @@ class Z3Datatype : public AbsDatatype
 
  private:
   // declared before datatype, so that it is released while the context lives
-  std::shared_ptr<z3::context> c;
+  std::shared_ptr<Z3Context> c;
 
   z3::sort datatype;
   friend class Z3Solver;

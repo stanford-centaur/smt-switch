@@ -37,7 +37,7 @@ Z3DatatypeDecl::Z3DatatypeDecl(std::string n) : name(std::move(n)) {}
 std::string Z3DatatypeDecl::get_name() const { return name; }
 
 Z3DatatypeConstructorDecl::Z3DatatypeConstructorDecl(
-    const std::shared_ptr<z3::context> & ctx, std::string name)
+    const std::shared_ptr<Z3Context> & ctx, std::string name)
     : c(ctx), constructorname(std::move(name))
 {
 }
@@ -78,7 +78,7 @@ bool Z3DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
          < std::tie(other->constructorname, other->selectors);
 }
 
-Z3Datatype::Z3Datatype(const std::shared_ptr<z3::context> & ctx, z3::sort s)
+Z3Datatype::Z3Datatype(const std::shared_ptr<Z3Context> & ctx, z3::sort s)
     : c(ctx), datatype(s)
 {
 }
@@ -170,7 +170,7 @@ bool Z3Datatype::less(const Datatype & d) const
   auto other = backend_pointer_cast<Z3Datatype>(d);
   if (c != other->c)
   {
-    return std::less<z3::context *>{}(c.get(), other->c.get());
+    return std::less<Z3Context *>{}(c.get(), other->c.get());
   }
   return datatype.id() < other->datatype.id();
 }

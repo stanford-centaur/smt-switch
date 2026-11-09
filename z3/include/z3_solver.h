@@ -27,6 +27,7 @@
 #include "solver.h"
 #include "sort.h"
 #include "term.h"
+#include "z3_context.h"
 #include "z3_sort.h"
 #include "z3_term.h"
 
@@ -52,6 +53,7 @@ class Z3Solver : public AbsSmtSolver
   // from lookup on this type, so name them back in.
   using AbsSmtSolver::make_sort;
   Sort make_sort(const std::string name, uint64_t arity) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
@@ -132,7 +134,7 @@ class Z3Solver : public AbsSmtSolver
 
   // shared with every term and sort, so the context lives until the last of
   // them is released, even past this solver's destruction
-  std::shared_ptr<z3::context> ctx;
+  std::shared_ptr<Z3Context> ctx;
   // a Z3 solver together with the context it lives in
   struct Instance;
 

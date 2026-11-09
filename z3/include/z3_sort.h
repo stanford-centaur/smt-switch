@@ -25,6 +25,7 @@
 
 #include "smt_defs.h"
 #include "sort.h"
+#include "z3_context.h"
 
 namespace smt {
 
@@ -32,10 +33,15 @@ class Z3Sort : public AbsSort
 {
  public:
   // Non-functions
-  Z3Sort(const std::shared_ptr<z3::context> & c, z3::sort z3sort);
+  Z3Sort(const std::shared_ptr<Z3Context> & c, z3::sort z3sort);
 
   // Functions
-  Z3Sort(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc);
+  Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc);
+
+  // Sort constructors, which Z3's API lacks, by their name and arity
+  Z3Sort(const std::shared_ptr<Z3Context> & c,
+         std::string name,
+         std::uint64_t arity);
 
   std::size_t hash() const override;
   uint64_t get_width() const override;
@@ -60,10 +66,14 @@ class Z3Sort : public AbsSort
  protected:
   // shared with the solver, so the context lives as long as this sort, and
   // declared first, so that type and z_func are released while it does
-  std::shared_ptr<z3::context> ctx;
+  std::shared_ptr<Z3Context> ctx;
   z3::sort type;
   z3::func_decl z_func;
   bool is_function = false;
+  // a sort constructor's name and arity, when the sort is one
+  bool is_constructor = false;
+  std::string constructor_name = "";
+  std::uint64_t constructor_arity = 0;
 
   friend class Z3Solver;
 };
