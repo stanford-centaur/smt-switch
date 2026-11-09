@@ -70,6 +70,17 @@ bitwuzla::Sort BzlaTermManager::add_instance(
   return sort;
 }
 
+bool BzlaTermManager::is_instance(const bitwuzla::Sort & sort) const
+{
+  return uninterp_sort_info.count(sort.id()) != 0;
+}
+
+std::uint64_t BzlaTermManager::get_instance_constructor(
+    const bitwuzla::Sort & sort) const
+{
+  return uninterp_sort_info.at(sort.id()).constructor;
+}
+
 std::string BzlaTermManager::get_instance_name(
     const bitwuzla::Sort & sort) const
 {

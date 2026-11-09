@@ -53,7 +53,7 @@ std::size_t BoolectorSortBase::hash() const
 
 // by default the following get_* methods don't work
 // overloaded in derived classes
-uint64_t BoolectorSortBase::get_width() const
+std::uint64_t BoolectorSortBase::get_width() const
 {
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
@@ -94,11 +94,20 @@ std::string BoolectorSortBase::get_uninterpreted_name() const
                                 + " has no uninterpreted name");
 }
 
-size_t BoolectorSortBase::get_arity() const
+std::size_t BoolectorSortBase::get_arity() const
 {
   // Boolector has no uninterpreted sorts, so no sort has an arity
   throw IncorrectUsageException(
       "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+}
+
+Sort BoolectorSortBase::get_uninterpreted_constructor() const
+{
+  // Boolector has no uninterpreted sorts, so no sort was made by applying a
+  // sort constructor
+  throw IncorrectUsageException("Sort " + to_string()
+                                + " was not made by applying a sort "
+                                  "constructor");
 }
 
 SortVec BoolectorSortBase::get_uninterpreted_param_sorts() const
@@ -129,7 +138,7 @@ BoolectorSort BoolectorSortBase::get_btor_sort() const { return sort; }
 
 BoolectorBVSort::BoolectorBVSort(const std::shared_ptr<Btor> & b,
                                  BoolectorSort s,
-                                 uint64_t w)
+                                 std::uint64_t w)
     : BoolectorSortBase(BV, b, s), width(w)
 {
 }
@@ -158,7 +167,7 @@ SortVec BoolectorUFSort::get_domain_sorts() const { return domain_sorts; }
 
 Sort BoolectorUFSort::get_codomain_sort() const { return codomain_sort; }
 
-uint64_t BoolectorBVSort::get_width() const { return width; }
+std::uint64_t BoolectorBVSort::get_width() const { return width; }
 
 Sort BoolectorArraySort::get_indexsort() const { return indexsort; }
 

@@ -39,13 +39,14 @@ class Yices2Sort : public AbsSort
                       std::int32_t constructor = -1);
 
   std::size_t hash() const override;
-  uint64_t get_width() const override;
+  std::uint64_t get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
-  size_t get_arity() const override;
+  std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;

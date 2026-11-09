@@ -14,17 +14,13 @@
 **
 **/
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "available_solvers.h"
@@ -62,8 +58,8 @@ void expect_order_agrees_with_equality(const std::vector<T> & xs)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSortTests);
-class UnitSortTests : public ::testing::Test,
-                      public ::testing::WithParamInterface<SolverConfiguration>
+class UnitSortTests : public testing::Test,
+                      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -290,195 +286,35 @@ TEST_P(UnitSortTests, SortShorthands)
   EXPECT_THROW(s->make_sort(ARRAY, bvsort), IncorrectUsageException);
 }
 
-TEST_P(UnitSortTests, UninterpretedSort)
-{
-  Sort uninterp_sort;
-  try
-  {
-    uninterp_sort = s->make_sort("declared-sort", 0);
-  }
-  catch (SmtException & e)
-  {
-    // if not supported, that's fine.
-    std::cout << "got exception when declaring sort: " << e.what() << std::endl;
-    return;
-  }
-
-  ASSERT_TRUE(uninterp_sort);
-  EXPECT_EQ(uninterp_sort->get_sort_kind(), UNINTERPRETED);
-  EXPECT_EQ(uninterp_sort->get_uninterpreted_name(), "declared-sort");
-  EXPECT_EQ(uninterp_sort->get_arity(), 0);
-  EXPECT_TRUE(uninterp_sort->get_uninterpreted_param_sorts().empty());
-
-  // Now try non-zero arity (not supported by very many solvers)
-  std::size_t num_params = 4;
-  Sort sort_cons;
-  try
-  {
-    sort_cons = s->make_sort("sort-con", num_params);
-  }
-  catch (SmtException & e)
-  {
-    // if not supported, that's fine.
-    std::cout << "got exception when declaring nonzero arity sort: " << e.what()
-              << std::endl;
-    // but CVC5 expected to support it
-    ASSERT_NE(s->get_solver_enum(), CVC5);
-    return;
-  }
-
-  ASSERT_TRUE(sort_cons);
-  // Expecting an uninterpreted constructor sort
-  EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
-  EXPECT_EQ(sort_cons->get_arity(), num_params);
-
-  EXPECT_THROW(s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort }),
-               IncorrectUsageException);
-  // only a sort constructor can be applied
-  EXPECT_THROW(s->make_sort(uninterp_sort, SortVec{ bvsort }),
-               IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(bvsort, SortVec{ bvsort }),
-               IncorrectUsageException);
-
-  Sort param_sort =
-      s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort });
-  SortVec param_sorts = param_sort->get_uninterpreted_param_sorts();
-  EXPECT_EQ(param_sorts.size(), num_params);
-  EXPECT_EQ(param_sorts[0], bvsort);
-  // an applied sort is named after its constructor
-  EXPECT_EQ(param_sort->get_sort_kind(), UNINTERPRETED);
-  EXPECT_EQ(param_sort->get_uninterpreted_name(), "sort-con");
-
-  // but is identified and printed by its parameters too
-  EXPECT_EQ(param_sort,
-            s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort }));
-  EXPECT_NE(param_sort,
-            s->make_sort(sort_cons,
-                         SortVec{ boolsort, boolsort, boolsort, boolsort }));
-  EXPECT_EQ(param_sort->to_string(),
-            "(sort-con (_ BitVec 4) (_ BitVec 4) (_ BitVec 4) (_ BitVec 4))");
-  EXPECT_EQ(sort_cons->to_string(), "sort-con");
-  EXPECT_EQ(sort_cons, sort_cons);
-}
-
-TEST_P(UnitSortTests, ArityOnlyForUninterpretedSorts)
-{
-  for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
-  {
-    EXPECT_THAT([&] { sort->get_arity(); },
-                testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
-                    "Sort of kind " + to_string(sort->get_sort_kind())
-                    + " has no arity")))
-        << sort;
-  }
-}
-
-TEST_P(UnitSortTests, UninterpretedNameOnlyForUninterpretedSorts)
-{
-  for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
-  {
-    EXPECT_THAT([&] { sort->get_uninterpreted_name(); },
-                testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
-                    "Sort of kind " + to_string(sort->get_sort_kind())
-                    + " has no uninterpreted name")))
-        << sort;
-  }
-}
-
 TEST_P(UnitSortTests, AccessorsOnlyForTheirKinds)
 {
-  struct Accessor
-  {
-    std::string missing;
-    std::unordered_set<SortKind> kinds;
-    std::function<void(const Sort &)> call;
-  };
-  const std::vector<Accessor> accessors{
-    { "width", { BV }, [](const Sort & sort) { sort->get_width(); } },
-    { "index sort",
-      { ARRAY },
-      [](const Sort & sort) { sort->get_indexsort(); } },
-    { "element sort",
-      { ARRAY },
-      [](const Sort & sort) { sort->get_elemsort(); } },
-    { "domain sorts",
-      { FUNCTION },
-      [](const Sort & sort) { sort->get_domain_sorts(); } },
-    { "codomain sort",
-      { FUNCTION },
-      [](const Sort & sort) { sort->get_codomain_sort(); } },
-    { "uninterpreted param sorts",
-      { UNINTERPRETED },
-      [](const Sort & sort) { sort->get_uninterpreted_param_sorts(); } },
-    { "datatype",
-      { DATATYPE },
-      [](const Sort & sort) { sort->get_datatype(); } },
-  };
   for (const Sort & sort : SortVec{ boolsort, bvsort, funsort, arrsort })
   {
     SortKind sk = sort->get_sort_kind();
-    for (const Accessor & accessor : accessors)
+    if (sk != BV)
     {
-      if (accessor.kinds.count(sk))
-      {
-        continue;
-      }
-      EXPECT_THAT(
-          [&] { accessor.call(sort); },
-          testing::ThrowsMessage<IncorrectUsageException>(testing::StrEq(
-              "Sort of kind " + to_string(sk) + " has no " + accessor.missing)))
-          << sort;
+      EXPECT_THROW(sort->get_width(), IncorrectUsageException) << sort;
     }
+    if (sk != ARRAY)
+    {
+      EXPECT_THROW(sort->get_indexsort(), IncorrectUsageException) << sort;
+      EXPECT_THROW(sort->get_elemsort(), IncorrectUsageException) << sort;
+    }
+    if (sk != FUNCTION)
+    {
+      EXPECT_THROW(sort->get_domain_sorts(), IncorrectUsageException) << sort;
+      EXPECT_THROW(sort->get_codomain_sort(), IncorrectUsageException) << sort;
+    }
+    // none of these sorts is uninterpreted or a datatype
+    EXPECT_THROW(sort->get_uninterpreted_name(), IncorrectUsageException)
+        << sort;
+    EXPECT_THROW(sort->get_arity(), IncorrectUsageException) << sort;
+    EXPECT_THROW(sort->get_uninterpreted_constructor(), IncorrectUsageException)
+        << sort;
+    EXPECT_THROW(sort->get_uninterpreted_param_sorts(), IncorrectUsageException)
+        << sort;
+    EXPECT_THROW(sort->get_datatype(), IncorrectUsageException) << sort;
   }
-}
-
-TEST_P(UnitSortTests, UninterpSortEquality)
-{
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "The generic solver cannot get the value of a term whose "
-                    "sort kind is Uninterpreted";
-  }
-
-  Sort uninterp_sort;
-  try
-  {
-    uninterp_sort = s->make_sort("uninterp-sort", 0);
-  }
-  catch (SmtException & e)
-  {
-    SolverConfiguration sc = GetParam();
-    SolverEnum se = sc.solver_enum;
-    std::cout << "got exception for SolverEnum: " << se << std::endl;
-    return;
-  }
-
-  Term x = s->make_symbol("x", uninterp_sort);
-  Term y = s->make_symbol("y", uninterp_sort);
-  ASSERT_EQ(x->get_sort(), uninterp_sort);
-  ASSERT_EQ(x->get_sort(), y->get_sort());
-
-  s->push();
-  s->assert_formula(s->make_term(Equal, x, y));
-  Result r = s->check_sat();
-  ASSERT_TRUE(r.is_sat());
-
-  Term xv = s->get_value(x);
-  Term yv = s->get_value(y);
-  s->pop();
-
-  ASSERT_EQ(xv, yv);
-  EXPECT_TRUE(xv->is_value());
-  EXPECT_FALSE(xv->is_symbol());
-
-  Term xeq = s->make_term(Equal, x, xv);
-  Term yeq = s->make_term(Equal, y, yv);
-
-  s->assert_formula(s->make_term(Distinct, x, y));
-  s->assert_formula(xeq);
-  s->assert_formula(yeq);
-  r = s->check_sat();
-  ASSERT_TRUE(r.is_unsat());
 }
 
 TEST_P(UnitSortArithTests, SameSortDiffObj)
@@ -518,6 +354,42 @@ class UninterpretedSorts : public UnitSortTests
   Sort usort;
   Term a, b, f, one, two;
 };
+
+TEST_P(UninterpretedSorts, NullarySort)
+{
+  EXPECT_EQ(usort->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(usort->get_uninterpreted_name(), "U");
+  EXPECT_EQ(usort->get_arity(), 0);
+  EXPECT_THROW(usort->get_uninterpreted_constructor(), IncorrectUsageException);
+  EXPECT_TRUE(usort->get_uninterpreted_param_sorts().empty());
+}
+
+TEST_P(UninterpretedSorts, EqualTermsHaveEqualValues)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "The generic solver cannot get the value of a term whose "
+                    "sort kind is Uninterpreted";
+  }
+  EXPECT_EQ(a->get_sort(), usort);
+  EXPECT_EQ(a->get_sort(), b->get_sort());
+
+  s->push();
+  s->assert_formula(s->make_term(Equal, a, b));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  Term a_value = s->get_value(a);
+  Term b_value = s->get_value(b);
+  s->pop();
+
+  EXPECT_EQ(a_value, b_value);
+  EXPECT_TRUE(a_value->is_value());
+  EXPECT_FALSE(a_value->is_symbol());
+
+  s->assert_formula(s->make_term(Distinct, a, b));
+  s->assert_formula(s->make_term(Equal, a, a_value));
+  s->assert_formula(s->make_term(Equal, b, b_value));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
 
 TEST_P(UninterpretedSorts, FunctionTellsTermsApart)
 {
@@ -579,6 +451,41 @@ class SortConstructors : public UnitSortTests
 };
 
 // the sort of a term is the applied sort, with its name and parameters
+TEST_P(SortConstructors, ConstructorOfArityFour)
+{
+  Sort sort_cons = s->make_sort("sort-con", 4);
+  EXPECT_EQ(sort_cons->get_sort_kind(), UNINTERPRETED_CONS);
+  EXPECT_EQ(sort_cons->get_arity(), 4);
+  EXPECT_THROW(sort_cons->get_uninterpreted_constructor(),
+               IncorrectUsageException);
+
+  EXPECT_THROW(s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort }),
+               IncorrectUsageException);
+  // only a sort constructor can be applied
+  EXPECT_THROW(s->make_sort(elem, SortVec{ bvsort }), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(bvsort, SortVec{ bvsort }),
+               IncorrectUsageException);
+
+  Sort param_sort =
+      s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort });
+  EXPECT_EQ(param_sort->get_sort_kind(), UNINTERPRETED);
+  // an applied sort is named after its constructor
+  EXPECT_EQ(param_sort->get_uninterpreted_name(), "sort-con");
+  EXPECT_EQ(param_sort->get_uninterpreted_constructor(), sort_cons);
+  EXPECT_EQ(param_sort->get_uninterpreted_param_sorts(),
+            (SortVec{ bvsort, bvsort, bvsort, bvsort }));
+
+  // but is identified and printed by its parameters too
+  EXPECT_EQ(param_sort,
+            s->make_sort(sort_cons, SortVec{ bvsort, bvsort, bvsort, bvsort }));
+  EXPECT_NE(param_sort,
+            s->make_sort(sort_cons,
+                         SortVec{ boolsort, boolsort, boolsort, boolsort }));
+  EXPECT_EQ(param_sort->to_string(),
+            "(sort-con (_ BitVec 4) (_ BitVec 4) (_ BitVec 4) (_ BitVec 4))");
+  EXPECT_EQ(sort_cons->to_string(), "sort-con");
+}
+
 TEST_P(SortConstructors, SortOfATerm)
 {
   Sort list_e = s->make_sort(list, SortVec{ elem });
@@ -586,6 +493,7 @@ TEST_P(SortConstructors, SortOfATerm)
   EXPECT_EQ(sort, list_e);
   EXPECT_EQ(sort->get_sort_kind(), UNINTERPRETED);
   EXPECT_EQ(sort->get_uninterpreted_name(), "List");
+  EXPECT_EQ(sort->get_uninterpreted_constructor(), list);
   EXPECT_EQ(sort->get_uninterpreted_param_sorts(), SortVec{ elem });
   EXPECT_EQ(sort->to_string(), "(List E)");
 }

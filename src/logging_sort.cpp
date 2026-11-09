@@ -38,11 +38,10 @@ Sort make_uninterpreted_logging_sort(Sort s,
 }
 
 Sort make_uninterpreted_logging_sort(Sort s,
-                                     std::string name,
+                                     Sort sort_con,
                                      const SortVec & sorts)
 {
-  // sort has zero arity after being constructed
-  return std::make_shared<UninterpretedLoggingSort>(s, name, 0, sorts);
+  return std::make_shared<UninterpretedLoggingSort>(s, sort_con, sorts);
 }
 
 Sort make_logging_sort(SortKind sk, Sort s)
@@ -213,6 +212,13 @@ std::size_t LoggingSort::get_arity() const
                                 + " has no arity");
 }
 
+Sort LoggingSort::get_uninterpreted_constructor() const
+{
+  throw IncorrectUsageException("Sort " + to_string()
+                                + " was not made by applying a sort "
+                                  "constructor");
+}
+
 SortVec LoggingSort::get_uninterpreted_param_sorts() const
 {
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
@@ -274,12 +280,13 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
 }
 
 UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
-                                                   std::string n,
-                                                   std::uint64_t a,
+                                                   Sort sort_con,
                                                    const SortVec & sorts)
+    // sort has zero arity after being constructed
     : super(UNINTERPRETED, std::move(s)),
-      name(std::move(n)),
-      arity(a),
+      name(sort_con->get_uninterpreted_name()),
+      arity(0),
+      constructor(std::move(sort_con)),
       param_sorts(sorts)
 {
 }
@@ -290,6 +297,17 @@ std::string UninterpretedLoggingSort::get_uninterpreted_name() const
 }
 
 std::size_t UninterpretedLoggingSort::get_arity() const { return arity; }
+
+Sort UninterpretedLoggingSort::get_uninterpreted_constructor() const
+{
+  if (!constructor)
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  return constructor;
+}
 
 SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 {

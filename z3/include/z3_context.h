@@ -34,6 +34,8 @@ class Z3Context : public z3::context
    */
   z3::sort add_instance(const std::string & name,
                         const std::vector<z3::sort> & params);
+  /** Whether add_instance made `sort` */
+  bool is_instance(const z3::sort & sort) const;
   /** The name of the sort constructor `sort` applies, or the name of `sort`
    *  if add_instance did not make it
    */

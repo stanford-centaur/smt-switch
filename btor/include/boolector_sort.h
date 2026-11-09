@@ -39,13 +39,14 @@ class BoolectorSortBase : public AbsSort
   BoolectorSortBase(const BoolectorSortBase &) = delete;
   BoolectorSortBase & operator=(const BoolectorSortBase &) = delete;
   std::size_t hash() const override;
-  uint64_t get_width() const override;
+  std::uint64_t get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
-  size_t get_arity() const override;
+  std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
@@ -75,14 +76,16 @@ class BoolectorSortBase : public AbsSort
 class BoolectorBVSort : public BoolectorSortBase
 {
  public:
-  BoolectorBVSort(const std::shared_ptr<Btor> & b, BoolectorSort s, uint64_t w);
-  uint64_t get_width() const override;
+  BoolectorBVSort(const std::shared_ptr<Btor> & b,
+                  BoolectorSort s,
+                  std::uint64_t w);
+  std::uint64_t get_width() const override;
 
  protected:
   // bit-vector width
   // Note: we need to store this in addition to the BoolectorSort
   //       because in Boolector the width is retrieved from a node not a sort
-  uint64_t width;
+  std::uint64_t width;
 
   friend class BoolectorSolver;
 };

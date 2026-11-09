@@ -51,6 +51,11 @@ z3::sort Z3Context::add_instance(const std::string & name,
   return sort;
 }
 
+bool Z3Context::is_instance(const z3::sort & sort) const
+{
+  return uninterp_sort_info.count(sort.id()) != 0;
+}
+
 std::string Z3Context::get_instance_name(const z3::sort & sort) const
 {
   auto it = uninterp_sort_info.find(sort.id());

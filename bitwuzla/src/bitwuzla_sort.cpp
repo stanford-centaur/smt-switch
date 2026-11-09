@@ -37,13 +37,9 @@ BzlaSort::BzlaSort(bitwuzla::Sort s,
 {
 }
 
-BzlaSort::BzlaSort(const std::string & name,
-                   std::uint64_t arity,
+BzlaSort::BzlaSort(std::uint64_t constructor,
                    const std::shared_ptr<BzlaTermManager> & manager)
-    : tm(manager),
-      sort(),
-      is_constructor(true),
-      constructor_id(manager->add_constructor(name, arity))
+    : tm(manager), sort(), is_constructor(true), constructor_id(constructor)
 {
 }
 
@@ -150,6 +146,17 @@ std::size_t BzlaSort::get_arity() const
   }
   throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
                                 + " has no arity");
+}
+
+Sort BzlaSort::get_uninterpreted_constructor() const
+{
+  if (get_sort_kind() != UNINTERPRETED || !tm->is_instance(sort))
+  {
+    throw IncorrectUsageException("Sort " + to_string()
+                                  + " was not made by applying a sort "
+                                    "constructor");
+  }
+  return std::make_shared<BzlaSort>(tm->get_instance_constructor(sort), tm);
 }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const

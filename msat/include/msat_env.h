@@ -45,6 +45,8 @@ class MsatEnv : public msat_env
    */
   msat_type add_instance(const std::string & name,
                          const std::vector<msat_type> & params);
+  /** Whether add_instance made `t` */
+  bool is_instance(msat_type t) const;
   /** The name of the sort constructor `t` applies, or MathSAT's
    *  representation of `t` if add_instance did not make it
    */

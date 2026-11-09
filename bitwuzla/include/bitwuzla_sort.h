@@ -33,9 +33,8 @@ class BzlaSort : public AbsSort
 {
  public:
   BzlaSort(bitwuzla::Sort s, const std::shared_ptr<BzlaTermManager> & manager);
-  // Sort constructors, which Bitwuzla's API lacks, by their name and arity
-  BzlaSort(const std::string & name,
-           std::uint64_t arity,
+  // Sort constructors, which Bitwuzla's API lacks, by their id
+  BzlaSort(std::uint64_t constructor,
            const std::shared_ptr<BzlaTermManager> & manager);
   std::size_t hash() const override;
   std::uint64_t get_width() const override;
@@ -45,6 +44,7 @@ class BzlaSort : public AbsSort
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
   std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;

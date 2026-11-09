@@ -34,7 +34,7 @@ Sort make_uninterpreted_logging_sort(Sort s,
                                      std::string name,
                                      std::uint64_t arity);
 Sort make_uninterpreted_logging_sort(Sort s,
-                                     std::string name,
+                                     Sort sort_con,
                                      const SortVec & sorts);
 Sort make_logging_sort(SortKind sk, Sort s);
 Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width);
@@ -62,6 +62,7 @@ class LoggingSort : public AbsSort
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
   std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
 
@@ -120,20 +121,19 @@ class UninterpretedLoggingSort : public LoggingSort
 {
  public:
   UninterpretedLoggingSort(Sort s, std::string n, std::uint64_t a);
-  UninterpretedLoggingSort(Sort s,
-                           std::string n,
-                           std::uint64_t a,
-                           const SortVec & sorts);
+  UninterpretedLoggingSort(Sort s, Sort sort_con, const SortVec & sorts);
 
   typedef LoggingSort super;
 
   std::string get_uninterpreted_name() const override;
   std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
 
  protected:
   std::string name;
   std::uint64_t arity;
+  Sort constructor = nullptr;
   SortVec param_sorts = {};
 };
 

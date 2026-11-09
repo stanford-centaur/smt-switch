@@ -30,16 +30,17 @@ namespace smt {
 class Cvc5Sort : public AbsSort
 {
  public:
-  explicit Cvc5Sort(::cvc5::Sort s);
+  explicit Cvc5Sort(cvc5::Sort s);
   std::string to_string() const override;
   std::size_t hash() const override;
-  uint64_t get_width() const override;
+  std::uint64_t get_width() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
-  size_t get_arity() const override;
+  std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort &) const override;
@@ -47,14 +48,14 @@ class Cvc5Sort : public AbsSort
 
   // Getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::Sort get_cvc5_sort() const;
+  cvc5::Sort get_cvc5_sort() const;
   /** The datatype, as get_datatype gives it, without wrapping it
    *  @throws IncorrectUsageException if the sort has no datatype
    */
-  ::cvc5::Datatype get_cvc5_datatype() const;
+  cvc5::Datatype get_cvc5_datatype() const;
 
  protected:
-  ::cvc5::Sort sort;
+  cvc5::Sort sort;
 
   friend class Cvc5Solver;
 };

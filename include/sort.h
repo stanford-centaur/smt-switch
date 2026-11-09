@@ -84,6 +84,11 @@ class AbsSort
   virtual Sort get_codomain_sort() const = 0;
   virtual std::string get_uninterpreted_name() const = 0;
   virtual std::size_t get_arity() const = 0;
+  /** Returns the sort constructor an uninterpreted sort was made by
+   *  applying.
+   *  Throws an IncorrectUsageException for any other sort.
+   */
+  virtual Sort get_uninterpreted_constructor() const = 0;
   virtual std::vector<Sort> get_uninterpreted_param_sorts() const = 0;
   virtual Datatype get_datatype() const = 0;
   virtual bool compare(const Sort & sort) const = 0;

@@ -61,6 +61,11 @@ msat_type MsatEnv::add_instance(const std::string & name,
   return t;
 }
 
+bool MsatEnv::is_instance(msat_type t) const
+{
+  return uninterp_sort_info.count(msat_type_id(t)) != 0;
+}
+
 std::string MsatEnv::get_instance_name(msat_type t) const
 {
   auto it = uninterp_sort_info.find(msat_type_id(t));

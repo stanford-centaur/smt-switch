@@ -44,12 +44,13 @@ class GenericSort : public AbsSort
    * has them, so reaching one here means the sort's kind does not */
 
   std::uint64_t get_width() const override;
-  std::size_t get_arity() const override;
   Sort get_indexsort() const override;
   Sort get_elemsort() const override;
   SortVec get_domain_sorts() const override;
   Sort get_codomain_sort() const override;
   std::string get_uninterpreted_name() const override;
+  std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   std::vector<Sort> get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   /** The datatype, as get_datatype gives it, without casting it down
@@ -132,11 +133,13 @@ class UninterpretedGenericSort : public GenericSort
 
   std::string get_uninterpreted_name() const override;
   std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
   SortVec get_uninterpreted_param_sorts() const override;
 
  protected:
   std::string name;
   std::uint64_t arity;
+  Sort constructor = nullptr;
   SortVec param_sorts = {};
 };
 
