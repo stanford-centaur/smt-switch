@@ -236,6 +236,18 @@ bool BzlaTerm::is_symbolic_const() const
 
 bool BzlaTerm::is_value() const
 {
+  if (term.kind() == bitwuzla::Kind::ARRAY_STORE)
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (const Term & c : *this)
+    {
+      if (!c->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   return term.is_value() || term.kind() == bitwuzla::Kind::CONST_ARRAY;
 }
 

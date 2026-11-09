@@ -15,8 +15,8 @@ namespace smt {
 
 namespace {
 
-// Whether a Z3 expression is a literal, an abstract value, a constant array
-// or a constructor applied to values
+// Whether a Z3 expression is a literal, an abstract value, a constant array,
+// a constructor applied to values or a store of values
 bool is_z3_value(const z3::expr & term)
 {
   if (term.is_true() || term.is_false() || term.is_numeral())
@@ -28,7 +28,8 @@ bool is_z3_value(const z3::expr & term)
     return false;
   }
   Z3_decl_kind kind = term.decl().decl_kind();
-  if (kind == Z3_OP_DT_CONSTRUCTOR)
+  // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+  if (kind == Z3_OP_DT_CONSTRUCTOR || kind == Z3_OP_STORE)
   {
     for (unsigned i = 0; i < term.num_args(); ++i)
     {

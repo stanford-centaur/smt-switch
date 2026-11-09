@@ -421,6 +421,19 @@ bool MsatTerm::is_value() const
     return true;
   }
 
+  if (msat_term_is_array_write(*env, term))
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (const Term & c : *this)
+    {
+      if (!c->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // an abstract value, which an uninterpreted sort has, is a constant whose
   // name starts with @, as SMT-LIB reserves for them
   if (!msat_term_is_constant(*env, term))

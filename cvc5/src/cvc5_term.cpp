@@ -170,8 +170,8 @@ struct KindPrimops
 };
 constexpr KindPrimops kind_primops;
 
-// Whether a cvc5 term is a literal, an abstract value or a constructor
-// applied to values
+// Whether a cvc5 term is a literal, an abstract value, a constructor
+// applied to values or a store of values
 bool is_cvc5_value(const cvc5::Term & term)
 {
   cvc5::Kind k = term.getKind();
@@ -179,6 +179,18 @@ bool is_cvc5_value(const cvc5::Term & term)
   {
     // The first child is the constructor itself.
     for (std::size_t i = 1; i < term.getNumChildren(); ++i)
+    {
+      if (!is_cvc5_value(term[i]))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (k == cvc5::Kind::STORE)
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (std::size_t i = 0; i < term.getNumChildren(); ++i)
     {
       if (!is_cvc5_value(term[i]))
       {
