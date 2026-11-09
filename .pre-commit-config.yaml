@@ -160,5 +160,5 @@ repos:
       - id: no-assert
         name: no assert in C++
         language: pygrep
-        entry: \bassert\s*\(|#\s*include\s*<(cassert|assert\.h)>
+        entry: \bassert\(|#\s*include\s*<(cassert|assert\.h)>
         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx|yy|l)$

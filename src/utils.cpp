@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <locale>
 #include <map>
@@ -26,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "datatype.h"
@@ -1774,21 +1776,29 @@ std::string smtlib_unquote_symbol(const std::string & s)
   return s;
 }
 
+template <class T>
+static std::string get_text(const T & x,
+                            const std::function<std::string(const T &)> & text)
+{
+  return text ? text(x) : x->to_string();
+}
+
 std::string smtlib_application(
     const Op & op,
     const TermVec & children,
-    const std::function<std::string(const Term &)> & term_text)
+    const std::function<std::string(const Term &)> & term_text,
+    const std::function<std::string(const Sort &)> & sort_text)
 {
   if (op.prim_op == Apply_Constructor && children.size() == 1)
   {
-    return term_text(children[0]);
+    return get_text(children[0], term_text);
   }
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
     const Term & var = children[0];
-    return "(" + op.to_string() + " ((" + term_text(var) + " "
-           + var->get_sort()->to_string() + ")) " + term_text(children[1])
-           + ")";
+    return "(" + op.to_string() + " ((" + get_text(var, term_text) + " "
+           + get_text(var->get_sort(), sort_text) + ")) "
+           + get_text(children[1], term_text) + ")";
   }
   if (op.prim_op == Pow && children[1]->is_value())
   {
@@ -1796,7 +1806,7 @@ std::string smtlib_application(
         children[0]->get_sort()->get_sort_kind() == BV ? "(bvmul" : "(*";
     for (std::uint64_t i = children[1]->to_int(); i > 0; --i)
     {
-      res += " " + term_text(children[0]);
+      res += " " + get_text(children[0], term_text);
     }
     return res + ")";
   }
@@ -1811,7 +1821,7 @@ std::string smtlib_application(
     {
       res += " ";
     }
-    res += term_text(children[i]);
+    res += get_text(children[i], term_text);
   }
   return res + ")";
 }
@@ -1856,7 +1866,9 @@ std::string smtlib_arith_value(SortKind sk, const std::string & value)
   return repr;
 }
 
-std::string smtlib_declare_fun(const Term & symbol)
+std::string smtlib_declare_fun(
+    const Term & symbol,
+    const std::function<std::string(const Sort &)> & sort_text)
 {
   Sort sort = symbol->get_sort();
   std::string domain;
@@ -1864,17 +1876,19 @@ std::string smtlib_declare_fun(const Term & symbol)
   {
     for (const Sort & d : sort->get_domain_sorts())
     {
-      domain += (domain.empty() ? "" : " ") + d->to_string();
+      domain += (domain.empty() ? "" : " ") + get_text(d, sort_text);
     }
     sort = sort->get_codomain_sort();
   }
   std::string res = "(";
   res += DECLARE_FUN_STR;
   return res + " " + symbol->to_string() + " (" + domain + ") "
-         + sort->to_string() + ")";
+         + get_text(sort, sort_text) + ")";
 }
 
-std::string smtlib_declare_datatypes(const SortVec & datatypes)
+std::string smtlib_declare_datatypes(
+    const SortVec & datatypes,
+    const std::function<std::string(const Sort &)> & sort_text)
 {
   if (datatypes.empty())
   {
@@ -1895,7 +1909,8 @@ std::string smtlib_declare_datatypes(const SortVec & datatypes)
       for (const std::string & sel : dt->get_selector_names(cons))
       {
         constructors += " (" + smtlib_quote_symbol(sel) + " "
-                        + dt->get_selector_sort(cons, sel)->to_string() + ")";
+                        + get_text(dt->get_selector_sort(cons, sel), sort_text)
+                        + ")";
       }
       constructors += ")";
     }
@@ -1906,10 +1921,12 @@ std::string smtlib_declare_datatypes(const SortVec & datatypes)
   return res + " (" + names + ") (" + bodies + "))";
 }
 
-// Adds the uninterpreted sorts and datatypes that declaring a term of sort
-// s needs, keyed by name, to those found so far
+// Adds the uninterpreted sorts, sort constructors and datatypes that
+// declaring a term of sort s needs, keyed by name, to those found so far.
+// Distinct ones with the same name are all kept; an applied sort adds its
+// constructor, once whatever it is applied to.
 static void collect_declared_sorts(const Sort & s,
-                                   std::map<std::string, Sort> & sorts,
+                                   std::map<std::string, SortVec> & sorts,
                                    std::map<std::string, Sort> & datatypes)
 {
   // no default, so that -Wswitch reports an enumerator without a case
@@ -1926,17 +1943,31 @@ static void collect_declared_sorts(const Sort & s,
       }
       collect_declared_sorts(s->get_codomain_sort(), sorts, datatypes);
       break;
-    case UNINTERPRETED:
-      sorts.emplace(s->get_uninterpreted_name(), s);
-      for (const Sort & p : s->get_uninterpreted_param_sorts())
+    case UNINTERPRETED: {
+      SortVec params = s->get_uninterpreted_param_sorts();
+      Sort declared = params.empty() ? s : s->get_uninterpreted_constructor();
+      SortVec & named = sorts[declared->get_uninterpreted_name()];
+      if (std::find(named.begin(), named.end(), declared) == named.end())
+      {
+        named.push_back(declared);
+      }
+      for (const Sort & p : params)
       {
         collect_declared_sorts(p, sorts, datatypes);
       }
       break;
+    }
     case DATATYPE: {
+      auto [found, added] = datatypes.emplace(s->get_datatype()->get_name(), s);
       // a datatype found before may be the sort of its own selectors
-      if (!datatypes.emplace(s->to_string(), s).second)
+      if (!added)
       {
+        if (found->second != s)
+        {
+          throw NotImplementedException(
+              "smtlib_benchmark cannot declare two datatypes named "
+              + found->first);
+        }
         break;
       }
       Datatype dt = s->get_datatype();
@@ -1965,6 +1996,62 @@ static void collect_declared_sorts(const Sort & s,
   }
 }
 
+namespace {
+
+// Writes sorts and terms as SMT-LIB, each renamed sort by its new name.
+struct SortRenamer
+{
+  const std::unordered_map<Sort, std::string> & renamed;
+
+  std::string operator()(const Sort & s) const
+  {
+    auto it = renamed.find(s);
+    if (it != renamed.end())
+    {
+      return smtlib_quote_symbol(it->second);
+    }
+    SortKind sk = s->get_sort_kind();
+    if (sk == ARRAY)
+    {
+      return "(Array " + (*this)(s->get_indexsort()) + " "
+             + (*this)(s->get_elemsort()) + ")";
+    }
+    if (sk == UNINTERPRETED && !s->get_uninterpreted_param_sorts().empty())
+    {
+      // an applied sort is written with its constructor's name
+      auto con = renamed.find(s->get_uninterpreted_constructor());
+      std::string res =
+          "("
+          + smtlib_quote_symbol(
+              con != renamed.end() ? con->second : s->get_uninterpreted_name());
+      for (const Sort & p : s->get_uninterpreted_param_sorts())
+      {
+        res += " " + (*this)(p);
+      }
+      return res + ")";
+    }
+    return s->to_string();
+  }
+
+  std::string operator()(const Term & t) const
+  {
+    Op op = t->get_op();
+    if (!op.is_null())
+    {
+      return smtlib_application(
+          op, TermVec(t->begin(), t->end()), *this, *this);
+    }
+    // a constant array is the one leaf with a child, its value
+    if (t->get_sort()->get_sort_kind() == ARRAY && t->begin() != t->end())
+    {
+      return smtlib_const_array((*this)(t->get_sort()), (*this)(*t->begin()));
+    }
+    return t->to_string();
+  }
+};
+
+}  // namespace
+
 void smtlib_benchmark(std::ostream & out,
                       const std::string & logic,
                       const TermVec & assertions)
@@ -1972,7 +2059,7 @@ void smtlib_benchmark(std::ostream & out,
   // what the assertions need declared, each kind by name, so that the same
   // assertions always dump alike
   std::map<std::string, Term> symbols;
-  std::map<std::string, Sort> sorts;
+  std::map<std::string, SortVec> sorts;
   std::map<std::string, Sort> datatypes;
   TermVec to_visit = assertions;
   UnorderedTermSet visited;
@@ -1996,11 +2083,40 @@ void smtlib_benchmark(std::ostream & out,
     }
   }
 
+  // SMT-LIB cannot declare two sorts with the same name, but a sort's name
+  // carries no semantic meaning on its own, so duplicates are renamed.
+  std::unordered_map<Sort, std::string> renamed;
+  std::map<std::string, Sort> declared;
+  for (const auto & [name, named] : sorts)
+  {
+    declared.emplace(name, named.front());
+    for (std::size_t i = 1; i < named.size(); ++i)
+    {
+      std::uint64_t k = 0;
+      std::string fresh;
+      do
+      {
+        fresh = name + "_" + std::to_string(++k);
+      } while (sorts.count(fresh) || datatypes.count(fresh)
+               || declared.count(fresh));
+      renamed.emplace(named[i], fresh);
+      declared.emplace(fresh, named[i]);
+    }
+  }
+  // without renamed sorts, everything is written by its to_string
+  std::function<std::string(const Sort &)> sort_text;
+  std::function<std::string(const Term &)> term_text;
+  if (!renamed.empty())
+  {
+    sort_text = SortRenamer{ renamed };
+    term_text = SortRenamer{ renamed };
+  }
+
   out << "(" << SET_LOGIC_STR << " " << logic << ")\n";
-  for (const auto & [name, s] : sorts)
+  for (const auto & [name, s] : declared)
   {
     out << "(" << DECLARE_SORT_STR << " " << smtlib_quote_symbol(name) << " "
-        << s->get_uninterpreted_param_sorts().size() << ")\n";
+        << s->get_arity() << ")\n";
   }
   if (!datatypes.empty())
   {
@@ -2009,15 +2125,15 @@ void smtlib_benchmark(std::ostream & out,
     {
       dts.push_back(s);
     }
-    out << smtlib_declare_datatypes(dts) << "\n";
+    out << smtlib_declare_datatypes(dts, sort_text) << "\n";
   }
   for (const auto & [name, symbol] : symbols)
   {
-    out << smtlib_declare_fun(symbol) << "\n";
+    out << smtlib_declare_fun(symbol, sort_text) << "\n";
   }
   for (const Term & a : assertions)
   {
-    out << "(" << ASSERT_STR << " " << a->to_string() << ")\n";
+    out << "(" << ASSERT_STR << " " << get_text(a, term_text) << ")\n";
   }
   out << "(" << CHECK_SAT_STR << ")\n";
 }

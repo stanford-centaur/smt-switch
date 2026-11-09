@@ -330,6 +330,88 @@ INSTANTIATE_TEST_SUITE_P(SmtLibReader,
                          testing::ValuesIn(available_solver_configurations()),
                          ConfigName());
 
+// Two distinct sorts named S, so that the dump renames one. The other
+// assertions check that renaming does not change how the rest of the dump
+// is written.
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DumpRenamedSorts);
+class DumpRenamedSorts : public Dump
+{
+ protected:
+  void SetUp() override
+  {
+    Dump::SetUp();
+    if (GetParam().solver_enum == GENERIC_SOLVER)
+    {
+      GTEST_SKIP()
+          << "the generic solver refuses to declare a second sort with "
+             "the same name";
+    }
+    if (GetParam().solver_enum == BZLA)
+    {
+      GTEST_SKIP() << "Bitwuzla's dump declares no uninterpreted sort, so it "
+                      "does not read back";
+    }
+    s->set_logic("QF_AUFBV");
+    Sort first = s->make_sort("S", 0);
+    Sort second = s->make_sort("S", 0);
+    if (first == second)
+    {
+      GTEST_SKIP() << "this solver returns the existing sort when one with the "
+                      "same name is declared again";
+    }
+    make_symbols();
+    Sort bvsort = x->get_sort();
+    b = s->make_symbol("b", second);
+    b2 = s->make_symbol("b2", second);
+    arr = s->make_symbol("arr", s->make_sort(ARRAY, second, bvsort));
+    Term f =
+        s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ second, bvsort }));
+    Term p = s->make_symbol("p", s->make_sort(BOOL));
+    Term q = s->make_symbol("q", s->make_sort(BOOL));
+    Term r = s->make_symbol("r", s->make_sort(BOOL));
+
+    s->assert_formula(s->make_term(Distinct, b, b2));
+    s->assert_formula(s->make_term(Equal, s->make_term(BVMul, x, x), y));
+    s->assert_formula(s->make_term(Equal,
+                                   s->make_term(Op(Extract, 1, 0), x),
+                                   s->make_term(Op(Extract, 3, 2), y)));
+    s->assert_formula(s->make_term(
+        Distinct, s->make_term(BVAnd, x, y), s->make_term(BVOr, x, y)));
+    s->assert_formula(s->make_term(
+        Equal, s->make_term(Select, s->make_term(Store, arr, b, x), b2), y));
+    s->assert_formula(s->make_term(
+        Distinct, s->make_term(Apply, f, b), s->make_term(Apply, f, b2)));
+    s->assert_formula(s->make_term(Or, s->make_term(And, p, q, r), q));
+    s->assert_formula(s->make_term(
+        Distinct, s->make_symbol("a", first), s->make_symbol("a2", first)));
+  }
+
+  Term b, b2, arr;
+};
+
+// x = 4 and y = 0 satisfy the assertions
+TEST_P(DumpRenamedSorts, KeepsASatisfiableQuery)
+{
+  EXPECT_TRUE(reread("renamed-sat").is_sat());
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+// reading x back from where it was stored makes it y, which it is not
+TEST_P(DumpRenamedSorts, KeepsAnUnsatisfiableQuery)
+{
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(Select, s->make_term(Store, arr, b, x), b), y));
+  s->assert_formula(s->make_term(Distinct, x, y));
+  EXPECT_TRUE(reread("renamed-unsat").is_unsat());
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    DumpRenamedSorts,
+    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    ConfigName());
+
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)
 {
   UnorderedScopedSymbolMap map;

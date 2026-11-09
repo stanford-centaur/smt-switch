@@ -190,8 +190,9 @@ std::string smtlib_quote_symbol(const std::string & s);
 std::string smtlib_unquote_symbol(const std::string & s);
 
 /** An operator applied to its children as SMT-LIB writes it, (op c1 ... cn),
- *  with each child written by term_text. SMT-LIB writes some applications
- *  in forms of their own:
+ *  with each child written by term_text and a bound variable's sort by
+ *  sort_text, or by its to_string where either is empty. SMT-LIB writes
+ *  some applications in forms of their own:
  *  - an applied function, constructor, selector or tester has no operator:
  *    the one applied, which is the first child, stands in its place, and a
  *    nullary constructor applied is that constructor alone;
@@ -202,13 +203,14 @@ std::string smtlib_unquote_symbol(const std::string & s);
  *  @param op the operator
  *  @param children what it is applied to
  *  @param term_text how a child is written
+ *  @param sort_text how a bound variable's sort is written
  *  @return the SMT-LIB text of the application
  */
 std::string smtlib_application(
     const Op & op,
     const TermVec & children,
-    const std::function<std::string(const Term &)> & term_text =
-        [](const Term & t) { return t->to_string(); });
+    const std::function<std::string(const Term &)> & term_text = {},
+    const std::function<std::string(const Sort &)> & sort_text = {});
 
 /** The text of a constant array, ((as const S) v). SMT-LIB's theory of
  *  arrays declares no const, so this is a solver extension, written as
@@ -233,18 +235,25 @@ std::string smtlib_arith_value(SortKind sk, const std::string & value);
 /** The SMT-LIB declaration of a symbol, (declare-fun f (D1 ... Dn) R) for
  *  a function and (declare-fun x () S) otherwise
  *  @param symbol the symbol
+ *  @param sort_text how a sort is written; by its to_string if empty
  *  @return the text of its declaration
  */
-std::string smtlib_declare_fun(const Term & symbol);
+std::string smtlib_declare_fun(
+    const Term & symbol,
+    const std::function<std::string(const Sort &)> & sort_text = {});
 
 /** One SMT-LIB declaration of datatypes, which may refer to each other,
  *  (declare-datatypes ((D1 0) ... (Dn 0)) (cs1 ... csn))
  *  @param datatypes the datatype sorts, in the order to declare them
+ *  @param sort_text how a selector's sort is written; by its to_string if
+ *         empty
  *  @return the text of their declaration
  *  @throws IncorrectUsageException if datatypes is empty or holds a sort
  *          that is not a datatype
  */
-std::string smtlib_declare_datatypes(const SortVec & datatypes);
+std::string smtlib_declare_datatypes(
+    const SortVec & datatypes,
+    const std::function<std::string(const Sort &)> & sort_text = {});
 
 /** Writes assertions as an SMT-LIB benchmark: set-logic, a declaration
  *  for every uninterpreted sort, datatype and symbol they use, each kind

@@ -1021,6 +1021,42 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
                 + eq->to_string() + ")\n(check-sat)\n");
 }
 
+// SMT-LIB cannot declare two sorts with the same name, so one is renamed
+TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
+                    "the same name";
+  }
+  Sort first = s->make_sort("S", 0);
+  Sort second = s->make_sort("S", 0);
+  if (first == second)
+  {
+    GTEST_SKIP() << "this solver returns the existing sort when one with the "
+                    "same name is declared again";
+  }
+  Term a = s->make_symbol("a", first);
+  Term b = s->make_symbol("b", first);
+  Term c = s->make_symbol("c", second);
+  Term d = s->make_symbol("d", second);
+  Term ab = s->make_term(Equal, a, b);
+  Term cd = s->make_term(Equal, c, d);
+  ostringstream out;
+  smtlib_benchmark(out, "QF_UF", { ab, cd });
+  EXPECT_EQ(out.str(),
+            "(set-logic QF_UF)\n"
+            "(declare-sort S 0)\n"
+            "(declare-sort S_1 0)\n"
+            "(declare-fun a () S_1)\n"
+            "(declare-fun b () S_1)\n"
+            "(declare-fun c () S)\n"
+            "(declare-fun d () S)\n"
+            "(assert "
+                + ab->to_string() + ")\n(assert " + cd->to_string()
+                + ")\n(check-sat)\n");
+}
+
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          SmtLibBenchmarkDeclarations,
                          testing::ValuesIn(filter_solver_configurations(
@@ -1046,6 +1082,66 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresTheSortConstructor)
             "(declare-fun a () "
                 + fint->to_string() + ")\n(declare-fun b () "
                 + fint->to_string() + ")\n(assert " + eq->to_string()
+                + ")\n(check-sat)\n");
+}
+
+TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
+{
+  Sort f = s->make_sort("F", 1);
+  Sort fint = s->make_sort(f, { intsort });
+  Sort fbool = s->make_sort(f, { s->make_sort(BOOL) });
+  Term ab =
+      s->make_term(Equal, s->make_symbol("a", fint), s->make_symbol("b", fint));
+  Term cd = s->make_term(
+      Equal, s->make_symbol("c", fbool), s->make_symbol("d", fbool));
+  ostringstream out;
+  smtlib_benchmark(out, "ALL", { ab, cd });
+  EXPECT_EQ(out.str(),
+            "(set-logic ALL)\n"
+            "(declare-sort F 1)\n"
+            "(declare-fun a () (F Int))\n"
+            "(declare-fun b () (F Int))\n"
+            "(declare-fun c () (F Bool))\n"
+            "(declare-fun d () (F Bool))\n"
+            "(assert "
+                + ab->to_string() + ")\n(assert " + cd->to_string()
+                + ")\n(check-sat)\n");
+}
+
+// SMT-LIB cannot declare two sort constructors with the same name, so one is
+// renamed
+TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
+                    "the same name";
+  }
+  Sort first = s->make_sort("F", 1);
+  Sort second = s->make_sort("F", 1);
+  if (first == second)
+  {
+    GTEST_SKIP() << "this solver returns the existing sort constructor when "
+                    "one with the same name is declared again";
+  }
+  Sort first_int = s->make_sort(first, { intsort });
+  Sort second_int = s->make_sort(second, { intsort });
+  Term ab = s->make_term(
+      Equal, s->make_symbol("a", first_int), s->make_symbol("b", first_int));
+  Term cd = s->make_term(
+      Equal, s->make_symbol("c", second_int), s->make_symbol("d", second_int));
+  ostringstream out;
+  smtlib_benchmark(out, "ALL", { ab, cd });
+  EXPECT_EQ(out.str(),
+            "(set-logic ALL)\n"
+            "(declare-sort F 1)\n"
+            "(declare-sort F_1 1)\n"
+            "(declare-fun a () (F_1 Int))\n"
+            "(declare-fun b () (F_1 Int))\n"
+            "(declare-fun c () (F Int))\n"
+            "(declare-fun d () (F Int))\n"
+            "(assert "
+                + ab->to_string() + ")\n(assert " + cd->to_string()
                 + ")\n(check-sat)\n");
 }
 
@@ -1087,6 +1183,33 @@ TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
                   "(check-sat)\n");
 }
 
+TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
+                    "the same name";
+  }
+  DatatypeDecl firstdecl = s->make_datatype_decl("list");
+  s->add_constructor(firstdecl, s->make_datatype_constructor_decl("one"));
+  Sort first = s->make_sort(firstdecl);
+  DatatypeDecl seconddecl = s->make_datatype_decl("list");
+  s->add_constructor(seconddecl, s->make_datatype_constructor_decl("two"));
+  Sort second = s->make_sort(seconddecl);
+  if (first == second)
+  {
+    GTEST_SKIP() << "this solver returns the existing datatype when one with "
+                    "the same name is declared again";
+  }
+  Term ab = s->make_term(
+      Equal, s->make_symbol("a", first), s->make_symbol("b", first));
+  Term cd = s->make_term(
+      Equal, s->make_symbol("c", second), s->make_symbol("d", second));
+  ostringstream out;
+  EXPECT_THROW(smtlib_benchmark(out, "ALL", { ab, cd }),
+               NotImplementedException);
+}
+
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          SmtLibBenchmarkDatatypes,
                          testing::ValuesIn(filter_solver_configurations(
@@ -1123,5 +1246,56 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          testing::ValuesIn(filter_solver_configurations(
                              { TERMITER, THEORY_INT, QUANTIFIERS })),
                          ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkRenamedSorts);
+class SmtLibBenchmarkRenamedSorts : public SmtLibBenchmarkDeclarations
+{
+};
+
+// a renamed sort is written by its new name inside an assertion too
+TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
+{
+  if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
+  {
+    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
+  }
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
+                    "the same name";
+  }
+  Sort first = s->make_sort("S", 0);
+  Sort second = s->make_sort("S", 0);
+  if (first == second)
+  {
+    GTEST_SKIP() << "this solver returns the existing sort when one with the "
+                    "same name is declared again";
+  }
+  Term a = s->make_symbol("a", first);
+  Term y = s->make_param("y", first);
+  Term forall = s->make_term(Forall, y, s->make_term(Equal, y, a));
+  Term c = s->make_symbol("c", second);
+  Term d = s->make_symbol("d", second);
+  Term cd = s->make_term(Equal, c, d);
+  ostringstream out;
+  smtlib_benchmark(out, "UF", { forall, cd });
+  EXPECT_EQ(out.str(),
+            "(set-logic UF)\n"
+            "(declare-sort S 0)\n"
+            "(declare-sort S_1 0)\n"
+            "(declare-fun a () S_1)\n"
+            "(declare-fun c () S)\n"
+            "(declare-fun d () S)\n"
+            "(assert (forall (("
+                + y->to_string() + " S_1)) (= " + y->to_string()
+                + " a)))\n(assert " + cd->to_string() + ")\n(check-sat)\n");
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibBenchmarkRenamedSorts,
+    testing::ValuesIn(filter_solver_configurations(
+        { TERMITER, THEORY_INT, QUANTIFIERS, UNINTERP_SORT })),
+    ConfigName());
 
 }  // namespace
