@@ -44,19 +44,15 @@ using namespace std;
 
 namespace {
 
-// a range iterated only through free begin and end, found by
-// argument-dependent lookup
-struct FreeBeginRange
+// a container outside the standard library, iterated through its own begin
+// and end
+struct OwnRange
 {
   TermVec terms;
+
+  TermVec::const_iterator begin() const { return terms.begin(); }
+  TermVec::const_iterator end() const { return terms.end(); }
 };
-
-TermVec::const_iterator begin(const FreeBeginRange & r)
-{
-  return r.terms.begin();
-}
-
-TermVec::const_iterator end(const FreeBeginRange & r) { return r.terms.end(); }
 
 // What s writes to filename for an asserted x = y
 string dump_equality(SmtSolver s, const string & filename)
@@ -91,7 +87,8 @@ static_assert(AcceptsAssumptions<TermVec>::value
                   && AcceptsAssumptions<TermList>::value
                   && AcceptsAssumptions<UnorderedTermSet>::value
                   && AcceptsAssumptions<std::set<Term>>::value
-                  && AcceptsAssumptions<FreeBeginRange>::value,
+                  && AcceptsAssumptions<Term[2]>::value
+                  && AcceptsAssumptions<OwnRange>::value,
               "check_sat_assuming accepts ranges of Terms");
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolveTests);
@@ -138,7 +135,11 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   r = s->check_sat_assuming(std::set<Term>{ b1, nb2 });
   EXPECT_TRUE(r.is_unsat());
 
-  r = s->check_sat_assuming(FreeBeginRange{ { b1, nb2 } });
+  Term assumption_array[2] = { b1, nb2 };
+  r = s->check_sat_assuming(assumption_array);
+  EXPECT_TRUE(r.is_unsat());
+
+  r = s->check_sat_assuming(OwnRange{ { b1, nb2 } });
   EXPECT_TRUE(r.is_unsat());
 }
 
