@@ -38,6 +38,20 @@
 
 namespace smt {
 
+// The cvc5 sort of a term of sort s. cvc5 accepts a sort constructor there
+// and goes on with it, so it is refused here.
+static ::cvc5::Sort term_sort(const Sort & s)
+{
+  auto cs = backend_pointer_cast<Cvc5Sort>(s)->get_cvc5_sort();
+  if (cs.isUninterpretedSortConstructor())
+  {
+    throw IncorrectUsageException("Sort constructor "
+                                  + s->get_uninterpreted_name()
+                                  + " is not a term sort until it is applied");
+  }
+  return cs;
+}
+
 /* Cvc5Solver implementation */
 
 // the options every Cvc5Solver starts from, set again by reset()
@@ -509,22 +523,18 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       ::cvc5::Sort csort;
       for (size_t i = 0; i < arity; i++)
       {
-        csort = backend_pointer_cast<Cvc5Sort>(sorts[i])->sort;
+        csort = term_sort(sorts[i]);
         csorts.push_back(csort);
       }
 
-      csort = backend_pointer_cast<Cvc5Sort>(sorts.back())->sort;
+      csort = term_sort(sorts.back());
       ::cvc5::Sort cfunsort = instance->tm.mkFunctionSort(csorts, csort);
       return std::make_shared<Cvc5Sort>(cfunsort);
     }
     else if (sk == ARRAY && sorts.size() == 2)
     {
-      std::shared_ptr<Cvc5Sort> cidxsort =
-          backend_pointer_cast<Cvc5Sort>(sorts[0]);
-      std::shared_ptr<Cvc5Sort> celemsort =
-          backend_pointer_cast<Cvc5Sort>(sorts[1]);
       return std::make_shared<Cvc5Sort>(
-          instance->tm.mkArraySort(cidxsort->sort, celemsort->sort));
+          instance->tm.mkArraySort(term_sort(sorts[0]), term_sort(sorts[1])));
     }
     else
     {
@@ -563,7 +573,7 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   ::cvc5::Sort csort;
   for (uint32_t i = 0; i < arity; i++)
   {
-    csort = backend_pointer_cast<Cvc5Sort>(sorts[i])->sort;
+    csort = term_sort(sorts[i]);
     csorts.push_back(csort);
   }
 
@@ -589,8 +599,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
 
   try
   {
-    std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = instance->tm.mkConst(csort->sort, name);
+    auto t = instance->tm.mkConst(term_sort(sort), name);
     Term res = std::make_shared<::smt::Cvc5Term>(t);
     symbol_table[name] = res;
     return res;
@@ -615,8 +624,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
 {
   try
   {
-    std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
-    ::cvc5::Term t = instance->tm.mkVar(csort->sort, name);
+    auto t = instance->tm.mkVar(term_sort(sort), name);
     return std::make_shared<::smt::Cvc5Term>(t);
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -682,9 +690,9 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
   {
     std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
         backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
-    std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
-    cdt->datatypeconstructordecl.addSelector(name, cs->sort);
-    cdt->selectors.emplace_back(name, cs->sort);
+    auto cs = term_sort(s);
+    cdt->datatypeconstructordecl.addSelector(name, cs);
+    cdt->selectors.emplace_back(name, cs);
   }
   catch (::cvc5::CVC5ApiException & e)
   {
