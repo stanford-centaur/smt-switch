@@ -43,14 +43,13 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
     case BTOR:
       return { TERMITER,   ARRAY_MODELS, THEORY_BV,         CONSTARR,
                UNSAT_CORE, QUANTIFIERS,  BOOL_BV1_ALIASING, TIMELIMIT };
-    // Bitwuzla declares uninterpreted sorts and constants of them, but
-    // cannot reason over them: an equality or distinct warns "Equalities
-    // over uninterpreted sorts not yet supported" and answers unknown.
-    // So it claims neither UNINTERP_SORT nor PARAM_UNINTERP_SORT.
+    // Bitwuzla reasons over terms of uninterpreted sorts in functions,
+    // arrays and ite, but answers unknown to an equality between two of
+    // them that its preprocessing cannot remove.
     case BZLA:
     case BZLA_INTERPOLATOR:
-      return { TERMITER,   ARRAY_MODELS, CONSTARR,    FULL_TRANSFER,
-               UNSAT_CORE, THEORY_BV,    QUANTIFIERS, TIMELIMIT };
+      return { TERMITER,  ARRAY_MODELS, CONSTARR,  FULL_TRANSFER, UNSAT_CORE,
+               THEORY_BV, QUANTIFIERS,  TIMELIMIT, UNINTERP_SORT };
     case CVC5:
     case CVC5_INTERPOLATOR:
       return { TERMITER,      THEORY_INT,          THEORY_STR,      THEORY_BV,

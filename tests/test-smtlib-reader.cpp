@@ -129,6 +129,14 @@ TEST_P(Benchmark, Answers)
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array, which test-array.smt2 does";
   }
+  if (config.solver_enum == BZLA
+      && filesystem::path(input).filename()
+             == "test-uninterp-sort-zero-arity.smt2")
+  {
+    GTEST_SKIP() << "Bitwuzla answers unknown to the distinct and the "
+                    "disjunctions of equalities over an uninterpreted sort in "
+                    "test-uninterp-sort-zero-arity.smt2";
+  }
   SmtSolver s = create_solver(config);
   s->set_opt("produce-models", "true");
   StatusChecker reader(s, strict);

@@ -501,7 +501,56 @@ TEST_P(UnitSortArithTests, SortKinds)
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpretedSorts);
 class UninterpretedSorts : public UnitSortTests
 {
+ protected:
+  void SetUp() override
+  {
+    UnitSortTests::SetUp();
+    usort = s->make_sort("U", 0);
+    a = s->make_symbol("a", usort);
+    b = s->make_symbol("b", usort);
+    f = s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ usort, bvsort }));
+    one = s->make_term(1, bvsort);
+    two = s->make_term(2, bvsort);
+  }
+
+  Term apply_f(const Term & t) const { return s->make_term(Apply, f, t); }
+
+  Sort usort;
+  Term a, b, f, one, two;
 };
+
+TEST_P(UninterpretedSorts, FunctionTellsTermsApart)
+{
+  s->assert_formula(s->make_term(Equal, apply_f(a), one));
+  s->assert_formula(s->make_term(Equal, apply_f(b), two));
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST_P(UninterpretedSorts, FunctionIsCongruentThroughIte)
+{
+  Term c = s->make_symbol("c", boolsort);
+  s->assert_formula(c);
+  s->assert_formula(
+      s->make_term(Equal, apply_f(s->make_term(Ite, c, a, b)), one));
+  s->assert_formula(s->make_term(Equal, apply_f(a), two));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(UninterpretedSorts, ArrayIndexedBySortReadsItsStore)
+{
+  Term arr = s->make_symbol("arr", s->make_sort(ARRAY, usort, bvsort));
+  Term stored = s->make_term(Store, arr, a, one);
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, stored, a), two));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(UninterpretedSorts, AssertedEqualityIsUsed)
+{
+  s->assert_formula(s->make_term(Equal, a, b));
+  s->assert_formula(s->make_term(Equal, apply_f(a), one));
+  s->assert_formula(s->make_term(Equal, apply_f(b), two));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
 
 TEST_P(UninterpretedSorts, NameAsMadePrintedInBars)
 {

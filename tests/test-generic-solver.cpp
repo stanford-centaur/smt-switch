@@ -101,14 +101,6 @@ bool has_attribute(SolverEnum b, SolverAttribute a)
   {
     return false;
   }
-  // The bitwuzla binary accepts declare-sort, which is all these tests
-  // ask of it: they declare a sort and never solve over it. The native
-  // backend declares them too but cannot reason about them, which is why
-  // BZLA does not claim the attribute -- see src/solver_enums.cpp.
-  if (b == BZLA && a == UNINTERP_SORT)
-  {
-    return true;
-  }
   // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
   // frontend has no such term: the binary answers
   // (error "undefined term: const") to ((as const (Array ...)) ...).
