@@ -80,10 +80,14 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
         ARRAY_MODELS, UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT
       };
     case Z3:
-      return { TERMITER,      LOGGING,         THEORY_INT,      THEORY_BV,
-               THEORY_REAL,   ARRAY_FUN_BOOLS, ARRAY_MODELS,    CONSTARR,
-               FULL_TRANSFER, UNSAT_CORE,      THEORY_DATATYPE, QUANTIFIERS,
-               UNINTERP_SORT, TIMELIMIT };
+      return { TERMITER,        LOGGING,
+               THEORY_INT,      THEORY_BV,
+               THEORY_REAL,     ARRAY_FUN_BOOLS,
+               ARRAY_MODELS,    CONSTARR,
+               FULL_TRANSFER,   UNSAT_CORE,
+               THEORY_DATATYPE, QUANTIFIERS,
+               UNINTERP_SORT,   PARAM_UNINTERP_SORT,
+               TIMELIMIT };
   }
   throw NotImplementedException("Unknown SolverEnum: " + std::to_string(se));
 }

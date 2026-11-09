@@ -48,12 +48,12 @@ bool is_z3_value(const z3::expr & term)
 
 // Z3Term implementation
 
-Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::expr t, bool param)
+Z3Term::Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t, bool param)
     : ctx(c), term(t), z_func(*c), is_parameter(param)
 {
 }
 
-Z3Term::Z3Term(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc)
+Z3Term::Z3Term(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc)
     : ctx(c), term(*c), z_func(zfunc), is_function(true)
 {
 }

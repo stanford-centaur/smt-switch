@@ -26,6 +26,7 @@
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
+#include "z3_context.h"
 
 namespace smt {
 
@@ -35,11 +36,9 @@ class Z3Term : public AbsTerm
   // Non-functions
   // Parameter -- Z3 doesn't distinguish until it's bound
   // so we have to keep track of this extra info
-  Z3Term(const std::shared_ptr<z3::context> & c,
-         z3::expr t,
-         bool param = false);
+  Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t, bool param = false);
   // Functions
-  Z3Term(const std::shared_ptr<z3::context> & c, z3::func_decl zfunc);
+  Z3Term(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
@@ -68,7 +67,7 @@ class Z3Term : public AbsTerm
 
   // shared with the solver, so the context lives as long as this term, and
   // declared first, so that term and z_func are released while it does
-  std::shared_ptr<z3::context> ctx;
+  std::shared_ptr<Z3Context> ctx;
   z3::expr term;
   z3::func_decl z_func;
   bool is_function = false;

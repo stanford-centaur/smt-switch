@@ -226,7 +226,7 @@ static Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
  *  in a single Z3 call where Z3 has one and through make_nary_term otherwise
  */
 static Term variadic_term(const AbsSmtSolver * solver,
-                          const std::shared_ptr<z3::context> & ctx,
+                          const std::shared_ptr<Z3Context> & ctx,
                           const Op & op,
                           const TermVec & terms,
                           const vector<Z3_ast> & args)
@@ -250,7 +250,7 @@ static Term variadic_term(const AbsSmtSolver * solver,
 
 struct Z3Solver::Instance
 {
-  Instance(const std::shared_ptr<z3::context> & c,
+  Instance(const std::shared_ptr<Z3Context> & c,
            const z3::solver & s,
            const std::string & l = "ALL")
       : ctx(c), slv(s), logic(l)
@@ -258,7 +258,7 @@ struct Z3Solver::Instance
   }
 
   // slv lives in ctx, so ctx is declared first and outlives it
-  std::shared_ptr<z3::context> ctx;
+  std::shared_ptr<Z3Context> ctx;
   z3::solver slv;
   // the logic slv was made for, ALL for Z3's default, which SMT-LIB needs
   // named before any declaration
@@ -266,9 +266,7 @@ struct Z3Solver::Instance
 };
 
 Z3Solver::Z3Solver()
-    : AbsSmtSolver(Z3),
-      ctx(std::make_shared<z3::context>()),
-      solver_params(*ctx)
+    : AbsSmtSolver(Z3), ctx(std::make_shared<Z3Context>()), solver_params(*ctx)
 {
 }
 
@@ -716,7 +714,7 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
     throw IncorrectUsageException(
         "Cannot create constant array with function element");
   }
-  z3::sort arrtype = zsort->type;
+  z3::sort arrtype = zsort->get_z3_type();
   if (!arrtype.is_array())
   {
     throw IncorrectUsageException("Can't make a constant array of sort "
@@ -878,18 +876,45 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
 {
-  if (!arity)
+  // an instance of a sort constructor is an uninterpreted Z3 sort of an
+  // internal name, which a user sort of that name would be
+  if (is_internal_name(name))
   {
-    const char * c = name.c_str();
-    z3::symbol func_name = ctx->str_symbol(c);
-    z3::sort z_sort = ctx->uninterpreted_sort(func_name);
-    return std::make_shared<Z3Sort>(ctx, z_sort);
+    throw IncorrectUsageException("sort name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
   }
-  else
+  if (arity)
   {
-    throw NotImplementedException(
-        "Z3 does not support uninterpreted type with non-zero arity.");
+    return std::make_shared<Z3Sort>(ctx, name, arity);
   }
+  z3::sort z_sort = ctx->uninterpreted_sort(ctx->str_symbol(name.c_str()));
+  return std::make_shared<Z3Sort>(ctx, z_sort);
+}
+
+Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  std::shared_ptr<Z3Sort> zcon = get_z3_sort(sort_con);
+  if (zcon->get_sort_kind() != UNINTERPRETED_CONS)
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " is not a sort constructor");
+  }
+  std::size_t arity = zcon->get_arity();
+  if (sorts.size() != arity)
+  {
+    throw IncorrectUsageException(
+        "Expected " + std::to_string(arity) + " sort arguments to "
+        + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
+  }
+  std::vector<z3::sort> params;
+  params.reserve(sorts.size());
+  for (const Sort & s : sorts)
+  {
+    params.push_back(get_z3_sort(s)->get_z3_type());
+  }
+  return std::make_shared<Z3Sort>(
+      ctx, ctx->add_instance(zcon->get_uninterpreted_name(), params));
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const
@@ -954,12 +979,12 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     for (unsigned i = 0; i < arity; i++)
     {
-      z_sort = get_z3_sort(sorts[i])->type;
+      z_sort = get_z3_sort(sorts[i])->get_z3_type();
       zsorts.push_back(z_sort);
     }
 
     Sort sort = sorts.back();
-    z_sort = get_z3_sort(sort)->type;
+    z_sort = get_z3_sort(sort)->get_z3_type();
 
     const char * c = "throwaway name";
     z3::symbol func_name = ctx->str_symbol(c);
@@ -973,7 +998,8 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     std::shared_ptr<Z3Sort> cidxsort = get_z3_sort(sorts[0]);
     std::shared_ptr<Z3Sort> celemsort = get_z3_sort(sorts[1]);
     return std::make_shared<Z3Sort>(
-        ctx, ctx->array_sort(cidxsort->type, celemsort->type));
+        ctx,
+        ctx->array_sort(cidxsort->get_z3_type(), celemsort->get_z3_type()));
   }
   else
   {
@@ -1013,7 +1039,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   else
   {
     // nb this is creating an expr
-    z3::expr z_term = ctx->constant(z_name, zsort->type);
+    z3::expr z_term = ctx->constant(z_name, zsort->get_z3_type());
 
     sym = std::make_shared<Z3Term>(ctx, z_term);
   }
@@ -1043,7 +1069,8 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
   // Z3 gives a constant of the same name and sort back as the same term,
   // so a constant named `name` would be a symbol of that name, and a
   // quantifier over it would bind the symbol. A fresh one never is.
-  z3::expr z_term(*ctx, Z3_mk_fresh_const(*ctx, name.c_str(), zsort->type));
+  z3::expr z_term(*ctx,
+                  Z3_mk_fresh_const(*ctx, name.c_str(), zsort->get_z3_type()));
   // mark as a parameter by passing true
   auto param = std::make_shared<Z3Term>(ctx, z_term, true);
   param->param_name = name;
