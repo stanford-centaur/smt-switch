@@ -573,10 +573,31 @@ Term LoggingSolver::get_value(const Term & t) const
     return res;
   }
 
-  Term wrapped_val = wrapped_solver->get_value(lt->wrapped_term);
+  return wrap_value(wrapped_solver->get_value(lt->wrapped_term), sort);
+}
+
+Term LoggingSolver::wrap_value(const Term & wrapped_val,
+                               const Sort & sort) const
+{
+  Op op = wrapped_val->get_op();
+  if (op.prim_op == Apply_Constructor)
+  {
+    // the constructor comes first, then its arguments in selector order
+    TermVec wrapped_children(wrapped_val->begin(), wrapped_val->end());
+    std::string cons = wrapped_children[0]->get_constructor_name();
+    Datatype dt = sort->get_datatype();
+    std::vector<std::string> selectors = dt->get_selector_names(cons);
+    TermVec children{ get_constructor(sort, cons) };
+    for (std::size_t i = 1; i < wrapped_children.size(); ++i)
+    {
+      children.push_back(wrap_value(
+          wrapped_children[i], dt->get_selector_sort(cons, selectors[i - 1])));
+    }
+    return make_term(op, children);
+  }
   // The value was not created through the smt-switch API, so the
   // LoggingSolver cannot recover an Op or children for it
-  if (!wrapped_val->get_op().is_null())
+  if (!op.is_null())
   {
     throw NotImplementedException(
         "LoggingSolver does not support get_value for a "

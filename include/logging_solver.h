@@ -134,6 +134,15 @@ class LoggingSolver : public AbsSmtSolver
                       const Sort & codomain,
                       const std::string & repr) const;
 
+  /** Wraps a value of the underlying solver
+   *  @param wrapped_val the underlying value
+   *  @param sort its logging sort
+   *  @return the logging term of the value, rebuilt from its children if it
+   *          is a constructor application
+   *  @throws NotImplementedException for any other value that is not a leaf
+   */
+  Term wrap_value(const Term & wrapped_val, const Sort & sort) const;
+
   SmtSolver wrapped_solver;  ///< the underlying solver
   std::unique_ptr<TermHashTable> hashtable;
 
