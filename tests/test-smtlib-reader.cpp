@@ -204,8 +204,8 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     QF_UF_PARAM_SORTS,
     Benchmark,
-    testing::Combine(testing::ValuesIn(
-                         filter_solver_configurations({ PARAM_UNINTERP_SORT })),
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+                         { PARAM_UNINTERP_SORT, THEORY_INT })),
                      testing::ValuesIn(inputs_in("qf_uf_param_sorts")),
                      testing::Values(true)),
     reader_input_name);

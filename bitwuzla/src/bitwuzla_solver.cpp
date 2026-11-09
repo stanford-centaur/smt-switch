@@ -46,7 +46,7 @@ namespace smt {
  *  where Bitwuzla rejects the application, e.g. for the number or the sorts
  *  of its arguments
  */
-static Term make_bzla_term(const std::shared_ptr<bitwuzla::TermManager> & tm,
+static Term make_bzla_term(const std::shared_ptr<BzlaTermManager> & tm,
                            bitwuzla::Kind kind,
                            const std::vector<bitwuzla::Term> & args,
                            const std::vector<std::uint64_t> & indices = {})
@@ -63,19 +63,19 @@ static Term make_bzla_term(const std::shared_ptr<bitwuzla::TermManager> & tm,
 
 struct BzlaSolver::Instance
 {
-  Instance(const std::shared_ptr<bitwuzla::TermManager> & term_manager,
+  Instance(const std::shared_ptr<BzlaTermManager> & term_manager,
            const bitwuzla::Options & bzla_options)
       : tm(term_manager), bzla(*tm, bzla_options)
   {
   }
 
   // bzla uses tm, so tm is declared first and outlives it
-  std::shared_ptr<bitwuzla::TermManager> tm;
+  std::shared_ptr<BzlaTermManager> tm;
   bitwuzla::Bitwuzla bzla;
 };
 
 BzlaSolver::BzlaSolver()
-    : AbsSmtSolver(BZLA), tm(std::make_shared<bitwuzla::TermManager>())
+    : AbsSmtSolver(BZLA), tm(std::make_shared<BzlaTermManager>())
 {
 }
 
@@ -114,7 +114,7 @@ bitwuzla::Sort BzlaSolver::bzla_sort(const Sort & s) const
     throw IncorrectUsageException("Sort " + s->to_string()
                                   + " was made by another solver");
   }
-  return bsort->sort;
+  return bsort->get_bitwuzla_sort();
 }
 
 void BzlaSolver::set_opt(const std::string option, const std::string value)
@@ -329,10 +329,15 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 
 Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
-  if (arity != 0)
+  if (is_internal_name(name))
   {
-    throw NotImplementedException(
-        "Bitwuzla does not support parametrized uninterpreted sorts");
+    throw IncorrectUsageException("sort name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
+  }
+  if (arity)
+  {
+    return std::make_shared<BzlaSort>(name, arity, tm);
   }
   try
   {
@@ -342,6 +347,36 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
   {
     throw InternalSolverException(e.what());
   }
+}
+
+Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
+{
+  std::shared_ptr<BzlaSort> bcon = backend_pointer_cast<BzlaSort>(sort_con);
+  if (bcon->tm != tm)
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " was made by another solver");
+  }
+  if (bcon->get_sort_kind() != UNINTERPRETED_CONS)
+  {
+    throw IncorrectUsageException("Sort " + sort_con->to_string()
+                                  + " is not a sort constructor");
+  }
+  std::size_t arity = bcon->get_arity();
+  if (sorts.size() != arity)
+  {
+    throw IncorrectUsageException(
+        "Expected " + std::to_string(arity) + " sort arguments to "
+        + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
+  }
+  std::vector<bitwuzla::Sort> params;
+  params.reserve(sorts.size());
+  for (const Sort & s : sorts)
+  {
+    params.push_back(bzla_sort(s));
+  }
+  return std::make_shared<BzlaSort>(
+      tm->add_instance(bcon->constructor_id, params), tm);
 }
 
 Sort BzlaSolver::make_sort(SortKind sk) const
@@ -545,7 +580,7 @@ void BzlaSolver::do_reset()
   symbol_table.clear();
   instance.reset();
   options = {};
-  tm = std::make_shared<bitwuzla::TermManager>();
+  tm = std::make_shared<BzlaTermManager>();
   // get_bitwuzla() creates the instance on first use, so options can be
   // set again until then, as after construction
 }
@@ -766,7 +801,7 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
     return Result(UNKNOWN, std::string("Interpolation failure: ") + e.what());
   }
   // the interpolants belong to the term manager of the formulae
-  const std::shared_ptr<bitwuzla::TermManager> & formulae_tm =
+  const std::shared_ptr<BzlaTermManager> & formulae_tm =
       backend_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
   for (const auto & itp : itps)
   {

@@ -5,6 +5,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term_manager.cpp"
 )
 target_include_directories(
   smt-switch-bitwuzla

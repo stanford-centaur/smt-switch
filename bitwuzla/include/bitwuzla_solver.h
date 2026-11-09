@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "bitwuzla_term_manager.h"
 #include "interpolating_solver.h"
 #include "smt_defs.h"
 #include "solver.h"
@@ -57,6 +58,7 @@ class BzlaSolver : public AbsSmtSolver
   Sort make_sort(SortKind sk) const override;
   Sort make_sort(SortKind sk, std::uint64_t size) const override;
   Sort make_sort(SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a
@@ -106,8 +108,6 @@ class BzlaSolver : public AbsSmtSolver
   void do_reset() override;
   void do_reset_assertions() override;
 
-  // the Bitwuzla term or sort behind t or s, refusing one from another term
-  // manager: another solver's, or this one's from before a reset
   bitwuzla::Term bzla_term(const Term & t) const;
   bitwuzla::Sort bzla_sort(const Sort & s) const;
 
@@ -115,7 +115,7 @@ class BzlaSolver : public AbsSmtSolver
   struct Instance;
 
   bitwuzla::Options options = {};
-  std::shared_ptr<bitwuzla::TermManager> tm;
+  std::shared_ptr<BzlaTermManager> tm;
   std::shared_ptr<Instance> instance = nullptr;
 
   std::unordered_map<std::string, Term> symbol_table = {};

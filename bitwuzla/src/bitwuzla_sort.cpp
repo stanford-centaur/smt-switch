@@ -20,23 +20,43 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "exceptions.h"
+#include "utils.h"
 
 namespace smt {
 
 BzlaSort::BzlaSort(bitwuzla::Sort s,
-                   const std::shared_ptr<bitwuzla::TermManager> & manager)
+                   const std::shared_ptr<BzlaTermManager> & manager)
     : tm(manager), sort(std::move(s))
 {
 }
 
-std::size_t BzlaSort::hash() const { return std::hash<bitwuzla::Sort>{}(sort); }
+BzlaSort::BzlaSort(const std::string & name,
+                   std::uint64_t arity,
+                   const std::shared_ptr<BzlaTermManager> & manager)
+    : tm(manager),
+      sort(),
+      is_constructor(true),
+      constructor_id(manager->add_constructor(name, arity))
+{
+}
+
+std::size_t BzlaSort::hash() const
+{
+  if (is_constructor)
+  {
+    std::size_t h = std::hash<BzlaTermManager *>{}(tm.get());
+    detail::hash_combine(h, constructor_id);
+    return h;
+  }
+  return std::hash<bitwuzla::Sort>{}(sort);
+}
 
 std::uint64_t BzlaSort::get_width() const
 {
@@ -103,35 +123,51 @@ Sort BzlaSort::get_codomain_sort() const
 
 std::string BzlaSort::get_uninterpreted_name() const
 {
-  if (!sort.is_uninterpreted())
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
-                                  + " has no uninterpreted name");
+    return tm->get_constructor_name(constructor_id);
   }
-  return sort.uninterpreted_symbol().value_or("");
+  if (sk == UNINTERPRETED)
+  {
+    // an applied sort is named after its constructor, not its Bitwuzla sort
+    return tm->get_instance_name(sort);
+  }
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no uninterpreted name");
 }
 
 std::size_t BzlaSort::get_arity() const
 {
-  if (!sort.is_uninterpreted())
+  SortKind sk = get_sort_kind();
+  if (sk == UNINTERPRETED_CONS)
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+    return tm->get_constructor_arity(constructor_id);
   }
-  return 0;
+  if (sk == UNINTERPRETED)
+  {
+    return 0;
+  }
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(sk)
+                                + " has no arity");
 }
 
 SortVec BzlaSort::get_uninterpreted_param_sorts() const
 {
-  if (!sort.is_uninterpreted())
+  if (get_sort_kind() != UNINTERPRETED)
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
                                   + " has no uninterpreted param sorts");
   }
-  // Bitwuzla has no sort constructors, so no sort has parameters
-  return {};
+  auto bzla_params = tm->get_instance_params(sort);
+  SortVec params;
+  params.reserve(bzla_params.size());
+  for (const bitwuzla::Sort & p : bzla_params)
+  {
+    params.push_back(std::make_shared<BzlaSort>(p, tm));
+  }
+  return params;
 }
 
 Datatype BzlaSort::get_datatype() const
@@ -144,11 +180,25 @@ Datatype BzlaSort::get_datatype() const
 bool BzlaSort::compare(const Sort & s) const
 {
   std::shared_ptr<BzlaSort> bsort = std::dynamic_pointer_cast<BzlaSort>(s);
-  return bsort && sort == bsort->sort;
+  if (!bsort || is_constructor != bsort->is_constructor)
+  {
+    return false;
+  }
+  if (is_constructor)
+  {
+    // Bitwuzla makes a distinct sort for each declaration, so each
+    // constructor is distinct too, even from one of the same name
+    return tm == bsort->tm && constructor_id == bsort->constructor_id;
+  }
+  return sort == bsort->sort;
 }
 
 SortKind BzlaSort::get_sort_kind() const
 {
+  if (is_constructor)
+  {
+    return UNINTERPRETED_CONS;
+  }
   if (sort.is_bv())
   {
     return BV;
@@ -179,6 +229,15 @@ SortKind BzlaSort::get_sort_kind() const
   }
 }
 
-const bitwuzla::Sort BzlaSort::get_bitwuzla_sort() const { return sort; }
+const bitwuzla::Sort BzlaSort::get_bitwuzla_sort() const
+{
+  if (is_constructor)
+  {
+    throw IncorrectUsageException("Sort constructor "
+                                  + tm->get_constructor_name(constructor_id)
+                                  + " is not a term sort until it is applied");
+  }
+  return sort;
+}
 
 }  // namespace smt
