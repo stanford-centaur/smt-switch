@@ -164,6 +164,7 @@ void BzlaSolver::set_logic(const std::string logic)
   // through uninterpreted sorts
   if (logic == "ALL" || logic == "AX" || logic == "QF_AX")
   {
+    logic_ = logic;
     return;
   }
   // an optional QF_ followed by at least one of A, UF, BV and FPLRA or FP,
@@ -186,6 +187,7 @@ void BzlaSolver::set_logic(const std::string logic)
     throw NotImplementedException("Bitwuzla does not support the logic "
                                   + logic);
   }
+  logic_ = logic;
 }
 
 void BzlaSolver::do_assert(const Term & t)
@@ -580,6 +582,7 @@ void BzlaSolver::do_reset()
   symbol_table.clear();
   instance.reset();
   options = {};
+  logic_ = "ALL";
   tm = std::make_shared<BzlaTermManager>();
   // get_bitwuzla() creates the instance on first use, so options can be
   // set again until then, as after construction
@@ -645,17 +648,17 @@ TermVec BzlaSolver::substitute_terms(
 
 void BzlaSolver::dump_smt2(std::string filename) const
 {
-  std::ofstream out(filename);
+  // Bitwuzla's print_formula declares no uninterpreted sort
+  TermVec assertions;
   if (instance)
   {
-    instance->bzla.print_formula(out, "smt2");
+    for (const bitwuzla::Term & a : instance->bzla.get_assertions())
+    {
+      assertions.push_back(std::make_shared<BzlaTerm>(a, tm));
+    }
   }
-  else
-  {
-    // a throwaway instance prints the same empty formula, without fixing
-    // this solver's options
-    bitwuzla::Bitwuzla(*tm, options).print_formula(out, "smt2");
-  }
+  std::ofstream out(filename);
+  smtlib_benchmark(out, logic_, assertions);
 }
 
 BzlaInterpolatingSolver::BzlaInterpolatingSolver()

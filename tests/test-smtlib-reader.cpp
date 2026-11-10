@@ -348,8 +348,8 @@ class DumpRenamedSorts : public Dump
     }
     if (GetParam().solver_enum == BZLA)
     {
-      GTEST_SKIP() << "Bitwuzla's dump declares no uninterpreted sort, so it "
-                      "does not read back";
+      GTEST_SKIP() << "Bitwuzla answers unknown to distinct over an "
+                      "uninterpreted sort";
     }
     s->set_logic("QF_AUFBV");
     Sort first = s->make_sort("S", 0);
@@ -409,6 +409,31 @@ TEST_P(DumpRenamedSorts, KeepsAnUnsatisfiableQuery)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     DumpRenamedSorts,
+    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    ConfigName());
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DumpUninterpretedSort);
+class DumpUninterpretedSort : public Dump
+{
+};
+
+// The dump must declare S for a and f to read back.
+TEST_P(DumpUninterpretedSort, DeclaresTheSort)
+{
+  make_symbols();
+  Sort sort = s->make_sort("S", 0);
+  Term a = s->make_symbol("a", sort);
+  Term f = s->make_symbol(
+      "f", s->make_sort(FUNCTION, SortVec{ sort, x->get_sort() }));
+  Term fa = s->make_term(Apply, f, a);
+  s->assert_formula(s->make_term(Equal, fa, x));
+  s->assert_formula(s->make_term(Distinct, fa, x));
+  EXPECT_TRUE(reread("uninterpreted").is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    DumpUninterpretedSort,
     testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
     ConfigName());
 

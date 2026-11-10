@@ -117,6 +117,7 @@ class BzlaSolver : public AbsSmtSolver
   bitwuzla::Options options = {};
   std::shared_ptr<BzlaTermManager> tm;
   std::shared_ptr<Instance> instance = nullptr;
+  std::string logic_ = "ALL";
 
   std::unordered_map<std::string, Term> symbol_table = {};
 
