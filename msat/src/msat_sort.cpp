@@ -77,9 +77,7 @@ std::uint64_t MsatSort::get_width() const
     throw IncorrectUsageException(
         "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
   }
-  // TODO: figure out if this is safe -- only for large bit-widths is this a
-  // problem
-  return (unsigned int)out_width;
+  return out_width;
 }
 
 Sort MsatSort::get_indexsort() const
