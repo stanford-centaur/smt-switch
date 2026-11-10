@@ -105,6 +105,13 @@ TEST_P(SortingNetworkTests, TestSortingNetwork)
   }
 }
 
+TEST_P(SortingNetworkTests, OutlivesSolverHandle)
+{
+  SortingNetwork sn{ SmtSolver(solver) };
+  TermVec sorted = sn.sorting_network(boolvec);
+  EXPECT_EQ(NUM_VARS, sorted.size());
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverSortingNetworkTests,
     SortingNetworkTests,

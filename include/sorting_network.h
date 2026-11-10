@@ -68,7 +68,7 @@ class SortingNetwork
   TermVec sorting_network(const TermVec & unsorted) const;
 
  protected:
-  const SmtSolver & solver_;
+  SmtSolver solver_;
 
   /** Sorts vectors recursively
    *  Used as helper function for sorting_network
