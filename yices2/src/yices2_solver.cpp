@@ -492,13 +492,28 @@ Term Yices2Solver::get_value(const Term & t) const
     }
     return std::make_shared<Yices2Term>(value);
   }
-  else
+  Sort sort = t->get_sort();
+  if (sort->get_sort_kind() != ARRAY)
   {
     throw NotImplementedException(
-        "Yices does not convert a function or array value into a term: "
-        "yices_get_value_as_term fails for a function type. Use "
-        "get_array_values for an array, or get_value on a select of it.");
+        "Yices does not convert a function value into a term: "
+        "yices_get_value_as_term fails for a function type. Use get_value on "
+        "an application of it.");
   }
+  // an array is a function to Yices, so yices_get_value_as_term refuses it
+  // too, but its model can be read entry by entry
+  if (t->is_value())
+  {
+    return t;
+  }
+  Term base;
+  UnorderedTermMap entries = get_array_values(t, base);
+  Term res = make_term(base, sort);
+  for (const auto & [index, element] : entries)
+  {
+    res = make_term(Store, res, index, element);
+  }
+  return res;
 }
 
 /* Turn one model node back into a term of the given sort. Yices reports

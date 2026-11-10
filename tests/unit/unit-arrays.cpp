@@ -89,6 +89,34 @@ TEST_P(UnitArrayTests, ConstArr)
   EXPECT_EQ(out_const_base, zero);
 }
 
+// two different entries, so that the value is not a constant array
+TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
+{
+  Term a = s->make_symbol("a", arrsort);
+  Term zero = s->make_term(0, bvsort);
+  Term one = s->make_term(1, bvsort);
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, a, zero), one));
+  s->assert_formula(s->make_term(Equal, s->make_term(Select, a, one), zero));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  Term value = s->get_value(a);
+  EXPECT_EQ(value->get_sort(), arrsort);
+  // the entry each store sets, the first store of an index winning, over
+  // the constant array that holds every other index
+  UnorderedTermMap entries;
+  Term t = value;
+  while (t->get_op() == Op(Store))
+  {
+    TermVec children(t->begin(), t->end());
+    entries.emplace(children[1], children[2]);
+    t = children[0];
+  }
+  ASSERT_NE(t->begin(), t->end()) << value;
+  Term base = *t->begin();
+  EXPECT_EQ(entries.count(zero) ? entries[zero] : base, one) << value;
+  EXPECT_EQ(entries.count(one) ? entries[one] : base, zero) << value;
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
                          UnitArrayTests,
                          testing::ValuesIn(filter_solver_configurations(
