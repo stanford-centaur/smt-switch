@@ -754,6 +754,12 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     throw NotImplementedException(
         "MathSAT does not support empty symbol names");
   }
+  if (name[0] == '@')
+  {
+    throw NotImplementedException(
+        "MathSAT names its abstract values with @, so a symbol name cannot "
+        "start with it");
+  }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   msat_decl decl = msat_find_decl(*env, name.c_str());
   if (!MSAT_ERROR_DECL(decl))
