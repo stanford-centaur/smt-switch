@@ -662,6 +662,45 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
+TEST_P(BoolArrayTranslationTests, StoreChainValue)
+{
+  if (get<0>(GetParam()).solver_enum == YICES2)
+  {
+    GTEST_SKIP() << "Yices2's backend makes a new term for every constant "
+                    "array, so translating one back does not give the "
+                    "original";
+  }
+
+  Term t = s1->make_term(true);
+  Term stores = s1->make_term(Store,
+                              s1->make_term(s1->make_term(false), arrsort),
+                              s1->make_term(2, bvsort8),
+                              t);
+  stores = s1->make_term(Store, stores, s1->make_term(5, bvsort8), t);
+  ASSERT_TRUE(stores->is_value());
+
+  TermTranslator to_s2(s2);
+  TermTranslator to_s1(s1);
+
+  Term stores_2 = to_s2.transfer_term(stores);
+  EXPECT_TRUE(stores_2->is_value());
+  EXPECT_EQ(to_s1.transfer_term(stores_2), stores);
+
+  // stores is true at 2 and 5 and false at 3
+  Sort bvsort8_2 = s2->make_sort(BV, 8);
+  s2->assert_formula(s2->make_term(
+      Not,
+      s2->make_term(
+          And,
+          { s2->make_term(Select, stores_2, s2->make_term(2, bvsort8_2)),
+            s2->make_term(Select, stores_2, s2->make_term(5, bvsort8_2)),
+            s2->make_term(
+                Not,
+                s2->make_term(
+                    Select, stores_2, s2->make_term(3, bvsort8_2))) })));
+  EXPECT_TRUE(s2->check_sat().is_unsat());
+}
+
 TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
 {
   // MathSAT and Yices2 make 0.0, 1.0 and an Ite over them Ints, and 1/10 a
