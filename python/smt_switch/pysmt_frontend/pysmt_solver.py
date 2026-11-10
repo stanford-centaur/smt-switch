@@ -2,7 +2,6 @@
 # SPDX-FileContributor: Caleb Donovick
 # SPDX-License-Identifier: BSD-3-Clause
 
-import fractions
 import functools as ft
 import gc
 import itertools as it
@@ -28,6 +27,7 @@ from pysmt.solvers.solver import (
 from pysmt.walkers import DagWalker
 
 import smt_switch as ss
+from smt_switch.api import _parse_number
 
 SWITCH_SOLVERS = {}
 
@@ -44,55 +44,6 @@ class SwitchOptions(SolverOptions):
                 solver.solver.set_opt(k, v)
         except RuntimeError as err:
             raise PysmtValueError(f"Error setting the option '{k}={v}'") from err
-
-
-_REAL_OPERATORS = {"-": operator.neg, "/": fractions.Fraction}
-
-
-# Collapses [operator, operand, ...] to the value it denotes, or passes a lone
-# number through.
-def _reduce_tree(tree):
-    if not tree:
-        raise ValueError("Empty real literal")
-    if len(tree) == 1:
-        if not isinstance(tree[0], (int, fractions.Fraction)):
-            raise ValueError(f"Real literal {tree[0]!r} has no operands")
-        return tree[0]
-    return tree[0](*tree[1:])
-
-
-# Consumes one SMT-LIB real literal from a character iterator, e.g. "(/ 457 32)"
-# or "(- 5)", collecting operators and ints into a tree for _reduce_tree.
-def _parse_sexpr(it):
-    tree = []
-    num = []
-    for c in it:
-        if c.isdigit():
-            num.append(c)
-            continue
-        if num:
-            tree.append(int("".join(num)))
-            num = []
-
-        if c == ")":
-            break
-        if c == " ":
-            continue
-        if c == "(":
-            tree.append(_parse_sexpr(it))
-        elif c in _REAL_OPERATORS:
-            tree.append(_REAL_OPERATORS[c])
-        else:
-            raise ValueError(f"Unexpected character {c!r} in real literal")
-
-    if num:
-        tree.append(int("".join(num)))
-
-    return _reduce_tree(tree)
-
-
-def _parse_real(s):
-    return _parse_sexpr(iter(repr(s)))
 
 
 class _SwitchSolver(IncrementalTrackingSolver, SmtLibBasicSolver, SmtLibIgnoreMixin):
@@ -641,8 +592,7 @@ class BackVisitor(ss.TermDagVisitor):
         if sort.is_int_type():
             return self.mgr.Int(int(term))
         if sort.is_real_type():
-            r = _parse_real(term)
-            return self.mgr.Real(r)
+            return self.mgr.Real(_parse_number(str(term)))
         raise ConvertExpressionError(f"Unsupported sort: {sort}")
 
     def _convert_array_value(self, arr, sort):

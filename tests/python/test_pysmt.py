@@ -2,6 +2,8 @@
 # SPDX-FileContributor: Caleb Donovick
 # SPDX-License-Identifier: BSD-3-Clause
 
+from fractions import Fraction
+
 import pytest
 
 # pysmt is an optional dependency, so each module is bound through
@@ -52,3 +54,18 @@ def test_symbol_name_round_trip(solver_str):
     with fe.Solver(solver_str) as solver:
         converter = solver.converter
         assert converter.back(converter.convert(x)) == x
+
+
+@pytest.mark.parametrize(
+    "solver_str",
+    [k for k, v in fe.SWITCH_SOLVERS.items() if sl.QF_LRA in v.LOGICS],
+)
+@pytest.mark.parametrize(
+    "value", [Fraction(0), Fraction(1), Fraction(-1), Fraction(1, 2), Fraction(-3, 2)]
+)
+def test_real_value(solver_str, value):
+    x = sc.FreshSymbol(st.REAL)
+    with fe.Solver(solver_str, sl.QF_LRA) as solver:
+        solver.add_assertion(sc.Equals(x, sc.Real(value)))
+        assert solver.solve()
+        assert solver.get_py_value(x) == value
