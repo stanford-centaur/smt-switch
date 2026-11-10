@@ -462,6 +462,28 @@ TEST_P(ItpTests, SequenceInterpolantsRefuseMisuse)
                IncorrectUsageException);
 }
 
+// a refused query keeps none of its formulae, nor those of the query before,
+// for the next one
+TEST_P(ItpTests, RefusedNonBooleanFormulaLeavesNoAssertionBehind)
+{
+  if (GetParam().config.solver_enum == MSAT_INTERPOLATOR)
+  {
+    GTEST_SKIP() << "the MathSAT interpolator accepts a non-Boolean formula";
+  }
+  Term x_lt_y = itp->make_term(lt, x, y);
+  Term y_lt_x = itp->make_term(lt, y, x);
+  TermVec itps;
+  EXPECT_TRUE(
+      itp->get_sequence_interpolants({ x_lt_y, y_lt_x }, itps).is_unsat());
+  itps.clear();
+  EXPECT_THROW(itp->get_sequence_interpolants({ x_lt_y, x }, itps),
+               IncorrectUsageException);
+  itps.clear();
+  EXPECT_TRUE(
+      itp->get_sequence_interpolants({ y_lt_x, itp->make_term(lt, y, z) }, itps)
+          .is_sat());
+}
+
 // an interpolator holds no assertions, so there is nothing to dump
 TEST_P(ItpTests, RefusesDumping)
 {
