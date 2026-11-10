@@ -97,6 +97,19 @@ TEST_P(UnsatCoreTests, ApplicationInCore)
   EXPECT_EQ((*core.begin())->get_op(), Apply);
 }
 
+TEST_P(UnsatCoreTests, CoreOfADroppedAssumption)
+{
+  Term p = s->make_symbol("p", boolsort);
+  Term q = s->make_symbol("q", boolsort);
+  s->assert_formula(s->make_term(Not, p));
+  // the assumption is not held here, only by the solver
+  ASSERT_TRUE(s->check_sat_assuming({ s->make_term(And, p, q) }).is_unsat());
+
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  EXPECT_EQ(core, UnorderedTermSet{ s->make_term(And, p, q) });
+}
+
 TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
 {
   if (!solver_has_attribute(GetParam().solver_enum, QUANTIFIERS))

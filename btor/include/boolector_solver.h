@@ -125,6 +125,11 @@ class BoolectorSolver : public AbsSmtSolver
   TermVec assertions = {};
   std::vector<std::size_t> scope_starts = {};
 
+  // Boolector holds an assumption by an internal reference only, and
+  // get_unsat_assumptions cannot copy a failed one that no Term holds, so
+  // the last query's assumptions are kept here
+  TermVec last_assumptions = {};
+
   std::chrono::duration<double> time_limit =
       std::chrono::duration<double>::zero();  ///< zero means no limit
   std::chrono::steady_clock::time_point
