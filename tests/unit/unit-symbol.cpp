@@ -139,8 +139,8 @@ TEST_P(UnitSymbolTests, EmptySymbolName)
 {
   if (GetParam().solver_enum == MSAT)
   {
-    GTEST_SKIP() << "MathSAT refuses an empty name, so the backend declares "
-                    "the symbol as || instead";
+    EXPECT_THROW(s->make_symbol("", boolsort), NotImplementedException);
+    return;
   }
   if (GetParam().solver_enum == Z3)
   {
