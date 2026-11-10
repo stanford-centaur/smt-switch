@@ -792,14 +792,61 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    // the last term is the body, bound by the rest
-    const uint32_t num_params =
+    // The last term is the body, bound by the rest, the innermost last.
+    // Boolector refuses a param a quantifier already binds, so innermost
+    // params already bound by a quantifier of this kind over this body are
+    // taken as that quantifier, and only the params outside it are bound.
+    const BtorNodeKind kind =
+        op.prim_op == Forall ? BTOR_FORALL_NODE : BTOR_EXISTS_NODE;
+    uint32_t num_params =
         detail::narrow<uint32_t>(size - 1, "a number of params");
-    btor_res = op.prim_op == Forall
-                   ? boolector_forall(
-                         btor.get(), nodes.data(), num_params, nodes.back())
-                   : boolector_exists(
-                         btor.get(), nodes.data(), num_params, nodes.back());
+    BtorNode * body = BTOR_IMPORT_BOOLECTOR_NODE(nodes.back());
+    while (num_params > 0)
+    {
+      // a param is never negated, so it is its own real address
+      BtorNode * param = BTOR_IMPORT_BOOLECTOR_NODE(nodes[num_params - 1]);
+      if (!btor_node_param_is_bound(param))
+      {
+        break;
+      }
+      BtorNode * binder = btor_node_param_get_binder(param);
+      if (binder->kind != kind
+          || binder->e[1] != btor_simplify_exp(btor.get(), body))
+      {
+        break;
+      }
+      body = binder;
+      --num_params;
+    }
+
+    if (num_params == size - 1)
+    {
+      btor_res = op.prim_op == Forall
+                     ? boolector_forall(
+                           btor.get(), nodes.data(), num_params, nodes.back())
+                     : boolector_exists(
+                           btor.get(), nodes.data(), num_params, nodes.back());
+    }
+    else
+    {
+      // The quantifier may be held only inside another, and both a result
+      // and a body passed to Boolector need an external reference. The
+      // term owns it, so it is released even if Boolector throws below.
+      body = btor_node_copy(btor.get(), body);
+      btor_node_inc_ext_ref_counter(btor.get(), body);
+      Term quantifier = std::make_shared<BoolectorTerm>(
+          btor, BTOR_EXPORT_BOOLECTOR_NODE(body));
+      if (!num_params)
+      {
+        return quantifier;
+      }
+      BoolectorNode * btor_body = BTOR_EXPORT_BOOLECTOR_NODE(body);
+      btor_res = op.prim_op == Forall
+                     ? boolector_forall(
+                           btor.get(), nodes.data(), num_params, btor_body)
+                     : boolector_exists(
+                           btor.get(), nodes.data(), num_params, btor_body);
+    }
   }
   else if (size == 2)
   {
