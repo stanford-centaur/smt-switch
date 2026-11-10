@@ -76,8 +76,6 @@ class BoolectorSolver : public AbsSmtSolver
   Term make_param(const std::string name, const Sort & sort) const override;
   /* build a new term */
   Term make_term(Op op, const TermVec & terms) const override;
-  Term substitute(const Term term,
-                  const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
 
   // getters for solver-specific objects
