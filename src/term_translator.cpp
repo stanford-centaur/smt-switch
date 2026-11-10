@@ -358,8 +358,9 @@ Term TermTranslator::transfer_term(const Term & term)
           cache[t] = sym;
         }
       }
-      // a datatype value is rebuilt below, from its constructor and arguments
-      else if (t->is_value() && sk != DATATYPE)
+      // a datatype value and a store chain are rebuilt below, from their
+      // operator and children
+      else if (t->is_value() && sk != DATATYPE && t->get_op().prim_op != Store)
       {
         s = transfer_sort(t->get_sort());
         if (s->get_sort_kind() == ARRAY)
