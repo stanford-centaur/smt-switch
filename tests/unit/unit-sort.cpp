@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -240,6 +241,21 @@ TEST_P(UnitSortTests, SortParams)
   EXPECT_EQ(arrsort->get_indexsort(), bvsort);
   EXPECT_EQ(arrsort->get_elemsort(), bvsort);
   // not every solver supports querying function types for domain/codomain yet
+}
+
+TEST_P(UnitSortTests, WidthAbove32Bits)
+{
+  constexpr std::uint64_t width = std::uint64_t{ 1 } << 32;
+  SolverEnum se = GetParam().solver_enum;
+  if (se == BTOR || se == CVC5 || se == YICES2 || se == Z3)
+  {
+    // their APIs take 32-bit widths
+    EXPECT_THROW(s->make_sort(BV, width), IncorrectUsageException);
+  }
+  else
+  {
+    EXPECT_EQ(s->make_sort(BV, width)->get_width(), width);
+  }
 }
 
 TEST_P(UnitSortTests, SortKinds)
