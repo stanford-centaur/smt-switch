@@ -35,6 +35,22 @@ namespace smt {
 
 AbsSmtSolver::AbsSmtSolver(SolverEnum se) : solver_enum(se) {}
 
+void AbsSmtSolver::assert_formula(const Term & t)
+{
+  // compares sorts rather than kinds, as some solvers alias Bool to another
+  // sort
+  if (!t)
+  {
+    throw IncorrectUsageException("Cannot assert a null term");
+  }
+  if (t->get_sort() != make_sort(BOOL))
+  {
+    throw IncorrectUsageException("Expecting a Boolean assertion but got: "
+                                  + t->to_string());
+  }
+  do_assert(t);
+}
+
 Result AbsSmtSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // Every assumption is checked before any is assumed: one assumed before a

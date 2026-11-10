@@ -46,11 +46,12 @@ using TermsPairVec = std::vector<std::pair<Term, Term>>;
    - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming,
      get_value, get_array_values and get_unsat_assumptions throw
      IncorrectUsageException, and are final so that no interpolator can
-     re-enable solving; for push, pop and check_sat_assuming, it is their
-     hooks do_push, do_pop and do_check_sat_assuming that throw and are
-     final. dump_smt2 throws it and is final as well, since an
-     interpolator holds no assertions to dump. get_context_level is final
-     too, and returns 0, since no context can be pushed.
+     re-enable solving; for assert_formula, check_sat_assuming, push and
+     pop, it is their hooks do_assert, do_check_sat_assuming, do_push and
+     do_pop that throw and are final.
+     dump_smt2 throws it and is final as well, since an interpolator holds
+     no assertions to dump. get_context_level is final too, and returns 0,
+     since no context can be pushed.
    - Required: get_interpolant, get_sequence_interpolants and the hook
      do_set_opt. A backend usually computes only one of the first two
      natively, and implements the other with interpolant_from_sequence or
@@ -83,7 +84,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
   AbsSmtInterpolator(SolverEnum se, SmtSolver backend);
 
   // ------------------------- Forbidden ------------------------------------
-  void assert_formula(const Term & t) final;
   Result check_sat() final;
   Term get_value(const Term & t) const final;
   UnorderedTermMap get_array_values(const Term & arr,
@@ -193,9 +193,10 @@ class AbsSmtInterpolator : public AbsSmtSolver
 
  protected:
   // ------------------------- Forbidden ------------------------------------
+  void do_assert(const Term & t) final;
+  Result do_check_sat_assuming(const TermVec & assumptions) final;
   void do_push(std::uint64_t num) final;
   void do_pop(std::uint64_t num) final;
-  Result do_check_sat_assuming(const TermVec & assumptions) final;
 
   // ------------------------- Required -------------------------------------
   /** Takes an option other than incremental, which set_opt takes itself */

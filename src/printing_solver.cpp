@@ -328,7 +328,7 @@ void PrintingSolver::set_logic(const std::string logic)
   (*out_stream) << "(" << SET_LOGIC_STR << " " << logic << ")" << std::endl;
 }
 
-void PrintingSolver::assert_formula(const Term & t)
+void PrintingSolver::do_assert(const Term & t)
 {
   (*out_stream) << "(" << ASSERT_STR << " " << t->to_string() << ")"
                 << std::endl;

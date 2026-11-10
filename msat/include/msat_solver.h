@@ -56,7 +56,6 @@ class MsatSolver : public AbsSmtSolver
    *  plain configuration, which has every theory and so counts as ALL.
    */
   void set_logic(const std::string logic_name) override;
-  void assert_formula(const Term & t) override;
   Result check_sat() override;
   uint64_t get_context_level() const override;
   Term get_value(const Term & t) const override;
@@ -112,9 +111,10 @@ class MsatSolver : public AbsSmtSolver
   void set_max_assump_clauses(size_t m);
 
  protected:
+  void do_assert(const Term & t) override;
+  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_push(uint64_t num) override;
   void do_pop(uint64_t num) override;
-  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_reset() override;
   void do_reset_assertions() override;
 

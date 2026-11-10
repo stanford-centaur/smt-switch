@@ -71,9 +71,11 @@ class AbsSmtSolver
 
   /* Add an assertion to the solver
    * SMTLIB: (assert <t>)
+   * The solver does the assertion in do_assert.
    * @param t a boolean term to assert
+   * @throws IncorrectUsageException for a term that is not boolean
    */
-  virtual void assert_formula(const Term & t) = 0;
+  void assert_formula(const Term & t);
 
   /* Check satisfiability of the current assertions
    * SMTLIB: (check-sat)
@@ -467,16 +469,19 @@ class AbsSmtSolver
   SolverEnum get_solver_enum() const;
 
  protected:
-  /* Push num contexts in the underlying solver; see push */
-  virtual void do_push(std::uint64_t num) = 0;
-
-  /* Pop num contexts in the underlying solver; see pop */
-  virtual void do_pop(std::uint64_t num) = 0;
+  /* Assert a boolean term in the underlying solver; see assert_formula */
+  virtual void do_assert(const Term & t) = 0;
 
   /* Check satisfiability under boolean assumptions in the underlying solver;
    * see check_sat_assuming
    */
   virtual Result do_check_sat_assuming(const TermVec & assumptions) = 0;
+
+  /* Push num contexts in the underlying solver; see push */
+  virtual void do_push(std::uint64_t num) = 0;
+
+  /* Pop num contexts in the underlying solver; see pop */
+  virtual void do_pop(std::uint64_t num) = 0;
 
   /* Return the underlying solver to its startup state; see reset */
   virtual void do_reset() = 0;
