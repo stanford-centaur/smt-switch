@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -141,10 +142,34 @@ static msat_term unary_term(msat_env e, const Op & op, msat_term a)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      msat_term res = a;
-      for (uint64_t i = 1; i < op.indices[0]; i++)
+      std::uint64_t count = op.indices[0];
+      std::size_t width;
+      if (!msat_is_bv_type(e, msat_term_get_type(a), &width))
       {
-        res = msat_make_bv_concat(e, a, res);
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+      if (count > max / width)
+      {
+        throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                      + std::to_string(max) + " bits");
+      }
+      // MathSAT has no repeat, so double the copies for each bit of count
+      // after the highest and add one more where the bit is set.
+      std::uint64_t bit = std::uint64_t{ 1 } << 63;
+      while ((count & bit) == 0)
+      {
+        bit >>= 1;
+      }
+      msat_term res = a;
+      for (bit >>= 1; bit != 0; bit >>= 1)
+      {
+        res = msat_make_bv_concat(e, res, res);
+        if ((count & bit) != 0)
+        {
+          res = msat_make_bv_concat(e, res, a);
+        }
       }
       return res;
     }
