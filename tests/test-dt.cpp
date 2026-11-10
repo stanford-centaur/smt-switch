@@ -614,10 +614,6 @@ TEST_P(Datatypes, ConstructorsOverValuesAreValues)
 
 TEST_P(Datatypes, ModelValueIsValue)
 {
-  if (GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "the logging solver cannot get a value that is not a leaf";
-  }
   if (s->get_solver_enum() == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "the generic solver cannot get the value of a datatype "
