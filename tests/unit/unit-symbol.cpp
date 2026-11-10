@@ -142,12 +142,10 @@ TEST_P(UnitSymbolTests, EmptySymbolName)
     EXPECT_THROW(s->make_symbol("", boolsort), NotImplementedException);
     return;
   }
-  if (GetParam().solver_enum == Z3)
-  {
-    GTEST_SKIP() << "Z3 makes an empty name its null symbol, named <null>";
-  }
   Term empty = s->make_symbol("", boolsort);
+  Term null_named = s->make_symbol("<null>", boolsort);
   EXPECT_EQ(empty->get_symbol_name(), "");
+  EXPECT_EQ(null_named->get_symbol_name(), "<null>");
 }
 
 TEST_P(UnitSymbolTests, AtSignSymbolName)

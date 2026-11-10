@@ -337,7 +337,13 @@ string Z3Term::get_symbol_name() const
     throw IncorrectUsageException(
         "Only a symbol that is not a param has a symbol name");
   }
-  return (is_function ? z_func : term.decl()).name().str();
+  const z3::symbol name = (is_function ? z_func : term.decl()).name();
+  // Z3 makes an empty name its null symbol, whose text is <null>.
+  if (Z3_symbol(name) == Z3_symbol(name.ctx().str_symbol("")))
+  {
+    return "";
+  }
+  return name.str();
 }
 
 uint64_t Z3Term::to_int() const
