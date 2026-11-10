@@ -52,11 +52,14 @@ namespace smt {
 // lock-free atomic is safe to read from a handler. The flag is volatile so the
 // compiler cannot hold it in a register across the search, and a sig_atomic_t
 // because that is the only type whose write from a handler the standard
-// promises will be visible here.
+// promises will be visible here. The program's own SIGALRM action is kept
+// aside for the length of the check, and only the check that claimed the
+// context touches it.
 std::atomic<context_t *> running_ctx{ nullptr };
 static_assert(std::atomic<context_t *>::is_always_lock_free,
               "the time limit handler reads the running context");
 volatile sig_atomic_t yices2_terminated = 0;
+static struct sigaction program_alarm_action;
 
 // Registered for SIGALRM alone, so the argument cannot be anything else and is
 // not worth naming. Only async-signal-safe work belongs here: a comparison,
@@ -1294,7 +1297,26 @@ void Yices2Solver::timelimit_start()
           "Yices2 time limits use the process's one SIGALRM timer, so only "
           "one time-limited check can run at a time");
     }
-    signal(SIGALRM, yices2_timelimit_handler);
+    // Checked after the claim, so that the timer of another check is not
+    // mistaken for the program's.
+    itimerval program_timer{};
+    getitimer(ITIMER_REAL, &program_timer);
+    if (program_timer.it_value.tv_sec != 0
+        || program_timer.it_value.tv_usec != 0)
+    {
+      running_ctx = nullptr;
+      throw NotImplementedException(
+          "Yices2 time limits use the process's one SIGALRM timer, so a "
+          "time-limited check cannot run while the program's own timer is "
+          "armed");
+    }
+    // The handler goes in before the timer is armed: a SIGALRM reaching the
+    // default action ends the process.
+    struct sigaction timelimit_action{};
+    timelimit_action.sa_handler = yices2_timelimit_handler;
+    sigemptyset(&timelimit_action.sa_mask);
+    timelimit_action.sa_flags = SA_RESTART;
+    sigaction(SIGALRM, &timelimit_action, &program_alarm_action);
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(time_limit);
     timer.it_value.tv_usec = static_cast<suseconds_t>(
@@ -1312,6 +1334,9 @@ bool Yices2Solver::timelimit_end()
     // window where the handler runs against a null context.
     itimerval disarm{};
     setitimer(ITIMER_REAL, &disarm, nullptr);
+    // Restored before the claim is released, which lets another check save
+    // its own copy over this one.
+    sigaction(SIGALRM, &program_alarm_action, nullptr);
     res |= yices2_terminated != 0;
     yices2_terminated = 0;
     running_ctx = nullptr;
