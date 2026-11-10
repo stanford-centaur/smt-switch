@@ -132,9 +132,18 @@ bool is_lit(const Term & l, const Sort & boolsort);
  *  @param cnf a Boolean term that is true or a conjunction of clauses, each
  *         a disjunction of symbols, negated symbols and false
  *  @param y the stream to write to
+ *  @param solver the solver that made cnf
  *  @throws IncorrectUsageException if cnf is not Boolean or not in CNF
  */
-void cnf_to_dimacs(Term cnf, std::ostringstream & y);
+void cnf_to_dimacs(const Term & cnf,
+                   std::ostringstream & y,
+                   const SmtSolver & solver);
+
+/** As cnf_to_dimacs(cnf, y, solver), but recognising true and false by how
+ *  they print
+ */
+[[deprecated("pass the solver that made cnf")]] void cnf_to_dimacs(
+    Term cnf, std::ostringstream & y);
 
 // Converts any boolean formula to cnf, formula is the formula to be converted
 // to a cnf. Only the connectives not, and, or, xor, => and Boolean = are
