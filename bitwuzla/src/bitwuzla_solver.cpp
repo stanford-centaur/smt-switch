@@ -720,11 +720,17 @@ Result BzlaInterpolatingSolver::get_sequence_interpolants(
         "Argument out_I should be empty before calling "
         "get_sequence_interpolants.");
   }
-  // refuse a formula from another term manager before changing any state
+  // refuse a non-Boolean formula, or one from another term manager, before
+  // changing any state
   std::vector<bitwuzla::Term> bformulae;
   bformulae.reserve(formulae.size());
   for (const Term & f : formulae)
   {
+    if (f->get_sort()->get_sort_kind() != BOOL)
+    {
+      throw IncorrectUsageException(
+          "get_sequence_interpolants requires boolean terms");
+    }
     bformulae.push_back(bzla_solver->bzla_term(f));
   }
   // count how many assertions can be reused; none when incremental is off,
