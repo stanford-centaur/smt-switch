@@ -390,7 +390,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
   }
 }
 
-void BoolectorSolver::assert_formula(const Term & t)
+void BoolectorSolver::do_assert(const Term & t)
 {
   std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
   boolector_assert(btor.get(), bt->node);

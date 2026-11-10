@@ -352,15 +352,9 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   return std::make_shared<Yices2Term>(y_term);
 }
 
-void Yices2Solver::assert_formula(const Term & t)
+void Yices2Solver::do_assert(const Term & t)
 {
   shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
-  if (!yices_type_is_bool(yices_type_of_term(yterm->term)))
-  {
-    throw IncorrectUsageException("Attempted to assert non-boolean to solver: "
-                                  + t->to_string());
-  }
-
   yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {

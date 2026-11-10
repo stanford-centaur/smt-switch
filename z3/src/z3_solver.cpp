@@ -727,15 +727,9 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
   return std::make_shared<Z3Term>(ctx, final);
 }
 
-void Z3Solver::assert_formula(const Term & t)
+void Z3Solver::do_assert(const Term & t)
 {
-  std::shared_ptr<Z3Term> zterm = get_z3_term(t);
-  if (zterm->is_function)
-  {
-    throw IncorrectUsageException(
-        "Attempted to assert a function directly to solver");
-  }
-  get_z3_solver()->add(zterm->term);
+  get_z3_solver()->add(get_z3_term(t)->term);
 }
 
 Result Z3Solver::check_sat()

@@ -188,7 +188,7 @@ void BzlaSolver::set_logic(const std::string logic)
   }
 }
 
-void BzlaSolver::assert_formula(const Term & t)
+void BzlaSolver::do_assert(const Term & t)
 {
   get_bitwuzla()->assert_formula(bzla_term(t));
 }

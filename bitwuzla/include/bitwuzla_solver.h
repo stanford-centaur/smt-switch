@@ -43,7 +43,6 @@ class BzlaSolver : public AbsSmtSolver
   BzlaSolver & operator=(const BzlaSolver &) = delete;
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) override;
   Result check_sat() override;
   Term get_value(const Term & t) const override;
   UnorderedTermMap get_array_values(const Term & arr,
@@ -102,9 +101,10 @@ class BzlaSolver : public AbsSmtSolver
   bool is_initialized() const;
 
  protected:
+  void do_assert(const Term & t) override;
+  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_push(std::uint64_t num) override;
   void do_pop(std::uint64_t num) override;
-  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_reset() override;
   void do_reset_assertions() override;
 

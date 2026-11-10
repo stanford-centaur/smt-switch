@@ -46,7 +46,7 @@ void AbsSmtInterpolator::do_pop(std::uint64_t /* num */)
   throw IncorrectUsageException("Can't call pop from interpolating solver");
 }
 
-void AbsSmtInterpolator::assert_formula(const Term & /* t */)
+void AbsSmtInterpolator::do_assert(const Term & /* t */)
 {
   throw IncorrectUsageException(
       "Can't assert formulas in interpolating solver");

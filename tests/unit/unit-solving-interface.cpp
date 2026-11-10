@@ -192,6 +192,13 @@ TEST_P(UnitSolveTests, NonBooleanAssumptionAssumesNothing)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+TEST_P(UnitSolveTests, RefusesNonBooleanAndNullAssertions)
+{
+  EXPECT_THROW(s->assert_formula(s->make_symbol("x", bvsort)),
+               IncorrectUsageException);
+  EXPECT_THROW(s->assert_formula(Term()), IncorrectUsageException);
+}
+
 TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
 {
   SolverEnum se = GetParam().solver_enum;

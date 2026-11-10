@@ -267,7 +267,7 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
   return std::make_shared<Cvc5Term>(const_arr);
 }
 
-void Cvc5Solver::assert_formula(const Term & t)
+void Cvc5Solver::do_assert(const Term & t)
 {
   try
   {

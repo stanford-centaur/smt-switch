@@ -158,15 +158,15 @@ class GenericSolver : public AbsSmtSolver
 
   void set_opt(const std::string option, const std::string value) override;
   void set_logic(const std::string logic) override;
-  void assert_formula(const Term & t) override;
   Result check_sat() override;
 
   void dump_smt2(std::string filename) const override;
 
  protected:
+  void do_assert(const Term & t) override;
+  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_push(std::uint64_t num) override;
   void do_pop(std::uint64_t num) override;
-  Result do_check_sat_assuming(const TermVec & assumptions) override;
   void do_reset() override;
   void do_reset_assertions() override;
 

@@ -272,7 +272,7 @@ void MsatSolver::set_logic(const std::string logic_name)
   env_wrapper_.set_logic(logic_name);
 }
 
-void MsatSolver::assert_formula(const Term & t)
+void MsatSolver::do_assert(const Term & t)
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   shared_ptr<MsatTerm> mterm = get_msat_term(t);

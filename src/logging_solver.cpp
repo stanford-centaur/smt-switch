@@ -730,7 +730,7 @@ void LoggingSolver::set_logic(const std::string logic)
   wrapped_solver->set_logic(logic);
 }
 
-void LoggingSolver::assert_formula(const Term & t)
+void LoggingSolver::do_assert(const Term & t)
 {
   std::shared_ptr<LoggingTerm> lt =
       non_null_cast<LoggingTerm>(t, "Cannot assert a null term");

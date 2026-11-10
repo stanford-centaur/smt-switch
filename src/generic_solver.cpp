@@ -2169,7 +2169,7 @@ void GenericSolver::set_logic(const std::string logic)
   run_command(CommandKind::LOGIC, SET_LOGIC_STR, logic);
 }
 
-void GenericSolver::assert_formula(const Term & t)
+void GenericSolver::do_assert(const Term & t)
 {
   // cast to generic term, as we need to print it to the solver
   std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
