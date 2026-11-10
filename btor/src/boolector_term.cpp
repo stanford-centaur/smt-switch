@@ -246,6 +246,18 @@ bool BoolectorTerm::is_symbolic_const() const
 
 bool BoolectorTerm::is_value() const
 {
+  if (bn->kind == BTOR_UPDATE_NODE)
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (const Term & c : *this)
+    {
+      if (!c->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   bool res = boolector_is_const(btor.get(), node);
   // constant arrays are considered values
   res |= is_const_array();

@@ -89,6 +89,16 @@ TEST_P(UnitArrayTests, ConstArr)
   EXPECT_EQ(out_const_base, zero);
 }
 
+TEST_P(UnitArrayTests, StoreOfValuesIsValue)
+{
+  Term x = s->make_symbol("x", bvsort);
+  Term zero = s->make_term(0, bvsort);
+  Term one = s->make_term(1, bvsort);
+  Term constarr0 = s->make_term(zero, arrsort);
+  EXPECT_TRUE(s->make_term(Store, constarr0, zero, one)->is_value());
+  EXPECT_FALSE(s->make_term(Store, constarr0, x, one)->is_value());
+}
+
 // two different entries, so that the value is not a constant array
 TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
 {
@@ -101,6 +111,7 @@ TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
 
   Term value = s->get_value(a);
   EXPECT_EQ(value->get_sort(), arrsort);
+  EXPECT_TRUE(value->is_value()) << value;
   // the entry each store sets, the first store of an index winning, over
   // the constant array that holds every other index
   UnorderedTermMap entries;

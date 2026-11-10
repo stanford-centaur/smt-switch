@@ -227,6 +227,18 @@ bool LoggingTerm::is_value() const
     }
     return true;
   }
+  if (op.prim_op == Store)
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (const Term & c : *children)
+    {
+      if (!c->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   return op.is_null() && wrapped_term->is_value();
 }
 

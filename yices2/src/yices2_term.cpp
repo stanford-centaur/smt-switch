@@ -301,6 +301,19 @@ bool Yices2Term::is_value() const
 {
   term_constructor_t tc = yices_term_constructor(term);
 
+  if (tc == YICES_UPDATE_TERM)
+  {
+    // SMT-LIB's ArraysEx makes a store of a value into an array value a value
+    for (const Term & c : *this)
+    {
+      if (!c->is_value())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // a lambda is how make_term writes a constant array, which is a value
   return (tc == YICES_BOOL_CONSTANT || tc == YICES_ARITH_CONSTANT
           || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT
