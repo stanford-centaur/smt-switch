@@ -205,19 +205,14 @@ Op Yices2Term::get_op() const
       }
       return Op(Plus);
     // products
+    // a bit-vector power, which no op gives, reads as BVMul over the base
+    // and the rest of the power
     case YICES_POWER_PRODUCT:
-      sres = yices_to_string(term);
-      sres = sres.substr(sres.find("(") + 1, sres.length());
-      sres = sres.substr(0, sres.find(" "));
-      if (sres == "bv-mul")
+      if (yices_term_is_bitvector(term))
       {
         return Op(BVMul);
       }
-      if (sres == "*")
-      {
-        return Op(Mult);
-      }
-      return Op(Pow);
+      return yices_term_num_children(term) == 1 ? Op(Pow) : Op(Mult);
     case YICES_UPDATE_TERM: return Op(Store);
     case YICES_TUPLE_TERM: no_smt_switch_op(term);
     case YICES_FORALL_TERM: no_smt_switch_op(term);
@@ -412,8 +407,10 @@ bool Yices2Term::to_bool() const
 /* How many children smt-switch sees, which has to agree with get_op().
  * Yices keeps a sum or a product as a polynomial, so each component becomes
  * one synthesised child. A one-component sum or power product is the
- * exception: get_op() reads those as Mult or BVMul and Pow, whose children
- * are the coefficient and the term, or the base and the exponent.
+ * exception: get_op() reads a sum as Mult or BVMul, whose children are the
+ * coefficient and the term, an arithmetic product as Pow, whose children are
+ * the base and the exponent, and a bit-vector product as BVMul, whose
+ * children are the base and the power one lower.
  */
 std::size_t Yices2Term::get_num_children() const
 {
@@ -537,16 +534,29 @@ Term Yices2Term::get_child(std::size_t i) const
     {
       throw InternalSolverException(take_yices_error());
     }
-    if (one_component)
+    bool is_bv = yices_term_is_bitvector(term);
+    if (one_component && is_bv)
+    {
+      // the BVMul reading: the base, then the power one lower
+      ret_term = pos == 0 || exponent == 2
+                     ? component
+                     : yices_bvpower(component, exponent - 1);
+    }
+    else if (one_component)
     {
       // the Pow reading: the base, then the exponent
       ret_term = pos == 0 ? component : yices_int64(exponent);
     }
-    else
+    else if (exponent == 1)
     {
       // yices_power rejects an uninterpreted term, so an exponent of one is
       // the component itself rather than a power of it
-      ret_term = exponent == 1 ? component : yices_power(component, exponent);
+      ret_term = component;
+    }
+    else
+    {
+      ret_term = is_bv ? yices_bvpower(component, exponent)
+                       : yices_power(component, exponent);
     }
   }
   else if (yices_term_constructor(term) == YICES_LAMBDA_TERM)
