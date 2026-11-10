@@ -1256,7 +1256,8 @@ TEST_P(GenericSolverTests, BvStringOutOfRange)
 TEST_P(GenericSolverTests, BvStringNotANumeral)
 {
   Sort bv_sort = gs->make_sort(BV, 8);
-  for (const char * val : { "", "-", "+5", "--5", " 5", "5 ", "1a", "abc" })
+  for (const char * val :
+       { "", "-", "+", "+-5", "--5", " 5", "5 ", "1a", "abc" })
   {
     EXPECT_THROW(gs->make_term(val, bv_sort), IncorrectUsageException)
         << "for \"" << val << "\"";

@@ -172,7 +172,7 @@ T narrow(U value, const char * what)
 unsigned numeral_digit(char c);
 
 /** The two's complement of the bit-vector value val, a numeral in base
- *  `base` with an optional leading minus, as AbsSmtSolver::make_term
+ *  `base` with an optional leading sign, as AbsSmtSolver::make_term
  *  accepts it
  *  @param val the value
  *  @param base from 2 to 36
