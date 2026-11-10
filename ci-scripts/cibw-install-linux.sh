@@ -17,10 +17,16 @@ wget -4 "$gnu_mirror/gmp/gmp-6.3.0.tar.xz" -O gmp.tar.xz
 tar -xf gmp.tar.xz --strip-components 1
 ./configure --enable-cxx
 make install
+# The image's loader does not search /usr/local/lib, so programs run from
+# here on, MPFR's configure checks among them, would load the system's
+# older libgmp instead of the one just installed.
+echo /usr/local/lib >/etc/ld.so.conf.d/usr-local.conf
+ldconfig
 mkdir /tmp/mpfr-build
 cd /tmp/mpfr-build
 wget -4 "$gnu_mirror/mpfr/mpfr-4.2.2.tar.xz" -O mpfr.tar.xz
 tar -xf mpfr.tar.xz --strip-components 1
 ./configure
 make install
+ldconfig
 rm -r /tmp/{gmp,mpfr}-build
