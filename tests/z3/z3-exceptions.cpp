@@ -77,3 +77,13 @@ TEST(Z3Exceptions, ConstantArrayNeedsAnArraySort)
   EXPECT_THROW(s->make_term(s->make_term(0, bvsort), bvsort),
                IncorrectUsageException);
 }
+
+TEST(Z3Exceptions, ConstantArrayNeedsTheElementSort)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Sort intsort = s->make_sort(INT);
+  Sort arrsort = s->make_sort(ARRAY, intsort, intsort);
+
+  EXPECT_THROW(s->make_term(s->make_term(0, s->make_sort(BV, 8)), arrsort),
+               IncorrectUsageException);
+}

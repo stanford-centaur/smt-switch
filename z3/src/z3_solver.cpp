@@ -721,6 +721,12 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
                                   + sort->to_string()
                                   + ", which is not an array sort");
   }
+  if (!z3::eq(zterm->term.get_sort(), arrtype.array_range()))
+  {
+    throw IncorrectUsageException(
+        "Can't make a constant array of sort " + sort->to_string() + " from "
+        + val->to_string() + " of sort " + val->get_sort()->to_string());
+  }
 
   Z3_ast c_array = Z3_mk_const_array(*ctx, arrtype.array_domain(), zterm->term);
   z3::expr final = to_expr(*ctx, c_array);
