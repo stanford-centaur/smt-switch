@@ -187,6 +187,13 @@ map and a term and performs sub-term substitution. This has a default
 implementation but is overridden in the `boolector` implementation to rely on
 `boolector's` underlying substitution map infrastructure.
 
+Bit-vector widths and `Op` indices are `std::uint64_t` throughout smt-switch: in
+parameters, return values, members and locals. Convert one to the type a
+solver's API takes only at that call, through `detail::narrow_width`,
+`detail::narrow_index` or `detail::narrow` from `include/solver_utils.h`, which
+throw `IncorrectUsageException` for a value that does not fit. Keep a value in
+the solver's own type only when its API returned it.
+
 All your solver header and source files should be put in `<solver name>/include`
 and `<solver name>/src`, respectively.
 
