@@ -324,9 +324,11 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
     throw IncorrectUsageException(
         "Can't get bitstring from a non-constant term.");
   }
-  const char * assignment = boolector_bv_assignment(btor, node);
-  std::string s(assignment);
-  boolector_free_bv_assignment(btor, assignment);
+  // the bits of the constant itself, which need no model, unlike its
+  // assignment
+  const char * bits = boolector_get_bits(btor, node);
+  std::string s(bits);
+  boolector_free_bits(btor, bits);
   return s;
 }
 

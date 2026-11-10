@@ -193,6 +193,20 @@ TEST_P(ToIntBVTests, WiderThan64Bits)
   }
 }
 
+TEST_P(ToIntBVTests, ConstantNeedsNoModel)
+{
+  Sort bv4 = s->make_sort(BV, 4);
+  Term five = s->make_term(5, bv4);
+  Term minus_three = s->make_term(-3, bv4);
+  EXPECT_EQ(five->to_int(), 5u);
+  EXPECT_EQ(minus_three->to_signed_int(), -3);
+
+  s->assert_formula(s->make_term(false));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+  EXPECT_EQ(five->to_int(), 5u);
+  EXPECT_EQ(minus_three->to_signed_int(), -3);
+}
+
 TEST_P(ToIntBVTests, NotAValue)
 {
   Term x = s->make_symbol("y", s->make_sort(BV, 8));
