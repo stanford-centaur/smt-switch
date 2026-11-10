@@ -26,7 +26,8 @@ BoolectorNode * custom_boolector_rotate_left(Btor * btor,
                                              uint32_t n)
 {
   uint32_t width = boolector_get_width(btor, node);
-  if ((n == 0) || (width == 1))
+  n %= width;
+  if (n == 0)
   {
     return boolector_uext(btor, node, 0);
   }
@@ -45,7 +46,8 @@ BoolectorNode * custom_boolector_rotate_right(Btor * btor,
                                               uint32_t n)
 {
   uint32_t width = boolector_get_width(btor, node);
-  if ((n == 0) || (width == 1))
+  n %= width;
+  if (n == 0)
   {
     return boolector_uext(btor, node, 0);
   }

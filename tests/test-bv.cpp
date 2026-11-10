@@ -190,6 +190,22 @@ TEST_P(BVTests, ValueInOtherBase)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
+TEST_P(IndexedOpTests, RotateByAtLeastWidth)
+{
+  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  Term rol4 = s->make_term(Op(Rotate_Left, 4), x);
+  Term rol5 = s->make_term(Op(Rotate_Left, 5), x);
+  Term ror8 = s->make_term(Op(Rotate_Right, 8), x);
+  Term ror5 = s->make_term(Op(Rotate_Right, 5), x);
+  s->assert_formula(
+      s->make_term(Equal, x, s->make_term(0b0001, x->get_sort())));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(rol4)->to_int(), 0b0001);
+  EXPECT_EQ(s->get_value(rol5)->to_int(), 0b0010);
+  EXPECT_EQ(s->get_value(ror8)->to_int(), 0b0001);
+  EXPECT_EQ(s->get_value(ror5)->to_int(), 0b1000);
+}
+
 TEST_P(IndexedOpTests, RepeatZeroTimes)
 {
   Term x = s->make_symbol("x", s->make_sort(BV, 4));

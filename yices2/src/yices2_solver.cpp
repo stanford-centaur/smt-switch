@@ -1012,9 +1012,17 @@ static term_t unary_term(const Op & op, term_t a)
       }
       return yices_bvrepeat(a, narrow_index(op, op.indices[0]));
     case Rotate_Left:
-      return yices_rotate_left(a, narrow_index(op, op.indices[0]));
-    case Rotate_Right:
-      return yices_rotate_right(a, narrow_index(op, op.indices[0]));
+    case Rotate_Right: {
+      if (!yices_term_is_bitvector(a))
+      {
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      // Yices2 rotates by at most the width, SMT-LIB by any amount
+      std::uint32_t n = narrow_index(op, op.indices[0] % yices_term_bitsize(a));
+      return op.prim_op == Rotate_Left ? yices_rotate_left(a, n)
+                                       : yices_rotate_right(a, n);
+    }
     case BV_To_Nat:
     case UBV_To_Int:
     case SBV_To_Int:
