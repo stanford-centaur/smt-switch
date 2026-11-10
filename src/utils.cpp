@@ -258,21 +258,7 @@ bool is_lit(const Term & l, const Sort & boolsort)
   return false;
 }
 
-// Whether t is the Boolean constant `constant`, or, without one, a value
-// printed as `text`
-static bool is_bool_constant(const Term & t,
-                             const Term & constant,
-                             const std::string & text)
-{
-  return constant ? t == constant : t->is_value() && t->to_string() == text;
-}
-
-// cnf_to_dimacs, recognising true and false as the solver's constants, or by
-// their printed form where they are null
-static void write_dimacs(const Term & cnf,
-                         std::ostringstream & y,
-                         const Term & true_term,
-                         const Term & false_term)
+void cnf_to_dimacs(const Term & cnf, std::ostringstream & y)
 {
   Sort sort = cnf->get_sort();
   if (sort->get_sort_kind() != BOOL)
@@ -281,7 +267,7 @@ static void write_dimacs(const Term & cnf,
                                   + cnf->to_string() + " has sort "
                                   + sort->to_string());
   }
-  if (is_bool_constant(cnf, true_term, "true"))
+  if (cnf->is_value() && cnf->to_bool())
   {  // empty cnf formula
     y << "p cnf 0 0\n";
     return;
@@ -335,7 +321,7 @@ static void write_dimacs(const Term & cnf,
           before_or_elimination.push_back(child);
         }
       }
-      else if (is_lit(t, sort) || is_bool_constant(t, false_term, "false"))
+      else if (is_lit(t, sort) || (t->is_value() && !t->to_bool()))
       {
         after_or_elimination.push_back(t);
       }
@@ -358,7 +344,7 @@ static void write_dimacs(const Term & cnf,
   {
     for (auto uu : u)
     {  // Using literals from all the clauses to create the mapping
-      if (is_bool_constant(uu, false_term, "false"))
+      if (uu->is_value())
       {  // For an empty clause, which will just contain the term "false"
       }
       else if (uu->is_symbolic_const())
@@ -397,7 +383,7 @@ static void write_dimacs(const Term & cnf,
   {
     for (auto uu : u)
     {
-      if (is_bool_constant(uu, false_term, "false"))
+      if (uu->is_value())
       {  // For an empty clause
       }
       else if (uu->is_symbolic_const())
@@ -415,18 +401,6 @@ static void write_dimacs(const Term & cnf,
     y << 0;  // Symbolizing end of line
     y << "\n";
   }
-}
-
-void cnf_to_dimacs(Term cnf, std::ostringstream & y)
-{
-  write_dimacs(cnf, y, nullptr, nullptr);
-}
-
-void cnf_to_dimacs(const Term & cnf,
-                   std::ostringstream & y,
-                   const SmtSolver & solver)
-{
-  write_dimacs(cnf, y, solver->make_term(true), solver->make_term(false));
 }
 
 namespace {

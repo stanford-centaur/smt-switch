@@ -226,8 +226,8 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   // Test 1
 
   ostringstream y;
-  cnf_to_dimacs(cnf, y, s);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
-                             // a))
+  cnf_to_dimacs(cnf, y);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
+                          // a))
   string ret = y.str();
   string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
   ASSERT_TRUE(ret == expected) << ret << " " << expected << endl
@@ -240,7 +240,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   Term clause6 = s->make_term(Or, a, b);
   Term cnf2 = s->make_term(And, clause4, s->make_term(And, clause5, clause6));
   ostringstream y2;
-  cnf_to_dimacs(cnf2, y2, s);  // cnf2 = ((a) /\ (~b) /\ (a v b))
+  cnf_to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
   string ret2 = y2.str();
   string expected2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
   ASSERT_TRUE(ret2 == expected2);
@@ -248,7 +248,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   // Testing an empty cnf
   Term cnf3 = s->make_term(true);
   ostringstream y3;
-  cnf_to_dimacs(cnf3, y3, s);  // cnf3 = True
+  cnf_to_dimacs(cnf3, y3);  // cnf3 = True
   string ret3 = y3.str();
   string expected3 = "p cnf 0 0\n";
   ASSERT_TRUE(ret3 == expected3) << ret3 << endl << expected3 << endl;
@@ -257,7 +257,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   Term clause7 = s->make_term(false);
   Term cnf4 = s->make_term(And, clause5, s->make_term(And, clause7, clause1));
   ostringstream y4;
-  cnf_to_dimacs(cnf4, y4, s);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
+  cnf_to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
   string ret4 = y4.str();
   string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
   ASSERT_TRUE(ret4 == expected4) << ret4 << endl << cnf4 << endl;
@@ -270,19 +270,18 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
   Term c = s->make_symbol("c", boolsort);
   Term x = s->make_symbol("x", s->make_sort(BV, 4));
   ostringstream y;
-  EXPECT_THROW(cnf_to_dimacs(x, y, s), IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Implies, a, b), y, s),
+  EXPECT_THROW(cnf_to_dimacs(x, y), IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Implies, a, b), y),
                IncorrectUsageException);
-  EXPECT_THROW(
-      cnf_to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y, s),
-      IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y, s),
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(Not, a)), y, s),
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(true)), y, s),
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(Not, a)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(And, a, s->make_term(true)), y, s),
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(true)), y),
+               IncorrectUsageException);
+  EXPECT_THROW(cnf_to_dimacs(s->make_term(And, a, s->make_term(true)), y),
                IncorrectUsageException);
 }
 
