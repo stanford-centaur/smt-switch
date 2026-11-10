@@ -394,6 +394,21 @@ TEST_P(BVRoundTripTests, SumOfProduct)
   expect_round_trip(s->make_term(BVAdd, x, s->make_term(BVMul, y, x)));
 }
 
+TEST_P(BVRoundTripTests, Square)
+{
+  expect_round_trip(s->make_term(BVMul, x, x));
+}
+
+TEST_P(BVRoundTripTests, Cube)
+{
+  expect_round_trip(s->make_term(BVMul, x, s->make_term(BVMul, x, x)));
+}
+
+TEST_P(BVRoundTripTests, ProductOfSquare)
+{
+  expect_round_trip(s->make_term(BVMul, y, s->make_term(BVMul, x, x)));
+}
+
 TEST_P(IntRoundTripTests, Plus) { expect_round_trip(s->make_term(Plus, a, b)); }
 
 TEST_P(IntRoundTripTests, Minus)
