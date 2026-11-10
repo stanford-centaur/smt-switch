@@ -694,43 +694,26 @@ void BzlaInterpolatingSolver::do_set_opt(const std::string & option,
   bzla_solver->set_opt(option, value);
 }
 
-// delegate the interpolation procedure to `get_sequence_interpolants`
-Result BzlaInterpolatingSolver::get_interpolant(const Term & A,
-                                                const Term & B,
-                                                Term & out_I) const
+// delegate the interpolation procedure to `compute_seq_interpolants`
+Result BzlaInterpolatingSolver::compute_interpolant(const Term & A,
+                                                    const Term & B,
+                                                    Term & out_I) const
 {
   return interpolant_from_sequence(A, B, out_I);
 }
 
-Result BzlaInterpolatingSolver::get_sequence_interpolants(
+Result BzlaInterpolatingSolver::compute_seq_interpolants(
     [[maybe_unused]] const TermVec & formulae,
     [[maybe_unused]] TermVec & out_I) const
 {
 #ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
   throw NotImplementedException("Bitwuzla interpolates only from 0.9.0 on");
 #else
-  if (formulae.size() < 2)
-  {
-    throw IncorrectUsageException(
-        "Sequence interpolation requires at least 2 formulae.");
-  }
-  if (!out_I.empty())
-  {
-    throw IncorrectUsageException(
-        "Argument out_I should be empty before calling "
-        "get_sequence_interpolants.");
-  }
-  // refuse a non-Boolean formula, or one from another term manager, before
-  // changing any state
+  // refuse a formula from another term manager before changing any state
   std::vector<bitwuzla::Term> bformulae;
   bformulae.reserve(formulae.size());
   for (const Term & f : formulae)
   {
-    if (f->get_sort()->get_sort_kind() != BOOL)
-    {
-      throw IncorrectUsageException(
-          "get_sequence_interpolants requires boolean terms");
-    }
     bformulae.push_back(bzla_solver->bzla_term(f));
   }
   // count how many assertions can be reused; none when incremental is off,

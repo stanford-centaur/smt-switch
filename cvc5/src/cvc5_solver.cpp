@@ -1035,16 +1035,10 @@ void cvc5InterpolatingSolver::do_set_opt(const std::string & option,
 // interpolant. It finds none both when A and B are satisfiable and when its
 // search gives up. On a satisfiable query, the search may also run on without
 // end, so A and B are checked first.
-Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
-                                                const Term & B,
-                                                Term & out_I) const
+Result cvc5InterpolatingSolver::compute_interpolant(const Term & A,
+                                                    const Term & B,
+                                                    Term & out_I) const
 {
-  if (A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
-  {
-    throw IncorrectUsageException("get_interpolant requires boolean terms");
-  }
-
   std::shared_ptr<cvc5::Solver> solver = cvc5_solver->get_cvc5_solver();
   ::cvc5::Term notB =
       std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
@@ -1093,7 +1087,7 @@ Result cvc5InterpolatingSolver::get_interpolant(const Term & A,
   return Result(UNSAT);
 }
 
-Result cvc5InterpolatingSolver::get_sequence_interpolants(
+Result cvc5InterpolatingSolver::compute_seq_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   return sequence_from_interpolants(formulae, out_I);

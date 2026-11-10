@@ -313,24 +313,24 @@ TermVec AbsSmtInterpolator::substitute_terms(
   return backend_solver->substitute_terms(terms, substitution_map);
 }
 
-// ------------------------- Helpers -----------------------------------------
+// ------------------------- Interpolation -----------------------------------
 
-Result AbsSmtInterpolator::interpolant_from_sequence(const Term & A,
-                                                     const Term & B,
-                                                     Term & out_I) const
+Result AbsSmtInterpolator::get_interpolant(const Term & A,
+                                           const Term & B,
+                                           Term & out_I) const
 {
-  TermVec formulas{ A, B };
-  TermVec itp_seq;
-  Result res = get_sequence_interpolants(formulas, itp_seq);
-  if (itp_seq.size() == 1)
+  if (!A || !B || A->get_sort()->get_sort_kind() != BOOL
+      || B->get_sort()->get_sort_kind() != BOOL)
   {
-    out_I = itp_seq.front();
+    throw IncorrectUsageException("get_interpolant requires boolean terms");
   }
-  return res;
+  return compute_interpolant(A, B, out_I);
 }
 
-Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
-                                                      TermVec & out_I) const
+// Every formula is checked before the backend sees any, as a backend may
+// change its state for the ones before a refused one.
+Result AbsSmtInterpolator::get_sequence_interpolants(const TermVec & formulae,
+                                                     TermVec & out_I) const
 {
   if (formulae.size() < 2)
   {
@@ -345,13 +345,34 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
   }
   for (const Term & f : formulae)
   {
-    if (f->get_sort()->get_sort_kind() != BOOL)
+    if (!f || f->get_sort()->get_sort_kind() != BOOL)
     {
       throw IncorrectUsageException(
           "get_sequence_interpolants requires boolean terms");
     }
   }
+  return compute_seq_interpolants(formulae, out_I);
+}
 
+// ------------------------- Helpers -----------------------------------------
+
+Result AbsSmtInterpolator::interpolant_from_sequence(const Term & A,
+                                                     const Term & B,
+                                                     Term & out_I) const
+{
+  TermVec formulas{ A, B };
+  TermVec itp_seq;
+  Result res = compute_seq_interpolants(formulas, itp_seq);
+  if (itp_seq.size() == 1)
+  {
+    out_I = itp_seq.front();
+  }
+  return res;
+}
+
+Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
+                                                      TermVec & out_I) const
+{
   if (!incremental_mode)
   {
     last_itp_query_formulae.clear();
@@ -387,7 +408,7 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
     Term B = rest.size() == 1 ? rest.front() : make_term(And, rest);
     Term A = i == 0 ? formulae[i] : make_term(And, out_I[i - 1], formulae[i]);
     Term I;
-    Result r = get_interpolant(A, B, I);
+    Result r = compute_interpolant(A, B, I);
     // only the first split can be satisfiable: each later one is unsat by
     // the interpolant before it
     if (i == 0 && r.is_sat())

@@ -1227,10 +1227,10 @@ void MsatInterpolatingSolver::do_set_opt(const string & option,
   msat_solver_->set_opt(option, value);
 }
 
-// delegate the interpolation procedure to `get_sequence_interpolants`
-Result MsatInterpolatingSolver::get_interpolant(const Term & A,
-                                                const Term & B,
-                                                Term & out_I) const
+// delegate the interpolation procedure to `compute_seq_interpolants`
+Result MsatInterpolatingSolver::compute_interpolant(const Term & A,
+                                                    const Term & B,
+                                                    Term & out_I) const
 {
   return interpolant_from_sequence(A, B, out_I);
 }
@@ -1250,22 +1250,10 @@ Result MsatInterpolatingSolver::get_interpolant(const Term & A,
 //
 // The following invariant should hold before and after the call:
 // `#backtrack-points == last_itp_query_assertions_.size() == itp_grps_.size()`
-Result MsatInterpolatingSolver::get_sequence_interpolants(
+Result MsatInterpolatingSolver::compute_seq_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   const std::shared_ptr<MsatEnv> & env = msat_solver_->env_wrapper_.get_env();
-
-  if (formulae.size() < 2)
-  {
-    throw IncorrectUsageException(
-        "Sequence interpolation requires at least 2 formulae.");
-  }
-  if (!out_I.empty())
-  {
-    throw IncorrectUsageException(
-        "Argument out_I should be empty before calling "
-        "get_sequence_interpolants.");
-  }
 
   // unwrapped before anything changes, so a refused formula leaves the
   // assertion stack as it was

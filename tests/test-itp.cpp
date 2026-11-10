@@ -462,14 +462,40 @@ TEST_P(ItpTests, SequenceInterpolantsRefuseMisuse)
                IncorrectUsageException);
 }
 
+TEST_P(ItpTests, RefusesNonBooleanAndNullFormulae)
+{
+  Term t = itp->make_term(lt, x, y);
+  Term I;
+  EXPECT_THROW(itp->get_interpolant(x, t, I), IncorrectUsageException);
+  EXPECT_THROW(itp->get_interpolant(t, Term(), I), IncorrectUsageException);
+  TermVec out;
+  EXPECT_THROW(itp->get_sequence_interpolants({ t, Term() }, out),
+               IncorrectUsageException);
+}
+
+TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
+{
+  std::ostringstream out;
+  SmtInterpolator s = create_printing_interpolator(
+      create_interpolating_solver(GetParam().config), &out);
+  Sort srt =
+      GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
+  Term a = s->make_symbol("a", srt);
+  Term b = s->make_symbol("b", srt);
+  Term a_lt_b = s->make_term(lt, a, b);
+  std::size_t start = out.str().size();
+  Term I;
+  EXPECT_THROW(s->get_interpolant(a_lt_b, a, I), IncorrectUsageException);
+  TermVec itps;
+  EXPECT_THROW(s->get_sequence_interpolants({ a_lt_b, b }, itps),
+               IncorrectUsageException);
+  EXPECT_EQ(out.str().substr(start), "");
+}
+
 // a refused query keeps none of its formulae, nor those of the query before,
 // for the next one
 TEST_P(ItpTests, RefusedNonBooleanFormulaLeavesNoAssertionBehind)
 {
-  if (GetParam().config.solver_enum == MSAT_INTERPOLATOR)
-  {
-    GTEST_SKIP() << "the MathSAT interpolator accepts a non-Boolean formula";
-  }
   Term x_lt_y = itp->make_term(lt, x, y);
   Term y_lt_x = itp->make_term(lt, y, x);
   TermVec itps;

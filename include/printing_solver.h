@@ -154,14 +154,14 @@ class PrintingInterpolator : public AbsSmtInterpolator
   PrintingInterpolator & operator=(const PrintingInterpolator & other) =
       default;
 
-  Result get_interpolant(const Term & A,
-                         const Term & B,
-                         Term & out_I) const override;
-  Result get_sequence_interpolants(const TermVec & formulae,
-                                   TermVec & out_I) const override;
   void set_opt(const std::string option, const std::string value) override;
 
  protected:
+  Result compute_interpolant(const Term & A,
+                             const Term & B,
+                             Term & out_I) const override;
+  Result compute_seq_interpolants(const TermVec & formulae,
+                                  TermVec & out_I) const override;
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
   void forget_queries() override;
