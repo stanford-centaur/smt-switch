@@ -275,10 +275,9 @@ TEST_P(StrTests, StringOperators)
   // the length constraint forces empty to be the empty string
   EXPECT_EQ(s->get_value(empty), s->make_term("", false, strsort));
   // the rest of the model is not unique, so check it satisfies each constraint
-  Term true_term = s->make_term(true);
   for (const Term & c : constraints)
   {
-    EXPECT_EQ(s->get_value(c), true_term);
+    EXPECT_TRUE(s->get_value(c)->to_bool());
   }
 }
 

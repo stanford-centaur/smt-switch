@@ -592,7 +592,7 @@ TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
   EXPECT_EQ(let->to_string(), "|let|");
   gs->assert_formula(let);
   ASSERT_TRUE(gs->check_sat().is_sat());
-  EXPECT_EQ(gs->get_value(let), gs->make_term(true));
+  EXPECT_TRUE(gs->get_value(let)->to_bool());
 }
 
 TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
@@ -795,7 +795,7 @@ TEST_P(GenericSolverArrayFunTests, Abv2)
   Result result = gs->check_sat();
   ASSERT_TRUE(result.is_sat());
   EXPECT_EQ(gs->get_value(bv1)->to_int(), 0u);
-  EXPECT_EQ(gs->get_value(dis1), gs->make_term(true));
+  EXPECT_TRUE(gs->get_value(dis1)->to_bool());
   gs->pop(1);
 }
 
@@ -922,7 +922,7 @@ TEST_P(GenericSolverUfTests, SortMadeAfterCheckSat)
   Sort u_sort = gs->make_sort("U", 0);
   Term u = gs->make_symbol("u", u_sort);
   // the model is still the one the check found
-  EXPECT_EQ(gs->get_value(b), gs->make_term(true));
+  EXPECT_TRUE(gs->get_value(b)->to_bool());
   // the sort goes to the binary ahead of the symbol, as both do ahead of
   // the next assertion
   gs->assert_formula(gs->make_term(Equal, u, u));
@@ -981,7 +981,7 @@ TEST_P(GenericSolverIntTests, IntModels)
   Result result = gs->check_sat();
   ASSERT_TRUE(result.is_sat());
   EXPECT_EQ(gs->get_value(i1), int_zero);
-  EXPECT_EQ(gs->get_value(for1), gs->make_term(true));
+  EXPECT_TRUE(gs->get_value(for1)->to_bool());
   gs->pop(1);
 }
 
@@ -1044,7 +1044,7 @@ TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAsserted)
   gs->assert_formula(gs->make_term(Equal, x, three));
   ASSERT_TRUE(gs->check_sat().is_sat());
   Term x_is_not_three = gs->make_term(Not, gs->make_term(Equal, x, three));
-  EXPECT_EQ(gs->get_value(x_is_not_three), gs->make_term(false));
+  EXPECT_FALSE(gs->get_value(x_is_not_three)->to_bool());
   gs->assert_formula(x_is_not_three);
   EXPECT_TRUE(gs->check_sat().is_unsat());
 }

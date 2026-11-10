@@ -89,7 +89,7 @@ TEST_P(UnitResetTests, ResetLeavesOtherSolversAlone)
   s->reset();
 
   ASSERT_TRUE(other->check_sat().is_sat());
-  EXPECT_EQ(other->get_value(b), other->make_term(true));
+  EXPECT_TRUE(other->get_value(b)->to_bool());
 }
 
 // One argument each, so on Yices2 the function and the array have one type
