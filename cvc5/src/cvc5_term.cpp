@@ -444,6 +444,16 @@ int64_t Cvc5Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
+bool Cvc5Term::to_bool() const
+{
+  if (!term.isBooleanValue())
+  {
+    throw IncorrectUsageException("Can't convert " + term.toString()
+                                  + " to a Boolean: it is not a Boolean value");
+  }
+  return term.getBooleanValue();
+}
+
 // The children smt-switch lists: cvc5's, then a constant array's base
 std::size_t Cvc5Term::get_num_children() const
 {

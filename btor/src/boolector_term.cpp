@@ -379,6 +379,20 @@ int64_t BoolectorTerm::to_signed_int() const
   return bits_to_int64(const_to_bits(btor.get(), node));
 }
 
+bool BoolectorTerm::to_bool() const
+{
+  // Boolector makes Booleans 1-bit bit-vectors
+  BoolectorSort s = boolector_get_sort(btor.get(), node);
+  if (!boolector_is_const(btor.get(), node)
+      || !boolector_is_bitvec_sort(btor.get(), s)
+      || boolector_get_width(btor.get(), node) != 1)
+  {
+    throw IncorrectUsageException("Can't convert " + to_string()
+                                  + " to a Boolean: it is not a Boolean value");
+  }
+  return const_to_bits(btor.get(), node) == "1";
+}
+
 std::size_t BoolectorTerm::get_num_children() const
 {
   collect_children();

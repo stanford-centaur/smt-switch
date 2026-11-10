@@ -288,6 +288,18 @@ std::int64_t LoggingTerm::to_signed_int() const
   return wrapped_term->to_signed_int();
 }
 
+bool LoggingTerm::to_bool() const
+{
+  // the logged sort tells Booleans from 1-bit bit-vectors where the
+  // underlying solver aliases them
+  if (get_sort()->get_sort_kind() != BOOL)
+  {
+    throw IncorrectUsageException("Can't convert " + to_string()
+                                  + " to a Boolean: it is not a Boolean value");
+  }
+  return wrapped_term->to_bool();
+}
+
 std::string LoggingTerm::print_value_as(SortKind sk) const
 {
   return wrapped_term->print_value_as(sk);

@@ -384,6 +384,24 @@ int64_t Z3Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
+bool Z3Term::to_bool() const
+{
+  if (!is_function)
+  {
+    if (term.is_true())
+    {
+      return true;
+    }
+    if (term.is_false())
+    {
+      return false;
+    }
+  }
+  throw IncorrectUsageException(
+      "Can't convert " + (is_function ? z_func.name().str() : term.to_string())
+      + " to a Boolean: it is not a Boolean value");
+}
+
 // The children smt-switch lists, with the function, constructor, selector or
 // tester applied first. Only a function's term is null, and it has no
 // children. The cast asks whether the term is null, as z3::expr's operator!

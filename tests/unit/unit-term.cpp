@@ -27,6 +27,8 @@
 
 #include "available_solvers.h"
 #include "exceptions.h"
+#include "generic_sort.h"
+#include "generic_term.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -122,6 +124,49 @@ TEST_P(UnitTermTests, BoolValues)
   EXPECT_NE(t, f);
   EXPECT_EQ(t->get_sort(), boolsort);
   EXPECT_EQ(f->get_sort(), boolsort);
+}
+
+TEST_P(UnitTermTests, ToBool)
+{
+  EXPECT_TRUE(s->make_term(true)->to_bool());
+  EXPECT_FALSE(s->make_term(false)->to_bool());
+  EXPECT_THROW(s->make_symbol("b", boolsort)->to_bool(),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(1, bvsort)->to_bool(), IncorrectUsageException);
+}
+
+TEST_P(UnitTermTests, ToBoolOfOneBitValue)
+{
+  Sort bvsort1 = s->make_sort(BV, 1);
+  Term one = s->make_term(1, bvsort1);
+  Term zero = s->make_term(0, bvsort1);
+  // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
+  // solver keeps apart
+  if (solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+      && !GetParam().is_logging_solver)
+  {
+    EXPECT_TRUE(one->to_bool());
+    EXPECT_FALSE(zero->to_bool());
+  }
+  else
+  {
+    EXPECT_THROW(one->to_bool(), IncorrectUsageException);
+    EXPECT_THROW(zero->to_bool(), IncorrectUsageException);
+  }
+}
+
+// AbsTerm::to_bool is the default for Term implementations outside
+// smt-switch, and the generic solver's; call it on GenericTerms directly
+TEST(DefaultToBool, ReadsBooleanValues)
+{
+  Sort boolsort = std::make_shared<GenericSort>(BOOL);
+  EXPECT_TRUE(GenericTerm(boolsort, Op(), {}, "true").to_bool());
+  EXPECT_FALSE(GenericTerm(boolsort, Op(), {}, "false").to_bool());
+  EXPECT_THROW(GenericTerm(boolsort, Op(), {}, "b", true).to_bool(),
+               IncorrectUsageException);
+  EXPECT_THROW(GenericTerm(std::make_shared<BVGenericSort>(1), Op(), {}, "#b1")
+                   .to_bool(),
+               IncorrectUsageException);
 }
 
 TEST_P(UnitTermTests, TermShorthands)

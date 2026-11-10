@@ -55,6 +55,24 @@ std::int64_t AbsTerm::to_signed_int() const
                                 + get_sort()->to_string());
 }
 
+bool AbsTerm::to_bool() const
+{
+  const std::string repr = to_string();
+  if (is_value() && get_sort()->get_sort_kind() == BOOL)
+  {
+    if (repr == "true")
+    {
+      return true;
+    }
+    if (repr == "false")
+    {
+      return false;
+    }
+  }
+  throw IncorrectUsageException("Can't convert " + repr
+                                + " to a Boolean: it is not a Boolean value");
+}
+
 bool operator==(const Term & t1, const Term & t2)
 {
   if (!t1 || !t2)

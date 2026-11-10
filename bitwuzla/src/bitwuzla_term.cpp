@@ -304,6 +304,16 @@ std::int64_t BzlaTerm::to_signed_int() const
   return bits_to_int64(bv_value_to_bits(term));
 }
 
+bool BzlaTerm::to_bool() const
+{
+  if (!term.is_value() || !term.sort().is_bool())
+  {
+    throw IncorrectUsageException("Can't convert " + term.str()
+                                  + " to a Boolean: it is not a Boolean value");
+  }
+  return term.value<bool>();
+}
+
 std::size_t BzlaTerm::get_num_children() const { return term.num_children(); }
 
 Term BzlaTerm::get_child(std::size_t i) const

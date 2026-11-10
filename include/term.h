@@ -123,6 +123,13 @@ class AbsTerm : public detail::SharedTermBase
    *  The default implementation parses to_string().
    */
   virtual std::int64_t to_signed_int() const;
+  /** Returns the value of a Boolean value.
+   *  On a solver with BOOL_BV1_ALIASING, a 1-bit bit-vector value is a
+   *  Boolean value too, and #b1 is true.
+   *  Throws an IncorrectUsageException for anything else.
+   *  The default implementation parses to_string().
+   */
+  virtual bool to_bool() const;
   /** begin iterator
    *  starts iteration through Term's children
    */
