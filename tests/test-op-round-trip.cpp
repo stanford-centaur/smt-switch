@@ -179,10 +179,6 @@ class QuantifierRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    if (GetParam().solver_enum == BTOR)
-    {
-      GTEST_SKIP() << "Boolector binds a param in one quantifier only";
-    }
     if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
     {
       GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
@@ -190,9 +186,10 @@ class QuantifierRoundTripTests : public OpRoundTripTests
     bvsort = s->make_sort(BV, 4);
     x = s->make_symbol("x", bvsort);
     i = s->make_param("i", bvsort);
+    j = s->make_param("j", bvsort);
   }
   Sort bvsort;
-  Term x, i;
+  Term x, i, j;
 };
 
 TEST_P(BoolRoundTripTests, Equal)
@@ -539,6 +536,12 @@ TEST_P(QuantifierRoundTripTests, Forall)
 TEST_P(QuantifierRoundTripTests, Exists)
 {
   expect_round_trip(s->make_term(Exists, i, s->make_term(BVUle, i, x)));
+}
+
+TEST_P(QuantifierRoundTripTests, ForallTwoParams)
+{
+  Term body = s->make_term(BVUle, s->make_term(BVAdd, i, j), x);
+  expect_round_trip(s->make_term(Forall, { i, j, body }));
 }
 
 INSTANTIATE_TEST_SUITE_P(
