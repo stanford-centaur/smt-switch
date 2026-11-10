@@ -557,6 +557,23 @@ int64_t MsatTerm::to_signed_int() const
   return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
 }
 
+bool MsatTerm::to_bool() const
+{
+  if (!is_uf)
+  {
+    if (msat_term_is_true(*env, term))
+    {
+      return true;
+    }
+    if (msat_term_is_false(*env, term))
+    {
+      return false;
+    }
+  }
+  throw IncorrectUsageException("Can't convert " + to_string()
+                                + " to a Boolean: it is not a Boolean value");
+}
+
 // The children smt-switch lists, with the function first in an application.
 // A function symbol has no term, and so no children.
 std::size_t MsatTerm::get_num_children() const

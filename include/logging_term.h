@@ -72,6 +72,7 @@ class LoggingTerm : public AbsTerm
   std::string get_symbol_name() const override;
   std::uint64_t to_int() const override;
   std::int64_t to_signed_int() const override;
+  bool to_bool() const override;
   std::string print_value_as(SortKind sk) const override;
 
  protected:

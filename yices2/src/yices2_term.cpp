@@ -397,6 +397,18 @@ int64_t Yices2Term::to_signed_int() const
       "to an integer");
 }
 
+bool Yices2Term::to_bool() const
+{
+  int32_t value;
+  if (yices_term_constructor(term) != YICES_BOOL_CONSTANT
+      || yices_bool_const_value(term, &value) != 0)
+  {
+    throw IncorrectUsageException("Can't convert " + to_string()
+                                  + " to a Boolean: it is not a Boolean value");
+  }
+  return value != 0;
+}
+
 /* How many children smt-switch sees, which has to agree with get_op().
  * Yices keeps a sum or a product as a polynomial, so each component becomes
  * one synthesised child. A one-component sum or power product is the
