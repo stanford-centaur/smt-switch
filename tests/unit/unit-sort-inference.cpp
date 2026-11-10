@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -219,6 +221,33 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
     Term forallparam = s->make_term(Forall, param, body);
     EXPECT_TRUE(param->is_param());  // should still be considered a parameter
                                      // after binding
+  }
+}
+
+TEST_P(UnitSortInferenceTests, SortComputationBVIndexBounds)
+{
+  EXPECT_EQ(compute_sort(Op(Extract, 3, 3), s, { bvsort4 })->get_width(), 1);
+  EXPECT_THROW(compute_sort(Op(Extract, 2, 3), s, { bvsort4 }),
+               IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Op(Extract, 4, 0), s, { bvsort4 }),
+               IncorrectUsageException);
+}
+
+TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  EXPECT_THROW(compute_sort(Op(Zero_Extend, max), s, { bvsort4 }),
+               IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Op(Sign_Extend, max - 3), s, { bvsort4 }),
+               IncorrectUsageException);
+  EXPECT_THROW(compute_sort(Op(Repeat, max / 4 + 1), s, { bvsort4 }),
+               IncorrectUsageException);
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    // its sorts are smt-switch's own, so they can be this wide
+    Sort wide = s->make_sort(BV, max - 3);
+    EXPECT_THROW(compute_sort(Concat, s, { wide, bvsort4 }),
+                 IncorrectUsageException);
   }
 }
 

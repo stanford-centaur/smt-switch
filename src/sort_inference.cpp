@@ -18,8 +18,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -692,24 +694,55 @@ Sort ite_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return sorts[1];
 }
 
-Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec &)
+Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.indices[0] - op.indices[1] + 1);
+  std::uint64_t upper = op.indices[0];
+  std::uint64_t lower = op.indices[1];
+  std::uint64_t width = sorts[0]->get_width();
+  if (lower > upper || upper >= width)
+  {
+    throw IncorrectUsageException(
+        op.to_string() + " needs width > upper >= lower, but its argument has "
+        + "width " + std::to_string(width));
+  }
+  return solver->make_sort(BV, upper - lower + 1);
 }
 
-Sort concat_sort(Op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, sorts[0]->get_width() + sorts[1]->get_width());
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width0 = sorts[0]->get_width();
+  std::uint64_t width1 = sorts[1]->get_width();
+  if (width1 > max - width0)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, width0 + width1);
 }
 
 Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.indices[0] + sorts[0]->get_width());
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width = sorts[0]->get_width();
+  if (op.indices[0] > max - width)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, op.indices[0] + width);
 }
 
 Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
 {
-  return solver->make_sort(BV, op.indices[0] * sorts[0]->get_width());
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width = sorts[0]->get_width();
+  if (width != 0 && op.indices[0] > max / width)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, op.indices[0] * width);
 }
 
 Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec &)
