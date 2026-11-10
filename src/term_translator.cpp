@@ -909,13 +909,9 @@ Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
                          + sort->to_string());
     }
 
-    if (term == solver->make_term(true))
+    if (term->is_value())
     {
-      return solver->make_term(1, sort);
-    }
-    if (term == solver->make_term(false))
-    {
-      return solver->make_term(0, sort);
+      return solver->make_term(term->to_bool() ? 1 : 0, sort);
     }
     throw SmtException("Cannot interpret " + term->to_string() + " as "
                        + sort->to_string());

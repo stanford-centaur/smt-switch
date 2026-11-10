@@ -539,19 +539,14 @@ class EliminateBooleanConstants : public IdentityWalker
 {
  public:
   explicit EliminateBooleanConstants(const SmtSolver & solver)
-      : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))
+      : IdentityWalker{ solver, false },
+        boolsort_(solver->make_sort(BOOL)),
+        true_term_(solver->make_term(true)),
+        false_term_(solver->make_term(false))
   {
   }
   WalkerStepResult visit_term(Term & term) override
   {
-    Term true_term = solver_->make_term(true);
-    Term false_term = solver_->make_term(false);
-    auto is_true = [&](Term t) {  // If the term is "true"
-      return (t == true_term);
-    };
-    auto is_false = [&](Term t) {  // If the term is "false"
-      return (t == false_term);
-    };
     auto cached_children = [&]() {
       TermVec children;
       for (auto u : term)
@@ -565,29 +560,29 @@ class EliminateBooleanConstants : public IdentityWalker
     auto simplify_equal = [&](const Term & lhs_cached,
                               const Term & rhs_cached) -> Term {
       // (lhs<->rhs)
-      if ((is_true(lhs_cached) && is_true(rhs_cached))
-          || (is_false(lhs_cached) && is_false(rhs_cached)))
+      if ((lhs_cached == true_term_ && rhs_cached == true_term_)
+          || (lhs_cached == false_term_ && rhs_cached == false_term_))
       {  //(true==true)=true, (false==false)=true
-        return true_term;
+        return true_term_;
       }
-      else if ((is_true(lhs_cached) && is_false(rhs_cached))
-               || (is_false(lhs_cached) && is_true(rhs_cached)))
+      else if ((lhs_cached == true_term_ && rhs_cached == false_term_)
+               || (lhs_cached == false_term_ && rhs_cached == true_term_))
       {  //(true==false)=false, (false==true)=false
-        return false_term;
+        return false_term_;
       }
-      else if (is_true(lhs_cached))
+      else if (lhs_cached == true_term_)
       {  //(true==rhs)=rhs
         return rhs_cached;
       }
-      else if (is_true(rhs_cached))
+      else if (rhs_cached == true_term_)
       {  //(lhs==true)=lhs
         return lhs_cached;
       }
-      else if (is_false(lhs_cached))
+      else if (lhs_cached == false_term_)
       {  //(false==rhs)=not(rhs)
         return solver_->make_term(Not, rhs_cached);
       }
-      else if (is_false(rhs_cached))
+      else if (rhs_cached == false_term_)
       {  //(lhs==false)=not(lhs)
         return solver_->make_term(Not, lhs_cached);
       }
@@ -596,15 +591,15 @@ class EliminateBooleanConstants : public IdentityWalker
     };
     auto simplify_implies = [&](const Term & lhs_cached,
                                 const Term & rhs_cached) -> Term {
-      if (is_false(lhs_cached) || is_true(rhs_cached))
+      if (lhs_cached == false_term_ || rhs_cached == true_term_)
       {  //(false->?)=true, (?->true)=true
-        return true_term;
+        return true_term_;
       }
-      else if (is_true(lhs_cached))
+      else if (lhs_cached == true_term_)
       {  //(true->rhs)=rhs
         return rhs_cached;
       }
-      else if (is_false(rhs_cached))
+      else if (rhs_cached == false_term_)
       {  //(lhs->false)=not(lhs)
         return solver_->make_term(Not, lhs_cached);
       }
@@ -617,18 +612,18 @@ class EliminateBooleanConstants : public IdentityWalker
                               // "true" nor "false"
       for (const Term & cached_term : conjuncts)
       {
-        if (is_false(cached_term))
+        if (cached_term == false_term_)
         {  // if any child is false, the entire expression is false
-          return false_term;
+          return false_term_;
         }
-        if (!is_true(cached_term))
+        if (cached_term != true_term_)
         {
           vec.push_back(cached_term);
         }
       }
       if (vec.empty())
       {  // if all children are true, the expression is true
-        return true_term;
+        return true_term_;
       }
       else if (vec.size() == 1)
       {  // if just one child is neither true nor false, that child is
@@ -656,13 +651,13 @@ class EliminateBooleanConstants : public IdentityWalker
                     cached_term);  // Querying the mapped formula of the child
                                    // as we are doing a preorder traversal
 
-        if (is_true(cached_term))
+        if (cached_term == true_term_)
         {  // not(false)=true
-          save_in_cache(term, false_term);
+          save_in_cache(term, false_term_);
         }
-        else if (is_false(cached_term))
+        else if (cached_term == false_term_)
         {  // not(true)=false
-          save_in_cache(term, true_term);
+          save_in_cache(term, true_term_);
         }
         else
         {  // mapping not of the queried term_name.
@@ -705,12 +700,12 @@ class EliminateBooleanConstants : public IdentityWalker
         {  // iterating over all children
           Term cached_term;
           query_cache((*it), cached_term);
-          if (is_true(cached_term))
+          if (cached_term == true_term_)
           {
             true_present = 1;
             it++;
           }
-          else if (is_false(cached_term))
+          else if (cached_term == false_term_)
           {
             it++;
           }
@@ -722,11 +717,11 @@ class EliminateBooleanConstants : public IdentityWalker
         }
         if (true_present)
         {  // any child is "true", implies the entire expression is true
-          save_in_cache(term, true_term);
+          save_in_cache(term, true_term_);
         }
         else if (vec.empty())
         {  // If all children are "false", the expression is "false"
-          save_in_cache(term, false_term);
+          save_in_cache(term, false_term_);
         }
         else if (vec.size() == 1)
         {  // if just one child is neither true nor false, that child is
@@ -748,12 +743,12 @@ class EliminateBooleanConstants : public IdentityWalker
         {  // iterating over all children
           Term cached_term;
           query_cache((*it), cached_term);
-          if (is_true(cached_term))
+          if (cached_term == true_term_)
           {
             it++;
             true_count++;
           }
-          else if (is_false(cached_term))
+          else if (cached_term == false_term_)
           {
             it++;
           }
@@ -767,11 +762,11 @@ class EliminateBooleanConstants : public IdentityWalker
         {  // all terms are either "true" or "false"
           if (true_count % 2 == 0)
           {  // even number of "true" implies the expression is false
-            save_in_cache(term, false_term);
+            save_in_cache(term, false_term_);
           }
           else
           {  // odd number of "true" implies the expression is false
-            save_in_cache(term, true_term);
+            save_in_cache(term, true_term_);
           }
         }
         else if (vec.size() == 1)
@@ -813,6 +808,8 @@ class EliminateBooleanConstants : public IdentityWalker
 
  private:
   Sort boolsort_;
+  Term true_term_;
+  Term false_term_;
 };
 
 }  // namespace

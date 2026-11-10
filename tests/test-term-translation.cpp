@@ -276,6 +276,17 @@ TEST_P(SelfTranslationTests, BVTransfer)
   ASSERT_TRUE(s2->check_sat().is_sat());
 }
 
+TEST_P(SelfTranslationTests, BoolValueAsBitVector)
+{
+  SmtSolver s2 = create_solver(GetParam());
+  TermTranslator tt(s2);
+  Sort bvsort1 = s2->make_sort(BV, 1);
+  EXPECT_EQ(tt.transfer_term(s->make_term(true), BV),
+            s2->make_term(1, bvsort1));
+  EXPECT_EQ(tt.transfer_term(s->make_term(false), BV),
+            s2->make_term(0, bvsort1));
+}
+
 TEST_P(SelfTranslationIntTests, IntTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
