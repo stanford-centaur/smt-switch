@@ -146,13 +146,14 @@ class Yices2Solver : public AbsSmtSolver
   ///< has already been used.
 
   /** Helper function for managing time limits (if one is set)
-   *  Registers a signal handler to use with alarm
+   *  Claims the SIGALRM timer, saving the program's handler, and refuses
+   *  while the program's own timer is armed.
    */
   void timelimit_start();
 
   /** Helper function for managing time limits (if one is set)
-   *  Returns true iff the query was terminated due to the
-   *  time limit.
+   *  Restores the program's SIGALRM handler. Returns true iff the query
+   *  was terminated due to the time limit.
    */
   bool timelimit_end();
 };
