@@ -48,7 +48,8 @@ bool check_sortedness(Op op, const SortVec & sorts);
  *  @param terms the vector of terms the op would be applied to
  *  @return the expected sort
  *  @throws IncorrectUsageException if there are fewer terms than the op
- *          takes
+ *          accepts, the indices of an extract are outside its argument, or
+ *          the resulting width does not fit in 64 bits
  */
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms);
 
@@ -59,7 +60,8 @@ Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms);
  *  @param sorts a vector of sorts corresponding to the op arguments
  *  @return the expected sort
  *  @throws IncorrectUsageException if there are fewer sorts than the op
- *          takes
+ *          accepts, the indices of an extract are outside its argument, or
+ *          the resulting width does not fit in 64 bits
  */
 Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts);
 
