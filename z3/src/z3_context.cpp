@@ -20,6 +20,26 @@
 
 namespace smt {
 
+z3::expr Z3Context::add_param(const std::string & name, const z3::sort & sort)
+{
+  // Z3 gives a constant of the same name and sort back as the same term,
+  // so a constant named `name` would be a symbol of that name, and a
+  // quantifier over it would bind the symbol.
+  z3::expr term(*this, Z3_mk_fresh_const(*this, name.c_str(), sort));
+  param_info.emplace(term.id(), Param{ term, name });
+  return term;
+}
+
+bool Z3Context::is_param(const z3::expr & term) const
+{
+  return param_info.count(term.id()) != 0;
+}
+
+std::string Z3Context::get_param_name(const z3::expr & term) const
+{
+  return param_info.at(term.id()).name;
+}
+
 std::size_t Z3Context::InstanceKeyHash::operator()(
     const InstanceKey & key) const
 {

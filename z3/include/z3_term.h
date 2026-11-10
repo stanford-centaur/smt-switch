@@ -34,9 +34,7 @@ class Z3Term : public AbsTerm
 {
  public:
   // Non-functions
-  // Parameter -- Z3 doesn't distinguish until it's bound
-  // so we have to keep track of this extra info
-  Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t, bool param = false);
+  Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t);
   // Functions
   Z3Term(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc);
   std::size_t hash() const override;
@@ -72,10 +70,6 @@ class Z3Term : public AbsTerm
   z3::expr term;
   z3::func_decl z_func;
   bool is_function = false;
-  bool is_parameter = false;
-  // the name make_param was given, which Z3 does not keep, as it makes the
-  // param a fresh constant
-  std::string param_name = "";
 
   friend class Z3Solver;
 };
