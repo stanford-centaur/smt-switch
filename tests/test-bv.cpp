@@ -212,6 +212,25 @@ TEST_P(IndexedOpTests, RepeatZeroTimes)
   EXPECT_THROW(s->make_term(Op(Repeat, 0), x), IncorrectUsageException);
 }
 
+TEST_P(IndexedOpTests, RepeatValues)
+{
+  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  Term rep3 = s->make_term(Op(Repeat, 3), x);
+  Term rep6 = s->make_term(Op(Repeat, 6), x);
+  s->assert_formula(
+      s->make_term(Equal, x, s->make_term(0b1001, x->get_sort())));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(rep3)->to_int(), 0x999);
+  EXPECT_EQ(s->get_value(rep6)->to_int(), 0x999999);
+}
+
+TEST_P(IndexedOpTests, RepeatWiderThan64Bits)
+{
+  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  EXPECT_THROW(s->make_term(Op(Repeat, std::uint64_t{ 1 } << 62), x),
+               IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverBVTests,
     BVTests,
