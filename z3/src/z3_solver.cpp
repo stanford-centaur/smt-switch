@@ -1066,15 +1066,8 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
     throw IncorrectUsageException("Functions cannot be parameters");
   }
 
-  // Z3 gives a constant of the same name and sort back as the same term,
-  // so a constant named `name` would be a symbol of that name, and a
-  // quantifier over it would bind the symbol. A fresh one never is.
-  z3::expr z_term(*ctx,
-                  Z3_mk_fresh_const(*ctx, name.c_str(), zsort->get_z3_type()));
-  // mark as a parameter by passing true
-  auto param = std::make_shared<Z3Term>(ctx, z_term, true);
-  param->param_name = name;
-  return param;
+  return std::make_shared<Z3Term>(ctx,
+                                  ctx->add_param(name, zsort->get_z3_type()));
 }
 
 Term Z3Solver::make_term(Op op, const TermVec & terms) const

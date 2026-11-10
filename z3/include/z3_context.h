@@ -28,6 +28,14 @@ namespace smt {
 class Z3Context : public z3::context
 {
  public:
+  /** A param named `name` of sort `sort`: a fresh constant, recorded so
+   *  that every term of it reports a param
+   */
+  z3::expr add_param(const std::string & name, const z3::sort & sort);
+  /** Whether add_param made `term` */
+  bool is_param(const z3::expr & term) const;
+  /** The name add_param was given for `term` */
+  std::string get_param_name(const z3::expr & term) const;
   /** The sort the sort constructor `name` applied to `params` stands for:
    *  an uninterpreted sort made the first time and given back after, so
    *  that its sorts can report what it applies
@@ -46,6 +54,17 @@ class Z3Context : public z3::context
   std::vector<z3::sort> get_instance_params(const z3::sort & sort) const;
 
  private:
+  /** A param and the name it was made with, which Z3 does not keep */
+  struct Param
+  {
+    z3::expr term;
+    std::string name;
+  };
+
+  // the params by their term's id; each keeps its term alive, so that Z3
+  // cannot give the id to another term
+  std::unordered_map<unsigned, Param> param_info = {};
+
   /** What an instance of a sort constructor applies */
   struct SortInstance
   {

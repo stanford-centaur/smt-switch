@@ -49,8 +49,8 @@ bool is_z3_value(const z3::expr & term)
 
 // Z3Term implementation
 
-Z3Term::Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t, bool param)
-    : ctx(c), term(t), z_func(*c), is_parameter(param)
+Z3Term::Z3Term(const std::shared_ptr<Z3Context> & c, z3::expr t)
+    : ctx(c), term(t), z_func(*c)
 {
 }
 
@@ -258,12 +258,11 @@ bool Z3Term::is_symbol() const
   {
     return z_func.decl_kind() == Z3_OP_UNINTERPRETED;
   }
-  return (term.is_const() && !is_value()
-          && term.decl().decl_kind() != Z3_OP_DT_CONSTRUCTOR)
-         || is_parameter;
+  return term.is_const() && !is_value()
+         && term.decl().decl_kind() != Z3_OP_DT_CONSTRUCTOR;
 }
 
-bool Z3Term::is_param() const { return is_parameter; }
+bool Z3Term::is_param() const { return !is_function && ctx->is_param(term); }
 
 bool Z3Term::is_symbolic_const() const
 {
@@ -318,7 +317,7 @@ string Z3Term::get_param_name() const
   {
     throw IncorrectUsageException("Only a param has a param name");
   }
-  return param_name;
+  return ctx->get_param_name(term);
 }
 
 string Z3Term::get_selector_name() const

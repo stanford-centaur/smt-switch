@@ -161,6 +161,20 @@ TEST_P(UnitQuantifierIterTests, BoundParamName)
   EXPECT_EQ(children.front()->get_param_name(), "x y");
 }
 
+TEST_P(UnitQuantifierIterTests, ParamAsChild)
+{
+  Term x = s->make_param("x", bvsort);
+  Term y = s->make_symbol("y", bvsort);
+  Term ult = s->make_term(BVUlt, x, y);
+  TermVec children(ult->begin(), ult->end());
+  ASSERT_EQ(children.size(), 2);
+  EXPECT_EQ(children[0], x);
+  EXPECT_TRUE(children[0]->is_param());
+  EXPECT_FALSE(children[0]->is_symbolic_const());
+  EXPECT_EQ(children[0]->get_param_name(), "x");
+  EXPECT_FALSE(children[1]->is_param());
+}
+
 TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
 {
   Term b = s->make_param("b", boolsort);
