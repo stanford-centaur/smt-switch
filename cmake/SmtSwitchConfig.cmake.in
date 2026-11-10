@@ -21,7 +21,10 @@ Each backend pulls in its solver, so linking the backend alone is enough.
 
 The backends are linked against the solver libraries this build found.  A
 consumer therefore needs those solvers present, and the find modules that
-locate them are installed next to this file.
+locate them are installed next to this file.  A solver that the build found in
+the prefix given for it, with ``--<solver>-dir`` or by default its copy under
+``deps/``, is looked for in that prefix first.  A ``<Package>_ROOT`` set by the
+external user, as a variable or in the environment, takes precedence.
 
 One limitation.  The Boolector backend's own headers —
 ``smt-switch/boolector_solver.h`` and the three beside it, installed for
@@ -33,6 +36,11 @@ Boolector's own headers on the include path.
 
 #]=======================================================================]
 
+# find_package searches <Package>_ROOT only under CMP0074. Set before
+# find_dependency is defined, as a macro runs under the policies in force
+# where it was defined. find_package reads this file in a policy scope of its
+# own, so the external user's setting is unaffected.
+cmake_policy(SET CMP0074 NEW)
 include(CMakeFindDependencyMacro)
 
 set(SmtSwitch_AVAILABLE_COMPONENTS @SMT_SWITCH_AVAILABLE_COMPONENTS@)
@@ -58,21 +66,55 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
     continue()
   endif()
 
+  # The solver a backend needs, and the prefix it was found in when
+  # smt-switch was built, empty if it was found elsewhere.
+  set(_smt_switch_package "")
+  set(_smt_switch_root "")
+  set(_smt_switch_args "")
+  set(_smt_switch_needs_gmp FALSE)
   if(_smt_switch_component STREQUAL "btor")
-    find_dependency(Boolector)
+    set(_smt_switch_package Boolector)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_Boolector@")
   elseif(_smt_switch_component STREQUAL "bitwuzla")
-    find_dependency(Bitwuzla)
+    set(_smt_switch_package Bitwuzla)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_Bitwuzla@")
   elseif(_smt_switch_component STREQUAL "cvc5")
-    find_dependency(cvc5)
-    find_dependency(GMP)
+    set(_smt_switch_package cvc5)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_cvc5@")
+    set(_smt_switch_needs_gmp TRUE)
   elseif(_smt_switch_component STREQUAL "msat")
-    find_dependency(MathSAT)
-    find_dependency(GMP)
+    set(_smt_switch_package MathSAT)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_MathSAT@")
+    set(_smt_switch_needs_gmp TRUE)
   elseif(_smt_switch_component STREQUAL "yices2")
-    find_dependency(Yices2)
-    find_dependency(GMP)
+    set(_smt_switch_package Yices2)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_Yices2@")
+    set(_smt_switch_needs_gmp TRUE)
   elseif(_smt_switch_component STREQUAL "z3")
-    find_dependency(Z3 @SMT_SWITCH_Z3_DEPENDENCY_ARGS@)
+    set(_smt_switch_package Z3)
+    set(_smt_switch_root "@SMT_SWITCH_RECORDED_ROOT_Z3@")
+    set(_smt_switch_args @SMT_SWITCH_Z3_DEPENDENCY_ARGS@)
+  endif()
+
+  if(NOT _smt_switch_package STREQUAL "")
+    # The recorded prefix is the solver's root for this lookup only, unless
+    # the external user set one.
+    set(_smt_switch_hinted FALSE)
+    if(
+      NOT _smt_switch_root STREQUAL ""
+      AND NOT DEFINED ${_smt_switch_package}_ROOT
+      AND NOT DEFINED ENV{${_smt_switch_package}_ROOT}
+    )
+      set(${_smt_switch_package}_ROOT "${_smt_switch_root}")
+      set(_smt_switch_hinted TRUE)
+    endif()
+    find_dependency(${_smt_switch_package} ${_smt_switch_args})
+    if(_smt_switch_hinted)
+      unset(${_smt_switch_package}_ROOT)
+    endif()
+  endif()
+  if(_smt_switch_needs_gmp)
+    find_dependency(GMP)
   endif()
 
   # Named apart from SmtSwitchTargets-*.cmake on purpose: the core targets
@@ -87,6 +129,11 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
   set(SmtSwitch_${_smt_switch_component}_FOUND TRUE)
 endforeach()
 unset(_smt_switch_component)
+unset(_smt_switch_package)
+unset(_smt_switch_root)
+unset(_smt_switch_args)
+unset(_smt_switch_needs_gmp)
+unset(_smt_switch_hinted)
 
 set(CMAKE_MODULE_PATH "${_smt_switch_saved_module_path}")
 unset(_smt_switch_saved_module_path)
