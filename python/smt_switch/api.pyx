@@ -1,4 +1,6 @@
+import re
 from abc import ABC, abstractmethod
+from fractions import Fraction
 
 from cython.operator cimport dereference as dref
 from libc.stdint cimport uint64_t
@@ -178,6 +180,68 @@ cdef class Sort:
         return dref(self.cs).hash()
 
 
+_NUMBER_TOKEN = re.compile(r"[()]|[^\s()]+")
+_NUMBER_ATOMS = (
+    (re.compile(r"#b([01]+)"), 2),
+    (re.compile(r"#x([0-9a-fA-F]+)"), 16),
+    (re.compile(r"([0-9]+)"), 10),
+)
+_FRACTION_ATOM = re.compile(r"[0-9]+(\.[0-9]+|/[0-9]+)")
+_BV_NUMERAL = re.compile(r"bv([0-9]+)")
+
+
+def _parse_number(text):
+    '''
+    Parses the SMT-LIB text of a numeric value: a numeral, decimal, binary,
+    hexadecimal or bit-vector literal, or a negation or division of these.
+    Returns an int, or a Fraction for a decimal or a division.
+    '''
+    tokens = _NUMBER_TOKEN.findall(text)
+    value, end = _parse_number_at(tokens, 0, text)
+    if end != len(tokens):
+        raise ValueError("Unable to interpret %s as a number" % text)
+    return value
+
+
+def _parse_number_at(tokens, i, text):
+    '''
+    Parses the value starting at tokens[i] and returns it together with the
+    index just past it.
+    '''
+    error = ValueError("Unable to interpret %s as a number" % text)
+    if i >= len(tokens):
+        raise error
+    if tokens[i] != "(":
+        for pattern, base in _NUMBER_ATOMS:
+            match = pattern.fullmatch(tokens[i])
+            if match:
+                return int(match.group(1), base), i + 1
+        if _FRACTION_ATOM.fullmatch(tokens[i]):
+            return Fraction(tokens[i]), i + 1
+        raise error
+    op = tokens[i + 1] if i + 1 < len(tokens) else None
+    if op == "-":
+        value, i = _parse_number_at(tokens, i + 2, text)
+        value = -value
+    elif op == "/":
+        numerator, i = _parse_number_at(tokens, i + 2, text)
+        denominator, i = _parse_number_at(tokens, i, text)
+        if denominator == 0:
+            raise error
+        value = Fraction(numerator, denominator)
+    elif op == "_" and i + 3 < len(tokens):
+        match = _BV_NUMERAL.fullmatch(tokens[i + 2])
+        if not match or not tokens[i + 3].isdecimal():
+            raise error
+        value = int(match.group(1))
+        i += 4
+    else:
+        raise error
+    if i >= len(tokens) or tokens[i] != ")":
+        raise error
+    return value, i + 1
+
+
 cdef class Term:
     def __init__(self, SmtSolver solver):
         # the solver this came from, which wraps the sorts and terms that
@@ -209,38 +273,12 @@ cdef class Term:
 
         Note: bit-vectors are always treated as unsigned integers.
         '''
-        val = dref(self.ct).to_string().decode()
-        s = self.get_sort()
-        sk = s.get_sort_kind()
-
-        try:
-            if sk == BV:
-                if val[-1] == "s":
-                    # notation from z3 for signed bv
-                    # we're choosing to always interpret
-                    # the bitvector as unsigned
-                    # users can convert if needed
-                    val = val[:-1]
-
-                if val[:2] == "#b":
-                    return int(val[2:], 2)
-                elif val[:2] == "#x":
-                    return int(val[2:], 16)
-                elif val[:5] == "(_ bv":
-                    val = val[5:]
-                    val = val[:val.find(" ")]
-                    return int(val)
-                else:
-                    raise ValueError("Unable to interpret %s as int" % self)
-            elif sk == INT:
-                if val[:2] == "(-":
-                    val = val[3:-1]
-                    val = "-" + val
-                return int(val)
-            else:
-                raise ValueError("Unable to interpret %s as int" % self)
-        except Exception:
-            raise ValueError("Unable to interpret %s as int" % self)
+        sk = self.get_sort().get_sort_kind()
+        if sk == BV or sk == INT:
+            value = _parse_number(str(self))
+            if isinstance(value, int):
+                return value
+        raise ValueError("Unable to interpret %s as int" % self)
 
     def __str__(self):
         return dref(self.ct).to_string().decode()
