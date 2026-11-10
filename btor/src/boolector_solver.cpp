@@ -409,6 +409,7 @@ Result BoolectorSolver::do_check_sat_assuming(const TermVec & assumptions)
   {
     nodes.push_back(backend_pointer_cast<BoolectorTerm>(a)->node);
   }
+  last_assumptions = assumptions;
   for (BoolectorNode * node : nodes)
   {
     boolector_assume(btor.get(), node);
@@ -884,6 +885,7 @@ void BoolectorSolver::do_reset()
   time_limit = std::chrono::duration<double>::zero();
   assertions.clear();
   scope_starts.clear();
+  last_assumptions.clear();
 }
 
 void BoolectorSolver::do_reset_assertions()
